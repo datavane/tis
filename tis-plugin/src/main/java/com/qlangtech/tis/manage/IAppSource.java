@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.manage;
 
@@ -39,14 +39,21 @@ import java.util.Optional;
 @Public
 public interface IAppSource extends Describable<IAppSource> {
 
-
     static <T extends IAppSource> KeyedPluginStore<T> getPluginStore(IPluginContext context, String appName) {
-        // return (KeyedPluginStore<T>) new KeyedPluginStore(new DataxReader.AppKey(context, false, appName, IAppSource.class));
-        return (KeyedPluginStore<T>) TIS.appSourcePluginStore.get(createAppSourceKey(context, appName));
+        return getPluginStore(context, KeyedPluginStore.StoreResourceType.DataApp, appName);
+    }
+
+    static <T extends IAppSource> KeyedPluginStore<T> getPluginStore(
+            IPluginContext context, KeyedPluginStore.StoreResourceType resType, String appName) {
+        return (KeyedPluginStore<T>) TIS.appSourcePluginStore.get(createAppSourceKey(context, resType, appName));
     }
 
     static KeyedPluginStore.AppKey createAppSourceKey(IPluginContext context, String appName) {
-        return new KeyedPluginStore.AppKey(context, KeyedPluginStore.StoreResourceType.parse(false), appName, IAppSource.class);
+        return new KeyedPluginStore.AppKey(context, KeyedPluginStore.StoreResourceType.DataApp, appName, IAppSource.class);
+    }
+
+    static KeyedPluginStore.AppKey createAppSourceKey(IPluginContext context, KeyedPluginStore.StoreResourceType resType, String appName) {
+        return new KeyedPluginStore.AppKey(context, resType, appName, IAppSource.class);
     }
 
     static void cleanPluginStoreCache(IPluginContext context, String appName) {
@@ -60,7 +67,12 @@ public interface IAppSource extends Describable<IAppSource> {
     }
 
     static <T extends IAppSource> Optional<T> loadNullable(IPluginContext context, String appName) {
-        KeyedPluginStore<T> pluginStore = getPluginStore(context, appName);
+        return loadNullable(context, KeyedPluginStore.StoreResourceType.DataApp, appName);
+    }
+
+    static <T extends IAppSource> Optional<T> loadNullable(
+            IPluginContext context, KeyedPluginStore.StoreResourceType resType, String appName) {
+        KeyedPluginStore<T> pluginStore = getPluginStore(context, resType, appName);
         IAppSource appSource = pluginStore.getPlugin();
         return (Optional<T>) Optional.ofNullable(appSource);
     }

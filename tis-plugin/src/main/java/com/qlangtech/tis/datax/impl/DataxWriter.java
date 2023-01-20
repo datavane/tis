@@ -34,7 +34,6 @@ import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
 import com.qlangtech.tis.plugin.ds.IInitWriterTableExecutor;
 import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.util.IPluginContext;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
@@ -101,13 +100,13 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
         dataXWriter.initWriterTable(tableName, jdbcUrls);
     }
 
-    /**
-     * save
-     *
-     * @param appname
-     */
     public static KeyedPluginStore<DataxWriter> getPluginStore(IPluginContext context, String appname) {
-        return TIS.dataXWriterPluginStore.get(createDataXWriterKey(context, appname));
+        return getPluginStore(context, KeyedPluginStore.StoreResourceType.DataApp, appname);
+    }
+
+
+    public static KeyedPluginStore<DataxWriter> getPluginStore(IPluginContext context, KeyedPluginStore.StoreResourceType resType, String name) {
+        return TIS.dataXWriterPluginStore.get(createDataXWriterKey(context, resType, name));
     }
 
     public static void cleanPluginStoreCache(IPluginContext context, String appname) {
@@ -115,10 +114,15 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
     }
 
     private static KeyedPluginStore.AppKey createDataXWriterKey(IPluginContext context, String appname) {
+        return createDataXWriterKey(context, KeyedPluginStore.StoreResourceType.DataApp, appname);
+    }
+
+    private static KeyedPluginStore.AppKey createDataXWriterKey(IPluginContext context
+            , KeyedPluginStore.StoreResourceType resType, String appname) {
         if (StringUtils.isEmpty(appname)) {
             throw new IllegalArgumentException("param appname can not be null");
         }
-        return new KeyedPluginStore.AppKey(context, KeyedPluginStore.StoreResourceType.parse(false), appname, DataxWriter.class);
+        return new KeyedPluginStore.AppKey(context, resType, appname, DataxWriter.class);
     }
 
 
@@ -131,17 +135,21 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
      */
     public static IDataxWriterGetter dataxWriterGetter;
 
+    public static DataxWriter load(IPluginContext context, String appName) {
+        return load(context, KeyedPluginStore.StoreResourceType.DataApp, appName);
+    }
+
     /**
      * load
      *
      * @param appName
      * @return
      */
-    public static DataxWriter load(IPluginContext context, String appName) {
+    public static DataxWriter load(IPluginContext context, KeyedPluginStore.StoreResourceType resType, String appName) {
         if (dataxWriterGetter != null) {
             return dataxWriterGetter.get(appName);
         }
-        DataxWriter appSource = getPluginStore(context, appName).getPlugin();
+        DataxWriter appSource = getPluginStore(context, resType, appName).getPlugin();
         Objects.requireNonNull(appSource, "appName:" + appName + " relevant appSource can not be null");
         return appSource;
     }

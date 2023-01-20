@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.sql.parser;
 
@@ -27,7 +27,6 @@ import com.qlangtech.tis.fullbuild.taskflow.ITemplateContext;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
-import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta.SqlDataFlowTopology;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
@@ -74,7 +73,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
 
         assertTrue(err.isPresent());
 
-        assertEquals("base ref:gg can not find relevant table entity in map,mapSize:1,exist:[g:tis.commodity_goods],位置，行:1,列:44", err.get().summary());
+        assertEquals("base ref:gg can not find relevant table entity in map,mapSize:1,exist:[g:commodity_goods],位置，行:1,列:44", err.get().summary());
     }
 
     /**
@@ -98,14 +97,46 @@ public class TestSqlTaskNodeMeta extends TestCase {
         assertFalse(err.isPresent());
     }
 
+    public void testGetColMetaGetterSql() throws Exception {
+        SqlTaskNodeMeta taskNodeMeta = new SqlTaskNodeMeta();
+        taskNodeMeta.setSql(TestSqlRewriter.getScriptContent("supply_goods_rewrite_origin.sql"));
+        TabPartitions dumpPartition = createTabPartition();
+        ISqlTask.RewriteSql colMetaGetterSql = taskNodeMeta.getColMetaGetterSql(dumpPartition);
+
+        System.out.println(colMetaGetterSql.sqlContent);
+
+        assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result_col_meta_get.sql"), colMetaGetterSql.sqlContent);
+
+    }
+
 
     public void testGetRewriteSql() throws Exception {
         SqlTaskNodeMeta taskNodeMeta = new SqlTaskNodeMeta();
-        SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(TestSupplyGoodsParse.topologyName);
-        assertNotNull(topology);
-        SqlTaskNodeMeta finalNode = topology.getFinalNode();
-        assertNotNull(finalNode);
-        taskNodeMeta.setSql(finalNode.getSql());
+        // SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(TestSupplyGoodsParse.topologyName);
+        // assertNotNull(topology);
+        // SqlTaskNodeMeta finalNode = topology.getFinalNode();
+        // assertNotNull(finalNode);
+        taskNodeMeta.setSql(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result_origin.sql"));
+        TabPartitions dumpPartition = createTabPartition();
+        ITemplateContext tplContext = EasyMock.createMock("templateContext", ITemplateContext.class);
+        IJoinTaskContext joinTaskContext = EasyMock.createMock("joinTaskContext", IJoinTaskContext.class);
+        EasyMock.expect(tplContext.getExecContext()).andReturn(joinTaskContext);
+        EasyMock.expect(joinTaskContext.getExecutePhaseRange()).andReturn(ExecutePhaseRange.fullRange()).times(2);
+        EasyMock.expect(joinTaskContext.getIndexShardCount()).andReturn(1).times(1);
+        Optional<ERRules> erRule = ERRules.getErRule(TestSupplyGoodsParse.topologyName);
+        assertTrue(erRule.isPresent());
+        EasyMock.replay(tplContext, joinTaskContext);
+
+        ISqlTask.RewriteSql rewriteSql = taskNodeMeta.getRewriteSql(
+                "supply_goods", dumpPartition, erRule.get(), tplContext, true);
+
+        assertNotNull(rewriteSql);
+        assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result.txt"), rewriteSql.sqlContent);
+        System.out.println(rewriteSql.sqlContent);
+        EasyMock.verify(tplContext, joinTaskContext);
+    }
+
+    private TabPartitions createTabPartition() {
         Map<IDumpTable, ITabPartition> dumpPartition = Maps.newHashMap();
         String pt = "20200703113848";
         dumpPartition.put(EntityName.parse("scmdb.warehouse_goods"), () -> pt);
@@ -117,22 +148,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
         dumpPartition.put(EntityName.parse("scmdb.stock_info"), () -> pt);
         dumpPartition.put(EntityName.parse("scmdb.category"), () -> pt);
         dumpPartition.put(EntityName.parse("scmdb.goods_sync_shop"), () -> pt);
-        ITemplateContext tplContext = EasyMock.createMock("templateContext", ITemplateContext.class);
-        IJoinTaskContext joinTaskContext = EasyMock.createMock("joinTaskContext", IJoinTaskContext.class);
-        EasyMock.expect(tplContext.getExecContext()).andReturn(joinTaskContext);
-        EasyMock.expect(joinTaskContext.getExecutePhaseRange()).andReturn(ExecutePhaseRange.fullRange()).times(2);
-        EasyMock.expect(joinTaskContext.getIndexShardCount()).andReturn(1).times(1);
-        Optional<ERRules> erRule = ERRules.getErRule(TestSupplyGoodsParse.topologyName);
-        assertTrue(erRule.isPresent());
-        EasyMock.replay(tplContext, joinTaskContext);
-
-        ISqlTask.RewriteSql rewriteSql = taskNodeMeta.getRewriteSql(
-                "supply_goods", new TabPartitions(dumpPartition), erRule.get(), tplContext, true);
-
-        assertNotNull(rewriteSql);
-        assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result.txt"), rewriteSql.sqlContent);
-        System.out.println(rewriteSql.sqlContent);
-        EasyMock.verify(tplContext, joinTaskContext);
+        return new TabPartitions(dumpPartition); // dumpPartition;
     }
 
     public void testBigTextSerialize() {

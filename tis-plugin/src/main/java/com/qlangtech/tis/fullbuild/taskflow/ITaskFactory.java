@@ -1,7 +1,10 @@
-package com.qlangtech.tis.plugin.ds;
+package com.qlangtech.tis.fullbuild.taskflow;
 
-import java.util.Collections;
-import java.util.List;
+import com.qlangtech.tis.fs.ITaskContext;
+import com.qlangtech.tis.fullbuild.phasestatus.IJoinTaskStatus;
+import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
+import com.qlangtech.tis.sql.parser.ISqlTask;
+import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,29 +25,13 @@ import java.util.List;
  */
 
 /**
- * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-10-17 09:47
- **/
-public final class DefaultTab implements ISelectedTab {
-    private final String dataXName;
-    private final List<CMeta> writerCols;
+ *
+ *
+ * @author 百岁（baisui@qlangtech.com）
+ * @date 2015年10月31日 下午10:14:48
+ */
+public interface ITaskFactory {
 
-    public DefaultTab(String dataXName, List<CMeta> writerCols) {
-        this.dataXName = dataXName;
-        this.writerCols = writerCols;
-    }
 
-    public DefaultTab(String tabName) {
-        this(tabName, Collections.emptyList());
-    }
 
-    @Override
-    public String getName() {
-        return dataXName;
-    }
-
-    @Override
-    public List<CMeta> getCols() {
-        return writerCols;
-    }
 }

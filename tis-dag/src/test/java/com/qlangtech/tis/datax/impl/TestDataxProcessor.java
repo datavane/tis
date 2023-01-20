@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.datax.impl;
 
+import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.sql.parser.stream.generate.BasicTestCase;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.RandomStringUtils;
@@ -36,7 +37,7 @@ public class TestDataxProcessor extends BasicTestCase {
         IPluginContext pluginContext = EasyMock.createMock("pluginContext", IPluginContext.class);
         String randomDataXName = RandomStringUtils.randomAlphabetic(4);
         EasyMock.replay(pluginContext);
-        DataxProcessor dataxProcessor = DataxProcessor.load(pluginContext, randomDataXName);
+        IDataxProcessor dataxProcessor = DataxProcessor.load(pluginContext, randomDataXName);
         assertNotNull(dataxProcessor);
         EasyMock.verify(pluginContext);
     }

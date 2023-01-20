@@ -25,6 +25,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -117,7 +118,7 @@ public class SchemaAction extends BasicModule {
     Objects.requireNonNull(esTab, "esTab can not be null");
     // ESField field = null;
     if (stepType.update) {
-      DataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);
+      IDataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);
 
       Optional<TableAlias> f = dataxProcessor.getTabAlias().findFirst();
       if (f.isPresent()) {

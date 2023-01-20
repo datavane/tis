@@ -94,8 +94,9 @@ public interface ISolrAppSource extends IBasicAppSource, IStreamIncrGenerateStra
     }
 
     interface ISingleTableDumpFactory {
-        DataflowTask createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
-                , ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus);
+        List<DataflowTask> createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
+                , ITISCoordinator zkClient, IExecChainContext execChainContext
+                , DumpPhaseStatus dumpPhaseStatus, ITaskPhaseInfo taskPhaseInfo);
     }
 }
 

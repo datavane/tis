@@ -144,23 +144,23 @@ public class SqlRewriter extends Formatter {
     protected Void visitTable(Table tab, Integer indent) {
         String tableName = String.valueOf(tab.getName());
         QualifiedName tabName = tab.getName();
-        Map.Entry<IDumpTable, ITabPartition> findTab = parseDumpTable(tabName);
-        waitProcessAliasTabsSet.add(new AliasTable(tableName, findTab.getKey(), findTab.getValue()));
+        TabPartitions.DumpTabPartition findTab = parseDumpTable(tabName);
+        waitProcessAliasTabsSet.add(new AliasTable(tableName, findTab.tab, findTab.pt));
         processTable(findTab);
         return null;
     }
 
-    private void processTable(Map.Entry<IDumpTable, ITabPartition> findTab) {
-        IDumpTable t = findTab.getKey();
-        this.builder.append(t.getDbName()).append(".").append(t.getTableName());
+    private void processTable(TabPartitions.DumpTabPartition findTab) {
+        IDumpTable t = findTab.tab;
+        this.builder.append(t.getFullName());//.append(t.getDbName()).append(".").append(t.getTableName());
     }
 
     @Override
     protected Void visitAliasedRelation(AliasedRelation node, Integer indent) {
         if (node.getRelation() instanceof Table) {
             Table tab = (Table) node.getRelation();
-            Map.Entry<IDumpTable, ITabPartition> dumpTable = parseDumpTable(tab.getName());
-            waitProcessAliasTabsSet.add(new AliasTable(node.getAlias().getValue(), dumpTable.getKey(), dumpTable.getValue()));
+            TabPartitions.DumpTabPartition dumpTable = parseDumpTable(tab.getName());
+            waitProcessAliasTabsSet.add(new AliasTable(node.getAlias().getValue(), dumpTable.tab, dumpTable.pt));
             processTable(dumpTable);
             builder.append(' ').append(formatExpression(node.getAlias(), parameters));
             SqlFormatter.appendAliasColumns(builder, node.getColumnNames());
@@ -252,9 +252,9 @@ public class SqlRewriter extends Formatter {
         }
     }
 
-    private Map.Entry<IDumpTable, ITabPartition> parseDumpTable(QualifiedName tabName) {
+    private TabPartitions.DumpTabPartition parseDumpTable(QualifiedName tabName) {
         List<String> originalParts = tabName.getOriginalParts();
-        Optional<Map.Entry<IDumpTable, ITabPartition>> find = null;
+        Optional<TabPartitions.DumpTabPartition> find = null;
         if (originalParts.size() == 2) {
 
             find = tabPartition.findTablePartition(originalParts.get(0), originalParts.get(1));
@@ -286,7 +286,7 @@ public class SqlRewriter extends Formatter {
         if (!find.isPresent()) {
             throw new TisSqlFormatException(tabName.toString() + " can not find tab in[" + tabPartition.joinFullNames() + "]", Optional.empty()); // IllegalStateException(tabName.toString() + " can not find tab in[" + tabPartition.joinFullNames() + "]");
         }
-        Map.Entry<IDumpTable, ITabPartition> findTab = find.get();
+        TabPartitions.DumpTabPartition findTab = find.get();
         return findTab;
     }
 

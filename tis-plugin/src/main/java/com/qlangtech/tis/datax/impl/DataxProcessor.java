@@ -74,13 +74,18 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     // for TEST
     public static IDataxProcessorGetter processorGetter;
 
-    public static DataxProcessor load(IPluginContext pluginContext, String dataXName) {
+
+    public static IDataxProcessor load(IPluginContext pluginContext, String dataXName) {
+        return load(pluginContext, KeyedPluginStore.StoreResourceType.DataApp, dataXName);
+    }
+
+    public static IDataxProcessor load(IPluginContext pluginContext, KeyedPluginStore.StoreResourceType resType, String dataXName) {
         if (processorGetter != null) {
             return processorGetter.get(dataXName);
         }
-        Optional<DataxProcessor> appSource = IAppSource.loadNullable(pluginContext, dataXName);
+        Optional<IAppSource> appSource = IAppSource.loadNullable(pluginContext, resType, dataXName);
         if (appSource.isPresent()) {
-            return appSource.get();
+            return (IDataxProcessor) appSource.get();
         } else {
             Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
             Map<String, /** * attr key */com.alibaba.fastjson.JSONObject> formData
@@ -225,7 +230,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
         });
     }
 
-    private void scanNotebook(Map<String, INotebookable.NotebookEntry> notebookable, Object bean) throws IllegalAccessException, InvocationTargetException {
+    private void scanNotebook(Map<String, INotebookable.NotebookEntry> notebookable, Object bean)
+            throws IllegalAccessException, InvocationTargetException {
         PropertyUtilsBean propertyUtils = BeanUtilsBean.getInstance().getPropertyUtils();
         PropertyDescriptor[] readerProps = propertyUtils.getPropertyDescriptors(bean.getClass());
         Class<?> propertyType = null;
@@ -236,7 +242,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
                 plugin = (Describable) prop.getReadMethod().invoke(bean);
                 if (plugin instanceof IdentityName
                         && plugin.getDescriptor() instanceof INotebookable) {
-                    notebookable.put(((IdentityName) plugin).identityValue(), new INotebookable.NotebookEntry((INotebookable) plugin.getDescriptor(), plugin));
+                    notebookable.put(((IdentityName) plugin).identityValue(),
+                            new INotebookable.NotebookEntry((INotebookable) plugin.getDescriptor(), plugin));
                     return;
                 }
             }
@@ -249,13 +256,32 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
 
     @Override
     public File getDataxCfgDir(IPluginContext pluginContext) {
-        File dataXWorkDir = getDataXWorkDir(pluginContext);
+//        File dataXWorkDir = getDataXWorkDir(pluginContext);
+//        return new File(dataXWorkDir, DATAX_CFG_DIR_NAME);
+        return getDataxCfgDir(pluginContext, this);
+    }
+
+    public static File getDataxCfgDir(IPluginContext pluginContext, IDataxProcessor processor) {
+        File dataXWorkDir = processor.getDataXWorkDir(pluginContext);
         return new File(dataXWorkDir, DATAX_CFG_DIR_NAME);
     }
 
     @Override
     public File getDataxCreateDDLDir(IPluginContext pluginContext) {
-        File dataXWorkDir = getDataXWorkDir(pluginContext);
+//        File dataXWorkDir = getDataXWorkDir(pluginContext);
+//        File ddlDir = new File(dataXWorkDir, DATAX_CREATE_DDL_DIR_NAME);
+//        try {
+//            FileUtils.forceMkdir(ddlDir);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//        return ddlDir;
+        return getDataxCreateDDLDir(pluginContext, this);
+    }
+
+
+    public static File getDataxCreateDDLDir(IPluginContext pluginContext, IDataxProcessor processor) {
+        File dataXWorkDir = processor.getDataXWorkDir(pluginContext);
         File ddlDir = new File(dataXWorkDir, DATAX_CREATE_DDL_DIR_NAME);
         try {
             FileUtils.forceMkdir(ddlDir);
@@ -289,29 +315,28 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
      */
     @Override
     public DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginContext) {
-        File dataxCfgDir = getDataxCfgDir(pluginContext);
+//        File dataxCfgDir = getDataxCfgDir(pluginContext);
+//        if (!dataxCfgDir.exists()) {
+//            throw new IllegalStateException("dataxCfgDir is not exist:" + dataxCfgDir.getAbsolutePath());
+//        }
+//        if (dataxCfgDir.list().length < 1) {
+//            throw new IllegalStateException("dataxCfgDir is empty can not find any files:" + dataxCfgDir.getAbsolutePath());
+//        }
+//        DataXCfgGenerator.GenerateCfgs genCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(dataxCfgDir);
+//        return genCfgs;
+        return DataxProcessor.getDataxCfgFileNames(pluginContext, this);
+    }
+
+    public static DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginContext, IDataxProcessor processor) {
+        File dataxCfgDir = processor.getDataxCfgDir(pluginContext);
         if (!dataxCfgDir.exists()) {
             throw new IllegalStateException("dataxCfgDir is not exist:" + dataxCfgDir.getAbsolutePath());
         }
         if (dataxCfgDir.list().length < 1) {
             throw new IllegalStateException("dataxCfgDir is empty can not find any files:" + dataxCfgDir.getAbsolutePath());
         }
-
-        //List<File> dataXConf = Lists.newArrayList();
-
         DataXCfgGenerator.GenerateCfgs genCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(dataxCfgDir);
-
         return genCfgs;
-//        File dataXCfg = null;
-//        for (String child : genCfgs.getDataxFiles()) {
-//            dataXCfg = new File(dataxCfgDir, child);
-//            if (!dataXCfg.exists()) {
-//                throw new IllegalStateException("dataXCfg is not exist, path:" + dataXCfg.getAbsolutePath());
-//            }
-//            dataXConf.add(dataXCfg);
-//        }
-//
-//        return dataXConf;
     }
 
     public static class DataXCreateProcessMeta extends DataXBasicProcessMeta {

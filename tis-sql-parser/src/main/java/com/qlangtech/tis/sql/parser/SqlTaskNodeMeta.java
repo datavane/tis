@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.sql.parser;
 
@@ -244,6 +244,131 @@ public class SqlTaskNodeMeta implements ISqlTask {
 //            return null;
 //        }
 //    }
+
+    /**
+     * 为了在创建表之前先取得创建表的Col Type需要，需要将用户提交的SQL 进行rewriter将所有的pt的约束都改成无效pt，这样查询会立即进行
+     *
+     * @return
+     */
+    public RewriteSql getColMetaGetterSql(TabPartitions tabPartitions) {
+
+        final IJoinTaskContext taskContext = new IJoinTaskContext() {
+            @Override
+            public String getIndexName() {
+                return null;
+            }
+
+            @Override
+            public boolean hasIndexName() {
+                return false;
+            }
+
+            @Override
+            public int getTaskId() {
+                return 0;
+            }
+
+            @Override
+            public int getIndexShardCount() {
+                return 1;
+            }
+
+            @Override
+            public <T> T getAttribute(String key) {
+                return null;
+            }
+
+            @Override
+            public void setAttribute(String key, Object v) {
+
+            }
+
+            @Override
+            public IAppSourcePipelineController getPipelineController() {
+                return null;
+            }
+
+            @Override
+            public ExecutePhaseRange getExecutePhaseRange() {
+                return ExecutePhaseRange.fullRange();
+            }
+
+            @Override
+            public String getString(String key) {
+                return null;
+            }
+
+            @Override
+            public boolean getBoolean(String key) {
+                return false;
+            }
+
+            @Override
+            public int getInt(String key) {
+                return 0;
+            }
+
+            @Override
+            public long getLong(String key) {
+                return 0;
+            }
+
+            @Override
+            public String getPartitionTimestamp() {
+                return null;
+            }
+        };
+
+        ITemplateContext tplContext = new ITemplateContext() {
+            @Override
+            public <T> T getContextValue(String key) {
+                return null;
+            }
+
+            @Override
+            public void putContextValue(String key, Object v) {
+
+            }
+
+            @Override
+            public IJoinTaskContext getExecContext() {
+                return taskContext;
+            }
+        };
+
+        IPrimaryTabFinder erRules = new IPrimaryTabFinder() {
+            @Override
+            public Optional<TableMeta> getPrimaryTab(IDumpTable entityName) {
+                return Optional.empty();
+            }
+
+            @Override
+            public Map<EntityName, TabFieldProcessor> getTabFieldProcessorMap() {
+                return Collections.emptyMap();
+            }
+        };
+
+        Optional<List<Expression>> parameters = Optional.empty();
+        IJoinTaskContext joinContext = tplContext.getExecContext();
+        SqlStringBuilder builder = new SqlStringBuilder();
+        SelectColsMetaGetter rewriter = new SelectColsMetaGetter(builder, erRules, tabPartitions, parameters, joinContext);
+        // 执行rewrite
+        try {
+            Statement state = getSqlStatement();
+            rewriter.process(state, 0);
+        } catch (TisSqlFormatException e) {
+            throw e;
+        } catch (Exception e) {
+            // String dp = dumpPartition.toString(); //dumpPartition.entrySet().stream().map((ee) -> "[" + ee.getKey() + "->" + ee.getValue().getPt() + "]").collect(Collectors.joining(","));
+            throw new IllegalStateException(e);
+        }
+//        SqlRewriter.AliasTable primaryTable = rewriter.getPrimayTable();
+//        if (primaryTable == null) {
+//            throw new IllegalStateException("task:" + taskName + " has not find primary table");
+//        }
+//        // return ;
+        return new RewriteSql(builder.toString(), null);
+    }
 
     @Override
     public RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition
@@ -637,7 +762,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             List<ColName> colNames = task.parse(false).getColsRefs().getColRefMap().keySet();
             AtomicInteger index = new AtomicInteger();
             return colNames.stream().map((c) -> {
-                return new ColumnMetaData(index.getAndIncrement(), c.getAliasName(), new DataType(Types.VARCHAR) , false);
+                return new ColumnMetaData(index.getAndIncrement(), c.getAliasName(), new DataType(Types.VARCHAR), false);
             }).collect(Collectors.toList());
         }
 

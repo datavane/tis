@@ -20,9 +20,9 @@ package com.qlangtech.tis.manage.impl;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
+import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
@@ -38,9 +38,8 @@ import com.qlangtech.tis.fullbuild.taskflow.TemplateContext;
 import com.qlangtech.tis.manage.IDataFlowAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.offline.FlatTableBuilder;
-import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
@@ -72,16 +71,27 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
     public static final File parent = new File(Config.getPluginCfgDir(), IFullBuildContext.NAME_APP_DIR);
     private final String dataflowName;
     private final WorkFlow dataflow;
+    private final IFlatTableBuilder flatTableBuilder;
+    private final IDataSourceFactoryGetter dsGetter;
     protected static final ExecutorService executorService = Executors.newCachedThreadPool();
 
-    public DataFlowAppSource(WorkFlow dataflow) {
+    public DataFlowAppSource(WorkFlow dataflow, IDataxWriter writer) {
         this.dataflowName = dataflow.getName();
         this.dataflow = dataflow;
+        if (!(writer instanceof IFlatTableBuilder)) {
+            throw new IllegalStateException(writer.getClass() + " must be type of " + IFlatTableBuilder.class.getSimpleName());
+        }
+        if (!(writer instanceof IDataSourceFactoryGetter)) {
+            throw new IllegalStateException(writer.getClass() + " must be type of " + IFlatTableBuilder.class.getSimpleName());
+        }
+        this.flatTableBuilder = (IFlatTableBuilder) writer;
+        this.dsGetter = (IDataSourceFactoryGetter) writer;
     }
 
     public Integer getDfId() {
         return this.dataflow.getId();
     }
+
 
     @Override
     public boolean isExcludeFacadeDAOSupport() {
@@ -129,10 +139,14 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
         return erRules.get();
     }
 
-//    @Override
-//    public List<PrimaryTableMeta> getPrimaryTabs() {
-//        return getErRules().getPrimaryTabs();
-//    }
+    //    @Override
+    public List<PrimaryTableMeta> getPrimaryTabs() {
+        try {
+            return getErRules().getPrimaryTabs();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public ExecuteResult getProcessDataResults(IExecChainContext execChainContext
@@ -152,40 +166,43 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
         logger.info(dumps.toString());
         // 将所有的表的状态先初始化出来
         DumpPhaseStatus dumpPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.FullDump);
-        DataflowTask tabDump = null;
+        List<DataflowTask> tabDump = null;
         for (DependencyNode dump : topology.getDumpNodes()) {
             tabDump = singleTableDumpFactory.createSingleTableDump(dump, false, /* isHasValidTableDump */
-                    "tableDump.getPt()", execChainContext.getZkClient(), execChainContext, dumpPhaseStatus);
-            taskMap.put(dump.getId(), new TISReactor.TaskAndMilestone(tabDump));
+                    "tableDump.getPt()", execChainContext.getZkClient(), execChainContext, dumpPhaseStatus, taskPhaseInfo);
+            for (DataflowTask tsk : tabDump) {
+                taskMap.put(tsk.getIdentityName(), new TISReactor.TaskAndMilestone(tsk));
+            }
         }
+        ERRules erRules = this.getErRules();
+//        if (topology.isSingleTableModel()) {
+//            return executeDAG(execChainContext, topology, dataProcessFeedback, taskMap);
+//        } else {
+        final ExecuteResult[] faildResult = new ExecuteResult[1];
+        TemplateContext tplContext = new TemplateContext(execChainContext);
+        JoinPhaseStatus joinPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
+        //IPluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
+        //Objects.requireNonNull(pluginStore.getPlugin(), "flatTableBuilder can not be null");
+        // chainContext.setFlatTableBuilderPlugin(pluginStore.getPlugin());
+        // final IFlatTableBuilder flatTableBuilder = pluginStore.getPlugin();// execChainContext.getFlatTableBuilder();
+        final SqlTaskNodeMeta fNode = topology.getFinalNode();
+        flatTableBuilder.startTask((context) -> {
+            DataflowTask process = null;
+            for (SqlTaskNodeMeta pnode : topology.getNodeMetas()) {
+                /**
+                 * ***********************************
+                 * 构建宽表构建任务节点
+                 * ************************************
+                 */
+                process = flatTableBuilder.createTask(pnode, StringUtils.equals(fNode.getId(), pnode.getId())
+                        , tplContext, context, joinPhaseStatus.getTaskStatus(pnode.getExportName()), this.flatTableBuilder, this.dsGetter, erRules);
 
-        if (topology.isSingleTableModel()) {
-            return executeDAG(execChainContext, topology, dataProcessFeedback, taskMap);
-        } else {
-            final ExecuteResult[] faildResult = new ExecuteResult[1];
-            TemplateContext tplContext = new TemplateContext(execChainContext);
-            JoinPhaseStatus joinPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
-            IPluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
-            Objects.requireNonNull(pluginStore.getPlugin(), "flatTableBuilder can not be null");
-            // chainContext.setFlatTableBuilderPlugin(pluginStore.getPlugin());
-            final IFlatTableBuilder flatTableBuilder = pluginStore.getPlugin();// execChainContext.getFlatTableBuilder();
-            final SqlTaskNodeMeta fNode = topology.getFinalNode();
-            flatTableBuilder.startTask((context) -> {
-                DataflowTask process = null;
-                for (SqlTaskNodeMeta pnode : topology.getNodeMetas()) {
-                    /**
-                     * ***********************************
-                     * 构建宽表构建任务节点
-                     * ************************************
-                     */
-                    process = flatTableBuilder.createTask(pnode, StringUtils.equals(fNode.getId(), pnode.getId())
-                            , tplContext, context, joinPhaseStatus.getTaskStatus(pnode.getExportName()));
-                    taskMap.put(pnode.getId(), new TISReactor.TaskAndMilestone(process));
-                }
-                faildResult[0] = executeDAG(execChainContext, topology, dataProcessFeedback, taskMap);
-            });
-            return faildResult[0];
-        }
+                taskMap.put(pnode.getId(), new TISReactor.TaskAndMilestone(process));
+            }
+            faildResult[0] = executeDAG(execChainContext, topology, dataProcessFeedback, taskMap);
+        });
+        return faildResult[0];
+        // }
     }
 
 
@@ -285,13 +302,13 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
     }
 
     // @Override
-    public IERRules getERRule() {
-        try {
-            return this.getErRules();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    public IERRules getERRule() {
+//        try {
+//            return this.getErRules();
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     /**
      * 取得依赖的db->table映射关系

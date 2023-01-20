@@ -18,28 +18,38 @@
 package com.qlangtech.tis.exec.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.IDataxWriter;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
+import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.exec.datax.DataXAssembleSvcCompsite;
+import com.qlangtech.tis.exec.datax.DataXExecuteInterceptor;
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
+import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
+import com.qlangtech.tis.fullbuild.taskflow.DumpTask;
 import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
-import com.qlangtech.tis.fullbuild.workflow.SingleTableDump;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.ds.DefaultTab;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.jvnet.hudson.reactor.Task;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 工作流dump流程
@@ -60,24 +70,52 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
         WorkFlow wf = new WorkFlow();
         wf.setId(null);
         wf.setName("name");
-        ISolrAppSource appRule = new DataFlowAppSource(wf);
 
 
-        // ISolrAppSource appRule = execChainContext.getAppSource(); // DataFlowAppSource.load(execChainContext.getIndexName());
+
+        // ISolrAppSource appRule = execChainContext.getAppSource(); //
+        //  DataFlowAppSource.load(execChainContext.getIndexName());
 
         //  execChainContext.getZkClient()
 //        IExecChainContext execChainContext, TisZkClient zkClient
 //                , DataFlowAppSource.ISingleTableDumpFactory singleTableDumpFactory, IAppSource.IDataProcessFeedback
 //        dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo
+        IDataxProcessor dataxProc = DataxProcessor.load(null, KeyedPluginStore.StoreResourceType.DataFlow, wf.getName());
+        IDataxWriter writer = dataxProc.getWriter(null);
+        DataFlowAppSource appRule = new DataFlowAppSource(wf, writer);
+        Map<String, TISReactor.TaskAndMilestone> taskMap = Maps.newHashMap();
         RpcServiceReference dataXExecReporter = getDataXExecReporter();
+        DataXJobSubmit.InstanceType triggerType = DataXJobSubmit.getDataXTriggerType();
+        Optional<DataXJobSubmit> jobSubmit = DataXJobSubmit.getDataXJobSubmit(triggerType);
+        if (!jobSubmit.isPresent()) {
+            throw new IllegalStateException("jobSumit can not be empty,triggerType:" + triggerType);
+        }
+
+        DataXJobSubmit submit = jobSubmit.get();
         final DataXAssembleSvcCompsite svcCompsite = dataXExecReporter.get();
         final ExecuteResult faildResult = appRule.getProcessDataResults(execChainContext, new ISolrAppSource.ISingleTableDumpFactory() {
                     @Override
-                    public DataflowTask createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
-                            , ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus) {
-                        return new SingleTableDump(dump, hasValidTableDump, /* isHasValidTableDump */
-                                pt, zkClient, execChainContext, dumpPhaseStatus);
-                        // throw new UnsupportedOperationException();
+                    public List<DataflowTask> createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
+                            , ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus, ITaskPhaseInfo taskPhaseInfo) {
+                        JoinPhaseStatus joinStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
+                        RemoteTaskTriggers tskTrigger = DataXExecuteInterceptor.buildTaskTriggers(
+                                execChainContext, dataxProc, taskMap, submit, dataXExecReporter, new DefaultTab(dump.getName()));
+                        List<DataflowTask> dfTsks = Lists.newArrayList();
+                        for (IRemoteTaskTrigger join : tskTrigger.getJoinPhaseTasks()) {
+                            dfTsks.add(DataXExecuteInterceptor.createJoinTask(join, joinStatus.getTaskStatus(join.getTaskName())));
+                        }
+                        for (IRemoteTaskTrigger tabDump : tskTrigger.getDumpPhaseTasks()) {
+                            dfTsks.add(DumpTask.createDumpTask(tabDump, dumpPhaseStatus.getTable(dump.getName())));
+                        }
+
+                        return dfTsks;
+
+//                        DataXJobSubmit.IDataXJobContext jobCtx = submit.createJobContext(execChainContext);
+//
+//                        DataXJobSubmit.TableDataXEntity tabEntity = DataXJobSubmit.TableDataXEntity.createTableEntity4Test(, dump.getName());
+//                        List<String> dptTasks = new ArrayList<>();
+//                        return DumpTask.createDumpTask(submit.createDataXJob(jobCtx, dataXExecReporter, dataxProc, tabEntity, dptTasks), dumpPhaseStatus.getTable(dump.getName()));
+
                     }
                 },
                 new ISolrAppSource.IDataProcessFeedback() {

@@ -91,6 +91,7 @@ public class AbstractActionInvocation implements ActionInvocation {
         } else if (chainContext.hasIndexName()) {
 
             IBasicAppSource appSource = chainContext.getAppSource();// DataFlowAppSource.load(chainContext.getIndexName());
+
             ints = appSource.accept(new IBasicAppSource.IAppSourceVisitor<IExecuteInterceptor[]>() {
                 @Override
                 public IExecuteInterceptor[] visit(DataxProcessor app) {

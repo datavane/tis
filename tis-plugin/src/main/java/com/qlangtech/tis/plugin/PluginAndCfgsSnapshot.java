@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.PluginManager;
@@ -222,7 +223,7 @@ public class PluginAndCfgsSnapshot {
             sourceFactory.create();
 
             // 先收集plugmeta，特别是通过dataXWriter的dataSource关联的元数据
-            DataxProcessor processor = DataxProcessor.load(null, collection.getName());
+            IDataxProcessor processor = DataxProcessor.load(null, collection.getName());
             TISSinkFactory incrSinKFactory = TISSinkFactory.getIncrSinKFactory(collection.getName());
             incrSinKFactory.createSinkFunction(processor);
             //  RobustReflectionConverter.usedPluginInfo.get();

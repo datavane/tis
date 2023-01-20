@@ -34,6 +34,7 @@ import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails
 import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer.CoreNode;
+import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
@@ -456,7 +457,7 @@ public class CoreAction extends BasicModule {
   private static IndexIncrStatus doGetDataXReaderWriterDesc(String appName) throws Exception {
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     incrStatus.setState(IFlinkIncrJobStatus.State.NONE);
-    DataxProcessor dataxProcessor = DataxProcessor.load(null, appName);
+    IDataxProcessor dataxProcessor = DataxProcessor.load(null, appName);
     DataxWriter writer = (DataxWriter) dataxProcessor.getWriter(null);
     incrStatus.setWriterDesc(createDescVals(writer.getDescriptor()));
 

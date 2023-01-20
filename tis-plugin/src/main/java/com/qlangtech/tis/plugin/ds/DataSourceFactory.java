@@ -70,7 +70,6 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     // public abstract void refectTableInDB(TableInDB tabs, Connection conn) throws SQLException;
 
 
-
     /**
      * Get all the dump
      *
@@ -162,9 +161,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     protected List<ColumnMetaData> parseTableColMeta(String jdbcUrl, JDBCConnection conn, EntityName table)
             throws SQLException, TableNotFoundException {
         table = logicTable2PhysicsTable(jdbcUrl, table);
-        final List<ColumnMetaData> columns = Lists.newArrayList();
-        // 防止有col重复，测试中有用户取出的cols会有重复的
-        final Set<String> addedCols = Sets.newHashSet();
+
+
 //        validateConnection(jdbcUrl, (conn) -> {
         DatabaseMetaData metaData1 = null;
         ResultSet primaryKeys = null;
@@ -189,8 +187,35 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 String columnName = primaryKeys.getString("COLUMN_NAME");
                 pkCols.add(columnName);
             }
-            int i = 0;
-            String colName = null;
+
+            return wrapColsMeta(columns1, pkCols);
+        } finally {
+            closeResultSet(columns1);
+            closeResultSet(primaryKeys);
+        }
+        // });
+        //  return columns;
+    }
+
+    public List<ColumnMetaData> wrapColsMeta(ResultSet columns1) throws SQLException {
+        return wrapColsMeta(columns1, Collections.emptySet());
+    }
+
+    public static final String KEY_COLUMN_NAME = "COLUMN_NAME";
+    public static final String KEY_REMARKS = "REMARKS";
+    public static final String KEY_NULLABLE = "NULLABLE";
+
+    public static final String KEY_DECIMAL_DIGITS = "DECIMAL_DIGITS";
+    public static final String KEY_TYPE_NAME = "TYPE_NAME";
+
+    public static final String KEY_DATA_TYPE = "DATA_TYPE";
+    public static final String KEY_COLUMN_SIZE = "COLUMN_SIZE";
+
+
+    private List<ColumnMetaData> wrapColsMeta(ResultSet columns1, Set<String> pkCols) throws SQLException {
+        String comment;
+        ColumnMetaData colMeta;
+        String colName = null;
 
 //                ResultSetMetaData metaData = columns1.getMetaData();
 //                System.out.println("getColumnCount:" + metaData.getColumnCount());
@@ -198,52 +223,50 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 //                    System.out.println(metaData.getColumnName(ii));
 //                }
 
-            /** for mysql:
-             * TABLE_CAT
-             * TABLE_SCHEM
-             * TABLE_NAME
-             * COLUMN_NAME
-             * DATA_TYPE
-             * TYPE_NAME
-             * COLUMN_SIZE
-             * BUFFER_LENGTH
-             * DECIMAL_DIGITS
-             * NUM_PREC_RADIX
-             * NULLABLE
-             * REMARKS
-             * COLUMN_DEF
-             * SQL_DATA_TYPE
-             * SQL_DATETIME_SUB
-             * CHAR_OCTET_LENGTH
-             * ORDINAL_POSITION
-             * IS_NULLABLE
-             * SCOPE_CATALOG
-             * SCOPE_SCHEMA
-             * SCOPE_TABLE
-             * SOURCE_DATA_TYPE
-             * IS_AUTOINCREMENT
-             * IS_GENERATEDCOLUMN
-             * */
-            while (columns1.next()) {
-                colName = columns1.getString("COLUMN_NAME");
-                comment = columns1.getString("REMARKS");
-                // 如果有重复的col已经添加则直接跳过
-                if (addedCols.add(colName)) {
-                    colMeta = new ColumnMetaData((i++), colName
-                            , getDataType(colName, columns1), pkCols.contains(colName)
-                            , columns1.getBoolean("NULLABLE"));
-                    if (StringUtils.isNotEmpty(comment)) {
-                        colMeta.setComment(comment);
-                    }
-                    columns.add(colMeta);
+        /** for mysql:
+         * TABLE_CAT
+         * TABLE_SCHEM
+         * TABLE_NAME
+         * COLUMN_NAME
+         * DATA_TYPE
+         * TYPE_NAME
+         * COLUMN_SIZE
+         * BUFFER_LENGTH
+         * DECIMAL_DIGITS
+         * NUM_PREC_RADIX
+         * NULLABLE
+         * REMARKS
+         * COLUMN_DEF
+         * SQL_DATA_TYPE
+         * SQL_DATETIME_SUB
+         * CHAR_OCTET_LENGTH
+         * ORDINAL_POSITION
+         * IS_NULLABLE
+         * SCOPE_CATALOG
+         * SCOPE_SCHEMA
+         * SCOPE_TABLE
+         * SOURCE_DATA_TYPE
+         * IS_AUTOINCREMENT
+         * IS_GENERATEDCOLUMN
+         * */
+        int i = 0;
+        final List<ColumnMetaData> columns = Lists.newArrayList();
+        // 防止有col重复，测试中有用户取出的cols会有重复的
+        final Set<String> addedCols = Sets.newHashSet();
+        while (columns1.next()) {
+            colName = columns1.getString(KEY_COLUMN_NAME);
+            comment = columns1.getString(KEY_REMARKS);
+            // 如果有重复的col已经添加则直接跳过
+            if (addedCols.add(colName)) {
+                colMeta = new ColumnMetaData((i++), colName
+                        , getDataType(colName, columns1), pkCols.contains(colName)
+                        , columns1.getBoolean(KEY_NULLABLE));
+                if (StringUtils.isNotEmpty(comment)) {
+                    colMeta.setComment(comment);
                 }
+                columns.add(colMeta);
             }
-
-        } finally {
-            closeResultSet(columns1);
-            closeResultSet(primaryKeys);
         }
-        // });
         return columns;
     }
 
@@ -296,11 +319,12 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
     protected DataType getDataType(String colName, ResultSet cols) throws SQLException {
         // decimal 的小数位长度
-        int decimalDigits = cols.getInt("DECIMAL_DIGITS");
+
+        int decimalDigits = cols.getInt(KEY_DECIMAL_DIGITS);
         //数据如果是INT类型，但如果是UNSIGNED，那实际类型需要转换成Long,INT UNSIGNED
-        String typeName = cols.getString("TYPE_NAME");
+        String typeName = cols.getString(KEY_TYPE_NAME);
         DataType colType = createColDataType(colName, typeName
-                , cols.getInt("DATA_TYPE"), cols.getInt("COLUMN_SIZE"));
+                , cols.getInt(KEY_DATA_TYPE), cols.getInt(KEY_COLUMN_SIZE));
         if (decimalDigits > 0) {
             colType.setDecimalDigits(decimalDigits);
         }

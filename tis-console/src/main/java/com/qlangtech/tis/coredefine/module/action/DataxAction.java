@@ -87,7 +87,7 @@ public class DataxAction extends BasicModule {
   public void doTriggerFullbuildTask(Context context) throws Exception {
 
     DataXJobSubmit.InstanceType triggerType = DataXJobSubmit.getDataXTriggerType();
-    DataxProcessor dataXProcessor = DataxProcessor.load(null, this.getCollectionName());
+    IDataxProcessor dataXProcessor = DataxProcessor.load(null, this.getCollectionName());
     DataXCfgGenerator.GenerateCfgs cfgFileNames = dataXProcessor.getDataxCfgFileNames(null);
     if (!triggerType.validate(this, context, cfgFileNames.getDataXCfgFiles())) {
       return;
@@ -143,7 +143,7 @@ public class DataxAction extends BasicModule {
 
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     if (StringUtils.isNotEmpty(dataxName)) {
-      hlist.setItems(Collections.singletonList(DataxProcessor.load(this, dataxName)));
+      hlist.setItems(Collections.singletonList((DataxProcessor)DataxProcessor.load(this, dataxName)));
     }
 
     this.setBizResult(context, hlist.toJSON());
@@ -716,7 +716,7 @@ public class DataxAction extends BasicModule {
       throw new IllegalArgumentException("param dataxName can not be null");
     }
 
-    DataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);
+    DataxProcessor dataxProcessor = (DataxProcessor)DataxProcessor.load(this, dataxName);
     dataxProcessor.setTableMaps(tableMaps);
     IAppSource.save(pluginContext, dataxName, dataxProcessor);
   }
@@ -769,7 +769,7 @@ public class DataxAction extends BasicModule {
   public void doGetWriterColsMeta(Context context) {
     final String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName);
-    DataxProcessor processor = DataxProcessor.load(this, dataxName);
+    IDataxProcessor processor = DataxProcessor.load(this, dataxName);
 
     if (processMeta.isReaderRDBMS()) {
       throw new IllegalStateException("can not process the flow with:" + processMeta.toString());

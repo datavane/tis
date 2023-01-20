@@ -1,7 +1,4 @@
-package com.qlangtech.tis.plugin.ds;
-
-import java.util.Collections;
-import java.util.List;
+package com.qlangtech.tis.sql.parser;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,30 +18,31 @@ import java.util.List;
  * limitations under the License.
  */
 
+import com.facebook.presto.sql.tree.Expression;
+import com.qlangtech.tis.order.center.IJoinTaskContext;
+import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
+
+import java.util.List;
+import java.util.Optional;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-10-17 09:47
+ * @create: 2023-01-17 10:53
  **/
-public final class DefaultTab implements ISelectedTab {
-    private final String dataXName;
-    private final List<CMeta> writerCols;
-
-    public DefaultTab(String dataXName, List<CMeta> writerCols) {
-        this.dataXName = dataXName;
-        this.writerCols = writerCols;
-    }
-
-    public DefaultTab(String tabName) {
-        this(tabName, Collections.emptyList());
+public class SelectColsMetaGetter extends SqlRewriter {
+    public SelectColsMetaGetter(SqlStringBuilder builder
+            , IPrimaryTabFinder erRules, TabPartitions tabPartitions, Optional<List<Expression>> parameters, IJoinTaskContext joinContext) {
+        super(builder,
+                tabPartitions,
+                erRules, parameters, false, joinContext);
     }
 
     @Override
-    public String getName() {
-        return dataXName;
+    protected boolean shallCreatePtPmodCols() {
+        return false;
     }
-
     @Override
-    public List<CMeta> getCols() {
-        return writerCols;
+    protected String createPtPmodCols(AliasTable a) {
+        throw new UnsupportedOperationException(a.toString());
     }
 }
