@@ -215,10 +215,9 @@ public class PluginAndCfgsSnapshot {
      * @throws Exception
      */
     public static Manifest createFlinkIncrJobManifestCfgAttrs(TargetResName collection, long timestamp) throws Exception {
-        Manifest manifest = null;
-        RobustReflectionConverter.PluginMetas pluginMetas = null;
-        try {
-            pluginMetas = RobustReflectionConverter.getUnCacheableThreadMetas();
+       // Manifest manifest = null;
+        RobustReflectionConverter.PluginMetas pluginMetas
+                = RobustReflectionConverter.PluginMetas.collectMetas(() -> {
             MQListenerFactory sourceFactory = HeteroEnum.getIncrSourceListenerFactory(collection.getName());
             sourceFactory.create();
 
@@ -226,10 +225,7 @@ public class PluginAndCfgsSnapshot {
             IDataxProcessor processor = DataxProcessor.load(null, collection.getName());
             TISSinkFactory incrSinKFactory = TISSinkFactory.getIncrSinKFactory(collection.getName());
             incrSinKFactory.createSinkFunction(processor);
-            //  RobustReflectionConverter.usedPluginInfo.get();
-        } finally {
-            RobustReflectionConverter.usedPluginInfo.remove();
-        }
+        });
         return createFlinkIncrJobManifestCfgAttrs(collection, timestamp, pluginMetas.getMetas());
     }
 

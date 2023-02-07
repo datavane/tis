@@ -37,6 +37,7 @@ import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
+import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.sql.parser.TabPartitions;
@@ -44,6 +45,7 @@ import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 //import com.qlangtech.tis.fullbuild.workflow.SingleTableDump;
 
@@ -156,7 +158,7 @@ public class DefaultChainContext implements IExecChainContext {
                 this.executePhaseRange = new ExecutePhaseRange(FullbuildPhase.parse(start), FullbuildPhase.parse(end));
             } else {
                 DataxProcessor appSource = this.getAppSource();
-                IDataxWriter writer = appSource.getWriter(null);
+                IDataxWriter writer = appSource.getWriter(null, true);
                 if (writer instanceof IDataXBatchPost) {
                     this.executePhaseRange = ((IDataXBatchPost) writer).getPhaseRange();
                 } else {
@@ -214,6 +216,19 @@ public class DefaultChainContext implements IExecChainContext {
 
     public void setAttribute(String key, Object v) {
         this.attribute.put(key, v);
+    }
+
+    @Override
+    public <T> T getAttribute(String key, Supplier<T> creator) {
+
+        synchronized (attribute) {
+            T attr = getAttribute(key);
+            if (attr == null) {
+                attr = creator.get();
+                this.setAttribute(key, attr);
+            }
+            return attr;
+        }
     }
 
     @SuppressWarnings("all")
@@ -310,13 +325,18 @@ public class DefaultChainContext implements IExecChainContext {
     }
 
     @Override
-    public PhaseStatusCollection loadPhaseStatusFromLatest(String appName) {
-        Optional<WorkFlowBuildHistory> latestWFSuccessTask = DagTaskUtils.getLatestWFSuccessTaskId(appName);
-        if (!latestWFSuccessTask.isPresent()) {
-            return null;
-        }
-        WorkFlowBuildHistory h = latestWFSuccessTask.get();
-        PhaseStatusCollection phaseStatusCollection = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(h.getId());
+    public PhaseStatusCollection loadPhaseStatusFromLatest() {
+
+       // String appName = context.getIndexName();
+
+        Integer taskId = this.getTaskId();
+
+//        Optional<WorkFlowBuildHistory> latestWFSuccessTask = DagTaskUtils.getLatestWFSuccessTaskId(appName);
+//        if (!latestWFSuccessTask.isPresent()) {
+//            return null;
+//        }
+//        WorkFlowBuildHistory h = latestWFSuccessTask.get();
+        PhaseStatusCollection phaseStatusCollection = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(taskId);
         if (phaseStatusCollection == null) {
             return null;
         }

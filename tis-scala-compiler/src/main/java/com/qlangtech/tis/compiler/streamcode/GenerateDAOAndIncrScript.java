@@ -29,6 +29,7 @@ import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.offline.DbScope;
+import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.FacadeDataSource;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
@@ -227,7 +228,7 @@ public class GenerateDAOAndIncrScript {
     private DataSourceFactoryPluginStore getFacadePluginStore(Map.Entry<DBNode, List<String>> entry) {
         DataSourceFactoryPluginStore dbPluginStore;
         dbPluginStore
-                = TIS.getDataBasePluginStore(new PostedDSProp(entry.getKey().getDbName(), DbScope.FACADE));
+                = TIS.getDataSourceFactoryPluginStore(new PostedDSProp(DBIdentity.parseId(entry.getKey().getDbName()), DbScope.FACADE));
         return dbPluginStore;
     }
 

@@ -40,12 +40,13 @@ public interface IFlatTableBuilder extends ITaskFactory, ITableBuildTaskContext 
      * @param tplContext
      * @param taskContext
      * @param joinTaskStatus
-     * @param flatTableBuilder
      * @param dsGetter
      * @param primaryTabFinder
      * @return
      */
     public DataflowTask createTask(ISqlTask nodeMeta, boolean isFinalNode, ITemplateContext tplContext
-            , ITaskContext taskContext, IJoinTaskStatus joinTaskStatus, final IFlatTableBuilder flatTableBuilder,
+            , ITaskContext taskContext, IJoinTaskStatus joinTaskStatus,
                                    final IDataSourceFactoryGetter dsGetter, IPrimaryTabFinder primaryTabFinder);
+
+
 }

@@ -69,8 +69,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
 
         WorkFlow wf = new WorkFlow();
         wf.setId(null);
-        wf.setName("name");
-
+        wf.setName(execChainContext.getWorkflowName());
 
 
         // ISolrAppSource appRule = execChainContext.getAppSource(); //
@@ -81,7 +80,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
 //                , DataFlowAppSource.ISingleTableDumpFactory singleTableDumpFactory, IAppSource.IDataProcessFeedback
 //        dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo
         IDataxProcessor dataxProc = DataxProcessor.load(null, KeyedPluginStore.StoreResourceType.DataFlow, wf.getName());
-        IDataxWriter writer = dataxProc.getWriter(null);
+        IDataxWriter writer = dataxProc.getWriter(null, true);
         DataFlowAppSource appRule = new DataFlowAppSource(wf, writer);
         Map<String, TISReactor.TaskAndMilestone> taskMap = Maps.newHashMap();
         RpcServiceReference dataXExecReporter = getDataXExecReporter();

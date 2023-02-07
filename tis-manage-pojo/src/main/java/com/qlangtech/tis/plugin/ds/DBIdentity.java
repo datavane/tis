@@ -1,3 +1,5 @@
+package com.qlangtech.tis.plugin.ds;
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,19 +18,36 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.datax;
+import com.qlangtech.tis.plugin.IdentityName;
+import org.apache.commons.lang.StringUtils;
 
-import com.qlangtech.tis.plugin.KeyedPluginStore;
-
-import java.util.Collections;
+import java.util.Optional;
 
 /**
+ * 数据库实例
+ *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-05-08 10:39
+ * @create: 2023-01-31 11:19
  **/
-public interface IExecutorContext {
-    String dataXName = "baisuitestTestcase";
-    DataXJobInfo jobName = DataXJobInfo.create("customer_order_relation_1.json", Collections.emptyList());
+public interface DBIdentity extends IdentityName {
 
-    KeyedPluginStore.StoreResourceType resType = KeyedPluginStore.StoreResourceType.DataApp;
+    public static DBIdentity parseId(final String idVal) {
+        Optional<DBIdentity> id = parse(idVal);
+        if (!id.isPresent()) {
+            throw new IllegalStateException("id must be present:" + idVal);
+        }
+        return id.get();
+    }
+
+    public static Optional<DBIdentity> parse(final String idVal) {
+        if (StringUtils.isEmpty(idVal)) {
+            return Optional.empty();
+        }
+        return Optional.of(new DBIdentity() {
+            @Override
+            public String identityValue() {
+                return idVal;
+            }
+        });
+    }
 }

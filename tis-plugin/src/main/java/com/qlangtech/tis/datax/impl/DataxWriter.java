@@ -136,7 +136,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
     public static IDataxWriterGetter dataxWriterGetter;
 
     public static DataxWriter load(IPluginContext context, String appName) {
-        return load(context, KeyedPluginStore.StoreResourceType.DataApp, appName);
+        return load(context, KeyedPluginStore.StoreResourceType.DataApp, appName, true);
     }
 
     /**
@@ -145,12 +145,16 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
      * @param appName
      * @return
      */
-    public static DataxWriter load(IPluginContext context, KeyedPluginStore.StoreResourceType resType, String appName) {
+    public static DataxWriter load(IPluginContext context, KeyedPluginStore.StoreResourceType resType, String appName, boolean nullValidate) {
+        DataxWriter appSource = null;
         if (dataxWriterGetter != null) {
-            return dataxWriterGetter.get(appName);
+            appSource = dataxWriterGetter.get(appName);
+        } else {
+            appSource = getPluginStore(context, resType, appName).getPlugin();
         }
-        DataxWriter appSource = getPluginStore(context, resType, appName).getPlugin();
-        Objects.requireNonNull(appSource, "appName:" + appName + " relevant appSource can not be null");
+        if(nullValidate){
+            Objects.requireNonNull(appSource, "appName:" + appName + ",resType:" + resType + " relevant appSource can not be null");
+        }
         return appSource;
     }
 

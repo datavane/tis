@@ -1,3 +1,9 @@
+package com.qlangtech.tis.coredefine.module.action;
+
+import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
+import com.qlangtech.tis.util.IPluginContext;
+
 /**
  *   Licensed to the Apache Software Foundation (ASF) under one
  *   or more contributor license agreements.  See the NOTICE file
@@ -15,33 +21,12 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.qlangtech.tis.runtime.module.misc;
-
-import com.alibaba.citrus.turbine.Context;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
- */
-public interface IFieldErrorHandler {
-
-    String ACTION_ERROR_FIELDS = "action_error_fields";
-
-    void addFieldError(final Context context, String fieldName, String msg, Object... params);
-
-    enum BizLogic {
-        APP_NAME_DUPLICATE,
-        WORKFLOW_NAME_DUPLICATE
-    }
-
-    /**
-     * 在插件中校验业务逻辑
-     *
-     * @param logicType
-     * @param context
-     * @param fieldName
-     * @param value
-     * @return
-     */
-    boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value);
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2023-01-25 17:49
+ **/
+interface IProcessMetaCreator {
+  public DataXBasicProcessMeta createProcessMeta(IPluginContext pluginContext
+    , String dataXName, JSONObject reader, JSONObject writer) throws Exception;
 }

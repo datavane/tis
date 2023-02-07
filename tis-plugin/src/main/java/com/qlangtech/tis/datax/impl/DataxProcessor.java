@@ -46,10 +46,7 @@ import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -60,9 +57,10 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 16:46
  */
-public abstract class DataxProcessor implements IBasicAppSource, IdentityName, IDataxProcessor, IStreamIncrGenerateStrategy {
+public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor, IStreamIncrGenerateStrategy {
 
-    protected static final String DEFAULT_DATAX_PROCESSOR_NAME = "DataxProcessor";
+    public static final String DEFAULT_DATAX_PROCESSOR_NAME = "DataxProcessor";
+    public static final String DEFAULT_WORKFLOW_PROCESSOR_NAME = "WorkflowProcessor";
     public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
     public static final String DATAX_CREATE_DDL_DIR_NAME = "createDDL";
 
@@ -80,14 +78,19 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     }
 
     public static IDataxProcessor load(IPluginContext pluginContext, KeyedPluginStore.StoreResourceType resType, String dataXName) {
+        return load(pluginContext, resType, DataxProcessor.getPluginDescMeta(resType.pluginDescName), dataXName);
+    }
+
+    private static IDataxProcessor load(IPluginContext pluginContext, KeyedPluginStore.StoreResourceType resType, Descriptor<IAppSource> pluginDescMeta, String dataXName) {
         if (processorGetter != null) {
             return processorGetter.get(dataXName);
         }
+        Objects.requireNonNull(pluginDescMeta);
         Optional<IAppSource> appSource = IAppSource.loadNullable(pluginContext, resType, dataXName);
         if (appSource.isPresent()) {
             return (IDataxProcessor) appSource.get();
         } else {
-            Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
+            //Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
             Map<String, /** * attr key */com.alibaba.fastjson.JSONObject> formData
                     = new HashMap<String, com.alibaba.fastjson.JSONObject>() {
                 @Override
@@ -104,11 +107,15 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     }
 
     public static Descriptor<IAppSource> getPluginDescMeta() {
+        return getPluginDescMeta(DEFAULT_DATAX_PROCESSOR_NAME);
+    }
+
+    public static Descriptor<IAppSource> getPluginDescMeta(String targetProcessName) {
         DescriptorExtensionList<IAppSource, Descriptor<IAppSource>> descs = TIS.get().getDescriptorList(IAppSource.class);
         Optional<Descriptor<IAppSource>> dataxProcessDescs
-                = descs.stream().filter((des) -> DEFAULT_DATAX_PROCESSOR_NAME.equals(des.getDisplayName())).findFirst();
+                = descs.stream().filter((des) -> targetProcessName.equals(des.getDisplayName())).findFirst();
         if (!dataxProcessDescs.isPresent()) {
-            throw new IllegalStateException("dataX process descriptor:" + DEFAULT_DATAX_PROCESSOR_NAME + " relevant descriptor can not be null");
+            throw new IllegalStateException("dataX process descriptor:" + targetProcessName + " relevant descriptor can not be null");
         }
         return dataxProcessDescs.get();
     }
@@ -201,8 +208,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
     }
 
     @Override
-    public IDataxWriter getWriter(IPluginContext pluginCtx) {
-        return DataxWriter.load(pluginCtx, this.identityValue());
+    public IDataxWriter getWriter(IPluginContext pluginCtx, boolean validateNull) {
+        return DataxWriter.load(pluginCtx, KeyedPluginStore.StoreResourceType.DataApp, this.identityValue(), validateNull);
     }
 
     //
@@ -222,7 +229,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IdentityName, I
             Map<String, INotebookable.NotebookEntry> notebookable = Maps.newHashMap();
 
             IDataxReader reader = this.getReader(null);
-            IDataxWriter writer = this.getWriter(null);
+            IDataxWriter writer = this.getWriter(null, true);
 
             scanNotebook(notebookable, reader);
             scanNotebook(notebookable, writer);

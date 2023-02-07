@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -167,18 +168,23 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
         public final KeyVal keyVal;
         protected final String groupName;
-
+        private final boolean metaCfgDir;
         public final Class<T> pluginClass;
 
         public Key(String groupName, String keyVal, Class<T> pluginClass) {
-            this(groupName, new KeyVal(keyVal), pluginClass);
+            this(groupName, new KeyVal(keyVal), pluginClass, false);
         }
 
         public Key(String groupName, KeyVal keyVal, Class<T> pluginClass) {
+            this(groupName, keyVal, pluginClass, false);
+        }
+
+        public Key(String groupName, KeyVal keyVal, Class<T> pluginClass, boolean metaCfgDir) {
             Objects.requireNonNull(keyVal, "keyVal can not be null");
             this.keyVal = keyVal;
             this.pluginClass = pluginClass;
             this.groupName = groupName;
+            this.metaCfgDir = metaCfgDir;
         }
 
         public String getSerializeFileName() {
@@ -190,7 +196,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         public XmlFile getSotreFile() {
-            return Descriptor.getConfigFile(getSerializeFileName());
+            return Descriptor.getConfigFile(getSerializeFileName(), this.metaCfgDir);
         }
 
         @Override
@@ -244,19 +250,39 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
     }
 
     public enum StoreResourceType {
-        DataBase(TIS.DB_GROUP_NAME), DataApp(IFullBuildContext.NAME_APP_DIR), DataFlow(IFullBuildContext.NAME_DATAFLOW_DIR);
+
+        DataBase(TIS.DB_GROUP_NAME, false, StringUtils.EMPTY) //
+        , DataApp(IFullBuildContext.NAME_APP_DIR, false, DataxProcessor.DEFAULT_DATAX_PROCESSOR_NAME) //
+        , DataFlow(IFullBuildContext.NAME_DATAFLOW_DIR, true, DataxProcessor.DEFAULT_WORKFLOW_PROCESSOR_NAME);
+
+        public static final String KEY_STORE_RESOURCE_TYPE = "storeResType";
         private final String type;
+        public final boolean useMetaCfgDir;
+        public final String pluginDescName;
 
         public static StoreResourceType parse(boolean isDB) {
             return isDB ? DataBase : DataApp;
+        }
+
+
+        public static StoreResourceType parse(String type) {
+            StoreResourceType[] types = StoreResourceType.values();
+            for (StoreResourceType t : types) {
+                if (t.type.equals(type)) {
+                    return t;
+                }
+            }
+            throw new IllegalStateException("illegal type:" + type);
         }
 
         public String getType() {
             return this.type;
         }
 
-        StoreResourceType(String type) {
+        StoreResourceType(String type, boolean useMetaCfgDir, String pluginDescName) {
             this.type = type;
+            this.useMetaCfgDir = useMetaCfgDir;
+            this.pluginDescName = pluginDescName;
         }
     }
 
@@ -264,7 +290,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         public final StoreResourceType resourceType;
 
         public AppKey(IPluginContext pluginContext, StoreResourceType resourceType, String appname, Class<TT> clazz) {
-            super(resourceType.getType(), calAppName(pluginContext, appname), clazz);
+            super(resourceType.getType(), calAppName(pluginContext, appname), clazz, resourceType.useMetaCfgDir);
             this.resourceType = resourceType;
         }
 

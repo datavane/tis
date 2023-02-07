@@ -458,7 +458,7 @@ public class CoreAction extends BasicModule {
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     incrStatus.setState(IFlinkIncrJobStatus.State.NONE);
     IDataxProcessor dataxProcessor = DataxProcessor.load(null, appName);
-    DataxWriter writer = (DataxWriter) dataxProcessor.getWriter(null);
+    DataxWriter writer = (DataxWriter) dataxProcessor.getWriter(null,true);
     incrStatus.setWriterDesc(createDescVals(writer.getDescriptor()));
 
     DataxReader reader = (DataxReader) dataxProcessor.getReader(null);
@@ -861,7 +861,8 @@ public class CoreAction extends BasicModule {
     Pager pager = this.createPager();
     pager.setTotalCount(historyDAO.countByExample(query));
     this.setBizResult(context
-      , new PaginationResult(pager, adapterBuildHistory(historyDAO.selectByExample(query, pager.getCurPage(), pager.getRowsPerPage())), workFlow.getName()));
+      , new PaginationResult(pager, adapterBuildHistory(historyDAO.selectByExample(query, pager.getCurPage(), pager.getRowsPerPage()))
+        , workFlow.getName()));
   }
 
   private List<ExtendWorkFlowBuildHistory> adapterBuildHistory(List<WorkFlowBuildHistory> histories) {

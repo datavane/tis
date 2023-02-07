@@ -20,6 +20,7 @@ package com.qlangtech.tis.sql.parser;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.facebook.presto.sql.parser.ParsingException;
 import com.facebook.presto.sql.parser.ParsingOptions;
 import com.facebook.presto.sql.parser.SqlParser;
 import com.facebook.presto.sql.tree.Expression;
@@ -72,6 +73,7 @@ import java.sql.Types;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -282,6 +284,10 @@ public class SqlTaskNodeMeta implements ISqlTask {
             public void setAttribute(String key, Object v) {
 
             }
+            @Override
+            public <T> T getAttribute(String key, Supplier<T> creator) {
+                return null;
+            }
 
             @Override
             public IAppSourcePipelineController getPipelineController() {
@@ -399,7 +405,12 @@ public class SqlTaskNodeMeta implements ISqlTask {
     }
 
     private Statement getSqlStatement() {
-        return sqlParser.createStatement(this.getSql(), new ParsingOptions());
+        final String sql = this.getSql();
+        try {
+            return sqlParser.createStatement(sql, new ParsingOptions());
+        } catch (ParsingException e) {
+            throw new RuntimeException(sql, e);
+        }
     }
 
     /**
@@ -517,6 +528,9 @@ public class SqlTaskNodeMeta implements ISqlTask {
         }
 
         File dependencyTabFile = new File(topologyDir.dir, FILE_NAME_DEPENDENCY_TABS);
+        if (!dependencyTabFile.exists()) {
+            return topology;
+        }
         try {
             // dump节点
             try (Reader reader = new InputStreamReader(FileUtils.openInputStream(dependencyTabFile), TisUTF8.get())) {
@@ -615,7 +629,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
     public static class SqlDataFlowTopology {
 
-        private TopologyProfile profile;
+        private TopologyProfile profile = new TopologyProfile();
 
         //join处理节点，后续hive，spark处理
         private List<SqlTaskNodeMeta> nodeMetas = Lists.newArrayList();
@@ -750,9 +764,9 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
             if (this.isSingleTableModel()) {
                 DependencyNode dumpNode = this.getDumpNodes().get(0);
-                DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(dumpNode.getDbName()));
-                TISTable tisTable = dbPlugin.loadTableMeta(dumpNode.getName());
-                return tisTable.getReflectCols();
+                DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(dumpNode.getDbName())));
+                List<ColumnMetaData> cols = dbPlugin.getTableMetadata(dumpNode.parseEntityName());
+                return cols; //tisTable.getReflectCols();
 //                        .stream().map((c) -> {
 //                    return new ColName(c.getKey());
 //                }).collect(Collectors.toList());
@@ -772,9 +786,10 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 final DefaultDumpNodeMapContext dumpNodsContext = new DefaultDumpNodeMapContext(this.createDumpNodesMap());
                 DependencyNode dumpNode = getFirstDumpNode();
                 SqlTaskNode taskNode = new SqlTaskNode(EntityName.create(dumpNode.getDbName(), dumpNode.getName()), NodeType.JOINER_SQL, dumpNodsContext);
-                DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(dumpNode.getDbName()));
-                TISTable tab = dbPlugin.loadTableMeta(dumpNode.getName());
-                taskNode.setContent(ColumnMetaData.buildExtractSQL(dumpNode.getName(), true, tab.getReflectCols()).toString());
+                DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(dumpNode.getDbName())));
+                // List<ColumnMetaData> tableMetadata = ;
+                //TISTable tab = dbPlugin.loadTableMeta(dumpNode.getName());
+                taskNode.setContent(ColumnMetaData.buildExtractSQL(dumpNode.getName(), true, dbPlugin.getTableMetadata(dumpNode.parseEntityName())).toString());
                 return taskNode;
             } else {
 
@@ -799,11 +814,12 @@ public class SqlTaskNodeMeta implements ISqlTask {
         }
 
         public DependencyNode getFirstDumpNode() {
-            Optional<DependencyNode> singleDumpNode = this.getDumpNodes().stream().findFirst();
-            if (!singleDumpNode.isPresent()) {
-                throw new IllegalStateException(this.getName() + " has not set dump node");
-            }
-            return singleDumpNode.get();
+            return null;
+//            Optional<DependencyNode> singleDumpNode = this.getDumpNodes().stream().findFirst();
+//            if (!singleDumpNode.isPresent()) {
+//                throw new IllegalStateException(this.getName() + " has not set dump node");
+//            }
+//            return singleDumpNode.get();
         }
 
 
@@ -1058,6 +1074,10 @@ public class SqlTaskNodeMeta implements ISqlTask {
         @Override
         public void setAttribute(String key, Object v) {
 
+        }
+        @Override
+        public <T> T getAttribute(String key, Supplier<T> creator) {
+            return null;
         }
 
         @Override

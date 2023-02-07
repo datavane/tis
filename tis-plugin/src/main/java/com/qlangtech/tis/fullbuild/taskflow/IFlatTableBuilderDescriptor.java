@@ -1,3 +1,5 @@
+package com.qlangtech.tis.fullbuild.taskflow;
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -15,34 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.qlangtech.tis.datax;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2021-04-15 16:55
- */
-public interface IDataxReaderContext extends IDataxContext {
+ * 标示是离线构建Descriptor
+ *
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2023-01-24 18:25
+ **/
+public interface IFlatTableBuilderDescriptor {
 
-    /**
-     * 对应的DataSourceId
-     *
-     * @return
-     */
-    String getReaderContextId();
-
-    public String getTaskName();
-
-    /**
-     * 如果是mysql导入，则为源数据库表的表名
-     *
-     * @return
-     */
-    String getSourceEntityName();
-
-    /**
-     * 原表名称'getSourceEntityName' 方法返回的多escape符号包裹
-     *
-     * @return
-     */
-    String getSourceTableName();
 }

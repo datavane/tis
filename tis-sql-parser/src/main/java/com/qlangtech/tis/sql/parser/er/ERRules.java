@@ -24,10 +24,7 @@ import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
-import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
-import com.qlangtech.tis.plugin.ds.PostedDSProp;
-import com.qlangtech.tis.plugin.ds.TISTable;
+import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.sql.parser.SqlTaskNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
@@ -148,10 +145,10 @@ public class ERRules implements IPrimaryTabFinder, IERRules {
     public static void createDefaultErRule(SqlTaskNodeMeta.SqlDataFlowTopology topology) throws Exception {
         // 还没有定义erRule
         DependencyNode dumpNode = topology.getFirstDumpNode();
-        DataSourceFactoryPluginStore dsStore = TIS.getDataBasePluginStore(new PostedDSProp(dumpNode.getDbName()));
-        TISTable tab = dsStore.loadTableMeta(dumpNode.getName());
+        DataSourceFactory dsStore = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(dumpNode.getDbName())));
+        List<ColumnMetaData> cols = dsStore.getTableMetadata(dumpNode.parseEntityName());
         //String topologyName, DependencyNode node, TargetColumnMeta targetColMetas
-        Optional<ColumnMetaData> firstPK = tab.getReflectCols().stream().filter((col) -> col.isPk()).findFirst();
+        Optional<ColumnMetaData> firstPK = cols.stream().filter((col) -> col.isPk()).findFirst();
         if (!firstPK.isPresent()) {
             throw new IllegalStateException("table:" + dumpNode.parseEntityName() + " can not find relevant PK cols");
         }

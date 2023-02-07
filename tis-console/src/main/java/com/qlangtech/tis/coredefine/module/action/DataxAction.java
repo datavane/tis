@@ -71,6 +71,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * manage DataX pipe process logic
@@ -127,23 +128,24 @@ public class DataxAction extends BasicModule {
     this.addActionMessage(context, "已经成功更新建表DDL脚本 " + createFileName);
   }
 
-
   /**
    * @param context
    */
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doDataxProcessorDesc(Context context) throws Exception {
 
+    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+
     UploadPluginMeta pluginMeta = UploadPluginMeta.parse(HeteroEnum.APP_SOURCE.identity);
     HeteroList<IAppSource> hlist = new HeteroList<>(pluginMeta);
-    hlist.setDescriptors(Collections.singletonList(DataxProcessor.getPluginDescMeta()));
+    hlist.setDescriptors(Collections.singletonList(pmodel.getPluginDescMeta()));
     hlist.setExtensionPoint(IAppSource.class);
     hlist.setSelectable(Selectable.Single);
     hlist.setCaption(StringUtils.EMPTY);
 
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     if (StringUtils.isNotEmpty(dataxName)) {
-      hlist.setItems(Collections.singletonList((DataxProcessor)DataxProcessor.load(this, dataxName)));
+      hlist.setItems(Collections.singletonList(pmodel.loadDataXProcessor(this, dataxName)));
     }
 
     this.setBizResult(context, hlist.toJSON());
@@ -158,27 +160,40 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetWriterPluginInfo(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
+    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
     JSONObject writerDesc = this.parseJsonPost();
     if (StringUtils.isEmpty(dataxName)) {
       throw new IllegalStateException("param " + PARAM_KEY_DATAX_NAME + " can not be null");
     }
-    DataxReader.load(this, dataxName);
-    KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(this, dataxName);
-    DataxWriter writer = writerStore.getPlugin();
-    Map<String, Object> pluginInfo = Maps.newHashMap();
+
+
     final String requestDescId = writerDesc.getString("impl");
-    if (writer != null && StringUtils.equals(writer.getDescriptor().getId(), requestDescId)) {
-      DataxReader readerPlugin = DataxReader.load(this, dataxName);
-      DataxWriter.BaseDataxWriterDescriptor writerDescriptor = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
-      if (!writerDescriptor.isSupportMultiTable() && readerPlugin.getSelectedTabs().size() > 1) {
-        // 这种情况是不允许的，例如：elastic这样的writer中对于column的设置比较复杂，需要在writer plugin页面中完成，所以就不能支持在reader中选择多个表了
-        throw new IllegalStateException("status is not allowed:!writerDescriptor.isSupportMultiTable() && readerPlugin.hasMulitTable()");
-      }
+    DataxWriter writer = pmodel.loadWriter(this, writerDesc, dataxName);//  (DataxWriter)dataxProcessor.getWriter(this);
+
+    // DataxReader.load(this, dataxName);
+    // KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(this, dataxName);
+//    DataxWriter writer = writerStore.getPlugin();
+    Map<String, Object> pluginInfo = Maps.newHashMap();
+    JSONObject writeDesc = null;
+    if (writer != null) {
       pluginInfo.put("item", (new DescribableJSON(writer)).getItemJson());
+      writeDesc = DescriptorsJSON.desc(writer.getDescriptor());
+    } else {
+      writeDesc = DescriptorsJSON.desc(requestDescId);
     }
+    pluginInfo.put("desc", writeDesc);
+//    final String requestDescId = writerDesc.getString("impl");
+//    if (writer != null && StringUtils.equals(writer.getDescriptor().getId(), requestDescId)) {
+//      DataxReader readerPlugin = DataxReader.load(this, dataxName);
+//      DataxWriter.BaseDataxWriterDescriptor writerDescriptor = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
+//      if (!writerDescriptor.isSupportMultiTable() && readerPlugin.getSelectedTabs().size() > 1) {
+//        // 这种情况是不允许的，例如：elastic这样的writer中对于column的设置比较复杂，需要在writer plugin页面中完成，所以就不能支持在reader中选择多个表了
+//        throw new IllegalStateException("status is not allowed:!writerDescriptor.isSupportMultiTable() && readerPlugin.hasMulitTable()");
+//      }
+//      pluginInfo.put("item", (new DescribableJSON(writer)).getItemJson());
+//    }
     // pluginInfo.put("desc", new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON(DescriptorsJSON.FORM_START_LEVEL));
 
-    pluginInfo.put("desc", DescriptorsJSON.desc(requestDescId));
 
     this.setBizResult(context, pluginInfo);
   }
@@ -365,7 +380,15 @@ public class DataxAction extends BasicModule {
   public void doGetSupportedReaderWriterTypes(Context context) {
 
     DescriptorExtensionList<DataxReader, Descriptor<DataxReader>> readerTypes = TIS.get().getDescriptorList(DataxReader.class);
-    DescriptorExtensionList<DataxWriter, Descriptor<DataxWriter>> writerTypes = TIS.get().getDescriptorList(DataxWriter.class);
+    List<Descriptor<DataxWriter>> writerTypes = TIS.get().getDescriptorList(DataxWriter.class);
+
+
+    try {
+      final Class writerFilter = Class.forName(this.getString("writerDescFilter"));
+      writerTypes = writerTypes.stream().filter((wt) -> writerFilter.isAssignableFrom(wt.getClass())).collect(Collectors.toList());
+    } catch (ClassNotFoundException e) {
+
+    }
 
     this.setBizResult(context, new DataxPluginDescMeta(readerTypes, writerTypes));
   }
@@ -534,30 +557,36 @@ public class DataxAction extends BasicModule {
   public void doGenerateDataxCfgs(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     boolean getExist = this.getBoolean("getExist");
-    DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
+    generateDataXCfgs(this, context, KeyedPluginStore.StoreResourceType.DataApp, dataxName, getExist);
+  }
 
-    DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(this, dataxName, dataxProcessor);
-    File dataxCfgDir = dataxProcessor.getDataxCfgDir(this);
-
-    if (!getExist) {
-      FileUtils.forceMkdir(dataxCfgDir);
-      // 先清空文件
-      FileUtils.cleanDirectory(dataxCfgDir);
+  public static void generateDataXCfgs(IPluginContext pluginContext, Context context
+    , KeyedPluginStore.StoreResourceType resType, String dataxName, boolean getExist) {
+    if (StringUtils.isEmpty(dataxName)) {
+      throw new IllegalArgumentException("param dataXName can not be null");
     }
+    try {
+      IDataxProcessor dataxProcessor = DataxProcessor.load(pluginContext, resType, dataxName);
 
-    DataXCfgGenerator.GenerateCfgs generateCfgs = null;
-    this.setBizResult(context, getExist ? cfgGenerator.getExistCfg(dataxCfgDir)
-      : (generateCfgs = cfgGenerator.startGenerateCfg(dataxCfgDir)));
+      DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(pluginContext, dataxName, dataxProcessor);
+      File dataxCfgDir = dataxProcessor.getDataxCfgDir(pluginContext);
 
-    if (!getExist) {
-      Objects.requireNonNull(generateCfgs, "generateCfgs can not be null");
-      generateCfgs.write2GenFile(dataxCfgDir);
+      if (!getExist) {
+        FileUtils.forceMkdir(dataxCfgDir);
+        // 先清空文件
+        FileUtils.cleanDirectory(dataxCfgDir);
+      }
 
-//      JSONObject o = new JSONObject();
-//      o.put("groupChildTasks", generateCfgs.getGroupedChildTask());
-//      o.put("genTime", generateCfgs.getGenTime());
-//      FileUtils.write(new File(dataxCfgDir, DataXCfgGenerator.FILE_GEN)
-//        , JsonUtil.toString(o), TisUTF8.get(), false);
+      DataXCfgGenerator.GenerateCfgs generateCfgs = null;
+      pluginContext.setBizResult(context, getExist ? cfgGenerator.getExistCfg(dataxCfgDir)
+        : (generateCfgs = cfgGenerator.startGenerateCfg(dataxCfgDir)));
+
+      if (!getExist) {
+        Objects.requireNonNull(generateCfgs, "generateCfgs can not be null");
+        generateCfgs.write2GenFile(dataxCfgDir);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("resType:" + resType + ",name:" + dataxName, e);
     }
   }
 
@@ -568,7 +597,7 @@ public class DataxAction extends BasicModule {
 
     DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(this, dataxName, dataxProcessor);
 
-    IDataxWriter writer = dataxProcessor.getWriter(this);
+    IDataxWriter writer = dataxProcessor.getWriter(this, true);
     if (writer.isGenerateCreateDDLSwitchOff()) {
       throw new TisException("自动生成Create Table DDL已经关闭，请先打开再使用");
     }
@@ -716,7 +745,7 @@ public class DataxAction extends BasicModule {
       throw new IllegalArgumentException("param dataxName can not be null");
     }
 
-    DataxProcessor dataxProcessor = (DataxProcessor)DataxProcessor.load(this, dataxName);
+    DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(this, dataxName);
     dataxProcessor.setTableMaps(tableMaps);
     IAppSource.save(pluginContext, dataxName, dataxProcessor);
   }
@@ -924,6 +953,8 @@ public class DataxAction extends BasicModule {
     this.saveTableMapper(this, dataxName, Collections.singletonList(tableMapper));
   }
 
+  public static final String KEY_PROCESS_MODEL = "processModel";
+
   /**
    * submit reader type and writer type form for validate
    *
@@ -933,6 +964,7 @@ public class DataxAction extends BasicModule {
   public void doValidateReaderWriter(Context context) throws Exception {
     this.errorsPageShow(context);
     JSONObject post = this.parseJsonPost();
+    ProcessModel pmodel = ProcessModel.parse(post.getString(KEY_PROCESS_MODEL));
 
     String dataxPipeName = post.getString("dataxPipeName");
 
@@ -940,38 +972,38 @@ public class DataxAction extends BasicModule {
     JSONObject writer = post.getJSONObject("writerDescriptor");
 //    Objects.requireNonNull(reader, "reader can not be null");
 //    Objects.requireNonNull(writer, "writer can not be null");
-    if (reader == null || writer == null) {
-      this.addErrorMessage(context, "请选择'Reader类型'和'Writer类型'");
+
+    if (!pmodel.valdateReaderAndWriter(reader, writer, this, context)) {
       return;
     }
-    DataxReader.BaseDataxReaderDescriptor readerDesc
-      = (DataxReader.BaseDataxReaderDescriptor) TIS.get().getDescriptor(reader.getString("impl"));
-    DataxWriter.BaseDataxWriterDescriptor writerDesc
-      = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
-    DataXBasicProcessMeta processMeta = getDataXBasicProcessMeta(readerDesc, writerDesc);
+
+//    if (reader == null || writer == null) {
+//      this.addErrorMessage(context, "请选择'Reader类型'和'Writer类型'");
+//      return;
+//    }
+//    pmodel.createProcessMeta(reader, writer);
+//
+//    DataxReader.BaseDataxReaderDescriptor readerDesc
+//      = (DataxReader.BaseDataxReaderDescriptor) TIS.get().getDescriptor(reader.getString("impl"));
+//    DataxWriter.BaseDataxWriterDescriptor writerDesc
+//      = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
+    DataXBasicProcessMeta processMeta = pmodel.createProcessMeta(this, dataxPipeName, reader, writer);// getDataXBasicProcessMeta(readerDesc, writerDesc);
     //DataxProcessor processor = DataxProcessor.load(this, dataxPipeName);
     //File workDir = processor.getDataXWorkDir(this);
-    FileUtils.write(IDataxProcessor.getWriterDescFile(
-      this, dataxPipeName), writerDesc.getId(), TisUTF8.get(), false);
+
     this.setBizResult(context, processMeta);
   }
 
-  private DataXBasicProcessMeta getDataXBasicProcessMeta(
-    DataxReader.BaseDataxReaderDescriptor readerDesc, DataxWriter.BaseDataxWriterDescriptor writerDesc) {
-    Objects.requireNonNull(readerDesc, "readerDesc can not be null");
-    Objects.requireNonNull(writerDesc, "writerDesc can not be null");
-    DataXBasicProcessMeta processMeta = getDataXBasicProcessMetaByReader(readerDesc);
-    processMeta.setWriterRDBMS(writerDesc.isRdbms());
-    processMeta.setWriterSupportMultiTableInReader(writerDesc.isSupportMultiTable());
-    return processMeta;
-  }
 
   public static DataXBasicProcessMeta getDataXBasicProcessMetaByReader(
-    DataxReader.BaseDataxReaderDescriptor readerDesc) {
+    Optional<DataxReader.BaseDataxReaderDescriptor> readerDesc) {
     Objects.requireNonNull(readerDesc, "readerDesc can not be null");
     DataXBasicProcessMeta processMeta = new DataXBasicProcessMeta();
-    processMeta.setReaderHasExplicitTable(readerDesc.hasExplicitTable());
-    processMeta.setReaderRDBMS(readerDesc.isRdbms());
+    if (readerDesc.isPresent()) {
+      DataxReader.BaseDataxReaderDescriptor rd = readerDesc.get();
+      processMeta.setReaderHasExplicitTable(rd.hasExplicitTable());
+      processMeta.setReaderRDBMS(rd.isRdbms());
+    }
     return processMeta;
   }
 
@@ -984,21 +1016,28 @@ public class DataxAction extends BasicModule {
   public void doGetDataXMeta(Context context) {
     String dataXName = this.getCollectionName();
 
-    DataxProcessor processor = IAppSource.load(this, dataXName);
-
+    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    IDataxProcessor processor = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataXName);
+    //DataxProcessor.load();
+    Map<String, Object> result = Maps.newHashMap();
+    // DataxProcessor processor = IAppSource.load(this, dataXName);
+    DataxReader.BaseDataxReaderDescriptor readerDesc = null;
     DataxReader reader = (DataxReader) processor.getReader(this);
-    DataxWriter writer = (DataxWriter) processor.getWriter(this);
-    DataxReader.BaseDataxReaderDescriptor readerDesc = (DataxReader.BaseDataxReaderDescriptor) reader.getDescriptor();
+    if (reader != null) {
+      readerDesc = (DataxReader.BaseDataxReaderDescriptor) reader.getDescriptor();
+      result.put("readerDesc", DescriptorsJSON.desc(readerDesc));
+    }
+
+    DataxWriter writer = (DataxWriter) processor.getWriter(this, true);
+
     DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
 
 //    DescriptorsJSON readerDescriptor = new DescriptorsJSON(readerDesc);
 //    DescriptorsJSON writerDescriptor = new DescriptorsJSON(writerDesc);
-    Map<String, Object> result = Maps.newHashMap();
-    result.put("processMeta", getDataXBasicProcessMeta(readerDesc, writerDesc));
-    result.put("writerDesc", DescriptorsJSON.desc(writerDesc) //writerDescriptor.getDescriptorsJSON()
-    );
-    result.put("readerDesc", DescriptorsJSON.desc(readerDesc) //readerDescriptor.getDescriptorsJSON()
-    );
+
+    result.put("processMeta", ProcessModel.getDataXBasicProcessMeta(Optional.ofNullable(readerDesc), writerDesc));
+    result.put("writerDesc", DescriptorsJSON.desc(writerDesc));
+
     setBizResult(context, result);
   }
 
@@ -1025,7 +1064,7 @@ public class DataxAction extends BasicModule {
     private final DescriptorsJSON writerTypesDesc;
 
     public DataxPluginDescMeta(DescriptorExtensionList<DataxReader, Descriptor<DataxReader>> readerTypes
-      , DescriptorExtensionList<DataxWriter, Descriptor<DataxWriter>> writerTypes) {
+      , List<Descriptor<DataxWriter>> writerTypes) {
       super(readerTypes);
       this.writerTypesDesc = new DescriptorsJSON(writerTypes);
     }

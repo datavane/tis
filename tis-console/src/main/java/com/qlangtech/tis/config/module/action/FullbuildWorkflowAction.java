@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.config.module.action;
 
@@ -24,18 +24,16 @@ import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
-import com.qlangtech.tis.git.GitUtils;
-import com.qlangtech.tis.git.GitUtils.GitBranchInfo;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.CreateNewTaskResult;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.order.center.IParamContext;
-import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
-import com.qlangtech.tis.workflow.pojo.*;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Date;
@@ -70,16 +68,18 @@ public class FullbuildWorkflowAction extends BasicModule {
     Application app = null;
     // appname 可以为空
     String appname = this.getString(IFullBuildContext.KEY_APP_NAME);
+    Integer workflowId = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID);
     if (StringUtils.isNotBlank(appname)) {
       app = this.getApplicationDAO().selectByName(appname);
       if (app == null) {
         throw new IllegalStateException("appname:" + appname + " relevant app pojo is not exist");
       }
     }
+
     WorkFlowBuildHistory task = new WorkFlowBuildHistory();
     task.setCreateTime(new Date());
     task.setStartTime(new Date());
-    // task.setWorkFlowId(worflowid);
+    task.setWorkFlowId(workflowId);
     task.setTriggerType(triggerType.getValue());
     task.setState((byte) ExecResult.DOING.getValue());
     // Integer buildHistoryId = null;
@@ -121,7 +121,8 @@ public class FullbuildWorkflowAction extends BasicModule {
 
     WorkFlowBuildHistoryCriteria historyCriteria = new WorkFlowBuildHistoryCriteria();
     historyCriteria.setOrderByClause("id desc");
-    historyCriteria.createCriteria().andAppNameEqualTo(appName).andStateEqualTo((byte) ExecResult.SUCCESS.getValue());
+    historyCriteria.createCriteria()
+      .andAppNameEqualTo(appName).andStateEqualTo((byte) ExecResult.SUCCESS.getValue());
 
     List<WorkFlowBuildHistory> histories
       = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByExample(historyCriteria, 1, 1);
@@ -143,6 +144,7 @@ public class FullbuildWorkflowAction extends BasicModule {
   /**
    * 执行阶段结束
    * do_task_complete
+   *
    * @param context
    */
   @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)

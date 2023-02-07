@@ -47,7 +47,7 @@ public enum Delimiter {
         throw new IllegalStateException("illegal token:" + token);
     }
 
-    private final String token;
+    public final String token;
     public final char val;
 
     private Delimiter(String token, char val) {

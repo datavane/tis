@@ -21,6 +21,7 @@ import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -37,26 +38,23 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta, IStreamT
         return getSelectedTabs().size() > 0;
     }
 
-    public <T extends ISelectedTab> List<T> getSelectedTabs();
-
-//    /**
-//     * 像Mysql会有明确的表名，而OSS没有明确的表名
-//     *
-//     * @return
-//     */
-//    public boolean hasExplicitTable();
+    <T extends ISelectedTab> List<T> getSelectedTabs();
 
     /**
      * 取得子任务
      *
      * @return
      */
-    public IGroupChildTaskIterator getSubTasks();
+    default IGroupChildTaskIterator getSubTasks() {
+        return getSubTasks((tab) -> true);
+    }
+
+    IGroupChildTaskIterator getSubTasks(Predicate<ISelectedTab> filter);
 
     /**
      * 取得配置模版
      *
      * @return
      */
-    public String getTemplate();
+    String getTemplate();
 }

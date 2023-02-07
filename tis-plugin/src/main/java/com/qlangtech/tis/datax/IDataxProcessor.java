@@ -24,6 +24,7 @@ import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
@@ -35,6 +36,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -45,7 +47,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 14:38
  */
-public interface IDataxProcessor {
+public interface IDataxProcessor extends IdentityName {
     public String DATAX_CREATE_DDL_FILE_NAME_SUFFIX = ".sql";
     String DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX = ".json";
 
@@ -76,9 +78,23 @@ public interface IDataxProcessor {
 
     }
 
+    /**
+     * workflow 中支持
+     *
+     * @param pluginCtx
+     * @return
+     */
+    default List<IDataxReader> getReaders(IPluginContext pluginCtx) {
+        return Collections.singletonList(getReader(pluginCtx));
+    }
+
     IDataxReader getReader(IPluginContext pluginCtx);
 
-    IDataxWriter getWriter(IPluginContext pluginCtx);
+    default IDataxWriter getWriter(IPluginContext pluginCtx) {
+        return getWriter(pluginCtx, true);
+    }
+
+    IDataxWriter getWriter(IPluginContext pluginCtx, boolean validateNull);
 
     IDataxGlobalCfg getDataXGlobalCfg();
 

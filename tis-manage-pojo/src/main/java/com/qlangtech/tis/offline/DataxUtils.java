@@ -29,6 +29,8 @@ public class DataxUtils {
     public static final String DATAX_DB_NAME = "dataxDB";
     public static final String EXEC_TIMESTAMP = "execTimeStamp";
 
+    public static final String DATASOURCE_FACTORY_IDENTITY ="dataSourceFactoryId";
+
     public static String getDumpTimeStamp() {
         return getDumpTimeStamp(true);
     }

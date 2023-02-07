@@ -51,8 +51,10 @@ import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IERRulesGetter;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
+import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import junit.framework.Assert;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -199,6 +201,10 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
       case APP_NAME_DUPLICATE:
         AppNameDuplicateValidator nameDuplicateValidator = new AppNameDuplicateValidator(this.getApplicationDAO());
         return nameDuplicateValidator.validate(this, context, fieldName, value);
+      case WORKFLOW_NAME_DUPLICATE:
+
+        DataFlowDuplicateValidator wfValidator = new DataFlowDuplicateValidator(this.wfDAOFacade.getWorkFlowDAO());
+        return wfValidator.validate(this, context, fieldName, value);
 //      case DB_NAME_DUPLICATE:
 //        DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
 //        dbCriteria.createCriteria().andNameEqualTo(value);
@@ -389,6 +395,32 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   @Autowired
   public void setWfDaoFacade(IWorkflowDAOFacade facade) {
     this.wfDAOFacade = facade;
+  }
+
+  public static class DataFlowDuplicateValidator implements Validator.IFieldValidator {
+    private final IWorkFlowDAO workFlowDAO;
+
+    public DataFlowDuplicateValidator(IWorkFlowDAO workFlowDAO) {
+      this.workFlowDAO = workFlowDAO;
+    }
+
+    @Override
+    public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
+
+//      Application app = new Application();
+//      app.setProjectName(fieldData);
+//      if (!AddAppAction.isAppNameValid(msgHandler, context, fieldKey, app)) {
+//        return false;
+//      }
+      WorkFlowCriteria criteria = new WorkFlowCriteria();
+      criteria.createCriteria().andNameEqualTo(fieldData);
+      if (workFlowDAO.countByExample(criteria) > 0) {
+        msgHandler.addFieldError(context, fieldKey, "已经有同名实例(‘" + fieldData + "’)存在");
+        return false;
+      }
+
+      return true;
+    }
   }
 
   public static class AppNameDuplicateValidator implements Validator.IFieldValidator {

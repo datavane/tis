@@ -109,8 +109,9 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     @Override
     public List<T> getPlugins() {
         this.load();
-        if (pluginMetas != null) {
-            RobustReflectionConverter.usedPluginInfo.get().addAll(pluginMetas);
+        RobustReflectionConverter.PluginMetas metas = null;
+        if (pluginMetas != null && !(metas = RobustReflectionConverter.usedPluginInfo.get()).isCacheable()) {
+            metas.addAll(pluginMetas);
         }
         return plugins;
     }

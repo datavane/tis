@@ -112,6 +112,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
 
     public void testGetRewriteSql() throws Exception {
         SqlTaskNodeMeta taskNodeMeta = new SqlTaskNodeMeta();
+
         // SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(TestSupplyGoodsParse.topologyName);
         // assertNotNull(topology);
         // SqlTaskNodeMeta finalNode = topology.getFinalNode();

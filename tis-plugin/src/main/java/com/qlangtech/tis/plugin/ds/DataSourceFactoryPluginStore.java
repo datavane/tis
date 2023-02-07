@@ -118,57 +118,57 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
     }
 
 
-    /**
-     * Save the table metadata info which will be used in dataflow define process
-     *
-     * @param tableName
-     * @throws Exception
-     */
-    public TableReflect saveTable(String tableName) throws Exception {
-        List<ColumnMetaData> colMetas = this.getPlugin().getTableMetadata(EntityName.parse(tableName));
-        return this.saveTable(tableName, colMetas);
-    }
+//    /**
+//     * Save the table metadata info which will be used in dataflow define process
+//     *
+//     * @param tableName
+//     * @throws Exception
+//     */
+//    public TableReflect saveTable(String tableName) throws Exception {
+//        List<ColumnMetaData> colMetas = this.getPlugin().getTableMetadata(EntityName.parse(tableName));
+//        return this.saveTable(tableName, colMetas);
+//    }
 
 
-    private TableReflect saveTable(String tableName, List<ColumnMetaData> colMetas) throws Exception {
-        if (CollectionUtils.isEmpty(colMetas)) {
-            throw new IllegalStateException("tableName:" + tableName + " relevant colMetas can not be empty");
-        }
-        StringBuffer extractSQL = ColumnMetaData.buildExtractSQL(tableName, colMetas);
-        XmlFile configFile = getTableReflectSerializer(tableName);
+//    private TableReflect saveTable(String tableName, List<ColumnMetaData> colMetas) throws Exception {
+//        if (CollectionUtils.isEmpty(colMetas)) {
+//            throw new IllegalStateException("tableName:" + tableName + " relevant colMetas can not be empty");
+//        }
+//        StringBuffer extractSQL = ColumnMetaData.buildExtractSQL(tableName, colMetas);
+//        XmlFile configFile = getTableReflectSerializer(tableName);
+//
+//        TableReflect reflectTab = new TableReflect();
+//        reflectTab.setSql(extractSQL.toString());
+//        reflectTab.setCols(colMetas);
+//        configFile.write(reflectTab, Collections.emptySet());
+//        return reflectTab;
+//    }
 
-        TableReflect reflectTab = new TableReflect();
-        reflectTab.setSql(extractSQL.toString());
-        reflectTab.setCols(colMetas);
-        configFile.write(reflectTab, Collections.emptySet());
-        return reflectTab;
-    }
-
-    private XmlFile getTableReflectSerializer(String tableName) {
-        if (StringUtils.isEmpty(tableName)) {
-            throw new IllegalArgumentException("param tableName can not be empty");
-        }
-        String dbRoot = StringUtils.substringBeforeLast(this.getSerializeFileName(), File.separator);
-        return Descriptor.getConfigFile(dbRoot + File.separator + tableName);
-    }
+//    private XmlFile getTableReflectSerializer(String tableName) {
+//        if (StringUtils.isEmpty(tableName)) {
+//            throw new IllegalArgumentException("param tableName can not be empty");
+//        }
+//        String dbRoot = StringUtils.substringBeforeLast(this.getSerializeFileName(), File.separator);
+//        return Descriptor.getConfigFile(dbRoot + File.separator + tableName);
+//    }
 
 
-    public TISTable loadTableMeta(String tableName) {
-        try {
-            TISTable tisTable = new TISTable();
-            XmlFile tableReflectSerializer = this.getTableReflectSerializer(tableName);
-            if (!tableReflectSerializer.exists()) {
-                throw new IllegalStateException("file is not exist:" + tableReflectSerializer.getFile());
-            }
-            TableReflect tableMeta = (TableReflect) tableReflectSerializer.read();
-            tisTable.setReflectCols(tableMeta.getCols());
-            tisTable.setSelectSql(tableMeta.getSql());
-            tisTable.setTableName(tableName);
-            tisTable.setDbName(this.key.keyVal.getVal());
-            return tisTable;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    public TISTable loadTableMeta(String tableName) {
+//        try {
+//            TISTable tisTable = new TISTable();
+//            XmlFile tableReflectSerializer = this.getTableReflectSerializer(tableName);
+//            if (!tableReflectSerializer.exists()) {
+//                throw new IllegalStateException("file is not exist:" + tableReflectSerializer.getFile() + " for table:" + tableName);
+//            }
+//            TableReflect tableMeta = (TableReflect) tableReflectSerializer.read();
+//            tisTable.setReflectCols(tableMeta.getCols());
+//            tisTable.setSelectSql(tableMeta.getSql());
+//            tisTable.setTableName(tableName);
+//            tisTable.setDbName(this.key.keyVal.getVal());
+//            return tisTable;
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
 }

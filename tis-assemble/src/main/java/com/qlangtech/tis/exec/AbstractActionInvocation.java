@@ -90,7 +90,7 @@ public class AbstractActionInvocation implements ActionInvocation {
 
         } else if (chainContext.hasIndexName()) {
 
-            IBasicAppSource appSource = chainContext.getAppSource();// DataFlowAppSource.load(chainContext.getIndexName());
+            IBasicAppSource appSource = chainContext.getAppSource();
 
             ints = appSource.accept(new IBasicAppSource.IAppSourceVisitor<IExecuteInterceptor[]>() {
                 @Override
@@ -127,8 +127,7 @@ public class AbstractActionInvocation implements ActionInvocation {
 
             });
 
-            Integer taskid = chainContext.getTaskId();
-            TrackableExecuteInterceptor.initialTaskPhase(taskid);
+
 
         } else {
 //            if ("true".equalsIgnoreCase(chainContext.getString(COMMAND_KEY_DIRECTBUILD))) {
@@ -138,6 +137,8 @@ public class AbstractActionInvocation implements ActionInvocation {
             throw new UnsupportedOperationException();
             //}
         }
+        Integer taskid = chainContext.getTaskId();
+        TrackableExecuteInterceptor.initialTaskPhase(taskid);
         return createInvocation(chainContext, ints);
     }
 

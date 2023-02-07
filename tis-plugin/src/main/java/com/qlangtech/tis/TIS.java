@@ -36,12 +36,8 @@ import com.qlangtech.tis.install.InstallState;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DbScope;
-import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.plugin.*;
-import com.qlangtech.tis.plugin.ds.DSKey;
-import com.qlangtech.tis.plugin.ds.DataSourceFactory;
-import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
-import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.hudson.reactor.*;
@@ -154,15 +150,20 @@ public class TIS {
         private final String appname;
         private final boolean isDB;
 
-        public DataXReaderAppKey(IPluginContext pluginContext, boolean isDB, String appname
+        public DataXReaderAppKey(IPluginContext pluginContext, KeyedPluginStore.StoreResourceType resType, String appname
                 , PluginStore.IPluginProcessCallback<DataxReader> pluginCreateCallback) {
-            super(pluginContext, KeyedPluginStore.StoreResourceType.parse(isDB), appname, DataxReader.class);
+            super(pluginContext, resType, appname, DataxReader.class);
             if (pluginCreateCallback == null) {
                 throw new IllegalStateException("param pluginCreateCallback can not be null");
             }
             this.pluginCreateCallback = pluginCreateCallback;
             this.appname = appname;
-            this.isDB = isDB;
+            this.isDB = (KeyedPluginStore.StoreResourceType.DataBase == resType);
+        }
+
+        public DataXReaderAppKey(IPluginContext pluginContext, boolean isDB, String appname
+                , PluginStore.IPluginProcessCallback<DataxReader> pluginCreateCallback) {
+            this(pluginContext, KeyedPluginStore.StoreResourceType.parse(isDB), appname, pluginCreateCallback);
         }
 
         public boolean isSameAppName(String appname, boolean isDB) {
@@ -281,14 +282,27 @@ public class TIS {
 
     public static IDataSourceFactoryPluginStoreGetter dsFactoryPluginStoreGetter;
 
-    public static DataSourceFactoryPluginStore getDataBasePluginStore(PostedDSProp dsProp) {
+    public static <DS extends DataSourceFactory> DS getDataBasePlugin(PostedDSProp dsProp) {
+        return getDataBasePlugin(dsProp, true);
+    }
 
-        if (dsFactoryPluginStoreGetter != null) {
-            return dsFactoryPluginStoreGetter.getPluginStore(dsProp);
+    public static <DS extends DataSourceFactory> DS getDataBasePlugin(PostedDSProp dsProp, boolean validateNull) {
+        DataSourceFactoryPluginStore pluginStore = getDataSourceFactoryPluginStore(dsProp);
+        DS ds = (DS) pluginStore.getPlugin();
+        if (validateNull) {
+            Objects.requireNonNull(ds, dsProp.toString() + " relevant plugin can not be null ");
         }
+        return ds;
+    }
 
-        DataSourceFactoryPluginStore pluginStore
-                = databasePluginStore.get(new DSKey(DB_GROUP_NAME, dsProp, DataSourceFactory.class));
+    public static DataSourceFactoryPluginStore getDataSourceFactoryPluginStore(PostedDSProp dsProp) {
+        DataSourceFactoryPluginStore pluginStore = null;
+        if (dsFactoryPluginStoreGetter != null) {
+            pluginStore = dsFactoryPluginStoreGetter.getPluginStore(dsProp);
+        } else {
+            DSKey key = new DSKey(DB_GROUP_NAME, dsProp, DataSourceFactory.class);
+            pluginStore = databasePluginStore.get(key);
+        }
         return pluginStore;
     }
 
@@ -298,7 +312,7 @@ public class TIS {
 
     public static void deleteDB(String dbName, DbScope dbScope) {
         try {
-            DataSourceFactoryPluginStore dsPluginStore = getDataBasePluginStore(new PostedDSProp(dbName, dbScope));
+            DataSourceFactoryPluginStore dsPluginStore = getDataSourceFactoryPluginStore(new PostedDSProp(DBIdentity.parseId(dbName), dbScope));
             dsPluginStore.deleteDB();
             databasePluginStore.clear(dsPluginStore.getDSKey());
         } catch (Exception e) {
@@ -731,7 +745,7 @@ public class TIS {
 
         List<IRepositoryResource> resources = Lists.newArrayList();
         // resources.add(TIS.getPluginStore(HeteroEnum.INDEX_BUILD_CONTAINER.extensionPoint));
-        resources.add(TIS.getPluginStore(FlatTableBuilder.class));
+        // resources.add(TIS.getPluginStore(FlatTableBuilder.class));
         // resources.add(TIS.getPluginStore(TableDumpFactory.class));
         resources.add(TIS.getPluginStore(ParamsConfig.class));
         return new ComponentMeta(resources);

@@ -53,11 +53,11 @@ public class TestDefaultChainContext extends TestCase implements TISEasyMock {
         IParamContext paramContext = this.mock("paramContext", IParamContext.class);
         DefaultChainContext chainContext = new DefaultChainContext(paramContext);
 
-        PhaseStatusCollection statusCollection = chainContext.loadPhaseStatusFromLatest(dataXname);
+        PhaseStatusCollection statusCollection = chainContext.loadPhaseStatusFromLatest();
         assertNull(statusCollection);
 
 // ./src/test/resources/com/qlangtech/tis/full/dump/cfg_repo/df-logs/66/dump
-        statusCollection = chainContext.loadPhaseStatusFromLatest(dataXname);
+        statusCollection = chainContext.loadPhaseStatusFromLatest();
         assertNotNull(statusCollection);
         DumpPhaseStatus dumpPhase = statusCollection.getDumpPhase();
         assertNotNull(dumpPhase);

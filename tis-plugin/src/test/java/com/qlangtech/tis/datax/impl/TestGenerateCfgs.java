@@ -52,8 +52,8 @@ public class TestGenerateCfgs {
         final String jdbcUrl = "jdbc:mysql://192.168.28.200:3306/order2?useUnicode=yes&useCursorFetch=true&useSSL=false&serverTimezone=Asia%2FShanghai&useCompression=false&characterEncoding=utf8";
         groupedChildTask.put(tabName
                 , Lists.newArrayList(
-                        new DataXCfgGenerator.DBDataXChildTask(jdbcUrl, tabName + "_1")
-                        , new DataXCfgGenerator.DBDataXChildTask(jdbcUrl, tabName + "_2")));
+                        new DataXCfgGenerator.DBDataXChildTask(jdbcUrl, "order2", tabName + "_1")
+                        , new DataXCfgGenerator.DBDataXChildTask(jdbcUrl, "order2", tabName + "_2")));
         genCfgs.setGroupedChildTask(groupedChildTask);
 
 

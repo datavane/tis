@@ -42,6 +42,7 @@ public class TestSqlDataFlowTopology extends BasicTestCase {
     public void testDeserialize() throws Exception {
         // 通过yaml的反序列化方式
         SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology("totalpay");
+        System.out.println(   topology.getDAGSessionSpec());
         // topology.getFinalNode()
         String jsonContent = com.alibaba.fastjson.JSON.toJSONString(topology, SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat);
         // Assert.assertTrue(topology.getTimestamp() > 0);

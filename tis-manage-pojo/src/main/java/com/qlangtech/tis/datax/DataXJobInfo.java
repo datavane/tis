@@ -1,5 +1,6 @@
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.plugin.ds.DBIdentity;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -30,23 +31,32 @@ import java.util.Optional;
  * @create: 2022-12-24 10:48
  **/
 public class DataXJobInfo {
-    public final String jobFileName;
-    private final Optional<String[]> targetTableNames;
-    private static DataXJobInfo currJobInfo;
+
     private static final String FILENAME_SPLIT_CHAR = "/";
     private static final String TAB_SPLIT_CHAR = ",";
 
+
+    public final String jobFileName;
+    /**
+     * 对应的分表集合
+     */
+    private final Optional<String[]> targetTableNames;
+    private static DataXJobInfo currJobInfo;
+    private final DBIdentity dbFactoryId;
+
     public static DataXJobInfo parse(String jobInfo) {
         String[] split = StringUtils.split(jobInfo, FILENAME_SPLIT_CHAR);
-        if (split.length > 1) {
-            return currJobInfo = new DataXJobInfo(split[0], Optional.of(StringUtils.split(split[1], TAB_SPLIT_CHAR)));
+        if (split.length > 2) {
+            return currJobInfo = new DataXJobInfo(split[0], DBIdentity.parseId(split[1]), Optional.of(StringUtils.split(split[2], TAB_SPLIT_CHAR)));
+        } else if (split.length == 2) {
+            return currJobInfo = new DataXJobInfo(split[0], DBIdentity.parseId(split[1]), Optional.empty());
         } else {
-            return currJobInfo = new DataXJobInfo(split[0], Optional.empty());
+            throw new IllegalStateException("illegal jobInfo:" + jobInfo);
         }
     }
 
-    public static DataXJobInfo create(String jobFileName, List<String> targetTabs) {
-        return currJobInfo = new DataXJobInfo(jobFileName, (targetTabs == null || targetTabs.isEmpty())
+    public static DataXJobInfo create(String jobFileName, DBIdentity dbFactoryId, List<String> targetTabs) {
+        return currJobInfo = new DataXJobInfo(jobFileName, dbFactoryId, (targetTabs == null || targetTabs.isEmpty())
                 ? Optional.empty() : Optional.of(targetTabs.toArray(new String[targetTabs.size()])));
     }
 
@@ -54,8 +64,23 @@ public class DataXJobInfo {
         return Objects.requireNonNull(currJobInfo, "currJobInfo can not be null");
     }
 
+    public static File getJobPath(File dataxCfgDir, String dbFactoryId, String jobFileName) {
+        File dataXCfg = new File(dataxCfgDir, dbFactoryId + File.separator + jobFileName);
+        return dataXCfg;
+    }
+
+    public File getJobPath(File dataxCfgDir) {
+        return getJobPath(dataxCfgDir, this.dbFactoryId.identityValue(), jobFileName);
+    }
+
+
+    public DBIdentity getDbFactoryId() {
+        return this.dbFactoryId;
+    }
+
     public String serialize() {
         StringBuffer buffer = new StringBuffer(jobFileName);
+        buffer.append(FILENAME_SPLIT_CHAR).append(this.dbFactoryId.identityValue());
         if (targetTableNames.isPresent()) {
             String[] tabs = targetTableNames.get();
             if (tabs.length > 0) {
@@ -65,45 +90,19 @@ public class DataXJobInfo {
         return buffer.toString();
     }
 
-    /**
-     * 全部可执行的表列表枚举
-     *
-     * @param allTabs 全部可执行的表
-     * @return 需要执行的表的列表
-     */
-    public static List<String> getExecTables(final List<String> allTabs, String escapeChar) {
-        return allTabs;
-//        Map<String, String> allAcceptedTabs =
-//                allTabs.stream().collect(Collectors.toMap((tab) -> StringUtils.remove(tab, escapeChar), (tab) -> tab));
-//        List<String> execTables = new ArrayList<>();
-//        DataXJobInfo jobInfo = getCurrent();
-//        Optional<String[]> targetTableNames = jobInfo.getTargetTableNames();
-//        String[] filterTabs = null;
-//        if (!targetTableNames.isPresent() || (filterTabs = targetTableNames.get()).length < 1) {
-//            throw new IllegalStateException(jobInfo.jobFileName + " relevant targetTableNames can not be empty");
-//        }
-//        String t = null;
-//        for (String tab : filterTabs) {
-//            if ((t = allAcceptedTabs.get(tab)) != null) {
-//                execTables.add(t);
-//            }
-//        }
-//        return execTables;
-    }
 
-    private DataXJobInfo(String jobFileName, Optional<String[]> targetTableName) {
+    private DataXJobInfo(String jobFileName, DBIdentity dbFactoryId, Optional<String[]> targetTableName) {
         if (StringUtils.isEmpty(jobFileName)) {
             throw new IllegalArgumentException("param jobFileName can not be empty");
         }
         this.jobFileName = jobFileName;
         this.targetTableNames = targetTableName;
+        this.dbFactoryId = dbFactoryId;
     }
 
     public Optional<String[]> getTargetTableNames() {
         return this.targetTableNames;
     }
 
-    public File getJobPath(File dataxCfgDir) {
-        return new File(dataxCfgDir, jobFileName);
-    }
+
 }

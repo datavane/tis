@@ -62,7 +62,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
             , final Map<String, TISReactor.TaskAndMilestone> taskMap, DataXJobSubmit submit, RpcServiceReference statusRpc, ISelectedTab entry) {
         RemoteTaskTriggers triggers = new RemoteTaskTriggers();
         IRemoteTaskTrigger jobTrigger = null;
-        IDataxWriter writer = appSource.getWriter(null);
+        IDataxWriter writer = appSource.getWriter(null, true);
         DataXCfgGenerator.GenerateCfgs cfgFileNames = appSource.getDataxCfgFileNames(null);
         if (CollectionUtils.isEmpty(cfgFileNames.getDataXCfgFiles())) {
             throw new IllegalStateException("dataX cfgFileNames can not be empty");
@@ -127,29 +127,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         IDataxReader reader = appSource.getReader(null);
 
         List<ISelectedTab> selectedTabs = reader.getSelectedTabs();
-        // Map<String, IDataxProcessor.TableAlias> tabAlias = appSource.getTabAlias();
 
-        //   IDataxWriter writer = appSource.getWriter(null);
-
-//        DataXCfgGenerator.GenerateCfgs cfgFileNames = appSource.getDataxCfgFileNames(null);
-//        if (CollectionUtils.isEmpty(cfgFileNames.getDataXCfgFiles())) {
-//            throw new IllegalStateException("dataX cfgFileNames can not be empty");
-//        }
-
-
-//        if (writer instanceof IDataXBatchPost) {
-//            IDataXBatchPost batchPostTask = (IDataXBatchPost) writer;
-//
-//            for (ISelectedTab entry : selectedTabs) {
-//                IRemoteTaskTrigger postTaskTrigger = batchPostTask.createPostTask(execChainContext, entry, cfgFileNames);
-//                addJoinTask(execChainContext, taskMap, triggers, postTaskTrigger);
-//
-//                IRemoteTaskTrigger preExec = batchPostTask.createPreExecuteTask(execChainContext, entry);
-//                if (preExec != null) {
-//                    addDumpTask(execChainContext, taskMap, preExec, triggers);
-//                }
-//            }
-//        }
 
 
         DataXJobSubmit.InstanceType expectDataXJobSumit = getDataXTriggerType();

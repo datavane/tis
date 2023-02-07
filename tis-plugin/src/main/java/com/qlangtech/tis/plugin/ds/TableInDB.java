@@ -21,10 +21,12 @@ package com.qlangtech.tis.plugin.ds;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.DataXJobInfo;
 import com.qlangtech.tis.datax.DataXJobSubmit;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -32,9 +34,19 @@ import java.util.function.Function;
  * @create: 2022-12-17 18:45
  **/
 public abstract class TableInDB {
+    protected final DBIdentity dbSourceId;
 
-    public static TableInDB create() {
-        return new DftTableInDB();
+    public TableInDB(DBIdentity dbSourceId) {
+        this.dbSourceId = Objects.requireNonNull(dbSourceId, "param id can not be null");
+    }
+
+    public final boolean isMatch(DBIdentity queryDBSourceId) {
+        return StringUtils.equals(Objects.requireNonNull(queryDBSourceId.identityValue(), "dbFactoryId can not be null")
+                , this.dbSourceId.identityValue());
+    }
+
+    public static TableInDB create(DBIdentity id) {
+        return new DftTableInDB(id);
     }
 
     /**
@@ -68,14 +80,19 @@ public abstract class TableInDB {
     private static class DftTableInDB extends TableInDB {
         private List<String> tabs = Lists.newArrayList();
 
+        public DftTableInDB(DBIdentity id) {
+            super(id);
+        }
+
         @Override
         public void add(String jdbcUrl, String tab) {
             this.tabs.add(tab);
         }
 
+
         @Override
         public DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity) {
-            return DataXJobInfo.create(tabEntity.getFileName(), Collections.emptyList());
+            return DataXJobInfo.create(tabEntity.getFileName(), tabEntity, Collections.emptyList());
         }
 
         @Override

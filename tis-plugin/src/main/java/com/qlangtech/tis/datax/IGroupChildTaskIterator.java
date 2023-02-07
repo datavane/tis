@@ -48,7 +48,7 @@ public interface IGroupChildTaskIterator extends Iterator<IDataxReaderContext> {
                     throw new IllegalStateException("readerContext.getTaskName() can not be empty");
                 }
                 return Collections.singletonMap(readerContext.getTaskName()
-                        , Lists.newArrayList(new DataXCfgGenerator.DBDataXChildTask(null, readerContext.getTaskName())));
+                        , Lists.newArrayList(new DataXCfgGenerator.DBDataXChildTask(null, readerContext.getReaderContextId(), readerContext.getTaskName())));
             }
 
             @Override

@@ -94,7 +94,7 @@ public class SendSMSUtils {
                 }
             }
             // 发送丁丁消息
-            URL url = new URL("http://sm.2dfire-inc.com/sm-soa/sm/send_msg?msg="
+            URL url = new URL("http://sm.xxxx-inc.com/sm-soa/sm/send_msg?msg="
                     + URLEncoder.encode("from:" + NetUtils.getHost() + "|" + content, TisUTF8.getName())
                     + "&tos=" + URLEncoder.encode(email.toString(), TisUTF8.getName()));
             logger.info("dingding url:" + url);
@@ -118,7 +118,7 @@ public class SendSMSUtils {
                 phones.append(c.getMoblie()).append(",");
             }
             // url = new
-            // URL("http://msg.2dfire.com/sm-soa/sm/send_ms?source_name=tis&tos="
+            // URL("http://msg.xxx.com/sm-soa/sm/send_ms?source_name=tis&tos="
             // + URLEncoder.encode(sms.toString(), UTF8) + "&type=1&content=" +
             // URLEncoder.encode(content, UTF8));
             url = new URL("http://sm.qlangtech.com/sm-soa/sm/send_note");

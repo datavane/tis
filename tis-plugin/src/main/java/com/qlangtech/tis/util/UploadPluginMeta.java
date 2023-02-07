@@ -92,6 +92,9 @@ public class UploadPluginMeta {
     }
 
     public void putExtraParams(String key, String val) {
+        if (StringUtils.isEmpty(val)) {
+            throw new IllegalArgumentException("key:" + key + " relevant val can not be null");
+        }
         this.extraParams.put(key, val);
     }
 
@@ -180,7 +183,8 @@ public class UploadPluginMeta {
                                 throw new IllegalStateException("attr:" + attr + " is not match:"
                                         + PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR.pattern());
                             }
-                            pmeta.extraParams.put(attrKVMatcher.group(1), attrKVMatcher.group(2));
+                            pmeta.putExtraParams(attrKVMatcher.group(1), attrKVMatcher.group(2));
+                            // pmeta.extraParams.put(attrKVMatcher.group(1), attrKVMatcher.group(2));
                         }
                     }
                 }
@@ -327,7 +331,7 @@ public class UploadPluginMeta {
     }
 
     public String getDataXName() {
-       return getDataXName(true);
+        return getDataXName(true);
     }
 
     public boolean getBoolean(String key) {

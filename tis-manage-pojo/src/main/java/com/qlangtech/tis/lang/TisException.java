@@ -173,7 +173,9 @@ public class TisException extends RuntimeException {
     public static List<ErrMsg> getErrorLogs() {
         File errLogDir = getErrLogDir();
         String[] logs = errLogDir.list();
-
+        if (logs == null) {
+            return Collections.emptyList();
+        }
         List<ErrMsg> result = Lists.newArrayList(Arrays.stream(logs).filter((l) ->
                 p.matcher(l).matches()
         ).map((l) -> {

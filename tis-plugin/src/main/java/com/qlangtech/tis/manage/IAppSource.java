@@ -111,5 +111,7 @@ public interface IAppSource extends Describable<IAppSource> {
     default Descriptor<IAppSource> getDescriptor() {
         return TIS.get().getDescriptor(this.getClass());
     }
+
+    KeyedPluginStore.StoreResourceType getResType();
 }
 

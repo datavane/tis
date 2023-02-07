@@ -33,15 +33,20 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.util.RobustReflectionConverter;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.tis.hadoop.rpc.RpcServiceReference;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -50,7 +55,7 @@ import java.util.concurrent.Callable;
 @TISExtensible
 @Public
 public abstract class DataXJobSubmit {
-
+    public static final String KEY_DATAX_READERS = "dataX_readers";
     public static final int MAX_TABS_NUM_IN_PER_JOB = 40;
 
     public static Callable<DataXJobSubmit> mockGetter;
@@ -128,14 +133,17 @@ public abstract class DataXJobSubmit {
     public abstract InstanceType getType();
 
 
-    protected CuratorDataXTaskMessage getDataXJobDTO(IJoinTaskContext taskContext, DataXJobInfo dataXJobInfo) {
+    public CuratorDataXTaskMessage getDataXJobDTO(IJoinTaskContext taskContext, DataXJobInfo dataXJobInfo) {
 
         CuratorDataXTaskMessage msg = new CuratorDataXTaskMessage();
-        msg.setDataXName(taskContext.getIndexName());
+        if (taskContext.hasIndexName()) {
+            msg.setDataXName(taskContext.getIndexName());
+        }
         msg.setJobId(taskContext.getTaskId());
         msg.setJobName(dataXJobInfo.serialize());
         msg.setExecTimeStamp(taskContext.getPartitionTimestamp());
-        PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest(taskContext.getIndexName());
+
+        PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest();
         DumpPhaseStatus.TableDumpStatus dataXJob = null;
         if (preTaskStatus != null
                 && (dataXJob = preTaskStatus.getDumpPhase().getTable(dataXJobInfo.jobFileName)) != null
@@ -156,13 +164,67 @@ public abstract class DataXJobSubmit {
      * @param dependencyTasks 前置依赖需要执行的任务节点
      * @return
      */
-    public abstract IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext
-            , RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, TableDataXEntity tabDataXEntity, List<String> dependencyTasks);
+    public final IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext
+            , RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, TableDataXEntity tabDataXEntity, List<String> dependencyTasks) {
+        final DataXJobInfo jobName = getDataXJobInfo(tabDataXEntity, taskContext, dataxProcessor);
+        CuratorDataXTaskMessage dataXJobDTO = getDataXJobDTO(taskContext.getTaskContext(), jobName);
 
-    public static class TableDataXEntity {
+        if (this.getType() == InstanceType.DISTRIBUTE) {
+            //TODO: 获取DataXProcess 相关元数据
+            RobustReflectionConverter.PluginMetas pluginMetas
+                    = RobustReflectionConverter.PluginMetas.collectMetas(() -> {
+
+            });
+        }
+
+
+        return createDataXJob(taskContext, statusRpc, jobName, dataxProcessor, dataXJobDTO, dependencyTasks);
+    }
+
+    protected abstract IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext
+            , RpcServiceReference statusRpc, DataXJobInfo jobName
+            , IDataxProcessor dataxProcessor, CuratorDataXTaskMessage dataXJobDTO, List<String> dependencyTasks);
+
+
+    private DataXJobInfo getDataXJobInfo(
+            final TableDataXEntity tabDataXEntity, IDataXJobContext taskContext, IDataxProcessor dataxProcessor) {
+
+        List<IDataxReader> readers = taskContext.getTaskContext().getAttribute(KEY_DATAX_READERS
+                , () -> dataxProcessor.getReaders(null));
+
+        return getDataXJobInfo(tabDataXEntity, (p) -> {
+            TableInDB tabsInDB = p.getLeft();
+            DataXJobInfo jobName = tabsInDB.createDataXJobInfo(tabDataXEntity);
+            return jobName;
+        }, readers);
+    }
+
+    public static <T> T getDataXJobInfo(DBIdentity targetDBId, Function<Pair<TableInDB, IDataxReader>, T> convert, List<IDataxReader> readers) {
+
+        for (IDataxReader reader : readers) {
+            TableInDB tabsInDB = reader.getTablesInDB();
+            if (tabsInDB.isMatch(targetDBId)) {
+                return convert.apply(Pair.of(tabsInDB, reader));
+//                jobName = tabsInDB.createDataXJobInfo(tabDataXEntity);
+//                return Pair.of(jobName, reader);
+            }
+        }
+
+        throw new IllegalStateException(targetDBId.toString());
+//        Objects.requireNonNull(jobName, tabDataXEntity.toString());
+//        return jobName;
+    }
+
+
+    public static class TableDataXEntity implements DBIdentity {
         public static final String TEST_JDBC_URL = "jdbc_url_test";
-        private final DataXCfgGenerator.DBDataXChildTask fileName;
+        public final DataXCfgGenerator.DBDataXChildTask fileName;
         private final ISelectedTab selectedTab;
+
+        @Override
+        public String identityValue() {
+            return fileName.getDbFactoryId();
+        }
 
         public static DataXJobSubmit.TableDataXEntity createTableEntity4Test(String dataXCfgFileName, String tabName) {
             return createTableEntity(dataXCfgFileName, TEST_JDBC_URL, tabName);
@@ -195,7 +257,7 @@ public abstract class DataXJobSubmit {
                 }
             };
             return new DataXJobSubmit.TableDataXEntity(
-                    new DataXCfgGenerator.DBDataXChildTask(dbIdenetity, dataXCfgFileName), selTab);
+                    new DataXCfgGenerator.DBDataXChildTask(dbIdenetity, null, dataXCfgFileName), selTab);
         }
 
         public TableDataXEntity(DataXCfgGenerator.DBDataXChildTask fileName, ISelectedTab selectedTab) {
@@ -217,6 +279,14 @@ public abstract class DataXJobSubmit {
 
         public String getSourceTableName() {
             return this.selectedTab.getName();
+        }
+
+        @Override
+        public String toString() {
+            return "{" +
+                    fileName +
+                    ", selectedTab=" + selectedTab.getName() +
+                    '}';
         }
     }
 

@@ -30,7 +30,6 @@ import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.FileSystemFactory;
-import com.qlangtech.tis.offline.FlatTableBuilder;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginStoreSave;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -58,10 +57,10 @@ import java.util.stream.Collectors;
  */
 public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
-    @TISExtension
-    public final static HeteroEnum<FlatTableBuilder> FLAT_TABLE_BUILDER = new HeteroEnum(//
-            FlatTableBuilder.class, //
-            "flat_table_builder", "宽表构建", Selectable.Single);
+    //    @TISExtension
+//    public final static HeteroEnum<FlatTableBuilder> FLAT_TABLE_BUILDER = new HeteroEnum(//
+//            FlatTableBuilder.class, //
+//            "flat_table_builder", "宽表构建", Selectable.Single);
     // ////////////////////////////////////////////////////////
 //    @TISExtension
 //    public static final HeteroEnum<IndexBuilderTriggerFactory> INDEX_BUILD_CONTAINER = new HeteroEnum<IndexBuilderTriggerFactory>(//
@@ -151,7 +150,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             if (!dsProp.getDbname().isPresent()) {
                 return null;
             }
-            return TIS.getDataBasePluginStore(dsProp);
+            return TIS.getDataSourceFactoryPluginStore(dsProp);
         }
     };
     //    @TISExtension

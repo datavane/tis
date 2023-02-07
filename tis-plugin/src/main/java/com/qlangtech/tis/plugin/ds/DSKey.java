@@ -21,6 +21,7 @@ import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author: baisui 百岁
@@ -30,7 +31,14 @@ public class DSKey extends KeyedPluginStore.Key<DataSourceFactory> {
     private final DbScope dbScope;
 
     public DSKey(String groupName, PostedDSProp dsProp, Class<DataSourceFactory> pluginClass) {
-        this(groupName, dsProp.getDbType(), dsProp.getDbname().get(), pluginClass);
+        this(groupName, dsProp.getDbType(), getDBName(dsProp.getDbname()), pluginClass);
+    }
+
+    private static String getDBName(Optional<DBIdentity> dbName) {
+        if (!dbName.isPresent()) {
+            throw new IllegalStateException("dbName must be present");
+        }
+        return dbName.get().identityValue();
     }
 
     public DSKey(String groupName, DbScope dbScope, String keyVal, Class<DataSourceFactory> pluginClass) {
@@ -46,6 +54,14 @@ public class DSKey extends KeyedPluginStore.Key<DataSourceFactory> {
 
     public boolean isFacadeType() {
         return this.dbScope == DbScope.FACADE;
+    }
+
+    @Override
+    public String toString() {
+        return "DSKey{" +
+                "dbScope=" + dbScope +
+                ", keyVal=" + keyVal +
+                '}';
     }
 
     @Override

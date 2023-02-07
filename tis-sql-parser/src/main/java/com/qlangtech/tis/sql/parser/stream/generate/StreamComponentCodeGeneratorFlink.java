@@ -89,8 +89,8 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
             public List<TableAlias> visit(DataxProcessor processor) {
                 // Map<IEntityNameGetter, List<IValChain>> tabColsMapper = Maps.newHashMap();
                 List<TableAlias> aliases = Lists.newArrayList();
-                IDataxReader reader = processor.getReader(null);
-                Objects.requireNonNull(reader, "dataXReader can not be null");
+              //  IDataxReader reader = processor.getReader(null);
+              //  Objects.requireNonNull(reader, "dataXReader can not be null");
                 TableAliasMapper tabAlias = processor.getTabAlias();
 
                 tabAlias.forEach((key, alia) -> {

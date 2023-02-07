@@ -38,6 +38,7 @@ import com.qlangtech.tis.fullbuild.taskflow.TemplateContext;
 import com.qlangtech.tis.manage.IDataFlowAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
@@ -82,10 +83,15 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
             throw new IllegalStateException(writer.getClass() + " must be type of " + IFlatTableBuilder.class.getSimpleName());
         }
         if (!(writer instanceof IDataSourceFactoryGetter)) {
-            throw new IllegalStateException(writer.getClass() + " must be type of " + IFlatTableBuilder.class.getSimpleName());
+            throw new IllegalStateException(writer.getClass() + " must be type of " + IDataSourceFactoryGetter.class.getSimpleName());
         }
         this.flatTableBuilder = (IFlatTableBuilder) writer;
         this.dsGetter = (IDataSourceFactoryGetter) writer;
+    }
+
+    @Override
+    public KeyedPluginStore.StoreResourceType getResType() {
+        return KeyedPluginStore.StoreResourceType.DataFlow;
     }
 
     public Integer getDfId() {
@@ -171,21 +177,18 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
             tabDump = singleTableDumpFactory.createSingleTableDump(dump, false, /* isHasValidTableDump */
                     "tableDump.getPt()", execChainContext.getZkClient(), execChainContext, dumpPhaseStatus, taskPhaseInfo);
             for (DataflowTask tsk : tabDump) {
-                taskMap.put(tsk.getIdentityName(), new TISReactor.TaskAndMilestone(tsk));
+                taskMap.put(dump.getId(), new TISReactor.TaskAndMilestone(tsk));
             }
         }
         ERRules erRules = this.getErRules();
-//        if (topology.isSingleTableModel()) {
-//            return executeDAG(execChainContext, topology, dataProcessFeedback, taskMap);
-//        } else {
-        final ExecuteResult[] faildResult = new ExecuteResult[1];
+
         TemplateContext tplContext = new TemplateContext(execChainContext);
         JoinPhaseStatus joinPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
         //IPluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
         //Objects.requireNonNull(pluginStore.getPlugin(), "flatTableBuilder can not be null");
         // chainContext.setFlatTableBuilderPlugin(pluginStore.getPlugin());
         // final IFlatTableBuilder flatTableBuilder = pluginStore.getPlugin();// execChainContext.getFlatTableBuilder();
-        final SqlTaskNodeMeta fNode = topology.getFinalNode();
+       // final SqlTaskNodeMeta fNode = topology.getFinalNode();
         flatTableBuilder.startTask((context) -> {
             DataflowTask process = null;
             for (SqlTaskNodeMeta pnode : topology.getNodeMetas()) {
@@ -194,14 +197,16 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
                  * 构建宽表构建任务节点
                  * ************************************
                  */
-                process = flatTableBuilder.createTask(pnode, StringUtils.equals(fNode.getId(), pnode.getId())
-                        , tplContext, context, joinPhaseStatus.getTaskStatus(pnode.getExportName()), this.flatTableBuilder, this.dsGetter, erRules);
+                process = flatTableBuilder.createTask(pnode, false//StringUtils.equals(fNode.getId(), pnode.getId())
+                        , tplContext, context, joinPhaseStatus.getTaskStatus(pnode.getExportName())
+                        , this.dsGetter, erRules);
 
                 taskMap.put(pnode.getId(), new TISReactor.TaskAndMilestone(process));
             }
-            faildResult[0] = executeDAG(execChainContext, topology, dataProcessFeedback, taskMap);
+
         });
-        return faildResult[0];
+        final ExecuteResult faildResult = executeDAG(execChainContext, topology, dataProcessFeedback, taskMap);
+        return faildResult;
         // }
     }
 

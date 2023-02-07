@@ -39,6 +39,7 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncherWithDataXTrigger;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStubUtils;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.test.TISTestCase;
@@ -81,7 +82,8 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
         DataXCfgGenerator.GenerateCfgs genCfg = new DataXCfgGenerator.GenerateCfgs(dataxCfgDir);
         genCfg.setGenTime(System.currentTimeMillis());
         Map<String, List<DataXCfgGenerator.DBDataXChildTask>> groupedChildTask = Maps.newHashMap();
-        groupedChildTask.put(tableName, Lists.newArrayList(new DataXCfgGenerator.DBDataXChildTask(DataXJobSubmit.TableDataXEntity.TEST_JDBC_URL, dataCfgTaskName)));
+        groupedChildTask.put(tableName, Lists.newArrayList(
+                new DataXCfgGenerator.DBDataXChildTask(DataXJobSubmit.TableDataXEntity.TEST_JDBC_URL, null, dataCfgTaskName)));
         genCfg.setGroupedChildTask(groupedChildTask);
         genCfg.write2GenFile(dataxCfgDir);
 
@@ -258,6 +260,10 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
             return AP_NAME;
         }
 
+        @Override
+        public KeyedPluginStore.StoreResourceType getResType() {
+            throw new UnsupportedOperationException();
+        }
 
         @Override
         public IDataxGlobalCfg getDataXGlobalCfg() {

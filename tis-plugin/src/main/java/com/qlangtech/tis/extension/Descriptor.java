@@ -30,6 +30,7 @@ import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.impl.*;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
@@ -274,8 +275,12 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     public static XmlFile getConfigFile(String pluginId) {
+        return getConfigFile(pluginId, false);
+    }
+
+    public static XmlFile getConfigFile(String pluginId, boolean metaCfgDir) {
         String pluginFileName = getPluginFileName(pluginId);
-        return new XmlFile(new File(TIS.pluginCfgRoot, pluginFileName), pluginFileName);
+        return new XmlFile(new File(metaCfgDir ? Config.getMetaCfgDir() : TIS.pluginCfgRoot, pluginFileName), pluginFileName);
     }
 
     public PluginFormProperties getSubPluginFormPropertyTypes(String subFieldName) {
@@ -1115,7 +1120,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     // describable
                     if (!containVal && attrDesc.isInputRequired()) {
                         throw new IllegalStateException(
-                                "prop:" + attr + " can not be empty ,descriptor" + describable.getDescriptor());
+                                "prop:" + attr + " can not be empty ,descriptor:" + describable.getDescriptor());
                     }
                     if (containVal) {
                         attrVal = valJ.get(KEY_primaryVal);

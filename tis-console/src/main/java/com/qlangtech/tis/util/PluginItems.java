@@ -157,8 +157,10 @@ public class PluginItems {
     if (heteroEnum == HeteroEnum.APP_SOURCE) {
 
       for (Descriptor.ParseDescribable<?> d : dlist) {
-        if (d.getInstance() instanceof IdentityName) {
-          store = IAppSource.getPluginStore(pluginContext, ((IdentityName) d.getInstance()).identityValue());
+        Object inst = d.getInstance();
+        if (inst instanceof IdentityName) {
+          KeyedPluginStore.StoreResourceType resType = ((IAppSource) inst).getResType();
+          store = IAppSource.getPluginStore(pluginContext, resType, ((IdentityName) d.getInstance()).identityValue());
           break;
         }
       }
@@ -178,7 +180,7 @@ public class PluginItems {
             }
             PostedDSProp dbExtraProps = PostedDSProp.parse(pluginMeta);
 
-            SetPluginsResult result = TIS.getDataBasePluginStore(dbExtraProps)
+            SetPluginsResult result = TIS.getDataSourceFactoryPluginStore(dbExtraProps)
               .setPlugins(pluginContext, context, Collections.singletonList(plugin), dbExtraProps.isUpdate());
             if (!result.success) {
               return result;

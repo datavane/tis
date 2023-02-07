@@ -30,6 +30,7 @@ import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -74,9 +75,10 @@ public class SubFieldContainPlugin extends DataxReader implements IdentityName {
     }
 
     @Override
-    public IGroupChildTaskIterator getSubTasks() {
+    public IGroupChildTaskIterator getSubTasks(Predicate<ISelectedTab> filter) {
         return null;
     }
+
 
     @Override
     public String getTemplate() {

@@ -29,12 +29,11 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
 import com.qlangtech.tis.manage.ISingleTableAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
-import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
-import com.qlangtech.tis.plugin.ds.PostedDSProp;
-import com.qlangtech.tis.plugin.ds.TISTable;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.sql.parser.DBNode;
+import com.qlangtech.tis.sql.parser.er.TableMeta;
 import com.qlangtech.tis.sql.parser.er.*;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.meta.TabExtraMeta;
@@ -74,6 +73,10 @@ public class SingleTableAppSource implements ISolrAppSource, IStreamIncrGenerate
 //        return visitor.visit(this);
 //    }
 
+    @Override
+    public KeyedPluginStore.StoreResourceType getResType() {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     public <T> T accept(IAppSourceVisitor<T> visitor) {
@@ -88,13 +91,18 @@ public class SingleTableAppSource implements ISolrAppSource, IStreamIncrGenerate
     @Override
     public List<ColumnMetaData> reflectCols() {
 
-        DataSourceFactoryPluginStore dataBasePluginStore = TIS.getDataBasePluginStore(new PostedDSProp(db.getName()));
-        TISTable table = dataBasePluginStore.loadTableMeta(tabName);
+        try {
+            DataSourceFactory dataBase = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(db.getName())));
+            return dataBase.getTableMetadata(EntityName.parse(tabName));
+        } catch (TableNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        //    TISTable table = dataBasePluginStore.loadTableMeta(tabName);
 //    table.getReflectCols().stream().map((c)->{
 //      ColName cname = new ColName(c.getKey());
 //
 //    });
-        return table.getReflectCols();
+        //   return table.getReflectCols();
     }
 
     @Override

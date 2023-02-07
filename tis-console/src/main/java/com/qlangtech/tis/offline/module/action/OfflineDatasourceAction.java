@@ -41,6 +41,7 @@ import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.git.GitUtils.JoinRule;
 import com.qlangtech.tis.manage.PermissionConstant;
+import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
 import com.qlangtech.tis.manage.common.IUser;
@@ -51,8 +52,8 @@ import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.offline.pojo.GitRepositoryCommitPojo;
 import com.qlangtech.tis.offline.pojo.TISDb;
 import com.qlangtech.tis.offline.pojo.WorkflowPojo;
-import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.*;
@@ -81,7 +82,6 @@ import com.qlangtech.tis.workflow.pojo.DatasourceTable;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import name.fraser.neil.plaintext.diff_match_patch;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -172,9 +172,9 @@ public class OfflineDatasourceAction extends BasicModule {
   public void doSelectDbChange(Context context) throws Exception {
     Integer dbid = this.getInt("dbid");
     com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbid);
-    IPluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.DETAILED));
+    DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(db.getName()), DbScope.DETAILED));
 
-    List<String> tabs = dbPlugin.getPlugin().getTablesInDB().getTabs();
+    List<String> tabs = dbPlugin.getTablesInDB().getTabs();
     // 通过DB的连接信息找到找到db下所有表信息
     // 对应的tabs列表
     this.setBizResult(context, tabs.stream().map((t) -> {
@@ -427,7 +427,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
     this.doUpdateTopology(context, new TopologyUpdateCallback() {
       @Override
-      public <T> T execute(String topologyName, SqlDataFlowTopology topology) {
+      public <T> T execute(IPluginContext pluginContext, Context context, String topologyName, SqlDataFlowTopology topology) {
         SqlTaskNodeMeta.TopologyProfile profile = topology.getProfile();
         if (profile.getDataflowId() < 1) {
           profile.setDataflowId(getWorkflowId(topologyName));
@@ -523,7 +523,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
   }
 
-  private void doUpdateTopology(Context context, TopologyUpdateCallback dbSaver) throws Exception {
+  private void doUpdateTopology(Context context, TopologyUpdateCallback dbSaverCallback) throws Exception {
     final String content = IOUtils.toString(this.getRequest().getInputStream(), getEncode());
     JSONTokener tokener = new JSONTokener(content);
     JSONObject topology = new JSONObject(tokener);
@@ -573,7 +573,7 @@ public class OfflineDatasourceAction extends BasicModule {
       if (nodetype == NodeType.DUMP) {
         dnode = new DependencyNode();
         dnode.setDbid(String.valueOf(nodeMeta.get("dbid")));
-       // dnode.setExtraSql(SqlTaskNodeMeta.processBigContent(nodeMeta.getString("sqlcontent")));
+        // dnode.setExtraSql(SqlTaskNodeMeta.processBigContent(nodeMeta.getString("sqlcontent")));
         dnode.setId(o.getString("id"));
         tabName = nodeMeta.getString("tabname");
         Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap = Maps.newHashMap();
@@ -623,9 +623,10 @@ public class OfflineDatasourceAction extends BasicModule {
     }
     Optional<ERRules> erRule = ERRules.getErRule(topologyPojo.getName());
     this.setBizResult(context, new ERRulesStatus(erRule));
-    dbSaver.execute(topologyName, topologyPojo);
+    dbSaverCallback.execute(this, context, topologyName, topologyPojo);
     // 保存一个时间戳
     SqlTaskNodeMeta.persistence(topologyPojo, parent);
+    dbSaverCallback.afterPersistence(this, context, topologyPojo);
     // 备份之用
     FileUtils.write(new File(parent, topologyName + "_content.json"), content, getEncode(), false);
     this.addActionMessage(context, "'" + topologyName + "'保存成功");
@@ -805,7 +806,8 @@ public class OfflineDatasourceAction extends BasicModule {
       if (linkrule == null) {
         throw new IllegalStateException("linkrule can not be null");
       }
-      erRelation = $(edge.getString("id"), df, getTableName(targetNode), getTableName(sourceNode), TabCardinality.parse(linkrule.getString("cardinality")));
+      erRelation = $(edge.getString("id"), df, getTableName(targetNode)
+        , getTableName(sourceNode), TabCardinality.parse(linkrule.getString("cardinality")));
       linkKeyList = linkrule.getJSONArray("linkKeyList");
       for (int jj = 0; jj < linkKeyList.size(); jj++) {
         link = linkKeyList.getJSONObject(jj);
@@ -851,7 +853,8 @@ public class OfflineDatasourceAction extends BasicModule {
         columnTransferList = ermeta.getJSONArray("columnTransferList");
         for (int i = 0; i < columnTransferList.size(); i++) {
           colTransfer = columnTransferList.getJSONObject(i);
-          tabMeta.addColumnTransfer(new ColumnTransfer(colTransfer.getString("colKey"), colTransfer.getString("transfer"), colTransfer.getString("param")));
+          tabMeta.addColumnTransfer(new ColumnTransfer(colTransfer.getString("colKey")
+            , colTransfer.getString("transfer"), colTransfer.getString("param")));
         }
         dumpNode.setExtraMeta(tabMeta);
       }
@@ -916,7 +919,19 @@ public class OfflineDatasourceAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAFLOW_UPDATE)
   public void doSaveTopology(Context context) throws Exception {
-    this.doUpdateTopology(context, new CreateTopologyUpdateCallback(this.getUser(), this.getWorkflowDAOFacade()));
+    this.doUpdateTopology(context, createTopologyCreator());
+  }
+
+  private CreateTopologyUpdateCallback createTopologyCreator() {
+    return new CreateTopologyUpdateCallback(this.getUser(), this.getWorkflowDAOFacade(), true);
+  }
+
+  @Func(value = PermissionConstant.DATAFLOW_UPDATE)
+  public void doCreateWorkflow(Context context) throws Exception {
+    CreateTopologyUpdateCallback createTopology = createTopologyCreator();
+    Application app = this.parseJsonPost(Application.class);
+    final String topologyName = app.getProjectName();
+    this.setBizResult(context, createTopology.createWorkFlow(topologyName));
   }
 
   public static class CreateTopologyUpdateCallback implements TopologyUpdateCallback {
@@ -935,36 +950,66 @@ public class OfflineDatasourceAction extends BasicModule {
     }
 
     @Override
-    public <T> T execute(String tname, SqlDataFlowTopology topology) {
+    public void afterPersistence(IPluginContext pluginContext, Context context, SqlDataFlowTopology topology) {
+      DataxAction.generateDataXCfgs(pluginContext
+        , context, KeyedPluginStore.StoreResourceType.DataFlow, topology.getName(), false);
+    }
+
+    @Override
+    public WorkFlow execute(IPluginContext pluginContext, Context context, String tname, SqlDataFlowTopology topology) {
       final String topologyName = topology.getName();
+      WorkFlow wf = createWorkFlow(topologyName);
+      topology.getProfile().setDataflowId(wf.getId());
+
+
+//      WorkFlow workFlow = createWorkFlow(topologyName);
+//      topology.getProfile().setDataflowId(workFlow.getId());
+//      return (T) workFlow;
+      // throw new IllegalStateException("workflow:" + topologyName + "  must be exist");
+      return wf;
+    }
+
+    /**
+     * 创建workflow
+     *
+     * @param topologyName
+     * @return
+     */
+    public WorkFlow createWorkFlow(String topologyName) {
+      if (StringUtils.isEmpty(topologyName)) {
+        throw new IllegalArgumentException("param topologyName can not be null");
+      }
+
       if (idempotent) {
         WorkFlowCriteria wfCriteria = new WorkFlowCriteria();
         wfCriteria.createCriteria().andNameEqualTo(topologyName);
         for (WorkFlow wf : offlineDAOFacade.getWorkFlowDAO().selectByExample(wfCriteria)) {
-          topology.getProfile().setDataflowId(wf.getId());
-          return (T) wf;
+          return wf;
         }
       }
-
 
       WorkFlow workFlow = new WorkFlow();
       workFlow.setName(topologyName);
       //  IUser user = getUser();
-      workFlow.setOpUserId(1);
+      workFlow.setOpUserId(Integer.parseInt(user.getId()));
       workFlow.setOpUserName(user.getName());
-      workFlow.setGitPath(String.valueOf(topology.getTimestamp()));
+      workFlow.setGitPath(String.valueOf(System.currentTimeMillis()));
       workFlow.setCreateTime(new Date());
       workFlow.setInChange(new Byte("1"));
       Integer dfId = offlineDAOFacade.getWorkFlowDAO().insertSelective(workFlow);
-      topology.getProfile().setDataflowId(dfId);
+      // topology.getProfile().setDataflowId(dfId);
       workFlow.setId(dfId);
-      return (T) workFlow;
+      return workFlow;
     }
   }
 
   private interface TopologyUpdateCallback {
 
-    <T> T execute(String topologyName, SqlDataFlowTopology topology);
+    <T> T execute(IPluginContext pluginContext, Context context, String tname, SqlDataFlowTopology topology);
+
+    default void afterPersistence(IPluginContext pluginContext, Context context, SqlDataFlowTopology topology) {
+
+    }
   }
 
 //  /**
@@ -1302,23 +1347,21 @@ public class OfflineDatasourceAction extends BasicModule {
     if (StringUtils.isEmpty(topology)) {
       throw new IllegalArgumentException("param topology can not be null");
     }
+
+//    IDataxProcessor dataXProcess = DataxProcessor.load(this, KeyedPluginStore.StoreResourceType.DataFlow, topology);
+//    IDataxReader reader = dataXProcess.getReader(this);
+    // reader.getTableMetadata()
     SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(topology);
-    Map<String, DependencyNode> /**
-     * id
-     */
+    Map<String, DependencyNode> /** id */
       dumpNodes = wfTopology.getDumpNodes().stream().collect(Collectors.toMap((d) -> d.getId(), (d) -> d));
     com.alibaba.fastjson.JSONArray sqlAry = this.parseJsonArrayPost();
     com.alibaba.fastjson.JSONObject j = null;
-    // String sql = null;
-    // List<RowMetaData> rowMetaData = null;
+
     List<SqlCols> colsMeta = Lists.newArrayList();
     SqlCols sqlCols = null;
     DependencyNode dumpNode = null;
-    TISTable tabCfg = null;
-    // List<ColumnMetaData> reflectCols = null;
     for (int i = 0; i < sqlAry.size(); i++) {
       j = sqlAry.getJSONObject(i);
-      // sql = j.getString("sql");
       sqlCols = new SqlCols();
       sqlCols.setKey(j.getString("key"));
       String dumpNodeId = sqlCols.getKey();
@@ -1327,13 +1370,13 @@ public class OfflineDatasourceAction extends BasicModule {
         throw new IllegalStateException("key:" + dumpNodeId + " can not find relevant dump node in topplogy '" + topology + "'");
       }
 
-      // tabCfg = GitUtils.$().getTableConfig(dumpNode.getDbName(), dumpNode.getName());
-      DataSourceFactoryPluginStore dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(dumpNode.getDbName()));
-      TISTable tisTable = dbPlugin.loadTableMeta(dumpNode.getName());
-      if (CollectionUtils.isEmpty(tisTable.getReflectCols())) {
-        throw new IllegalStateException("db:" + dumpNode.getDbName() + ",table:" + dumpNode.getName() + " relevant table col reflect cols can not be empty");
-      }
-      sqlCols.setCols(tisTable.getReflectCols());
+      DataSourceFactory dsStore = TIS.getDataBasePlugin(PostedDSProp.parse(dumpNode.getDbName()));
+      sqlCols.setCols(dsStore.getTableMetadata(dumpNode.parseEntityName()));
+      // TISTable tisTable = dbPlugin.loadTableMeta(dumpNode.getName());
+//      if (CollectionUtils.isEmpty(tisTable.getReflectCols())) {
+//        throw new IllegalStateException("db:" + dumpNode.getDbName() + ",table:" + dumpNode.getName() + " relevant table col reflect cols can not be empty");
+//      }
+//      sqlCols.setCols(tisTable.getReflectCols());
       colsMeta.add(sqlCols);
     }
     this.setBizResult(context, colsMeta);
@@ -1433,7 +1476,7 @@ public class OfflineDatasourceAction extends BasicModule {
     result.put("readerDesc", DescriptorsJSON.desc(dataXReaderDesc.get())
       //  new DescriptorsJSON(dataXReaderDesc.get()).getDescriptorsJSON()
     );
-    result.put("processMeta", DataxAction.getDataXBasicProcessMetaByReader(dataXReaderDesc.get()));
+    result.put("processMeta", DataxAction.getDataXBasicProcessMetaByReader(dataXReaderDesc));
 
     this.setBizResult(context, result);
   }
@@ -1467,11 +1510,11 @@ public class OfflineDatasourceAction extends BasicModule {
       return;
     }
 
-    IPluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.DETAILED));
+    DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(db.getName()), DbScope.DETAILED));
 
     List<ColumnMetaData> cols = null;// offlineManager.getTableMetadata(db.getName(), table);
     try {
-      cols = dbPlugin.getPlugin().getTableMetadata(EntityName.parse(table));
+      cols = dbPlugin.getTableMetadata(EntityName.parse(table));
       if (cols.size() < 1) {
         this.addErrorMessage(context, "表:[" + table + "]没有定义列");
         return;

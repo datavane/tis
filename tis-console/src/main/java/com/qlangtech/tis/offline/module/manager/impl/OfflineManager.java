@@ -27,16 +27,13 @@ import com.qlangtech.tis.git.GitUtils.GitUser;
 import com.qlangtech.tis.git.GitUtils.JoinRule;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
-import com.qlangtech.tis.manage.biz.dal.pojo.OperationLog;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.offline.pojo.TISDb;
 import com.qlangtech.tis.offline.pojo.WorkflowPojo;
-import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.*;
-import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.util.IPluginContext;
@@ -53,7 +50,6 @@ import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * ds和wf中涉及到db的处理
@@ -93,9 +89,9 @@ public class OfflineManager {
    * @return
    */
   public DBDataXReaderDescName getDBDataXReaderDescName(String dsName) {
-    IPluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(dsName, DbScope.DETAILED));
+    DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(dsName), DbScope.DETAILED));
     DataSourceFactory.BaseDataSourceFactoryDescriptor descriptor
-      = (DataSourceFactory.BaseDataSourceFactoryDescriptor) dbPlugin.getPlugin().getDescriptor();
+      = (DataSourceFactory.BaseDataSourceFactoryDescriptor) dbPlugin.getDescriptor();
     Optional<String> defaultDataXReaderDescName = descriptor.getDefaultDataXReaderDescName();
     return new DBDataXReaderDescName(defaultDataXReaderDescName, descriptor);
   }
@@ -296,7 +292,7 @@ public class OfflineManager {
     action.setBizResult(context, db.getDbId());
   }
 
- // public void editDatasourceTable(TISTable table, BasicModule action, IPluginContext pluginContext, Context context) throws Exception {
+  // public void editDatasourceTable(TISTable table, BasicModule action, IPluginContext pluginContext, Context context) throws Exception {
 //    String dbName = table.getDbName();
 //    String tableLogicName = table.getTableName();
 //    // 检查db是否存在
@@ -328,7 +324,7 @@ public class OfflineManager {
 //    operationLog.setOpType("editDatasourceTable");
 //    action.addActionMessage(context, "数据库表修改成功");
 //    action.setBizResult(context, tableId);
- // }
+  // }
 
   /**
    * description: 获取所有的工作流数据库 date: 2:30 PM 4/28/2017
@@ -377,7 +373,6 @@ public class OfflineManager {
 //    Collections.sort(tables);
 //    return tables;
 //  }
-
   public void editWorkflow(WorkflowPojo pojo, BasicModule action, Context context) throws Exception {
     String name = pojo.getName();
     WorkFlowCriteria criteria = new WorkFlowCriteria();
@@ -460,16 +455,16 @@ public class OfflineManager {
       dbSuit.addTabs(selectedTabs);
     }
 
-    PostedDSProp dbProp = new PostedDSProp(db.getName(), DbScope.DETAILED);
+    PostedDSProp dbProp = new PostedDSProp(DBIdentity.parseId(db.getName()), DbScope.DETAILED);
 
-    IPluginStore<DataSourceFactory> dbStore = TIS.getDataBasePluginStore(dbProp);
+    DataSourceFactory dsPlugin = TIS.getDataBasePlugin(dbProp);
 
-    DataSourceFactory dsPlugin = dbStore.getPlugin();
+    //  DataSourceFactory dsPlugin = dbStore.getPlugin();
     dbSuit.setDetailed(dsPlugin);
-    DataSourceFactoryPluginStore facadeStore
-      = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.FACADE));
+    DataSourceFactory facadeStore
+      = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(db.getName()), DbScope.FACADE), false);
 
-    if ((dsPlugin = facadeStore.getPlugin()) != null) {
+    if ((dsPlugin = facadeStore) != null) {
       dbSuit.setFacade(dsPlugin);
     }
     return dbSuit;

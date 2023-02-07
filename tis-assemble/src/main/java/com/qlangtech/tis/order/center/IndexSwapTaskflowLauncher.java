@@ -277,7 +277,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         ExecuteResult execResult = invoke.invoke();
         if (!execResult.isSuccess()) {
             logger.warn(execResult.getMessage());
-            SendSMSUtils.send("[ERR]fulbud:" + chainContext.getIndexName() + " falid," + execResult.getMessage(), SendSMSUtils.BAISUI_PHONE);
+            //SendSMSUtils.send("[ERR]fulbud:" + chainContext.getIndexName() + " falid," + execResult.getMessage(), SendSMSUtils.BAISUI_PHONE);
         }
         return execResult;
     }

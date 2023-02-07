@@ -19,6 +19,7 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Optional;
 
@@ -34,36 +35,45 @@ public class PostedDSProp {
     public static final String KEY_TYPE = "type";
     public static final String KEY_UPDATE = "update";
 
-    private Optional<String> dbname;
+    private Optional<DBIdentity> dbname;
     private final DbScope dbType;
     private final Boolean update;
 
     public static PostedDSProp parse(UploadPluginMeta pluginMeta) {
-        return new PostedDSProp(pluginMeta.getExtraParam(KEY_DB_NAME)
+        return new PostedDSProp(DBIdentity.parse(pluginMeta.getExtraParam(KEY_DB_NAME))
                 , DbScope.parse(pluginMeta.getExtraParam(KEY_TYPE))
                 , pluginMeta.isUpdate());
     }
 
-    public void setDbname(String dbname) {
+    public static PostedDSProp parse(String dbIdVal) {
+        return new PostedDSProp(DBIdentity.parseId(dbIdVal));
+    }
+
+    public void setDbname(DBIdentity dbname) {
         this.dbname = Optional.ofNullable(dbname);
     }
 
-    public PostedDSProp(String dbname) {
+    public PostedDSProp(DBIdentity dbname) {
         this(dbname, DbScope.DETAILED, null);
     }
 
-    public PostedDSProp(String dbname, DbScope dbType) {
+    public PostedDSProp(DBIdentity dbname, DbScope dbType) {
         this(dbname, dbType, null);
         //ReflectionUtils
     }
 
-    private PostedDSProp(String dbname, DbScope dbType, Boolean update) {
-        this.dbname = Optional.ofNullable(dbname); //Objects.requireNonNull(dbname, "param dbName can not be null");
+    private PostedDSProp(DBIdentity dbname, DbScope dbType, Boolean update) {
+        this(Optional.ofNullable(dbname), dbType, update);
+    }
+
+
+    public PostedDSProp(Optional<DBIdentity> dbname, DbScope dbType, Boolean update) {
+        this.dbname = dbname; //Objects.requireNonNull(dbname, "param dbName can not be null");
         this.dbType = dbType;
         this.update = update;
     }
 
-    public Optional<String> getDbname() {
+    public Optional<DBIdentity> getDbname() {
         return this.dbname;
     }
 
@@ -73,5 +83,14 @@ public class PostedDSProp {
 
     public boolean isUpdate() {
         return this.update;
+    }
+
+    @Override
+    public String toString() {
+        return "PostedDSProp{" +
+                "dbname=" + (dbname.isPresent() ? dbname.get().identityValue() : StringUtils.EMPTY) +
+                ", dbType=" + dbType +
+                ", update=" + update +
+                '}';
     }
 }

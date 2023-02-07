@@ -56,15 +56,20 @@ public class TopologyDir {
 
         File localSubFileDir = getLocalSubFileDir();
 
+        List<File> subs = Lists.newArrayList();
+        Boolean[] localFileExistFlag = null;
+        List<String> subFiles = CenterResource.getSubFiles(relativePath, false, true);
+        if (CenterResource.notFetchFromCenterRepository()) {
+            subFiles.forEach((sf) -> subs.add(new File(Config.getMetaCfgDir(), relativePath + File.separator + sf)));
+            return subs;
+        }
+
         Map<String, Boolean[]> localFileTag
                 = localSubFileDir.exists()
                 ? Arrays.stream(localSubFileDir.list((d, n) -> !n.endsWith(CenterResource.KEY_LAST_MODIFIED_EXTENDION)))
                 .collect(Collectors.toMap((r) -> r, (r) -> new Boolean[]{Boolean.FALSE}))
                 : Collections.emptyMap();
 
-        Boolean[] localFileExistFlag = null;
-        List<String> subFiles = CenterResource.getSubFiles(relativePath, false, true);
-        List<File> subs = Lists.newArrayList();
         for (String f : subFiles) {
             /*****************************
              * 同步远端文件
