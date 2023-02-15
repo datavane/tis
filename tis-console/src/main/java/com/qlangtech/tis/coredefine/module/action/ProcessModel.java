@@ -11,7 +11,7 @@ import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;
@@ -58,7 +58,7 @@ public enum ProcessModel {
   }
     , () -> {
     return DataxProcessor.getPluginDescMeta(DataxProcessor.DEFAULT_WORKFLOW_PROCESSOR_NAME);
-  }, KeyedPluginStore.StoreResourceType.DataFlow
+  }, StoreResourceType.DataFlow
   ) //
   , CreateDatax("createDatax", (reader, writer, module, context) -> {
     if (reader == null || writer == null) {
@@ -78,10 +78,10 @@ public enum ProcessModel {
   } //
     , () -> {
     return DataxProcessor.getPluginDescMeta(DataxProcessor.DEFAULT_DATAX_PROCESSOR_NAME);
-  }, KeyedPluginStore.StoreResourceType.DataApp);
+  }, StoreResourceType.DataApp);
 
   private final String val;
-  private final KeyedPluginStore.StoreResourceType resType;
+  private final StoreResourceType resType;
   private final ValdateReaderAndWriter valdateReaderAndWriter;
   private final IProcessMetaCreator processMetaCreator;
   private final Supplier<Descriptor<IAppSource>> targetProcessDescsGetter;
@@ -111,7 +111,7 @@ public enum ProcessModel {
   }
 
   private ProcessModel(String val, ValdateReaderAndWriter valdateReaderAndWriter, IProcessMetaCreator processMetaCreator
-    , Supplier<Descriptor<IAppSource>> targetProcessDescsGetter, KeyedPluginStore.StoreResourceType resType) {
+    , Supplier<Descriptor<IAppSource>> targetProcessDescsGetter, StoreResourceType resType) {
     this.val = val;
     this.valdateReaderAndWriter = valdateReaderAndWriter;
     this.processMetaCreator = processMetaCreator;
@@ -151,6 +151,24 @@ public enum ProcessModel {
     }
 
     return writer;
+  }
+
+  /**
+   * 在页面UI上编辑流程显示的DataXReader控件，WorkFlow流程中是通过 dataSource 对应了多个DataXReader，在编辑流程中不直接编辑，所以返回为空
+   *
+   * @param pluginContext
+   * @param name
+   * @return
+   */
+  public Optional<DataxReader> getDataXReader(IPluginContext pluginContext, String name) {
+    IDataxProcessor processor = (IDataxProcessor) this.loadDataXProcessor(pluginContext, name);
+    if (this == CreateDatax) {
+      return Optional.of((DataxReader) processor.getReader(pluginContext));
+    } else if (this == CreateWorkFlow) {
+      return Optional.empty();
+    } else {
+      throw new IllegalStateException("illegal process model:" + this);
+    }
   }
 
   public IAppSource loadDataXProcessor(IPluginContext pluginContext, String name) {

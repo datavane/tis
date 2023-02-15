@@ -26,6 +26,8 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.plugin.StoreResourceTypeGetter;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
@@ -47,7 +49,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 14:38
  */
-public interface IDataxProcessor extends IdentityName {
+public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
     public String DATAX_CREATE_DDL_FILE_NAME_SUFFIX = ".sql";
     String DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX = ".json";
 
@@ -77,6 +79,7 @@ public interface IDataxProcessor extends IdentityName {
 //        }
 
     }
+
 
     /**
      * workflow 中支持

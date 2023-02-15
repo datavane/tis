@@ -18,6 +18,7 @@
 package com.qlangtech.tis.exec;
 
 import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
@@ -29,6 +30,9 @@ import java.util.List;
  * @date 2015年12月15日 上午11:48:16
  */
 public interface IExecChainContext extends IJoinTaskContext {
+
+
+    IDataxProcessor getProcessor();
 
     public void addAsynSubJob(AsynSubJob jobName);
 
@@ -46,7 +50,7 @@ public interface IExecChainContext extends IJoinTaskContext {
         }
     }
 
-    <T extends IBasicAppSource> T getAppSource();
+//    <T extends IBasicAppSource> T getAppSource();
 
     ITISCoordinator getZkClient();
 

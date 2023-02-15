@@ -41,19 +41,16 @@ import com.qlangtech.tis.manage.common.apps.AppsFetcher.CriteriaSetter;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.common.ibatis.BooleanYorNConvertCallback;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
-import com.qlangtech.tis.manage.impl.SingleTableAppSource;
 import com.qlangtech.tis.manage.servlet.DownloadServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.openapi.impl.AppKey;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import com.qlangtech.tis.solrdao.SchemaResult;
-import com.qlangtech.tis.workflow.pojo.DatasourceDb;
-import com.qlangtech.tis.workflow.pojo.DatasourceTable;
 import junit.framework.Assert;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -674,18 +671,19 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
 
     public ISolrAppSource createAppSource(BasicModule module) {
       if (AddAppAction.SOURCE_TYPE_SINGLE_TABLE.equals(this.getDsType())) {
-        String[] tabCascadervalues = this.getTabCascadervalues();
-        if (tabCascadervalues == null) {
-          throw new IllegalStateException("tabCascadervalues can not be null");
-        }
-        //[ "196", "169%employees"];
-        Integer dbId = Integer.parseInt(tabCascadervalues[0]);
-        String[] pair = StringUtils.split(tabCascadervalues[1], "%");
-        Integer tabId = Integer.parseInt(pair[0]);
-        String tabName = StringUtils.trimToEmpty(pair[1]);
-        DatasourceTable table = null;// module.wfDAOFacade.getDatasourceTableDAO().loadFromWriteDB(tabId);
-        DatasourceDb db = module.wfDAOFacade.getDatasourceDbDAO().loadFromWriteDB(dbId);
-        return new SingleTableAppSource(db, table);
+//        String[] tabCascadervalues = this.getTabCascadervalues();
+//        if (tabCascadervalues == null) {
+//          throw new IllegalStateException("tabCascadervalues can not be null");
+//        }
+//        //[ "196", "169%employees"];
+//        Integer dbId = Integer.parseInt(tabCascadervalues[0]);
+//        String[] pair = StringUtils.split(tabCascadervalues[1], "%");
+//        Integer tabId = Integer.parseInt(pair[0]);
+//        String tabName = StringUtils.trimToEmpty(pair[1]);
+//        DatasourceTable table = null;// module.wfDAOFacade.getDatasourceTableDAO().loadFromWriteDB(tabId);
+//        DatasourceDb db = module.wfDAOFacade.getDatasourceDbDAO().loadFromWriteDB(dbId);
+//        return new SingleTableAppSource(db, table);
+        throw new UnsupportedOperationException();
       } else if (AddAppAction.SOURCE_TYPE_DF.equals(this.getDsType())) {
         String workflowName = this.getWorkflow();
         if (StringUtils.isEmpty(workflowName)) {
@@ -693,7 +691,7 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
         }
         String wfName = StringUtils.split(workflowName, ":")[1];
         Integer wfId = Integer.parseInt(StringUtils.split(workflowName, ":")[0]);
-        IDataxProcessor process = DataxProcessor.load(module, KeyedPluginStore.StoreResourceType.DataFlow, wfName);
+        IDataxProcessor process = DataxProcessor.load(module, StoreResourceType.DataFlow, wfName);
         return new DataFlowAppSource(module.loadDF(wfId), process.getWriter(module, true));
       }
       throw new IllegalStateException("dsType:" + this.getDsType() + " is not illegal");

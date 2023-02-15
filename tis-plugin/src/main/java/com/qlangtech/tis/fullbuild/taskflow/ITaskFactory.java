@@ -1,11 +1,5 @@
 package com.qlangtech.tis.fullbuild.taskflow;
 
-import com.qlangtech.tis.fs.ITaskContext;
-import com.qlangtech.tis.fullbuild.phasestatus.IJoinTaskStatus;
-import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
-import com.qlangtech.tis.sql.parser.ISqlTask;
-import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -25,13 +19,10 @@ import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
  */
 
 /**
- *
- *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2015年10月31日 下午10:14:48
  */
 public interface ITaskFactory {
-
 
 
 }

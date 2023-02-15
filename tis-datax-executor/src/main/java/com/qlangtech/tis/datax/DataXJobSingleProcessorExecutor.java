@@ -21,7 +21,7 @@ package com.qlangtech.tis.datax;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DataxUtils;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.exec.*;
 import org.apache.curator.framework.CuratorFramework;
@@ -55,7 +55,7 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
         Integer jobId = msg.getJobId();
         String jobName = msg.getJobName();
         String dataxName = msg.getDataXName();
-        KeyedPluginStore.StoreResourceType resType
+        StoreResourceType resType
                 = Objects.requireNonNull(msg.getResType(), "resType can not be null");
         MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(jobId));
         MDC.put(JobCommon.KEY_COLLECTION, dataxName);

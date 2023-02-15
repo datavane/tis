@@ -18,8 +18,6 @@
 package com.qlangtech.tis.exec.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
@@ -32,18 +30,16 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.exec.datax.DataXAssembleSvcCompsite;
 import com.qlangtech.tis.exec.datax.DataXExecuteInterceptor;
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
-import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
-import com.qlangtech.tis.fullbuild.taskflow.DumpTask;
 import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
+import com.qlangtech.tis.fullbuild.taskflow.TaskAndMilestone;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.DefaultTab;
+import com.qlangtech.tis.sql.parser.DAGSessionSpec;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.tis.hadoop.rpc.RpcServiceReference;
@@ -79,10 +75,10 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
 //        IExecChainContext execChainContext, TisZkClient zkClient
 //                , DataFlowAppSource.ISingleTableDumpFactory singleTableDumpFactory, IAppSource.IDataProcessFeedback
 //        dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo
-        IDataxProcessor dataxProc = DataxProcessor.load(null, KeyedPluginStore.StoreResourceType.DataFlow, wf.getName());
+        IDataxProcessor dataxProc = DataxProcessor.load(null, StoreResourceType.DataFlow, wf.getName());
         IDataxWriter writer = dataxProc.getWriter(null, true);
         DataFlowAppSource appRule = new DataFlowAppSource(wf, writer);
-        Map<String, TISReactor.TaskAndMilestone> taskMap = Maps.newHashMap();
+        //Map<String, TISReactor.TaskAndMilestone> taskMap = Maps.newHashMap();
         RpcServiceReference dataXExecReporter = getDataXExecReporter();
         DataXJobSubmit.InstanceType triggerType = DataXJobSubmit.getDataXTriggerType();
         Optional<DataXJobSubmit> jobSubmit = DataXJobSubmit.getDataXJobSubmit(triggerType);
@@ -94,27 +90,22 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
         final DataXAssembleSvcCompsite svcCompsite = dataXExecReporter.get();
         final ExecuteResult faildResult = appRule.getProcessDataResults(execChainContext, new ISolrAppSource.ISingleTableDumpFactory() {
                     @Override
-                    public List<DataflowTask> createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
-                            , ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus, ITaskPhaseInfo taskPhaseInfo) {
-                        JoinPhaseStatus joinStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
+                    public RemoteTaskTriggers createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
+                            , ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus, ITaskPhaseInfo taskPhaseInfo
+                            , DAGSessionSpec dagSessionSpec) {
+
+                       // JoinPhaseStatus joinStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
                         RemoteTaskTriggers tskTrigger = DataXExecuteInterceptor.buildTaskTriggers(
-                                execChainContext, dataxProc, taskMap, submit, dataXExecReporter, new DefaultTab(dump.getName()));
-                        List<DataflowTask> dfTsks = Lists.newArrayList();
-                        for (IRemoteTaskTrigger join : tskTrigger.getJoinPhaseTasks()) {
-                            dfTsks.add(DataXExecuteInterceptor.createJoinTask(join, joinStatus.getTaskStatus(join.getTaskName())));
-                        }
-                        for (IRemoteTaskTrigger tabDump : tskTrigger.getDumpPhaseTasks()) {
-                            dfTsks.add(DumpTask.createDumpTask(tabDump, dumpPhaseStatus.getTable(dump.getName())));
-                        }
+                                execChainContext, dataxProc, submit, dataXExecReporter, new DefaultTab(dump.getName()), dump.getId(), dagSessionSpec);
+//                        List<DataflowTask> dfTsks = Lists.newArrayList();
+//                        for (IRemoteTaskTrigger join : tskTrigger.getJoinPhaseTasks()) {
+//                            dfTsks.add(DataXExecuteInterceptor.createJoinTask(join, joinStatus.getTaskStatus(join.getTaskName())));
+//                        }
+//                        for (IRemoteTaskTrigger tabDump : tskTrigger.getDumpPhaseTasks()) {
+//                            dfTsks.add(DumpTask.createDumpTask(tabDump, dumpPhaseStatus.getTable(tabDump.getTaskName())));
+//                        }
 
-                        return dfTsks;
-
-//                        DataXJobSubmit.IDataXJobContext jobCtx = submit.createJobContext(execChainContext);
-//
-//                        DataXJobSubmit.TableDataXEntity tabEntity = DataXJobSubmit.TableDataXEntity.createTableEntity4Test(, dump.getName());
-//                        List<String> dptTasks = new ArrayList<>();
-//                        return DumpTask.createDumpTask(submit.createDataXJob(jobCtx, dataXExecReporter, dataxProc, tabEntity, dptTasks), dumpPhaseStatus.getTable(dump.getName()));
-
+                        return tskTrigger;
                     }
                 },
                 new ISolrAppSource.IDataProcessFeedback() {

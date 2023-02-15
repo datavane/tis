@@ -18,7 +18,7 @@
 
 package com.qlangtech.tis.datax;
 
-import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
 
 import java.util.Collections;
 
@@ -30,5 +30,5 @@ public interface IExecutorContext {
     String dataXName = "baisuitestTestcase";
     DataXJobInfo jobName = DataXJobInfo.create("customer_order_relation_1.json", Collections.emptyList());
 
-    KeyedPluginStore.StoreResourceType resType = KeyedPluginStore.StoreResourceType.DataApp;
+    StoreResourceType resType = StoreResourceType.DataApp;
 }

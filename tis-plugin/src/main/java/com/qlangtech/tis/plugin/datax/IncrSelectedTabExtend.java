@@ -23,10 +23,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.*;
-import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.IdentityName;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.*;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -173,7 +170,7 @@ public abstract class IncrSelectedTabExtend implements Describable<IncrSelectedT
 
 
     public static KeyedPluginStore<IncrSelectedTabExtend> getPluginStore(IPluginContext pluginContext, String appname) {
-        KeyedPluginStore.AppKey key = new KeyedPluginStore.AppKey(pluginContext, KeyedPluginStore.StoreResourceType.parse( false)
+        KeyedPluginStore.AppKey key = new KeyedPluginStore.AppKey(pluginContext, StoreResourceType.parse( false)
                 , appname, IncrSelectedTabExtend.class);
         return pluginStore.get(key);
     }

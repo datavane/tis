@@ -22,26 +22,27 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
+import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
+import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
-import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
-import com.qlangtech.tis.fullbuild.taskflow.IFlatTableBuilder;
-import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
-import com.qlangtech.tis.fullbuild.taskflow.TemplateContext;
+import com.qlangtech.tis.fullbuild.taskflow.*;
 import com.qlangtech.tis.manage.IDataFlowAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.manage.common.DagTaskUtils;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+import com.qlangtech.tis.sql.parser.DAGSessionSpec;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.er.*;
@@ -53,6 +54,8 @@ import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TaskNodeTraversesCreatorVisitor;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import org.apache.commons.lang.StringUtils;
+import org.jvnet.hudson.reactor.Milestone;
+import org.jvnet.hudson.reactor.MilestoneImpl;
 import org.jvnet.hudson.reactor.ReactorListener;
 import org.jvnet.hudson.reactor.Task;
 import org.slf4j.Logger;
@@ -60,8 +63,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -74,7 +76,11 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
     private final WorkFlow dataflow;
     private final IFlatTableBuilder flatTableBuilder;
     private final IDataSourceFactoryGetter dsGetter;
-    protected static final ExecutorService executorService = Executors.newCachedThreadPool();
+
+
+    // protected static final ExecutorService executorService = Executors.newCachedThreadPool();
+
+    //  protected static final ExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
     public DataFlowAppSource(WorkFlow dataflow, IDataxWriter writer) {
         this.dataflowName = dataflow.getName();
@@ -89,9 +95,30 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
         this.dsGetter = (IDataSourceFactoryGetter) writer;
     }
 
+    public static ExecutorService createExecutorService(IExecChainContext execChainContext) {
+        int nThreads = 1;
+        return new ThreadPoolExecutor(
+                nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB),
+                new ThreadFactory() {
+                    @Override
+                    public Thread newThread(Runnable r) {
+                        Thread t = new Thread(() -> {
+                            execChainContext.rebindLoggingMDCParams();
+                            r.run();
+                        });
+                        t.setUncaughtExceptionHandler((thread, ex) -> {
+                            logger.error("DataX Name:" + execChainContext.getIndexName()
+                                    + ",taskid:" + execChainContext.getTaskId() + " has been canceled", ex);
+                        });
+                        return t;
+                    }
+                });
+    }
+
     @Override
-    public KeyedPluginStore.StoreResourceType getResType() {
-        return KeyedPluginStore.StoreResourceType.DataFlow;
+    public StoreResourceType getResType() {
+        return StoreResourceType.DataFlow;
     }
 
     public Integer getDfId() {
@@ -159,7 +186,8 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
             , ISingleTableDumpFactory singleTableDumpFactory, IDataProcessFeedback dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo) throws Exception {
         // 执行工作流数据结构
         SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(dataflowName);
-        Map<String, TISReactor.TaskAndMilestone> /*** taskid*/taskMap = Maps.newHashMap();
+        DAGSessionSpec dagSessionSpec = topology.getDAGSessionSpec();
+
         // 取得workflowdump需要依赖的表
         Collection<DependencyNode> tables = topology.getDumpNodes();
         StringBuffer dumps = new StringBuffer("dependency table:\n");
@@ -172,14 +200,18 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
         logger.info(dumps.toString());
         // 将所有的表的状态先初始化出来
         DumpPhaseStatus dumpPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.FullDump);
-        List<DataflowTask> tabDump = null;
+        RemoteTaskTriggers trigger = new RemoteTaskTriggers();
         for (DependencyNode dump : topology.getDumpNodes()) {
-            tabDump = singleTableDumpFactory.createSingleTableDump(dump, false, /* isHasValidTableDump */
-                    "tableDump.getPt()", execChainContext.getZkClient(), execChainContext, dumpPhaseStatus, taskPhaseInfo);
-            for (DataflowTask tsk : tabDump) {
-                taskMap.put(dump.getId(), new TISReactor.TaskAndMilestone(tsk));
-            }
+            trigger.merge(singleTableDumpFactory.createSingleTableDump(dump, false, /* isHasValidTableDump */
+                    "tableDump.getPt()", execChainContext.getZkClient()
+                    , execChainContext, dumpPhaseStatus, taskPhaseInfo, dagSessionSpec));
+//            for (DataflowTask tsk : tabDump) {
+//                taskMap.put(dump.getId(), new TISReactor.TaskAndMilestone(tsk));
+//            }
         }
+
+        DagTaskUtils.createTasks(execChainContext, taskPhaseInfo, dagSessionSpec, trigger);
+
         ERRules erRules = this.getErRules();
 
         TemplateContext tplContext = new TemplateContext(execChainContext);
@@ -188,8 +220,8 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
         //Objects.requireNonNull(pluginStore.getPlugin(), "flatTableBuilder can not be null");
         // chainContext.setFlatTableBuilderPlugin(pluginStore.getPlugin());
         // final IFlatTableBuilder flatTableBuilder = pluginStore.getPlugin();// execChainContext.getFlatTableBuilder();
-       // final SqlTaskNodeMeta fNode = topology.getFinalNode();
-        flatTableBuilder.startTask((context) -> {
+        // final SqlTaskNodeMeta fNode = topology.getFinalNode();
+        return flatTableBuilder.startTask((context) -> {
             DataflowTask process = null;
             for (SqlTaskNodeMeta pnode : topology.getNodeMetas()) {
                 /**
@@ -201,26 +233,34 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
                         , tplContext, context, joinPhaseStatus.getTaskStatus(pnode.getExportName())
                         , this.dsGetter, erRules);
 
-                taskMap.put(pnode.getId(), new TISReactor.TaskAndMilestone(process));
+                dagSessionSpec.put(pnode.getId(), new TaskAndMilestone(process));
             }
-
+            final ExecuteResult faildResult = executeDAG(execChainContext, topology, dataProcessFeedback, dagSessionSpec.getTaskMap());
+            return faildResult;
         });
-        final ExecuteResult faildResult = executeDAG(execChainContext, topology, dataProcessFeedback, taskMap);
-        return faildResult;
-        // }
     }
 
 
     private ExecuteResult executeDAG(IExecChainContext execChainContext, SqlTaskNodeMeta.SqlDataFlowTopology topology, IDataProcessFeedback dataProcessFeedback
-            , Map<String, TISReactor.TaskAndMilestone> taskMap) {
+            , Map<String, TaskAndMilestone> taskMap) {
         final ExecuteResult[] faildResult = new ExecuteResult[1];
+        final ExecutorService executorService = createExecutorService(execChainContext);
         try {
             TISReactor reactor = new TISReactor(execChainContext, taskMap);
-            String dagSessionSpec = topology.getDAGSessionSpec();
+            StringBuffer dagSessionSpec = topology.getDAGSessionSpec().buildSpec();
             logger.info("dagSessionSpec:" + dagSessionSpec);
 
             //  final PrintWriter w = new PrintWriter(sw, true);
             ReactorListener listener = new ReactorListener() {
+                @Override
+                public void onAttained(Milestone milestone) {
+                    MilestoneImpl m = (MilestoneImpl) milestone;
+                    String mId = m.toString();
+                    if (!StringUtils.startsWith(mId, TaskAndMilestone.MILESTONE_PREFIX)) {
+                        AdapterTask.createTaskWorkStatus(execChainContext).put(mId, true);
+                    }
+                }
+
                 // TODO: Does it really needs handlers to be synchronized?
                 @Override
                 public synchronized void onTaskCompleted(Task t) {
@@ -258,7 +298,7 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
 
 
             // 执行DAG地调度
-            reactor.execute(executorService, reactor.buildSession(dagSessionSpec), listener, new ReactorListener() {
+            reactor.execute(executorService, reactor.buildSession(dagSessionSpec.toString()), listener, new ReactorListener() {
 
                 @Override
                 public void onTaskCompleted(Task t) {
@@ -274,6 +314,8 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
             });
         } catch (Exception e) {
             throw new RuntimeException(e);
+        } finally {
+            executorService.shutdown();
         }
         return faildResult[0];
     }

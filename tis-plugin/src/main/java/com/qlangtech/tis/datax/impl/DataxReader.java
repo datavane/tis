@@ -30,10 +30,7 @@ import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.offline.DataxUtils;
-import com.qlangtech.tis.plugin.IEndTypeGetter;
-import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.*;
 import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
@@ -239,7 +236,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         public final BaseSubFormProperties subfieldForm;
 
         public SubFieldFormAppKey(IPluginContext pluginContext, boolean isDB, String appname, BaseSubFormProperties subfieldForm, Class<TT> clazz) {
-            super(pluginContext, KeyedPluginStore.StoreResourceType.parse(isDB), Objects.requireNonNull(appname, "appname can not be empty"), clazz);
+            super(pluginContext, StoreResourceType.parse(isDB), Objects.requireNonNull(appname, "appname can not be empty"), clazz);
             this.subfieldForm = subfieldForm;
         }
 

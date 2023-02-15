@@ -18,7 +18,7 @@
 
 package com.qlangtech.tis.datax;
 
-import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -33,7 +33,7 @@ public class CuratorDataXTaskMessage {
     /**
      * 资源类型
      */
-    private KeyedPluginStore.StoreResourceType resType;
+    private StoreResourceType resType;
 
     private Integer jobId;
 
@@ -72,11 +72,11 @@ public class CuratorDataXTaskMessage {
         return jobName;
     }
 
-    public KeyedPluginStore.StoreResourceType getResType() {
+    public StoreResourceType getResType() {
         return resType;
     }
 
-    public void setResType(KeyedPluginStore.StoreResourceType resType) {
+    public void setResType(StoreResourceType resType) {
         this.resType = resType;
     }
 

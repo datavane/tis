@@ -37,7 +37,7 @@ public class HiveColumn {
     // 原来的name rawName as name
     private String rawName;
 
-    private String type;
+    // private String type;
     private DataType dataType;
 
     private int index;
@@ -66,7 +66,7 @@ public class HiveColumn {
     /**
      * Reference:https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-CreateTableCreate/Drop/TruncateTable
      */
-    private static DataType.TypeVisitor<String> visitor = new DataType.TypeVisitor<String>() {
+    public static DataType.TypeVisitor<String> visitor = new DataType.TypeVisitor<String>() {
         @Override
         public String bigInt(DataType type) {
             return "BIGINT";
@@ -74,7 +74,7 @@ public class HiveColumn {
 
         @Override
         public String decimalType(DataType type) {
-            return "DECIMAL";
+            return "DECIMAL(" + type.columnSize + "," + type.getDecimalDigits() + ")";
         }
 
         @Override
@@ -119,7 +119,7 @@ public class HiveColumn {
 
         @Override
         public String bitType(DataType type) {
-            return "CHAR";
+            return "STRING";
         }
 
         @Override
@@ -129,7 +129,7 @@ public class HiveColumn {
 
         @Override
         public String varcharType(DataType type) {
-            return "VARCHAR";
+            return "STRING";
         }
     };
 
@@ -149,13 +149,13 @@ public class HiveColumn {
         this.nullable = nullable;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
+//    public String getType() {
+//        return type;
+//    }
+//
+//    public void setType(String type) {
+//        this.type = type;
+//    }
 
     public String getRawName() {
         return rawName;

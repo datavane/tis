@@ -34,6 +34,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.IPluginContext;
@@ -74,14 +75,14 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 
 
     public static IDataxProcessor load(IPluginContext pluginContext, String dataXName) {
-        return load(pluginContext, KeyedPluginStore.StoreResourceType.DataApp, dataXName);
+        return load(pluginContext, StoreResourceType.DataApp, dataXName);
     }
 
-    public static IDataxProcessor load(IPluginContext pluginContext, KeyedPluginStore.StoreResourceType resType, String dataXName) {
+    public static IDataxProcessor load(IPluginContext pluginContext, StoreResourceType resType, String dataXName) {
         return load(pluginContext, resType, DataxProcessor.getPluginDescMeta(resType.pluginDescName), dataXName);
     }
 
-    private static IDataxProcessor load(IPluginContext pluginContext, KeyedPluginStore.StoreResourceType resType, Descriptor<IAppSource> pluginDescMeta, String dataXName) {
+    private static IDataxProcessor load(IPluginContext pluginContext, StoreResourceType resType, Descriptor<IAppSource> pluginDescMeta, String dataXName) {
         if (processorGetter != null) {
             return processorGetter.get(dataXName);
         }
@@ -166,11 +167,18 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
                 })));
     }
 
-    public void saveCreateTableDDL(IPluginContext pluginCtx, StringBuffer createDDL, String sqlFileName, boolean overWrite) throws IOException {
+    @Override
+    public void saveCreateTableDDL(IPluginContext pluginCtx
+            , StringBuffer createDDL, String sqlFileName, boolean overWrite) throws IOException {
+        File createDDLDir = this.getDataxCreateDDLDir(pluginCtx);
+        saveCreateTableDDL(createDDL, createDDLDir, sqlFileName, overWrite);
+    }
+
+    public static void saveCreateTableDDL(StringBuffer createDDL, File createDDLDir, String sqlFileName, boolean overWrite) throws IOException {
         if (StringUtils.isEmpty(sqlFileName)) {
             throw new IllegalArgumentException("param sqlFileName can not be empty");
         }
-        File createDDLDir = this.getDataxCreateDDLDir(pluginCtx);
+
         File f = new File(createDDLDir, sqlFileName);
         // 判断文件是否已经存在，如果已经存在的话就不需要生成了
         if (overWrite || !f.exists()) {
@@ -209,7 +217,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 
     @Override
     public IDataxWriter getWriter(IPluginContext pluginCtx, boolean validateNull) {
-        return DataxWriter.load(pluginCtx, KeyedPluginStore.StoreResourceType.DataApp, this.identityValue(), validateNull);
+        return DataxWriter.load(pluginCtx, StoreResourceType.DataApp, this.identityValue(), validateNull);
     }
 
     //

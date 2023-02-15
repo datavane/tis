@@ -20,14 +20,10 @@ package com.qlangtech.tis.exec;
 
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
-import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.datax.DataXExecuteInterceptor;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.exec.impl.WorkflowDumpAndJoinInterceptor;
-import com.qlangtech.tis.manage.IBasicAppSource;
-import com.qlangtech.tis.manage.IDataFlowAppSource;
-import com.qlangtech.tis.manage.ISingleTableAppSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,43 +86,43 @@ public class AbstractActionInvocation implements ActionInvocation {
 
         } else if (chainContext.hasIndexName()) {
 
-            IBasicAppSource appSource = chainContext.getAppSource();
+            // IBasicAppSource appSource = chainContext.getAppSource();
 
-            ints = appSource.accept(new IBasicAppSource.IAppSourceVisitor<IExecuteInterceptor[]>() {
-                @Override
-                public IExecuteInterceptor[] visit(DataxProcessor app) {
-                    return dataXBuild;
-                }
-
-                @Override
-                public IExecuteInterceptor[] visit(ISingleTableAppSource single) {
-                    //   return visitSolrAppSource(single);
-                    throw new UnsupportedOperationException();
-                }
-
-                @Override
-                public IExecuteInterceptor[] visit(IDataFlowAppSource dataflow) {
-                    // return visitSolrAppSource(dataflow);
-                    throw new UnsupportedOperationException();
-                }
-
-                // private IExecuteInterceptor[] visitSolrAppSource(ISolrAppSource appSource) {
-
-//                    Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
-//                    Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");
-//                    // chainContext.setIndexMetaData(createIndexMetaData(chainContext));
+            ints = dataXBuild;
+            // appSource.accept(new IBasicAppSource.IAppSourceVisitor<IExecuteInterceptor[]>() {
+//                @Override
+//                public IExecuteInterceptor[] visit(DataxProcessor app) {
+//                    return dataXBuild;
+//                }
 //
-//                    EntityName targetEntity = appSource.getTargetEntity();
-//                    chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, targetEntity);
-//                    IPrimaryTabFinder pTabFinder = appSource.getPrimaryTabFinder();
-//                    chainContext.setAttribute(IFullBuildContext.KEY_ER_RULES, pTabFinder);
-//                    return workflowBuild;
-                //  throw new UnsupportedOperationException();
-                //}
-
-
-            });
-
+//                @Override
+//                public IExecuteInterceptor[] visit(ISingleTableAppSource single) {
+//                    //   return visitSolrAppSource(single);
+//                    throw new UnsupportedOperationException();
+//                }
+//
+//                @Override
+//                public IExecuteInterceptor[] visit(IDataFlowAppSource dataflow) {
+//                    // return visitSolrAppSource(dataflow);
+//                    throw new UnsupportedOperationException();
+//                }
+//
+//                // private IExecuteInterceptor[] visitSolrAppSource(ISolrAppSource appSource) {
+//
+////                    Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
+////                    Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");
+////                    // chainContext.setIndexMetaData(createIndexMetaData(chainContext));
+////
+////                    EntityName targetEntity = appSource.getTargetEntity();
+////                    chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, targetEntity);
+////                    IPrimaryTabFinder pTabFinder = appSource.getPrimaryTabFinder();
+////                    chainContext.setAttribute(IFullBuildContext.KEY_ER_RULES, pTabFinder);
+////                    return workflowBuild;
+//                //  throw new UnsupportedOperationException();
+//                //}
+//
+//
+//            });
 
 
         } else {

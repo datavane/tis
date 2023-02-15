@@ -39,8 +39,8 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncherWithDataXTrigger;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStubUtils;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.test.TISTestCase;
 import org.apache.commons.io.FileUtils;
@@ -231,7 +231,7 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
 
         MockDataxProcessor dataxProcessor = new MockDataxProcessor();
 
-        EasyMock.expect(execChainContext.getAppSource()).andReturn(dataxProcessor);
+        EasyMock.expect(execChainContext.getProcessor()).andReturn(dataxProcessor);
 
         this.replay();
         /**
@@ -261,7 +261,7 @@ public class TestDataXExecuteInterceptor extends TISTestCase {
         }
 
         @Override
-        public KeyedPluginStore.StoreResourceType getResType() {
+        public StoreResourceType getResType() {
             throw new UnsupportedOperationException();
         }
 

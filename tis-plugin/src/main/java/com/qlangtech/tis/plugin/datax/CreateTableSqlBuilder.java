@@ -73,8 +73,8 @@ public abstract class CreateTableSqlBuilder {
 
 
     public CreateDDL build() {
-
-        script.append("CREATE TABLE ").append((getCreateTableName().getEntityName())).append("\n");
+        CreateTableName tabNameBuilder = getCreateTableName();
+        script.append(tabNameBuilder.createTablePredicate()).append(" ").append((tabNameBuilder.getEntityName())).append("\n");
         script.append("(\n");
 
 
@@ -205,6 +205,7 @@ public abstract class CreateTableSqlBuilder {
         private final String schema;
         private final String tabName;
         final CreateTableSqlBuilder sqlBuilder;
+        private String createTablePredicate = "CREATE TABLE";
 
         public CreateTableName(String tabName, CreateTableSqlBuilder sqlBuilder) {
             this(StringUtils.EMPTY, tabName, sqlBuilder);
@@ -217,6 +218,14 @@ public abstract class CreateTableSqlBuilder {
             this.schema = schema;
             this.tabName = tabName;
             this.sqlBuilder = sqlBuilder;
+        }
+
+        public String createTablePredicate() {
+            return this.createTablePredicate;
+        }
+
+        public void setCreateTablePredicate(String createTablePredicate) {
+            this.createTablePredicate = createTablePredicate;
         }
 
         public final String getEntityName() {

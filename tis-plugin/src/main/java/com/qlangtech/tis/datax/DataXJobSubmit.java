@@ -29,6 +29,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -133,8 +134,10 @@ public abstract class DataXJobSubmit {
     public abstract InstanceType getType();
 
 
-    public CuratorDataXTaskMessage getDataXJobDTO(IJoinTaskContext taskContext, DataXJobInfo dataXJobInfo) {
-
+    public CuratorDataXTaskMessage getDataXJobDTO(IJoinTaskContext taskContext, DataXJobInfo dataXJobInfo, StoreResourceType resourceType) {
+        if (resourceType == null) {
+            throw new NullPointerException("dataXJobDTO.getResType() can not be null");
+        }
         CuratorDataXTaskMessage msg = new CuratorDataXTaskMessage();
         if (taskContext.hasIndexName()) {
             msg.setDataXName(taskContext.getIndexName());
@@ -142,6 +145,7 @@ public abstract class DataXJobSubmit {
         msg.setJobId(taskContext.getTaskId());
         msg.setJobName(dataXJobInfo.serialize());
         msg.setExecTimeStamp(taskContext.getPartitionTimestamp());
+        msg.setResType(resourceType);
 
         PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest();
         DumpPhaseStatus.TableDumpStatus dataXJob = null;
@@ -165,12 +169,12 @@ public abstract class DataXJobSubmit {
      * @return
      */
     public final IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext
-            , RpcServiceReference statusRpc, IDataxProcessor dataxProcessor, TableDataXEntity tabDataXEntity, List<String> dependencyTasks) {
-        final DataXJobInfo jobName = getDataXJobInfo(tabDataXEntity, taskContext, dataxProcessor);
-        CuratorDataXTaskMessage dataXJobDTO = getDataXJobDTO(taskContext.getTaskContext(), jobName);
+            , RpcServiceReference statusRpc, IDataxProcessor processor, TableDataXEntity tabDataXEntity, List<String> dependencyTasks) {
+        final DataXJobInfo jobName = getDataXJobInfo(tabDataXEntity, taskContext, processor);
+        CuratorDataXTaskMessage dataXJobDTO = getDataXJobDTO(taskContext.getTaskContext(), jobName, processor.getResType());
 
         if (this.getType() == InstanceType.DISTRIBUTE) {
-            //TODO: 获取DataXProcess 相关元数据
+            //TODO: 获取DataXProcess 相关元数据 用于远程分布式执行任务
             RobustReflectionConverter.PluginMetas pluginMetas
                     = RobustReflectionConverter.PluginMetas.collectMetas(() -> {
 
@@ -178,7 +182,7 @@ public abstract class DataXJobSubmit {
         }
 
 
-        return createDataXJob(taskContext, statusRpc, jobName, dataxProcessor, dataXJobDTO, dependencyTasks);
+        return createDataXJob(taskContext, statusRpc, jobName, processor, dataXJobDTO, dependencyTasks);
     }
 
     protected abstract IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext

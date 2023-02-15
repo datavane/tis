@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.fullbuild.taskflow;
 
@@ -70,9 +70,9 @@ public abstract class AdapterTask extends DataflowTask {
      *
      * @return
      */
-    protected ITaskContext getTaskContext() {
+    protected <T> T getTaskContextObj() {
         Objects.requireNonNull(this.taskContext, "task content can not be null");
-        return this.taskContext;
+        return this.taskContext.getObj();
     }
 
     // {
@@ -100,15 +100,15 @@ public abstract class AdapterTask extends DataflowTask {
     // }
     protected String mergeVelocityTemplate(Map<String, Object> params) {
         return this.getContent();
-    // StringWriter writer = new StringWriter();
-    // try {
-    // velocityEngine.evaluate(createContext(params), writer, "sql", this.getContent());
-    // return writer.toString();
-    // } catch (Exception e) {
-    // throw new RuntimeException(this.getName(), e);
-    // } finally {
-    // IOUtils.close(writer);
-    // }
+        // StringWriter writer = new StringWriter();
+        // try {
+        // velocityEngine.evaluate(createContext(params), writer, "sql", this.getContent());
+        // return writer.toString();
+        // } catch (Exception e) {
+        // throw new RuntimeException(this.getName(), e);
+        // } finally {
+        // IOUtils.close(writer);
+        // }
     }
 
     protected abstract void executeSql(String taskname, String sql);
@@ -133,7 +133,12 @@ public abstract class AdapterTask extends DataflowTask {
         return context;
     }
 
+    //    public void setTaskContext(ITaskContext taskContext) {
+//        this.taskContext = taskContext;
+//    }
     public void setContext(ITemplateContext context, ITaskContext taskContext) {
+        Objects.requireNonNull(context, "param context can not be null");
+        Objects.requireNonNull(taskContext, "param taskContext can not be null");
         this.context = context;
         this.taskContext = taskContext;
     }

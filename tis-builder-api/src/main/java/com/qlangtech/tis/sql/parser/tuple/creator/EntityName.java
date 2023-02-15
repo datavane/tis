@@ -98,9 +98,25 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
         return this.tabName;
     }
 
+    public String getFullName(Optional<String> escapeChar) {
+        String ec = StringUtils.EMPTY;
+        if (escapeChar.isPresent()) {
+            ec = escapeChar.get();
+        }
+
+        if (this.dbname.isPresent()) {
+            return ec + dbname.get() + ec + "." + ec + tabName + ec;
+        } else {
+            return ec + tabName + ec;
+        }
+    }
+
     @Override
     public String getFullName() {
-        return this.toString();
+
+        return this.getFullName(Optional.empty());
+
+        // return this.toString();
     }
 
     public String createNewLiteriaToken() {
@@ -254,11 +270,12 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
 
     @Override
     public String toString() {
-        if (this.dbname.isPresent()) {
-            return dbname.get() + "." + tabName;
-        } else {
-            return tabName;
-        }
+        return this.getFullName();
+//        if (this.dbname.isPresent()) {
+//            return dbname.get() + "." + tabName;
+//        } else {
+//            return tabName;
+//        }
     }
 
     public interface SubTableQuery {

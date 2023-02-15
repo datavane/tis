@@ -54,6 +54,7 @@ import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.realtime.transfer.TableSingleDataIndexStatus;
 import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.realtime.yarn.rpc.MasterJob;
@@ -85,7 +86,7 @@ public class DataxExecutor {
     private static final Logger logger = LoggerFactory.getLogger(DataxExecutor.class);
 
     public static void synchronizeDataXPluginsFromRemoteRepository(
-            String dataxName, KeyedPluginStore.StoreResourceType resType, DataXJobInfo jobName) {
+            String dataxName, StoreResourceType resType, DataXJobInfo jobName) {
 
         if (CenterResource.notFetchFromCenterRepository()) {
             return;
@@ -106,7 +107,7 @@ public class DataxExecutor {
             keyedPluginStores.add(TIS.getPluginStore(ParamsConfig.class));
             keyedPluginStores.add(processStore);
 
-            if (resType == KeyedPluginStore.StoreResourceType.DataFlow) {
+            if (resType == StoreResourceType.DataFlow) {
                 //   SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(dataxName);
             }
 
@@ -147,7 +148,7 @@ public class DataxExecutor {
 
         final int allRows = Integer.parseInt(args[5]);
 
-        KeyedPluginStore.StoreResourceType resType = KeyedPluginStore.StoreResourceType.parse(args[6]);
+        StoreResourceType resType = StoreResourceType.parse(args[6]);
 
         // 任务每次执行会生成一个时间戳
         // final String execTimeStamp = args[6];
@@ -241,7 +242,7 @@ public class DataxExecutor {
         return overseerListener;
     }
 
-    public void exec(Integer jobId, DataXJobInfo jobName, KeyedPluginStore.StoreResourceType resType, IDataxProcessor processor) throws Exception {
+    public void exec(Integer jobId, DataXJobInfo jobName, StoreResourceType resType, IDataxProcessor processor) throws Exception {
         final JarLoader uberClassLoader = new TISJarLoader(TIS.get().getPluginManager());
         LoadUtil.cleanJarLoaderCenter();
         this.exec(uberClassLoader, jobId, jobName, resType, processor);
@@ -249,7 +250,7 @@ public class DataxExecutor {
 
 
     public void exec(final JarLoader uberClassLoader, Integer jobId, DataXJobInfo jobName
-            , KeyedPluginStore.StoreResourceType resType, IDataxProcessor dataxProcessor) throws Exception {
+            , StoreResourceType resType, IDataxProcessor dataxProcessor) throws Exception {
         if (uberClassLoader == null) {
             throw new IllegalArgumentException("param uberClassLoader can not be null");
         }
@@ -304,7 +305,7 @@ public class DataxExecutor {
      * @throws IOException
      * @throws Exception
      */
-    public void startWork(Integer jobId, DataXJobInfo jobName, KeyedPluginStore.StoreResourceType resType
+    public void startWork(Integer jobId, DataXJobInfo jobName, StoreResourceType resType
             , IDataxProcessor dataxProcessor
             , final JarLoader uberClassLoader) throws IOException, Exception {
         try {
@@ -390,7 +391,7 @@ public class DataxExecutor {
         }
     }
 
-    public void entry(DataXJobArgs args, DataXJobInfo jobName, KeyedPluginStore.StoreResourceType resType) throws Throwable {
+    public void entry(DataXJobArgs args, DataXJobInfo jobName, StoreResourceType resType) throws Throwable {
         Configuration configuration = parse(args, resType, jobName);
         logger.info("exec params:{}", args.toString());
         Objects.requireNonNull(configuration, "configuration can not be null");
@@ -456,7 +457,7 @@ public class DataxExecutor {
     /**
      * 指定Job配置路径，ConfigParser会解析Job、Plugin、Core全部信息，并以Configuration返回
      */
-    private Configuration parse(DataXJobArgs args, KeyedPluginStore.StoreResourceType resType, DataXJobInfo jobName) {
+    private Configuration parse(DataXJobArgs args, StoreResourceType resType, DataXJobInfo jobName) {
         final String jobPath = args.jobPath.getAbsolutePath();
         Configuration configuration = ConfigParser.parseJobConfig(jobPath);
 
@@ -482,8 +483,8 @@ public class DataxExecutor {
         configuration.set(readerKeyPrefix + DataxUtils.DATASOURCE_FACTORY_IDENTITY, readerDbFactoryId);
 
 
-        configuration.set(readerKeyPrefix + KeyedPluginStore.StoreResourceType.KEY_STORE_RESOURCE_TYPE, resType.getType());
-        configuration.set(writerKeyPrefix + KeyedPluginStore.StoreResourceType.KEY_STORE_RESOURCE_TYPE, resType.getType());
+        configuration.set(readerKeyPrefix + StoreResourceType.KEY_STORE_RESOURCE_TYPE, resType.getType());
+        configuration.set(writerKeyPrefix + StoreResourceType.KEY_STORE_RESOURCE_TYPE, resType.getType());
 
 
         //KeyedPluginStore.StoreResourceType.

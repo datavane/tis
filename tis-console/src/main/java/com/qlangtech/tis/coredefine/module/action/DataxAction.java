@@ -47,6 +47,7 @@ import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
@@ -557,11 +558,11 @@ public class DataxAction extends BasicModule {
   public void doGenerateDataxCfgs(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     boolean getExist = this.getBoolean("getExist");
-    generateDataXCfgs(this, context, KeyedPluginStore.StoreResourceType.DataApp, dataxName, getExist);
+    generateDataXCfgs(this, context, StoreResourceType.DataApp, dataxName, getExist);
   }
 
   public static void generateDataXCfgs(IPluginContext pluginContext, Context context
-    , KeyedPluginStore.StoreResourceType resType, String dataxName, boolean getExist) {
+    , StoreResourceType resType, String dataxName, boolean getExist) {
     if (StringUtils.isEmpty(dataxName)) {
       throw new IllegalArgumentException("param dataXName can not be null");
     }
@@ -1021,9 +1022,13 @@ public class DataxAction extends BasicModule {
     //DataxProcessor.load();
     Map<String, Object> result = Maps.newHashMap();
     // DataxProcessor processor = IAppSource.load(this, dataXName);
+
+
+    Optional<DataxReader> dataXReader = pmodel.getDataXReader(this, dataXName);
     DataxReader.BaseDataxReaderDescriptor readerDesc = null;
-    DataxReader reader = (DataxReader) processor.getReader(this);
-    if (reader != null) {
+    DataxReader reader = null; //(DataxReader) processor.getReader(this);
+    if (dataXReader.isPresent()) {
+      reader = dataXReader.get();
       readerDesc = (DataxReader.BaseDataxReaderDescriptor) reader.getDescriptor();
       result.put("readerDesc", DescriptorsJSON.desc(readerDesc));
     }
@@ -1041,17 +1046,24 @@ public class DataxAction extends BasicModule {
     setBizResult(context, result);
   }
 
+
+
   public static List<String> getTablesInDB(IPropertyType.SubFormFilter filter) {
+    DataxReader reader = getDataxReader(filter);
+//    if(!filter.useCache()){
+//      reader.
+//    }
+    return reader.getTablesInDB().getTabs();
+  }
+
+  private static <T extends DataxReader> T getDataxReader(IPropertyType.SubFormFilter filter) {
     IPluginStore<?> pluginStore = HeteroEnum.getDataXReaderAndWriterStore(
       filter.uploadPluginMeta.getPluginContext(), true, filter.uploadPluginMeta);
     DataxReader reader = (DataxReader) pluginStore.getPlugin();
     if (reader == null) {
       throw new IllegalStateException("dataXReader can not be null:" + filter.uploadPluginMeta.toString());
     }
-//    if(!filter.useCache()){
-//      reader.
-//    }
-    return reader.getTablesInDB().getTabs();
+    return (T)reader;
   }
 
   public static List<ColumnMetaData> getReaderTableSelectableCols(String dataxName, String table) {

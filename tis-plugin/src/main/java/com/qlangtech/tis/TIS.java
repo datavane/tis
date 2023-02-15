@@ -150,7 +150,7 @@ public class TIS {
         private final String appname;
         private final boolean isDB;
 
-        public DataXReaderAppKey(IPluginContext pluginContext, KeyedPluginStore.StoreResourceType resType, String appname
+        public DataXReaderAppKey(IPluginContext pluginContext, StoreResourceType resType, String appname
                 , PluginStore.IPluginProcessCallback<DataxReader> pluginCreateCallback) {
             super(pluginContext, resType, appname, DataxReader.class);
             if (pluginCreateCallback == null) {
@@ -158,12 +158,12 @@ public class TIS {
             }
             this.pluginCreateCallback = pluginCreateCallback;
             this.appname = appname;
-            this.isDB = (KeyedPluginStore.StoreResourceType.DataBase == resType);
+            this.isDB = (StoreResourceType.DataBase == resType);
         }
 
         public DataXReaderAppKey(IPluginContext pluginContext, boolean isDB, String appname
                 , PluginStore.IPluginProcessCallback<DataxReader> pluginCreateCallback) {
-            this(pluginContext, KeyedPluginStore.StoreResourceType.parse(isDB), appname, pluginCreateCallback);
+            this(pluginContext, StoreResourceType.parse(isDB), appname, pluginCreateCallback);
         }
 
         public boolean isSameAppName(String appname, boolean isDB) {

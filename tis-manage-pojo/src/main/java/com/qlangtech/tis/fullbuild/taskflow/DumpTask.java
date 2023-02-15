@@ -19,8 +19,11 @@
 package com.qlangtech.tis.fullbuild.taskflow;
 
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.exec.ExecChainContextUtils;
+import com.qlangtech.tis.fullbuild.indexbuild.DftTabPartition;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.AbstractChildProcessStatus;
+import com.qlangtech.tis.sql.parser.TabPartitions;
 
 import java.util.Collections;
 import java.util.Map;

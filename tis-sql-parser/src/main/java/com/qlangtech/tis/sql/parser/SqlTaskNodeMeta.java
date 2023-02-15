@@ -25,7 +25,6 @@ import com.facebook.presto.sql.parser.ParsingOptions;
 import com.facebook.presto.sql.parser.SqlParser;
 import com.facebook.presto.sql.tree.Expression;
 import com.facebook.presto.sql.tree.Statement;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
@@ -85,7 +84,47 @@ import java.util.stream.Collectors;
  */
 public class SqlTaskNodeMeta implements ISqlTask {
 
-    public static final Yaml yaml;
+    public static final ThreadLocal<Yaml> yaml = new ThreadLocal<Yaml>() {
+        protected Yaml initialValue() {
+            DumperOptions dumperOptions = new DumperOptions();
+            dumperOptions.setDefaultFlowStyle(FlowStyle.BLOCK);
+            dumperOptions.setIndent(4);
+            dumperOptions.setDefaultScalarStyle(ScalarStyle.PLAIN);
+            dumperOptions.setAnchorGenerator((n) -> "a");
+            // dumperOptions.setAnchorGenerator(null);
+            dumperOptions.setPrettyFlow(false);
+            dumperOptions.setSplitLines(true);
+            dumperOptions.setLineBreak(LineBreak.UNIX);
+            dumperOptions.setWidth(1000000);
+            Yaml y = new Yaml(new Constructor(), new Representer() {
+
+                @Override
+                protected Node representScalar(Tag tag, String value, ScalarStyle style) {
+                    // 大文本实用block
+                    if (Tag.STR == tag && value.length() > 100) {
+                        style = ScalarStyle.FOLDED;
+                    }
+                    return super.representScalar(tag, value, style);
+                }
+
+                @Override
+                protected NodeTuple representJavaBeanProperty(Object javaBean, Property property, Object propertyValue, Tag customTag) {
+                    if (propertyValue == null) {
+                        return null;
+                    }
+                    if (DependencyNode.class.equals(property.getType())) {
+                        return null;
+                    } else {
+                        return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
+                    }
+                }
+            }, dumperOptions);
+            y.addTypeDescription(new TypeDescription(DependencyNode.class, Tag.MAP, DependencyNode.class));
+            y.addTypeDescription(new TypeDescription(SqlTaskNodeMeta.class, Tag.MAP, SqlTaskNodeMeta.class));
+            y.addTypeDescription(new TypeDescription(DumpNodes.class, Tag.MAP, DumpNodes.class));
+            return y;
+        }
+    };
 
     private static final String FILE_NAME_DEPENDENCY_TABS = "dependency_tabs.yaml";
 
@@ -98,45 +137,6 @@ public class SqlTaskNodeMeta implements ISqlTask {
     public static final String KEY_PROFILE_ID = "id";
 
     private static final SqlParser sqlParser = new com.facebook.presto.sql.parser.SqlParser();
-
-    static {
-        DumperOptions dumperOptions = new DumperOptions();
-        dumperOptions.setDefaultFlowStyle(FlowStyle.BLOCK);
-        dumperOptions.setIndent(4);
-        dumperOptions.setDefaultScalarStyle(ScalarStyle.PLAIN);
-        dumperOptions.setAnchorGenerator((n) -> "a");
-        // dumperOptions.setAnchorGenerator(null);
-        dumperOptions.setPrettyFlow(false);
-        dumperOptions.setSplitLines(true);
-        dumperOptions.setLineBreak(LineBreak.UNIX);
-        dumperOptions.setWidth(1000000);
-        yaml = new Yaml(new Constructor(), new Representer() {
-
-            @Override
-            protected Node representScalar(Tag tag, String value, ScalarStyle style) {
-                // 大文本实用block
-                if (Tag.STR == tag && value.length() > 100) {
-                    style = ScalarStyle.FOLDED;
-                }
-                return super.representScalar(tag, value, style);
-            }
-
-            @Override
-            protected NodeTuple representJavaBeanProperty(Object javaBean, Property property, Object propertyValue, Tag customTag) {
-                if (propertyValue == null) {
-                    return null;
-                }
-                if (DependencyNode.class.equals(property.getType())) {
-                    return null;
-                } else {
-                    return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
-                }
-            }
-        }, dumperOptions);
-        yaml.addTypeDescription(new TypeDescription(DependencyNode.class, Tag.MAP, DependencyNode.class));
-        yaml.addTypeDescription(new TypeDescription(SqlTaskNodeMeta.class, Tag.MAP, SqlTaskNodeMeta.class));
-        yaml.addTypeDescription(new TypeDescription(DumpNodes.class, Tag.MAP, DumpNodes.class));
-    }
 
 
     /**
@@ -284,6 +284,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             public void setAttribute(String key, Object v) {
 
             }
+
             @Override
             public <T> T getAttribute(String key, Supplier<T> creator) {
                 return null;
@@ -380,7 +381,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
     public RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition
             , IPrimaryTabFinder erRules, ITemplateContext templateContext, boolean isFinalNode) {
         if (dumpPartition.size() < 1) {
-            throw new IllegalStateException("dumpPartition set size can not small than 1");
+            throw new IllegalStateException("taskName:" + taskName + " dumpPartition set size can not small than 1");
         }
         Optional<List<Expression>> parameters = Optional.empty();
         IJoinTaskContext joinContext = templateContext.getExecContext();
@@ -474,7 +475,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 hasProcess.set(true);
             }
             try (OutputStreamWriter output = new OutputStreamWriter(FileUtils.openOutputStream(new File(parent, nodeFileName)))) {
-                yaml.dump(process, output);
+                yaml.get().dump(process, output);
             }
         }
         oldNodeFileStats.entrySet().forEach((e) -> {
@@ -484,7 +485,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             }
         });
         try (OutputStreamWriter output = new OutputStreamWriter(FileUtils.openOutputStream(new File(parent, FILE_NAME_DEPENDENCY_TABS)))) {
-            yaml.dump(new DumpNodes(topology.getDumpNodes()), output);
+            yaml.get().dump(new DumpNodes(topology.getDumpNodes()), output);
         }
         try (OutputStreamWriter output = new OutputStreamWriter(FileUtils.openOutputStream(new File(parent, FILE_NAME_PROFILE)), TisUTF8.get())) {
             JSONObject profile = new JSONObject();
@@ -493,6 +494,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             profile.put(KEY_PROFILE_ID, topology.getDataflowId());
             IOUtils.write(profile.toJSONString(), output);
         }
+
     }
 
     @SuppressWarnings("all")
@@ -531,10 +533,11 @@ public class SqlTaskNodeMeta implements ISqlTask {
         if (!dependencyTabFile.exists()) {
             return topology;
         }
+
         try {
             // dump节点
             try (Reader reader = new InputStreamReader(FileUtils.openInputStream(dependencyTabFile), TisUTF8.get())) {
-                DumpNodes dumpTabs = yaml.loadAs(reader, DumpNodes.class);
+                DumpNodes dumpTabs = yaml.get().loadAs(reader, DumpNodes.class);
                 // topology.set
                 topology.addDumpTab(dumpTabs.getDumps());
             }
@@ -554,6 +557,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         // 设置profile内容信息
         topology.setProfile(getTopologyProfile(new File(topologyDir.dir, FILE_NAME_PROFILE)));
         return topology;
+
     }
 
     /**
@@ -589,9 +593,11 @@ public class SqlTaskNodeMeta implements ISqlTask {
     }
 
     public static SqlTaskNodeMeta deserializeTaskNode(Reader scriptReader) throws Exception {
+
         SqlTaskNodeMeta sqlTaskNodeMeta = null;
-        sqlTaskNodeMeta = yaml.loadAs(scriptReader, SqlTaskNodeMeta.class);
+        sqlTaskNodeMeta = yaml.get().loadAs(scriptReader, SqlTaskNodeMeta.class);
         return sqlTaskNodeMeta;
+
     }
 
     public static class TopologyProfile {
@@ -702,19 +708,35 @@ public class SqlTaskNodeMeta implements ISqlTask {
             return this.dumpNodesMap;
         }
 
+        private DAGSessionSpec sessionSpec;
+
         @JSONField(serialize = false)
-        public String getDAGSessionSpec() {
-            StringBuffer dagSessionSpec = new StringBuffer();
+        public DAGSessionSpec getDAGSessionSpec() {
+            if (this.sessionSpec != null) {
+                return this.sessionSpec;
+            }
+            this.sessionSpec = new DAGSessionSpec();
+            // join = null;
+            //  StringBuffer dagSessionSpec = new StringBuffer();
             // ->a ->b a,b->c
             for (DependencyNode dump : this.getDumpNodes()) {
-                dagSessionSpec.append("->").append(dump.getId()).append(" ");
+                //    dagSessionSpec.append("->").append(dump.getId()).append(" ");
+                sessionSpec.getDpt(dump.getId());
             }
             for (SqlTaskNodeMeta pnode : this.getNodeMetas()) {
-                dagSessionSpec.append(Joiner.on(",").join(pnode.getDependencies().stream().map((r) -> r.getId()).iterator()));
-                dagSessionSpec.append("->").append(pnode.getId()).append(" ");
+//                dagSessionSpec.append(Joiner.on(",").join(pnode.getDependencies().stream().map((r) -> r.getId()).iterator()));
+//                dagSessionSpec.append("->").append(pnode.getId()).append(" ");
+
+                DAGSessionSpec join = sessionSpec.getDpt(pnode.getId());
+                pnode.getDependencies().forEach((node) -> {
+                    join.addDpt(sessionSpec.getDpt(node.getId()));
+                });
+
             }
-            return dagSessionSpec.toString();
+            return sessionSpec;
+            //  return dagSessionSpec.toString();
         }
+
 
         /**
          * 取得dataflow中的表依赖关系
@@ -1075,6 +1097,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         public void setAttribute(String key, Object v) {
 
         }
+
         @Override
         public <T> T getAttribute(String key, Supplier<T> creator) {
             return null;
@@ -1115,4 +1138,5 @@ public class SqlTaskNodeMeta implements ISqlTask {
             return null;
         }
     }
+
 }

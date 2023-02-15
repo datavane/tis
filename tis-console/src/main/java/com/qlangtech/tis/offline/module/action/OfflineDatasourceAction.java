@@ -46,6 +46,7 @@ import com.qlangtech.tis.manage.common.AppDomainInfo;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
 import com.qlangtech.tis.manage.common.IUser;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
@@ -53,7 +54,7 @@ import com.qlangtech.tis.offline.pojo.GitRepositoryCommitPojo;
 import com.qlangtech.tis.offline.pojo.TISDb;
 import com.qlangtech.tis.offline.pojo.WorkflowPojo;
 import com.qlangtech.tis.plugin.IdentityName;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.*;
@@ -86,6 +87,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.struts2.ServletActionContext;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -138,16 +140,31 @@ public class OfflineDatasourceAction extends BasicModule {
     this.offlineManager = offlineManager;
   }
 
-  public void doTestTransaction(Context context) {
-    WorkFlow wf = new WorkFlow();
-    wf.setCreateTime(new Date());
-    wf.setGitPath("gitpath");
-    wf.setName("baisuitest");
-    wf.setOpUserId(123);
-    wf.setOpUserName("baisui");
-    wf.setOpTime(new Date());
-    this.offlineDAOFacade.getWorkFlowDAO().insertSelective(wf);
+//  public void doTestTransaction(Context context) {
+//    WorkFlow wf = new WorkFlow();
+//    wf.setCreateTime(new Date());
+//    wf.setGitPath("gitpath");
+//    wf.setName("baisuitest");
+//    wf.setOpUserId(123);
+//    wf.setOpUserName("baisui");
+//    wf.setOpTime(new Date());
+//    this.offlineDAOFacade.getWorkFlowDAO().insertSelective(wf);
+//  }
+
+  public static List<Option> getExistDataFlows() {
+    WorkFlowCriteria criteria = new WorkFlowCriteria();
+    criteria.setOrderByClause("id desc");
+    List<Option> opts = Lists.newArrayList();
+    Option opt = null;
+    IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(ServletActionContext.getServletContext(), IWorkflowDAOFacade.class);
+    List<WorkFlow> wfs = wfFacade.getWorkFlowDAO().selectByExample(criteria);
+    for (WorkFlow wf : wfs) {
+      opt = new Option(wf.getName(), wf.getName());
+      opts.add(opt);
+    }
+    return opts;
   }
+
 
   /**
    * @param context
@@ -422,27 +439,6 @@ public class OfflineDatasourceAction extends BasicModule {
     this.setBizResult(context, wfTopology.getDumpNodes());
   }
 
-  @Func(PermissionConstant.DATAFLOW_UPDATE)
-  public void doUpdateTopology(Context context) throws Exception {
-
-    this.doUpdateTopology(context, new TopologyUpdateCallback() {
-      @Override
-      public <T> T execute(IPluginContext pluginContext, Context context, String topologyName, SqlDataFlowTopology topology) {
-        SqlTaskNodeMeta.TopologyProfile profile = topology.getProfile();
-        if (profile.getDataflowId() < 1) {
-          profile.setDataflowId(getWorkflowId(topologyName));
-        }
-        return null;
-      }
-    });
-
-//    this.doUpdateTopology(context, (topologyName, topology) -> {
-//      SqlTaskNodeMeta.TopologyProfile profile = topology.getProfile();
-//      if (profile.getDataflowId() < 1) {
-//        profile.setDataflowId(this.getWorkflowId(topologyName));
-//      }
-//    });
-  }
 
   /**
    * WorkflowAddJoinComponent 点击保存按钮进行，服务端进行校验
@@ -911,6 +907,23 @@ public class OfflineDatasourceAction extends BasicModule {
     return nodeMeta.getString("tabname");
   }
 
+  @Func(PermissionConstant.DATAFLOW_UPDATE)
+  public void doUpdateTopology(Context context) throws Exception {
+
+    this.doUpdateTopology(context, createTopologyCreator());
+
+//    this.doUpdateTopology(context, new TopologyUpdateCallback() {
+//      @Override
+//      public <T> T execute(IPluginContext pluginContext, Context context, String topologyName, SqlDataFlowTopology topology) {
+//        SqlTaskNodeMeta.TopologyProfile profile = topology.getProfile();
+//        if (profile.getDataflowId() < 1) {
+//          profile.setDataflowId(getWorkflowId(topologyName));
+//        }
+//        return null;
+//      }
+//    });
+  }
+
   /**
    * 保存 拓扑图
    *
@@ -952,7 +965,7 @@ public class OfflineDatasourceAction extends BasicModule {
     @Override
     public void afterPersistence(IPluginContext pluginContext, Context context, SqlDataFlowTopology topology) {
       DataxAction.generateDataXCfgs(pluginContext
-        , context, KeyedPluginStore.StoreResourceType.DataFlow, topology.getName(), false);
+        , context, StoreResourceType.DataFlow, topology.getName(), false);
     }
 
     @Override

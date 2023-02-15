@@ -27,15 +27,19 @@ public class HdfsColMeta implements Serializable, IColMetaGetter {
     public final CsvType csvType;
     public final boolean pk;
 
-    public static List<IColMetaGetter> getColsMeta(Configuration config) {
+    public static <T extends IColMetaGetter> List<T> getColsMeta(Configuration config) {
         Objects.requireNonNull(config, "param config can not be null");
-        List<IColMetaGetter> result = new ArrayList<>();
+        List<T> result = new ArrayList<>();
         List<Configuration> columns = config.getListConfiguration(KEY_COLUMN);
         DataType hiveType = null;
+        T meta = null;
         for (Configuration cfg : columns) {
             hiveType = DataType.ds(cfg.getString(KEY_TYPE));
-
-            result.add(new HdfsColMeta(cfg.getString(KEY_NAME), cfg.getBool(KEY_NULLABLE), cfg.getBool(KEY_PK), hiveType));
+            meta = (T) (new HdfsColMeta(cfg.getString(KEY_NAME)
+                    , cfg.getBool(KEY_NULLABLE, true)
+                    , cfg.getBool(KEY_PK, false)
+                    , hiveType));
+            result.add(meta);
         }
         return result;
     }

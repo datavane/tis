@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.fullbuild.taskflow;
 
@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
-import com.qlangtech.tis.fullbuild.taskflow.TISReactor.TaskAndMilestone;
 import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncher;
 import junit.framework.TestCase;
 import org.jvnet.hudson.reactor.Reactor;
@@ -38,13 +37,24 @@ import java.util.concurrent.Executors;
  */
 public class TestReactor extends TestCase {
 
-    public static final String MILESTONE_PREFIX = "milestone_";
+    // public static final String MILESTONE_PREFIX = "milestone_";
 
     private static final Map<String, TaskAndMilestone> taskMap = Maps.newHashMap();
 
     static Map<String, Boolean> successToken = Maps.newHashMap();
 
     static {
+
+        taskMap.put("d", TaskAndMilestone.createMilestone("d"));
+        taskMap.put("e", new TaskAndMilestone(new TestDataflowTask("e") {
+
+            @Override
+            public void run() throws Exception {
+                Thread.sleep(4000);
+                System.out.println("task execute " + id);
+                successToken.put(id, true);
+            }
+        }));
         taskMap.put("a", new TaskAndMilestone(new TestDataflowTask("a") {
 
             @Override
@@ -100,14 +110,14 @@ public class TestReactor extends TestCase {
     public void testSequentialOrdering() throws Exception {
         DefaultChainContext chainContext = TestIndexSwapTaskflowLauncher.createDumpAndJoinChainContext();
         TISReactor tisReactor = new TISReactor(chainContext, taskMap);
-        Reactor s = tisReactor.buildSession("->a ->b a,b->c");
+        Reactor s = tisReactor.buildSession("->a ->b a,b->c->d d->e");
         // Reactor s = buildSession("->t1->m1 m1->t2->m2 m2->t3->", (session, id) ->
         // System.out.println(id));
-        assertEquals(3, s.size());
+        assertEquals(4, s.size());
         tisReactor.execute(Executors.newCachedThreadPool(), s, new ReactorListener() {
         });
         System.out.println("last");
-        for (String taskname : Lists.newArrayList("a", "b", "c")) {
+        for (String taskname : Lists.newArrayList("a", "b", "c", "e")) {
             Assert.assertNotNull("taskname:" + taskname + " shall have execute", successToken.get(taskname));
             Assert.assertTrue("taskname:" + taskname + " shall have execute", successToken.get(taskname));
         }

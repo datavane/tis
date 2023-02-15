@@ -402,9 +402,6 @@ public class DataXCfgGenerator {
                 throw new IllegalStateException("taskGroupName:" + taskGroupName + " relevant childTask can not be empty");
             }
             return subChildTask;
-//            return subChildTask.stream()
-//                    .map((childTask) -> childTask.getDataXCfgFileName() + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX)
-//                    .collect(Collectors.toList());
         }
 
 

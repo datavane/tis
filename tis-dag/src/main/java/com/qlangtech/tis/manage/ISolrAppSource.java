@@ -24,18 +24,21 @@ import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
-import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
+import com.qlangtech.tis.fullbuild.taskflow.TaskAndMilestone;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+import com.qlangtech.tis.sql.parser.DAGSessionSpec;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 索引实例Srouce， 支持单表、dataflow
@@ -94,9 +97,9 @@ public interface ISolrAppSource extends IBasicAppSource, IStreamIncrGenerateStra
     }
 
     interface ISingleTableDumpFactory {
-        List<DataflowTask> createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
+        RemoteTaskTriggers createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
                 , ITISCoordinator zkClient, IExecChainContext execChainContext
-                , DumpPhaseStatus dumpPhaseStatus, ITaskPhaseInfo taskPhaseInfo);
+                , DumpPhaseStatus dumpPhaseStatus, ITaskPhaseInfo taskPhaseInfo, DAGSessionSpec dagSessionSpec);
     }
 }
 

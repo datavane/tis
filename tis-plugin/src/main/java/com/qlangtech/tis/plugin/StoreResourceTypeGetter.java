@@ -1,3 +1,5 @@
+package com.qlangtech.tis.plugin;
+
 /**
  *   Licensed to the Apache Software Foundation (ASF) under one
  *   or more contributor license agreements.  See the NOTICE file
@@ -15,15 +17,16 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.qlangtech.tis.fs;
-
-import com.qlangtech.tis.exec.ExecuteResult;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
- */
-public interface ITableBuildTask {
-
-    public ExecuteResult process(ITaskContext context) throws Exception;
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2023-02-08 11:09
+ **/
+public interface StoreResourceTypeGetter {
+    /**
+     * 资源类型
+     *
+     * @return
+     */
+    StoreResourceType getResType();
 }

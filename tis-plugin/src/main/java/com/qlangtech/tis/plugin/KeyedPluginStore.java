@@ -20,12 +20,10 @@ package com.qlangtech.tis.plugin;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.solr.common.DOMUtil;
@@ -246,43 +244,6 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
         public String getSuffix() {
             return suffix;
-        }
-    }
-
-    public enum StoreResourceType {
-
-        DataBase(TIS.DB_GROUP_NAME, false, StringUtils.EMPTY) //
-        , DataApp(IFullBuildContext.NAME_APP_DIR, false, DataxProcessor.DEFAULT_DATAX_PROCESSOR_NAME) //
-        , DataFlow(IFullBuildContext.NAME_DATAFLOW_DIR, true, DataxProcessor.DEFAULT_WORKFLOW_PROCESSOR_NAME);
-
-        public static final String KEY_STORE_RESOURCE_TYPE = "storeResType";
-        private final String type;
-        public final boolean useMetaCfgDir;
-        public final String pluginDescName;
-
-        public static StoreResourceType parse(boolean isDB) {
-            return isDB ? DataBase : DataApp;
-        }
-
-
-        public static StoreResourceType parse(String type) {
-            StoreResourceType[] types = StoreResourceType.values();
-            for (StoreResourceType t : types) {
-                if (t.type.equals(type)) {
-                    return t;
-                }
-            }
-            throw new IllegalStateException("illegal type:" + type);
-        }
-
-        public String getType() {
-            return this.type;
-        }
-
-        StoreResourceType(String type, boolean useMetaCfgDir, String pluginDescName) {
-            this.type = type;
-            this.useMetaCfgDir = useMetaCfgDir;
-            this.pluginDescName = pluginDescName;
         }
     }
 

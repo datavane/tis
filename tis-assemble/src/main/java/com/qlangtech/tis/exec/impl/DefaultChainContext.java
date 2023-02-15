@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.datax.IDataXBatchPost;
+import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecChainContextUtils;
@@ -32,19 +33,18 @@ import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.servlet.IRebindableMDC;
 import com.qlangtech.tis.job.common.JobCommon;
-import com.qlangtech.tis.manage.IAppSource;
-import com.qlangtech.tis.manage.IBasicAppSource;
-import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
-import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.sql.parser.TabPartitions;
-import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 //import com.qlangtech.tis.fullbuild.workflow.SingleTableDump;
@@ -157,7 +157,7 @@ public class DefaultChainContext implements IExecChainContext {
                 String end = StringUtils.defaultIfEmpty(this.getString(COMPONENT_END), FullbuildPhase.IndexBackFlow.getName());
                 this.executePhaseRange = new ExecutePhaseRange(FullbuildPhase.parse(start), FullbuildPhase.parse(end));
             } else {
-                DataxProcessor appSource = this.getAppSource();
+                IDataxProcessor appSource = this.getProcessor();
                 IDataxWriter writer = appSource.getWriter(null, true);
                 if (writer instanceof IDataXBatchPost) {
                     this.executePhaseRange = ((IDataXBatchPost) writer).getPhaseRange();
@@ -203,14 +203,30 @@ public class DefaultChainContext implements IExecChainContext {
         ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
     }
 
-    private IBasicAppSource appSource;
+    private IDataxProcessor appSource;
 
-    public <T extends IBasicAppSource> T getAppSource() {
+    @Override
+    public IDataxProcessor getProcessor() {
         if (appSource == null) {
-            this.appSource = IAppSource.load(this.getIndexName());
+            StoreResourceType resType = null;
+            String targetName = null;
+
+            if (!this.hasIndexName() && this.getWorkflowId() != null) {
+                resType = StoreResourceType.DataFlow;
+                targetName = this.getIndexName();
+            } else if (this.hasIndexName()) {
+                resType = StoreResourceType.DataApp;
+                targetName = this.getWorkflowName();
+            } else {
+                throw new UnsupportedOperationException();
+            }
+
+
+            this.appSource = DataxProcessor.load(null, resType, targetName);
         }
-        return (T) appSource;
+        return appSource;
     }
+
 
     private final Map<String, Object> attribute = new HashMap<>();
 
@@ -327,7 +343,7 @@ public class DefaultChainContext implements IExecChainContext {
     @Override
     public PhaseStatusCollection loadPhaseStatusFromLatest() {
 
-       // String appName = context.getIndexName();
+        // String appName = context.getIndexName();
 
         Integer taskId = this.getTaskId();
 

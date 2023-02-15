@@ -16,7 +16,7 @@ public enum DataXReaderColType {
     Long("long", new DataType(Types.BIGINT)),
     INT("int", new DataType(Types.INTEGER)),
     Double("double", new DataType(Types.DOUBLE)),
-    STRING("string", new DataType(Types.VARCHAR, "VARCHAR", 256)),
+    STRING("string", DataType.createVarChar(256)),
     Boolean("boolean", new DataType(Types.BOOLEAN)),
     Date("date", new DataType(Types.DATE)),
     Bytes("bytes", new DataType(Types.BLOB));

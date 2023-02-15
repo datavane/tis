@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.manage.common;
@@ -25,9 +25,18 @@ import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
+import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
+import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
+import com.qlangtech.tis.fullbuild.taskflow.DumpTask;
+import com.qlangtech.tis.fullbuild.taskflow.JoinTask;
+import com.qlangtech.tis.fullbuild.taskflow.TaskAndMilestone;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.sql.parser.DAGSessionSpec;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.lang.StringUtils;
 
@@ -134,6 +143,42 @@ public class DagTaskUtils {
 
         AjaxResult<WorkFlowBuildHistory> result = HttpUtils.soapRemote(url, params, WorkFlowBuildHistory.class, true);
         return result.getBizresult();
+    }
+
+    public static List<IRemoteTaskTrigger> createTasks(IExecChainContext execChainContext, ITaskPhaseInfo phaseStatus
+            , DAGSessionSpec dagSessionSpec, RemoteTaskTriggers tskTriggers) {
+        List<IRemoteTaskTrigger> triggers = Lists.newArrayList();
+        for (IRemoteTaskTrigger trigger : tskTriggers.getDumpPhaseTasks()) {
+            triggers.add(addDumpTask(execChainContext, phaseStatus, dagSessionSpec, trigger));
+        }
+
+        for (IRemoteTaskTrigger trigger : tskTriggers.getJoinPhaseTasks()) {
+
+            triggers.add(addJoinTask(execChainContext, phaseStatus, dagSessionSpec, trigger));
+        }
+        return triggers;
+    }
+
+    private static IRemoteTaskTrigger addDumpTask(IExecChainContext execChainContext
+            , ITaskPhaseInfo phaseStatus, DAGSessionSpec dagSessionSpec
+            , IRemoteTaskTrigger jobTrigger) {
+        // triggers.add(jobTrigger);
+        DumpPhaseStatus dumpStatus = phaseStatus.getPhaseStatus(execChainContext, FullbuildPhase.FullDump);
+        dagSessionSpec.put(jobTrigger.getTaskName()
+                , new TaskAndMilestone(DumpTask.createDumpTask(jobTrigger, dumpStatus.getTable(jobTrigger.getTaskName()))));
+        return jobTrigger;
+    }
+
+    private static IRemoteTaskTrigger addJoinTask(IExecChainContext execChainContext, ITaskPhaseInfo phaseStatus
+            , DAGSessionSpec dagSessionSpec
+            , IRemoteTaskTrigger postTaskTrigger) {
+        JoinPhaseStatus joinStatus = phaseStatus.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
+        //triggers.add(postTaskTrigger);
+        JoinPhaseStatus.JoinTaskStatus taskStatus = joinStatus.getTaskStatus(postTaskTrigger.getTaskName());
+        taskStatus.setWaiting(true);
+        dagSessionSpec.put(postTaskTrigger.getTaskName()
+                , new TaskAndMilestone(JoinTask.createJoinTask(postTaskTrigger, taskStatus)));
+        return postTaskTrigger;
     }
 
     public static class NewTaskParam {

@@ -18,18 +18,30 @@ package com.qlangtech.tis.exec.impl;
  * limitations under the License.
  */
 
+import com.google.common.collect.Maps;
+import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.exec.ExecChainContextUtils;
+import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
+import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
+import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
+import com.qlangtech.tis.fullbuild.taskflow.AdapterTask;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.sql.parser.TabPartitions;
 import com.qlangtech.tis.test.TISTestCase;
 import org.easymock.EasyMock;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -38,14 +50,28 @@ import org.easymock.EasyMock;
 public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
 
     public void testExecute() throws Exception {
+        System.setProperty(DataxUtils.EXEC_TIMESTAMP, IParamContext.getCurrentTimeStamp());
         String wfName = "tttt71";
         int taskId = 999;
-        IDataxProcessor processor = DataxProcessor.load(null, KeyedPluginStore.StoreResourceType.DataFlow, wfName);
+
+
+        IDataxProcessor processor = DataxProcessor.load(null, StoreResourceType.DataFlow, wfName);
         TrackableExecuteInterceptor.initialTaskPhase(taskId);
         WorkflowDumpAndJoinInterceptor interceptor = new WorkflowDumpAndJoinInterceptor();
 
         IExecChainContext execContext = this.mock("execContext", IExecChainContext.class);
+        EasyMock.expect(execContext.getExecutePhaseRange())
+                .andReturn(new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.JOIN)).anyTimes();
+        EasyMock.expect(execContext.getProcessor()).andReturn(processor).anyTimes();
+
+        Map<IDumpTable, ITabPartition> tabPs = Maps.newHashMap();
+        EasyMock.expect(execContext.getAttribute(ExecChainContextUtils.PARTITION_DATA_PARAMS)).andReturn(new TabPartitions(tabPs)).anyTimes();
+        EasyMock.expect(execContext.getAttribute(AdapterTask.KEY_TASK_WORK_STATUS)).andReturn(new HashMap<String, Boolean>()).anyTimes();
+
+
         execContext.rebindLoggingMDCParams();
+        EasyMock.expectLastCall().anyTimes();
+
         EasyMock.expect(execContext.getAttribute(EasyMock.eq(DataXJobSubmit.KEY_DATAX_READERS), EasyMock.anyObject()))
                 .andReturn(processor.getReaders(null)).times(2);
 

@@ -28,6 +28,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
@@ -101,11 +102,11 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
     }
 
     public static KeyedPluginStore<DataxWriter> getPluginStore(IPluginContext context, String appname) {
-        return getPluginStore(context, KeyedPluginStore.StoreResourceType.DataApp, appname);
+        return getPluginStore(context, StoreResourceType.DataApp, appname);
     }
 
 
-    public static KeyedPluginStore<DataxWriter> getPluginStore(IPluginContext context, KeyedPluginStore.StoreResourceType resType, String name) {
+    public static KeyedPluginStore<DataxWriter> getPluginStore(IPluginContext context, StoreResourceType resType, String name) {
         return TIS.dataXWriterPluginStore.get(createDataXWriterKey(context, resType, name));
     }
 
@@ -114,11 +115,11 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
     }
 
     private static KeyedPluginStore.AppKey createDataXWriterKey(IPluginContext context, String appname) {
-        return createDataXWriterKey(context, KeyedPluginStore.StoreResourceType.DataApp, appname);
+        return createDataXWriterKey(context, StoreResourceType.DataApp, appname);
     }
 
     private static KeyedPluginStore.AppKey createDataXWriterKey(IPluginContext context
-            , KeyedPluginStore.StoreResourceType resType, String appname) {
+            , StoreResourceType resType, String appname) {
         if (StringUtils.isEmpty(appname)) {
             throw new IllegalArgumentException("param appname can not be null");
         }
@@ -136,7 +137,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
     public static IDataxWriterGetter dataxWriterGetter;
 
     public static DataxWriter load(IPluginContext context, String appName) {
-        return load(context, KeyedPluginStore.StoreResourceType.DataApp, appName, true);
+        return load(context, StoreResourceType.DataApp, appName, true);
     }
 
     /**
@@ -145,7 +146,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
      * @param appName
      * @return
      */
-    public static DataxWriter load(IPluginContext context, KeyedPluginStore.StoreResourceType resType, String appName, boolean nullValidate) {
+    public static DataxWriter load(IPluginContext context, StoreResourceType resType, String appName, boolean nullValidate) {
         DataxWriter appSource = null;
         if (dataxWriterGetter != null) {
             appSource = dataxWriterGetter.get(appName);

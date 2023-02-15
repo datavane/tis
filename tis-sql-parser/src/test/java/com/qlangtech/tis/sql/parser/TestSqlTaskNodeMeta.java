@@ -156,11 +156,11 @@ public class TestSqlTaskNodeMeta extends TestCase {
         MySqlContent content = new MySqlContent();
         content.setContent(SqlTaskNodeMeta.processBigContent(TestSqlRewriter.getScriptContent("totalpay_summary_assert.txt")));
         StringWriter writer = new StringWriter();
-        SqlTaskNodeMeta.yaml.addTypeDescription(new TypeDescription(MySqlContent.class, Tag.MAP));
-        SqlTaskNodeMeta.yaml.dump(content, writer);
+        SqlTaskNodeMeta.yaml.get().addTypeDescription(new TypeDescription(MySqlContent.class, Tag.MAP));
+        SqlTaskNodeMeta.yaml.get().dump(content, writer);
         System.out.println();
         System.out.println(writer);
-        content = SqlTaskNodeMeta.yaml.loadAs(writer.toString(), MySqlContent.class);
+        content = SqlTaskNodeMeta.yaml.get().loadAs(writer.toString(), MySqlContent.class);
         Assert.assertNotNull(content);
         Assert.assertNotNull(content.getContent());
         System.out.println(content.getContent());

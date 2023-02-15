@@ -26,7 +26,6 @@ import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.lang.TisException;
-import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang.StringUtils;
@@ -174,8 +173,16 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         try {
             metaData1 = conn.getConnection().getMetaData();
             try (ResultSet tables = metaData1.getTables(null, getDbSchema(), table.getTableName(), null)) {
-                if (!tables.next()) {
+                int count = 0;
+                List<String> matchEntries = Lists.newArrayList();
+                while (tables.next()) {
+                    matchEntries.add(tables.getString("TABLE_NAME") + "(" + tables.getString("TABLE_TYPE") + ")");
+                    count++;
+                }
+                if (count < 1) {
                     throw new TableNotFoundException(this, table.getFullName());
+                } else if (count > 1) {
+                    throw new IllegalStateException("duplicate table entities exist:" + String.join(",", matchEntries));
                 }
             }
 

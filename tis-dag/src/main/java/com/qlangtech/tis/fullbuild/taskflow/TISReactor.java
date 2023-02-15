@@ -23,6 +23,8 @@ import org.jvnet.hudson.reactor.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -30,8 +32,6 @@ import java.util.stream.Collectors;
  * @date 2020/04/13
  */
 public class TISReactor {
-
-    public static final String MILESTONE_PREFIX = "milestone_";
 
     private final Map<String, TaskAndMilestone> taskMap;
 
@@ -60,26 +60,21 @@ public class TISReactor {
         //return sw.toString();
     }
 
+    Pattern PatternNode = Pattern.compile("[\\S]+");
 
     public Reactor buildSession(String spec) throws Exception {
         Collection<TaskImpl> tasks = new ArrayList<>();
-        for (String node : spec.split(" ")) {
-            tasks.add(new TaskImpl(node, taskMap));
+
+        Matcher matcher = PatternNode.matcher(spec);
+        while (matcher.find()) {
+
+            tasks.add(new TaskImpl(matcher.group(), taskMap));
         }
+
+//        for (String node : spec.split(" ")) {
+//
+//        }
         return new Reactor(TaskBuilder.fromTasks(tasks));
-    }
-
-    public static class TaskAndMilestone {
-
-        private final DataflowTask task;
-
-        private final MilestoneImpl milestone;
-
-        public TaskAndMilestone(DataflowTask task) {
-            super();
-            this.task = task;
-            this.milestone = new MilestoneImpl(MILESTONE_PREFIX + task.id);
-        }
     }
 
     public static class TaskImpl implements Task {

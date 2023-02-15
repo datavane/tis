@@ -159,7 +159,7 @@ public class PluginItems {
       for (Descriptor.ParseDescribable<?> d : dlist) {
         Object inst = d.getInstance();
         if (inst instanceof IdentityName) {
-          KeyedPluginStore.StoreResourceType resType = ((IAppSource) inst).getResType();
+          StoreResourceType resType = ((IAppSource) inst).getResType();
           store = IAppSource.getPluginStore(pluginContext, resType, ((IdentityName) d.getInstance()).identityValue());
           break;
         }

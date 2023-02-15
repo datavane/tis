@@ -25,6 +25,8 @@ import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.plugin.StoreResourceTypeGetter;
 import com.qlangtech.tis.util.IPluginContext;
 
 import java.util.Collections;
@@ -37,22 +39,22 @@ import java.util.Optional;
  * @date 2021-03-31 11:16
  */
 @Public
-public interface IAppSource extends Describable<IAppSource> {
+public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGetter {
 
     static <T extends IAppSource> KeyedPluginStore<T> getPluginStore(IPluginContext context, String appName) {
-        return getPluginStore(context, KeyedPluginStore.StoreResourceType.DataApp, appName);
+        return getPluginStore(context, StoreResourceType.DataApp, appName);
     }
 
     static <T extends IAppSource> KeyedPluginStore<T> getPluginStore(
-            IPluginContext context, KeyedPluginStore.StoreResourceType resType, String appName) {
+            IPluginContext context, StoreResourceType resType, String appName) {
         return (KeyedPluginStore<T>) TIS.appSourcePluginStore.get(createAppSourceKey(context, resType, appName));
     }
 
     static KeyedPluginStore.AppKey createAppSourceKey(IPluginContext context, String appName) {
-        return new KeyedPluginStore.AppKey(context, KeyedPluginStore.StoreResourceType.DataApp, appName, IAppSource.class);
+        return new KeyedPluginStore.AppKey(context, StoreResourceType.DataApp, appName, IAppSource.class);
     }
 
-    static KeyedPluginStore.AppKey createAppSourceKey(IPluginContext context, KeyedPluginStore.StoreResourceType resType, String appName) {
+    static KeyedPluginStore.AppKey createAppSourceKey(IPluginContext context, StoreResourceType resType, String appName) {
         return new KeyedPluginStore.AppKey(context, resType, appName, IAppSource.class);
     }
 
@@ -67,11 +69,11 @@ public interface IAppSource extends Describable<IAppSource> {
     }
 
     static <T extends IAppSource> Optional<T> loadNullable(IPluginContext context, String appName) {
-        return loadNullable(context, KeyedPluginStore.StoreResourceType.DataApp, appName);
+        return loadNullable(context, StoreResourceType.DataApp, appName);
     }
 
     static <T extends IAppSource> Optional<T> loadNullable(
-            IPluginContext context, KeyedPluginStore.StoreResourceType resType, String appName) {
+            IPluginContext context, StoreResourceType resType, String appName) {
         KeyedPluginStore<T> pluginStore = getPluginStore(context, resType, appName);
         IAppSource appSource = pluginStore.getPlugin();
         return (Optional<T>) Optional.ofNullable(appSource);
@@ -111,7 +113,5 @@ public interface IAppSource extends Describable<IAppSource> {
     default Descriptor<IAppSource> getDescriptor() {
         return TIS.get().getDescriptor(this.getClass());
     }
-
-    KeyedPluginStore.StoreResourceType getResType();
 }
 

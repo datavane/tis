@@ -38,14 +38,13 @@ public interface IFlatTableBuilder extends ITaskFactory, ITableBuildTaskContext 
      * @param nodeMeta
      * @param isFinalNode      是否是DF的最终节点
      * @param tplContext
-     * @param taskContext
      * @param joinTaskStatus
      * @param dsGetter
      * @param primaryTabFinder
      * @return
      */
-    public DataflowTask createTask(ISqlTask nodeMeta, boolean isFinalNode, ITemplateContext tplContext
-            , ITaskContext taskContext, IJoinTaskStatus joinTaskStatus,
+    public DataflowTask createTask(ISqlTask nodeMeta
+            , boolean isFinalNode, ITemplateContext tplContext, ITaskContext tskContext, IJoinTaskStatus joinTaskStatus,
                                    final IDataSourceFactoryGetter dsGetter, IPrimaryTabFinder primaryTabFinder);
 
 

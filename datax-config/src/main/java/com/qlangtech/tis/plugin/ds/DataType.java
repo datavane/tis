@@ -36,6 +36,13 @@ public class DataType implements Serializable {
 
     public static final String KEY_UNSIGNED = "UNSIGNED";
 
+    public static DataType createVarChar(int size) {
+        if (size < 1) {
+            throw new IllegalArgumentException("illegal param size can not small than 1");
+        }
+        return new DataType(Types.VARCHAR, "VARCHAR", size);
+    }
+
     public final int type;
     public final int columnSize;
     public final String typeName;
@@ -146,76 +153,76 @@ public class DataType implements Serializable {
         }
     }
 
-    public static SupportHiveDataType convert2HiveType(DataType type) {
-        Objects.requireNonNull(type, "param type can not be null");
-        return type.accept(new TypeVisitor<SupportHiveDataType>() {
-            @Override
-            public SupportHiveDataType intType(DataType type) {
-                return SupportHiveDataType.INT;
-            }
-
-            @Override
-            public SupportHiveDataType floatType(DataType type) {
-                return SupportHiveDataType.FLOAT;
-            }
-
-            @Override
-            public SupportHiveDataType decimalType(DataType type) {
-                return SupportHiveDataType.DOUBLE;
-            }
-
-            @Override
-            public SupportHiveDataType timeType(DataType type) {
-                return SupportHiveDataType.TIMESTAMP;
-            }
-
-            @Override
-            public SupportHiveDataType dateType(DataType type) {
-                return SupportHiveDataType.DATE;
-            }
-
-            @Override
-            public SupportHiveDataType timestampType(DataType type) {
-                return SupportHiveDataType.TIMESTAMP;
-            }
-
-            @Override
-            public SupportHiveDataType tinyIntType(DataType dataType) {
-                return SupportHiveDataType.TINYINT;
-            }
-
-            @Override
-            public SupportHiveDataType smallIntType(DataType dataType) {
-                return SupportHiveDataType.SMALLINT;
-            }
-
-            @Override
-            public SupportHiveDataType bigInt(DataType type) {
-                return SupportHiveDataType.BIGINT;
-            }
-
-            @Override
-            public SupportHiveDataType doubleType(DataType type) {
-                return SupportHiveDataType.DOUBLE;
-            }
-
-
-            @Override
-            public SupportHiveDataType bitType(DataType type) {
-                return SupportHiveDataType.BOOLEAN;
-            }
-
-            @Override
-            public SupportHiveDataType blobType(DataType type) {
-                return SupportHiveDataType.STRING;
-            }
-
-            @Override
-            public SupportHiveDataType varcharType(DataType type) {
-                return SupportHiveDataType.STRING;
-            }
-        });
-    }
+//    public static SupportHiveDataType convert2HiveType(DataType type) {
+//        Objects.requireNonNull(type, "param type can not be null");
+//        return type.accept(new TypeVisitor<SupportHiveDataType>() {
+//            @Override
+//            public SupportHiveDataType intType(DataType type) {
+//                return SupportHiveDataType.INT;
+//            }
+//
+//            @Override
+//            public SupportHiveDataType floatType(DataType type) {
+//                return SupportHiveDataType.FLOAT;
+//            }
+//
+//            @Override
+//            public SupportHiveDataType decimalType(DataType type) {
+//                return SupportHiveDataType.DOUBLE;
+//            }
+//
+//            @Override
+//            public SupportHiveDataType timeType(DataType type) {
+//                return SupportHiveDataType.TIMESTAMP;
+//            }
+//
+//            @Override
+//            public SupportHiveDataType dateType(DataType type) {
+//                return SupportHiveDataType.DATE;
+//            }
+//
+//            @Override
+//            public SupportHiveDataType timestampType(DataType type) {
+//                return SupportHiveDataType.TIMESTAMP;
+//            }
+//
+//            @Override
+//            public SupportHiveDataType tinyIntType(DataType dataType) {
+//                return SupportHiveDataType.TINYINT;
+//            }
+//
+//            @Override
+//            public SupportHiveDataType smallIntType(DataType dataType) {
+//                return SupportHiveDataType.SMALLINT;
+//            }
+//
+//            @Override
+//            public SupportHiveDataType bigInt(DataType type) {
+//                return SupportHiveDataType.BIGINT;
+//            }
+//
+//            @Override
+//            public SupportHiveDataType doubleType(DataType type) {
+//                return SupportHiveDataType.DOUBLE;
+//            }
+//
+//
+//            @Override
+//            public SupportHiveDataType bitType(DataType type) {
+//                return SupportHiveDataType.BOOLEAN;
+//            }
+//
+//            @Override
+//            public SupportHiveDataType blobType(DataType type) {
+//                return SupportHiveDataType.STRING;
+//            }
+//
+//            @Override
+//            public SupportHiveDataType varcharType(DataType type) {
+//                return SupportHiveDataType.STRING;
+//            }
+//        });
+//    }
 
     public Integer getDecimalDigits() {
         return this.decimalDigits == null ? 0 : decimalDigits;
@@ -253,12 +260,13 @@ public class DataType implements Serializable {
 
     @Override
     public String toString() {
-        return "{" +
-                "type=" + type +
-                ",typeName=" + this.typeName +
-                ", columnSize=" + columnSize +
-                ", decimalDigits=" + decimalDigits +
-                '}';
+//        return "{" +
+//                "type=" + type +
+//                ",typeName=" + this.typeName +
+//                ", columnSize=" + columnSize +
+//                ", decimalDigits=" + decimalDigits +
+//                '}';
+        return this.getS();
     }
 
     public interface TypeVisitor<T> {
