@@ -44,8 +44,17 @@ import java.util.regex.Pattern;
  */
 public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
     public static final String TMP_DIR_NAME = ".tmp/";
-    private static final Pattern DATAX_UPDATE_PATH = Pattern.compile("/x/(" + ValidatorCommons.pattern_identity + ")/update");
+    public static final String KEY_EXEC_ID = "execId";
+    // private static final Pattern DATAX_UPDATE_PATH = Pattern.compile("/x/(" + ValidatorCommons.pattern_identity + ")/update");
+
+    private static final Pattern DATAX_UPDATE_PATH = Pattern.compile("\\?" + KEY_EXEC_ID + "=.+?");
+
     public transient final Key key;
+
+    public static void main(String[] args) {
+        Matcher matcher = DATAX_UPDATE_PATH.matcher("/offline/wf_profile_update/update?execId=e5bad69e-d519-5799-c798-f593eb0555f2#writer");
+        System.out.println(matcher.find());
+    }
 
     public static <TT extends Describable> KeyedPluginStore<TT> getPluginStore(
             DataxReader.SubFieldFormAppKey<TT> subFieldFormKey //, IPluginProcessCallback<TT>... pluginCreateCallback
@@ -259,7 +268,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             return this.resourceType == StoreResourceType.DataBase;
         }
 
-        private static KeyVal calAppName(IPluginContext pluginContext, String appname) {
+        public static KeyVal calAppName(IPluginContext pluginContext, String appname) {
             if (pluginContext == null) {
                 return new KeyVal(appname);
             }

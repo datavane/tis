@@ -104,6 +104,10 @@ public class DefaultChainContext implements IExecChainContext {
         return taskid;
     }
 
+    @Override
+    public boolean isDryRun() {
+        return httpExecContext.getBoolean(IFullBuildContext.DRY_RUN);
+    }
 //    @Override
 //    public IndexBuilderTriggerFactory getIndexBuilderFactory() {
 //        return this.indexBuilderTriggerFactory;

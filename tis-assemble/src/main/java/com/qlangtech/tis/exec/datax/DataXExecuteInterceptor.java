@@ -162,7 +162,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
 
         DataXJobSubmit.InstanceType expectDataXJobSumit = getDataXTriggerType();
-        Optional<DataXJobSubmit> jobSubmit = DataXJobSubmit.getDataXJobSubmit(expectDataXJobSumit);
+        Optional<DataXJobSubmit> jobSubmit = DataXJobSubmit.getDataXJobSubmit(execChainContext, expectDataXJobSumit);
         // 如果分布式worker ready的话
         if (!jobSubmit.isPresent()) {
             throw new IllegalStateException("can not find expect jobSubmit by type:" + expectDataXJobSumit);

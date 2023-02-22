@@ -276,6 +276,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         return getDataxCfgDir(pluginContext, this);
     }
 
+
+
     public static File getDataxCfgDir(IPluginContext pluginContext, IDataxProcessor processor) {
         File dataXWorkDir = processor.getDataXWorkDir(pluginContext);
         return new File(dataXWorkDir, DATAX_CFG_DIR_NAME);
@@ -311,17 +313,17 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         return IDataxProcessor.getDataXWorkDir(pluginContext, this.identityValue());
     }
 
-    /**
-     * 创建一个临时工作目录
-     *
-     * @param execId
-     * @throws Exception
-     */
-    public void makeTempDir(String execId) throws Exception {
-
-        File workingDir = getDataXWorkDir((IPluginContext) null);
-        FileUtils.copyDirectory(workingDir, new File(workingDir.getParentFile(), KeyedPluginStore.TMP_DIR_NAME + workingDir.getName() + "-" + execId));
-    }
+//    /**
+//     * 创建一个临时工作目录
+//     *
+//     * @param execId
+//     * @throws Exception
+//     */
+//    public void makeTempDir(String execId) throws Exception {
+//
+//        File workingDir = getDataXWorkDir((IPluginContext) null);
+//        FileUtils.copyDirectory(workingDir, new File(workingDir.getParentFile(), KeyedPluginStore.TMP_DIR_NAME + workingDir.getName() + "-" + execId));
+//    }
 
     /**
      * dataX配置文件列表

@@ -58,6 +58,11 @@ public class TestJoinTaskContext implements IJoinTaskContext {
         return 0;
     }
 
+    @Override
+    public boolean isDryRun() {
+        return false;
+    }
+
     private Map<String, Object> attrs = Maps.newHashMap();
 
     @Override

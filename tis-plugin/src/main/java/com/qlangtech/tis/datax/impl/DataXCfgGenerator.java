@@ -195,7 +195,7 @@ public class DataXCfgGenerator {
             };
 
 
-            IGroupChildTaskIterator subTasks = reader.getSubTasks();
+            IGroupChildTaskIterator subTasks = Objects.requireNonNull(reader.getSubTasks(), "subTasks can not be null");
             IDataxReaderContext readerContext = null;
             File configFile = null;
             // List<String> subTaskName = Lists.newArrayList();
@@ -336,8 +336,45 @@ public class DataXCfgGenerator {
         }
     }
 
+    public static class DataXCfgFile {
+        private File file;
+        private String fileName;
+        private String dbFactoryId;
+
+        public DataXCfgFile() {
+        }
+
+        public DataXCfgFile setFile(File file) {
+            this.file = file;
+            this.fileName = file.getName();
+            return this;
+        }
+
+        public void setFileName(String fileName) {
+            this.fileName = fileName;
+        }
+
+        public DataXCfgFile setDbFactoryId(String dbFactoryId) {
+            this.dbFactoryId = dbFactoryId;
+            return this;
+        }
+
+        public String getDbFactoryId() {
+            return dbFactoryId;
+        }
+
+        public String getFileName() {
+            return this.fileName;
+        }
+
+        @JSONField(serialize = false)
+        public File getFile() {
+            return this.file;
+        }
+    }
+
     public static class GenerateCfgs {
-        private List<File> _dataxFiles;
+        private List<DataXCfgFile> _dataxFiles;
         private List<String> createDDLFiles = Collections.emptyList();
         private Map<String, List<DataXCfgGenerator.DBDataXChildTask>> groupedChildTask = Maps.newHashMap();
         private long genTime;
@@ -348,25 +385,26 @@ public class DataXCfgGenerator {
             this.dataxCfgDir = dataxCfgDir;
         }
 
-        public List<String> getDataxFiles() {
-            return getDataXCfgFiles().stream().map((file) -> file.getName()).collect(Collectors.toList());
+        public List<DataXCfgFile> getDataxFiles() {
+            return getDataXCfgFiles().stream().map((file) -> file).collect(Collectors.toList());
         }
 
         @JSONField(serialize = false)
-        public List<File> getDataXCfgFiles() {
+        public List<DataXCfgFile> getDataXCfgFiles() {
 
             if (this._dataxFiles == null) {
                 this._dataxFiles = this.getGroupedChildTask()
                         .values().stream()
                         .flatMap((tasks) -> tasks.stream())
                         .map((task) -> {
+                            task.getDbFactoryId();
                             File dataXCfg = task.getJobPath(this.dataxCfgDir);
 //                               new File(this.dataxCfgDir
 //                                    , task.getDbFactoryId() + File.separator + task.getDataXCfgFileNameWithSuffix());
                             if (!dataXCfg.exists()) {
                                 throw new IllegalStateException("dataXCfg is not exist, path:" + dataXCfg.getAbsolutePath());
                             }
-                            return dataXCfg;
+                            return (new DataXCfgFile()).setFile(dataXCfg).setDbFactoryId(task.dbFactoryId);
                         })
                         .collect(Collectors.toList());
             }

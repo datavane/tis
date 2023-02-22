@@ -89,7 +89,7 @@ public interface IEndTypeGetter {
         , ElasticSearch("es"), MongoDB("mongoDB"), StarRocks("starRocks"), Doris("doris") //
         , Clickhouse("clickhouse"), Hudi("hudi"), AliyunOSS("aliyunOSS"), FTP("ftp") //
         , Cassandra("cassandra"), HDFS("hdfs"), SqlServer("sqlServer"), TiDB("TiDB") //
-        , RocketMQ("rocketMq"), Kafka("kafka"), DataFlow("dataflow");
+        , RocketMQ("rocketMq"), Kafka("kafka"), DataFlow("dataflow"), AliyunODPS("aliyunOdps");
         private final String val;
 
         EndType(String val) {

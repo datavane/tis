@@ -841,7 +841,7 @@ public class PluginAction extends BasicModule {
 
   private List<UploadPluginMeta> getPluginMeta() {
     final boolean useCache = Boolean.parseBoolean(this.getString("use_cache", "true"));
-    return UploadPluginMeta.parse(this.getStringArray("plugin"), useCache);
+    return UploadPluginMeta.parse(this, this.getStringArray("plugin"), useCache);
   }
 
   /**

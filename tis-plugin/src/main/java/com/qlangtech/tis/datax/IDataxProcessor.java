@@ -26,7 +26,6 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.StoreResourceTypeGetter;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
@@ -80,6 +79,18 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
 
     }
 
+    /**
+     * 创建一个临时工作目录
+     *
+     * @param execId
+     * @throws Exception
+     */
+    public default void makeTempDir(String execId) throws Exception {
+
+        File workingDir = getDataXWorkDir((IPluginContext) null);
+        FileUtils.copyDirectory(workingDir, new File(workingDir.getParentFile(), KeyedPluginStore.TMP_DIR_NAME + workingDir.getName() + "-" + execId));
+    }
+
 
     /**
      * workflow 中支持
@@ -102,6 +113,22 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
     IDataxGlobalCfg getDataXGlobalCfg();
 
     public File getDataxCfgDir(IPluginContext pluginCtx);
+
+    /**
+     * 取dataX配置文件
+     *
+     * @param pluginCtx
+     * @param criteria
+     * @return
+     */
+    public default File getDataXCfgFile(IPluginContext pluginCtx, DataXCfgGenerator.DataXCfgFile criteria) {
+        File cfgDir = getDataxCfgDir(pluginCtx);
+        File cfgFile = new File(cfgDir, criteria.getDbFactoryId() + File.separator + criteria.getFileName());
+        if (!cfgFile.exists()) {
+            throw new IllegalStateException("target file:" + cfgFile.getAbsolutePath());
+        }
+        return cfgFile;
+    }
 
     /**
      * 取得自动建表目录

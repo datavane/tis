@@ -40,6 +40,7 @@ import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.apps.AppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -175,7 +176,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   @Override
   public final String getExecId() {
-    String execId = this.getRequest().getHeader("execId");
+    String execId = this.getRequest().getHeader(KeyedPluginStore.KEY_EXEC_ID);
     if (StringUtils.isBlank(execId)) {
       throw new IllegalStateException("execId shall present in Request Header");
     }

@@ -95,7 +95,7 @@ public class DataxAction extends BasicModule {
       return;
     }
 
-    Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(triggerType);
+    Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, triggerType);
     if (!dataXJobSubmit.isPresent()) {
       this.setBizResult(context, Collections.singletonMap("installLocal", true));
       this.addErrorMessage(context, "还没有安装本地触发类型的执行器:" + triggerType + ",请先安装");
@@ -122,8 +122,10 @@ public class DataxAction extends BasicModule {
     if (StringUtils.isEmpty(dataXName)) {
       throw new IllegalArgumentException("param dataXName can not be null");
     }
+    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    IDataxProcessor dataxProcessor = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataXName);
 
-    DataxProcessor dataxProcessor = IAppSource.load(this, dataXName);
+    // DataxProcessor dataxProcessor = DataxProcessor.load(this,); IAppSource.load(this, dataXName);
     String createFileName = post.getString("fileName");
     dataxProcessor.saveCreateTableDDL(this, new StringBuffer(createTableDDL), createFileName, true);
     this.addActionMessage(context, "已经成功更新建表DDL脚本 " + createFileName);
@@ -421,14 +423,20 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetGenCfgFile(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    String fileName = this.getString("fileName");
+
+    //  String fileName = this.getString("fileName");
+
+    DataXCfgGenerator.DataXCfgFile cfgFileCriteria = this.parseJsonPost(DataXCfgGenerator.DataXCfgFile.class);
+
     GenCfgFileType fileType = GenCfgFileType.parse(this.getString("fileType"));
-    DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
+    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    IDataxProcessor dataxProcessor
+      = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataxName);
     Map<String, Object> fileMeta = Maps.newHashMap();
     switch (fileType) {
       case DATAX_CFG:
-        File dataxCfgDir = dataxProcessor.getDataxCfgDir(this);
-        File cfgFile = new File(dataxCfgDir, fileName);
+        File cfgFile = dataxProcessor.getDataXCfgFile(this, cfgFileCriteria);
+//        File cfgFile = new File(dataxCfgDir, fileName);
         if (!cfgFile.exists()) {
           throw new IllegalStateException("target file:" + cfgFile.getAbsolutePath());
         }
@@ -436,7 +444,7 @@ public class DataxAction extends BasicModule {
         break;
       case CREATE_TABLE_DDL:
         File ddlDir = dataxProcessor.getDataxCreateDDLDir(this);
-        File sqlScript = new File(ddlDir, fileName);
+        File sqlScript = new File(ddlDir, cfgFileCriteria.getFileName());
         if (!sqlScript.exists()) {
           throw new IllegalStateException("target file:" + sqlScript.getAbsolutePath());
         }
@@ -558,7 +566,8 @@ public class DataxAction extends BasicModule {
   public void doGenerateDataxCfgs(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     boolean getExist = this.getBoolean("getExist");
-    generateDataXCfgs(this, context, StoreResourceType.DataApp, dataxName, getExist);
+    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    generateDataXCfgs(this, context, pmodel.resType, dataxName, getExist);
   }
 
   public static void generateDataXCfgs(IPluginContext pluginContext, Context context
@@ -594,7 +603,9 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doRegenerateSqlDdlCfgs(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
+    // DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
+    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    IDataxProcessor dataxProcessor = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataxName);
 
     DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(this, dataxName, dataxProcessor);
 
@@ -629,7 +640,10 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doCreateDatax(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    DataxProcessor dataxProcessor = IAppSource.load(null, dataxName);
+    // ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    // IDataxProcessor dataxProcessor = (IDataxProcessor)pmodel.loadDataXProcessor(this,dataxName);
+
+    DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(null, StoreResourceType.DataApp, dataxName);
     Application app = dataxProcessor.buildApp();
 
     SchemaAction.CreateAppResult createAppResult = this.createNewApp(context, app
@@ -646,8 +660,12 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doUpdateDatax(Context context) throws Exception {
     String dataxName = this.getCollectionName();
-    DataxProcessor old = IAppSource.load(null, dataxName);
-    DataxProcessor editting = IAppSource.load(this, dataxName);
+
+    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    IDataxProcessor old = (IDataxProcessor) pmodel.loadDataXProcessor(null, dataxName);
+
+   // DataxProcessor old = DataxProcessor.load(null, dataxName);
+    IDataxProcessor editting = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataxName);;
     File oldWorkDir = old.getDataXWorkDir((IPluginContext) null);
     File edittingDir = editting.getDataXWorkDir((IPluginContext) this);
 
@@ -695,7 +713,10 @@ public class DataxAction extends BasicModule {
     if (StringUtils.isBlank(execId)) {
       throw new IllegalArgumentException("param execId can not be null");
     }
-    DataxProcessor dataxProcessor = IAppSource.load(null, dataXName);
+    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    IDataxProcessor dataxProcessor = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataXName);
+
+    // DataxProcessor dataxProcessor = IAppSource.load(null, dataXName);
     dataxProcessor.makeTempDir(execId);
     // 创建临时执行目录
     this.setBizResult(context, execId);
@@ -1019,14 +1040,11 @@ public class DataxAction extends BasicModule {
 
     ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
     IDataxProcessor processor = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataXName);
-    //DataxProcessor.load();
     Map<String, Object> result = Maps.newHashMap();
-    // DataxProcessor processor = IAppSource.load(this, dataXName);
-
 
     Optional<DataxReader> dataXReader = pmodel.getDataXReader(this, dataXName);
     DataxReader.BaseDataxReaderDescriptor readerDesc = null;
-    DataxReader reader = null; //(DataxReader) processor.getReader(this);
+    DataxReader reader = null;
     if (dataXReader.isPresent()) {
       reader = dataXReader.get();
       readerDesc = (DataxReader.BaseDataxReaderDescriptor) reader.getDescriptor();
@@ -1037,15 +1055,12 @@ public class DataxAction extends BasicModule {
 
     DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
 
-//    DescriptorsJSON readerDescriptor = new DescriptorsJSON(readerDesc);
-//    DescriptorsJSON writerDescriptor = new DescriptorsJSON(writerDesc);
 
     result.put("processMeta", ProcessModel.getDataXBasicProcessMeta(Optional.ofNullable(readerDesc), writerDesc));
     result.put("writerDesc", DescriptorsJSON.desc(writerDesc));
 
     setBizResult(context, result);
   }
-
 
 
   public static List<String> getTablesInDB(IPropertyType.SubFormFilter filter) {
@@ -1063,7 +1078,7 @@ public class DataxAction extends BasicModule {
     if (reader == null) {
       throw new IllegalStateException("dataXReader can not be null:" + filter.uploadPluginMeta.toString());
     }
-    return (T)reader;
+    return (T) reader;
   }
 
   public static List<ColumnMetaData> getReaderTableSelectableCols(String dataxName, String table) {

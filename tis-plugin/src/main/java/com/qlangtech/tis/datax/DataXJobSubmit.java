@@ -73,7 +73,7 @@ public abstract class DataXJobSubmit {
         return dataXWorkerServiceOnDuty ? DataXJobSubmit.InstanceType.DISTRIBUTE : DataXJobSubmit.InstanceType.LOCAL;
     }
 
-    public static Optional<DataXJobSubmit> getDataXJobSubmit(DataXJobSubmit.InstanceType expectDataXJobSumit) {
+    public static Optional<DataXJobSubmit> getDataXJobSubmit(boolean dryRun, DataXJobSubmit.InstanceType expectDataXJobSumit) {
         try {
             if (mockGetter != null) {
                 return Optional.ofNullable(mockGetter.call());
@@ -81,29 +81,40 @@ public abstract class DataXJobSubmit {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        // 如果是DryRun则只需要在内部执行
+        final DataXJobSubmit.InstanceType targetType = dryRun ? InstanceType.EMBEDDED : expectDataXJobSumit;
+//        if (joinTaskContext.isDryRun()) {
+//            expectDataXJobSumit = InstanceType.EMBEDDED;
+//        }
+
         ExtensionList<DataXJobSubmit> jobSumits = TIS.get().getExtensionList(DataXJobSubmit.class);
         Optional<DataXJobSubmit> jobSubmit = jobSumits.stream()
-                .filter((jsubmit) -> (expectDataXJobSumit) == jsubmit.getType()).findFirst();
+                .filter((jsubmit) -> (targetType) == jsubmit.getType()).findFirst();
         return jobSubmit;
+    }
+
+    public static Optional<DataXJobSubmit> getDataXJobSubmit(IJoinTaskContext joinTaskContext, DataXJobSubmit.InstanceType expectDataXJobSumit) {
+        return getDataXJobSubmit(joinTaskContext.isDryRun(), expectDataXJobSumit);
     }
 
     public enum InstanceType {
         DISTRIBUTE("distribute") {
             @Override
-            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<File> cfgFileNames) {
+            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<DataXCfgGenerator.DataXCfgFile> cfgFileNames) {
                 return true;
             }
         },
         EMBEDDED("embedded") {
             @Override
-            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<File> cfgFileNames) {
+            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<DataXCfgGenerator.DataXCfgFile> cfgFileNames) {
                 return true;
             }
         }
         //
         , LOCAL("local") {
             @Override
-            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<File> cfgFileNames) {
+            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<DataXCfgGenerator.DataXCfgFile> cfgFileNames) {
                 if (cfgFileNames.size() > MAX_TABS_NUM_IN_PER_JOB) {
                     controlMsgHandler.addErrorMessage(context, "单机版，单次表导入不能超过"
                             + MAX_TABS_NUM_IN_PER_JOB + "张，如需要导入更多表，请使用分布式K8S DataX执行期");
@@ -127,7 +138,7 @@ public abstract class DataXJobSubmit {
             this.literia = val;
         }
 
-        public abstract boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<File> cfgFileNames);
+        public abstract boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<DataXCfgGenerator.DataXCfgFile> cfgFileNames);
     }
 
 
@@ -171,8 +182,6 @@ public abstract class DataXJobSubmit {
     public final IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext
             , RpcServiceReference statusRpc, IDataxProcessor processor, TableDataXEntity tabDataXEntity, List<String> dependencyTasks) {
         final DataXJobInfo jobName = getDataXJobInfo(tabDataXEntity, taskContext, processor);
-        CuratorDataXTaskMessage dataXJobDTO = getDataXJobDTO(taskContext.getTaskContext(), jobName, processor.getResType());
-
         if (this.getType() == InstanceType.DISTRIBUTE) {
             //TODO: 获取DataXProcess 相关元数据 用于远程分布式执行任务
             RobustReflectionConverter.PluginMetas pluginMetas
@@ -181,6 +190,7 @@ public abstract class DataXJobSubmit {
             });
         }
 
+        CuratorDataXTaskMessage dataXJobDTO = getDataXJobDTO(taskContext.getTaskContext(), jobName, processor.getResType());
 
         return createDataXJob(taskContext, statusRpc, jobName, processor, dataXJobDTO, dependencyTasks);
     }

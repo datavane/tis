@@ -605,7 +605,7 @@ public class OfflineDatasourceAction extends BasicModule {
       }
     }
     // 校验一下是否只有一个最终输出节点
-    List<SqlTaskNodeMeta> finalNodes = topologyPojo.getFinalNodes();
+    Collection<SqlTaskNodeMeta> finalNodes = topologyPojo.getFinalNodes().values();
     if (finalNodes.size() > 1) {
       this.addErrorMessage(context, "最终输出节点(" + finalNodes.stream()
         .map((r) -> r.getExportName()).collect(Collectors.joining(",")) + ")不能多于一个");
@@ -666,7 +666,8 @@ public class OfflineDatasourceAction extends BasicModule {
     throw new IllegalStateException("topology:" + topologyName + " can not find workflow record in db");
   }
 
-  public static Tab getDatabase(IPluginContext pluginContext, OfflineManager offlineManager, IWorkflowDAOFacade wfDaoFacade, Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap, Integer dbId, String tabName) {
+  public static Tab getDatabase(IPluginContext pluginContext, OfflineManager offlineManager
+    , IWorkflowDAOFacade wfDaoFacade, Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap, Integer dbId, String tabName) {
 
     com.qlangtech.tis.workflow.pojo.DatasourceDb db = null;
     // DatasourceTable tab = wfDaoFacade.getDatasourceTableDAO().selectByPrimaryKey(tableid);
@@ -1432,9 +1433,11 @@ public class OfflineDatasourceAction extends BasicModule {
   @Func(value = PermissionConstant.DATAFLOW_MANAGE)
   public void doExecuteWorkflow(Context context) throws Exception {
     Integer id = this.getInt("id");
+    Boolean dryRun = this.getBoolean("dryRun");
     List<PostParam> params = Lists.newArrayList();
     WorkFlow df = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(id);
     Assert.assertNotNull(df);
+    params.add(new PostParam(IFullBuildContext.DRY_RUN, dryRun));
     params.add(new PostParam(IFullBuildContext.KEY_WORKFLOW_NAME, df.getName()));
     params.add(new PostParam(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(id)));
     // TODO 单独触发的DF执行后期要保证该流程最后的执行的结果数据不能用于索引build

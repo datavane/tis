@@ -34,7 +34,6 @@ import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
-import com.qlangtech.tis.fullbuild.taskflow.TaskAndMilestone;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.plugin.StoreResourceType;
@@ -81,7 +80,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
         //Map<String, TISReactor.TaskAndMilestone> taskMap = Maps.newHashMap();
         RpcServiceReference dataXExecReporter = getDataXExecReporter();
         DataXJobSubmit.InstanceType triggerType = DataXJobSubmit.getDataXTriggerType();
-        Optional<DataXJobSubmit> jobSubmit = DataXJobSubmit.getDataXJobSubmit(triggerType);
+        Optional<DataXJobSubmit> jobSubmit = DataXJobSubmit.getDataXJobSubmit(execChainContext, triggerType);
         if (!jobSubmit.isPresent()) {
             throw new IllegalStateException("jobSumit can not be empty,triggerType:" + triggerType);
         }
@@ -94,7 +93,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
                             , ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus, ITaskPhaseInfo taskPhaseInfo
                             , DAGSessionSpec dagSessionSpec) {
 
-                       // JoinPhaseStatus joinStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
+                        // JoinPhaseStatus joinStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
                         RemoteTaskTriggers tskTrigger = DataXExecuteInterceptor.buildTaskTriggers(
                                 execChainContext, dataxProc, submit, dataXExecReporter, new DefaultTab(dump.getName()), dump.getId(), dagSessionSpec);
 //                        List<DataflowTask> dfTsks = Lists.newArrayList();

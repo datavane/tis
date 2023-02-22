@@ -60,6 +60,10 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
         WorkflowDumpAndJoinInterceptor interceptor = new WorkflowDumpAndJoinInterceptor();
 
         IExecChainContext execContext = this.mock("execContext", IExecChainContext.class);
+
+        // Dry Run
+        EasyMock.expect(execContext.isDryRun()).andReturn(true).anyTimes();
+
         EasyMock.expect(execContext.getExecutePhaseRange())
                 .andReturn(new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.JOIN)).anyTimes();
         EasyMock.expect(execContext.getProcessor()).andReturn(processor).anyTimes();

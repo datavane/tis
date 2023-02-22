@@ -34,6 +34,8 @@ public interface IJoinTaskContext extends IParamContext {
 
     public int getTaskId();
 
+    public boolean isDryRun();
+
     /**
      * 目标索引的组数
      *

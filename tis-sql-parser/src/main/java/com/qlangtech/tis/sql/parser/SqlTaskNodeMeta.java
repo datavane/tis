@@ -261,6 +261,11 @@ public class SqlTaskNodeMeta implements ISqlTask {
             }
 
             @Override
+            public boolean isDryRun() {
+                return false;
+            }
+
+            @Override
             public boolean hasIndexName() {
                 return false;
             }
@@ -893,7 +898,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
 //                nodeMeta.setExportName(EntityName.create(dumpNode.getDbName(), dumpNode.getName()).toString());
 //                return nodeMeta;
             //  } else {
-            List<SqlTaskNodeMeta> finalNodes = getFinalNodes();
+            Collection<SqlTaskNodeMeta> finalNodes = getFinalNodes().values();
             if (finalNodes.size() != 1) {
                 throw new IllegalStateException(//
                         "finalNodes size must be 1,but now is:" + finalNodes.size() + ",nodes:[" + //
@@ -914,7 +919,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
          * @return
          * @throws Exception
          */
-        public List<SqlTaskNodeMeta> getFinalNodes() throws Exception {
+        public Map<String, SqlTaskNodeMeta> getFinalNodes() {
             Map<String, RefCountTaskNode> /*export Name*/
                     exportNameRefs = Maps.newHashMap();
             for (SqlTaskNodeMeta meta : getNodeMetas()) {
@@ -931,9 +936,9 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 }
             }
             //
-            List<SqlTaskNodeMeta> finalNodes = //
+            Map<String, SqlTaskNodeMeta> finalNodes = //
                     exportNameRefs.values().stream().filter(//
-                            (e) -> e.refCount.get() < 1).map((r) -> r.taskNode).collect(Collectors.toList());
+                            (e) -> e.refCount.get() < 1).map((r) -> r.taskNode).collect(Collectors.toMap((n) -> n.getExportName(), (n) -> n));
             return finalNodes;
         }
     }
@@ -1063,6 +1068,11 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
     private static class DftJoinTaskContext implements IJoinTaskContext {
         private final ExecutePhaseRange executePhaseRange;
+
+        @Override
+        public boolean isDryRun() {
+            return false;
+        }
 
         public DftJoinTaskContext(ExecutePhaseRange executePhaseRange) {
             this.executePhaseRange = executePhaseRange;

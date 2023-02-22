@@ -167,16 +167,10 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     }
 
     public boolean containCol(String col) {
-        // return cols != null && this.cols.stream().filter((c) -> col.equals(c.getName())).findAny().isPresent();
         return cols != null && this.cols.contains(col);
     }
 
     public void setCols(List<String> cols) {
-//        this.cols = cols.stream().map((c) -> {
-//            ColMeta meta = new ColMeta();
-//            meta.setName(c);
-//            return meta;
-//        }).collect(Collectors.toList());
         this.cols = cols;
     }
 

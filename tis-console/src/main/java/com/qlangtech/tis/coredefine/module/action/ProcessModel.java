@@ -81,7 +81,7 @@ public enum ProcessModel {
   }, StoreResourceType.DataApp);
 
   private final String val;
-  private final StoreResourceType resType;
+  public final StoreResourceType resType;
   private final ValdateReaderAndWriter valdateReaderAndWriter;
   private final IProcessMetaCreator processMetaCreator;
   private final Supplier<Descriptor<IAppSource>> targetProcessDescsGetter;
