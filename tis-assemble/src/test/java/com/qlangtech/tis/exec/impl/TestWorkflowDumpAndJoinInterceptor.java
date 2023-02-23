@@ -51,7 +51,9 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
 
     public void testExecute() throws Exception {
         System.setProperty(DataxUtils.EXEC_TIMESTAMP, IParamContext.getCurrentTimeStamp());
-        String wfName = "tttt71";
+      //  String wfName = "tttt71";
+        String wfName = "ttttt6";
+
         int taskId = 999;
 
 

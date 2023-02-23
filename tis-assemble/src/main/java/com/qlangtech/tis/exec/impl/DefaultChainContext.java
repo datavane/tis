@@ -217,10 +217,10 @@ public class DefaultChainContext implements IExecChainContext {
 
             if (!this.hasIndexName() && this.getWorkflowId() != null) {
                 resType = StoreResourceType.DataFlow;
-                targetName = this.getIndexName();
+                targetName = this.getWorkflowName();
             } else if (this.hasIndexName()) {
                 resType = StoreResourceType.DataApp;
-                targetName = this.getWorkflowName();
+                targetName = this.getIndexName();
             } else {
                 throw new UnsupportedOperationException();
             }

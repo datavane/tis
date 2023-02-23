@@ -43,10 +43,10 @@ import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
@@ -311,6 +311,18 @@ public abstract class DataXJobSubmit {
         // public <T> T getContextInstance();
 
         IJoinTaskContext getTaskContext();
+
+        AtomicInteger order = new AtomicInteger();
+
+        /**
+         * 保证一个批次执行的DataX任务的每个子任务都有一个唯一的序列号，例如在ODPS数据导入的场景中
+         * ，MySQL中有多个分库的表需要导入到ODPS中采用pt+pmod（该值通过唯一序列号）的分区组合来避免不同分库数据导入相同分区的冲突
+         *
+         * @return
+         */
+        public default int getTaskSerializeNum() {
+            return order.getAndIncrement();
+        }
 
         /**
          * 任务执行完成之后回收
