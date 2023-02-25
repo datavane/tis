@@ -91,10 +91,10 @@ public class TemplateContext implements ITemplateContext {
         return (T) this.contextValues.get(key);
     }
 
-    public String getDate() {
-        if (params == null) {
-            return null;
-        }
-        return params.getPartitionTimestamp();
-    }
+//    public String getDate() {
+//        if (params == null) {
+//            return null;
+//        }
+//        return params.getPartitionTimestampWithMillis();
+//    }
 }

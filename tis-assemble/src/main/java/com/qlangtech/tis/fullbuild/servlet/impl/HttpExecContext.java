@@ -97,7 +97,7 @@ public class HttpExecContext implements IParamContext {
     }
 
     @Override
-    public String getPartitionTimestamp() {
+    public long getPartitionTimestampWithMillis() {
         throw new UnsupportedOperationException();
     }
 }

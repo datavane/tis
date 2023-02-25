@@ -94,10 +94,10 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     }
 
     protected void validateConnection(String jdbcUrl, IConnProcessor p) throws TableNotFoundException {
-        Connection conn = null;
+        JDBCConnection conn = null;
         try {
             conn = getConnection(jdbcUrl);
-            p.vist(new JDBCConnection(conn, jdbcUrl));
+            p.vist(conn);
         } catch (TableNotFoundException e) {
             throw e;
         } catch (TisException e) {
@@ -145,11 +145,11 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      * @param jdbcUrl
      * @return
      */
-    public Connection getConnection(String jdbcUrl) throws SQLException {
+    public JDBCConnection getConnection(String jdbcUrl) throws SQLException {
         throw new UnsupportedOperationException("jdbcUrl:" + jdbcUrl);
     }
 
-    public Connection getConnection(String jdbcUrl, boolean usingPool) throws SQLException {
+    public JDBCConnection getConnection(String jdbcUrl, boolean usingPool) throws SQLException {
         return this.getConnection(jdbcUrl);
     }
 

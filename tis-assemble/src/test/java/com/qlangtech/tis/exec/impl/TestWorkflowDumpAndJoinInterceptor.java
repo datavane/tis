@@ -24,6 +24,7 @@ import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
@@ -33,7 +34,6 @@ import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.taskflow.AdapterTask;
 import com.qlangtech.tis.offline.DataxUtils;
-import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.sql.parser.TabPartitions;
@@ -50,8 +50,8 @@ import java.util.Map;
 public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
 
     public void testExecute() throws Exception {
-        System.setProperty(DataxUtils.EXEC_TIMESTAMP, IParamContext.getCurrentTimeStamp());
-      //  String wfName = "tttt71";
+        System.setProperty(DataxUtils.EXEC_TIMESTAMP, String.valueOf(TimeFormat.getCurrentTimeStamp()));
+        //  String wfName = "tttt71";
         String wfName = "ttttt6";
 
         int taskId = 999;
@@ -64,7 +64,7 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
         IExecChainContext execContext = this.mock("execContext", IExecChainContext.class);
 
         // Dry Run
-        EasyMock.expect(execContext.isDryRun()).andReturn(true).anyTimes();
+        EasyMock.expect(execContext.isDryRun()).andReturn(false).anyTimes();
 
         EasyMock.expect(execContext.getExecutePhaseRange())
                 .andReturn(new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.JOIN)).anyTimes();
@@ -86,7 +86,7 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
         EasyMock.expect(execContext.getZkClient()).andReturn(ITISCoordinator.create()).anyTimes();
         EasyMock.expect(execContext.getTaskId()).andReturn(taskId).anyTimes();
         EasyMock.expect(execContext.getWorkflowName()).andReturn(wfName);
-        EasyMock.expect(execContext.getPartitionTimestamp()).andReturn(IParamContext.getCurrentTimeStamp()).anyTimes();
+        EasyMock.expect(execContext.getPartitionTimestampWithMillis()).andReturn(TimeFormat.getCurrentTimeStamp()).anyTimes();
         EasyMock.expect(execContext.loadPhaseStatusFromLatest())
                 .andReturn(IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(taskId)).anyTimes();
 

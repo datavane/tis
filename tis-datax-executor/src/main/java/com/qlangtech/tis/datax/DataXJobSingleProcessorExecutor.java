@@ -76,7 +76,7 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
             cmdLine.addArgument("-D" + TisAppLaunch.KEY_LOG_DIR + "=" + TisAppLaunch.getLogDir().getAbsolutePath());
             cmdLine.addArgument("-D" + Config.KEY_RUNTIME + "=daily");
             cmdLine.addArgument("-D" + Config.SYSTEM_KEY_LOGBACK_PATH_KEY + "=" + Config.SYSTEM_KEY_LOGBACK_PATH_VALUE);
-            cmdLine.addArgument("-D" + DataxUtils.EXEC_TIMESTAMP + "=" + msg.getExecTimeStamp());
+            cmdLine.addArgument("-D" + DataxUtils.EXEC_TIMESTAMP + "=" + msg.getExecEpochMilli());
             for (String sysParam : this.getExtraJavaSystemPrams()) {
                 cmdLine.addArgument(sysParam);
             }
@@ -97,6 +97,9 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
             // cmdLine.addArgument(msg.getExecTimeStamp());
             // 存储资源类型
             cmdLine.addArgument(resType.getType());
+
+            cmdLine.addArgument(String.valueOf(msg.getTaskSerializeNum()));
+            cmdLine.addArgument(String.valueOf(msg.getExecEpochMilli()));
 
             DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
 

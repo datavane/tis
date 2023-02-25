@@ -254,6 +254,43 @@ public class SqlTaskNodeMeta implements ISqlTask {
      */
     public RewriteSql getColMetaGetterSql(TabPartitions tabPartitions) {
 
+        ITemplateContext tplContext = getTplContext();
+
+        IPrimaryTabFinder erRules = new IPrimaryTabFinder() {
+            @Override
+            public Optional<TableMeta> getPrimaryTab(IDumpTable entityName) {
+                return Optional.empty();
+            }
+
+            @Override
+            public Map<EntityName, TabFieldProcessor> getTabFieldProcessorMap() {
+                return Collections.emptyMap();
+            }
+        };
+
+        Optional<List<Expression>> parameters = Optional.empty();
+        IJoinTaskContext joinContext = tplContext.getExecContext();
+        SqlStringBuilder builder = new SqlStringBuilder();
+        SelectColsMetaGetter rewriter = new SelectColsMetaGetter(builder, erRules, tabPartitions, parameters, joinContext);
+        // 执行rewrite
+        try {
+            Statement state = getSqlStatement();
+            rewriter.process(state, 0);
+        } catch (TisSqlFormatException e) {
+            throw e;
+        } catch (Exception e) {
+            // String dp = dumpPartition.toString(); //dumpPartition.entrySet().stream().map((ee) -> "[" + ee.getKey() + "->" + ee.getValue().getPt() + "]").collect(Collectors.joining(","));
+            throw new IllegalStateException(e);
+        }
+//        SqlRewriter.AliasTable primaryTable = rewriter.getPrimayTable();
+//        if (primaryTable == null) {
+//            throw new IllegalStateException("task:" + taskName + " has not find primary table");
+//        }
+//        // return ;
+        return new RewriteSql(builder.toString(), rewriter.outputCols, null);
+    }
+
+    private ITemplateContext getTplContext() {
         final IJoinTaskContext taskContext = new IJoinTaskContext() {
             @Override
             public String getIndexName() {
@@ -326,12 +363,12 @@ public class SqlTaskNodeMeta implements ISqlTask {
             }
 
             @Override
-            public String getPartitionTimestamp() {
-                return null;
+            public long getPartitionTimestampWithMillis() {
+                throw new UnsupportedOperationException();
             }
         };
 
-        ITemplateContext tplContext = new ITemplateContext() {
+        return new ITemplateContext() {
             @Override
             public <T> T getContextValue(String key) {
                 return null;
@@ -347,39 +384,6 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 return taskContext;
             }
         };
-
-        IPrimaryTabFinder erRules = new IPrimaryTabFinder() {
-            @Override
-            public Optional<TableMeta> getPrimaryTab(IDumpTable entityName) {
-                return Optional.empty();
-            }
-
-            @Override
-            public Map<EntityName, TabFieldProcessor> getTabFieldProcessorMap() {
-                return Collections.emptyMap();
-            }
-        };
-
-        Optional<List<Expression>> parameters = Optional.empty();
-        IJoinTaskContext joinContext = tplContext.getExecContext();
-        SqlStringBuilder builder = new SqlStringBuilder();
-        SelectColsMetaGetter rewriter = new SelectColsMetaGetter(builder, erRules, tabPartitions, parameters, joinContext);
-        // 执行rewrite
-        try {
-            Statement state = getSqlStatement();
-            rewriter.process(state, 0);
-        } catch (TisSqlFormatException e) {
-            throw e;
-        } catch (Exception e) {
-            // String dp = dumpPartition.toString(); //dumpPartition.entrySet().stream().map((ee) -> "[" + ee.getKey() + "->" + ee.getValue().getPt() + "]").collect(Collectors.joining(","));
-            throw new IllegalStateException(e);
-        }
-//        SqlRewriter.AliasTable primaryTable = rewriter.getPrimayTable();
-//        if (primaryTable == null) {
-//            throw new IllegalStateException("task:" + taskName + " has not find primary table");
-//        }
-//        // return ;
-        return new RewriteSql(builder.toString(), null);
     }
 
     @Override
@@ -407,7 +411,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             throw new IllegalStateException("task:" + taskName + " has not find primary table");
         }
         // return ;
-        return new RewriteSql(builder.toString(), rewriter.getPrimayTable());
+        return new RewriteSql(builder.toString(), rewriter.outputCols, rewriter.getPrimayTable());
     }
 
     private Statement getSqlStatement() {
@@ -1144,8 +1148,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
         }
 
         @Override
-        public String getPartitionTimestamp() {
-            return null;
+        public long getPartitionTimestampWithMillis() {
+            throw new UnsupportedOperationException();
         }
     }
 

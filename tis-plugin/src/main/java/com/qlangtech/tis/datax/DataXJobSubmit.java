@@ -145,7 +145,9 @@ public abstract class DataXJobSubmit {
     public abstract InstanceType getType();
 
 
-    public CuratorDataXTaskMessage getDataXJobDTO(IJoinTaskContext taskContext, DataXJobInfo dataXJobInfo, StoreResourceType resourceType) {
+    public CuratorDataXTaskMessage getDataXJobDTO(IDataXJobContext jobContext, DataXJobInfo dataXJobInfo, StoreResourceType resourceType) {
+
+        IJoinTaskContext taskContext = jobContext.getTaskContext();
         if (resourceType == null) {
             throw new NullPointerException("dataXJobDTO.getResType() can not be null");
         }
@@ -153,9 +155,10 @@ public abstract class DataXJobSubmit {
         if (taskContext.hasIndexName()) {
             msg.setDataXName(taskContext.getIndexName());
         }
+        msg.setTaskSerializeNum(jobContext.getTaskSerializeNum());
         msg.setJobId(taskContext.getTaskId());
         msg.setJobName(dataXJobInfo.serialize());
-        msg.setExecTimeStamp(taskContext.getPartitionTimestamp());
+        msg.setExecTimeStamp(taskContext.getPartitionTimestampWithMillis());
         msg.setResType(resourceType);
 
         PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest();
@@ -190,7 +193,7 @@ public abstract class DataXJobSubmit {
             });
         }
 
-        CuratorDataXTaskMessage dataXJobDTO = getDataXJobDTO(taskContext.getTaskContext(), jobName, processor.getResType());
+        CuratorDataXTaskMessage dataXJobDTO = getDataXJobDTO(taskContext, jobName, processor.getResType());
 
         return createDataXJob(taskContext, statusRpc, jobName, processor, dataXJobDTO, dependencyTasks);
     }
@@ -307,7 +310,7 @@ public abstract class DataXJobSubmit {
     public abstract IDataXJobContext createJobContext(IJoinTaskContext parentContext);
 
 
-    public interface IDataXJobContext {
+    public interface IDataXJobContext extends IDataXTaskRelevant {
         // public <T> T getContextInstance();
 
         IJoinTaskContext getTaskContext();
@@ -322,6 +325,10 @@ public abstract class DataXJobSubmit {
          */
         public default int getTaskSerializeNum() {
             return order.getAndIncrement();
+        }
+
+        public default String getFormatTime(TimeFormat format) {
+            return format.format(getTaskContext().getPartitionTimestampWithMillis());
         }
 
         /**

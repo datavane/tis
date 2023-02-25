@@ -24,6 +24,7 @@ import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.datax.IDataXBatchPost;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxWriter;
+import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
@@ -47,17 +48,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-//import com.qlangtech.tis.fullbuild.workflow.SingleTableDump;
-
-//import com.qlangtech.tis.exec.IIndexMetaData;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2015年12月15日 下午4:39:38
  */
 public class DefaultChainContext implements IExecChainContext {
 
-    private final String ps;
+    private final long ps;
 
     private ITISCoordinator zkClient;
 
@@ -95,6 +92,14 @@ public class DefaultChainContext implements IExecChainContext {
 
     public boolean containAsynJob() {
         return !this.asynSubJobs.isEmpty();
+    }
+
+    public DefaultChainContext(IParamContext execContext) {
+        super();
+        // DateTimeFormatter yyyyMMddHHmmss = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        this.ps = DataxUtils.getDumpTimeStamp(false, () -> TimeFormat.getCurrentTimeStamp());
+        this.httpExecContext = execContext;
+        ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
     }
 
     @Override
@@ -199,13 +204,6 @@ public class DefaultChainContext implements IExecChainContext {
         return result;
     }
 
-    public DefaultChainContext(IParamContext execContext) {
-        super();
-        // DateTimeFormatter yyyyMMddHHmmss = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-        this.ps = StringUtils.defaultIfEmpty(DataxUtils.getDumpTimeStamp(false), IParamContext.getCurrentTimeStamp());
-        this.httpExecContext = execContext;
-        ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
-    }
 
     private IDataxProcessor appSource;
 
@@ -297,8 +295,9 @@ public class DefaultChainContext implements IExecChainContext {
         return indexName;
     }
 
+
     @Override
-    public String getPartitionTimestamp() {
+    public long getPartitionTimestampWithMillis() {
 //        String ps = StringUtils.defaultIfEmpty(getString(KEY_PARTITION), this.ps);
 //        if (!ps.startsWith("20")) {
 //            throw new IllegalArgumentException("ps:" + ps + " shall start with 201");

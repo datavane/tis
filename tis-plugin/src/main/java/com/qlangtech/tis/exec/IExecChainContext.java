@@ -20,7 +20,6 @@ package com.qlangtech.tis.exec;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.fs.ITISFileSystem;
-import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 
 import java.util.List;
@@ -54,10 +53,6 @@ public interface IExecChainContext extends IJoinTaskContext {
 
     ITISCoordinator getZkClient();
 
-
-    String getPartitionTimestamp();
-
-    // IIndexMetaData getIndexMetaData();
 
     /**
      * 全量構建流程ID

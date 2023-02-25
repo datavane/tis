@@ -62,6 +62,7 @@ import com.qlangtech.tis.realtime.yarn.rpc.UpdateCounterMap;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -132,12 +133,13 @@ public class DataxExecutor {
     }
 
     /**
-     * 入口开始执行
-     *
      * @param args
+     * @see DataXJobConsumer
+     * @see DataXJobSingleProcessorExecutor
+     * 入口开始执行
      */
     public static void main(String[] args) throws Exception {
-        if (args.length != 7) {
+        if (args.length != 9) {
             throw new IllegalArgumentException("args length must be 7,but now is " + args.length);
         }
         Integer jobId = Integer.parseInt(args[0]);
@@ -149,6 +151,10 @@ public class DataxExecutor {
         final int allRows = Integer.parseInt(args[5]);
 
         StoreResourceType resType = StoreResourceType.parse(args[6]);
+
+        final int taskSerializeNum = Integer.parseInt(args[7]);
+
+        final long execEpochMilli = Long.parseLong(args[8]);
 
         // 任务每次执行会生成一个时间戳
         // final String execTimeStamp = args[6];
@@ -192,7 +198,11 @@ public class DataxExecutor {
 
         try {
             dataxExecutor.reportDataXJobStatus(false, false, false, jobId, jobInfo);
-            dataxExecutor.exec(jobId, jobInfo, resType, DataxProcessor.load(null, resType, dataXName));
+            IDataxProcessor dataxProcessor = DataxProcessor.load(null, resType, dataXName);
+            //  File jobPath = jobInfo.getJobPath(dataxProcessor.getDataxCfgDir(null));
+            DataXJobArgs jobArgs = createJobArgs(dataxProcessor, jobId, jobInfo, taskSerializeNum, execEpochMilli); //new DataXJobArgs(jobPath, jobId, "standalone", taskSerializeNum, execEpochMilli);
+
+            dataxExecutor.exec(jobInfo, resType, dataxProcessor, jobArgs);
             dataxExecutor.reportDataXJobStatus(false, jobId, jobInfo);
         } catch (Throwable e) {
             dataxExecutor.reportDataXJobStatus(true, jobId, jobInfo);
@@ -207,6 +217,12 @@ public class DataxExecutor {
         }
         logger.info("dataX:" + dataXName + ",taskid:" + jobId + " finished");
         System.exit(0);
+    }
+
+    public static DataXJobArgs createJobArgs(IDataxProcessor dataxProcessor, Integer jobId, DataXJobInfo jobInfo, final int taskSerializeNum, final long execEpochMilli) {
+        File jobPath = jobInfo.getJobPath(dataxProcessor.getDataxCfgDir(null));
+        DataXJobArgs jobArgs = new DataXJobArgs(jobPath, jobId, "standalone", taskSerializeNum, execEpochMilli);
+        return jobArgs;
     }
 
     private static Thread monitorDistributeCommand(Integer jobId, DataXJobInfo jobInfo, String dataXName
@@ -242,15 +258,23 @@ public class DataxExecutor {
         return overseerListener;
     }
 
-    public void exec(Integer jobId, DataXJobInfo jobName, StoreResourceType resType, IDataxProcessor processor) throws Exception {
+    public void exec(DataXJobInfo jobName, StoreResourceType resType, IDataxProcessor processor, DataXJobArgs jobArgs) throws Exception {
         final JarLoader uberClassLoader = new TISJarLoader(TIS.get().getPluginManager());
         LoadUtil.cleanJarLoaderCenter();
-        this.exec(uberClassLoader, jobId, jobName, resType, processor);
+        this.exec(uberClassLoader, jobName, resType, processor, jobArgs);
     }
 
-
-    public void exec(final JarLoader uberClassLoader, Integer jobId, DataXJobInfo jobName
-            , StoreResourceType resType, IDataxProcessor dataxProcessor) throws Exception {
+    /**
+     * new DataXJobArgs(jobPath, jobId, "standalone", taskSerializeNum)
+     *
+     * @param uberClassLoader
+     * @param jobName
+     * @param resType
+     * @param dataxProcessor
+     * @throws Exception
+     */
+    public void exec(final JarLoader uberClassLoader, DataXJobInfo jobName
+            , StoreResourceType resType, IDataxProcessor dataxProcessor, DataXJobArgs jobArgs) throws Exception {
         if (uberClassLoader == null) {
             throw new IllegalArgumentException("param uberClassLoader can not be null");
         }
@@ -258,21 +282,21 @@ public class DataxExecutor {
 //            throw new IllegalArgumentException("param dataXName can not be null");
 //        }
         boolean success = false;
-        MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(jobId));
+        MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(jobArgs.jobId));
         try {
-            logger.info("process DataX job,jobid:{},jobName:{}", jobId, jobName);
+            logger.info("process DataX job,jobid:{},jobName:{}", jobArgs.jobId, jobName);
             //KeyedPluginStore.StoreResourceType resType = null;
 
             // IDataxProcessor dataxProcessor = DataxProcessor.load(null, resType, dataxName);
-            this.startWork(jobId, jobName, resType, dataxProcessor, uberClassLoader);
+            this.startWork(jobName, resType, dataxProcessor, uberClassLoader, jobArgs);
             success = true;
         } finally {
             TIS.clean();
             if (execMode == DataXJobSubmit.InstanceType.DISTRIBUTE) {
                 try {
-                    DagTaskUtils.feedbackAsynTaskStatus(jobId, jobName.jobFileName, success);
+                    DagTaskUtils.feedbackAsynTaskStatus(jobArgs.jobId, jobName.jobFileName, success);
                 } catch (Throwable e) {
-                    logger.warn("notify exec result faild,jobId:" + jobId + ",jobName:" + jobName, e);
+                    logger.warn("notify exec result faild,jobId:" + jobArgs.jobId + ",jobName:" + jobName, e);
                 }
             }
         }
@@ -305,9 +329,9 @@ public class DataxExecutor {
      * @throws IOException
      * @throws Exception
      */
-    public void startWork(Integer jobId, DataXJobInfo jobName, StoreResourceType resType
+    public void startWork(DataXJobInfo jobName, StoreResourceType resType
             , IDataxProcessor dataxProcessor
-            , final JarLoader uberClassLoader) throws IOException, Exception {
+            , final JarLoader uberClassLoader, DataXJobArgs jobArgs) throws IOException, Exception {
         try {
 
             final String processName = dataxProcessor.identityValue();
@@ -319,7 +343,7 @@ public class DataxExecutor {
 
 
             IDataxWriter writer = dataxProcessor.getWriter(null);
-            File jobPath = jobName.getJobPath(dataxProcessor.getDataxCfgDir(null));
+
 
             Objects.requireNonNull(reader, "dataxName:" + processName + " relevant reader can not be null");
             Objects.requireNonNull(writer, "dataxName:" + processName + " relevant writer can not be null");
@@ -332,7 +356,7 @@ public class DataxExecutor {
             initializeClassLoader(Sets.newHashSet(this.getPluginReaderKey(), this.getPluginWriterKey()), uberClassLoader);
 
 
-            entry(new DataXJobArgs(jobPath, jobId, "standalone"), jobName, resType);
+            entry(jobArgs, jobName, resType);
 
         } catch (Throwable e) {
             throw new Exception(e);
@@ -365,20 +389,32 @@ public class DataxExecutor {
                 , readed, (success ? readed : this.allRowsApproximately));
     }
 
-    private static class DataXJobArgs {
+    public static class DataXJobArgs {
         private final File jobPath;
         private final Integer jobId;
         private final String runtimeMode;
+        private final int taskSerializeNum;
+        private final long execEpochMilli;
 //        private final String execTimeStamp;
 
-        public DataXJobArgs(File jobPath, Integer jobId, String runtimeMode) {
+        public DataXJobArgs(File jobPath, Integer jobId, String runtimeMode, int taskSerializeNum, long execEpochMilli) {
             this.jobPath = jobPath;
             this.jobId = jobId;
             this.runtimeMode = runtimeMode;
+            this.taskSerializeNum = taskSerializeNum;
+            this.execEpochMilli = execEpochMilli;
 //            if (StringUtils.isEmpty(execTimeStamp)) {
 //                throw new IllegalArgumentException("param execTimeStamp can not be empty");
 //            }
 //            this.execTimeStamp = execTimeStamp;
+        }
+
+        public int getTaskSerializeNum() {
+            return this.taskSerializeNum;
+        }
+
+        public long getExecEpochMilli() {
+            return this.execEpochMilli;
         }
 
         @Override
@@ -392,13 +428,14 @@ public class DataxExecutor {
     }
 
     public void entry(DataXJobArgs args, DataXJobInfo jobName, StoreResourceType resType) throws Throwable {
-        Configuration configuration = parse(args, resType, jobName);
+        Pair<Configuration, IDataXNameAware> cfg = parse(args, resType, jobName);
+        Configuration configuration = cfg.getLeft();
         logger.info("exec params:{}", args.toString());
         Objects.requireNonNull(configuration, "configuration can not be null");
-        int jobId = args.jobId;
+        //  int jobId = args.jobId;
 
         boolean isStandAloneMode = "standalone".equalsIgnoreCase(args.runtimeMode);
-        if (!isStandAloneMode && jobId == -1L) {
+        if (!isStandAloneMode && args.jobId == -1L) {
             throw DataXException.asDataXException(FrameworkErrorCode.CONFIG_ERROR, "非 standalone 模式必须在 URL 中提供有效的 jobId.");
         }
 
@@ -410,31 +447,49 @@ public class DataxExecutor {
         logger.info("\n" + filterJobConfiguration(configuration) + "\n");
         logger.debug(configuration.toJSON());
         ConfigurationValidate.doValidate(configuration);
-        startEngine(configuration, jobId, jobName);
+        startEngine(cfg, args, jobName);
 
     }
 
-    protected void startEngine(Configuration configuration, Integer jobId, DataXJobInfo jobName) {
+    protected void startEngine(Pair<Configuration, IDataXNameAware> cfg, DataXJobArgs args, DataXJobInfo jobName) {
 
         Engine engine = new Engine() {
             @Override
             protected JobContainer createJobContainer(Configuration allConf) {
-                return new TISDataXJobContainer(allConf, jobId, jobName);
+                return new TISDataXJobContainer(cfg.getRight(), allConf, args, jobName);
             }
         };
-        AbstractContainer dataXContainer = engine.start(configuration);
+        AbstractContainer dataXContainer = engine.start(cfg.getLeft());
         setAllReadApproximately(dataXContainer.getContainerCommunicator().collect());
     }
 
     private class TISDataXJobContainer extends JobContainer {
         private final Integer jobId;
         private final DataXJobInfo jobName;
-        // private final Integer allRows;
+        private final DataXJobArgs jobArgs;
+        private final IDataXNameAware dataXName;
 
-        public TISDataXJobContainer(Configuration configuration, Integer jobId, DataXJobInfo jobName) {
+        public TISDataXJobContainer(IDataXNameAware dataXName, Configuration configuration, DataXJobArgs args, DataXJobInfo jobName) {
             super(configuration);
-            this.jobId = jobId;
+            this.jobArgs = args;
+            this.jobId = args.jobId;
             this.jobName = jobName;
+            this.dataXName = dataXName;
+        }
+
+        @Override
+        public String getFormatTime(TimeFormat format) {
+            return format.format(jobArgs.getExecEpochMilli());
+        }
+
+        @Override
+        public int getTaskSerializeNum() {
+            return this.jobArgs.getTaskSerializeNum();
+        }
+
+        @Override
+        public String getTISDataXName() {
+            return this.dataXName.getTISDataXName();
         }
 
         @Override
@@ -457,7 +512,7 @@ public class DataxExecutor {
     /**
      * 指定Job配置路径，ConfigParser会解析Job、Plugin、Core全部信息，并以Configuration返回
      */
-    private Configuration parse(DataXJobArgs args, StoreResourceType resType, DataXJobInfo jobName) {
+    private Pair<Configuration, IDataXNameAware> parse(DataXJobArgs args, StoreResourceType resType, DataXJobInfo jobName) {
         final String jobPath = args.jobPath.getAbsolutePath();
         Configuration configuration = ConfigParser.parseJobConfig(jobPath);
 
@@ -468,16 +523,18 @@ public class DataxExecutor {
         configuration.set(getPluginReaderKey(), readerCfg);
         configuration.set(getPluginWriterKey(), writerCfg);
 
+
         final String dataXKey = "job.content[0]." + DataxUtils.DATAX_NAME;
         final String dataxName = configuration.getString(dataXKey);
         if (StringUtils.isEmpty(dataxName)) {
             throw new IllegalStateException("param " + dataXKey + " can not be null");
         }
 
+
         final String readerKeyPrefix = "job.content[0].reader.parameter.";
         final String writerKeyPrefix = "job.content[0].writer.parameter.";
-        configuration.set(readerKeyPrefix + DataxUtils.DATAX_NAME, dataxName);
-        configuration.set(writerKeyPrefix + DataxUtils.DATAX_NAME, dataxName);
+//        configuration.set(readerKeyPrefix + DataxUtils.DATAX_NAME, dataxName);
+//        configuration.set(writerKeyPrefix + DataxUtils.DATAX_NAME, dataxName);
 
         final String readerDbFactoryId = jobName.getDbFactoryId().identityValue();
         configuration.set(readerKeyPrefix + DataxUtils.DATASOURCE_FACTORY_IDENTITY, readerDbFactoryId);
@@ -504,7 +561,7 @@ public class DataxExecutor {
 
         Objects.requireNonNull(configuration.get(getPluginReaderKey()), FormatKeyPluginReader + " can not be null");
         Objects.requireNonNull(configuration.get(getPluginWriterKey()), FormatKeyPluginWriter + " can not be null");
-        return configuration;
+        return Pair.of(configuration, () -> dataxName);
         // todo config优化，只捕获需要的plugin
     }
 

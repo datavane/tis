@@ -19,12 +19,10 @@
 package com.qlangtech.tis.plugin.ds;
 
 
-import com.alibaba.datax.plugin.writer.hdfswriter.SupportHiveDataType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.sql.Types;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

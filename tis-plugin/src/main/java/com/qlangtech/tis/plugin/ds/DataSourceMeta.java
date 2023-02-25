@@ -23,6 +23,8 @@ import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 /**
@@ -66,7 +68,7 @@ public interface DataSourceMeta extends Describable.IRefreshable {
         throw new UnsupportedOperationException();
     }
 
-    public class JDBCConnection {
+    public class JDBCConnection implements AutoCloseable {
         private final Connection conn;
         private final String url;
 
@@ -75,12 +77,21 @@ public interface DataSourceMeta extends Describable.IRefreshable {
             this.url = url;
         }
 
+        public Statement createStatement() throws SQLException {
+            return this.conn.createStatement();
+        }
+
         public Connection getConnection() {
             return this.conn;
         }
 
         public String getUrl() {
             return this.url;
+        }
+
+        @Override
+        public void close() throws SQLException {
+            this.conn.close();
         }
     }
 }

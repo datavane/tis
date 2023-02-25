@@ -1,5 +1,7 @@
 package com.qlangtech.tis.plugin.ds;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 
 /**
@@ -12,6 +14,9 @@ public class ColMeta implements IColMetaGetter, Serializable {
     public final boolean pk;
 
     public ColMeta(String name, DataType type, boolean pk) {
+        if (StringUtils.isEmpty(name)) {
+            throw new IllegalArgumentException(" param name can not be null");
+        }
         this.name = name;
         this.type = type;
         this.pk = pk;

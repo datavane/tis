@@ -41,8 +41,8 @@ public class TestParamContext implements IParamContext {
     }
 
     @Override
-    public String getPartitionTimestamp() {
-        return null;
+    public long getPartitionTimestampWithMillis() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

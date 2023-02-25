@@ -53,12 +53,12 @@ public class ExecChainContextUtils {
     }
 
 
-    public static ITabPartition getDependencyTablesMINPartition(IJoinTaskContext context) {
-        TabPartitions dateParams = getDependencyTablesPartitions(context);
-        Optional<ITabPartition> min = dateParams.getMinTablePartition();// dateParams.values().stream().min(Comparator.comparing((r) -> Long.parseLong(r.getPt())));
-        if (!min.isPresent()) {
-            return () -> context.getPartitionTimestamp();
-        }
-        return min.get();
-    }
+//    public static ITabPartition getDependencyTablesMINPartition(IJoinTaskContext context) {
+//        TabPartitions dateParams = getDependencyTablesPartitions(context);
+//        Optional<ITabPartition> min = dateParams.getMinTablePartition();// dateParams.values().stream().min(Comparator.comparing((r) -> Long.parseLong(r.getPt())));
+//        if (!min.isPresent()) {
+//            return () ->  context.getPartitionTimestampWithMillis();
+//        }
+//        return min.get();
+//    }
 }

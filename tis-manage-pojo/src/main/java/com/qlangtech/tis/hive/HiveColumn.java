@@ -1,26 +1,27 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.qlangtech.tis.hive;
 
 import com.qlangtech.tis.plugin.ds.DataType;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Objects;
+
+/**
+ *   Licensed to the Apache Software Foundation (ASF) under one
+ *   or more contributor license agreements.  See the NOTICE file
+ *   distributed with this work for additional information
+ *   regarding copyright ownership.  The ASF licenses this file
+ *   to you under the Apache License, Version 2.0 (the
+ *   "License"); you may not use this file except in compliance
+ *   with the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ */
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -66,7 +67,7 @@ public class HiveColumn {
     /**
      * Reference:https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-CreateTableCreate/Drop/TruncateTable
      */
-    public static DataType.TypeVisitor<String> visitor = new DataType.TypeVisitor<String>() {
+    public static DataType.TypeVisitor<String> hiveTypeVisitor = new DataType.TypeVisitor<String>() {
         @Override
         public String bigInt(DataType type) {
             return "BIGINT";
@@ -134,7 +135,7 @@ public class HiveColumn {
     };
 
     public String getDataType() {
-        return Objects.requireNonNull(this.dataType, "dataType can not be null").accept(visitor);
+        return Objects.requireNonNull(this.dataType, "dataType can not be null").accept(hiveTypeVisitor);
     }
 
     public void setDataType(DataType dataType) {

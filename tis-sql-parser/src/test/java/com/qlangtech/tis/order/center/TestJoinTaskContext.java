@@ -102,8 +102,8 @@ public class TestJoinTaskContext implements IJoinTaskContext {
     }
 
     @Override
-    public String getPartitionTimestamp() {
-        return null;
+    public long getPartitionTimestampWithMillis() {
+       throw new UnsupportedOperationException();
     }
 
     @Override

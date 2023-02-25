@@ -20,8 +20,11 @@ package com.qlangtech.tis.sql.parser;
 import com.facebook.presto.sql.tree.*;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
+import com.qlangtech.tis.plugin.ds.ColMeta;
+import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.sql.parser.SqlRewriter.AliasTable;
 import com.qlangtech.tis.sql.parser.SqlStringBuilder.RewriteProcessContext;
 import com.qlangtech.tis.sql.parser.er.TabFieldProcessor;
@@ -114,6 +117,8 @@ public final class SqlFormatter {
         protected final SqlStringBuilder builder;
 
         protected final Optional<List<Expression>> parameters;
+
+        protected final List<ColMeta> outputCols = Lists.newArrayList();
 
         protected final Map<EntityName, TabFieldProcessor> dumpNodeExtraMetaMap;
 
@@ -296,9 +301,9 @@ public final class SqlFormatter {
             }
             QueryFromTableFinder fromTableFinder = new QueryFromTableFinder();
             fromTableFinder.process(from.get());
-            // fromTableFinder.getAliasTableMap();
-            // this.process(node.getSelect(), indent);
-            new TableColumnTransferRewritFormatter(this.builder, fromTableFinder, this.dumpNodeExtraMetaMap).process(node.getSelect(), indent);
+
+            new TableColumnTransferRewritFormatter(
+                    this.builder, fromTableFinder, this.dumpNodeExtraMetaMap, (indent < 1 ? this.outputCols : Lists.newArrayList())).process(node.getSelect(), indent);
             // Optional<AliasTable> firstTableCriteria = Optional.empty();
             final AliasTable[] firstTableCriteria = new AliasTable[1];
             Callable<String> appendPtPmod = () -> {
@@ -346,9 +351,9 @@ public final class SqlFormatter {
             // ▲▲ end 20190829
             if (node.getGroupBy().isPresent()) {
                 append(indent, "GROUP BY " + (node.getGroupBy().get().isDistinct() ? " DISTINCT " : "") + formatGroupBy(node.getGroupBy().get().getGroupingElements()));
-                //
-                // .append('\n');
-                builder.append(',').append(appendPtPmod);
+                if (this.shallCreatePtPmodCols()) {
+                    builder.append(',').append(appendPtPmod);
+                }
             }
             if (node.getHaving().isPresent()) {
                 append(indent, "HAVING " + formatExpression(node.getHaving().get(), parameters)).append('\n');
@@ -725,22 +730,44 @@ public final class SqlFormatter {
      */
     public static class TableColumnTransferRewritFormatter extends Formatter {
 
-        private final Map<String, EntityName> /*alias*/
-                aliasTableMap;
+        private final Map<String, EntityName> /*alias*/ aliasTableMap;
+
+        private final List<ColMeta> outputCols;
+
 
         public TableColumnTransferRewritFormatter(SqlStringBuilder builder, QueryFromTableFinder queryFromTableFinder
-                , Map<EntityName, TabFieldProcessor> tableExtraMetaMap) {
+                , Map<EntityName, TabFieldProcessor> tableExtraMetaMap, List<ColMeta> outputCols) {
             super(builder, tableExtraMetaMap, Optional.empty());
             this.aliasTableMap = queryFromTableFinder.getAliasTableMap();
+            this.outputCols = outputCols;
         }
 
         @Override
         protected Void visitSingleColumn(SingleColumn node, Integer indent) {
             this.process(node.getExpression(), MAGIC_TOKEN_JOINON_PROCESS);
             // builder.append(formatExpression(node.getExpression(), parameters));
+            ColMeta colMeta = null;
             if (node.getAlias().isPresent()) {
                 builder.append(' ').append(formatExpression(node.getAlias().get(), parameters));
+                colMeta = new ColMeta(String.valueOf(node.getAlias().get()), DataType.createVarChar(256), false);
+            } else {
+
+                final String colName = (new AstVisitor<String, Void>() {
+                    @Override
+                    protected String visitDereferenceExpression(DereferenceExpression node, Void context) {
+                        return this.visitIdentifier(node.getField(), context);
+                    }
+                    @Override
+                    protected String visitIdentifier(Identifier node, Void context) {
+                        return String.valueOf(node);
+                    }
+                }).process(node.getExpression());
+
+                colMeta = new ColMeta(colName, DataType.createVarChar(256), false);
             }
+
+            outputCols.add(colMeta);
+
             return null;
         }
 

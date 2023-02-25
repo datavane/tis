@@ -24,11 +24,13 @@ import com.qlangtech.tis.plugin.StoreResourceType;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-05-06 15:01
  **/
-public class CuratorDataXTaskMessage {
+public class CuratorDataXTaskMessage implements IDataXTaskRelevant {
     /**
      * 也可能是WorkFlow名称，不想在类中额外添加属性了，直接使用这个属性就行了
      */
     private String dataXName;
+
+    private int taskSerializeNum;
 
     /**
      * 资源类型
@@ -41,14 +43,32 @@ public class CuratorDataXTaskMessage {
     // 估计总记录数目
     private Integer allRowsApproximately;
 
-    private String execTimeStamp;
+    private long execEpochMilli;
 
-    public String getExecTimeStamp() {
-        return execTimeStamp;
+    public long getExecEpochMilli() {
+        return this.execEpochMilli;
     }
 
-    public void setExecTimeStamp(String execTimeStamp) {
-        this.execTimeStamp = execTimeStamp;
+    @Override
+    public String getFormatTime(TimeFormat format) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int getTaskSerializeNum() {
+        return taskSerializeNum;
+    }
+
+    public void setTaskSerializeNum(int taskSerializeNum) {
+        this.taskSerializeNum = taskSerializeNum;
+    }
+
+    // public String getExecTimeStamp() {
+//        return execTimeStamp;
+//    }
+
+    public void setExecTimeStamp(long epochMilli) {
+        this.execEpochMilli = epochMilli;
     }
 
     public Integer getAllRowsApproximately() {
