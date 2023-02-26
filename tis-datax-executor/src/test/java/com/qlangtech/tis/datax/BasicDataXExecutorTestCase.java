@@ -25,6 +25,7 @@ import com.qlangtech.tis.test.TISTestCase;
 import com.tis.hadoop.rpc.ITISRpcService;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClient;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -57,11 +58,10 @@ public abstract class BasicDataXExecutorTestCase extends TISTestCase implements 
     protected DataxExecutor createExecutor() {
         return new DataxExecutor(statusRpc, DataXJobSubmit.InstanceType.LOCAL, 300) {
             @Override
-            protected void startEngine(Configuration configuration, Integer jobId, DataXJobInfo jobName) {
+            protected void startEngine(Pair<Configuration, IDataXNameAware> cfg, DataXJobArgs args, DataXJobInfo jobName) {
                 //  make skip the ex
-                assertNotNull(configuration);
+                assertNotNull(cfg.getKey());
             }
-
         };
     }
 

@@ -19,6 +19,7 @@ package com.qlangtech.tis.datax;
 
 import com.alibaba.datax.core.util.container.JarLoader;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.plugin.ds.DBIdentity;
 import org.easymock.EasyMock;
 
 import java.io.File;
@@ -46,9 +47,10 @@ public class TestDataxExecutor extends BasicDataXExecutorTestCase {
 
     public void testDataxJobMysql2Hdfs() throws Exception {
 
+        DBIdentity dbFactoryId = DBIdentity.parseId("");
         IDataxProcessor dataxProcessor = EasyMock.createMock("dataxProcessor", IDataxProcessor.class);
         String dataxNameMysql2hdfs = "mysql2hdfs";
-        final DataXJobInfo jobName = DataXJobInfo.create("datax_cfg.json", Collections.emptyList());
+        final DataXJobInfo jobName = DataXJobInfo.create("datax_cfg.json", dbFactoryId, Collections.emptyList());
 
         File path = new File("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hdfs + "/dataxCfg");
         EasyMock.expect(dataxProcessor.getDataxCfgDir(null)).andReturn(path);
@@ -56,9 +58,11 @@ public class TestDataxExecutor extends BasicDataXExecutorTestCase {
 
         Integer jobId = 1;
 
+        DataxExecutor.DataXJobArgs jobArgs = DataxExecutor.DataXJobArgs.createJobArgs(dataxProcessor, jobId, jobName, 0, TimeFormat.getCurrentTimeStamp());
+
         final JarLoader uberClassLoader = getJarLoader();
         EasyMock.replay(dataxProcessor);
-        executor.startWork(dataxNameMysql2hdfs, jobId, jobName, dataxProcessor, uberClassLoader);
+        executor.startWork(jobName, dataxProcessor, uberClassLoader, jobArgs);
 
         EasyMock.verify(dataxProcessor);
     }
@@ -83,7 +87,9 @@ public class TestDataxExecutor extends BasicDataXExecutorTestCase {
 
         String dataxNameMysql2hive = "mysql2hive";
 
-        final DataXJobInfo jobName = DataXJobInfo.create("datax_cfg.json", Collections.emptyList());
+        DBIdentity dbId = DBIdentity.parseId("");
+
+        final DataXJobInfo jobName = DataXJobInfo.create("datax_cfg.json", dbId, Collections.emptyList());
         Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/" + dataxNameMysql2hive + "/dataxCfg");
         IDataxProcessor dataxProcessor = EasyMock.createMock("dataxProcessor", IDataxProcessor.class);
         EasyMock.expect(dataxProcessor.getDataxCfgDir(null)).andReturn(path.toFile());
@@ -91,7 +97,9 @@ public class TestDataxExecutor extends BasicDataXExecutorTestCase {
         Integer jobId = 1;
 
         EasyMock.replay(dataxProcessor);
-        executor.startWork(dataxNameMysql2hive, jobId, jobName, dataxProcessor, getJarLoader());
+
+        DataxExecutor.DataXJobArgs jobArgs = DataxExecutor.DataXJobArgs.createJobArgs(dataxProcessor, jobId, jobName, 0, TimeFormat.getCurrentTimeStamp());
+        executor.startWork(jobName, dataxProcessor, getJarLoader(), jobArgs);
 
         EasyMock.verify(dataxProcessor);
     }
@@ -105,8 +113,9 @@ public class TestDataxExecutor extends BasicDataXExecutorTestCase {
 //        };
         //  final String jobName = ;
         // "datax_cfg.json"
+        DBIdentity dbId = DBIdentity.parseId("");
         final DataXJobInfo jobName
-                = DataXJobInfo.create("customer_order_relation_1.json", Collections.emptyList());
+                = DataXJobInfo.create("customer_order_relation_1.json", dbId, Collections.emptyList());
         Path path = Paths.get("/opt/data/tis/cfg_repo/tis_plugin_config/ap/baisuitestTestcase/dataxCfg");
 
         IDataxProcessor dataxProcessor = EasyMock.createMock("dataxProcessor", IDataxProcessor.class);
@@ -114,7 +123,11 @@ public class TestDataxExecutor extends BasicDataXExecutorTestCase {
 // tring dataxName, Integer jobId, String jobName, String jobPath
         Integer jobId = 1;
         EasyMock.replay(dataxProcessor);
-        executor.startWork(dataXName, jobId, jobName, dataxProcessor, getJarLoader());
+
+        DataxExecutor.DataXJobArgs jobArgs
+                = DataxExecutor.DataXJobArgs.createJobArgs(dataxProcessor, jobId, jobName, 0, TimeFormat.getCurrentTimeStamp());
+
+        executor.startWork(jobName, dataxProcessor, getJarLoader(), jobArgs);
         EasyMock.verify(dataxProcessor);
     }
 

@@ -23,7 +23,6 @@ import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
-import com.qlangtech.tis.fullbuild.taskflow.ITemplateContext;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
@@ -103,9 +102,9 @@ public class TestSqlTaskNodeMeta extends TestCase {
         TabPartitions dumpPartition = createTabPartition();
         ISqlTask.RewriteSql colMetaGetterSql = taskNodeMeta.getColMetaGetterSql(dumpPartition);
 
-        System.out.println(colMetaGetterSql.sqlContent);
+        System.out.println(colMetaGetterSql.rewriteSql);
 
-        assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result_col_meta_get.sql"), colMetaGetterSql.sqlContent);
+        assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result_col_meta_get.sql"), colMetaGetterSql.rewriteSql);
 
     }
 
@@ -119,22 +118,22 @@ public class TestSqlTaskNodeMeta extends TestCase {
         // assertNotNull(finalNode);
         taskNodeMeta.setSql(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result_origin.sql"));
         TabPartitions dumpPartition = createTabPartition();
-        ITemplateContext tplContext = EasyMock.createMock("templateContext", ITemplateContext.class);
+        // ITemplateContext tplContext = EasyMock.createMock("templateContext", ITemplateContext.class);
         IJoinTaskContext joinTaskContext = EasyMock.createMock("joinTaskContext", IJoinTaskContext.class);
-        EasyMock.expect(tplContext.getExecContext()).andReturn(joinTaskContext);
+        // EasyMock.expect(tplContext.getExecContext()).andReturn(joinTaskContext);
         EasyMock.expect(joinTaskContext.getExecutePhaseRange()).andReturn(ExecutePhaseRange.fullRange()).times(2);
         EasyMock.expect(joinTaskContext.getIndexShardCount()).andReturn(1).times(1);
         Optional<ERRules> erRule = ERRules.getErRule(TestSupplyGoodsParse.topologyName);
         assertTrue(erRule.isPresent());
-        EasyMock.replay(tplContext, joinTaskContext);
+        EasyMock.replay(joinTaskContext);
 
         ISqlTask.RewriteSql rewriteSql = taskNodeMeta.getRewriteSql(
-                "supply_goods", dumpPartition, erRule.get(), tplContext, true);
+                "supply_goods", dumpPartition, erRule.get(), joinTaskContext, true);
 
         assertNotNull(rewriteSql);
-        assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result.txt"), rewriteSql.sqlContent);
-        System.out.println(rewriteSql.sqlContent);
-        EasyMock.verify(tplContext, joinTaskContext);
+        assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result.txt"), rewriteSql.rewriteSql);
+        System.out.println(rewriteSql.rewriteSql);
+        EasyMock.verify(joinTaskContext);
     }
 
     private TabPartitions createTabPartition() {

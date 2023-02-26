@@ -33,7 +33,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.sql.*;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Wrapper;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -218,9 +221,12 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     public static final String KEY_DATA_TYPE = "DATA_TYPE";
     public static final String KEY_COLUMN_SIZE = "COLUMN_SIZE";
 
+    public List<ColumnMetaData> wrapColsMeta(ResultSet columns1, Set<String> pkCols) throws SQLException {
+        return this.wrapColsMeta(columns1, new CreateColumnMeta(pkCols, columns1));
+    }
 
-    private List<ColumnMetaData> wrapColsMeta(ResultSet columns1, Set<String> pkCols) throws SQLException {
-        String comment;
+    public List<ColumnMetaData> wrapColsMeta(ResultSet columns1, CreateColumnMeta columnMetaCreator) throws SQLException {
+
         ColumnMetaData colMeta;
         String colName = null;
 
@@ -262,16 +268,10 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         final Set<String> addedCols = Sets.newHashSet();
         while (columns1.next()) {
             colName = columns1.getString(KEY_COLUMN_NAME);
-            comment = columns1.getString(KEY_REMARKS);
+
             // 如果有重复的col已经添加则直接跳过
             if (addedCols.add(colName)) {
-                colMeta = new ColumnMetaData((i++), colName
-                        , getDataType(colName, columns1), pkCols.contains(colName)
-                        , columns1.getBoolean(KEY_NULLABLE));
-                if (StringUtils.isNotEmpty(comment)) {
-                    colMeta.setComment(comment);
-                }
-                columns.add(colMeta);
+                columns.add(columnMetaCreator.create(colName, i++));
             }
         }
         return columns;
@@ -323,25 +323,6 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return metaData1.getPrimaryKeys(null, getDbSchema(), table.getTableName());
     }
 
-
-    protected DataType getDataType(String colName, ResultSet cols) throws SQLException {
-        // decimal 的小数位长度
-
-        int decimalDigits = cols.getInt(KEY_DECIMAL_DIGITS);
-        //数据如果是INT类型，但如果是UNSIGNED，那实际类型需要转换成Long,INT UNSIGNED
-        String typeName = cols.getString(KEY_TYPE_NAME);
-        DataType colType = createColDataType(colName, typeName
-                , cols.getInt(KEY_DATA_TYPE), cols.getInt(KEY_COLUMN_SIZE));
-        if (decimalDigits > 0) {
-            colType.setDecimalDigits(decimalDigits);
-        }
-        return colType;
-    }
-
-    protected DataType createColDataType(String colName, String typeName, int dbColType, int colSize) throws SQLException {
-        // 类似oracle驱动内部有一套独立的类型 oracle.jdbc.OracleTypes,有需要可以在具体的实现类里面去实现
-        return new DataType(dbColType, typeName, colSize);
-    }
 
     protected void closeResultSet(ResultSet rs) {
         if (rs != null) {
@@ -442,4 +423,48 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         }
 
     }
+
+
+    public static class CreateColumnMeta {
+
+        protected final Set<String> pkCols;
+        protected final ResultSet columns1;
+
+        public CreateColumnMeta(Set<String> pkCols, ResultSet columns1) {
+            this.pkCols = pkCols;
+            this.columns1 = columns1;
+        }
+
+        public ColumnMetaData create(String colName, int index) throws SQLException {
+            String comment = columns1.getString(KEY_REMARKS);
+            ColumnMetaData colMeta = new ColumnMetaData((index), colName
+                    , getDataType(colName), pkCols.contains(colName)
+                    , columns1.getBoolean(KEY_NULLABLE));
+            if (StringUtils.isNotEmpty(comment)) {
+                colMeta.setComment(comment);
+            }
+            return colMeta;
+        }
+
+        protected DataType getDataType(String colName) throws SQLException {
+            // decimal 的小数位长度
+
+            int decimalDigits = columns1.getInt(KEY_DECIMAL_DIGITS);
+            //数据如果是INT类型，但如果是UNSIGNED，那实际类型需要转换成Long,INT UNSIGNED
+            String typeName = columns1.getString(KEY_TYPE_NAME);
+            DataType colType = createColDataType(colName, typeName
+                    , columns1.getInt(KEY_DATA_TYPE), columns1.getInt(KEY_COLUMN_SIZE));
+            if (decimalDigits > 0) {
+                colType.setDecimalDigits(decimalDigits);
+            }
+            return colType;
+        }
+
+        protected DataType createColDataType(String colName, String typeName, int dbColType, int colSize) throws SQLException {
+            // 类似oracle驱动内部有一套独立的类型 oracle.jdbc.OracleTypes,有需要可以在具体的实现类里面去实现
+            return new DataType(dbColType, typeName, colSize);
+        }
+    }
+
+
 }

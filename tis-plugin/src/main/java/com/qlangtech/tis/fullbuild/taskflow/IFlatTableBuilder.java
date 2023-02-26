@@ -18,6 +18,7 @@ package com.qlangtech.tis.fullbuild.taskflow;
  * limitations under the License.
  */
 
+import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fs.ITaskContext;
 import com.qlangtech.tis.fullbuild.phasestatus.IJoinTaskStatus;
 import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
@@ -37,14 +38,14 @@ public interface IFlatTableBuilder extends ITaskFactory, ITableBuildTaskContext 
      *
      * @param nodeMeta
      * @param isFinalNode      是否是DF的最终节点
-     * @param tplContext
+     * @param execChainContext
      * @param joinTaskStatus
      * @param dsGetter
      * @param primaryTabFinder
      * @return
      */
     public DataflowTask createTask(ISqlTask nodeMeta
-            , boolean isFinalNode, ITemplateContext tplContext, ITaskContext tskContext, IJoinTaskStatus joinTaskStatus,
+            , boolean isFinalNode, IExecChainContext execChainContext , ITaskContext tskContext, IJoinTaskStatus joinTaskStatus,
                                    final IDataSourceFactoryGetter dsGetter, IPrimaryTabFinder primaryTabFinder);
 
 

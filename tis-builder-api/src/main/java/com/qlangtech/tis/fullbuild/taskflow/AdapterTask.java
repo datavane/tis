@@ -22,7 +22,6 @@ import com.qlangtech.tis.fs.ITaskContext;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -36,18 +35,20 @@ public abstract class AdapterTask extends DataflowTask {
     public static final String KEY_TASK_WORK_STATUS = "TaskWorkStatus";
 
     // private String content;
-    private ITemplateContext context;
+
 
     private ITaskContext taskContext;
+    private IJoinTaskContext joinExecContext;
+
 
     protected final TabPartitions getDumpPartition() {
-        TabPartitions dumpPartition = ExecChainContextUtils.getDependencyTablesPartitions(this.getContext().getExecContext());
+        TabPartitions dumpPartition = ExecChainContextUtils.getDependencyTablesPartitions(this.joinExecContext);
         return dumpPartition;
     }
 
     @Override
     protected Map<String, Boolean> getTaskWorkStatus() {
-        return createTaskWorkStatus(this.getContext().getExecContext());
+        return createTaskWorkStatus(this.joinExecContext);
     }
 
     public static Map<String, Boolean> createTaskWorkStatus(IJoinTaskContext chainContext) {
@@ -84,9 +85,9 @@ public abstract class AdapterTask extends DataflowTask {
     @Override
     public void run() throws Exception {
         try {
-            Map<String, Object> params = Collections.emptyMap();
-            String sql = mergeVelocityTemplate(params);
-            executeSql(this.getName(), sql);
+            // Map<String, Object> params = Collections.emptyMap();
+            // String sql = getExecuteSQL();
+            executeTask(this.getName());
             this.signTaskSuccess();
         } catch (Exception e) {
             this.signTaskFaild();
@@ -94,52 +95,19 @@ public abstract class AdapterTask extends DataflowTask {
         }
     }
 
-    // public void exexute(Map<String, Object> params) {
-    // String sql = mergeVelocityTemplate(params);
-    // executeSql(this.getName(), sql);
-    // }
-    protected String mergeVelocityTemplate(Map<String, Object> params) {
-        return this.getContent();
-        // StringWriter writer = new StringWriter();
-        // try {
-        // velocityEngine.evaluate(createContext(params), writer, "sql", this.getContent());
-        // return writer.toString();
-        // } catch (Exception e) {
-        // throw new RuntimeException(this.getName(), e);
-        // } finally {
-        // IOUtils.close(writer);
-        // }
+//    protected abstract String getExecuteSQL();
+
+
+    protected abstract void executeTask(String taskname);
+
+    public IJoinTaskContext getExecContext() {
+        return this.joinExecContext;
     }
 
-    protected abstract void executeSql(String taskname, String sql);
-
-    // protected VelocityContext createContext(Map<String, Object> params) {
-    //
-    // VelocityContext velocityContext = new VelocityContext();
-    // velocityContext.put("context", this.getContext());
-    //
-    // for (Map.Entry<String, Object> entry : params.entrySet()) {
-    // velocityContext.put(entry.getKey(), entry.getValue());
-    // }
-    //
-    // return velocityContext;
-    // }
-    public abstract String getContent();
-
-    public ITemplateContext getContext() {
-        if (context == null) {
-            throw new NullPointerException("TemplateContext context can not be null");
-        }
-        return context;
-    }
-
-    //    public void setTaskContext(ITaskContext taskContext) {
-//        this.taskContext = taskContext;
-//    }
-    public void setContext(ITemplateContext context, ITaskContext taskContext) {
+    public void setContext(IJoinTaskContext context, ITaskContext taskContext) {
         Objects.requireNonNull(context, "param context can not be null");
         Objects.requireNonNull(taskContext, "param taskContext can not be null");
-        this.context = context;
+        this.joinExecContext = context;
         this.taskContext = taskContext;
     }
 }

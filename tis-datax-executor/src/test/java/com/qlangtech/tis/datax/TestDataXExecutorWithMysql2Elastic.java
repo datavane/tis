@@ -20,7 +20,11 @@ package com.qlangtech.tis.datax;
 
 import com.alibaba.datax.common.util.Configuration;
 import com.alibaba.datax.core.util.container.CoreConstant;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.plugin.ds.DBIdentity;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
 
@@ -32,7 +36,7 @@ public class TestDataXExecutorWithMysql2Elastic extends BasicDataXExecutorTestCa
 
     private boolean hasExecuteStartEngine;
     final Integer jobId = 123;
-    final DataXJobInfo jobName = DataXJobInfo.create("instancedetail_0.json", Collections.emptyList());
+    final DataXJobInfo jobName = DataXJobInfo.create("instancedetail_0.json", DBIdentity.parseId(""), Collections.emptyList());
     final String dataxName = "mysql_elastic";
 
     @Override
@@ -45,8 +49,11 @@ public class TestDataXExecutorWithMysql2Elastic extends BasicDataXExecutorTestCa
      * 测试配置文件和plugin是否正确下载
      */
     public void testResourceSync() throws Exception {
-        final String execTimeStamp = "20220316121256";
-        this.executor.exec(jobId, jobName, dataxName);
+        IDataxProcessor dataxProcessor = DataxProcessor.load(null, StoreResourceType.DataApp, dataxName);
+
+        DataxExecutor.DataXJobArgs jobArgs
+                = DataxExecutor.DataXJobArgs.createJobArgs(dataxProcessor, jobId, jobName, 0, TimeFormat.getCurrentTimeStamp());
+        this.executor.exec(jobName, dataxProcessor, jobArgs);
         assertTrue("hasExecuteStartEngine", hasExecuteStartEngine);
     }
 
@@ -64,11 +71,12 @@ public class TestDataXExecutorWithMysql2Elastic extends BasicDataXExecutorTestCa
 
     protected DataxExecutor createExecutor() {
         return new DataxExecutor(statusRpc, DataXJobSubmit.InstanceType.LOCAL, 300) {
-            @Override
-            protected void startEngine(Configuration configuration, Integer jobId, DataXJobInfo jobName) {
-                //  make skip the ex
 
-                int jobSleepIntervalInMillSec = configuration.getInt(
+            @Override
+            protected void startEngine(Pair<Configuration, IDataXNameAware> cfg, DataXJobArgs args, DataXJobInfo jobName) {
+
+                //  make skip the ex
+                int jobSleepIntervalInMillSec = cfg.getLeft().getInt(
                         CoreConstant.DATAX_CORE_CONTAINER_JOB_SLEEPINTERVAL, 10000);
                 assertEquals(3000, jobSleepIntervalInMillSec);
                 hasExecuteStartEngine = true;

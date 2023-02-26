@@ -19,6 +19,7 @@
 package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.plugin.ds.DBIdentity;
 
 import java.util.Collections;
 
@@ -28,7 +29,7 @@ import java.util.Collections;
  **/
 public interface IExecutorContext {
     String dataXName = "baisuitestTestcase";
-    DataXJobInfo jobName = DataXJobInfo.create("customer_order_relation_1.json", Collections.emptyList());
+    DataXJobInfo jobName = DataXJobInfo.create("customer_order_relation_1.json", DBIdentity.parseId(""), Collections.emptyList());
 
     StoreResourceType resType = StoreResourceType.DataApp;
 }

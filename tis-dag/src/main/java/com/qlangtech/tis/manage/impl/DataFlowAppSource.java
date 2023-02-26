@@ -214,7 +214,7 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
 
         ERRules erRules = this.getErRules();
 
-        TemplateContext tplContext = new TemplateContext(execChainContext);
+       // TemplateContext tplContext = new TemplateContext(execChainContext);
         JoinPhaseStatus joinPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
         //IPluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
         //Objects.requireNonNull(pluginStore.getPlugin(), "flatTableBuilder can not be null");
@@ -230,7 +230,7 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
                  * ************************************
                  */
                 process = flatTableBuilder.createTask(pnode, false//StringUtils.equals(fNode.getId(), pnode.getId())
-                        , tplContext, context, joinPhaseStatus.getTaskStatus(pnode.getExportName())
+                        , execChainContext, context, joinPhaseStatus.getTaskStatus(pnode.getExportName())
                         , this.dsGetter, erRules);
 
                 dagSessionSpec.put(pnode.getId(), new TaskAndMilestone(process));

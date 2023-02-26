@@ -200,9 +200,9 @@ public class DataxExecutor {
             dataxExecutor.reportDataXJobStatus(false, false, false, jobId, jobInfo);
             IDataxProcessor dataxProcessor = DataxProcessor.load(null, resType, dataXName);
             //  File jobPath = jobInfo.getJobPath(dataxProcessor.getDataxCfgDir(null));
-            DataXJobArgs jobArgs = createJobArgs(dataxProcessor, jobId, jobInfo, taskSerializeNum, execEpochMilli); //new DataXJobArgs(jobPath, jobId, "standalone", taskSerializeNum, execEpochMilli);
+            DataXJobArgs jobArgs = DataXJobArgs.createJobArgs(dataxProcessor, jobId, jobInfo, taskSerializeNum, execEpochMilli); //new DataXJobArgs(jobPath, jobId, "standalone", taskSerializeNum, execEpochMilli);
 
-            dataxExecutor.exec(jobInfo, resType, dataxProcessor, jobArgs);
+            dataxExecutor.exec(jobInfo, dataxProcessor, jobArgs);
             dataxExecutor.reportDataXJobStatus(false, jobId, jobInfo);
         } catch (Throwable e) {
             dataxExecutor.reportDataXJobStatus(true, jobId, jobInfo);
@@ -217,12 +217,6 @@ public class DataxExecutor {
         }
         logger.info("dataX:" + dataXName + ",taskid:" + jobId + " finished");
         System.exit(0);
-    }
-
-    public static DataXJobArgs createJobArgs(IDataxProcessor dataxProcessor, Integer jobId, DataXJobInfo jobInfo, final int taskSerializeNum, final long execEpochMilli) {
-        File jobPath = jobInfo.getJobPath(dataxProcessor.getDataxCfgDir(null));
-        DataXJobArgs jobArgs = new DataXJobArgs(jobPath, jobId, "standalone", taskSerializeNum, execEpochMilli);
-        return jobArgs;
     }
 
     private static Thread monitorDistributeCommand(Integer jobId, DataXJobInfo jobInfo, String dataXName
@@ -258,10 +252,10 @@ public class DataxExecutor {
         return overseerListener;
     }
 
-    public void exec(DataXJobInfo jobName, StoreResourceType resType, IDataxProcessor processor, DataXJobArgs jobArgs) throws Exception {
+    public void exec(DataXJobInfo jobName, IDataxProcessor processor, DataXJobArgs jobArgs) throws Exception {
         final JarLoader uberClassLoader = new TISJarLoader(TIS.get().getPluginManager());
         LoadUtil.cleanJarLoaderCenter();
-        this.exec(uberClassLoader, jobName, resType, processor, jobArgs);
+        this.exec(uberClassLoader, jobName, processor, jobArgs);
     }
 
     /**
@@ -269,12 +263,11 @@ public class DataxExecutor {
      *
      * @param uberClassLoader
      * @param jobName
-     * @param resType
      * @param dataxProcessor
      * @throws Exception
      */
     public void exec(final JarLoader uberClassLoader, DataXJobInfo jobName
-            , StoreResourceType resType, IDataxProcessor dataxProcessor, DataXJobArgs jobArgs) throws Exception {
+            , IDataxProcessor dataxProcessor, DataXJobArgs jobArgs) throws Exception {
         if (uberClassLoader == null) {
             throw new IllegalArgumentException("param uberClassLoader can not be null");
         }
@@ -288,7 +281,7 @@ public class DataxExecutor {
             //KeyedPluginStore.StoreResourceType resType = null;
 
             // IDataxProcessor dataxProcessor = DataxProcessor.load(null, resType, dataxName);
-            this.startWork(jobName, resType, dataxProcessor, uberClassLoader, jobArgs);
+            this.startWork(jobName, dataxProcessor, uberClassLoader, jobArgs);
             success = true;
         } finally {
             TIS.clean();
@@ -329,7 +322,7 @@ public class DataxExecutor {
      * @throws IOException
      * @throws Exception
      */
-    public void startWork(DataXJobInfo jobName, StoreResourceType resType
+    public void startWork(DataXJobInfo jobName
             , IDataxProcessor dataxProcessor
             , final JarLoader uberClassLoader, DataXJobArgs jobArgs) throws IOException, Exception {
         try {
@@ -356,7 +349,7 @@ public class DataxExecutor {
             initializeClassLoader(Sets.newHashSet(this.getPluginReaderKey(), this.getPluginWriterKey()), uberClassLoader);
 
 
-            entry(jobArgs, jobName, resType);
+            entry(jobArgs, jobName, dataxProcessor.getResType());
 
         } catch (Throwable e) {
             throw new Exception(e);
@@ -407,6 +400,12 @@ public class DataxExecutor {
 //                throw new IllegalArgumentException("param execTimeStamp can not be empty");
 //            }
 //            this.execTimeStamp = execTimeStamp;
+        }
+
+        public static DataXJobArgs createJobArgs(IDataxProcessor dataxProcessor, Integer jobId, DataXJobInfo jobInfo, final int taskSerializeNum, final long execEpochMilli) {
+            File jobPath = jobInfo.getJobPath(dataxProcessor.getDataxCfgDir(null));
+            DataXJobArgs jobArgs = new DataXJobArgs(jobPath, jobId, "standalone", taskSerializeNum, execEpochMilli);
+            return jobArgs;
         }
 
         public int getTaskSerializeNum() {

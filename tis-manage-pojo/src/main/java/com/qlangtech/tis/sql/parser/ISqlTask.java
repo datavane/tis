@@ -1,16 +1,3 @@
-package com.qlangtech.tis.sql.parser;
-
-import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
-import com.qlangtech.tis.fullbuild.taskflow.ITemplateContext;
-import com.qlangtech.tis.hive.HiveColumn;
-import com.qlangtech.tis.plugin.ds.ColMeta;
-import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
-import com.qlangtech.tis.sql.parser.meta.DependencyNode;
-import org.apache.commons.collections.CollectionUtils;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -29,6 +16,23 @@ import java.util.stream.Collectors;
  * limitations under the License.
  */
 
+package com.qlangtech.tis.sql.parser;
+
+import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
+import com.qlangtech.tis.order.center.IJoinTaskContext;
+import com.qlangtech.tis.plugin.ds.ColMeta;
+import com.qlangtech.tis.plugin.ds.IDBReservedKeys;
+import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
+import com.qlangtech.tis.sql.parser.meta.DependencyNode;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.text.MessageFormat;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
@@ -44,11 +48,14 @@ public interface ISqlTask {
     String getSql();
 
     RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition, IPrimaryTabFinder erRules
-            , ITemplateContext templateContext, boolean isFinalNode);
+            , IJoinTaskContext templateContext, boolean isFinalNode);
 
     class RewriteSql {
+        private static final MessageFormat SQL_INSERT_TABLE
+                = new MessageFormat("INSERT OVERWRITE TABLE {0} PARTITION (" + IDumpTable.PARTITION_PT + "," + IDumpTable.PARTITION_PMOD + ") \n {1}");
 
-        public final String sqlContent;
+        public final String originSql;
+        public final String rewriteSql;
 
         public final IAliasTable primaryTable;
 
@@ -74,14 +81,27 @@ public interface ISqlTask {
         }
 
         /**
-         * @param sqlContent
+         * @param rewriteSql
          * @param cols         the finally output cols
          * @param primaryTable
          */
-        public RewriteSql(String sqlContent, List<ColMeta> cols, IAliasTable primaryTable) {
-            this.sqlContent = sqlContent;
+        public RewriteSql(String originSql, String rewriteSql, List<ColMeta> cols, IAliasTable primaryTable) {
+            if (StringUtils.isEmpty(originSql)) {
+                throw new IllegalArgumentException("param originSql can not be empty");
+            }
+            this.originSql = originSql;
+            this.rewriteSql = rewriteSql;
             this.primaryTable = primaryTable;
             this.cols = cols;
         }
+
+
+        public String convert2InsertIntoSQL(IDBReservedKeys dbReservedKeys, String exportTabName) {
+            final EntityName newCreateTab = EntityName.parse(exportTabName);
+            return SQL_INSERT_TABLE.format(
+                    new Object[]{newCreateTab.getFullName(Optional.of(dbReservedKeys.getEscapeChar()))
+                            , this.rewriteSql});
+        }
+
     }
 }

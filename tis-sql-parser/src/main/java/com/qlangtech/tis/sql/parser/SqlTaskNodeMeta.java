@@ -31,7 +31,6 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
-import com.qlangtech.tis.fullbuild.taskflow.ITemplateContext;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
@@ -154,23 +153,6 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
         final IJoinTaskContext tskContext = new DftJoinTaskContext(ExecutePhaseRange.fullRange());
 
-        final ITemplateContext tplContext = new ITemplateContext() {
-            @Override
-            public <T> T getContextValue(String key) {
-                return null;
-            }
-
-            @Override
-            public void putContextValue(String key, Object v) {
-
-            }
-
-            @Override
-            public IJoinTaskContext getExecContext() {
-                return tskContext;
-            }
-        };
-
 
         try {
             String pt = "20200703113848";
@@ -187,7 +169,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 public Map<EntityName, TabFieldProcessor> getTabFieldProcessorMap() {
                     return Collections.emptyMap();
                 }
-            }, tplContext, false);
+            }, tskContext, false);
             return Optional.empty();
         } catch (Throwable e) {
             int indexOf;
@@ -254,7 +236,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
      */
     public RewriteSql getColMetaGetterSql(TabPartitions tabPartitions) {
 
-        ITemplateContext tplContext = getTplContext();
+        IJoinTaskContext joinContext = getTplContext();
 
         IPrimaryTabFinder erRules = new IPrimaryTabFinder() {
             @Override
@@ -269,7 +251,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         };
 
         Optional<List<Expression>> parameters = Optional.empty();
-        IJoinTaskContext joinContext = tplContext.getExecContext();
+
         SqlStringBuilder builder = new SqlStringBuilder();
         SelectColsMetaGetter rewriter = new SelectColsMetaGetter(builder, erRules, tabPartitions, parameters, joinContext);
         // 执行rewrite
@@ -287,10 +269,10 @@ public class SqlTaskNodeMeta implements ISqlTask {
 //            throw new IllegalStateException("task:" + taskName + " has not find primary table");
 //        }
 //        // return ;
-        return new RewriteSql(builder.toString(), rewriter.outputCols, null);
+        return new RewriteSql(this.getSql(), builder.toString(), rewriter.outputCols, null);
     }
 
-    private ITemplateContext getTplContext() {
+    private IJoinTaskContext getTplContext() {
         final IJoinTaskContext taskContext = new IJoinTaskContext() {
             @Override
             public String getIndexName() {
@@ -367,33 +349,17 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 throw new UnsupportedOperationException();
             }
         };
-
-        return new ITemplateContext() {
-            @Override
-            public <T> T getContextValue(String key) {
-                return null;
-            }
-
-            @Override
-            public void putContextValue(String key, Object v) {
-
-            }
-
-            @Override
-            public IJoinTaskContext getExecContext() {
-                return taskContext;
-            }
-        };
+        return taskContext;
     }
 
     @Override
     public RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition
-            , IPrimaryTabFinder erRules, ITemplateContext templateContext, boolean isFinalNode) {
+            , IPrimaryTabFinder erRules, IJoinTaskContext joinContext, boolean isFinalNode) {
         if (dumpPartition.size() < 1) {
             throw new IllegalStateException("taskName:" + taskName + " dumpPartition set size can not small than 1");
         }
         Optional<List<Expression>> parameters = Optional.empty();
-        IJoinTaskContext joinContext = templateContext.getExecContext();
+
         SqlStringBuilder builder = new SqlStringBuilder();
         SqlRewriter rewriter = new SqlRewriter(builder, dumpPartition, erRules, parameters, isFinalNode, joinContext);
         // 执行rewrite
@@ -410,8 +376,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         if (primaryTable == null) {
             throw new IllegalStateException("task:" + taskName + " has not find primary table");
         }
-        // return ;
-        return new RewriteSql(builder.toString(), rewriter.outputCols, rewriter.getPrimayTable());
+        return new RewriteSql(this.getSql(), builder.toString(), rewriter.outputCols, rewriter.getPrimayTable());
     }
 
     private Statement getSqlStatement() {

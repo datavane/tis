@@ -51,8 +51,8 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
 
     public void testExecute() throws Exception {
         System.setProperty(DataxUtils.EXEC_TIMESTAMP, String.valueOf(TimeFormat.getCurrentTimeStamp()));
-        //  String wfName = "tttt71";
-        String wfName = "ttttt6";
+          String wfName = "tttt71";
+        //String wfName = "ttttt6";
 
         int taskId = 999;
 
@@ -79,7 +79,7 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
         EasyMock.expectLastCall().anyTimes();
 
         EasyMock.expect(execContext.getAttribute(EasyMock.eq(DataXJobSubmit.KEY_DATAX_READERS), EasyMock.anyObject()))
-                .andReturn(processor.getReaders(null)).times(2);
+                .andReturn(processor.getReaders(null)).times(3);
 
         //   execContext.getWorkflowName()
         EasyMock.expect(execContext.hasIndexName()).andReturn(false).anyTimes();

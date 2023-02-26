@@ -24,6 +24,7 @@ import com.qlangtech.tis.fullbuild.taskflow.impl.EndTask;
 import com.qlangtech.tis.fullbuild.taskflow.impl.ForkTask;
 import com.qlangtech.tis.fullbuild.taskflow.impl.StartTask;
 import com.qlangtech.tis.git.GitUtils;
+import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -76,7 +77,7 @@ public class WorkflowTaskConfigParser {
 
     private final IJoinRuleStreamGetter joinRuleGetter;
 
-    private TemplateContext tplContext;
+    private IExecChainContext tplContext;
 
     // work功能点执行日志收集
     private final JoinPhaseStatus joinPhaseStatus;
@@ -147,7 +148,7 @@ public class WorkflowTaskConfigParser {
      * @param
      * @throws Exception the exception
      */
-    public void startJoinSubTables(TemplateContext tplContext) throws Exception {
+    public void startJoinSubTables(IJoinTaskContext tplContext) throws Exception {
     // HiveTaskFactory.startTaskInitialize(tplContext);
     // Map<String, Object> params = new HashMap<>();
     // try {
@@ -171,7 +172,7 @@ public class WorkflowTaskConfigParser {
      * @throws Exception
      */
     public TaskWorkflow getWorkflow() throws Exception {
-        String joinTask = this.joinRuleGetter.getTaskContent(tplContext.getExecContext());
+        String joinTask = this.joinRuleGetter.getTaskContent(tplContext);
         Pattern p = Pattern.compile("\\$\\{.?+\\}");
         Matcher m = p.matcher(joinTask);
         TaskWorkflow taskList = this.parseTask(m.replaceAll("test"));
@@ -337,14 +338,14 @@ public class WorkflowTaskConfigParser {
      *
      * @return the tpl context
      */
-    public TemplateContext getTplContext() {
+    public IExecChainContext getTplContext() {
         return tplContext;
     }
 
     /**
      * Joiner 配置文件获取
      */
-    public void setTplContext(TemplateContext tplContext) {
+    public void setTplContext(IExecChainContext tplContext) {
         this.tplContext = tplContext;
     }
 

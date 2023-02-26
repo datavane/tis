@@ -215,18 +215,31 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
         public static TableMap create(String tableName, List<IColMetaGetter> cols) {
             List<CMeta> cmetas = Lists.newArrayList();
             CMeta cm = null;
-            HdfsColMeta c = null;
+           // HdfsColMeta c = null;
 
             for (IColMetaGetter col : cols) {
-                c = (HdfsColMeta) col;
-                cm = new CMeta();
+                cm = getCMeta(col);
+                cmetas.add(cm);
+            }
+            return createByColMeta(tableName, cmetas);
+        }
+
+        public static CMeta getCMeta(IColMetaGetter col) {
+            CMeta cm = new CMeta();
+            if (col instanceof HdfsColMeta) {
+                HdfsColMeta c = (HdfsColMeta) col;
                 cm.setName(c.colName);
                 cm.setNullable(c.nullable);
                 cm.setType(c.type);
                 cm.setPk(c.pk);
-                cmetas.add(cm);
+            } else {
+                cm.setName(col.getName());
+                cm.setNullable(true);
+                cm.setType(col.getType());
+                cm.setPk(col.isPk());
             }
-            return createByColMeta(tableName, cmetas);
+
+            return cm;
         }
 
         public static TableMap createByColMeta(String tableName, List<CMeta> colMetas) {
