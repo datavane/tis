@@ -25,6 +25,7 @@ import com.qlangtech.tis.sql.parser.visitor.BlockScriptBuffer;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -55,10 +56,11 @@ public abstract class CreateTableSqlBuilder {
         }
         maxColNameLength += 4;
         if (supportColEscapeChar()) {
-            this.escapeChar = dsMeta.getEscapeChar();
-            if (StringUtils.isEmpty(this.escapeChar)) {
+            Optional<String> escape = dsMeta.getEscapeChar();
+            if (!escape.isPresent()) {
                 throw new IllegalArgumentException("must contain escapeChar for DB entity");
             }
+            this.escapeChar = escape.get();
         } else {
             this.escapeChar = StringUtils.EMPTY;
         }

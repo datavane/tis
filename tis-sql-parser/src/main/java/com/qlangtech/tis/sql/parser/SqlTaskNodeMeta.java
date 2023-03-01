@@ -24,6 +24,7 @@ import com.facebook.presto.sql.parser.ParsingException;
 import com.facebook.presto.sql.parser.ParsingOptions;
 import com.facebook.presto.sql.parser.SqlParser;
 import com.facebook.presto.sql.tree.Expression;
+import com.facebook.presto.sql.tree.NodeLocation;
 import com.facebook.presto.sql.tree.Statement;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -384,7 +385,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         try {
             return sqlParser.createStatement(sql, new ParsingOptions());
         } catch (ParsingException e) {
-            throw new RuntimeException(sql, e);
+            throw new TisSqlFormatException(e.getErrorMessage(), Optional.of(new NodeLocation(e.getLineNumber(), e.getColumnNumber())));
         }
     }
 

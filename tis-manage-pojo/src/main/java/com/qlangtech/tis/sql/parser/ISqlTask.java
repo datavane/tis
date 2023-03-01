@@ -99,7 +99,7 @@ public interface ISqlTask {
         public String convert2InsertIntoSQL(IDBReservedKeys dbReservedKeys, String exportTabName) {
             final EntityName newCreateTab = EntityName.parse(exportTabName);
             return SQL_INSERT_TABLE.format(
-                    new Object[]{newCreateTab.getFullName(Optional.of(dbReservedKeys.getEscapeChar()))
+                    new Object[]{newCreateTab.getFullName(dbReservedKeys.getEscapeChar())
                             , this.rewriteSql});
         }
 

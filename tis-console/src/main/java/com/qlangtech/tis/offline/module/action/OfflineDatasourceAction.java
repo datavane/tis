@@ -96,7 +96,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -475,17 +474,25 @@ public class OfflineDatasourceAction extends BasicModule {
           }
         }, //
         "exportName" //
-        , new Validator.FieldValidators(Validator.require, Validator.identity
-        ) {
+        , new Validator.FieldValidators(Validator.require, Validator.identity) {
         },
+        Validator.db_col_name.getFieldValidator(),
         new Validator.IFieldValidator() {
           @Override
           public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
-            Matcher m = pattern_table_name.matcher(fieldData);
-            if (!m.matches()) {
-              msgHandler.addFieldError(context, fieldKey, "必须符合规则:" + pattern_table_name);
-              return false;
-            }
+//            Matcher m = pattern_table_name.matcher(fieldData);
+//            if (!m.matches()) {
+//              msgHandler.addFieldError(context, fieldKey, "必须符合规则:" + pattern_table_name);
+//              return false;
+//            }
+//            return true;
+
+//            Set<String> reservedKeys = ReservedIdentifiers.reservedIdentifiers();
+//            if (reservedKeys.contains(fieldData)) {
+//              msgHandler.addFieldError(context, fieldKey, "不能是数据库保留字符");
+//              return false;
+//            }
+
             return true;
           }
         }//
@@ -1092,42 +1099,47 @@ public class OfflineDatasourceAction extends BasicModule {
    * @throws Exception the exception
    */
   public void doGetDatasourceInfo(Context context) throws Exception {
+    // 部分DS是 只支持数据写入，例如Hive,所以需要进行过滤
+    boolean filterSupportReader = this.getBoolean("filterSupportReader");
+    DescriptorExtensionList<DataSourceFactory, Descriptor<DataSourceFactory>> dbDescs = TIS.get().getDescriptorList(DataSourceFactory.class);
     this.setBizResult(context
-      , new ConfigDsMeta(offlineManager.getDatasourceInfo(), TIS.get().getDescriptorList(DataSourceFactory.class)));
+      , filterSupportReader
+        ? new ConfigDsMeta(offlineManager.getDatasourceInfo(), dbDescs) {
+        @Override
+        public Collection<DatasourceDb> getDbsSupportDataXReader() {
+          Map<String, DataSourceFactory.BaseDataSourceFactoryDescriptor> descMap
+            = dbDescs.stream().collect(Collectors.toMap((desc) -> StringUtils.lowerCase(desc.getDisplayName())
+            , (desc) -> (DataSourceFactory.BaseDataSourceFactoryDescriptor) desc));
+          return this.dbs.stream().filter((db) -> {
+            DataSourceFactory.BaseDataSourceFactoryDescriptor desc = descMap.get(StringUtils.lowerCase(db.extensionDesc));
+            if (desc == null) {
+              throw new IllegalStateException("extendDesc:" + db.extensionDesc
+                + " can not find relevant Desc instance in :" + String.join(",", descMap.keySet()));
+            }
+            return desc.getDefaultDataXReaderDescName().isPresent();
+          }).collect(Collectors.toList());
+        }
+      }
+        : new ConfigDsMeta(offlineManager.getDatasourceInfo(), dbDescs));
   }
 
-//  public void doGetTabsByDbId(Context context) {
-//    Integer dbId = this.getInt("dbId");
-//
-//    com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.wfDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
-//
-////    getDataXReaderAndWriterStore(IPluginContext pluginContext, boolean getReader, UploadPluginMeta pluginMeta,
-////      Optional< IPropertyType.SubFormFilter> subFormFilter
-////    )
-//
-//    // UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_" +
-//
-//    UploadPluginMeta pluginMeta = UploadPluginMeta.parse(
-//      HeteroEnum.DATAX_READER.getIdentity() + ":require," + IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs,targetDescriptorName_MySQL," + DataxUtils.DATAX_DB_NAME + "_" + db.getName());
-//    Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
-//    if (!subFormFilter.isPresent()) {
-//      throw new IllegalStateException("subformFilter must be present:" + pluginMeta.toString());
-//    }
-//    HeteroEnum.getDataXReaderAndWriterStore(this, true, pluginMeta, subFormFilter);
-//  }
-
-
   public static class ConfigDsMeta extends PluginDescMeta {
-    private final Collection<OfflineDatasourceAction.DatasourceDb> dbs;
+    final Collection<OfflineDatasourceAction.DatasourceDb> dbs;
 
     public ConfigDsMeta(Collection<DatasourceDb> dbs, DescriptorExtensionList<DataSourceFactory, Descriptor<DataSourceFactory>> descList) {
       super(descList);
       this.dbs = dbs;
+
     }
 
     public Collection<DatasourceDb> getDbs() {
       return dbs;
     }
+
+    public Collection<DatasourceDb> getDbsSupportDataXReader() {
+      return Collections.emptyList();
+    }
+
   }
 
 
@@ -1340,16 +1352,36 @@ public class OfflineDatasourceAction extends BasicModule {
    * @param context the context
    */
   public void doGetDatasourceTableById(Context context) throws IOException {
-    Integer dbId = this.getInt("id");
-    String tableName = this.getString("tabName");
-    com.qlangtech.tis.workflow.pojo.DatasourceDb db
-      = this.getWorkflowDAOFacade().getDatasourceDbDAO().selectByPrimaryKey(dbId);
-    Objects.requireNonNull(db, "db can not be null");
+    com.qlangtech.tis.workflow.pojo.DatasourceDb db = getDsDb();
     //  TISTable tableConfig = this.offlineManager.getTableConfig(this, tableId);
     //this.setBizResult(context, tableConfig);
 
     DataxReader dbDataxReader = OfflineManager.getDBDataxReader(this, db.getName());
     this.setBizResult(context, DescriptorsJSON.desc(dbDataxReader.getDescriptor()));
+  }
+
+
+  /**
+   * 取得Table对应的Cols Metas
+   *
+   * @param context
+   * @throws IOException
+   */
+  public void doGetDatasourceTableCols(Context context) throws TableNotFoundException {
+    String tableName = this.getString("tabName");
+    com.qlangtech.tis.workflow.pojo.DatasourceDb db = getDsDb();
+    DataxReader dbDataxReader = OfflineManager.getDBDataxReader(this, db.getName());
+    List<ColumnMetaData> colsMeta = dbDataxReader.getTableMetadata(EntityName.parse(tableName));
+    this.setBizResult(context, colsMeta);
+  }
+
+
+  private com.qlangtech.tis.workflow.pojo.DatasourceDb getDsDb() {
+    Integer dbId = this.getInt("id");
+    com.qlangtech.tis.workflow.pojo.DatasourceDb db
+      = this.getWorkflowDAOFacade().getDatasourceDbDAO().selectByPrimaryKey(dbId);
+    Objects.requireNonNull(db, "db can not be null");
+    return db;
   }
 
   /**
@@ -1777,24 +1809,30 @@ public class OfflineDatasourceAction extends BasicModule {
 
   public static class DatasourceDb {
 
-    int id;
+    final int id;
 
     String name;
+    private final String extensionDesc;
 
     List<DatasourceTable> tables;
 
     // byte syncOnline;
 
-    public DatasourceDb() {
+    public DatasourceDb(int id, String extensionDesc) {
+      if (StringUtils.isEmpty(extensionDesc)) {
+        throw new IllegalArgumentException("param extensionDesc can not be null");
+      }
+      this.id = id;
+      this.extensionDesc = extensionDesc;
     }
 
     public int getId() {
       return id;
     }
 
-    public void setId(int id) {
-      this.id = id;
-    }
+//    public void setId(int id) {
+//      this.id = id;
+//    }
 
     public String getName() {
       return name;

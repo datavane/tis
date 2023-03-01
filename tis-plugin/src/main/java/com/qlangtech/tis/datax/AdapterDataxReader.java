@@ -25,6 +25,7 @@ import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -64,7 +65,7 @@ public class AdapterDataxReader implements IDataxReader {
     }
 
     @Override
-    public String getEscapeChar() {
+    public Optional<String> getEscapeChar() {
         return reader.getEscapeChar();
     }
 

@@ -18,26 +18,38 @@
 
 package com.qlangtech.tis.plugin.ds;
 
+import java.util.Optional;
+
 /**
- * 适配 BasicDataXRdbmsReader 和 BasicDataXRdbmsWriter DataSource获取借口
- *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-09-06 12:14
+ * @create: 2023-02-26 17:25
  **/
-public interface IDataSourceFactoryGetter {
-
-    DataSourceFactory getDataSourceFactory();
-
-    default IDBReservedKeys getDBReservedKeys() {
-        return this.getDataSourceFactory();
+public interface IDBReservedKeys {
+    default Optional<String> getEscapeChar() {
+        return Optional.empty();
     }
 
+    default String getEscapedEntity(String name) {
+        Optional<String> escapeChar = this.getEscapeChar();
+        if (escapeChar.isPresent()) {
+            String ec = escapeChar.get();
+            return ec + name + ec;
+        } else {
+            return name;
+        }
+    }
 
-    /**
-     * 批量导出数据，单次导出记录条数供游标遍历
-     *
-     * @return
-     */
-    Integer getRowFetchSize();
+    default String removeEscapeChar(String entityName) {
+        if (entityName == null) {
+            throw new IllegalArgumentException("param entityName can not be null");
+        }
+        Optional<String> escape = getEscapeChar();
+        if (escape.isPresent()) {
+            return entityName.replace(escape.get(), "");
+            // return StringUtils.remove(entityName, escape.get());
+        } else {
+            return entityName;
+        }
 
+    }
 }

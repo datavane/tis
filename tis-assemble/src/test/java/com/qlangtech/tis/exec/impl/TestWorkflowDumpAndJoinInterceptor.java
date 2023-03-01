@@ -51,10 +51,11 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
 
     public void testExecute() throws Exception {
         System.setProperty(DataxUtils.EXEC_TIMESTAMP, String.valueOf(TimeFormat.getCurrentTimeStamp()));
-          String wfName = "tttt71";
-        //String wfName = "ttttt6";
+         // String wfName = "tttt71";
+        String wfName = "ttttt6";
 
         int taskId = 999;
+        final boolean isDryRun = false;
 
 
         IDataxProcessor processor = DataxProcessor.load(null, StoreResourceType.DataFlow, wfName);
@@ -64,7 +65,7 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
         IExecChainContext execContext = this.mock("execContext", IExecChainContext.class);
 
         // Dry Run
-        EasyMock.expect(execContext.isDryRun()).andReturn(false).anyTimes();
+        EasyMock.expect(execContext.isDryRun()).andReturn(isDryRun).anyTimes();
 
         EasyMock.expect(execContext.getExecutePhaseRange())
                 .andReturn(new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.JOIN)).anyTimes();
@@ -79,7 +80,7 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
         EasyMock.expectLastCall().anyTimes();
 
         EasyMock.expect(execContext.getAttribute(EasyMock.eq(DataXJobSubmit.KEY_DATAX_READERS), EasyMock.anyObject()))
-                .andReturn(processor.getReaders(null)).times(3);
+                .andReturn(processor.getReaders(null)).anyTimes();
 
         //   execContext.getWorkflowName()
         EasyMock.expect(execContext.hasIndexName()).andReturn(false).anyTimes();

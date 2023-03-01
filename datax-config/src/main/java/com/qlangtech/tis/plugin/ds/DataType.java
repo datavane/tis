@@ -19,6 +19,7 @@
 package com.qlangtech.tis.plugin.ds;
 
 
+import com.alibaba.fastjson.annotation.JSONField;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -77,6 +78,7 @@ public class DataType implements Serializable {
         return StringUtils.EMPTY;
     }
 
+    @JSONField(serialize = false)
     public DataXReaderColType getCollapse() {
         switch (this.type) {
             case Types.INTEGER:
@@ -106,6 +108,84 @@ public class DataType implements Serializable {
                 return DataXReaderColType.STRING;
         }
     }
+
+    // @JSONField(serialize = false)
+    public String getTypeDesc() {
+        final String type = this.accept(new TypeVisitor<String>() {
+            @Override
+            public String intType(DataType type) {
+                return "int";
+            }
+
+            @Override
+            public String bigInt(DataType type) {
+                return "bigint";
+            }
+
+            @Override
+            public String floatType(DataType type) {
+                return "float";
+            }
+
+            @Override
+            public String doubleType(DataType type) {
+                return "double";
+            }
+
+            @Override
+            public String decimalType(DataType type) {
+                return "decimal(" + type.columnSize + "," + type.getDecimalDigits() + ")";
+            }
+
+            @Override
+            public String dateType(DataType type) {
+                return "date";
+            }
+
+            @Override
+            public String timeType(DataType type) {
+                return "time";
+            }
+
+            @Override
+            public String timestampType(DataType type) {
+                return "timestamp";
+            }
+
+            @Override
+            public String bitType(DataType type) {
+                return "bit";
+            }
+
+            @Override
+            public String blobType(DataType type) {
+                return "blob(" + type.columnSize + ")";
+            }
+
+            @Override
+            public String varcharType(DataType type) {
+                return "varchar(" + type.columnSize + ")";
+            }
+
+            @Override
+            public String tinyIntType(DataType dataType) {
+                return "tinyint";
+            }
+
+            @Override
+            public String smallIntType(DataType dataType) {
+                return "smallint";
+            }
+
+            @Override
+            public String boolType(DataType dataType) {
+                return "bool";
+            }
+        });
+
+        return (this.isUnsigned() ? StringUtils.lowerCase(KEY_UNSIGNED) : StringUtils.EMPTY) + " " + type;
+    }
+
 
     public <T> T accept(TypeVisitor<T> visitor) {
         switch (this.type) {

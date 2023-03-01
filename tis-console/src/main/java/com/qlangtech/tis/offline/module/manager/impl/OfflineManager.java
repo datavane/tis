@@ -423,8 +423,10 @@ public class OfflineManager {
     Map<Integer, OfflineDatasourceAction.DatasourceDb> dbsMap = new HashMap<>();
     OfflineDatasourceAction.DatasourceDb dsDb = null;
     for (DatasourceDb db : dbList) {
-      dsDb = new OfflineDatasourceAction.DatasourceDb();
-      dsDb.setId(db.getId());
+      if (StringUtils.isEmpty(db.getExtendClass())) {
+        continue;
+      }
+      dsDb = new OfflineDatasourceAction.DatasourceDb(db.getId(), db.getExtendClass());
       dsDb.setName(db.getName());
       dbsMap.put(db.getId(), dsDb);
     }

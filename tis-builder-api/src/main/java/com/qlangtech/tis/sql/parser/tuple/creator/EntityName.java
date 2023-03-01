@@ -95,19 +95,28 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
 
     @Override
     public String getTableName() {
-        return this.tabName;
+        return getTableName(Optional.empty());
+    }
+
+
+    public String getTableName(Optional<String> escapeChar) {
+        return getEscapedName(escapeChar, this.tabName);
     }
 
     public String getFullName(Optional<String> escapeChar) {
-        String ec = StringUtils.EMPTY;
-        if (escapeChar.isPresent()) {
-            ec = escapeChar.get();
-        }
-
         if (this.dbname.isPresent()) {
-            return ec + dbname.get() + ec + "." + ec + tabName + ec;
+            return getEscapedName(escapeChar, dbname.get()) + "." + getTableName(escapeChar);
         } else {
-            return ec + tabName + ec;
+            return getTableName(escapeChar);
+        }
+    }
+
+    private static String getEscapedName(Optional<String> escapeChar, String name) {
+        if (escapeChar.isPresent()) {
+            String ec = escapeChar.get();
+            return ec + name + ec;
+        } else {
+            return name;
         }
     }
 

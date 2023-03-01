@@ -4,6 +4,7 @@ import com.qlangtech.tis.plugin.ds.DataType;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -56,6 +57,8 @@ public class HiveColumn {
     public String getName() {
         return name;
     }
+
+
 
     public void setName(String name) {
         this.name = name;
