@@ -19,6 +19,8 @@ package com.qlangtech.tis.offline.module.action;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -88,9 +90,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
@@ -138,17 +137,6 @@ public class OfflineDatasourceAction extends BasicModule {
   public void setOfflineManager(OfflineManager offlineManager) {
     this.offlineManager = offlineManager;
   }
-
-//  public void doTestTransaction(Context context) {
-//    WorkFlow wf = new WorkFlow();
-//    wf.setCreateTime(new Date());
-//    wf.setGitPath("gitpath");
-//    wf.setName("baisuitest");
-//    wf.setOpUserId(123);
-//    wf.setOpUserName("baisui");
-//    wf.setOpTime(new Date());
-//    this.offlineDAOFacade.getWorkFlowDAO().insertSelective(wf);
-//  }
 
   public static List<Option> getExistDataFlows() {
     WorkFlowCriteria criteria = new WorkFlowCriteria();
@@ -252,7 +240,7 @@ public class OfflineDatasourceAction extends BasicModule {
   }
 
   private TISTable getTablePojo(Context context) {
-    com.alibaba.fastjson.JSONObject form = this.parseJsonPost();
+    JSONObject form = this.parseJsonPost();
     final boolean updateMode = !form.getBoolean("isAdd");
     String tableName = form.getString("tableName");
     if (StringUtils.isBlank(tableName)) {
@@ -285,8 +273,8 @@ public class OfflineDatasourceAction extends BasicModule {
       return null;
     }
     TISTable tab = new TISTable(tableName, partitionNum, dbId, partitionInterval, selectSql);
-    com.alibaba.fastjson.JSONArray cols = form.getJSONArray("cols");
-    com.alibaba.fastjson.JSONObject col = null;
+    JSONArray cols = form.getJSONArray("cols");
+    JSONObject col = null;
     ColumnMetaData colMeta = null;
     for (int i = 0; i < cols.size(); i++) {
       col = cols.getJSONObject(i);
@@ -366,38 +354,6 @@ public class OfflineDatasourceAction extends BasicModule {
     this.setBizResult(context, commits);
   }
 
-  // /**
-  // * Do get commit version diff. 获取两个版本的变更记录
-  // *
-  // * @param context the context
-  // * @throws Exception the exception
-  // */
-  // public void doGetCommitVersionDiff(Context context) throws Exception {
-  // String fromVersion = this.getString("fromVersion");
-  // String toVersion = this.getString("toVersion");
-  // if (StringUtils.isBlank(fromVersion) || fromVersion.length() != 40) {
-  // this.addErrorMessage(context, "fromVersion版本号错误");
-  // return;
-  // }
-  // if (StringUtils.isBlank(toVersion) || toVersion.length() != 40) {
-  // this.addErrorMessage(context, "toVersion版本号错误");
-  // return;
-  // }
-  // String directory = this.getString("directory");
-  // int projectId;
-  // if (StringUtils.equals("datasource_daily", directory)) {
-  // projectId = GitUtils.DATASOURCE_PROJECT_ID;
-  // } else if (StringUtils.equals("datasource_online", directory)) {
-  // projectId = GitUtils.DATASOURCE_PROJECT_ID;
-  // } else if (StringUtils.equals("workflow", directory)) {
-  // projectId = GitUtils.WORKFLOW_GIT_PROJECT_ID;
-  // } else {
-  // throw new RuntimeException("directory = " + directory + " is wrong!");
-  // }
-  // GitCommitVersionDiff diff = GitUtils.$().getGitCommitVersionDiff(fromVersion, toVersion, projectId);
-  // this.setBizResult(context, diff);
-  // }
-
   /**
    * Do get workflows. 获取去数据库查找所有工作流
    *
@@ -447,14 +403,14 @@ public class OfflineDatasourceAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
   public void doValidateWorkflowAddJoinComponentForm(Context context) throws Exception {
-    com.alibaba.fastjson.JSONObject form = this.parseJsonPost();
+    JSONObject form = this.parseJsonPost();
 
     IControlMsgHandler handler = new DelegateControl4JsonPostMsgHandler(this, form);
 
     String sql = form.getString("sql");
     String exportName = form.getString("exportName");
-    com.alibaba.fastjson.JSONArray dependenceNodes = form.getJSONArray("dependencies");
-    final List<String> dependencyNodes = Lists.newArrayList();
+    JSONArray dependenceNodes = form.getJSONArray("dependencies");
+    final List<DependencyNode> dependencyNodes = Lists.newArrayList();
     final String validateRuleDependency = "dependencies";
     Map<String, Validator.FieldValidators> validateRule = //
       Validator.fieldsValidator(//
@@ -500,18 +456,18 @@ public class OfflineDatasourceAction extends BasicModule {
         , new Validator.FieldValidators(Validator.require) {
           @Override
           public void setFieldVal(String val) {
-            com.alibaba.fastjson.JSONArray dpts = JSON.parseArray(val);
-            com.alibaba.fastjson.JSONObject o = null;
+            JSONArray dpts = JSON.parseArray(val);
+            JSONObject o = null;
             for (int index = 0; index < dpts.size(); index++) {
               o = dpts.getJSONObject(index);
-              dependencyNodes.add(o.getString("label"));
+              dependencyNodes.add(createDependencyNode(o));
             }
           }
         },
         new Validator.IFieldValidator() {
           @Override
           public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
-            com.alibaba.fastjson.JSONArray dpts = JSON.parseArray(fieldData);
+            JSONArray dpts = JSON.parseArray(fieldData);
             if (dpts.size() < 1) {
               msgHandler.addFieldError(context, fieldKey, "请选择依赖表节点");
               return false;
@@ -528,8 +484,10 @@ public class OfflineDatasourceAction extends BasicModule {
 
   private void doUpdateTopology(Context context, TopologyUpdateCallback dbSaverCallback) throws Exception {
     final String content = IOUtils.toString(this.getRequest().getInputStream(), getEncode());
-    JSONTokener tokener = new JSONTokener(content);
-    JSONObject topology = new JSONObject(tokener);
+
+    JSONObject topology = JSON.parseObject(content);
+
+    //JSONTokener tokener = new JSONTokener(content);
     final String topologyName = topology.getString("topologyName");
     if (StringUtils.isEmpty(topologyName)) {
       this.addErrorMessage(context, "请填写数据流名称");
@@ -558,14 +516,15 @@ public class OfflineDatasourceAction extends BasicModule {
     int x, y;
     String tabName = null;
     Tab tab = null;
-    for (int i = 0; i < nodes.length(); i++) {
+    DuplicateEntitisJudge repeatJudge = new DuplicateEntitisJudge(this, context);
+    for (int i = 0; i < nodes.size(); i++) {
       o = nodes.getJSONObject(i);
-      x = o.getInt("x");
+      x = o.getInteger("x");
       if (x < 0) {
         // 如果在边界外的图形需要跳过`
         continue;
       }
-      y = o.getInt("y");
+      y = o.getInteger("y");
       pos = new Position();
       pos.setX(x);
       pos.setY(y);
@@ -579,8 +538,10 @@ public class OfflineDatasourceAction extends BasicModule {
         // dnode.setExtraSql(SqlTaskNodeMeta.processBigContent(nodeMeta.getString("sqlcontent")));
         dnode.setId(o.getString("id"));
         tabName = nodeMeta.getString("tabname");
+
         Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap = Maps.newHashMap();
-        tab = getDatabase(this, this.offlineManager, this.offlineDAOFacade, dbMap, Integer.parseInt(dnode.getDbid()), tabName);
+        tab = getDatabase(this, this.offlineManager
+          , this.offlineDAOFacade, dbMap, Integer.parseInt(dnode.getDbid()), tabName);
         dnode.setDbName(tab.db.getName());
         dnode.setName(tab.tab.getName());
         dnode.setTabid(String.valueOf(tabName));
@@ -588,29 +549,33 @@ public class OfflineDatasourceAction extends BasicModule {
         dnode.setPosition(pos);
         dnode.setType(NodeType.DUMP.getType());
         topologyPojo.addDumpTab(dnode);
+        repeatJudge.add(dnode);
       } else if (nodetype == NodeType.JOINER_SQL) {
         pnode = new SqlTaskNodeMeta();
         pnode.setId(o.getString("id"));
         pnode.setPosition(pos);
         pnode.setSql(SqlTaskNodeMeta.processBigContent(nodeMeta.getString("sql")));
         pnode.setExportName(nodeMeta.getString("exportName"));
-        // pnode.setId(String.valueOf(nodeMeta.get("id")));
-        //pnode.setId(o.getString("id"));
+
         pnode.setType(NodeType.JOINER_SQL.getType());
         joinDependencies = nodeMeta.getJSONArray("dependencies");
-        for (int k = 0; k < joinDependencies.length(); k++) {
-          dep = joinDependencies.getJSONObject(k);
-          dnode = new DependencyNode();
-          dnode.setId(dep.getString("value"));
-          dnode.setName(dep.getString("label"));
-          dnode.setType(NodeType.DUMP.getType());
+        for (int k = 0; k < joinDependencies.size(); k++) {
+          dnode = createDependencyNode(joinDependencies.getJSONObject(k));
           pnode.addDependency(dnode);
         }
         topologyPojo.addNodeMeta(pnode);
+        repeatJudge.add(pnode);
       } else {
         throw new IllegalStateException("nodetype:" + nodetype + " is illegal");
       }
+
     }
+
+    if (!repeatJudge.isSuccess()) {
+
+      return;
+    }
+
     // 校验一下是否只有一个最终输出节点
     Collection<SqlTaskNodeMeta> finalNodes = topologyPojo.getFinalNodes().values();
     if (finalNodes.size() > 1) {
@@ -625,7 +590,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
     }
     Optional<ERRules> erRule = ERRules.getErRule(topologyPojo.getName());
-    this.setBizResult(context, new ERRulesStatus(erRule));
+    this.setBizResult(context, new ERRulesStatus(erRule), false);
     dbSaverCallback.execute(this, context, topologyName, topologyPojo);
     // 保存一个时间戳
     SqlTaskNodeMeta.persistence(topologyPojo, parent);
@@ -633,6 +598,16 @@ public class OfflineDatasourceAction extends BasicModule {
     // 备份之用
     FileUtils.write(new File(parent, topologyName + "_content.json"), content, getEncode(), false);
     this.addActionMessage(context, "'" + topologyName + "'保存成功");
+  }
+
+  public static DependencyNode createDependencyNode(JSONObject dep) {
+//    DependencyNode dnode = new DependencyNode();
+//    dnode.setId(dep.getString("value"));
+//    dnode.setName(dep.getString("label"));
+//    dnode.setType(NodeType.DUMP.getType());
+
+    return DependencyNode.create(dep.getString("value"), dep.getString("label"), NodeType.DUMP);
+
   }
 
   public static class ERRulesStatus {
@@ -781,24 +756,24 @@ public class OfflineDatasourceAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAFLOW_UPDATE)
   public void doSaveErRule(Context context) throws Exception {
-    com.alibaba.fastjson.JSONObject j = this.parseJsonPost();
+    JSONObject j = this.parseJsonPost();
     ERRules erRules = new ERRules();
     final String topology = j.getString("topologyName");
     if (StringUtils.isEmpty(topology)) {
       throw new IllegalArgumentException("param 'topology' can not be empty");
     }
     SqlDataFlowTopology df = SqlTaskNodeMeta.getSqlDataFlowTopology(topology);
-    com.alibaba.fastjson.JSONArray edges = j.getJSONArray("edges");
-    com.alibaba.fastjson.JSONArray nodes = j.getJSONArray("nodes");
-    com.alibaba.fastjson.JSONObject edge = null;
-    com.alibaba.fastjson.JSONObject sourceNode = null;
-    com.alibaba.fastjson.JSONObject targetNode = null;
-    com.alibaba.fastjson.JSONObject linkrule = null;
-    com.alibaba.fastjson.JSONArray linkKeyList = null;
-    com.alibaba.fastjson.JSONObject link = null;
-    com.alibaba.fastjson.JSONObject nodeTuple = null;
-    com.alibaba.fastjson.JSONObject node = null;
-    com.alibaba.fastjson.JSONObject ermeta = null;
+    JSONArray edges = j.getJSONArray("edges");
+    JSONArray nodes = j.getJSONArray("nodes");
+    JSONObject edge = null;
+    JSONObject sourceNode = null;
+    JSONObject targetNode = null;
+    JSONObject linkrule = null;
+    JSONArray linkKeyList = null;
+    JSONObject link = null;
+    JSONObject nodeTuple = null;
+    JSONObject node = null;
+    JSONObject ermeta = null;
     TableRelation erRelation = null;
     for (int i = 0; i < edges.size(); i++) {
       edge = edges.getJSONObject(i);
@@ -819,10 +794,10 @@ public class OfflineDatasourceAction extends BasicModule {
       }
       erRules.addRelation(erRelation);
     }
-    com.alibaba.fastjson.JSONObject nodeMeta = null;
-    com.alibaba.fastjson.JSONObject colTransfer = null;
+    JSONObject nodeMeta = null;
+    JSONObject colTransfer = null;
     DependencyNode dumpNode = null;
-    com.alibaba.fastjson.JSONArray columnTransferList = null;
+    JSONArray columnTransferList = null;
     TabExtraMeta tabMeta = null;
     String sharedKey = null;
     for (int index = 0; index < nodes.size(); index++) {
@@ -836,8 +811,8 @@ public class OfflineDatasourceAction extends BasicModule {
         if (tabMeta.isPrimaryIndexTab()) {
           sharedKey = ermeta.getString("sharedKey");
           tabMeta.setSharedKey(sharedKey);
-          com.alibaba.fastjson.JSONArray primaryIndexColumnNames = ermeta.getJSONArray("primaryIndexColumnNames");
-          com.alibaba.fastjson.JSONObject primaryIndex = null;
+          JSONArray primaryIndexColumnNames = ermeta.getJSONArray("primaryIndexColumnNames");
+          JSONObject primaryIndex = null;
           List<PrimaryLinkKey> names = Lists.newArrayList();
           PrimaryLinkKey plinkKey = null;
           for (int i = 0; i < primaryIndexColumnNames.size(); i++) {
@@ -910,8 +885,8 @@ public class OfflineDatasourceAction extends BasicModule {
     this.getWorkflowDAOFacade().getWorkFlowDAO().updateByExampleSelective(wf, wfCriteria);
   }
 
-  private String getTableName(com.alibaba.fastjson.JSONObject sourceNode) {
-    com.alibaba.fastjson.JSONObject nodeMeta = sourceNode.getJSONObject("nodeMeta");
+  private String getTableName(JSONObject sourceNode) {
+    JSONObject nodeMeta = sourceNode.getJSONObject("nodeMeta");
     return nodeMeta.getString("tabname");
   }
 
@@ -1161,8 +1136,8 @@ public class OfflineDatasourceAction extends BasicModule {
    * @throws IOException
    */
   public void doGetDsTabsVals(Context context) throws IOException {
-    com.alibaba.fastjson.JSONObject body = this.parseJsonPost();
-    com.alibaba.fastjson.JSONArray tabs = body.getJSONArray("tabs");
+    JSONObject body = this.parseJsonPost();
+    JSONArray tabs = body.getJSONArray("tabs");
     if (tabs == null) {
       throw new IllegalArgumentException("initialize Tabs can not be null");
     }
@@ -1177,7 +1152,7 @@ public class OfflineDatasourceAction extends BasicModule {
     List<ISelectedTab> allNewTabs = Lists.newArrayList();
     PluginFormProperties pluginFormPropertyTypes = null;
     Map<String, Object> bizResult = Maps.newHashMap();
-    Map<String, com.alibaba.fastjson.JSONObject> tabDesc = Maps.newHashMap();
+    Map<String, JSONObject> tabDesc = Maps.newHashMap();
     for (DataxReader reader : readers) {
       DescriptorsJSON desc2Json = new DescriptorsJSON(reader.getDescriptor());
       mapCols = selectedTabs.stream().collect(Collectors.toMap((tab) -> tab, (tab) -> {
@@ -1213,7 +1188,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
     bizResult.put("tabVals", pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
       @Override
-      public com.alibaba.fastjson.JSONObject visit(BaseSubFormProperties props) {
+      public JSONObject visit(BaseSubFormProperties props) {
         return props.createSubFormVals(
           allNewTabs.stream().map((t) -> (IdentityName) t).collect(Collectors.toList()));
       }
@@ -1222,7 +1197,7 @@ public class OfflineDatasourceAction extends BasicModule {
     this.setBizResult(context, bizResult);
   }
 
-  private UploadPluginMeta getPluginMeta(com.alibaba.fastjson.JSONObject body) {
+  private UploadPluginMeta getPluginMeta(JSONObject body) {
     String pluginName = body.getString("name");
     boolean require = body.getBooleanValue("require");
     String extraParam = body.getString("extraParam");
@@ -1322,16 +1297,16 @@ public class OfflineDatasourceAction extends BasicModule {
               if (fieldType == FormFieldType.SELECTABLE || fieldType == FormFieldType.ENUM) {
 
                 Object enumPp = pp.getExtraProps().get(Descriptor.KEY_ENUM_PROP);
-                com.alibaba.fastjson.JSONArray enums = null;
-                if (enumPp instanceof com.alibaba.fastjson.JSONArray) {
-                  enums = (com.alibaba.fastjson.JSONArray) enumPp;
+                JSONArray enums = null;
+                if (enumPp instanceof JSONArray) {
+                  enums = (JSONArray) enumPp;
                 } else if (enumPp instanceof JsonUtil.UnCacheString) {
-                  enums = ((JsonUtil.UnCacheString<com.alibaba.fastjson.JSONArray>) enumPp).getValue();
+                  enums = ((JsonUtil.UnCacheString<JSONArray>) enumPp).getValue();
                 } else {
                   throw new IllegalStateException("unsupport type:" + pp.getClass().getName());
                 }
                 for (int i = 0; i < enums.size(); i++) {
-                  com.alibaba.fastjson.JSONObject opt = enums.getJSONObject(i);
+                  JSONObject opt = enums.getJSONObject(i);
                   pp.setVal(plugin, opt.get(Option.KEY_VALUE));
                   continue ppDftValGetter;
                 }
@@ -1400,8 +1375,8 @@ public class OfflineDatasourceAction extends BasicModule {
     SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(topology);
     Map<String, DependencyNode> /** id */
       dumpNodes = wfTopology.getDumpNodes().stream().collect(Collectors.toMap((d) -> d.getId(), (d) -> d));
-    com.alibaba.fastjson.JSONArray sqlAry = this.parseJsonArrayPost();
-    com.alibaba.fastjson.JSONObject j = null;
+    JSONArray sqlAry = this.parseJsonArrayPost();
+    JSONObject j = null;
 
     List<SqlCols> colsMeta = Lists.newArrayList();
     SqlCols sqlCols = null;
@@ -1485,7 +1460,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
   @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT, sideEffect = false)
   public void doGetDsRelevantReaderDesc(Context context) {
-    com.alibaba.fastjson.JSONObject form = this.parseJsonPost();
+    JSONObject form = this.parseJsonPost();
     Integer dbId = form.getInteger("dbId");
     if (dbId == null) {
       throw new IllegalStateException("dbId can not be null");
@@ -1535,7 +1510,7 @@ public class OfflineDatasourceAction extends BasicModule {
    */
   @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT, sideEffect = false)
   public void doCheckTableLogicNameRepeat(Context context) {
-    com.alibaba.fastjson.JSONObject form = this.parseJsonPost();
+    JSONObject form = this.parseJsonPost();
     this.errorsPageShow(context);
     boolean updateMode = !form.getBoolean("isAdd");
     // 物理表

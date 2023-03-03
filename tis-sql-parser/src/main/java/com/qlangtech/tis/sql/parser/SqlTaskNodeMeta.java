@@ -146,7 +146,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
      * @param dependencyNodes
      * @return
      */
-    public static Optional<TisSqlFormatException> validateSql(String sql, List<String> dependencyNodes) {
+    public static Optional<TisSqlFormatException> validateSql(String sql, List<DependencyNode> dependencyNodes) {
         //Optional<TisSqlFormatException> result  = Optional.empty();
         SqlTaskNodeMeta taskNodeMeta = new SqlTaskNodeMeta();
         // 这个sql语句有错误，需要校验成错误，抛异常
@@ -158,7 +158,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         try {
             String pt = "20200703113848";
             ITabPartition p = () -> pt;
-            Map<IDumpTable, ITabPartition> tabPartition = dependencyNodes.stream().collect(Collectors.toMap((r) -> EntityName.parse(r), (r) -> p));
+            Map<IDumpTable, ITabPartition> tabPartition = dependencyNodes.stream().collect(Collectors.toMap((r) -> EntityName.parse(r.getName()), (r) -> p));
 
             taskNodeMeta.getRewriteSql("testTaskName", new MockDumpPartition(tabPartition), new IPrimaryTabFinder() {
                 @Override
@@ -370,7 +370,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         } catch (TisSqlFormatException e) {
             throw e;
         } catch (Exception e) {
-            String dp = dumpPartition.toString(); //dumpPartition.entrySet().stream().map((ee) -> "[" + ee.getKey() + "->" + ee.getValue().getPt() + "]").collect(Collectors.joining(","));
+            String dp = dumpPartition.toString();
             throw new IllegalStateException("task:" + taskName + ",isfinalNode:" + isFinalNode + ",dump tabs pt:" + dp + "\n" + e.getMessage(), e);
         }
         SqlRewriter.AliasTable primaryTable = rewriter.getPrimayTable();
@@ -1119,4 +1119,31 @@ public class SqlTaskNodeMeta implements ISqlTask {
         }
     }
 
+//    /**
+//     * @author: 百岁（baisui@qlangtech.com）
+//     * @create: 2023-03-02 13:39
+//     **/
+//    public static class DependNode {
+//        private final String id;
+//        private final String name;
+//
+//        public DependNode(String id, String name) {
+//            if (org.apache.commons.lang3.StringUtils.isEmpty(id)) {
+//                throw new IllegalArgumentException("param id can not be null");
+//            }
+//            if (org.apache.commons.lang3.StringUtils.isEmpty(name)) {
+//                throw new IllegalArgumentException("param name can not be null");
+//            }
+//            this.id = id;
+//            this.name = name;
+//        }
+//
+//        public String getId() {
+//            return this.id;
+//        }
+//
+//        public String getName() {
+//            return this.name;
+//        }
+//    }
 }

@@ -64,7 +64,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
 
     public void testValidateSql() {
 
-        List<String> dependencyNodes = Lists.newArrayList();
+        List<DependencyNode> dependencyNodes = Lists.newArrayList();
 
         // 这个sql语句有错误，需要校验成错误，抛异常
         Optional<TisSqlFormatException> err = SqlTaskNodeMeta.validateSql("    SELECT g.id,g.entity_id,g.commodity_id,gg.goods_id\n" +
@@ -80,7 +80,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
      */
     public void testValidateSql2() {
 
-        List<String> dependencyNodes = Lists.newArrayList();
+        List<DependencyNode> dependencyNodes = Lists.newArrayList();
 
         // 这个sql语句有错误，需要校验成错误，抛异常
         Optional<TisSqlFormatException> err = SqlTaskNodeMeta.validateSql("    SELECT g.id,g.entity_id,g.commodity_id,g.goods_id\n" +
@@ -90,7 +90,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
 
         assertEquals("commodity_goods can not find tab in[]", err.get().summary());
 
-        dependencyNodes.add("commodity_goods");
+        dependencyNodes.add(DependencyNode.create("123456", "commodity_goods", NodeType.DUMP));
         err = SqlTaskNodeMeta.validateSql("    SELECT g.id,g.entity_id,g.commodity_id,g.goods_id\n" +
                 "     FROM commodity_goods g", dependencyNodes);
         assertFalse(err.isPresent());

@@ -1041,8 +1041,8 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   @Override
-  public void setBizResult(Context context, Object result) {
-    messageHandler.setBizResult(context, result);
+  public void setBizResult(Context context, Object result, boolean overwriteable) {
+    messageHandler.setBizResult(context, result, overwriteable);
   }
 
   protected boolean hasErrors(Context context) {

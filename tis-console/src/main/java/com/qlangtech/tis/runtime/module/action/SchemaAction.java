@@ -977,8 +977,8 @@ public class SchemaAction extends BasicModule {
         }
 
         @Override
-        public void setBizResult(Context context, Object result) {
-          SchemaAction.this.setBizResult(context, result);
+        public void setBizResult(Context context, Object result, boolean overwriteable) {
+          SchemaAction.this.setBizResult(context, result, overwriteable);
         }
 
         @Override

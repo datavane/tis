@@ -751,17 +751,23 @@ public final class SqlFormatter {
                 builder.append(' ').append(formatExpression(node.getAlias().get(), parameters));
                 colMeta = new ColMeta(String.valueOf(node.getAlias().get()), DataType.createVarChar(256), false);
             } else {
-
+                Expression express = node.getExpression();
                 final String colName = (new AstVisitor<String, Void>() {
                     @Override
                     protected String visitDereferenceExpression(DereferenceExpression node, Void context) {
                         return this.visitIdentifier(node.getField(), context);
                     }
+
                     @Override
                     protected String visitIdentifier(Identifier node, Void context) {
                         return String.valueOf(node);
                     }
-                }).process(node.getExpression());
+                }).process(express);
+
+                if (StringUtils.isEmpty(colName)) {
+                    throw new TisSqlFormatException("列引用非法,"
+                            + express + "，须使用格式如：'xxx as ccc'"  , express.getLocation());
+                }
 
                 colMeta = new ColMeta(colName, DataType.createVarChar(256), false);
             }
