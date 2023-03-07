@@ -58,7 +58,7 @@ public class TisApp {
         }
 
         // 启动应用使用本地8080端口
-        TisApp tisApp = new TisApp(TisAppLaunch.getPort(TisSubModule.WEB_START), (context) -> {
+        TisApp tisApp = new TisApp((TisSubModule.WEB_START.getLaunchPort()), (context) -> {
             context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
             context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
         });
@@ -67,13 +67,13 @@ public class TisApp {
 
     public TisApp(TisSubModule subModule, IWebAppContextCollector webAppContextCollector) throws Exception {
         super();
-        this.jetty = new JettyTISRunner(TisAppLaunch.getPort(subModule), webAppContextCollector);
+        this.jetty = new JettyTISRunner((subModule.getLaunchPort()), webAppContextCollector);
     }
 
 
     public TisApp(TisSubModule subModule, IWebAppContextSetter contextSetter) throws Exception {
         super();
-        this.jetty = new JettyTISRunner(subModule.servletContext, TisAppLaunch.getPort(subModule), contextSetter);
+        this.jetty = new JettyTISRunner(subModule.servletContext, (subModule.getLaunchPort()), contextSetter);
     }
 
     public TisApp(int port, IWebAppContextSetter contextSetter) throws Exception {
@@ -103,13 +103,16 @@ public class TisApp {
             }
         }
 
-        if (TisAppLaunch.get().isZeppelinActive()) {
+        if (TisAppLaunch.get().isZeppelinHomeSetted()) {
             contextDir = new File(root, TisSubModule.ZEPPELIN.moduleName);
-            if (!contextDir.exists()) {
-                throw new IllegalStateException(
-                        "zeppelin is active but context dir is not exist:" + contextDir.getAbsolutePath());
+//            if (!contextDir.exists()) {
+//                throw new IllegalStateException(
+//                        "zeppelin is active but context dir is not exist:" + contextDir.getAbsolutePath());
+//            }
+            if (contextDir.exists()) {
+                this.initZeppelinContext(contextDir);
+                TisAppLaunch.get().setZeppelinContextInitialized();
             }
-            this.initZeppelinContext(contextDir);
         }
 
         // '/' root 的handler必须要最后添加

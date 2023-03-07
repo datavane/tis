@@ -458,7 +458,7 @@ public class CoreAction extends BasicModule {
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     incrStatus.setState(IFlinkIncrJobStatus.State.NONE);
     IDataxProcessor dataxProcessor = DataxProcessor.load(null, appName);
-    DataxWriter writer = (DataxWriter) dataxProcessor.getWriter(null,true);
+    DataxWriter writer = (DataxWriter) dataxProcessor.getWriter(null, true);
     incrStatus.setWriterDesc(createDescVals(writer.getDescriptor()));
 
     DataxReader reader = (DataxReader) dataxProcessor.getReader(null);
@@ -542,7 +542,7 @@ public class CoreAction extends BasicModule {
       this.setBizResult(context, incrStatus);
     } catch (Exception ex) {
       logger.append("an error occur:" + ex.getMessage());
-      throw new TisException(ex.getMessage(), ex);
+      throw TisException.create(ex.getMessage(), ex);
     } finally {
       log.info(logger.toString());
     }
@@ -796,7 +796,7 @@ public class CoreAction extends BasicModule {
         ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
         true);
     return "http://" + StringUtils.substringBefore(incrStateCollectAddress, ":")
-      + ":" + TisAppLaunch.getPort(TisSubModule.TIS_ASSEMBLE) + TisSubModule.TIS_ASSEMBLE.servletContext;
+      + ":" + (TisSubModule.TIS_ASSEMBLE.getLaunchPort()) + TisSubModule.TIS_ASSEMBLE.servletContext;
   }
 
   public static class TriggerBuildResult {

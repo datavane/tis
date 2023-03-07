@@ -26,6 +26,7 @@ import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.lang.TisException;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang.StringUtils;
@@ -106,7 +107,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         } catch (TisException e) {
             throw e;
         } catch (Exception e) {
-            throw new TisException(e.getMessage() + ",jdbcUrl:" + jdbcUrl, e);
+            throw  TisException.create(e.getMessage() + ",jdbcUrl:" + jdbcUrl, e);
         } finally {
             if (conn != null) {
                 try {
@@ -347,7 +348,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         void vist(JDBCConnection conn) throws SQLException, TableNotFoundException;
     }
 
-    public abstract static class BaseDataSourceFactoryDescriptor<T extends DataSourceFactory> extends Descriptor<T> {
+    public abstract static class BaseDataSourceFactoryDescriptor<T extends DataSourceFactory> extends Descriptor<T>
+            implements IEndTypeGetter {
         private static final Logger logger = LoggerFactory.getLogger(BaseDataSourceFactoryDescriptor.class);
 
         @Override
@@ -367,6 +369,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         @Override
         public final Map<String, Object> getExtractProps() {
             Map<String, Object> eprops = super.getExtractProps();
+            eprops.put(KEY_END_TYPE , this.getEndType().getVal() ) ;
             eprops.put("supportFacade", this.supportFacade());
             eprops.put("facadeSourceTypes", this.facadeSourceTypes());
             Optional<String> dataXReaderDesc = this.getDefaultDataXReaderDescName();

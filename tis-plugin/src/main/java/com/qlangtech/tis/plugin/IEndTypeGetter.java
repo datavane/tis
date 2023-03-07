@@ -18,11 +18,18 @@
 
 package com.qlangtech.tis.plugin;
 
+import java.util.Set;
+
 /**
+ * 端类型
+ *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-09-08 11:22
+ * @create: 2023-03-05 10:13
  **/
 public interface IEndTypeGetter {
+
+    String KEY_END_TYPE = "endType";
+
     public static void main(String[] args) {
         for (EndType value : EndType.values()) {
             System.out.print(value.val + ",");
@@ -30,56 +37,11 @@ public interface IEndTypeGetter {
     }
 
     /**
-     * 是否支持增量执行
-     *
-     * @return
-     */
-    default boolean isSupportIncr() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
      * 取得数据端类型
      *
      * @return
      */
-    EndType getEndType();
-
-    /**
-     * 供应商
-     *
-     * @return
-     */
-    PluginVender getVender();
-
-
-    enum PluginVender {
-        FLINK_CDC("FlinkCDC", "flink-cdc", "https://ververica.github.io/flink-cdc-connectors") //
-        , CHUNJUN("Chunjun", "chunjun", "https://dtstack.github.io/chunjun") //
-        , TIS("TIS", "tis", "https://github.com/qlangtech/tis") //
-        , DATAX("DataX", "datax", "https://github.com/alibaba/DataX");
-        final String name;
-        final String tokenId;
-        final String url;
-
-        private PluginVender(String name, String tokenId, String url) {
-            this.name = name;
-            this.tokenId = tokenId;
-            this.url = url;
-        }
-
-        public String getTokenId() {
-            return this.tokenId;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-    }
+    IDataXEndTypeGetter.EndType getEndType();
 
     /**
      * 端类型
@@ -89,8 +51,19 @@ public interface IEndTypeGetter {
         , ElasticSearch("es"), MongoDB("mongoDB"), StarRocks("starRocks"), Doris("doris") //
         , Clickhouse("clickhouse"), Hudi("hudi"), AliyunOSS("aliyunOSS"), FTP("ftp") //
         , Cassandra("cassandra"), HDFS("hdfs"), SqlServer("sqlServer"), TiDB("TiDB") //
-        , RocketMQ("rocketMq"), Kafka("kafka"), DataFlow("dataflow"), AliyunODPS("aliyunOdps");
+        , RocketMQ("rocketMq"), Kafka("kafka"), DataFlow("dataflow"), AliyunODPS("aliyunOdps")
+        , HiveMetaStore("hms");
         private final String val;
+
+        public static EndType parse(String endType) {
+            for (EndType end : EndType.values()) {
+                if (end.val.equals(endType)) {
+                    return end;
+                }
+            }
+            throw new IllegalStateException("illegal endType:" + endType);
+        }
+
 
         EndType(String val) {
             this.val = val;
@@ -98,6 +71,10 @@ public interface IEndTypeGetter {
 
         public String getVal() {
             return this.val;
+        }
+
+        public boolean containIn(Set<String> endTypes) {
+            return endTypes.contains(this.getVal());
         }
     }
 }

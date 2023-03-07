@@ -45,6 +45,7 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -71,6 +72,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -314,6 +316,7 @@ public class PluginAction extends BasicModule {
     UpdateSite.Plugin info = null;
     for (PluginWrapper plugin : pluginManager.getPlugins()) {
 
+
       pluginInfo = new JSONObject();
       pluginInfo.put("installed", true);
       info = plugin.getInfo();
@@ -334,7 +337,7 @@ public class PluginAction extends BasicModule {
         pluginInfo.put("extendPoints", info.extendPoints);
       }
 
-      if (filterPlugin(plugin)) {
+      if (filterPlugin(plugin, info)) {
         continue;
       }
 
@@ -369,8 +372,18 @@ public class PluginAction extends BasicModule {
     this.setBizResult(context, response);
   }
 
-  private boolean filterPlugin(PluginWrapper plugin) {
-    return filterPlugin(plugin.getDisplayName(), (plugin.getInfo() != null ? plugin.getInfo().excerpt : null));
+  /**
+   * @param plugin
+   * @param info
+   * @return true 就直接过滤掉了
+   */
+  private boolean filterPlugin(PluginWrapper plugin, UpdateSite.Plugin info) {
+    Predicate<UpdateSite.Plugin> endTypeMatcher = getEndTypeMatcher();
+    boolean collect = endTypeMatcher.test(info);
+    if (!collect) {
+      return true;
+    }
+    return filterPlugin(plugin.getDisplayName(), (info != null ? info.excerpt : null));
   }
 
   private boolean filterPlugin(String title, String excerpt) {
@@ -522,6 +535,7 @@ public class PluginAction extends BasicModule {
    */
   public void doGetAvailablePlugins(Context context) throws Exception {
 
+
     List<String> extendpoint = getExtendpointParam();
     Pager pager = this.createPager();
     pager.setTotalCount(Integer.MAX_VALUE);
@@ -542,9 +556,12 @@ public class PluginAction extends BasicModule {
     }
 
     if (CollectionUtils.isNotEmpty(extendpoint)) {
+
+      Predicate<UpdateSite.Plugin> endTypeMatcher = getEndTypeMatcher();
+
       availables = availables.stream().filter((plugin) -> {
         return CollectionUtils.containsAny(plugin.extendPoints.keySet(), extendpoint);
-      }).collect(Collectors.toList());
+      }).filter(endTypeMatcher).collect(Collectors.toList());
     }
 
     if (CollectionUtils.isNotEmpty(this.getQueryPluginParam())) {
@@ -554,6 +571,19 @@ public class PluginAction extends BasicModule {
     }
 
     this.setBizResult(context, new PaginationResult(pager, availables));
+  }
+
+  public Predicate<UpdateSite.Plugin> getEndTypeMatcher() {
+    final String endType = this.getString(IEndTypeGetter.KEY_END_TYPE);
+    return (plugin) -> {
+      if (StringUtils.isEmpty(endType)) {
+        // 需要，将会收集
+        return true;
+      } else {
+        IEndTypeGetter.EndType targetEndType = IEndTypeGetter.EndType.parse(endType);
+        return targetEndType.containIn(plugin.endTypes);
+      }
+    };
   }
 
   private List<String> getExtendpointParam() {

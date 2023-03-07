@@ -58,6 +58,11 @@ public class ZeppelinServerLauncher implements IWebAppContextCollector {
                 ImmediateErrorHandlerImpl.class);
         this.handler = sharedServiceLocator.getService(ImmediateErrorHandlerImpl.class);
 
+        if (!ZeppelinServer.WEB_APP_CONTEXT_NEXT.equals(TisSubModule.ZEPPELIN.servletContext)) {
+            throw new IllegalStateException("ZeppelinServer.WEB_APP_CONTEXT_NEXT:"
+                    + ZeppelinServer.WEB_APP_CONTEXT_NEXT + " must be equal with TisSubModule.ZEPPELIN.servletContext:" + TisSubModule.ZEPPELIN.servletContext);
+        }
+
         try {
             ZeppelinServer.addWebContext(conf, sharedServiceLocator, null, contexts, null);
         } catch (InterruptedException e) {
@@ -98,6 +103,7 @@ public class ZeppelinServerLauncher implements IWebAppContextCollector {
         TisAppLaunch.setTest(true);
         TisApp app = new TisApp(TisSubModule.ZEPPELIN, zeppelinServer);
         System.out.println("start");
+        TisAppLaunch.get().setZeppelinContextInitialized();
         app.start(args);
 
     }

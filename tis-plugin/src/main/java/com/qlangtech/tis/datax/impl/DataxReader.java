@@ -274,7 +274,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         return (Class<TT>) BaseDataxReaderDescriptor.class;
     }
 
-    public static abstract class BaseDataxReaderDescriptor extends Descriptor<DataxReader> implements IEndTypeGetter {
+    public static abstract class BaseDataxReaderDescriptor extends Descriptor<DataxReader> implements IDataXEndTypeGetter {
         @Override
         public PluginFormProperties getPluginFormPropertyTypes(Optional<IPropertyType.SubFormFilter> subFormFilter) {
             IPropertyType.SubFormFilter filter = null;
@@ -299,8 +299,8 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         public final Map<String, Object> getExtractProps() {
             Map<String, Object> eprops = super.getExtractProps();
             eprops.put("rdbms", this.isRdbms());
-            eprops.put("supportIncr", this.isSupportIncr());
-            eprops.put("endType", this.getEndType().getVal());
+            eprops.put(KEY_SUPPORT_INCR, this.isSupportIncr());
+            eprops.put(KEY_END_TYPE, this.getEndType().getVal());
             return eprops;
         }
 

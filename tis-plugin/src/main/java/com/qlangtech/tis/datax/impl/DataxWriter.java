@@ -26,7 +26,7 @@ import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
-import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
@@ -199,7 +199,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
     }
 
 
-    public static abstract class BaseDataxWriterDescriptor extends Descriptor<DataxWriter> implements IEndTypeGetter {
+    public static abstract class BaseDataxWriterDescriptor extends Descriptor<DataxWriter> implements IDataXEndTypeGetter {
 
         @Override
         public PluginVender getVender() {
@@ -212,10 +212,8 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
             eprops.put("supportMultiTable", this.isSupportMultiTable());
             eprops.put("rdbms", this.isRdbms());
             eprops.put("createDDL", this.isSupportTabCreate());
-            eprops.put("supportIncr", this.isSupportIncr());
-            // if (this.getEndType() != null) {
-            eprops.put("endType", this.getEndType().getVal());
-            //}
+            eprops.put(KEY_SUPPORT_INCR, this.isSupportIncr());
+            eprops.put(KEY_END_TYPE, this.getEndType().getVal());
             return eprops;
         }
 

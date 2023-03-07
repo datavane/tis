@@ -19,6 +19,7 @@
 package com.qlangtech.tis.web.start;
 
 import java.io.File;
+import java.util.Objects;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -29,12 +30,17 @@ public class TisAppLaunch {
     public static final String KEY_ASSEMBLE_TASK_DIR = "assemble.task.dir";
     public static final String KEY_LOG_DIR = "log.dir";
     private static boolean test = false;
-    private final Integer launchPort;
+    public  final Integer launchPort;
     private static final String logDir;
+
+    // 运行模式
+    private TisRunMode runMode;
+
     /**
      * Zeppelin 是否被激活
      */
-    private final boolean zeppelinActive;
+    private final boolean zeppelinHomeSetted;
+    private boolean zeppelinContextInitialized;
     private final File zeppelinHome;
 
     static {
@@ -55,27 +61,51 @@ public class TisAppLaunch {
         }
         this.launchPort = Integer.parseInt(System.getProperty(KEY_TIS_LAUNCH_PORT, "8080"));
         String zeppelinHome = System.getenv("ZEPPELIN_HOME");
-        this.zeppelinActive = zeppelinHome != null;
-        this.zeppelinHome = (this.zeppelinActive) ? new File(zeppelinHome) : null;
-        if (this.zeppelinActive) {
+        this.zeppelinHomeSetted = zeppelinHome != null;
+        this.zeppelinHome = (this.zeppelinHomeSetted) ? new File(zeppelinHome) : null;
+        if (this.zeppelinHomeSetted) {
             if (!this.zeppelinHome.exists() || !this.zeppelinHome.isDirectory()) {
                 throw new IllegalStateException("zeppelinHome is not valid:" + this.zeppelinHome.getAbsolutePath());
             }
         }
     }
 
+    public void setRunMode(TisRunMode runMode) {
+        this.runMode = runMode;
+    }
+
+    public TisRunMode getRunMode() {
+        if (this.runMode == null && isTestMock()) {
+            this.runMode = TisRunMode.LocalTest;
+        }
+        return Objects.requireNonNull(this.runMode, "runMode can not be null");
+    }
+
+    public void setZeppelinContextInitialized() {
+        this.zeppelinContextInitialized = true;
+    }
+
     public File getZeppelinHome() {
         return this.zeppelinHome;
     }
 
-    public boolean isZeppelinActive() {
-        return this.zeppelinActive;
+    public boolean isZeppelinHomeSetted() {
+        return this.zeppelinHomeSetted;
     }
 
-    public static int getPort(TisSubModule context) {
-        TisAppLaunch i = get();
-        return i.launchPort + context.portOffset;
+    /**
+     * zeppelin 在TIS中是否可用？
+     *
+     * @return
+     */
+    public boolean isZeppelinActivate() {
+        return this.isZeppelinHomeSetted() && this.zeppelinContextInitialized;
     }
+
+//    public static int getPort(TisSubModule context) {
+//        TisAppLaunch i = get();
+//        return i.launchPort + context.portOffset;
+//    }
 
     public static TisAppLaunch get() {
         if (instance == null) {

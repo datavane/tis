@@ -191,7 +191,7 @@ public class Config {
         pairs.put(KEY_TIS_DATASOURCE_DBNAME, dbCfg.dbname);
         pairs.put(KEY_DEPLOY_MODE, this.deployMode);
         pairs.put(TisAppLaunch.KEY_LOG_DIR, TisAppLaunch.getLogDir().getAbsolutePath());
-        pairs.put(TisAppLaunch.KEY_TIS_LAUNCH_PORT, String.valueOf(TisAppLaunch.getPort(TisSubModule.TIS_CONSOLE)));
+        pairs.put(TisAppLaunch.KEY_TIS_LAUNCH_PORT, String.valueOf(TisSubModule.TIS_CONSOLE.getLaunchPort()));
         return pairs;
     }
 
@@ -328,7 +328,7 @@ public class Config {
         } else {
             threadContext.remove();
         }
-        return "http://" + tisHost + ":" + TisAppLaunch.getPort(TisSubModule.TIS_CONSOLE) + TisSubModule.TIS_CONSOLE.servletContext;
+        return "http://" + tisHost + ":" + (TisSubModule.TIS_CONSOLE.getLaunchPort()) + TisSubModule.TIS_CONSOLE.servletContext;
     }
 
     public static String getTisHost() {
@@ -341,7 +341,7 @@ public class Config {
 
     public static String getAssembleHttpHost() {
         return "http://" + getAssembleHost()
-                + ":" + TisAppLaunch.getPort(TisSubModule.TIS_ASSEMBLE) + TisSubModule.TIS_ASSEMBLE.servletContext;
+                + ":" + (TisSubModule.TIS_ASSEMBLE.getLaunchPort()) + TisSubModule.TIS_ASSEMBLE.servletContext;
     }
 
     public static TisDbConfig getDbCfg() {

@@ -26,11 +26,11 @@ import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IPluginVenderGetter;
 import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
 import com.qlangtech.tis.plugin.incr.IIncrSelectedTabExtendFactory;
 import com.qlangtech.tis.util.HeteroEnum;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -85,25 +85,18 @@ public abstract class MQListenerFactory
         throw new UnsupportedOperationException();
     }
 
-    public static abstract class BaseDescriptor extends Descriptor<MQListenerFactory> implements IEndTypeGetter {
+    public static abstract class BaseDescriptor extends Descriptor<MQListenerFactory> implements IPluginVenderGetter {
 
         @Override
         public final Map<String, Object> getExtractProps() {
             Map<String, Object> eprops = super.getExtractProps();
-            Optional<EndType> targetType = this.getTargetType();
+            Optional<IEndTypeGetter.EndType> targetType = this.getTargetType();
+            eprops.put(KEY_END_TYPE, this.getEndType());
             eprops.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.isPresent() ? targetType.get().getVal() : "all");
             eprops.put(IIncrSelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP
                     , (this instanceof IIncrSelectedTabExtendFactory) && (((IIncrSelectedTabExtendFactory) this).getSelectedTableExtendDescriptor() != null));
             return eprops;
         }
-
-//        protected Boolean isExtendSelectedTabProp() {
-//            return false;
-//        }
-//        @Override
-//        public IDataXPluginMeta.EndType getEndType() {
-//            return null;
-//        }
 
         /**
          * 取得服务对象，如果这个Plugin是MySqlCDC的话,则返回 EndType.MySQL, 如果全部匹配的话，则返回empty

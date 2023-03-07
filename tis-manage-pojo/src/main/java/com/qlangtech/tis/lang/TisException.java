@@ -72,12 +72,25 @@ public class TisException extends RuntimeException {
         return last;
     }
 
-    public TisException(String message, Throwable cause) {
+    private TisException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public TisException(String message) {
+    private TisException(String message) {
         super(message);
+    }
+
+
+    public static TisException create(String message, Throwable cause) {
+        if (cause instanceof TisException) {
+            return (TisException) cause;
+        } else {
+            return new TisException(message, cause);
+        }
+    }
+
+    public static TisException create(String message) {
+        return new TisException(message);
     }
 
 

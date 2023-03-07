@@ -125,7 +125,7 @@ public class PluginAndCfgsSnapshot {
         }
         logger.info("sysProps details:" + sysPropsDesc.toString());
         // shall not have any exception here.
-        TisAppLaunch.getPort(TisSubModule.TIS_CONSOLE);
+        TisSubModule.TIS_CONSOLE.getLaunchPort();
         Config.getInstance();
 
         //}

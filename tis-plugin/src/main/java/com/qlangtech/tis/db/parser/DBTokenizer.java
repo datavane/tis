@@ -75,7 +75,8 @@ public class DBTokenizer {
             if (matcher.find()) {
                 // System.out.println(matcher.group());
                 if (recognizer.isOutputToken()) {
-                    content = recognizer.getToken().getGourpIndex() > 0 ? matcher.group(recognizer.getToken().getGourpIndex()) : matcher.group();
+                    content = recognizer.getToken().getGourpIndex() > 0
+                            ? matcher.group(recognizer.getToken().getGourpIndex()) : matcher.group();
                     tokenList.add(new Token(recognizer.getToken(), content));
                 }
                 tokenMatch = true;

@@ -181,7 +181,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         Map<String, Object> props = new HashMap<>();
         Map<String, Boolean> notebook = new HashMap<>();
         notebook.put("ability", (this instanceof INotebookable));
-        notebook.put("activate", TisAppLaunch.get().isZeppelinActive());
+        notebook.put("activate", TisAppLaunch.get().isZeppelinActivate());
         props.put("notebook", notebook);
         return props;
     }

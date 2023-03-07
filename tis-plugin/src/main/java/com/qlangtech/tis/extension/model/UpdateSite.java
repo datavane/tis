@@ -36,10 +36,8 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.Util;
-//import edu.umd.cs.findbugs.annotations.CheckForNull;
-//import edu.umd.cs.findbugs.annotations.NonNull;
-//import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -64,6 +62,14 @@ import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.util.MemoryReductionUtil.*;
+
+//import edu.umd.cs.findbugs.annotations.CheckForNull;
+//import edu.umd.cs.findbugs.annotations.NonNull;
+//import edu.umd.cs.findbugs.annotations.Nullable;
+
+//import edu.umd.cs.findbugs.annotations.CheckForNull;
+//import edu.umd.cs.findbugs.annotations.NonNull;
+//import edu.umd.cs.findbugs.annotations.Nullable;
 
 
 //import edu.umd.cs.findbugs.annotations.NonNull;
@@ -330,19 +336,19 @@ public class UpdateSite {
         /**
          * First version in this version range to be subject to the warning.
          */
-       // @Nullable
+        // @Nullable
         public final String firstVersion;
 
         /**
          * Last version in this version range to be subject to the warning.
          */
-       // @Nullable
+        // @Nullable
         public final String lastVersion;
 
         /**
          * Regular expression pattern for this version range that matches all included version numbers.
          */
-       // @NonNull
+        // @NonNull
         private final Pattern pattern;
 
         public WarningVersionRange(JSONObject o) {
@@ -410,6 +416,7 @@ public class UpdateSite {
          */
         private final Map<String, String> dependencies;
 
+
         public List<Option> getDependencies() {
             Option opt = null;
             List<Option> opts = Lists.newArrayList();
@@ -450,6 +457,9 @@ public class UpdateSite {
 
         public final Map<String, List<String>> extendPoints;
 
+        public final Set<String> endTypes;
+
+
         /**
          * The latest existing version of this plugin. May be different from the version being offered by the
          * update site, which will result in a notice on the UI.
@@ -467,6 +477,12 @@ public class UpdateSite {
             this.latest = get(o, "latest");
             this.requiredCore = Util.intern(get(o, "requiredCore"));
             this.releaseTimestamp = o.getLongValue("buildDate");
+
+            JSONArray endTypes = o.getJSONArray("endTypes");
+            if (endTypes == null) {
+                throw new IllegalStateException(JsonUtil.toString(o) + " lack relevant property endTypes");
+            }
+            this.endTypes = endTypes.stream().map((e) -> (String) e).collect(Collectors.toSet());
 
             JSONObject extendPoints = o.getJSONObject("extendPoints");
             this.extendPoints = Maps.newHashMap();

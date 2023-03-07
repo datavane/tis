@@ -611,7 +611,7 @@ public class DataxAction extends BasicModule {
 
     IDataxWriter writer = dataxProcessor.getWriter(this, true);
     if (writer.isGenerateCreateDDLSwitchOff()) {
-      throw new TisException("自动生成Create Table DDL已经关闭，请先打开再使用");
+      throw TisException.create("自动生成Create Table DDL已经关闭，请先打开再使用");
     }
     DataxWriter.BaseDataxWriterDescriptor writerDesc = writer.getWriterDescriptor();
     if (!writerDesc.isSupportTabCreate()) {
@@ -664,8 +664,9 @@ public class DataxAction extends BasicModule {
     ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
     IDataxProcessor old = (IDataxProcessor) pmodel.loadDataXProcessor(null, dataxName);
 
-   // DataxProcessor old = DataxProcessor.load(null, dataxName);
-    IDataxProcessor editting = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataxName);;
+    // DataxProcessor old = DataxProcessor.load(null, dataxName);
+    IDataxProcessor editting = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataxName);
+    ;
     File oldWorkDir = old.getDataXWorkDir((IPluginContext) null);
     File edittingDir = editting.getDataXWorkDir((IPluginContext) this);
 

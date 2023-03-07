@@ -69,7 +69,7 @@ public interface ISchema {
         if (pks.size() < 1) {
             errlist.add("请为当前schema定义主键（PK）");
         } else if (pks.size() > 1) {
-            throw new TisException("can not define more than 1 pks:" + pks.stream().collect(Collectors.joining(",")));
+            throw TisException.create("can not define more than 1 pks:" + pks.stream().collect(Collectors.joining(",")));
         }
         return errlist;
     }

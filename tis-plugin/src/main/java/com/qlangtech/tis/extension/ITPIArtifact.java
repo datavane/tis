@@ -104,13 +104,7 @@ public interface ITPIArtifact {
 
         PluginClassifier.validate(b.getRequiredFrom(), b.getIdentityName(), ca, ba);
 
-//        if (ca.isPresent() ^ ba.isPresent()) {
-//            if (ca.isPresent()) {
-//                throw new IllegalStateException("required from " + b.getRequiredFrom() + " for " + b.getIdentityName()
-//                        + " of Candidate classifier present status:"
-//                        + ca.isPresent() + " must same with Owner classifier prestent status:" + ba.isPresent());
-//            }
-//        }
+
 
         if (ca.isPresent()) {
             PluginClassifier candidateClassifier = ca.get();
