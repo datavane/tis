@@ -34,6 +34,7 @@ public class DataXJobInfo {
 
     private static final String FILENAME_SPLIT_CHAR = "/";
     private static final String TAB_SPLIT_CHAR = ",";
+    private static DataXJobInfo currJobInfo;
 
 
     public final String jobFileName;
@@ -41,7 +42,7 @@ public class DataXJobInfo {
      * 对应的分表集合
      */
     private final Optional<String[]> targetTableNames;
-    private static DataXJobInfo currJobInfo;
+
     private final DBIdentity dbFactoryId;
 
     public static DataXJobInfo parse(String jobInfo) {

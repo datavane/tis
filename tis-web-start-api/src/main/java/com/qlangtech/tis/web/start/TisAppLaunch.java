@@ -99,7 +99,9 @@ public class TisAppLaunch {
      * @return
      */
     public boolean isZeppelinActivate() {
-        return this.isZeppelinHomeSetted() && this.zeppelinContextInitialized;
+
+
+        return this.isZeppelinHomeSetted() && this.getRunMode().zeppelinContextInitialized.get();
     }
 
 //    public static int getPort(TisSubModule context) {

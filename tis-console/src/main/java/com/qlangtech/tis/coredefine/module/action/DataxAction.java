@@ -104,8 +104,8 @@ public class DataxAction extends BasicModule {
 
     List<HttpUtils.PostParam> params = Lists.newArrayList();
     params.add(new HttpUtils.PostParam(CoreAction.KEY_APPNAME, this.getCollectionName()));
-    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getName()));
-    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.JOIN.getName()));
+//    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getName()));
+//    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.JOIN.getName()));
 
     this.setBizResult(context, CoreAction.triggerBuild(this, context, params));
   }
@@ -552,7 +552,7 @@ public class DataxAction extends BasicModule {
     }
     RunContext runContext = BasicServlet.getBeanByType(ServletActionContext.getServletContext(), RunContext.class);
     Objects.requireNonNull(runContext, "runContext can not be null");
-    return BasicModule.getDptList(runContext, new IDepartmentGetter() {
+    return deps = BasicModule.getDptList(runContext, new IDepartmentGetter() {
     });
   }
 

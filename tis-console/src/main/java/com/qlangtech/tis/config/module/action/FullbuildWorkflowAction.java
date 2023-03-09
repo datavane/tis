@@ -68,7 +68,8 @@ public class FullbuildWorkflowAction extends BasicModule {
     Application app = null;
     // appname 可以为空
     String appname = this.getString(IFullBuildContext.KEY_APP_NAME);
-    Integer workflowId = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID);
+    Integer workflowId = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID, null, false);
+
     if (StringUtils.isNotBlank(appname)) {
       app = this.getApplicationDAO().selectByName(appname);
       if (app == null) {

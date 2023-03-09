@@ -56,7 +56,7 @@ public class TisApp {
             TriggerStop.stop("127.0.0.1", stopPort, key, 5);
             return;
         }
-
+        TisAppLaunch.get().setRunMode(TisRunMode.Standalone);
         // 启动应用使用本地8080端口
         TisApp tisApp = new TisApp((TisSubModule.WEB_START.getLaunchPort()), (context) -> {
             context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");

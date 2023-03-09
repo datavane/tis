@@ -50,26 +50,25 @@ public enum TisRunMode {
                 return false;
             }
             try {
-                URL test = new URL("http://127.0.0.1:" + TisSubModule.ZEPPELIN.getLaunchPort() + TisSubModule.ZEPPELIN.servletContext);
+                URL test = new URL("http://127.0.0.1:" + TisSubModule.ZEPPELIN.getLaunchPort() + TisSubModule.ZEPPELIN.servletContext + "/api/version");
                 HttpURLConnection conn = (HttpURLConnection) test.openConnection();
                 tryCount++;
                 if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
                     // throw new IllegalStateException("ERROR_CODE=" + conn.getResponseCode() + "  request faild, revsion center apply url :" + url);
                     return false;
                 }
-
+                return zeppelinContextInitialized = true;
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
             } catch (IOException e) {
                 return false;
             }
-            return zeppelinContextInitialized = true;
         }
     })
     // 分不同的节点运行
     , Distribute(Standalone.zeppelinContextInitialized);
 
-    private final Supplier<Boolean> zeppelinContextInitialized;
+    public final Supplier<Boolean> zeppelinContextInitialized;
 
     private TisRunMode(Supplier<Boolean> zeppelinContextInitialized) {
         this.zeppelinContextInitialized = zeppelinContextInitialized;
