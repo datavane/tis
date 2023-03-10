@@ -226,6 +226,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         private final String val;
         private final String suffix;
 
+
         public KeyVal(String val, String suffix) {
             if (StringUtils.isEmpty(val)) {
                 throw new IllegalArgumentException("param 'key' can not be null");
@@ -240,7 +241,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         public String getKeyVal() {
-            return StringUtils.isBlank(this.suffix) ? val : TMP_DIR_NAME + (val + "-" + this.suffix);
+            return StringUtils.isBlank(this.suffix) ? getVal() : TMP_DIR_NAME + (getVal() + "-" + this.suffix);
         }
 
         public KeyVal(String val) {
@@ -280,6 +281,11 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             }
             return (pluginContext != null && inUpdateProcess)
                     ? new KeyVal(appname, pluginContext.getExecId()) : new KeyVal(appname);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(keyVal.getKeyVal(), resourceType.getType(), pluginClass);
         }
     }
 }

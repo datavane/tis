@@ -192,7 +192,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
             primaryKeys = getPrimaryKeys(table, metaData1);
             columns1 = getColumnsMeta(table, metaData1);
-            Set<String> pkCols = Sets.newHashSet();
+            Set<String> pkCols = createAddedCols();
             while (primaryKeys.next()) {
                 // $NON-NLS-1$
                 String columnName = primaryKeys.getString("COLUMN_NAME");
@@ -266,7 +266,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         int i = 0;
         final List<ColumnMetaData> columns = Lists.newArrayList();
         // 防止有col重复，测试中有用户取出的cols会有重复的
-        final Set<String> addedCols = Sets.newHashSet();
+        final Set<String> addedCols = createAddedCols();
         while (columns1.next()) {
             colName = columns1.getString(KEY_COLUMN_NAME);
 
@@ -276,6 +276,10 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             }
         }
         return columns;
+    }
+
+    protected HashSet<String> createAddedCols() {
+        return Sets.newHashSet();
     }
 
     /**
