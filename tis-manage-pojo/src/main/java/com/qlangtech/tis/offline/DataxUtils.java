@@ -42,7 +42,7 @@ public class DataxUtils {
     public static long getDumpTimeStamp(boolean validateNull, Supplier<Long> dftGetter) {
         String dumpTimeStamp = System.getProperty(DataxUtils.EXEC_TIMESTAMP);
         boolean empty = false;
-        if (validateNull && (empty = StringUtils.isEmpty(dumpTimeStamp))) {
+        if ((empty = StringUtils.isEmpty(dumpTimeStamp)) && validateNull) {
             throw new IllegalStateException("dumpTimeStamp can not be empty");
         }
         return empty ? dftGetter.get() : Long.parseLong(dumpTimeStamp);
