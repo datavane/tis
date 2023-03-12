@@ -18,6 +18,7 @@
 
 import com.qlangtech.tis.manage.common.TestCenterResource;
 
+import com.qlangtech.tis.offline.TestDataxUtils;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -30,6 +31,7 @@ public class TestAll extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTestSuite(TestDataxUtils.class);
         suite.addTestSuite(TestCenterResource.class);
        // suite.addTestSuite(TestColumnMetaData.class);
         return suite;

@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.offline;
 
+import com.qlangtech.tis.datax.TimeFormat;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.function.Supplier;
@@ -39,7 +40,11 @@ public class DataxUtils {
         });
     }
 
-    public static long getDumpTimeStamp(boolean validateNull, Supplier<Long> dftGetter) {
+    public static long currentTimeStamp() {
+        return DataxUtils.getDumpTimeStamp(false, () -> TimeFormat.getCurrentTimeStamp());
+    }
+
+    private static long getDumpTimeStamp(boolean validateNull, Supplier<Long> dftGetter) {
         String dumpTimeStamp = System.getProperty(DataxUtils.EXEC_TIMESTAMP);
         boolean empty = false;
         if ((empty = StringUtils.isEmpty(dumpTimeStamp)) && validateNull) {

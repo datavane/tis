@@ -97,7 +97,7 @@ public class DefaultChainContext implements IExecChainContext {
     public DefaultChainContext(IParamContext execContext) {
         super();
         // DateTimeFormatter yyyyMMddHHmmss = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-        this.ps = DataxUtils.getDumpTimeStamp(false, () -> TimeFormat.getCurrentTimeStamp());
+        this.ps = DataxUtils.currentTimeStamp();
         this.httpExecContext = execContext;
         ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
     }
