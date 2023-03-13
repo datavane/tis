@@ -125,13 +125,16 @@ public final class UberClassLoader extends ClassLoader {
         synchronized (loaded) {
             loaded.put(name, null);
         }
+
+
         // not found in any of the classloader. delegate.
         throw new ClassNotFoundException(name
                 + (acceptedPlugins != null
                 ? "\naccepted plugins:" + acceptedPlugins.stream().collect(Collectors.joining(","))
                 : StringUtils.EMPTY)
                 + "\n,scan plugins:"
-                + pluginManager.activePlugins.stream().map((p) -> p.getShortName()).collect(Collectors.joining(",")));
+                + pluginManager.activePlugins.stream().map((p) -> p.getShortName()).collect(Collectors.joining(","))
+                + "\nfaild plugins desc:" + pluginManager.getFaildPluginsDesc());
     }
 
     @Override

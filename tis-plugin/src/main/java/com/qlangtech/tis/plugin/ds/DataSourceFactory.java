@@ -107,7 +107,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         } catch (TisException e) {
             throw e;
         } catch (Exception e) {
-            throw  TisException.create(e.getMessage() + ",jdbcUrl:" + jdbcUrl, e);
+            throw TisException.create(e.getMessage() + ",jdbcUrl:" + jdbcUrl, e);
         } finally {
             if (conn != null) {
                 try {
@@ -180,7 +180,9 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 int count = 0;
                 List<String> matchEntries = Lists.newArrayList();
                 while (tables.next()) {
-                    matchEntries.add(tables.getString("TABLE_NAME") + "(" + tables.getString("TABLE_TYPE") + ")");
+                    matchEntries.add(tables.getString("TABLE_NAME")
+                            + "(" + tables.getString("TABLE_TYPE")
+                            + "," + tables.getString("TABLE_SCHEM") + ")");
                     count++;
                 }
                 if (count < 1) {
@@ -373,7 +375,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         @Override
         public final Map<String, Object> getExtractProps() {
             Map<String, Object> eprops = super.getExtractProps();
-            eprops.put(KEY_END_TYPE , this.getEndType().getVal() ) ;
+            eprops.put(KEY_END_TYPE, this.getEndType().getVal());
             eprops.put("supportFacade", this.supportFacade());
             eprops.put("facadeSourceTypes", this.facadeSourceTypes());
             Optional<String> dataXReaderDesc = this.getDefaultDataXReaderDescName();
