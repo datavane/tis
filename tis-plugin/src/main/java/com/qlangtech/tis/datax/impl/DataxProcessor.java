@@ -75,6 +75,11 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 
 
     public static IDataxProcessor load(IPluginContext pluginContext, String dataXName) {
+
+        if (processorGetter != null) {
+            return processorGetter.get(dataXName);
+        }
+
         return load(pluginContext, StoreResourceType.DataApp, dataXName);
     }
 

@@ -45,6 +45,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 //import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
@@ -235,7 +236,15 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         this(extensionPoint, identity, caption, selectable, false);
     }
 
+    // for Test stub
+    public static Function<String, MQListenerFactory> incrSourceListenerFactoryStub;
+
     public static MQListenerFactory getIncrSourceListenerFactory(String dataXName) {
+
+        if (incrSourceListenerFactoryStub != null) {
+            return incrSourceListenerFactoryStub.apply(dataXName);
+        }
+
         IPluginContext pluginContext = IPluginContext.namedContext(dataXName);
         List<MQListenerFactory> mqFactories = MQ.getPlugins(pluginContext, null);
         MQListenerFactory mqFactory = null;

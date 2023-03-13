@@ -39,7 +39,6 @@ import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.RobustReflectionConverter;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.web.start.TisSubModule;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -215,7 +214,7 @@ public class PluginAndCfgsSnapshot {
      * @throws Exception
      */
     public static Manifest createFlinkIncrJobManifestCfgAttrs(TargetResName collection, long timestamp) throws Exception {
-       // Manifest manifest = null;
+        // Manifest manifest = null;
         RobustReflectionConverter.PluginMetas pluginMetas
                 = RobustReflectionConverter.PluginMetas.collectMetas(() -> {
             MQListenerFactory sourceFactory = HeteroEnum.getIncrSourceListenerFactory(collection.getName());
@@ -684,11 +683,18 @@ public class PluginAndCfgsSnapshot {
         //  Set<PluginMeta> globalPluginMetas = null;
         Map<String, Long> gPluginStoreLastModify = Collections.emptyMap();
         UploadPluginMeta upm = UploadPluginMeta.parse("x:require", true);
-        ExtensionList<HeteroEnum> hlist = TIS.get().getExtensionList(HeteroEnum.class);
-        List<IRepositoryResource> keyedPluginStores = hlist.stream()
-                .filter((e) -> !e.isAppNameAware())
-                .flatMap((e) -> e.getPluginStore(null, upm).getAll().stream())
-                .collect(Collectors.toList());
+
+        TIS tis = TIS.get();
+        List<IRepositoryResource> keyedPluginStores = Collections.emptyList();
+        if (tis != null) {
+            ExtensionList<HeteroEnum> hlist = TIS.get().getExtensionList(HeteroEnum.class);
+            keyedPluginStores = hlist.stream()
+                    .filter((e) -> !e.isAppNameAware())
+                    .flatMap((e) -> e.getPluginStore(null, upm).getAll().stream())
+                    .collect(Collectors.toList());
+        }
+
+
         ComponentMeta dataxComponentMeta = new ComponentMeta(keyedPluginStores);
 
         gPluginStoreLastModify = ComponentMeta.getGlobalPluginStoreLastModifyTimestamp(dataxComponentMeta);
@@ -795,4 +801,5 @@ public class PluginAndCfgsSnapshot {
 
         entries.put(Config.KEY_PLUGIN_METAS, pmetas);
     }
+
 }
