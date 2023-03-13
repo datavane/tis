@@ -33,6 +33,7 @@ import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
 import com.qlangtech.tis.util.InitializerFinder;
 import com.qlangtech.tis.util.Util;
 import com.qlangtech.tis.util.YesNoMaybe;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -112,6 +113,9 @@ public class PluginManager {
     protected final List<FailedPlugin> failedPlugins = new ArrayList<FailedPlugin>();
 
     public String getFaildPluginsDesc() {
+        if (CollectionUtils.isEmpty(failedPlugins)) {
+            return "FailedPlugins is Empty";
+        }
         return failedPlugins.stream().map((f) -> "plugin:" + f.name + ",cause:"
                 + ExceptionUtils.getMessage(f.cause)).collect(Collectors.joining(","));
     }
@@ -346,6 +350,9 @@ public class PluginManager {
 
                         public void run(Reactor session) throws Exception {
                             archives = initStrategy.listPluginArchives(PluginManager.this);
+                            if (CollectionUtils.isEmpty(archives)) {
+                                throw new IllegalStateException("have not found any plugin in :" + PluginManager.this.rootDir.getAbsolutePath());
+                            }
                         }
                     });
                     requires(listUpPlugins).attains(PLUGINS_LISTED).add("Preparing plugins", new Executable() {
