@@ -313,6 +313,13 @@ public class CoreAction extends BasicModule {
     return incrStatus;
   }
 
+  /**
+   *
+   * @param module
+   * @param getRcConfigInCache
+   * @return
+   * @throws Exception
+   */
   public static IndexIncrStatus getIndexIncrStatus(BasicModule module, boolean getRcConfigInCache) throws Exception {
     IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存

@@ -1,5 +1,3 @@
-package com.qlangtech.tis.fullbuild.taskflow;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,20 +16,30 @@ package com.qlangtech.tis.fullbuild.taskflow;
  * limitations under the License.
  */
 
-import com.google.common.collect.Lists;
-import com.qlangtech.tis.plugin.IPluginTaggable;
+package com.qlangtech.tis.plugin;
 
 import java.util.List;
 
 /**
- * 标示是离线构建Descriptor
+ * 对插件进行打标签，可以在安装面板，或者插件可用下拉列表进行过滤
  *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2023-01-24 18:25
+ * @create: 2023-03-13 20:07
  **/
-public interface IFlatTableBuilderDescriptor extends IPluginTaggable {
-    @Override
-    default List<PluginTag> getTags() {
-        return Lists.newArrayList(PluginTag.OfflineParser);
+public interface IPluginTaggable {
+
+    public List<PluginTag> getTags();
+
+    enum PluginTag {
+        OfflineParser("offline_parser");
+        private final String token;
+
+        public String getToken() {
+            return token;
+        }
+
+        PluginTag(String token) {
+            this.token = token;
+        }
     }
 }

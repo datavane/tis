@@ -26,7 +26,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
-import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.datax.*;
 import com.qlangtech.tis.datax.impl.*;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
@@ -40,11 +39,11 @@ import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
+import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DataxUtils;
-import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
@@ -626,9 +625,67 @@ public class DataxAction extends BasicModule {
           , Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
 
           DataXCfgGenerator.generateTabCreateDDL(
-            DataxAction.this, dataxProcessor, writer, readerContext, createDDLFiles, tableMapper, true);
+            DataxAction.this, dataxProcessor
+            , writer, readerContext, createDDLFiles, tableMapper, true);
         }
       }));
+  }
+
+  /**
+   * 创建DataX实例
+   *
+   * @param context
+   */
+  @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doDeleteDatax(Context context) throws Exception {
+    AppDomainInfo appDomain = this.getAppDomain();
+    boolean deleteSuccess = false;
+    File dataXDir = null;
+    File scriptDootDirTrash = null;
+    File dataXDirTrash = null;
+    File scriptRootDir = null;
+    try {
+      // 判断增量实例是否存在
+      IndexIncrStatus incrStatus = CoreAction.getIndexIncrStatus(this, true);
+      IFlinkIncrJobStatus.State state = incrStatus.getState();
+      if (state != IFlinkIncrJobStatus.State.NONE) {
+        this.addErrorMessage(context, "增量实例存在，请先将其删除");
+        return;
+      }
+      //增量配置脚本移位置
+      scriptRootDir = StreamContextConstant.getStreamScriptRootDir(appDomain.getAppName());
+      scriptDootDirTrash = StreamContextConstant.getStreamScriptRootDir(appDomain.getAppName(), true);
+      if (scriptRootDir.exists()) {
+        FileUtils.moveDirectory(scriptRootDir, scriptDootDirTrash);
+      }
+
+      //DataX配置移动位置
+      KeyedPluginStore<IAppSource> appSource = IAppSource.getPluginStore(this, appDomain.getAppName());
+      dataXDir = appSource.getTargetFile().getFile().getParentFile();
+      dataXDirTrash = new File(dataXDir.getParentFile(), StreamContextConstant.KEY_DIR_TRASH_NAME + "/" + appDomain.getAppName());
+      FileUtils.moveDirectory(dataXDir, dataXDirTrash);
+
+      WorkFlowBuildHistoryCriteria historyCriteria = new WorkFlowBuildHistoryCriteria();
+      historyCriteria.createCriteria().andAppIdEqualTo(appDomain.getAppid());
+      this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().deleteByExample(historyCriteria);
+
+      this.getApplicationDAO().deleteByPrimaryKey(appDomain.getAppid());
+      this.addActionMessage(context, "已经成功将数据通道'" + appDomain.getAppName() + "'删除");
+      deleteSuccess = true;
+    } finally {
+      if (deleteSuccess) {
+        FileUtils.deleteDirectory(scriptDootDirTrash);
+        FileUtils.deleteDirectory(dataXDirTrash);
+      } else {
+        //从垃圾箱恢复 恢复配置文件
+        if (dataXDirTrash != null && dataXDirTrash.exists()) {
+          FileUtils.moveDirectory(dataXDirTrash, dataXDir);
+        }
+        if (scriptDootDirTrash != null && scriptDootDirTrash.exists()) {
+          FileUtils.moveDirectory(scriptDootDirTrash, scriptRootDir);
+        }
+      }
+    }
   }
 
 
