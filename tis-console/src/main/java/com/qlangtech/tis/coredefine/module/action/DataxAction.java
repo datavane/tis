@@ -64,6 +64,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.convention.annotation.InterceptorRef;
 import org.apache.struts2.convention.annotation.InterceptorRefs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -81,7 +83,7 @@ import java.util.stream.Collectors;
  */
 @InterceptorRefs({@InterceptorRef("tisStack")})
 public class DataxAction extends BasicModule {
-
+  private static final Logger logger = LoggerFactory.getLogger(DataxAction.class);
   private static final String PARAM_KEY_DATAX_NAME = DataxUtils.DATAX_NAME;
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
@@ -646,8 +648,14 @@ public class DataxAction extends BasicModule {
     File scriptRootDir = null;
     try {
       // 判断增量实例是否存在
-      IndexIncrStatus incrStatus = CoreAction.getIndexIncrStatus(this, true);
-      IFlinkIncrJobStatus.State state = incrStatus.getState();
+      IFlinkIncrJobStatus.State state = null;
+      try {
+        IndexIncrStatus incrStatus = CoreAction.getIndexIncrStatus(this, true);
+        state = incrStatus.getState();
+      } catch (Throwable e) {
+        logger.error(e.getMessage(), e);
+        state = IFlinkIncrJobStatus.State.NONE;
+      }
       if (state != IFlinkIncrJobStatus.State.NONE) {
         this.addErrorMessage(context, "增量实例存在，请先将其删除");
         return;

@@ -23,7 +23,7 @@
     <parent>
         <artifactId>tis</artifactId>
         <groupId>com.qlangtech.tis</groupId>
-        <version>3.7.0</version>
+        <version>3.7.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
