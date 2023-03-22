@@ -128,7 +128,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
         EasyMock.replay(joinTaskContext);
 
         ISqlTask.RewriteSql rewriteSql = taskNodeMeta.getRewriteSql(
-                "supply_goods", dumpPartition, erRule.get(), joinTaskContext, true);
+                "supply_goods", dumpPartition, () -> erRule.get(), joinTaskContext, true);
 
         assertNotNull(rewriteSql);
         assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result.txt"), rewriteSql.rewriteSql);

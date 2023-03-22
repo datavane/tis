@@ -1,26 +1,3 @@
-package com.qlangtech.tis.coredefine.module.action;
-
-import com.alibaba.citrus.turbine.Context;
-import com.alibaba.fastjson.JSONObject;
-import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.datax.IDataxProcessor;
-import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
-import com.qlangtech.tis.datax.impl.DataxProcessor;
-import com.qlangtech.tis.datax.impl.DataxReader;
-import com.qlangtech.tis.datax.impl.DataxWriter;
-import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.manage.IAppSource;
-import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.plugin.StoreResourceType;
-import com.qlangtech.tis.runtime.module.action.BasicModule;
-import com.qlangtech.tis.util.IPluginContext;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Supplier;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -39,18 +16,35 @@ import java.util.function.Supplier;
  * limitations under the License.
  */
 
+package com.qlangtech.tis.coredefine.module.action;
+
+import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.util.IPluginContext;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-01-25 17:43
  **/
 public enum ProcessModel {
-  CreateWorkFlow("createWorkFlow", (reader, writer, module, context) -> {
-    if (writer == null) {
-      module.addErrorMessage(context, "请选择'引擎类型'");
-      return false;
-    }
-    return true;
-  } //
+
+  CreateWorkFlow("createWorkFlow"  //
     , (pluginContext, dataxPipeName, reader, writer) -> {
     DataxWriter.BaseDataxWriterDescriptor writerDesc
       = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
@@ -60,13 +54,7 @@ public enum ProcessModel {
     return DataxProcessor.getPluginDescMeta(DataxProcessor.DEFAULT_WORKFLOW_PROCESSOR_NAME);
   }, StoreResourceType.DataFlow
   ) //
-  , CreateDatax("createDatax", (reader, writer, module, context) -> {
-    if (reader == null || writer == null) {
-      module.addErrorMessage(context, "请选择'Reader类型'和'Writer类型'");
-      return false;
-    }
-    return true;
-  }, (pluginContext, dataxPipeName, reader, writer) -> {
+  , CreateDatax("createDatax", (pluginContext, dataxPipeName, reader, writer) -> {
     DataxReader.BaseDataxReaderDescriptor readerDesc
       = (DataxReader.BaseDataxReaderDescriptor) TIS.get().getDescriptor(reader.getString("impl"));
     DataxWriter.BaseDataxWriterDescriptor writerDesc
@@ -82,7 +70,7 @@ public enum ProcessModel {
 
   private final String val;
   public final StoreResourceType resType;
-  private final ValdateReaderAndWriter valdateReaderAndWriter;
+  //  private final ValdateReaderAndWriter valdateReaderAndWriter;
   private final IProcessMetaCreator processMetaCreator;
   private final Supplier<Descriptor<IAppSource>> targetProcessDescsGetter;
 
@@ -90,7 +78,7 @@ public enum ProcessModel {
     Optional<DataxReader.BaseDataxReaderDescriptor> readerDesc, DataxWriter.BaseDataxWriterDescriptor writerDesc) {
     Objects.requireNonNull(readerDesc, "readerDesc can not be null");
     Objects.requireNonNull(writerDesc, "writerDesc can not be null");
-    DataXBasicProcessMeta processMeta = DataxAction.getDataXBasicProcessMetaByReader(readerDesc);
+    DataXBasicProcessMeta processMeta = DataXBasicProcessMeta.getDataXBasicProcessMetaByReader(readerDesc);
     processMeta.setWriterRDBMS(writerDesc.isRdbms());
     processMeta.setWriterSupportMultiTableInReader(writerDesc.isSupportMultiTable());
 
@@ -99,8 +87,10 @@ public enum ProcessModel {
 
   public static ProcessModel parse(String val) {
     if (StringUtils.isEmpty(val)) {
-      throw new IllegalArgumentException(" pram val can not be null");
+      //throw new IllegalArgumentException(" pram val can not be null");
+      return CreateDatax;
     }
+
     for (ProcessModel m : ProcessModel.values()) {
       if (m.val.equals(val)) {
         return m;
@@ -110,18 +100,25 @@ public enum ProcessModel {
     // throw new IllegalStateException("illegal val:" + val);
   }
 
-  private ProcessModel(String val, ValdateReaderAndWriter valdateReaderAndWriter, IProcessMetaCreator processMetaCreator
+  /**
+   * @param val
+   * @param processMetaCreator
+   * @param targetProcessDescsGetter
+   * @param resType
+   */
+  private ProcessModel(String val
+    , IProcessMetaCreator processMetaCreator
     , Supplier<Descriptor<IAppSource>> targetProcessDescsGetter, StoreResourceType resType) {
     this.val = val;
-    this.valdateReaderAndWriter = valdateReaderAndWriter;
+    // this.valdateReaderAndWriter = valdateReaderAndWriter;
     this.processMetaCreator = processMetaCreator;
     this.targetProcessDescsGetter = targetProcessDescsGetter;
     this.resType = resType;
   }
 
-  public boolean valdateReaderAndWriter(JSONObject reader, JSONObject writer, BasicModule module, Context context) {
-    return this.valdateReaderAndWriter.valdateReaderAndWriter(reader, writer, module, context);
-  }
+//  public boolean valdateReaderAndWriter(JSONObject reader, JSONObject writer, BasicModule module, Context context) {
+//    return this.valdateReaderAndWriter.valdateReaderAndWriter(reader, writer, module, context);
+//  }
 
   public DataXBasicProcessMeta createProcessMeta(IPluginContext pluginContext
     , String dataXName, JSONObject reader, JSONObject writer) throws Exception {

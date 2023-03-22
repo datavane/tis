@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -47,7 +48,7 @@ public interface ISqlTask {
 
     String getSql();
 
-    RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition, IPrimaryTabFinder erRules
+    RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition, Supplier<IPrimaryTabFinder> erRules
             , IJoinTaskContext templateContext, boolean isFinalNode);
 
     class RewriteSql {

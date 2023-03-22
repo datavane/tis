@@ -627,7 +627,7 @@ public class PluginAndCfgsSnapshot {
         return getLocalPluginAndCfgsSnapshot(collection, (pluginMetas, dataxComponentMeta) -> {
             PluginMetaSet collector = new PluginMetaSet(Optional.empty());
 
-            File pluginDir = new File(Config.getLibDir(), TIS.KEY_TIS_PLUGIN_ROOT);
+            File pluginDir = getPluginRootDir();
             Collection<File> tpis = FileUtils.listFiles(pluginDir, new String[]{PluginClassifier.PACAKGE_TPI_EXTENSION_NAME}, false);
             tpis.forEach((tpi) -> {
                 PluginManifest manifest = PluginManifest.create(tpi);
@@ -640,6 +640,10 @@ public class PluginAndCfgsSnapshot {
             }
             return collector;
         });
+    }
+
+    public static File getPluginRootDir() {
+        return new File(Config.getLibDir(), TIS.KEY_TIS_PLUGIN_ROOT);
     }
 
     /**

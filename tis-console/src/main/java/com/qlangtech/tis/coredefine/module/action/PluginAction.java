@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.koubei.web.tag.pager.Pager;
 import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
@@ -46,6 +47,7 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -314,6 +316,7 @@ public class PluginAction extends BasicModule {
     JSONArray response = new JSONArray();
     JSONObject pluginInfo = null;
     UpdateSite.Plugin info = null;
+    PluginFilter pluginFilter = new PluginFilter();
     for (PluginWrapper plugin : pluginManager.getPlugins()) {
 
 
@@ -330,14 +333,13 @@ public class PluginAction extends BasicModule {
         if (info == null) {
           continue;
         }
-
-        if (!CollectionUtils.containsAny(info.extendPoints.keySet(), extendpoint)) {
-          continue;
-        }
+//        if (!CollectionUtils.containsAny(info.extendPoints.keySet(), extendpoint)) {
+//          continue;
+//        }
         pluginInfo.put("extendPoints", info.extendPoints);
       }
 
-      if (filterPlugin(plugin, info)) {
+      if (pluginFilter.filter(Optional.of(plugin), info)) {
         continue;
       }
 
@@ -372,19 +374,53 @@ public class PluginAction extends BasicModule {
     this.setBizResult(context, response);
   }
 
-  /**
-   * @param plugin
-   * @param info
-   * @return true 就直接过滤掉了
-   */
-  private boolean filterPlugin(PluginWrapper plugin, UpdateSite.Plugin info) {
-    Predicate<UpdateSite.Plugin> endTypeMatcher = getEndTypeMatcher();
-    boolean collect = endTypeMatcher.test(info);
-    if (!collect) {
-      return true;
+  private class PluginFilter {
+    final Set<IPluginTaggable.PluginTag> tags;
+    final Predicate<UpdateSite.Plugin> endTypeMatcher;
+    final List<String> extendpoint;
+
+    public PluginFilter() {
+      this.extendpoint = getExtendpointParam();
+      final String[] filterTags = getStringArray("tag");
+      if (filterTags != null) {
+        this.tags = Sets.newHashSet();
+        for (String tag : filterTags) {
+          tags.add(IPluginTaggable.PluginTag.parse(tag));
+        }
+      } else {
+        this.tags = null;
+      }
+      this.endTypeMatcher = getEndTypeMatcher();
     }
-    return filterPlugin(plugin.getDisplayName(), (info != null ? info.excerpt : null));
+
+    /**
+     * @param plugin
+     * @param info
+     * @return true 就直接过滤掉了
+     */
+    private boolean filter(Optional<PluginWrapper> plugin, UpdateSite.Plugin info) {
+      if (this.tags != null) {
+        //  info.pluginTags
+        if (!CollectionUtils.containsAny(info.pluginTags, this.tags)) {
+          return true;
+        }
+      }
+
+      if (CollectionUtils.isNotEmpty(extendpoint)) {
+        if (!CollectionUtils.containsAny(info.extendPoints.keySet(), extendpoint)) {
+          return true;
+        }
+      }
+
+      boolean collect = endTypeMatcher.test(info);
+      if (!collect) {
+        return true;
+      }
+      return filterPlugin((plugin.isPresent() ? plugin.get().getDisplayName() : info.title)
+        , (info != null ? info.excerpt : null));
+    }
   }
+
 
   private boolean filterPlugin(String title, String excerpt) {
 
@@ -394,8 +430,8 @@ public class PluginAction extends BasicModule {
     }
     boolean collect = false;
     for (String searchQ : queries) {
-      if ((StringUtils.indexOfIgnoreCase(title, searchQ) > -1
-        || (StringUtils.isNotBlank(excerpt) && StringUtils.indexOfIgnoreCase(excerpt, searchQ) > -1))
+      if (StringUtils.indexOfIgnoreCase(title, searchQ) > -1
+        || (StringUtils.isNotBlank(excerpt) && StringUtils.indexOfIgnoreCase(excerpt, searchQ) > -1)
       ) {
         collect = true;
         break;
@@ -555,20 +591,26 @@ public class PluginAction extends BasicModule {
       }
     }
 
-    if (CollectionUtils.isNotEmpty(extendpoint)) {
+    PluginFilter filter = new PluginFilter();
+    availables = availables.stream().filter((plugin) -> {
+      return !(filter.filter(Optional.empty(), plugin));
+    }).collect(Collectors.toList());
 
-      Predicate<UpdateSite.Plugin> endTypeMatcher = getEndTypeMatcher();
 
-      availables = availables.stream().filter((plugin) -> {
-        return CollectionUtils.containsAny(plugin.extendPoints.keySet(), extendpoint);
-      }).filter(endTypeMatcher).collect(Collectors.toList());
-    }
-
-    if (CollectionUtils.isNotEmpty(this.getQueryPluginParam())) {
-      availables = availables.stream().filter((plugin) -> {
-        return !filterPlugin(plugin.title, plugin.excerpt);
-      }).collect(Collectors.toList());
-    }
+//    if (CollectionUtils.isNotEmpty(extendpoint)) {
+//
+//      Predicate<UpdateSite.Plugin> endTypeMatcher = getEndTypeMatcher();
+//
+//      availables = availables.stream().filter((plugin) -> {
+//        return CollectionUtils.containsAny(plugin.extendPoints.keySet(), extendpoint);
+//      }).filter(endTypeMatcher).collect(Collectors.toList());
+//    }
+//
+//    if (CollectionUtils.isNotEmpty(this.getQueryPluginParam())) {
+//      availables = availables.stream().filter((plugin) -> {
+//        return !filterPlugin(plugin.title, plugin.excerpt);
+//      }).collect(Collectors.toList());
+//    }
 
     this.setBizResult(context, new PaginationResult(pager, availables));
   }

@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.sql.parser.ExpressionFormatter.formatExpression;
@@ -62,7 +63,7 @@ public class SqlRewriter extends Formatter {
     // 是否是数据流的最终节点
     private final boolean isFinal;
 
-    private final IPrimaryTabFinder erRules;
+
 
     private final IJoinTaskContext joinContext;
 
@@ -77,15 +78,14 @@ public class SqlRewriter extends Formatter {
         this.primayTable = t;
     }
 
-    public SqlRewriter(SqlStringBuilder builder, Map<IDumpTable, ITabPartition> tabPartition, IPrimaryTabFinder erRules
+    public SqlRewriter(SqlStringBuilder builder, Map<IDumpTable, ITabPartition> tabPartition, Supplier<IPrimaryTabFinder> erRules
             , Optional<List<Expression>> parameters, boolean isFinal, IJoinTaskContext joinContext) {
         this(builder, new TabPartitions(tabPartition), erRules, parameters, isFinal, joinContext);
     }
 
-    public SqlRewriter(SqlStringBuilder builder, TabPartitions tabPartition, IPrimaryTabFinder erRules
+    public SqlRewriter(SqlStringBuilder builder, TabPartitions tabPartition, Supplier<IPrimaryTabFinder> erRules
             , Optional<List<Expression>> parameters, boolean isFinal, IJoinTaskContext joinContext) {
-        super(builder, erRules.getTabFieldProcessorMap(), parameters);
-        this.erRules = erRules;
+        super(builder, erRules, parameters);
         this.tabPartition = tabPartition;
         this.isFinal = isFinal;
         Objects.requireNonNull(joinContext, "param joinContext can not be null");
@@ -96,7 +96,7 @@ public class SqlRewriter extends Formatter {
     @Override
     protected String createPtPmodCols(AliasTable a) {
         if (isFinal) {
-            Optional<TableMeta> ptab = this.erRules.getPrimaryTab(a.getTable());
+            Optional<TableMeta> ptab = this.erRules.get().getPrimaryTab(a.getTable());
             StringBuffer result = new StringBuffer(a.getAlias() + "." + IDumpTable.PARTITION_PT + ",");
 
             // 如果当前是索引构建的场景下，需要校验是否已经设置分区键，这个判断非常重要2021/2/7，这个校验在最开始的点击触发按钮的时候也要校验
@@ -256,12 +256,7 @@ public class SqlRewriter extends Formatter {
         List<String> originalParts = tabName.getOriginalParts();
         Optional<TabPartitions.DumpTabPartition> find = null;
         if (originalParts.size() == 2) {
-
             find = tabPartition.findTablePartition(originalParts.get(0), originalParts.get(1));
-
-//            find = tabPartition.entrySet().stream().filter((r) ->
-//                    (StringUtils.equals(r.getKey().getDbName(), originalParts.get(0))
-//                            && StringUtils.equals(r.getKey().getTableName(), originalParts.get(1)))).findFirst();
         } else if (originalParts.size() == 1) {
             final RewriterDumpTable tab = RewriterDumpTable.create(originalParts.get(0));
             //int[] count = new int[1];

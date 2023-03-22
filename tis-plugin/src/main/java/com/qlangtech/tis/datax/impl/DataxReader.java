@@ -300,10 +300,20 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
             Map<String, Object> eprops = super.getExtractProps();
             eprops.put("rdbms", this.isRdbms());
             eprops.put(KEY_SUPPORT_INCR, this.isSupportIncr());
+            eprops.put(KEY_SUPPORT_BATCH, this.isSupportBatch());
             eprops.put(KEY_END_TYPE, this.getEndType().getVal());
             return eprops;
         }
 
+        /**
+         * 是否支持DataX 批量执行
+         *
+         * @return
+         */
+        @Override
+        public boolean isSupportBatch() {
+            return true;
+        }
 
         /**
          * 像Mysql会有明确的表名，而OSS没有明确的表名,RDBMS 关系型数据库 应该都为true

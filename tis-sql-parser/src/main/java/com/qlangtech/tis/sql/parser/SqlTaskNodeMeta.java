@@ -38,8 +38,6 @@ import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
-import com.qlangtech.tis.sql.parser.er.TabFieldProcessor;
-import com.qlangtech.tis.sql.parser.er.TableMeta;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.ColumnTransfer;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
@@ -160,16 +158,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             ITabPartition p = () -> pt;
             Map<IDumpTable, ITabPartition> tabPartition = dependencyNodes.stream().collect(Collectors.toMap((r) -> EntityName.parse(r.getName()), (r) -> p));
 
-            taskNodeMeta.getRewriteSql("testTaskName", new MockDumpPartition(tabPartition), new IPrimaryTabFinder() {
-                @Override
-                public Optional<TableMeta> getPrimaryTab(IDumpTable entityName) {
-                    return Optional.empty();
-                }
-
-                @Override
-                public Map<EntityName, TabFieldProcessor> getTabFieldProcessorMap() {
-                    return Collections.emptyMap();
-                }
+            taskNodeMeta.getRewriteSql("testTaskName", new MockDumpPartition(tabPartition), () -> new IPrimaryTabFinder() {
             }, tskContext, false);
             return Optional.empty();
         } catch (Throwable e) {
@@ -238,23 +227,11 @@ public class SqlTaskNodeMeta implements ISqlTask {
     public RewriteSql getColMetaGetterSql(TabPartitions tabPartitions) {
 
         IJoinTaskContext joinContext = getTplContext();
-
-        IPrimaryTabFinder erRules = new IPrimaryTabFinder() {
-            @Override
-            public Optional<TableMeta> getPrimaryTab(IDumpTable entityName) {
-                return Optional.empty();
-            }
-
-            @Override
-            public Map<EntityName, TabFieldProcessor> getTabFieldProcessorMap() {
-                return Collections.emptyMap();
-            }
-        };
-
         Optional<List<Expression>> parameters = Optional.empty();
 
         SqlStringBuilder builder = new SqlStringBuilder();
-        SelectColsMetaGetter rewriter = new SelectColsMetaGetter(builder, erRules, tabPartitions, parameters, joinContext);
+        SelectColsMetaGetter rewriter = new SelectColsMetaGetter(builder, () -> new IPrimaryTabFinder() {
+        }, tabPartitions, parameters, joinContext);
         // 执行rewrite
         try {
             Statement state = getSqlStatement();
@@ -355,7 +332,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
     @Override
     public RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition
-            , IPrimaryTabFinder erRules, IJoinTaskContext joinContext, boolean isFinalNode) {
+            , Supplier<IPrimaryTabFinder> erRules, IJoinTaskContext joinContext, boolean isFinalNode) {
         if (dumpPartition.size() < 1) {
             throw new IllegalStateException("taskName:" + taskName + " dumpPartition set size can not small than 1");
         }

@@ -33,8 +33,8 @@ import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IdentityName;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.IPluginContext;
@@ -158,18 +158,36 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
      */
     @Override
     public TableAliasMapper getTabAlias() {
-        if (tableMaps == null) {
-            return TableAliasMapper.Null;//Collections.emptyMap();
+
+        if (this.isRDBMS2RDBMS(null)) {
+            if (tableMaps == null) {
+                return TableAliasMapper.Null;//Collections.emptyMap();
+            }
+            return new TableAliasMapper(this.tableMaps.stream()
+                    .collect(Collectors.toMap((m) -> {
+                        if (StringUtils.isEmpty(m.getFrom())) {
+                            throw new IllegalArgumentException("table mapper from can not be empty");
+                        }
+                        return m.getFrom();
+                    }, (m) -> {
+                        return m;
+                    })));
+
+        } else {
+            if (!this.isReaderUnStructed(null)) {
+                IDataxReader reader = this.getReader(null);
+                List<ISelectedTab> tabs = reader.getSelectedTabs();
+                Map<String, TableAlias> mapper = Maps.newHashMap();
+                for (ISelectedTab tab : tabs) {
+                    mapper.put(tab.getName(), new TableAlias(tab.getName()));
+                }
+                return new TableAliasMapper(mapper);
+            } else {
+                throw new UnsupportedOperationException("reader shall be RDBMS");
+            }
         }
-        return new TableAliasMapper(this.tableMaps.stream()
-                .collect(Collectors.toMap((m) -> {
-                    if (StringUtils.isEmpty(m.getFrom())) {
-                        throw new IllegalArgumentException("table mapper from can not be empty");
-                    }
-                    return m.getFrom();
-                }, (m) -> {
-                    return m;
-                })));
+
+
     }
 
     @Override
@@ -280,7 +298,6 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 //        return new File(dataXWorkDir, DATAX_CFG_DIR_NAME);
         return getDataxCfgDir(pluginContext, this);
     }
-
 
 
     public static File getDataxCfgDir(IPluginContext pluginContext, IDataxProcessor processor) {

@@ -34,6 +34,15 @@ public interface IPluginTaggable {
         OfflineParser("offline_parser");
         private final String token;
 
+        public static PluginTag parse(String token) {
+            for (PluginTag tag : PluginTag.values()) {
+                if (tag.token.equalsIgnoreCase(token)) {
+                    return tag;
+                }
+            }
+            throw new IllegalStateException("token:" + token + " is invalid");
+        }
+
         public String getToken() {
             return token;
         }

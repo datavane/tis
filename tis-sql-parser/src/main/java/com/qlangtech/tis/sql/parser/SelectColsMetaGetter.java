@@ -24,6 +24,7 @@ import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -31,7 +32,8 @@ import java.util.Optional;
  **/
 public class SelectColsMetaGetter extends SqlRewriter {
     public SelectColsMetaGetter(SqlStringBuilder builder
-            , IPrimaryTabFinder erRules, TabPartitions tabPartitions, Optional<List<Expression>> parameters, IJoinTaskContext joinContext) {
+            , Supplier<IPrimaryTabFinder> erRules, TabPartitions tabPartitions
+            , Optional<List<Expression>> parameters, IJoinTaskContext joinContext) {
         super(builder,
                 tabPartitions,
                 erRules, parameters, false, joinContext);
@@ -41,6 +43,7 @@ public class SelectColsMetaGetter extends SqlRewriter {
     protected boolean shallCreatePtPmodCols() {
         return false;
     }
+
     @Override
     protected String createPtPmodCols(AliasTable a) {
         throw new UnsupportedOperationException(a.toString());

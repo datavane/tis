@@ -248,7 +248,7 @@ public class TestSqlRewriter extends TestCase {
         Assert.assertNotNull(extraSqlAssert);
         Assert.assertNotNull(extraSql);
         builder = new SqlStringBuilder();
-        rewriter = new SqlRewriter(builder, tabPartition, erRules, parameters, isFinal, taskContext);
+        rewriter = new SqlRewriter(builder, tabPartition, ()-> erRules, parameters, isFinal, taskContext);
         // 执行rewrite
         rewriter.process(sqlParser.createStatement(extraSql, new ParsingOptions()), 0);
         final String rewriteSql = processFileContent(builder.toString());

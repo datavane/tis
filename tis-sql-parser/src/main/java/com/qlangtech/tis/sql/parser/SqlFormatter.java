@@ -27,6 +27,7 @@ import com.qlangtech.tis.plugin.ds.ColMeta;
 import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.sql.parser.SqlRewriter.AliasTable;
 import com.qlangtech.tis.sql.parser.SqlStringBuilder.RewriteProcessContext;
+import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.er.TabFieldProcessor;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.ColumnTransfer;
@@ -36,6 +37,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -60,7 +62,8 @@ public final class SqlFormatter {
 
     public static String formatSql(Node root, Optional<List<Expression>> parameters) {
         SqlStringBuilder builder = new SqlStringBuilder();
-        new Formatter(builder, Collections.emptyMap(), parameters).process(root, 0);
+        new Formatter(builder, () -> new IPrimaryTabFinder() {
+        }, parameters).process(root, 0);
         return builder.toString();
     }
 
@@ -120,13 +123,14 @@ public final class SqlFormatter {
 
         protected final List<ColMeta> outputCols = Lists.newArrayList();
 
-        protected final Map<EntityName, TabFieldProcessor> dumpNodeExtraMetaMap;
+        //  protected final Map<EntityName, TabFieldProcessor> dumpNodeExtraMetaMap;
+        protected final Supplier<IPrimaryTabFinder> erRules;
 
-        public Formatter(SqlStringBuilder builder, final Map<EntityName, TabFieldProcessor> dumpNodeExtraMetaMap, Optional<List<Expression>> parameters) {
+        public Formatter(SqlStringBuilder builder, final Supplier<IPrimaryTabFinder> erRules, Optional<List<Expression>> parameters) {
             this.builder = builder;
             this.parameters = parameters;
-            Objects.requireNonNull(dumpNodeExtraMetaMap, "dumpNodeExtraMetaMap can not be null");
-            this.dumpNodeExtraMetaMap = dumpNodeExtraMetaMap;
+            Objects.requireNonNull(erRules, "dumpNodeExtraMetaMap can not be null");
+            this.erRules = erRules;
         }
 
         protected List<AliasTable> getWaitProcessAliasTabsSet() {
@@ -303,7 +307,7 @@ public final class SqlFormatter {
             fromTableFinder.process(from.get());
 
             new TableColumnTransferRewritFormatter(
-                    this.builder, fromTableFinder, this.dumpNodeExtraMetaMap, (indent < 1 ? this.outputCols : Lists.newArrayList())).process(node.getSelect(), indent);
+                    this.builder, fromTableFinder, this.erRules, (indent < 1 ? this.outputCols : Lists.newArrayList())).process(node.getSelect(), indent);
             // Optional<AliasTable> firstTableCriteria = Optional.empty();
             final AliasTable[] firstTableCriteria = new AliasTable[1];
             Callable<String> appendPtPmod = () -> {
@@ -736,8 +740,8 @@ public final class SqlFormatter {
 
 
         public TableColumnTransferRewritFormatter(SqlStringBuilder builder, QueryFromTableFinder queryFromTableFinder
-                , Map<EntityName, TabFieldProcessor> tableExtraMetaMap, List<ColMeta> outputCols) {
-            super(builder, tableExtraMetaMap, Optional.empty());
+                , Supplier<IPrimaryTabFinder> erRules, List<ColMeta> outputCols) {
+            super(builder, erRules, Optional.empty());
             this.aliasTableMap = queryFromTableFinder.getAliasTableMap();
             this.outputCols = outputCols;
         }
@@ -766,7 +770,7 @@ public final class SqlFormatter {
 
                 if (StringUtils.isEmpty(colName)) {
                     throw new TisSqlFormatException("列引用非法,"
-                            + express + "，须使用格式如：'xxx as ccc'"  , express.getLocation());
+                            + express + "，须使用格式如：'xxx as ccc'", express.getLocation());
                 }
 
                 colMeta = new ColMeta(colName, DataType.createVarChar(256), false);
@@ -795,7 +799,7 @@ public final class SqlFormatter {
             // 找到别名依赖的
             Optional<Map.Entry<EntityName, TabFieldProcessor>> find = Optional.empty();
             if (!(e instanceof EntityName.SubTableQuery)) {
-                find = dumpNodeExtraMetaMap.entrySet().stream().filter((entry) -> {
+                find = this.erRules.get().getTabFieldProcessorMap().entrySet().stream().filter((entry) -> {
                     if (e.useDftDbName()) {
                         return StringUtils.equals(entry.getKey().getTabName(), e.getTabName());
                     } else {

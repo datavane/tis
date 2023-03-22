@@ -26,6 +26,7 @@ public interface IDataXEndTypeGetter extends IPluginVenderGetter {
 
 
     String KEY_SUPPORT_INCR = "supportIncr";
+    String KEY_SUPPORT_BATCH = "supportBatch";
 
     /**
      * 是否支持增量执行
@@ -33,6 +34,13 @@ public interface IDataXEndTypeGetter extends IPluginVenderGetter {
      * @return
      */
     boolean isSupportIncr();
+
+    /**
+     * 是否支持DataX批量执行？类似Kafka不需要使用DataX来执行批量数据导出
+     *
+     * @return
+     */
+    boolean isSupportBatch();
 
 
 }

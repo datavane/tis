@@ -25,6 +25,8 @@ import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
 import com.qlangtech.tis.sql.parser.ISqlTask;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 
+import java.util.function.Supplier;
+
 /**
  * 全局和索引不相关,工作流内构建宽表之用 <br>
  * 执行打宽表任务
@@ -45,8 +47,12 @@ public interface IFlatTableBuilder extends ITaskFactory, ITableBuildTaskContext 
      * @return
      */
     public DataflowTask createTask(ISqlTask nodeMeta
-            , boolean isFinalNode, IExecChainContext execChainContext , ITaskContext tskContext, IJoinTaskStatus joinTaskStatus,
-                                   final IDataSourceFactoryGetter dsGetter, IPrimaryTabFinder primaryTabFinder);
+            , boolean isFinalNode
+            , IExecChainContext execChainContext
+            , ITaskContext tskContext
+            , IJoinTaskStatus joinTaskStatus
+            , final IDataSourceFactoryGetter dsGetter
+            , Supplier<IPrimaryTabFinder> primaryTabFinder);
 
 
 }

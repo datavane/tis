@@ -27,10 +27,12 @@ import com.google.common.collect.Sets;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
-import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.action.DataxAction;
 import com.qlangtech.tis.coredefine.module.action.PluginDescMeta;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.db.parser.DBConfigSuit;
 import com.qlangtech.tis.extension.Descriptor;
@@ -367,7 +369,9 @@ public class OfflineDatasourceAction extends BasicModule {
     query.createCriteria();
     query.setOrderByClause("id desc");
     pager.setTotalCount(wfDAO.countByExample(query));
-    this.setBizResult(context, new PaginationResult(pager, wfDAO.selectByExample(query, pager.getCurPage(), pager.getRowsPerPage())));
+    this.setBizResult(context
+      , new PaginationResult(
+        pager, wfDAO.selectByExample(query, pager.getCurPage(), pager.getRowsPerPage())));
   }
 
   public void doGetWorkflowTopology(Context context) throws Exception {
@@ -375,6 +379,10 @@ public class OfflineDatasourceAction extends BasicModule {
     if (StringUtils.isEmpty(topology)) {
       throw new IllegalStateException("please set param topology");
     }
+
+    IDataxProcessor wf = DataxProcessor.load(this, StoreResourceType.DataFlow, topology);
+    Objects.requireNonNull(wf, "workflow:" + topology + " relevant dataXProcessor can not be null");
+
     SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(topology);
     this.setBizResult(context, wfTopology);
   }
@@ -1443,7 +1451,7 @@ public class OfflineDatasourceAction extends BasicModule {
     Boolean dryRun = this.getBoolean("dryRun");
     List<PostParam> params = Lists.newArrayList();
     WorkFlow df = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(id);
-    Assert.assertNotNull(df);
+    Objects.requireNonNull(df, "id:" + id + " relevant workflow can not be null");
     params.add(new PostParam(IFullBuildContext.DRY_RUN, dryRun));
     params.add(new PostParam(IFullBuildContext.KEY_WORKFLOW_NAME, df.getName()));
     params.add(new PostParam(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(id)));
@@ -1499,7 +1507,7 @@ public class OfflineDatasourceAction extends BasicModule {
     result.put("readerDesc", DescriptorsJSON.desc(dataXReaderDesc.get())
       //  new DescriptorsJSON(dataXReaderDesc.get()).getDescriptorsJSON()
     );
-    result.put("processMeta", DataxAction.getDataXBasicProcessMetaByReader(dataXReaderDesc));
+    result.put("processMeta", DataXBasicProcessMeta.getDataXBasicProcessMetaByReader(dataXReaderDesc));
 
     this.setBizResult(context, result);
   }

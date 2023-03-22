@@ -215,7 +215,9 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 //                throw new IllegalArgumentException(
 //                        "plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
 //            }
-            return com.qlangtech.tis.manage.IAppSource.getPluginStore(pluginContext, dataxName);
+
+            return com.qlangtech.tis.manage.IAppSource.getPluginStore(
+                    pluginContext, pluginMeta.getProcessModel().resType, dataxName);
         }
     };
 
@@ -321,8 +323,13 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
                         @Override
                         public IPluginStore<?> appRelevant(IPluginContext pluginContext, String dataxName) {
+
+                            ;
+
+
                             KeyedPluginStore<?> keyStore = (getReader)
-                                    ? DataxReader.getPluginStore(pluginContext, dataxName) : DataxWriter.getPluginStore(pluginContext, dataxName);
+                                    ? DataxReader.getPluginStore(pluginContext, dataxName)
+                                    : DataxWriter.getPluginStore(pluginContext, pluginMeta.getProcessModel().resType, dataxName);
                             return keyStore;
                         }
                     });

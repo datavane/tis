@@ -34,6 +34,7 @@ public enum StoreResourceType {
     , DataFlow(IFullBuildContext.NAME_DATAFLOW_DIR, true, DataxProcessor.DEFAULT_WORKFLOW_PROCESSOR_NAME);
 
     public static final String KEY_STORE_RESOURCE_TYPE = "storeResType";
+    public static final String KEY_PROCESS_MODEL = "processModel";
     private final String type;
     public final boolean useMetaCfgDir;
     public final String pluginDescName;

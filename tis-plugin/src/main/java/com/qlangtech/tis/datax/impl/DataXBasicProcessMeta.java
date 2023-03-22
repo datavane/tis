@@ -18,6 +18,9 @@
 
 package com.qlangtech.tis.datax.impl;
 
+import java.util.Objects;
+import java.util.Optional;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-05-18 09:50
@@ -27,6 +30,18 @@ public class DataXBasicProcessMeta {
     private boolean explicitTable;
     private boolean writerRDBMS;
     private boolean isWriterSupportMultiTableInReader;
+
+    public static DataXBasicProcessMeta getDataXBasicProcessMetaByReader(
+      Optional<DataxReader.BaseDataxReaderDescriptor> readerDesc) {
+      Objects.requireNonNull(readerDesc, "readerDesc can not be null");
+      DataXBasicProcessMeta processMeta = new DataXBasicProcessMeta();
+      if (readerDesc.isPresent()) {
+        DataxReader.BaseDataxReaderDescriptor rd = readerDesc.get();
+        processMeta.setReaderHasExplicitTable(rd.hasExplicitTable());
+        processMeta.setReaderRDBMS(rd.isRdbms());
+      }
+      return processMeta;
+    }
 
     public boolean isWriterSupportMultiTableInReader() {
         return isWriterSupportMultiTableInReader;

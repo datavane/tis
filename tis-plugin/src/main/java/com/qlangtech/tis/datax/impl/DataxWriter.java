@@ -213,10 +213,15 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
             eprops.put("rdbms", this.isRdbms());
             eprops.put("createDDL", this.isSupportTabCreate());
             eprops.put(KEY_SUPPORT_INCR, this.isSupportIncr());
+            eprops.put(KEY_SUPPORT_BATCH, this.isSupportBatch());
             eprops.put(KEY_END_TYPE, this.getEndType().getVal());
             return eprops;
         }
 
+        @Override
+        public boolean isSupportBatch() {
+            return true;
+        }
 //        /**
 //         * 如果返回null则说明不支持增量同步功能
 //         *

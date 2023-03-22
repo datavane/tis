@@ -36,6 +36,7 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
+import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.Util;
 import org.apache.commons.collections.CollectionUtils;
@@ -458,6 +459,7 @@ public class UpdateSite {
         public final Map<String, List<String>> extendPoints;
 
         public final Set<String> endTypes;
+        public final Set<IPluginTaggable.PluginTag> pluginTags;
 
 
         /**
@@ -478,6 +480,12 @@ public class UpdateSite {
             this.requiredCore = Util.intern(get(o, "requiredCore"));
             this.releaseTimestamp = o.getLongValue("buildDate");
 
+            JSONArray pluginTags = o.getJSONArray("pluginTags");
+            if (pluginTags == null) {
+                throw new IllegalStateException(JsonUtil.toString(o) + " lack relevant property pluginTags");
+            }
+            this.pluginTags = pluginTags.stream()
+                    .map((t) -> IPluginTaggable.PluginTag.parse((String) t)).collect(Collectors.toSet());
             JSONArray endTypes = o.getJSONArray("endTypes");
             if (endTypes == null) {
                 throw new IllegalStateException(JsonUtil.toString(o) + " lack relevant property endTypes");

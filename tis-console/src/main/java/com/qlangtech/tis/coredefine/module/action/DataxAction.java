@@ -45,6 +45,7 @@ import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -91,6 +92,11 @@ public class DataxAction extends BasicModule {
 
     DataXJobSubmit.InstanceType triggerType = DataXJobSubmit.getDataXTriggerType();
     IDataxProcessor dataXProcessor = DataxProcessor.load(null, this.getCollectionName());
+
+    if (!dataXProcessor.isSupportBatch(this)) {
+      this.addErrorMessage(context, "该数据通道不支持批量数据同步，请使用实时同步");
+      return;
+    }
     DataXCfgGenerator.GenerateCfgs cfgFileNames = dataXProcessor.getDataxCfgFileNames(null);
     if (!triggerType.validate(this, context, cfgFileNames.getDataXCfgFiles())) {
       return;
@@ -123,7 +129,7 @@ public class DataxAction extends BasicModule {
     if (StringUtils.isEmpty(dataXName)) {
       throw new IllegalArgumentException("param dataXName can not be null");
     }
-    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
     IDataxProcessor dataxProcessor = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataXName);
 
     // DataxProcessor dataxProcessor = DataxProcessor.load(this,); IAppSource.load(this, dataXName);
@@ -138,7 +144,7 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doDataxProcessorDesc(Context context) throws Exception {
 
-    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
 
     UploadPluginMeta pluginMeta = UploadPluginMeta.parse(HeteroEnum.APP_SOURCE.identity);
     HeteroList<IAppSource> hlist = new HeteroList<>(pluginMeta);
@@ -164,7 +170,7 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetWriterPluginInfo(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
     JSONObject writerDesc = this.parseJsonPost();
     if (StringUtils.isEmpty(dataxName)) {
       throw new IllegalStateException("param " + PARAM_KEY_DATAX_NAME + " can not be null");
@@ -387,12 +393,18 @@ public class DataxAction extends BasicModule {
     List<Descriptor<DataxWriter>> writerTypes = TIS.get().getDescriptorList(DataxWriter.class);
 
 
-    try {
-      final Class writerFilter = Class.forName(this.getString("writerDescFilter"));
-      writerTypes = writerTypes.stream().filter((wt) -> writerFilter.isAssignableFrom(wt.getClass())).collect(Collectors.toList());
-    } catch (ClassNotFoundException e) {
-
+    String writerPluginTag = this.getString("writerPluginTag");
+    if (StringUtils.isNotEmpty(writerPluginTag)) {
+      IPluginTaggable.PluginTag filterTag = IPluginTaggable.PluginTag.parse(writerPluginTag);
+      writerTypes = writerTypes.stream().filter((desc) -> {
+        if (desc instanceof IPluginTaggable) {
+          IPluginTaggable taggable = (IPluginTaggable) desc;
+          return taggable.getTags().contains(filterTag);
+        }
+        return false;
+      }).collect(Collectors.toList());
     }
+
 
     this.setBizResult(context, new DataxPluginDescMeta(readerTypes, writerTypes));
   }
@@ -430,7 +442,7 @@ public class DataxAction extends BasicModule {
     DataXCfgGenerator.DataXCfgFile cfgFileCriteria = this.parseJsonPost(DataXCfgGenerator.DataXCfgFile.class);
 
     GenCfgFileType fileType = GenCfgFileType.parse(this.getString("fileType"));
-    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
     IDataxProcessor dataxProcessor
       = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataxName);
     Map<String, Object> fileMeta = Maps.newHashMap();
@@ -567,7 +579,7 @@ public class DataxAction extends BasicModule {
   public void doGenerateDataxCfgs(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     boolean getExist = this.getBoolean("getExist");
-    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
     generateDataXCfgs(this, context, pmodel.resType, dataxName, getExist);
   }
 
@@ -605,7 +617,7 @@ public class DataxAction extends BasicModule {
   public void doRegenerateSqlDdlCfgs(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     // DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
-    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
     IDataxProcessor dataxProcessor = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataxName);
 
     DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(this, dataxName, dataxProcessor);
@@ -679,6 +691,7 @@ public class DataxAction extends BasicModule {
 
       this.getApplicationDAO().deleteByPrimaryKey(appDomain.getAppid());
       this.addActionMessage(context, "已经成功将数据通道'" + appDomain.getAppName() + "'删除");
+      IAppSource.cleanAppSourcePluginStoreCache(this, appDomain.getAppName());
       deleteSuccess = true;
     } finally {
       if (deleteSuccess) {
@@ -726,7 +739,7 @@ public class DataxAction extends BasicModule {
   public void doUpdateDatax(Context context) throws Exception {
     String dataxName = this.getCollectionName();
 
-    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
     IDataxProcessor old = (IDataxProcessor) pmodel.loadDataXProcessor(null, dataxName);
 
     // DataxProcessor old = DataxProcessor.load(null, dataxName);
@@ -779,7 +792,7 @@ public class DataxAction extends BasicModule {
     if (StringUtils.isBlank(execId)) {
       throw new IllegalArgumentException("param execId can not be null");
     }
-    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
     IDataxProcessor dataxProcessor = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataXName);
 
     // DataxProcessor dataxProcessor = IAppSource.load(null, dataXName);
@@ -1041,7 +1054,30 @@ public class DataxAction extends BasicModule {
     this.saveTableMapper(this, dataxName, Collections.singletonList(tableMapper));
   }
 
-  public static final String KEY_PROCESS_MODEL = "processModel";
+
+  private ValdateReaderAndWriter getValdateReaderAndWriter(ProcessModel pmodel) {
+    switch (pmodel) {
+      case CreateDatax:
+        return (reader, writer, module, context) -> {
+          if (reader == null || writer == null) {
+            module.addErrorMessage(context, "请选择'Reader类型'和'Writer类型'");
+            return false;
+          }
+          return true;
+        };
+      case CreateWorkFlow:
+        return (reader, writer, module, context) -> {
+          if (writer == null) {
+            module.addErrorMessage(context, "请选择'引擎类型'");
+            return false;
+          }
+          return true;
+        };
+      default:
+        throw new IllegalStateException("illegal pmode:" + pmodel);
+    }
+  }
+
 
   /**
    * submit reader type and writer type form for validate
@@ -1052,7 +1088,7 @@ public class DataxAction extends BasicModule {
   public void doValidateReaderWriter(Context context) throws Exception {
     this.errorsPageShow(context);
     JSONObject post = this.parseJsonPost();
-    ProcessModel pmodel = ProcessModel.parse(post.getString(KEY_PROCESS_MODEL));
+    ProcessModel pmodel = ProcessModel.parse(post.getString(StoreResourceType.KEY_PROCESS_MODEL));
 
     String dataxPipeName = post.getString("dataxPipeName");
 
@@ -1061,7 +1097,7 @@ public class DataxAction extends BasicModule {
 //    Objects.requireNonNull(reader, "reader can not be null");
 //    Objects.requireNonNull(writer, "writer can not be null");
 
-    if (!pmodel.valdateReaderAndWriter(reader, writer, this, context)) {
+    if (!getValdateReaderAndWriter(pmodel).valdateReaderAndWriter(reader, writer, this, context)) {
       return;
     }
 
@@ -1083,18 +1119,6 @@ public class DataxAction extends BasicModule {
   }
 
 
-  public static DataXBasicProcessMeta getDataXBasicProcessMetaByReader(
-    Optional<DataxReader.BaseDataxReaderDescriptor> readerDesc) {
-    Objects.requireNonNull(readerDesc, "readerDesc can not be null");
-    DataXBasicProcessMeta processMeta = new DataXBasicProcessMeta();
-    if (readerDesc.isPresent()) {
-      DataxReader.BaseDataxReaderDescriptor rd = readerDesc.get();
-      processMeta.setReaderHasExplicitTable(rd.hasExplicitTable());
-      processMeta.setReaderRDBMS(rd.isRdbms());
-    }
-    return processMeta;
-  }
-
   /**
    * dataX创建之后的管理页面使用
    *
@@ -1104,7 +1128,7 @@ public class DataxAction extends BasicModule {
   public void doGetDataXMeta(Context context) {
     String dataXName = this.getCollectionName();
 
-    ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
+    ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
     IDataxProcessor processor = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataXName);
     Map<String, Object> result = Maps.newHashMap();
 

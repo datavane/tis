@@ -20,7 +20,6 @@ package com.qlangtech.tis.sql.parser.stream.generate;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.datax.TableAliasMapper;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -87,32 +86,19 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
         return streamIncrGenerateStrategy.accept(new IBasicAppSource.IAppSourceVisitor<List<TableAlias>>() {
             @Override
             public List<TableAlias> visit(DataxProcessor processor) {
-                // Map<IEntityNameGetter, List<IValChain>> tabColsMapper = Maps.newHashMap();
-                List<TableAlias> aliases = Lists.newArrayList();
-              //  IDataxReader reader = processor.getReader(null);
-              //  Objects.requireNonNull(reader, "dataXReader can not be null");
-                TableAliasMapper tabAlias = processor.getTabAlias();
 
+                List<TableAlias> aliases = Lists.newArrayList();
+
+                TableAliasMapper tabAlias = processor.getTabAlias();
                 tabAlias.forEach((key, alia) -> {
                     aliases.add(alia);
                 });
-                return aliases;
 
-//                for (ISelectedTab tab : selectedTabs) {
-//
-//                    tabAlias.getWithCheckNotNull(tab.getName());
-//
-//                    tabColsMapper.put(() ->
-//                                    EntityName.parse((tabAlias.getWithCheckNotNull(tab.getName())).getTo())
-//                            , Collections.emptyList());
-//                }
-//                return tabColsMapper;
+                return aliases;
             }
         });
     }
 
-
-    //    @Override
     private IERRules getERRule() {
         ERRules erRules = new ERRules() {
             public List<PrimaryTableMeta> getPrimaryTabs() {

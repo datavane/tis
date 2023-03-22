@@ -64,6 +64,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Supplier;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -154,22 +155,35 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
         }
     }
 
-    private ERRules getErRules() throws Exception {
+    private boolean containErRules() {
+        return getOptionalErRules().isPresent();
+    }
 
-        SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(this.dataflowName);
+    private ERRules getErRules() {
 
-        if (topology.isSingleTableModel()) {
-            Optional<ERRules> erRule = ERRules.getErRule(this.dataflowName);
-            if (!erRule.isPresent()) {
-                ERRules.createDefaultErRule(topology);
-            }
-        }
-
-        Optional<ERRules> erRules = ERRules.getErRule(this.dataflowName);
+        Optional<ERRules> erRules = getOptionalErRules();
         if (!erRules.isPresent()) {
             throw new IllegalStateException("topology:" + dataflowName + " relevant erRule can not be null");
         }
         return erRules.get();
+
+    }
+
+    private Optional<ERRules> getOptionalErRules() {
+        try {
+            SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(this.dataflowName);
+
+            if (topology.isSingleTableModel()) {
+                Optional<ERRules> erRule = ERRules.getErRule(this.dataflowName);
+                if (!erRule.isPresent()) {
+                    ERRules.createDefaultErRule(topology);
+                }
+            }
+
+            return ERRules.getErRule(this.dataflowName);
+        } catch (Exception e) {
+            throw new RuntimeException("dataflowName:" + this.dataflowName, e);
+        }
     }
 
     //    @Override
@@ -212,15 +226,21 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
 
         DagTaskUtils.createTasks(execChainContext, taskPhaseInfo, dagSessionSpec, trigger);
 
-        ERRules erRules = this.getErRules();
 
-       // TemplateContext tplContext = new TemplateContext(execChainContext);
+        // TemplateContext tplContext = new TemplateContext(execChainContext);
         JoinPhaseStatus joinPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
         //IPluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
         //Objects.requireNonNull(pluginStore.getPlugin(), "flatTableBuilder can not be null");
         // chainContext.setFlatTableBuilderPlugin(pluginStore.getPlugin());
         // final IFlatTableBuilder flatTableBuilder = pluginStore.getPlugin();// execChainContext.getFlatTableBuilder();
         // final SqlTaskNodeMeta fNode = topology.getFinalNode();
+
+        Supplier<IPrimaryTabFinder> primaryTabFinder
+                = () -> DataFlowAppSource.this.containErRules()
+                ? DataFlowAppSource.this.getErRules()
+                : new IPrimaryTabFinder() {
+        };
+
         return flatTableBuilder.startTask((context) -> {
             DataflowTask process = null;
             for (SqlTaskNodeMeta pnode : topology.getNodeMetas()) {
@@ -231,7 +251,7 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
                  */
                 process = flatTableBuilder.createTask(pnode, false//StringUtils.equals(fNode.getId(), pnode.getId())
                         , execChainContext, context, joinPhaseStatus.getTaskStatus(pnode.getExportName())
-                        , this.dsGetter, erRules);
+                        , this.dsGetter, primaryTabFinder);
 
                 dagSessionSpec.put(pnode.getId(), new TaskAndMilestone(process));
             }

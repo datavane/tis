@@ -21,12 +21,14 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
+import com.qlangtech.tis.coredefine.module.action.ProcessModel;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
@@ -110,6 +112,11 @@ public class UploadPluginMeta {
     public boolean isDisableBizSet() {
         return this.getBoolean(KEY_DISABLE_BIZ_SET);
     }
+
+    public ProcessModel getProcessModel() {
+        return ProcessModel.parse(this.getExtraParam(StoreResourceType.KEY_PROCESS_MODEL));
+    }
+
 
     public static void main(String[] args) throws Exception {
 

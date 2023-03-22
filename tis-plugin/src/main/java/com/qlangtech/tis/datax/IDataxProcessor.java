@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -179,6 +180,20 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
     public TableAliasMapper getTabAlias();
 
     /**
+     * 是否支持批量执行
+     *
+     * @param pluginCtx
+     * @return
+     */
+    default boolean isSupportBatch(IPluginContext pluginCtx) {
+        DataxReader reader = (DataxReader) this.getReader(pluginCtx);
+        DataxReader.BaseDataxReaderDescriptor readerDesc = (DataxReader.BaseDataxReaderDescriptor) reader.getDescriptor();
+        DataxWriter writer = (DataxWriter) this.getWriter(pluginCtx);
+        DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
+        return readerDesc.isSupportBatch() && writerDesc.isSupportTabCreate();
+    }
+
+    /**
      * 标示DataXWriter会自己创建IDataxProcessor.TableMap实例，使用这个标示必须满足isSupportMultiTable为false，具体例子可以看DataXMongodbWriter
      */
     public interface INullTableMapCreator {
@@ -215,7 +230,7 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
         public static TableMap create(String tableName, List<IColMetaGetter> cols) {
             List<CMeta> cmetas = Lists.newArrayList();
             CMeta cm = null;
-           // HdfsColMeta c = null;
+            // HdfsColMeta c = null;
 
             for (IColMetaGetter col : cols) {
                 cm = getCMeta(col);
