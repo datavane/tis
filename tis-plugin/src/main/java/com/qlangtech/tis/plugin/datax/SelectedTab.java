@@ -21,16 +21,20 @@ package com.qlangtech.tis.plugin.datax;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.ESTableAlias;
 import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.util.impl.AttrVals;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -204,7 +208,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     }
 
     @TISExtension
-    public static class DefaultDescriptor extends Descriptor<SelectedTab> {
+    public static class DefaultDescriptor extends Descriptor<SelectedTab> implements SubForm.ISubFormItemValidate {
         @Override
         protected final boolean validateAll(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
 
@@ -215,6 +219,25 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
                 return false;
             }
             return this.validateAll(msgHandler, context, tab);
+        }
+
+        @Override
+        public boolean validateSubFormItems(IControlMsgHandler msgHandler, Context context
+                , BaseSubFormProperties props, IPropertyType.SubFormFilter filter, AttrVals formData) {
+
+            Integer maxReaderTabCount = Integer.MAX_VALUE;
+            try {
+                maxReaderTabCount = Integer.parseInt(filter.uploadPluginMeta.getExtraParam(ESTableAlias.MAX_READER_TABLE_SELECT_COUNT));
+            } catch (Throwable e) {
+
+            }
+
+            if (formData.size() > maxReaderTabCount) {
+                msgHandler.addErrorMessage(context, "导入表不能超过" + maxReaderTabCount + "张");
+                return false;
+            }
+
+            return true;
         }
 
         public PluginFormProperties getPluginFormPropertyTypes(Optional<IPropertyType.SubFormFilter> subFormFilter) {

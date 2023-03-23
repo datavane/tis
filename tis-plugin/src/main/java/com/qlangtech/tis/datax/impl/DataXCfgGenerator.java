@@ -172,8 +172,7 @@ public class DataXCfgGenerator {
         IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
         DataxWriter.BaseDataxWriterDescriptor writerDescriptor = writer.getWriterDescriptor();
 
-        TableAliasMapper tabAlias = Objects.requireNonNull(
-                dataxProcessor.getTabAlias(), "tabAlias can not be null");
+        TableAliasMapper tabAlias = Objects.requireNonNull(dataxProcessor.getTabAlias(), "tabAlias can not be null");
         Set<String> createDDLFiles = Sets.newHashSet();
         List<String> existDDLFiles = getExistDDLFiles();
 
@@ -197,7 +196,7 @@ public class DataXCfgGenerator {
 
             IGroupChildTaskIterator subTasks = Objects.requireNonNull(reader.getSubTasks(), "subTasks can not be null");
             IDataxReaderContext readerContext = null;
-            File configFile = null;
+            //  File configFile = null;
             // List<String> subTaskName = Lists.newArrayList();
 
             Optional<IDataxProcessor.TableMap> tableMapper = null;

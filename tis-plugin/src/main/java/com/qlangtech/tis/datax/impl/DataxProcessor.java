@@ -159,7 +159,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     @Override
     public TableAliasMapper getTabAlias() {
 
-        if (this.isRDBMS2RDBMS(null)) {
+        if (this.isRDBMS2RDBMS(null) || this.isRDBMS2UnStructed(null)) {
             if (tableMaps == null) {
                 return TableAliasMapper.Null;//Collections.emptyMap();
             }
@@ -172,7 +172,6 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
                     }, (m) -> {
                         return m;
                     })));
-
         } else {
             if (!this.isReaderUnStructed(null)) {
                 IDataxReader reader = this.getReader(null);

@@ -14,7 +14,7 @@ class ${config.javaName}SourceHandle extends DefaultFlinkSourceHandle {
 
 #foreach($i in $config.dumpTables  )
 ##    ${i.tabName}Stream.addSink(sinkFunction)
-    val ${i.from}Stream = streamMap.get("${i.to}")
+    val ${i.to}Stream = streamMap.get("${i.to}")
     sinkFunction.add2Sink("${i.to}" , ${i.to}Stream)
 #end
 

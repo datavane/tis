@@ -190,7 +190,7 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
         DataxReader.BaseDataxReaderDescriptor readerDesc = (DataxReader.BaseDataxReaderDescriptor) reader.getDescriptor();
         DataxWriter writer = (DataxWriter) this.getWriter(pluginCtx);
         DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
-        return readerDesc.isSupportBatch() && writerDesc.isSupportTabCreate();
+        return readerDesc.isSupportBatch() && writerDesc.isSupportBatch();
     }
 
     /**
