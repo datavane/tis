@@ -37,17 +37,25 @@ import java.util.List;
  * @create: 2022-10-19 12:31
  **/
 public class StubSuFormGetterContext {
+
+    public static final String FILED_USER_ID = "user_id";
+    public static final String FIELD_USER_NAME = "user_name";
+
     private final TISEasyMock easyMock;
     private MockPlugin metaPlugin;
     private UploadPluginMeta param;
     final String id1 = "id1";
 
     public StubSuFormGetterContext(TISEasyMock easyMock) {
-        this.easyMock = easyMock;
-        this.initSuForm();
+        this(easyMock, true);
     }
 
-    private void initSuForm() {
+    public StubSuFormGetterContext(TISEasyMock easyMock, boolean withUserIdPk) {
+        this.easyMock = easyMock;
+        this.initSuForm(withUserIdPk);
+    }
+
+    private void initSuForm(boolean withUserIdPk) {
         this.metaPlugin = easyMock.mock("metaPlugin", MockPlugin.class);
         this.param = easyMock.mock("param", UploadPluginMeta.class);
 
@@ -58,8 +66,8 @@ public class StubSuFormGetterContext {
 
         List<ColumnMetaData> cols = Lists.newArrayList();
         // (int index, String key, DataType type, boolean pk)
-        cols.add(new ColumnMetaData(0, "user_id", new com.qlangtech.tis.plugin.ds.DataType(Types.BIGINT), true));
-        cols.add(new ColumnMetaData(1, "user_name", new com.qlangtech.tis.plugin.ds.DataType(Types.VARBINARY), false));
+        cols.add(new ColumnMetaData(0, FILED_USER_ID, new com.qlangtech.tis.plugin.ds.DataType(Types.BIGINT), withUserIdPk));
+        cols.add(new ColumnMetaData(1, FIELD_USER_NAME, new com.qlangtech.tis.plugin.ds.DataType(Types.VARBINARY), false));
         try {
             EasyMock.expect(metaPlugin.getTableMetadata(EntityName.parse(id1))).andReturn(cols);
         } catch (TableNotFoundException e) {

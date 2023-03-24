@@ -42,7 +42,8 @@ public class StreamContextConstant {
     public static final String FILE_DB_DEPENDENCY_CONFIG = "db_dependency_config.yaml";
 
     public static String getDbDependencyConfigFilePath(String collection, long timestamp) {
-        return StreamContextConstant.DIR_STREAMS_SCRIPT + "/" + collection + "/" + timestamp + "/" + StreamContextConstant.DIR_META + "/" + StreamContextConstant.FILE_DB_DEPENDENCY_CONFIG;
+        return StreamContextConstant.DIR_STREAMS_SCRIPT + "/" + collection + "/" + timestamp
+                + "/" + StreamContextConstant.DIR_META + "/" + StreamContextConstant.FILE_DB_DEPENDENCY_CONFIG;
     }
 
     public static File getDAORootDir(String dbName, long timestamp) {
@@ -94,6 +95,8 @@ public class StreamContextConstant {
      * @return
      */
     public static File getDbDependencyConfigMetaFile(String collectionName, long incrScriptTimestamp) {
-        return new File(StreamContextConstant.getStreamScriptRootDir(collectionName, incrScriptTimestamp), StreamContextConstant.DIR_META + "/" + StreamContextConstant.FILE_DB_DEPENDENCY_CONFIG);
+        return new File(StreamContextConstant.getStreamScriptRootDir(
+                collectionName, incrScriptTimestamp)
+                , StreamContextConstant.DIR_META + "/" + StreamContextConstant.FILE_DB_DEPENDENCY_CONFIG);
     }
 }

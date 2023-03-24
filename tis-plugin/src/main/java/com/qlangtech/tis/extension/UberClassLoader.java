@@ -20,6 +20,8 @@ package com.qlangtech.tis.extension;
 
 import com.qlangtech.tis.extension.util.ClassLoaderReflectionToolkit;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -33,7 +35,7 @@ import java.util.stream.Collectors;
  * {@link ClassLoader} that can see all plugins.
  */
 public final class UberClassLoader extends ClassLoader {
-
+    private static final Logger logger = LoggerFactory.getLogger(UberClassLoader.class);
     private PluginManager pluginManager;
     /**
      * Make generated types visible.
@@ -64,6 +66,7 @@ public final class UberClassLoader extends ClassLoader {
 
     @Override
     public Class<?> findClass(String name) throws ClassNotFoundException {
+       // logger.info("findz:" + name);
         WeakReference<Class> wc = generatedClasses.get(name);
         if (wc != null) {
             Class c = wc.get();

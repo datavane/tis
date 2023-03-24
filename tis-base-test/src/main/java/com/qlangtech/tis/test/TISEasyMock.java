@@ -17,13 +17,15 @@
  */
 package com.qlangtech.tis.test;
 
+import org.junit.Before;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-04 12:41
  */
 public interface TISEasyMock {
 
-
+    @Before
     default void clearMocks() {
         EasyMockUtil.clearMocks();
     }
