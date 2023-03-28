@@ -80,6 +80,10 @@ public class PluginAndCfgsSnapshot {
         return "task_xxxx";
     }
 
+    public static PluginAndCfgsSnapshot getRepositoryCfgsSnapshot(String resName, InputStream manifestJar) throws IOException {
+        return getRepositoryCfgsSnapshot(resName, manifestJar, true);
+    }
+
     /**
      * 远程传输过来的资源快照信息
      *
@@ -88,12 +92,8 @@ public class PluginAndCfgsSnapshot {
      * @return
      * @throws IOException
      */
-    public static PluginAndCfgsSnapshot getRepositoryCfgsSnapshot(String resName, InputStream manifestJar
-                                                                  //URL[] libraryURLs
-    ) throws IOException {
-//        if (libraryURLs.length != 1) {
-//            throw new IllegalStateException("length of libraryURLs must be 1 , but now is:" + libraryURLs.length);
-//        }
+    public static PluginAndCfgsSnapshot getRepositoryCfgsSnapshot(String resName, InputStream manifestJar, boolean resetConfigWithSysProps) throws IOException {
+
         PluginAndCfgsSnapshot pluginAndCfgsSnapshot = null;
         String appName = null;
         // for (URL lib : libraryURLs) {
@@ -109,20 +109,23 @@ public class PluginAndCfgsSnapshot {
 
         pluginAndCfgsSnapshot = PluginAndCfgsSnapshot.setLocalPluginAndCfgsSnapshot(
                 PluginAndCfgsSnapshot.deserializePluginAndCfgsSnapshot(new TargetResName(appName), manifest));
-
         Attributes sysProps = manifest.getAttributes(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS);
-        Config.setConfig(null);
-        // @see TISFlinkCDCStreamFactory 在这个类中进行配置信息的加载
-        System.setProperty(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS, String.valueOf(true));
-        StringBuffer sysPropsDesc = new StringBuffer();
-        for (Map.Entry<Object, Object> pluginDesc : sysProps.entrySet()) {
-            Attributes.Name name = (Attributes.Name) pluginDesc.getKey();
-            String val = (String) pluginDesc.getValue();
-            String key = PluginAndCfgsSnapshot.convertCfgPropertyKey(name.toString(), false);
-            System.setProperty(key, val);
-            sysPropsDesc.append("\n").append(key).append("->").append(val);
+        if (resetConfigWithSysProps) {
+            Config.setConfig(null);
+            System.setProperty(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS, String.valueOf(true));
+            StringBuffer sysPropsDesc = new StringBuffer();
+            for (Map.Entry<Object, Object> pluginDesc : sysProps.entrySet()) {
+                Attributes.Name name = (Attributes.Name) pluginDesc.getKey();
+                String val = (String) pluginDesc.getValue();
+                String key = PluginAndCfgsSnapshot.convertCfgPropertyKey(name.toString(), false);
+                System.setProperty(key, val);
+                sysPropsDesc.append("\n").append(key).append("->").append(val);
+            }
+            logger.info("sysProps details:" + sysPropsDesc.toString());
         }
-        logger.info("sysProps details:" + sysPropsDesc.toString());
+
+        // @see TISFlinkCDCStreamFactory 在这个类中进行配置信息的加载
+
         // shall not have any exception here.
         TisSubModule.TIS_CONSOLE.getLaunchPort();
         Config.getInstance();

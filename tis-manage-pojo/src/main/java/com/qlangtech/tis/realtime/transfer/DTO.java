@@ -103,12 +103,17 @@ public class DTO {
 
     public enum EventType {
 
-        UPDATE_BEFORE("UPDATE_BEFORE"), UPDATE_AFTER("UPDATE_AFTER"), ADD("INSERT"), DELETE("DELETE");
+        UPDATE_BEFORE("UPDATE_BEFORE", "update") //
+        , UPDATE_AFTER("UPDATE_AFTER", UPDATE_BEFORE.collapse) //
+        , ADD("INSERT", "insert") //
+        , DELETE("DELETE", "delete");
 
         private final String type;
+        private final String collapse;
 
-        private EventType(String type) {
+        private EventType(String type, String collapse) {
             this.type = type;
+            this.collapse = collapse;
         }
 
         public static EventType parse(String eventType) {
@@ -126,6 +131,10 @@ public class DTO {
 //                return DELETE;
 //            }
             throw new IllegalStateException("eventType:" + eventType + " is illegal");
+        }
+
+        public String getCollapse() {
+            return collapse;
         }
 
         public String getTypeName() {

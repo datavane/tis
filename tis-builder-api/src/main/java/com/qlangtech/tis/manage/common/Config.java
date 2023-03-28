@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.manage.common;
 
@@ -32,8 +32,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -277,7 +275,7 @@ public class Config {
 
     static {
         localDftValsKeys = new HashSet<>();
-        localDftValsKeys.add(KEY_TIS_DATASOURCE_TYPE);
+        // localDftValsKeys.add(KEY_TIS_DATASOURCE_TYPE);
         localDftValsKeys.add(KEY_TIS_DATASOURCE_DBNAME);
     }
 
@@ -299,6 +297,12 @@ public class Config {
         try {
             dbCfg.dbtype = p.getString(KEY_TIS_DATASOURCE_TYPE, true);
             dbCfg.dbname = p.getString(KEY_TIS_DATASOURCE_DBNAME, true);
+
+            if (!(DB_TYPE_MYSQL.equals(dbCfg.dbtype)
+                    || DB_TYPE_DERBY.equals(dbCfg.dbtype))) {
+                throw new IllegalStateException("dbCfg.dbtype:" + dbCfg.dbtype + " is illegal");
+            }
+
             if (DB_TYPE_MYSQL.equals(dbCfg.dbtype)) {
                 dbCfg.port = Integer.parseInt(p.getString("tis.datasource.port"));
                 dbCfg.url = p.getString("tis.datasource.url");
@@ -435,6 +439,9 @@ public class Config {
                     protected String getProp(String key) {
                         if (localDftValsKeys.contains(key)) {
                             return "defaultVal";
+                        }
+                        if (KEY_TIS_DATASOURCE_TYPE.equals(key)) {
+                            return DB_TYPE_DERBY;
                         }
                         return StringUtils.defaultIfEmpty(System.getenv(key), System.getProperty(key));
                     }

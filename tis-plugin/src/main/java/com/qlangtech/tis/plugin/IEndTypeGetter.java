@@ -51,8 +51,8 @@ public interface IEndTypeGetter {
         , ElasticSearch("es"), MongoDB("mongoDB"), StarRocks("starRocks"), Doris("doris") //
         , Clickhouse("clickhouse"), Hudi("hudi"), AliyunOSS("aliyunOSS"), FTP("ftp") //
         , Cassandra("cassandra"), HDFS("hdfs"), SqlServer("sqlServer"), TiDB("TiDB") //
-        , RocketMQ("rocketMq"), Kafka("kafka"), DataFlow("dataflow"), AliyunODPS("aliyunOdps")
-        , HiveMetaStore("hms");
+        , RocketMQ("rocketMq"), Kafka("kafka"), DataFlow("dataflow") //
+        , AliyunODPS("aliyunOdps"), HiveMetaStore("hms"), RabbitMQ("rabbitmq");
         private final String val;
 
         public static EndType parse(String endType) {
