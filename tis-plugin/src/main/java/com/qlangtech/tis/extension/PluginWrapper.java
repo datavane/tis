@@ -504,9 +504,6 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
         return !disableFile.exists();
     }
 
-//    public Manifest getManifest() {
-//        return manifest;
-//    }
 
     public void setPlugin(Plugin plugin) {
         this.parent.pluginInstanceStore.store.put(this, plugin);
@@ -514,7 +511,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
     }
 
     public String getPluginClass() {
-        return manifest.getPluginClass(); //manifest.getMainAttributes().getValue("Plugin-Class");
+        return manifest.getPluginClass();
     }
 
     public boolean hasLicensesXml() {
@@ -541,13 +538,6 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
         }, (missDep) -> {
             missingDependencies.add(missDep);
         });
-        // make sure dependencies exist
-//        for (Dependency d : dependencies) {
-//            match.setIdentityName(d.shortName);
-//            if (parent.getPlugin(match) == null) {
-//                missingDependencies.add(d);
-//            }
-//        }
         if (!missingDependencies.isEmpty()) {
             throw new MissingDependencyException(this.shortName, missingDependencies);
         }
@@ -556,29 +546,7 @@ public class PluginWrapper implements Comparable<PluginWrapper>, ModelObject, IT
         ITPIArtifact.matchDependency(parent, optionalDependencies, this, (p) -> {
             dependencies.add(p.getRight());
         });
-
-//        for (Dependency d : optionalDependencies) {
-//            match.setIdentityName(d.shortName);
-//            if (parent.getPlugin(match) != null) {
-//                dependencies.add(d);
-//            }
-//        }
     }
-
-    // /**
-    // * If the plugin has {@link #getUpdateInfo() an update},
-    // * returns the {@link hudson.model.UpdateSite.Plugin} object.
-    // *
-    // * @return
-    // *      This method may return null &mdash; for example,
-    // *      the user may have installed a plugin locally developed.
-    // */
-    // public UpdateSite.Plugin getUpdateInfo() {
-    // UpdateCenter uc = Jenkins.getInstance().getUpdateCenter();
-    // UpdateSite.Plugin p = uc.getPlugin(getShortName());
-    // if(p!=null && p.isNewerThan(getVersion())) return p;
-    // return null;
-    // }
 
     /**
      * returns the {@link com.qlangtech.tis.extension.model.UpdateSite.Plugin} object, or null.

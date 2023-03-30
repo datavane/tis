@@ -382,7 +382,7 @@ public class PluginAction extends BasicModule {
     public PluginFilter() {
       this.extendpoint = getExtendpointParam();
       final String[] filterTags = getStringArray("tag");
-      if (filterTags != null) {
+      if (filterTags != null && filterTags.length > 0) {
         this.tags = Sets.newHashSet();
         for (String tag : filterTags) {
           tags.add(IPluginTaggable.PluginTag.parse(tag));
