@@ -33,7 +33,9 @@ import java.util.function.Supplier;
 public enum TisRunMode {
     // 单节点运行 所有组件都运行在一个VM中
     Standalone(() -> {
-        return TisAppLaunch.get().isZeppelinActivate();
+        // return TisAppLaunch.get().isZeppelinActivate();
+        // 单机版默认已经安装了
+        return true;
     })
     // 本地测试，组件分布在多个VM中且IP端口不同
     , LocalTest(new Supplier<Boolean>() {
@@ -66,7 +68,10 @@ public enum TisRunMode {
         }
     })
     // 分不同的节点运行
-    , Distribute(Standalone.zeppelinContextInitialized);
+    , Distribute(() -> {
+        // return TisAppLaunch.get().isZeppelinActivate();
+        throw new UnsupportedOperationException();
+    });
 
     public final Supplier<Boolean> zeppelinContextInitialized;
 
