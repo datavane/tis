@@ -35,10 +35,12 @@ public class TestTableInDB extends BasicTestCase {
      * 测试默认无分表下的执行逻辑
      */
     public void testDftTableInDB() {
-        DBIdentity order2 = DBIdentity.parseId("order2");
-        TableInDB tableInDB = TableInDB.create(order2);
         String jdbcUrl = "jdbcUrl";
         String testTabOrder = "orderdetail";
+        DBIdentity order2 = DBIdentity.parseId("order2");
+        TableInDB tableInDB = TableInDB.create(order2);
+        tableInDB.add(jdbcUrl, testTabOrder);
+
         DataXJobSubmit.TableDataXEntity tableEntity = DataXJobSubmit.TableDataXEntity.createTableEntity(null, jdbcUrl, testTabOrder);
 
         DataXJobInfo infoJob = tableInDB.createDataXJobInfo(tableEntity);
