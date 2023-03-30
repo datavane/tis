@@ -92,7 +92,7 @@ public abstract class TableInDB {
 
         @Override
         public DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity) {
-            return DataXJobInfo.create(tabEntity.getFileName(), tabEntity, Collections.emptyList());
+            return DataXJobInfo.create(tabEntity.getFileName(), tabEntity, Collections.singletonList(tabEntity.getSourceTableName()));
         }
 
         @Override

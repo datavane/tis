@@ -33,6 +33,7 @@ import com.qlangtech.tis.plugin.*;
 import com.qlangtech.tis.plugin.annotation.TestValidator;
 import com.qlangtech.tis.plugin.datax.TestSelectedTab;
 import com.qlangtech.tis.plugin.ds.TestDataSourceFactoryPluginStore;
+import com.qlangtech.tis.plugin.ds.TestTableInDB;
 import com.qlangtech.tis.util.TestAttrValMap;
 import com.qlangtech.tis.util.TestHeteroList;
 import com.qlangtech.tis.util.TestUploadPluginMeta;
@@ -49,6 +50,7 @@ public class TestAll extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTestSuite(TestTableInDB.class);
         suite.addTestSuite(TestSelectedTab.class);
         suite.addTestSuite(TestContainEnumsFieldPlugin.class);
         suite.addTestSuite(TestPluginManifest.class);
