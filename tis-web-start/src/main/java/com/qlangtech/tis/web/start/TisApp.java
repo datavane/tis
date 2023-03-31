@@ -140,12 +140,12 @@ public class TisApp {
         File libDir = new File(contextDir, "lib");
 
         List<URL> jars = new ArrayList<>();
-        addJars(libDir, jars, (cfile) -> {
-            return !cfile.getName().startsWith("zeppelin-server");
-        });
+        addJars(libDir, jars);
 
         File zeppelinLibDir = new File(TisAppLaunch.get().getZeppelinHome(), "lib");
-        addJars(zeppelinLibDir, jars);
+        addJars(zeppelinLibDir, jars, (cfile) -> {
+            return !cfile.getName().startsWith("zeppelin-server");
+        });
         if (jars.isEmpty()) {
             throw new IllegalStateException("there is any jars in libDir:" + libDir.getAbsolutePath());
         }
