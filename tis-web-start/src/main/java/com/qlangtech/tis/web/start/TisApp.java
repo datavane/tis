@@ -150,10 +150,33 @@ public class TisApp {
             throw new IllegalStateException("there is any jars in libDir:" + libDir.getAbsolutePath());
         }
         URLClassLoader clazzLoader = new URLClassLoader(jars.toArray(new URL[jars.size()]), this.getClass().getClassLoader());
-        ServiceLoader<IWebAppContextCollector>
-                appContextCollectors = ServiceLoader.load(IWebAppContextCollector.class, clazzLoader);
-        for (IWebAppContextCollector appContext : appContextCollectors) {
-            this.jetty.addContext(appContext);
+        final ClassLoader currentLoader = Thread.currentThread().getContextClassLoader();
+        /**
+         * <pre>
+         *     To avoid Error below,Shall set the current classloader:
+         * Caused by: java.lang.ClassNotFoundException: org.apache.commons.configuration2.XMLConfiguration
+         * 	at java.net.URLClassLoader.findClass(URLClassLoader.java:382)
+         * 	at java.lang.ClassLoader.loadClass(ClassLoader.java:424)
+         * 	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:349)
+         * 	at java.lang.ClassLoader.loadClass(ClassLoader.java:357)
+         * 	at java.lang.Class.forName0(Native Method)
+         * 	at java.lang.Class.forName(Class.java:348)
+         * 	at org.apache.commons.lang3.ClassUtils.getClass(ClassUtils.java:993)
+         * 	at org.apache.commons.lang3.ClassUtils.getClass(ClassUtils.java:1059)
+         * 	at org.apache.commons.lang3.ClassUtils.getClass(ClassUtils.java:1042)
+         * 	at org.apache.commons.configuration2.beanutils.BeanHelper.loadClass(BeanHelper.java:508)
+         * 	at org.apache.commons.configuration2.beanutils.BeanHelper.fetchBeanClass(BeanHelper.java:546)
+         * </pre>
+         */
+        try {
+            Thread.currentThread().setContextClassLoader(clazzLoader);
+            ServiceLoader<IWebAppContextCollector>
+                    appContextCollectors = ServiceLoader.load(IWebAppContextCollector.class, clazzLoader);
+            for (IWebAppContextCollector appContext : appContextCollectors) {
+                this.jetty.addContext(appContext);
+            }
+        } finally {
+            Thread.currentThread().setContextClassLoader(currentLoader);
         }
     }
 

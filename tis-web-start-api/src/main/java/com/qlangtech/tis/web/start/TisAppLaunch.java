@@ -85,6 +85,10 @@ public class TisAppLaunch {
         this.zeppelinContextInitialized = true;
     }
 
+    public boolean isZeppelinContextInitialized() {
+        return zeppelinContextInitialized;
+    }
+
     public File getZeppelinHome() {
         return this.zeppelinHome;
     }

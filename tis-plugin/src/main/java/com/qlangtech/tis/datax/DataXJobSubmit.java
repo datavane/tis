@@ -94,7 +94,8 @@ public abstract class DataXJobSubmit {
         return jobSubmit;
     }
 
-    public static Optional<DataXJobSubmit> getDataXJobSubmit(IJoinTaskContext joinTaskContext, DataXJobSubmit.InstanceType expectDataXJobSumit) {
+    public static Optional<DataXJobSubmit> getDataXJobSubmit(
+            IJoinTaskContext joinTaskContext, DataXJobSubmit.InstanceType expectDataXJobSumit) {
         return getDataXJobSubmit(joinTaskContext.isDryRun(), expectDataXJobSumit);
     }
 

@@ -27,7 +27,7 @@ package com.qlangtech.tis.web.start;
 public enum TisSubModule {
     WEB_START("web-start", 0),
     TIS_ASSEMBLE("tis-assemble", 1),
-    ZEPPELIN("zeppelin", "/next", 2),
+    ZEPPELIN("tis-zeppelin", "/next", 2),
     TIS_CONSOLE("tjs", 0),
     TIS_COLLECT("tis-collect", 0);
 

@@ -35,7 +35,7 @@ public enum TisRunMode {
     Standalone(() -> {
         // return TisAppLaunch.get().isZeppelinActivate();
         // 单机版默认已经安装了
-        return true;
+        return TisAppLaunch.get().isZeppelinContextInitialized();
     })
     // 本地测试，组件分布在多个VM中且IP端口不同
     , LocalTest(new Supplier<Boolean>() {
