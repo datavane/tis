@@ -21,6 +21,7 @@ package com.qlangtech.tis.plugin.ds;
 import com.qlangtech.tis.plugin.IdentityName;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -50,4 +51,10 @@ public interface DBIdentity extends IdentityName {
             }
         });
     }
+
+    default boolean isEquals(DBIdentity queryDBSourceId) {
+        return StringUtils.equals(Objects.requireNonNull(queryDBSourceId.identityValue(), "dbFactoryId can not be null")
+                , this.identityValue());
+    }
+
 }

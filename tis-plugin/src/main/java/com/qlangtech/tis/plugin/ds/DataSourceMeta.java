@@ -52,7 +52,7 @@ public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKey
      * @return
      */
     default List<ColumnMetaData> getTableMetadata(EntityName table) throws TableNotFoundException {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("invoke from:" + this.getClass().getName());
     }
 
     /**

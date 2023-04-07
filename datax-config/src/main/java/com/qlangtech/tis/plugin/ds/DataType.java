@@ -183,7 +183,7 @@ public class DataType implements Serializable {
             }
         });
 
-        return (this.isUnsigned() ? StringUtils.lowerCase(KEY_UNSIGNED) : StringUtils.EMPTY) + " " + type;
+        return (this.isUnsigned() ? StringUtils.lowerCase(KEY_UNSIGNED) + " " + type : type);
     }
 
 

@@ -55,8 +55,10 @@ public interface ValidatorCommons {
     String MSG_IDENTITY_ERROR = "必须由小写字母，大写字母，数字、下划线、减号组成";
 
     Pattern host_pattern = Pattern.compile("[\\da-z]{1}[\\da-z.]+:\\d+");
-
     String MSG_HOST_IP_ERROR = "必须由IP、HOST及端口号组成";
+
+    Pattern host_without_port_pattern = Pattern.compile("[\\da-z]{1}[\\da-z.]+");
+    String MSG_HOST_IP_WITHOUT_PORT_ERROR = "必须由IP或者HOST组成";
 
     String MSG_EMPTY_INPUT_ERROR = "必须填写";
 

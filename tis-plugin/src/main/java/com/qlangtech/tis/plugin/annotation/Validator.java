@@ -96,17 +96,15 @@ public enum Validator {
 
         return validatePattern(msgHandler, context
                 , rule(ValidatorCommons.host_pattern, ValidatorCommons.MSG_HOST_IP_ERROR), fieldKey, fieldData);
-
-//        if (StringUtils.isEmpty(fieldData)) {
-//            return true;
-//        }
-//        Matcher matcher = ValidatorCommons.host_pattern.matcher(fieldData);
-//        if (!matcher.matches()) {
-//            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_HOST_IP_ERROR);
-//            return false;
-//        }
-//        return true;
     }),
+
+    hostWithoutPort((msgHandler, context, fieldKey, fieldData) -> {
+        return validatePattern(msgHandler, context
+                , rule(ValidatorCommons.host_without_port_pattern, ValidatorCommons.MSG_HOST_IP_WITHOUT_PORT_ERROR), fieldKey, fieldData);
+    }),
+
+
+
     //
     url((msgHandler, context, fieldKey, fieldData) -> {
 

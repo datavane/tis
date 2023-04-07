@@ -65,6 +65,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
     public static final String DATAX_CREATE_DDL_DIR_NAME = "createDDL";
 
+    private List<TableAlias> tableMaps;
 
     public interface IDataxProcessorGetter {
         DataxProcessor get(String dataXName);
@@ -144,7 +145,6 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 
     public abstract Application buildApp();
 
-    private List<TableAlias> tableMaps;
 
     @Override
     public <T> T accept(IAppSourceVisitor<T> visitor) {
@@ -158,8 +158,11 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
      */
     @Override
     public TableAliasMapper getTabAlias() {
+        boolean isReaderUnStructed = false;
+        if (this.isRDBMS2RDBMS(null)
+                || this.isRDBMS2UnStructed(null)
+                || (isReaderUnStructed = this.isReaderUnStructed(null))) {
 
-        if (this.isRDBMS2RDBMS(null) || this.isRDBMS2UnStructed(null)) {
             if (tableMaps == null) {
                 return TableAliasMapper.Null;//Collections.emptyMap();
             }
@@ -173,17 +176,22 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
                         return m;
                     })));
         } else {
-            if (!this.isReaderUnStructed(null)) {
-                IDataxReader reader = this.getReader(null);
-                List<ISelectedTab> tabs = reader.getSelectedTabs();
-                Map<String, TableAlias> mapper = Maps.newHashMap();
-                for (ISelectedTab tab : tabs) {
-                    mapper.put(tab.getName(), new TableAlias(tab.getName()));
-                }
-                return new TableAliasMapper(mapper);
-            } else {
-                throw new UnsupportedOperationException("reader shall be RDBMS");
+            IDataxReader reader = this.getReader(null);
+            List<ISelectedTab> tabs = reader.getSelectedTabs();
+
+            if (isReaderUnStructed) {
+                throw new IllegalStateException("isReaderUnStructed must be false");
             }
+
+            // if (!isReaderUnStructed) {
+            Map<String, TableAlias> mapper = Maps.newHashMap();
+            for (ISelectedTab tab : tabs) {
+                mapper.put(tab.getName(), new TableMap(tab));
+            }
+            return new TableAliasMapper(mapper);
+//            } else {
+//                throw new UnsupportedOperationException("reader shall be RDBMS");
+//            }
         }
 
 

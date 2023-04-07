@@ -89,9 +89,11 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
             IDataXBatchPost batchPostTask = (IDataXBatchPost) writer;
 
             IRemoteTaskTrigger postTaskTrigger = batchPostTask.createPostTask(execChainContext, entry, cfgFileNames);
-            Objects.requireNonNull(postTaskTrigger, "postTaskTrigger can not be null");
-            triggers.addJoinPhaseTask(postTaskTrigger);
-            postSpec = dumpSpec.getDpt(postTaskTrigger.getTaskName());
+            if (postTaskTrigger != null) {
+                postSpec = dumpSpec.getDpt(postTaskTrigger.getTaskName());
+                triggers.addJoinPhaseTask(postTaskTrigger);
+            }
+            // Objects.requireNonNull(postTaskTrigger, "postTaskTrigger can not be null");
 
 
             preExec = batchPostTask.createPreExecuteTask(execChainContext, entry);
@@ -99,6 +101,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
                 dagSessionSpec.getDpt(preExec.getTaskName());
                 triggers.addDumpPhaseTask(preExec);
             }
+
         }
 
 

@@ -23,6 +23,7 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -39,6 +40,25 @@ public class ColumnMetaData extends Option {
 
     public static StringBuffer buildExtractSQL(String tableName, List<ColumnMetaData> cols) {
         return buildExtractSQL(tableName, false, cols);
+    }
+
+    public static void fillSelectedTabMeta(ISelectedTab tab, Function<ISelectedTab, Map<String, ColumnMetaData>> tableColsMetaGetter) {
+        Map<String, ColumnMetaData> colsMeta = tableColsMetaGetter.apply(tab);//tabsMeta.get(tab.getName());
+        ColumnMetaData colMeta = null;
+        if (colsMeta.size() < 1) {
+            throw new IllegalStateException("table:" + tab.getName() + " relevant cols meta can not be null");
+        }
+        for (CMeta col : tab.getCols()) {
+            colMeta = colsMeta.get(col.getName());
+            if (colMeta == null) {
+                throw new IllegalStateException("col:" + col.getName() + " can not find relevant 'col' on " + tab.getName() + ",exist Keys:["
+                        + colsMeta.keySet().stream().collect(Collectors.joining(",")) + "]");
+            }
+            col.setPk(colMeta.isPk());
+            col.setType(colMeta.getType());
+            col.setComment(colMeta.getComment());
+            col.setNullable(colMeta.isNullable());
+        }
     }
 
     public static StringBuffer buildExtractSQL(String tableName, boolean useAlias, List<ColumnMetaData> cols) {

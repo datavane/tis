@@ -58,7 +58,7 @@ public class TisApp {
         }
         TisAppLaunch.get().setRunMode(TisRunMode.Standalone);
         // 启动应用使用本地8080端口
-        TisApp tisApp = new TisApp((TisSubModule.WEB_START.getLaunchPort()), (context) -> {
+        TisApp tisApp = new TisApp(TisSubModule.WEB_START.getLaunchPort(), (context) -> {
             context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
             context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
         });
@@ -82,6 +82,11 @@ public class TisApp {
         this.initContext();
     }
 
+    public void addContext(String context, File contextDir) throws Exception {
+        jetty.addContext(context, contextDir, false, false);
+    }
+
+
     static final String APP_CONSOLE = "root";
 
 
@@ -103,36 +108,40 @@ public class TisApp {
             }
         }
 
-        if (TisAppLaunch.get().isZeppelinHomeSetted()) {
-            contextDir = new File(root, TisSubModule.ZEPPELIN.moduleName);
-//            if (!contextDir.exists()) {
-//                throw new IllegalStateException(
-//                        "zeppelin is active but context dir is not exist:" + contextDir.getAbsolutePath());
-//            }
-            if (contextDir.exists()) {
-                this.initZeppelinContext(contextDir);
-                TisAppLaunch.get().setZeppelinContextInitialized();
-            }
-        }
+        this.addZeppelinContext(new File(root, TisSubModule.ZEPPELIN.moduleName));
 
         // '/' root 的handler必须要最后添加
         contextDir = new File(root, APP_CONSOLE);
         if (contextDir.exists() && contextDir.isDirectory()) {
-            // root
-            File webappFile = new File(this.jetty.getWebapp(contextDir), PATH_WEB_XML);
-            if (!webappFile.exists()) {
-                // 写入本地
-                try (InputStream input = this.getClass().getResourceAsStream("/web.xml")) {
-                    Objects.requireNonNull(input, "web.xml inputstram can not be null");
-                    FileUtils.copyToFile(input, webappFile);
-                }
-            }
-            this.jetty.addContext("/", contextDir, false);
+            this.addRootContext(contextDir);
         }
 
         if (this.jetty.validateContextHandler()) {
             throw new IllegalStateException("handlers can not small than 1,web rootDir:" + root.getAbsolutePath());
         }
+    }
+
+    public void addZeppelinContext(File contextDir) throws IOException {
+
+        if (TisAppLaunch.get().isZeppelinHomeSetted()) {
+            if (contextDir.exists()) {
+                this.initZeppelinContext(contextDir);
+                TisAppLaunch.get().setZeppelinContextInitialized();
+            }
+        }
+    }
+
+    public void addRootContext(File contextDir) throws Exception {
+        // root
+        File webappFile = new File(this.jetty.getWebapp(contextDir), PATH_WEB_XML);
+        if (!webappFile.exists()) {
+            // 写入本地
+            try (InputStream input = this.getClass().getResourceAsStream("/web.xml")) {
+                Objects.requireNonNull(input, "web.xml inputstram can not be null");
+                FileUtils.copyToFile(input, webappFile);
+            }
+        }
+        this.jetty.addContext("/", contextDir, false, true);
     }
 
     private void initZeppelinContext(File contextDir) throws IOException {

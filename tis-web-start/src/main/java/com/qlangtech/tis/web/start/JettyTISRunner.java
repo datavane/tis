@@ -51,6 +51,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class JettyTISRunner {
 
     private Server server;
+    public static boolean enableJndi = true;
 
     // FilterHolder dispatchFilter;
     // String context;
@@ -110,7 +111,7 @@ public class JettyTISRunner {
 
     JettyTISRunner(String context, int port, IWebAppContextSetter contextSetter) throws Exception {
         this(port, contextSetter);
-        this.addContext(context, new File("."), false);
+        this.addContext(context, new File("."), false, true);
     }
 
     JettyTISRunner(int port, IWebAppContextCollector webAppContextCollector) throws Exception {
@@ -143,7 +144,7 @@ public class JettyTISRunner {
      * @throws Exception
      */
     public void addContext(File contextDir) throws Exception {
-        this.addContext("/" + contextDir.getName(), contextDir, true);
+        this.addContext("/" + contextDir.getName(), contextDir, true, true);
     }
 
     public void addContext(WebAppContext webAppContext) throws Exception {
@@ -153,9 +154,9 @@ public class JettyTISRunner {
     }
 
 
-    public void addContext(final String context, File contextDir, boolean addDirJars) throws Exception {
+    public void addContext(final String context, File contextDir, boolean addDirJars, boolean checkWebXmlExist) throws Exception {
         final File webappDir = getWebapp(contextDir);
-        if (!(webappDir.exists() && webappDir.isDirectory() && (new File(webappDir, TisApp.PATH_WEB_XML)).exists())) {
+        if (!(webappDir.exists() && webappDir.isDirectory() && (!checkWebXmlExist || (new File(webappDir, TisApp.PATH_WEB_XML)).exists()))) {
             logger.warn("dir is not webapp,skip:{}", webappDir.getAbsolutePath());
             return;
         }
@@ -205,11 +206,13 @@ public class JettyTISRunner {
         }
         server = new Server(new QueuedThreadPool(450));
         // << 启用jndi
-        org.eclipse.jetty.webapp.Configuration.ClassList classlist
-                = org.eclipse.jetty.webapp.Configuration.ClassList.setServerDefault(server);
-        classlist.addAfter("org.eclipse.jetty.webapp.FragmentConfiguration"
-                , "org.eclipse.jetty.plus.webapp.EnvConfiguration"
-                , "org.eclipse.jetty.plus.webapp.PlusConfiguration");
+        if (enableJndi) {
+            org.eclipse.jetty.webapp.Configuration.ClassList classlist
+                    = org.eclipse.jetty.webapp.Configuration.ClassList.setServerDefault(server);
+            classlist.addAfter("org.eclipse.jetty.webapp.FragmentConfiguration"
+                    , "org.eclipse.jetty.plus.webapp.EnvConfiguration"
+                    , "org.eclipse.jetty.plus.webapp.PlusConfiguration");
+        }
         // >>
         NetworkTrafficServerConnector connector = new NetworkTrafficServerConnector(server);
         HttpConfiguration configuration = new HttpConfiguration();

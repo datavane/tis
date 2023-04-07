@@ -21,7 +21,6 @@ package com.qlangtech.tis.plugin.ds;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.DataXJobInfo;
 import com.qlangtech.tis.datax.DataXJobSubmit;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -41,8 +40,9 @@ public abstract class TableInDB {
     }
 
     public final boolean isMatch(DBIdentity queryDBSourceId) {
-        return StringUtils.equals(Objects.requireNonNull(queryDBSourceId.identityValue(), "dbFactoryId can not be null")
-                , this.dbSourceId.identityValue());
+        return dbSourceId.isEquals(queryDBSourceId);
+//        return StringUtils.equals(Objects.requireNonNull(queryDBSourceId.identityValue(), "dbFactoryId can not be null")
+//                , this.dbSourceId.identityValue());
     }
 
     public static TableInDB create(DBIdentity id) {

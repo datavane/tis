@@ -37,6 +37,7 @@ import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
@@ -59,6 +60,16 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
     public static DataxReader getThreadBingDataXReader() {
         DataxReader reader = dataxReaderThreadLocal.get();
         return reader;
+    }
+
+    public static <T extends DataxReader> T getDataxReader(IPropertyType.SubFormFilter filter) {
+      IPluginStore<?> pluginStore = HeteroEnum.getDataXReaderAndWriterStore(
+        filter.uploadPluginMeta.getPluginContext(), true, filter.uploadPluginMeta);
+      DataxReader reader = (DataxReader) pluginStore.getPlugin();
+      if (reader == null) {
+        throw new IllegalStateException("dataXReader can not be null:" + filter.uploadPluginMeta.toString());
+      }
+      return (T) reader;
     }
 
     @Override

@@ -46,7 +46,10 @@
         <spring-version>3.0.6.RELEASE</spring-version>
         <solr.version>8.7.0</solr.version>
         <curator.version>2.13.0</curator.version>
-        <jetty.version>9.4.27.v20200227</jetty.version>
+<!--        <jetty.version>9.4.27.v20200227</jetty.version>-->
+        <jetty.version>9.4.31.v20200723</jetty.version>
+
+
         <log4j-to-slf4j.version>2.13.3</log4j-to-slf4j.version>
         <!--        <scala.version>2.11.12</scala.version>-->
 

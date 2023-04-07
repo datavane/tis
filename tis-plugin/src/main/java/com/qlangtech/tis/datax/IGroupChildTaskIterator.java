@@ -22,6 +22,8 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -32,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-03-09 18:23
  **/
-public interface IGroupChildTaskIterator extends Iterator<IDataxReaderContext> {
+public interface IGroupChildTaskIterator extends Iterator<IDataxReaderContext>, Closeable {
 
     static IGroupChildTaskIterator create(IDataxReaderContext readerContext) {
         AtomicReference<IDataxReaderContext> ref = new AtomicReference(readerContext);
@@ -48,12 +50,18 @@ public interface IGroupChildTaskIterator extends Iterator<IDataxReaderContext> {
                     throw new IllegalStateException("readerContext.getTaskName() can not be empty");
                 }
                 return Collections.singletonMap(readerContext.getTaskName()
-                        , Lists.newArrayList(new DataXCfgGenerator.DBDataXChildTask(null, readerContext.getReaderContextId(), readerContext.getTaskName())));
+                        , Lists.newArrayList(new DataXCfgGenerator.DBDataXChildTask(
+                                null, readerContext.getReaderContextId(), readerContext.getTaskName())));
             }
 
             @Override
             public IDataxReaderContext next() {
                 return ref.getAndSet(null);
+            }
+
+            @Override
+            public void close() throws IOException {
+
             }
         };
     }

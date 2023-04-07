@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
@@ -53,5 +55,17 @@ public class StartAssembleWeb extends TestCase {
         });
         System.out.println("start");
         app.start(args);
+    }
+
+    public void testXX() {
+        JSONArray array = new JSONArray();
+        JSONObject j = null;
+        for (int i = 0; i < 59; i++) {
+            j = new JSONObject();
+            j.put("index", i);
+            j.put("type", "string");
+            array.add(j);
+        }
+        System.out.println(array.toJSONString());
     }
 }

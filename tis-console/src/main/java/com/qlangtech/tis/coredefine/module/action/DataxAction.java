@@ -44,7 +44,6 @@ import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DataxUtils;
-import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
@@ -1154,21 +1153,11 @@ public class DataxAction extends BasicModule {
 
 
   public static List<String> getTablesInDB(IPropertyType.SubFormFilter filter) {
-    DataxReader reader = getDataxReader(filter);
+    DataxReader reader = DataxReader.getDataxReader(filter);
 //    if(!filter.useCache()){
 //      reader.
 //    }
     return reader.getTablesInDB().getTabs();
-  }
-
-  private static <T extends DataxReader> T getDataxReader(IPropertyType.SubFormFilter filter) {
-    IPluginStore<?> pluginStore = HeteroEnum.getDataXReaderAndWriterStore(
-      filter.uploadPluginMeta.getPluginContext(), true, filter.uploadPluginMeta);
-    DataxReader reader = (DataxReader) pluginStore.getPlugin();
-    if (reader == null) {
-      throw new IllegalStateException("dataXReader can not be null:" + filter.uploadPluginMeta.toString());
-    }
-    return (T) reader;
   }
 
   public static List<ColumnMetaData> getReaderTableSelectableCols(String dataxName, String table) {
