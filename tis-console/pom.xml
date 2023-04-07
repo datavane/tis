@@ -423,7 +423,6 @@
           <descriptor>./assembly.xml</descriptor>
           <outputDirectory>../</outputDirectory>
           <finalName>tis</finalName>
-          <appendDeplpyFileName>ng-tis.tar.gz</appendDeplpyFileName>
           <appendAssemblyId>false</appendAssemblyId>
           <tarLongFileMode>posix</tarLongFileMode>
           <appnamePattern>tis</appnamePattern>
