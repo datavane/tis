@@ -81,13 +81,6 @@ public class DuplicateEntitisJudge {
             addLackNodeError(joinNode, dpt);
           }
 
-//        } else if () {
-//
-//          if (joinNodes.get(dpt.getId()) == null) {
-//            //lack join error
-//            addLackNodeError(joinNode, dpt);
-//          }
-
         } else {
           throw new UnsupportedOperationException(String.valueOf(type));
         }

@@ -162,8 +162,8 @@ public class DataxExecutor {
         if (StringUtils.isEmpty(System.getProperty(DataxUtils.EXEC_TIMESTAMP))) {
             throw new IllegalArgumentException("system prop '" + DataxUtils.EXEC_TIMESTAMP + "' can not be empty");
         }
-        MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(jobId));
-        MDC.put(JobCommon.KEY_COLLECTION, dataXName);
+
+        JobCommon.setMDC(jobId, dataXName);
         Objects.requireNonNull(jobInfo, "arg 'jobName' can not be null");
 //        if () {
 //            throw new IllegalArgumentException("arg 'jobName' can not be null");
@@ -275,7 +275,7 @@ public class DataxExecutor {
 //            throw new IllegalArgumentException("param dataXName can not be null");
 //        }
         boolean success = false;
-        MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(jobArgs.jobId));
+        JobCommon.setMDC(jobArgs.jobId);
         try {
             logger.info("process DataX job,jobid:{},jobName:{}", jobArgs.jobId, jobName);
             //KeyedPluginStore.StoreResourceType resType = null;

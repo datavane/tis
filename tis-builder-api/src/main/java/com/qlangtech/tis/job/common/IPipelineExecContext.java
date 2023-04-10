@@ -16,32 +16,16 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.datax;
-
-import com.qlangtech.tis.job.common.JobCommon;
-import com.qlangtech.tis.web.start.TisAppLaunch;
-import junit.framework.TestCase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package com.qlangtech.tis.job.common;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-06-25 15:04
+ * @create: 2023-04-10 18:53
  **/
-public class TestTisFlumeLogstashV1Appender extends TestCase {
-    private static final Logger logger = LoggerFactory.getLogger(TestTisFlumeLogstashV1Appender.class);
+public interface IPipelineExecContext {
+    public int getTaskId();
 
-    public void testSendMsg() throws Exception {
-        TisAppLaunch.setTest(false);
-//        MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(999));
-//        MDC.put(JobCommon.KEY_COLLECTION, "baisui");
+    public String getIndexName();
 
-        JobCommon.setMDC(999, "baisui");
-        int i = 0;
-        while (true) {
-            logger.info("i am so hot:" + (i++));
-            Thread.sleep(1000l);
-            System.out.println("send turn:" + i);
-        }
-    }
+    public boolean hasIndexName();
 }

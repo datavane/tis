@@ -77,7 +77,8 @@ public class TestRealtimeLoggerCollectorAppender extends BaseTestCase {
      * 测试全量构建日志
      */
     public void testFullBuildLogger() {
-        MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(taskid));
+
+        JobCommon.setMDC(taskid);
         logger.info("start");
         String loggerName = "full-" + taskid;
         RealtimeLoggerCollectorAppender bufferAppender = RealtimeLoggerCollectorAppender.getBufferAppender(loggerName);

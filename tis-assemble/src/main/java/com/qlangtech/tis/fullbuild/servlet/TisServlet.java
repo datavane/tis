@@ -333,7 +333,9 @@ public class TisServlet extends HttpServlet {
                 throw new IllegalArgumentException("param taskid can not be empty");
             }
             this.taskid = taskid;
-            MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(taskid));
+          //  MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(taskid));
+
+            JobCommon.setMDC(taskid);
         }
 
         /**

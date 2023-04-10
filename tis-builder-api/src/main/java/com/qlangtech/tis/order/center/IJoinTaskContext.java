@@ -18,6 +18,7 @@
 package com.qlangtech.tis.order.center;
 
 import com.qlangtech.tis.fullbuild.phasestatus.IPhaseStatusCollection;
+import com.qlangtech.tis.job.common.IPipelineExecContext;
 
 import java.util.function.Supplier;
 
@@ -25,14 +26,12 @@ import java.util.function.Supplier;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public interface IJoinTaskContext extends IParamContext {
+public interface IJoinTaskContext extends IParamContext, IPipelineExecContext {
 
 
-    public String getIndexName();
 
-    public boolean hasIndexName();
 
-    public int getTaskId();
+
 
     public boolean isDryRun();
 

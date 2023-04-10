@@ -57,8 +57,9 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
         String dataxName = msg.getDataXName();
         StoreResourceType resType
                 = Objects.requireNonNull(msg.getResType(), "resType can not be null");
-        MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(jobId));
-        MDC.put(JobCommon.KEY_COLLECTION, dataxName);
+//        MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(jobId));
+//        MDC.put(JobCommon.KEY_COLLECTION, dataxName);
+        JobCommon.setMDC(jobId, dataxName);
         Integer allRowsApproximately = msg.getAllRowsApproximately();
         logger.info("process DataX job, dataXName:{},jobid:{},jobName:{},allrows:{}", dataxName, jobId, jobName, allRowsApproximately);
 

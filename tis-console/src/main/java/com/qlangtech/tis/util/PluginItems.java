@@ -193,79 +193,20 @@ public class PluginItems {
         }
       };
     } else if (heteroEnum == HeteroEnum.DATAX_WRITER || heteroEnum == HeteroEnum.DATAX_READER) {
-      //final String dataxName = pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
 
-//      if (StringUtils.isEmpty(dataxName)) {
-//        String saveDbName = pluginMeta.getExtraParam(DataxUtils.DATAX_DB_NAME);
-//        if (StringUtils.isNotBlank(saveDbName)) {
-//          store = DataxReader.getPluginStore(this.pluginContext, true, saveDbName);
-//        } else {
-//          throw new IllegalArgumentException("plugin extra param " + DataxUtils.DATAX_NAME + " can not be null");
-//        }
-//      } else {
-//        KeyedPluginStore<?> keyStore = (heteroEnum == HeteroEnum.DATAX_READER)
-//          ? DataxReader.getPluginStore(this.pluginContext, dataxName) : DataxWriter.getPluginStore(this.pluginContext, dataxName);
-//        store = keyStore;
-//      }
-//      if ((heteroEnum == HeteroEnum.DATAX_READER)) {
-//        for (Descriptor.ParseDescribable<?> dataXReader : dlist) {
-//          DataSourceMeta sourceMeta = (DataSourceMeta) dataXReader.instance;
-//          pluginContext.setBizResult(context, sourceMeta.getTablesInDB());
-//        }
-//      }
       store = HeteroEnum.getDataXReaderAndWriterStore(this.pluginContext
         , this.heteroEnum == HeteroEnum.DATAX_READER, this.pluginMeta, pluginMeta.getSubFormFilter());
 
-      //Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
-
-//      if (subFormFilter.isPresent()) {
-//        IPropertyType.SubFormFilter filter = subFormFilter.get();
-//        Optional<Descriptor> firstDesc = heteroEnum.descriptors().stream()
-//          .filter((des) -> filter.match((Descriptor) des)).map((des) -> (Descriptor) des).findFirst();
-//        if (!firstDesc.isPresent()) {
-//          throw new IllegalStateException("can not find relevant descriptor:" + filter.uploadPluginMeta.toString());
-//        }
-//
-//        PluginFormProperties pluginProps = firstDesc.get().getPluginFormPropertyTypes(subFormFilter);
-//
-//        store = pluginProps.accept(new PluginFormProperties.IVisitor() {
-//          @Override
-//          public IPluginStoreSave<?> visit(BaseSubFormProperties props) {
-//            // 为了在更新插件时候不把plugin上的@SubForm标记的属性覆盖掉，需要先将老的plugin上的值覆盖到新http post过来的反序列化之后的plugin上
-//            Class<Describable> clazz = (Class<Describable>) heteroEnum.getExtensionPoint();
-//
-//            DataxReader.SubFieldFormAppKey<Describable> key = HeteroEnum.createDataXReaderAndWriterRelevant(pluginContext, pluginMeta
-//              , new HeteroEnum.DataXReaderAndWriterRelevantCreator<DataxReader.SubFieldFormAppKey<Describable>>() {
-//                @Override
-//                public DataxReader.SubFieldFormAppKey<Describable> dbRelevant(IPluginContext pluginContext, String saveDbName) {
-//                  return new DataxReader.SubFieldFormAppKey<>(pluginContext, true, saveDbName, props, clazz);
-//                }
-//
-//                @Override
-//                public DataxReader.SubFieldFormAppKey<Describable> appRelevant(IPluginContext pluginContext, String dataxName) {
-//                  return new DataxReader.SubFieldFormAppKey<>(pluginContext, false, dataxName, props, clazz);
-//                }
-//              });
-//
-//            return KeyedPluginStore.getPluginStore(key);
-//          }
-//        });
-//      }
-
     } else if (heteroEnum == HeteroEnum.PARAMS_CONFIG) {
-      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);// new ParamsConfigPluginStore(this.pluginMeta);
+      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.DATAX_WORKER) {
-//      if (!this.pluginContext.isCollectionAware()) {
-//        throw new IllegalStateException("must be collection aware");
-//      }
-//      store = DataXJobWorker.getJobWorkerStore(new TargetResName(this.pluginContext.getCollectionName()));
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else {
       if (heteroEnum.isAppNameAware()) {
         if (!this.pluginContext.isCollectionAware()) {
           throw new IllegalStateException(heteroEnum.getExtensionPoint().getName() + " must be collection aware");
         }
-        store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);// TIS.getPluginStore(this.pluginContext.getCollectionName(), heteroEnum.getExtensionPoint());
+        store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
       } else {
         store = TIS.getPluginStore(heteroEnum.getExtensionPoint());
       }

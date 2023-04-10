@@ -97,7 +97,7 @@ public interface IPluginContext extends IMessageHandler {
      * @return
      */
     boolean isCollectionAware();
-
+    String getCollectionName();
     /**
      * 是否和数据源相关
      *
@@ -115,5 +115,5 @@ public interface IPluginContext extends IMessageHandler {
      */
     void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB);
 
-    String getCollectionName();
+
 }
