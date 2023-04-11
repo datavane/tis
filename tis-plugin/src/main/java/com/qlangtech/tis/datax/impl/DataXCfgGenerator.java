@@ -329,12 +329,12 @@ public class DataXCfgGenerator {
             String sqlFileName = mapper.getTo() + IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
             if (!createDDLFiles.contains(sqlFileName)) {
 
-                CreateTableSqlBuilder.CreateDDL createDDL = writer.generateCreateDDL(mapper);
-                if (createDDL != null) {
-                    createDDLFiles.add(sqlFileName);
-                    // 由于用户可能已经手动改动过生成的DDL文件，所以不能强行覆盖已经存在的DDL文件，overWrite参数应该为false
-                    dataxProcessor.saveCreateTableDDL(pluginCtx, createDDL.getDDLScript(), sqlFileName, overWrite);
-                }
+                CreateTableSqlBuilder.CreateDDL createDDL
+                        = Objects.requireNonNull(writer.generateCreateDDL(mapper), "createDDL can not be null");
+
+                createDDLFiles.add(sqlFileName);
+                // 由于用户可能已经手动改动过生成的DDL文件，所以不能强行覆盖已经存在的DDL文件，overWrite参数应该为false
+                dataxProcessor.saveCreateTableDDL(pluginCtx, createDDL.getDDLScript(), sqlFileName, overWrite);
             }
         }
     }
