@@ -917,6 +917,20 @@ public class DataxAction extends BasicModule {
           throw new IllegalStateException("tableAlias must be type of " + IDataxProcessor.TableMap.class.getName());
         }
         tabMapper = (IDataxProcessor.TableMap) findMapper.get();
+        List<CMeta> sourceCols = tabMapper.getSourceCols();
+        // 当更新流程的时候 Reader中的select表会变化（col列会增减），这里要作如下处理
+        List<CMeta> cols = selectedTab.getCols();
+        CMeta col = null;
+        for (int i = 0; i < cols.size(); i++) {
+          col = cols.get(i);
+          if (i < sourceCols.size()) {
+            col.setName(sourceCols.get(i).getName());
+          }
+        }
+        IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(cols);
+        m.setFrom(selectedTab.getName());
+        m.setTo(tabMapper.getTo());
+        tabMapper = m;
       } else {
         tabMapper = new IDataxProcessor.TableMap(selectedTab);
         // tabMapper.setSourceCols(selectedTab.getCols());

@@ -18,6 +18,7 @@
 package com.qlangtech.tis.datax;
 
 import com.alibaba.datax.plugin.writer.hdfswriter.HdfsColMeta;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
@@ -269,6 +270,7 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
             return this.getSourceTab().getCols();
         }
 
+        @JSONField(serialize = false)
         public ISelectedTab getSourceTab() {
             Objects.requireNonNull(tab, "param tab can not be null");
             return this.tab;
