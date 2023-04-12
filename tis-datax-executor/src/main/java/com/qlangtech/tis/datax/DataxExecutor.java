@@ -140,7 +140,7 @@ public class DataxExecutor {
      */
     public static void main(String[] args) throws Exception {
         if (args.length != 9) {
-            throw new IllegalArgumentException("args length must be 7,but now is " + args.length);
+            throw new IllegalArgumentException("args length must be 9,but now is " + args.length);
         }
         Integer jobId = Integer.parseInt(args[0]);
         DataXJobInfo jobInfo = DataXJobInfo.parse(args[1]);
@@ -200,7 +200,7 @@ public class DataxExecutor {
             dataxExecutor.reportDataXJobStatus(false, false, false, jobId, jobInfo);
             IDataxProcessor dataxProcessor = DataxProcessor.load(null, resType, dataXName);
             //  File jobPath = jobInfo.getJobPath(dataxProcessor.getDataxCfgDir(null));
-            DataXJobArgs jobArgs = DataXJobArgs.createJobArgs(dataxProcessor, jobId, jobInfo, taskSerializeNum, execEpochMilli); //new DataXJobArgs(jobPath, jobId, "standalone", taskSerializeNum, execEpochMilli);
+            DataXJobArgs jobArgs = DataXJobArgs.createJobArgs(dataxProcessor, jobId, jobInfo, taskSerializeNum, execEpochMilli);
 
             dataxExecutor.exec(jobInfo, dataxProcessor, jobArgs);
             dataxExecutor.reportDataXJobStatus(false, jobId, jobInfo);

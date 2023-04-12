@@ -24,12 +24,12 @@ import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.exec.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.queue.QueueConsumer;
 import org.apache.curator.framework.state.ConnectionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.io.File;
 import java.util.Arrays;
@@ -87,6 +87,7 @@ public abstract class DataXJobSingleProcessorExecutor implements QueueConsumer<C
             cmdLine.addArgument(getMainClassName());
             cmdLine.addArgument(String.valueOf(jobId));
             cmdLine.addArgument(jobName);
+            // 需要一个占位
             cmdLine.addArgument(dataxName);
             //  cmdLine.addArgument(jobPath, true);
             cmdLine.addArgument(getIncrStateCollectAddress());

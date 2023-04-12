@@ -29,7 +29,6 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
-import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -146,21 +145,23 @@ public abstract class DataXJobSubmit {
     public abstract InstanceType getType();
 
 
-    public CuratorDataXTaskMessage getDataXJobDTO(IDataXJobContext jobContext, DataXJobInfo dataXJobInfo, StoreResourceType resourceType) {
+    public CuratorDataXTaskMessage getDataXJobDTO(IDataXJobContext jobContext, DataXJobInfo dataXJobInfo, IDataxProcessor processor) {
 
         IJoinTaskContext taskContext = jobContext.getTaskContext();
-        if (resourceType == null) {
+        if (processor.getResType() == null) {
             throw new NullPointerException("dataXJobDTO.getResType() can not be null");
         }
         CuratorDataXTaskMessage msg = new CuratorDataXTaskMessage();
         if (taskContext.hasIndexName()) {
             msg.setDataXName(taskContext.getIndexName());
+        } else {
+            msg.setDataXName(processor.identityValue());
         }
         msg.setTaskSerializeNum(jobContext.getTaskSerializeNum());
         msg.setJobId(taskContext.getTaskId());
         msg.setJobName(dataXJobInfo.serialize());
         msg.setExecTimeStamp(taskContext.getPartitionTimestampWithMillis());
-        msg.setResType(resourceType);
+        msg.setResType(processor.getResType());
 
         PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest();
         DumpPhaseStatus.TableDumpStatus dataXJob = null;
@@ -194,7 +195,7 @@ public abstract class DataXJobSubmit {
             });
         }
 
-        CuratorDataXTaskMessage dataXJobDTO = getDataXJobDTO(taskContext, jobName, processor.getResType());
+        CuratorDataXTaskMessage dataXJobDTO = getDataXJobDTO(taskContext, jobName, processor);
 
         return createDataXJob(taskContext, statusRpc, jobName, processor, dataXJobDTO, dependencyTasks);
     }
