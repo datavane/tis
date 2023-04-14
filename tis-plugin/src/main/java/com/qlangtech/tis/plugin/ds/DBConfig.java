@@ -133,26 +133,38 @@ public class DBConfig implements IDbMeta {
         }
     }
 
+    private static final int expireSec = 15;
+
     public void vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess) {
-        this.vistDbURL(resolveHostIp, urlProcess, false);
+        vistDbURL(resolveHostIp, expireSec, urlProcess);
     }
 
-    public void vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess, boolean facade) {
+    public void vistDbURL(boolean resolveHostIp, final int expireSec, IDbUrlProcess urlProcess) {
+        this.vistDbURL(resolveHostIp, expireSec, urlProcess, false);
+    }
+
+    public void vistDbURL(boolean resolveHostIp, final int expireSec, IDbUrlProcess urlProcess, boolean facade) {
         String[] err = new String[1];
         if (!this.vistDbURL(resolveHostIp, urlProcess, facade, new AdapterMessageHandler() {
             @Override
             public void addErrorMessage(Context context, String msg) {
                 err[0] = msg;
             }
-        }, new DefaultContext())) {
+        }, new DefaultContext(), expireSec)) {
             throw new IllegalStateException("error:" + err[0]);
         }
+    }
+
+    public boolean vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess, boolean facade, IMessageHandler msgHandler, Context context) {
+
+        return vistDbURL(resolveHostIp, urlProcess, facade, msgHandler, context, expireSec);
     }
 
     /**
      * 遍历所有的jdbc URL
      */
-    public boolean vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess, boolean facade, IMessageHandler msgHandler, Context context) {
+    public boolean vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess
+            , boolean facade, IMessageHandler msgHandler, Context context, final int expireSec) {
         final ExecutorService fixedThreadPool = Executors.newCachedThreadPool((runnable) -> {
             Thread t = new Thread(runnable);
 //            t.setUncaughtExceptionHandler((tt, e) -> {
@@ -193,7 +205,7 @@ public class DBConfig implements IDbMeta {
                 }
             }
             try {
-                final int expireSec = 15;
+
                 if (!countDownLatch.await(expireSec, TimeUnit.SECONDS)) {
                     msgHandler.addErrorMessage(context, "连接" + expireSec + "秒,超时:" + fjdbcUrl.get());
                     return false;
@@ -305,7 +317,7 @@ public class DBConfig implements IDbMeta {
          * @param dbName
          * @return
          */
-        void visit(String dbName, String dbHost, String jdbcUrl);
+        void visit(String dbName, String dbHost, String jdbcUrl) throws Exception;
     }
 
 //    @Override

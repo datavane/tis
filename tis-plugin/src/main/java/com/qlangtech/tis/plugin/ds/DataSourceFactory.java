@@ -420,15 +420,30 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         }
 
         protected boolean validateDSFactory(IControlMsgHandler msgHandler, Context context, T dsFactory) {
-            try {
-                TableInDB tables = dsFactory.getTablesInDB();
-                // msgHandler.addActionMessage(context, "find " + tables.size() + " table in db");
-            } catch (Exception e) {
-                logger.warn(e.getMessage(), e);
-                msgHandler.addErrorMessage(context, TisException.getErrMsg(e).getMessage());
-                return false;
-            }
-            return true;
+
+            DBConfig dbConfig = dsFactory.getDbConfig();
+            boolean[] faild = new boolean[1];
+            dbConfig.vistDbURL(false, 5, (dbName, dbHost, jdbcUrl) -> {
+                try (JDBCConnection conn = dsFactory.getConnection(jdbcUrl)) {
+
+                } catch (Exception e) {
+                    faild[0] = true;
+                    logger.warn(e.getMessage(), e);
+                    msgHandler.addErrorMessage(context, "请确认连接参数是否正确");
+                }
+            });
+
+            return faild[0];
+
+//            try {
+//                TableInDB tables = dsFactory.getTablesInDB();
+//                // msgHandler.addActionMessage(context, "find " + tables.size() + " table in db");
+//            } catch (Exception e) {
+//                logger.warn(e.getMessage(), e);
+//                msgHandler.addErrorMessage(context, TisException.getErrMsg(e).getMessage());
+//                return false;
+//            }
+//            return true;
         }
 
     }
