@@ -40,6 +40,7 @@ import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -159,12 +160,15 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     @Override
     public TableAliasMapper getTabAlias() {
         boolean isReaderUnStructed = false;
-        if (this.isRDBMS2RDBMS(null)
-                || this.isRDBMS2UnStructed(null)
+//        if (this.isRDBMS2RDBMS(null)
+//                || this.isRDBMS2UnStructed(null)
+//                || (isReaderUnStructed = this.isReaderUnStructed(null))) {
+
+        if ((this.isRDBMS2RDBMS(null))
                 || (isReaderUnStructed = this.isReaderUnStructed(null))) {
 
-            if (tableMaps == null) {
-                return TableAliasMapper.Null;//Collections.emptyMap();
+            if (CollectionUtils.isEmpty(tableMaps)) {
+                return TableAliasMapper.Null;
             }
             return new TableAliasMapper(this.tableMaps.stream()
                     .collect(Collectors.toMap((m) -> {
@@ -175,13 +179,15 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
                     }, (m) -> {
                         return m;
                     })));
+
         } else {
+
             IDataxReader reader = this.getReader(null);
             List<ISelectedTab> tabs = reader.getSelectedTabs();
 
-            if (isReaderUnStructed) {
-                throw new IllegalStateException("isReaderUnStructed must be false");
-            }
+//            if (isReaderUnStructed) {
+//                throw new IllegalStateException("isReaderUnStructed must be false");
+//            }
 
             // if (!isReaderUnStructed) {
             Map<String, TableAlias> mapper = Maps.newHashMap();
@@ -189,6 +195,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
                 mapper.put(tab.getName(), new TableMap(tab));
             }
             return new TableAliasMapper(mapper);
+
+
 //            } else {
 //                throw new UnsupportedOperationException("reader shall be RDBMS");
 //            }

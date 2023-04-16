@@ -133,7 +133,7 @@ public class DBConfig implements IDbMeta {
         }
     }
 
-    private static final int expireSec = 15;
+    public static final int expireSec = 15;
 
     public void vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess) {
         vistDbURL(resolveHostIp, expireSec, urlProcess);
