@@ -36,4 +36,4 @@ jobs:
           mkdir -p ~/.m2
           echo "<settings><servers><server><id>github_ibator</id><username>baisui1981</username><password>${GITHUB_TOKEN}</password></server></servers></settings>" > ~/.m2/settings.xml
           cat ~/.m2/settings.xml
-          mvn -B package -Dmaven.test.skip=true -Pgithub-repo,aliyun-repo --file pom.xml -s ~/.m2/settings.xml
+          mvn -B package -Dmaven.test.skip=true -Pgithub-repo,aliyun-repo -X --file pom.xml -s ~/.m2/settings.xml
