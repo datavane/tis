@@ -82,11 +82,18 @@
             <version>${project.version}</version>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>com.qlangtech.tis</groupId>-->
+<!--            <artifactId>ibator</artifactId>-->
+<!--            <version>1.0.1</version>-->
+<!--        </dependency>-->
+
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
-            <artifactId>ibator</artifactId>
+            <artifactId>ibator_koubei</artifactId>
             <version>1.0.1</version>
         </dependency>
+
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
