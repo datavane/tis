@@ -874,7 +874,7 @@
             <id>github-repo</id>
             <repositories>
                 <repository>
-                    <id>github</id>
+                    <id>github_ibator</id>
                     <url>https://maven.pkg.github.com/qlangtech/ibator_koubei</url>
                     <snapshots>
                         <enabled>true</enabled>
