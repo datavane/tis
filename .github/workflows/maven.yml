@@ -30,5 +30,5 @@ jobs:
         #           ./mvnw -T 2C -B --no-snapshot-updates clean checkstyle:check
       - name: Build with Maven
         run: |
-          cat ~/.m2/repository/setting.xml
+          cat ~/.m2/setting.xml
           mvn -B package -Dmaven.test.skip=true -Pgithub-repo,aliyun-repo --file pom.xml
