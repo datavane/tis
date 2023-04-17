@@ -383,7 +383,10 @@
                 <env>test</env>
             </properties>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>maven.test.skip</name>
+                    <value>!true</value>
+                </property>
             </activation>
             <dependencies>
                 <!--for DataX executor-->
