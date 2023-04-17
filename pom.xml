@@ -89,6 +89,7 @@
 
         <module>maven-tpi-plugin</module>
         <module>tis-datax-executor</module>
+        <module>tis-logback-flume-parent</module>
 <!--        <module>tis-zeppelin</module>-->
 
 
