@@ -41,21 +41,7 @@
 
     <dependencies>
 
-        <!--for DataX executor-->
-        <dependency>
-            <groupId>com.alibaba.datax</groupId>
-            <artifactId>datax-core</artifactId>
-            <version>${alibaba.datax.version}</version>
-            <scope>test</scope>
-        </dependency>
 
-        <dependency>
-            <groupId>com.alibaba.datax</groupId>
-            <artifactId>datax-common</artifactId>
-            <scope>test</scope>
-            <version>${alibaba.datax.version}</version>
-        </dependency>
-        <!--for DataX executor End-->
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-solrconfig-parser</artifactId>
@@ -399,6 +385,23 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+            <dependencies>
+                <!--for DataX executor-->
+                <dependency>
+                    <groupId>com.alibaba.datax</groupId>
+                    <artifactId>datax-core</artifactId>
+                    <version>${alibaba.datax.version}</version>
+                    <scope>test</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>com.alibaba.datax</groupId>
+                    <artifactId>datax-common</artifactId>
+                    <scope>test</scope>
+                    <version>${alibaba.datax.version}</version>
+                </dependency>
+                <!--for DataX executor End-->
+            </dependencies>
         </profile>
         <profile>
             <id>daily</id>
