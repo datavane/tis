@@ -29,4 +29,4 @@ jobs:
         #         run: |
         #           ./mvnw -T 2C -B --no-snapshot-updates clean checkstyle:check
       - name: Build with Maven
-        run: mvn -B package -Dmaven.test.skip=true --file pom.xml
+        run: mvn -B package -Dmaven.test.skip=true -Pgithub-repo --file pom.xml
