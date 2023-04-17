@@ -28,7 +28,10 @@ jobs:
         #       - name: Check Style
         #         run: |
         #           ./mvnw -T 2C -B --no-snapshot-updates clean checkstyle:check
+#https://stackoverflow.com/questions/57711558/deploy-to-github-package-registry-from-github-action
       - name: Build with Maven
         run: |
-          cat ~/.m2/setting.xml
+          mkdir ~/.m2
+          echo "<settings><servers><server><id>github</id><username>baisui1981</username><password>${GITHUB_TOKEN}</password></server></servers></settings>" > ~/.m2/settings.xml
+          cat ~/.m2/settings.xml
           mvn -B package -Dmaven.test.skip=true -Pgithub-repo,aliyun-repo --file pom.xml
