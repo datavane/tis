@@ -118,7 +118,7 @@ public class IbatorProperties extends AdapterUserDefineProperties {
         return false;
     }
 
-    @Override
+   // @Override
     public DataSource getDataSource() {
         return this.dataSource;
     }
