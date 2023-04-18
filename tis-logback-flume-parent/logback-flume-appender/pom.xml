@@ -35,7 +35,7 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>true</createDependencyReducedPom>
-                            <shadedArtifactAttached>false</shadedArtifactAttached>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
                             <relocations>
                                 <relocation>
                                     <pattern>org.apache.avro</pattern>
@@ -113,13 +113,4 @@
         </dependency>
 
     </dependencies>
-<!--
-    <distributionManagement>
-        <repository>
-            <id>bintray</id>
-            <name>giltgroupe-maven</name>
-            <url>https://api.bintray.com/maven/giltgroupe/maven/com.gilt.logback/</url>
-        </repository>
-    </distributionManagement>
--->
 </project>

@@ -181,7 +181,14 @@
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-logback-flume-server</artifactId>
+            <classifier>shaded</classifier>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!--        <dependency>-->
         <!--            <groupId>org.apache.flume</groupId>-->

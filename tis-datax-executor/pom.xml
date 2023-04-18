@@ -61,6 +61,7 @@
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-logback-flume-appender</artifactId>
+            <classifier>shaded</classifier>
         </dependency>
 
         <dependency>
