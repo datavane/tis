@@ -69,7 +69,7 @@ public class StubSuFormGetterContext {
         cols.add(new ColumnMetaData(0, FILED_USER_ID, new com.qlangtech.tis.plugin.ds.DataType(Types.BIGINT), withUserIdPk));
         cols.add(new ColumnMetaData(1, FIELD_USER_NAME, new com.qlangtech.tis.plugin.ds.DataType(Types.VARBINARY), false));
         try {
-            EasyMock.expect(metaPlugin.getTableMetadata(EntityName.parse(id1))).andReturn(cols);
+            EasyMock.expect(metaPlugin.getTableMetadata(true, EntityName.parse(id1))).andReturn(cols);
         } catch (TableNotFoundException e) {
             throw new RuntimeException(e);
         }

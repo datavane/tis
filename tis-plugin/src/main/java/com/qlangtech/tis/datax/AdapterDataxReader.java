@@ -75,13 +75,13 @@ public class AdapterDataxReader implements IDataxReader {
     }
 
     @Override
-    public List<ColumnMetaData> getTableMetadata(EntityName table) throws TableNotFoundException {
-        return reader.getTableMetadata(table);
+    public List<ColumnMetaData> getTableMetadata(boolean inSink, EntityName table) throws TableNotFoundException {
+        return reader.getTableMetadata(false, table);
     }
 
     @Override
-    public List<ColumnMetaData> getTableMetadata(JDBCConnection conn, EntityName table) throws TableNotFoundException {
-        return reader.getTableMetadata(conn, table);
+    public List<ColumnMetaData> getTableMetadata(JDBCConnection conn, boolean inSink, EntityName table) throws TableNotFoundException {
+        return reader.getTableMetadata(conn, false, table);
     }
 
     @Override

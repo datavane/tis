@@ -63,19 +63,19 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
     }
 
     public static <T extends DataxReader> T getDataxReader(IPropertyType.SubFormFilter filter) {
-      IPluginStore<?> pluginStore = HeteroEnum.getDataXReaderAndWriterStore(
-        filter.uploadPluginMeta.getPluginContext(), true, filter.uploadPluginMeta);
-      DataxReader reader = (DataxReader) pluginStore.getPlugin();
-      if (reader == null) {
-        throw new IllegalStateException("dataXReader can not be null:" + filter.uploadPluginMeta.toString());
-      }
-      return (T) reader;
+        IPluginStore<?> pluginStore = HeteroEnum.getDataXReaderAndWriterStore(
+                filter.uploadPluginMeta.getPluginContext(), true, filter.uploadPluginMeta);
+        DataxReader reader = (DataxReader) pluginStore.getPlugin();
+        if (reader == null) {
+            throw new IllegalStateException("dataXReader can not be null:" + filter.uploadPluginMeta.toString());
+        }
+        return (T) reader;
     }
 
     @Override
     public IStreamTableMeta getStreamTableMeta(String tableName) {
         try {
-            List<ColumnMetaData> cols = this.getTableMetadata(EntityName.parse(tableName));
+            List<ColumnMetaData> cols = this.getTableMetadata(false, EntityName.parse(tableName));
 
             return new IStreamTableMeta() {
                 @Override

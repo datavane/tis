@@ -97,8 +97,10 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
         throw new UnsupportedOperationException();
     }
 
+
+
     @Override
-    public List<ColumnMetaData> getTableMetadata(EntityName table) {
+    public List<ColumnMetaData> getTableMetadata(boolean inSink,EntityName table) {
         if (!StringUtils.equals(dumper.testTableName, table.getTableName())) {
             Assert.fail("dumper.testTableName:" + dumper.testTableName + " must equal with:" + table);
         }

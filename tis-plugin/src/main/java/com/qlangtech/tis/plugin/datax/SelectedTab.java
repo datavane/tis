@@ -193,7 +193,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         List<ColumnMetaData> cols
                 = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
             try {
-                return dsMeta.getTableMetadata(EntityName.parse(context.getSubFormIdentityField()));
+                return dsMeta.getTableMetadata(false, EntityName.parse(context.getSubFormIdentityField()));
             } catch (TableNotFoundException e) {
                 throw new RuntimeException(e);
             }

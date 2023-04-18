@@ -1165,7 +1165,7 @@ public class OfflineDatasourceAction extends BasicModule {
       DescriptorsJSON desc2Json = new DescriptorsJSON(reader.getDescriptor());
       mapCols = selectedTabs.stream().collect(Collectors.toMap((tab) -> tab, (tab) -> {
         try {
-          return reader.getTableMetadata(EntityName.parse(tab));
+          return reader.getTableMetadata(false, EntityName.parse(tab));
         } catch (TableNotFoundException e) {
           throw new RuntimeException(e);
         }
@@ -1354,7 +1354,7 @@ public class OfflineDatasourceAction extends BasicModule {
     String tableName = this.getString("tabName");
     com.qlangtech.tis.workflow.pojo.DatasourceDb db = getDsDb();
     DataxReader dbDataxReader = OfflineManager.getDBDataxReader(this, db.getName());
-    List<ColumnMetaData> colsMeta = dbDataxReader.getTableMetadata(EntityName.parse(tableName));
+    List<ColumnMetaData> colsMeta = dbDataxReader.getTableMetadata(false, EntityName.parse(tableName));
     this.setBizResult(context, colsMeta);
   }
 
@@ -1400,7 +1400,7 @@ public class OfflineDatasourceAction extends BasicModule {
       }
 
       DataSourceFactory dsStore = TIS.getDataBasePlugin(PostedDSProp.parse(dumpNode.getDbName()));
-      sqlCols.setCols(dsStore.getTableMetadata(dumpNode.parseEntityName()));
+      sqlCols.setCols(dsStore.getTableMetadata(false, dumpNode.parseEntityName()));
       // TISTable tisTable = dbPlugin.loadTableMeta(dumpNode.getName());
 //      if (CollectionUtils.isEmpty(tisTable.getReflectCols())) {
 //        throw new IllegalStateException("db:" + dumpNode.getDbName() + ",table:" + dumpNode.getName() + " relevant table col reflect cols can not be empty");
@@ -1545,7 +1545,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
     List<ColumnMetaData> cols = null;// offlineManager.getTableMetadata(db.getName(), table);
     try {
-      cols = dbPlugin.getTableMetadata(EntityName.parse(table));
+      cols = dbPlugin.getTableMetadata(false, EntityName.parse(table));
       if (cols.size() < 1) {
         this.addErrorMessage(context, "表:[" + table + "]没有定义列");
         return;

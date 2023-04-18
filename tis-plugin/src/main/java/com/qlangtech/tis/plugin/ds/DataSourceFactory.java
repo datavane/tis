@@ -161,7 +161,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 //        return DriverManager.getConnection(jdbcUrl, username, StringUtils.trimToNull(password));
 //    }
 
-    protected List<ColumnMetaData> parseTableColMeta(String jdbcUrl, JDBCConnection conn, EntityName table)
+    protected List<ColumnMetaData> parseTableColMeta(boolean inSink, String jdbcUrl, JDBCConnection conn, EntityName table)
             throws SQLException, TableNotFoundException {
         table = logicTable2PhysicsTable(jdbcUrl, table);
 
@@ -201,7 +201,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 pkCols.add(columnName);
             }
 
-            return wrapColsMeta(columns1, pkCols);
+            return wrapColsMeta(inSink, columns1, pkCols);
         } finally {
             closeResultSet(columns1);
             closeResultSet(primaryKeys);
@@ -210,8 +210,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         //  return columns;
     }
 
-    public List<ColumnMetaData> wrapColsMeta(ResultSet columns1) throws SQLException {
-        return wrapColsMeta(columns1, Collections.emptySet());
+    public List<ColumnMetaData> wrapColsMeta(boolean inSink, ResultSet columns1) throws SQLException {
+        return wrapColsMeta(inSink, columns1, Collections.emptySet());
     }
 
     public static final String KEY_COLUMN_NAME = "COLUMN_NAME";
@@ -224,11 +224,11 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     public static final String KEY_DATA_TYPE = "DATA_TYPE";
     public static final String KEY_COLUMN_SIZE = "COLUMN_SIZE";
 
-    public List<ColumnMetaData> wrapColsMeta(ResultSet columns1, Set<String> pkCols) throws SQLException {
-        return this.wrapColsMeta(columns1, new CreateColumnMeta(pkCols, columns1));
+    public List<ColumnMetaData> wrapColsMeta(boolean inSink, ResultSet columns1, Set<String> pkCols) throws SQLException {
+        return this.wrapColsMeta(inSink, columns1, new CreateColumnMeta(pkCols, columns1));
     }
 
-    public List<ColumnMetaData> wrapColsMeta(ResultSet columns1, CreateColumnMeta columnMetaCreator) throws SQLException {
+    public List<ColumnMetaData> wrapColsMeta(boolean inSink, ResultSet columns1, CreateColumnMeta columnMetaCreator) throws SQLException {
 
         ColumnMetaData colMeta;
         String colName = null;
@@ -312,11 +312,11 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return dbSchema;
     }
 
-    protected List<ColumnMetaData> parseTableColMeta(EntityName table, String jdbcUrl) throws TableNotFoundException {
+    protected List<ColumnMetaData> parseTableColMeta(boolean inSink, EntityName table, String jdbcUrl) throws TableNotFoundException {
 
         AtomicReference<List<ColumnMetaData>> ref = new AtomicReference<>();
         validateConnection(jdbcUrl, (conn) -> {
-            List<ColumnMetaData> columnMetaData = parseTableColMeta(jdbcUrl, conn, table);
+            List<ColumnMetaData> columnMetaData = parseTableColMeta(inSink, jdbcUrl, conn, table);
             ref.set(columnMetaData);
         });
         return ref.get();

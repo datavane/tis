@@ -45,23 +45,28 @@ public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKey
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * Get table column metaData list
-     *
-     * @param table
-     * @return
-     */
-    default List<ColumnMetaData> getTableMetadata(EntityName table) throws TableNotFoundException {
-        throw new UnsupportedOperationException("invoke from:" + this.getClass().getName());
-    }
 
     /**
      * Get table column metaData list
      *
+     * @param inSink 是否在处理sink数据源 https://github.com/qlangtech/tis/issues/192,在处理oracle的Date类型时：inSink：true 则要定义成sql.date false: 保持datetime类型
+     * @param table
+     * @return
+     * @throws TableNotFoundException
+     */
+    default List<ColumnMetaData> getTableMetadata(boolean inSink, EntityName table) throws TableNotFoundException {
+        throw new UnsupportedOperationException("invoke from:" + this.getClass().getName());
+    }
+
+
+    /**
+     * Get table column metaData list
+     *
+     * @param inSink 是否在执行sink流程 https://github.com/qlangtech/tis/issues/192
      * @param table
      * @return
      */
-    default List<ColumnMetaData> getTableMetadata(JDBCConnection conn, EntityName table) throws TableNotFoundException {
+    default List<ColumnMetaData> getTableMetadata(JDBCConnection conn, boolean inSink, EntityName table) throws TableNotFoundException {
         throw new UnsupportedOperationException();
     }
 

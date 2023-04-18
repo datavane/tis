@@ -739,7 +739,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             if (this.isSingleTableModel()) {
                 DependencyNode dumpNode = this.getDumpNodes().get(0);
                 DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(dumpNode.getDbName())));
-                List<ColumnMetaData> cols = dbPlugin.getTableMetadata(dumpNode.parseEntityName());
+                List<ColumnMetaData> cols = dbPlugin.getTableMetadata(false, dumpNode.parseEntityName());
                 return cols; //tisTable.getReflectCols();
 //                        .stream().map((c) -> {
 //                    return new ColName(c.getKey());
@@ -763,7 +763,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(dumpNode.getDbName())));
                 // List<ColumnMetaData> tableMetadata = ;
                 //TISTable tab = dbPlugin.loadTableMeta(dumpNode.getName());
-                taskNode.setContent(ColumnMetaData.buildExtractSQL(dumpNode.getName(), true, dbPlugin.getTableMetadata(dumpNode.parseEntityName())).toString());
+                taskNode.setContent(ColumnMetaData.buildExtractSQL(dumpNode.getName(), true, dbPlugin.getTableMetadata(false,dumpNode.parseEntityName())).toString());
                 return taskNode;
             } else {
 
