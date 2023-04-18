@@ -178,7 +178,7 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
      *
      * @return key: fromTabName
      */
-    public TableAliasMapper getTabAlias();
+    public TableAliasMapper getTabAlias(IPluginContext pluginCtx);
 
     /**
      * 是否支持批量执行

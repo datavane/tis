@@ -172,7 +172,7 @@ public class DataXCfgGenerator {
         IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
         DataxWriter.BaseDataxWriterDescriptor writerDescriptor = writer.getWriterDescriptor();
 
-        TableAliasMapper tabAlias = Objects.requireNonNull(dataxProcessor.getTabAlias(), "tabAlias can not be null");
+        TableAliasMapper tabAlias = Objects.requireNonNull(dataxProcessor.getTabAlias(this.pluginCtx), "tabAlias can not be null");
         Set<String> createDDLFiles = Sets.newHashSet();
         List<String> existDDLFiles = getExistDDLFiles();
 
@@ -240,7 +240,8 @@ public class DataXCfgGenerator {
                         Map<String, ISelectedTab> selectedTabs = selectedTabsCall.call();
                         ISelectedTab tab = selectedTabs.get(readerContext.getSourceTableName());
                         Objects.requireNonNull(tab, readerContext.getSourceTableName() + " relevant tab can not be null");
-                        IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(tabAlias.get(tab.getName()), tab);
+                        IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(
+                                Objects.requireNonNull(tabAlias.get(tab.getName()), "table:" + tab.getName() + " relevant alias can not be null"), tab);
                         //m.setSourceCols(tab.getCols());
 //                m.setTo(tab.getName());
 //                m.setFrom(tab.getName());

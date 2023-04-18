@@ -867,7 +867,7 @@ public class DataxAction extends BasicModule {
     TableAliasMapper tabMaps = null;//Collections.emptyMap();
     if (dataXAppSource.isPresent()) {
       DataxProcessor dataxSource = dataXAppSource.get();
-      tabMaps = dataxSource.getTabAlias();
+      tabMaps = dataxSource.getTabAlias(this);
     }
     if (tabMaps == null) {
       throw new IllegalStateException("tableMaps can not be null");
@@ -907,7 +907,7 @@ public class DataxAction extends BasicModule {
     if (selectedTabsSize != 1) {
       throw new IllegalStateException("dataX reader getSelectedTabs size must be 1 ,but now is :" + selectedTabsSize);
     }
-    TableAliasMapper tabAlias = processor.getTabAlias();
+    TableAliasMapper tabAlias = processor.getTabAlias(this);
     Optional<TableAlias> findMapper = tabAlias.findFirst();
     IDataxProcessor.TableMap tabMapper = null;
     for (ISelectedTab selectedTab : processMeta.getReader().getSelectedTabs()) {

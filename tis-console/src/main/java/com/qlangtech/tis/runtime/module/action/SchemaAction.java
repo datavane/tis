@@ -120,7 +120,7 @@ public class SchemaAction extends BasicModule {
     if (stepType.update) {
       IDataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);
 
-      Optional<TableAlias> f = dataxProcessor.getTabAlias().findFirst();
+      Optional<TableAlias> f = dataxProcessor.getTabAlias(this).findFirst();
       if (f.isPresent()) {
         TableAlias tabMapper = f.get();
         if (StringUtils.equals(tabMapper.getFrom(), esTab.getName())) {

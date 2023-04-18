@@ -89,7 +89,7 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 
                 List<TableAlias> aliases = Lists.newArrayList();
 
-                TableAliasMapper tabAlias = processor.getTabAlias();
+                TableAliasMapper tabAlias = processor.getTabAlias(null);
                 tabAlias.forEach((key, alia) -> {
                     aliases.add(alia);
                 });

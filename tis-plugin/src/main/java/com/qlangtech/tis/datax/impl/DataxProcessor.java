@@ -158,14 +158,14 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
      * @return
      */
     @Override
-    public TableAliasMapper getTabAlias() {
+    public TableAliasMapper getTabAlias(IPluginContext pluginCtx) {
         boolean isReaderUnStructed = false;
 //        if (this.isRDBMS2RDBMS(null)
 //                || this.isRDBMS2UnStructed(null)
 //                || (isReaderUnStructed = this.isReaderUnStructed(null))) {
 
-        if ((this.isRDBMS2RDBMS(null))
-                || (isReaderUnStructed = this.isReaderUnStructed(null))) {
+        if ((this.isRDBMS2RDBMS(pluginCtx))
+                || (isReaderUnStructed = this.isReaderUnStructed(pluginCtx))) {
 
             if (CollectionUtils.isEmpty(tableMaps)) {
                 return TableAliasMapper.Null;
@@ -182,7 +182,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 
         } else {
 
-            IDataxReader reader = this.getReader(null);
+            IDataxReader reader = this.getReader(pluginCtx);
             List<ISelectedTab> tabs = reader.getSelectedTabs();
 
 //            if (isReaderUnStructed) {
