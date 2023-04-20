@@ -85,7 +85,7 @@ public class DataXCfgGenerator {
         this.pluginCtx = pluginCtx;
     }
 
-    private String getTemplateContent(IDataxReader reader, IDataxWriter writer) {
+    protected String getTemplateContent(IDataxReader reader, IDataxWriter writer) {
         final String tpl = globalCfg.getTemplate();
 
         // List<IDataxReader> readers = dataxProcessor.getReaders(pluginCtx);

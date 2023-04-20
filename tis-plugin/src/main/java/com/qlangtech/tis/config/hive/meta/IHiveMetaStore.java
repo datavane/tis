@@ -27,6 +27,8 @@ import java.util.List;
  **/
 public interface IHiveMetaStore extends Closeable {
 
+    void dropTable(String database, String tableName);
+
     public HiveTable getTable(String database, String tableName);
 
     public List<HiveTable> getTables(String database);

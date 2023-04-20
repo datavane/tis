@@ -152,6 +152,10 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         return visitor.visit(this);
     }
 
+    public TableAliasMapper getTabAlias() {
+        return this.getTabAlias(null);
+    }
+
     /**
      * key:Source Table Name
      *

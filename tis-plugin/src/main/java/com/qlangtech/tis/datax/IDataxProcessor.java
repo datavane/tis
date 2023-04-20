@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -220,7 +221,16 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
         }
 
         public TableMap(final List<CMeta> cmetas) {
+            this(Optional.empty(), cmetas);
+        }
+
+        public TableMap(Optional<String> tabName, final List<CMeta> cmetas) {
             this.tab = new ISelectedTab() {
+                @Override
+                public String getName() {
+                    return tabName.get();
+                }
+
                 @Override
                 public List<CMeta> getCols() {
                     return cmetas;

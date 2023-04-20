@@ -65,7 +65,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.io.File;
 import java.io.IOException;
@@ -462,6 +461,9 @@ public class DataxExecutor {
         setAllReadApproximately(dataXContainer.getContainerCommunicator().collect());
     }
 
+    static final String readerKeyPrefix = "job.content[0].reader.parameter.";
+    static final String writerKeyPrefix = "job.content[0].writer.parameter.";
+
     private class TISDataXJobContainer extends JobContainer {
         private final Integer jobId;
         private final DataXJobInfo jobName;
@@ -504,6 +506,18 @@ public class DataxExecutor {
         }
     }
 
+
+    public static void setResType(Configuration configuration, StoreResourceType resType) {
+        if (configuration == null) {
+            throw new IllegalArgumentException("param configuration can not be null");
+        }
+        if (resType == null) {
+            throw new IllegalArgumentException("param resType can not be null");
+        }
+        configuration.set(readerKeyPrefix + StoreResourceType.KEY_STORE_RESOURCE_TYPE, resType.getType());
+        configuration.set(writerKeyPrefix + StoreResourceType.KEY_STORE_RESOURCE_TYPE, resType.getType());
+    }
+
     private void setAllReadApproximately(Communication communication) {
         allReadApproximately[0] = communication.getLongCounter(CommunicationTool.TOTAL_READ_RECORDS);
     }
@@ -530,17 +544,15 @@ public class DataxExecutor {
         }
 
 
-        final String readerKeyPrefix = "job.content[0].reader.parameter.";
-        final String writerKeyPrefix = "job.content[0].writer.parameter.";
 //        configuration.set(readerKeyPrefix + DataxUtils.DATAX_NAME, dataxName);
 //        configuration.set(writerKeyPrefix + DataxUtils.DATAX_NAME, dataxName);
 
         final String readerDbFactoryId = jobName.getDbFactoryId().identityValue();
         configuration.set(readerKeyPrefix + DataxUtils.DATASOURCE_FACTORY_IDENTITY, readerDbFactoryId);
 
-
-        configuration.set(readerKeyPrefix + StoreResourceType.KEY_STORE_RESOURCE_TYPE, resType.getType());
-        configuration.set(writerKeyPrefix + StoreResourceType.KEY_STORE_RESOURCE_TYPE, resType.getType());
+        setResType(configuration, resType);
+//        configuration.set(readerKeyPrefix + StoreResourceType.KEY_STORE_RESOURCE_TYPE, resType.getType());
+//        configuration.set(writerKeyPrefix + StoreResourceType.KEY_STORE_RESOURCE_TYPE, resType.getType());
 
 
         //KeyedPluginStore.StoreResourceType.
