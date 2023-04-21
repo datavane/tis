@@ -28,9 +28,10 @@ public interface IRemoteTaskTrigger extends Runnable {
     String KEY_DELTA_STREM_DEBUG = "hudiDeltaStreamDebug";
     String getTaskName();
 
-    default List<String> getTaskDependencies() {
-        return Collections.emptyList();
-    }
+    // 没有啥用去掉
+//    default List<String> getTaskDependencies() {
+//        return Collections.emptyList();
+//    }
 
     /**
      * 是否是异步任务

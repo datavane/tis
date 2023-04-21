@@ -219,21 +219,11 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
             trigger.merge(singleTableDumpFactory.createSingleTableDump(dump, false, /* isHasValidTableDump */
                     "tableDump.getPt()", execChainContext.getZkClient()
                     , execChainContext, dumpPhaseStatus, taskPhaseInfo, dagSessionSpec));
-//            for (DataflowTask tsk : tabDump) {
-//                taskMap.put(dump.getId(), new TISReactor.TaskAndMilestone(tsk));
-//            }
         }
 
         DagTaskUtils.createTasks(execChainContext, taskPhaseInfo, dagSessionSpec, trigger);
 
-
-        // TemplateContext tplContext = new TemplateContext(execChainContext);
         JoinPhaseStatus joinPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
-        //IPluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
-        //Objects.requireNonNull(pluginStore.getPlugin(), "flatTableBuilder can not be null");
-        // chainContext.setFlatTableBuilderPlugin(pluginStore.getPlugin());
-        // final IFlatTableBuilder flatTableBuilder = pluginStore.getPlugin();// execChainContext.getFlatTableBuilder();
-        // final SqlTaskNodeMeta fNode = topology.getFinalNode();
 
         Supplier<IPrimaryTabFinder> primaryTabFinder
                 = () -> DataFlowAppSource.this.containErRules()

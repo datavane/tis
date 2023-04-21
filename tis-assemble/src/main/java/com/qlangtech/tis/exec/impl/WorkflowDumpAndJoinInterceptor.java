@@ -67,13 +67,6 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
         wf.setName(execChainContext.getWorkflowName());
 
 
-        // ISolrAppSource appRule = execChainContext.getAppSource(); //
-        //  DataFlowAppSource.load(execChainContext.getIndexName());
-
-        //  execChainContext.getZkClient()
-//        IExecChainContext execChainContext, TisZkClient zkClient
-//                , DataFlowAppSource.ISingleTableDumpFactory singleTableDumpFactory, IAppSource.IDataProcessFeedback
-//        dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo
         IDataxProcessor dataxProc = DataxProcessor.load(null, StoreResourceType.DataFlow, wf.getName());
         IDataxWriter writer = dataxProc.getWriter(null, true);
         DataFlowAppSource appRule = new DataFlowAppSource(wf, writer);
@@ -93,16 +86,9 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
                             , ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus, ITaskPhaseInfo taskPhaseInfo
                             , DAGSessionSpec dagSessionSpec) {
 
-                        // JoinPhaseStatus joinStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
+
                         RemoteTaskTriggers tskTrigger = DataXExecuteInterceptor.buildTaskTriggers(
                                 execChainContext, dataxProc, submit, dataXExecReporter, new DefaultTab(dump.getName()), dump.getId(), dagSessionSpec);
-//                        List<DataflowTask> dfTsks = Lists.newArrayList();
-//                        for (IRemoteTaskTrigger join : tskTrigger.getJoinPhaseTasks()) {
-//                            dfTsks.add(DataXExecuteInterceptor.createJoinTask(join, joinStatus.getTaskStatus(join.getTaskName())));
-//                        }
-//                        for (IRemoteTaskTrigger tabDump : tskTrigger.getDumpPhaseTasks()) {
-//                            dfTsks.add(DumpTask.createDumpTask(tabDump, dumpPhaseStatus.getTable(tabDump.getTaskName())));
-//                        }
 
                         return tskTrigger;
                     }

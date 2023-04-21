@@ -57,15 +57,5 @@ public class StartAssembleWeb extends TestCase {
         app.start(args);
     }
 
-    public void testXX() {
-        JSONArray array = new JSONArray();
-        JSONObject j = null;
-        for (int i = 0; i < 59; i++) {
-            j = new JSONObject();
-            j.put("index", i);
-            j.put("type", "string");
-            array.add(j);
-        }
-        System.out.println(array.toJSONString());
-    }
+
 }

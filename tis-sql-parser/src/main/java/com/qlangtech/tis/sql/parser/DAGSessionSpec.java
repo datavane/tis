@@ -71,20 +71,20 @@ public class DAGSessionSpec {
 
     private StringBuffer buildSpec(Set<String> collected) {
 
-        StringBuffer dagSessionSpec = new StringBuffer();
+        StringBuffer specs = new StringBuffer();
         for (DAGSessionSpec spec : dptNodes.values()) {
-            dagSessionSpec.append(spec.buildSpec(collected)).append(" ");
+            specs.append(spec.buildSpec(collected)).append(" ");
         }
         if (StringUtils.equals(this.id, KEY_ROOT)) {
-            return dagSessionSpec;
+            return specs;
         }
         if (!this.milestone && collected.add(this.id)) {
-            dagSessionSpec.append(dptNodes.values().stream().map((n) -> n.id).collect(Collectors.joining(","))).append("->").append(this.id);
+            specs.append(dptNodes.values().stream().map((n) -> n.id).collect(Collectors.joining(","))).append("->").append(this.id);
             if (CollectionUtils.isNotEmpty(this.attains)) {
-                dagSessionSpec.append("->").append(this.attains.stream().map((a) -> a.id).collect(Collectors.joining(",")));
+                specs.append("->").append(this.attains.stream().map((a) -> a.id).collect(Collectors.joining(",")));
             }
         }
-        return dagSessionSpec;
+        return specs;
     }
 
     public DAGSessionSpec getDpt(String id) {
@@ -102,9 +102,8 @@ public class DAGSessionSpec {
 
     private DAGSessionSpec addDpt(String id) {
         DAGSessionSpec spec = new DAGSessionSpec(id, this.taskMap);
-//        this.dptNodes.put(id, spec);
-//        return spec;
-        return this.addDpt(spec);
+        this.dptNodes.put(id, spec);
+        return spec;
     }
 
     public DAGSessionSpec addDpt(DAGSessionSpec spec) {

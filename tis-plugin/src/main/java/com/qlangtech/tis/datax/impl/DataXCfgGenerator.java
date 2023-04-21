@@ -403,8 +403,7 @@ public class DataXCfgGenerator {
                         .map((task) -> {
                             task.getDbFactoryId();
                             File dataXCfg = task.getJobPath(this.dataxCfgDir);
-//                               new File(this.dataxCfgDir
-//                                    , task.getDbFactoryId() + File.separator + task.getDataXCfgFileNameWithSuffix());
+
                             if (!dataXCfg.exists()) {
                                 throw new IllegalStateException("dataXCfg is not exist, path:" + dataXCfg.getAbsolutePath());
                             }

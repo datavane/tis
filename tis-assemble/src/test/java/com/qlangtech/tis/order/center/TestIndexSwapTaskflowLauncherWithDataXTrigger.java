@@ -34,6 +34,7 @@ import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.test.TISTestCase;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import junit.framework.Assert;
+import org.junit.After;
 
 import java.util.List;
 
@@ -51,9 +52,9 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
         DataXJobSubmit.mockGetter = () -> new MockDataXJobSubmit(null);
     }
 
-    @Override
+    @After
     public void tearDown() throws Exception {
-        super.tearDown();
+//        super.tearDown();
         DataXJobSubmit.mockGetter = null;
     }
 
@@ -102,7 +103,9 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
 
         @Override
         protected IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc
-                , DataXJobInfo jobName, IDataxProcessor dataxProcessor, CuratorDataXTaskMessage dataXJobDTO, List<String> dependencyTasks) {
+                , DataXJobInfo jobName, IDataxProcessor dataxProcessor, CuratorDataXTaskMessage dataXJobDTO) {
+
+
 
             return jobTrigger;
 //            return new IRemoteJobTrigger() {

@@ -66,6 +66,9 @@ public class DataXJobInfo {
     }
 
     public static File getJobPath(File dataxCfgDir, String dbFactoryId, String jobFileName) {
+        if (StringUtils.isEmpty(dbFactoryId)) {
+            throw new IllegalArgumentException("param dbFactoryId can not be null");
+        }
         File dataXCfg = new File(dataxCfgDir, dbFactoryId + File.separator + jobFileName);
         return dataXCfg;
     }

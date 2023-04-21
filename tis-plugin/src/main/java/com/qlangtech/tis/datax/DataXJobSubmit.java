@@ -181,11 +181,11 @@ public abstract class DataXJobSubmit {
      *
      * @param taskContext
      * @param tabDataXEntity
-     * @param dependencyTasks 前置依赖需要执行的任务节点
      * @return
      */
     public final IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext
-            , RpcServiceReference statusRpc, IDataxProcessor processor, TableDataXEntity tabDataXEntity, List<String> dependencyTasks) {
+            , RpcServiceReference statusRpc, IDataxProcessor processor, TableDataXEntity tabDataXEntity //, List<String> dependencyTasks
+    ) {
         final DataXJobInfo jobName = getDataXJobInfo(tabDataXEntity, taskContext, processor);
         if (this.getType() == InstanceType.DISTRIBUTE) {
             //TODO: 获取DataXProcess 相关元数据 用于远程分布式执行任务
@@ -197,12 +197,12 @@ public abstract class DataXJobSubmit {
 
         CuratorDataXTaskMessage dataXJobDTO = getDataXJobDTO(taskContext, jobName, processor);
 
-        return createDataXJob(taskContext, statusRpc, jobName, processor, dataXJobDTO, dependencyTasks);
+        return createDataXJob(taskContext, statusRpc, jobName, processor, dataXJobDTO);
     }
 
     protected abstract IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext
             , RpcServiceReference statusRpc, DataXJobInfo jobName
-            , IDataxProcessor dataxProcessor, CuratorDataXTaskMessage dataXJobDTO, List<String> dependencyTasks);
+            , IDataxProcessor dataxProcessor, CuratorDataXTaskMessage dataXJobDTO);
 
 
     private DataXJobInfo getDataXJobInfo(
@@ -224,14 +224,10 @@ public abstract class DataXJobSubmit {
             TableInDB tabsInDB = reader.getTablesInDB();
             if (tabsInDB.isMatch(targetDBId)) {
                 return convert.apply(Pair.of(tabsInDB, reader));
-//                jobName = tabsInDB.createDataXJobInfo(tabDataXEntity);
-//                return Pair.of(jobName, reader);
             }
         }
 
         throw new IllegalStateException(targetDBId.toString());
-//        Objects.requireNonNull(jobName, tabDataXEntity.toString());
-//        return jobName;
     }
 
 

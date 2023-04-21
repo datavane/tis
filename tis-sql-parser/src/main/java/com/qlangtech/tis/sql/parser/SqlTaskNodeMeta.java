@@ -676,14 +676,10 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 sessionSpec.getDpt(dump.getId());
             }
             for (SqlTaskNodeMeta pnode : this.getNodeMetas()) {
-//                dagSessionSpec.append(Joiner.on(",").join(pnode.getDependencies().stream().map((r) -> r.getId()).iterator()));
-//                dagSessionSpec.append("->").append(pnode.getId()).append(" ");
-
                 DAGSessionSpec join = sessionSpec.getDpt(pnode.getId());
                 pnode.getDependencies().forEach((node) -> {
                     join.addDpt(sessionSpec.getDpt(node.getId()));
                 });
-
             }
             return sessionSpec;
             //  return dagSessionSpec.toString();

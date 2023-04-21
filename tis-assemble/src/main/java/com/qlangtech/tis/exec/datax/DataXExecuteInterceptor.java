@@ -104,16 +104,12 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         }
 
 
-        List<String> dptTasks = Lists.newArrayList();
-        if (preExec != null) {
-            dptTasks.add(preExec.getTaskName());
-        }
+       // List<String> dptTasks = Lists.newArrayList();
+//        if (preExec != null) {
+//            dptTasks.add(preExec.getTaskName());
+//        }
         List<DataXCfgGenerator.DBDataXChildTask> dataXCfgsOfTab = cfgFileNames.getDataXTaskDependencies(entry.getName());
 
-//        if (taskMap.get(IDataXBatchPost.getPreExecuteTaskName(entry)) != null) {
-//            // 说明有前置任务
-//            dptTasks = Collections.singletonList(IDataXBatchPost.getPreExecuteTaskName(entry));
-//        }
 
         final DataXJobSubmit.IDataXJobContext dataXJobContext = submit.createJobContext(execChainContext);
         Objects.requireNonNull(dataXJobContext, "dataXJobContext can not be null");
@@ -123,13 +119,14 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
             jobTrigger = createDataXJob(dataXJobContext, submit
                     , statusRpc, appSource
-                    , new DataXJobSubmit.TableDataXEntity(fileName, entry), dptTasks);
-            DAGSessionSpec childDumpSpec = getDumpSpec(postSpec, dumpSpec).getDpt(jobTrigger.getTaskName());
+                    , new DataXJobSubmit.TableDataXEntity(fileName, entry));
 
-            for (String dpt : jobTrigger.getTaskDependencies()) {
-                childDumpSpec.getDpt(dpt);
+            DAGSessionSpec childDumpSpec = getDumpSpec(postSpec, dumpSpec)
+                    .getDpt(Objects.requireNonNull(jobTrigger, "jobTrigger can not be null").getTaskName());
+
+            if (preExec != null) {
+                childDumpSpec.getDpt(preExec.getTaskName());
             }
-            // postSpec.getDpt(jobTrigger.getTaskName());
 
             triggers.addDumpPhaseTask(jobTrigger);
         }
@@ -295,7 +292,8 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
             DataXJobSubmit.IDataXJobContext execChainContext
             , DataXJobSubmit submit
             , RpcServiceReference statusRpc
-            , IDataxProcessor appSource, DataXJobSubmit.TableDataXEntity fileName, List<String> dependencyTasks) {
+            , IDataxProcessor appSource, DataXJobSubmit.TableDataXEntity fileName //, List<String> dependencyTasks
+    ) {
 
         if (submit.getType() == DataXJobSubmit.InstanceType.DISTRIBUTE) {
             IncrStatusUmbilicalProtocolImpl statCollect = IncrStatusUmbilicalProtocolImpl.getInstance();
@@ -303,7 +301,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
             statCollect.getAppSubExecNodeMetrixStatus(execChainContext.getTaskContext().getIndexName(), fileName.getFileName());
         }
         return submit.createDataXJob(
-                execChainContext, statusRpc, appSource, fileName, dependencyTasks);
+                execChainContext, statusRpc, appSource, fileName);
     }
 
 
