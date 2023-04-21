@@ -42,7 +42,8 @@ public class DumpTask extends DataflowTask {
         this.taskStatus = taskStatus;
     }
 
-    public static DataflowTask createDumpTask(IRemoteTaskTrigger jobTrigger, AbstractChildProcessStatus taskStatus) {
+    public static DataflowTask createDumpTask(
+            IRemoteTaskTrigger jobTrigger, AbstractChildProcessStatus taskStatus) {
         taskStatus.setWaiting(true);
         return new DumpTask(jobTrigger, taskStatus);
     }

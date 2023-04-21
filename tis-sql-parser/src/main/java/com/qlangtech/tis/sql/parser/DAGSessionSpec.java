@@ -102,8 +102,9 @@ public class DAGSessionSpec {
 
     private DAGSessionSpec addDpt(String id) {
         DAGSessionSpec spec = new DAGSessionSpec(id, this.taskMap);
-        this.dptNodes.put(id, spec);
-        return spec;
+//        this.dptNodes.put(id, spec);
+//        return spec;
+        return this.addDpt(spec);
     }
 
     public DAGSessionSpec addDpt(DAGSessionSpec spec) {

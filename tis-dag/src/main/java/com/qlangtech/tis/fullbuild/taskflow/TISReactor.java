@@ -62,7 +62,7 @@ public class TISReactor {
 
     Pattern PatternNode = Pattern.compile("[\\S]+");
 
-    public Reactor buildSession(String spec) throws Exception {
+    public Reactor buildSession(CharSequence spec) throws Exception {
         Collection<TaskImpl> tasks = new ArrayList<>();
 
         Matcher matcher = PatternNode.matcher(spec);

@@ -45,7 +45,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 
 /**
  * DataX 执行器
@@ -184,12 +183,15 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         Objects.requireNonNull(dataXJobContext, "dataXJobContext can not be null");
         final ExecutorService executorService = DataFlowAppSource.createExecutorService(execChainContext);
         try {
+            ;
             // example: "->a ->b a,b->c"
-            String dagSessionSpec = triggers.stream().map((trigger) -> {
-                List<String> dpts = Objects.requireNonNull(trigger.getTaskDependencies()
-                        , "trigger:" + trigger.getTaskName() + " relevant task dependencies can not be null");
-                return dpts.stream().collect(Collectors.joining(",")) + "->" + trigger.getTaskName();
-            }).collect(Collectors.joining(" "));
+            final StringBuffer dagSessionSpec = sessionSpec.buildSpec();
+//            triggers.stream().map((trigger) -> {
+//                List<String> dpts = Objects.requireNonNull(trigger.getTaskDependencies()
+//                        , "trigger:" + trigger.getTaskName() + " relevant task dependencies can not be null");
+//                return dpts.stream().collect(Collectors.joining(",")) + "->" + trigger.getTaskName();
+//            }).collect(Collectors.joining(" "));
+
             logger.info("dataX:{} of dagSessionSpec:{}", execChainContext.getIndexName(), dagSessionSpec);
 
 
@@ -239,7 +241,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
     }
 
 
-    private void executeDAG(ExecutorService executorService, IExecChainContext execChainContext, String dagSessionSpec
+    private void executeDAG(ExecutorService executorService, IExecChainContext execChainContext, StringBuffer dagSessionSpec
             , Map<String, TaskAndMilestone> taskMap, ReactorListener reactorListener) {
         try {
             TISReactor reactor = new TISReactor(execChainContext, taskMap);

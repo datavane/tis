@@ -38,7 +38,7 @@ public class TestDataSourceFactoryPluginStore extends BasicTestCase {
         DataSourceFactory dbPluginStore = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(DB_NAME)));
         //dbPluginStore.getPlugin()
         //  assertNotNull("db:" + DB_NAME + " relevant plugin config", dbPluginStore.getPlugin());
-        List<ColumnMetaData> cols = dbPluginStore.getTableMetadata(EntityName.parse(TABLE_NAME));
+        List<ColumnMetaData> cols = dbPluginStore.getTableMetadata(false, EntityName.parse(TABLE_NAME));
 //        TISTable tab = dbPluginStore.loadTableMeta(TABLE_NAME);
 //        assertNotNull(tab);
         assertEquals(5, cols.size());
@@ -53,7 +53,7 @@ public class TestDataSourceFactoryPluginStore extends BasicTestCase {
         Class<?> aClass = Class.forName("com.qlangtech.tis.plugin.ds.DBConfig");
         System.out.println(aClass);
 
-       // DataSourceFactory plugin = employeesPluginStore.getPlugin();
+        // DataSourceFactory plugin = employeesPluginStore.getPlugin();
         assertNotNull(employeesPluginStore);
         // plugin.createFacadeDataSource();
 
