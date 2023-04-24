@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.sql.parser;
 
@@ -62,7 +62,6 @@ public class SqlRewriter extends Formatter {
 
     // 是否是数据流的最终节点
     private final boolean isFinal;
-
 
 
     private final IJoinTaskContext joinContext;
@@ -131,7 +130,7 @@ public class SqlRewriter extends Formatter {
     }
 
     @Override
-    protected Void visitSingleColumn(SingleColumn node, Integer indent) {
+    protected Void visitSingleColumn(SingleColumn node, FormatContext indent) {
         return super.visitSingleColumn(node, indent);
     }
 
@@ -141,7 +140,7 @@ public class SqlRewriter extends Formatter {
     }
 
     @Override
-    protected Void visitTable(Table tab, Integer indent) {
+    protected Void visitTable(Table tab, FormatContext indent) {
         String tableName = String.valueOf(tab.getName());
         QualifiedName tabName = tab.getName();
         TabPartitions.DumpTabPartition findTab = parseDumpTable(tabName);
@@ -156,18 +155,22 @@ public class SqlRewriter extends Formatter {
     }
 
     @Override
-    protected Void visitAliasedRelation(AliasedRelation node, Integer indent) {
+    protected Void visitAliasedRelation(AliasedRelation node, FormatContext indent) {
         if (node.getRelation() instanceof Table) {
             Table tab = (Table) node.getRelation();
             TabPartitions.DumpTabPartition dumpTable = parseDumpTable(tab.getName());
-            waitProcessAliasTabsSet.add(new AliasTable(node.getAlias().getValue(), dumpTable.tab, dumpTable.pt));
+            boolean primaryTable = (indent instanceof FormatContextInLeftTabProcess);
+            waitProcessAliasTabsSet.add(new AliasTable(node.getAlias().getValue(), dumpTable.tab, dumpTable.pt
+                    // true: 说明是右侧表则为主表，pt 的添加不应该出现在ON 条件约束中应该出现在 WHERE语句中
+                    , false, primaryTable
+            ));
             processTable(dumpTable);
             builder.append(' ').append(formatExpression(node.getAlias(), parameters));
             SqlFormatter.appendAliasColumns(builder, node.getColumnNames());
             return null;
         } else if (node.getRelation() instanceof TableSubquery) {
             SqlRewriter w = new SqlRewriter(new SqlStringBuilder(), this.tabPartition, this.erRules, this.parameters, false, joinContext);
-            w.process(node.getRelation(), 0);
+            w.process(node.getRelation(), new FormatContext(0));
             Optional<AliasTable> subTable = w.getWaitProcessAliasTabsSet().stream().findFirst();
             if (!subTable.isPresent()) {
                 throw new IllegalStateException("subtable:" + node.getAlias().getValue() + " can not find subtable");
@@ -186,7 +189,7 @@ public class SqlRewriter extends Formatter {
     }
 
     @Override
-    protected Void visitLogicalBinaryExpression(LogicalBinaryExpression node, Integer context) {
+    protected Void visitLogicalBinaryExpression(LogicalBinaryExpression node, FormatContext context) {
         if (SqlStringBuilder.isInRewriteProcess()) {
             this.process(node.getLeft(), context);
             this.process(node.getRight(), context);
@@ -200,10 +203,20 @@ public class SqlRewriter extends Formatter {
             RewriteProcessContext processContext = new RewriteProcessContext();
             SqlStringBuilder.inRewriteProcess.set(processContext);
             if (where.isPresent()) {
-                this.process(where.get(), MAGIC_TOKEN_JOINON_PROCESS);
-                processPTRewrite(processContext);
-            } else if (this.hasAnyUnprocessedAliasTabsSet()) {
-                this.builder.appendIgnoreProcess(this.getWaitProcessAliasTabsSet().stream().filter((r) -> !r.isPtRewriterOver() && !r.isSubQueryTable()).map((r) -> {
+                this.process(where.get(), new FormatContext(MAGIC_TOKEN_JOINON_PROCESS));
+                //  processPTRewrite(processContext);
+            }// else if (this.hasAnyUnprocessedAliasTabsSet()) {
+//                this.builder.appendIgnoreProcess(this.getWaitProcessAliasTabsSet().stream().filter((r) -> !r.isPtRewriterOver() && !r.isSubQueryTable()).map((r) -> {
+//                    r.setPtRewriter(true);
+//                    return r.getAliasPtCriteria();
+//                }).collect(Collectors.joining(" AND ")));
+            //}
+
+            if (this.hasAnyUnprocessedAliasTabsSet()) {
+                if (where.isPresent()) {
+                    this.builder.appendIgnoreProcess(" AND ");
+                }
+                this.builder.appendIgnoreProcess(this.getWaitProcessAliasTabsSet().stream().filter((r) -> !r.isPtRewriterOver() && (!r.isSubQueryTable() || r.isPrimaryTable())).map((r) -> {
                     r.setPtRewriter(true);
                     return r.getAliasPtCriteria();
                 }).collect(Collectors.joining(" AND ")));
@@ -223,11 +236,11 @@ public class SqlRewriter extends Formatter {
             LogicalBinaryExpression logical = null;
             if (on.getExpression() instanceof LogicalBinaryExpression) {
                 logical = (LogicalBinaryExpression) on.getExpression();
-                this.process(logical.getLeft(), MAGIC_TOKEN_JOINON_PROCESS);
-                this.process(logical.getRight(), MAGIC_TOKEN_JOINON_PROCESS);
+                this.process(logical.getLeft(), new FormatContext(MAGIC_TOKEN_JOINON_PROCESS));
+                this.process(logical.getRight(), new FormatContext(MAGIC_TOKEN_JOINON_PROCESS));
                 logical.getOperator();
             } else {
-                this.process(on.getExpression(), MAGIC_TOKEN_JOINON_PROCESS);
+                this.process(on.getExpression(), new FormatContext(MAGIC_TOKEN_JOINON_PROCESS));
             }
             this.processPTRewrite(processContext);
         } finally {
@@ -241,12 +254,15 @@ public class SqlRewriter extends Formatter {
         while (!processContext.tabAliasStack.isEmpty()) {
             final String alias = processContext.tabAliasStack.pop();
             aliasOptional = this.getWaitProcessAliasTabsSet().stream().filter((r) -> {
-                return StringUtils.equals(r.getAlias(), alias) && !r.isPtRewriterOver() && !r.isSubQueryTable();
+                return StringUtils.equals(r.getAlias(), alias) && !r.isPtRewriterOver() && !r.isSubQueryTable() && !r.isPrimaryTable();
             }).findFirst();
             if (aliasOptional.isPresent()) {
                 at = aliasOptional.get();
-                this.builder.appendIgnoreProcess(" AND ").appendIgnoreProcess(at.getAlias()
-                        + "." + IDumpTable.PARTITION_PT + "='").appendIgnoreProcess(at.getTabPartition()).appendIgnoreProcess("'");
+//                this.builder.appendIgnoreProcess(" AND ").appendIgnoreProcess(at.getAlias()
+//                        + "." + IDumpTable.PARTITION_PT + "='").appendIgnoreProcess(at.getTabPartition()).appendIgnoreProcess("'");
+
+                this.builder.appendIgnoreProcess(" AND ").appendIgnoreProcess(at.getAliasPtCriteria());
+
                 at.setPtRewriter(true);
             }
         }
@@ -299,11 +315,19 @@ public class SqlRewriter extends Formatter {
 
         // 在SQL WHERE部分添加PT,PMOD
         private boolean selectPtAppendProcess = false;
+        private boolean primaryTable;
 
         // 嵌套关系的子
         private AliasTable child;
 
-        public AliasTable(String alias, IDumpTable table, ITabPartition tabPartition, boolean subQueryTable) {
+        /**
+         * @param alias
+         * @param table
+         * @param tabPartition
+         * @param subQueryTable
+         * @param primaryTable  左部表，则为主表
+         */
+        public AliasTable(String alias, IDumpTable table, ITabPartition tabPartition, boolean subQueryTable, boolean primaryTable) {
             super();
             this.table = table;
             this.alias = alias;
@@ -312,6 +336,11 @@ public class SqlRewriter extends Formatter {
             }
             this.tabPartition = tabPartition;
             this.subQueryTable = subQueryTable;
+            this.primaryTable = primaryTable;
+        }
+
+        public boolean isPrimaryTable() {
+            return this.primaryTable;
         }
 
         @Override
@@ -320,13 +349,13 @@ public class SqlRewriter extends Formatter {
         }
 
         public AliasTable(String alias, IDumpTable table, ITabPartition tabPartition) {
-            this(alias, table, tabPartition, false);
+            this(alias, table, tabPartition, false, false);
         }
 
         public AliasTable(String alias, AliasTable child) {
             this(alias, null, () -> {
                 throw new UnsupportedOperationException("alias:" + alias + " not not support pt");
-            }, true);
+            }, true, false);
             this.setPtRewriter(true);
             this.child = child;
         }
@@ -402,7 +431,7 @@ public class SqlRewriter extends Formatter {
             this.tabname = tabname;
         }
 
-       public static RewriterDumpTable create(String dbname, String tabname) {
+        public static RewriterDumpTable create(String dbname, String tabname) {
             return new RewriterDumpTable(dbname, tabname);
         }
 

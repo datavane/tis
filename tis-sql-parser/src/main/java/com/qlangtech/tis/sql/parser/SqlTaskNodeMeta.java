@@ -235,18 +235,13 @@ public class SqlTaskNodeMeta implements ISqlTask {
         // 执行rewrite
         try {
             Statement state = getSqlStatement();
-            rewriter.process(state, 0);
+            rewriter.process(state, new  FormatContext(0 ) );
         } catch (TisSqlFormatException e) {
             throw e;
         } catch (Exception e) {
             // String dp = dumpPartition.toString(); //dumpPartition.entrySet().stream().map((ee) -> "[" + ee.getKey() + "->" + ee.getValue().getPt() + "]").collect(Collectors.joining(","));
             throw new IllegalStateException(e);
         }
-//        SqlRewriter.AliasTable primaryTable = rewriter.getPrimayTable();
-//        if (primaryTable == null) {
-//            throw new IllegalStateException("task:" + taskName + " has not find primary table");
-//        }
-//        // return ;
         return new RewriteSql(this.getSql(), builder.toString(), rewriter.outputCols, null);
     }
 
@@ -343,7 +338,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         // 执行rewrite
         try {
             Statement state = getSqlStatement();
-            rewriter.process(state, 0);
+            rewriter.process(state, new FormatContext(0));
         } catch (TisSqlFormatException e) {
             throw e;
         } catch (Exception e) {

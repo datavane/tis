@@ -109,18 +109,37 @@ public class TestSqlTaskNodeMeta extends TestCase {
     }
 
 
+    public void testGetRewriteSqlUnusingJoin() throws Exception {
+        SqlTaskNodeMeta taskNodeMeta = new SqlTaskNodeMeta();
+
+        taskNodeMeta.setSql(TestSqlRewriter.getScriptContent("supply_goods_rewrite_unusing_join_origin.sql"));
+        TabPartitions dumpPartition = createTabPartition();
+
+        IJoinTaskContext joinTaskContext = EasyMock.createMock("joinTaskContext", IJoinTaskContext.class);
+        EasyMock.expect(joinTaskContext.getExecutePhaseRange()).andReturn(ExecutePhaseRange.fullRange()).times(2);
+        EasyMock.expect(joinTaskContext.getIndexShardCount()).andReturn(1).times(1);
+        Optional<ERRules> erRule = ERRules.getErRule(TestSupplyGoodsParse.topologyName);
+        assertTrue(erRule.isPresent());
+        EasyMock.replay(joinTaskContext);
+
+        ISqlTask.RewriteSql rewriteSql = taskNodeMeta.getRewriteSql(
+                "supply_goods", dumpPartition, () -> erRule.get(), joinTaskContext, true);
+
+        assertNotNull(rewriteSql);
+        assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_unusing_join_result.sql"), rewriteSql.rewriteSql);
+        System.out.println(rewriteSql.rewriteSql);
+        EasyMock.verify(joinTaskContext);
+    }
+
+
+
     public void testGetRewriteSql() throws Exception {
         SqlTaskNodeMeta taskNodeMeta = new SqlTaskNodeMeta();
 
-        // SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(TestSupplyGoodsParse.topologyName);
-        // assertNotNull(topology);
-        // SqlTaskNodeMeta finalNode = topology.getFinalNode();
-        // assertNotNull(finalNode);
-        taskNodeMeta.setSql(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result_origin.sql"));
+        taskNodeMeta.setSql(TestSqlRewriter.getScriptContent("supply_goods_rewrite_origin.sql"));
         TabPartitions dumpPartition = createTabPartition();
-        // ITemplateContext tplContext = EasyMock.createMock("templateContext", ITemplateContext.class);
+
         IJoinTaskContext joinTaskContext = EasyMock.createMock("joinTaskContext", IJoinTaskContext.class);
-        // EasyMock.expect(tplContext.getExecContext()).andReturn(joinTaskContext);
         EasyMock.expect(joinTaskContext.getExecutePhaseRange()).andReturn(ExecutePhaseRange.fullRange()).times(2);
         EasyMock.expect(joinTaskContext.getIndexShardCount()).andReturn(1).times(1);
         Optional<ERRules> erRule = ERRules.getErRule(TestSupplyGoodsParse.topologyName);

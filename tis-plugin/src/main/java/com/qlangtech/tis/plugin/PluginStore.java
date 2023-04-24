@@ -364,7 +364,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         if (metasCollector.isCacheable() && this.loaded) {
             return;
         }
-        logger.info("load:" + this.file.getFile().getAbsolutePath() + ",this.loaded:" + this.loaded);
+        logger.debug("load:" + this.file.getFile().getAbsolutePath() + ",this.loaded:" + this.loaded);
         // MapBackedDataHolder dataHolder = new MapBackedDataHolder();
         Set<PluginMeta> pluginMetas = Sets.newHashSet();
         XmlFile.DefaultDataHolder dataHolder = new XmlFile.DefaultDataHolder(pluginMetas, this.file);

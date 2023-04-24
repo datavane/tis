@@ -17,7 +17,7 @@ SELECT
 , g.unit_type
 , g.package_type
 , g.category_id
-, category.inner_code category_inner_code
+, c.inner_code category_inner_code
 , g.type
 , '' num_unit_id
 , '' num_unit_name
@@ -57,11 +57,12 @@ SELECT
 , g.last_ver
 , g.extend_fields
 , g.apply_time
+, g.pt,abs( hash( cast( g.entity_id as string)) % 1 ) AS pmod
 FROM
   scmdb.goods g
-LEFT JOIN tis.supplier_collapse s ON (((g.entity_id = s.entity_id) AND (g.id = s.goods_id)) AND s.pt='20200703113848')
-LEFT JOIN tis.warehouse_collapse w ON (((g.entity_id = w.self_entity_id) AND (g.id = w.goods_id)) AND w.pt='20200703113848')
-LEFT JOIN scmdb.goods_sync_shop gss ON ((((g.entity_id = gss.entity_id) AND (gss.is_valid = 1)) AND (g.id = gss.goods_id)) AND gss.pt='20200703113848')
-LEFT JOIN tis.stock_info_collapse sic ON (((g.entity_id = sic.entity_id) AND (g.id = sic.goods_id)) AND sic.pt='20200703113848')
-LEFT JOIN scmdb.category ON ((((g.entity_id = category.entity_id) AND (g.category_id = category.id)) AND (category.is_valid = 1)) AND category.pt='20200703113848')
-WHERE (g.entity_id IS NOT NULL) AND g.pt='20200703113848'
+, tis.supplier_collapse s
+, tis.warehouse_collapse w
+, scmdb.goods_sync_shop gss
+, tis.stock_info_collapse sic
+, scmdb.category c
+WHERE (((((((((((((g.entity_id IS NOT NULL) AND (g.entity_id = s.entity_id)) AND (g.id = s.goods_id)) AND (g.entity_id = w.self_entity_id)) AND (g.id = w.goods_id)) AND (g.entity_id = gss.entity_id)) AND (gss.is_valid = 1)) AND (g.id = gss.goods_id)) AND (g.entity_id = sic.entity_id)) AND (g.id = sic.goods_id)) AND (g.entity_id = category.entity_id)) AND (g.category_id = c.id)) AND (c.is_valid = 1)) AND g.pt='20200703113848' AND s.pt='20200703113848' AND w.pt='20200703113848' AND gss.pt='20200703113848' AND sic.pt='20200703113848' AND c.pt='20200703113848'

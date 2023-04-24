@@ -598,8 +598,9 @@ public class OfflineDatasourceAction extends BasicModule {
 
     }
     Optional<ERRules> erRule = ERRules.getErRule(topologyPojo.getName());
-    this.setBizResult(context, new ERRulesStatus(erRule), false);
-    dbSaverCallback.execute(this, context, topologyName, topologyPojo);
+    // this.setBizResult(context, new ERRulesStatus(erRule), false);
+    WorkFlow dataflow = dbSaverCallback.execute(this, context, topologyName, topologyPojo);
+    this.setBizResult(context, new ERRulesStatus(erRule, dataflow), false);
     // 保存一个时间戳
     SqlTaskNodeMeta.persistence(topologyPojo, parent);
     dbSaverCallback.afterPersistence(this, context, topologyPojo);
@@ -621,15 +622,21 @@ public class OfflineDatasourceAction extends BasicModule {
   public static class ERRulesStatus {
 
     private final ERRules erRules;
+    private final WorkFlow dataflow;
 
     private boolean exist;
 
-    public ERRulesStatus(Optional<ERRules> erRules) {
+    public ERRulesStatus(Optional<ERRules> erRules, WorkFlow dataflow) {
+      this.dataflow = Objects.requireNonNull(dataflow, "param dataflow can not be null");
       if (this.exist = erRules.isPresent()) {
         this.erRules = erRules.get();
       } else {
         this.erRules = null;
       }
+    }
+
+    public Integer getId() {
+      return dataflow.getId();
     }
 
     public boolean isErExist() {
@@ -903,16 +910,6 @@ public class OfflineDatasourceAction extends BasicModule {
 
     this.doUpdateTopology(context, createTopologyCreator());
 
-//    this.doUpdateTopology(context, new TopologyUpdateCallback() {
-//      @Override
-//      public <T> T execute(IPluginContext pluginContext, Context context, String topologyName, SqlDataFlowTopology topology) {
-//        SqlTaskNodeMeta.TopologyProfile profile = topology.getProfile();
-//        if (profile.getDataflowId() < 1) {
-//          profile.setDataflowId(getWorkflowId(topologyName));
-//        }
-//        return null;
-//      }
-//    });
   }
 
   /**
@@ -964,12 +961,6 @@ public class OfflineDatasourceAction extends BasicModule {
       final String topologyName = topology.getName();
       WorkFlow wf = createWorkFlow(topologyName);
       topology.getProfile().setDataflowId(wf.getId());
-
-
-//      WorkFlow workFlow = createWorkFlow(topologyName);
-//      topology.getProfile().setDataflowId(workFlow.getId());
-//      return (T) workFlow;
-      // throw new IllegalStateException("workflow:" + topologyName + "  must be exist");
       return wf;
     }
 
@@ -1012,19 +1003,9 @@ public class OfflineDatasourceAction extends BasicModule {
     <T> T execute(IPluginContext pluginContext, Context context, String tname, SqlDataFlowTopology topology);
 
     default void afterPersistence(IPluginContext pluginContext, Context context, SqlDataFlowTopology topology) {
-
     }
   }
 
-//  /**
-//   * Do get datasource tables. 获取数据库中所有数据源表
-//   *
-//   * @param context the context
-//   * @throws Exception the exception
-//   */
-//  public void doGetDatasourceTables(Context context) throws Exception {
-//   // this.setBizResult(context, offlineManager.getDatasourceTables());
-//  }
 
   /**
    * Do edit workflow. 编辑工作流

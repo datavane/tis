@@ -250,7 +250,7 @@ public class TestSqlRewriter extends TestCase {
         builder = new SqlStringBuilder();
         rewriter = new SqlRewriter(builder, tabPartition, ()-> erRules, parameters, isFinal, taskContext);
         // 执行rewrite
-        rewriter.process(sqlParser.createStatement(extraSql, new ParsingOptions()), 0);
+        rewriter.process(sqlParser.createStatement(extraSql, new ParsingOptions()), new FormatContext(0 ));
         final String rewriteSql = processFileContent(builder.toString());
         System.out.println("<<" + exportName);
         System.out.println(extraSql);
