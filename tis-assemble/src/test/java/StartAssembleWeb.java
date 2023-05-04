@@ -43,7 +43,7 @@ public class StartAssembleWeb extends TestCase {
     }
 
     public void testStart() throws Exception {
-
+        System.out.println( this.getClass().getClassLoader().loadClass("com.alibaba.datax.common.statistics.PerfTrace"));
 
         // System.setProperty(com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger.KEY_DELTA_STREM_DEBUG, "true");
         System.setProperty(DataxUtils.EXEC_TIMESTAMP, String.valueOf(TimeFormat.getCurrentTimeStamp()));

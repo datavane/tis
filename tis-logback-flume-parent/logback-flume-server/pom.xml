@@ -70,7 +70,7 @@
                                     <exclude>org.apache.velocity:*</exclude>
                                     <exclude>org.eclipse.jetty:*</exclude>
                                     <exclude>org.apache.mina:*</exclude>
-                                    <exclude>org.apache.flume.flume-ng-sinks:*</exclude>
+<!--                                    <exclude>org.apache.flume.flume-ng-sinks:*</exclude>-->
                                     <exclude>commons-dbcp:*</exclude>
                                     <exclude>org.apache.curator:*</exclude>
                                 </excludes>
@@ -90,6 +90,10 @@
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-manage-pojo</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
         </dependency>
     </dependencies>
 </project>

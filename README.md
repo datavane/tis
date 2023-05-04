@@ -83,6 +83,7 @@ TIS基于数据库元数据信息自动生成Flink-SQL脚本,您没看错全部�
 - Flink Extend [https://github.com/qlangtech/flink](https://github.com/qlangtech/flink)
 - Chunjun [https://github.com/qlangtech/chunjun](https://github.com/qlangtech/chunjun)
 - Zeppelin [https://github.com/qlangtech/zeppelin](https://github.com/qlangtech/zeppelin)
+- 部分插件参数配置参考 Airbyte [https://github.com/airbytehq/airbyte](https://github.com/airbytehq/airbyte) 
 
 ## 如何开发
 

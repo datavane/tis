@@ -6,10 +6,10 @@
         <artifactId>tis-logback-flume-parent</artifactId>
         <groupId>com.qlangtech.tis</groupId>
         <version>3.7.1</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.qlangtech.tis</groupId>
     <artifactId>logback-flume-server-test</artifactId>
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>

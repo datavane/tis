@@ -89,7 +89,6 @@
 
         <module>maven-tpi-plugin</module>
         <module>tis-datax-executor</module>
-        <module>tis-logback-flume-parent</module>
         <!--        <module>tis-zeppelin</module>-->
 
 
@@ -736,23 +735,23 @@
                 <version>1.1</version>
             </dependency>
 
-<!--            <dependency>-->
-<!--                <groupId>org.scala-lang</groupId>-->
-<!--                <artifactId>scala-library</artifactId>-->
-<!--                <version>${scala.version}</version>-->
-<!--            </dependency>-->
+            <!--            <dependency>-->
+            <!--                <groupId>org.scala-lang</groupId>-->
+            <!--                <artifactId>scala-library</artifactId>-->
+            <!--                <version>${scala.version}</version>-->
+            <!--            </dependency>-->
 
-<!--            <dependency>-->
-<!--                <groupId>org.scala-lang</groupId>-->
-<!--                <artifactId>scala-reflect</artifactId>-->
-<!--                <version>${scala.version}</version>-->
-<!--            </dependency>-->
+            <!--            <dependency>-->
+            <!--                <groupId>org.scala-lang</groupId>-->
+            <!--                <artifactId>scala-reflect</artifactId>-->
+            <!--                <version>${scala.version}</version>-->
+            <!--            </dependency>-->
 
-<!--            <dependency>-->
-<!--                <groupId>org.scala-lang</groupId>-->
-<!--                <artifactId>scala-compiler</artifactId>-->
-<!--                <version>${scala.version}</version>-->
-<!--            </dependency>-->
+            <!--            <dependency>-->
+            <!--                <groupId>org.scala-lang</groupId>-->
+            <!--                <artifactId>scala-compiler</artifactId>-->
+            <!--                <version>${scala.version}</version>-->
+            <!--            </dependency>-->
 
 
             <!--            <dependency>-->
@@ -876,6 +875,19 @@
     </build>
 
     <profiles>
+
+        <profile>
+            <id>install</id>
+            <activation>
+                <property>
+                    <name>maven.test.skip</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>tis-logback-flume-parent</module>
+            </modules>
+        </profile>
 
         <profile>
             <id>github-repo</id>
