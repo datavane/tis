@@ -461,8 +461,10 @@ public class DataxExecutor {
         setAllReadApproximately(dataXContainer.getContainerCommunicator().collect());
     }
 
-    static final String readerKeyPrefix = "job.content[0].reader.parameter.";
-    static final String writerKeyPrefix = "job.content[0].writer.parameter.";
+    public static final String connectKeyParameter = "parameter";
+
+    static final String readerKeyPrefix = "job.content[0].reader." + connectKeyParameter + ".";
+    static final String writerKeyPrefix = "job.content[0].writer." + connectKeyParameter + ".";
 
     private class TISDataXJobContainer extends JobContainer {
         private final Integer jobId;
