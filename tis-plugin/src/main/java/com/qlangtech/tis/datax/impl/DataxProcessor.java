@@ -169,7 +169,10 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 //                || (isReaderUnStructed = this.isReaderUnStructed(null))) {
 
         if ((this.isRDBMS2RDBMS(pluginCtx))
-                || (isReaderUnStructed = this.isReaderUnStructed(pluginCtx))) {
+                || (isReaderUnStructed = this.isReaderUnStructed(pluginCtx))
+                // 支持ElasticSearch
+                || CollectionUtils.isNotEmpty(tableMaps)
+        ) {
 
             if (CollectionUtils.isEmpty(tableMaps)) {
                 return TableAliasMapper.Null;
