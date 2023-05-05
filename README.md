@@ -12,9 +12,9 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
 > 视频： [>>TIS介绍](https://www.bilibili.com/video/BV11y4y1B7Mk) [>>操作实例](https://www.bilibili.com/video/BV1Uv41167SH/)
  -->
 
-## v3.6.0-alpha发布（2022/11/01）：
+## v3.7.1发布（2023/5/05）：
 
-https://github.com/qlangtech/tis/releases/tag/v3.6.0-alpha
+https://github.com/qlangtech/tis/releases/tag/v3.7.1
  
 ## 安装说明
 
