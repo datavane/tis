@@ -18,7 +18,7 @@ https://github.com/qlangtech/tis/releases/tag/v3.7.1
  
 ## 安装说明
 
-  速将TIS在分布式环境中一键安装（支持私有云、公有云等环境），方便、快捷 [详细说明](http://tis.pub/docs/install/uber)
+  速将TIS在分布式环境中一键安装（支持私有云、公有云等环境），方便、快捷 [详细说明](https://tis.pub/docs/install/tis/uber)
 
 ## 架构
 
