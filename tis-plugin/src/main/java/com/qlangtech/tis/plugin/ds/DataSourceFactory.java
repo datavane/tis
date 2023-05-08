@@ -34,10 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Wrapper;
+import java.sql.*;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -53,9 +50,16 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     public static final ZoneId DEFAULT_SERVER_TIME_ZONE = ZoneId.of("Asia/Shanghai");
     public static final String DS_TYPE_MYSQL = "MySQL";
 
-//    public static List<DataSourceFactory> all() {
-//        return TIS.get().getExtensionList(DataSourceFactory.class);
-//    }
+
+    /**
+     * 查询Connection 的Statement
+     *
+     * @param stmt
+     */
+    public void setReaderStatement(Statement stmt) throws SQLException {
+
+    }
+
 
     public abstract DBConfig getDbConfig();
 

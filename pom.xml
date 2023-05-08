@@ -31,7 +31,7 @@
     <groupId>com.qlangtech.tis</groupId>
     <artifactId>tis</artifactId>
     <!--https://maven.apache.org/maven-ci-friendly.html-->
-    <version>3.7.1</version>
+    <version>3.7.2</version>
     <packaging>pom</packaging>
     <name>tis</name>
     <url>http://maven.apache.org</url>
@@ -88,7 +88,7 @@
         <!-- <module>tis-scala-compiler-dependencies</module>-->
 
         <module>maven-tpi-plugin</module>
-        <module>tis-datax-executor</module>
+<!--        <module>tis-datax-executor</module>-->
         <!--        <module>tis-zeppelin</module>-->
 
 

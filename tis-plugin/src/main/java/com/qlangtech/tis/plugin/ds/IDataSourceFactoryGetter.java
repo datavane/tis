@@ -18,6 +18,8 @@
 
 package com.qlangtech.tis.plugin.ds;
 
+import java.sql.Statement;
+
 /**
  * 适配 BasicDataXRdbmsReader 和 BasicDataXRdbmsWriter DataSource获取借口
  *
@@ -31,7 +33,6 @@ public interface IDataSourceFactoryGetter {
     default IDBReservedKeys getDBReservedKeys() {
         return this.getDataSourceFactory();
     }
-
 
     /**
      * 批量导出数据，单次导出记录条数供游标遍历
