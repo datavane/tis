@@ -21,6 +21,8 @@ package com.qlangtech.tis.fullbuild.indexbuild;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 /**
@@ -30,6 +32,11 @@ import java.util.stream.Stream;
 public class RemoteTaskTriggers {
     private final List<IRemoteTaskTrigger> dumpPhaseTasks = new ArrayList<>();
     private final List<IRemoteTaskTrigger> joinPhaseTasks = new ArrayList<>();
+    private final ExecutorService executorService;
+
+    public RemoteTaskTriggers(ExecutorService executorService) {
+        this.executorService = executorService;
+    }
 
     public void addDumpPhaseTask(IRemoteTaskTrigger dumpTsk) {
         this.dumpPhaseTasks.add(dumpTsk);
@@ -56,5 +63,20 @@ public class RemoteTaskTriggers {
         Stream.concat(dumpPhaseTasks.stream(), joinPhaseTasks.stream()).forEach((trigger) -> {
             trigger.cancel();
         });
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                // Cancel currently executing tasks
+                executorService.shutdownNow();
+//                // Wait a while for tasks to respond to being cancelled
+//                if (!executorService.awaitTermination(60, TimeUnit.SECONDS))
+//                    System.err.println("Pool did not terminate");
+            }
+        } catch (InterruptedException ie) {
+            // (Re-)Cancel if current thread also interrupted
+            executorService.shutdownNow();
+            // Preserve interrupt status
+            Thread.currentThread().interrupt();
+        }
     }
 }

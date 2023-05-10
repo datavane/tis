@@ -214,7 +214,8 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
         logger.info(dumps.toString());
         // 将所有的表的状态先初始化出来
         DumpPhaseStatus dumpPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.FullDump);
-        RemoteTaskTriggers trigger = new RemoteTaskTriggers();
+        final ExecutorService executorService = createExecutorService(execChainContext);
+        RemoteTaskTriggers trigger = new RemoteTaskTriggers(executorService);
         execChainContext.setTskTriggers(trigger);
 
         for (DependencyNode dump : topology.getDumpNodes()) {
@@ -247,16 +248,16 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
 
                 dagSessionSpec.put(pnode.getId(), new TaskAndMilestone(process));
             }
-            final ExecuteResult faildResult = executeDAG(execChainContext, topology, dataProcessFeedback, dagSessionSpec.getTaskMap());
+            final ExecuteResult faildResult = executeDAG(executorService, execChainContext, topology, dataProcessFeedback, dagSessionSpec.getTaskMap());
             return faildResult;
         });
     }
 
 
-    private ExecuteResult executeDAG(IExecChainContext execChainContext, SqlTaskNodeMeta.SqlDataFlowTopology topology, IDataProcessFeedback dataProcessFeedback
+    private ExecuteResult executeDAG(ExecutorService executorService, IExecChainContext execChainContext, SqlTaskNodeMeta.SqlDataFlowTopology topology, IDataProcessFeedback dataProcessFeedback
             , Map<String, TaskAndMilestone> taskMap) {
         final ExecuteResult[] faildResult = new ExecuteResult[1];
-        final ExecutorService executorService = createExecutorService(execChainContext);
+
         try {
             TISReactor reactor = new TISReactor(execChainContext, taskMap);
             StringBuffer dagSessionSpec = topology.getDAGSessionSpec().buildSpec();

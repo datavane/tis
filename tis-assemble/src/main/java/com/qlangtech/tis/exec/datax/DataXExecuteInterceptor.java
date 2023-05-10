@@ -65,14 +65,14 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
      * @param entry
      * @return
      */
-    public static RemoteTaskTriggers buildTaskTriggers(IExecChainContext execChainContext, IDataxProcessor appSource
+    public static void buildTaskTriggers(RemoteTaskTriggers triggers, IExecChainContext execChainContext, IDataxProcessor appSource
             , DataXJobSubmit submit
             , RpcServiceReference statusRpc //
             , ISelectedTab entry, String dumpTaskId, DAGSessionSpec dagSessionSpec) {
         if (StringUtils.isEmpty(dumpTaskId)) {
             throw new IllegalArgumentException("param dumpTaskId can not be null");
         }
-        RemoteTaskTriggers triggers = new RemoteTaskTriggers();
+        //  RemoteTaskTriggers triggers = new RemoteTaskTriggers();
         IRemoteTaskTrigger jobTrigger = null;
         IDataxWriter writer = appSource.getWriter(null, true);
         DataXCfgGenerator.GenerateCfgs cfgFileNames = appSource.getDataxCfgFileNames(null);
@@ -129,7 +129,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
             triggers.addDumpPhaseTask(jobTrigger);
         }
-        return triggers;
+        //  return triggers;
     }
 
     private static DAGSessionSpec getDumpSpec(DAGSessionSpec postSpec, DAGSessionSpec dumpSpec) {
@@ -163,18 +163,20 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
         DataXJobSubmit submit = jobSubmit.get();
 
+        final ExecutorService executorService = DataFlowAppSource.createExecutorService(execChainContext);
         RemoteTaskTriggers tskTriggers = new RemoteTaskTriggers();
         execChainContext.setTskTriggers(tskTriggers);
 
         DAGSessionSpec sessionSpec = new DAGSessionSpec();
         for (ISelectedTab entry : selectedTabs) {
-            tskTriggers.merge(buildTaskTriggers(execChainContext, appSource, submit, statusRpc, entry, entry.getName(), sessionSpec));
+            buildTaskTriggers(tskTriggers, execChainContext, appSource, submit, statusRpc, entry, entry.getName(), sessionSpec);
+            //tskTriggers.merge();
         }
         List<IRemoteTaskTrigger> triggers = DagTaskUtils.createTasks(execChainContext, this, sessionSpec, tskTriggers);
 
         final DataXJobSubmit.IDataXJobContext dataXJobContext = submit.createJobContext(execChainContext);
         Objects.requireNonNull(dataXJobContext, "dataXJobContext can not be null");
-        final ExecutorService executorService = DataFlowAppSource.createExecutorService(execChainContext);
+
         try {
             final StringBuffer dagSessionSpec = sessionSpec.buildSpec();
             logger.info("dataX:{} of dagSessionSpec:{}", execChainContext.getIndexName(), dagSessionSpec);
