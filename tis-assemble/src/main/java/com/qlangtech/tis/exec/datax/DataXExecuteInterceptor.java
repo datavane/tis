@@ -18,7 +18,6 @@
 
 package com.qlangtech.tis.exec.datax;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.datax.*;
@@ -104,7 +103,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         }
 
 
-       // List<String> dptTasks = Lists.newArrayList();
+        // List<String> dptTasks = Lists.newArrayList();
 //        if (preExec != null) {
 //            dptTasks.add(preExec.getTaskName());
 //        }
@@ -146,14 +145,9 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
     @Override
     protected ExecuteResult execute(IExecChainContext execChainContext) throws Exception {
 
-
-        // final Map<String, TaskAndMilestone> taskMap = Maps.newHashMap();
         RpcServiceReference statusRpc = getDataXExecReporter();
 
         IDataxProcessor appSource = execChainContext.getProcessor();
-        //  IRemoteTaskTrigger jobTrigger = null;
-        // RunningStatus runningStatus = null;
-
 
         IDataxReader reader = appSource.getReader(null);
 
@@ -170,6 +164,8 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         DataXJobSubmit submit = jobSubmit.get();
 
         RemoteTaskTriggers tskTriggers = new RemoteTaskTriggers();
+        execChainContext.setTskTriggers(tskTriggers);
+
         DAGSessionSpec sessionSpec = new DAGSessionSpec();
         for (ISelectedTab entry : selectedTabs) {
             tskTriggers.merge(buildTaskTriggers(execChainContext, appSource, submit, statusRpc, entry, entry.getName(), sessionSpec));
@@ -180,18 +176,8 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         Objects.requireNonNull(dataXJobContext, "dataXJobContext can not be null");
         final ExecutorService executorService = DataFlowAppSource.createExecutorService(execChainContext);
         try {
-            ;
-            // example: "->a ->b a,b->c"
             final StringBuffer dagSessionSpec = sessionSpec.buildSpec();
-//            triggers.stream().map((trigger) -> {
-//                List<String> dpts = Objects.requireNonNull(trigger.getTaskDependencies()
-//                        , "trigger:" + trigger.getTaskName() + " relevant task dependencies can not be null");
-//                return dpts.stream().collect(Collectors.joining(",")) + "->" + trigger.getTaskName();
-//            }).collect(Collectors.joining(" "));
-
             logger.info("dataX:{} of dagSessionSpec:{}", execChainContext.getIndexName(), dagSessionSpec);
-
-
             ExecuteResult[] faildResult = new ExecuteResult[]{ExecuteResult.createSuccess()};
 
 
@@ -242,46 +228,9 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
             , Map<String, TaskAndMilestone> taskMap, ReactorListener reactorListener) {
         try {
             TISReactor reactor = new TISReactor(execChainContext, taskMap);
-            // String dagSessionSpec = topology.getDAGSessionSpec();
             logger.info("dagSessionSpec:" + dagSessionSpec);
-
-            //  final PrintWriter w = new PrintWriter(sw, true);
-            ReactorListener listener = new ReactorListener() {
-                // TODO: Does it really needs handlers to be synchronized?
-//                @Override
-//                public synchronized void onTaskStarted(Task t) {
-//            //        w.println("Started " + t.getDisplayName());
-//                }
-
-                @Override
-                public synchronized void onTaskCompleted(Task t) {
-                    //   w.println("Ended " + t.getDisplayName());
-//                    processTaskResult(execChainContext, (TISReactor.TaskImpl) t, new ITaskResultProcessor() {
-//                        @Override
-//                        public void process(DumpPhaseStatus dumpPhase, TISReactor.TaskImpl task) {
-//                        }
-//
-//                        @Override
-//                        public void process(JoinPhaseStatus joinPhase, TISReactor.TaskImpl task) {
-//                        }
-//                    });
-                }
-
-                @Override
-                public synchronized void onTaskFailed(Task t, Throwable err, boolean fatal) {
-                    // w.println("Failed " + t.getDisplayName() + " with " + err);
-                }
-//
-//                @Override
-//                public synchronized void onAttained(Milestone milestone) {
-//                    w.println("Attained " + milestone);
-//                }
-            };
-
-
             // 执行DAG地调度
-            //executorService
-            reactor.execute(executorService, reactor.buildSession(dagSessionSpec), listener, reactorListener);
+            reactor.execute(executorService, reactor.buildSession(dagSessionSpec), reactorListener);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -292,7 +241,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
             DataXJobSubmit.IDataXJobContext execChainContext
             , DataXJobSubmit submit
             , RpcServiceReference statusRpc
-            , IDataxProcessor appSource, DataXJobSubmit.TableDataXEntity fileName //, List<String> dependencyTasks
+            , IDataxProcessor appSource, DataXJobSubmit.TableDataXEntity fileName
     ) {
 
         if (submit.getType() == DataXJobSubmit.InstanceType.DISTRIBUTE) {
@@ -306,9 +255,6 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
 
 
     private DataXJobSubmit.InstanceType getDataXTriggerType() {
-//        DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME);
-//        boolean dataXWorkerServiceOnDuty = jobWorker != null && jobWorker.inService();//.isDataXWorkerServiceOnDuty();
-//        return dataXWorkerServiceOnDuty ? DataXJobSubmit.InstanceType.DISTRIBUTE : DataXJobSubmit.InstanceType.LOCAL;
         return DataXJobSubmit.getDataXTriggerType();
     }
 

@@ -20,6 +20,7 @@ package com.qlangtech.tis.exec;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.fs.ITISFileSystem;
+import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 
 import java.util.List;
@@ -38,6 +39,13 @@ public interface IExecChainContext extends IJoinTaskContext {
     public List<AsynSubJob> getAsynSubJobs();
 
     public boolean containAsynJob();
+
+    void setTskTriggers(RemoteTaskTriggers tskTriggers);
+
+    /**
+     * 取消当前正在运行的任务
+     */
+    void cancelTask();
 
 //    TableDumpFactory getTableDumpFactory();
 

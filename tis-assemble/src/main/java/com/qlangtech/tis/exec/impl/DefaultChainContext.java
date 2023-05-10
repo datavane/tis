@@ -24,13 +24,13 @@ import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.datax.IDataXBatchPost;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxWriter;
-import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.servlet.IRebindableMDC;
 import com.qlangtech.tis.job.common.JobCommon;
@@ -80,6 +80,29 @@ public class DefaultChainContext implements IExecChainContext {
     private IAppSourcePipelineController appSourcePipelineController;
 
     public final List<AsynSubJob> asynSubJobs = Lists.newCopyOnWriteArrayList();
+    private RemoteTaskTriggers tskTriggers;
+
+    @Override
+    public void cancelTask() {
+        int tryCount = 0;
+        while (tryCount++ < 4) {
+            if (tskTriggers != null) {
+                tskTriggers.allCancel();
+                return;
+            }
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
+        Objects.requireNonNull(tskTriggers, "tskTriggers can not be null").allCancel();
+    }
+
+    @Override
+    public void setTskTriggers(RemoteTaskTriggers tskTriggers) {
+        this.tskTriggers = tskTriggers;
+    }
 
     @Override
     public List<AsynSubJob> getAsynSubJobs() {
@@ -323,15 +346,6 @@ public class DefaultChainContext implements IExecChainContext {
         return httpExecContext.getLong(key);
     }
 
-//    public void setPs(String ps) {
-//        this.ps = ps;
-//    }
-
-//    @Override
-//    public TableDumpFactory getTableDumpFactory() {
-//        Objects.requireNonNull(this.fs2Table, "tableDumpFactory can not be null");
-//        return fs2Table;
-//    }
 
     @Override
     public IAppSourcePipelineController getPipelineController() {

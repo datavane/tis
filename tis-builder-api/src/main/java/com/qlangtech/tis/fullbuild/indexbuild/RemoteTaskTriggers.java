@@ -21,6 +21,7 @@ package com.qlangtech.tis.fullbuild.indexbuild;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -49,5 +50,11 @@ public class RemoteTaskTriggers {
 
     public List<IRemoteTaskTrigger> getJoinPhaseTasks() {
         return Collections.unmodifiableList(this.joinPhaseTasks);
+    }
+
+    public void allCancel() {
+        Stream.concat(dumpPhaseTasks.stream(), joinPhaseTasks.stream()).forEach((trigger) -> {
+            trigger.cancel();
+        });
     }
 }

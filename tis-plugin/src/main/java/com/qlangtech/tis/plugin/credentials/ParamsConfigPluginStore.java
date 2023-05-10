@@ -191,19 +191,30 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
 
     @Override
     public void copyConfigFromRemote() {
-        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetDesc().impl);
+       // UploadPluginMeta.TargetDesc desc = getTargetDesc();
+        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetDesc());
         childPluginStore.copyConfigFromRemote();
     }
 
     @Override
     public XmlFile getTargetFile() {
-        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetDesc().impl);
+       // UploadPluginMeta.TargetDesc desc = getTargetDesc();
+        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetDesc());
         return childPluginStore.getTargetFile();
     }
 
+//    private UploadPluginMeta.TargetDesc getTargetDesc() {
+//        UploadPluginMeta.TargetDesc desc = pluginMeta.getTargetDesc();
+//        if (desc == null || StringUtils.isEmpty(desc.matchTargetPluginDescName)) {
+//            throw new IllegalStateException("desc param is not illegal, desc:" + ((desc == null) ? "null" : desc.toString()));
+//        }
+//        return desc;
+//    }
+
     @Override
     public long getWriteLastModifyTimeStamp() {
-        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetDesc().impl);
+       // UploadPluginMeta.TargetDesc desc = getTargetDesc();
+        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetDesc());
         return childPluginStore.getWriteLastModifyTimeStamp();
     }
 

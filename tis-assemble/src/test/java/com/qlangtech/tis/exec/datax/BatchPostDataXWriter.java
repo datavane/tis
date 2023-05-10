@@ -39,7 +39,7 @@ import java.util.Optional;
  **/
 public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost {
     boolean runPass = false;
-    boolean execGetTaskDependencies = false;
+    // boolean execGetTaskDependencies = false;
     boolean preExecute = false;
 
     private final List<String> taskDependencies;
@@ -49,10 +49,13 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
     }
 
     public void verify() {
-        Assert.assertTrue("runPass must be true", runPass);
+        verify(true);
+    }
+
+    public void verify(boolean hasPass) {
+        Assert.assertEquals("runPass must be :" + hasPass, hasPass, runPass);
         Assert.assertTrue("preExecute must be true", preExecute);
 
-        Assert.assertTrue("execGetTaskDependencies must be true", execGetTaskDependencies);
     }
 
     @Override
@@ -80,7 +83,7 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
         return new IRemoteTaskTrigger() {
             @Override
             public String getTaskName() {
-                return "post_" + tab.getName();
+                return KEY_POST + tab.getName();
             }
 
 //            @Override

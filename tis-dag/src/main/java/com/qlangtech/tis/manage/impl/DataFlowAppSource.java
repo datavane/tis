@@ -215,6 +215,8 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
         // 将所有的表的状态先初始化出来
         DumpPhaseStatus dumpPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.FullDump);
         RemoteTaskTriggers trigger = new RemoteTaskTriggers();
+        execChainContext.setTskTriggers(trigger);
+
         for (DependencyNode dump : topology.getDumpNodes()) {
             trigger.merge(singleTableDumpFactory.createSingleTableDump(dump, false, /* isHasValidTableDump */
                     "tableDump.getPt()", execChainContext.getZkClient()

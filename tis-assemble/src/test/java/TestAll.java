@@ -37,8 +37,6 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses(
         {TestDataXExecuteInterceptorForMethodBuildTaskTriggers.class
-
-                , TestDataXExecuteInterceptor.class
                 , TestDataXExecuteInterceptor.class
                 , TestRealtimeLoggerCollectorAppender.class
                 , TestIncrStatusServer.class

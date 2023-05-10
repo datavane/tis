@@ -85,19 +85,22 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         return load(pluginContext, StoreResourceType.DataApp, dataXName);
     }
 
-    public static IDataxProcessor load(IPluginContext pluginContext, StoreResourceType resType, String dataXName) {
-        return load(pluginContext, resType, DataxProcessor.getPluginDescMeta(resType.pluginDescName), dataXName);
-    }
+//    public static IDataxProcessor load(IPluginContext pluginContext, StoreResourceType resType, String dataXName) {
+//        return load(pluginContext, resType, dataXName);
+//    }
 
-    private static IDataxProcessor load(IPluginContext pluginContext, StoreResourceType resType, Descriptor<IAppSource> pluginDescMeta, String dataXName) {
+    public static IDataxProcessor load(IPluginContext pluginContext, StoreResourceType resType, String dataXName) {
         if (processorGetter != null) {
             return processorGetter.get(dataXName);
         }
-        Objects.requireNonNull(pluginDescMeta);
+
         Optional<IAppSource> appSource = IAppSource.loadNullable(pluginContext, resType, dataXName);
         if (appSource.isPresent()) {
             return (IDataxProcessor) appSource.get();
         } else {
+
+            Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta(resType.pluginDescName);
+            Objects.requireNonNull(pluginDescMeta);
             //Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
             Map<String, /** * attr key */com.alibaba.fastjson.JSONObject> formData
                     = new HashMap<String, com.alibaba.fastjson.JSONObject>() {

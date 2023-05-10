@@ -105,7 +105,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
                         TISReactor.TaskImpl tsk = (TISReactor.TaskImpl) task;
                         DumpPhaseStatus.TableDumpStatus dumpStatus = dumpPhase.getTable(tsk.getIdentityName());
                         svcCompsite.reportDumpJobStatus(true, true
-                                , false, dumpPhase.getTaskId(), tsk.getDisplayName(), dumpStatus.getReadRows(), dumpStatus.getAllRows());//.reportDumpTableStatusError(execChainContext.getTaskId(), task.getDisplayName());
+                                , false, dumpPhase.getTaskId(), tsk.getDisplayName(), dumpStatus.getReadRows(), dumpStatus.getAllRows());
                     }
                 }, this
         );

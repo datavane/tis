@@ -31,7 +31,9 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.test.TISTestCase;
 import org.apache.commons.io.FileUtils;
 import org.easymock.EasyMock;
@@ -61,7 +63,10 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
 
 
     protected DataxReader mockDataXReader() {
+        //testDataxProcessorDataXReader
         DataxReader dataxReader = mock(AP_NAME + "DataXReader", DataxReader.class);
+        TableInDB tabInDB = TableInDB.create(DBIdentity.parseId(dbName));
+        EasyMock.expect(dataxReader.getTablesInDB()).andReturn(tabInDB);
         ISelectedTab tab = new TestSelectedTab(tableName);
         EasyMock.expect(dataxReader.getSelectedTabs()).andReturn(Collections.singletonList(tab)).anyTimes();
 
@@ -89,13 +94,18 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
         EasyMock.expectLastCall().anyTimes();
         EasyMock.expect(execChainContext.getPartitionTimestampWithMillis()).andReturn(TimeFormat.getCurrentTimeStamp()).anyTimes();
         EasyMock.expect(execChainContext.hasIndexName()).andReturn(true).anyTimes();
-        EasyMock.expect(execChainContext.getIndexName()).andReturn(AP_NAME);
+        EasyMock.expect(execChainContext.getIndexName()).andReturn(AP_NAME).anyTimes();
         EasyMock.expect(execChainContext.loadPhaseStatusFromLatest()).andReturn(null);
         EasyMock.expect(execChainContext.getTaskId()).andReturn(testTaskId).anyTimes();
         //  getTaskId
 
+        EasyMock.expect(execChainContext.isDryRun()).andReturn(false).anyTimes();
 
         EasyMock.expect(execChainContext.getProcessor()).andReturn(dataxProcessor).anyTimes();
+
+        EasyMock.expect(execChainContext.getAttribute(EasyMock.eq(DataXJobSubmit.KEY_DATAX_READERS), EasyMock.anyObject()))
+                .andReturn(dataxProcessor.getReaders(null)).anyTimes();
+
         return execChainContext;
     }
 
@@ -128,7 +138,8 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
 
         @Override
         public StoreResourceType getResType() {
-            throw new UnsupportedOperationException();
+           // throw new UnsupportedOperationException();
+            return StoreResourceType.DataApp;
         }
 
         @Override

@@ -153,7 +153,6 @@ public class DagTaskUtils {
         }
 
         for (IRemoteTaskTrigger trigger : tskTriggers.getJoinPhaseTasks()) {
-
             triggers.add(addJoinTask(execChainContext, phaseStatus, dagSessionSpec, trigger));
         }
         return triggers;

@@ -194,7 +194,7 @@ public class TisServlet extends HttpServlet {
             chainContext.setAppSourcePipelineController(IncrStatusUmbilicalProtocolImpl.getInstance());
 
 
-            final ExecuteLock.TaskFuture future = new ExecuteLock.TaskFuture();
+            final ExecuteLock.TaskFuture future = new ExecuteLock.TaskFuture(chainContext);
 
             future.setFuture(executeService.submit(() -> {
                 // MDC.put("app", indexName);
