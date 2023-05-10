@@ -103,12 +103,7 @@ public class TisServlet extends HttpServlet {
         }
     });
 
-    // private static final AtomicBoolean idle = new AtomicBoolean(true);
     static final Map<String, ExecuteLock> idles = new HashMap<String, ExecuteLock>();
-
-    // public TisServlet() {
-    // super();
-    // }
 
     /**
      * 校验参数是否正确

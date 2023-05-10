@@ -26,6 +26,7 @@ import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
+import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncherWithDataXTrigger;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
@@ -94,7 +95,9 @@ public class TestDataXExecuteInterceptorForMethodBuildTaskTriggers extends Basic
         DAGSessionSpec dagSessionSpec = new DAGSessionSpec();
         replay();
 
-        DataXExecuteInterceptor.buildTaskTriggers(chainContext, dataXProcessor, submit, statusRpc, tab, tab.getName(), dagSessionSpec);
+        RemoteTaskTriggers triggers = new RemoteTaskTriggers(null);
+
+        DataXExecuteInterceptor.buildTaskTriggers(triggers, chainContext, dataXProcessor, submit, statusRpc, tab, tab.getName(), dagSessionSpec);
 
 
         Assert.assertEquals("->prep_customer_order_relation prep_customer_order_relation->customer_order_relation_1.json customer_order_relation_1.json->post_customer_order_relation->customer_order_relation"
