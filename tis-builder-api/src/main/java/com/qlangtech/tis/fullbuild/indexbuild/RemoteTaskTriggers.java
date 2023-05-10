@@ -46,10 +46,10 @@ public class RemoteTaskTriggers {
         this.joinPhaseTasks.add(joinTsk);
     }
 
-    public void merge(RemoteTaskTriggers tskTriggers) {
-        this.dumpPhaseTasks.addAll(tskTriggers.dumpPhaseTasks);
-        this.joinPhaseTasks.addAll(tskTriggers.joinPhaseTasks);
-    }
+//    public void merge(RemoteTaskTriggers tskTriggers) {
+//        this.dumpPhaseTasks.addAll(tskTriggers.dumpPhaseTasks);
+//        this.joinPhaseTasks.addAll(tskTriggers.joinPhaseTasks);
+//    }
 
     public List<IRemoteTaskTrigger> getDumpPhaseTasks() {
         return Collections.unmodifiableList(this.dumpPhaseTasks);

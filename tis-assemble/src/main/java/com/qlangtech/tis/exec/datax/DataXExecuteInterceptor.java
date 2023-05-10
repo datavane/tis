@@ -164,7 +164,7 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         DataXJobSubmit submit = jobSubmit.get();
 
         final ExecutorService executorService = DataFlowAppSource.createExecutorService(execChainContext);
-        RemoteTaskTriggers tskTriggers = new RemoteTaskTriggers();
+        RemoteTaskTriggers tskTriggers = new RemoteTaskTriggers(executorService);
         execChainContext.setTskTriggers(tskTriggers);
 
         DAGSessionSpec sessionSpec = new DAGSessionSpec();

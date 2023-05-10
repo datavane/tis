@@ -82,15 +82,15 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
         final DataXAssembleSvcCompsite svcCompsite = dataXExecReporter.get();
         final ExecuteResult faildResult = appRule.getProcessDataResults(execChainContext, new ISolrAppSource.ISingleTableDumpFactory() {
                     @Override
-                    public RemoteTaskTriggers createSingleTableDump(DependencyNode dump, boolean hasValidTableDump, String pt
+                    public void createSingleTableDump(RemoteTaskTriggers tskTrigger, DependencyNode dump, boolean hasValidTableDump, String pt
                             , ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus, ITaskPhaseInfo taskPhaseInfo
                             , DAGSessionSpec dagSessionSpec) {
+                        //  RemoteTaskTriggers tskTrigger = new RemoteTaskTriggers();
 
-
-                        RemoteTaskTriggers tskTrigger = DataXExecuteInterceptor.buildTaskTriggers(
+                        DataXExecuteInterceptor.buildTaskTriggers(tskTrigger,
                                 execChainContext, dataxProc, submit, dataXExecReporter, new DefaultTab(dump.getName()), dump.getId(), dagSessionSpec);
 
-                        return tskTrigger;
+                       // return tskTrigger;
                     }
                 },
                 new ISolrAppSource.IDataProcessFeedback() {

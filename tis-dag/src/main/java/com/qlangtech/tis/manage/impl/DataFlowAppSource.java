@@ -219,9 +219,9 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
         execChainContext.setTskTriggers(trigger);
 
         for (DependencyNode dump : topology.getDumpNodes()) {
-            trigger.merge(singleTableDumpFactory.createSingleTableDump(dump, false, /* isHasValidTableDump */
+            singleTableDumpFactory.createSingleTableDump(trigger, dump, false, /* isHasValidTableDump */
                     "tableDump.getPt()", execChainContext.getZkClient()
-                    , execChainContext, dumpPhaseStatus, taskPhaseInfo, dagSessionSpec));
+                    , execChainContext, dumpPhaseStatus, taskPhaseInfo, dagSessionSpec);
         }
 
         DagTaskUtils.createTasks(execChainContext, taskPhaseInfo, dagSessionSpec, trigger);
