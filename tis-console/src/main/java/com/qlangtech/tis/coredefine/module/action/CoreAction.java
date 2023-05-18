@@ -305,7 +305,10 @@ public class CoreAction extends BasicModule {
         public void visit(FlinkJobDeploymentDetails details) {
           incrStatus.setFlinkJobDetail(details);
           // 这里有三种状态
-          incrStatus.setState(details.getIncrJobStatus().getState());
+          IFlinkIncrJobStatus status = details.getIncrJobStatus();
+          if (status.getState() != null) {
+            incrStatus.setState(status.getState());
+          }
         }
       });
       incrStatus.setIncrProcess(null);
@@ -314,7 +317,6 @@ public class CoreAction extends BasicModule {
   }
 
   /**
-   *
    * @param module
    * @param getRcConfigInCache
    * @return
