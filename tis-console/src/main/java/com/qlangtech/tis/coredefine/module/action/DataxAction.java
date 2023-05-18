@@ -174,7 +174,10 @@ public class DataxAction extends BasicModule {
     if (StringUtils.isEmpty(dataxName)) {
       throw new IllegalStateException("param " + PARAM_KEY_DATAX_NAME + " can not be null");
     }
-
+    /**
+     * 确保会执行执行：DataxReader.dataxReaderThreadLocal.set(reader);
+     */
+    pmodel.getDataXReader(this, dataxName);
 
     final String requestDescId = writerDesc.getString("impl");
     DataxWriter writer = pmodel.loadWriter(this, writerDesc, dataxName);//  (DataxWriter)dataxProcessor.getWriter(this);

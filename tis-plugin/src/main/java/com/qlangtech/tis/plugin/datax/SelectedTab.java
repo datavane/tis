@@ -123,8 +123,8 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
      */
     public static String getDftTabName() {
         DataxReader dataXReader = DataxReader.getThreadBingDataXReader();
-        if (dataXReader == null) {
-            return StringUtils.EMPTY;
+            if (dataXReader == null) {
+                return StringUtils.EMPTY;
         }
 
         try {
