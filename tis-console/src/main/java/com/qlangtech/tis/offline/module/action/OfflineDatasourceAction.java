@@ -1077,8 +1077,9 @@ public class OfflineDatasourceAction extends BasicModule {
           return this.dbs.stream().filter((db) -> {
             DataSourceFactory.BaseDataSourceFactoryDescriptor desc = descMap.get(StringUtils.lowerCase(db.extensionDesc));
             if (desc == null) {
-              throw new IllegalStateException("extendDesc:" + db.extensionDesc
-                + " can not find relevant Desc instance in :" + String.join(",", descMap.keySet()));
+//              throw new IllegalStateException("extendDesc:" + db.extensionDesc
+//                + " can not find relevant Desc instance in :" + String.join(",", descMap.keySet()));
+              return false;
             }
             return desc.getDefaultDataXReaderDescName().isPresent();
           }).collect(Collectors.toList());
