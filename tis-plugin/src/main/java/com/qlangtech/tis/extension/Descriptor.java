@@ -1096,7 +1096,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 valJ = new JSONObject();
             }
             if (attrDesc.isDescribable()) {
-                JSONObject descVal = valJ.getJSONObject(KEY_DESC_VAL);
+                JSONObject descVal = Objects.requireNonNull(valJ.getJSONObject(KEY_DESC_VAL)
+                        , "key:" + KEY_DESC_VAL + " relevant instant can not be null");
                 impl = descVal.getString(AttrValMap.PLUGIN_EXTENSION_IMPL);
                 descriptor = TIS.get().getDescriptor(impl);
                 if (descriptor == null) {
