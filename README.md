@@ -47,7 +47,7 @@ https://github.com/qlangtech/tis/releases/tag/v3.7.2
 
 * 基于 DataOps 理念
 
- 借鉴了 DataOps、DataPipeline 理念，对各各执行流程建模。不需要了解底层模块的实现原理，基本实现傻瓜化方式操作。
+  借鉴了 DataOps、DataPipeline 理念，对各各执行流程建模。不需要了解底层模块的实现原理，基本实现傻瓜化方式操作。
 
 
 ## 支持的读写组件
