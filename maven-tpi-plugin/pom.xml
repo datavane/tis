@@ -35,7 +35,7 @@
     </prerequisites>
 
     <name>maven-tpi-plugin</name>
-    <url>http://tis.pub</url>
+    <url>https://tis.pub</url>
     <inceptionYear>2020</inceptionYear>
 
     <developers>
