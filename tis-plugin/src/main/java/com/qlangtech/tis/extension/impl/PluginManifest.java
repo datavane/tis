@@ -62,6 +62,8 @@ import static org.apache.commons.io.FilenameUtils.getBaseName;
  * @create: 2022-06-25 17:02
  **/
 public class PluginManifest {
+
+    public static final String META_PATH_EXTENDPOINTS = "META-INF/annotations/extendpoints.txt";
     private static final Logger LOGGER = LoggerFactory.getLogger(PluginManifest.class);
 
     public final URL baseResourceURL;

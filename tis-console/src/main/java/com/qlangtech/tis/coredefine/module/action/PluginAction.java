@@ -572,7 +572,7 @@ public class PluginAction extends BasicModule {
   public void doGetAvailablePlugins(Context context) throws Exception {
 
 
-    List<String> extendpoint = getExtendpointParam();
+    //List<String> extendpoint = getExtendpointParam();
     Pager pager = this.createPager();
     pager.setTotalCount(Integer.MAX_VALUE);
     UpdateCenter center = TIS.get().getUpdateCenter();

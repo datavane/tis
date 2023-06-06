@@ -101,7 +101,7 @@ public class Config {
     public static final String S4TOTALPAY = "search4totalpay";
 
 
-    public static final String KEY_ZK_HOST = "zk.host";
+  //  public static final String KEY_ZK_HOST = "zk.host";
 
     public static final String KEY_ASSEMBLE_HOST = "assemble.host";
 
@@ -181,7 +181,7 @@ public class Config {
                 return super.put(key, value);
             }
         };
-        pairs.put(KEY_ZK_HOST, this.zkHost);
+       // pairs.put(KEY_ZK_HOST, this.zkHost);
         pairs.put(KEY_ASSEMBLE_HOST, this.assembleHost);
         pairs.put(KEY_TIS_HOST, this.tisHost);
         pairs.put(KEY_RUNTIME, this.runtime);
@@ -254,7 +254,7 @@ public class Config {
         return dir;
     }
 
-    private final String zkHost;
+   // private final String zkHost;
 
     private final String tisHost;
 
@@ -282,7 +282,7 @@ public class Config {
     private Config() {
         P p = P.create();
 
-        this.zkHost = p.getString(KEY_ZK_HOST, true);
+       // this.zkHost = p.getString(KEY_ZK_HOST, true);
         this.assembleHost = p.getString(KEY_ASSEMBLE_HOST, true);
         this.tisHost = p.getString(KEY_TIS_HOST, true);
         this.runtime = p.getString(KEY_RUNTIME, true);
@@ -356,13 +356,13 @@ public class Config {
         return this.dbCfg;
     }
 
-    public static String getZKHost() {
-        String zkAddress = getInstance().getZkHost();
-        if (StringUtils.isBlank(zkAddress)) {
-            throw new IllegalStateException("zkAddress can not be null");
-        }
-        return zkAddress;
-    }
+//    public static String getZKHost() {
+//        String zkAddress = getInstance().getZkHost();
+//        if (StringUtils.isBlank(zkAddress)) {
+//            throw new IllegalStateException("zkAddress can not be null");
+//        }
+//        return zkAddress;
+//    }
 
     public static String getTerminatorRepositoryOnline() {
         throw new UnsupportedOperationException();
@@ -510,9 +510,9 @@ public class Config {
         return GENERATE_PARENT_PACKAGE;
     }
 
-    public String getZkHost() {
-        return this.zkHost;
-    }
+//    public String getZkHost() {
+//        return this.zkHost;
+//    }
 
     public static Config getInstance() {
         if (config == null) {

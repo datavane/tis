@@ -39,6 +39,7 @@ import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.Util;
+import com.qlangtech.tis.utils.TisMetaProps;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -80,6 +81,17 @@ import static com.qlangtech.tis.util.MemoryReductionUtil.*;
  * @date 2020/04/13
  */
 public class UpdateSite {
+
+    public static UpdateSite tisDftUpdateSite() {
+        return tisDftUpdateSite(TisMetaProps.getInstance().getVersion());
+    }
+
+    public static UpdateSite tisDftUpdateSite(String tisVersion) {
+        return new UpdateSite(UpdateCenter.PREDEFINED_UPDATE_SITE_ID
+                , UpdateCenter.UPDATE_CENTER_URL_FORMAT.format(new Object[]{tisVersion}) + UpdateCenter.KEY_DEFAULT_JSON);
+    }
+
+
     private static final Logger LOGGER = LoggerFactory.getLogger(UpdateSite.class);
     /**
      * What's the time stamp of data file?
@@ -594,7 +606,7 @@ public class UpdateSite {
                     LOGGER.info("Dependent install of {} for plugin {} already added, skipping", dep.name, name);
                 }
             }
-            IPluginCoord coord = getTargetCoord(this, classifier);
+            IPluginCoord coord = getTargetCoord(classifier);
             PluginWrapper pw = getInstalled();
             if (pw != null) { // JENKINS-34494 - check for this plugin being disabled
                 Future<UpdateCenter.UpdateCenterJob> enableJob = null;
@@ -763,6 +775,29 @@ public class UpdateSite {
             }
             return StringUtils.removeStart(displayName, "TIS ");
         }
+
+        public IPluginCoord getTargetCoord(Optional<PluginClassifier> classifier) {
+            List<IPluginCoord> arts = getArts();
+            IPluginCoord coord = null;
+            if (classifier.isPresent()) {
+                ITPIArtifactMatch match = ITPIArtifact.matchh(getDisplayName(), classifier);
+                match.setIdentityName(getDisplayName());
+                for (IPluginCoord c : arts) {
+                    if (ITPIArtifact.isEquals(c, match)) {
+                        coord = c;
+                        break;
+                    }
+                }
+            } else {
+                for (IPluginCoord c : arts) {
+                    coord = c;
+                    break;
+                }
+            }
+            Objects.requireNonNull(coord, "plugin:" + getDisplayName()
+                    + (classifier.isPresent() ? ",for classifier:" + classifier.get().getClassifier() : StringUtils.EMPTY) + ",coord can not be null");
+            return coord;
+        }
     }
 
 
@@ -770,29 +805,6 @@ public class UpdateSite {
             , IPluginCoord coord, UpdateCenter uc, boolean dynamicLoad) {
         // IPluginCoord coord = getTargetCoord(plugin, classifier);
         return uc.new InstallationJob(plugin, coord, this, dynamicLoad);
-    }
-
-    private IPluginCoord getTargetCoord(Plugin plugin, Optional<PluginClassifier> classifier) {
-        List<IPluginCoord> arts = plugin.getArts();
-        IPluginCoord coord = null;
-        if (classifier.isPresent()) {
-            ITPIArtifactMatch match = ITPIArtifact.matchh(plugin.getDisplayName(), classifier);
-            match.setIdentityName(plugin.getDisplayName());
-            for (IPluginCoord c : arts) {
-                if (ITPIArtifact.isEquals(c, match)) {
-                    coord = c;
-                    break;
-                }
-            }
-        } else {
-            for (IPluginCoord c : arts) {
-                coord = c;
-                break;
-            }
-        }
-        Objects.requireNonNull(coord, "plugin:" + plugin.getDisplayName()
-                + (classifier.isPresent() ? ",for classifier:" + classifier.get().getClassifier() : StringUtils.EMPTY) + ",coord can not be null");
-        return coord;
     }
 
     private static String get(JSONObject o, String prop) {

@@ -35,8 +35,6 @@ import com.qlangtech.tis.util.exec.AtmostOneThreadExecutor;
 import com.qlangtech.tis.util.exec.DaemonThreadFactory;
 import com.qlangtech.tis.util.exec.NamingThreadFactory;
 import com.qlangtech.tis.utils.TisMetaProps;
-//import edu.umd.cs.findbugs.annotations.CheckForNull;
-//import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;
@@ -55,10 +53,14 @@ import java.nio.file.InvalidPathException;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+//import edu.umd.cs.findbugs.annotations.CheckForNull;
+//import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -68,8 +70,15 @@ public class UpdateCenter implements Saveable {
     public static final String PREDEFINED_UPDATE_SITE_ID = "default";
     public static final String KEY_UPDATE_SITE = "/update-site";
     public static final String KEY_DEFAULT_JSON = "default.json";
-    private static final String UPDATE_CENTER_URL
-            = "http://mirror.qlangtech.com/" + TisMetaProps.getInstance().getVersion() + KEY_UPDATE_SITE + "/";
+    public  static final String PLUGIN_CATEGORIES_FILENAME = "plugin-categories.json";
+
+
+    public static final MessageFormat UPDATE_CENTER_URL_FORMAT
+            = new MessageFormat("http://mirror.qlangtech.com/{0}" + KEY_UPDATE_SITE + "/");
+
+    public static final String UPDATE_CENTER_URL
+            = UPDATE_CENTER_URL_FORMAT.format(new Object[]{TisMetaProps.getInstance().getVersion()});// "http://mirror.qlangtech.com/" + TisMetaProps.getInstance().getVersion() + KEY_UPDATE_SITE + "/";
+
     public static final String ID_UPLOAD = "_upload";
     /**
      * An {@link ExecutorService} for updating UpdateSites.
@@ -160,7 +169,7 @@ public class UpdateCenter implements Saveable {
      * @return Created Update center. {@link UpdateCenter} by default, but may be overridden
      * @since 2.4
      */
-    public static UpdateCenter createUpdateCenter( UpdateCenterConfiguration config) {
+    public static UpdateCenter createUpdateCenter(UpdateCenterConfiguration config) {
 
         return new UpdateCenter();
     }
@@ -355,7 +364,7 @@ public class UpdateCenter implements Saveable {
     }
 
     protected UpdateSite createDefaultUpdateSite() {
-        UpdateSite dftUpdateSite = new UpdateSite(PREDEFINED_UPDATE_SITE_ID, config.getUpdateCenterUrl() + KEY_DEFAULT_JSON);
+        UpdateSite dftUpdateSite = UpdateSite.tisDftUpdateSite();// new UpdateSite(PREDEFINED_UPDATE_SITE_ID, config.getUpdateCenterUrl() + KEY_DEFAULT_JSON);
 //        if (!dftUpdateSite.existLocal()) {
 //
 //        }

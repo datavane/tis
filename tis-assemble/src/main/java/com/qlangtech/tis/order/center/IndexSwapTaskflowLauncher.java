@@ -136,14 +136,14 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     // @Override
     public void afterPropertiesSet() throws Exception {
 
-        try {
+       // try {
             // this.setZkClient(new TisZkClient(Config.getZKHost(), 60000));
             // return
 
             this.setZkClient(ITISCoordinator.create());
-        } catch (Exception e) {
-            throw new RuntimeException("ZKHost:" + Config.getZKHost(), e);
-        }
+//        } catch (Exception e) {
+//          //  throw new RuntimeException("ZKHost:" + Config.getZKHost(), e);
+//        }
         // 当初始集群初始化的时候assemble先与solr启动时不执行createClusterZkNodes会出错
         // ZkController.createClusterZkNodes(this.zkClient.getZK());
         // ZkStateReader zkStateReader = new ZkStateReader(zkClient.getZK());
