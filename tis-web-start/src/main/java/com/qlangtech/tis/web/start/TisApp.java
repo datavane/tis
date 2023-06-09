@@ -57,6 +57,11 @@ public class TisApp {
             return;
         }
         TisAppLaunch.get().setRunMode(TisRunMode.Standalone);
+        launchTISApp(args);
+        return;
+    }
+
+    public static void launchTISApp(String[] args) throws Exception {
         // 启动应用使用本地8080端口
         TisApp tisApp = new TisApp(TisSubModule.WEB_START.getLaunchPort(), (context) -> {
             context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");

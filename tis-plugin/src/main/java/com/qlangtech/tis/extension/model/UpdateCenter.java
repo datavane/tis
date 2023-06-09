@@ -70,14 +70,33 @@ public class UpdateCenter implements Saveable {
     public static final String PREDEFINED_UPDATE_SITE_ID = "default";
     public static final String KEY_UPDATE_SITE = "/update-site";
     public static final String KEY_DEFAULT_JSON = "default.json";
-    public  static final String PLUGIN_CATEGORIES_FILENAME = "plugin-categories.json";
+    public static final String PLUGIN_CATEGORIES_FILENAME = "plugin-categories.json";
 
 
-    public static final MessageFormat UPDATE_CENTER_URL_FORMAT
-            = new MessageFormat("http://mirror.qlangtech.com/{0}" + KEY_UPDATE_SITE + "/");
+    private static final MessageFormat UPDATE_CENTER_URL_FORMAT
+            = new MessageFormat("http://mirror.qlangtech.com/{0}{1}/");
+
+    /**
+     * 取得 TIS的预置包
+     *
+     * @param ver
+     * @param pkgName
+     * @return
+     */
+    public static URL getTISTarPkg(String ver, String pkgName) {
+        return getTISReleaseRes(ver, "/tis", pkgName);
+    }
+
+    public static URL getTISReleaseRes(String ver, String subPath, String res) {
+        try {
+            return new URL(UPDATE_CENTER_URL_FORMAT.format(new Object[]{ver, subPath}) + res);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static final String UPDATE_CENTER_URL
-            = UPDATE_CENTER_URL_FORMAT.format(new Object[]{TisMetaProps.getInstance().getVersion()});// "http://mirror.qlangtech.com/" + TisMetaProps.getInstance().getVersion() + KEY_UPDATE_SITE + "/";
+            = UPDATE_CENTER_URL_FORMAT.format(new Object[]{TisMetaProps.getInstance().getVersion(), KEY_UPDATE_SITE});// "http://mirror.qlangtech.com/" + TisMetaProps.getInstance().getVersion() + KEY_UPDATE_SITE + "/";
 
     public static final String ID_UPLOAD = "_upload";
     /**

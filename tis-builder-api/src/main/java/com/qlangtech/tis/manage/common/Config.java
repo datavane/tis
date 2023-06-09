@@ -101,7 +101,7 @@ public class Config {
     public static final String S4TOTALPAY = "search4totalpay";
 
 
-  //  public static final String KEY_ZK_HOST = "zk.host";
+    //  public static final String KEY_ZK_HOST = "zk.host";
 
     public static final String KEY_ASSEMBLE_HOST = "assemble.host";
 
@@ -138,9 +138,9 @@ public class Config {
         return TisMetaProps.getInstance();
     }
 
-    public static void setDataDir(String path) {
+    public static File setDataDir(String path) {
         System.setProperty(KEY_DATA_DIR, path);
-        getInstance().dataDir = new File(path);
+        return getInstance().dataDir = new File(path);
     }
 
     public static File setTestDataDir() {
@@ -181,7 +181,7 @@ public class Config {
                 return super.put(key, value);
             }
         };
-       // pairs.put(KEY_ZK_HOST, this.zkHost);
+        // pairs.put(KEY_ZK_HOST, this.zkHost);
         pairs.put(KEY_ASSEMBLE_HOST, this.assembleHost);
         pairs.put(KEY_TIS_HOST, this.tisHost);
         pairs.put(KEY_RUNTIME, this.runtime);
@@ -254,7 +254,7 @@ public class Config {
         return dir;
     }
 
-   // private final String zkHost;
+    // private final String zkHost;
 
     private final String tisHost;
 
@@ -282,7 +282,7 @@ public class Config {
     private Config() {
         P p = P.create();
 
-       // this.zkHost = p.getString(KEY_ZK_HOST, true);
+        // this.zkHost = p.getString(KEY_ZK_HOST, true);
         this.assembleHost = p.getString(KEY_ASSEMBLE_HOST, true);
         this.tisHost = p.getString(KEY_TIS_HOST, true);
         this.runtime = p.getString(KEY_RUNTIME, true);

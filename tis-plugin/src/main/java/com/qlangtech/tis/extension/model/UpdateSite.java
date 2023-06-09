@@ -88,7 +88,7 @@ public class UpdateSite {
 
     public static UpdateSite tisDftUpdateSite(String tisVersion) {
         return new UpdateSite(UpdateCenter.PREDEFINED_UPDATE_SITE_ID
-                , UpdateCenter.UPDATE_CENTER_URL_FORMAT.format(new Object[]{tisVersion}) + UpdateCenter.KEY_DEFAULT_JSON);
+                , UpdateCenter.UPDATE_CENTER_URL + UpdateCenter.KEY_DEFAULT_JSON);
     }
 
 
@@ -1458,11 +1458,15 @@ public class UpdateSite {
      */
 
     public List<Plugin> getAvailables() {
+        return getPlugins((p) -> p.getInstalled() == null);
+    }
+
+    public List<Plugin> getPlugins(Predicate<Plugin> predicate) {
         List<Plugin> r = new ArrayList<>();
         Data data = getData();
         if (data == null) return Collections.emptyList();
         for (Plugin p : data.plugins.values()) {
-            if (p.getInstalled() == null) {
+            if (predicate.test(p)) {
                 r.add(p);
             }
         }
