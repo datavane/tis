@@ -95,8 +95,8 @@ public class Config {
     public static final String TIS_PUB_PLUGINS_DOC_URL = "http://tis.pub/docs/plugin/plugins/#";
 
     private static final String bundlePath = "tis-web-config/config";
-    private static final String KEY_TIS_DATASOURCE_TYPE = "tis.datasource.type";
-    private static final String KEY_TIS_DATASOURCE_DBNAME = "tis.datasource.dbname";
+    public static final String KEY_TIS_DATASOURCE_TYPE = "tis.datasource.type";
+    public static final String KEY_TIS_DATASOURCE_DBNAME = "tis.datasource.dbname";
 
     public static final String S4TOTALPAY = "search4totalpay";
 
@@ -276,7 +276,7 @@ public class Config {
     static {
         localDftValsKeys = new HashSet<>();
         // localDftValsKeys.add(KEY_TIS_DATASOURCE_TYPE);
-        localDftValsKeys.add(KEY_TIS_DATASOURCE_DBNAME);
+        // localDftValsKeys.add(KEY_TIS_DATASOURCE_DBNAME);
     }
 
     private Config() {
@@ -440,6 +440,10 @@ public class Config {
                         if (localDftValsKeys.contains(key)) {
                             return "defaultVal";
                         }
+                        if (KEY_TIS_DATASOURCE_DBNAME.equals(key)) {
+                            return "tis_console_db";
+                        }
+
                         if (KEY_TIS_DATASOURCE_TYPE.equals(key)) {
                             return DB_TYPE_DERBY;
                         }

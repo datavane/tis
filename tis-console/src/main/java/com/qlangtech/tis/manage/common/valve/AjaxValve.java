@@ -77,9 +77,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
     try {
       this.writeExecuteResult(request, response);
     } finally {
-      SuFormProperties.subFormGetterProcessThreadLocal.remove();
-      GroovyShellEvaluate.pluginThreadLocal.remove();
-      UpdateSite.pluginArts.remove();
+
     }
   }
 

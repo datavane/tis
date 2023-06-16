@@ -25,11 +25,13 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ServiceLoader;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -141,10 +143,11 @@ public class TisApp {
         File webappFile = new File(this.jetty.getWebapp(contextDir), PATH_WEB_XML);
         if (!webappFile.exists()) {
             // 写入本地
-            try (InputStream input = this.getClass().getResourceAsStream("/web.xml")) {
-                Objects.requireNonNull(input, "web.xml inputstram can not be null");
-                FileUtils.copyToFile(input, webappFile);
-            }
+//            try (InputStream input = this.getClass().getResourceAsStream("/web.xml")) {
+//                Objects.requireNonNull(input, "web.xml inputstram can not be null");
+//                FileUtils.copyToFile(input, webappFile);
+//            }
+            throw new IllegalStateException(webappFile.getAbsolutePath() + " shall be exist");
         }
         this.jetty.addContext("/", contextDir, false, true);
     }

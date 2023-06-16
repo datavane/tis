@@ -65,7 +65,7 @@ public class TestSysInitializeAction extends TestCase implements TISEasyMock {
     Config config = this.mock("config", Config.class);
 
 
-    EasyMock.expect(config.getZkHost()).andReturn("192.168.28.200:2181/tis/cloud");
+   // EasyMock.expect(config.getZkHost()).andReturn("192.168.28.200:2181/tis/cloud");
     EasyMock.expect(config.getRuntime()).andReturn(RunEnvironment.DAILY.getKeyName()).anyTimes();
     Config.TisDbConfig mockDBType = new Config.TisDbConfig();
     mockDBType.dbtype = Config.DB_TYPE_DERBY;
