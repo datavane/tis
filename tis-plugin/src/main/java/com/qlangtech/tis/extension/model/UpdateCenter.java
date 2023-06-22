@@ -34,7 +34,6 @@ import com.qlangtech.tis.util.Util;
 import com.qlangtech.tis.util.exec.AtmostOneThreadExecutor;
 import com.qlangtech.tis.util.exec.DaemonThreadFactory;
 import com.qlangtech.tis.util.exec.NamingThreadFactory;
-import com.qlangtech.tis.utils.TisMetaProps;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;
@@ -53,7 +52,6 @@ import java.nio.file.InvalidPathException;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -67,36 +65,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @create: 2021-05-08 17:44
  **/
 public class UpdateCenter implements Saveable {
-    public static final String PREDEFINED_UPDATE_SITE_ID = "default";
-    public static final String KEY_UPDATE_SITE = "/update-site";
-    public static final String KEY_DEFAULT_JSON = "default.json";
     public static final String PLUGIN_CATEGORIES_FILENAME = "plugin-categories.json";
 
-
-    private static final MessageFormat UPDATE_CENTER_URL_FORMAT
-            = new MessageFormat("http://mirror.qlangtech.com/{0}{1}/");
-
-    /**
-     * 取得 TIS的预置包
-     *
-     * @param ver
-     * @param pkgName
-     * @return
-     */
-    public static URL getTISTarPkg(String ver, String pkgName) {
-        return getTISReleaseRes(ver, "/tis", pkgName);
-    }
-
-    public static URL getTISReleaseRes(String ver, String subPath, String res) {
-        try {
-            return new URL(UPDATE_CENTER_URL_FORMAT.format(new Object[]{ver, subPath}) + res);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static final String UPDATE_CENTER_URL
-            = UPDATE_CENTER_URL_FORMAT.format(new Object[]{TisMetaProps.getInstance().getVersion(), KEY_UPDATE_SITE});// "http://mirror.qlangtech.com/" + TisMetaProps.getInstance().getVersion() + KEY_UPDATE_SITE + "/";
 
     public static final String ID_UPLOAD = "_upload";
     /**
@@ -120,15 +90,15 @@ public class UpdateCenter implements Saveable {
      * Read timeout when downloading plugins, defaults to 1 minute
      */
     private static final int PLUGIN_DOWNLOAD_READ_TIMEOUT
-            = (int) TimeUnit.SECONDS.toMillis(Integer.parseInt(System.getProperty(UpdateCenter.class.getName() + ".pluginDownloadReadTimeoutSeconds", "60")));
+            = (int) TimeUnit.SECONDS.toMillis(Integer.parseInt(System.getProperty(UpdateCenterResource.class.getName() + ".pluginDownloadReadTimeoutSeconds", "60")));
 
     /**
      * {@linkplain 'UpdateSite#getId()' ID} of the default update site.
      *
      * @since 1.483; configurable via system property since 2.4
      */
-    public static final String ID_DEFAULT = System.getProperty(UpdateCenter.class.getName() + ".defaultUpdateSiteId", PREDEFINED_UPDATE_SITE_ID);
-    private static final Logger LOGGER = LoggerFactory.getLogger(UpdateCenter.class);
+    public static final String ID_DEFAULT = System.getProperty(UpdateCenterResource.class.getName() + ".defaultUpdateSiteId", UpdateCenterResource.PREDEFINED_UPDATE_SITE_ID);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UpdateCenterResource.class);
     /**
      * {@link UpdateSite}s from which we've already installed a plugin at least once.
      * This is used to skip network tests.
@@ -185,7 +155,7 @@ public class UpdateCenter implements Saveable {
      * Creates an update center.
      *
      * @param config Requested configuration. May be {@code null} if defaults should be used
-     * @return Created Update center. {@link UpdateCenter} by default, but may be overridden
+     * @return Created Update center. {@link UpdateCenterResource} by default, but may be overridden
      * @since 2.4
      */
     public static UpdateCenter createUpdateCenter(UpdateCenterConfiguration config) {
@@ -435,7 +405,7 @@ public class UpdateCenter implements Saveable {
 
     private XmlFile getConfigFile() {
 
-        return Descriptor.getConfigFile(UpdateCenter.class.getName());
+        return Descriptor.getConfigFile(UpdateCenterResource.class.getName());
 
 //        return new XmlFile(XSTREAM,new File(TIS.get().root,
 //                UpdateCenter.class.getName()+".xml"));
@@ -721,7 +691,7 @@ public class UpdateCenter implements Saveable {
          */
         @Deprecated
         public String getUpdateCenterUrl() {
-            return UPDATE_CENTER_URL;
+            return UpdateCenterResource.UPDATE_CENTER_URL;
         }
 
         /**

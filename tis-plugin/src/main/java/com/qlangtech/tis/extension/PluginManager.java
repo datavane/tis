@@ -26,6 +26,7 @@ import com.qlangtech.tis.extension.init.InitMilestone;
 import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
 import com.qlangtech.tis.extension.model.UpdateCenter;
+import com.qlangtech.tis.extension.model.UpdateCenterResource;
 import com.qlangtech.tis.extension.util.CyclicGraphDetector;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;

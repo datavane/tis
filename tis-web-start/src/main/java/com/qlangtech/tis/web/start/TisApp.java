@@ -43,6 +43,7 @@ public class TisApp {
         System.setProperty("logback.ContextSelector", "JNDI");
     }
 
+
     public static final String KEY_WEB_ROOT_DIR = "web.root.dir";
 
     private static Logger logger = LoggerFactory.getLogger(TisApp.class);
@@ -59,13 +60,13 @@ public class TisApp {
             return;
         }
         TisAppLaunch.get().setRunMode(TisRunMode.Standalone);
-        launchTISApp(args);
+        launchTISApp(JettyTISRunner.class.getClassLoader(), args);
         return;
     }
 
-    public static void launchTISApp(String[] args) throws Exception {
+    public static void launchTISApp(ClassLoader parentLoader, String[] args) throws Exception {
         // 启动应用使用本地8080端口
-        TisApp tisApp = new TisApp(TisSubModule.WEB_START.getLaunchPort(), (context) -> {
+        TisApp tisApp = new TisApp(TisSubModule.WEB_START.getLaunchPort(), parentLoader, (context) -> {
             context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
             context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
         });
@@ -84,8 +85,12 @@ public class TisApp {
     }
 
     public TisApp(int port, IWebAppContextSetter contextSetter) throws Exception {
+        this(port, JettyTISRunner.class.getClassLoader(), contextSetter);
+    }
+
+    public TisApp(int port, ClassLoader parentLoader, IWebAppContextSetter contextSetter) throws Exception {
         super();
-        this.jetty = new JettyTISRunner(port, contextSetter);
+        this.jetty = new JettyTISRunner(port, parentLoader, contextSetter);
         this.initContext();
     }
 

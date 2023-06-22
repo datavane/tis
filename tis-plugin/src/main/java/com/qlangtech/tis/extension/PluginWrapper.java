@@ -21,6 +21,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.impl.MissingDependencyException;
 import com.qlangtech.tis.extension.impl.PluginManifest;
 import com.qlangtech.tis.extension.model.UpdateCenter;
+import com.qlangtech.tis.extension.model.UpdateCenterResource;
 import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;

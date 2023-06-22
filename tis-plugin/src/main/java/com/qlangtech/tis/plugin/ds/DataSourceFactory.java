@@ -27,6 +27,9 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.annotation.FormField;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang.StringUtils;
@@ -50,6 +53,13 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     public static final ZoneId DEFAULT_SERVER_TIME_ZONE = ZoneId.of("Asia/Shanghai");
     public static final String DS_TYPE_MYSQL = "MySQL";
 
+    @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.identity})
+    public String name;
+
+    @Override
+    public final String identityValue() {
+        return this.name;
+    }
 
     /**
      * 查询Connection 的Statement
@@ -429,7 +439,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
         protected boolean validateDSFactory(IControlMsgHandler msgHandler, Context context, T dsFactory) {
 
-            DBConfig dbConfig = dsFactory.getDbConfig();
+            DBConfig dbConfig = Objects.requireNonNull(dsFactory.getDbConfig(), "dbConfig can not be null");
             Exception[] faild = new Exception[1];
             dbConfig.vistDbURL(false, 5, (dbName, dbHost, jdbcUrl) -> {
                 try (JDBCConnection conn = dsFactory.getConnection(jdbcUrl)) {

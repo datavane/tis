@@ -56,6 +56,7 @@ public final class UberClassLoader extends ClassLoader {
 
     public UberClassLoader(PluginManager pluginManager, Set<String> acceptedPlugins) {
         super(PluginManager.class.getClassLoader());
+        // super(com.qlangtech.tis.web.start.TisAppLaunch.class.getClassLoader());
         this.pluginManager = pluginManager;
         this.acceptedPlugins = acceptedPlugins;
     }
@@ -66,7 +67,7 @@ public final class UberClassLoader extends ClassLoader {
 
     @Override
     public Class<?> findClass(String name) throws ClassNotFoundException {
-       // logger.info("findz:" + name);
+        // logger.info("findz:" + name);
         WeakReference<Class> wc = generatedClasses.get(name);
         if (wc != null) {
             Class c = wc.get();

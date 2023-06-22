@@ -31,7 +31,7 @@
     <groupId>com.qlangtech.tis</groupId>
     <artifactId>tis</artifactId>
     <!--https://maven.apache.org/maven-ci-friendly.html-->
-    <version>3.7.2</version>
+    <version>3.8.0</version>
     <packaging>pom</packaging>
     <name>tis</name>
     <url>http://maven.apache.org</url>
@@ -909,7 +909,7 @@
             </activation>
             <repositories>
                 <repository>
-                    <id>rdc-releases</id>
+                    <id>tis-repo-releases</id>
                     <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/release/</url>
                     <releases>
                         <enabled>true</enabled>
@@ -919,7 +919,7 @@
                     </snapshots>
                 </repository>
                 <repository>
-                    <id>rdc-snapshots</id>
+                    <id>tis-repo-snapshots</id>
                     <url>http://mvn-repo.oss-cn-hangzhou.aliyuncs.com/snapshot/</url>
                     <releases>
                         <enabled>false</enabled>

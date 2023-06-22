@@ -19,6 +19,7 @@ package com.qlangtech.tis.install;
 
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.model.UpdateCenter;
+import com.qlangtech.tis.extension.model.UpdateCenterResource;
 import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.manage.common.Config;
 import com.thoughtworks.xstream.XStream;

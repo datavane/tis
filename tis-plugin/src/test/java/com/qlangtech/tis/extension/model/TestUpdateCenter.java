@@ -86,7 +86,7 @@ public class TestUpdateCenter extends TestCase {
 
         assertNotNull(cacheMockRes);
 
-        UpdateCenter updateCenter = new UpdateCenter();
+        UpdateCenterResource updateCenter = new UpdateCenterResource();
         updateCenter.load();
         updateCenter.updateAllSites();
 
@@ -116,11 +116,11 @@ public class TestUpdateCenter extends TestCase {
          * 开始安装
          * ==========================================================================*/
         Optional<PluginClassifier> classifier = Optional.empty();
-        Future<UpdateCenter.UpdateCenterJob> job = mysqlDSPlugin.deploy(true, classifier);
-        UpdateCenter.DownloadJob downloadJob = (UpdateCenter.DownloadJob) job.get();
+        Future<UpdateCenterResource.UpdateCenterJob> job = mysqlDSPlugin.deploy(true, classifier);
+        UpdateCenterResource.DownloadJob downloadJob = (UpdateCenterResource.DownloadJob) job.get();
         System.out.println(downloadJob.status);
         // 安装成功
-        assertTrue(downloadJob.status instanceof UpdateCenter.DownloadJob.Success);
+        assertTrue(downloadJob.status instanceof UpdateCenterResource.DownloadJob.Success);
         // TIS.clean();
         // 重新获取插件实例
         descriptorList = TIS.get().getDescriptorList(DataSourceFactory.class);
@@ -147,7 +147,7 @@ public class TestUpdateCenter extends TestCase {
         File localDftUpdateSiteJSON = new File(TIS.pluginCfgRoot, "updates/default.json");
         FileUtils.deleteQuietly(localDftUpdateSiteJSON);
 
-        UpdateCenter updateCenter = new UpdateCenter();
+        UpdateCenterResource updateCenter = new UpdateCenterResource();
         updateCenter.load();
 
         List<FormValidation> formValidations = updateCenter.updateAllSites();

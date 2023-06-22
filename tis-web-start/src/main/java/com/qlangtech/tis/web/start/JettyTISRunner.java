@@ -91,6 +91,7 @@ public class JettyTISRunner {
         jetty.stop();
     }
 
+    private final ClassLoader parentLoader;
     private final int port;
 
     private final IWebAppContextSetter contextSetter;
@@ -110,12 +111,12 @@ public class JettyTISRunner {
     private List<IWebAppContextCollector> webAppContextCollector;
 
     JettyTISRunner(String context, int port, IWebAppContextSetter contextSetter) throws Exception {
-        this(port, contextSetter);
+        this(port, JettyTISRunner.class.getClassLoader(), contextSetter);
         this.addContext(context, new File("."), false, true);
     }
 
     JettyTISRunner(int port, IWebAppContextCollector webAppContextCollector) throws Exception {
-        this(port, (c) -> {
+        this(port, JettyTISRunner.class.getClassLoader(), (c) -> {
         });
         this.addContext(webAppContextCollector);
     }
@@ -128,8 +129,9 @@ public class JettyTISRunner {
         this.webAppContextCollector = Collections.singletonList(webAppContextCollector);
     }
 
-    JettyTISRunner(int port, IWebAppContextSetter contextSetter) {
+    JettyTISRunner(int port, ClassLoader parentLoader, IWebAppContextSetter contextSetter) {
         this.port = port;
+        this.parentLoader = parentLoader;
         this.contextSetter = contextSetter;
     }
 
@@ -179,7 +181,7 @@ public class JettyTISRunner {
             // contextCloassLoader.addClassPath(Resource.newResource(confDir));
             jarfiles.add(confDir.toURI().toURL());
             TISAppClassLoader contextCloassLoader
-                    = new TISAppClassLoader(context, JettyTISRunner.class.getClassLoader(), jarfiles.toArray(new URL[jarfiles.size()]));
+                    = new TISAppClassLoader(context, this.parentLoader, jarfiles.toArray(new URL[jarfiles.size()]));
             webAppContext.setClassLoader(contextCloassLoader);
         } else {
             webAppContext.setClassLoader(this.getClass().getClassLoader());

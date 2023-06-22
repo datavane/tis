@@ -87,8 +87,8 @@ public class UpdateSite {
     }
 
     public static UpdateSite tisDftUpdateSite(String tisVersion) {
-        return new UpdateSite(UpdateCenter.PREDEFINED_UPDATE_SITE_ID
-                , UpdateCenter.UPDATE_CENTER_URL + UpdateCenter.KEY_DEFAULT_JSON);
+        return new UpdateSite(UpdateCenterResource.PREDEFINED_UPDATE_SITE_ID
+                , UpdateCenterResource.UPDATE_CENTER_URL + UpdateCenterResource.KEY_DEFAULT_JSON);
     }
 
 
