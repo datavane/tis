@@ -66,10 +66,10 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
 //        throw new UnsupportedOperationException();
 //    }
 
-    @Override
-    public String identityValue() {
-        return "mockDs";
-    }
+//    @Override
+//    public String identityValue() {
+//        return "mockDs";
+//    }
 
     /**
      * 模拟Employee表的导入
@@ -81,7 +81,7 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
         TestEmployeeDataSourceDumper dumper = new TestEmployeeDataSourceDumper(DB_EMPLOYEES, TABLE_EMPLOYEES);
 
         MockDataSourceFactory sourceFactory = new MockDataSourceFactory(dumper);
-
+        sourceFactory.name = "mockDs";
         return sourceFactory;
     }
 
