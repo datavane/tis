@@ -5,6 +5,7 @@
 **/src/main/webapp/WEB-INF/classes
 **/.settings
 **/.classpath
+**/.flattened-pom.xml
 **/.project
 **/*.tar.gz
 **/tree.txt
