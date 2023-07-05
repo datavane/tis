@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.util;
 
@@ -21,6 +21,8 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.InnerPropOfIdentityName;
 import com.qlangtech.tis.plugin.annotation.ITmpFileStore;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.Converter;
@@ -73,7 +75,9 @@ public class XStream2 extends XStream {
     protected void setupConverters() {
         reflectionConverter = new RobustReflectionConverter(getMapper(), createReflectionProvider(), new PluginClassOwnership());
         this.registerConverter(reflectionConverter, PRIORITY_VERY_LOW);
-        this.registerConverter(new TempFileConvert(this.getMapper(), this.getReflectionProvider()), PRIORITY_VERY_HIGH);
+        this.registerConverter(new TempFileConvert(this.getMapper(), this.getReflectionProvider()), PRIORITY_NORMAL);
+        this.registerConverter(new InnerPropOfIdentityNameConvert(this.getMapper(), this.getReflectionProvider()), PRIORITY_VERY_HIGH);
+        this.registerConverter(new IdentityNameConvert(this.getMapper(), this.getReflectionProvider()), PRIORITY_VERY_HIGH);
         super.setupConverters();
     }
 
@@ -129,6 +133,74 @@ public class XStream2 extends XStream {
             return p != null ? p.getDesc().toString() : null;
         }
     }
+
+
+    public static class IdentityNameConvert extends AbstractReflectionConverter {
+
+        public IdentityNameConvert(Mapper mapper, ReflectionProvider reflectionProvider) {
+            super(mapper, reflectionProvider);
+        }
+
+        @Override
+        public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
+            IdentityName identity = (IdentityName) source;
+            try {
+                context.put(IdentityName.class, identity);
+                doMarshal(source, writer, context);
+            } finally {
+                //context.
+            }
+        }
+
+        @Override
+        public Object doUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
+            context.put(IdentityName.class, result);
+            IdentityName identity = (IdentityName) super.doUnmarshal(result, reader, context);
+
+            return identity;
+        }
+
+        @Override
+        public boolean canConvert(Class type) {
+            return IdentityName.class.isAssignableFrom(type);
+        }
+    }
+
+
+    public static class InnerPropOfIdentityNameConvert extends AbstractReflectionConverter {
+
+        public InnerPropOfIdentityNameConvert(Mapper mapper, ReflectionProvider reflectionProvider) {
+            super(mapper, reflectionProvider);
+        }
+
+        @Override
+        public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
+            InnerPropOfIdentityName innerProp = (InnerPropOfIdentityName) source;
+            try {
+                IdentityName id = (IdentityName) context.get(IdentityName.class);
+                Objects.requireNonNull(id, "id can not be null");
+                innerProp.setIdentity(id);
+                doMarshal(source, writer, context);
+            } finally {
+                //context.
+            }
+        }
+
+        @Override
+        public Object doUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
+            IdentityName id = (IdentityName) context.get(IdentityName.class);
+            Objects.requireNonNull(id, "id can not be null");
+            InnerPropOfIdentityName innerProp = (InnerPropOfIdentityName) super.doUnmarshal(result, reader, context);
+            innerProp.setIdentity(id);
+            return innerProp;
+        }
+
+        @Override
+        public boolean canConvert(Class type) {
+            return InnerPropOfIdentityName.class.isAssignableFrom(type);
+        }
+    }
+
 
     /**
      * TIS 前端提交的临时文件转化，将临时文件保存到plugin的save目录中去

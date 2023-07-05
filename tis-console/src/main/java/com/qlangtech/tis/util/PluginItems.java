@@ -31,6 +31,7 @@ import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.*;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
@@ -170,6 +171,8 @@ public class PluginItems {
     } else if (this.pluginContext.isDataSourceAware()) {
 
       store = new IPluginStoreSave<DataSourceFactory>() {
+        PostedDSProp dbExtraProps = PostedDSProp.parse(pluginMeta);
+        DataSourceFactoryPluginStore pluginStore = TIS.getDataSourceFactoryPluginStore(dbExtraProps);
         @Override
         public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context
           , List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
@@ -178,9 +181,8 @@ public class PluginItems {
             if (StringUtils.isEmpty(pluginMeta.getExtraParam(PostedDSProp.KEY_DB_NAME))) {
               pluginMeta.putExtraParams(PostedDSProp.KEY_DB_NAME, ((IdentityName) plugin.getInstance()).identityValue());
             }
-            PostedDSProp dbExtraProps = PostedDSProp.parse(pluginMeta);
 
-            SetPluginsResult result = TIS.getDataSourceFactoryPluginStore(dbExtraProps)
+            SetPluginsResult result = pluginStore
               .setPlugins(pluginContext, context, Collections.singletonList(plugin), dbExtraProps.isUpdate());
             if (!result.success) {
               return result;
@@ -211,12 +213,14 @@ public class PluginItems {
         store = TIS.getPluginStore(heteroEnum.getExtensionPoint());
       }
     }
+    // store.
     //dlist
     SetPluginsResult result = store.setPlugins(pluginContext, Optional.of(context), convert(dlist));
     if (!result.success) {
       return new ItemsSaveResult(Collections.emptyList(), result);
     }
-    observable.notifyObservers(new PluginItemsSaveEvent(this.pluginContext, this.heteroEnum, describableList, result.cfgChanged));
+    observable.notifyObservers(
+      new PluginItemsSaveEvent(this.pluginContext, this.heteroEnum, describableList, result.cfgChanged));
     return new ItemsSaveResult(describableList, result);
   }
 

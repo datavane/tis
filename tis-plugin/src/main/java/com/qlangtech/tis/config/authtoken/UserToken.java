@@ -16,26 +16,16 @@
  *   limitations under the License.
  */
 
-package com.qlangtech.tis.config.hive;
+package com.qlangtech.tis.config.authtoken;
 
-import com.qlangtech.tis.config.hive.impl.IKerberosUserToken;
-import com.qlangtech.tis.config.hive.impl.IOffHiveUserToken;
-import com.qlangtech.tis.config.hive.impl.IUserNamePasswordHiveUserToken;
+import com.qlangtech.tis.extension.Describable;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-06-01 13:21
+ * @create: 2022-05-03 09:30
  **/
-public interface IHiveUserTokenVisitor {
-    /**
-     * @param token
-     */
-    public default void visit(IUserNamePasswordHiveUserToken token) {
+public abstract class UserToken implements Describable<UserToken> {
 
-    }
+    public abstract void accept(IUserTokenVisitor visitor);
 
-    public void visit(IKerberosUserToken token);
-
-    public default void visit(IOffHiveUserToken token) {
-    }
 }

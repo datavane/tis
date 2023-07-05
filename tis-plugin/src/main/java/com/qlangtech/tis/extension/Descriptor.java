@@ -1313,7 +1313,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
 
         public <T extends Describable> T newInstance(Descriptor<T> desc, IControlMsgHandler msgHandler) {
-            ParseDescribable<Describable> plugin = desc.newInstance((IPluginContext) msgHandler, this.rawFormData, Optional.empty());
+            ParseDescribable<Describable> plugin
+                    = desc.newInstance((IPluginContext) msgHandler, this.rawFormData, Optional.empty());
             return plugin.getInstance();
         }
 

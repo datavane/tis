@@ -270,7 +270,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         return getDataXReaderAndWriterStore(pluginContext, getReader, pluginMeta, Optional.empty());
     }
 
-    public static IPluginStore<?> getDataXReaderAndWriterStore(IPluginContext pluginContext, boolean getReader, UploadPluginMeta pluginMeta,
+    public static IPluginStore<?>  getDataXReaderAndWriterStore(IPluginContext pluginContext, boolean getReader, UploadPluginMeta pluginMeta,
                                                                Optional<IPropertyType.SubFormFilter> subFormFilter
     ) {
         IPluginStore<?> store = null;
@@ -292,8 +292,6 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                 public IPluginStoreSave<?> visit(BaseSubFormProperties props) {
                     // 为了在更新插件时候不把plugin上的@SubForm标记的属性覆盖掉，需要先将老的plugin上的值覆盖到新http post过来的反序列化之后的plugin上
                     //   Class<Describable> clazz = (Class<Describable>) heteroEnum.getExtensionPoint();
-
-
                     DataxReader.SubFieldFormAppKey<Describable> key = HeteroEnum.createDataXReaderAndWriterRelevant(pluginContext, pluginMeta
                             , new HeteroEnum.DataXReaderAndWriterRelevantCreator<DataxReader.SubFieldFormAppKey<Describable>>() {
                                 @Override

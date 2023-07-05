@@ -16,14 +16,26 @@
  *   limitations under the License.
  */
 
-package com.qlangtech.tis.config.hive.impl;
+package com.qlangtech.tis.config.authtoken;
 
-import com.qlangtech.tis.config.kerberos.IKerberos;
+import com.qlangtech.tis.config.authtoken.IKerberosUserToken;
+import com.qlangtech.tis.config.authtoken.IOffUserToken;
+import com.qlangtech.tis.config.authtoken.IUserNamePasswordUserToken;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-07-11 16:34
+ * @create: 2022-06-01 13:21
  **/
-public interface IKerberosUserToken {
-    IKerberos getKerberosCfg();
+public interface IUserTokenVisitor {
+    /**
+     * @param token
+     */
+    public default void visit(IUserNamePasswordUserToken token) {
+
+    }
+
+    public void visit(IKerberosUserToken token);
+
+    public default void visit(IOffUserToken token) {
+    }
 }

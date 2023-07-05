@@ -212,11 +212,11 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.qlangtech.tis</groupId>
-                <artifactId>tis-ds-dump</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>com.qlangtech.tis</groupId>-->
+<!--                <artifactId>tis-ds-dump</artifactId>-->
+<!--                <version>${project.version}</version>-->
+<!--            </dependency>-->
 
             <dependency>
                 <groupId>com.qlangtech.tis</groupId>

@@ -18,10 +18,9 @@
 
 package com.qlangtech.tis.config.hive;
 
+import com.qlangtech.tis.config.authtoken.UserToken;
 import com.qlangtech.tis.config.hive.meta.IHiveMetaStore;
 import com.qlangtech.tis.plugin.IdentityName;
-
-import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -34,7 +33,7 @@ public interface IHiveConnGetter extends IdentityName {
 
     public String getDbName();
 
-    public HiveUserToken getUserToken();
+    public UserToken getUserToken();
 
     public String getJdbcUrl();
 

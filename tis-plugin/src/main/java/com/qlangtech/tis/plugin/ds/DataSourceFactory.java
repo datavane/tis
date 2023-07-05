@@ -453,7 +453,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             });
 
             if (faild[0] != null) {
-                msgHandler.addErrorMessage(context, "请确认连接参数是否正确");
+                msgHandler.addErrorMessage(context, "请确认连接参数是否正确:" + faild[0].getMessage());
                 return false;
             }
 

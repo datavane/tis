@@ -76,6 +76,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestDataxReader.class);
         suite.addTestSuite(TestPluginAndCfgsSnapshot.class);
         suite.addTestSuite(TestContainAdvanceFieldPlugin.class);
+        suite.addTestSuite(TestInnerPropOfIdentityName.class);
 
         return suite;
     }

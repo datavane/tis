@@ -16,14 +16,13 @@
  *   limitations under the License.
  */
 
-package com.qlangtech.tis.config.hive.impl;
+package com.qlangtech.tis.config.kerberos;
+
+import junit.framework.TestCase;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-07-11 16:30
+ * @create: 2023-07-04 13:50
  **/
-public interface IUserNamePasswordHiveUserToken {
-    public String getUserName();
-
-    public String getPassword();
+public class TestKrb5Res extends TestCase {
 }

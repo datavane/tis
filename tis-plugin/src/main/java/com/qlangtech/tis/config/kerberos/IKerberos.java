@@ -18,6 +18,10 @@
 
 package com.qlangtech.tis.config.kerberos;
 
+import com.qlangtech.tis.config.ParamsConfig;
+
+import java.io.File;
+
 /**
  * 为HDFS，Hive 提供Kerberos 认证
  *
@@ -26,11 +30,27 @@ package com.qlangtech.tis.config.kerberos;
  **/
 public interface IKerberos {
     static final String IDENTITY = "kerberos";
+    public static IKerberos getKerberosCfg(String idName) {
+        return ParamsConfig.getItem(idName, IKerberos.IDENTITY);
+    }
+//    /**
+//     * must be type of: org.apache.hadoop.hive.conf.Configuration
+//     *
+//     * @param config
+//     */
+  //  public <Configuration> void setConfiguration(Configuration config);
+
+
+    public String getPrincipal();
+    public String getKeytabPath();
+    public File getKeyTabPath();
+
+   // java.security.krb5.conf
 
     /**
-     * must be type of: org.apache.hadoop.hive.conf.Configuration
-     *
-     * @param config
+     * system prop of 'java.security.krb5.kdc'
+     * @see sun.security.krb5.Config
+     * @return
      */
-    public <Configuration> void setConfiguration(Configuration config);
+    public Krb5Res getKrb5Res();
 }

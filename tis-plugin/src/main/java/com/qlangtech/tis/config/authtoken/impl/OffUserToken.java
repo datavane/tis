@@ -16,11 +16,32 @@
  *   limitations under the License.
  */
 
-package com.qlangtech.tis.config.hive.impl;
+package com.qlangtech.tis.config.authtoken.impl;
+
+import com.qlangtech.tis.annotation.Public;
+import com.qlangtech.tis.config.authtoken.IOffUserToken;
+import com.qlangtech.tis.config.authtoken.IUserTokenVisitor;
+import com.qlangtech.tis.config.authtoken.UserToken;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.TISExtension;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-07-11 16:35
+ * @create: 2022-05-03 09:33
  **/
-public interface IOffHiveUserToken {
+@Public
+public class OffUserToken extends UserToken implements IOffUserToken {
+
+    @Override
+    public void accept(IUserTokenVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @TISExtension
+    public static class DefaultDesc extends Descriptor<UserToken> {
+        @Override
+        public String getDisplayName() {
+            return SWITCH_OFF;
+        }
+    }
 }
