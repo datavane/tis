@@ -32,6 +32,7 @@ import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.plugin.IRepositoryTargetFile;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.FormField;
@@ -593,7 +594,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      */
     public final PluginValidateResult verify(IControlMsgHandler msgHandler
             , Context context //
-            , boolean verify
+            , IRepositoryTargetFile targetFile //
+            , boolean verify //
             , AttrVals formData, Optional<IPropertyType.SubFormFilter> subFormFilter) {
 //        String impl = null;
 //        Descriptor descriptor;
@@ -602,112 +604,100 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 //        JSONObject valJ;
 //        String attrVal;
 
+        try {
+            // IRepositoryTargetFile.TARGET_FILE_CONTEXT.set(targetFile);
+            final PluginFormProperties /** * fieldname */
+                    propertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
 
-        final PluginFormProperties /** * fieldname */
-                propertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
+            return propertyTypes.accept(new PluginFormProperties.IVisitor() {
+                @Override
+                public PluginValidateResult visit(RootFormProperties props) {
 
-        return propertyTypes.accept(new PluginFormProperties.IVisitor() {
-            @Override
-            public PluginValidateResult visit(RootFormProperties props) {
+                    PostFormVals postFormVals = new PostFormVals(formData, targetFile);
 
-                PostFormVals postFormVals = new PostFormVals(formData);
+                    PluginValidateResult validateResult = new PluginValidateResult(postFormVals
+                            , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
+                            , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX));
 
-                PluginValidateResult validateResult = new PluginValidateResult(postFormVals
-                        , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
-                        , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX));
+                    boolean valid = isValid(msgHandler, context, verify, Optional.empty(), propertyTypes, postFormVals);
 
-                boolean valid = isValid(msgHandler, context, verify, Optional.empty(), propertyTypes, postFormVals);
-
-                if (valid && verify && !verify(msgHandler, context, postFormVals)) {
-                    valid = false;
+                    if (valid && verify && !verify(msgHandler, context, postFormVals)) {
+                        valid = false;
+                    }
+                    if (valid && !verify && !validateAll(msgHandler, context, postFormVals)) {
+                        valid = false;
+                    }
+                    validateResult.valid = valid;
+                    return validateResult;
                 }
-                if (valid && !verify && !validateAll(msgHandler, context, postFormVals)) {
-                    valid = false;
-                }
-                validateResult.valid = valid;
-                return validateResult;
-            }
 
-            @Override
-            public PluginValidateResult visit(BaseSubFormProperties props) {
-                PluginValidateResult validateResult = null;
+                @Override
+                public PluginValidateResult visit(BaseSubFormProperties props) {
+                    PluginValidateResult validateResult = null;
 //                String subFormId = null;
 //                JSONObject subformData = null;
 //                Map<String, JSONObject> subform = null
 //                PostFormVals postFormVals = null;
-                if (!subFormFilter.isPresent()) {
-                    throw new IllegalStateException("subFormFilter must be present");
-                }
-                IPropertyType.SubFormFilter filter = subFormFilter.get();
-                if (filter.subformDetailView) {
-                    // 校验的时候子表单是{key1:val1,key2:val2} 的格式
-                    PostFormVals formVals = new PostFormVals(formData);
-                    boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, formVals);
-                    if (!valid) {
-                        validateResult = new PluginValidateResult(formVals
-                                , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
-                                , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX));
-                        validateResult.valid = false;
-                        return validateResult;
+                    if (!subFormFilter.isPresent()) {
+                        throw new IllegalStateException("subFormFilter must be present");
                     }
-                } else {
+                    IPropertyType.SubFormFilter filter = subFormFilter.get();
+                    if (filter.subformDetailView) {
+                        // 校验的时候子表单是{key1:val1,key2:val2} 的格式
+                        PostFormVals formVals = new PostFormVals(formData, targetFile);
+                        boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, formVals);
+                        if (!valid) {
+                            validateResult = new PluginValidateResult(formVals
+                                    , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
+                                    , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX));
+                            validateResult.valid = false;
+                            return validateResult;
+                        }
+                    } else {
 
-                    if (props.atLeastOne() && (formData.size() < 1)) {
-                        // 是否至少要选一个以上的校验
-                        msgHandler.addErrorMessage(context, "请至少选择一个");
-                        validateResult = new PluginValidateResult(null, 0, 0);
-                        validateResult.valid = false;
-                        return validateResult;
-                    }
-
-                    if (Descriptor.this instanceof SubForm.ISubFormItemValidate) {
-                        assert (subFormFilter.isPresent());
-                        if (!((SubForm.ISubFormItemValidate) Descriptor.this)
-                                .validateSubFormItems(msgHandler, context, props, subFormFilter.get(), formData)) {
+                        if (props.atLeastOne() && (formData.size() < 1)) {
+                            // 是否至少要选一个以上的校验
+                            msgHandler.addErrorMessage(context, "请至少选择一个");
                             validateResult = new PluginValidateResult(null, 0, 0);
                             validateResult.valid = false;
                             return validateResult;
                         }
-                    }
 
-                    // 提交表单的时候子表单是 {idfieldName1:{key1:val1,key2:val2},idfieldName2:{key1:val1,key2:val2}} 这样的格式
-                    validateResult = props.visitAllSubDetailed(formData, new SuFormProperties.ISubDetailedProcess<PluginValidateResult>() {
-                        @Override
-                        public PluginValidateResult process(String subFormId, AttrValMap sform) {
-//IControlMsgHandler msgHandler, Context context, boolean verify
-                            PluginValidateResult vResult = sform.validate(msgHandler, context, verify);
-                            if (!vResult.isValid()) {
-                                return vResult;
+                        if (Descriptor.this instanceof SubForm.ISubFormItemValidate) {
+                            assert (subFormFilter.isPresent());
+                            if (!((SubForm.ISubFormItemValidate) Descriptor.this)
+                                    .validateSubFormItems(msgHandler, context, props, subFormFilter.get(), formData)) {
+                                validateResult = new PluginValidateResult(null, 0, 0);
+                                validateResult.valid = false;
+                                return validateResult;
                             }
-
-                            // PostFormVals pfv = new PostFormVals(AttrValMap.IAttrVals.rootForm(sform));
-//                            boolean valid = isValid(msgHandler, context, verify, Optional.empty(), propertyTypes, pfv);
-//                            if (!valid) {
-//                                PluginValidateResult vResult = new PluginValidateResult(pfv
-//                                        , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
-//                                        , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX));
-//                                vResult.valid = false;
-//                                return vResult;
-//                            }
-                            return (PluginValidateResult) null;
                         }
-                    });
-                    if (validateResult != null) {
-                        return validateResult;
+
+                        // 提交表单的时候子表单是 {idfieldName1:{key1:val1,key2:val2},idfieldName2:{key1:val1,key2:val2}} 这样的格式
+                        validateResult = props.visitAllSubDetailed(formData, new SuFormProperties.ISubDetailedProcess<PluginValidateResult>() {
+                            @Override
+                            public PluginValidateResult process(String subFormId, AttrValMap sform) {
+                                PluginValidateResult vResult = sform.validate(msgHandler, context, targetFile, verify);
+                                if (!vResult.isValid()) {
+                                    return vResult;
+                                }
+                                return (PluginValidateResult) null;
+                            }
+                        });
+                        if (validateResult != null) {
+                            return validateResult;
+                        }
                     }
+
+
+                    validateResult = new PluginValidateResult(null, 0, 0);
+                    validateResult.valid = true;
+                    return validateResult;
                 }
-
-
-                validateResult = new PluginValidateResult(null, 0, 0);
-                validateResult.valid = true;
-                return validateResult;
-            }
-        });
-//        if (valid && bizValidate && !this.validate(msgHandler, context, postFormVals)) {
-//            valid = false;
-//        }
-//        validateResult.valid = valid;
-//        return validateResult;
+            });
+        } finally {
+            // IRepositoryTargetFile.TARGET_FILE_CONTEXT.remove();
+        }
     }
 
 
@@ -744,7 +734,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 AttrValMap attrValMap = AttrValMap.parseDescribableMap(Optional.empty(), descVal);
                 pushFieldStack(context, attr, 0);
                 try {
-                    if (!attrValMap.validate(msgHandler, context, bizValidate).isValid()) {
+                    if (!attrValMap.validate(msgHandler, context, postFormVals.targetFile, bizValidate).isValid()) {
                         valid = false;
                         continue;
                     }
@@ -1310,16 +1300,20 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public static class PostFormVals {
         // public final Map<String, /*** attr key */com.alibaba.fastjson.JSONObject> rawFormData;
         public final AttrValMap.IAttrVals rawFormData;
+        public final IRepositoryTargetFile targetFile;
 
 
         public <T extends Describable> T newInstance(Descriptor<T> desc, IControlMsgHandler msgHandler) {
             ParseDescribable<Describable> plugin
                     = desc.newInstance((IPluginContext) msgHandler, this.rawFormData, Optional.empty());
-            return plugin.getInstance();
+            T instance = plugin.getInstance();
+
+            return instance;
         }
 
-        public PostFormVals(AttrValMap.IAttrVals rawFormData) {
+        public PostFormVals(AttrValMap.IAttrVals rawFormData, IRepositoryTargetFile targetFile) {
             this.rawFormData = rawFormData;
+            this.targetFile = targetFile;
         }
 
         private Map<String, String> fieldVals = Maps.newHashMap();

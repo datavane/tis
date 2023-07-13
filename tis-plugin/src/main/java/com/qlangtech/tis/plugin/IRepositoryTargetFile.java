@@ -16,23 +16,25 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.config.authtoken;
+package com.qlangtech.tis.plugin;
+
+import com.qlangtech.tis.extension.impl.XmlFile;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-06-01 13:21
+ * @create: 2023-07-13 11:02
  **/
-public interface IUserTokenVisitor<T> {
+public interface IRepositoryTargetFile {
+
     /**
-     * @param token
+     * 校验期间可以从线程上下文中得到当前的pluginStore存储
      */
-    public default T visit(IUserNamePasswordUserToken token) throws Exception {
-        return null;
-    }
+    ThreadLocal<IRepositoryTargetFile> TARGET_FILE_CONTEXT = new ThreadLocal<IRepositoryTargetFile>();
 
-    public T visit(IKerberosUserToken token) throws Exception;
-
-    public default T visit(IOffUserToken token) throws Exception {
-        return null;
-    }
+    /**
+     * 目标配置文件
+     *
+     * @return
+     */
+    XmlFile getTargetFile();
 }

@@ -22,8 +22,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.coredefine.module.action.PluginAction;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Option;
@@ -33,6 +35,7 @@ import com.qlangtech.tis.plugin.*;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
@@ -71,8 +74,43 @@ public class PluginItems {
         //super.setBizResult(context, result);
       }
     } : pluginContext;
+  }
 
+  /**
+   * 校验提交的表单
+   *
+   * @param module
+   * @param context
+   * @param pluginIndex
+   * @param verify
+   * @return
+   */
+  public PluginAction.PluginItemsParser validate(
+    BasicModule module, Context context, int pluginIndex, boolean verify) {
+    PluginAction.PluginItemsParser parseResult = new PluginAction.PluginItemsParser();
+    parseResult.pluginItems = this;
+    Descriptor.PluginValidateResult validateResult = null;
+    List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
+    AttrValMap attrValMap = null;
+    // this.getStore();
+    PluginWithStore storeWithPlugin = getStorePlugins();
 
+    try {
+      IRepositoryTargetFile.TARGET_FILE_CONTEXT.set(storeWithPlugin.store);
+      for (int itemIndex = 0; itemIndex < this.items.size(); itemIndex++) {
+        attrValMap = this.items.get(itemIndex);
+        Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
+        if (!(validateResult = attrValMap.validate(module, context, storeWithPlugin.store, verify)).isValid()) {
+          parseResult.faild = true;
+        } else {
+          validateResult.setDescriptor(attrValMap.descriptor);
+          items.add(validateResult);
+        }
+      }
+    } finally {
+      IRepositoryTargetFile.TARGET_FILE_CONTEXT.remove();
+    }
+    return parseResult;
   }
 
   /**
@@ -117,43 +155,7 @@ public class PluginItems {
     return dbs.stream().map((db) -> new Option(db.getName(), db.getName())).collect(Collectors.toList());
   }
 
-  public ItemsSaveResult save(Context context) {
-    Objects.requireNonNull(this.pluginContext, "pluginContext can not be null");
-    if (items == null) {
-      throw new IllegalStateException("prop items can not be null");
-    }
-    Descriptor.ParseDescribable describable = null;
-    AttrValMap attrValMap = null;
-    List<Descriptor.ParseDescribable<?>> dlist = Lists.newArrayList();
-    List<Describable> describableList = Lists.newArrayList();
-
-    if (this.pluginMeta.isAppend()) {
-      IPluginStore pluginStore = heteroEnum.getPluginStore(this.pluginContext, this.pluginMeta);
-      if (pluginStore != null) {
-        List<Describable> plugins = pluginStore.getPlugins();
-        boolean firstSkip = false;
-        for (Describable p : plugins) {
-          if (!firstSkip) {
-            firstSkip = true;
-            Descriptor.ParseDescribable describablesWithMeta = PluginStore.getDescribablesWithMeta(pluginStore, p);
-            dlist.add(describablesWithMeta);
-          } else {
-            dlist.add(new Descriptor.ParseDescribable(p));
-          }
-        }
-      }
-    }
-    for (int i = 0; i < this.items.size(); i++) {
-      attrValMap = this.items.get(i);
-      /**====================================================
-       * 将客户端POST数据包装
-       ======================================================*/
-      describable = attrValMap.createDescribable(pluginContext);
-      dlist.add(describable);
-      if (!describable.subFormFields) {
-        describableList.add((Describable) describable.getInstance());
-      }
-    }
+  private IPluginStoreSave<?> getStore(List<Descriptor.ParseDescribable<?>> dlist) {
     IPluginStoreSave<?> store = null;
     if (heteroEnum == HeteroEnum.APP_SOURCE) {
 
@@ -173,6 +175,12 @@ public class PluginItems {
       store = new IPluginStoreSave<DataSourceFactory>() {
         PostedDSProp dbExtraProps = PostedDSProp.parse(pluginMeta);
         DataSourceFactoryPluginStore pluginStore = TIS.getDataSourceFactoryPluginStore(dbExtraProps);
+
+        @Override
+        public XmlFile getTargetFile() {
+          return pluginStore.getTargetFile();
+        }
+
         @Override
         public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context
           , List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
@@ -213,15 +221,149 @@ public class PluginItems {
         store = TIS.getPluginStore(heteroEnum.getExtensionPoint());
       }
     }
+    return Objects.requireNonNull(store, "store can not be null");
+  }
+
+  public PluginWithStore getStorePlugins() {
+    return new PluginWithStore();
+  }
+
+
+  public class PluginWithStore {
+    final List<Describable> describableList = Lists.newArrayList();
+    final IPluginStoreSave<?> store;
+    final List<Descriptor.ParseDescribable<?>> appendHistorical;
+
+    SetPluginsResult setPlugins(IPluginContext pluginContext
+      , Optional<Context> context) {
+
+      return store.setPlugins(pluginContext, context, convert(this.appendHistorical));
+
+//      return this.setPlugins(pluginContext, context, dlist, false);
+    }
+
+    public PluginWithStore() {
+
+      this.appendHistorical = getPlugins(describableList);
+      this.store = getStore(appendHistorical);
+    }
+  }
+
+
+  public ItemsSaveResult save(Context context) {
+    Objects.requireNonNull(this.pluginContext, "pluginContext can not be null");
+    if (items == null) {
+      throw new IllegalStateException("prop items can not be null");
+    }
+//    Descriptor.ParseDescribable describable = null;
+//    AttrValMap attrValMap = null;
+
+    PluginWithStore store = getStorePlugins();
+//    List<Describable> describableList = Lists.newArrayList();
+//    List<Descriptor.ParseDescribable<?>> dlist = getPlugins(describableList);
+//    IPluginStoreSave<?> store = getStore(dlist);
+//    if (heteroEnum == HeteroEnum.APP_SOURCE) {
+//
+//      for (Descriptor.ParseDescribable<?> d : dlist) {
+//        Object inst = d.getInstance();
+//        if (inst instanceof IdentityName) {
+//          StoreResourceType resType = ((IAppSource) inst).getResType();
+//          store = IAppSource.getPluginStore(pluginContext, resType, ((IdentityName) d.getInstance()).identityValue());
+//          break;
+//        }
+//      }
+//
+//      Objects.requireNonNull(store, "plugin type:" + heteroEnum.getIdentity() + " can not find relevant Store");
+//
+//    } else if (this.pluginContext.isDataSourceAware()) {
+//
+//      store = new IPluginStoreSave<DataSourceFactory>() {
+//        PostedDSProp dbExtraProps = PostedDSProp.parse(pluginMeta);
+//        DataSourceFactoryPluginStore pluginStore = TIS.getDataSourceFactoryPluginStore(dbExtraProps);
+//
+//        @Override
+//        public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context
+//          , List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
+//          SetPluginsResult finalResult = new SetPluginsResult(true, false);
+//          for (Descriptor.ParseDescribable<DataSourceFactory> plugin : dlist) {
+//            if (StringUtils.isEmpty(pluginMeta.getExtraParam(PostedDSProp.KEY_DB_NAME))) {
+//              pluginMeta.putExtraParams(PostedDSProp.KEY_DB_NAME, ((IdentityName) plugin.getInstance()).identityValue());
+//            }
+//
+//            SetPluginsResult result = pluginStore
+//              .setPlugins(pluginContext, context, Collections.singletonList(plugin), dbExtraProps.isUpdate());
+//            if (!result.success) {
+//              return result;
+//            }
+//            if (result.cfgChanged) {
+//              finalResult.cfgChanged = true;
+//            }
+//          }
+//          return finalResult;
+//        }
+//      };
+//    } else if (heteroEnum == HeteroEnum.DATAX_WRITER || heteroEnum == HeteroEnum.DATAX_READER) {
+//
+//      store = HeteroEnum.getDataXReaderAndWriterStore(this.pluginContext
+//        , this.heteroEnum == HeteroEnum.DATAX_READER, this.pluginMeta, pluginMeta.getSubFormFilter());
+//
+//    } else if (heteroEnum == HeteroEnum.PARAMS_CONFIG) {
+//      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
+//    } else if (heteroEnum == HeteroEnum.DATAX_WORKER) {
+//      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
+//    } else {
+//      if (heteroEnum.isAppNameAware()) {
+//        if (!this.pluginContext.isCollectionAware()) {
+//          throw new IllegalStateException(heteroEnum.getExtensionPoint().getName() + " must be collection aware");
+//        }
+//        store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
+//      } else {
+//        store = TIS.getPluginStore(heteroEnum.getExtensionPoint());
+//      }
+//    }
     // store.
     //dlist
-    SetPluginsResult result = store.setPlugins(pluginContext, Optional.of(context), convert(dlist));
+    SetPluginsResult result = store.setPlugins(pluginContext, Optional.of(context));
     if (!result.success) {
       return new ItemsSaveResult(Collections.emptyList(), result);
     }
     observable.notifyObservers(
-      new PluginItemsSaveEvent(this.pluginContext, this.heteroEnum, describableList, result.cfgChanged));
-    return new ItemsSaveResult(describableList, result);
+      new PluginItemsSaveEvent(this.pluginContext, this.heteroEnum, store.describableList, result.cfgChanged));
+    return new ItemsSaveResult(store.describableList, result);
+  }
+
+  private List<Descriptor.ParseDescribable<?>> getPlugins(List<Describable> describableList) {
+    AttrValMap attrValMap = null;
+    Descriptor.ParseDescribable describable;
+    List<Descriptor.ParseDescribable<?>> dlist = Lists.newArrayList();
+    if (this.pluginMeta.isAppend()) {
+      IPluginStore pluginStore = heteroEnum.getPluginStore(this.pluginContext, this.pluginMeta);
+      if (pluginStore != null) {
+        List<Describable> plugins = pluginStore.getPlugins();
+        boolean firstSkip = false;
+        for (Describable p : plugins) {
+          if (!firstSkip) {
+            firstSkip = true;
+            Descriptor.ParseDescribable describablesWithMeta = PluginStore.getDescribablesWithMeta(pluginStore, p);
+            dlist.add(describablesWithMeta);
+          } else {
+            dlist.add(new Descriptor.ParseDescribable(p));
+          }
+        }
+      }
+    }
+    for (int i = 0; i < this.items.size(); i++) {
+      attrValMap = this.items.get(i);
+      /**====================================================
+       * 将客户端POST数据包装
+       ======================================================*/
+      describable = attrValMap.createDescribable(pluginContext);
+      dlist.add(describable);
+      if (!describable.subFormFields) {
+        describableList.add((Describable) describable.getInstance());
+      }
+    }
+    return dlist;
   }
 
   private <T extends Describable> List<Descriptor.ParseDescribable<T>> convert(List<Descriptor.ParseDescribable<?>> dlist) {

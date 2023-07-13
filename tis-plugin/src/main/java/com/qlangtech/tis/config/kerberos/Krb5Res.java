@@ -78,6 +78,7 @@ public abstract class Krb5Res implements Describable<Krb5Res>, InnerPropOfIdenti
 
                 if (!krb5ConfigTmpSession(krb5Res, () -> {
                     sun.security.krb5.Config.refresh();
+                    return true;
                 }, (e) -> {
                     msgHandler.addFieldError(context, getResPropFieldName(), e.getMessage());
                 })) {
@@ -88,13 +89,12 @@ public abstract class Krb5Res implements Describable<Krb5Res>, InnerPropOfIdenti
             return true;
         }
 
-        public static boolean krb5ConfigTmpSession(Krb5Res krb5Res, Krb5Runnable process, Consumer<Exception>... errProcs) {
+        public static <T> T krb5ConfigTmpSession(Krb5Res krb5Res, Krb5Provider<T> process, Consumer<Exception>... errProcs) {
             String krb5Config = System.getProperty(KEY_KRB5_CONFIG);
             File krb5Path = krb5Res.getKrb5Path();
             try {
                 System.setProperty(KEY_KRB5_CONFIG, krb5Path.getAbsolutePath());
-                process.run();
-                return true;
+                return process.run();
             } catch (Exception e) {
                 logger.warn(e.getMessage(), e);
                 try {
@@ -105,7 +105,7 @@ public abstract class Krb5Res implements Describable<Krb5Res>, InnerPropOfIdenti
                 } catch (Exception ex) {
 
                 }
-                return false;
+                return null;
             } finally {
                 if (StringUtils.isNotBlank(krb5Config)) {
                     System.setProperty(KEY_KRB5_CONFIG, krb5Config);
@@ -117,7 +117,7 @@ public abstract class Krb5Res implements Describable<Krb5Res>, InnerPropOfIdenti
 
 
         @FunctionalInterface
-        public interface Krb5Runnable {
+        public interface Krb5Provider<T> {
             /**
              * When an object implementing interface <code>Runnable</code> is used
              * to create a thread, starting the thread causes the object's
@@ -129,7 +129,7 @@ public abstract class Krb5Res implements Describable<Krb5Res>, InnerPropOfIdenti
              *
              * @see java.lang.Thread#run()
              */
-            public abstract void run() throws Exception;
+            public abstract T run() throws Exception;
         }
 
     }

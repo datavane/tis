@@ -234,6 +234,7 @@ public class XStream2 extends XStream {
             ITmpFileStore tmpFileStore = (ITmpFileStore) super.doUnmarshal(result, reader, context);
             XmlFile xmlFile = (XmlFile) context.get(XmlFile.class);
             Objects.requireNonNull(xmlFile, "xmlFile can not be null");
+            tmpFileStore.createTmpFile(() -> xmlFile);
             tmpFileStore.setTmpeFile((new ITmpFileStore.TmpFile(new File(xmlFile.getFile().getParentFile(), tmpFileStore.getStoreFileName()))));
             return tmpFileStore;
         }

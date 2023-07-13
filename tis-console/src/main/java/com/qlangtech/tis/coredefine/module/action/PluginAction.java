@@ -34,7 +34,6 @@ import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.extension.model.UpdateCenter;
-import com.qlangtech.tis.extension.model.UpdateCenterResource;
 import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.extension.util.TextFile;
@@ -846,34 +845,19 @@ public class PluginAction extends BasicModule {
   public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta
     , Context context, int pluginIndex, JSONArray itemsArray, boolean verify) {
     context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
-    PluginItemsParser parseResult = new PluginItemsParser();
     List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
     Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
-    Descriptor.PluginValidateResult validateResult = null;
+
     IPluginEnum hEnum = pluginMeta.getHeteroEnum();
-    //context.put(KEY_VALIDATE_PLUGIN_INDEX, new Integer(pluginIndex));
     PluginItems pluginItems = new PluginItems(module, pluginMeta);
     List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(itemsArray, subFormFilter);
     if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
       module.addErrorMessage(context, "请设置'" + hEnum.getCaption() + "'表单内容");
     }
 
-
     pluginItems.items = describableAttrValMapList;
-    parseResult.pluginItems = pluginItems;
-    AttrValMap attrValMap = null;
 
-
-    for (int itemIndex = 0; itemIndex < describableAttrValMapList.size(); itemIndex++) {
-      attrValMap = describableAttrValMapList.get(itemIndex);
-      Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
-      if (!(validateResult = attrValMap.validate(module, context, verify)).isValid()) {
-        parseResult.faild = true;
-      } else {
-        validateResult.setDescriptor(attrValMap.descriptor);
-        items.add(validateResult);
-      }
-    }
+    PluginItemsParser parseResult = pluginItems.validate(module, context, pluginIndex, verify);
 
 
     /**===============================================
@@ -890,7 +874,8 @@ public class PluginAction extends BasicModule {
         List<IdentityName> plugins = hEnum.getPlugins(module, pluginMeta);
         for (IdentityName p : plugins) {
           Descriptor.PluginValidateResult r = new Descriptor.PluginValidateResult(
-            new Descriptor.PostFormVals(AttrValMap.IAttrVals.rootForm(Collections.emptyMap())), 0, 0);
+            new Descriptor.PostFormVals(
+              AttrValMap.IAttrVals.rootForm(Collections.emptyMap()), null), 0, 0);
           r.setDescriptor(((Describable) p).getDescriptor());
           identityUniqueMap.put(p.identityValue(), r);
         }

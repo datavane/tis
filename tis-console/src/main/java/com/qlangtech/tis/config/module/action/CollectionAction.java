@@ -563,10 +563,14 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     throws TableNotFoundException {
     TargetColumnMeta columnMeta = new TargetColumnMeta(targetTable);
     Map<String, ColumnMetaData> colMetas = null;
+    if (dataSourceItems.validate(this, context, 0, false).faild) {
+      return columnMeta.invalid();
+    }
+
     for (AttrValMap vals : dataSourceItems.items) {
-      if (!vals.validate(this, context, false).isValid()) {
-        return columnMeta.invalid();
-      }
+//      if (!vals.validate(this, context, false).isValid()) {
+//        return columnMeta.invalid();
+//      }
       DataSourceFactory dsFactory = (DataSourceFactory) vals.createDescribable(pluginContext).getInstance();
       List<ColumnMetaData> tableMetadata = null;
       tableMetadata = dsFactory.getTableMetadata(false, EntityName.parse(targetTable));
@@ -822,15 +826,19 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     if (incrPluginItems.items.size() < 1) {
       throw new IllegalStateException("incr plugin item size can not small than 1");
     }
-
-    for (AttrValMap vals : incrPluginItems.items) {
-      if (!vals.validate(this, context, false).isValid()) {
-        // return columnMeta.invalid();
-        return false;
-      }
-      // MQListenerFactory mqListenerFactory = (MQListenerFactory) vals.createDescribable().instance;
-      break;
+// BasicModule module, Context context, int pluginIndex, boolean verify
+    PluginAction.PluginItemsParser validate = incrPluginItems.validate(this, context, 0, false);
+    if (validate.faild) {
+      return false;
     }
+
+//    for (AttrValMap vals : incrPluginItems.items) {
+//      if (!vals.validate(this, context, false).isValid()) {
+//        // return columnMeta.invalid();
+//        return false;
+//      }
+//      break;
+//    }
     incrPluginItems.save(context);
 
     /**=======================================

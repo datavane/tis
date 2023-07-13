@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.ds;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.qlangtech.tis.plugin.IRepositoryTargetFile;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.AdapterMessageHandler;
 import org.apache.commons.lang.StringUtils;
@@ -181,6 +182,7 @@ public class DBConfig implements IDbMeta {
             int hostCount = 0;
             AtomicReference<String> fjdbcUrl = new AtomicReference<>();
             AtomicReference<Throwable> exceptionCollect = new AtomicReference<Throwable>();
+            IRepositoryTargetFile tfile = IRepositoryTargetFile.TARGET_FILE_CONTEXT.get();
             outer:
             for (Map.Entry<String, List<String>> entry : getDbEnum().entrySet()) {
                 for (String dbName : entry.getValue()) {
@@ -190,6 +192,7 @@ public class DBConfig implements IDbMeta {
                     String jdbcUrl = this.jdbcUrlBuilder.buidJdbcUrl(this, dbHost, dbName);
                     hostCount++;
                     fixedThreadPool.execute(() -> {
+                        IRepositoryTargetFile.TARGET_FILE_CONTEXT.set(tfile);
                         try {
                             fjdbcUrl.set(jdbcUrl);
                             urlProcess.visit((facade ? name : dbName), dbHost, jdbcUrl);
@@ -197,6 +200,7 @@ public class DBConfig implements IDbMeta {
                             exceptionCollect.set(e);
                         } finally {
                             countDownLatch.countDown();
+                            IRepositoryTargetFile.TARGET_FILE_CONTEXT.remove();
                         }
                     });
                     if (facade) {

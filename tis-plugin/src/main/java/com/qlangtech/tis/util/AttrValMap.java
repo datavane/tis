@@ -25,6 +25,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.INotebookable;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.plugin.IRepositoryTargetFile;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.impl.AttrVals;
 
@@ -96,8 +97,8 @@ public class AttrValMap {
      * @param verify  是否进行业务逻辑校验
      * @return true：校验没有错误 false：校验有错误
      */
-    public Descriptor.PluginValidateResult validate(IControlMsgHandler msgHandler, Context context, boolean verify) {
-        return this.descriptor.verify(msgHandler, context, verify, attrValMap, subFormFilter);
+    public Descriptor.PluginValidateResult validate(IControlMsgHandler msgHandler, Context context, IRepositoryTargetFile targetFile, boolean verify) {
+        return this.descriptor.verify(msgHandler, context, targetFile, verify, attrValMap, subFormFilter);
     }
 
     public String createOrGetNotebook(IControlMsgHandler msgHandler, Context context) throws Exception {
@@ -107,7 +108,7 @@ public class AttrValMap {
                     + this.descriptor.getClass().getName() + " must be instance of " + INotebookable.class.getSimpleName());
         }
         INotebookable notebook = (INotebookable) this.descriptor;
-        return notebook.createOrGetNotebook((new Descriptor.PostFormVals(this.attrValMap)).newInstance(this.descriptor, msgHandler));
+        return notebook.createOrGetNotebook((new Descriptor.PostFormVals(this.attrValMap, null)).newInstance(this.descriptor, msgHandler));
     }
 
     /**
