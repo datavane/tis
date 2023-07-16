@@ -26,13 +26,12 @@ import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-05-03 09:45
  **/
-public class DefaultHiveUserToken extends UserToken<DataSourceMeta.JDBCConnection> implements IUserNamePasswordUserToken {
+public class DefaultHiveUserToken extends UserToken implements IUserNamePasswordUserToken {
 
     @FormField(ordinal = 5, type = FormFieldType.INPUTTEXT, validate = {Validator.db_col_name})
     public String userName;
@@ -49,9 +48,14 @@ public class DefaultHiveUserToken extends UserToken<DataSourceMeta.JDBCConnectio
     }
 
     @Override
-    public DataSourceMeta.JDBCConnection accept(IUserTokenVisitor<DataSourceMeta.JDBCConnection> visitor) throws Exception {
+    public <T> T accept(IUserTokenVisitor<T> visitor) throws Exception {
         return visitor.visit(this);
     }
+
+//    @Override
+//    public DataSourceMeta.JDBCConnection accept(IUserTokenVisitor<DataSourceMeta.JDBCConnection> visitor) throws Exception {
+//        return visitor.visit(this);
+//    }
 //    @Override
 //    public  T accept(IUserTokenVisitor<T> visitor) {
 //      return   visitor.visit(this);

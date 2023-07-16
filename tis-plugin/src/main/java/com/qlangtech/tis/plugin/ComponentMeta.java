@@ -22,6 +22,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.RobustReflectionConverter;
+import com.qlangtech.tis.util.RobustReflectionConverter2;
 import com.qlangtech.tis.util.XStream2PluginInfoReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,8 +104,8 @@ public class ComponentMeta {
     public static Set<PluginMeta> loadPluginMeta(Callable<List<File>> xstreamFilesProvider) {
 
         try {
-            synchronized (RobustReflectionConverter.usedPluginInfo) {
-                RobustReflectionConverter.usedPluginInfo.remove();
+            synchronized (RobustReflectionConverter2.usedPluginInfo) {
+                RobustReflectionConverter2.usedPluginInfo.remove();
                 XStream2PluginInfoReader reader = new XStream2PluginInfoReader(XmlFile.DEFAULT_DRIVER);
 
                 List<File> cfgs = xstreamFilesProvider.call();
@@ -112,7 +113,7 @@ public class ComponentMeta {
                     XmlFile xmlFile = new XmlFile(reader, targetFile);
                     xmlFile.read();
                 }
-                return RobustReflectionConverter.usedPluginInfo.get().getMetas();
+                return RobustReflectionConverter2.usedPluginInfo.get().getMetas();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

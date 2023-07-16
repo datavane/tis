@@ -47,7 +47,7 @@ public class XStream2PluginInfoReader extends XStream2 {
                 }
                 if ("getFieldOrNull".equals(method.getName())) {
                     // System.out.println("==============================" + method.getName() + ",args[1]:" + args[1]);
-                    if (RobustReflectionConverter.KEY_ATT_PLUGIN.equals(args[1]) || "class".equals(args[1])) {
+                    if (RobustReflectionConverter2.KEY_ATT_PLUGIN.equals(args[1]) || "class".equals(args[1])) {
                         return null;
                     }
                     return getMockField();

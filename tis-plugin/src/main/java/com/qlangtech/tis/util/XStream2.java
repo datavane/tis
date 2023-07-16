@@ -41,7 +41,8 @@ import com.thoughtworks.xstream.security.AnyTypePermission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -59,7 +60,6 @@ public class XStream2 extends XStream {
         this.addPermission(AnyTypePermission.ANY);
     }
 
-    private RobustReflectionConverter reflectionConverter;
 
     @Override
     public Object unmarshal(HierarchicalStreamReader reader, Object root, DataHolder dataHolder) {
@@ -73,11 +73,16 @@ public class XStream2 extends XStream {
 
     @Override
     protected void setupConverters() {
-        reflectionConverter = new RobustReflectionConverter(getMapper(), createReflectionProvider(), new PluginClassOwnership());
+        RobustReflectionConverter reflectionConverter
+                = new RobustReflectionConverter(getMapper(), createReflectionProvider(), new PluginClassOwnership());
         this.registerConverter(reflectionConverter, PRIORITY_VERY_LOW);
-        this.registerConverter(new TempFileConvert(this.getMapper(), this.getReflectionProvider()), PRIORITY_NORMAL);
-        this.registerConverter(new InnerPropOfIdentityNameConvert(this.getMapper(), this.getReflectionProvider()), PRIORITY_VERY_HIGH);
-        this.registerConverter(new IdentityNameConvert(this.getMapper(), this.getReflectionProvider()), PRIORITY_VERY_HIGH);
+
+
+        this.registerConverter(new TISCompositConvert(this.getMapper(), this.getReflectionProvider()), PRIORITY_VERY_HIGH);
+
+//        this.registerConverter(new TempFileConvert(this.getMapper(), this.getReflectionProvider()), PRIORITY_VERY_HIGH);
+//        this.registerConverter(new InnerPropOfIdentityNameConvert(this.getMapper(), this.getReflectionProvider()), PRIORITY_VERY_HIGH);
+//        this.registerConverter(new IdentityNameConvert(this.getMapper(), this.getReflectionProvider()), PRIORITY_VERY_HIGH);
         super.setupConverters();
     }
 
@@ -111,7 +116,7 @@ public class XStream2 extends XStream {
         String ownerOf(Class<?> clazz);
     }
 
-    class PluginClassOwnership implements ClassOwnership {
+    static class PluginClassOwnership implements ClassOwnership {
 
         private PluginManager pm;
 
@@ -135,29 +140,35 @@ public class XStream2 extends XStream {
     }
 
 
-    public static class IdentityNameConvert extends AbstractReflectionConverter {
+    public static class IdentityNameConvert implements ConverterValve {
 
-        public IdentityNameConvert(Mapper mapper, ReflectionProvider reflectionProvider) {
-            super(mapper, reflectionProvider);
-        }
+//        public IdentityNameConvert(Mapper mapper, ReflectionProvider reflectionProvider) {
+//            super(mapper, reflectionProvider);
+//        }
 
         @Override
         public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
             IdentityName identity = (IdentityName) source;
             try {
                 context.put(IdentityName.class, identity);
-                doMarshal(source, writer, context);
+                // doMarshal(source, writer, context);
             } finally {
                 //context.
             }
         }
 
-        @Override
-        public Object doUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
-            context.put(IdentityName.class, result);
-            IdentityName identity = (IdentityName) super.doUnmarshal(result, reader, context);
 
-            return identity;
+        @Override
+        public void beforeUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
+            context.put(IdentityName.class, (IdentityName) result);
+        }
+
+        @Override
+        public void doUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
+
+            // IdentityName identity = (IdentityName) result;// super.doUnmarshal(result, reader, context);
+
+            //   return identity;
         }
 
         @Override
@@ -167,32 +178,37 @@ public class XStream2 extends XStream {
     }
 
 
-    public static class InnerPropOfIdentityNameConvert extends AbstractReflectionConverter {
+    public static class InnerPropOfIdentityNameConvert implements ConverterValve {
 
-        public InnerPropOfIdentityNameConvert(Mapper mapper, ReflectionProvider reflectionProvider) {
-            super(mapper, reflectionProvider);
-        }
+//        public InnerPropOfIdentityNameConvert(Mapper mapper, ReflectionProvider reflectionProvider) {
+//            super(mapper, reflectionProvider);
+//        }
 
         @Override
         public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
+
             InnerPropOfIdentityName innerProp = (InnerPropOfIdentityName) source;
             try {
                 IdentityName id = (IdentityName) context.get(IdentityName.class);
                 Objects.requireNonNull(id, "id can not be null");
                 innerProp.setIdentity(id);
-                doMarshal(source, writer, context);
+                // doMarshal(source, writer, context);
             } finally {
                 //context.
             }
+
         }
 
+
         @Override
-        public Object doUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
+        public void doUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
+
             IdentityName id = (IdentityName) context.get(IdentityName.class);
             Objects.requireNonNull(id, "id can not be null");
-            InnerPropOfIdentityName innerProp = (InnerPropOfIdentityName) super.doUnmarshal(result, reader, context);
+            InnerPropOfIdentityName innerProp = (InnerPropOfIdentityName) result;// super.doUnmarshal(result, reader, context);
             innerProp.setIdentity(id);
-            return innerProp;
+            //  return innerProp;
+
         }
 
         @Override
@@ -201,24 +217,92 @@ public class XStream2 extends XStream {
         }
     }
 
+    private static class TISCompositConvert extends AbstractReflectionConverter {
 
-    /**
-     * TIS 前端提交的临时文件转化，将临时文件保存到plugin的save目录中去
-     */
-    private static class TempFileConvert extends AbstractReflectionConverter {
+        private final List<ConverterValve> converters = new ArrayList<>();
 
-        public TempFileConvert(Mapper mapper, ReflectionProvider reflectionProvider) {
+        public TISCompositConvert(Mapper mapper, ReflectionProvider reflectionProvider) {
             super(mapper, reflectionProvider);
+            converters.add(new IdentityNameConvert());
+            converters.add(new InnerPropOfIdentityNameConvert());
+            converters.add(new TempFileConvert());
+
+            RobustReflectionConverter2 reflectionConverter
+                    = new RobustReflectionConverter2(mapper, reflectionProvider, new PluginClassOwnership());
+            converters.add(reflectionConverter);
         }
 
         @Override
         public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
+            converters.forEach((converter) -> {
+                if (converter.canConvert(source.getClass())) {
+                    converter.marshal(source, writer, context);
+                }
+            });
+        }
+
+        @Override
+        public Object doUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
+            converters.forEach((converter) -> {
+                if (converter.canConvert(result.getClass())) {
+                    converter.beforeUnmarshal(result, reader, context);
+                }
+            });
+            Object fresult = super.doUnmarshal(result, reader, context);
+            converters.forEach((converter) -> {
+                if (converter.canConvert(result.getClass())) {
+                    converter.doUnmarshal(fresult, reader, context);
+                }
+            });
+            return fresult;
+        }
+
+        @Override
+        public boolean canConvert(Class type) {
+            for (ConverterValve converter : converters) {
+                if (converter.canConvert(type)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+
+    /**
+     * TIS 前端提交的临时文件转化，将临时文件保存到plugin的save目录中去
+     */
+    private static class TempFileConvert implements ConverterValve {
+
+//        public TempFileConvert(Mapper mapper, ReflectionProvider reflectionProvider) {
+//            super(mapper, reflectionProvider);
+//        }
+
+
+        @Override
+        public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
+
             ITmpFileStore tmpFileStore = (ITmpFileStore) source;
             XmlFile xmlFile = (XmlFile) context.get(XmlFile.class);
             Objects.requireNonNull(xmlFile, "xmlFile can not be null");
-            tmpFileStore.save(xmlFile.getFile().getParentFile());
+            // tmpFileStore.save(xmlFile.getFile().getParentFile());
+            //  .saveToDir(xmlFile.getFile().getParentFile(), tmpFileStore.getStoreFileName());
+            ITmpFileStore.TmpFile tmpfile = tmpFileStore.getTmpeFile();
+            //Objects.requireNonNull(tmpfile, "tmpfile can not be null");
+            ITmpFileStore.TmpFile newTmpFile = null;
+            if (tmpfile != null) {
+                newTmpFile
+                        = tmpfile.saveToDir(xmlFile.getFile().getParentFile(), tmpFileStore.getStoreFileName());
+            } else {
+                // 更新流程保持不变
+                newTmpFile = tmpFileStore.createTmpFile(() -> xmlFile, false);
+                if (!newTmpFile.tmp.exists()) {
+                    throw new IllegalStateException("file shall exist:" + newTmpFile.tmp.getAbsolutePath());
+                }
+            }
 
-            doMarshal(source, writer, context);
+
+            tmpFileStore.setTmpeFile(newTmpFile);
         }
 
 //        @Override
@@ -230,18 +314,32 @@ public class XStream2 extends XStream {
 
 
         @Override
-        public Object doUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
-            ITmpFileStore tmpFileStore = (ITmpFileStore) super.doUnmarshal(result, reader, context);
+        public void doUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
+            ITmpFileStore tmpFileStore = (ITmpFileStore) result;// super.doUnmarshal(result, reader, context);
             XmlFile xmlFile = (XmlFile) context.get(XmlFile.class);
             Objects.requireNonNull(xmlFile, "xmlFile can not be null");
-            tmpFileStore.createTmpFile(() -> xmlFile);
-            tmpFileStore.setTmpeFile((new ITmpFileStore.TmpFile(new File(xmlFile.getFile().getParentFile(), tmpFileStore.getStoreFileName()))));
-            return tmpFileStore;
+            // (new ITmpFileStore.TmpFile(new File(xmlFile.getFile().getParentFile(), tmpFileStore.getStoreFileName())))
+            tmpFileStore.setTmpeFile(tmpFileStore.createTmpFile(() -> xmlFile, false));
+            //  return tmpFileStore;
         }
 
         @Override
         public boolean canConvert(Class type) {
             return ITmpFileStore.class.isAssignableFrom(type);
         }
+    }
+
+
+    interface ConverterValve extends Converter {
+        @Override
+        default Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
+            throw new UnsupportedOperationException();
+        }
+
+        public default void beforeUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
+
+        }
+
+        public void doUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context);
     }
 }

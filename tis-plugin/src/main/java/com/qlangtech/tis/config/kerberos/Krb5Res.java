@@ -92,6 +92,9 @@ public abstract class Krb5Res implements Describable<Krb5Res>, InnerPropOfIdenti
         public static <T> T krb5ConfigTmpSession(Krb5Res krb5Res, Krb5Provider<T> process, Consumer<Exception>... errProcs) {
             String krb5Config = System.getProperty(KEY_KRB5_CONFIG);
             File krb5Path = krb5Res.getKrb5Path();
+            if (!krb5Path.exists()) {
+                throw new IllegalStateException("krb5Path is not exist:" + krb5Path.getAbsolutePath());
+            }
             try {
                 System.setProperty(KEY_KRB5_CONFIG, krb5Path.getAbsolutePath());
                 return process.run();

@@ -24,17 +24,16 @@ import com.qlangtech.tis.config.authtoken.IUserTokenVisitor;
 import com.qlangtech.tis.config.authtoken.UserToken;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
-import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-05-03 09:33
  **/
 @Public
-public class OffUserToken extends UserToken<DataSourceMeta.JDBCConnection> implements IOffUserToken {
+public class OffUserToken extends UserToken implements IOffUserToken {
 
     @Override
-    public DataSourceMeta.JDBCConnection accept(IUserTokenVisitor<DataSourceMeta.JDBCConnection> visitor) throws Exception {
+    public <T> T accept(IUserTokenVisitor<T> visitor) throws Exception {
         return visitor.visit(this);
     }
 

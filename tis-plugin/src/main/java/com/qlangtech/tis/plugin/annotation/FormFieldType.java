@@ -50,7 +50,9 @@ public enum FormFieldType {
     FILE(9, new IPropValProcessor() {
         @Override
         public Object process(Object instance, Object val) throws Exception {
-
+            if (!(instance instanceof ITmpFileStore)) {
+                throw new IllegalStateException("instance of " + instance.getClass() + " must be type of " + ITmpFileStore.class.getName());
+            }
             String[] filePath = StringUtils.split((String) val, ";");
             if (filePath.length == 2) {
                 // 创建/更新
@@ -58,9 +60,7 @@ public enum FormFieldType {
                 if (!tmpPath.exists()) {
                     throw new IllegalStateException("tmp path:" + tmpPath.getAbsolutePath() + " is not exist");
                 }
-                if (!(instance instanceof ITmpFileStore)) {
-                    throw new IllegalStateException("instance of " + instance.getClass() + " must be type of " + ITmpFileStore.class.getName());
-                }
+
 
                 ((ITmpFileStore) instance).setTmpeFile(new ITmpFileStore.TmpFile(tmpPath));
                 // org.apache.commons.io.FileUtils.copyFile(tmpPath, new File(xmlStoreFile.getParentFile(), filePath[1]));

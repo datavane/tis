@@ -684,9 +684,9 @@ public class TIS {
      */
     public static Set<PluginMeta> loadIncrComponentUsedPlugin(String collection, List<File> incrPluginConfigSet, boolean clearThreadholder) {
         try {
-            synchronized (RobustReflectionConverter.usedPluginInfo) {
+            synchronized (RobustReflectionConverter2.usedPluginInfo) {
                 if (clearThreadholder) {
-                    RobustReflectionConverter.usedPluginInfo.remove();
+                    RobustReflectionConverter2.usedPluginInfo.remove();
                 }
                 for (File incrConfig : incrPluginConfigSet) {
                     if (!incrConfig.exists()) {
@@ -695,7 +695,7 @@ public class TIS {
                     XmlFile xmlFile = new XmlFile(new XStream2PluginInfoReader(XmlFile.DEFAULT_DRIVER), incrConfig);
                     xmlFile.read();
                 }
-                return RobustReflectionConverter.usedPluginInfo.get().getMetas();
+                return RobustReflectionConverter2.usedPluginInfo.get().getMetas();
             }
         } catch (IOException e) {
             throw new RuntimeException("collection:" + collection + " relevant configs:"

@@ -24,7 +24,7 @@ import com.qlangtech.tis.extension.Describable;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-05-03 09:30
  **/
-public abstract class UserToken<T> implements Describable<UserToken<T>> {
+public abstract class UserToken implements Describable<UserToken> {
 
-    public abstract T accept(IUserTokenVisitor<T> visitor) throws Exception;
+    public abstract <T> T accept(IUserTokenVisitor<T> visitor) throws Exception;
 }

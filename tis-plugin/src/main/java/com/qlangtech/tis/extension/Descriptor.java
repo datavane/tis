@@ -594,7 +594,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      */
     public final PluginValidateResult verify(IControlMsgHandler msgHandler
             , Context context //
-            , IRepositoryTargetFile targetFile //
             , boolean verify //
             , AttrVals formData, Optional<IPropertyType.SubFormFilter> subFormFilter) {
 //        String impl = null;
@@ -613,7 +612,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 @Override
                 public PluginValidateResult visit(RootFormProperties props) {
 
-                    PostFormVals postFormVals = new PostFormVals(formData, targetFile);
+                    PostFormVals postFormVals = new PostFormVals(formData);
 
                     PluginValidateResult validateResult = new PluginValidateResult(postFormVals
                             , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
@@ -644,7 +643,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     IPropertyType.SubFormFilter filter = subFormFilter.get();
                     if (filter.subformDetailView) {
                         // 校验的时候子表单是{key1:val1,key2:val2} 的格式
-                        PostFormVals formVals = new PostFormVals(formData, targetFile);
+                        PostFormVals formVals = new PostFormVals(formData);
                         boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, formVals);
                         if (!valid) {
                             validateResult = new PluginValidateResult(formVals
@@ -677,7 +676,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         validateResult = props.visitAllSubDetailed(formData, new SuFormProperties.ISubDetailedProcess<PluginValidateResult>() {
                             @Override
                             public PluginValidateResult process(String subFormId, AttrValMap sform) {
-                                PluginValidateResult vResult = sform.validate(msgHandler, context, targetFile, verify);
+                                PluginValidateResult vResult = sform.validate(msgHandler, context, verify);
                                 if (!vResult.isValid()) {
                                     return vResult;
                                 }
@@ -734,7 +733,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 AttrValMap attrValMap = AttrValMap.parseDescribableMap(Optional.empty(), descVal);
                 pushFieldStack(context, attr, 0);
                 try {
-                    if (!attrValMap.validate(msgHandler, context, postFormVals.targetFile, bizValidate).isValid()) {
+                    if (!attrValMap.validate(msgHandler, context, bizValidate).isValid()) {
                         valid = false;
                         continue;
                     }
@@ -1300,8 +1299,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public static class PostFormVals {
         // public final Map<String, /*** attr key */com.alibaba.fastjson.JSONObject> rawFormData;
         public final AttrValMap.IAttrVals rawFormData;
-        public final IRepositoryTargetFile targetFile;
-
 
         public <T extends Describable> T newInstance(Descriptor<T> desc, IControlMsgHandler msgHandler) {
             ParseDescribable<Describable> plugin
@@ -1311,9 +1308,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             return instance;
         }
 
-        public PostFormVals(AttrValMap.IAttrVals rawFormData, IRepositoryTargetFile targetFile) {
+        public PostFormVals(AttrValMap.IAttrVals rawFormData) {
             this.rawFormData = rawFormData;
-            this.targetFile = targetFile;
         }
 
         private Map<String, String> fieldVals = Maps.newHashMap();

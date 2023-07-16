@@ -31,6 +31,7 @@ import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.RobustReflectionConverter;
+import com.qlangtech.tis.util.RobustReflectionConverter2;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -109,8 +110,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     @Override
     public List<T> getPlugins() {
         this.load();
-        RobustReflectionConverter.PluginMetas metas = null;
-        if (pluginMetas != null && !(metas = RobustReflectionConverter.usedPluginInfo.get()).isCacheable()) {
+        RobustReflectionConverter2.PluginMetas metas = null;
+        if (pluginMetas != null && !(metas = RobustReflectionConverter2.usedPluginInfo.get()).isCacheable()) {
             metas.addAll(pluginMetas);
         }
         return plugins;
@@ -360,7 +361,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
 
     private synchronized void load() {
 
-        RobustReflectionConverter.PluginMetas metasCollector = RobustReflectionConverter.usedPluginInfo.get();
+        RobustReflectionConverter2.PluginMetas metasCollector = RobustReflectionConverter2.usedPluginInfo.get();
         if (metasCollector.isCacheable() && this.loaded) {
             return;
         }

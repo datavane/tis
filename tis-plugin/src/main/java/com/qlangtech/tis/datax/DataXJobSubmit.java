@@ -38,6 +38,7 @@ import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.RobustReflectionConverter;
+import com.qlangtech.tis.util.RobustReflectionConverter2;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.apache.commons.lang3.tuple.Pair;
@@ -189,8 +190,8 @@ public abstract class DataXJobSubmit {
         final DataXJobInfo jobName = getDataXJobInfo(tabDataXEntity, taskContext, processor);
         if (this.getType() == InstanceType.DISTRIBUTE) {
             //TODO: 获取DataXProcess 相关元数据 用于远程分布式执行任务
-            RobustReflectionConverter.PluginMetas pluginMetas
-                    = RobustReflectionConverter.PluginMetas.collectMetas(() -> {
+            RobustReflectionConverter2.PluginMetas pluginMetas
+                    = RobustReflectionConverter2.PluginMetas.collectMetas(() -> {
 
             });
         }

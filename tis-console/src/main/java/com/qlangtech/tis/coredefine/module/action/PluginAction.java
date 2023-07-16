@@ -875,7 +875,7 @@ public class PluginAction extends BasicModule {
         for (IdentityName p : plugins) {
           Descriptor.PluginValidateResult r = new Descriptor.PluginValidateResult(
             new Descriptor.PostFormVals(
-              AttrValMap.IAttrVals.rootForm(Collections.emptyMap()), null), 0, 0);
+              AttrValMap.IAttrVals.rootForm(Collections.emptyMap())), 0, 0);
           r.setDescriptor(((Describable) p).getDescriptor());
           identityUniqueMap.put(p.identityValue(), r);
         }

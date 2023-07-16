@@ -65,7 +65,8 @@ public class TestUploadKrb5Res extends Krb5Res implements ITmpFileStore {
     }
 
     @Override
-    public void save(File parentDir) {
+    public TmpFile getTmpeFile() {
+        throw new UnsupportedOperationException();
     }
 
     @TISExtension

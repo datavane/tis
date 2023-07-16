@@ -34,23 +34,41 @@ import java.io.IOException;
 public interface ITmpFileStore {
     public void setTmpeFile(TmpFile tmp);
 
+    public TmpFile getTmpeFile();
+
     public String getStoreFileName();
 
-    void save(File parentDir);
+    //  void save(File parentDir);
 
-    public default TmpFile createTmpFile(IRepositoryTargetFile xmlFile) {
-        return (new ITmpFileStore.TmpFile(new File(xmlFile.getTargetFile().getFile().getParentFile(), this.getStoreFileName())));
+    public default TmpFile createTmpFile(IRepositoryTargetFile xmlFile, boolean saveable) {
+        return (new ITmpFileStore.TmpFile(new File(xmlFile.getTargetFile().getFile().getParentFile(), this.getStoreFileName()), saveable));
     }
 
 
     public class TmpFile {
         public final File tmp;
+        private final boolean saveable;
 
         public TmpFile(File tmp) {
-            this.tmp = tmp;
+            this(tmp, true);
         }
 
-        public void saveToDir(File dir, String fileName) {
+        public TmpFile(File tmp, boolean saveable) {
+            this.tmp = tmp;
+            this.saveable = saveable;
+        }
+
+        /**
+         * 重新被保存的临时文件
+         *
+         * @param dir
+         * @param fileName
+         * @return
+         */
+        public TmpFile saveToDir(File dir, String fileName) {
+            if (!this.saveable) {
+                return this;
+            }
             if (StringUtils.isEmpty(fileName)) {
                 throw new IllegalArgumentException("param fileName can not be empty");
             }
@@ -64,6 +82,7 @@ public interface ITmpFileStore {
             } catch (IOException e) {
                 throw new RuntimeException(target.getAbsolutePath(), e);
             }
+            return new TmpFile(target, false);
         }
     }
 }

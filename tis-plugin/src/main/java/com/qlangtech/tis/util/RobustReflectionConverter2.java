@@ -17,6 +17,8 @@
  */
 package com.qlangtech.tis.util;
 
+import com.google.common.collect.Lists;
+import com.qlangtech.tis.extension.Describable;
 import com.thoughtworks.xstream.XStreamException;
 import com.thoughtworks.xstream.converters.*;
 import com.thoughtworks.xstream.converters.reflection.ObjectAccessException;
@@ -28,6 +30,7 @@ import com.thoughtworks.xstream.io.ExtendedHierarchicalStreamWriterHelper;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.Mapper;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +38,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 /**
  * Custom  that handle errors more gracefully.
@@ -48,75 +52,75 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class RobustReflectionConverter implements Converter {
+public class RobustReflectionConverter2 implements XStream2.ConverterValve {
 
-    // public static final String KEY_ATT_PLUGIN = "plugin";
+    public static final String KEY_ATT_PLUGIN = "plugin";
 
-//    public static ThreadLocal<PluginMetas> usedPluginInfo = new ThreadLocal<PluginMetas>() {
-//        @Override
-//        protected PluginMetas initialValue() {
-//            return new PluginMetas();
-//        }
-//
-//        @Override
-//        public void remove() {
-//            super.remove();
-//        }
-//    };
+    public static ThreadLocal<PluginMetas> usedPluginInfo = new ThreadLocal<PluginMetas>() {
+        @Override
+        protected PluginMetas initialValue() {
+            return new PluginMetas();
+        }
 
-//    public static PluginMetas getUnCacheableThreadMetas() {
-//        usedPluginInfo.remove();
-//        PluginMetas metas = usedPluginInfo.get();
-//        return metas.unCacheableFromPluginStore();
-//    }
+        @Override
+        public void remove() {
+            super.remove();
+        }
+    };
 
-//    public static class PluginMetas {
-//        private final Set<PluginMeta> metas = new HashSet<>();
-//        // 可以从pluginStore中取数据
-//        private boolean cacheable = true;
-//
-//        public static PluginMetas collectMetas(Runnable supplier) {
-//            RobustReflectionConverter.PluginMetas pluginMetas = null;
-//            try {
-//                pluginMetas = RobustReflectionConverter.getUnCacheableThreadMetas();
-//                supplier.run();
-//                return pluginMetas;
-//                //  RobustReflectionConverter.usedPluginInfo.get();
-//            } finally {
-//                RobustReflectionConverter.usedPluginInfo.remove();
-//            }
+    public static PluginMetas getUnCacheableThreadMetas() {
+        usedPluginInfo.remove();
+        PluginMetas metas = usedPluginInfo.get();
+        return metas.unCacheableFromPluginStore();
+    }
+
+    public static class PluginMetas {
+        private final Set<PluginMeta> metas = new HashSet<>();
+        // 可以从pluginStore中取数据
+        private boolean cacheable = true;
+
+        public static PluginMetas collectMetas(Runnable supplier) {
+            RobustReflectionConverter2.PluginMetas pluginMetas = null;
+            try {
+                pluginMetas = RobustReflectionConverter2.getUnCacheableThreadMetas();
+                supplier.run();
+                return pluginMetas;
+                //  RobustReflectionConverter.usedPluginInfo.get();
+            } finally {
+                RobustReflectionConverter2.usedPluginInfo.remove();
+            }
+        }
+
+        public Set<PluginMeta> getMetas() {
+            return this.metas;
+        }
+
+//        public void add(PluginMeta meta) {
+//            this.metas.add(meta);
 //        }
-//
-//        public Set<PluginMeta> getMetas() {
-//            return this.metas;
-//        }
-//
-////        public void add(PluginMeta meta) {
-////            this.metas.add(meta);
-////        }
-//
-//        public void addAll(Collection<PluginMeta> metas) {
-//            this.metas.addAll(metas);
-//        }
-//
-//        private PluginMetas unCacheableFromPluginStore() {
-//            this.cacheable = false;
-//            return this;
-//        }
-//
-//        public boolean isCacheable() {
-//            return this.cacheable;
-//        }
-//
-//        /**
-//         * 当前正在收集plugin metaData不需要对持久层起作用
-//         *
-//         * @return
-//         */
-//        public boolean isDryRun() {
-//            return !isCacheable();
-//        }
-//    }
+
+        public void addAll(Collection<PluginMeta> metas) {
+            this.metas.addAll(metas);
+        }
+
+        private PluginMetas unCacheableFromPluginStore() {
+            this.cacheable = false;
+            return this;
+        }
+
+        public boolean isCacheable() {
+            return this.cacheable;
+        }
+
+        /**
+         * 当前正在收集plugin metaData不需要对持久层起作用
+         *
+         * @return
+         */
+        public boolean isDryRun() {
+            return !isCacheable();
+        }
+    }
 
     protected final ReflectionProvider reflectionProvider;
 
@@ -142,11 +146,11 @@ public class RobustReflectionConverter implements Converter {
 
     private final Map<String, Set<String>> criticalFields = new HashMap<String, Set<String>>();
 
-    public RobustReflectionConverter(Mapper mapper, ReflectionProvider reflectionProvider) {
+    public RobustReflectionConverter2(Mapper mapper, ReflectionProvider reflectionProvider) {
         this(mapper, reflectionProvider, new XStream2.PluginClassOwnership());
     }
 
-    RobustReflectionConverter(Mapper mapper, ReflectionProvider reflectionProvider, XStream2.ClassOwnership classOwnership) {
+    RobustReflectionConverter2(Mapper mapper, ReflectionProvider reflectionProvider, XStream2.ClassOwnership classOwnership) {
         this.mapper = mapper;
         this.reflectionProvider = reflectionProvider;
         assert classOwnership != null;
@@ -184,7 +188,8 @@ public class RobustReflectionConverter implements Converter {
     }
 
     public boolean canConvert(Class type) {
-        return true;
+        return Describable.class.isAssignableFrom(type);
+        //  return type.isAssignableFrom();
     }
 
     public void marshal(Object original, final HierarchicalStreamWriter writer, final MarshallingContext context) {
@@ -192,76 +197,77 @@ public class RobustReflectionConverter implements Converter {
         if (source.getClass() != original.getClass()) {
             writer.addAttribute(mapper.aliasForAttribute("resolves-to"), mapper.serializedClass(source.getClass()));
         }
-        //  OwnerContext oc = OwnerContext.find(context);
+        OwnerContext oc = OwnerContext.find(context);
         // oc.startVisiting(writer, classOwnership.ownerOf(original.getClass()));
-        //  Set<PluginMeta> pluginMeta = (Set<PluginMeta>) context.get(PluginMeta.class);
-        //  List<String> owners = Lists.newArrayList();
-        //  owners.add(classOwnership.ownerOf(original.getClass()));
-//        if (pluginMeta != null && pluginMeta.size() > 0) {
-//            try {
-//                for (PluginMeta pmeta : pluginMeta) {
-//                    // oc.startVisiting(writer, pmeta.toString());
-//                    owners.add(pmeta.toString());
-//                }
-//            } finally {
-//                pluginMeta.clear();
-//            }
-//        }
-        //  oc.startVisiting(writer, Collections.emptyList());
+        Set<PluginMeta> pluginMeta = (Set<PluginMeta>) context.get(PluginMeta.class);
+        List<String> owners = Lists.newArrayList();
+        owners.add(classOwnership.ownerOf(original.getClass()));
+        if (pluginMeta != null && pluginMeta.size() > 0) {
+            try {
+                for (PluginMeta pmeta : pluginMeta) {
+                    // oc.startVisiting(writer, pmeta.toString());
+                    owners.add(pmeta.toString());
+                }
+            } finally {
+                pluginMeta.clear();
+            }
+        }
+        oc.startVisiting(writer, owners);
         try {
             doMarshal(source, writer, context);
         } finally {
-            //    oc.stopVisiting();
+            oc.stopVisiting();
         }
     }
 
     /**
      * Marks {@code plugin="..."} on elements where the owner is known and distinct from the closest owned ancestor.
      */
-//    private static class OwnerContext extends LinkedList<String> {
-//
-//        static OwnerContext find(MarshallingContext context) {
-//            OwnerContext c = (OwnerContext) context.get(OwnerContext.class);
-//            if (c == null) {
-//                c = new OwnerContext();
-//                context.put(OwnerContext.class, c);
-//            }
-//            return c;
-//        }
-//
-//        private void startVisiting(HierarchicalStreamWriter writer, List<String> owners) {
-//            if (owners != null) {
-//                List<String> addOwner = Lists.newArrayList();
-//                for (String owner : owners) {
-//                    if (StringUtils.isEmpty(owner)) {
-//                        continue;
-//                    }
-//                    boolean redundant = false;
-//                    for (String parentOwner : this) {
-//                        if (parentOwner != null) {
-//                            redundant = parentOwner.equals(owner);
-//                            if (redundant) {
-//                                break;
-//                            }
-//                        }
-//                    }
-//                    if (!redundant) {
-//                        addOwner.add(owner);
-//                    }
-//                }
-//                if (!addOwner.isEmpty()) {
-//                    writer.addAttribute("plugin", addOwner.stream().collect(Collectors.joining(",")));
-//                }
-//                for (String o : owners) {
-//                    addFirst(o);
-//                }
-//            }
-//        }
-//
-//        private void stopVisiting() {
-//            removeFirst();
-//        }
-//    }
+    private static class OwnerContext extends LinkedList<String> {
+
+        static OwnerContext find(MarshallingContext context) {
+            OwnerContext c = (OwnerContext) context.get(OwnerContext.class);
+            if (c == null) {
+                c = new OwnerContext();
+                context.put(OwnerContext.class, c);
+            }
+            return c;
+        }
+
+        private void startVisiting(HierarchicalStreamWriter writer, List<String> owners) {
+            if (owners != null) {
+                List<String> addOwner = Lists.newArrayList();
+                for (String owner : owners) {
+                    if (StringUtils.isEmpty(owner)) {
+                        continue;
+                    }
+                    boolean redundant = false;
+                    for (String parentOwner : this) {
+                        if (parentOwner != null) {
+                            redundant = parentOwner.equals(owner);
+                            if (redundant) {
+                                break;
+                            }
+                        }
+                    }
+                    if (!redundant) {
+                        addOwner.add(owner);
+                    }
+                }
+                if (!addOwner.isEmpty()) {
+                    writer.addAttribute("plugin", addOwner.stream().collect(Collectors.joining(",")));
+                }
+                for (String o : owners) {
+                    addFirst(o);
+                }
+            }
+        }
+
+        private void stopVisiting() {
+            removeFirst();
+        }
+    }
+
     protected void doMarshal(final Object source, final HierarchicalStreamWriter writer, final MarshallingContext context) {
         final Set seenFields = new HashSet();
         final Set seenAsAttributes = new HashSet();
@@ -341,15 +347,15 @@ public class RobustReflectionConverter implements Converter {
         context.convertAnother(newObj, converter);
     }
 
+//    @Override
+//    public Object unmarshal(final HierarchicalStreamReader reader, final UnmarshallingContext context) {
+//        Object result = instantiateNewInstance(reader, context);
+//        result = doUnmarshal(result, reader, context);
+//        return serializationMethodInvoker.callReadResolve(result);
+//    }
+
     @Override
-    public Object unmarshal(final HierarchicalStreamReader reader, final UnmarshallingContext context) {
-        Object result = instantiateNewInstance(reader, context);
-        result = doUnmarshal(result, reader, context);
-        return serializationMethodInvoker.callReadResolve(result);
-    }
-
-
-    public Object doUnmarshal(final Object result, final HierarchicalStreamReader reader, final UnmarshallingContext context) {
+    public void doUnmarshal(final Object result, final HierarchicalStreamReader reader, final UnmarshallingContext context) {
         final SeenFields seenFields = new SeenFields();
         Iterator it = reader.getAttributeNames();
         // Process attributes before recursing into child elements.
@@ -359,16 +365,16 @@ public class RobustReflectionConverter implements Converter {
             Class classDefiningField = determineWhichClassDefinesField(reader);
             boolean fieldExistsInClass = fieldDefinedInClass(result, attrName);
             // baisui add for get plugin name&ver 2020/4/2 start
-//            if (KEY_ATT_PLUGIN.equals(attrAlias) && !fieldExistsInClass) {
-//                List<PluginMeta> metas = PluginMeta.parse(reader.getAttribute(attrAlias));
-//                Set<PluginMeta> metasCollector = (Set<PluginMeta>) context.get(PluginMeta.class);
-//                // if (context instanceof XmlFile.DefaultDataHolder) {
-//                if (metasCollector != null) {
-//                    metasCollector.addAll(metas);
-//                }
-//                // }
-//                // usedPluginInfo.get().addAll(metas);
-//            }
+            if (KEY_ATT_PLUGIN.equals(attrAlias) && !fieldExistsInClass) {
+                List<PluginMeta> metas = PluginMeta.parse(reader.getAttribute(attrAlias));
+                Set<PluginMeta> metasCollector = (Set<PluginMeta>) context.get(PluginMeta.class);
+                // if (context instanceof XmlFile.DefaultDataHolder) {
+                if (metasCollector != null) {
+                    metasCollector.addAll(metas);
+                }
+                // }
+                // usedPluginInfo.get().addAll(metas);
+            }
             // baisui add for get plugin name&ver 2020/4/2 end
             if (fieldExistsInClass) {
                 Field field = reflectionProvider.getField(result.getClass(), attrName);
@@ -450,7 +456,7 @@ public class RobustReflectionConverter implements Converter {
             // OldDataMonitor.report((Saveable)result, (ArrayList<Throwable>)context.get("ReadError"));
             context.put("ReadError", null);
         }
-        return result;
+        // return result;
     }
 
     public static void addErrorInContext(UnmarshallingContext context, Throwable e) {
@@ -563,5 +569,5 @@ public class RobustReflectionConverter implements Converter {
         }
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RobustReflectionConverter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RobustReflectionConverter2.class);
 }
