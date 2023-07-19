@@ -173,7 +173,8 @@ public class PluginItems {
     } else if (this.pluginContext.isDataSourceAware()) {
 
       store = new IPluginStoreSave<DataSourceFactory>() {
-        PostedDSProp dbExtraProps = PostedDSProp.parse(pluginMeta);
+
+        PostedDSProp dbExtraProps = createPostedDSProp((pluginMeta));
         DataSourceFactoryPluginStore pluginStore = TIS.getDataSourceFactoryPluginStore(dbExtraProps);
 
         @Override
@@ -181,14 +182,25 @@ public class PluginItems {
           return pluginStore.getTargetFile();
         }
 
+        private PostedDSProp createPostedDSProp(UploadPluginMeta pluginMeta) {
+          for (Descriptor.ParseDescribable<?> plugin : dlist) {
+            if (StringUtils.isEmpty(pluginMeta.getExtraParam(PostedDSProp.KEY_DB_NAME))) {
+              pluginMeta.putExtraParams(PostedDSProp.KEY_DB_NAME, ((IdentityName) plugin.getInstance()).identityValue());
+            }
+            return PostedDSProp.parse(pluginMeta);
+          }
+
+          throw new IllegalStateException("has not set：" + PostedDSProp.KEY_DB_NAME);
+        }
+
         @Override
         public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context
           , List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
           SetPluginsResult finalResult = new SetPluginsResult(true, false);
           for (Descriptor.ParseDescribable<DataSourceFactory> plugin : dlist) {
-            if (StringUtils.isEmpty(pluginMeta.getExtraParam(PostedDSProp.KEY_DB_NAME))) {
-              pluginMeta.putExtraParams(PostedDSProp.KEY_DB_NAME, ((IdentityName) plugin.getInstance()).identityValue());
-            }
+//            if (StringUtils.isEmpty(pluginMeta.getExtraParam(PostedDSProp.KEY_DB_NAME))) {
+//              pluginMeta.putExtraParams(PostedDSProp.KEY_DB_NAME, ((IdentityName) plugin.getInstance()).identityValue());
+//            }
 
             SetPluginsResult result = pluginStore
               .setPlugins(pluginContext, context, Collections.singletonList(plugin), dbExtraProps.isUpdate());
