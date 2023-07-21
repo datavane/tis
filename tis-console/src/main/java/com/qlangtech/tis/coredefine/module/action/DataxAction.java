@@ -45,6 +45,7 @@ import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginTaggable;
+import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -682,7 +683,7 @@ public class DataxAction extends BasicModule {
       }
 
       //DataX配置移动位置
-      KeyedPluginStore<IAppSource> appSource = IAppSource.getPluginStore(this, appDomain.getAppName());
+      IRepositoryResource appSource = IAppSource.getPluginStore(this, appDomain.getAppName());
       dataXDir = appSource.getTargetFile().getFile().getParentFile();
       dataXDirTrash = new File(dataXDir.getParentFile(), StreamContextConstant.KEY_DIR_TRASH_NAME + "/" + appDomain.getAppName());
       FileUtils.moveDirectory(dataXDir, dataXDirTrash);
