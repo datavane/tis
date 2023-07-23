@@ -19,11 +19,15 @@
 package com.qlangtech.tis.config.authtoken;
 
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.TISExtensible;
 
 /**
+ * 加上 @TISExtensible 意味者在下来列表中会多一个添加插件实现按钮
+ *
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-05-03 09:30
  **/
+@TISExtensible
 public abstract class UserToken implements Describable<UserToken> {
 
     public abstract <T> T accept(IUserTokenVisitor<T> visitor) throws Exception;

@@ -21,10 +21,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.Describable;
-import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IPropertyType;
-import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.*;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
@@ -33,6 +30,7 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import org.apache.commons.lang.StringUtils;
 
+import java.lang.annotation.Annotation;
 import java.util.*;
 
 /**
@@ -154,6 +152,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                 // 是否是主键
                 attrVal.put("pk", val.isIdentity());
                 attrVal.put("describable", val.isDescribable());
+
                 attrVal.put("type", val.typeIdentity());
                 attrVal.put("required", val.isInputRequired());
                 attrVal.put("ord", val.ordinal());
@@ -174,6 +173,10 @@ public class DescriptorsJSON<T extends Describable<T>> {
                 if (val.isDescribable()) {
                     DescriptorsJSON des2Json = new DescriptorsJSON(val.getApplicableDescriptors());
                     attrVal.put("descriptors", des2Json.getDescriptorsJSON());
+                    Annotation extensible = val.clazz.getAnnotation(TISExtensible.class);
+                    // 可以运行时添加插件
+                    attrVal.put("extensible", (extensible != null));
+                    attrVal.put(KEY_EXTEND_POINT, val.clazz.getName());
                 }
                 // attrs.put(attrVal);
                 attrs.add(attrVal);
@@ -190,6 +193,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
     public static void setDescInfo(Descriptor d, JSONObject des) {
         des.put(KEY_DISPLAY_NAME, d.getDisplayName());
+
         des.put(KEY_IMPL, d.getId());
         des.put(KEY_IMPL_URL, Config.TIS_PUB_PLUGINS_DOC_URL + StringUtils.remove(StringUtils.lowerCase(d.clazz.getName()), "."));
     }

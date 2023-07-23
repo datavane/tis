@@ -27,7 +27,7 @@ import java.lang.annotation.*;
  */
 
 @Target({ElementType.TYPE})
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface TISExtensible {
 

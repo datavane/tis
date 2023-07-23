@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.TISExtensible;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
 import java.io.Serializable;
@@ -30,6 +31,7 @@ import java.util.regex.Pattern;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-12-17 21:20
  **/
+@TISExtensible
 public abstract class SplitTableStrategy implements Describable<SplitTableStrategy>, Serializable {
     public static final Pattern PATTERN_PHYSICS_TABLE = Pattern.compile("(\\S+)_(\\d+)");
 

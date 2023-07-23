@@ -92,11 +92,9 @@ public class PluginItems {
     Descriptor.PluginValidateResult validateResult = null;
     List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
     AttrValMap attrValMap = null;
-    // this.getStore();
-    PluginWithStore storeWithPlugin = getStorePlugins();
 
     try {
-      IRepositoryTargetFile.TARGET_FILE_CONTEXT.set(storeWithPlugin.store);
+
       for (int itemIndex = 0; itemIndex < this.items.size(); itemIndex++) {
         attrValMap = this.items.get(itemIndex);
         Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
@@ -108,7 +106,7 @@ public class PluginItems {
         }
       }
     } finally {
-      IRepositoryTargetFile.TARGET_FILE_CONTEXT.remove();
+
     }
     return parseResult;
   }
@@ -244,7 +242,7 @@ public class PluginItems {
   public class PluginWithStore {
     final List<Describable> describableList = Lists.newArrayList();
     final IPluginStoreSave<?> store;
-    final List<Descriptor.ParseDescribable<?>> appendHistorical;
+    private final List<Descriptor.ParseDescribable<?>> appendHistorical;
 
     SetPluginsResult setPlugins(IPluginContext pluginContext
       , Optional<Context> context) {

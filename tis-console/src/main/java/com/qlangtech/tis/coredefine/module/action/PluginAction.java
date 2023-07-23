@@ -688,6 +688,35 @@ public class PluginAction extends BasicModule {
   }
 
   /**
+   * 取Descriptor 某 field（必须为Describle类型）的 descriptpr列表
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doGetDescsByFieldOfDesc(Context context) throws Exception {
+    String extImpl = this.getString("extImpl");
+    String field = this.getString("field");
+    Descriptor desc = TIS.get().getDescriptor(extImpl);
+
+    PluginFormProperties props = desc.getPluginFormPropertyTypes();
+
+    List<? extends Descriptor> descs = props.accept(new PluginFormProperties.IVisitor() {
+      @Override
+      public List<? extends Descriptor> visit(RootFormProperties props) {
+
+        PropertyType descProp = Objects.requireNonNull(
+          props.propertiesType.get(field), "field:" + field + " relevant propDesc can not be null");
+        if (descProp.isDescribable()) {
+          return descProp.getApplicableDescriptors();
+        }
+        throw new IllegalStateException("can not find any desc impls for field:" + field + " in extImpl:" + extImpl);
+      }
+    });
+
+    this.setBizResult(context, new DescriptorsJSON(descs).getDescriptorsJSON());
+  }
+
+  /**
    * plugin form 的子表单的某条详细记录被点击
    *
    * @param context

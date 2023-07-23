@@ -26,10 +26,10 @@ import com.qlangtech.tis.extension.impl.XmlFile;
  **/
 public interface IRepositoryTargetFile {
 
-    /**
-     * 校验期间可以从线程上下文中得到当前的pluginStore存储
-     */
-    ThreadLocal<IRepositoryTargetFile> TARGET_FILE_CONTEXT = new ThreadLocal<IRepositoryTargetFile>();
+//    /**
+//     * 校验期间可以从线程上下文中得到当前的pluginStore存储
+//     */
+//    ThreadLocal<IRepositoryTargetFile> TARGET_FILE_CONTEXT = new ThreadLocal<IRepositoryTargetFile>();
 
     /**
      * 目标配置文件

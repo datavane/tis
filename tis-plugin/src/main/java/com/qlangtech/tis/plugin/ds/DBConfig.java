@@ -182,7 +182,7 @@ public class DBConfig implements IDbMeta {
             int hostCount = 0;
             AtomicReference<String> fjdbcUrl = new AtomicReference<>();
             AtomicReference<Throwable> exceptionCollect = new AtomicReference<Throwable>();
-            IRepositoryTargetFile tfile = IRepositoryTargetFile.TARGET_FILE_CONTEXT.get();
+           // IRepositoryTargetFile tfile = IRepositoryTargetFile.TARGET_FILE_CONTEXT.get();
             outer:
             for (Map.Entry<String, List<String>> entry : getDbEnum().entrySet()) {
                 for (String dbName : entry.getValue()) {
@@ -192,7 +192,7 @@ public class DBConfig implements IDbMeta {
                     String jdbcUrl = this.jdbcUrlBuilder.buidJdbcUrl(this, dbHost, dbName);
                     hostCount++;
                     fixedThreadPool.execute(() -> {
-                        IRepositoryTargetFile.TARGET_FILE_CONTEXT.set(tfile);
+                      //  IRepositoryTargetFile.TARGET_FILE_CONTEXT.set(tfile);
                         try {
                             fjdbcUrl.set(jdbcUrl);
                             urlProcess.visit((facade ? name : dbName), dbHost, jdbcUrl);
@@ -200,7 +200,7 @@ public class DBConfig implements IDbMeta {
                             exceptionCollect.set(e);
                         } finally {
                             countDownLatch.countDown();
-                            IRepositoryTargetFile.TARGET_FILE_CONTEXT.remove();
+                          //  IRepositoryTargetFile.TARGET_FILE_CONTEXT.remove();
                         }
                     });
                     if (facade) {
