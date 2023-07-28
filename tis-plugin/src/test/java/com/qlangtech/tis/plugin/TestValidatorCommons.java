@@ -39,13 +39,33 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
         Assert.assertTrue("userName shall be valid:" + userName, matcher.matches());
 
         userName = "BAS-IC_datav";
-         matcher = ValidatorCommons.pattern_user_name.matcher(userName);
+        matcher = ValidatorCommons.pattern_user_name.matcher(userName);
         Assert.assertTrue("userName shall be valid:" + userName, matcher.matches());
 
         userName = "BASIC$datav*";
         matcher = ValidatorCommons.pattern_user_name.matcher(userName);
         Assert.assertFalse("userName shall not be valid:" + userName, matcher.matches());
     }
+
+
+    public void testHostPattern() {
+        String host = "rds.rds-001.aliyun.com:3306";
+        Matcher matcher = ValidatorCommons.host_pattern.matcher(host);
+        Assert.assertTrue("host shall match:" + host, matcher.matches());
+
+        host = "rds.rds-001.aliyun.com";
+        matcher = ValidatorCommons.host_pattern.matcher(host);
+        Assert.assertFalse("host shall not match:" + host, matcher.matches());
+
+        host = "192.168.28.200:3306";
+        matcher = ValidatorCommons.host_pattern.matcher(host);
+        Assert.assertTrue("host shall match:" + host, matcher.matches());
+
+        host = "(192.168.28.200:3306";
+        matcher = ValidatorCommons.host_pattern.matcher(host);
+        Assert.assertFalse("host shall not match:" + host, matcher.matches());
+    }
+
 
     public void testPATTERN_ABSOLUTE_PATH() {
         Matcher matcher = PATTERN_ABSOLUTE_PATH.matcher("/home/hanfa.shf/ftpReaderTest/data");
@@ -62,7 +82,6 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
 
         matcher = PATTERN_ABSOLUTE_PATH.matcher("/prefix");
         assertTrue("must match", matcher.matches());
-
     }
 
     public void testDBColName() {

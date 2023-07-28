@@ -37,12 +37,13 @@ import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
-import com.qlangtech.tis.util.RobustReflectionConverter;
 import com.qlangtech.tis.util.RobustReflectionConverter2;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.net.URL;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -60,6 +61,14 @@ public abstract class DataXJobSubmit {
     public static final int MAX_TABS_NUM_IN_PER_JOB = 40;
 
     public static Callable<DataXJobSubmit> mockGetter;
+
+    public static void main(String[] args) throws Exception {
+        Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources("com/google/common/base/Preconditions.class");
+       while(resources.hasMoreElements()){
+           System.out.println(   resources.nextElement() );
+       }
+        // System.out.println(  DataXJobSubmit.class("com/google/common/base/Preconditions.class"));
+    }
 
     @FormField(ordinal = 0, type = FormFieldType.INT_NUMBER, validate = {Validator.require})
     public Integer parallelism;

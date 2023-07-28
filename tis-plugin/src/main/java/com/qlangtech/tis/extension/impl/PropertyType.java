@@ -152,7 +152,7 @@ public class PropertyType implements IPropertyType {
     }
 
     public boolean advance() {
-        return formField.advance();
+        return (this.extraProp != null && this.extraProp.isAdvance()) || formField.advance();
     }
 
     public int typeIdentity() {

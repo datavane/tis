@@ -31,8 +31,22 @@ public interface IHttpToken extends IdentityName {
     String KEY_FIELD_ALIYUN_TOKEN = "aliyunToken";
     String KEY_DISPLAY_NAME = "httpToken";
 
-    public static IHttpToken getToken(String endpoint) {
-        IHttpToken aliyunToken = ParamsConfig.getItem(endpoint, KEY_DISPLAY_NAME);
+    public static <T extends IHttpToken> T getToken(String endpoint) {
+//        IHttpToken aliyunToken = ParamsConfig.getItem(endpoint, KEY_DISPLAY_NAME);
+//        Objects.requireNonNull(aliyunToken, "aliyunToekn can not be null");
+//        return aliyunToken;
+        return (T) getToken(endpoint, KEY_DISPLAY_NAME);
+    }
+
+    public static <T extends IHttpToken> T getAliyunEndpoint(String endpoint) {
+//        IHttpToken aliyunToken = ParamsConfig.getItem(endpoint, KEY_DISPLAY_NAME);
+//        Objects.requireNonNull(aliyunToken, "aliyunToekn can not be null");
+//        return aliyunToken;
+        return (T) getToken(endpoint, KEY_FIELD_ALIYUN_TOKEN);
+    }
+
+    static IHttpToken getToken(String endpoint, String type) {
+        IHttpToken aliyunToken = ParamsConfig.getItem(endpoint, type);
         Objects.requireNonNull(aliyunToken, "aliyunToekn can not be null");
         return aliyunToken;
     }

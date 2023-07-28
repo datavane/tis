@@ -28,6 +28,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.util.DescriptorsJSON;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.ClassUtils;
@@ -282,6 +283,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         @JSONField(serialize = false)
         public String getHelpContent() {
             return (String) props.get(KEY_HELP);
+        }
+
+        public boolean isAdvance() {
+            return props.getBooleanValue(DescriptorsJSON.KEY_ADVANCE);
         }
 
 

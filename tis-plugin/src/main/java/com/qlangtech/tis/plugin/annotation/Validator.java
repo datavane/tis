@@ -64,32 +64,12 @@ public enum Validator {
 
         return validatePattern(msgHandler, context
                 , rule(ValidatorCommons.pattern_identity, ValidatorCommons.MSG_IDENTITY_ERROR), fieldKey, fieldData);
-
-//        if (StringUtils.isEmpty(fieldData)) {
-//            return true;
-//        }
-//        Matcher matcher = ValidatorCommons.pattern_identity.matcher(fieldData);
-//        if (!matcher.matches()) {
-//            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_IDENTITY_ERROR);
-//            return false;
-//        }
-//        return true;
     }),
     //
     integer((msgHandler, context, fieldKey, fieldData) -> {
 
         return validatePattern(msgHandler, context
                 , rule(ValidatorCommons.pattern_integer, ValidatorCommons.MSG_INTEGER_ERROR), fieldKey, fieldData);
-
-//        if (StringUtils.isEmpty(fieldData)) {
-//            return true;
-//        }
-//        Matcher matcher = ValidatorCommons.pattern_integer.matcher(fieldData);
-//        if (!matcher.matches()) {
-//            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_INTEGER_ERROR);
-//            return false;
-//        }
-//        return true;
     }),
     //
     host((msgHandler, context, fieldKey, fieldData) -> {
@@ -100,59 +80,30 @@ public enum Validator {
 
     hostWithoutPort((msgHandler, context, fieldKey, fieldData) -> {
         return validatePattern(msgHandler, context
-                , rule(ValidatorCommons.host_without_port_pattern, ValidatorCommons.MSG_HOST_IP_WITHOUT_PORT_ERROR), fieldKey, fieldData);
+                , rule(ValidatorCommons.host_without_port_pattern
+                        , ValidatorCommons.MSG_HOST_IP_WITHOUT_PORT_ERROR), fieldKey, fieldData);
     }),
 
-
-
-    //
     url((msgHandler, context, fieldKey, fieldData) -> {
 
         return validatePattern(msgHandler, context
                 , rule(ValidatorCommons.PATTERN_URL, ValidatorCommons.MSG_URL_ERROR), fieldKey, fieldData);
 
-//        if (StringUtils.isEmpty(fieldData)) {
-//            return true;
-//        }
-//        Matcher matcher = ValidatorCommons.PATTERN_URL.matcher(fieldData);
-//        if (!matcher.matches()) {
-//            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_URL_ERROR);
-//            return false;
-//        }
-//        return true;
     }),
     db_col_name((msgHandler, context, fieldKey, fieldData) -> {
 
         return validatePattern(msgHandler, context
                 , rule(ValidatorCommons.PATTERN_DB_COL_NAME, ValidatorCommons.MSG_DB_COL_NAME_ERROR), fieldKey, fieldData);
-
-//        if (StringUtils.isEmpty(fieldData)) {
-//            return true;
-//        }
-//        Matcher matcher = ValidatorCommons.PATTERN_DB_COL_NAME.matcher(fieldData);
-//        if (!matcher.matches()) {
-//            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_DB_COL_NAME_ERROR);
-//            return false;
-//        }
-//        return true;
     }),
     relative_path((msgHandler, context, fieldKey, fieldData) -> {
         return validatePattern(msgHandler, context
-                , rule(ValidatorCommons.PATTERN_RELATIVE_PATH, ValidatorCommons.MSG_RELATIVE_PATH_ERROR), fieldKey, fieldData);
+                , rule(ValidatorCommons.PATTERN_RELATIVE_PATH
+                        , ValidatorCommons.MSG_RELATIVE_PATH_ERROR), fieldKey, fieldData);
     }),
     absolute_path((msgHandler, context, fieldKey, fieldData) -> {
         return validatePattern(msgHandler, context
-                , rule(ValidatorCommons.PATTERN_ABSOLUTE_PATH, ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR), fieldKey, fieldData);
-
-//        if (StringUtils.isEmpty(fieldData)) {
-//            return true;
-//        }
-//        Matcher matcher = ValidatorCommons.PATTERN_ABSOLUTE_PATH.matcher(fieldData);
-//        if (!matcher.matches()) {
-//            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR);
-//            return false;
-//        }
-//        return true;
+                , rule(ValidatorCommons.PATTERN_ABSOLUTE_PATH
+                        , ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR), fieldKey, fieldData);
     }),
     none_blank((msgHandler, context, fieldKey, fieldData) -> {
         return validatePattern(msgHandler, context

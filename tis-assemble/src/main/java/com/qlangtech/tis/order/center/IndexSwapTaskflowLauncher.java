@@ -17,8 +17,6 @@
  */
 package com.qlangtech.tis.order.center;
 
-//import com.qlangtech.tis.TisZkClient;
-
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.exec.AbstractActionInvocation;
@@ -30,8 +28,6 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.flume.FlumeApplication;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.*;
-import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.manage.common.SendSMSUtils;
 import com.qlangtech.tis.realtime.transfer.IOnsListenerStatus;
 import com.qlangtech.tis.rpc.server.FullBuildStatCollectorServer;
 import com.qlangtech.tis.rpc.server.IncrStatusServer;
@@ -136,11 +132,11 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     // @Override
     public void afterPropertiesSet() throws Exception {
 
-       // try {
-            // this.setZkClient(new TisZkClient(Config.getZKHost(), 60000));
-            // return
+        // try {
+        // this.setZkClient(new TisZkClient(Config.getZKHost(), 60000));
+        // return
 
-            this.setZkClient(ITISCoordinator.create());
+        this.setZkClient(ITISCoordinator.create());
 //        } catch (Exception e) {
 //          //  throw new RuntimeException("ZKHost:" + Config.getZKHost(), e);
 //        }

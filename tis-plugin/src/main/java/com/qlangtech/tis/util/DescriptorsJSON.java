@@ -45,6 +45,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
     public static final String KEY_EXTEND_POINT = "extendPoint";
     public static final String KEY_IMPL = "impl";
     public static final String KEY_IMPL_URL = "implUrl";
+    public static final String KEY_ADVANCE =  "advance";
 
     private final List<Descriptor<T>> descriptors;
 
@@ -159,7 +160,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                 // 是否是高级组
                 if (val.advance()) {
                     containAdvanceField = true;
-                    attrVal.put("advance", true);
+                    attrVal.put(DescriptorsJSON.KEY_ADVANCE, true);
                 }
                 extraProps = val.getExtraProps();
                 if (extraProps != null) {
