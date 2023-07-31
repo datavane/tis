@@ -48,7 +48,7 @@ public class KerberosCfg extends ParamsConfig implements IKerberos {
 
     @Override
     public String getPrincipal() {
-       throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -76,7 +76,7 @@ public class KerberosCfg extends ParamsConfig implements IKerberos {
     public static class DefaultDescriptor extends Descriptor<ParamsConfig> {
         @Override
         public String getDisplayName() {
-            return IKerberos.IDENTITY;
+            return "test-" + IKerberos.IDENTITY;
         }
     }
 

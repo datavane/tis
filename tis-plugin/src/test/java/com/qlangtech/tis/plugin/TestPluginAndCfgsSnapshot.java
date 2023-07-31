@@ -49,7 +49,7 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
     }
 
     public void testCreateFlinkIncrJobManifestCfgAttrs() throws Exception {
-        String appName = "mysql_clickhouse4";
+        String appName = "mysql_doris2";
         DataxReader dataxReader = DataxReader.load(null, appName);
         Assert.assertNotNull(dataxReader.getSelectedTabs());
 

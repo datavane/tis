@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.plugin;
 
@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.util.PluginMeta;
-import com.qlangtech.tis.util.RobustReflectionConverter;
 import com.qlangtech.tis.util.RobustReflectionConverter2;
 import com.qlangtech.tis.util.XStream2PluginInfoReader;
 import org.slf4j.Logger;
@@ -51,6 +50,11 @@ public class ComponentMeta {
      * @return
      */
     public static Map<String, Long> getGlobalPluginStoreLastModifyTimestamp(ComponentMeta meta) {
+
+//        meta.resources.forEach((res) -> {
+//            System.out.println(res.getTargetFile().relativePath + "->" + res.getWriteLastModifyTimeStamp());
+//        });
+
         return meta.resources.stream().collect(Collectors.toMap((r) -> {
             return r.getTargetFile().relativePath;
         }, (r) -> {
@@ -103,21 +107,35 @@ public class ComponentMeta {
 
     public static Set<PluginMeta> loadPluginMeta(Callable<List<File>> xstreamFilesProvider) {
 
-        try {
-            synchronized (RobustReflectionConverter2.usedPluginInfo) {
-                RobustReflectionConverter2.usedPluginInfo.remove();
+        return RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
+            try {
                 XStream2PluginInfoReader reader = new XStream2PluginInfoReader(XmlFile.DEFAULT_DRIVER);
 
                 List<File> cfgs = xstreamFilesProvider.call();
                 for (File targetFile : cfgs) {
                     XmlFile xmlFile = new XmlFile(reader, targetFile);
-                    xmlFile.read();
+                    xmlFile.unmarshal(null, new XmlFile.DefaultDataHolder(metas, xmlFile));
                 }
-                return RobustReflectionConverter2.usedPluginInfo.get().getMetas();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        }).getMetas();
+
+//        try {
+//            synchronized (RobustReflectionConverter2.usedPluginInfo) {
+//                RobustReflectionConverter2.usedPluginInfo.remove();
+//                XStream2PluginInfoReader reader = new XStream2PluginInfoReader(XmlFile.DEFAULT_DRIVER);
+//
+//                List<File> cfgs = xstreamFilesProvider.call();
+//                for (File targetFile : cfgs) {
+//                    XmlFile xmlFile = new XmlFile(reader, targetFile);
+//                    xmlFile.read();
+//                }
+//                return RobustReflectionConverter2.usedPluginInfo.get().getMetas();
+//            }
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
 
     }
 

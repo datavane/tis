@@ -57,8 +57,6 @@ public class MergeData implements IStreamIncrGenerateStrategy.IStreamTemplateDat
      */
             globalScripts = Maps.newHashMap();
 
-    // private static final Pattern PATTERN_COLLECTION_NAME = Pattern.compile("(search4)([^\\s]+)");
-
 
     /**
      * @param collection

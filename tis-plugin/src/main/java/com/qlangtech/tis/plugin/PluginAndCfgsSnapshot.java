@@ -35,7 +35,10 @@ import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.realtime.utils.NetUtils;
-import com.qlangtech.tis.util.*;
+import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.PluginMeta;
+import com.qlangtech.tis.util.RobustReflectionConverter2;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.web.start.TisSubModule;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -216,7 +219,7 @@ public class PluginAndCfgsSnapshot {
     public static Manifest createFlinkIncrJobManifestCfgAttrs(TargetResName collection, long timestamp) throws Exception {
         // Manifest manifest = null;
         RobustReflectionConverter2.PluginMetas pluginMetas
-                = RobustReflectionConverter2.PluginMetas.collectMetas(() -> {
+                = RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
             MQListenerFactory sourceFactory = HeteroEnum.getIncrSourceListenerFactory(collection.getName());
             sourceFactory.create();
 

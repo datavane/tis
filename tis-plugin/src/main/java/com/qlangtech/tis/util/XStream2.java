@@ -74,7 +74,7 @@ public class XStream2 extends XStream {
     @Override
     protected void setupConverters() {
         RobustReflectionConverter reflectionConverter
-                = new RobustReflectionConverter(getMapper(), createReflectionProvider(), new PluginClassOwnership());
+                = new RobustReflectionConverter(getMapper(), createReflectionProvider());
         this.registerConverter(reflectionConverter, PRIORITY_VERY_LOW);
 
 
@@ -239,6 +239,7 @@ public class XStream2 extends XStream {
                     converter.marshal(source, writer, context);
                 }
             });
+            super.marshal(source, writer, context);
         }
 
         @Override
@@ -251,9 +252,10 @@ public class XStream2 extends XStream {
             Object fresult = super.doUnmarshal(result, reader, context);
             converters.forEach((converter) -> {
                 if (converter.canConvert(result.getClass())) {
-                    converter.doUnmarshal(fresult, reader, context);
+                    converter.doUnmarshal(result, null, context);
                 }
             });
+
             return fresult;
         }
 

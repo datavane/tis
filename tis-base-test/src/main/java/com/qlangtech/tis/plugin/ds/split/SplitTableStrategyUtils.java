@@ -15,27 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.qlangtech.tis.plugin;
 
-import com.qlangtech.tis.extension.Describable;
+package com.qlangtech.tis.plugin.ds.split;
+
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.plugin.ds.SplitTableStrategy;
+import org.junit.Assert;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @create: 2020-05-03 11:30
- */
-public class TestPlugin implements Describable<TestPlugin> {
-
-    public String prop1;
-
-    public String prop2;
-
-
-    @TISExtension
-    public static class DefaultImpl extends Descriptor<TestPlugin> {
-
-        public DefaultImpl() {
-        }
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2023-07-31 18:18
+ **/
+public class SplitTableStrategyUtils {
+    public static SplitTableStrategy createSplitTableStrategy() {
+        Descriptor.FormData strategy = new Descriptor.FormData();
+        strategy.addProp("tabPattern", SplitTableStrategy.PATTERN_PHYSICS_TABLE.toString());
+        Descriptor strategyDesc = TIS.get().getDescriptor("com.qlangtech.tis.plugin.ds.split.DefaultSplitTableStrategy");
+        Assert.assertNotNull("kuserTokenDesc can not be null", strategyDesc);
+        return (SplitTableStrategy) strategyDesc.newInstance("test", strategy).getInstance();
     }
 }

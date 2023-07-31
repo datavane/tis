@@ -38,6 +38,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -79,11 +80,11 @@ public class RobustReflectionConverter2 implements XStream2.ConverterValve {
         // 可以从pluginStore中取数据
         private boolean cacheable = true;
 
-        public static PluginMetas collectMetas(Runnable supplier) {
+        public static PluginMetas collectMetas(Consumer<Set<PluginMeta>> supplier) {
             RobustReflectionConverter2.PluginMetas pluginMetas = null;
             try {
                 pluginMetas = RobustReflectionConverter2.getUnCacheableThreadMetas();
-                supplier.run();
+                supplier.accept(pluginMetas.getMetas());
                 return pluginMetas;
                 //  RobustReflectionConverter.usedPluginInfo.get();
             } finally {
@@ -214,7 +215,7 @@ public class RobustReflectionConverter2 implements XStream2.ConverterValve {
         }
         oc.startVisiting(writer, owners);
         try {
-            doMarshal(source, writer, context);
+          //  doMarshal(source, writer, context);
         } finally {
             oc.stopVisiting();
         }
@@ -268,84 +269,84 @@ public class RobustReflectionConverter2 implements XStream2.ConverterValve {
         }
     }
 
-    protected void doMarshal(final Object source, final HierarchicalStreamWriter writer, final MarshallingContext context) {
-        final Set seenFields = new HashSet();
-        final Set seenAsAttributes = new HashSet();
-        // Attributes might be preferred to child elements ...
-        reflectionProvider.visitSerializableFields(source, new ReflectionProvider.Visitor() {
+//    protected void doMarshal(final Object source, final HierarchicalStreamWriter writer, final MarshallingContext context) {
+//        final Set seenFields = new HashSet();
+//        final Set seenAsAttributes = new HashSet();
+//        // Attributes might be preferred to child elements ...
+//        reflectionProvider.visitSerializableFields(source, new ReflectionProvider.Visitor() {
+//
+//            public void visit(String fieldName, Class type, Class definedIn, Object value) {
+//                SingleValueConverter converter = mapper.getConverterFromItemType(fieldName, type, definedIn);
+//                if (converter == null)
+//                    converter = mapper.getConverterFromItemType(fieldName, type);
+//                if (converter == null)
+//                    converter = mapper.getConverterFromItemType(type);
+//                if (converter != null) {
+//                    if (value != null) {
+//                        final String str = converter.toString(value);
+//                        if (str != null) {
+//                            writer.addAttribute(mapper.aliasForAttribute(fieldName), str);
+//                        }
+//                    }
+//                    seenAsAttributes.add(fieldName);
+//                }
+//            }
+//        });
+//        // Child elements not covered already processed as attributes ...
+//        reflectionProvider.visitSerializableFields(source, new ReflectionProvider.Visitor() {
+//
+//            public void visit(String fieldName, Class fieldType, Class definedIn, Object newObj) {
+//                if (!seenAsAttributes.contains(fieldName) && newObj != null) {
+//                    Mapper.ImplicitCollectionMapping mapping = mapper.getImplicitCollectionDefForFieldName(source.getClass(), fieldName);
+//                    if (mapping != null) {
+//                        if (mapping.getItemFieldName() != null) {
+//                            Collection list = (Collection) newObj;
+//                            for (Iterator iter = list.iterator(); iter.hasNext(); ) {
+//                                Object obj = iter.next();
+//                                writeField(fieldName, mapping.getItemFieldName(), mapping.getItemType(), definedIn, obj);
+//                            }
+//                        } else {
+//                            context.convertAnother(newObj);
+//                        }
+//                    } else {
+//                        writeField(fieldName, fieldName, fieldType, definedIn, newObj);
+//                        seenFields.add(fieldName);
+//                    }
+//                }
+//            }
+//
+//            private void writeField(String fieldName, String aliasName, Class fieldType, Class definedIn, Object newObj) {
+//                try {
+//                    if (!mapper.shouldSerializeMember(definedIn, aliasName)) {
+//                        return;
+//                    }
+//                    ExtendedHierarchicalStreamWriterHelper.startNode(writer, mapper.serializedMember(definedIn, aliasName), fieldType);
+//                    Class actualType = newObj.getClass();
+//                    Class defaultType = mapper.defaultImplementationOf(fieldType);
+//                    if (!actualType.equals(defaultType)) {
+//                        String serializedClassName = mapper.serializedClass(actualType);
+//                        if (!serializedClassName.equals(mapper.serializedClass(defaultType))) {
+//                            writer.addAttribute(mapper.aliasForSystemAttribute("class"), serializedClassName);
+//                        }
+//                    }
+//                    if (seenFields.contains(aliasName)) {
+//                        writer.addAttribute(mapper.aliasForAttribute("defined-in"), mapper.serializedClass(definedIn));
+//                    }
+//                    Field field = reflectionProvider.getField(definedIn, fieldName);
+//                    marshallField(context, newObj, field);
+//                    writer.endNode();
+//                } catch (RuntimeException e) {
+//                    // intercept an exception so that the stack trace shows how we end up marshalling the object in question
+//                    throw new RuntimeException("Failed to serialize " + definedIn.getName() + "#" + fieldName + " for " + source.getClass(), e);
+//                }
+//            }
+//        });
+//    }
 
-            public void visit(String fieldName, Class type, Class definedIn, Object value) {
-                SingleValueConverter converter = mapper.getConverterFromItemType(fieldName, type, definedIn);
-                if (converter == null)
-                    converter = mapper.getConverterFromItemType(fieldName, type);
-                if (converter == null)
-                    converter = mapper.getConverterFromItemType(type);
-                if (converter != null) {
-                    if (value != null) {
-                        final String str = converter.toString(value);
-                        if (str != null) {
-                            writer.addAttribute(mapper.aliasForAttribute(fieldName), str);
-                        }
-                    }
-                    seenAsAttributes.add(fieldName);
-                }
-            }
-        });
-        // Child elements not covered already processed as attributes ...
-        reflectionProvider.visitSerializableFields(source, new ReflectionProvider.Visitor() {
-
-            public void visit(String fieldName, Class fieldType, Class definedIn, Object newObj) {
-                if (!seenAsAttributes.contains(fieldName) && newObj != null) {
-                    Mapper.ImplicitCollectionMapping mapping = mapper.getImplicitCollectionDefForFieldName(source.getClass(), fieldName);
-                    if (mapping != null) {
-                        if (mapping.getItemFieldName() != null) {
-                            Collection list = (Collection) newObj;
-                            for (Iterator iter = list.iterator(); iter.hasNext(); ) {
-                                Object obj = iter.next();
-                                writeField(fieldName, mapping.getItemFieldName(), mapping.getItemType(), definedIn, obj);
-                            }
-                        } else {
-                            context.convertAnother(newObj);
-                        }
-                    } else {
-                        writeField(fieldName, fieldName, fieldType, definedIn, newObj);
-                        seenFields.add(fieldName);
-                    }
-                }
-            }
-
-            private void writeField(String fieldName, String aliasName, Class fieldType, Class definedIn, Object newObj) {
-                try {
-                    if (!mapper.shouldSerializeMember(definedIn, aliasName)) {
-                        return;
-                    }
-                    ExtendedHierarchicalStreamWriterHelper.startNode(writer, mapper.serializedMember(definedIn, aliasName), fieldType);
-                    Class actualType = newObj.getClass();
-                    Class defaultType = mapper.defaultImplementationOf(fieldType);
-                    if (!actualType.equals(defaultType)) {
-                        String serializedClassName = mapper.serializedClass(actualType);
-                        if (!serializedClassName.equals(mapper.serializedClass(defaultType))) {
-                            writer.addAttribute(mapper.aliasForSystemAttribute("class"), serializedClassName);
-                        }
-                    }
-                    if (seenFields.contains(aliasName)) {
-                        writer.addAttribute(mapper.aliasForAttribute("defined-in"), mapper.serializedClass(definedIn));
-                    }
-                    Field field = reflectionProvider.getField(definedIn, fieldName);
-                    marshallField(context, newObj, field);
-                    writer.endNode();
-                } catch (RuntimeException e) {
-                    // intercept an exception so that the stack trace shows how we end up marshalling the object in question
-                    throw new RuntimeException("Failed to serialize " + definedIn.getName() + "#" + fieldName + " for " + source.getClass(), e);
-                }
-            }
-        });
-    }
-
-    protected void marshallField(final MarshallingContext context, Object newObj, Field field) {
-        Converter converter = mapper.getLocalConverter(field.getDeclaringClass(), field.getName());
-        context.convertAnother(newObj, converter);
-    }
+//    protected void marshallField(final MarshallingContext context, Object newObj, Field field) {
+//        Converter converter = mapper.getLocalConverter(field.getDeclaringClass(), field.getName());
+//        context.convertAnother(newObj, converter);
+//    }
 
 //    @Override
 //    public Object unmarshal(final HierarchicalStreamReader reader, final UnmarshallingContext context) {
@@ -354,15 +355,15 @@ public class RobustReflectionConverter2 implements XStream2.ConverterValve {
 //        return serializationMethodInvoker.callReadResolve(result);
 //    }
 
+
     @Override
-    public void doUnmarshal(final Object result, final HierarchicalStreamReader reader, final UnmarshallingContext context) {
-        final SeenFields seenFields = new SeenFields();
+    public void beforeUnmarshal(Object result, HierarchicalStreamReader reader, UnmarshallingContext context) {
         Iterator it = reader.getAttributeNames();
         // Process attributes before recursing into child elements.
         while (it.hasNext()) {
             String attrAlias = (String) it.next();
             String attrName = mapper.attributeForAlias(attrAlias);
-            Class classDefiningField = determineWhichClassDefinesField(reader);
+            //Class classDefiningField = determineWhichClassDefinesField(reader);
             boolean fieldExistsInClass = fieldDefinedInClass(result, attrName);
             // baisui add for get plugin name&ver 2020/4/2 start
             if (KEY_ATT_PLUGIN.equals(attrAlias) && !fieldExistsInClass) {
@@ -375,82 +376,106 @@ public class RobustReflectionConverter2 implements XStream2.ConverterValve {
                 // }
                 // usedPluginInfo.get().addAll(metas);
             }
-            // baisui add for get plugin name&ver 2020/4/2 end
-            if (fieldExistsInClass) {
-                Field field = reflectionProvider.getField(result.getClass(), attrName);
-                SingleValueConverter converter = mapper.getConverterFromAttribute(field.getDeclaringClass(), attrName, field.getType());
-                Class type = field.getType();
-                if (converter == null) {
-                    converter = mapper.getConverterFromItemType(type);
-                }
-                if (converter != null) {
-                    Object value = converter.fromString(reader.getAttribute(attrAlias));
-                    if (type.isPrimitive()) {
-                        type = Primitives.box(type);
-                    }
-                    if (value != null && !type.isAssignableFrom(value.getClass())) {
-                        throw new ConversionException("Cannot convert type " + value.getClass().getName() + " to type " + type.getName());
-                    }
-                    reflectionProvider.writeField(result, attrName, value, classDefiningField);
-                    seenFields.add(classDefiningField, attrName);
-                }
-            }
         }
-        Map implicitCollectionsForCurrentObject = null;
-        while (reader.hasMoreChildren()) {
-            reader.moveDown();
-            boolean critical = false;
-            try {
-                String fieldName = mapper.realMember(result.getClass(), reader.getNodeName());
-                for (Class<?> concrete = result.getClass(); concrete != null; concrete = concrete.getSuperclass()) {
-                    // Not quite right since a subclass could shadow a field, but probably suffices:
-                    if (hasCriticalField(concrete, fieldName)) {
-                        critical = true;
-                        break;
-                    }
-                }
-                boolean implicitCollectionHasSameName = mapper.getImplicitCollectionDefForFieldName(result.getClass(), reader.getNodeName()) != null;
-                Class classDefiningField = determineWhichClassDefinesField(reader);
-                boolean fieldExistsInClass = !implicitCollectionHasSameName && fieldDefinedInClass(result, fieldName);
-                Class type = determineType(reader, fieldExistsInClass, result, fieldName, classDefiningField);
-                final Object value;
-                if (fieldExistsInClass) {
-                    Field field = reflectionProvider.getField(result.getClass(), fieldName);
-                    value = unmarshalField(context, result, type, field);
-                    // TODO the reflection provider should have returned the proper field in first place ....
-                    Class definedType = reflectionProvider.getFieldType(result, fieldName, classDefiningField);
-                    if (!definedType.isPrimitive()) {
-                        type = definedType;
-                    }
-                } else {
-                    value = context.convertAnother(result, type);
-                }
-                if (value != null && !type.isAssignableFrom(value.getClass())) {
-                    LOGGER.warn("Cannot convert type " + value.getClass().getName() + " to type " + type.getName());
-                    // behave as if we didn't see this element
-                } else {
-                    if (fieldExistsInClass) {
-                        reflectionProvider.writeField(result, fieldName, value, classDefiningField);
-                        seenFields.add(classDefiningField, fieldName);
-                    } else {
-                        implicitCollectionsForCurrentObject = writeValueToImplicitCollection(context, value, implicitCollectionsForCurrentObject, result, fieldName);
-                    }
-                }
-            } catch (CriticalXStreamException e) {
-                throw e;
-            } catch (XStreamException e) {
-                if (critical) {
-                    throw new CriticalXStreamException(e);
-                }
-                addErrorInContext(context, e);
-            } catch (LinkageError e) {
-                if (critical) {
-                    throw e;
-                }
-                addErrorInContext(context, e);
-            }
-            reader.moveUp();
-        }
+    }
+
+    @Override
+    public void doUnmarshal(final Object result, final HierarchicalStreamReader reader, final UnmarshallingContext context) {
+//        final SeenFields seenFields = new SeenFields();
+//        Iterator it = reader.getAttributeNames();
+//        // Process attributes before recursing into child elements.
+//        while (it.hasNext()) {
+//            String attrAlias = (String) it.next();
+//            String attrName = mapper.attributeForAlias(attrAlias);
+//            Class classDefiningField = determineWhichClassDefinesField(reader);
+//            boolean fieldExistsInClass = fieldDefinedInClass(result, attrName);
+//            // baisui add for get plugin name&ver 2020/4/2 start
+//            if (KEY_ATT_PLUGIN.equals(attrAlias) && !fieldExistsInClass) {
+//                List<PluginMeta> metas = PluginMeta.parse(reader.getAttribute(attrAlias));
+//                Set<PluginMeta> metasCollector = (Set<PluginMeta>) context.get(PluginMeta.class);
+//                // if (context instanceof XmlFile.DefaultDataHolder) {
+//                if (metasCollector != null) {
+//                    metasCollector.addAll(metas);
+//                }
+//                // }
+//                // usedPluginInfo.get().addAll(metas);
+//            }
+//            // baisui add for get plugin name&ver 2020/4/2 end
+//            if (fieldExistsInClass) {
+//                Field field = reflectionProvider.getField(result.getClass(), attrName);
+//                SingleValueConverter converter = mapper.getConverterFromAttribute(field.getDeclaringClass(), attrName, field.getType());
+//                Class type = field.getType();
+//                if (converter == null) {
+//                    converter = mapper.getConverterFromItemType(type);
+//                }
+//                if (converter != null) {
+//                    Object value = converter.fromString(reader.getAttribute(attrAlias));
+//                    if (type.isPrimitive()) {
+//                        type = Primitives.box(type);
+//                    }
+//                    if (value != null && !type.isAssignableFrom(value.getClass())) {
+//                        throw new ConversionException("Cannot convert type " + value.getClass().getName() + " to type " + type.getName());
+//                    }
+//                    reflectionProvider.writeField(result, attrName, value, classDefiningField);
+//                    seenFields.add(classDefiningField, attrName);
+//                }
+//            }
+//        }
+//        Map implicitCollectionsForCurrentObject = null;
+//        while (reader.hasMoreChildren()) {
+//            reader.moveDown();
+//            boolean critical = false;
+//            try {
+//                String fieldName = mapper.realMember(result.getClass(), reader.getNodeName());
+//                for (Class<?> concrete = result.getClass(); concrete != null; concrete = concrete.getSuperclass()) {
+//                    // Not quite right since a subclass could shadow a field, but probably suffices:
+//                    if (hasCriticalField(concrete, fieldName)) {
+//                        critical = true;
+//                        break;
+//                    }
+//                }
+//                boolean implicitCollectionHasSameName = mapper.getImplicitCollectionDefForFieldName(result.getClass(), reader.getNodeName()) != null;
+//                Class classDefiningField = determineWhichClassDefinesField(reader);
+//                boolean fieldExistsInClass = !implicitCollectionHasSameName && fieldDefinedInClass(result, fieldName);
+//                Class type = determineType(reader, fieldExistsInClass, result, fieldName, classDefiningField);
+//                final Object value;
+//                if (fieldExistsInClass) {
+//                    Field field = reflectionProvider.getField(result.getClass(), fieldName);
+//                    value = unmarshalField(context, result, type, field);
+//                    // TODO the reflection provider should have returned the proper field in first place ....
+//                    Class definedType = reflectionProvider.getFieldType(result, fieldName, classDefiningField);
+//                    if (!definedType.isPrimitive()) {
+//                        type = definedType;
+//                    }
+//                } else {
+//                    value = context.convertAnother(result, type);
+//                }
+//                if (value != null && !type.isAssignableFrom(value.getClass())) {
+//                    LOGGER.warn("Cannot convert type " + value.getClass().getName() + " to type " + type.getName());
+//                    // behave as if we didn't see this element
+//                } else {
+//                    if (fieldExistsInClass) {
+//                        reflectionProvider.writeField(result, fieldName, value, classDefiningField);
+//                        seenFields.add(classDefiningField, fieldName);
+//                    } else {
+//                        implicitCollectionsForCurrentObject = writeValueToImplicitCollection(context, value, implicitCollectionsForCurrentObject, result, fieldName);
+//                    }
+//                }
+//            } catch (CriticalXStreamException e) {
+//                throw e;
+//            } catch (XStreamException e) {
+//                if (critical) {
+//                    throw new CriticalXStreamException(e);
+//                }
+//                addErrorInContext(context, e);
+//            } catch (LinkageError e) {
+//                if (critical) {
+//                    throw e;
+//                }
+//                addErrorInContext(context, e);
+//            }
+//            reader.moveUp();
+//        }
         // Report any class/field errors in Saveable objects
         if (context.get("ReadError") != null && context.get("Saveable") == result) {
             // OldDataMonitor.report((Saveable)result, (ArrayList<Throwable>)context.get("ReadError"));
@@ -501,11 +526,11 @@ public class RobustReflectionConverter2 implements XStream2.ConverterValve {
         }
         return implicitCollections;
     }
-
-    private Class determineWhichClassDefinesField(HierarchicalStreamReader reader) {
-        String definedIn = reader.getAttribute(mapper.aliasForAttribute("defined-in"));
-        return definedIn == null ? null : mapper.realClass(definedIn);
-    }
+//
+//    private Class determineWhichClassDefinesField(HierarchicalStreamReader reader) {
+//        String definedIn = reader.getAttribute(mapper.aliasForAttribute("defined-in"));
+//        return definedIn == null ? null : mapper.realClass(definedIn);
+//    }
 
     protected Object instantiateNewInstance(HierarchicalStreamReader reader, UnmarshallingContext context) {
         String readResolveValue = reader.getAttribute(mapper.aliasForAttribute("resolves-to"));

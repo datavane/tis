@@ -200,7 +200,7 @@ public abstract class DataXJobSubmit {
         if (this.getType() == InstanceType.DISTRIBUTE) {
             //TODO: 获取DataXProcess 相关元数据 用于远程分布式执行任务
             RobustReflectionConverter2.PluginMetas pluginMetas
-                    = RobustReflectionConverter2.PluginMetas.collectMetas(() -> {
+                    = RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
 
             });
         }
