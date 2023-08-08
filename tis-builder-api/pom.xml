@@ -39,6 +39,12 @@
     <dependencies>
 
         <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-config</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>

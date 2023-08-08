@@ -57,6 +57,7 @@ import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.struts2.convention.annotation.InterceptorRef;
@@ -754,8 +755,7 @@ public class PluginAction extends BasicModule {
   public void doGetPluginConfigInfo(Context context) throws Exception {
 
     HeteroList<?> hetero = null;
-
-
+  //  List<HeteroList<?>> heteros = Lists.newArrayList();
     List<UploadPluginMeta> plugins = getPluginMeta();
 
     if (plugins == null || plugins.size() < 1) {
@@ -774,8 +774,26 @@ public class PluginAction extends BasicModule {
           }
         });
       }
-      hlist.add(hetero.toJSON());
+      //heteros.add(hetero);
+       hlist.add(hetero.toJSON());
     }
+
+//    Map<Class<?>, HeteroList<?>> extendHeteroList = new HashMap<>();
+//    // 需要将有相同extendpoint 的HeteroList 合并一下，不然保存的时候会有问题
+//    for (HeteroList<?> h : heteros) {
+//      hetero = extendHeteroList.get(h.getExtensionPoint());
+//      if (hetero == null) {
+//        extendHeteroList.put(h.getExtensionPoint(), h);
+//      } else {
+//        hetero.setItems(ListUtils.union(hetero.getItems(), h.getItems()));
+//        hetero.setDescriptors(ListUtils.union(hetero.getDescriptors(), h.getDescriptors()));
+//      }
+//    }
+
+//    for (HeteroList<?> h : extendHeteroList.values()) {
+//      hlist.add(h.toJSON());
+//    }
+
     pluginDetail.put("plugins", hlist);
     this.setBizResult(context, pluginDetail);
   }

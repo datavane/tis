@@ -63,6 +63,14 @@ public interface IRCController {
 
     SupportTriggerSavePointResult supportTriggerSavePoint(TargetResName collection);
 
+    /**
+     * 从历史Checkpoint中恢复
+     *
+     * @param resName
+     * @param checkpointId
+     */
+    void restoreFromCheckpoint(TargetResName resName, Integer checkpointId);
+
     public class SupportTriggerSavePointResult {
         public final boolean support;
         String unSupportReason;

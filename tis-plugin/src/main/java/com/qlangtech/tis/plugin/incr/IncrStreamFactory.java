@@ -24,6 +24,9 @@ import com.qlangtech.tis.coredefine.module.action.IRCController;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.order.center.IParamContext;
+
+import java.util.Optional;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -33,6 +36,14 @@ import com.qlangtech.tis.extension.Descriptor;
 public abstract class IncrStreamFactory implements Describable<IncrStreamFactory> {
 
     public abstract IRCController getIncrSync();
+
+    /**
+     * 增量任务是否可恢复？例如，Flink重启之后，可以利用savepoint或者checkpoint恢复job
+     *
+     * @return
+     */
+    public abstract Optional<ISavePointSupport> restorable();
+
     /**
      * 缺的当前执行任务的状态
      *
@@ -46,5 +57,20 @@ public abstract class IncrStreamFactory implements Describable<IncrStreamFactory
     @Override
     public final Descriptor<IncrStreamFactory> getDescriptor() {
         return TIS.get().getDescriptor(this.getClass());
+    }
+
+
+    /**
+     * 支持Flink应用Savepoint功能
+     */
+    public interface ISavePointSupport {
+
+        public boolean supportSavePoint();
+
+        public String getSavePointRootPath();
+
+        public default String createSavePointPath() {
+            return getSavePointRootPath() + "/" + IFlinkIncrJobStatus.KEY_SAVEPOINT_DIR_PREFIX + IParamContext.getCurrentMillisecTimeStamp();
+        }
     }
 }

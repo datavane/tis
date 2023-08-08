@@ -25,9 +25,8 @@ import org.slf4j.MDC;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-11-27 11:12
  **/
-public interface JobCommon {
-    String KEY_TASK_ID = "taskid";
-    String KEY_COLLECTION = "app";
+public interface JobCommon extends JobParams {
+
 
     public static void setMDC(IPipelineExecContext pec) {
         MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(pec.getTaskId()));

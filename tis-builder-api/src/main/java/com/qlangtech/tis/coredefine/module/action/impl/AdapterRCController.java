@@ -35,6 +35,11 @@ public class AdapterRCController implements IRCController {
     }
 
     @Override
+    public void restoreFromCheckpoint(TargetResName resName, Integer checkpointId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public SupportTriggerSavePointResult supportTriggerSavePoint(TargetResName collection) {
         throw new UnsupportedOperationException();
     }

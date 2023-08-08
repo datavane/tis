@@ -18,6 +18,7 @@
 package com.qlangtech.tis.manage.common;
 
 
+import com.qlangtech.tis.config.BasicConfig;
 import com.qlangtech.tis.org.apache.commons.io.FileUtils;
 import com.qlangtech.tis.utils.TisMetaProps;
 import com.qlangtech.tis.web.start.TisAppLaunch;
@@ -37,7 +38,7 @@ import java.util.function.Consumer;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class Config {
+public class Config extends BasicConfig {
     public static final String KEY_ENV_TIS_HOME = "TIS_HOME";
     public static final String SYSTEM_KEY_LOGBACK_PATH_KEY = "logback.configurationFile";
     public static final String SYSTEM_KEY_LOGBACK_PATH_VALUE = "logback-datax.xml";
@@ -125,7 +126,6 @@ public class Config {
 
     private static final String GENERATE_PARENT_PACKAGE = QLANGTECH_PACKAGE + ".tis.realtime.transfer";
 
-    public static final int LogFlumeAddressPORT = 41414;
 
     public static final String DEFAULT_DATA_DIR = "/opt/data/tis";
 
@@ -265,7 +265,7 @@ public class Config {
     private File dataDir;
 
 
-    // 组装节点
+    //    // 组装节点
     private final String assembleHost;
 
     private final TisDbConfig dbCfg;
@@ -283,7 +283,8 @@ public class Config {
         P p = P.create();
 
         // this.zkHost = p.getString(KEY_ZK_HOST, true);
-        this.assembleHost = p.getString(KEY_ASSEMBLE_HOST, true);
+        //  = p.getString(KEY_ASSEMBLE_HOST, true);
+        this.assembleHost = (p.getString(KEY_ASSEMBLE_HOST, true));
         this.tisHost = p.getString(KEY_TIS_HOST, true);
         this.runtime = p.getString(KEY_RUNTIME, true);
 
@@ -314,6 +315,22 @@ public class Config {
         }
     }
 
+    public static class ConfigExport extends BasicConfig {
+        @Override
+        protected String getAsbHost() {
+            return Config.getInstance().assembleHost;
+        }
+
+        @Override
+        public Map<String, String> getAllKV() {
+            return Config.getInstance().getAllKV();
+        }
+    }
+
+    @Override
+    protected String getAsbHost() {
+        return this.assembleHost;
+    }
 
     public String getRuntime() {
         return this.runtime;
@@ -339,9 +356,9 @@ public class Config {
         return getInstance().tisHost;
     }
 
-    public static String getAssembleHost() {
-        return getInstance().assembleHost;
-    }
+//    public static String getAssembleHost() {
+//        return getInstance().assembleHost;
+//    }
 
     public static String getAssembleHttpHost() {
         return "http://" + getAssembleHost()

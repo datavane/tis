@@ -194,6 +194,15 @@ public class CoreAction extends BasicModule {
     waittingiIntendedStatus(context, IFlinkIncrJobStatus.State.RUNNING);
   }
 
+  @Func(value = PermissionConstant.APP_REBUILD)
+  public void doRestoreFromCheckpoint(Context context) throws Exception {
+    Integer checkpointId = this.getInt("checkpointId");
+
+    IRCController incrSync = getRCController();
+    incrSync.restoreFromCheckpoint(new TargetResName(this.getCollectionName()), checkpointId);
+    waittingiIntendedStatus(context, IFlinkIncrJobStatus.State.RUNNING);
+  }
+
   /**
    * 终止正在执行的任务
    *
@@ -280,12 +289,14 @@ public class CoreAction extends BasicModule {
     IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
     IPluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
+    IncrStreamFactory incrStreamFactory = null;
     // IncrStreamFactory incrStream = null;
-    if ((store.getPlugin()) == null) {
+    if ((incrStreamFactory = store.getPlugin()) == null) {
       incrStatus.setK8sPluginInitialized(false);
       return incrStatus;
     }
-
+    // 可以基于checkpoint恢复任务的前提是，需要开启checkpoint，并且使用了持久化statebackend
+    incrStatus.setRestorableByCheckpoint(incrStreamFactory.restorable().isPresent());
     incrStatus.setK8sPluginInitialized(true);
     IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module);
     StreamCodeContext streamCodeContext

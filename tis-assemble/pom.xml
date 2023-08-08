@@ -182,7 +182,7 @@
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-logback-flume-server</artifactId>
             <classifier>shaded</classifier>
-            <version>${project.version}</version>
+            <version>${tis-logback-flume.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>

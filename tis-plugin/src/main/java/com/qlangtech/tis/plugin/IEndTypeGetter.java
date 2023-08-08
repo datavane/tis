@@ -49,8 +49,10 @@ public interface IEndTypeGetter {
     enum EndType {
         Greenplum("greenplum"), MySQL("mysql"), Postgres("pg"), Oracle("oracle") //
         , ElasticSearch("es"), MongoDB("mongoDB"), StarRocks("starRocks"), Doris("doris") //
-        , Clickhouse("clickhouse"), Hudi("hudi"), AliyunOSS("aliyunOSS"), FTP("ftp") //
-        , Cassandra("cassandra"), HDFS("hdfs"), SqlServer("sqlServer"), TiDB("TiDB") //
+        , Clickhouse("clickhouse"), Hudi("hudi") //, AliyunOSS("aliyunOSS")
+        , TDFS("t-dfs") //
+        , Cassandra("cassandra") //, HDFS("hdfs")
+        , SqlServer("sqlServer"), TiDB("TiDB") //
         , RocketMQ("rocketMq"), Kafka("kafka"), DataFlow("dataflow") //
         , AliyunODPS("aliyunOdps"), HiveMetaStore("hms"), RabbitMQ("rabbitmq");
         private final String val;

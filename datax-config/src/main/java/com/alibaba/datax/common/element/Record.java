@@ -16,30 +16,27 @@
  *   limitations under the License.
  */
 
-package com.qlangtech.tis;
+package com.alibaba.datax.common.element;
 
-import com.qlangtech.tis.manage.common.TestConfig;
-import com.qlangtech.tis.utils.TestTisMetaProps;
-import com.qlangtech.tis.utils.TestUtils;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
+import com.alibaba.datax.common.element.Column;
 /**
- * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-09-18 17:32
- **/
+ * Created by jingxing on 14-8-24.
+ */
 
+public interface Record {
 
-public class TestAll extends TestCase {
+	public void addColumn(Column column);
 
-    public static Test suite() {
+	public void setColumn(int i, final Column column);
 
-        TestSuite suite = new TestSuite();
-        suite.addTestSuite(TestConfig.class);
-        suite.addTestSuite(TestUtils.class);
-        suite.addTestSuite(TestTisMetaProps.class);
+	public Column getColumn(int i);
 
-        return suite;
-    }
+	public String toString();
+
+	public int getColumnNumber();
+
+	public int getByteSize();
+
+	public int getMemorySize();
+
 }
