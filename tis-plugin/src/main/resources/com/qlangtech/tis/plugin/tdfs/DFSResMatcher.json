@@ -1,0 +1,7 @@
+{
+  "maxTraversalLevel": {
+    "label": "遍历层数",
+    "help": "描述：允许遍历文件夹的最大层数。",
+    "dftVal": 1
+  }
+}

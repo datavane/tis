@@ -925,10 +925,15 @@ public class DataxAction extends BasicModule {
         // 当更新流程的时候 Reader中的select表会变化（col列会增减），这里要作如下处理
         List<CMeta> cols = selectedTab.getCols();
         CMeta col = null;
+        CMeta srcCol = null;
         for (int i = 0; i < cols.size(); i++) {
           col = cols.get(i);
+
           if (i < sourceCols.size()) {
-            col.setName(sourceCols.get(i).getName());
+            srcCol = sourceCols.get(i);
+            col.setName(srcCol.getName());
+            col.setType(srcCol.getType());
+            col.setPk(srcCol.isPk());
           }
         }
         IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(cols);
@@ -937,12 +942,14 @@ public class DataxAction extends BasicModule {
         tabMapper = m;
       } else {
         tabMapper = new IDataxProcessor.TableMap(selectedTab);
-        // tabMapper.setSourceCols(selectedTab.getCols());
         tabMapper.setFrom(selectedTab.getName());
         tabMapper.setTo(selectedTab.getName());
       }
 
-      this.setBizResult(context, tabMapper);
+      Map<String, Object> biz = Maps.newHashMap();
+      biz.put("tabMapper", tabMapper);
+      biz.put("colMetas", DataTypeMeta.typeMetas);
+      this.setBizResult(context, biz);
       return;
     }
   }
@@ -1029,6 +1036,7 @@ public class DataxAction extends BasicModule {
           JSONObject targetCol = null;
           int index;
           String targetColName = null;
+          DataType dataType = null;
 
           if (targetCols.size() < 1) {
             msgHandler.addFieldError(context, fieldKey, "Writer目标表列不能为空");
@@ -1037,9 +1045,13 @@ public class DataxAction extends BasicModule {
           Map<String, Integer> existCols = Maps.newHashMap();
           boolean validateFaild = false;
           Integer previousColIndex = null;
+          boolean pk;
+          boolean pkHasSelected = false;
+          JSONObject type = null;
           for (int i = 0; i < targetCols.size(); i++) {
             targetCol = targetCols.getJSONObject(i);
             index = targetCol.getInteger("index");
+            pk = targetCol.getBooleanValue("pk");
             targetColName = targetCol.getString("name");
             if (StringUtils.isNotBlank(targetColName) && (previousColIndex = existCols.put(targetColName, index)) != null) {
               msgHandler.addFieldError(context, keyColsMeta + "[" + previousColIndex + "]", "内容不能与第" + index + "行重复");
@@ -1053,11 +1065,23 @@ public class DataxAction extends BasicModule {
             }
             colMeta = new CMeta();
             colMeta.setName(targetColName);
-
-            DataType dataType = targetCol.getObject("type", DataType.class);
+            colMeta.setPk(pk);
+            if (pk) {
+              pkHasSelected = true;
+            }
+//{"s":"3,12,2","typeDesc":"decimal(12,2)","columnSize":12,"typeName":"VARCHAR","unsigned":false,"decimalDigits":4,"type":3,"unsignedToken":""}
+            type = targetCol.getJSONObject("type");
+            dataType = new DataType(type.getInteger("type"), type.getString("typeName"), type.getInteger("columnSize"));
+            dataType.setDecimalDigits(type.getInteger("decimalDigits"));
+            // DataType dataType = targetCol.getObject("type", DataType.class);
             // colMeta.setType(ISelectedTab.DataXReaderColType.parse(targetCol.getString("type")));
             colMeta.setType(dataType);
             writerCols.add(colMeta);
+          }
+
+          if (!pkHasSelected) {
+            addErrorMessage(context, "请至少选择一个主键列");
+            validateFaild = true;
           }
 
           return !validateFaild;

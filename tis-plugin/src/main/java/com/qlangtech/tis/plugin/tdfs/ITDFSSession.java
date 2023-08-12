@@ -18,17 +18,23 @@
 
 package com.qlangtech.tis.plugin.tdfs;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-08-04 08:03
  **/
 public interface ITDFSSession extends AutoCloseable {
+
+    String getRootPath();
 
     /**
      * @param @param  directoryPath
@@ -59,7 +65,7 @@ public interface ITDFSSession extends AutoCloseable {
      * @Title: getAllFiles
      * @Description: 获取指定路径列表下符合条件的所有文件的绝对路径
      */
-    public HashSet<String> getAllFiles(List<String> srcPaths, int parentLevel, int maxTraversalLevel);
+    public HashSet<Res> getAllFiles(List<String> srcPaths, int parentLevel, int maxTraversalLevel);
 
 
     /**
@@ -72,7 +78,7 @@ public interface ITDFSSession extends AutoCloseable {
      * @Title: getListFiles
      * @Description: 递归获取指定路径下符合条件的所有文件绝对路径
      */
-    public abstract HashSet<String> getListFiles(String directoryPath, int parentLevel, int maxTraversalLevel);
+    public abstract HashSet<Res> getListFiles(String directoryPath, int parentLevel, int maxTraversalLevel);
 
 
     public default OutputStream getOutputStream(String filePath) {
@@ -90,4 +96,26 @@ public interface ITDFSSession extends AutoCloseable {
      * @Description: 获取指定路径的输入流
      */
     public abstract InputStream getInputStream(String filePath);
+
+
+    public class Res {
+        public final String fullPath;
+        public final String relevantPath;
+        private static String PATH_SEPERATOR = "/";
+
+        public static List<String> appendElement(List<String> relevantPaths, String fileName) {
+            relevantPaths = Lists.newArrayList(relevantPaths);
+            relevantPaths.add(StringUtils.remove(fileName, PATH_SEPERATOR));
+            return relevantPaths;
+        }
+
+        public static String buildRelevantPath(List<String> relevantPaths, String fileName) {
+            return appendElement(relevantPaths, fileName).stream().collect(Collectors.joining(PATH_SEPERATOR));
+        }
+
+        public Res(String fullPath, String relevantPath) {
+            this.fullPath = fullPath;
+            this.relevantPath = relevantPath;
+        }
+    }
 }

@@ -18,16 +18,21 @@
 
 package com.qlangtech.tis.plugin.datax.format;
 
+import com.alibaba.datax.common.element.Column;
 import com.alibaba.datax.plugin.unstructuredstorage.reader.UnstructuredReader;
 import com.alibaba.datax.plugin.unstructuredstorage.writer.UnstructuredWriter;
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.DataType;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * "enum": [
@@ -46,17 +51,23 @@ import java.util.Optional;
  **/
 public abstract class FileFormat implements Describable<FileFormat> {
 
+    /**
+     * 根据FlileFormat 设置对已经创建的colValCreator
+     *
+     * @return
+     */
+    public abstract Function<String, Column> buildColValCreator(CMeta cmeta);
 
-    public abstract UnstructuredWriter createWriter(Writer writer);
+    public abstract UnstructuredWriter createWriter(OutputStream writer);
 
-    public abstract UnstructuredReader createReader(BufferedReader reader);
+    public abstract UnstructuredReader createReader(InputStream input);
 
     /**
-     * @param reader
+     * @param input
      * @return
      * @throws IOException
      */
-    public abstract FileHeader readHeader(BufferedReader reader) throws IOException;
+    public abstract FileHeader readHeader(InputStream input) throws IOException;
 
     /**
      * "suffix": {
@@ -81,18 +92,29 @@ public abstract class FileFormat implements Describable<FileFormat> {
     public static class FileHeader {
         public final int colCount;
         final Optional<List<String>> headerCols;
+        final List<DataType> types;
 
-        public FileHeader(int colCount) {
-            this(colCount, null);
+        public FileHeader(int colCount, List<DataType> types) {
+            this(colCount, null, types);
         }
 
-        public FileHeader(int colCount, List<String> headerCols) {
+        public FileHeader(int colCount, List<String> headerCols, List<DataType> types) {
             this.colCount = colCount;
             this.headerCols = Optional.ofNullable(headerCols);
+            this.types = Collections.unmodifiableList(types);
+        }
+
+        public List<DataType> getTypes() {
+            return this.types;
         }
 
         public boolean containHeader() {
             return this.headerCols.isPresent();
         }
+
+        public List<String> getHeaderCols() {
+            return this.headerCols.get();
+        }
+
     }
 }

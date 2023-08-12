@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.sql.Types;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,14 +44,18 @@ public class DataType implements Serializable {
     }
 
     public final int type;
-    public final int columnSize;
+    private final int columnSize;
     public final String typeName;
     // decimal 的小数位长度
-    private Integer decimalDigits;
+    private Integer decimalDigits = -1;
 
 
     public DataType(int type) {
         this(type, StringUtils.EMPTY, -1);
+    }
+
+    public DataType(int type, String typeName) {
+        this(type, typeName, -1);
     }
 
     /**
@@ -134,7 +139,7 @@ public class DataType implements Serializable {
 
             @Override
             public String decimalType(DataType type) {
-                return "decimal(" + type.columnSize + "," + type.getDecimalDigits() + ")";
+                return "decimal(" + type.getColumnSize() + "," + type.getDecimalDigits() + ")";
             }
 
             @Override
@@ -159,12 +164,12 @@ public class DataType implements Serializable {
 
             @Override
             public String blobType(DataType type) {
-                return "blob(" + type.columnSize + ")";
+                return "blob(" + type.getColumnSize() + ")";
             }
 
             @Override
             public String varcharType(DataType type) {
-                return "varchar(" + type.columnSize + ")";
+                return "varchar(" + type.getColumnSize() + ")";
             }
 
             @Override
@@ -231,88 +236,26 @@ public class DataType implements Serializable {
         }
     }
 
-//    public static SupportHiveDataType convert2HiveType(DataType type) {
-//        Objects.requireNonNull(type, "param type can not be null");
-//        return type.accept(new TypeVisitor<SupportHiveDataType>() {
-//            @Override
-//            public SupportHiveDataType intType(DataType type) {
-//                return SupportHiveDataType.INT;
-//            }
-//
-//            @Override
-//            public SupportHiveDataType floatType(DataType type) {
-//                return SupportHiveDataType.FLOAT;
-//            }
-//
-//            @Override
-//            public SupportHiveDataType decimalType(DataType type) {
-//                return SupportHiveDataType.DOUBLE;
-//            }
-//
-//            @Override
-//            public SupportHiveDataType timeType(DataType type) {
-//                return SupportHiveDataType.TIMESTAMP;
-//            }
-//
-//            @Override
-//            public SupportHiveDataType dateType(DataType type) {
-//                return SupportHiveDataType.DATE;
-//            }
-//
-//            @Override
-//            public SupportHiveDataType timestampType(DataType type) {
-//                return SupportHiveDataType.TIMESTAMP;
-//            }
-//
-//            @Override
-//            public SupportHiveDataType tinyIntType(DataType dataType) {
-//                return SupportHiveDataType.TINYINT;
-//            }
-//
-//            @Override
-//            public SupportHiveDataType smallIntType(DataType dataType) {
-//                return SupportHiveDataType.SMALLINT;
-//            }
-//
-//            @Override
-//            public SupportHiveDataType bigInt(DataType type) {
-//                return SupportHiveDataType.BIGINT;
-//            }
-//
-//            @Override
-//            public SupportHiveDataType doubleType(DataType type) {
-//                return SupportHiveDataType.DOUBLE;
-//            }
-//
-//
-//            @Override
-//            public SupportHiveDataType bitType(DataType type) {
-//                return SupportHiveDataType.BOOLEAN;
-//            }
-//
-//            @Override
-//            public SupportHiveDataType blobType(DataType type) {
-//                return SupportHiveDataType.STRING;
-//            }
-//
-//            @Override
-//            public SupportHiveDataType varcharType(DataType type) {
-//                return SupportHiveDataType.STRING;
-//            }
-//        });
-//    }
-
     public Integer getDecimalDigits() {
+        if (this.decimalDigits < 0) {
+            // 设置 默认值
+            DataTypeMeta typeMeta = Objects.requireNonNull(DataTypeMeta.typeMetasDic.get(this.type)
+                    , "type:" + this.type + "," + this.typeName + " relevant type meta can not be null");
+            if (typeMeta.isContainDecimalRange()) {
+                this.decimalDigits = typeMeta.getType().decimalDigits;
+            }
+        }
         return this.decimalDigits == null ? 0 : decimalDigits;
     }
 
-    public void setDecimalDigits(Integer decimalDigits) {
+    public DataType setDecimalDigits(Integer decimalDigits) {
         this.decimalDigits = decimalDigits;
+        return this;
     }
 
 
     public String getS() {
-        return this.type + "," + this.columnSize
+        return this.type + "," + this.getColumnSize()
                 + "," + (this.decimalDigits != null ? this.decimalDigits : StringUtils.EMPTY);
     }
 
@@ -345,6 +288,18 @@ public class DataType implements Serializable {
 //                ", decimalDigits=" + decimalDigits +
 //                '}';
         return this.getS();
+    }
+
+    public int getColumnSize() {
+        if (this.columnSize < 0) {
+            // 设置 默认值
+            DataTypeMeta typeMeta = Objects.requireNonNull(DataTypeMeta.typeMetasDic.get(this.type)
+                    , "type:" + this.type + "," + this.typeName + " relevant type meta can not be null");
+            if (typeMeta.isContainColSize()) {
+                return typeMeta.getType().columnSize;
+            }
+        }
+        return this.columnSize;
     }
 
     public interface TypeVisitor<T> {

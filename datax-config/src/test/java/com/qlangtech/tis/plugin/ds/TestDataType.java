@@ -19,14 +19,14 @@ public class TestDataType extends TestCase {
         DataType actual = DataType.ds(dt.getS());
 
         assertEquals(dt.type, actual.type);
-        assertEquals(columnSize, actual.columnSize);
+        assertEquals(columnSize, actual.getColumnSize());
         assertEquals(decimalDigits, (int) actual.getDecimalDigits());
 
         dt.setDecimalDigits(null);
         actual = DataType.ds(dt.getS());
 
         assertEquals(dt.type, actual.type);
-        assertEquals(columnSize, actual.columnSize);
+        assertEquals(columnSize, actual.getColumnSize());
         assertNull("getDecimalDigits must be null", actual.getDecimalDigits());
     }
 }
