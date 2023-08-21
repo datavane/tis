@@ -7,5 +7,12 @@
     "label": "同步列",
     "enum": "com.qlangtech.tis.plugin.datax.SelectedTab.getColsCandidate():uncache_true",
     "help": "需要同步的数据列"
+  },
+  "primaryKeys": {
+    "enumMode": "multiple",
+    "label": "主键(s)",
+    "help": "选择列作为表的主键",
+    "dftVal": "com.qlangtech.tis.plugin.datax.SelectedTab.getDftPks():uncache_true",
+    "enum": "com.qlangtech.tis.plugin.datax.SelectedTab.getColsCandidate():uncache_true"
   }
 }

@@ -129,7 +129,11 @@ public class UploadPluginMeta {
     }
 
     public static List<UploadPluginMeta> parse(String[] plugins) {
-        return parse(null, plugins, true);
+        return parse(null, plugins);
+    }
+
+    public static List<UploadPluginMeta> parse(IPluginContext context, String[] plugins) {
+        return parse(context, plugins, true);
     }
 
     public static List<UploadPluginMeta> parse(String[] plugins, boolean useCache) {

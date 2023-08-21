@@ -37,6 +37,7 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.utils.DBsGetter;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import org.apache.commons.lang3.StringUtils;
@@ -111,6 +112,13 @@ public class PluginItems {
     return parseResult;
   }
 
+  public static class DefaultDBsGetter extends DBsGetter {
+    @Override
+    public List<IdentityName> getExistDbs(String... extendClass) {
+      return loadExistDbs(extendClass);
+    }
+  }
+
   /**
    * datax中显示已由数据源使用 <br>
    * must call form Descriptor
@@ -118,10 +126,8 @@ public class PluginItems {
    * @param extendClass
    * @return
    */
-  public static List<Option> getExistDbs(String... extendClass) {
-    if (OfflineDatasourceAction.existDbs != null) {
-      return OfflineDatasourceAction.existDbs;
-    }
+  private static List<IdentityName> loadExistDbs(String... extendClass) {
+
     if (extendClass == null || extendClass.length < 1) {
       throw new IllegalArgumentException("param extendClass can not be null");
     }
@@ -150,7 +156,25 @@ public class PluginItems {
     }
     dbCriteria.createCriteria().andExtendClassIn(extendClazzs);
     List<com.qlangtech.tis.workflow.pojo.DatasourceDb> dbs = wfFacade.getDatasourceDbDAO().selectByExample(dbCriteria);
-    return dbs.stream().map((db) -> new Option(db.getName(), db.getName())).collect(Collectors.toList());
+
+    return dbs.stream().map((db) -> db).collect(Collectors.toList());
+    // return dbs.stream().map((db) -> new Option(db.getName(), db.getName())).collect(Collectors.toList());
+  }
+
+  /**
+   * datax中显示已由数据源使用 <br>
+   * must call form Descriptor
+   *
+   * @param extendClass
+   * @return
+   */
+  public static List<Option> getExistDbs(String... extendClass) {
+    if (OfflineDatasourceAction.existDbs != null) {
+      return OfflineDatasourceAction.existDbs;
+    }
+    return loadExistDbs(extendClass).stream()
+      .map((db) ->
+        new Option(db.identityValue(), db.identityValue())).collect(Collectors.toList());
   }
 
   private IPluginStoreSave<?> getStore(List<Descriptor.ParseDescribable<?>> dlist) {

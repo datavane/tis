@@ -32,7 +32,6 @@ import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
-import com.qlangtech.tis.plugin.IRepositoryTargetFile;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.FormField;
@@ -618,7 +617,13 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                             , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)
                             , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX));
 
-                    boolean valid = isValid(msgHandler, context, verify, Optional.empty(), propertyTypes, postFormVals);
+                    boolean valid = validatePostFormVals(postFormVals, Optional.empty());
+                    validateResult.valid = valid;
+                    return validateResult;
+                }
+
+                private boolean validatePostFormVals(PostFormVals postFormVals, Optional<IPropertyType.SubFormFilter> subFormFilter) {
+                    boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, postFormVals);
 
                     if (valid && verify && !verify(msgHandler, context, postFormVals)) {
                         valid = false;
@@ -626,8 +631,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     if (valid && !verify && !validateAll(msgHandler, context, postFormVals)) {
                         valid = false;
                     }
-                    validateResult.valid = valid;
-                    return validateResult;
+                    return valid;
                 }
 
                 @Override
@@ -644,7 +648,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     if (filter.subformDetailView) {
                         // 校验的时候子表单是{key1:val1,key2:val2} 的格式
                         PostFormVals formVals = new PostFormVals(formData);
-                        boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, formVals);
+                        // boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, formVals);
+                        boolean valid = validatePostFormVals(formVals, subFormFilter);
                         if (!valid) {
                             validateResult = new PluginValidateResult(formVals
                                     , (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX)

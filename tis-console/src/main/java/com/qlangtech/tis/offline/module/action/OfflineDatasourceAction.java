@@ -1193,7 +1193,7 @@ public class OfflineDatasourceAction extends BasicModule {
     String extraParam = body.getString("extraParam");
 
     List<UploadPluginMeta> pluginMetas
-      = UploadPluginMeta.parse(new String[]{pluginName + ":" + (require ? "require" : StringUtils.EMPTY) + "," + extraParam});
+      = UploadPluginMeta.parse(this, new String[]{pluginName + ":" + (require ? "require" : StringUtils.EMPTY) + "," + extraParam});
     for (UploadPluginMeta m : pluginMetas) {
       return m;
 

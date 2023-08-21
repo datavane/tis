@@ -278,6 +278,16 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         if (!(expectClass.isAssignableFrom(descriptor.getClass()))) {
             throw new IllegalStateException(descriptor.getClass() + " must implement the Descriptor of " + expectClass.getName());
         }
+
+        BaseDataxReaderDescriptor readDesc = (BaseDataxReaderDescriptor) descriptor;
+        if (readDesc.isRDBMSChangeableInLifetime() ^ (this instanceof DataXBasicProcessMeta.IRDBMSSupport)) {
+
+            throw new IllegalStateException(this.getClass().getSimpleName()
+                    + " bool status shall be same:\n"
+                    + " readDesc.isRDBMSChangeableInLifetime(): " + readDesc.isRDBMSChangeableInLifetime()
+                    + "\n (" + this.getClass().getSimpleName() + " instanceof DataXBasicProcessMeta.IRDBMSSupport):" + (this instanceof DataXBasicProcessMeta.IRDBMSSupport));
+
+        }
         return descriptor;
     }
 
@@ -341,5 +351,15 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
          * @return
          */
         public abstract boolean isRdbms();
+
+        /**
+         * 需要使DataX Reader实现 接口：DataXBasicProcessMeta.IRDBMSSupport
+         *
+         * @return
+         * @see DataXBasicProcessMeta.IRDBMSSupport
+         */
+        public boolean isRDBMSChangeableInLifetime() {
+            return false;
+        }
     }
 }

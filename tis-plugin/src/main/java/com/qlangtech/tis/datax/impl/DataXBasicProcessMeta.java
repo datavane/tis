@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.datax.impl;
@@ -27,20 +27,36 @@ import java.util.Optional;
  **/
 public class DataXBasicProcessMeta {
     private boolean readerRDBMS;
+    /**
+     * 由Descriptor来控制运行期RDMS状态可变
+     *
+     * @see DataXBasicProcessMeta.IRDBMSSupport
+     * @see DataxReader.BaseDataxReaderDescriptor isRDBMSChangeableInLifetime()
+     */
+    private boolean readerRDBMSChangeableInLifetime;
     private boolean explicitTable;
     private boolean writerRDBMS;
     private boolean isWriterSupportMultiTableInReader;
 
     public static DataXBasicProcessMeta getDataXBasicProcessMetaByReader(
-      Optional<DataxReader.BaseDataxReaderDescriptor> readerDesc) {
-      Objects.requireNonNull(readerDesc, "readerDesc can not be null");
-      DataXBasicProcessMeta processMeta = new DataXBasicProcessMeta();
-      if (readerDesc.isPresent()) {
-        DataxReader.BaseDataxReaderDescriptor rd = readerDesc.get();
-        processMeta.setReaderHasExplicitTable(rd.hasExplicitTable());
-        processMeta.setReaderRDBMS(rd.isRdbms());
-      }
-      return processMeta;
+            Optional<DataxReader.BaseDataxReaderDescriptor> readerDesc) {
+        Objects.requireNonNull(readerDesc, "readerDesc can not be null");
+        DataXBasicProcessMeta processMeta = new DataXBasicProcessMeta();
+        if (readerDesc.isPresent()) {
+            DataxReader.BaseDataxReaderDescriptor rd = readerDesc.get();
+            processMeta.setReaderHasExplicitTable(rd.hasExplicitTable());
+            processMeta.setReaderRDBMS(rd.isRdbms());
+            processMeta.setReaderRDBMSChangeableInLifetime(rd.isRDBMSChangeableInLifetime());
+        }
+        return processMeta;
+    }
+
+    public boolean isReaderRDBMSChangeableInLifetime() {
+        return this.readerRDBMSChangeableInLifetime;
+    }
+
+    public void setReaderRDBMSChangeableInLifetime(boolean readerRDBMSChangeableInLifetime) {
+        this.readerRDBMSChangeableInLifetime = readerRDBMSChangeableInLifetime;
     }
 
     public boolean isWriterSupportMultiTableInReader() {
@@ -90,5 +106,15 @@ public class DataXBasicProcessMeta {
                 "readerRDBMS=" + readerRDBMS +
                 ", writerRDBMS=" + writerRDBMS +
                 '}';
+    }
+
+
+    public interface IRDBMSSupport {
+        /**
+         * 在某些情况下DataXReader/Writer会在运行期由于内部属性变化，改变对应是否支持rdbms的属性，而不再由descriptpr通过静态的方式决定
+         *
+         * @return
+         */
+        public boolean isRDBMSSupport();
     }
 }

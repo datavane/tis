@@ -132,15 +132,32 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     }
 
     public static DataXCreateProcessMeta getDataXCreateProcessMeta(IPluginContext pluginContext, String dataxPipeName) {
-        DataxWriter writer = DataxWriter.load(pluginContext, dataxPipeName);
-        DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
+        return getDataXCreateProcessMeta(pluginContext, dataxPipeName, true);
+    }
+
+    public static DataXCreateProcessMeta getDataXCreateProcessMeta(IPluginContext pluginContext, String dataxPipeName, boolean writerNullValidate) {
+        DataxWriter writer = DataxWriter.load(pluginContext, dataxPipeName, writerNullValidate);
+        DataxWriter.BaseDataxWriterDescriptor writerDesc = null;
+        if (!writerNullValidate && writer == null) {
+            writerDesc = (DataxWriter.BaseDataxWriterDescriptor) IDataxProcessor.getWriterDescriptor(pluginContext, dataxPipeName);
+        } else {
+            writerDesc = (DataxWriter.BaseDataxWriterDescriptor)
+                    Objects.requireNonNull(writer, "name:" + dataxPipeName + " relevant dataXWriter can not be null").getDescriptor();
+        }
+
         DataxReader dataxReader = DataxReader.load(pluginContext, dataxPipeName);
-        DataxReader.BaseDataxReaderDescriptor descriptor = (DataxReader.BaseDataxReaderDescriptor) dataxReader.getDescriptor();
+        DataxReader.BaseDataxReaderDescriptor readDescriptor = (DataxReader.BaseDataxReaderDescriptor) dataxReader.getDescriptor();
+
+        boolean dataXReaderRDBMSSwitchOn = false;
+        if ((dataxReader instanceof DataXBasicProcessMeta.IRDBMSSupport)) {
+            // 单独开通了通过dataXReader在运行期通过Reader内部状态设置改变是否支持RDBS的状态
+            dataXReaderRDBMSSwitchOn = ((DataXBasicProcessMeta.IRDBMSSupport) dataxReader).isRDBMSSupport();
+        }
 
         DataXCreateProcessMeta processMeta = new DataXCreateProcessMeta(writer, dataxReader);
         // 使用这个属性来控制是否要进入创建流程的第三步
-        processMeta.setReaderRDBMS(descriptor.isRdbms());
-        processMeta.setReaderHasExplicitTable(descriptor.hasExplicitTable());
+        processMeta.setReaderRDBMS(dataXReaderRDBMSSwitchOn || readDescriptor.isRdbms());
+        processMeta.setReaderHasExplicitTable(readDescriptor.hasExplicitTable());
         processMeta.setWriterRDBMS(writerDesc.isRdbms());
         processMeta.setWriterSupportMultiTableInReader(writerDesc.isSupportMultiTable());
 

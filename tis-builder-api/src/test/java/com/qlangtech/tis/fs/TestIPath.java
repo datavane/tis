@@ -16,32 +16,25 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis;
+package com.qlangtech.tis.fs;
 
-import com.qlangtech.tis.fs.TestIPath;
-import com.qlangtech.tis.manage.common.TestConfig;
-import com.qlangtech.tis.utils.TestTisMetaProps;
-import com.qlangtech.tis.utils.TestUtils;
-import junit.framework.Test;
 import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Assert;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-09-18 17:32
+ * @create: 2023-08-17 15:56
  **/
+public class TestIPath extends TestCase {
+
+    public void testPathConcat() {
+        Assert.assertEquals("/user/admin/instancedetail", IPath.pathConcat("/user/admin/", "/instancedetail"));
+        Assert.assertEquals("/user/admin/instancedetail", IPath.pathConcat("/user/admin", "/instancedetail"));
+        Assert.assertEquals("/user/admin/instancedetail", IPath.pathConcat("/user/admin", "instancedetail"));
+        Assert.assertEquals("/user/admin/instancedetail/meta.json", IPath.pathConcat("/user/admin", "instancedetail", "/meta.json"));
 
 
-public class TestAll extends TestCase {
-
-    public static Test suite() {
-
-        TestSuite suite = new TestSuite();
-        suite.addTestSuite(TestConfig.class);
-        suite.addTestSuite(TestUtils.class);
-        suite.addTestSuite(TestTisMetaProps.class);
-        suite.addTestSuite(TestIPath.class);
-
-        return suite;
+        Assert.assertEquals("instancedetail", IPath.pathConcat("", "instancedetail"));
+        Assert.assertEquals("/instancedetail", IPath.pathConcat("/", "instancedetail"));
     }
 }

@@ -16,32 +16,29 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis;
+package com.qlangtech.tis.plugin.tdfs;
 
-import com.qlangtech.tis.fs.TestIPath;
-import com.qlangtech.tis.manage.common.TestConfig;
-import com.qlangtech.tis.utils.TestTisMetaProps;
-import com.qlangtech.tis.utils.TestUtils;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import com.qlangtech.tis.plugin.datax.format.FileFormat;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-09-18 17:32
+ * @create: 2023-08-14 08:32
  **/
+public interface IDFSReader {
+    List<ISelectedTab> getSelectedTabs();
 
 
-public class TestAll extends TestCase {
+    TDFSLinker getDfsLinker();
 
-    public static Test suite() {
-
-        TestSuite suite = new TestSuite();
-        suite.addTestSuite(TestConfig.class);
-        suite.addTestSuite(TestUtils.class);
-        suite.addTestSuite(TestTisMetaProps.class);
-        suite.addTestSuite(TestIPath.class);
-
-        return suite;
-    }
+    /**
+     *
+     *
+     * @param entityName 表实体名称
+     * @return
+     */
+    FileFormat getFileFormat(Optional<String> entityName);
 }

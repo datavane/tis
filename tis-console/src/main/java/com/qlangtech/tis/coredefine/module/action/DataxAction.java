@@ -893,6 +893,14 @@ public class DataxAction extends BasicModule {
 
   }
 
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
+  public void doGetReaderWriterMeta(Context context) {
+    final String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
+    DataxProcessor.DataXCreateProcessMeta processMeta
+      = DataxProcessor.getDataXCreateProcessMeta(this, dataxName, false);
+    this.setBizResult(context, processMeta);
+  }
+
   /**
    * 当reader为非RDBMS，writer为RDBMS类型时 需要为writer设置表名称，以及各个列的名称
    *
@@ -902,56 +910,67 @@ public class DataxAction extends BasicModule {
   public void doGetWriterColsMeta(Context context) {
     final String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName);
-    IDataxProcessor processor = DataxProcessor.load(this, dataxName);
 
     if (processMeta.isReaderRDBMS()) {
       throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
     }
-    int selectedTabsSize = processMeta.getReader().getSelectedTabs().size();
-    if (selectedTabsSize != 1) {
-      throw new IllegalStateException("dataX reader getSelectedTabs size must be 1 ,but now is :" + selectedTabsSize);
-    }
+    IDataxProcessor processor = DataxProcessor.load(this, dataxName);
     TableAliasMapper tabAlias = processor.getTabAlias(this);
     Optional<TableAlias> findMapper = tabAlias.findFirst();
     IDataxProcessor.TableMap tabMapper = null;
-    for (ISelectedTab selectedTab : processMeta.getReader().getSelectedTabs()) {
+    if (findMapper.isPresent()) {
+      tabMapper = (IDataxProcessor.TableMap) findMapper.get();
+      List<CMeta> sourceCols = tabMapper.getSourceCols();
 
-      if (findMapper.isPresent()) {
-        if (!(findMapper.get() instanceof IDataxProcessor.TableMap)) {
-          throw new IllegalStateException("tableAlias must be type of " + IDataxProcessor.TableMap.class.getName());
-        }
-        tabMapper = (IDataxProcessor.TableMap) findMapper.get();
-        List<CMeta> sourceCols = tabMapper.getSourceCols();
-        // 当更新流程的时候 Reader中的select表会变化（col列会增减），这里要作如下处理
-        List<CMeta> cols = selectedTab.getCols();
-        CMeta col = null;
-        CMeta srcCol = null;
-        for (int i = 0; i < cols.size(); i++) {
-          col = cols.get(i);
+      IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(sourceCols);
+      m.setFrom(tabMapper.getFrom());
+      m.setTo(tabMapper.getTo());
+      tabMapper = m;
+    } else {
+      List<ISelectedTab> tabs = processMeta.getReader().getSelectedTabs();
+      int selectedTabsSize = tabs.size();
+      if (selectedTabsSize != 1) {
+        throw new IllegalStateException("dataX reader getSelectedTabs size must be 1 ,but now is :" + selectedTabsSize);
+      }
 
-          if (i < sourceCols.size()) {
-            srcCol = sourceCols.get(i);
-            col.setName(srcCol.getName());
-            col.setType(srcCol.getType());
-            col.setPk(srcCol.isPk());
-          }
-        }
-        IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(cols);
-        m.setFrom(selectedTab.getName());
-        m.setTo(tabMapper.getTo());
-        tabMapper = m;
-      } else {
+      for (ISelectedTab selectedTab : tabs) {
         tabMapper = new IDataxProcessor.TableMap(selectedTab);
         tabMapper.setFrom(selectedTab.getName());
         tabMapper.setTo(selectedTab.getName());
+        break;
+        // if (findMapper.isPresent()) {
+//          if (!(findMapper.get() instanceof IDataxProcessor.TableMap)) {
+//            throw new IllegalStateException("tableAlias must be type of " + IDataxProcessor.TableMap.class.getName());
+//          }
+//          tabMapper = (IDataxProcessor.TableMap) findMapper.get();
+//          List<CMeta> sourceCols = tabMapper.getSourceCols();
+//          // 当更新流程的时候 Reader中的select表会变化（col列会增减），这里要作如下处理
+//          List<CMeta> cols = selectedTab.getCols();
+//          CMeta col = null;
+//          CMeta srcCol = null;
+//          for (int i = 0; i < cols.size(); i++) {
+//            col = cols.get(i);
+//
+//            if (i < sourceCols.size()) {
+//              srcCol = sourceCols.get(i);
+//              col.setName(srcCol.getName());
+//              col.setType(srcCol.getType());
+//              col.setPk(srcCol.isPk());
+//            }
+//          }
+//          IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(cols);
+//          m.setFrom(selectedTab.getName());
+//          m.setTo(tabMapper.getTo());
+//          tabMapper = m;
+        // } else {
+        //  }
       }
-
-      Map<String, Object> biz = Maps.newHashMap();
-      biz.put("tabMapper", tabMapper);
-      biz.put("colMetas", DataTypeMeta.typeMetas);
-      this.setBizResult(context, biz);
-      return;
     }
+
+    Map<String, Object> biz = Maps.newHashMap();
+    biz.put("tabMapper", Objects.requireNonNull(tabMapper, "tabMapper can not be null"));
+    biz.put("colMetas", DataTypeMeta.typeMetas);
+    this.setBizResult(context, biz);
   }
 
   @Func(value = PermissionConstant.APP_ADD)
@@ -979,7 +998,8 @@ public class DataxAction extends BasicModule {
       return;
     }
 
-    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, confiemModel.getDataxName());
+    DataxProcessor.DataXCreateProcessMeta processMeta
+      = DataxProcessor.getDataXCreateProcessMeta(this, confiemModel.getDataxName());
     List<ISelectedTab> selectedTabs = processMeta.getReader().getSelectedTabs();
     ESTableAlias esTableAlias = new ESTableAlias();
     esTableAlias.setFrom(selectedTabs.stream().findFirst().get().getName());
@@ -1135,26 +1155,11 @@ public class DataxAction extends BasicModule {
 
     JSONObject reader = post.getJSONObject("readerDescriptor");
     JSONObject writer = post.getJSONObject("writerDescriptor");
-//    Objects.requireNonNull(reader, "reader can not be null");
-//    Objects.requireNonNull(writer, "writer can not be null");
 
     if (!getValdateReaderAndWriter(pmodel).valdateReaderAndWriter(reader, writer, this, context)) {
       return;
     }
-
-//    if (reader == null || writer == null) {
-//      this.addErrorMessage(context, "请选择'Reader类型'和'Writer类型'");
-//      return;
-//    }
-//    pmodel.createProcessMeta(reader, writer);
-//
-//    DataxReader.BaseDataxReaderDescriptor readerDesc
-//      = (DataxReader.BaseDataxReaderDescriptor) TIS.get().getDescriptor(reader.getString("impl"));
-//    DataxWriter.BaseDataxWriterDescriptor writerDesc
-//      = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
-    DataXBasicProcessMeta processMeta = pmodel.createProcessMeta(this, dataxPipeName, reader, writer);// getDataXBasicProcessMeta(readerDesc, writerDesc);
-    //DataxProcessor processor = DataxProcessor.load(this, dataxPipeName);
-    //File workDir = processor.getDataXWorkDir(this);
+    DataXBasicProcessMeta processMeta = pmodel.createProcessMeta(this, dataxPipeName, reader, writer);
 
     this.setBizResult(context, processMeta);
   }
@@ -1196,14 +1201,10 @@ public class DataxAction extends BasicModule {
 
   public static List<String> getTablesInDB(IPropertyType.SubFormFilter filter) {
     DataxReader reader = DataxReader.getDataxReader(filter);
-//    if(!filter.useCache()){
-//      reader.
-//    }
     return reader.getTablesInDB().getTabs();
   }
 
   public static List<ColumnMetaData> getReaderTableSelectableCols(String dataxName, String table) {
-
     throw new UnsupportedOperationException();
   }
 

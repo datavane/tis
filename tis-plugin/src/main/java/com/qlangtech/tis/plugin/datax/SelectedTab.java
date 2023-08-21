@@ -33,6 +33,7 @@ import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.util.impl.AttrVals;
 import org.apache.commons.collections.CollectionUtils;
@@ -64,6 +65,9 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     // 表名称
     @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
     public String name;
+
+    @FormField(ordinal = 3, type = FormFieldType.ENUM, validate = {Validator.require})
+    public List<String> primaryKeys;
 
     // 用户可以自己设置where条件
     @FormField(ordinal = 100, type = FormFieldType.INPUTTEXT)
@@ -113,6 +117,16 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         return getContextTableCols((cols) -> cols.stream());
     }
 
+    /**
+     * 默认主键
+     *
+     * @return
+     */
+    public static List<String> getDftPks() {
+        return getContextTableCols((cols) -> cols.stream().filter((col) -> col.isPk()))
+                .stream().map((col) -> (String) col.getValue()).collect(Collectors.toList());
+    }
+
     public SelectedTab() {
     }
 
@@ -123,8 +137,8 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
      */
     public static String getDftTabName() {
         DataxReader dataXReader = DataxReader.getThreadBingDataXReader();
-            if (dataXReader == null) {
-                return StringUtils.EMPTY;
+        if (dataXReader == null) {
+            return StringUtils.EMPTY;
         }
 
         try {
@@ -208,17 +222,44 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     }
 
     @TISExtension
-    public static class DefaultDescriptor extends Descriptor<SelectedTab> implements SubForm.ISubFormItemValidate {
+    public static class DefaultDescriptor extends Descriptor<SelectedTab>
+            implements SubForm.ISubFormItemValidate, FormFieldType.IMultiSelectValidator {
+
+        @Override
+        protected final boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+            return this.validateAll(msgHandler, context, postFormVals);
+        }
+
+        @Override
+        public boolean validate(IFieldErrorHandler msgHandler, Optional<IPropertyType.SubFormFilter> subFormFilter
+                , Context context, String fieldName, List<FormFieldType.SelectedItem> items) {
+
+            if (SelectedTab.KEY_FIELD_COLS.equals(fieldName)) {
+                int selectCount = 0;
+                for (FormFieldType.SelectedItem item : items) {
+                    if (item.isChecked()) {
+                        selectCount++;
+                    }
+                }
+                if (selectCount < 1) {
+                    msgHandler.addFieldError(context, fieldName, "请选择需要的列");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         @Override
         protected final boolean validateAll(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
 
-            ParseDescribable<Describable> plugin = this.newInstance(null, postFormVals.rawFormData, Optional.empty());
-            SelectedTab tab = plugin.getInstance();
-            if (tab.cols.isEmpty()) {
-                msgHandler.addFieldError(context, SelectedTab.KEY_FIELD_COLS, "请选择");
-                return false;
-            }
-            return this.validateAll(msgHandler, context, tab);
+            //   SelectedTab tab = ;// this.newInstance(null, postFormVals.rawFormData, Optional.empty());
+            //SelectedTab tab = plugin.getInstance();
+//            if (tab.cols.isEmpty()) {
+//                msgHandler.addFieldError(context, SelectedTab.KEY_FIELD_COLS, "请选择");
+//                return false;
+//            }
+            return this.validateAll(msgHandler, context, postFormVals.newInstance(this, msgHandler));
         }
 
         @Override
@@ -245,7 +286,19 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
             return super.getPluginFormPropertyTypes(subFormFilter);
         }
 
-        protected boolean validateAll(IControlMsgHandler msgHandler, Context context, SelectedTab postFormVals) {
+        protected boolean validateAll(IControlMsgHandler msgHandler, Context context, SelectedTab tab) {
+            List<String> lackPks = Lists.newArrayList();
+            for (String pk : tab.primaryKeys) {
+                if (!tab.cols.contains(pk)) {
+                    lackPks.add(pk);
+                }
+            }
+            if (lackPks.size() > 0) {
+                msgHandler.addFieldError(context, KEY_FIELD_COLS
+                        , "由于" + String.join(",", lackPks) + "选为主键,因此需要将它（们）选上");
+                return false;
+            }
+
             return true;
         }
     }

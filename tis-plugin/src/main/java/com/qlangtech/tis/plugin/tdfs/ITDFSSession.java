@@ -21,6 +21,7 @@ package com.qlangtech.tis.plugin.tdfs;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashSet;
@@ -36,7 +37,7 @@ public interface ITDFSSession extends AutoCloseable {
 
     String getRootPath();
 
-    /**
+    /**j
      * @param @param  directoryPath
      * @param @return
      * @return boolean
@@ -82,7 +83,7 @@ public interface ITDFSSession extends AutoCloseable {
 
 
     public default OutputStream getOutputStream(String filePath) {
-        return this.getOutputStream(filePath, true);
+        return this.getOutputStream(filePath, false);
     }
 
     public abstract OutputStream getOutputStream(String filePath, boolean append);
@@ -101,16 +102,16 @@ public interface ITDFSSession extends AutoCloseable {
     public class Res {
         public final String fullPath;
         public final String relevantPath;
-        private static String PATH_SEPERATOR = "/";
+       // private static String PATH_SEPERATOR = "/";
 
         public static List<String> appendElement(List<String> relevantPaths, String fileName) {
             relevantPaths = Lists.newArrayList(relevantPaths);
-            relevantPaths.add(StringUtils.remove(fileName, PATH_SEPERATOR));
+            relevantPaths.add(StringUtils.remove(fileName, File.separator));
             return relevantPaths;
         }
 
         public static String buildRelevantPath(List<String> relevantPaths, String fileName) {
-            return appendElement(relevantPaths, fileName).stream().collect(Collectors.joining(PATH_SEPERATOR));
+            return appendElement(relevantPaths, fileName).stream().collect(Collectors.joining(File.separator));
         }
 
         public Res(String fullPath, String relevantPath) {

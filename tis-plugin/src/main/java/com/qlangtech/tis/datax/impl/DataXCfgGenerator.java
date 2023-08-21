@@ -439,8 +439,10 @@ public class DataXCfgGenerator {
          */
         public List<DataXCfgGenerator.DBDataXChildTask> getDataXTaskDependencies(String taskGroupName) {
             List<DataXCfgGenerator.DBDataXChildTask> subChildTask = null;
-            if (CollectionUtils.isEmpty(subChildTask = this.getGroupedChildTask().get(taskGroupName))) {
-                throw new IllegalStateException("taskGroupName:" + taskGroupName + " relevant childTask can not be empty");
+            Map<String, List<DataXCfgGenerator.DBDataXChildTask>> groupdTsk = this.getGroupedChildTask();
+            if (CollectionUtils.isEmpty(subChildTask = groupdTsk.get(taskGroupName))) {
+                throw new IllegalStateException("taskGroupName:" + taskGroupName
+                        + " relevant childTask:" + String.join(",", groupdTsk.keySet()) + " can not be empty");
             }
             return subChildTask;
         }

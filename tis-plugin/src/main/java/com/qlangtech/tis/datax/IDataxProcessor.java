@@ -70,16 +70,26 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
     ) throws Exception {
         String dataXName = pluginMeta.getDataXName(false);
         if (StringUtils.isNotEmpty(dataXName)) {
-            Descriptor descriptor = TIS.get().getDescriptor(FileUtils.readFileToString(getWriterDescFile(pluginMeta.getPluginContext(), dataXName), TisUTF8.get()));
-            return descriptor;
+//            Descriptor descriptor = TIS.get().getDescriptor(FileUtils.readFileToString(getWriterDescFile(pluginMeta.getPluginContext(), dataXName), TisUTF8.get()));
+//            return descriptor;
+            return getWriterDescriptor(pluginMeta.getPluginContext(), dataXName);
         } else {
             return null;
         }
-        //  pluginMeta.getExtraParam(DataxUtils.DATAX_NAME);
-//        if (StringUtils.isEmpty(dataXName)) {
-//            throw new IllegalStateException("param dataXName can not be null");
-//        }
+    }
 
+    static Descriptor getWriterDescriptor(IPluginContext pluginContext, String dataXName
+    ) {
+        try {
+            Objects.requireNonNull(pluginContext, "pluginContext can not be null");
+            if (StringUtils.isEmpty(dataXName)) {
+                throw new IllegalArgumentException("param dataXName can not be empty");
+            }
+            Descriptor descriptor = TIS.get().getDescriptor(FileUtils.readFileToString(getWriterDescFile(pluginContext, dataXName), TisUTF8.get()));
+            return descriptor;
+        } catch (IOException e) {
+            throw new RuntimeException("dataXName:" + dataXName, e);
+        }
     }
 
     /**

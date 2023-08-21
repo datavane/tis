@@ -22,20 +22,34 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import org.junit.Assert;
 
+import java.util.function.Consumer;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-07-24 13:43
  **/
 public class UserTokenUtils {
 
+    public static UserToken createNoneAuthToken() {
+        return createToken("com.qlangtech.tis.config.authtoken.impl.OffUserToken", (formData -> {
+        }));
+    }
+
     public static UserToken createKerberosToken() {
         return createKerberosToken("k2");
     }
 
     public static UserToken createKerberosToken(String kerRef) {
+        return createToken("com.qlangtech.tis.config.authtoken.impl.KerberosUserToken"
+                , (kform) -> {
+                    kform.addProp("kerberos", kerRef);
+                });
+    }
+
+    private static UserToken createToken(String describleClazzName, Consumer<Descriptor.FormData> formProcess) {
         Descriptor.FormData kform = new Descriptor.FormData();
-        kform.addProp("kerberos", kerRef);
-        Descriptor kuserTokenDesc = TIS.get().getDescriptor("com.qlangtech.tis.config.authtoken.impl.KerberosUserToken");
+        formProcess.accept(kform);
+        Descriptor kuserTokenDesc = TIS.get().getDescriptor(describleClazzName);
         Assert.assertNotNull("kuserTokenDesc can not be null", kuserTokenDesc);
         return (UserToken) kuserTokenDesc.newInstance("test", kform).getInstance();
     }

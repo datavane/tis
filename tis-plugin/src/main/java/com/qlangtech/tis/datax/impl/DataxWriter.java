@@ -140,6 +140,10 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
         return load(context, StoreResourceType.DataApp, appName, true);
     }
 
+    public static DataxWriter load(IPluginContext context, String appName, boolean nullValidate) {
+        return load(context, StoreResourceType.DataApp, appName, nullValidate);
+    }
+
     /**
      * load
      *
@@ -153,7 +157,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
         } else {
             appSource = getPluginStore(context, resType, appName).getPlugin();
         }
-        if(nullValidate){
+        if (nullValidate) {
             Objects.requireNonNull(appSource, "appName:" + appName + ",resType:" + resType + " relevant appSource can not be null");
         }
         return appSource;

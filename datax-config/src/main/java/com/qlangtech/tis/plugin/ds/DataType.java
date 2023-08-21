@@ -259,6 +259,8 @@ public class DataType implements Serializable {
                 + "," + (this.decimalDigits != null ? this.decimalDigits : StringUtils.EMPTY);
     }
 
+    private static final Pattern patternDataType = Pattern.compile("(-?\\d+),(-?\\d+),(-?\\d*)");
+
     /**
      * 反序列化
      *
@@ -266,8 +268,8 @@ public class DataType implements Serializable {
      * @return
      */
     public static DataType ds(String ser) {
-        Pattern p = Pattern.compile("(-?\\d+),(-?\\d+),(\\d*)");
-        Matcher matcher = p.matcher(ser);
+
+        Matcher matcher = patternDataType.matcher(ser);
         if (!matcher.matches()) {
             throw new IllegalStateException("val is illegal:" + ser);
         }
