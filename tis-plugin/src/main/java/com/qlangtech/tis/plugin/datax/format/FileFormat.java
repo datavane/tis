@@ -60,7 +60,7 @@ public abstract class FileFormat implements Describable<FileFormat> {
 
     public abstract UnstructuredWriter createWriter(OutputStream writer);
 
-    public abstract UnstructuredReader createReader(InputStream input);
+    public abstract UnstructuredReader createReader(InputStream input, List<CMeta> cols);
 
     /**
      * @param input

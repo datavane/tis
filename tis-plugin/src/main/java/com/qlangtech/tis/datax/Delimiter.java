@@ -1,6 +1,7 @@
 package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.manage.common.Option;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +46,18 @@ public enum Delimiter {
             }
         }
         throw new IllegalStateException("illegal token:" + token);
+    }
+
+    public static Delimiter parseByVal(String val) {
+        if (StringUtils.isEmpty(val)) {
+            throw new IllegalArgumentException("param val can not be empty");
+        }
+        for (Delimiter d : Delimiter.values()) {
+            if (d.val == val.charAt(0)) {
+                return d;
+            }
+        }
+        throw new IllegalStateException("illegal value:" + val);
     }
 
     public final String token;

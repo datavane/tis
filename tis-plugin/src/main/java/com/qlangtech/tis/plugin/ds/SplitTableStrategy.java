@@ -44,6 +44,8 @@ import java.util.regex.Pattern;
 public abstract class SplitTableStrategy implements Describable<SplitTableStrategy>, Serializable {
     public static final Pattern PATTERN_PHYSICS_TABLE = Pattern.compile("(\\S+)_(\\d+)");
 
+    public abstract boolean isSplittable();
+
     public abstract TableInDB createTableInDB(DBIdentity dbId);
 
     /**

@@ -26,6 +26,12 @@ import java.util.Optional;
  * @create: 2022-03-12 13:19
  **/
 public abstract class HiveTable {
+
+    /**
+     * 对应PT最新的分区值
+     */
+    public static final String KEY_PT_LATEST = "latest";
+
     private final String name;
 
     /**
@@ -36,6 +42,8 @@ public abstract class HiveTable {
     public abstract String getStorageLocation();
 
     public abstract StoredAs getStoredAs();
+
+    public abstract List<String> getPartitionKeys();
 
     /**
      * @param filter the filter string,
@@ -59,9 +67,21 @@ public abstract class HiveTable {
         public final String inputFormat;
         public final String outputFormat;
 
-        public StoredAs(String inputFormat, String outputFormat) {
+        private final Object serdeInfo;
+
+        /**
+         * @param inputFormat
+         * @param outputFormat
+         * @param serdeInfo    org.apache.hadoop.hive.metastore.api.SerdeInfo
+         */
+        public StoredAs(String inputFormat, String outputFormat, Object serdeInfo) {
             this.inputFormat = inputFormat;
             this.outputFormat = outputFormat;
+            this.serdeInfo = serdeInfo;
+        }
+
+        public <SerDeInfo> SerDeInfo getSerdeInfo() {
+            return (SerDeInfo) serdeInfo;
         }
     }
 }

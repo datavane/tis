@@ -1253,15 +1253,6 @@ public class OfflineDatasourceAction extends BasicModule {
           if (skipProps.contains(pentry.getKey())) {
             continue;
           }
-//          if (pp.isIdentity()) {
-//            pp.setVal(subForm, tab2cols.getKey());
-//            continue;
-//          }
-//          if (pp.formField.type() == FormFieldType.MULTI_SELECTABLE) {
-//            pp.setVal(subForm
-//              , tab2cols.getValue().stream().map((c) -> c.getName()).collect(Collectors.toList()));
-//            continue ppDftValGetter;
-//          }
           if (pp.isInputRequired()) {
 
             if (pp.dftVal() != null) {
