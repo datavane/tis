@@ -364,7 +364,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     //   DataxWriter dataxWriter = DataxWriter.load(filter.uploadPluginMeta.getPluginContext(), dataXName);
                     Descriptor writerDescriptor = IDataxProcessor.getWriterDescriptor(filter.uploadPluginMeta);// dataxWriter.getClass();
                     if (writerDescriptor != null && writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
-                        subPluginFormPropertyTypes = Objects.requireNonNull(((DataxWriter.IRewriteSuFormProperties) writerDescriptor).overwriteSubPluginFormPropertyTypes(subPluginFormPropertyTypes), "result can not be null " + PluginFormProperties.class.getSimpleName());
+                        subPluginFormPropertyTypes = Objects.requireNonNull(((DataxWriter.IRewriteSuFormProperties) writerDescriptor) //
+                                .overwriteSubPluginFormPropertyTypes(subPluginFormPropertyTypes) //
+                                , "result can not be null " + PluginFormProperties.class.getSimpleName());
                     }
 //                    String overwriteSubField = IOUtils.loadResourceFromClasspath(
 //                            writerClass, writerClass.getSimpleName() + "." + filter.subFieldName + ".json", false);
@@ -413,7 +415,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(Map<String, /*** fieldname*/IPropertyType> props) {
-        return props.entrySet().stream().filter((e) -> e.getValue() instanceof PropertyType).collect(Collectors.toMap((e) -> e.getKey(), (e) -> (PropertyType) e.getValue()));
+        return props.entrySet().stream().filter((e) -> e.getValue() instanceof PropertyType) //
+                .collect(Collectors.toMap((e) -> e.getKey(), (e) -> (PropertyType) e.getValue()));
     }
 
 
@@ -426,12 +429,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }).map((p) -> (PropertyType) p).collect(Collectors.toList());
             if (IdentityName.class.isAssignableFrom(this.clazz)) {
                 if (identityFields.size() != 1) {
-                    throw new IllegalStateException("class:" + this.clazz + " is type of " + IdentityName.class + " ,size:" + identityFields.size() + " must sign no more than one col:" + identityFields.stream().map((c) -> c.displayName).collect(Collectors.joining(",")));
+                    throw new IllegalStateException("class:" + this.clazz + " is type of " + IdentityName.class //
+                            + " ,size:" + identityFields.size() + " must sign no more than one col:" + identityFields.stream().map((c) -> c.displayName)
+                            .collect(Collectors.joining(",")));
                 }
                 this.identityProp = identityFields.get(0);
             } else {
                 if (identityFields.size() > 0) {
-                    throw new IllegalStateException("class:" + this.clazz + " is not type of " + IdentityName.class + " but more than one identity col:" + identityFields.stream().map((c) -> c.displayName).collect(Collectors.joining(",")));
+                    throw new IllegalStateException("class:" + this.clazz + " is not type of " + IdentityName.class //
+                            + " but more than one identity col:" + identityFields.stream().map((c) -> c.displayName).collect(Collectors.joining(",")));
                 }
             }
 
