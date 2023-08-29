@@ -35,17 +35,18 @@ public abstract class AbstractCreateTableSqlBuilder {
 
     protected final IDataxProcessor.TableMap tableMapper;
 
-    protected final List<CreateTableSqlBuilder.ColWrapper> pks;
+    protected final List<String> pks;
     public int maxColNameLength;
     protected final String escapeChar;
 
     public AbstractCreateTableSqlBuilder(IDataxProcessor.TableMap tableMapper, DataSourceMeta dsMeta) {
         this.tableMapper = tableMapper;
 
-        this.pks = this.getCols().stream()
-                .filter((c) -> c.isPk())
-                .map((c) -> createColWrapper(c))
-                .collect(Collectors.toList());
+        this.pks = tableMapper.getSourceTab().getPrimaryKeys();
+        //                this.getCols().stream()
+        //                .filter((c) -> c.isPk())
+        //                .map((c) -> createColWrapper(c))
+        //                .collect(Collectors.toList());
 
         maxColNameLength = 0;
         for (CMeta col : this.getCols()) {
@@ -102,10 +103,7 @@ public abstract class AbstractCreateTableSqlBuilder {
         }
 
         public String getSelectAllScript() {
-            return "SELECT " + builder.getCols().stream()
-                    .map((c) -> builder.wrapWithEscape(c.getName()))
-                    .collect(Collectors.joining(","))
-                    + " FROM " + (builder.getCreateTableName().getEntityName());
+            return "SELECT " + builder.getCols().stream().map((c) -> builder.wrapWithEscape(c.getName())).collect(Collectors.joining(",")) + " FROM " + (builder.getCreateTableName().getEntityName());
         }
     }
 

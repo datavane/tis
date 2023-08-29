@@ -34,6 +34,11 @@ public final class DefaultTab implements ISelectedTab {
         this.writerCols = writerCols;
     }
 
+    @Override
+    public List<String> getPrimaryKeys() {
+        throw new UnsupportedOperationException();
+    }
+
     public DefaultTab(String tabName) {
         this(tabName, Collections.emptyList());
     }

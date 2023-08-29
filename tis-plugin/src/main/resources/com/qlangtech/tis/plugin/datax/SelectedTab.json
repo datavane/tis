@@ -5,6 +5,7 @@
   },
   "cols": {
     "label": "同步列",
+    "viewtype": "idlist",
     "enum": "com.qlangtech.tis.plugin.datax.SelectedTab.getColsCandidate():uncache_true",
     "help": "需要同步的数据列"
   },

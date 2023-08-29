@@ -28,52 +28,68 @@ import java.util.*;
 public class DataTypeMeta {
     private final DataType type;
 
+    /**
+     * 接受的两种类型:
+     * <ol>
+     *     <li>IDataxProcessor.TableMap</li>
+     *     <li>List<CMeta></li>
+     * </ol>
+     *
+     * @param tabMapper
+     * @return
+     */
+    public static Map<String, Object> createViewBiz(Object tabMapper) {
+        Map<String, Object> biz = new HashMap<>();
+        biz.put("tabMapper", Objects.requireNonNull(tabMapper, "tabMapper can not be null"));
+        biz.put("colMetas", DataTypeMeta.typeMetas);
+        return biz;
+    }
+
     private final Optional<ColSizeRange> colSizeRange;
     private final Optional<DecimalRange> decimalRange;
 
 
-//            case :
-//            case :
-//
+    //            case :
+    //            case :
+    //
 
-//            case Types.:
-//            case Types.:
-//            case Types.REAL:
-//            case Types.:
-//
-//            case Types.DATE:
-//            case Types.TIME:
-//            case Types.:
-//            case Types.BIT:
-//            case Types.BOOLEAN:
-//            case Types.BLOB:
-//            case Types.BINARY:
-//            case Types.LONGVARBINARY:
-//            case Types.VARBINARY:
+    //            case Types.:
+    //            case Types.:
+    //            case Types.REAL:
+    //            case Types.:
+    //
+    //            case Types.DATE:
+    //            case Types.TIME:
+    //            case Types.:
+    //            case Types.BIT:
+    //            case Types.BOOLEAN:
+    //            case Types.BLOB:
+    //            case Types.BINARY:
+    //            case Types.LONGVARBINARY:
+    //            case Types.VARBINARY:
 
 
     public static final DataTypeMeta[] typeMetas //
-            = new DataTypeMeta[]{
-            new DataTypeMeta(DataType.createVarChar(32), new ColSizeRange(1, 2000))
-            , new DataTypeMeta(new DataType(Types.INTEGER, "INTEGER"))
-            , new DataTypeMeta(new DataType(Types.TINYINT, "TINYINT"))
-            , new DataTypeMeta(new DataType(Types.SMALLINT, "SMALLINT"))
-            , new DataTypeMeta(new DataType(Types.BIGINT, "BIGINT"))
-            , new DataTypeMeta(new DataType(Types.FLOAT, "FLOAT"))
-            , new DataTypeMeta(new DataType(Types.DOUBLE, "DOUBLE"))
-            , new DataTypeMeta(new DataType(Types.DECIMAL, "DECIMAL", 20).setDecimalDigits(2)
-            , new ColSizeRange(1, 46)
-            , new DecimalRange(1, 20))
-            , new DataTypeMeta(new DataType(Types.DATE, "DATE"))
-            , new DataTypeMeta(new DataType(Types.TIME, "TIME"))
-            , new DataTypeMeta(new DataType(Types.TIMESTAMP, "TIMESTAMP"))
-            , new DataTypeMeta(new DataType(Types.BIT, "BIT"))
-            , new DataTypeMeta(new DataType(Types.BOOLEAN, "BOOLEAN"))
-            , new DataTypeMeta(new DataType(Types.BLOB, "BLOB"), new ColSizeRange(1, 2000))
-            , new DataTypeMeta(new DataType(Types.BINARY, "BINARY"), new ColSizeRange(1, 2000))
-            , new DataTypeMeta(new DataType(Types.LONGVARBINARY, "LONGVARBINARY", 1000), new ColSizeRange(1, 2000))
-            , new DataTypeMeta(new DataType(Types.VARBINARY, "VARBINARY", 1000), new ColSizeRange(1, 4000))
-    };
+            = new DataTypeMeta[]{new DataTypeMeta(DataType.createVarChar(32), new ColSizeRange(1, 2000)),
+            new DataTypeMeta(new DataType(Types.INTEGER, "INTEGER")) //
+            , new DataTypeMeta(new DataType(Types.TINYINT, "TINYINT")) //
+            , new DataTypeMeta(new DataType(Types.SMALLINT, "SMALLINT")) //
+            , new DataTypeMeta(new DataType(Types.BIGINT, "BIGINT")) //
+            , new DataTypeMeta(new DataType(Types.FLOAT, "FLOAT")) //
+            , new DataTypeMeta(new DataType(Types.DOUBLE, "DOUBLE")) //
+            , new DataTypeMeta(new DataType(Types.DECIMAL, "DECIMAL", 20).setDecimalDigits(2), new ColSizeRange(1,
+            46), new DecimalRange(1, 20)) //
+            , new DataTypeMeta(new DataType(Types.DATE, "DATE")) //
+            , new DataTypeMeta(new DataType(Types.TIME, "TIME")), //
+            new DataTypeMeta(new DataType(Types.TIMESTAMP, "TIMESTAMP")) //
+            , new DataTypeMeta(new DataType(Types.BIT, "BIT")) //
+            , new DataTypeMeta(new DataType(Types.LONGVARCHAR, "TEXT")) //
+            , new DataTypeMeta(new DataType(Types.BOOLEAN, "BOOLEAN")) //
+        //    , new DataTypeMeta(new DataType(Types.T, "BOOLEAN")) //
+            , new DataTypeMeta(new DataType(Types.BLOB, "BLOB"), new ColSizeRange(1, 2000))//
+            , new DataTypeMeta(new DataType(Types.BINARY, "BINARY"), new ColSizeRange(1, 2000)) //
+            , new DataTypeMeta(new DataType(Types.LONGVARBINARY, "LONGVARBINARY", 1000), new ColSizeRange(1, 2000)) //
+            , new DataTypeMeta(new DataType(Types.VARBINARY, "VARBINARY", 1000), new ColSizeRange(1, 4000))};
 
     public static final Map<Integer, DataTypeMeta> typeMetasDic;
 
@@ -91,9 +107,8 @@ public class DataTypeMeta {
      * @see java.sql.Types
      */
     public static DataTypeMeta getDataTypeMeta(Integer type) {
-        return Objects.requireNonNull(typeMetasDic.get(type)
-                , "type:" + type + " relevant "
-                        + DataTypeMeta.class.getSimpleName() + " can not be null");
+        return Objects.requireNonNull(typeMetasDic.get(type),
+                "type:" + type + " relevant " + DataTypeMeta.class.getSimpleName() + " can not be null");
     }
 
     public DataTypeMeta(DataType type) {

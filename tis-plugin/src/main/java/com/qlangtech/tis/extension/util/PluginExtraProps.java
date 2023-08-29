@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.extension.util;
 
+import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -28,6 +29,12 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.DataType;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.LineIterator;
@@ -36,8 +43,10 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -61,8 +70,16 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     // private static final Parser mdParser = Parser.builder().build();
 
     private static Optional<PluginExtraProps> parseExtraProps(Class<?> pluginClazz) {
+        return parseExtraProps(pluginClazz, Optional.empty());
+    }
 
-        final String mdRes = pluginClazz.getSimpleName() + ".md";
+    public static Optional<PluginExtraProps> parseExtraProps(Class<?> pluginClazz, Optional<Field> subFormField) {
+        String subformFieldName = StringUtils.EMPTY;
+        if (subFormField.isPresent()) {
+            subformFieldName = "." + subFormField.get().getName();
+        }
+
+        final String mdRes = pluginClazz.getSimpleName() + subformFieldName + ".md";
         final Map<String, StringBuffer> propHelps = Maps.newHashMap();
         IOUtils.loadResourceFromClasspath(pluginClazz, mdRes, false, (input) -> {
             LineIterator lines = org.apache.commons.io.IOUtils.lineIterator(input, TisUTF8.get());
@@ -86,7 +103,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return null;
         });
 
-        String resourceName = pluginClazz.getSimpleName() + ".json";
+        String resourceName = pluginClazz.getSimpleName() + subformFieldName + ".json";
         try {
             try (InputStream i = pluginClazz.getResourceAsStream(resourceName)) {
                 if (i == null) {
@@ -170,6 +187,67 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         return extraProps;
     }
 
+    public static ParsePostMCols parsePostMCols(IFieldErrorHandler msgHandler, Context context, String keyColsMeta, JSONArray targetCols) {
+        if (targetCols == null) {
+            throw new IllegalArgumentException("param targetCols can not be null");
+        }
+        ParsePostMCols postMCols = new ParsePostMCols();
+        CMeta colMeta = null;
+
+        JSONObject targetCol = null;
+        int index;
+        String targetColName = null;
+        DataType dataType = null;
+
+        //    if (targetCols.size() < 1) {
+        //      msgHandler.addFieldError(context, fieldKey, "Writer目标表列不能为空");
+        //      return false;
+        //    }
+        Map<String, Integer> existCols = Maps.newHashMap();
+        //   boolean validateFaild = false;
+        Integer previousColIndex = null;
+        boolean pk;
+        // boolean pkHasSelected = false;
+        JSONObject type = null;
+        for (int i = 0; i < targetCols.size(); i++) {
+            targetCol = targetCols.getJSONObject(i);
+            index = targetCol.getInteger("index");
+            pk = targetCol.getBooleanValue("pk");
+            targetColName = targetCol.getString("name");
+            if (StringUtils.isNotBlank(targetColName) && (previousColIndex = existCols.put(targetColName, index)) != null) {
+                msgHandler.addFieldError(context, keyColsMeta + "[" + previousColIndex + "]", "内容不能与第" + index + "行重复");
+                msgHandler.addFieldError(context, keyColsMeta + "[" + index + "]", "内容不能与第" + previousColIndex + "行重复");
+                // return false;
+                postMCols.validateFaild = true;
+                return postMCols;
+            }
+            if (!Validator.require.validate(msgHandler, context, keyColsMeta + "[" + index + "]", targetColName)) {
+                postMCols.validateFaild = true;
+            } else if (!Validator.db_col_name.validate(msgHandler, context, keyColsMeta + "[" + index + "]", targetColName)) {
+                postMCols.validateFaild = true;
+            }
+            colMeta = new CMeta();
+            colMeta.setDisable(targetCol.getBooleanValue("disable"));
+            colMeta.setName(targetColName);
+            colMeta.setPk(pk);
+            if (pk) {
+                postMCols.pkHasSelected = true;
+            }
+            //{"s":"3,12,2","typeDesc":"decimal(12,2)","columnSize":12,"typeName":"VARCHAR","unsigned":false,"decimalDigits":4,"type":3,"unsignedToken":""}
+            type = targetCol.getJSONObject("type");
+
+            dataType = new DataType(type.getInteger("type"), type.getString("typeName"), type.getInteger("columnSize"));
+
+            dataType.setDecimalDigits(type.getInteger("decimalDigits"));
+            // DataType dataType = targetCol.getObject("type", DataType.class);
+            // colMeta.setType(ISelectedTab.DataXReaderColType.parse(targetCol.getString("type")));
+            colMeta.setType(dataType);
+            postMCols.writerCols.add(colMeta);
+        }
+
+        return postMCols;
+    }
+
     public interface IClassVisitor<T> {
         T process(Class<?> clazz, T extraProps);
     }
@@ -190,8 +268,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 if (plugins != null) {
                     for (int i = 0; i < plugins.size(); i++) {
                         pmeta = plugins.getJSONObject(i);
-                        if (StringUtils.isBlank(pmeta.getString("hetero"))
-                                || StringUtils.isBlank(pmeta.getString("descName"))
+                        if (StringUtils.isBlank(pmeta.getString("hetero")) || StringUtils.isBlank(pmeta.getString("descName"))
                             // 由于插件中参数不一定是必须的，所以先把以下校验去掉： "extraParam": "append_true"
                             //        || StringUtils.isBlank(pmeta.getString("extraParam"))
                         ) {
@@ -245,9 +322,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                         return (pre == null) ? Descriptor.buildPropertyTypes(Optional.empty(), desc.get().clazz) : pre;
                     });
                     if (!pp.containsKey(entry.getKey())) {
-                        throw new IllegalStateException("prop key:" + entry.getKey()
-                                + " relevant prop must exist , exist props keys:"
-                                + pp.keySet().stream().collect(Collectors.joining(",")));
+                        throw new IllegalStateException("prop key:" + entry.getKey() + " relevant prop must exist , exist props keys:" + pp.keySet().stream().collect(Collectors.joining(",")));
                     }
                 }
                 this.put(entry.getKey(), entry.getValue());
@@ -255,8 +330,79 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         }
     }
 
+    /**
+     * Fieldtype 为 MULTI_SELECTABLE 类型显示的类型
+     * <ol>
+     *     <li>IdList：显示为Id列表</li>
+     *     <li>TupleList：显示为table列表</li>
+     * </ol>
+     *
+     * @see FormFieldType
+     */
+    public enum ViewType {
+        IdList("idlist", (msgHandler, context, eprops) -> {
+            final String keyChecked = "checked";
+            JSONArray enums = eprops.getJSONArray(Descriptor.KEY_ENUM_PROP);
+            if (enums == null) {
+                enums = new JSONArray();
+                //   throw new IllegalStateException("enums of prop can not be null");
+            }
+            JSONObject select = null;
+            int selected = 0;
+            List<FormFieldType.SelectedItem> selectedItems = Lists.newArrayList();
+            FormFieldType.SelectedItem item = null;
+            for (int i = 0; i < enums.size(); i++) {
+                select = enums.getJSONObject(i);
+                item = new FormFieldType.SelectedItem(select.getString(PluginExtraProps.KEY_LABEL) //
+                        , select.getString("val") //
+                        , select.containsKey(keyChecked) && select.getBoolean(keyChecked));
+                if (item.isChecked()) {
+                    selected++;
+                }
+                selectedItems.add(item);
+            }
+            return selectedItems;
+        }), TupleList("tuplelist", (msgHandler, context, eprops) -> {
+            String keyColsMeta = "";
+            JSONArray mcols = eprops.getJSONObject(Descriptor.KEY_ENUM_PROP).getJSONArray("_mcols");
+            ParsePostMCols parsePostMCols = parsePostMCols(msgHandler, context, keyColsMeta, mcols);
+            if (parsePostMCols.validateFaild) {
+                return Collections.emptyList();
+            }
+            //List<FormFieldType.SelectedItem>
+            return parsePostMCols.writerCols.stream() //
+                    .map((cmeta) -> new FormFieldType.SelectedItem(cmeta)).collect(Collectors.toList());
+        });
+
+        private final String token;
+        private final IPostSelectedItemsGetter postSelectedItemsGetter;
+
+        private ViewType(String token, IPostSelectedItemsGetter postSelectedItemsGetter) {
+            this.token = token;
+            this.postSelectedItemsGetter = postSelectedItemsGetter;
+        }
+
+        public static ViewType parse(String token) {
+            for (ViewType t : ViewType.values()) {
+                if (t.token.equalsIgnoreCase(token)) {
+                    return t;
+                }
+            }
+            throw new IllegalStateException("token value:" + token + " is invalid");
+        }
+
+        public List<FormFieldType.SelectedItem> getPostSelectedItems(IControlMsgHandler msgHandler, Context context, JSONObject eprops) {
+            return this.postSelectedItemsGetter.apply(msgHandler, context, eprops);
+        }
+    }
+
+    public interface IPostSelectedItemsGetter {
+        List<FormFieldType.SelectedItem> apply(IControlMsgHandler msgHandler, Context context, JSONObject eprops);
+    }
+
     public static class Props {
         public static final String KEY_HELP = "help";
+        public static final String KEY_VIEW_TYPE = "viewtype";
         private static final String KEY_ASYNC_HELP = "asyncHelp";
         private final JSONObject props;
         private String asynHelp;
@@ -287,6 +433,15 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         public boolean isAdvance() {
             return props.getBooleanValue(DescriptorsJSON.KEY_ADVANCE);
+        }
+
+        /**
+         * Fieldtype 为 MULTI_SELECTABLE 类型显示的类型
+         *
+         * @return
+         */
+        public ViewType multiItemsViewType() {
+            return ViewType.parse(this.props.getString(KEY_VIEW_TYPE));
         }
 
 
@@ -385,5 +540,11 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 }
             });
         }
+    }
+
+    public static class ParsePostMCols {
+        public List<CMeta> writerCols = Lists.newArrayList();
+        public boolean validateFaild = false;
+        public boolean pkHasSelected = false;
     }
 }

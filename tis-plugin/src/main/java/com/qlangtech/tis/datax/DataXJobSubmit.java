@@ -63,10 +63,12 @@ public abstract class DataXJobSubmit {
     public static Callable<DataXJobSubmit> mockGetter;
 
     public static void main(String[] args) throws Exception {
-        Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources("com/google/common/base/Preconditions.class");
-       while(resources.hasMoreElements()){
-           System.out.println(   resources.nextElement() );
-       }
+        Enumeration<URL> resources =
+                Thread.currentThread().getContextClassLoader().getResources("com/google/common" + "/base" +
+                        "/Preconditions.class");
+        while (resources.hasMoreElements()) {
+            System.out.println(resources.nextElement());
+        }
         // System.out.println(  DataXJobSubmit.class("com/google/common/base/Preconditions.class"));
     }
 
@@ -82,7 +84,8 @@ public abstract class DataXJobSubmit {
         return dataXWorkerServiceOnDuty ? DataXJobSubmit.InstanceType.DISTRIBUTE : DataXJobSubmit.InstanceType.LOCAL;
     }
 
-    public static Optional<DataXJobSubmit> getDataXJobSubmit(boolean dryRun, DataXJobSubmit.InstanceType expectDataXJobSumit) {
+    public static Optional<DataXJobSubmit> getDataXJobSubmit(boolean dryRun,
+                                                             DataXJobSubmit.InstanceType expectDataXJobSumit) {
         try {
             if (mockGetter != null) {
                 return Optional.ofNullable(mockGetter.call());
@@ -93,41 +96,43 @@ public abstract class DataXJobSubmit {
 
         // 如果是DryRun则只需要在内部执行
         final DataXJobSubmit.InstanceType targetType = dryRun ? InstanceType.EMBEDDED : expectDataXJobSumit;
-//        if (joinTaskContext.isDryRun()) {
-//            expectDataXJobSumit = InstanceType.EMBEDDED;
-//        }
+        //        if (joinTaskContext.isDryRun()) {
+        //            expectDataXJobSumit = InstanceType.EMBEDDED;
+        //        }
 
         ExtensionList<DataXJobSubmit> jobSumits = TIS.get().getExtensionList(DataXJobSubmit.class);
-        Optional<DataXJobSubmit> jobSubmit = jobSumits.stream()
-                .filter((jsubmit) -> (targetType) == jsubmit.getType()).findFirst();
+        Optional<DataXJobSubmit> jobSubmit =
+                jobSumits.stream().filter((jsubmit) -> (targetType) == jsubmit.getType()).findFirst();
         return jobSubmit;
     }
 
-    public static Optional<DataXJobSubmit> getDataXJobSubmit(
-            IJoinTaskContext joinTaskContext, DataXJobSubmit.InstanceType expectDataXJobSumit) {
+    public static Optional<DataXJobSubmit> getDataXJobSubmit(IJoinTaskContext joinTaskContext,
+                                                             DataXJobSubmit.InstanceType expectDataXJobSumit) {
         return getDataXJobSubmit(joinTaskContext.isDryRun(), expectDataXJobSumit);
     }
 
     public enum InstanceType {
         DISTRIBUTE("distribute") {
             @Override
-            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<DataXCfgGenerator.DataXCfgFile> cfgFileNames) {
+            public boolean validate(IControlMsgHandler controlMsgHandler, Context context,
+                                    List<DataXCfgGenerator.DataXCfgFile> cfgFileNames) {
                 return true;
             }
-        },
-        EMBEDDED("embedded") {
+        }, EMBEDDED("embedded") {
             @Override
-            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<DataXCfgGenerator.DataXCfgFile> cfgFileNames) {
+            public boolean validate(IControlMsgHandler controlMsgHandler, Context context,
+                                    List<DataXCfgGenerator.DataXCfgFile> cfgFileNames) {
                 return true;
             }
         }
         //
         , LOCAL("local") {
             @Override
-            public boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<DataXCfgGenerator.DataXCfgFile> cfgFileNames) {
+            public boolean validate(IControlMsgHandler controlMsgHandler, Context context,
+                                    List<DataXCfgGenerator.DataXCfgFile> cfgFileNames) {
                 if (cfgFileNames.size() > MAX_TABS_NUM_IN_PER_JOB) {
-                    controlMsgHandler.addErrorMessage(context, "单机版，单次表导入不能超过"
-                            + MAX_TABS_NUM_IN_PER_JOB + "张，如需要导入更多表，请使用分布式K8S DataX执行期");
+                    controlMsgHandler.addErrorMessage(context, "单机版，单次表导入不能超过" + MAX_TABS_NUM_IN_PER_JOB +
+                            "张，如需要导入更多表，请使用分布式K8S DataX执行期");
                     return false;
                 }
                 return true;
@@ -148,14 +153,16 @@ public abstract class DataXJobSubmit {
             this.literia = val;
         }
 
-        public abstract boolean validate(IControlMsgHandler controlMsgHandler, Context context, List<DataXCfgGenerator.DataXCfgFile> cfgFileNames);
+        public abstract boolean validate(IControlMsgHandler controlMsgHandler, Context context,
+                                         List<DataXCfgGenerator.DataXCfgFile> cfgFileNames);
     }
 
 
     public abstract InstanceType getType();
 
 
-    public CuratorDataXTaskMessage getDataXJobDTO(IDataXJobContext jobContext, DataXJobInfo dataXJobInfo, IDataxProcessor processor) {
+    public CuratorDataXTaskMessage getDataXJobDTO(IDataXJobContext jobContext, DataXJobInfo dataXJobInfo,
+                                                  IDataxProcessor processor) {
 
         IJoinTaskContext taskContext = jobContext.getTaskContext();
         if (processor.getResType() == null) {
@@ -175,10 +182,7 @@ public abstract class DataXJobSubmit {
 
         PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest();
         DumpPhaseStatus.TableDumpStatus dataXJob = null;
-        if (preTaskStatus != null
-                && (dataXJob = preTaskStatus.getDumpPhase().getTable(dataXJobInfo.jobFileName)) != null
-                && dataXJob.getAllRows() > 0
-        ) {
+        if (preTaskStatus != null && (dataXJob = preTaskStatus.getDumpPhase().getTable(dataXJobInfo.jobFileName)) != null && dataXJob.getAllRows() > 0) {
             msg.setAllRowsApproximately(dataXJob.getReadRows());
         } else {
             msg.setAllRowsApproximately(-1);
@@ -193,14 +197,15 @@ public abstract class DataXJobSubmit {
      * @param tabDataXEntity
      * @return
      */
-    public final IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext
-            , RpcServiceReference statusRpc, IDataxProcessor processor, TableDataXEntity tabDataXEntity //, List<String> dependencyTasks
+    public final IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc,
+                                                   IDataxProcessor processor, TableDataXEntity tabDataXEntity //,
+                                                   // List<String> dependencyTasks
     ) {
         final DataXJobInfo jobName = getDataXJobInfo(tabDataXEntity, taskContext, processor);
         if (this.getType() == InstanceType.DISTRIBUTE) {
             //TODO: 获取DataXProcess 相关元数据 用于远程分布式执行任务
-            RobustReflectionConverter2.PluginMetas pluginMetas
-                    = RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
+            RobustReflectionConverter2.PluginMetas pluginMetas =
+                    RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
 
             });
         }
@@ -210,16 +215,16 @@ public abstract class DataXJobSubmit {
         return createDataXJob(taskContext, statusRpc, jobName, processor, dataXJobDTO);
     }
 
-    protected abstract IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext
-            , RpcServiceReference statusRpc, DataXJobInfo jobName
-            , IDataxProcessor dataxProcessor, CuratorDataXTaskMessage dataXJobDTO);
+    protected abstract IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc,
+                                                         DataXJobInfo jobName, IDataxProcessor dataxProcessor,
+                                                         CuratorDataXTaskMessage dataXJobDTO);
 
 
-    private DataXJobInfo getDataXJobInfo(
-            final TableDataXEntity tabDataXEntity, IDataXJobContext taskContext, IDataxProcessor dataxProcessor) {
+    private DataXJobInfo getDataXJobInfo(final TableDataXEntity tabDataXEntity, IDataXJobContext taskContext,
+                                         IDataxProcessor dataxProcessor) {
 
-        List<IDataxReader> readers = taskContext.getTaskContext().getAttribute(KEY_DATAX_READERS
-                , () -> dataxProcessor.getReaders(null));
+        List<IDataxReader> readers = taskContext.getTaskContext().getAttribute(KEY_DATAX_READERS,
+                () -> dataxProcessor.getReaders(null));
 
         return getDataXJobInfo(tabDataXEntity, (p) -> {
             TableInDB tabsInDB = p.getLeft();
@@ -228,7 +233,8 @@ public abstract class DataXJobSubmit {
         }, readers);
     }
 
-    public static <T> T getDataXJobInfo(DBIdentity targetDBId, Function<Pair<TableInDB, IDataxReader>, T> convert, List<IDataxReader> readers) {
+    public static <T> T getDataXJobInfo(DBIdentity targetDBId, Function<Pair<TableInDB, IDataxReader>, T> convert,
+                                        List<IDataxReader> readers) {
 
         for (IDataxReader reader : readers) {
             TableInDB tabsInDB = reader.getTablesInDB();
@@ -253,22 +259,23 @@ public abstract class DataXJobSubmit {
 
         public static DataXJobSubmit.TableDataXEntity createTableEntity4Test(String dataXCfgFileName, String tabName) {
             return createTableEntity(dataXCfgFileName, TEST_JDBC_URL, tabName);
-//            ISelectedTab selTab = new ISelectedTab() {
-//                @Override
-//                public String getName() {
-//                    return tabName;
-//                }
-//
-//                @Override
-//                public List<CMeta> getCols() {
-//                    throw new UnsupportedOperationException();
-//                }
-//            };
-//            return new DataXJobSubmit.TableDataXEntity(
-//                    new DataXCfgGenerator.DBDataXChildTask(TEST_JDBC_URL, dataXCfgFileName), selTab);
+            //            ISelectedTab selTab = new ISelectedTab() {
+            //                @Override
+            //                public String getName() {
+            //                    return tabName;
+            //                }
+            //
+            //                @Override
+            //                public List<CMeta> getCols() {
+            //                    throw new UnsupportedOperationException();
+            //                }
+            //            };
+            //            return new DataXJobSubmit.TableDataXEntity(
+            //                    new DataXCfgGenerator.DBDataXChildTask(TEST_JDBC_URL, dataXCfgFileName), selTab);
         }
 
-        public static DataXJobSubmit.TableDataXEntity createTableEntity(String dataXCfgFileName, String dbIdenetity, String tabName) {
+        public static DataXJobSubmit.TableDataXEntity createTableEntity(String dataXCfgFileName, String dbIdenetity,
+                                                                        String tabName) {
 
             ISelectedTab selTab = new ISelectedTab() {
                 @Override
@@ -276,13 +283,15 @@ public abstract class DataXJobSubmit {
                     return tabName;
                 }
 
+
+
                 @Override
                 public List<CMeta> getCols() {
                     throw new UnsupportedOperationException();
                 }
             };
-            return new DataXJobSubmit.TableDataXEntity(
-                    new DataXCfgGenerator.DBDataXChildTask(dbIdenetity, null, dataXCfgFileName), selTab);
+            return new DataXJobSubmit.TableDataXEntity(new DataXCfgGenerator.DBDataXChildTask(dbIdenetity, null,
+                    dataXCfgFileName), selTab);
         }
 
         public TableDataXEntity(DataXCfgGenerator.DBDataXChildTask fileName, ISelectedTab selectedTab) {
@@ -308,10 +317,7 @@ public abstract class DataXJobSubmit {
 
         @Override
         public String toString() {
-            return "{" +
-                    fileName +
-                    ", selectedTab=" + selectedTab.getName() +
-                    '}';
+            return "{" + fileName + ", selectedTab=" + selectedTab.getName() + '}';
         }
     }
 

@@ -41,10 +41,10 @@ public abstract class CreateTableSqlBuilder extends AbstractCreateTableSqlBuilde
     }
 
 
-    protected void appendExtraColDef(List<ColWrapper> pks) {
+    protected void appendExtraColDef(List<String> pks) {
     }
 
-    protected void appendTabMeta(List<ColWrapper> pks) {
+    protected void appendTabMeta(List<String> pks) {
     }
 
     @Override
@@ -92,7 +92,7 @@ public abstract class CreateTableSqlBuilder extends AbstractCreateTableSqlBuilde
      * @param cols
      * @return
      */
-    protected List<ColWrapper> preProcessCols(List<ColWrapper> pks, List<CMeta> cols) {
+    protected List<ColWrapper> preProcessCols(List<String> pks, List<CMeta> cols) {
         return cols.stream().map((c) -> createColWrapper(c)).collect(Collectors.toList());
     }
 

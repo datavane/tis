@@ -38,6 +38,8 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.DataTypeMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
@@ -58,6 +60,7 @@ import java.io.IOException;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -354,7 +357,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 //                        , filter.targetDescriptorName + " relevant desc can not be null");
                 SuFormProperties subProps = (SuFormProperties) parentDesc.getSubPluginFormPropertyTypes(filter.subFieldName);
                 Objects.requireNonNull(subProps, "prop:" + filter.subFieldName + " relevant subProps can not be null ");
-                subPluginFormPropertyTypes = new SuFormProperties(subProps.parentClazz, subProps.subFormField, subProps.subFormFieldsAnnotation, this, filterFieldProp(this.getPropertyTypes()));
+                subPluginFormPropertyTypes = new SuFormProperties(subProps.parentClazz, subProps.subFormField
+                        , subProps.subFormFieldsAnnotation, this, filterFieldProp(this.getPropertyTypes()));
                 return subPluginFormPropertyTypes.overWriteInstClazz(this.clazz);
             } else {
                 subPluginFormPropertyTypes = (SuFormProperties) getSubPluginFormPropertyTypes(filter.subFieldName);
@@ -365,7 +369,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     Descriptor writerDescriptor = IDataxProcessor.getWriterDescriptor(filter.uploadPluginMeta);// dataxWriter.getClass();
                     if (writerDescriptor != null && writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
                         subPluginFormPropertyTypes = Objects.requireNonNull(((DataxWriter.IRewriteSuFormProperties) writerDescriptor) //
-                                .overwriteSubPluginFormPropertyTypes(subPluginFormPropertyTypes) //
+                                        .overwriteSubPluginFormPropertyTypes(subPluginFormPropertyTypes) //
                                 , "result can not be null " + PluginFormProperties.class.getSimpleName());
                     }
 //                    String overwriteSubField = IOUtils.loadResourceFromClasspath(
@@ -430,8 +434,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             if (IdentityName.class.isAssignableFrom(this.clazz)) {
                 if (identityFields.size() != 1) {
                     throw new IllegalStateException("class:" + this.clazz + " is type of " + IdentityName.class //
-                            + " ,size:" + identityFields.size() + " must sign no more than one col:" + identityFields.stream().map((c) -> c.displayName)
-                            .collect(Collectors.joining(",")));
+                            + " ,size:" + identityFields.size() + " must sign no more than one col:" //
+                            + identityFields.stream().map((c) -> c.displayName).collect(Collectors.joining(",")));
                 }
                 this.identityProp = identityFields.get(0);
             } else {
@@ -513,9 +517,33 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                         props.put(PluginExtraProps.KEY_PLACEHOLDER_PROP, GroovyShellEvaluate.scriptEval(placeholder));
                                     }
 
-                                    if (descriptor.isPresent() && ((formField.type() == FormFieldType.ENUM) || formField.type() == FormFieldType.MULTI_SELECTABLE)) {
-                                        resolveEnumProp(descriptor.get(), fieldExtraProps);
+                                    if (descriptor.isPresent() //
+                                            && (formField.type() == FormFieldType.ENUM)) {
+                                        resolveEnumProp(descriptor.get(), fieldExtraProps, (opts) -> {
+                                            return Option.toJson((List<Option>) opts);
+                                        });
                                     }
+
+                                    if (descriptor.isPresent() //
+                                            && (formField.type() == FormFieldType.MULTI_SELECTABLE)) {
+                                        final PluginExtraProps.Props feProps = fieldExtraProps;
+                                        resolveEnumProp(descriptor.get(), fieldExtraProps, (cols) -> {
+
+                                            List<CMeta> mcols = (List<CMeta>) cols;
+                                            // cols有两种显示模式
+                                            switch (feProps.multiItemsViewType()) {
+                                                case IdList:
+                                                    return Option.toJson(mcols);
+                                                case TupleList:
+                                                    return DataTypeMeta.createViewBiz(mcols);
+                                                default:
+                                                    throw new IllegalStateException("unhandle view type:" + feProps.multiItemsViewType());
+                                            }
+
+                                            // return Option.toJson((List<Option>) opts);
+                                        });
+                                    }
+
                                     ptype.setExtraProp(fieldExtraProps);
                                 }
                                 r.put(f.getName(), ptype);
@@ -541,7 +569,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 //        return resolveEnumProp(descriptor, propType.extraProp);
 //    }
 
-    private static JSONArray resolveEnumProp(Descriptor descriptor, PluginExtraProps.Props fieldExtraProps) {
+    private static JSONArray resolveEnumProp(Descriptor descriptor, PluginExtraProps.Props fieldExtraProps, Function<Object, Object> process) {
         Object anEnum = fieldExtraProps.getProps().get(KEY_ENUM_PROP);
 //                                if (anEnum == null) {
 //                                    throw new IllegalStateException("fieldName:" + f.getName() + " relevant enum descriptor in json config can not be null");
@@ -550,9 +578,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         if (anEnum != null && anEnum instanceof String) {
             try {
                 GroovyShellEvaluate.descriptorThreadLocal.set(descriptor);
-                fieldExtraProps.getProps().put(KEY_ENUM_PROP, GroovyShellEvaluate.scriptEval((String) anEnum, (opts) -> {
-                    return Option.toJson((List<Option>) opts);
-                }));
+                fieldExtraProps.getProps().put(KEY_ENUM_PROP, GroovyShellEvaluate.scriptEval((String) anEnum, process
+//                        (opts) -> {
+//                    return Option.toJson((List<Option>) opts);
+//                }
+                ));
             } finally {
                 GroovyShellEvaluate.descriptorThreadLocal.remove();
             }
@@ -719,7 +749,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             } else {
 
                 if (attrDesc.typeIdentity() == FormFieldType.MULTI_SELECTABLE.getIdentity()) {
-                    List<FormFieldType.SelectedItem> selectedItems = getSelectedMultiItems(valJ);
+                    List<FormFieldType.SelectedItem> selectedItems = getSelectedMultiItems(msgHandler, context, attrDesc, valJ);
+                    if (context.hasErrors()) {
+                        return false;
+                    }
                     // 多选类型的 multi select
 //                    JSONObject eprops = valJ.getJSONObject("_eprops");
 //                    Objects.requireNonNull(eprops, "property '_eprops' of attr:" + attr + " can not be null");
@@ -803,32 +836,45 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return valid;
     }
 
-    private List<FormFieldType.SelectedItem> getSelectedMultiItems(JSONObject valJ) {
-        final String keyChecked = "checked";
+    private List<FormFieldType.SelectedItem> getSelectedMultiItems( //
+                                                                    IControlMsgHandler msgHandler, Context context, PropertyType attrDesc, JSONObject valJ) {
+
         // 多选类型的 multi select
         JSONObject eprops = valJ.getJSONObject("_eprops");
         Objects.requireNonNull(eprops, "property '_eprops'   can not be null");
         // enums 格式例子：`com/qlangtech/tis/extension/form-prop-enum-example.json`
-        JSONArray enums = eprops.getJSONArray(Descriptor.KEY_ENUM_PROP);
-        if (enums == null) {
-            enums = new JSONArray();
-            //   throw new IllegalStateException("enums of prop can not be null");
-        }
-        JSONObject select = null;
-        int selected = 0;
-        List<FormFieldType.SelectedItem> selectedItems = Lists.newArrayList();
-        FormFieldType.SelectedItem item = null;
-        for (int i = 0; i < enums.size(); i++) {
-            select = enums.getJSONObject(i);
-            item = new FormFieldType.SelectedItem(select.getString(PluginExtraProps.KEY_LABEL) //
-                    , select.getString("val") //
-                    , select.containsKey(keyChecked) && select.getBoolean(keyChecked));
-            if (item.isChecked()) {
-                selected++;
-            }
-            selectedItems.add(item);
-        }
-        return selectedItems;
+
+        return attrDesc.extraProp.multiItemsViewType().getPostSelectedItems(msgHandler, context, eprops);
+
+//        switch (attrDesc.extraProp.multiItemsViewType()) {
+//            case TupleList:
+//                break;
+//            case IdList:
+//                break;
+//            default:
+//                throw new IllegalStateException("illegal multiItemsViewType:" + attrDesc.extraProp.multiItemsViewType());
+//        }
+//
+//        JSONArray enums = eprops.getJSONArray(Descriptor.KEY_ENUM_PROP);
+//        if (enums == null) {
+//            enums = new JSONArray();
+//            //   throw new IllegalStateException("enums of prop can not be null");
+//        }
+//        JSONObject select = null;
+//        int selected = 0;
+//        List<FormFieldType.SelectedItem> selectedItems = Lists.newArrayList();
+//        FormFieldType.SelectedItem item = null;
+//        for (int i = 0; i < enums.size(); i++) {
+//            select = enums.getJSONObject(i);
+//            item = new FormFieldType.SelectedItem(select.getString(PluginExtraProps.KEY_LABEL) //
+//                    , select.getString("val") //
+//                    , select.containsKey(keyChecked) && select.getBoolean(keyChecked));
+//            if (item.isChecked()) {
+//                selected++;
+//            }
+//            selectedItems.add(item);
+//        }
+//        return selectedItems;
     }
 
     public static class PluginValidateResult {
@@ -1065,8 +1111,16 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             } else {
 
                 if (attrDesc.typeIdentity() == FormFieldType.MULTI_SELECTABLE.getIdentity()) {
-                    List<FormFieldType.SelectedItem> selectedItems = getSelectedMultiItems(valJ);
-                    List<String> multi = selectedItems.stream().filter((item) -> item.isChecked()).map((item) -> (String) item.getValue()).collect(Collectors.toList());
+                    List<FormFieldType.SelectedItem> selectedItems = getSelectedMultiItems(null, null, attrDesc, valJ);
+                    List<CMeta> multi = selectedItems.stream().filter((item) -> item.isChecked()).map((item) -> {
+                        if (item.getCmeta() != null) {
+                            return item.getCmeta();
+                        } else {
+                            CMeta c = new CMeta();
+                            c.setName(item.getName());
+                            return c;
+                        }
+                    }).collect(Collectors.toList());
 
                     attrDesc.setVal(describable, multi);
                 } else {

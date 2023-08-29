@@ -1,26 +1,29 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.manage.common;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.plugin.IdentityName;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -30,14 +33,26 @@ public class Option {
 
     public static final String KEY_VALUE = "val";
 
-    public static JSONArray toJson(List<Option> options) {
+    public static JSONArray toJson(List<?> options) {
+        // Option
+
+
         JSONArray enums = new JSONArray();
         if (options != null) {
-            options.forEach((key) -> {
+            options.stream().map((o) -> {
+                if (o instanceof Option) {
+                    return o;
+                } else if (o instanceof IdentityName) {
+                    return new Option(((IdentityName) o).identityValue());
+                } else {
+                    throw new IllegalStateException("illegal type:" + o.getClass());
+                }
+            }).forEach((key) -> {
                 JSONObject o = new JSONObject();
-                o.put("label", key.getName());
-                o.put(KEY_VALUE, key.getValue());
+                o.put("label", ((Option) key).getName());
+                o.put(KEY_VALUE, ((Option) key).getValue());
                 enums.add(o);
+                //return key;
             });
         }
         return enums;

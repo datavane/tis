@@ -34,6 +34,7 @@ import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
@@ -89,7 +90,7 @@ public class DataXCfgGenerator {
         final String tpl = globalCfg.getTemplate();
 
         // List<IDataxReader> readers = dataxProcessor.getReaders(pluginCtx);
-//        for (IDataxReader reader : readers) {
+        //        for (IDataxReader reader : readers) {
         //IDataxReader reader = dataxProcessor.getReader(pluginCtx);
         // IDataxWriter writer = dataxProcessor.getWriter(pluginCtx);
         String readerTpl = reader.getTemplate();
@@ -151,9 +152,9 @@ public class DataXCfgGenerator {
     public GenerateCfgs startGenerateCfg(final File dataXCfgDir) throws Exception {
         return startGenerateCfg(new IGenerateScriptFile() {
             @Override
-            public void generateScriptFile(IDataxReader reader, IDataxWriter writer
-                    , IDataxReaderContext readerContext
-                    , Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
+            public void generateScriptFile(IDataxReader reader, IDataxWriter writer,
+                                           IDataxReaderContext readerContext, Set<String> createDDLFiles,
+                                           Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
                 generateDataXAndSQLDDLFile(dataXCfgDir, reader, writer, readerContext, createDDLFiles, tableMapper);
             }
         });
@@ -162,9 +163,9 @@ public class DataXCfgGenerator {
     public GenerateCfgs startGenerateCfg(IGenerateScriptFile scriptFileGenerator) throws Exception {
 
 
-//        FileUtils.forceMkdir(dataXCfgDir);
-//        // 先清空文件
-//        FileUtils.cleanDirectory(dataXCfgDir);
+        //        FileUtils.forceMkdir(dataXCfgDir);
+        //        // 先清空文件
+        //        FileUtils.cleanDirectory(dataXCfgDir);
 
         boolean unStructedReader = dataxProcessor.isReaderUnStructed(this.pluginCtx);
 
@@ -172,7 +173,8 @@ public class DataXCfgGenerator {
         IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
         DataxWriter.BaseDataxWriterDescriptor writerDescriptor = writer.getWriterDescriptor();
 
-        TableAliasMapper tabAlias = Objects.requireNonNull(dataxProcessor.getTabAlias(this.pluginCtx), "tabAlias can not be null");
+        TableAliasMapper tabAlias = Objects.requireNonNull(dataxProcessor.getTabAlias(this.pluginCtx), "tabAlias can "
+                + "not be null");
         Set<String> createDDLFiles = Sets.newHashSet();
         List<String> existDDLFiles = getExistDDLFiles();
 
@@ -186,15 +188,16 @@ public class DataXCfgGenerator {
             AtomicReference<Map<String, ISelectedTab>> selectedTabsRef = new AtomicReference<>();
             java.util.concurrent.Callable<Map<String, ISelectedTab>> selectedTabsCall = () -> {
                 if (selectedTabsRef.get() == null) {
-                    Map<String, ISelectedTab> selectedTabs
-                            = reader.getSelectedTabs().stream().collect(Collectors.toMap((t) -> t.getName(), (t) -> t));
+                    Map<String, ISelectedTab> selectedTabs =
+                            reader.getSelectedTabs().stream().collect(Collectors.toMap((t) -> t.getName(), (t) -> t));
                     selectedTabsRef.set(selectedTabs);
                 }
                 return selectedTabsRef.get();
             };
 
 
-            try (IGroupChildTaskIterator subTasks = Objects.requireNonNull(reader.getSubTasks(), "subTasks can not be null")) {
+            try (IGroupChildTaskIterator subTasks = Objects.requireNonNull(reader.getSubTasks(),
+                    "subTasks can not " + "be" + " null")) {
                 IDataxReaderContext readerContext = null;
                 //  File configFile = null;
                 // List<String> subTaskName = Lists.newArrayList();
@@ -209,8 +212,9 @@ public class DataXCfgGenerator {
                         if (tabAlias.isSingle()) {
                             // 针对ES的情况
                             Optional<IDataxProcessor.TableMap> first = tabAlias.getFirstTableMap();
-//                            = tabAlias.values().stream().filter((t) -> t instanceof IDataxProcessor.TableMap)
-//                            .map((t) -> (IDataxProcessor.TableMap) t).findFirst();
+                            //                            = tabAlias.values().stream().filter((t) -> t instanceof
+                            //                            IDataxProcessor.TableMap)
+                            //                            .map((t) -> (IDataxProcessor.TableMap) t).findFirst();
                             if (first.isPresent()) {
                                 tableMapper = first;
                             }
@@ -220,8 +224,8 @@ public class DataXCfgGenerator {
                                 tableMapper = Optional.empty();
                             }
                         }
-                        Objects.requireNonNull(tableMapper, "tabMapper can not be null,tabAlias.size()=" + tabAlias.size()
-                                + ",tabs:[" + tabAlias.getFromTabDesc() + "]");
+                        Objects.requireNonNull(tableMapper,
+                                "tabMapper can not be null,tabAlias.size()=" + tabAlias.size() + ",tabs:[" + tabAlias.getFromTabDesc() + "]");
                     } else if (unStructedReader) {
                         // 是在DataxAction的doSaveWriterColsMeta() 方法中持久化保存的
                         Optional<IDataxProcessor.TableMap> f = tabAlias.getFirstTableMap();
@@ -230,21 +234,23 @@ public class DataXCfgGenerator {
                             throw new IllegalStateException("tableMap can not be null");
                         }
                         tableMapper = f;
-//                for (TableAlias tab : tabAlias.values()) {
-//                    tableMapper = Optional.of((IDataxProcessor.TableMap) tab);
-//                    break;
-//                }
+                        //                for (TableAlias tab : tabAlias.values()) {
+                        //                    tableMapper = Optional.of((IDataxProcessor.TableMap) tab);
+                        //                    break;
+                        //                }
 
                     } else if (dataxProcessor.isRDBMS2UnStructed(this.pluginCtx)) {
                         // example: mysql -> oss
                         Map<String, ISelectedTab> selectedTabs = selectedTabsCall.call();
                         ISelectedTab tab = selectedTabs.get(readerContext.getSourceTableName());
-                        Objects.requireNonNull(tab, readerContext.getSourceTableName() + " relevant tab can not be null");
-                        IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(
-                                Objects.requireNonNull(tabAlias.get(tab.getName()), "table:" + tab.getName() + " relevant alias can not be null"), tab);
+                        Objects.requireNonNull(tab,
+                                readerContext.getSourceTableName() + " relevant tab can not be " + "null");
+                        IDataxProcessor.TableMap m =
+                                new IDataxProcessor.TableMap(Objects.requireNonNull(tabAlias.get(tab.getName()),
+                                        "table:" + tab.getName() + " relevant alias can not be null"), tab);
                         //m.setSourceCols(tab.getCols());
-//                m.setTo(tab.getName());
-//                m.setFrom(tab.getName());
+                        //                m.setTo(tab.getName());
+                        //                m.setFrom(tab.getName());
                         tableMapper = Optional.of(m);
                     } else if (dataxProcessor.isRDBMS2RDBMS(this.pluginCtx)) {
                         // example: mysql -> mysql
@@ -256,8 +262,11 @@ public class DataXCfgGenerator {
                     }
                     scriptFileGenerator.generateScriptFile(reader, writer, readerContext, createDDLFiles, tableMapper);
                 }
-
-                cfgs.groupedChildTask.putAll(subTasks.getGroupedInfo());
+                Map<String, List<DBDataXChildTask>> groupedInfo = subTasks.getGroupedInfo();
+                if (MapUtils.isEmpty(groupedInfo)) {
+                    throw new IllegalStateException("groupedInfo can not be empty");
+                }
+                cfgs.groupedChildTask.putAll(groupedInfo);
             }
             //  IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
         }
@@ -277,7 +286,7 @@ public class DataXCfgGenerator {
 
 
         long current = System.currentTimeMillis();
-//        FileUtils.write(new File(dataXCfgDir, FILE_GEN), String.valueOf(current), TisUTF8.get(), false);
+        //        FileUtils.write(new File(dataXCfgDir, FILE_GEN), String.valueOf(current), TisUTF8.get(), false);
         cfgs.createDDLFiles = Lists.newArrayList(createDDLFiles);
 
         //  cfgs.dataxFiles = subTaskName;
@@ -286,42 +295,42 @@ public class DataXCfgGenerator {
     }
 
     public interface IGenerateScriptFile {
-        void generateScriptFile(IDataxReader reader
-                , IDataxWriter writer
-                , IDataxReaderContext readerContext, Set<String> createDDLFiles
-                , Optional<IDataxProcessor.TableMap> tableMapper) throws IOException;
+        void generateScriptFile(IDataxReader reader, IDataxWriter writer, IDataxReaderContext readerContext,
+                                Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException;
     }
 
 
-    private void generateDataXAndSQLDDLFile(File dataXCfgDir, IDataxReader reader
-            , IDataxWriter writer
-            , IDataxReaderContext readerContext, Set<String> createDDLFiles
-            , Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
+    private void generateDataXAndSQLDDLFile(File dataXCfgDir, IDataxReader reader, IDataxWriter writer,
+                                            IDataxReaderContext readerContext, Set<String> createDDLFiles,
+                                            Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
         generateTabCreateDDL(this.pluginCtx, dataxProcessor, writer, readerContext, createDDLFiles, tableMapper, false);
         if (StringUtils.isEmpty(readerContext.getTaskName())) {
             throw new IllegalStateException("readerContext.getTaskName() must be present");
         }
-//        File configFile = new File(dataXCfgDir
-//                , readerContext.getReaderContextId() + File.separator + readerContext.getTaskName() + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
-        File configFile = DataXJobInfo.getJobPath(dataXCfgDir, readerContext.getReaderContextId()
-                , readerContext.getTaskName() + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
-        FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, tableMapper), TisUTF8.get(), false);
+        //        File configFile = new File(dataXCfgDir
+        //                , readerContext.getReaderContextId() + File.separator + readerContext.getTaskName() +
+        //                IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
+        File configFile = DataXJobInfo.getJobPath(dataXCfgDir, readerContext.getReaderContextId(),
+                readerContext.getTaskName() + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
+        FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, tableMapper), TisUTF8.get(),
+                false);
 
     }
 
-    public static void generateTabCreateDDL(IPluginContext pluginCtx, IDataxProcessor dataxProcessor, IDataxWriter writer
-            , IDataxReaderContext readerContext, Set<String> createDDLFiles
-            , Optional<IDataxProcessor.TableMap> tableMapper, boolean overWrite) throws IOException {
+    public static void generateTabCreateDDL(IPluginContext pluginCtx, IDataxProcessor dataxProcessor,
+                                            IDataxWriter writer, IDataxReaderContext readerContext,
+                                            Set<String> createDDLFiles,
+                                            Optional<IDataxProcessor.TableMap> tableMapper, boolean overWrite) throws IOException {
         DataxWriter.BaseDataxWriterDescriptor writerDescriptor = writer.getWriterDescriptor();
         if (tableMapper.isPresent() && writerDescriptor.isSupportTabCreate()) {
             for (CMeta colMeta : tableMapper.get().getSourceCols()) {
                 if (colMeta.getType() == null) {
-                    throw new IllegalStateException("reader context:" + readerContext.getSourceTableName()
-                            + " relevant col type which's name " + colMeta.getName() + " can not be null");
+                    throw new IllegalStateException("reader context:" + readerContext.getSourceTableName() + " " +
+                            "relevant col type which's name " + colMeta.getName() + " can not be null");
                 }
                 if (StringUtils.isEmpty(colMeta.getName())) {
-                    throw new IllegalStateException("reader context:" + readerContext.getSourceTableName()
-                            + " relevant col name  can not be null");
+                    throw new IllegalStateException("reader context:" + readerContext.getSourceTableName() + " " +
+                            "relevant col name  can not be null");
                 }
             }
             // 创建ddl
@@ -330,8 +339,8 @@ public class DataXCfgGenerator {
             String sqlFileName = mapper.getTo() + IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
             if (!createDDLFiles.contains(sqlFileName)) {
 
-                CreateTableSqlBuilder.CreateDDL createDDL
-                        = Objects.requireNonNull(writer.generateCreateDDL(mapper), "createDDL can not be null");
+                CreateTableSqlBuilder.CreateDDL createDDL = Objects.requireNonNull(writer.generateCreateDDL(mapper),
+                        "createDDL can not be null");
 
                 createDDLFiles.add(sqlFileName);
                 // 由于用户可能已经手动改动过生成的DDL文件，所以不能强行覆盖已经存在的DDL文件，overWrite参数应该为false
@@ -397,19 +406,16 @@ public class DataXCfgGenerator {
         public List<DataXCfgFile> getDataXCfgFiles() {
 
             if (this._dataxFiles == null) {
-                this._dataxFiles = this.getGroupedChildTask()
-                        .values().stream()
-                        .flatMap((tasks) -> tasks.stream())
-                        .map((task) -> {
-                            task.getDbFactoryId();
-                            File dataXCfg = task.getJobPath(this.dataxCfgDir);
+                this._dataxFiles =
+                        this.getGroupedChildTask().values().stream().flatMap((tasks) -> tasks.stream()).map((task) -> {
+                    task.getDbFactoryId();
+                    File dataXCfg = task.getJobPath(this.dataxCfgDir);
 
-                            if (!dataXCfg.exists()) {
-                                throw new IllegalStateException("dataXCfg is not exist, path:" + dataXCfg.getAbsolutePath());
-                            }
-                            return (new DataXCfgFile()).setFile(dataXCfg).setDbFactoryId(task.dbFactoryId);
-                        })
-                        .collect(Collectors.toList());
+                    if (!dataXCfg.exists()) {
+                        throw new IllegalStateException("dataXCfg is not exist, path:" + dataXCfg.getAbsolutePath());
+                    }
+                    return (new DataXCfgFile()).setFile(dataXCfg).setDbFactoryId(task.dbFactoryId);
+                }).collect(Collectors.toList());
             }
             return this._dataxFiles;
         }
@@ -441,8 +447,7 @@ public class DataXCfgGenerator {
             List<DataXCfgGenerator.DBDataXChildTask> subChildTask = null;
             Map<String, List<DataXCfgGenerator.DBDataXChildTask>> groupdTsk = this.getGroupedChildTask();
             if (CollectionUtils.isEmpty(subChildTask = groupdTsk.get(taskGroupName))) {
-                throw new IllegalStateException("taskGroupName:" + taskGroupName
-                        + " relevant childTask:" + String.join(",", groupdTsk.keySet()) + " can not be empty");
+                throw new IllegalStateException("taskGroupName:" + taskGroupName + " relevant childTask:" + String.join(",", groupdTsk.keySet()) + " can not be empty");
             }
             return subChildTask;
         }
@@ -457,8 +462,8 @@ public class DataXCfgGenerator {
                 JSONObject o = new JSONObject();
                 o.put(KEY_GROUP_CHILD_TASKS, this.getGroupedChildTask());
                 o.put(KEY_GEN_TIME, this.getGenTime());
-                FileUtils.write(new File(dataxCfgDir, DataXCfgGenerator.FILE_GEN)
-                        , JsonUtil.toString(o), TisUTF8.get(), false);
+                FileUtils.write(new File(dataxCfgDir, DataXCfgGenerator.FILE_GEN), JsonUtil.toString(o),
+                        TisUTF8.get(), false);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -486,8 +491,8 @@ public class DataXCfgGenerator {
         public static GenerateCfgs readFromGen(File dataxCfgDir) {
             try {
                 GenerateCfgs cfgs = new GenerateCfgs(dataxCfgDir);
-                JSONObject o = JSON.parseObject(
-                        FileUtils.readFileToString(new File(dataxCfgDir, DataXCfgGenerator.FILE_GEN), TisUTF8.get()));
+                JSONObject o = JSON.parseObject(FileUtils.readFileToString(new File(dataxCfgDir,
+                        DataXCfgGenerator.FILE_GEN), TisUTF8.get()));
 
                 cfgs.genTime = o.getLongValue(KEY_GEN_TIME);
 
@@ -527,25 +532,23 @@ public class DataXCfgGenerator {
         }
     }
 
-    private IDataxProcessor.TableMap createTableMap(TableAliasMapper tabAlias
-            , Map<String, ISelectedTab> selectedTabs, IDataxReaderContext readerContext) {
+    private IDataxProcessor.TableMap createTableMap(TableAliasMapper tabAlias, Map<String, ISelectedTab> selectedTabs
+            , IDataxReaderContext readerContext) {
 
         TableAlias tableAlias = tabAlias.get(readerContext.getSourceTableName());
         if (tableAlias == null) {
-            throw new IllegalStateException("sourceTable:" + readerContext.getSourceTableName()
-                    + " can not find relevant 'tableAlias' keys:["
-                    + tabAlias.getFromTabDesc() + "]");
+            throw new IllegalStateException("sourceTable:" + readerContext.getSourceTableName() + " can not find " +
+                    "relevant 'tableAlias' keys:[" + tabAlias.getFromTabDesc() + "]");
         }
         ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceTableName());
         if (selectedTab == null) {
-            throw new IllegalStateException("sourceTable:" + readerContext.getSourceTableName()
-                    + " can not find relevant '" + ISelectedTab.class.getSimpleName() + "' keys:["
-                    + String.join(",", selectedTabs.keySet()) + "]");
+            throw new IllegalStateException("sourceTable:" + readerContext.getSourceTableName() + " can not find " +
+                    "relevant '" + ISelectedTab.class.getSimpleName() + "' keys:[" + String.join(",",
+                    selectedTabs.keySet()) + "]");
         }
-        IDataxProcessor.TableMap
-                tableMap = new IDataxProcessor.TableMap(tableAlias, selectedTab);
-//        tableMap.setFrom(tableAlias.getFrom());
-//        tableMap.setTo(tableAlias.getTo());
+        IDataxProcessor.TableMap tableMap = new IDataxProcessor.TableMap(tableAlias, selectedTab);
+        //        tableMap.setFrom(tableAlias.getFrom());
+        //        tableMap.setTo(tableAlias.getTo());
         return tableMap;
     }
 
@@ -555,8 +558,8 @@ public class DataXCfgGenerator {
      * @return 生成的配置文件内容
      * @throws IOException
      */
-    public String generateDataxConfig(IDataxReaderContext readerContext, IDataxWriter writer, IDataxReader reader
-            , Optional<IDataxProcessor.TableMap> tableMap) throws IOException {
+    public String generateDataxConfig(IDataxReaderContext readerContext, IDataxWriter writer, IDataxReader reader,
+                                      Optional<IDataxProcessor.TableMap> tableMap) throws IOException {
         Objects.requireNonNull(writer, "writer can not be null");
         StringWriter writerContent = null;
         final String tpl = getTemplateContent(reader, writer);
@@ -595,8 +598,8 @@ public class DataXCfgGenerator {
 
     }
 
-    public static void validatePluginName(IDataXPluginMeta.DataXMeta writer
-            , IDataXPluginMeta.DataXMeta reader, String writerName, String readerName) {
+    public static void validatePluginName(IDataXPluginMeta.DataXMeta writer, IDataXPluginMeta.DataXMeta reader,
+                                          String writerName, String readerName) {
         if (!StringUtils.equals(readerName, reader.getName())) {
             throw new IllegalStateException("reader plugin name:" + readerName + " must equal with '" + reader.getName() + "'");
         }
@@ -645,19 +648,16 @@ public class DataXCfgGenerator {
 
         public File getJobPath(File dataxCfgDir) {
             //return new File(dataxCfgDir, jobFileName);
-//            File dataXCfg = new File(dataxCfgDir
-//                    , this.getDbFactoryId() + File.separator + this.getDataXCfgFileNameWithSuffix());
-//            return dataXCfg;
+            //            File dataXCfg = new File(dataxCfgDir
+            //                    , this.getDbFactoryId() + File.separator + this.getDataXCfgFileNameWithSuffix());
+            //            return dataXCfg;
             return DataXJobInfo.getJobPath(dataxCfgDir, this.getDbFactoryId(), this.getDataXCfgFileNameWithSuffix());
         }
 
         @Override
         public String toString() {
-            return "{" +
-                    "dbIdenetity='" + dbIdenetity + '\'' +
-                    ", dbFactoryId='" + dbFactoryId + '\'' +
-                    ", dataXCfgFileName='" + dataXCfgFileName + '\'' +
-                    '}';
+            return "{" + "dbIdenetity='" + dbIdenetity + '\'' + ", dbFactoryId='" + dbFactoryId + '\'' + ", " +
+                    "dataXCfgFileName='" + dataXCfgFileName + '\'' + '}';
         }
     }
 }

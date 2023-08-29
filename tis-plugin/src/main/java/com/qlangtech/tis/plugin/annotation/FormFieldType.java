@@ -1,25 +1,26 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.plugin.annotation;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import org.apache.commons.lang.StringUtils;
 
@@ -45,8 +46,7 @@ public enum FormFieldType {
     /**
      * 密码
      */
-    PASSWORD(7),
-    // 支持文件上传
+    PASSWORD(7), // 支持文件上传
     FILE(9, new IPropValProcessor() {
         @Override
         public Object process(Object instance, Object val) throws Exception {
@@ -63,7 +63,8 @@ public enum FormFieldType {
 
 
                 ((ITmpFileStore) instance).setTmpeFile(new ITmpFileStore.TmpFile(tmpPath));
-                // org.apache.commons.io.FileUtils.copyFile(tmpPath, new File(xmlStoreFile.getParentFile(), filePath[1]));
+                // org.apache.commons.io.FileUtils.copyFile(tmpPath, new File(xmlStoreFile.getParentFile(),
+                // filePath[1]));
                 return filePath[1];
             } else if (filePath.length == 1) {
                 // 保持不变
@@ -75,14 +76,11 @@ public enum FormFieldType {
 
 
         }
-    }),
-    TEXTAREA(2),
-    DATE(3),
+    }), TEXTAREA(2), DATE(3),
     /**
      * 输入一个数字
      */
-    INT_NUMBER(4),
-    ENUM(5);
+    INT_NUMBER(4), ENUM(5);
 
     private final int identity;
     public final IPropValProcessor valProcessor;
@@ -113,17 +111,30 @@ public enum FormFieldType {
          * @param items         多选条目列表
          * @return
          */
-        public boolean validate(IFieldErrorHandler msgHandler
-                , Optional<IPropertyType.SubFormFilter> subFormFilter, Context context, String fieldName, List<SelectedItem> items);
+        public boolean validate(IFieldErrorHandler msgHandler, Optional<IPropertyType.SubFormFilter> subFormFilter,
+                                Context context, String fieldName, List<SelectedItem> items);
     }
 
     public static class SelectedItem extends Option {
         // 是否选中了
         private boolean checked;
 
+        private CMeta cmeta;
+
         public SelectedItem(String name, String value, boolean checked) {
             super(name, value);
+
             this.checked = checked;
+        }
+
+        public SelectedItem(CMeta cmeta) {
+            this(cmeta.getName(), cmeta.getName(), true // !cmeta.isDisable()
+            );
+            this.cmeta = cmeta;
+        }
+
+        public CMeta getCmeta() {
+            return cmeta;
         }
 
         public boolean isChecked() {

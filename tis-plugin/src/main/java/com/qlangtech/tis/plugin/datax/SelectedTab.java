@@ -73,10 +73,26 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     @FormField(ordinal = 100, type = FormFieldType.INPUTTEXT)
     public String where;
 
-    @FormField(ordinal = 200, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
-    public List<String> cols = Lists.newArrayList();
+    @Override
+    public List<String> getPrimaryKeys() {
+        return this.primaryKeys;
+    }
 
-    private transient List<CMeta> shadowCols = null;
+    /**
+     * candidate cols fetch by static method: getColsCandidate
+     */
+    @FormField(ordinal = 200, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
+    public List<CMeta> cols = Lists.newArrayList();
+
+    public List<String> getColKeys() {
+        return this.cols.stream().filter((c) -> !c.isDisable()).map((c) -> c.getName()).collect(Collectors.toList());
+    }
+
+    public static List<CMeta> getColsCandidate() {
+        return getContextTableCols((cols) -> cols.stream());
+    }
+
+    // private transient List<CMeta> shadowCols = null;
 
     public SelectedTab(String name) {
         this.name = name;
@@ -113,9 +129,6 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         this.incrSourceProps = incrProps;
     }
 
-    public static List<Option> getColsCandidate() {
-        return getContextTableCols((cols) -> cols.stream());
-    }
 
     /**
      * 默认主键
@@ -123,8 +136,8 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
      * @return
      */
     public static List<String> getDftPks() {
-        return getContextTableCols((cols) -> cols.stream().filter((col) -> col.isPk()))
-                .stream().map((col) -> (String) col.getValue()).collect(Collectors.toList());
+        return getContextTableCols((cols) -> cols.stream().filter((col) -> col.isPk())) //
+                .stream().map((col) -> col.getName()).collect(Collectors.toList());
     }
 
     public SelectedTab() {
@@ -173,57 +186,112 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         return this.cols.isEmpty();
     }
 
-    public List<CMeta> getCols() {
-        if (shadowCols == null) {
-            shadowCols = this.cols.stream().map((c) -> {
-                CMeta colMeta = new CMeta();
-                colMeta.setName(c);
-                return colMeta;
-            }).collect(Collectors.toList());
-        }
-        return shadowCols;
+    public final List<CMeta> getCols() {
+        //        if (shadowCols == null) {
+        //            shadowCols = this.cols.stream().map((c) -> {
+        //                CMeta colMeta = new CMeta();
+        //                colMeta.setName(c);
+        //                return colMeta;
+        //            }).collect(Collectors.toList());
+        //        }
+        //        return shadowCols;
+        return this.cols.stream().filter((c) -> !c.isDisable()).collect(Collectors.toList());
     }
 
     public boolean containCol(String col) {
-        return cols != null && this.cols.contains(col);
+        if (CollectionUtils.isEmpty(this.cols)) {
+            return false;
+        }
+
+        for (CMeta c : this.cols) {
+            if (StringUtils.equals(c.getName(), col)) {
+                return true;
+            }
+        }
+        return false;
+        //   return cols != null && this.cols.contains(col);
     }
 
     public void setCols(List<String> cols) {
-        this.cols = cols;
+        //  this.cols = cols;
+        throw new UnsupportedOperationException();
+    }
+
+    public static List<Option> getContextOpts(Function<List<ColumnMetaData>, Stream<ColumnMetaData>> func) {
+        return getContextTableColsStream(func).collect(Collectors.toList());
+    }
+
+    public static List<CMeta> getContextTableCols(Function<List<ColumnMetaData>, Stream<ColumnMetaData>> func) {
+
+
+        //        SuFormProperties.SuFormGetterContext context = SuFormProperties.subFormGetterProcessThreadLocal.get();
+        //        if (context == null || context.plugin == null) {
+        //            return Collections.emptyList();
+        //        }
+        //        Describable plugin = Objects.requireNonNull(context.plugin, "context.plugin can not be null");
+        //        if (!(plugin instanceof DataSourceMeta)) {
+        //            throw new IllegalStateException("plugin must be type of " + DataSourceMeta.class.getName() + ",
+        //            now type of " + plugin.getClass().getName());
+        //        }
+        //        DataSourceMeta dsMeta = (DataSourceMeta) plugin;
+        //        List<ColumnMetaData> cols = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
+        //            try {
+        //                return dsMeta.getTableMetadata(false, EntityName.parse(context.getSubFormIdentityField()));
+        //            } catch (TableNotFoundException e) {
+        //                throw new RuntimeException(e);
+        //            }
+        //        });
+
+
+        return getContextTableColsStream(func).map((c) -> {
+            CMeta cmeta = new CMeta();
+            cmeta.setName(c.getName());
+            cmeta.setComment(c.getComment());
+            cmeta.setPk(c.isPk());
+            cmeta.setType(c.getType());
+            cmeta.setNullable(c.isNullable());
+            return cmeta;
+        }).collect(Collectors.toList());
     }
 
 
-    public static List<Option> getContextTableCols(Function<List<ColumnMetaData>, Stream<ColumnMetaData>> func) {
+    private static Stream<ColumnMetaData> getContextTableColsStream(Function<List<ColumnMetaData>,
+            Stream<ColumnMetaData>> func) {
         SuFormProperties.SuFormGetterContext context = SuFormProperties.subFormGetterProcessThreadLocal.get();
         if (context == null || context.plugin == null) {
-            return Collections.emptyList();
+            List<ColumnMetaData> empt = Collections.emptyList();
+            return empt.stream();
         }
         Describable plugin = Objects.requireNonNull(context.plugin, "context.plugin can not be null");
         if (!(plugin instanceof DataSourceMeta)) {
-            throw new IllegalStateException("plugin must be type of "
-                    + DataSourceMeta.class.getName() + ", now type of " + plugin.getClass().getName());
+            throw new IllegalStateException("plugin must be type of " + DataSourceMeta.class.getName() + ", now type "
+                    + "of " + plugin.getClass().getName());
         }
         DataSourceMeta dsMeta = (DataSourceMeta) plugin;
-        List<ColumnMetaData> cols
-                = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
+        List<ColumnMetaData> cols = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
             try {
                 return dsMeta.getTableMetadata(false, EntityName.parse(context.getSubFormIdentityField()));
             } catch (TableNotFoundException e) {
                 throw new RuntimeException(e);
             }
         });
-//        return func.apply(cols).map((c) -> new Option(c.getName() + "(" + c.getType().getCollapse().getLiteria() + ")", c.getValue()))
-//                .collect(Collectors.toList());
 
-        return func.apply(cols).map((c) -> c)
-                .collect(Collectors.toList());
-
-
+        return func.apply(cols);
+        //        return func.apply(cols).map((c) -> {
+        //            CMeta cmeta = new CMeta();
+        //            cmeta.setName(c.getName());
+        //            cmeta.setComment(c.getComment());
+        //            cmeta.setPk(c.isPk());
+        //            cmeta.setType(c.getType());
+        //            cmeta.setNullable(c.isNullable());
+        //            return cmeta;
+        //        }).collect(Collectors.toList());
     }
 
+
     @TISExtension
-    public static class DefaultDescriptor extends Descriptor<SelectedTab>
-            implements SubForm.ISubFormItemValidate, FormFieldType.IMultiSelectValidator {
+    public static class DefaultDescriptor extends Descriptor<SelectedTab> implements SubForm.ISubFormItemValidate,
+            FormFieldType.IMultiSelectValidator {
 
         @Override
         protected final boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
@@ -231,8 +299,8 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         }
 
         @Override
-        public boolean validate(IFieldErrorHandler msgHandler, Optional<IPropertyType.SubFormFilter> subFormFilter
-                , Context context, String fieldName, List<FormFieldType.SelectedItem> items) {
+        public boolean validate(IFieldErrorHandler msgHandler, Optional<IPropertyType.SubFormFilter> subFormFilter,
+                                Context context, String fieldName, List<FormFieldType.SelectedItem> items) {
 
             if (SelectedTab.KEY_FIELD_COLS.equals(fieldName)) {
                 int selectCount = 0;
@@ -255,20 +323,22 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
             //   SelectedTab tab = ;// this.newInstance(null, postFormVals.rawFormData, Optional.empty());
             //SelectedTab tab = plugin.getInstance();
-//            if (tab.cols.isEmpty()) {
-//                msgHandler.addFieldError(context, SelectedTab.KEY_FIELD_COLS, "请选择");
-//                return false;
-//            }
+            //            if (tab.cols.isEmpty()) {
+            //                msgHandler.addFieldError(context, SelectedTab.KEY_FIELD_COLS, "请选择");
+            //                return false;
+            //            }
             return this.validateAll(msgHandler, context, postFormVals.newInstance(this, msgHandler));
         }
 
         @Override
-        public boolean validateSubFormItems(IControlMsgHandler msgHandler, Context context
-                , BaseSubFormProperties props, IPropertyType.SubFormFilter filter, AttrVals formData) {
+        public boolean validateSubFormItems(IControlMsgHandler msgHandler, Context context,
+                                            BaseSubFormProperties props, IPropertyType.SubFormFilter filter,
+                                            AttrVals formData) {
 
             Integer maxReaderTabCount = Integer.MAX_VALUE;
             try {
-                maxReaderTabCount = Integer.parseInt(filter.uploadPluginMeta.getExtraParam(ESTableAlias.MAX_READER_TABLE_SELECT_COUNT));
+                maxReaderTabCount =
+                        Integer.parseInt(filter.uploadPluginMeta.getExtraParam(ESTableAlias.MAX_READER_TABLE_SELECT_COUNT));
             } catch (Throwable e) {
 
             }
@@ -288,14 +358,15 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
         protected boolean validateAll(IControlMsgHandler msgHandler, Context context, SelectedTab tab) {
             List<String> lackPks = Lists.newArrayList();
+            List<String> colKeys = tab.getColKeys();
             for (String pk : tab.primaryKeys) {
-                if (!tab.cols.contains(pk)) {
+                if (!colKeys.contains(pk)) {
                     lackPks.add(pk);
                 }
             }
             if (lackPks.size() > 0) {
-                msgHandler.addFieldError(context, KEY_FIELD_COLS
-                        , "由于" + String.join(",", lackPks) + "选为主键,因此需要将它（们）选上");
+                msgHandler.addFieldError(context, KEY_FIELD_COLS, "由于" + String.join(",", lackPks) + "选为主键," +
+                        "因此需要将它（们）选上");
                 return false;
             }
 

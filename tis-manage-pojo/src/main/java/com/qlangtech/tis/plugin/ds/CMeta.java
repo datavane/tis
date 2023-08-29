@@ -1,5 +1,8 @@
 package com.qlangtech.tis.plugin.ds;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.qlangtech.tis.plugin.IdentityName;
+
 import java.io.Serializable;
 
 /**
@@ -25,7 +28,7 @@ import java.io.Serializable;
  * <p>
  * //@see com.qlangtech.tis.plugin.ds.ColumnMetaData
  */
-public class CMeta implements Serializable, IColMetaGetter {
+public class CMeta implements Serializable, IColMetaGetter, IdentityName {
     private String name;
     private DataType type;
     private Boolean pk = false;
@@ -33,7 +36,25 @@ public class CMeta implements Serializable, IColMetaGetter {
     private String comment;
     private boolean nullable;
 
+    /**
+     * 该列是否有效？
+     */
+    private boolean disable = false;
+
     public CMeta() {
+    }
+
+    public boolean isDisable() {
+        return this.disable;
+    }
+
+    public void setDisable(boolean disable) {
+        this.disable = disable;
+    }
+
+    @Override
+    public String identityValue() {
+        return this.getName();
     }
 
     public String getComment() {
@@ -87,9 +108,12 @@ public class CMeta implements Serializable, IColMetaGetter {
 
     @Override
     public String toString() {
-        return "{" +
-                "name='" + name + '\'' +
-                ", type=" + type +
-                '}';
+        return "{" + "name='" + name + '\'' + ", type=" + type + '}';
+    }
+
+    @JSONField(serialize = false)
+    @Override
+    public Class<?> getDescribleClass() {
+        return IdentityName.super.getDescribleClass();
     }
 }

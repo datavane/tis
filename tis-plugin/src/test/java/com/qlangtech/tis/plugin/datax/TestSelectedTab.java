@@ -23,10 +23,7 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.manage.common.Option;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
-import com.qlangtech.tis.plugin.ds.DataSourceMeta;
-import com.qlangtech.tis.plugin.ds.DataType;
-import com.qlangtech.tis.plugin.ds.TableNotFoundException;
+import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import junit.framework.TestCase;
@@ -48,7 +45,7 @@ public class TestSelectedTab extends TestCase {
 
         SuFormProperties.setSuFormGetterContext(sourceMetaPlugin, pluginMeta, tabName);
 
-        List<Option> result = SelectedTab.getContextTableCols((cols) -> {
+        List<CMeta> result = SelectedTab.getContextTableCols((cols) -> {
             return cols.stream();
         });
         Assert.assertEquals(2, result.size());

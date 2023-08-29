@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.extension.impl;
@@ -29,11 +29,14 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.*;
 import junit.framework.TestCase;
@@ -58,11 +61,7 @@ public class TestSuFormProperties extends TestCase {
     String pluginName = "test_plugin";
     File writerDescFile;
 
-    final String meta = pluginName + ":require," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_" + SubFieldContainPlugin.PLUGIN_NAME
-            + "," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION
-            + "_" + SubFieldContainPlugin.class.getName()
-            + "," + UploadPluginMeta.KEY_TARGET_PLUGIN_DESC + "_incr_process_extend,subFormFieldName_"
-            + SubFieldContainPlugin.SUB_PROP_FIELD_NAME + "," + DataxUtils.DATAX_NAME + "_" + dataXName + ",maxReaderTableCount_9999";
+    final String meta = pluginName + ":require," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_" + SubFieldContainPlugin.PLUGIN_NAME + "," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_" + SubFieldContainPlugin.class.getName() + "," + UploadPluginMeta.KEY_TARGET_PLUGIN_DESC + "_incr_process_extend,subFormFieldName_" + SubFieldContainPlugin.SUB_PROP_FIELD_NAME + "," + DataxUtils.DATAX_NAME + "_" + dataXName + ",maxReaderTableCount_9999";
 
     final UploadPluginMeta pluginMeta = UploadPluginMeta.parse(meta);
 
@@ -80,7 +79,7 @@ public class TestSuFormProperties extends TestCase {
     }
 
     public void testSubformDetailedClick() throws Exception {
-        buildSourceExtendSelectedTestEnvironment((pluginContext,pluginMeta, subReader, extendTabProps, tabId) -> {
+        buildSourceExtendSelectedTestEnvironment((pluginContext, pluginMeta, subReader, extendTabProps, tabId) -> {
             HeteroList<?> heteroList = pluginMeta.getHeteroList(pluginContext);
             Assert.assertNotNull(heteroList);
             //test subform_detailed_click=============================
@@ -93,7 +92,7 @@ public class TestSuFormProperties extends TestCase {
     public void testGetPluginFormPropertyTypesWithIncrSourceExtendSelected() throws Exception {
 
 
-        buildSourceExtendSelectedTestEnvironment((pluginContext,pluginMeta, subReader, extendTabProps, tabId) -> {
+        buildSourceExtendSelectedTestEnvironment((pluginContext, pluginMeta, subReader, extendTabProps, tabId) -> {
 
             PluginFormProperties formPropertyTypes = subReader.getDescriptor().getPluginFormPropertyTypes(pluginMeta.getSubFormFilter());
 
@@ -218,8 +217,21 @@ public class TestSuFormProperties extends TestCase {
 
     interface IStartSourceExtendSelectedTestEnvironment {
 
-        void apply(IPluginContext pluginContext, UploadPluginMeta pluginMeta
-                , SubFieldContainPlugin subReader, TestIncrSourceSelectedTabExtend extendTabProps, String tabId) throws Exception;
+        void apply(IPluginContext pluginContext, UploadPluginMeta pluginMeta, SubFieldContainPlugin subReader, TestIncrSourceSelectedTabExtend extendTabProps, String tabId) throws Exception;
+    }
+
+    private List<CMeta> createCols() {
+        List<CMeta> cols = Lists.newArrayList();
+        CMeta col = null;
+        for (int i = 0; i < 3; i++) {
+            col = new CMeta();
+            col.setName("col" + i);
+            col.setNullable(true);
+            col.setPk(false);
+            col.setType(DataType.createVarChar(20));
+            cols.add(col);
+        }
+        return cols;
     }
 
     private void buildSourceExtendSelectedTestEnvironment(IStartSourceExtendSelectedTestEnvironment tester) throws Exception {
@@ -241,15 +253,14 @@ public class TestSuFormProperties extends TestCase {
         subReader.prop3 = "testProp3";
         List<SelectedTab> tabs = Lists.newArrayList();
         SelectedTab tab = new SelectedTab();
-        tab.cols = Lists.newArrayList("col1", "clo2", "col3");
+        tab.cols = createCols();// Lists.newArrayList("col1", "clo2", "col3");
         tab.name = tabId;
         tab.setWhere("1=1");
         tabs.add(tab);
         subReader.selectedTabs = tabs;
 
         pluginStore = HeteroEnum.DATAX_READER.getPluginStore(pluginContext, pluginMeta);
-        pluginStore.setPlugins(pluginContext, Optional.empty()
-                , Lists.newArrayList(new Descriptor.ParseDescribable(tabs)));
+        pluginStore.setPlugins(pluginContext, Optional.empty(), Lists.newArrayList(new Descriptor.ParseDescribable(tabs)));
 
         dlist = Lists.newArrayList(new Descriptor.ParseDescribable(subReader));
         String metaWithOutSubfield = pluginName + ":require," + DataxUtils.DATAX_NAME + "_" + dataXName + ",maxReaderTableCount_9999";
@@ -303,20 +314,14 @@ public class TestSuFormProperties extends TestCase {
 //        System.out.println(JsonUtil.toString(heteroList.toJSON()));
 
 
-
-
         EasyMock.verify(pluginContext);
     }
-
-
 
 
     public void testVisitSubForm() {
         SubFieldContainPlugin plugin = new SubFieldContainPlugin();
 
-        String meta = pluginName + ":require," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_" + SubFieldContainPlugin.class.getName()
-                + "," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_incr_process_extend,subFormFieldName_"
-                + SubFieldContainPlugin.SUB_PROP_FIELD_NAME + "," + DataxUtils.DATAX_NAME + "_" + dataXName + ",maxReaderTableCount_9999";
+        String meta = pluginName + ":require," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_" + SubFieldContainPlugin.class.getName() + "," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_incr_process_extend,subFormFieldName_" + SubFieldContainPlugin.SUB_PROP_FIELD_NAME + "," + DataxUtils.DATAX_NAME + "_" + dataXName + ",maxReaderTableCount_9999";
         // dataxName_" + dataXName
         UploadPluginMeta pluginMeta = UploadPluginMeta.parse(meta);
 
@@ -329,8 +334,8 @@ public class TestSuFormProperties extends TestCase {
         PluginFormProperties pluginFormPropertyTypes = descriptor.getPluginFormPropertyTypes(Optional.of(subFormFilter));
         assertNotNull("pluginFormPropertyTypes can not be null", pluginFormPropertyTypes);
         // AtomicBoolean hasExecVisitSubForm = new AtomicBoolean(false);
-        boolean hasExecVisitSubForm
-                = pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(Optional.of(subFormFilter)) {
+        boolean hasExecVisitSubForm = pluginFormPropertyTypes.accept(
+                new DescriptorsJSON.SubFormFieldVisitor(Optional.of(subFormFilter)) {
             @Override
             public Boolean visit(//SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta,
                                  BaseSubFormProperties props) {
@@ -361,13 +366,11 @@ public class TestSuFormProperties extends TestCase {
                 assertEquals(3, kvTuples.size());
 
 
-                assertTrue(CollectionUtils.isEqualCollection(Lists.newArrayList("name", "subProp1", "subProp2")
-                        , kvTuples.stream().map((kv) -> kv.getKey()).collect(Collectors.toList())));
+                assertTrue(CollectionUtils.isEqualCollection(Lists.newArrayList("name", "subProp1", "subProp2"), kvTuples.stream().map((kv) -> kv.getKey()).collect(Collectors.toList())));
 
                 Object subField = props.newSubDetailed();
 
-                assertTrue("subField must be type of " + SelectedTab.class.getSimpleName()
-                        , subField instanceof SelectedTab);
+                assertTrue("subField must be type of " + SelectedTab.class.getSimpleName(), subField instanceof SelectedTab);
 
                 return true;
             }
