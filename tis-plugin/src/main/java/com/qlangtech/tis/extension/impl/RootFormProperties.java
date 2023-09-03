@@ -50,8 +50,7 @@ public class RootFormProperties extends PluginFormProperties {
         try {
             Object o = null;
             for (Map.Entry<String, PropertyType> entry : propertiesType.entrySet()) {
-                // o = instance.getClass().getField(entry.getKey()).get(instance);
-                // instance.getClass().getField(entry.getKey()).get(instance);
+
                 o = entry.getValue().getVal(instance);
                 if (o == null) {
                     continue;
@@ -60,6 +59,8 @@ public class RootFormProperties extends PluginFormProperties {
                     DescribableJSON djson = new DescribableJSON((Describable) o);
                     vals.put(entry.getKey(), djson.getItemJson());
                 } else {
+
+
                     vals.put(entry.getKey(), o);
                 }
             }

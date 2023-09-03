@@ -20,7 +20,7 @@ package com.qlangtech.tis.plugin.incr;
 
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 
 /**
  * 增量Source 或 Sink对表属性扩展
@@ -30,9 +30,9 @@ import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
  * @see MQListenerFactory
  * @see TISSinkFactory
  **/
-public interface IIncrSelectedTabExtendFactory {
+public interface ISelectedTabExtendFactory {
 
     String KEY_EXTEND_SELECTED_TAB_PROP = "extendSelectedTabProp";
 
-    public Descriptor<IncrSelectedTabExtend> getSelectedTableExtendDescriptor();
+    public Descriptor<SelectedTabExtend> getSelectedTableExtendDescriptor();
 }

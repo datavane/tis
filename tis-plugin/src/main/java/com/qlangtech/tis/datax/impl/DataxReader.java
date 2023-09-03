@@ -21,6 +21,7 @@ import com.alibaba.datax.plugin.writer.hdfswriter.HdfsColMeta;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
+import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -31,11 +32,12 @@ import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.*;
-import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.TableNotFoundException;
+import com.qlangtech.tis.plugin.incr.ISelectedTabExtendFactory;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
@@ -63,16 +65,40 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
     }
 
     public static <T extends DataxReader> T getDataxReader(IPropertyType.SubFormFilter filter) {
-        IPluginStore<?> pluginStore = HeteroEnum.getDataXReaderAndWriterStore(
-                filter.uploadPluginMeta.getPluginContext(), true, filter.uploadPluginMeta);
+        return getDataxReader(filter.uploadPluginMeta);
+    }
+
+    public static <T extends DataxReader> T getDataxReader(UploadPluginMeta uploadPluginMeta) {
+        IPluginStore<?> pluginStore = HeteroEnum.getDataXReaderAndWriterStore(uploadPluginMeta.getPluginContext(),
+                true, uploadPluginMeta);
         DataxReader reader = (DataxReader) pluginStore.getPlugin();
         if (reader == null) {
-            throw new IllegalStateException("dataXReader can not be null:" + filter.uploadPluginMeta.toString());
+            throw new IllegalStateException("dataXReader can not be null:" + uploadPluginMeta.toString());
         }
         return (T) reader;
     }
 
+    public static Optional<Descriptor<SelectedTabExtend>> getBatchSourceSelectedTabExtendDescriptor(UploadPluginMeta uploadPluginMeta) {
+
+        DataxReader dataxReader = getDataxReader(uploadPluginMeta);
+
+        Descriptor<DataxReader> descriptor = dataxReader.getDescriptor();
+        if (!(descriptor instanceof ISelectedTabExtendFactory)) {
+            //            throw new IllegalStateException("descriptor:" + descriptor.getClass().getName() +
+            // " must be instance of "
+            //                    + IIncrSourceSelectedTabExtendFactory.class.getName());
+            return Optional.empty();
+        }
+        // Field subFormField, Class instClazz, Descriptor subFormFieldsDescriptor
+        Descriptor<SelectedTabExtend> selectedTableExtendDesc =
+                ((ISelectedTabExtendFactory) descriptor).getSelectedTableExtendDescriptor();
+
+        return Optional.ofNullable(selectedTableExtendDesc);
+
+    }
+
     @Override
+
     public IStreamTableMeta getStreamTableMeta(String tableName) {
         try {
             List<ColumnMetaData> cols = this.getTableMetadata(false, EntityName.parse(tableName));
@@ -80,7 +106,8 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
             return new IStreamTableMeta() {
                 @Override
                 public List<IColMetaGetter> getColsMeta() {
-                    return cols.stream().map((c) -> new HdfsColMeta(c.getName(), c.isNullable(), c.isPk(), c.getType())).collect(Collectors.toList());
+                    return cols.stream().map((c) -> new HdfsColMeta(c.getName(), c.isNullable(), c.isPk(),
+                            c.getType())).collect(Collectors.toList());
                 }
             };
         } catch (TableNotFoundException e) {
@@ -103,7 +130,8 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
      * @param appname
      * @return
      */
-    public static KeyedPluginStore<DataxReader> getPluginStore(IPluginContext pluginContext, boolean db, String appname) {
+    public static KeyedPluginStore<DataxReader> getPluginStore(IPluginContext pluginContext, boolean db,
+                                                               String appname) {
         return TIS.dataXReaderPluginStore.get(createDataXReaderKey(pluginContext, db, appname));
     }
 
@@ -115,8 +143,8 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
             return;
         }
         // 需要将非编辑模式下的对象也跟新一下=====================================
-        Set<Map.Entry<SubFieldFormAppKey<? extends Describable>, KeyedPluginStore<? extends Describable>>>
-                entries = TIS.dataXReaderSubFormPluginStore.getEntries();
+        Set<Map.Entry<SubFieldFormAppKey<? extends Describable>, KeyedPluginStore<? extends Describable>>> entries =
+                TIS.dataXReaderSubFormPluginStore.getEntries();
         List<SubFieldFormAppKey<? extends Describable>> willDelete = Lists.newArrayList();
         entries.forEach((e) -> {
             SubFieldFormAppKey key = e.getKey();
@@ -129,39 +157,45 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         });
     }
 
-    private static TIS.DataXReaderAppKey createDataXReaderKey(IPluginContext pluginContext, boolean db, String appname) {
-        final TIS.DataXReaderAppKey key = new TIS.DataXReaderAppKey(pluginContext, db, appname, new PluginStore.IPluginProcessCallback<DataxReader>() {
+    private static TIS.DataXReaderAppKey createDataXReaderKey(IPluginContext pluginContext, boolean db,
+                                                              String appname) {
+        final TIS.DataXReaderAppKey key = new TIS.DataXReaderAppKey(pluginContext, db, appname,
+                new PluginStore.IPluginProcessCallback<DataxReader>() {
             @Override
             public void afterDeserialize(final DataxReader reader) {
 
-                List<PluginFormProperties> subFieldFormPropertyTypes = reader.getDescriptor().getSubPluginFormPropertyTypes();
+                List<PluginFormProperties> subFieldFormPropertyTypes =
+                        reader.getDescriptor().getSubPluginFormPropertyTypes();
                 if (subFieldFormPropertyTypes.size() > 0) {
                     // 加载子字段
                     subFieldFormPropertyTypes.forEach((pt) -> {
                         pt.accept(new PluginFormProperties.IVisitor() {
                             @Override
                             public Void visit(final BaseSubFormProperties props) {
-                                SubFieldFormAppKey<? extends Describable> subFieldKey
-                                        = new SubFieldFormAppKey<>(pluginContext, db, appname, props, DataxReader.class);
+                                SubFieldFormAppKey<? extends Describable> subFieldKey =
+                                        new SubFieldFormAppKey<>(pluginContext, db, appname, props, DataxReader.class);
 
-                                KeyedPluginStore<? extends Describable> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
+                                KeyedPluginStore<? extends Describable> subFieldStore =
+                                        KeyedPluginStore.getPluginStore(subFieldKey);
 
-                                UploadPluginMeta extMeta = UploadPluginMeta.parse(pluginContext, "name:" + DataxUtils.DATAX_NAME + "_" + appname, true);
-                                Map<String, SelectedTab> tabsExtend = IncrSelectedTabExtend.getTabExtend(extMeta
-                                        , new PluginStore.PluginsUpdateListener(DataxUtils.DATAX_NAME + "_" + appname, reader) {
-                                            @Override
-                                            public void accept(PluginStore<Describable> store) {
-                                                setReaderSubFormProp(props, subFieldStore.getPlugins(), IncrSelectedTabExtend.getTabExtend(extMeta));
-                                            }
-                                        });
+                                UploadPluginMeta extMeta = UploadPluginMeta.parse(pluginContext,
+                                        "name:" + DataxUtils.DATAX_NAME + "_" + appname, true);
+                                Map<String, SelectedTab> tabsExtend = SelectedTabExtend.getTabExtend(extMeta,
+                                        new PluginStore.PluginsUpdateListener(DataxUtils.DATAX_NAME + "_" + appname,
+                                                reader) {
+                                    @Override
+                                    public void accept(PluginStore<Describable> store) {
+                                        setReaderSubFormProp(props, subFieldStore.getPlugins(),
+                                                SelectedTabExtend.getTabExtend(extMeta));
+                                    }
+                                });
                                 // 子表单中的内容更新了之后，要同步父表单中的状态
-                                subFieldStore.addPluginsUpdateListener(
-                                        new PluginStore.PluginsUpdateListener(subFieldKey.getSerializeFileName(), reader) {
-                                            @Override
-                                            public void accept(PluginStore<Describable> pluginStore) {
-                                                setReaderSubFormProp(props, pluginStore.getPlugins(), tabsExtend);
-                                            }
-                                        });
+                                subFieldStore.addPluginsUpdateListener(new PluginStore.PluginsUpdateListener(subFieldKey.getSerializeFileName(), reader) {
+                                    @Override
+                                    public void accept(PluginStore<Describable> pluginStore) {
+                                        setReaderSubFormProp(props, pluginStore.getPlugins(), tabsExtend);
+                                    }
+                                });
                                 List<? extends Describable> subItems = subFieldStore.getPlugins();
                                 if (CollectionUtils.isEmpty(subItems)) {
                                     return null;
@@ -170,20 +204,20 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                                 return null;
                             }
 
-                            private void setReaderSubFormProp(BaseSubFormProperties props, List<? extends Describable> subItems
-                                    , Map<String, SelectedTab> subItemsExtend) {
+                            private void setReaderSubFormProp(BaseSubFormProperties props,
+                                                              List<? extends Describable> subItems, Map<String,
+                                    SelectedTab> subItemsExtend) {
                                 setReaderSubFormProp(props, reader, subItems, subItemsExtend);
                             }
 
-                            private void setReaderSubFormProp(BaseSubFormProperties props, DataxReader reader
-                                    , List<? extends Describable> subItems, Map<String, SelectedTab> subItemsExtend) {
+                            private void setReaderSubFormProp(BaseSubFormProperties props, DataxReader reader, List<?
+                                    extends Describable> subItems, Map<String, SelectedTab> subItemsExtend) {
                                 if (reader == null) {
                                     return;
                                 }
                                 subItems.forEach((item) -> {
                                     if (!props.instClazz.isAssignableFrom(item.getClass())) {
-                                        throw new IllegalStateException("appname:" + appname + ",item class[" + item.getClass().getSimpleName()
-                                                + "] is not type of " + props.instClazz.getName());
+                                        throw new IllegalStateException("appname:" + appname + ",item class[" + item.getClass().getSimpleName() + "] is not type of " + props.instClazz.getName());
                                     }
                                     if (item instanceof SelectedTab) {
                                         SelectedTab tab = ((SelectedTab) item);
@@ -246,8 +280,10 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
     public static class SubFieldFormAppKey<TT extends Describable> extends KeyedPluginStore.AppKey<TT> {
         public final BaseSubFormProperties subfieldForm;
 
-        public SubFieldFormAppKey(IPluginContext pluginContext, boolean isDB, String appname, BaseSubFormProperties subfieldForm, Class<TT> clazz) {
-            super(pluginContext, StoreResourceType.parse(isDB), Objects.requireNonNull(appname, "appname can not be empty"), clazz);
+        public SubFieldFormAppKey(IPluginContext pluginContext, boolean isDB, String appname,
+                                  BaseSubFormProperties subfieldForm, Class<TT> clazz) {
+            super(pluginContext, StoreResourceType.parse(isDB), Objects.requireNonNull(appname,
+                    "appname can not be " + "empty"), clazz);
             this.subfieldForm = subfieldForm;
         }
 
@@ -282,10 +318,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         BaseDataxReaderDescriptor readDesc = (BaseDataxReaderDescriptor) descriptor;
         if (readDesc.isRDBMSChangeableInLifetime() ^ (this instanceof DataXBasicProcessMeta.IRDBMSSupport)) {
 
-            throw new IllegalStateException(this.getClass().getSimpleName()
-                    + " bool status shall be same:\n"
-                    + " readDesc.isRDBMSChangeableInLifetime(): " + readDesc.isRDBMSChangeableInLifetime()
-                    + "\n (" + this.getClass().getSimpleName() + " instanceof DataXBasicProcessMeta.IRDBMSSupport):" + (this instanceof DataXBasicProcessMeta.IRDBMSSupport));
+            throw new IllegalStateException(this.getClass().getSimpleName() + " bool status shall be same:\n" + " " + "readDesc.isRDBMSChangeableInLifetime(): " + readDesc.isRDBMSChangeableInLifetime() + "\n (" + this.getClass().getSimpleName() + " instanceof DataXBasicProcessMeta.IRDBMSSupport):" + (this instanceof DataXBasicProcessMeta.IRDBMSSupport));
 
         }
         return descriptor;
@@ -303,7 +336,8 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                 filter = subFormFilter.get();
                 if (filter.isIncrProcessExtend()) {
                     Descriptor parentDesc = filter.getTargetDescriptor();
-                    SuFormProperties subProps = (SuFormProperties) parentDesc.getSubPluginFormPropertyTypes(filter.subFieldName);
+                    SuFormProperties subProps =
+                            (SuFormProperties) parentDesc.getSubPluginFormPropertyTypes(filter.subFieldName);
                     return new IncrSourceExtendSelected(filter.uploadPluginMeta, subProps.subFormField);
                 }
             }

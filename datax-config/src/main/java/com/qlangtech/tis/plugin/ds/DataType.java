@@ -40,22 +40,39 @@ public class DataType implements Serializable {
         if (size < 1) {
             throw new IllegalArgumentException("illegal param size can not small than 1");
         }
-        return new DataType(Types.VARCHAR, "VARCHAR", size);
+        return new DataType(JDBCTypes.VARCHAR, size);
     }
 
-    public final int type;
-    private final int columnSize;
+    private final JDBCTypes type;
     public final String typeName;
+    private final int columnSize;
+    private final boolean unsigned;
+
     // decimal 的小数位长度
     private Integer decimalDigits = -1;
 
-
-    public DataType(int type) {
-        this(type, StringUtils.EMPTY, -1);
+    public final int getType() {
+        return type.getType();
     }
 
-    public DataType(int type, String typeName) {
-        this(type, typeName, -1);
+    @JSONField(serialize = false)
+    public final JDBCTypes getJdbcType() {
+        return this.type;
+    }
+
+    public DataType(JDBCTypes type) {
+        this(type, -1);
+    }
+
+    public static DataType getType(JDBCTypes jdbcType) {
+        return DataTypeMeta.getDataTypeMeta(jdbcType).getType();
+    }
+
+    //    public DataType(int type, String typeName) {
+    //        this(type, typeName, -1);
+    //    }
+    public DataType(JDBCTypes type, int columnSize) {
+        this(type, type.getLiteria(), columnSize, false);
     }
 
     /**
@@ -63,19 +80,30 @@ public class DataType implements Serializable {
      * @param columnSize
      * @see java.sql.Types
      */
-    public DataType(int type, String typeName, int columnSize) {
+    public DataType(JDBCTypes type, String typeName, int columnSize, boolean unsigned) {
         this.type = type;
-        this.columnSize = columnSize;
         this.typeName = typeName;
+        this.columnSize = columnSize;
+        this.unsigned = unsigned;
+
     }
+
+    public static DataType create(Integer type, String typeName, Integer columnSize) {
+        return new DataType(JDBCTypes.parse(type), typeName, columnSize, StringUtils.containsIgnoreCase(typeName,
+                KEY_UNSIGNED));
+    }
+
 
     /**
      * is UNSIGNED
      */
+    @JSONField(serialize = false)
     public boolean isUnsigned() {
-        return StringUtils.containsIgnoreCase(this.typeName, KEY_UNSIGNED);
+        return this.unsigned;
+        // return StringUtils.containsIgnoreCase(this.type.literia, KEY_UNSIGNED);
     }
 
+    @JSONField(serialize = false)
     public String getUnsignedToken() {
         if (this.isUnsigned()) {
             return DataType.KEY_UNSIGNED;
@@ -86,28 +114,28 @@ public class DataType implements Serializable {
     @JSONField(serialize = false)
     public DataXReaderColType getCollapse() {
         switch (this.type) {
-            case Types.INTEGER:
-            case Types.TINYINT:
-            case Types.SMALLINT:
-            case Types.BIGINT:
+            case INTEGER:
+            case TINYINT:
+            case SMALLINT:
+            case BIGINT:
                 return DataXReaderColType.Long;
-            case Types.FLOAT:
-            case Types.DOUBLE:
-            case Types.REAL:
-            case Types.DECIMAL:
-            case Types.NUMERIC:
+            case FLOAT:
+            case DOUBLE:
+            case REAL:
+            case DECIMAL:
+            case NUMERIC:
                 return DataXReaderColType.Double;
-            case Types.DATE:
-            case Types.TIME:
-            case Types.TIMESTAMP:
+            case DATE:
+            case TIME:
+            case TIMESTAMP:
                 return DataXReaderColType.Date;
-            case Types.BIT:
-            case Types.BOOLEAN:
+            case BIT:
+            case BOOLEAN:
                 return DataXReaderColType.Boolean;
-            case Types.BLOB:
-            case Types.BINARY:
-            case Types.LONGVARBINARY:
-            case Types.VARBINARY:
+            case BLOB:
+            case BINARY:
+            case LONGVARBINARY:
+            case VARBINARY:
                 return DataXReaderColType.Bytes;
             default:
                 return DataXReaderColType.STRING;
@@ -194,42 +222,42 @@ public class DataType implements Serializable {
 
     public <T> T accept(TypeVisitor<T> visitor) {
         switch (this.type) {
-            case Types.INTEGER: {
+            case INTEGER: {
                 return visitor.intType(this);
             }
-            case Types.TINYINT:
+            case TINYINT:
                 return visitor.tinyIntType(this);
-            case Types.SMALLINT:
+            case SMALLINT:
                 return visitor.smallIntType(this);
-            case Types.BIGINT:
+            case BIGINT:
                 return visitor.bigInt(this);
-            case Types.FLOAT:
-            case Types.REAL:
+            case FLOAT:
+            case REAL:
                 return visitor.floatType(this);
-            case Types.DOUBLE:
+            case DOUBLE:
                 return visitor.doubleType(this);
-            case Types.DECIMAL:
-            case Types.NUMERIC:
+            case DECIMAL:
+            case NUMERIC:
                 return visitor.decimalType(this);
-            case Types.DATE:
+            case DATE:
                 return visitor.dateType(this);
-            case Types.TIME:
+            case TIME:
                 return visitor.timeType(this);
-            case Types.TIMESTAMP:
+            case TIMESTAMP:
                 return visitor.timestampType(this);
-            case Types.BIT:
+            case BIT:
                 return visitor.bitType(this);
-            case Types.BOOLEAN:
+            case BOOLEAN:
                 return visitor.boolType(this);
-            case Types.BLOB:
-            case Types.BINARY:
-            case Types.LONGVARBINARY:
-            case Types.VARBINARY:
+            case BLOB:
+            case BINARY:
+            case LONGVARBINARY:
+            case VARBINARY:
                 return visitor.blobType(this);
-            case Types.VARCHAR:
-            case Types.LONGNVARCHAR:
-            case Types.NVARCHAR:
-            case Types.LONGVARCHAR:
+            case VARCHAR:
+            case LONGNVARCHAR:
+            case NVARCHAR:
+            case LONGVARCHAR:
                 // return visitor.varcharType(this);
             default:
                 return visitor.varcharType(this);// "VARCHAR(" + type.columnSize + ")";
@@ -239,8 +267,8 @@ public class DataType implements Serializable {
     public Integer getDecimalDigits() {
         if (this.decimalDigits < 0) {
             // 设置 默认值
-            DataTypeMeta typeMeta = Objects.requireNonNull(DataTypeMeta.typeMetasDic.get(this.type)
-                    , "type:" + this.type + "," + this.typeName + " relevant type meta can not be null");
+            DataTypeMeta typeMeta = Objects.requireNonNull(DataTypeMeta.getDataTypeMeta(this.type),
+                    "type:" + this.type + ", relevant type meta can not be null");
             if (typeMeta.isContainDecimalRange()) {
                 this.decimalDigits = typeMeta.getType().decimalDigits;
             }
@@ -254,9 +282,10 @@ public class DataType implements Serializable {
     }
 
 
+    @JSONField(serialize = false)
     public String getS() {
-        return this.type + "," + this.getColumnSize()
-                + "," + (this.decimalDigits != null ? this.decimalDigits : StringUtils.EMPTY);
+        return this.type + "," + this.getColumnSize() + "," + (this.decimalDigits != null ? this.decimalDigits :
+                StringUtils.EMPTY);
     }
 
     private static final Pattern patternDataType = Pattern.compile("(-?\\d+),(-?\\d+),(-?\\d*)");
@@ -273,7 +302,8 @@ public class DataType implements Serializable {
         if (!matcher.matches()) {
             throw new IllegalStateException("val is illegal:" + ser);
         }
-        DataType type = new DataType(Integer.parseInt(matcher.group(1)), StringUtils.EMPTY, Integer.parseInt(matcher.group(2)));
+        DataType type = new DataType(JDBCTypes.parse(Integer.parseInt(matcher.group(1))),
+                Integer.parseInt(matcher.group(2)));
         String d = matcher.group(3);
         if (StringUtils.isNotEmpty(d)) {
             type.decimalDigits = Integer.parseInt(d);
@@ -283,20 +313,20 @@ public class DataType implements Serializable {
 
     @Override
     public String toString() {
-//        return "{" +
-//                "type=" + type +
-//                ",typeName=" + this.typeName +
-//                ", columnSize=" + columnSize +
-//                ", decimalDigits=" + decimalDigits +
-//                '}';
+        //        return "{" +
+        //                "type=" + type +
+        //                ",typeName=" + this.typeName +
+        //                ", columnSize=" + columnSize +
+        //                ", decimalDigits=" + decimalDigits +
+        //                '}';
         return this.getS();
     }
 
     public int getColumnSize() {
         if (this.columnSize < 0) {
             // 设置 默认值
-            DataTypeMeta typeMeta = Objects.requireNonNull(DataTypeMeta.typeMetasDic.get(this.type)
-                    , "type:" + this.type + "," + this.typeName + " relevant type meta can not be null");
+            DataTypeMeta typeMeta = Objects.requireNonNull(DataTypeMeta.getDataTypeMeta(this.type),
+                    "type:" + this.type + " relevant type meta can not be null");
             if (typeMeta.isContainColSize()) {
                 return typeMeta.getType().columnSize;
             }

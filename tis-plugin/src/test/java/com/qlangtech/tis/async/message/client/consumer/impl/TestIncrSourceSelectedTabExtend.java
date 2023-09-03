@@ -23,24 +23,24 @@ import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-07-31 09:24
  **/
-public class TestIncrSourceSelectedTabExtend extends IncrSelectedTabExtend {
+public class TestIncrSourceSelectedTabExtend extends SelectedTabExtend {
 
     @FormField(ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
     public String testPorop;
 
     @Override
-    public boolean isSource() {
-        return true;
+    public ExtendType getExtendType() {
+        return ExtendType.INCR_SOURCE;
     }
 
     @TISExtension
-    public static class DftDesc extends Descriptor<IncrSelectedTabExtend> {
+    public static class DftDesc extends Descriptor<SelectedTabExtend> {
 
     }
 }

@@ -252,7 +252,7 @@ public class SuFormProperties extends BaseSubFormProperties {
         DescribableJSON itemJson = null;
         if (ext != null) {
             itemJson = new DescribableJSON(ext);
-            pair.add(itemJson.getItemJson());
+            pair.add(itemJson.getItemJson(new RootFormProperties(this.fieldsType)));
         }
     }
 

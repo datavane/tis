@@ -70,35 +70,41 @@ public class DataTypeMeta {
 
 
     public static final DataTypeMeta[] typeMetas //
-            = new DataTypeMeta[]{new DataTypeMeta(DataType.createVarChar(32), new ColSizeRange(1, 2000)),
-            new DataTypeMeta(new DataType(Types.INTEGER, "INTEGER")) //
-            , new DataTypeMeta(new DataType(Types.TINYINT, "TINYINT")) //
-            , new DataTypeMeta(new DataType(Types.SMALLINT, "SMALLINT")) //
-            , new DataTypeMeta(new DataType(Types.BIGINT, "BIGINT")) //
-            , new DataTypeMeta(new DataType(Types.FLOAT, "FLOAT")) //
-            , new DataTypeMeta(new DataType(Types.DOUBLE, "DOUBLE")) //
-            , new DataTypeMeta(new DataType(Types.DECIMAL, "DECIMAL", 20).setDecimalDigits(2), new ColSizeRange(1,
-            46), new DecimalRange(1, 20)) //
-            , new DataTypeMeta(new DataType(Types.DATE, "DATE")) //
-            , new DataTypeMeta(new DataType(Types.TIME, "TIME")), //
-            new DataTypeMeta(new DataType(Types.TIMESTAMP, "TIMESTAMP")) //
-            , new DataTypeMeta(new DataType(Types.BIT, "BIT")) //
-            , new DataTypeMeta(new DataType(Types.LONGVARCHAR, "TEXT")) //
-            , new DataTypeMeta(new DataType(Types.BOOLEAN, "BOOLEAN")) //
-        //    , new DataTypeMeta(new DataType(Types.T, "BOOLEAN")) //
-            , new DataTypeMeta(new DataType(Types.BLOB, "BLOB"), new ColSizeRange(1, 2000))//
-            , new DataTypeMeta(new DataType(Types.BINARY, "BINARY"), new ColSizeRange(1, 2000)) //
-            , new DataTypeMeta(new DataType(Types.LONGVARBINARY, "LONGVARBINARY", 1000), new ColSizeRange(1, 2000)) //
-            , new DataTypeMeta(new DataType(Types.VARBINARY, "VARBINARY", 1000), new ColSizeRange(1, 4000))};
+            = new DataTypeMeta[]{ //
+            new DataTypeMeta(DataType.createVarChar(32), new ColSizeRange(1, 2000)),
+            new DataTypeMeta(new DataType(JDBCTypes.INTEGER)) //
+            , new DataTypeMeta(new DataType(JDBCTypes.TINYINT)) //
+            , new DataTypeMeta(new DataType(JDBCTypes.SMALLINT)) //
+            , new DataTypeMeta(new DataType(JDBCTypes.BIGINT)) //
+            , new DataTypeMeta(new DataType(JDBCTypes.FLOAT)) //
+            , new DataTypeMeta(new DataType(JDBCTypes.DOUBLE)) //
+            , new DataTypeMeta(new DataType(JDBCTypes.DECIMAL, 20).setDecimalDigits(2), new ColSizeRange(1, 46),
+            new DecimalRange(1, 20)) //
+            , new DataTypeMeta(new DataType(JDBCTypes.DATE)) //
+            , new DataTypeMeta(new DataType(JDBCTypes.TIME)), //
+            new DataTypeMeta(new DataType(JDBCTypes.TIMESTAMP)) //
+            , new DataTypeMeta(new DataType(JDBCTypes.BIT)) //
+            , new DataTypeMeta(new DataType(JDBCTypes.LONGVARCHAR)) //
+            , new DataTypeMeta(new DataType(JDBCTypes.LONGNVARCHAR)) //
+            , new DataTypeMeta(new DataType(JDBCTypes.BOOLEAN)) //
+            //    , new DataTypeMeta(new DataType(Types.T, "BOOLEAN")) //
+            , new DataTypeMeta(new DataType(JDBCTypes.BLOB,1000), new ColSizeRange(1, 2000))//
+            , new DataTypeMeta(new DataType(JDBCTypes.BINARY,1000), new ColSizeRange(1, 2000)) //
+            , new DataTypeMeta(new DataType(JDBCTypes.LONGVARBINARY, 1000), new ColSizeRange(1, 2000)) //
+            , new DataTypeMeta(new DataType(JDBCTypes.VARBINARY, 1000), new ColSizeRange(1, 4000))};
 
-    public static final Map<Integer, DataTypeMeta> typeMetasDic;
+    private static final Map<JDBCTypes, DataTypeMeta> typeMetasDic;
 
     static {
-        Map<Integer, DataTypeMeta> dic = new HashMap<>();
+        Map<JDBCTypes, DataTypeMeta> dic = new HashMap<>();
         for (DataTypeMeta type : typeMetas) {
-            dic.put(type.type.type, type);
+            dic.put(type.type.getJdbcType(), type);
         }
         typeMetasDic = Collections.unmodifiableMap(dic);
+    }
+
+    public static Map<JDBCTypes, DataTypeMeta> getTypeMetasDic() {
+        return typeMetasDic;
     }
 
     /**
@@ -106,7 +112,7 @@ public class DataTypeMeta {
      * @return
      * @see java.sql.Types
      */
-    public static DataTypeMeta getDataTypeMeta(Integer type) {
+    public static DataTypeMeta getDataTypeMeta(JDBCTypes type) {
         return Objects.requireNonNull(typeMetasDic.get(type),
                 "type:" + type + " relevant " + DataTypeMeta.class.getSimpleName() + " can not be null");
     }

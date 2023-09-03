@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.plugin.ds;
 
@@ -42,7 +42,12 @@ public class ColumnMetaData extends Option {
         return buildExtractSQL(tableName, false, cols);
     }
 
-    public static void fillSelectedTabMeta(ISelectedTab tab, Function<ISelectedTab, Map<String, ColumnMetaData>> tableColsMetaGetter) {
+    public static CMeta convert(ColumnMetaData c) {
+        return c.convert();
+    }
+
+    public static void fillSelectedTabMeta(ISelectedTab tab,
+                                           Function<ISelectedTab, Map<String, ColumnMetaData>> tableColsMetaGetter) {
         Map<String, ColumnMetaData> colsMeta = tableColsMetaGetter.apply(tab);//tabsMeta.get(tab.getName());
         ColumnMetaData colMeta = null;
         if (colsMeta.size() < 1) {
@@ -51,8 +56,7 @@ public class ColumnMetaData extends Option {
         for (CMeta col : tab.getCols()) {
             colMeta = colsMeta.get(col.getName());
             if (colMeta == null) {
-                throw new IllegalStateException("col:" + col.getName() + " can not find relevant 'col' on " + tab.getName() + ",exist Keys:["
-                        + colsMeta.keySet().stream().collect(Collectors.joining(",")) + "]");
+                throw new IllegalStateException("col:" + col.getName() + " can not find relevant 'col' on " + tab.getName() + ",exist Keys:[" + colsMeta.keySet().stream().collect(Collectors.joining(",")) + "]");
             }
             col.setPk(colMeta.isPk());
             col.setType(colMeta.getType());
@@ -159,15 +163,24 @@ public class ColumnMetaData extends Option {
     }
 
 
+    private CMeta convert() {
+        ColumnMetaData c = this;
+        CMeta cmeta = createCmeta();
+        cmeta.setName(c.getName());
+        cmeta.setComment(c.getComment());
+        cmeta.setPk(c.isPk());
+        cmeta.setType(c.getType());
+        cmeta.setNullable(c.isNullable());
+        return cmeta;
+    }
+
+    protected CMeta createCmeta() {
+        return new CMeta();
+    }
+
     @Override
     public String toString() {
-        return "ColumnMetaData{" +
-                "key='" + key + '\'' +
-                ", type=" + type +
-                ", index=" + index +
-                ", schemaFieldType=" + schemaFieldType +
-                ", pk=" + pk +
-                '}';
+        return "ColumnMetaData{" + "key='" + key + '\'' + ", type=" + type + ", index=" + index + ", schemaFieldType" + "=" + schemaFieldType + ", pk=" + pk + '}';
     }
 
 }

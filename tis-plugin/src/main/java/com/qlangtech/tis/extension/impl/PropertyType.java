@@ -26,6 +26,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -118,23 +119,6 @@ public class PropertyType implements IPropertyType {
         return EnumFieldMode.parse(this.extraProp != null ? getExtraProps().getString("enumMode") : null);
     }
 
-    public enum EnumFieldMode {
-        MULTIPLE("multiple"), DEFAULT("default");
-        public final String val;
-
-        public static EnumFieldMode parse(String val) {
-            for (EnumFieldMode mode : EnumFieldMode.values()) {
-                if (mode.val.equals(val)) {
-                    return mode;
-                }
-            }
-            return EnumFieldMode.DEFAULT;
-        }
-
-        private EnumFieldMode(String val) {
-            this.val = val;
-        }
-    }
 
     public void setExtraProp(PluginExtraProps.Props extraProp) {
         this.extraProp = extraProp;
@@ -197,10 +181,20 @@ public class PropertyType implements IPropertyType {
         return itemType;
     }
 
-    // 取得实例的值
+    /**
+     * 取得实例的值
+     *
+     * @param instance
+     * @return
+     */
     public Object getVal(Object instance) {
+
         try {
-            return this.f.get(instance);
+            Object val = this.f.get(instance);
+            if (this.formField.type() == FormFieldType.MULTI_SELECTABLE) {
+                return this.extraProp.multiItemsViewType().serialize2Frontend(val);
+            }
+            return val;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -212,8 +206,7 @@ public class PropertyType implements IPropertyType {
             prop = convertUtils.convert(val, this.clazz);
             this.f.set(instance, this.formField.type().valProcessor.process(instance, prop));
         } catch (Throwable e) {
-            throw new RuntimeException("\ntarget instance:" + instance.getClass()
-                    + "\nfield:" + this.f.getName() + (prop == null ? StringUtils.EMPTY : "\nprop class:" + prop.getClass()), e);
+            throw new RuntimeException("\ntarget instance:" + instance.getClass() + "\nfield:" + this.f.getName() + (prop == null ? StringUtils.EMPTY : "\nprop class:" + prop.getClass()), e);
         }
     }
 
@@ -247,13 +240,13 @@ public class PropertyType implements IPropertyType {
     public Descriptor getItemTypeDescriptorOrDie() {
         Class it = getItemType();
         if (it == null) {
-            throw new AssertionError(clazz + " is not an array/collection type in "
-                    + displayName + ". See https://wiki.jenkins-ci.org/display/JENKINS/My+class+is+missing+descriptor");
+            throw new AssertionError(clazz + " is not an array/collection type in " + displayName + ". See " + "https"
+                    + "://wiki.jenkins-ci.org/display/JENKINS/My+class+is+missing+descriptor");
         }
         Descriptor d = TIS.get().getDescriptor(it);
         if (d == null)
-            throw new AssertionError(it + " is missing its descriptor in "
-                    + displayName + ". See https://wiki.jenkins-ci.org/display/JENKINS/My+class+is+missing+descriptor");
+            throw new AssertionError(it + " is missing its descriptor in " + displayName + ". See https://wiki" +
+                    ".jenkins-ci.org/display/JENKINS/My+class+is+missing+descriptor");
         return d;
     }
 
@@ -270,14 +263,12 @@ public class PropertyType implements IPropertyType {
             if (StringUtils.isNotEmpty(subDescEnumFilter)) {
                 String className = this.clazz.getSimpleName() + "_" + this.f.getName() + "_SubFilter";
                 String pkg = this.clazz.getPackage().getName();
-                String script = "	package " + pkg + " ;\n"
-                        + "import java.util.function.Function;\n"
-                        + "import java.util.List;\n"
-                        + "import com.qlangtech.tis.extension.Descriptor;\n"
+                String script =
+                        "	package " + pkg + " ;\n" + "import java.util.function.Function;\n" + "import java" +
+                                ".util.List;\n" + "import com.qlangtech.tis.extension.Descriptor;\n"
                         // + "import com.qlangtech.plugins.incr.flink.chunjun.sink.SinkTabPropsExtends;\n"
-                        + "class " + className + " implements Function<List<? extends Descriptor>,List<? extends Descriptor>> { \n"
-                        + "	@Override \n"
-                        + "	public List<? extends Descriptor> apply(List<? extends Descriptor> desc) {" + subDescEnumFilter + "	}" + "}";
+                        + "class " + className + " implements Function<List<? extends Descriptor>,List<? extends " +
+                                "Descriptor>> { \n" + "	@Override \n" + "	public List<? extends Descriptor> apply" + "(List<?" + " extends Descriptor> desc) {" + subDescEnumFilter + "	}" + "}";
 
                 subDescFilter = GroovyShellEvaluate.createParamizerScript(this.clazz, className, script);
             }

@@ -145,7 +145,8 @@ public class OfflineDatasourceAction extends BasicModule {
     criteria.setOrderByClause("id desc");
     List<Option> opts = Lists.newArrayList();
     Option opt = null;
-    IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(ServletActionContext.getServletContext(), IWorkflowDAOFacade.class);
+    IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(ServletActionContext.getServletContext(),
+      IWorkflowDAOFacade.class);
     List<WorkFlow> wfs = wfFacade.getWorkFlowDAO().selectByExample(criteria);
     for (WorkFlow wf : wfs) {
       opt = new Option(wf.getName(), wf.getName());
@@ -177,8 +178,10 @@ public class OfflineDatasourceAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_DATASOURCE_EDIT, sideEffect = false)
   public void doSelectDbChange(Context context) throws Exception {
     Integer dbid = this.getInt("dbid");
-    com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbid);
-    DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(db.getName()), DbScope.DETAILED));
+    com.qlangtech.tis.workflow.pojo.DatasourceDb db =
+      this.offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbid);
+    DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(db.getName()),
+      DbScope.DETAILED));
 
     List<String> tabs = dbPlugin.getTablesInDB().getTabs();
     // 通过DB的连接信息找到找到db下所有表信息
@@ -280,7 +283,8 @@ public class OfflineDatasourceAction extends BasicModule {
     ColumnMetaData colMeta = null;
     for (int i = 0; i < cols.size(); i++) {
       col = cols.getJSONObject(i);
-      colMeta = new ColumnMetaData(i, col.getString("key"), new DataType(col.getIntValue("type")), col.getBoolean("pk"));
+      colMeta = new ColumnMetaData(i, col.getString("key"), new DataType(JDBCTypes.parse(col.getIntValue("type"))),
+        col.getBoolean("pk"));
       // tab.addColumnMeta(colMeta);
     }
     if (updateMode) {
@@ -303,8 +307,8 @@ public class OfflineDatasourceAction extends BasicModule {
       return;
     }
     // 2. 添加表
-//    offlineManager.addDatasourceTable(pojo
-//      , this, this, context, pojo.getTabId() != null, false);
+    //    offlineManager.addDatasourceTable(pojo
+    //      , this, this, context, pojo.getTabId() != null, false);
   }
 
   // /**
@@ -369,9 +373,8 @@ public class OfflineDatasourceAction extends BasicModule {
     query.createCriteria();
     query.setOrderByClause("id desc");
     pager.setTotalCount(wfDAO.countByExample(query));
-    this.setBizResult(context
-      , new PaginationResult(
-        pager, wfDAO.selectByExample(query, pager.getCurPage(), pager.getRowsPerPage())));
+    this.setBizResult(context, new PaginationResult(pager, wfDAO.selectByExample(query, pager.getCurPage(),
+      pager.getRowsPerPage())));
   }
 
   public void doGetWorkflowTopology(Context context) throws Exception {
@@ -439,23 +442,21 @@ public class OfflineDatasourceAction extends BasicModule {
         }, //
         "exportName" //
         , new Validator.FieldValidators(Validator.require, Validator.identity) {
-        },
-        Validator.db_col_name.getFieldValidator(),
-        new Validator.IFieldValidator() {
+        }, Validator.db_col_name.getFieldValidator(), new Validator.IFieldValidator() {
           @Override
           public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
-//            Matcher m = pattern_table_name.matcher(fieldData);
-//            if (!m.matches()) {
-//              msgHandler.addFieldError(context, fieldKey, "必须符合规则:" + pattern_table_name);
-//              return false;
-//            }
-//            return true;
+            //            Matcher m = pattern_table_name.matcher(fieldData);
+            //            if (!m.matches()) {
+            //              msgHandler.addFieldError(context, fieldKey, "必须符合规则:" + pattern_table_name);
+            //              return false;
+            //            }
+            //            return true;
 
-//            Set<String> reservedKeys = ReservedIdentifiers.reservedIdentifiers();
-//            if (reservedKeys.contains(fieldData)) {
-//              msgHandler.addFieldError(context, fieldKey, "不能是数据库保留字符");
-//              return false;
-//            }
+            //            Set<String> reservedKeys = ReservedIdentifiers.reservedIdentifiers();
+            //            if (reservedKeys.contains(fieldData)) {
+            //              msgHandler.addFieldError(context, fieldKey, "不能是数据库保留字符");
+            //              return false;
+            //            }
 
             return true;
           }
@@ -471,8 +472,7 @@ public class OfflineDatasourceAction extends BasicModule {
               dependencyNodes.add(createDependencyNode(o));
             }
           }
-        },
-        new Validator.IFieldValidator() {
+        }, new Validator.IFieldValidator() {
           @Override
           public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
             JSONArray dpts = JSON.parseArray(fieldData);
@@ -548,8 +548,8 @@ public class OfflineDatasourceAction extends BasicModule {
         tabName = nodeMeta.getString("tabname");
 
         Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap = Maps.newHashMap();
-        tab = getDatabase(this, this.offlineManager
-          , this.offlineDAOFacade, dbMap, Integer.parseInt(dnode.getDbid()), tabName);
+        tab = getDatabase(this, this.offlineManager, this.offlineDAOFacade, dbMap, Integer.parseInt(dnode.getDbid()),
+          tabName);
         dnode.setDbName(tab.db.getName());
         dnode.setName(tab.tab.getName());
         dnode.setTabid(String.valueOf(tabName));
@@ -587,8 +587,8 @@ public class OfflineDatasourceAction extends BasicModule {
     // 校验一下是否只有一个最终输出节点
     Collection<SqlTaskNodeMeta> finalNodes = topologyPojo.getFinalNodes().values();
     if (finalNodes.size() > 1) {
-      this.addErrorMessage(context, "最终输出节点(" + finalNodes.stream()
-        .map((r) -> r.getExportName()).collect(Collectors.joining(",")) + ")不能多于一个");
+      this.addErrorMessage(context,
+        "最终输出节点(" + finalNodes.stream().map((r) -> r.getExportName()).collect(Collectors.joining(",")) + ")不能多于一个");
       return;
     }
     if (finalNodes.size() < 1) {
@@ -610,10 +610,10 @@ public class OfflineDatasourceAction extends BasicModule {
   }
 
   public static DependencyNode createDependencyNode(JSONObject dep) {
-//    DependencyNode dnode = new DependencyNode();
-//    dnode.setId(dep.getString("value"));
-//    dnode.setName(dep.getString("label"));
-//    dnode.setType(NodeType.DUMP.getType());
+    //    DependencyNode dnode = new DependencyNode();
+    //    dnode.setId(dep.getString("value"));
+    //    dnode.setName(dep.getString("label"));
+    //    dnode.setType(NodeType.DUMP.getType());
 
     return DependencyNode.create(dep.getString("value"), dep.getString("label"), NodeType.DUMP);
 
@@ -663,14 +663,15 @@ public class OfflineDatasourceAction extends BasicModule {
     throw new IllegalStateException("topology:" + topologyName + " can not find workflow record in db");
   }
 
-  public static Tab getDatabase(IPluginContext pluginContext, OfflineManager offlineManager
-    , IWorkflowDAOFacade wfDaoFacade, Map<Integer, com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap, Integer dbId, String tabName) {
+  public static Tab getDatabase(IPluginContext pluginContext, OfflineManager offlineManager,
+                                IWorkflowDAOFacade wfDaoFacade, Map<Integer,
+    com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap, Integer dbId, String tabName) {
 
     com.qlangtech.tis.workflow.pojo.DatasourceDb db = null;
     // DatasourceTable tab = wfDaoFacade.getDatasourceTableDAO().selectByPrimaryKey(tableid);
-//    if (tab == null) {
-//      throw new IllegalStateException("tabid:" + tableid + " relevant 'TableDump' object can not be null");
-//    }
+    //    if (tab == null) {
+    //      throw new IllegalStateException("tabid:" + tableid + " relevant 'TableDump' object can not be null");
+    //    }
 
     if ((db = dbMap.get(dbId)) == null) {
       db = wfDaoFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
@@ -739,7 +740,9 @@ public class OfflineDatasourceAction extends BasicModule {
          * 需要添加的节点
          * ***************************************
          */
-        List<DependencyNode> shallBeAdd = dumpNodes.stream().filter((n) -> !oldErRules.stream().filter((old) -> StringUtils.equals(n.getTabid(), old.getTabid())).findAny().isPresent()).collect(Collectors.toList());
+        List<DependencyNode> shallBeAdd =
+          dumpNodes.stream().filter((n) -> !oldErRules.stream().filter((old) -> StringUtils.equals(n.getTabid(),
+            old.getTabid())).findAny().isPresent()).collect(Collectors.toList());
         /**
          * *************************************
          * 需要删除的节点
@@ -800,8 +803,8 @@ public class OfflineDatasourceAction extends BasicModule {
       if (linkrule == null) {
         throw new IllegalStateException("linkrule can not be null");
       }
-      erRelation = $(edge.getString("id"), df, getTableName(targetNode)
-        , getTableName(sourceNode), TabCardinality.parse(linkrule.getString("cardinality")));
+      erRelation = $(edge.getString("id"), df, getTableName(targetNode), getTableName(sourceNode),
+        TabCardinality.parse(linkrule.getString("cardinality")));
       linkKeyList = linkrule.getJSONArray("linkKeyList");
       for (int jj = 0; jj < linkKeyList.size(); jj++) {
         link = linkKeyList.getJSONObject(jj);
@@ -847,8 +850,8 @@ public class OfflineDatasourceAction extends BasicModule {
         columnTransferList = ermeta.getJSONArray("columnTransferList");
         for (int i = 0; i < columnTransferList.size(); i++) {
           colTransfer = columnTransferList.getJSONObject(i);
-          tabMeta.addColumnTransfer(new ColumnTransfer(colTransfer.getString("colKey")
-            , colTransfer.getString("transfer"), colTransfer.getString("param")));
+          tabMeta.addColumnTransfer(new ColumnTransfer(colTransfer.getString("colKey"), colTransfer.getString(
+            "transfer"), colTransfer.getString("param")));
         }
         dumpNode.setExtraMeta(tabMeta);
       }
@@ -882,9 +885,9 @@ public class OfflineDatasourceAction extends BasicModule {
     if (this.hasErrors(context)) {
       return;
     }
-//    File parent = new File(SqlTaskNode.parent, topology);
-//    FileUtils.forceMkdir(parent);
-//    FileUtils.write(new File(parent, ERRules.ER_RULES_FILE_NAME), ERRules.serialize(erRules), getEncode(), false);
+    //    File parent = new File(SqlTaskNode.parent, topology);
+    //    FileUtils.forceMkdir(parent);
+    //    FileUtils.write(new File(parent, ERRules.ER_RULES_FILE_NAME), ERRules.serialize(erRules), getEncode(), false);
 
     ERRules.write(topology, erRules);
 
@@ -952,8 +955,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
     @Override
     public void afterPersistence(IPluginContext pluginContext, Context context, SqlDataFlowTopology topology) {
-      DataxAction.generateDataXCfgs(pluginContext
-        , context, StoreResourceType.DataFlow, topology.getName(), false);
+      DataxAction.generateDataXCfgs(pluginContext, context, StoreResourceType.DataFlow, topology.getName(), false);
     }
 
     @Override
@@ -1065,33 +1067,32 @@ public class OfflineDatasourceAction extends BasicModule {
   public void doGetDatasourceInfo(Context context) throws Exception {
     // 部分DS是 只支持数据写入，例如Hive,所以需要进行过滤
     boolean filterSupportReader = this.getBoolean("filterSupportReader");
-    DescriptorExtensionList<DataSourceFactory, Descriptor<DataSourceFactory>> dbDescs = TIS.get().getDescriptorList(DataSourceFactory.class);
-    this.setBizResult(context
-      , filterSupportReader
-        ? new ConfigDsMeta(offlineManager.getDatasourceInfo(), dbDescs) {
-        @Override
-        public Collection<DatasourceDb> getDbsSupportDataXReader() {
-          Map<String, DataSourceFactory.BaseDataSourceFactoryDescriptor> descMap
-            = dbDescs.stream().collect(Collectors.toMap((desc) -> StringUtils.lowerCase(desc.getDisplayName())
-            , (desc) -> (DataSourceFactory.BaseDataSourceFactoryDescriptor) desc));
-          return this.dbs.stream().filter((db) -> {
-            DataSourceFactory.BaseDataSourceFactoryDescriptor desc = descMap.get(StringUtils.lowerCase(db.extensionDesc));
-            if (desc == null) {
-//              throw new IllegalStateException("extendDesc:" + db.extensionDesc
-//                + " can not find relevant Desc instance in :" + String.join(",", descMap.keySet()));
-              return false;
-            }
-            return desc.getDefaultDataXReaderDescName().isPresent();
-          }).collect(Collectors.toList());
-        }
+    DescriptorExtensionList<DataSourceFactory, Descriptor<DataSourceFactory>> dbDescs =
+      TIS.get().getDescriptorList(DataSourceFactory.class);
+    this.setBizResult(context, filterSupportReader ? new ConfigDsMeta(offlineManager.getDatasourceInfo(), dbDescs) {
+      @Override
+      public Collection<DatasourceDb> getDbsSupportDataXReader() {
+        Map<String, DataSourceFactory.BaseDataSourceFactoryDescriptor> descMap =
+          dbDescs.stream().collect(Collectors.toMap((desc) -> StringUtils.lowerCase(desc.getDisplayName()),
+            (desc) -> (DataSourceFactory.BaseDataSourceFactoryDescriptor) desc));
+        return this.dbs.stream().filter((db) -> {
+          DataSourceFactory.BaseDataSourceFactoryDescriptor desc = descMap.get(StringUtils.lowerCase(db.extensionDesc));
+          if (desc == null) {
+            //              throw new IllegalStateException("extendDesc:" + db.extensionDesc
+            //                + " can not find relevant Desc instance in :" + String.join(",", descMap.keySet()));
+            return false;
+          }
+          return desc.getDefaultDataXReaderDescName().isPresent();
+        }).collect(Collectors.toList());
       }
-        : new ConfigDsMeta(offlineManager.getDatasourceInfo(), dbDescs));
+    } : new ConfigDsMeta(offlineManager.getDatasourceInfo(), dbDescs));
   }
 
   public static class ConfigDsMeta extends PluginDescMeta {
     final Collection<OfflineDatasourceAction.DatasourceDb> dbs;
 
-    public ConfigDsMeta(Collection<DatasourceDb> dbs, DescriptorExtensionList<DataSourceFactory, Descriptor<DataSourceFactory>> descList) {
+    public ConfigDsMeta(Collection<DatasourceDb> dbs, DescriptorExtensionList<DataSourceFactory,
+      Descriptor<DataSourceFactory>> descList) {
       super(descList);
       this.dbs = dbs;
 
@@ -1131,8 +1132,7 @@ public class OfflineDatasourceAction extends BasicModule {
     if (tabs == null) {
       throw new IllegalArgumentException("initialize Tabs can not be null");
     }
-    List<String> selectedTabs
-      = tabs.stream().map((tab) -> (String) tab).collect(Collectors.toList());
+    List<String> selectedTabs = tabs.stream().map((tab) -> (String) tab).collect(Collectors.toList());
 
     UploadPluginMeta pluginMeta = Objects.requireNonNull(getPluginMeta(body), "pluginMeta can not be null");
 
@@ -1161,8 +1161,8 @@ public class OfflineDatasourceAction extends BasicModule {
           SuFormProperties.setSuFormGetterContext(reader, pluginMeta, tab2cols.getKey());
           allNewTabs.add(createNewSelectedTab(pluginFormPropertyTypes, tab2cols));
           // 需要将desc中的取option列表解析一下（JsonUtil.UnCacheString）
-          tabDesc.put(tab2cols.getKey(), JSON.parseObject(
-            desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()).toJSONString()));
+          tabDesc.put(tab2cols.getKey(),
+            JSON.parseObject(desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()).toJSONString()));
         } finally {
           SuFormProperties.subFormGetterProcessThreadLocal.remove();
         }
@@ -1179,8 +1179,7 @@ public class OfflineDatasourceAction extends BasicModule {
     bizResult.put("tabVals", pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
       @Override
       public JSONObject visit(BaseSubFormProperties props) {
-        return props.createSubFormVals(
-          allNewTabs.stream().map((t) -> (IdentityName) t).collect(Collectors.toList()));
+        return props.createSubFormVals(allNewTabs.stream().map((t) -> (IdentityName) t).collect(Collectors.toList()));
       }
     }));
     bizResult.put("subformDescriptor", tabDesc);
@@ -1192,8 +1191,8 @@ public class OfflineDatasourceAction extends BasicModule {
     boolean require = body.getBooleanValue("require");
     String extraParam = body.getString("extraParam");
 
-    List<UploadPluginMeta> pluginMetas
-      = UploadPluginMeta.parse(this, new String[]{pluginName + ":" + (require ? "require" : StringUtils.EMPTY) + "," + extraParam});
+    List<UploadPluginMeta> pluginMetas = UploadPluginMeta.parse(this, new String[]{pluginName + ":" + (require ?
+      "require" : StringUtils.EMPTY) + "," + extraParam});
     for (UploadPluginMeta m : pluginMetas) {
       return m;
 
@@ -1208,8 +1207,8 @@ public class OfflineDatasourceAction extends BasicModule {
    * @param tab2cols
    * @return
    */
-  private ISelectedTab createNewSelectedTab(
-    PluginFormProperties pluginFormPropertyTypes, Map.Entry<String, List<ColumnMetaData>> tab2cols) {
+  private ISelectedTab createNewSelectedTab(PluginFormProperties pluginFormPropertyTypes, Map.Entry<String,
+    List<ColumnMetaData>> tab2cols) {
     return pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
 
 
@@ -1232,8 +1231,8 @@ public class OfflineDatasourceAction extends BasicModule {
             }
             if (pp.formField.type() == FormFieldType.MULTI_SELECTABLE) {
               skipProps.add(pentry.getKey());
-              pp.setVal(subForm
-                , tab2cols.getValue().stream().map((c) -> c.getName()).collect(Collectors.toList()));
+              pp.setVal(subForm, tab2cols.getValue().stream() //
+                .map(ColumnMetaData::convert).collect(Collectors.toList()));
               continue ppDftValGetter;
             }
           }
@@ -1245,7 +1244,8 @@ public class OfflineDatasourceAction extends BasicModule {
 
       }
 
-      private <T> T createPluginByDefaultVals(StringBuffer propPath, final Set<String> skipProps, Set<Map.Entry<String, PropertyType>> kvTuples, T plugin) throws Exception {
+      private <T> T createPluginByDefaultVals(StringBuffer propPath, final Set<String> skipProps,
+                                              Set<Map.Entry<String, PropertyType>> kvTuples, T plugin) throws Exception {
         PropertyType pp = null;
         ppDftValGetter:
         for (Map.Entry<String, PropertyType> pentry : kvTuples) {
@@ -1260,9 +1260,8 @@ public class OfflineDatasourceAction extends BasicModule {
                 List<? extends Descriptor> descriptors = pp.getApplicableDescriptors();
                 for (Descriptor desc : descriptors) {
                   if (StringUtils.endsWithIgnoreCase(String.valueOf(pp.dftVal()), desc.getDisplayName())) {
-                    pp.setVal(plugin
-                      , createPluginByDefaultVals((new StringBuffer(propPath)).append("->").append(pentry.getKey()).append(":").append(pp.clazz.getName())
-                        , Sets.newHashSet(), desc.getPluginFormPropertyTypes().getKVTuples(), desc.clazz.newInstance()));
+                    pp.setVal(plugin,
+                      createPluginByDefaultVals((new StringBuffer(propPath)).append("->").append(pentry.getKey()).append(":").append(pp.clazz.getName()), Sets.newHashSet(), desc.getPluginFormPropertyTypes().getKVTuples(), desc.clazz.newInstance()));
                     continue ppDftValGetter;
                   }
                 }
@@ -1293,8 +1292,7 @@ public class OfflineDatasourceAction extends BasicModule {
                 }
               }
             }
-            throw new IllegalStateException("have not prepare for table:" + tab2cols.getKey()
-              + " creating:" + propPath + ",prop name:'" + pentry.getKey() + "',subform class:" + plugin.getClass().getName());
+            throw new IllegalStateException("have not prepare for table:" + tab2cols.getKey() + " creating:" + propPath + ",prop name:'" + pentry.getKey() + "',subform class:" + plugin.getClass().getName());
           }
         }
         return (T) plugin;
@@ -1334,8 +1332,8 @@ public class OfflineDatasourceAction extends BasicModule {
 
   private com.qlangtech.tis.workflow.pojo.DatasourceDb getDsDb() {
     Integer dbId = this.getInt("id");
-    com.qlangtech.tis.workflow.pojo.DatasourceDb db
-      = this.getWorkflowDAOFacade().getDatasourceDbDAO().selectByPrimaryKey(dbId);
+    com.qlangtech.tis.workflow.pojo.DatasourceDb db =
+      this.getWorkflowDAOFacade().getDatasourceDbDAO().selectByPrimaryKey(dbId);
     Objects.requireNonNull(db, "db can not be null");
     return db;
   }
@@ -1350,8 +1348,9 @@ public class OfflineDatasourceAction extends BasicModule {
       throw new IllegalArgumentException("param topology can not be null");
     }
 
-//    IDataxProcessor dataXProcess = DataxProcessor.load(this, KeyedPluginStore.StoreResourceType.DataFlow, topology);
-//    IDataxReader reader = dataXProcess.getReader(this);
+    //    IDataxProcessor dataXProcess = DataxProcessor.load(this, KeyedPluginStore.StoreResourceType.DataFlow,
+    //    topology);
+    //    IDataxReader reader = dataXProcess.getReader(this);
     // reader.getTableMetadata()
     SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(topology);
     Map<String, DependencyNode> /** id */
@@ -1375,10 +1374,11 @@ public class OfflineDatasourceAction extends BasicModule {
       DataSourceFactory dsStore = TIS.getDataBasePlugin(PostedDSProp.parse(dumpNode.getDbName()));
       sqlCols.setCols(dsStore.getTableMetadata(false, dumpNode.parseEntityName()));
       // TISTable tisTable = dbPlugin.loadTableMeta(dumpNode.getName());
-//      if (CollectionUtils.isEmpty(tisTable.getReflectCols())) {
-//        throw new IllegalStateException("db:" + dumpNode.getDbName() + ",table:" + dumpNode.getName() + " relevant table col reflect cols can not be empty");
-//      }
-//      sqlCols.setCols(tisTable.getReflectCols());
+      //      if (CollectionUtils.isEmpty(tisTable.getReflectCols())) {
+      //        throw new IllegalStateException("db:" + dumpNode.getDbName() + ",table:" + dumpNode.getName() + "
+      //        relevant table col reflect cols can not be empty");
+      //      }
+      //      sqlCols.setCols(tisTable.getReflectCols());
       colsMeta.add(sqlCols);
     }
     this.setBizResult(context, colsMeta);
@@ -1446,13 +1446,18 @@ public class OfflineDatasourceAction extends BasicModule {
     if (dbId == null) {
       throw new IllegalStateException("dbId can not be null");
     }
-    com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
-    //IPluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope.DETAILED));
-    //DataSourceFactory.BaseDataSourceFactoryDescriptor descriptor = (DataSourceFactory.BaseDataSourceFactoryDescriptor) dbPlugin.getPlugin().getDescriptor();
-    OfflineManager.DBDataXReaderDescName defaultDataXReaderDescName = offlineManager.getDBDataXReaderDescName(db.getName());
+    com.qlangtech.tis.workflow.pojo.DatasourceDb db =
+      this.offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
+    //IPluginStore<DataSourceFactory> dbPlugin = TIS.getDataBasePluginStore(new PostedDSProp(db.getName(), DbScope
+    // .DETAILED));
+    //DataSourceFactory.BaseDataSourceFactoryDescriptor descriptor = (DataSourceFactory
+    // .BaseDataSourceFactoryDescriptor) dbPlugin.getPlugin().getDescriptor();
+    OfflineManager.DBDataXReaderDescName defaultDataXReaderDescName =
+      offlineManager.getDBDataXReaderDescName(db.getName());
     Map<String, Object> result = Maps.newHashMap();
     if (!defaultDataXReaderDescName.readerDescName.isPresent()) {
-      //throw new IllegalStateException("datasource:" + db.getName() + " desc:" + descriptor.getDisplayName() + " has not relevant DataXReader defined");
+      //throw new IllegalStateException("datasource:" + db.getName() + " desc:" + descriptor.getDisplayName() + " has
+      // not relevant DataXReader defined");
       // result.put(KEY_DATA_READER_SETTED + "NotSupport", descriptor.getId());
       this.addErrorMessage(context, "插件:" + defaultDataXReaderDescName.dsDescriptor.getId() + " 不支持表导入");
       return;
@@ -1465,15 +1470,15 @@ public class OfflineDatasourceAction extends BasicModule {
       //return;
     }
 
-    DescriptorExtensionList<DataxReader, Descriptor<DataxReader>> descriptorList
-      = TIS.get().getDescriptorList(DataxReader.class);
+    DescriptorExtensionList<DataxReader, Descriptor<DataxReader>> descriptorList =
+      TIS.get().getDescriptorList(DataxReader.class);
     Optional<DataxReader.BaseDataxReaderDescriptor> dataXReaderDesc = descriptorList.stream().filter((de) -> {
       return defaultDataXReaderDescName.getReaderDescName().equals(de.getDisplayName());
     }).map((d) -> (DataxReader.BaseDataxReaderDescriptor) d).findFirst();
 
     if (!dataXReaderDesc.isPresent()) {
-      throw new IllegalStateException("DataXReaderDescName:"
-        + defaultDataXReaderDescName.getReaderDescName() + " can not find relevant DataXReader Descriptor");
+      throw new IllegalStateException("DataXReaderDescName:" + defaultDataXReaderDescName.getReaderDescName() + " can"
+        + " not find relevant DataXReader Descriptor");
     }
 
 
@@ -1508,13 +1513,15 @@ public class OfflineDatasourceAction extends BasicModule {
       return;
     }
     Integer dbId = form.getIntValue("dbId");
-    com.qlangtech.tis.workflow.pojo.DatasourceDb db = this.offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
+    com.qlangtech.tis.workflow.pojo.DatasourceDb db =
+      this.offlineDAOFacade.getDatasourceDbDAO().selectByPrimaryKey(dbId);
     if (!updateMode && offlineManager.checkTableLogicNameRepeat(tableLogicName, db)) {
       this.addErrorMessage(context, "已经有了相同逻辑名的表");
       return;
     }
 
-    DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(db.getName()), DbScope.DETAILED));
+    DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(db.getName()),
+      DbScope.DETAILED));
 
     List<ColumnMetaData> cols = null;// offlineManager.getTableMetadata(db.getName(), table);
     try {
@@ -1588,34 +1595,34 @@ public class OfflineDatasourceAction extends BasicModule {
     this.offlineManager.syncDbRecord(datasourceDb, this, context);
   }
 
-//  /**
-//   * 线上控制台使用，用来添加table记录
-//   *
-//   * @param context
-//   */
-//  public void doSyncTableRecord(Context context) {
-//    Integer id = this.getInt("id");
-//    if (id == null) {
-//      this.addErrorMessage(context, "id不能为空");
-//      this.setBizResult(context, false);
-//      return;
-//    }
-//    String name = this.getString("name");
-//    String tableLogicName = this.getString("tableLogicName");
-//    Integer dbId = this.getInt("db_id");
-//    if (dbId == null) {
-//      this.addErrorMessage(context, "db_id不能为空");
-//      this.setBizResult(context, false);
-//      return;
-//    }
-//    DatasourceTable datasourceTable = new DatasourceTable();
-//    datasourceTable.setId(id);
-//    datasourceTable.setName(name);
-//    datasourceTable.setDbId(dbId);
-//    Date now = new Date();
-//    datasourceTable.setCreateTime(now);
-//    this.offlineManager.syncTableRecord(datasourceTable, this, context);
-//  }
+  //  /**
+  //   * 线上控制台使用，用来添加table记录
+  //   *
+  //   * @param context
+  //   */
+  //  public void doSyncTableRecord(Context context) {
+  //    Integer id = this.getInt("id");
+  //    if (id == null) {
+  //      this.addErrorMessage(context, "id不能为空");
+  //      this.setBizResult(context, false);
+  //      return;
+  //    }
+  //    String name = this.getString("name");
+  //    String tableLogicName = this.getString("tableLogicName");
+  //    Integer dbId = this.getInt("db_id");
+  //    if (dbId == null) {
+  //      this.addErrorMessage(context, "db_id不能为空");
+  //      this.setBizResult(context, false);
+  //      return;
+  //    }
+  //    DatasourceTable datasourceTable = new DatasourceTable();
+  //    datasourceTable.setId(id);
+  //    datasourceTable.setName(name);
+  //    datasourceTable.setDbId(dbId);
+  //    Date now = new Date();
+  //    datasourceTable.setCreateTime(now);
+  //    this.offlineManager.syncTableRecord(datasourceTable, this, context);
+  //  }
 
   /**
    * 删除db
@@ -1786,9 +1793,9 @@ public class OfflineDatasourceAction extends BasicModule {
       return id;
     }
 
-//    public void setId(int id) {
-//      this.id = id;
-//    }
+    //    public void setId(int id) {
+    //      this.id = id;
+    //    }
 
     public String getName() {
       return name;
@@ -1813,13 +1820,13 @@ public class OfflineDatasourceAction extends BasicModule {
       this.tables.add(datasourceTable);
     }
 
-//    public byte getSyncOnline() {
-//      return syncOnline;
-//    }
-//
-//    public void setSyncOnline(byte syncOnline) {
-//      this.syncOnline = syncOnline;
-//    }
+    //    public byte getSyncOnline() {
+    //      return syncOnline;
+    //    }
+    //
+    //    public void setSyncOnline(byte syncOnline) {
+    //      this.syncOnline = syncOnline;
+    //    }
   }
 
   public static String getHiveType(int type) {

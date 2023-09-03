@@ -23,6 +23,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
+import com.qlangtech.tis.plugin.ds.JDBCTypes;
 import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.test.TISEasyMock;
@@ -66,8 +67,9 @@ public class StubSuFormGetterContext {
 
         List<ColumnMetaData> cols = Lists.newArrayList();
         // (int index, String key, DataType type, boolean pk)
-        cols.add(new ColumnMetaData(0, FILED_USER_ID, new com.qlangtech.tis.plugin.ds.DataType(Types.BIGINT), withUserIdPk));
-        cols.add(new ColumnMetaData(1, FIELD_USER_NAME, new com.qlangtech.tis.plugin.ds.DataType(Types.VARBINARY), false));
+        cols.add(new ColumnMetaData(0, FILED_USER_ID, new com.qlangtech.tis.plugin.ds.DataType(JDBCTypes.BIGINT),
+                withUserIdPk));
+        cols.add(new ColumnMetaData(1, FIELD_USER_NAME, new com.qlangtech.tis.plugin.ds.DataType(JDBCTypes.VARBINARY), false));
         try {
             EasyMock.expect(metaPlugin.getTableMetadata(true, EntityName.parse(id1))).andReturn(cols);
         } catch (TableNotFoundException e) {

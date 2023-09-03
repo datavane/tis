@@ -29,7 +29,7 @@ import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
-import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.lang.StringUtils;
@@ -216,7 +216,7 @@ public class UploadPluginMeta {
             IPropertyType.SubFormFilter subFilter = subFormFilter.get();
             if (subFilter.isIncrProcessExtend()) {
 
-                IncrSelectedTabExtend.IncrTabExtendSuit incrTabExtendSuit = IncrSelectedTabExtend.getIncrTabExtendSuit(this);
+                SelectedTabExtend.IncrTabExtendSuit incrTabExtendSuit = SelectedTabExtend.getIncrTabExtendSuit(this);
 
                 HeteroEnum<MQListenerFactory> mq = HeteroEnum.MQ;
                 return new HeteroEnum(mq.extensionPoint, mq.identity, mq.caption, mq.selectable, mq.isAppNameAware()) {
@@ -224,7 +224,7 @@ public class UploadPluginMeta {
                     public List getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
                         if (subFilter.subformDetailView) {
                             SelectedTab ext = null;
-                            Map<String, SelectedTab> tabsExtend = IncrSelectedTabExtend.getTabExtend(pluginMeta);
+                            Map<String, SelectedTab> tabsExtend = SelectedTabExtend.getTabExtend(pluginMeta);
                             final String subformDetailId = subFilter.subformDetailId;
                             ext = tabsExtend.get(subformDetailId);
                             if (ext == null) {
@@ -239,7 +239,7 @@ public class UploadPluginMeta {
 
                     @Override
                     public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-                        return IncrSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.getPluginStore(pluginContext, pluginMeta);
+                        return SelectedTabExtend.INCR_SELECTED_TAB_EXTEND.getPluginStore(pluginContext, pluginMeta);
                     }
 
                     @Override

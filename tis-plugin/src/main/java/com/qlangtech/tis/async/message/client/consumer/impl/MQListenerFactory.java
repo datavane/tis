@@ -27,8 +27,8 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginVenderGetter;
-import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
-import com.qlangtech.tis.plugin.incr.IIncrSelectedTabExtendFactory;
+import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
+import com.qlangtech.tis.plugin.incr.ISelectedTabExtendFactory;
 import com.qlangtech.tis.util.HeteroEnum;
 
 import java.util.Map;
@@ -44,18 +44,18 @@ import java.util.Optional;
 public abstract class MQListenerFactory
         implements IMQListenerFactory, IMQConsumerStatusFactory, Describable<MQListenerFactory> {
 
-    public static Optional<Descriptor<IncrSelectedTabExtend>> getIncrSourceSelectedTabExtendDescriptor(String dataXName) {
+    public static Optional<Descriptor<SelectedTabExtend>> getIncrSourceSelectedTabExtendDescriptor(String dataXName) {
         MQListenerFactory incrSourceFactory = HeteroEnum.getIncrSourceListenerFactory(dataXName);
 
         Descriptor<MQListenerFactory> descriptor = incrSourceFactory.getDescriptor();
-        if (!(descriptor instanceof IIncrSelectedTabExtendFactory)) {
+        if (!(descriptor instanceof ISelectedTabExtendFactory)) {
 //            throw new IllegalStateException("descriptor:" + descriptor.getClass().getName() + " must be instance of "
 //                    + IIncrSourceSelectedTabExtendFactory.class.getName());
             return Optional.empty();
         }
         // Field subFormField, Class instClazz, Descriptor subFormFieldsDescriptor
-        Descriptor<IncrSelectedTabExtend> selectedTableExtendDesc
-                = ((IIncrSelectedTabExtendFactory) descriptor).getSelectedTableExtendDescriptor();
+        Descriptor<SelectedTabExtend> selectedTableExtendDesc
+                = ((ISelectedTabExtendFactory) descriptor).getSelectedTableExtendDescriptor();
 
         return Optional.ofNullable(selectedTableExtendDesc);
 //        if (selectedTableExtendDesc == null) {
@@ -93,8 +93,8 @@ public abstract class MQListenerFactory
             Optional<IEndTypeGetter.EndType> targetType = this.getTargetType();
             eprops.put(KEY_END_TYPE, this.getEndType());
             eprops.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.isPresent() ? targetType.get().getVal() : "all");
-            eprops.put(IIncrSelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP
-                    , (this instanceof IIncrSelectedTabExtendFactory) && (((IIncrSelectedTabExtendFactory) this).getSelectedTableExtendDescriptor() != null));
+            eprops.put(ISelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP
+                    , (this instanceof ISelectedTabExtendFactory) && (((ISelectedTabExtendFactory) this).getSelectedTableExtendDescriptor() != null));
             return eprops;
         }
 

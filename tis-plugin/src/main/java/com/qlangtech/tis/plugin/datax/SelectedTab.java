@@ -24,6 +24,7 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.ESTableAlias;
 import com.qlangtech.tis.extension.*;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
+import com.qlangtech.tis.extension.impl.EnumFieldMode;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -59,8 +60,9 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     private static final Logger logger = LoggerFactory.getLogger(SelectedTab.class);
 
     // 针对增量构建流程中的属性扩展
-    private IncrSelectedTabExtend incrSourceProps;
-    private IncrSelectedTabExtend incrSinkProps;
+    private SelectedTabExtend incrSourceProps;
+    private SelectedTabExtend incrSinkProps;
+    private SelectedTabExtend sourceProps;
 
     // 表名称
     @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
@@ -102,19 +104,27 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         return this.name;
     }
 
-    public <T extends IncrSelectedTabExtend> T getIncrSinkProps() {
+    public <T extends SelectedTabExtend> T getIncrSinkProps() {
         return (T) incrSinkProps;
     }
 
-    public void setIncrSinkProps(IncrSelectedTabExtend incrSinkProps) {
+    public void setIncrSinkProps(SelectedTabExtend incrSinkProps) {
         this.incrSinkProps = incrSinkProps;
     }
 
-    public <T extends IncrSelectedTabExtend> T getIncrSourceProps() {
+    public SelectedTabExtend getSourceProps() {
+        return sourceProps;
+    }
+
+    public void setSourceProps(SelectedTabExtend sourceProps) {
+        this.sourceProps = sourceProps;
+    }
+
+    public <T extends SelectedTabExtend> T getIncrSourceProps() {
         return (T) this.incrSourceProps;
     }
 
-    public <T extends IncrSelectedTabExtend> List<T> getIncrExtProp() {
+    public <T extends SelectedTabExtend> List<T> getIncrExtProp() {
         List<T> result = Lists.newArrayList();
         if (this.getIncrSourceProps() != null) {
             result.add(this.getIncrSourceProps());
@@ -125,7 +135,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         return result;
     }
 
-    public void setIncrSourceProps(IncrSelectedTabExtend incrProps) {
+    public void setIncrSourceProps(SelectedTabExtend incrProps) {
         this.incrSourceProps = incrProps;
     }
 
@@ -134,6 +144,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
      * 默认主键
      *
      * @return
+     * @see EnumFieldMode
      */
     public static List<String> getDftPks() {
         return getContextTableCols((cols) -> cols.stream().filter((col) -> col.isPk())) //
@@ -187,14 +198,6 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     }
 
     public final List<CMeta> getCols() {
-        //        if (shadowCols == null) {
-        //            shadowCols = this.cols.stream().map((c) -> {
-        //                CMeta colMeta = new CMeta();
-        //                colMeta.setName(c);
-        //                return colMeta;
-        //            }).collect(Collectors.toList());
-        //        }
-        //        return shadowCols;
         return this.cols.stream().filter((c) -> !c.isDisable()).collect(Collectors.toList());
     }
 
@@ -222,36 +225,8 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     }
 
     public static List<CMeta> getContextTableCols(Function<List<ColumnMetaData>, Stream<ColumnMetaData>> func) {
-
-
-        //        SuFormProperties.SuFormGetterContext context = SuFormProperties.subFormGetterProcessThreadLocal.get();
-        //        if (context == null || context.plugin == null) {
-        //            return Collections.emptyList();
-        //        }
-        //        Describable plugin = Objects.requireNonNull(context.plugin, "context.plugin can not be null");
-        //        if (!(plugin instanceof DataSourceMeta)) {
-        //            throw new IllegalStateException("plugin must be type of " + DataSourceMeta.class.getName() + ",
-        //            now type of " + plugin.getClass().getName());
-        //        }
-        //        DataSourceMeta dsMeta = (DataSourceMeta) plugin;
-        //        List<ColumnMetaData> cols = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
-        //            try {
-        //                return dsMeta.getTableMetadata(false, EntityName.parse(context.getSubFormIdentityField()));
-        //            } catch (TableNotFoundException e) {
-        //                throw new RuntimeException(e);
-        //            }
-        //        });
-
-
-        return getContextTableColsStream(func).map((c) -> {
-            CMeta cmeta = new CMeta();
-            cmeta.setName(c.getName());
-            cmeta.setComment(c.getComment());
-            cmeta.setPk(c.isPk());
-            cmeta.setType(c.getType());
-            cmeta.setNullable(c.isNullable());
-            return cmeta;
-        }).collect(Collectors.toList());
+        return getContextTableColsStream(func).map(ColumnMetaData::convert
+        ).collect(Collectors.toList());
     }
 
 
@@ -275,17 +250,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
                 throw new RuntimeException(e);
             }
         });
-
         return func.apply(cols);
-        //        return func.apply(cols).map((c) -> {
-        //            CMeta cmeta = new CMeta();
-        //            cmeta.setName(c.getName());
-        //            cmeta.setComment(c.getComment());
-        //            cmeta.setPk(c.isPk());
-        //            cmeta.setType(c.getType());
-        //            cmeta.setNullable(c.isNullable());
-        //            return cmeta;
-        //        }).collect(Collectors.toList());
     }
 
 

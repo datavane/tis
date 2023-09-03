@@ -1,9 +1,13 @@
 package com.qlangtech.tis.plugin.ds;
 
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.plugin.IdentityName;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -29,12 +33,23 @@ import java.io.Serializable;
  * //@see com.qlangtech.tis.plugin.ds.ColumnMetaData
  */
 public class CMeta implements Serializable, IColMetaGetter, IdentityName {
+
+
+    public interface ElementCreatorFactory{
+        CMeta create(JSONObject targetCol);
+    }
+
+    public static final String KEY_ELEMENT_CREATOR_FACTORY = "elementCreator";
+
     private String name;
     private DataType type;
     private Boolean pk = false;
 
     private String comment;
     private boolean nullable;
+
+
+
 
     /**
      * 该列是否有效？
@@ -95,6 +110,11 @@ public class CMeta implements Serializable, IColMetaGetter, IdentityName {
     }
 
     public void setName(String name) {
+
+        if (StringUtils.indexOf(name, "{") > -1) {
+            throw new IllegalArgumentException("illegal param name:" + name);
+        }
+
         this.name = name;
     }
 

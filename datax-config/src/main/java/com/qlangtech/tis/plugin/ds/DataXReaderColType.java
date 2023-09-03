@@ -13,13 +13,13 @@ import java.util.stream.Collectors;
  * @create: 2022-02-19 09:12
  **/
 public enum DataXReaderColType {
-    Long("long", new DataType(Types.BIGINT)),
-    INT("int", new DataType(Types.INTEGER)),
-    Double("double", new DataType(Types.DOUBLE)),
+    Long("long", new DataType(JDBCTypes.BIGINT)),
+    INT("int", new DataType(JDBCTypes.INTEGER)),
+    Double("double", new DataType(JDBCTypes.DOUBLE)),
     STRING("string", DataType.createVarChar(256)),
-    Boolean("boolean", new DataType(Types.BOOLEAN)),
-    Date("date", new DataType(Types.DATE)),
-    Bytes("bytes", new DataType(Types.BLOB));
+    Boolean("boolean", new DataType(JDBCTypes.BOOLEAN)),
+    Date("date", new DataType(JDBCTypes.DATE)),
+    Bytes("bytes", new DataType(JDBCTypes.BLOB));
 
     private final String literia;
     public final DataType dataType;

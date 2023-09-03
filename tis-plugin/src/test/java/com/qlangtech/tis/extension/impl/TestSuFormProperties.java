@@ -29,11 +29,10 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
-import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataType;
@@ -268,7 +267,7 @@ public class TestSuFormProperties extends TestCase {
         pluginStore.setPlugins(pluginContext, Optional.empty(), dlist);
 
 
-        IPluginEnum<IncrSelectedTabExtend> incrTabExtendPluginEnum = HeteroEnum.of(IncrSelectedTabExtend.HETERO_ENUM_IDENTITY);
+        IPluginEnum<SelectedTabExtend> incrTabExtendPluginEnum = HeteroEnum.of(SelectedTabExtend.HETERO_ENUM_IDENTITY);
         Assert.assertNotNull(incrTabExtendPluginEnum);
         IPluginStore incrTabExtendPluginStore = incrTabExtendPluginEnum.getPluginStore(pluginContext, pluginMeta);
         Assert.assertNotNull(incrTabExtendPluginStore);

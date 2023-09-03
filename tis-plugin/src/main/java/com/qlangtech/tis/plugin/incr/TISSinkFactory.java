@@ -30,7 +30,7 @@ import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IPluginVenderGetter;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.Selectable;
@@ -55,7 +55,7 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
     public static final String KEY_PLUGIN_TPI_CHILD_PATH = "flink/";
     private static final Logger logger = LoggerFactory.getLogger(TISSinkFactory.class);
 
-    public static Optional<Descriptor<IncrSelectedTabExtend>> getIncrSinkSelectedTabExtendDescriptor(String dataXName) {
+    public static Optional<Descriptor<SelectedTabExtend>> getIncrSinkSelectedTabExtendDescriptor(String dataXName) {
         IPluginContext pluginContext = IPluginContext.namedContext(dataXName);
         List<TISSinkFactory> sinkFactories = sinkFactory.getPlugins(pluginContext, null);
         TISSinkFactory sinkFactory = null;
@@ -65,12 +65,12 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
         }
         Objects.requireNonNull(sinkFactory, "sinkFactory can not be null, dataXName:" + dataXName + " sinkFactories size:" + sinkFactories.size());
         Descriptor<TISSinkFactory> descriptor = sinkFactory.getDescriptor();
-        if (!(descriptor instanceof IIncrSelectedTabExtendFactory)) {
+        if (!(descriptor instanceof ISelectedTabExtendFactory)) {
             return Optional.empty();
         }
 
-        Descriptor<IncrSelectedTabExtend> selectedTableExtendDesc
-                = ((IIncrSelectedTabExtendFactory) descriptor).getSelectedTableExtendDescriptor();
+        Descriptor<SelectedTabExtend> selectedTableExtendDesc
+                = ((ISelectedTabExtendFactory) descriptor).getSelectedTableExtendDescriptor();
         return Optional.ofNullable(selectedTableExtendDesc);
     }
 
@@ -156,9 +156,9 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
             Map<String, Object> vals = super.getExtractProps();
             EndType targetType = this.getTargetType();
             vals.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.getVal());
-            vals.put(IIncrSelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP
-                    , (this instanceof IIncrSelectedTabExtendFactory)
-                            && (((IIncrSelectedTabExtendFactory) this).getSelectedTableExtendDescriptor() != null));
+            vals.put(ISelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP
+                    , (this instanceof ISelectedTabExtendFactory)
+                            && (((ISelectedTabExtendFactory) this).getSelectedTableExtendDescriptor() != null));
             return vals;
         }
 

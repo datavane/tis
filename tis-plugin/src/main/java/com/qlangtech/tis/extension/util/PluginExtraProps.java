@@ -25,9 +25,11 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.IOUtils;
+import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -93,7 +95,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                     propHelp = new StringBuffer();
                     String fieldKey = StringUtils.trimToNull(StringUtils.substring(line, indexOf + 2));
                     if (propHelps.put(fieldKey, propHelp) != null) {
-                        throw new IllegalStateException("field:" + fieldKey + " relevant propHelp can not be add twice");
+                        throw new IllegalStateException("field:" + fieldKey + " relevant propHelp can not be add " +
+                                "twice");
                     }
                 } else {
                     Objects.requireNonNull(propHelp, "propHelp can not be null,file:" + mdRes);
@@ -187,7 +190,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         return extraProps;
     }
 
-    public static ParsePostMCols parsePostMCols(IFieldErrorHandler msgHandler, Context context, String keyColsMeta, JSONArray targetCols) {
+    public static ParsePostMCols parsePostMCols(Optional<CMeta.ElementCreatorFactory> elementCreator,
+                                                IFieldErrorHandler msgHandler, Context context, String keyColsMeta,
+                                                JSONArray targetCols) {
         if (targetCols == null) {
             throw new IllegalArgumentException("param targetCols can not be null");
         }
@@ -223,20 +228,25 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             }
             if (!Validator.require.validate(msgHandler, context, keyColsMeta + "[" + index + "]", targetColName)) {
                 postMCols.validateFaild = true;
-            } else if (!Validator.db_col_name.validate(msgHandler, context, keyColsMeta + "[" + index + "]", targetColName)) {
+            } else if (!Validator.db_col_name.validate(msgHandler, context, keyColsMeta + "[" + index + "]",
+                    targetColName)) {
                 postMCols.validateFaild = true;
             }
-            colMeta = new CMeta();
+
+
+            colMeta = elementCreator.isPresent() ? elementCreator.get().create(targetCol) : new CMeta();
             colMeta.setDisable(targetCol.getBooleanValue("disable"));
             colMeta.setName(targetColName);
             colMeta.setPk(pk);
             if (pk) {
                 postMCols.pkHasSelected = true;
             }
-            //{"s":"3,12,2","typeDesc":"decimal(12,2)","columnSize":12,"typeName":"VARCHAR","unsigned":false,"decimalDigits":4,"type":3,"unsignedToken":""}
+            //{"s":"3,12,2","typeDesc":"decimal(12,2)","columnSize":12,"typeName":"VARCHAR","unsigned":false,
+            // "decimalDigits":4,"type":3,"unsignedToken":""}
             type = targetCol.getJSONObject("type");
 
-            dataType = new DataType(type.getInteger("type"), type.getString("typeName"), type.getInteger("columnSize"));
+            dataType = DataType.create(type.getInteger("type"), type.getString("typeName"), type.getInteger(
+                    "columnSize"));
 
             dataType.setDecimalDigits(type.getInteger("decimalDigits"));
             // DataType dataType = targetCol.getObject("type", DataType.class);
@@ -252,7 +262,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         T process(Class<?> clazz, T extraProps);
     }
 
-    private static JSONObject validate(JSONObject props, String propKey, Class<?> pluginClazz, String resourceName, boolean finalValidate) {
+    private static JSONObject validate(JSONObject props, String propKey, Class<?> pluginClazz, String resourceName,
+                                       boolean finalValidate) {
         String errDesc = createErrorMsg(propKey, pluginClazz, resourceName);
         Object creator = props.get(KEY_CREATOR);
         if (creator != null) {
@@ -268,11 +279,13 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 if (plugins != null) {
                     for (int i = 0; i < plugins.size(); i++) {
                         pmeta = plugins.getJSONObject(i);
-                        if (StringUtils.isBlank(pmeta.getString("hetero")) || StringUtils.isBlank(pmeta.getString("descName"))
+                        if (StringUtils.isBlank(pmeta.getString("hetero")) || StringUtils.isBlank(pmeta.getString(
+                                "descName"))
                             // 由于插件中参数不一定是必须的，所以先把以下校验去掉： "extraParam": "append_true"
                             //        || StringUtils.isBlank(pmeta.getString("extraParam"))
                         ) {
-                            throw new IllegalStateException("pmeta is illegal:" + pmeta.toJSONString() + ",pluginClazz:" + pluginClazz.getName());
+                            throw new IllegalStateException("pmeta is illegal:" + pmeta.toJSONString() + "," +
+                                    "pluginClazz:" + pluginClazz.getName());
                         }
                     }
                 }
@@ -282,7 +295,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     }
 
     private static String createErrorMsg(String propKey, Class<?> pluginClazz, String resourceName) {
-        return String.format("propKey:%s,package:%s,propKey:%s", propKey, pluginClazz.getPackage().getName(), resourceName);
+        return String.format("propKey:%s,package:%s,propKey:%s", propKey, pluginClazz.getPackage().getName(),
+                resourceName);
     }
 
 
@@ -322,7 +336,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                         return (pre == null) ? Descriptor.buildPropertyTypes(Optional.empty(), desc.get().clazz) : pre;
                     });
                     if (!pp.containsKey(entry.getKey())) {
-                        throw new IllegalStateException("prop key:" + entry.getKey() + " relevant prop must exist , exist props keys:" + pp.keySet().stream().collect(Collectors.joining(",")));
+                        throw new IllegalStateException("prop key:" + entry.getKey() + " relevant prop must exist , " + "exist props keys:" + pp.keySet().stream().collect(Collectors.joining(",")));
                     }
                 }
                 this.put(entry.getKey(), entry.getValue());
@@ -340,7 +354,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
      * @see FormFieldType
      */
     public enum ViewType {
-        IdList("idlist", (msgHandler, context, eprops) -> {
+        IdList("idlist" //
+                , (attrDesc, msgHandler, context, eprops) -> {
             final String keyChecked = "checked";
             JSONArray enums = eprops.getJSONArray(Descriptor.KEY_ENUM_PROP);
             if (enums == null) {
@@ -351,10 +366,15 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             int selected = 0;
             List<FormFieldType.SelectedItem> selectedItems = Lists.newArrayList();
             FormFieldType.SelectedItem item = null;
+            Object val = null;
             for (int i = 0; i < enums.size(); i++) {
                 select = enums.getJSONObject(i);
+                val = select.get("val");
+                if (val.getClass() != String.class) {
+                    throw new IllegalStateException("val:" + val + " must be type of String,but now is " + val.getClass());
+                }
                 item = new FormFieldType.SelectedItem(select.getString(PluginExtraProps.KEY_LABEL) //
-                        , select.getString("val") //
+                        , String.valueOf(val) //
                         , select.containsKey(keyChecked) && select.getBoolean(keyChecked));
                 if (item.isChecked()) {
                     selected++;
@@ -362,27 +382,63 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 selectedItems.add(item);
             }
             return selectedItems;
-        }), TupleList("tuplelist", (msgHandler, context, eprops) -> {
+        } // start bizSerializeFrontend
+                , (obj) -> {
+            List<CMeta> mulitOpt = (List<CMeta>) obj;
+            return mulitOpt.stream().map((c) -> c.getName()).collect(Collectors.toList());
+        }), TupleList("tuplelist" //
+                , (attrDesc, msgHandler, context, eprops) -> {
+
+            Optional<CMeta.ElementCreatorFactory> elementCreator =
+                    (Optional<CMeta.ElementCreatorFactory>) attrDesc.extraProp.getProps().get(CMeta.ElementCreatorFactory.class.getName());
+            if (elementCreator == null) {
+                elementCreator = Optional.empty();
+                try {
+                    String selectElementCreator =
+                            attrDesc.extraProp.getProps().getString(CMeta.KEY_ELEMENT_CREATOR_FACTORY);
+                    if (StringUtils.isNotEmpty(selectElementCreator)) {
+                        elementCreator =
+                                Optional.of((CMeta.ElementCreatorFactory) TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                attrDesc.extraProp.getProps().put(CMeta.ElementCreatorFactory.class.getName(), elementCreator);
+            }
+
+
             String keyColsMeta = "";
             JSONArray mcols = eprops.getJSONObject(Descriptor.KEY_ENUM_PROP).getJSONArray("_mcols");
-            ParsePostMCols parsePostMCols = parsePostMCols(msgHandler, context, keyColsMeta, mcols);
+            ParsePostMCols parsePostMCols = parsePostMCols(elementCreator, msgHandler, context, keyColsMeta, mcols);
             if (parsePostMCols.validateFaild) {
                 return Collections.emptyList();
             }
             //List<FormFieldType.SelectedItem>
             return parsePostMCols.writerCols.stream() //
                     .map((cmeta) -> new FormFieldType.SelectedItem(cmeta)).collect(Collectors.toList());
+        } // start bizSerializeFrontend
+                , (obj) -> {
+            return (List<CMeta>) obj;
         });
 
         private final String token;
         private final IPostSelectedItemsGetter postSelectedItemsGetter;
+        /**
+         * 将biz层 object 转化成前端可序列化实例
+         */
+        private final Function<Object, List<?>> bizSerializeFrontend;
 
-        private ViewType(String token, IPostSelectedItemsGetter postSelectedItemsGetter) {
+        private ViewType(String token, IPostSelectedItemsGetter postSelectedItemsGetter,
+                         Function<Object, List<?>> bizSerializeFrontend) {
             this.token = token;
             this.postSelectedItemsGetter = postSelectedItemsGetter;
+            this.bizSerializeFrontend = bizSerializeFrontend;
         }
 
         public static ViewType parse(String token) {
+            if (StringUtils.isEmpty(token)) {
+                return ViewType.IdList;
+            }
             for (ViewType t : ViewType.values()) {
                 if (t.token.equalsIgnoreCase(token)) {
                     return t;
@@ -391,14 +447,25 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             throw new IllegalStateException("token value:" + token + " is invalid");
         }
 
-        public List<FormFieldType.SelectedItem> getPostSelectedItems(IControlMsgHandler msgHandler, Context context, JSONObject eprops) {
-            return this.postSelectedItemsGetter.apply(msgHandler, context, eprops);
+        /**
+         * 将biz层 object 转化成前端可序列化实例
+         */
+        public List<?> serialize2Frontend(Object bizInstance) {
+            return bizSerializeFrontend.apply(bizInstance);
+        }
+
+        public List<FormFieldType.SelectedItem> getPostSelectedItems(PropertyType attrDesc,
+                                                                     IControlMsgHandler msgHandler, Context context,
+                                                                     JSONObject eprops) {
+            return this.postSelectedItemsGetter.apply(attrDesc, msgHandler, context, eprops);
         }
     }
 
     public interface IPostSelectedItemsGetter {
-        List<FormFieldType.SelectedItem> apply(IControlMsgHandler msgHandler, Context context, JSONObject eprops);
+        List<FormFieldType.SelectedItem> apply(PropertyType attrDesc, IControlMsgHandler msgHandler, Context context,
+                                               JSONObject eprops);
     }
+
 
     public static class Props {
         public static final String KEY_HELP = "help";

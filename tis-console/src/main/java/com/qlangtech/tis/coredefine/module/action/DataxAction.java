@@ -112,8 +112,8 @@ public class DataxAction extends BasicModule {
 
     List<HttpUtils.PostParam> params = Lists.newArrayList();
     params.add(new HttpUtils.PostParam(CoreAction.KEY_APPNAME, this.getCollectionName()));
-//    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getName()));
-//    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.JOIN.getName()));
+    //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getName()));
+    //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.JOIN.getName()));
 
     this.setBizResult(context, CoreAction.triggerBuild(this, context, params));
   }
@@ -186,7 +186,7 @@ public class DataxAction extends BasicModule {
 
     // DataxReader.load(this, dataxName);
     // KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(this, dataxName);
-//    DataxWriter writer = writerStore.getPlugin();
+    //    DataxWriter writer = writerStore.getPlugin();
     Map<String, Object> pluginInfo = Maps.newHashMap();
     JSONObject writeDesc = null;
     if (writer != null) {
@@ -196,17 +196,20 @@ public class DataxAction extends BasicModule {
       writeDesc = DescriptorsJSON.desc(requestDescId);
     }
     pluginInfo.put("desc", writeDesc);
-//    final String requestDescId = writerDesc.getString("impl");
-//    if (writer != null && StringUtils.equals(writer.getDescriptor().getId(), requestDescId)) {
-//      DataxReader readerPlugin = DataxReader.load(this, dataxName);
-//      DataxWriter.BaseDataxWriterDescriptor writerDescriptor = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
-//      if (!writerDescriptor.isSupportMultiTable() && readerPlugin.getSelectedTabs().size() > 1) {
-//        // 这种情况是不允许的，例如：elastic这样的writer中对于column的设置比较复杂，需要在writer plugin页面中完成，所以就不能支持在reader中选择多个表了
-//        throw new IllegalStateException("status is not allowed:!writerDescriptor.isSupportMultiTable() && readerPlugin.hasMulitTable()");
-//      }
-//      pluginInfo.put("item", (new DescribableJSON(writer)).getItemJson());
-//    }
-    // pluginInfo.put("desc", new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON(DescriptorsJSON.FORM_START_LEVEL));
+    //    final String requestDescId = writerDesc.getString("impl");
+    //    if (writer != null && StringUtils.equals(writer.getDescriptor().getId(), requestDescId)) {
+    //      DataxReader readerPlugin = DataxReader.load(this, dataxName);
+    //      DataxWriter.BaseDataxWriterDescriptor writerDescriptor = (DataxWriter.BaseDataxWriterDescriptor) writer
+    //      .getDescriptor();
+    //      if (!writerDescriptor.isSupportMultiTable() && readerPlugin.getSelectedTabs().size() > 1) {
+    //        // 这种情况是不允许的，例如：elastic这样的writer中对于column的设置比较复杂，需要在writer plugin页面中完成，所以就不能支持在reader中选择多个表了
+    //        throw new IllegalStateException("status is not allowed:!writerDescriptor.isSupportMultiTable() &&
+    //        readerPlugin.hasMulitTable()");
+    //      }
+    //      pluginInfo.put("item", (new DescribableJSON(writer)).getItemJson());
+    //    }
+    // pluginInfo.put("desc", new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON
+    // (DescriptorsJSON.FORM_START_LEVEL));
 
 
     this.setBizResult(context, pluginInfo);
@@ -279,8 +282,8 @@ public class DataxAction extends BasicModule {
 
     DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName());
 
-//    PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
-//    DataXJobWorker dataxJobWorker = dataxJobWorkerStore.getPlugin();
+    //    PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
+    //    DataXJobWorker dataxJobWorker = dataxJobWorkerStore.getPlugin();
     if (!jobWorker.inService()) {
       throw new IllegalStateException("dataxJobWorker is not in serivce ,can not remove");
     }
@@ -320,7 +323,9 @@ public class DataxAction extends BasicModule {
   }
 
   private void getJobWoker(Context context, TargetResName targetName) {
-    Optional<DataXJobWorker> firstWorker = Optional.ofNullable(DataXJobWorker.getJobWorker((targetName))); //dataxJobWorkerStore.getPlugins().stream().filter((p) -> isJobWorkerMatch(targetName, p.getDescriptor())).findFirst();
+    Optional<DataXJobWorker> firstWorker = Optional.ofNullable(DataXJobWorker.getJobWorker((targetName)));
+    //dataxJobWorkerStore.getPlugins().stream().filter((p) -> isJobWorkerMatch(targetName, p.getDescriptor()))
+    // .findFirst();
 
     DataXJobWorkerStatus jobWorkerStatus = new DataXJobWorkerStatus();
     if (!firstWorker.isPresent()) {
@@ -330,7 +335,8 @@ public class DataxAction extends BasicModule {
     }
     DataXJobWorker jobWorker = firstWorker.get();
     boolean disableRcdeployment = this.getBoolean("disableRcdeployment");
-    jobWorkerStatus.setState(jobWorker.inService() ? IFlinkIncrJobStatus.State.RUNNING : IFlinkIncrJobStatus.State.NONE);
+    jobWorkerStatus.setState(jobWorker.inService() ? IFlinkIncrJobStatus.State.RUNNING :
+      IFlinkIncrJobStatus.State.NONE);
     if (jobWorkerStatus.getState() == IFlinkIncrJobStatus.State.RUNNING && !disableRcdeployment) {
       jobWorkerStatus.setRcDeployment(jobWorker.getRCDeployment());
     }
@@ -357,10 +363,10 @@ public class DataxAction extends BasicModule {
     DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName());
     String podName = this.getString("podName");
     jobWorker.relaunch(podName);
-//    PluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
-//    IncrStreamFactory incrStream = incrStreamStore.getPlugin();
-//    IRCController incrSync = incrStream.getIncrSync();
-//    incrSync.relaunch(this.getCollectionName());
+    //    PluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
+    //    IncrStreamFactory incrStream = incrStreamStore.getPlugin();
+    //    IRCController incrSync = incrStream.getIncrSync();
+    //    incrSync.relaunch(this.getCollectionName());
   }
 
   /**
@@ -392,7 +398,8 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetSupportedReaderWriterTypes(Context context) {
 
-    DescriptorExtensionList<DataxReader, Descriptor<DataxReader>> readerTypes = TIS.get().getDescriptorList(DataxReader.class);
+    DescriptorExtensionList<DataxReader, Descriptor<DataxReader>> readerTypes =
+      TIS.get().getDescriptorList(DataxReader.class);
     List<Descriptor<DataxWriter>> writerTypes = TIS.get().getDescriptorList(DataxWriter.class);
 
 
@@ -451,7 +458,7 @@ public class DataxAction extends BasicModule {
     switch (fileType) {
       case DATAX_CFG:
         File cfgFile = dataxProcessor.getDataXCfgFile(this, cfgFileCriteria);
-//        File cfgFile = new File(dataxCfgDir, fileName);
+        //        File cfgFile = new File(dataxCfgDir, fileName);
         if (!cfgFile.exists()) {
           throw new IllegalStateException("target file:" + cfgFile.getAbsolutePath());
         }
@@ -584,7 +591,8 @@ public class DataxAction extends BasicModule {
     generateDataXCfgs(this, context, pmodel.resType, dataxName, getExist);
   }
 
-  public static void generateDataXCfgs(IPluginContext pluginContext, Context context, StoreResourceType resType, String dataxName, boolean getExist) {
+  public static void generateDataXCfgs(IPluginContext pluginContext, Context context, StoreResourceType resType,
+                                       String dataxName, boolean getExist) {
     if (StringUtils.isEmpty(dataxName)) {
       throw new IllegalArgumentException("param dataXName can not be null");
     }
@@ -601,7 +609,8 @@ public class DataxAction extends BasicModule {
       }
 
       DataXCfgGenerator.GenerateCfgs generateCfgs = null;
-      pluginContext.setBizResult(context, getExist ? cfgGenerator.getExistCfg(dataxCfgDir) : (generateCfgs = cfgGenerator.startGenerateCfg(dataxCfgDir)));
+      pluginContext.setBizResult(context, getExist ? cfgGenerator.getExistCfg(dataxCfgDir) : (generateCfgs =
+        cfgGenerator.startGenerateCfg(dataxCfgDir)));
 
       if (!getExist) {
         Objects.requireNonNull(generateCfgs, "generateCfgs can not be null");
@@ -627,14 +636,16 @@ public class DataxAction extends BasicModule {
     }
     DataxWriter.BaseDataxWriterDescriptor writerDesc = writer.getWriterDescriptor();
     if (!writerDesc.isSupportTabCreate()) {
-      throw new IllegalStateException("writerDesc:" + writerDesc.getDisplayName() + " is not support generate Table create DDL");
+      throw new IllegalStateException("writerDesc:" + writerDesc.getDisplayName() + " is not support generate Table " + "create DDL");
     }
 
     this.setBizResult(context, cfgGenerator.startGenerateCfg(new DataXCfgGenerator.IGenerateScriptFile() {
       @Override
-      public void generateScriptFile(IDataxReader reader, IDataxWriter writer, IDataxReaderContext readerContext, Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
+      public void generateScriptFile(IDataxReader reader, IDataxWriter writer, IDataxReaderContext readerContext,
+                                     Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
 
-        DataXCfgGenerator.generateTabCreateDDL(DataxAction.this, dataxProcessor, writer, readerContext, createDDLFiles, tableMapper, true);
+        DataXCfgGenerator.generateTabCreateDDL(DataxAction.this, dataxProcessor, writer, readerContext,
+          createDDLFiles, tableMapper, true);
       }
     }));
   }
@@ -676,7 +687,8 @@ public class DataxAction extends BasicModule {
       //DataX配置移动位置
       IRepositoryResource appSource = IAppSource.getPluginStore(this, appDomain.getAppName());
       dataXDir = appSource.getTargetFile().getFile().getParentFile();
-      dataXDirTrash = new File(dataXDir.getParentFile(), StreamContextConstant.KEY_DIR_TRASH_NAME + "/" + appDomain.getAppName());
+      dataXDirTrash = new File(dataXDir.getParentFile(),
+        StreamContextConstant.KEY_DIR_TRASH_NAME + "/" + appDomain.getAppName());
       FileUtils.moveDirectory(dataXDir, dataXDirTrash);
 
       WorkFlowBuildHistoryCriteria historyCriteria = new WorkFlowBuildHistoryCriteria();
@@ -726,7 +738,8 @@ public class DataxAction extends BasicModule {
     });
   }
 
-  private static final Pattern PatternEdittingDirSuffix = Pattern.compile("\\-[\\da-z]{8}\\-[\\da-z]{4}\\-[\\da-z]{4}\\-[\\da-z]{4}\\-[\\da-z]{12}");
+  private static final Pattern PatternEdittingDirSuffix =
+    Pattern.compile("\\-[\\da-z]{8}\\-[\\da-z]{4}\\-[\\da-z]{4" + "}\\-[\\da-z]{4}\\-[\\da-z]{12}");
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doUpdateDatax(Context context) throws Exception {
@@ -886,7 +899,8 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetReaderWriterMeta(Context context) {
     final String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName, false);
+    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName,
+      false);
     this.setBizResult(context, processMeta);
   }
 
@@ -928,37 +942,38 @@ public class DataxAction extends BasicModule {
         tabMapper.setTo(selectedTab.getName());
         break;
         // if (findMapper.isPresent()) {
-//          if (!(findMapper.get() instanceof IDataxProcessor.TableMap)) {
-//            throw new IllegalStateException("tableAlias must be type of " + IDataxProcessor.TableMap.class.getName());
-//          }
-//          tabMapper = (IDataxProcessor.TableMap) findMapper.get();
-//          List<CMeta> sourceCols = tabMapper.getSourceCols();
-//          // 当更新流程的时候 Reader中的select表会变化（col列会增减），这里要作如下处理
-//          List<CMeta> cols = selectedTab.getCols();
-//          CMeta col = null;
-//          CMeta srcCol = null;
-//          for (int i = 0; i < cols.size(); i++) {
-//            col = cols.get(i);
-//
-//            if (i < sourceCols.size()) {
-//              srcCol = sourceCols.get(i);
-//              col.setName(srcCol.getName());
-//              col.setType(srcCol.getType());
-//              col.setPk(srcCol.isPk());
-//            }
-//          }
-//          IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(cols);
-//          m.setFrom(selectedTab.getName());
-//          m.setTo(tabMapper.getTo());
-//          tabMapper = m;
+        //          if (!(findMapper.get() instanceof IDataxProcessor.TableMap)) {
+        //            throw new IllegalStateException("tableAlias must be type of " + IDataxProcessor.TableMap.class
+        //            .getName());
+        //          }
+        //          tabMapper = (IDataxProcessor.TableMap) findMapper.get();
+        //          List<CMeta> sourceCols = tabMapper.getSourceCols();
+        //          // 当更新流程的时候 Reader中的select表会变化（col列会增减），这里要作如下处理
+        //          List<CMeta> cols = selectedTab.getCols();
+        //          CMeta col = null;
+        //          CMeta srcCol = null;
+        //          for (int i = 0; i < cols.size(); i++) {
+        //            col = cols.get(i);
+        //
+        //            if (i < sourceCols.size()) {
+        //              srcCol = sourceCols.get(i);
+        //              col.setName(srcCol.getName());
+        //              col.setType(srcCol.getType());
+        //              col.setPk(srcCol.isPk());
+        //            }
+        //          }
+        //          IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(cols);
+        //          m.setFrom(selectedTab.getName());
+        //          m.setTo(tabMapper.getTo());
+        //          tabMapper = m;
         // } else {
         //  }
       }
     }
 
-//    Map<String, Object> biz = Maps.newHashMap();
-//    biz.put("tabMapper", Objects.requireNonNull(tabMapper, "tabMapper can not be null"));
-//    biz.put("colMetas", DataTypeMeta.typeMetas);
+    //    Map<String, Object> biz = Maps.newHashMap();
+    //    biz.put("tabMapper", Objects.requireNonNull(tabMapper, "tabMapper can not be null"));
+    //    biz.put("colMetas", DataTypeMeta.typeMetas);
 
 
     this.setBizResult(context, DataTypeMeta.createViewBiz(tabMapper));
@@ -978,7 +993,8 @@ public class DataxAction extends BasicModule {
       schema = typeTransfer.projectionFromExpertModel(expect.asJson());
     } else {
       schema = confiemModel.getStupid().getModel();
-      schemaContent = typeTransfer.mergeFromStupidModel(schema, ISearchEngineTypeTransfer.getOriginExpertSchema(null)).toJSONString();
+      schemaContent = typeTransfer.mergeFromStupidModel(schema,
+        ISearchEngineTypeTransfer.getOriginExpertSchema(null)).toJSONString();
     }
 
     if (!schema.isValid()) {
@@ -988,7 +1004,8 @@ public class DataxAction extends BasicModule {
       return;
     }
 
-    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, confiemModel.getDataxName());
+    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this,
+      confiemModel.getDataxName());
     List<ISelectedTab> selectedTabs = processMeta.getReader().getSelectedTabs();
     ESTableAlias esTableAlias = new ESTableAlias();
     esTableAlias.setFrom(selectedTabs.stream().findFirst().get().getName());
@@ -1037,54 +1054,62 @@ public class DataxAction extends BasicModule {
         public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
           // CMeta colMeta = null;
           JSONArray targetCols = JSON.parseArray(fieldData);
-//          JSONObject targetCol = null;
-//          int index;
-//          String targetColName = null;
-//          DataType dataType = null;
+          //          JSONObject targetCol = null;
+          //          int index;
+          //          String targetColName = null;
+          //          DataType dataType = null;
 
           if (targetCols.size() < 1) {
             msgHandler.addFieldError(context, fieldKey, "Writer目标表列不能为空");
             return false;
           }
 
-          PluginExtraProps.ParsePostMCols postMCols = PluginExtraProps.parsePostMCols(msgHandler, context, keyColsMeta, targetCols);
+          PluginExtraProps.ParsePostMCols postMCols = PluginExtraProps.parsePostMCols(Optional.empty(), msgHandler,
+            context, keyColsMeta, targetCols);
 
-//          Map<String, Integer> existCols = Maps.newHashMap();
-//          boolean validateFaild = false;
-//          Integer previousColIndex = null;
-//          boolean pk;
-//          boolean pkHasSelected = false;
-//          JSONObject type = null;
-//          for (int i = 0; i < targetCols.size(); i++) {
-//            targetCol = targetCols.getJSONObject(i);
-//            index = targetCol.getInteger("index");
-//            pk = targetCol.getBooleanValue("pk");
-//            targetColName = targetCol.getString("name");
-//            if (StringUtils.isNotBlank(targetColName) && (previousColIndex = existCols.put(targetColName, index)) != null) {
-//              msgHandler.addFieldError(context, keyColsMeta + "[" + previousColIndex + "]", "内容不能与第" + index + "行重复");
-//              msgHandler.addFieldError(context, keyColsMeta + "[" + index + "]", "内容不能与第" + previousColIndex + "行重复");
-//              return false;
-//            }
-//            if (!Validator.require.validate(DataxAction.this, context, keyColsMeta + "[" + index + "]", targetColName)) {
-//              validateFaild = true;
-//            } else if (!Validator.db_col_name.validate(DataxAction.this, context, keyColsMeta + "[" + index + "]", targetColName)) {
-//              validateFaild = true;
-//            }
-//            colMeta = new CMeta();
-//            colMeta.setName(targetColName);
-//            colMeta.setPk(pk);
-//            if (pk) {
-//              pkHasSelected = true;
-//            }
-////{"s":"3,12,2","typeDesc":"decimal(12,2)","columnSize":12,"typeName":"VARCHAR","unsigned":false,"decimalDigits":4,"type":3,"unsignedToken":""}
-//            type = targetCol.getJSONObject("type");
-//            dataType = new DataType(type.getInteger("type"), type.getString("typeName"), type.getInteger("columnSize"));
-//            dataType.setDecimalDigits(type.getInteger("decimalDigits"));
-//            // DataType dataType = targetCol.getObject("type", DataType.class);
-//            // colMeta.setType(ISelectedTab.DataXReaderColType.parse(targetCol.getString("type")));
-//            colMeta.setType(dataType);
-//            writerCols.add(colMeta);
-//          }
+          //          Map<String, Integer> existCols = Maps.newHashMap();
+          //          boolean validateFaild = false;
+          //          Integer previousColIndex = null;
+          //          boolean pk;
+          //          boolean pkHasSelected = false;
+          //          JSONObject type = null;
+          //          for (int i = 0; i < targetCols.size(); i++) {
+          //            targetCol = targetCols.getJSONObject(i);
+          //            index = targetCol.getInteger("index");
+          //            pk = targetCol.getBooleanValue("pk");
+          //            targetColName = targetCol.getString("name");
+          //            if (StringUtils.isNotBlank(targetColName) && (previousColIndex = existCols.put(targetColName,
+          //            index)) != null) {
+          //              msgHandler.addFieldError(context, keyColsMeta + "[" + previousColIndex + "]", "内容不能与第" +
+          //              index + "行重复");
+          //              msgHandler.addFieldError(context, keyColsMeta + "[" + index + "]", "内容不能与第" +
+          //              previousColIndex + "行重复");
+          //              return false;
+          //            }
+          //            if (!Validator.require.validate(DataxAction.this, context, keyColsMeta + "[" + index + "]",
+          //            targetColName)) {
+          //              validateFaild = true;
+          //            } else if (!Validator.db_col_name.validate(DataxAction.this, context, keyColsMeta + "[" +
+          //            index + "]", targetColName)) {
+          //              validateFaild = true;
+          //            }
+          //            colMeta = new CMeta();
+          //            colMeta.setName(targetColName);
+          //            colMeta.setPk(pk);
+          //            if (pk) {
+          //              pkHasSelected = true;
+          //            }
+          ////{"s":"3,12,2","typeDesc":"decimal(12,2)","columnSize":12,"typeName":"VARCHAR","unsigned":false,
+          // "decimalDigits":4,"type":3,"unsignedToken":""}
+          //            type = targetCol.getJSONObject("type");
+          //            dataType = new DataType(type.getInteger("type"), type.getString("typeName"), type.getInteger
+          //            ("columnSize"));
+          //            dataType.setDecimalDigits(type.getInteger("decimalDigits"));
+          //            // DataType dataType = targetCol.getObject("type", DataType.class);
+          //            // colMeta.setType(ISelectedTab.DataXReaderColType.parse(targetCol.getString("type")));
+          //            colMeta.setType(dataType);
+          //            writerCols.add(colMeta);
+          //          }
 
           if (!postMCols.pkHasSelected) {
             addErrorMessage(context, "请至少选择一个主键列");
@@ -1198,7 +1223,8 @@ public class DataxAction extends BasicModule {
   public static class DataxPluginDescMeta extends PluginDescMeta<DataxReader> {
     private final DescriptorsJSON writerTypesDesc;
 
-    public DataxPluginDescMeta(DescriptorExtensionList<DataxReader, Descriptor<DataxReader>> readerTypes, List<Descriptor<DataxWriter>> writerTypes) {
+    public DataxPluginDescMeta(DescriptorExtensionList<DataxReader, Descriptor<DataxReader>> readerTypes,
+                               List<Descriptor<DataxWriter>> writerTypes) {
       super(readerTypes);
       this.writerTypesDesc = new DescriptorsJSON(writerTypes);
     }

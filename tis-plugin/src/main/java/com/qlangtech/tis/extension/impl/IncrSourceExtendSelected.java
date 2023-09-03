@@ -19,12 +19,11 @@
 package com.qlangtech.tis.extension.impl;
 
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.plugin.IdentityName;
-import com.qlangtech.tis.plugin.datax.IncrSelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
@@ -122,7 +121,7 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
 
     @Override
     protected Map<String, SelectedTab> getSelectedTabs(Collection<IdentityName> subFormFieldInstance) {
-        return IncrSelectedTabExtend.getTabExtend(this.uploadPluginMeta);
+        return SelectedTabExtend.getTabExtend(this.uploadPluginMeta);
     }
 
     @Override
@@ -131,7 +130,7 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
         addExt(ext.getIncrSinkProps(), pair);
     }
 
-    public void addExt(IncrSelectedTabExtend ext, JSONArray pair) throws Exception {
+    public void addExt(SelectedTabExtend ext, JSONArray pair) throws Exception {
         DescribableJSON itemJson;
         if (ext != null) {
             itemJson = new DescribableJSON(ext);

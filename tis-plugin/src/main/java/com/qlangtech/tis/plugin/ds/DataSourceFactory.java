@@ -502,7 +502,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
         protected DataType createColDataType(String colName, String typeName, int dbColType, int colSize) throws SQLException {
             // 类似oracle驱动内部有一套独立的类型 oracle.jdbc.OracleTypes,有需要可以在具体的实现类里面去实现
-            return new DataType(dbColType, typeName, colSize);
+            return  DataType.create(dbColType, typeName, colSize);
         }
     }
 

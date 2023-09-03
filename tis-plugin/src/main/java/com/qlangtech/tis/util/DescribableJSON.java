@@ -42,7 +42,8 @@ public class DescribableJSON<T extends Describable<T>> {
 
     public DescribableJSON(T instance, Descriptor<T> descriptor) {
         this.instance = Objects.requireNonNull(instance, "param instance can not be null");
-        this.descriptor = Objects.requireNonNull(descriptor, "param descriptor can not be null,plugin type:" + instance.getClass());
+        this.descriptor = Objects.requireNonNull(descriptor,
+                "param descriptor can not be null,plugin type:" + instance.getClass());
     }
 
     public DescribableJSON(T instance) {
@@ -54,12 +55,13 @@ public class DescribableJSON<T extends Describable<T>> {
     }
 
     public JSONObject getItemJson(Optional<IPropertyType.SubFormFilter> subFormFilter) throws Exception {
+        PluginFormProperties pluginFormPropertyTypes = descriptor.getPluginFormPropertyTypes(subFormFilter);
+        return getItemJson(pluginFormPropertyTypes);
+    }
+
+    public JSONObject getItemJson(PluginFormProperties pluginFormPropertyTypes) throws Exception {
 
         JSONObject item = new JSONObject();
-//        item.put(DescriptorsJSON.KEY_IMPL, descriptor.getId());
-//        item.put(DescriptorsJSON.KEY_IMPL_URL, Config.TIS_PUB_PLUGINS_DOC_URL + StringUtils.lowerCase(descriptor.clazz.getSimpleName()));
-//        item.put(DescriptorsJSON.KEY_DISPLAY_NAME, descriptor.getDisplayName());
-        PluginFormProperties pluginFormPropertyTypes = descriptor.getPluginFormPropertyTypes(subFormFilter);
 
         DescriptorsJSON.setDescInfo(pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
             @Override
