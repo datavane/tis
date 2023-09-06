@@ -54,9 +54,10 @@ public interface IPropertyType {
         public final String subformDetailId;
 
         public Descriptor getTargetDescriptor() {
-            Descriptor parentDesc = Objects.requireNonNull(TIS.get().getDescriptor(this.targetDesc.impl)
-                    , this.targetDesc + "->" + this.targetDesc.impl + " relevant desc can not be null");
-            return parentDesc;
+            return this.targetDesc.getTargetDescriptor();
+//            Descriptor parentDesc = Objects.requireNonNull(TIS.get().getDescriptor(this.targetDesc.impl)
+//                    , this.targetDesc + "->" + this.targetDesc.impl + " relevant desc can not be null");
+//            return parentDesc;
         }
 
         /**

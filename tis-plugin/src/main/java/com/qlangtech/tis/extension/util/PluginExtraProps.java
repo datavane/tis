@@ -243,12 +243,13 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             }
             //{"s":"3,12,2","typeDesc":"decimal(12,2)","columnSize":12,"typeName":"VARCHAR","unsigned":false,
             // "decimalDigits":4,"type":3,"unsignedToken":""}
-            type = targetCol.getJSONObject("type");
+            dataType = DataType.parseType(targetCol);
 
-            dataType = DataType.create(type.getInteger("type"), type.getString("typeName"), type.getInteger(
-                    "columnSize"));
-
-            dataType.setDecimalDigits(type.getInteger("decimalDigits"));
+            //            dataType = DataType.create(type.getInteger("type"), type.getString("typeName"), type
+            //            .getInteger(
+            //                    "columnSize"));
+            //
+            //            dataType.setDecimalDigits(type.getInteger("decimalDigits"));
             // DataType dataType = targetCol.getObject("type", DataType.class);
             // colMeta.setType(ISelectedTab.DataXReaderColType.parse(targetCol.getString("type")));
             colMeta.setType(dataType);
@@ -257,6 +258,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         return postMCols;
     }
+
 
     public interface IClassVisitor<T> {
         T process(Class<?> clazz, T extraProps);

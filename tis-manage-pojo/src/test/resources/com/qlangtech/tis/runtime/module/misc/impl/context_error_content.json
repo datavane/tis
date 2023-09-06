@@ -1,0 +1,22 @@
+{
+  "action_error_fields":[
+    [
+      [
+        {
+          "fieldName":"cols",
+          "msg":[
+            null,
+            null,
+            null,
+            [
+              {
+                "jsonpath":"不能为空",
+                "name":"格式不复合规范"
+              }
+            ]
+          ]
+        }
+      ]
+    ]
+  ]
+}

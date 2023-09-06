@@ -55,10 +55,11 @@ public class UploadPluginMeta {
 
     private static final Pattern PATTERN_PLUGIN_ATTRIBUTE = Pattern.compile("[" + ATTR_KEY_VALUE_SPLIT + "\\-\\w\\.]+");
 
-    public static final Pattern PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR
-            = Pattern.compile("([^" + ATTR_KEY_VALUE_SPLIT + "]+?)" + ATTR_KEY_VALUE_SPLIT + "(" + PATTERN_PLUGIN_ATTRIBUTE.pattern() + ")");
+    public static final Pattern PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR =
+            Pattern.compile("([^" + ATTR_KEY_VALUE_SPLIT + "]+?)" + ATTR_KEY_VALUE_SPLIT + "(" + PATTERN_PLUGIN_ATTRIBUTE.pattern() + ")");
 
-    private static final Pattern PATTERN_PLUGIN_META = Pattern.compile("(.+?)(:(,?(" + PATTERN_PLUGIN_ATTRIBUTE + "))+)?");
+    private static final Pattern PATTERN_PLUGIN_META = Pattern.compile("(.+?)(:(,?(" + PATTERN_PLUGIN_ATTRIBUTE + "))"
+            + "+)?");
 
     public static final String KEY_REQUIRE = "require";
 
@@ -191,8 +192,7 @@ public class UploadPluginMeta {
                         default: {
                             attrKVMatcher = PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR.matcher(attr);
                             if (!attrKVMatcher.matches()) {
-                                throw new IllegalStateException("attr:" + attr + " is not match:"
-                                        + PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR.pattern());
+                                throw new IllegalStateException("attr:" + attr + " is not match:" + PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR.pattern());
                             }
                             pmeta.putExtraParams(attrKVMatcher.group(1), attrKVMatcher.group(2));
                             // pmeta.extraParams.put(attrKVMatcher.group(1), attrKVMatcher.group(2));
@@ -233,8 +233,9 @@ public class UploadPluginMeta {
                             return ext.getIncrExtProp();
                         }
 
-                        return DATAX_READER.getPlugins(pluginContext
-                                , UploadPluginMeta.parse(pluginContext, pluginMeta.name + ":" + DataxUtils.DATAX_NAME + "_" + pluginMeta.getDataXName(), useCache));
+                        return DATAX_READER.getPlugins(pluginContext, UploadPluginMeta.parse(pluginContext,
+                                pluginMeta.name + ":" + DataxUtils.DATAX_NAME + "_" + pluginMeta.getDataXName(),
+                                useCache));
                     }
 
                     @Override
@@ -245,9 +246,10 @@ public class UploadPluginMeta {
                     @Override
                     public List<Descriptor> descriptors() {
                         // incrTabExtendSuit.getDescriptors();
-                        Descriptor selectedTabClassDesc = TIS.get().getDescriptor(IncrSourceExtendSelected.selectedTabClass);
-                        return subFilter.subformDetailView ? incrTabExtendSuit.getDescriptors()
-                                : incrTabExtendSuit.getDescriptorsWithAppendDesc(selectedTabClassDesc);
+                        Descriptor selectedTabClassDesc =
+                                TIS.get().getDescriptor(IncrSourceExtendSelected.selectedTabClass);
+                        return subFilter.subformDetailView ? incrTabExtendSuit.getDescriptors() :
+                                incrTabExtendSuit.getDescriptorsWithAppendDesc(selectedTabClassDesc);
                     }
 
                 };
@@ -297,6 +299,12 @@ public class UploadPluginMeta {
                     , meta.getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION));
         }
 
+        public Descriptor getTargetDescriptor() {
+            Descriptor parentDesc = Objects.requireNonNull(TIS.get().getDescriptor(this.impl),
+                    this + "->" + this.impl + " relevant desc can not be null");
+            return parentDesc;
+        }
+
         private TargetDesc(String matchTargetPluginDescName, String name, String impl) {
             this.matchTargetPluginDescName = matchTargetPluginDescName;
             this.descDisplayName = name;
@@ -308,17 +316,13 @@ public class UploadPluginMeta {
         }
 
         public boolean isNameMatch(String displayName) {
-            return IPropertyType.SubFormFilter.KEY_INCR_PROCESS_EXTEND.equals(matchTargetPluginDescName)
-                    || StringUtils.equals(displayName, this.matchTargetPluginDescName);
+            return IPropertyType.SubFormFilter.KEY_INCR_PROCESS_EXTEND.equals(matchTargetPluginDescName) || StringUtils.equals(displayName, this.matchTargetPluginDescName);
         }
 
         @Override
         public String toString() {
-            return "TargetDesc{" +
-                    "descDisplayName='" + descDisplayName + '\'' +
-                    ", impl='" + impl + '\'' +
-                    ", matchTargetPluginDescName='" + matchTargetPluginDescName + '\'' +
-                    '}';
+            return "TargetDesc{" + "descDisplayName='" + descDisplayName + '\'' + ", impl='" + impl + '\'' + ", " +
+                    "matchTargetPluginDescName='" + matchTargetPluginDescName + '\'' + '}';
         }
     }
 
@@ -335,8 +339,7 @@ public class UploadPluginMeta {
     public String getDataXName(boolean validateNull) {
         final String dataxName = (this.getExtraParam(DataxUtils.DATAX_NAME));
         if (validateNull && StringUtils.isEmpty(dataxName)) {
-            throw new IllegalArgumentException(
-                    "plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
+            throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
         }
         return dataxName;
     }
@@ -362,8 +365,7 @@ public class UploadPluginMeta {
 
     @Override
     public String toString() {
-        return "UploadPluginMeta{" + "name='" + name + '\'' + ", required=" + required +
-                "," + this.extraParams.entrySet().stream().map((e) -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(",")) + '}';
+        return "UploadPluginMeta{" + "name='" + name + '\'' + ", required=" + required + "," + this.extraParams.entrySet().stream().map((e) -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(",")) + '}';
     }
 
     public <T extends Describable<T>> HeteroList<T> getHeteroList(IPluginContext pluginContext) {
@@ -379,19 +381,21 @@ public class UploadPluginMeta {
         final TargetDesc targetDesc = this.getTargetDesc();
         //if (StringUtils.isNotEmpty(this.getTargetPluginDesc())) {
         if (targetDesc.shallMatchTargetDesc()) {
-//            descriptors = descriptors.stream()
-//                    .filter((desc) -> this.getTargetPluginDesc().equals(desc.getDisplayName()))
-//                    .collect(Collectors.toList());
-            descriptors = descriptors.stream()
-                    .filter((desc) -> targetDesc.isNameMatch(desc.getDisplayName()))
-                    .collect(Collectors.toList());
+            //            descriptors = descriptors.stream()
+            //                    .filter((desc) -> this.getTargetPluginDesc().equals(desc.getDisplayName()))
+            //                    .collect(Collectors.toList());
+            descriptors =
+                    descriptors.stream().filter((desc) -> targetDesc.isNameMatch(desc.getDisplayName())).collect(Collectors.toList());
         } else {
             boolean justGetItemRelevant = Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
             if (justGetItemRelevant) {
-                Set<String> itemRelevantDescNames = items.stream().map((i) -> i.getDescriptor().getDisplayName()).collect(Collectors.toSet());
-                descriptors = descriptors.stream().filter((d) -> itemRelevantDescNames.contains(d.getDisplayName())).collect(Collectors.toList());
+                Set<String> itemRelevantDescNames =
+                        items.stream().map((i) -> i.getDescriptor().getDisplayName()).collect(Collectors.toSet());
+                descriptors =
+                        descriptors.stream().filter((d) -> itemRelevantDescNames.contains(d.getDisplayName())).collect(Collectors.toList());
             } else if (StringUtils.isNotEmpty(targetDesc.descDisplayName)) {
-                descriptors = descriptors.stream().filter((d) -> targetDesc.descDisplayName.equals(d.getDisplayName())).collect(Collectors.toList());
+                descriptors =
+                        descriptors.stream().filter((d) -> targetDesc.descDisplayName.equals(d.getDisplayName())).collect(Collectors.toList());
             }
         }
         hList.setDescriptors(descriptors);

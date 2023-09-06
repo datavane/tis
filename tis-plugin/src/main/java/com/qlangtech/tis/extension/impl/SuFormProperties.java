@@ -18,6 +18,7 @@
 package com.qlangtech.tis.extension.impl;
 
 import com.alibaba.fastjson.JSONArray;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
@@ -68,6 +69,7 @@ public class SuFormProperties extends BaseSubFormProperties {
 
     public final SubForm subFormFieldsAnnotation;
     public final Class<?> parentClazz;
+    public final Descriptor parentPluginDesc;
     public final PropertyType pkPropertyType;
 
     private DescriptorsJSON.IPropGetter subFormFieldsEnumGetter;
@@ -77,7 +79,11 @@ public class SuFormProperties extends BaseSubFormProperties {
         PropertyType propertyType = this.fieldsType.get(fieldName);
         return propertyType;
     }
-    //
+
+    @Override
+    public Descriptor getParentPluginDesc() {
+        return this.parentPluginDesc;
+    }
 
     /**
      * 至少选一个
@@ -112,6 +118,7 @@ public class SuFormProperties extends BaseSubFormProperties {
                 subFormFieldsDescriptor);
         Objects.requireNonNull(fieldsType, "fieldsType can not be null");
         this.parentClazz = parentClazz;
+        this.parentPluginDesc = TIS.get().getDescriptor((Class<? extends Describable>) parentClazz);
 
         // this.subFormField = subFormField;
         this.subFormFieldsAnnotation = subFormFieldsAnnotation;

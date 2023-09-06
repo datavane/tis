@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.extension.impl;
@@ -44,10 +44,17 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
     // private final Descriptor<IncrSelectedTabExtend> incrExtendDesc;
 
     public static final Class<SelectedTab> selectedTabClass = SelectedTab.class;
+    private final Descriptor parentPluginDesc;
 
     public IncrSourceExtendSelected(UploadPluginMeta uploadPluginMeta, Field subFormField) {
         super(subFormField, selectedTabClass, TIS.get().getDescriptor(selectedTabClass));
         this.uploadPluginMeta = uploadPluginMeta;
+        this.parentPluginDesc = uploadPluginMeta.getTargetDesc().getTargetDescriptor();
+    }
+
+    @Override
+    public Descriptor getParentPluginDesc() {
+        return this.parentPluginDesc;
     }
 
     @Override
@@ -62,62 +69,66 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
 
     @Override
     public DescriptorsJSON.IPropGetter getSubFormIdListGetter(IPropertyType.SubFormFilter filter) {
-//        return (filter) -> {
-//            IPluginStore<?> readerSubFieldStore
-//                    = HeteroEnum.getDataXReaderAndWriterStore(filter.uploadPluginMeta.getPluginContext(), true, filter.uploadPluginMeta, Optional.of(filter));
-//            List<?> plugins = readerSubFieldStore.getPlugins();
-//            return plugins.stream().map((p) -> ((IdentityName) p).identityValue()).collect(Collectors.toList());
-//        };
+        //        return (filter) -> {
+        //            IPluginStore<?> readerSubFieldStore
+        //                    = HeteroEnum.getDataXReaderAndWriterStore(filter.uploadPluginMeta.getPluginContext(),
+        //                    true, filter.uploadPluginMeta, Optional.of(filter));
+        //            List<?> plugins = readerSubFieldStore.getPlugins();
+        //            return plugins.stream().map((p) -> ((IdentityName) p).identityValue()).collect(Collectors
+        //            .toList());
+        //        };
         throw new UnsupportedOperationException();
     }
 
-//    @Override
-//    public <T> T visitAllSubDetailed(Map<String, JSONObject> formData, SuFormProperties.ISubDetailedProcess<T> subDetailedProcess) {
-//        //  throw new UnsupportedOperationException();
-//        Descriptor.PluginValidateResult validateResult = null;
-//        return null;
-//    }
+    //    @Override
+    //    public <T> T visitAllSubDetailed(Map<String, JSONObject> formData, SuFormProperties.ISubDetailedProcess<T>
+    //    subDetailedProcess) {
+    //        //  throw new UnsupportedOperationException();
+    //        Descriptor.PluginValidateResult validateResult = null;
+    //        return null;
+    //    }
 
-//    @Override
-//    public JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance) {
-//        //  throw new UnsupportedOperationException(subFormFieldInstance.stream().map((i) -> i.identityValue()).collect(Collectors.joining(",")));
-//        // IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.
-//        // IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.
-//        Map<String, SelectedTab> tabExtends = getSelectedTabs(subFormFieldInstance);
-//        JSONObject vals = null;
-//        try {
-//
-//            SelectedTab ext = null;
-//            vals = new JSONObject();
-//            JSONArray pair = null;
-//            // DescribableJSON itemJson = null;
-//            // RootFormProperties props = (new RootFormProperties(getPropertyType()));
-//            if (subFormFieldInstance != null) {
-//                for (IdentityName subItem : subFormFieldInstance) {
-//                    ext = tabExtends.get(subItem.identityValue());
-////                    Objects.requireNonNull(tabExtends.get(subItem.identityValue())
-////                            , "table:" + subItem.identityValue() + " relevant tab ext can not be null");
-////                    ext = Objects.requireNonNull(tabExtends.get(subItem.identityValue())
-////                            , "table:" + subItem.identityValue() + " relevant tab ext can not be null");
-//                    if (ext == null) {
-//                        continue;
-//                    }
-//                    pair = new JSONArray();
-//                    addSubItems(ext, pair);
-//
-////                    if (ext.getIncrSinkProps() != null) {
-////                        itemJson = new DescribableJSON(ext.getIncrSinkProps());
-////                        pair.add(itemJson.getItemJson());
-////                    }
-//                    vals.put(subItem.identityValue(), pair);
-//                }
-//            }
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//        return vals;
-//    }
+    //    @Override
+    //    public JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance) {
+    //        //  throw new UnsupportedOperationException(subFormFieldInstance.stream().map((i) -> i.identityValue())
+    //        .collect(Collectors.joining(",")));
+    //        // IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.
+    //        // IncrSourceSelectedTabExtend.INCR_SELECTED_TAB_EXTEND.
+    //        Map<String, SelectedTab> tabExtends = getSelectedTabs(subFormFieldInstance);
+    //        JSONObject vals = null;
+    //        try {
+    //
+    //            SelectedTab ext = null;
+    //            vals = new JSONObject();
+    //            JSONArray pair = null;
+    //            // DescribableJSON itemJson = null;
+    //            // RootFormProperties props = (new RootFormProperties(getPropertyType()));
+    //            if (subFormFieldInstance != null) {
+    //                for (IdentityName subItem : subFormFieldInstance) {
+    //                    ext = tabExtends.get(subItem.identityValue());
+    ////                    Objects.requireNonNull(tabExtends.get(subItem.identityValue())
+    ////                            , "table:" + subItem.identityValue() + " relevant tab ext can not be null");
+    ////                    ext = Objects.requireNonNull(tabExtends.get(subItem.identityValue())
+    ////                            , "table:" + subItem.identityValue() + " relevant tab ext can not be null");
+    //                    if (ext == null) {
+    //                        continue;
+    //                    }
+    //                    pair = new JSONArray();
+    //                    addSubItems(ext, pair);
+    //
+    ////                    if (ext.getIncrSinkProps() != null) {
+    ////                        itemJson = new DescribableJSON(ext.getIncrSinkProps());
+    ////                        pair.add(itemJson.getItemJson());
+    ////                    }
+    //                    vals.put(subItem.identityValue(), pair);
+    //                }
+    //            }
+    //        } catch (Exception e) {
+    //            throw new RuntimeException(e);
+    //        }
+    //
+    //        return vals;
+    //    }
 
     @Override
     protected Map<String, SelectedTab> getSelectedTabs(Collection<IdentityName> subFormFieldInstance) {
@@ -146,10 +157,10 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
     // private Map<String, PropertyType> props = null;
 
 
-//    public Map<String, PropertyType> getPropertyType() {
-////        if (props == null) {
-////            props = Descriptor.filterFieldProp(subFormFieldsDescriptor);
-////        }
-////        return props;
-//    }
+    //    public Map<String, PropertyType> getPropertyType() {
+    ////        if (props == null) {
+    ////            props = Descriptor.filterFieldProp(subFormFieldsDescriptor);
+    ////        }
+    ////        return props;
+    //    }
 }

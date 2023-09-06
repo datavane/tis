@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.extension.impl;
@@ -56,6 +56,8 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
         this.subFormFieldsDescriptor = subFormFieldsDescriptor;
     }
 
+    public abstract Descriptor getParentPluginDesc();
+
     public abstract PropertyType getPropertyType(String fieldName);
     //PropertyType propertyType = props.fieldsType.get(descField.field)
 
@@ -72,21 +74,21 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
 
     @Override
     public JSON getInstancePropsJson(Object instance) {
-//        Class<?> fieldType = subFormField.getType();
-//        if (!Collection.class.isAssignableFrom(fieldType)) {
-//            // 现在表单只支持1对n 关系的子表单，因为1对1就没有必要有子表单了
-//            throw new UnsupportedOperationException("sub form field:" + subFormField.getName()
-//                    + " just support one2multi relationship,declarFieldClass:" + fieldType.getName());
-//        }
-//        getSubFormPropVal(instance);
-//        try {
-//            Object o = subFormField.get(instance);
+        //        Class<?> fieldType = subFormField.getType();
+        //        if (!Collection.class.isAssignableFrom(fieldType)) {
+        //            // 现在表单只支持1对n 关系的子表单，因为1对1就没有必要有子表单了
+        //            throw new UnsupportedOperationException("sub form field:" + subFormField.getName()
+        //                    + " just support one2multi relationship,declarFieldClass:" + fieldType.getName());
+        //        }
+        //        getSubFormPropVal(instance);
+        //        try {
+        //            Object o = subFormField.get(instance);
 
         return createSubFormVals(getSubFormPropVal(instance));
 
-//        } catch (IllegalAccessException e) {
-//            throw new RuntimeException(e);
-//        }
+        //        } catch (IllegalAccessException e) {
+        //            throw new RuntimeException(e);
+        //        }
     }
 
     public abstract DescriptorsJSON.IPropGetter getSubFormIdListGetter(IPropertyType.SubFormFilter filter);
@@ -95,8 +97,8 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
         Class<?> fieldType = subFormField.getType();
         if (!Collection.class.isAssignableFrom(fieldType)) {
             // 现在表单只支持1对n 关系的子表单，因为1对1就没有必要有子表单了
-            throw new UnsupportedOperationException("sub form field:" + subFormField.getName()
-                    + " just support one2multi relationship,declarFieldClass:" + fieldType.getName());
+            throw new UnsupportedOperationException("sub form field:" + subFormField.getName() + " just support " +
+                    "one2multi relationship,declarFieldClass:" + fieldType.getName());
         }
 
         try {
@@ -121,9 +123,10 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
     }
 
     protected abstract Map<String, SelectedTab> getSelectedTabs(Collection<IdentityName> subFormFieldInstance);
-    protected abstract void addSubItems(SelectedTab ext, JSONArray pair) throws Exception ;
 
-    public final  JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance) {
+    protected abstract void addSubItems(SelectedTab ext, JSONArray pair) throws Exception;
+
+    public final JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance) {
         Map<String, SelectedTab> tabExtends = getSelectedTabs(subFormFieldInstance);
         JSONObject vals = null;
         try {
@@ -151,8 +154,7 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
 
     public final <T> T visitAllSubDetailed(
             // Map<String, /*** attr key */JSONArray> formData
-            AttrValMap.IAttrVals formData
-            , ISubDetailedProcess<T> subDetailedProcess) {
+            AttrValMap.IAttrVals formData, ISubDetailedProcess<T> subDetailedProcess) {
         String subFormId = null;
         //JSONObject subformData = null;
         AttrValMap attrVals = null;

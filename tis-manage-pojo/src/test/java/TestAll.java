@@ -19,6 +19,7 @@
 import com.qlangtech.tis.manage.common.TestCenterResource;
 
 import com.qlangtech.tis.offline.TestDataxUtils;
+import com.qlangtech.tis.runtime.module.misc.impl.TestDefaultFieldErrorHandler;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -33,7 +34,7 @@ public class TestAll extends TestCase {
         TestSuite suite = new TestSuite();
         suite.addTestSuite(TestDataxUtils.class);
         suite.addTestSuite(TestCenterResource.class);
-       // suite.addTestSuite(TestColumnMetaData.class);
+        suite.addTestSuite(TestDefaultFieldErrorHandler.class);
         return suite;
     }
 

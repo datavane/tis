@@ -107,15 +107,17 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
    * @param extendVal    业务系统出了 errors 和msgs之外还要传其他的值
    * @throws IOException
    */
-  public static void writeInfo2Client(IExecResult actionExecResult, HttpServletResponse response, Boolean errorPageShow
-    , List<Object> errorMsgList, List<String> msgList
-    , List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList, Object extendVal) throws IOException {
+  public static void writeInfo2Client(IExecResult actionExecResult, HttpServletResponse response,
+                                      Boolean errorPageShow, List<Object> errorMsgList, List<String> msgList,
+                                      List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList,
+                                      Object extendVal) throws IOException {
     //try {
-    StringBuffer result = buildResultStruct(actionExecResult, errorPageShow, errorMsgList, msgList, pluginErrorList, extendVal);
+    StringBuffer result = buildResultStruct(actionExecResult, errorPageShow, errorMsgList, msgList, pluginErrorList,
+      extendVal);
     writeJson(response, result);
-//    } catch (JSONException e) {
-//      throw new IOException(e);
-//    }
+    //    } catch (JSONException e) {
+    //      throw new IOException(e);
+    //    }
   }
 
   public static StringBuffer buildResultStruct(Context context) {
@@ -123,8 +125,10 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
     return buildResultStruct(r, r.errorPageShow, r.errorMsgList, r.msgList, r.pluginErrorList, r.getBizResult());
   }
 
-  private static StringBuffer buildResultStruct(IExecResult actionExecResult, Boolean errorPageShow, List<Object> errorMsgList
-    , List<String> msgList, List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList, Object extendVal) {
+  private static StringBuffer buildResultStruct(IExecResult actionExecResult, Boolean errorPageShow,
+                                                List<Object> errorMsgList, List<String> msgList,
+                                                List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList
+    , Object extendVal) {
     StringBuffer result = new StringBuffer();
     result.append("{\n");
     result.append(" \"").append(KEY_SUCCESS).append("\":").append(actionExecResult.isSuccess());
@@ -160,7 +164,8 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
       } else if (extendVal instanceof JSONArray) {
         result.append(JsonUtil.toString((JSONArray) extendVal));
       } else {
-        //com.alibaba.fastjson.JSON.toJSONString(extendVal, SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat)
+        //com.alibaba.fastjson.JSON.toJSONString(extendVal, SerializerFeature.DisableCircularReferenceDetect,
+        // SerializerFeature.PrettyFormat)
         result.append(JsonUtil.toString(extendVal));
       }
     }
@@ -188,7 +193,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
       for (DefaultMessageHandler.FieldError ferr : fieldErrors) {
         o = new JSONObject();
         o.put("name", ferr.getFieldName());
-        if (StringUtils.isNotEmpty(ferr.getMsg())) {
+        if ((ferr.getMsg()) != null) {
           o.put("content", ferr.getMsg());
         }
         if (ferr.itemsErrorList != null) {
@@ -268,7 +273,8 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
     public ActionExecResult invoke() {
       errorMsgList = getErrorMsgList(context);
       msgList = (List<String>) context.get(IMessageHandler.ACTION_MSG);
-      pluginErrorList = (List<List<List<DefaultFieldErrorHandler.FieldError>>>) context.get(IFieldErrorHandler.ACTION_ERROR_FIELDS);
+      pluginErrorList =
+        (List<List<List<DefaultFieldErrorHandler.FieldError>>>) context.get(IFieldErrorHandler.ACTION_ERROR_FIELDS);
       bizResult = DefaultMessageHandler.getBizResult(context);// context.get(IMessageHandler.ACTION_BIZ_RESULT);
       errorPageShow = (Boolean) context.get(IMessageHandler.ACTION_ERROR_PAGE_SHOW);
       return this;

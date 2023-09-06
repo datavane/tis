@@ -67,7 +67,7 @@ public abstract class Krb5Res implements Describable<Krb5Res>, InnerPropOfIdenti
 
         @Override
         protected boolean validateAll(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
-            Krb5Res krb5Res = postFormVals.newInstance(this, msgHandler);
+            Krb5Res krb5Res = postFormVals.newInstance();
             if (krb5Res.isKrb5PathNotNull()) {
                 File krb5Path = (krb5Res.getKrb5Path());
                 if (!krb5Path.exists()) {

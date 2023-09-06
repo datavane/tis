@@ -225,8 +225,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     }
 
     public static List<CMeta> getContextTableCols(Function<List<ColumnMetaData>, Stream<ColumnMetaData>> func) {
-        return getContextTableColsStream(func).map(ColumnMetaData::convert
-        ).collect(Collectors.toList());
+        return getContextTableColsStream(func).map(ColumnMetaData::convert).collect(Collectors.toList());
     }
 
 
@@ -292,7 +291,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
             //                msgHandler.addFieldError(context, SelectedTab.KEY_FIELD_COLS, "请选择");
             //                return false;
             //            }
-            return this.validateAll(msgHandler, context, postFormVals.newInstance(this, msgHandler));
+            return this.validateAll(msgHandler, context, (SelectedTab) postFormVals.newInstance());
         }
 
         @Override
@@ -319,6 +318,10 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         public PluginFormProperties getPluginFormPropertyTypes(Optional<IPropertyType.SubFormFilter> subFormFilter) {
 
             return super.getPluginFormPropertyTypes(subFormFilter);
+        }
+
+        public final boolean validateSubForm(IControlMsgHandler msgHandler, Context context, SelectedTab tab) {
+            return validateAll(msgHandler, context, tab);
         }
 
         protected boolean validateAll(IControlMsgHandler msgHandler, Context context, SelectedTab tab) {

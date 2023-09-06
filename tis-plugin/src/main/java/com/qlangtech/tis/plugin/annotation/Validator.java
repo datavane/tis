@@ -44,78 +44,68 @@ public enum Validator {
             return false;
         }
         return true;
-    }),
-    user_name((msgHandler, context, fieldKey, fieldData) -> {
+    }), user_name((msgHandler, context, fieldKey, fieldData) -> {
 
-        return validatePattern(msgHandler, context
-                , rule(ValidatorCommons.pattern_user_name, ValidatorCommons.MSG_USER_NAME_ERROR), fieldKey, fieldData);
+        return validatePattern(msgHandler, context, rule(ValidatorCommons.pattern_user_name,
+                ValidatorCommons.MSG_USER_NAME_ERROR), fieldKey, fieldData);
 
-//        if (StringUtils.isEmpty(fieldData)) {
-//            return true;
-//        }
-//        Matcher matcher = ValidatorCommons.pattern_identity.matcher(fieldData);
-//        if (!matcher.matches()) {
-//            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_IDENTITY_ERROR);
-//            return false;
-//        }
-//        return true;
-    }),
-    identity((msgHandler, context, fieldKey, fieldData) -> {
+        //        if (StringUtils.isEmpty(fieldData)) {
+        //            return true;
+        //        }
+        //        Matcher matcher = ValidatorCommons.pattern_identity.matcher(fieldData);
+        //        if (!matcher.matches()) {
+        //            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_IDENTITY_ERROR);
+        //            return false;
+        //        }
+        //        return true;
+    }), identity((msgHandler, context, fieldKey, fieldData) -> {
 
-        return validatePattern(msgHandler, context
-                , rule(ValidatorCommons.pattern_identity, ValidatorCommons.MSG_IDENTITY_ERROR), fieldKey, fieldData);
-    }),
-    //
+        return validatePattern(msgHandler, context, rule(ValidatorCommons.pattern_identity,
+                ValidatorCommons.MSG_IDENTITY_ERROR), fieldKey, fieldData);
+    }), //
     integer((msgHandler, context, fieldKey, fieldData) -> {
 
-        return validatePattern(msgHandler, context
-                , rule(ValidatorCommons.pattern_integer, ValidatorCommons.MSG_INTEGER_ERROR), fieldKey, fieldData);
-    }),
-    //
+        return validatePattern(msgHandler, context, rule(ValidatorCommons.pattern_integer,
+                ValidatorCommons.MSG_INTEGER_ERROR), fieldKey, fieldData);
+    }), //
     host((msgHandler, context, fieldKey, fieldData) -> {
 
-        return validatePattern(msgHandler, context
-                , rule(ValidatorCommons.host_pattern, ValidatorCommons.MSG_HOST_IP_ERROR), fieldKey, fieldData);
+        return validatePattern(msgHandler, context, rule(ValidatorCommons.host_pattern,
+                ValidatorCommons.MSG_HOST_IP_ERROR), fieldKey, fieldData);
     }),
 
     hostWithoutPort((msgHandler, context, fieldKey, fieldData) -> {
-        return validatePattern(msgHandler, context
-                , rule(ValidatorCommons.host_without_port_pattern
-                        , ValidatorCommons.MSG_HOST_IP_WITHOUT_PORT_ERROR), fieldKey, fieldData);
+        return validatePattern(msgHandler, context, rule(ValidatorCommons.host_without_port_pattern,
+                ValidatorCommons.MSG_HOST_IP_WITHOUT_PORT_ERROR), fieldKey, fieldData);
     }),
 
     url((msgHandler, context, fieldKey, fieldData) -> {
 
-        return validatePattern(msgHandler, context
-                , rule(ValidatorCommons.PATTERN_URL, ValidatorCommons.MSG_URL_ERROR), fieldKey, fieldData);
+        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_URL,
+                ValidatorCommons.MSG_URL_ERROR), fieldKey, fieldData);
 
-    }),
-    db_col_name((msgHandler, context, fieldKey, fieldData) -> {
+    }), db_col_name((msgHandler, context, fieldKey, fieldData) -> {
 
-        return validatePattern(msgHandler, context
-                , rule(ValidatorCommons.PATTERN_DB_COL_NAME, ValidatorCommons.MSG_DB_COL_NAME_ERROR), fieldKey, fieldData);
-    }),
-    relative_path((msgHandler, context, fieldKey, fieldData) -> {
-        return validatePattern(msgHandler, context
-                , rule(ValidatorCommons.PATTERN_RELATIVE_PATH
-                        , ValidatorCommons.MSG_RELATIVE_PATH_ERROR), fieldKey, fieldData);
-    }),
-    absolute_path((msgHandler, context, fieldKey, fieldData) -> {
-        return validatePattern(msgHandler, context
-                , rule(ValidatorCommons.PATTERN_ABSOLUTE_PATH
-                        , ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR), fieldKey, fieldData);
-    }),
-    none_blank((msgHandler, context, fieldKey, fieldData) -> {
-        return validatePattern(msgHandler, context
-                , rule(ValidatorCommons.PATTERN_NONE_BLANK, ValidatorCommons.MSG_NONE_BLANK_ERROR), fieldKey, fieldData);
+        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_DB_COL_NAME,
+                ValidatorCommons.MSG_DB_COL_NAME_ERROR), fieldKey, fieldData);
+    }), relative_path((msgHandler, context, fieldKey, fieldData) -> {
+        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_RELATIVE_PATH,
+                ValidatorCommons.MSG_RELATIVE_PATH_ERROR), fieldKey, fieldData);
+    }), absolute_path((msgHandler, context, fieldKey, fieldData) -> {
+        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_ABSOLUTE_PATH,
+                ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR), fieldKey, fieldData);
+    }), none_blank((msgHandler, context, fieldKey, fieldData) -> {
+        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_NONE_BLANK,
+                ValidatorCommons.MSG_NONE_BLANK_ERROR), fieldKey, fieldData);
     }),
     ;
 
-    static ValidateRule rule(Pattern p, String errMsg) {
+    public static ValidateRule rule(Pattern p, String errMsg) {
         return new ValidateRule(p, errMsg);
     }
 
-    private static boolean validatePattern(IFieldErrorHandler msgHandler, Context context, ValidateRule validateRule, String fieldKey, String fieldData) {
+    public static boolean validatePattern(IFieldErrorHandler msgHandler, Context context, ValidateRule validateRule,
+                                          String fieldKey, String fieldData) {
         if (StringUtils.isEmpty(fieldData)) {
             return true;
         }
@@ -222,7 +212,7 @@ public enum Validator {
                 }
                 // 保证数组下一个元素必须为String类型
                 if ((i + 1) < p.length && !(p[i + 1] instanceof String)) {
-                    throw new IllegalStateException("index:" + (i + 1) + ",element:" + p[i + 1] + " must be type of 'String'");
+                    throw new IllegalStateException("index:" + (i + 1) + ",element:" + p[i + 1] + " must be type of " + "'String'");
                 }
             } else {
                 // fieldValidators.validators
@@ -233,14 +223,16 @@ public enum Validator {
         processPreFieldValidateRule(result, fieldName, rules);
     }
 
-    private static void processPreFieldValidateRule(Map<String, FieldValidators> result, String fieldName, List<Object> rules) {
+    private static void processPreFieldValidateRule(Map<String, FieldValidators> result, String fieldName,
+                                                    List<Object> rules) {
         if (StringUtils.isEmpty(fieldName)) {
             throw new IllegalArgumentException("param fieldName can not be null");
         }
         if (CollectionUtils.isEmpty(rules)) {
             throw new IllegalArgumentException("param rules can not be empty");
         }
-        List<FieldValidators> validatContainer = rules.stream().filter((r) -> r instanceof FieldValidators).map((r) -> (FieldValidators) r).collect(Collectors.toList());
+        List<FieldValidators> validatContainer =
+                rules.stream().filter((r) -> r instanceof FieldValidators).map((r) -> (FieldValidators) r).collect(Collectors.toList());
         FieldValidators validator = null;
         int validatContainerSize = validatContainer.size();
         if (validatContainerSize == 1) {
@@ -249,7 +241,8 @@ public enum Validator {
             validator = new FieldValidators() {
             };
         } else {
-            throw new IllegalStateException("field:" + fieldName + " relevant rules must contain one 'FieldValidators' but now the size is " + validatContainer.size());
+            throw new IllegalStateException("field:" + fieldName + " relevant rules must contain one " +
+                    "'FieldValidators' but now the size is " + validatContainer.size());
         }
         List<IFieldValidator> fieldValidators = rules.stream().filter((r) -> {
             boolean isFieldValidator = false;
@@ -277,8 +270,9 @@ public enum Validator {
         FieldValidators fvalidator = null;
         FieldValidatorResult vresult = null;
         // 第一轮 校验依赖节点为空的
-        boolean faild = validateAllFieldRules(handler, true, context, fieldsValidator)
-                || validateAllFieldRules(handler, false, context, fieldsValidator);
+        boolean faild =
+                validateAllFieldRules(handler, true, context, fieldsValidator) || validateAllFieldRules(handler,
+                        false, context, fieldsValidator);
         if (faild) {
             // 判断提交的plugin表单是否有错误？错误则退出
             handler.addErrorMessage(context, FORM_ERROR_SUMMARY);
@@ -293,8 +287,8 @@ public enum Validator {
      * @param fieldsValidator
      * @return
      */
-    private static boolean validateAllFieldRules(IControlMsgHandler handler
-            , boolean validateEmptyDependency, Context context, Map<String, FieldValidators> fieldsValidator) {
+    private static boolean validateAllFieldRules(IControlMsgHandler handler, boolean validateEmptyDependency,
+                                                 Context context, Map<String, FieldValidators> fieldsValidator) {
         String fieldKey;
         FieldValidators fvalidator;
         FieldValidatorResult vresult;

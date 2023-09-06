@@ -479,8 +479,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @param clazz
      * @return
      */
-    public static Map<String, /*** fieldname */IPropertyType> buildPropertyTypes(Optional<Descriptor> descriptor,
-                                                                                 Class<?> clazz) {
+    public static Map<String, /*** fieldname */IPropertyType> buildPropertyTypes( //
+                                                                                  Optional<Descriptor> descriptor,
+                                                                                  Class<?> clazz) {
         try {
             Map<String, IPropertyType> r = new HashMap<>();
 
@@ -665,7 +666,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 @Override
                 public PluginValidateResult visit(RootFormProperties props) {
 
-                    PostFormVals postFormVals = new PostFormVals(formData);
+                    PostFormVals postFormVals = new PostFormVals(Descriptor.this, msgHandler, formData);
 
                     PluginValidateResult validateResult = new PluginValidateResult(postFormVals,
                             (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX),
@@ -680,13 +681,32 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                                      Optional<IPropertyType.SubFormFilter> subFormFilter) {
                     boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, postFormVals);
 
-                    if (valid && verify && !verify(msgHandler, context, postFormVals)) {
-                        valid = false;
+                    if (valid && verify) {
+                        if (!verify(msgHandler, context, postFormVals) //
+                                || !validateSubformByParent(subFormFilter, postFormVals)) {
+                            valid = false;
+                        }
                     }
-                    if (valid && !verify && !validateAll(msgHandler, context, postFormVals)) {
-                        valid = false;
+                    if (valid && !verify) {
+                        if (!validateAll(msgHandler, context, postFormVals)//
+                                || !validateSubformByParent(subFormFilter, postFormVals)) {
+                            valid = false;
+                        }
                     }
                     return valid;
+                }
+
+                private boolean validateSubformByParent(Optional<IPropertyType.SubFormFilter> subFormFilter,
+                                                        PostFormVals postFormVals) {
+                    if (subFormFilter.isPresent()) {
+                        Descriptor parentDesc = subFormFilter.get().getTargetDescriptor();
+                        if (parentDesc instanceof SubForm.ISubFormItemValidate) {
+                            return ((SubForm.ISubFormItemValidate) parentDesc).validateSubForm(msgHandler, context,
+                                    postFormVals.newInstance());
+                        }
+                    }
+
+                    return true;
                 }
 
                 @Override
@@ -702,7 +722,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     IPropertyType.SubFormFilter filter = subFormFilter.get();
                     if (filter.subformDetailView) {
                         // 校验的时候子表单是{key1:val1,key2:val2} 的格式
-                        PostFormVals formVals = new PostFormVals(formData);
+                        PostFormVals formVals = new PostFormVals(Descriptor.this, msgHandler, formData);
                         // boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, formVals);
                         boolean valid = validatePostFormVals(formVals, subFormFilter);
                         if (!valid) {
@@ -906,7 +926,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         Objects.requireNonNull(eprops, "property '_eprops'   can not be null");
         // enums 格式例子：`com/qlangtech/tis/extension/form-prop-enum-example.json`
 
-        return attrDesc.extraProp.multiItemsViewType().getPostSelectedItems(attrDesc,msgHandler, context, eprops);
+        return attrDesc.extraProp.multiItemsViewType().getPostSelectedItems(attrDesc, msgHandler, context, eprops);
 
         //        switch (attrDesc.extraProp.multiItemsViewType()) {
         //            case TupleList:
@@ -979,7 +999,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             if (this.descriptor == null) {
                 throw new IllegalStateException("descriptor can not be null");
             }
-            Describable describable = this.itemForm.newInstance(this.descriptor, msgHandler);
+            Describable describable = this.itemForm.newInstance();
             return (T) describable;
         }
 
@@ -1389,17 +1409,24 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public static class PostFormVals {
         // public final Map<String, /*** attr key */com.alibaba.fastjson.JSONObject> rawFormData;
         public final AttrValMap.IAttrVals rawFormData;
+        private final Descriptor desc;
+        private final IControlMsgHandler msgHandler;
 
-        public <T extends Describable> T newInstance(Descriptor<T> desc, IControlMsgHandler msgHandler) {
-            ParseDescribable<Describable> plugin = desc.newInstance((IPluginContext) msgHandler, this.rawFormData,
-                    Optional.empty());
-            T instance = plugin.getInstance();
+        private Describable instance;
 
-            return instance;
+        public <T extends Describable> T newInstance() {
+            if (instance == null) {
+                ParseDescribable<Describable> plugin = desc.newInstance((IPluginContext) msgHandler, this.rawFormData
+                        , Optional.empty());
+                instance = plugin.getInstance();
+            }
+            return (T) instance;
         }
 
-        public PostFormVals(AttrValMap.IAttrVals rawFormData) {
+        public PostFormVals(Descriptor desc, IControlMsgHandler msgHandler, AttrValMap.IAttrVals rawFormData) {
             this.rawFormData = rawFormData;
+            this.desc = desc;
+            this.msgHandler = msgHandler;
         }
 
         private Map<String, String> fieldVals = Maps.newHashMap();

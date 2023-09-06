@@ -113,7 +113,7 @@ public class PluginAction extends BasicModule {
         }
       });
     } catch (Exception e) {
-      logger.warn("apply clean " + targetResource + ",consume:" + (System.currentTimeMillis() - start) + "ms, cache faild " + e.getMessage());
+      logger.warn("apply clean " + targetResource + ",consume:" + (System.currentTimeMillis() - start) + "ms, cache " + "faild " + e.getMessage());
     }
   }
 
@@ -203,12 +203,11 @@ public class PluginAction extends BasicModule {
     DescriptorField descField = parseDescField();
     List<Descriptor.SelectOption> options = null;
     if (descField.getFieldPropType().typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
-      options = DescriptorsJSON.getSelectOptions(
-        descField.getTargetDesc(), descField.getFieldPropType(), descField.field);
+      options = DescriptorsJSON.getSelectOptions(descField.getTargetDesc(), descField.getFieldPropType(),
+        descField.field);
       this.setBizResult(context, options);
     } else if (descField.getFieldPropType().typeIdentity() == FormFieldType.ENUM.getIdentity()) {
-      this.setBizResult(context
-        , descField.getFieldPropType().getExtraProps().getJSONArray(Descriptor.KEY_ENUM_PROP));
+      this.setBizResult(context, descField.getFieldPropType().getExtraProps().getJSONArray(Descriptor.KEY_ENUM_PROP));
     }
   }
 
@@ -253,34 +252,31 @@ public class PluginAction extends BasicModule {
     String plugin = this.getString("plugin");
     Optional<IPropertyType.SubFormFilter> subFormFilter = Optional.empty();
     if (StringUtils.isNotEmpty(plugin)) {
-      UploadPluginMeta pluginMeta
-        = UploadPluginMeta.parse(this, plugin, true);
+      UploadPluginMeta pluginMeta = UploadPluginMeta.parse(this, plugin, true);
       subFormFilter = pluginMeta.getSubFormFilter();
     }
 
 
-    PluginFormProperties pluginFormPropertyTypes
-      = descField.getTargetDesc().getPluginFormPropertyTypes(subFormFilter);
+    PluginFormProperties pluginFormPropertyTypes = descField.getTargetDesc().getPluginFormPropertyTypes(subFormFilter);
 
-    PluginExtraProps.Props props = pluginFormPropertyTypes.accept(
-      new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
-        @Override
-        public PluginExtraProps.Props visit(BaseSubFormProperties props) {
-          PropertyType propertyType = props.getPropertyType(descField.field);
-          return propertyType.extraProp;
-        }
+    PluginExtraProps.Props props =
+      pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
+      @Override
+      public PluginExtraProps.Props visit(BaseSubFormProperties props) {
+        PropertyType propertyType = props.getPropertyType(descField.field);
+        return propertyType.extraProp;
+      }
 
-        @Override
-        public PluginExtraProps.Props visit(RootFormProperties props) {
-          return descField.getFieldPropType().extraProp;
-        }
-      });
+      @Override
+      public PluginExtraProps.Props visit(RootFormProperties props) {
+        return descField.getFieldPropType().extraProp;
+      }
+    });
 
 
     if (!props.isAsynHelp()) {
-      throw new IllegalStateException("plugin:"
-        + descField.pluginImpl + ",field:"
-        + descField.field + " is not support async help content fecthing");
+      throw new IllegalStateException("plugin:" + descField.pluginImpl + ",field:" + descField.field + " is not " +
+        "support async help content fecthing");
     }
     this.setBizResult(context, props.getAsynHelp());
   }
@@ -334,9 +330,9 @@ public class PluginAction extends BasicModule {
         if (info == null) {
           continue;
         }
-//        if (!CollectionUtils.containsAny(info.extendPoints.keySet(), extendpoint)) {
-//          continue;
-//        }
+        //        if (!CollectionUtils.containsAny(info.extendPoints.keySet(), extendpoint)) {
+        //          continue;
+        //        }
         pluginInfo.put("extendPoints", info.extendPoints);
       }
 
@@ -417,8 +413,8 @@ public class PluginAction extends BasicModule {
       if (!collect) {
         return true;
       }
-      return filterPlugin((plugin.isPresent() ? plugin.get().getDisplayName() : info.title)
-        , (info != null ? info.excerpt : null));
+      return filterPlugin((plugin.isPresent() ? plugin.get().getDisplayName() : info.title), (info != null ?
+        info.excerpt : null));
     }
   }
 
@@ -431,9 +427,7 @@ public class PluginAction extends BasicModule {
     }
     boolean collect = false;
     for (String searchQ : queries) {
-      if (StringUtils.indexOfIgnoreCase(title, searchQ) > -1
-        || (StringUtils.isNotBlank(excerpt) && StringUtils.indexOfIgnoreCase(excerpt, searchQ) > -1)
-      ) {
+      if (StringUtils.indexOfIgnoreCase(title, searchQ) > -1 || (StringUtils.isNotBlank(excerpt) && StringUtils.indexOfIgnoreCase(excerpt, searchQ) > -1)) {
         collect = true;
         break;
       }
@@ -498,7 +492,8 @@ public class PluginAction extends BasicModule {
     }
 
     for (Pair<UpdateSite.Plugin, Optional<PluginClassifier>> coord : coords) {
-      Future<UpdateCenter.UpdateCenterJob> installJob = coord.getLeft().deploy(dynamicLoad, correlationId, coord.getRight(), batch);
+      Future<UpdateCenter.UpdateCenterJob> installJob = coord.getLeft().deploy(dynamicLoad, correlationId,
+        coord.getRight(), batch);
       installJobs.add(installJob);
     }
 
@@ -598,20 +593,20 @@ public class PluginAction extends BasicModule {
     }).collect(Collectors.toList());
 
 
-//    if (CollectionUtils.isNotEmpty(extendpoint)) {
-//
-//      Predicate<UpdateSite.Plugin> endTypeMatcher = getEndTypeMatcher();
-//
-//      availables = availables.stream().filter((plugin) -> {
-//        return CollectionUtils.containsAny(plugin.extendPoints.keySet(), extendpoint);
-//      }).filter(endTypeMatcher).collect(Collectors.toList());
-//    }
-//
-//    if (CollectionUtils.isNotEmpty(this.getQueryPluginParam())) {
-//      availables = availables.stream().filter((plugin) -> {
-//        return !filterPlugin(plugin.title, plugin.excerpt);
-//      }).collect(Collectors.toList());
-//    }
+    //    if (CollectionUtils.isNotEmpty(extendpoint)) {
+    //
+    //      Predicate<UpdateSite.Plugin> endTypeMatcher = getEndTypeMatcher();
+    //
+    //      availables = availables.stream().filter((plugin) -> {
+    //        return CollectionUtils.containsAny(plugin.extendPoints.keySet(), extendpoint);
+    //      }).filter(endTypeMatcher).collect(Collectors.toList());
+    //    }
+    //
+    //    if (CollectionUtils.isNotEmpty(this.getQueryPluginParam())) {
+    //      availables = availables.stream().filter((plugin) -> {
+    //        return !filterPlugin(plugin.title, plugin.excerpt);
+    //      }).collect(Collectors.toList());
+    //    }
 
     this.setBizResult(context, new PaginationResult(pager, availables));
   }
@@ -680,8 +675,8 @@ public class PluginAction extends BasicModule {
     }
 
     for (String extend : extendpoints) {
-      this.setBizResult(context
-        , new DescriptorsJSON(TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend))).getDescriptorsJSON());
+      this.setBizResult(context,
+        new DescriptorsJSON(TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend))).getDescriptorsJSON());
       return;
     }
 
@@ -705,8 +700,8 @@ public class PluginAction extends BasicModule {
       @Override
       public List<? extends Descriptor> visit(RootFormProperties props) {
 
-        PropertyType descProp = Objects.requireNonNull(
-          props.propertiesType.get(field), "field:" + field + " relevant propDesc can not be null");
+        PropertyType descProp = Objects.requireNonNull(props.propertiesType.get(field), "field:" + field + " relevant"
+          + " propDesc can not be null");
         if (descProp.isDescribable()) {
           return descProp.getApplicableDescriptors();
         }
@@ -737,7 +732,8 @@ public class PluginAction extends BasicModule {
       plugins = heteroEnum.getPlugins(this, meta);
       for (Describable plugin : plugins) {
 
-        SuFormProperties.setSuFormGetterContext(plugin, meta, this.getString(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID));
+        SuFormProperties.setSuFormGetterContext(plugin, meta,
+          this.getString(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID));
 
         hList = meta.getHeteroList(this);
 
@@ -755,7 +751,7 @@ public class PluginAction extends BasicModule {
   public void doGetPluginConfigInfo(Context context) throws Exception {
 
     HeteroList<?> hetero = null;
-  //  List<HeteroList<?>> heteros = Lists.newArrayList();
+    //  List<HeteroList<?>> heteros = Lists.newArrayList();
     List<UploadPluginMeta> plugins = getPluginMeta();
 
     if (plugins == null || plugins.size() < 1) {
@@ -775,24 +771,24 @@ public class PluginAction extends BasicModule {
         });
       }
       //heteros.add(hetero);
-       hlist.add(hetero.toJSON());
+      hlist.add(hetero.toJSON());
     }
 
-//    Map<Class<?>, HeteroList<?>> extendHeteroList = new HashMap<>();
-//    // 需要将有相同extendpoint 的HeteroList 合并一下，不然保存的时候会有问题
-//    for (HeteroList<?> h : heteros) {
-//      hetero = extendHeteroList.get(h.getExtensionPoint());
-//      if (hetero == null) {
-//        extendHeteroList.put(h.getExtensionPoint(), h);
-//      } else {
-//        hetero.setItems(ListUtils.union(hetero.getItems(), h.getItems()));
-//        hetero.setDescriptors(ListUtils.union(hetero.getDescriptors(), h.getDescriptors()));
-//      }
-//    }
+    //    Map<Class<?>, HeteroList<?>> extendHeteroList = new HashMap<>();
+    //    // 需要将有相同extendpoint 的HeteroList 合并一下，不然保存的时候会有问题
+    //    for (HeteroList<?> h : heteros) {
+    //      hetero = extendHeteroList.get(h.getExtensionPoint());
+    //      if (hetero == null) {
+    //        extendHeteroList.put(h.getExtensionPoint(), h);
+    //      } else {
+    //        hetero.setItems(ListUtils.union(hetero.getItems(), h.getItems()));
+    //        hetero.setDescriptors(ListUtils.union(hetero.getDescriptors(), h.getDescriptors()));
+    //      }
+    //    }
 
-//    for (HeteroList<?> h : extendHeteroList.values()) {
-//      hlist.add(h.toJSON());
-//    }
+    //    for (HeteroList<?> h : extendHeteroList.values()) {
+    //      hlist.add(h.toJSON());
+    //    }
 
     pluginDetail.put("plugins", hlist);
     this.setBizResult(context, pluginDetail);
@@ -815,8 +811,7 @@ public class PluginAction extends BasicModule {
     JSONObject postData = this.parseJsonPost();
     String[] forwardParams = getActionForwardParam(postData);
 
-    JSONArray pluginArray =
-      Objects.requireNonNull(postData.getJSONArray("items"), "json prop items can not be null");
+    JSONArray pluginArray = Objects.requireNonNull(postData.getJSONArray("items"), "json prop items can not be null");
     UploadPluginMeta pluginMeta = null;
 
     boolean faild = false;
@@ -866,9 +861,8 @@ public class PluginAction extends BasicModule {
     addActionMessage(context, "配置保存成功");
     // 成功保存的主键信息返回给客户端
     if (context.get(IMessageHandler.ACTION_BIZ_RESULT) == null) {
-      this.setBizResult(context, describables.stream().flatMap((itemSaveResult) -> itemSaveResult.describableList.stream())
-        .filter((d) -> d instanceof IdentityName)
-        .map((d) -> ((IdentityName) d).identityValue()).collect(Collectors.toList()));
+      this.setBizResult(context,
+        describables.stream().flatMap((itemSaveResult) -> itemSaveResult.describableList.stream()).filter((d) -> d instanceof IdentityName).map((d) -> ((IdentityName) d).identityValue()).collect(Collectors.toList()));
     }
   }
 
@@ -889,8 +883,8 @@ public class PluginAction extends BasicModule {
   }
 
 
-  public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta
-    , Context context, int pluginIndex, JSONArray itemsArray, boolean verify) {
+  public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta, Context context,
+                                                   int pluginIndex, JSONArray itemsArray, boolean verify) {
     context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
     List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
     Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
@@ -913,17 +907,16 @@ public class PluginAction extends BasicModule {
     Map<String, Descriptor.PluginValidateResult> identityUniqueMap = Maps.newHashMap();
 
     Descriptor.PluginValidateResult previous = null;
-    if (!parseResult.faild && hEnum.isIdentityUnique()
-      && hEnum.getSelectable() == Selectable.Multi
-      && (items.size() > 1 || pluginMeta.isAppend())) {
+    if (!parseResult.faild && hEnum.isIdentityUnique() && hEnum.getSelectable() == Selectable.Multi && (items.size() > 1 || pluginMeta.isAppend())) {
 
+      Descriptor desc = null;
       if (pluginMeta.isAppend()) {
         List<IdentityName> plugins = hEnum.getPlugins(module, pluginMeta);
         for (IdentityName p : plugins) {
-          Descriptor.PluginValidateResult r = new Descriptor.PluginValidateResult(
-            new Descriptor.PostFormVals(
-              AttrValMap.IAttrVals.rootForm(Collections.emptyMap())), 0, 0);
-          r.setDescriptor(((Describable) p).getDescriptor());
+          desc = ((Describable) p).getDescriptor();
+          Descriptor.PluginValidateResult r = new Descriptor.PluginValidateResult(new Descriptor.PostFormVals(desc,
+            module, AttrValMap.IAttrVals.rootForm(Collections.emptyMap())), 0, 0);
+          r.setDescriptor(desc);
           identityUniqueMap.put(p.identityValue(), r);
         }
       }
@@ -965,12 +958,13 @@ public class PluginAction extends BasicModule {
    * description: 添加一个 数据源库 date: 2:30 PM 4/28/2017
    */
   @Override
-  public final void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {
+  public final void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context,
+                          boolean shallUpdateDB) {
     createDatabase(this, dbDesc, dbName, context, shallUpdateDB, this.offlineManager);
   }
 
-  public static DatasourceDb createDatabase(BasicModule module, Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context
-    , boolean shallUpdateDB, OfflineManager offlineManager) {
+  public static DatasourceDb createDatabase(BasicModule module, Descriptor.ParseDescribable<DataSourceFactory> dbDesc
+    , String dbName, Context context, boolean shallUpdateDB, OfflineManager offlineManager) {
     DatasourceDb datasourceDb = null;
     if (shallUpdateDB) {
       datasourceDb = new DatasourceDb();

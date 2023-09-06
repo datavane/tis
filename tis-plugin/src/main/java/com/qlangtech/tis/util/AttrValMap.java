@@ -42,8 +42,8 @@ public class AttrValMap {
     public static final String PLUGIN_EXTENSION_IMPL = "impl";
     public static final String PLUGIN_EXTENSION_VALS = "vals";
 
-//    private final Map<String, com.alibaba.fastjson.JSON> /*** attrName*/
-//            attrValMap;
+    //    private final Map<String, com.alibaba.fastjson.JSON> /*** attrName*/
+    //            attrValMap;
 
     private final AttrVals attrValMap;
 
@@ -52,8 +52,8 @@ public class AttrValMap {
     //private IControlMsgHandler msgHandler;
     private final Optional<IPropertyType.SubFormFilter> subFormFilter;
 
-    public static List<AttrValMap> describableAttrValMapList(
-            JSONArray itemsArray, Optional<IPropertyType.SubFormFilter> subFormFilter) {
+    public static List<AttrValMap> describableAttrValMapList(JSONArray itemsArray,
+                                                             Optional<IPropertyType.SubFormFilter> subFormFilter) {
         List<AttrValMap> describableAttrValMapList = Lists.newArrayList();
         AttrValMap describableAttrValMap = null;
         JSONObject itemObj = null;
@@ -66,7 +66,8 @@ public class AttrValMap {
     }
 
     public static AttrValMap parseDescribableMap( //IControlMsgHandler fieldErrorHandler
-                                                  Optional<IPropertyType.SubFormFilter> subFormFilter, com.alibaba.fastjson.JSONObject jsonObject) {
+                                                  Optional<IPropertyType.SubFormFilter> subFormFilter,
+                                                  com.alibaba.fastjson.JSONObject jsonObject) {
         String impl = null;
         Descriptor descriptor;
         impl = jsonObject.getString(PLUGIN_EXTENSION_IMPL);
@@ -81,8 +82,7 @@ public class AttrValMap {
     }
 
     public AttrValMap(//IControlMsgHandler msgHandler,
-                      AttrVals attrValMap
-            , Optional<IPropertyType.SubFormFilter> subFormFilter, Descriptor descriptor) {
+                      AttrVals attrValMap, Optional<IPropertyType.SubFormFilter> subFormFilter, Descriptor descriptor) {
         this.attrValMap = attrValMap;
         this.descriptor = descriptor;
         //  this.msgHandler = msgHandler;
@@ -104,11 +104,11 @@ public class AttrValMap {
     public String createOrGetNotebook(IControlMsgHandler msgHandler, Context context) throws Exception {
 
         if (!(this.descriptor instanceof INotebookable)) {
-            throw new IllegalStateException("desc:"
-                    + this.descriptor.getClass().getName() + " must be instance of " + INotebookable.class.getSimpleName());
+            throw new IllegalStateException("desc:" + this.descriptor.getClass().getName() + " must be instance of " + INotebookable.class.getSimpleName());
         }
         INotebookable notebook = (INotebookable) this.descriptor;
-        return notebook.createOrGetNotebook((new Descriptor.PostFormVals(this.attrValMap)).newInstance(this.descriptor, msgHandler));
+        return notebook.createOrGetNotebook((new Descriptor.PostFormVals(this.descriptor, msgHandler,
+                this.attrValMap)).newInstance());
     }
 
     /**
