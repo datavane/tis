@@ -35,6 +35,7 @@ import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -214,9 +215,11 @@ public class UploadPluginMeta {
         subFormFilter = this.getSubFormFilter();
         if (subFormFilter.isPresent()) {
             IPropertyType.SubFormFilter subFilter = subFormFilter.get();
-            if (subFilter.isIncrProcessExtend()) {
+            final boolean[] incrExtend = new boolean[1];
+            if ((incrExtend[0] = subFilter.isIncrProcessExtend()) || subFilter.isBatchSourceProcessExtend()) {
 
-                SelectedTabExtend.IncrTabExtendSuit incrTabExtendSuit = SelectedTabExtend.getIncrTabExtendSuit(this);
+                SelectedTabExtend.IncrTabExtendSuit incrTabExtendSuit =
+                        SelectedTabExtend.getIncrTabExtendSuit(incrExtend[0], this);
 
                 HeteroEnum<MQListenerFactory> mq = HeteroEnum.MQ;
                 return new HeteroEnum(mq.extensionPoint, mq.identity, mq.caption, mq.selectable, mq.isAppNameAware()) {
@@ -230,7 +233,8 @@ public class UploadPluginMeta {
                             if (ext == null) {
                                 return Collections.emptyList();
                             }
-                            return ext.getIncrExtProp();
+                            return incrExtend[0] ? ext.getIncrExtProp() :
+                                    Collections.singletonList(ext.getSourceProps());
                         }
 
                         return DATAX_READER.getPlugins(pluginContext, UploadPluginMeta.parse(pluginContext,
@@ -240,7 +244,10 @@ public class UploadPluginMeta {
 
                     @Override
                     public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-                        return SelectedTabExtend.INCR_SELECTED_TAB_EXTEND.getPluginStore(pluginContext, pluginMeta);
+                        return (incrExtend[0] ? SelectedTabExtend.INCR_SELECTED_TAB_EXTEND :
+                                SelectedTabExtend.BATCH_SOURCE_SELECTED_TAB_EXTEND) //
+                                .getPluginStore(pluginContext, pluginMeta);
+
                     }
 
                     @Override
@@ -316,7 +323,8 @@ public class UploadPluginMeta {
         }
 
         public boolean isNameMatch(String displayName) {
-            return IPropertyType.SubFormFilter.KEY_INCR_PROCESS_EXTEND.equals(matchTargetPluginDescName) || StringUtils.equals(displayName, this.matchTargetPluginDescName);
+            return IPropertyType.SubFormFilter.KEY_INCR_PROCESS_EXTEND.equals(matchTargetPluginDescName)  //
+                    || StringUtils.equals(displayName, this.matchTargetPluginDescName);
         }
 
         @Override

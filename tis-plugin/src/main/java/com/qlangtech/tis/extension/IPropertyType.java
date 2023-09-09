@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.extension;
 
@@ -39,6 +39,11 @@ public interface IPropertyType {
         public static final String KEY_INCR_PROCESS_EXTEND = "incr_process_extend";
 
         /**
+         * 对DataX Reader端selected tab 属性进行扩展
+         */
+        public static final String KEY_BATCH_SOURCE_PROCESS_EXTEND = "batch_source_process_extend";
+
+        /**
          * 表明点击进入子表单显示
          */
         public static String PLUGIN_META_SUBFORM_DETAIL_ID_VALUE = "subformDetailIdValue";
@@ -55,9 +60,9 @@ public interface IPropertyType {
 
         public Descriptor getTargetDescriptor() {
             return this.targetDesc.getTargetDescriptor();
-//            Descriptor parentDesc = Objects.requireNonNull(TIS.get().getDescriptor(this.targetDesc.impl)
-//                    , this.targetDesc + "->" + this.targetDesc.impl + " relevant desc can not be null");
-//            return parentDesc;
+            //            Descriptor parentDesc = Objects.requireNonNull(TIS.get().getDescriptor(this.targetDesc.impl)
+            //                    , this.targetDesc + "->" + this.targetDesc.impl + " relevant desc can not be null");
+            //            return parentDesc;
         }
 
         /**
@@ -66,7 +71,11 @@ public interface IPropertyType {
          * @return
          */
         public boolean isIncrProcessExtend() {
-            return this.targetDesc.isNameMatch(KEY_INCR_PROCESS_EXTEND);// .equals(this.targetDescriptorName);
+            return this.targetDesc.isNameMatch(KEY_INCR_PROCESS_EXTEND);
+        }
+
+        public boolean isBatchSourceProcessExtend() {
+            return this.targetDesc.isNameMatch(KEY_BATCH_SOURCE_PROCESS_EXTEND);
         }
 
         public boolean match(Descriptor<?> desc) {
@@ -88,14 +97,16 @@ public interface IPropertyType {
          * @return
          */
         public <T> T getOwnerPlugin(IPluginContext pluginContext) {
-            Optional<Object> first = this.uploadPluginMeta.getHeteroEnum().getPlugins(pluginContext, this.uploadPluginMeta).stream().findFirst();
+            Optional<Object> first = this.uploadPluginMeta.getHeteroEnum().getPlugins(pluginContext,
+                    this.uploadPluginMeta).stream().findFirst();
             if (!first.isPresent()) {
                 throw new IllegalStateException("can not find owner plugin:" + uploadPluginMeta.toString());
             }
             return (T) first.get();
         }
 
-        public SubFormFilter(UploadPluginMeta uploadPluginMeta, UploadPluginMeta.TargetDesc targetDescriptorName //, String targetDescImpl
+        public SubFormFilter(UploadPluginMeta uploadPluginMeta, UploadPluginMeta.TargetDesc targetDescriptorName //,
+                             // String targetDescImpl
                 , String subFieldName) {
             if ((targetDescriptorName) == null) {
                 throw new IllegalArgumentException("param fieldName can not be empty");
@@ -107,21 +118,18 @@ public interface IPropertyType {
             //this.targetDescImpl = targetDescImpl;
             this.subFieldName = subFieldName;
             this.uploadPluginMeta = uploadPluginMeta;
-            this.subformDetailView = StringUtils.isNotEmpty(
-                    subformDetailId = uploadPluginMeta.getExtraParam(PLUGIN_META_SUBFORM_DETAIL_ID_VALUE));
+            this.subformDetailView = StringUtils.isNotEmpty(subformDetailId =
+                    uploadPluginMeta.getExtraParam(PLUGIN_META_SUBFORM_DETAIL_ID_VALUE));
         }
 
-        public boolean useCache(){
+        public boolean useCache() {
             return this.uploadPluginMeta.isUseCache();
         }
 
         @Override
         public String toString() {
-            return "{" +
-                    "  descName='" + targetDesc + '\'' +
-                    ", subFieldName='" + subFieldName + '\'' +
-                    ", subformDetailId='" + subformDetailId + '\'' +
-                    '}';
+            return "{" + "  descName='" + targetDesc + '\'' + ", subFieldName='" + subFieldName + '\'' + ", " +
+                    "subformDetailId='" + subformDetailId + '\'' + '}';
         }
     }
 }

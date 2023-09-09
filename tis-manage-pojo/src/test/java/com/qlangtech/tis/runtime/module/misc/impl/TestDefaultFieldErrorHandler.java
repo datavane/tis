@@ -49,6 +49,8 @@ public class TestDefaultFieldErrorHandler extends TestCase {
         fieldErrorHandler.addFieldError(context, fieldName, msg);
         // context.getContextMap()
 
+        fieldErrorHandler.addFieldError(context, "name", msg);
+
         JsonUtil.assertJSONEqual(TestDefaultFieldErrorHandler.class, "context_error_content.json",
                 JsonUtil.toString(context.getContextMap()), (message, expected, actual) -> {
             Assert.assertEquals(message, expected, actual);

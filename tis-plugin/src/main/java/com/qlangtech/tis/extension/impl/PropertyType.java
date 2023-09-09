@@ -26,7 +26,6 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
-import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -263,12 +262,17 @@ public class PropertyType implements IPropertyType {
             if (StringUtils.isNotEmpty(subDescEnumFilter)) {
                 String className = this.clazz.getSimpleName() + "_" + this.f.getName() + "_SubFilter";
                 String pkg = this.clazz.getPackage().getName();
-                String script =
-                        "	package " + pkg + " ;\n" + "import java.util.function.Function;\n" + "import java" +
-                                ".util.List;\n" + "import com.qlangtech.tis.extension.Descriptor;\n"
+                String script = "	package " + pkg + " ;\n"  //
+                        + "import java.util.function.Function;\n" //
+                        + "import java.util.List;\n" //
+                        + "import com.qlangtech.tis.extension.Descriptor;\n"
                         // + "import com.qlangtech.plugins.incr.flink.chunjun.sink.SinkTabPropsExtends;\n"
-                        + "class " + className + " implements Function<List<? extends Descriptor>,List<? extends " +
-                                "Descriptor>> { \n" + "	@Override \n" + "	public List<? extends Descriptor> apply" + "(List<?" + " extends Descriptor> desc) {" + subDescEnumFilter + "	}" + "}";
+                        + "class " + className + " implements Function<List<? extends Descriptor>,List<? extends " //
+                        + "Descriptor>> { \n" //
+                        + "	@Override \n" //
+                        + "	public List<? extends Descriptor> apply" //
+                        + "(List<?" + " extends Descriptor> desc) {"  //
+                        + subDescEnumFilter + "	}" + "}";
 
                 subDescFilter = GroovyShellEvaluate.createParamizerScript(this.clazz, className, script);
             }

@@ -73,9 +73,9 @@ public class PluginAndCfgsSnapshot {
     private static PluginAndCfgsSnapshot pluginAndCfgsSnapshot;
 
     public static String getTaskEntryName() {
-//        if (taskId < 1) {
-//            throw new IllegalArgumentException("taskId shall be set");
-//        }
+        //        if (taskId < 1) {
+        //            throw new IllegalArgumentException("taskId shall be set");
+        //        }
         //  return "task_xxxx" + taskId;
         return "task_xxxx";
     }
@@ -92,7 +92,8 @@ public class PluginAndCfgsSnapshot {
      * @return
      * @throws IOException
      */
-    public static PluginAndCfgsSnapshot getRepositoryCfgsSnapshot(String resName, InputStream manifestJar, boolean resetConfigWithSysProps) throws IOException {
+    public static PluginAndCfgsSnapshot getRepositoryCfgsSnapshot(String resName, InputStream manifestJar,
+                                                                  boolean resetConfigWithSysProps) throws IOException {
 
         PluginAndCfgsSnapshot pluginAndCfgsSnapshot = null;
         String appName = null;
@@ -107,8 +108,8 @@ public class PluginAndCfgsSnapshot {
         //Attributes pluginMetas = manifest.getAttributes(Config.KEY_PLUGIN_METAS);
         // processPluginMetas(pluginMetas);
 
-        pluginAndCfgsSnapshot = PluginAndCfgsSnapshot.setLocalPluginAndCfgsSnapshot(
-                PluginAndCfgsSnapshot.deserializePluginAndCfgsSnapshot(new TargetResName(appName), manifest));
+        pluginAndCfgsSnapshot =
+                PluginAndCfgsSnapshot.setLocalPluginAndCfgsSnapshot(PluginAndCfgsSnapshot.deserializePluginAndCfgsSnapshot(new TargetResName(appName), manifest));
         Attributes sysProps = manifest.getAttributes(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS);
         if (resetConfigWithSysProps) {
             Config.setConfig(null);
@@ -139,11 +140,11 @@ public class PluginAndCfgsSnapshot {
         return pluginAndCfgsSnapshot;
     }
 
-//    private static void processPluginMetas(Attributes pluginMetas) {
-//        pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_GLOBAL_PLUGIN_STORE);
-//        pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_PLUGIN_META);
-//        pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_APP_LAST_MODIFY_TIMESTAMP);
-//    }
+    //    private static void processPluginMetas(Attributes pluginMetas) {
+    //        pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_GLOBAL_PLUGIN_STORE);
+    //        pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_PLUGIN_META);
+    //        pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_APP_LAST_MODIFY_TIMESTAMP);
+    //    }
 
     public static String getRepositoryCfgsSnapshot(String resName, Manifest manifest) {
         Attributes tisAppName = manifest.getAttributes(PluginAndCfgsSnapshot.TIS_APP_NAME);
@@ -166,9 +167,8 @@ public class PluginAndCfgsSnapshot {
 
 
     public static String convertCfgPropertyKey(String key, boolean serialize) {
-        return serialize ?
-                org.apache.commons.lang3.StringUtils.replace(key, ".", "_")
-                : org.apache.commons.lang3.StringUtils.replace(key, "_", ".");
+        return serialize ? org.apache.commons.lang3.StringUtils.replace(key, ".", "_") :
+                org.apache.commons.lang3.StringUtils.replace(key, "_", ".");
     }
 
     public static PluginAndCfgsSnapshot setLocalPluginAndCfgsSnapshot(PluginAndCfgsSnapshot snapshot) {
@@ -191,8 +191,9 @@ public class PluginAndCfgsSnapshot {
 
     private final Optional<KeyedPluginStore.PluginMetas> appMetas;
 
-    public PluginAndCfgsSnapshot(TargetResName collection, Map<String, Long> globalPluginStoreLastModify
-            , Set<PluginMeta> pluginMetas, Long appLastModifyTimestamp, KeyedPluginStore.PluginMetas appMetas) {
+    public PluginAndCfgsSnapshot(TargetResName collection, Map<String, Long> globalPluginStoreLastModify,
+                                 Set<PluginMeta> pluginMetas, Long appLastModifyTimestamp,
+                                 KeyedPluginStore.PluginMetas appMetas) {
         this.globalPluginStoreLastModify = globalPluginStoreLastModify;
 
         this.pluginMetas = pluginMetas;
@@ -201,9 +202,8 @@ public class PluginAndCfgsSnapshot {
         this.appMetas = Optional.ofNullable(appMetas);
     }
 
-    public static void createManifestCfgAttrs2File
-            (File manifestJar, TargetResName collection, long timestamp
-                    , Optional<Predicate<PluginMeta>> pluginMetasFilter) throws Exception {
+    public static void createManifestCfgAttrs2File(File manifestJar, TargetResName collection, long timestamp,
+                                                   Optional<Predicate<PluginMeta>> pluginMetasFilter) throws Exception {
         createManifestCfgAttrs2File(manifestJar, collection, timestamp, pluginMetasFilter, Collections.emptyMap());
     }
 
@@ -218,8 +218,8 @@ public class PluginAndCfgsSnapshot {
      */
     public static Manifest createFlinkIncrJobManifestCfgAttrs(TargetResName collection, long timestamp) throws Exception {
         // Manifest manifest = null;
-        RobustReflectionConverter2.PluginMetas pluginMetas
-                = RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
+        RobustReflectionConverter2.PluginMetas pluginMetas =
+                RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
             MQListenerFactory sourceFactory = HeteroEnum.getIncrSourceListenerFactory(collection.getName());
             sourceFactory.create();
 
@@ -231,35 +231,38 @@ public class PluginAndCfgsSnapshot {
         return createFlinkIncrJobManifestCfgAttrs(collection, timestamp, pluginMetas.getMetas());
     }
 
-    public static Pair<PluginAndCfgsSnapshot, Manifest> createManifestCfgAttrs2File
-            (File manifestJar, TargetResName collection, long timestamp
-                    , Optional<Predicate<PluginMeta>> pluginMetasFilter
-                    , Map<String, String> extraEnvProps) throws Exception {
-        Pair<PluginAndCfgsSnapshot, Manifest> manifestCfgAttrs
-                = createManifestCfgAttrs(collection, timestamp, extraEnvProps, pluginMetasFilter, Collections.emptySet());
-        try (JarOutputStream jaroutput = new JarOutputStream(
-                FileUtils.openOutputStream(manifestJar, false), manifestCfgAttrs.getRight())) {
+    public static Pair<PluginAndCfgsSnapshot, Manifest> createManifestCfgAttrs2File(File manifestJar,
+                                                                                    TargetResName collection,
+                                                                                    long timestamp,
+                                                                                    Optional<Predicate<PluginMeta>> pluginMetasFilter, Map<String, String> extraEnvProps) throws Exception {
+        Pair<PluginAndCfgsSnapshot, Manifest> manifestCfgAttrs = createManifestCfgAttrs(collection, timestamp,
+                extraEnvProps, pluginMetasFilter, Collections.emptySet());
+        try (JarOutputStream jaroutput = new JarOutputStream(FileUtils.openOutputStream(manifestJar, false),
+                manifestCfgAttrs.getRight())) {
             jaroutput.putNextEntry(new ZipEntry(getTaskEntryName()));
             jaroutput.flush();
         }
         return manifestCfgAttrs;
     }
 
-    public static Manifest createFlinkIncrJobManifestCfgAttrs(TargetResName collection, long timestamp, Set<PluginMeta> appendPluginMeta) throws Exception {
-        return createManifestCfgAttrs(collection, timestamp, Optional.empty()
-                , Sets.union(appendPluginMeta
-                        , Collections.singleton(new PluginMeta(TISSinkFactory.KEY_PLUGIN_TPI_CHILD_PATH + collection.getName()
-                                , Config.getMetaProps().getVersion(), Optional.empty()))));
+    public static Manifest createFlinkIncrJobManifestCfgAttrs(TargetResName collection, long timestamp,
+                                                              Set<PluginMeta> appendPluginMeta) throws Exception {
+        return createManifestCfgAttrs(collection, timestamp, Optional.empty(), Sets.union(appendPluginMeta,
+                Collections.singleton(new PluginMeta(TISSinkFactory.KEY_PLUGIN_TPI_CHILD_PATH + collection.getName(),
+                        Config.getMetaProps().getVersion(), Optional.empty()))));
     }
 
-    public static Manifest createManifestCfgAttrs(
-            TargetResName collection, long timestamp, Optional<Predicate<PluginMeta>> pluginMetasFilter, Set<PluginMeta> appendPluginMeta) throws Exception {
-        return createManifestCfgAttrs(collection, timestamp, Collections.emptyMap(), pluginMetasFilter, appendPluginMeta).getRight();
+    public static Manifest createManifestCfgAttrs(TargetResName collection, long timestamp,
+                                                  Optional<Predicate<PluginMeta>> pluginMetasFilter,
+                                                  Set<PluginMeta> appendPluginMeta) throws Exception {
+        return createManifestCfgAttrs(collection, timestamp, Collections.emptyMap(), pluginMetasFilter,
+                appendPluginMeta).getRight();
     }
 
-    public static Pair<PluginAndCfgsSnapshot, Manifest> createManifestCfgAttrs(
-            TargetResName collection, long timestamp, Map<String, String> extraEnvProps
-            , Optional<Predicate<PluginMeta>> pluginMetasFilter, Set<PluginMeta> appendPluginMeta) throws Exception {
+    public static Pair<PluginAndCfgsSnapshot, Manifest> createManifestCfgAttrs(TargetResName collection,
+                                                                               long timestamp,
+                                                                               Map<String, String> extraEnvProps,
+                                                                               Optional<Predicate<PluginMeta>> pluginMetasFilter, Set<PluginMeta> appendPluginMeta) throws Exception {
 
         //=====================================================================
         if (!CenterResource.notFetchFromCenterRepository()) {
@@ -285,16 +288,15 @@ public class PluginAndCfgsSnapshot {
         for (Map.Entry<String, String> e : extraEnvProps.entrySet()) {
             addCfgAttrs(cfgAttrs, e);
         }
-        cfgAttrs.put(new Attributes.Name(
-                convertCfgPropertyKey(Config.KEY_TIS_HOST, true)), NetUtils.getHost());
+        cfgAttrs.put(new Attributes.Name(convertCfgPropertyKey(Config.KEY_TIS_HOST, true)), NetUtils.getHost());
         entries.put(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS, cfgAttrs);
 
 
         //"globalPluginStore"  "pluginMetas"  "appLastModifyTimestamp"
 
 
-        PluginAndCfgsSnapshot localSnapshot
-                = getLocalPluginAndCfgsSnapshot(collection, pluginMetasFilter, appendPluginMeta);
+        PluginAndCfgsSnapshot localSnapshot = getLocalPluginAndCfgsSnapshot(collection, pluginMetasFilter,
+                appendPluginMeta);
 
         localSnapshot.attachPluginCfgSnapshot2Manifest(manifest);
         return ImmutablePair.of(localSnapshot, manifest);
@@ -326,11 +328,12 @@ public class PluginAndCfgsSnapshot {
      * @param cacheSnaphsot 缓存在VM内存中的，用来和最新的远端快照做对比
      * @throws Exception
      */
-    public void synchronizTpisAndConfs(PluginAndCfgsSnapshot localSnaphsot
-            , Optional<PluginAndCfgsSnapshot> cacheSnaphsot) throws Exception {
+    public void synchronizTpisAndConfs(PluginAndCfgsSnapshot localSnaphsot,
+                                       Optional<PluginAndCfgsSnapshot> cacheSnaphsot) throws Exception {
         synchronized (TIS.class) {
             this.synchronizTpisAndConfs(localSnaphsot);
-            if (cacheSnaphsot.isPresent() && TIS.initialized /** 必须要TIS 已经初始化 完成，启动时 cacheSnaphsot 内的依赖plugin为空致使启动报错*/) {
+            if (cacheSnaphsot.isPresent() && TIS.initialized /** 必须要TIS 已经初始化 完成，启动时 cacheSnaphsot
+             内的依赖plugin为空致使启动报错*/) {
                 this.updatePluginManager(cacheSnaphsot.get());
             }
         }
@@ -348,7 +351,8 @@ public class PluginAndCfgsSnapshot {
             throw new IllegalArgumentException("localSnaphsot.appMetas must be present");
         }
 
-        StringBuffer updateTpisLogger = new StringBuffer("\nplugin synchronizTpisAndConfs------------------------------\n");
+        StringBuffer updateTpisLogger = new StringBuffer("\nplugin synchronizTpisAndConfs" +
+                "------------------------------\n");
 
         Long localTimestamp;
         File cfg = null;
@@ -359,28 +363,27 @@ public class PluginAndCfgsSnapshot {
             localTimestamp = localSnaphsot.globalPluginStoreLastModify.get(entry.getKey());
             if (localTimestamp == null || entry.getValue() > localTimestamp) {
                 // 更新本地配置文件
-                //globalCfg = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO, TIS.KEY_TIS_PLUGIN_CONFIG + "/" + entry.getKey());
+                //globalCfg = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO, TIS.KEY_TIS_PLUGIN_CONFIG + "/" +
+                // entry.getKey());
                 cfg = CenterResource.copyFromRemote2Local(Config.KEY_TIS_PLUGIN_CONFIG + "/" + entry.getKey(), true);
-                FileUtils.writeStringToFile(
-                        PluginStore.getLastModifyTimeStampFile(cfg), String.valueOf(entry.getValue()), TisUTF8.get());
+                FileUtils.writeStringToFile(PluginStore.getLastModifyTimeStampFile(cfg),
+                        String.valueOf(entry.getValue()), TisUTF8.get());
                 // cfgChanged = true;
-                updateTpisLogger.append(entry.getKey()).append(localTimestamp == null
-                        ? "[" + entry.getValue() + "] local is none"
-                        : " center ver:" + entry.getValue()
-                        + " > local ver:" + localTimestamp).append("\n");
+                updateTpisLogger.append(entry.getKey()).append(localTimestamp == null ?
+                        "[" + entry.getValue() + "] " + "local is none" :
+                        " center ver:" + entry.getValue() + " > " + "local ver:" + localTimestamp).append("\n");
             }
         }
 
 
         updateTpisLogger.append(">>app cfg compare:\n");
-        updateTpisLogger.append("center:").append(this.appLastModifyTimestamp)
-                .append(this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp ? " > " : " <= ")
-                .append("local:").append(localSnaphsot.appLastModifyTimestamp).append("\n");
+        updateTpisLogger.append("center:").append(this.appLastModifyTimestamp).append(this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp ? " > " : " <= ").append("local:").append(localSnaphsot.appLastModifyTimestamp).append("\n");
         if (this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp) {
             // 更新app相关配置,下载并更新本地配置
-            KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(null
-                    , StoreResourceType.parse(false), this.collection.getName(), null);
-            URL appCfgUrl = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO, Config.KEY_TIS_PLUGIN_CONFIG + "/" + appKey.getSubDirPath());
+            KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(null, StoreResourceType.parse(false),
+                    this.collection.getName(), (KeyedPluginStore.PluginClassCategory) null);
+            URL appCfgUrl = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO,
+                    Config.KEY_TIS_PLUGIN_CONFIG + "/" + appKey.getSubDirPath());
 
             KeyedPluginStore.PluginMetas appMetas = localSnaphsot.appMetas.get();
             HttpUtils.get(appCfgUrl, new ConfigFileContext.StreamProcess<Void>() {
@@ -391,7 +394,8 @@ public class PluginAndCfgsSnapshot {
                         ZipInputStream zipInput = new ZipInputStream(stream);
                         ZipEntry entry = null;
                         while ((entry = zipInput.getNextEntry()) != null) {
-                            try (OutputStream output = FileUtils.openOutputStream(new File(appMetas.appDir, entry.getName()))) {
+                            try (OutputStream output = FileUtils.openOutputStream(new File(appMetas.appDir,
+                                    entry.getName()))) {
                                 IOUtils.copy(zipInput, output);
                             }
                             zipInput.closeEntry();
@@ -411,22 +415,22 @@ public class PluginAndCfgsSnapshot {
             update.copyFromRemote(Collections.emptyList(), true, true);
         }
         // TIS tis = TIS.get();
-//        PluginManager pluginManager = tis.getPluginManager();
-//        Set<PluginMeta> loaded = Sets.newHashSet();
-//        PluginWrapperList batch = new PluginWrapperList();
-//        for (PluginMeta update : result) {
-//            dynamicLoad(pluginManager, update, batch, result, loaded);
-//        }
-//
-//        if (batch.size() > 0) {
-//            pluginManager.start(batch);
-//            updateTpisLogger.append("\ndynamic reload plugins:" + batch.getBatchNames());
-//        }
-//        Thread.sleep(3000l);
-//        if (cfgChanged) {
-//            TIS.cleanPluginStore();
-//            tis.cleanExtensionCache();
-//        }
+        //        PluginManager pluginManager = tis.getPluginManager();
+        //        Set<PluginMeta> loaded = Sets.newHashSet();
+        //        PluginWrapperList batch = new PluginWrapperList();
+        //        for (PluginMeta update : result) {
+        //            dynamicLoad(pluginManager, update, batch, result, loaded);
+        //        }
+        //
+        //        if (batch.size() > 0) {
+        //            pluginManager.start(batch);
+        //            updateTpisLogger.append("\ndynamic reload plugins:" + batch.getBatchNames());
+        //        }
+        //        Thread.sleep(3000l);
+        //        if (cfgChanged) {
+        //            TIS.cleanPluginStore();
+        //            tis.cleanExtensionCache();
+        //        }
 
         logger.info(updateTpisLogger.append("\n------------------------------").toString());
         //   return result;
@@ -439,12 +443,13 @@ public class PluginAndCfgsSnapshot {
      * @throws Exception
      */
     private void updatePluginManager(PluginAndCfgsSnapshot localCacheSnaphsot) throws Exception {
-        StringBuffer updateTpisLogger = new StringBuffer("\nplugin updatePluginManager synchronize------------------------------\n");
+        StringBuffer updateTpisLogger = new StringBuffer("\nplugin updatePluginManager " + "synchronize" +
+                "------------------------------\n");
         Set<PluginMeta> result = getShallUpdatePluginMeta(localCacheSnaphsot, updateTpisLogger);
 
-//        for (PluginMeta update : result) {
-//            update.copyFromRemote(Collections.emptyList(), true, true);
-//        }
+        //        for (PluginMeta update : result) {
+        //            update.copyFromRemote(Collections.emptyList(), true, true);
+        //        }
         try {
             TIS tis = TIS.get();
             PluginManager pluginManager = tis.getPluginManager();
@@ -471,26 +476,21 @@ public class PluginAndCfgsSnapshot {
         //   return result;
     }
 
-    private Set<PluginMeta> getShallUpdatePluginMeta(PluginAndCfgsSnapshot localSnaphsot, StringBuffer updateTpisLogger) {
+    private Set<PluginMeta> getShallUpdatePluginMeta(PluginAndCfgsSnapshot localSnaphsot,
+                                                     StringBuffer updateTpisLogger) {
         Set<PluginMeta> result = new HashSet<>();
-        updateTpisLogger.append(">>center repository:")
-                .append(pluginMetas.stream().map((meta) -> meta.toString()).collect(Collectors.joining(",")));
-        updateTpisLogger.append("\n>>local:")
-                .append(localSnaphsot.pluginMetas.stream()
-                        .map((meta) -> meta.toString())
-                        .collect(Collectors.joining(","))).append("\n");
+        updateTpisLogger.append(">>center repository:").append(pluginMetas.stream().map((meta) -> meta.toString()).collect(Collectors.joining(",")));
+        updateTpisLogger.append("\n>>local:").append(localSnaphsot.pluginMetas.stream().map((meta) -> meta.toString()).collect(Collectors.joining(","))).append("\n");
         updateTpisLogger.append(">>compare result\n");
-        Map<String, PluginMeta> locals = localSnaphsot.pluginMetas.stream()
-                .collect(Collectors.toMap((m) -> m.getKey(), (m) -> m));
+        Map<String, PluginMeta> locals =
+                localSnaphsot.pluginMetas.stream().collect(Collectors.toMap((m) -> m.getKey(), (m) -> m));
         PluginMeta m = null;
         for (PluginMeta meta : pluginMetas) {
             m = locals.get(meta.getKey());
             if (m == null || meta.getLastModifyTimeStamp() > m.getLastModifyTimeStamp()) {
                 result.add(meta);
-                updateTpisLogger.append(meta.getKey()).append(m == null
-                        ? " local is none"
-                        : " center repository ver:" + meta.getLastModifyTimeStamp()
-                        + " > local ver:" + m.getLastModifyTimeStamp()).append("\n");
+                updateTpisLogger.append(meta.getKey()).append(m == null ? " local is none" : " center repository " +
+                        "ver:" + meta.getLastModifyTimeStamp() + " > local ver:" + m.getLastModifyTimeStamp()).append("\n");
             }
         }
         return result;
@@ -549,12 +549,12 @@ public class PluginAndCfgsSnapshot {
                 }
             }
             return false;
-//            return batch.contains( depender);
+            //            return batch.contains( depender);
         }
     }
 
-    private void dynamicLoad(PluginManager pluginManager
-            , PluginMeta update, PluginWrapperList batch, Set<PluginMeta> shallUpdate, Set<PluginMeta> loaded) {
+    private void dynamicLoad(PluginManager pluginManager, PluginMeta update, PluginWrapperList batch,
+                             Set<PluginMeta> shallUpdate, Set<PluginMeta> loaded) {
         try {
             for (PluginMeta dpt : update.getMetaDependencies()) {
                 this.dynamicLoad(pluginManager, dpt, batch, shallUpdate, loaded);
@@ -582,7 +582,8 @@ public class PluginAndCfgsSnapshot {
         Map<String, Long> globalPluginStoreLastModify = Maps.newHashMap();
         //  Long appLastModifyTimestamp;
         Attributes pluginMetas = manifest.getAttributes(Config.KEY_PLUGIN_METAS);
-        String[] globalPluginStoreSeri = StringUtils.split(pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_GLOBAL_PLUGIN_STORE), ",");
+        String[] globalPluginStoreSeri =
+                StringUtils.split(pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_GLOBAL_PLUGIN_STORE), ",");
         String[] file2timestamp = null;
         for (String p : globalPluginStoreSeri) {
             file2timestamp = StringUtils.split(p, PluginMeta.NAME_VER_SPLIT);
@@ -599,22 +600,20 @@ public class PluginAndCfgsSnapshot {
         } catch (Exception e) {
             throw new RuntimeException("illegal metaAttr:" + metsAttr, e);
         }
-        List<PluginMeta> metas
-                = PluginMeta.parse(ms.toArray(new String[ms.size()]));
+        List<PluginMeta> metas = PluginMeta.parse(ms.toArray(new String[ms.size()]));
         metas.forEach((meta) -> {
             if (meta.isLastModifyTimeStampNull()) {
-                throw new IllegalStateException("pluginMeta:" + meta.getKey() + " relevant LastModify timestamp can not be null");
+                throw new IllegalStateException("pluginMeta:" + meta.getKey() + " relevant LastModify timestamp can " + "not be null");
             }
         });
-        return new PluginAndCfgsSnapshot(app, globalPluginStoreLastModify
-                , Sets.newHashSet(metas)
-                , Long.parseLong(pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_APP_LAST_MODIFY_TIMESTAMP)), null);
+        return new PluginAndCfgsSnapshot(app, globalPluginStoreLastModify, Sets.newHashSet(metas),
+                Long.parseLong(pluginMetas.getValue(KeyedPluginStore.PluginMetas.KEY_APP_LAST_MODIFY_TIMESTAMP)), null);
     }
 
-//    public static PluginAndCfgsSnapshot getLocalPluginAndCfgsSnapshot(
-//            TargetResName collection, XStream2.PluginMeta... appendPluginMeta) {
-//        return getLocalPluginAndCfgsSnapshot(collection, true, appendPluginMeta);
-//    }
+    //    public static PluginAndCfgsSnapshot getLocalPluginAndCfgsSnapshot(
+    //            TargetResName collection, XStream2.PluginMeta... appendPluginMeta) {
+    //        return getLocalPluginAndCfgsSnapshot(collection, true, appendPluginMeta);
+    //    }
 
     /**
      * 远端执行点的本地快照
@@ -623,15 +622,15 @@ public class PluginAndCfgsSnapshot {
      * @param appendPluginMeta
      * @return
      */
-    public static PluginAndCfgsSnapshot getWorkerPluginAndCfgsSnapshot(
-            TargetResName collection
-            , Set<PluginMeta> appendPluginMeta) {
+    public static PluginAndCfgsSnapshot getWorkerPluginAndCfgsSnapshot(TargetResName collection,
+                                                                       Set<PluginMeta> appendPluginMeta) {
 
         return getLocalPluginAndCfgsSnapshot(collection, (pluginMetas, dataxComponentMeta) -> {
             PluginMetaSet collector = new PluginMetaSet(Optional.empty());
 
             File pluginDir = getPluginRootDir();
-            Collection<File> tpis = FileUtils.listFiles(pluginDir, new String[]{PluginClassifier.PACAKGE_TPI_EXTENSION_NAME}, false);
+            Collection<File> tpis = FileUtils.listFiles(pluginDir,
+                    new String[]{PluginClassifier.PACAKGE_TPI_EXTENSION_NAME}, false);
             tpis.forEach((tpi) -> {
                 PluginManifest manifest = PluginManifest.create(tpi);
                 if (manifest != null) {
@@ -655,9 +654,8 @@ public class PluginAndCfgsSnapshot {
      * @param appendPluginMeta
      * @return
      */
-    private static PluginAndCfgsSnapshot getLocalPluginAndCfgsSnapshot(
-            TargetResName collection, Optional<Predicate<PluginMeta>> pluginMetasFilter
-            , Set<PluginMeta> appendPluginMeta) {
+    private static PluginAndCfgsSnapshot getLocalPluginAndCfgsSnapshot(TargetResName collection,
+                                                                       Optional<Predicate<PluginMeta>> pluginMetasFilter, Set<PluginMeta> appendPluginMeta) {
         //  ExtensionList<HeteroEnum> hlist = TIS.get().getExtensionList(HeteroEnum.class);
 
         return getLocalPluginAndCfgsSnapshot(collection, (pluginMetas, dataxComponentMeta) -> {
@@ -667,10 +665,10 @@ public class PluginAndCfgsSnapshot {
             }
             //  globalPluginMetas = null;
             //  UploadPluginMeta upm = UploadPluginMeta.parse("x:require");
-//            List<IRepositoryResource> keyedPluginStores = hlist.stream()
-//                    .filter((e) -> !e.isAppNameAware())
-//                    .flatMap((e) -> e.getPluginStore(null, upm).getAll().stream())
-//                    .collect(Collectors.toList());
+            //            List<IRepositoryResource> keyedPluginStores = hlist.stream()
+            //                    .filter((e) -> !e.isAppNameAware())
+            //                    .flatMap((e) -> e.getPluginStore(null, upm).getAll().stream())
+            //                    .collect(Collectors.toList());
             // ComponentMeta dataxComponentMeta = new ComponentMeta(keyedPluginStores);
             Set<PluginMeta> globalPluginMetas = dataxComponentMeta.loadPluginMeta();
             for (PluginMeta m : globalPluginMetas) {
@@ -683,8 +681,8 @@ public class PluginAndCfgsSnapshot {
         });
     }
 
-    private static PluginAndCfgsSnapshot getLocalPluginAndCfgsSnapshot(
-            TargetResName collection, MetaSetProductor metaSetProductor) {
+    private static PluginAndCfgsSnapshot getLocalPluginAndCfgsSnapshot(TargetResName collection,
+                                                                       MetaSetProductor metaSetProductor) {
         // 本次任务相关插件元信息
         KeyedPluginStore.PluginMetas pluginMetas = KeyedPluginStore.getAppAwarePluginMetas(false, collection.getName());
         //  Set<PluginMeta> globalPluginMetas = null;
@@ -695,10 +693,8 @@ public class PluginAndCfgsSnapshot {
         List<IRepositoryResource> keyedPluginStores = Collections.emptyList();
         if (tis != null) {
             ExtensionList<HeteroEnum> hlist = TIS.get().getExtensionList(HeteroEnum.class);
-            keyedPluginStores = hlist.stream()
-                    .filter((e) -> !e.isAppNameAware())
-                    .flatMap((e) -> e.getPluginStore(null, upm).getAll().stream())
-                    .collect(Collectors.toList());
+            keyedPluginStores =
+                    hlist.stream().filter((e) -> !e.isAppNameAware()).flatMap((e) -> e.getPluginStore(null, upm).getAll().stream()).collect(Collectors.toList());
         }
 
 
@@ -707,10 +703,8 @@ public class PluginAndCfgsSnapshot {
         gPluginStoreLastModify = ComponentMeta.getGlobalPluginStoreLastModifyTimestamp(dataxComponentMeta);
 
         try {
-            return new PluginAndCfgsSnapshot(
-                    collection, gPluginStoreLastModify
-                    , metaSetProductor.call(pluginMetas, dataxComponentMeta).getMetas()
-                    , pluginMetas.lastModifyTimestamp, pluginMetas);
+            return new PluginAndCfgsSnapshot(collection, gPluginStoreLastModify, metaSetProductor.call(pluginMetas,
+                    dataxComponentMeta).getMetas(), pluginMetas.lastModifyTimestamp, pluginMetas);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -730,9 +724,8 @@ public class PluginAndCfgsSnapshot {
         }
 
         public Set<PluginMeta> getMetas() {
-            return (pluginMetasFilter.isPresent()
-                    ? this.metas.stream().filter(pluginMetasFilter.get()).collect(Collectors.toSet())
-                    : this.metas);
+            return (pluginMetasFilter.isPresent() ?
+                    this.metas.stream().filter(pluginMetasFilter.get()).collect(Collectors.toSet()) : this.metas);
         }
 
         public boolean add(PluginMeta meta) {
@@ -766,24 +759,26 @@ public class PluginAndCfgsSnapshot {
     public void attachPluginCfgSnapshot2Manifest(Manifest manifest) {
         Map<String, Attributes> entries = manifest.getEntries();
         // ExtensionList<HeteroEnum> hlist = TIS.get().getExtensionList(HeteroEnum.class);
-//        List<IRepositoryResource> keyedPluginStores = hlist.stream()
-//                .filter((e) -> !e.isAppNameAware())
-//                .map((e) -> e.getPluginStore(null, null))
-//                .collect(Collectors.toList());
-//        ComponentMeta dataxComponentMeta = new ComponentMeta(keyedPluginStores);
+        //        List<IRepositoryResource> keyedPluginStores = hlist.stream()
+        //                .filter((e) -> !e.isAppNameAware())
+        //                .map((e) -> e.getPluginStore(null, null))
+        //                .collect(Collectors.toList());
+        //        ComponentMeta dataxComponentMeta = new ComponentMeta(keyedPluginStores);
         //Set<XStream2.PluginMeta> globalPluginMetas = dataxComponentMeta.loadPluginMeta();
-        //Map<String, Long> gPluginStoreLastModify = ComponentMeta.getGlobalPluginStoreLastModifyTimestamp(dataxComponentMeta);
+        //Map<String, Long> gPluginStoreLastModify = ComponentMeta.getGlobalPluginStoreLastModifyTimestamp
+        // (dataxComponentMeta);
 
         StringBuffer globalPluginStore = new StringBuffer();
         for (Map.Entry<String, Long> e : globalPluginStoreLastModify.entrySet()) {
-            globalPluginStore.append(e.getKey())
-                    .append(PluginMeta.NAME_VER_SPLIT).append(e.getValue()).append(",");
+            globalPluginStore.append(e.getKey()).append(PluginMeta.NAME_VER_SPLIT).append(e.getValue()).append(",");
         }
 
         final Attributes pmetas = new Attributes();
-        pmetas.put(new Attributes.Name(KeyedPluginStore.PluginMetas.KEY_GLOBAL_PLUGIN_STORE), String.valueOf(globalPluginStore));
+        pmetas.put(new Attributes.Name(KeyedPluginStore.PluginMetas.KEY_GLOBAL_PLUGIN_STORE),
+                String.valueOf(globalPluginStore));
         // 本次任务相关插件元信息
-        //KeyedPluginStore.PluginMetas pluginMetas = KeyedPluginStore.getAppAwarePluginMetas(false, collection.getName());
+        //KeyedPluginStore.PluginMetas pluginMetas = KeyedPluginStore.getAppAwarePluginMetas(false, collection
+        // .getName());
         PluginManager pluginManager = TIS.get().getPluginManager();
 
         Map<String, PluginWrapper> plugins = pluginManager.getActivePluginsMap();
@@ -803,8 +798,8 @@ public class PluginAndCfgsSnapshot {
         // KeyedPluginStore.PluginMetas.KEY_PLUGIN_META
         pmetas.put(new Attributes.Name(Config.KEY_PLUGIN_METAS), jarray.toJSONString());
 
-        pmetas.put(new Attributes.Name(KeyedPluginStore.PluginMetas.KEY_APP_LAST_MODIFY_TIMESTAMP)
-                , String.valueOf(this.appLastModifyTimestamp));
+        pmetas.put(new Attributes.Name(KeyedPluginStore.PluginMetas.KEY_APP_LAST_MODIFY_TIMESTAMP),
+                String.valueOf(this.appLastModifyTimestamp));
 
         entries.put(Config.KEY_PLUGIN_METAS, pmetas);
     }

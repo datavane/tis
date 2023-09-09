@@ -84,7 +84,7 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
         //        try {
         //            Object o = subFormField.get(instance);
 
-        return createSubFormVals(getSubFormPropVal(instance));
+        return (createSubFormVals(getSubFormPropVal(instance)));
 
         //        } catch (IllegalAccessException e) {
         //            throw new RuntimeException(e);
@@ -141,6 +141,7 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
                     }
                     pair = new JSONArray();
                     addSubItems(ext, pair);
+
                     vals.put(subItem.identityValue(), pair);
                 }
             }
@@ -159,7 +160,7 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
         //JSONObject subformData = null;
         AttrValMap attrVals = null;
 
-        for (Map.Entry<String, JSONArray> entry : formData.asSubFormDetails().entrySet()) {
+        for (Map.Entry<String /*tableName*/, JSONArray> entry : formData.asSubFormDetails().entrySet()) {
             subFormId = entry.getKey();
 
             //  subform = Maps.newHashMap();

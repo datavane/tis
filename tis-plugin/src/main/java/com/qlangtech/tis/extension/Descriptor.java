@@ -38,6 +38,8 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
@@ -60,6 +62,7 @@ import java.io.IOException;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -317,49 +320,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         SuFormProperties subPluginFormPropertyTypes;
         if (subFormFilter.isPresent()) {
             filter = subFormFilter.get();
-            if (filter.isIncrProcessExtend()) {
-                //&& IncrSelectedTabExtend.class.isAssignableFrom(this.clazz)
-                //                if (!) {
-                //                    throw new IllegalStateException("class:" + this.clazz.getName() + " must be
-                //                    child class of " + IncrSelectedTabExtend.class.getSimpleName());
-                //                }
 
-                //                Optional<Descriptor<IncrSelectedTabExtend>> selectedTableSourceExtendDesc
-                //                        = MQListenerFactory.getIncrSourceSelectedTabExtendDescriptor(filter
-                //                        .uploadPluginMeta.getDataXName());
-                //
-                //                Optional<Descriptor<IncrSelectedTabExtend>> selectedTabSinkExtendDesc
-                //                        = TISSinkFactory.getIncrSinkSelectedTabExtendDescriptor(filter
-                //                        .uploadPluginMeta.getDataXName());
-                //                if (!selectedTableSourceExtendDesc.isPresent() && !selectedTabSinkExtendDesc
-                //                .isPresent()) {
-                //                    throw new IllegalStateException("neither selectedTableSourceExtendDesc nor
-                //                    selectedTabSinkExtendDesc is present");
-                //                }
-
-                //                SuFormProperties subProps = null;
-                //                if (filter.subformDetailView) {
-                //                    return new RootFormProperties(filterFieldProp(this)) {
-                //                        @Override
-                //                        public JSON getInstancePropsJson(Object instance) {
-                //                            if (!(instance instanceof IncrSelectedTabExtend)) {
-                //                                throw new IllegalStateException("instance must be type of "
-                //                                        + IncrSelectedTabExtend.class.getName() + " but now is " +
-                //                                        instance.getClass().getName());
-                //                            }
-                //                            return super.getInstancePropsJson(instance);
-                //                        }
-                //                    };
-                //                } else {
-                //                    Descriptor parentDesc = filter.getTargetDescriptor();
-                //                    subProps = (SuFormProperties) parentDesc.getSubPluginFormPropertyTypes(filter
-                //                    .subFieldName);
-                //                    return new IncrSourceExtendSelected(filter.uploadPluginMeta, subProps
-                //                    .subFormField);
-                //                }
-
-                //  throw new UnsupportedOperationException("desc class:" + this.clazz.getName());
-            }
             if (!filter.match(this)) {
                 /**
                  *保存子表单聚合内容
@@ -379,8 +340,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
                 try {
                     // 类似Hudi的Writer需要覆盖Reader的subFieldName的在Reader的表设置表单中需要设置Hudi相关的属性
-                    //   DataxWriter dataxWriter = DataxWriter.load(filter.uploadPluginMeta.getPluginContext(),
-                    //   dataXName);
+
                     Descriptor writerDescriptor = IDataxProcessor.getWriterDescriptor(filter.uploadPluginMeta);//
                     // dataxWriter.getClass();
                     if (writerDescriptor != null && writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
@@ -389,16 +349,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                         .overwriteSubPluginFormPropertyTypes(subPluginFormPropertyTypes) //
                                 , "result can not be null " + PluginFormProperties.class.getSimpleName());
                     }
-                    //                    String overwriteSubField = IOUtils.loadResourceFromClasspath(
-                    //                            writerClass, writerClass.getSimpleName() + "." + filter
-                    //                            .subFieldName + ".json", false);
-                    //                    if (overwriteSubField != null) {
-                    //                        JSONObject subField = JSON.parseObject(overwriteSubField);
-                    //                        Class<?> clazz = writerClass.getClassLoader().loadClass(subField
-                    //                        .getString(SubForm.FIELD_DES_CLASS));
-                    //                        return SuFormProperties.copy(filterFieldProp(buildPropertyTypes(this,
-                    //                        clazz)), subPluginFormPropertyTypes);
-                    //                    }
+
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -1137,23 +1088,43 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     return new ParseDescribable<>(createPluginInstance().instance);
                 } else {
                     try {
-                        // 子表单聚合提交
+                        // 子表单聚合提交，多个selected tab 一起提交进行保存
                         //Descriptor targetDescriptor = filter.getTargetDescriptor();
 
 
                         // 保存子form detail list
                         List<Describable> subDetailedList = Lists.newArrayList();
+                        //AtomicReference<SelectedTabExtend> batchSourceExtendRef = new AtomicReference<>();
                         props.visitAllSubDetailed(keyValMap, new SuFormProperties.ISubDetailedProcess<Void>() {
                             public Void process(String subFormId, AttrValMap attrVals) {
 
                                 ParseDescribable<Describable> r = attrVals.createDescribable(pluginContext);
 
-                                // new ParseDescribable<>((Describable) props.newSubDetailed());
-                                //  subDetailedList.add(buildPluginInstance(pluginContext, subform, r, propertyTypes));
-                                subDetailedList.add(r.getInstance());
+                                Describable plugin = r.getInstance();
+                                // BATCH_SOURCE 类型的 tabExtend 需要将他set到 Selected中去
+                                //                                SelectedTabExtend sourceBatchExtend = null;
+                                //                                if (plugin instanceof SelectedTabExtend //
+                                //                                        && (sourceBatchExtend = (SelectedTabExtend)
+                                //                                        plugin).getExtendType() ==
+                                //                                        SelectedTabExtend.ExtendType.BATCH_SOURCE) {
+                                //                                    batchSourceExtendRef.set(sourceBatchExtend);
+                                //                                } else {
+                                subDetailedList.add(plugin);
+                                //}
+
                                 return null;
                             }
                         });
+                        //                        SelectedTabExtend tabExtend = batchSourceExtendRef.get();
+                        //                        if (tabExtend != null) {
+                        //                            subDetailedList.stream().filter((tab) -> tab instanceof
+                        //                            SelectedTab) //
+                        //                                    .map((tab) -> (SelectedTab) tab)//
+                        //                                    .forEach((tab) -> {
+                        //                                        tab.setSourceProps(tabExtend);
+                        //                                    });
+                        //                        }
+
 
                         // props.subFormField.set(result.instance, subDetailedList);
                         return new ParseDescribable<>(subDetailedList);

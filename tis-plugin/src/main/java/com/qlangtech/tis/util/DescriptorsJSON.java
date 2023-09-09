@@ -25,9 +25,12 @@ import com.qlangtech.tis.extension.*;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.incr.ISelectedTabExtendFactory;
 import org.apache.commons.lang.StringUtils;
 
 import java.lang.annotation.Annotation;
@@ -43,9 +46,9 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
     public static final String KEY_DISPLAY_NAME = "displayName";
     public static final String KEY_EXTEND_POINT = "extendPoint";
-    public static final String KEY_IMPL = "impl";
+    public static final String KEY_IMPL = AttrValMap.PLUGIN_EXTENSION_IMPL;// "impl";
     public static final String KEY_IMPL_URL = "implUrl";
-    public static final String KEY_ADVANCE =  "advance";
+    public static final String KEY_ADVANCE = "advance";
 
     private final List<Descriptor<T>> descriptors;
 
@@ -97,10 +100,14 @@ public class DescriptorsJSON<T extends Describable<T>> {
         Map<String, Object> extractProps;
         // IPropertyType.SubFormFilter subFilter = null;
         PluginFormProperties pluginFormPropertyTypes;
-        for (Descriptor<T> dd : this.descriptors) {
+
+        List<Descriptor<?>> acceptDescs = getAcceptDescs(subFormFilter);
+
+
+        for (Descriptor<?> dd : acceptDescs) {
             pluginFormPropertyTypes = dd.getPluginFormPropertyTypes(subFormFilter);
 
-            JSONObject des = new JSONObject();
+            JSONObject desJson = new JSONObject();
             // des.put("formLevel", formLevel);
             Descriptor desc = pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
                 @Override
@@ -116,37 +123,42 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
                         IPropertyType.SubFormFilter filter = subFormFilter.get();
                         if (!filter.subformDetailView) {
-                            des.put("subForm", true);
+                            desJson.put("subForm", true);
                             subForm.put("idList", props.getSubFormIdListGetter(filter).build(filter));
                         }
                     }
-                    des.put("subFormMeta", subForm);
+                    desJson.put("subFormMeta", subForm);
                     return props.subFormFieldsDescriptor;
                 }
             });
 
-            des.put(KEY_EXTEND_POINT, desc.getT().getName());
+            desJson.put(KEY_EXTEND_POINT, desc.getT().getName());
 
-            this.setDescInfo(desc, des);
+            this.setDescInfo(desc, desJson);
 
-            des.put("veriflable", desc.overWriteValidateMethod);
+            desJson.put("veriflable", desc.overWriteValidateMethod);
             if (IdentityName.class.isAssignableFrom(desc.clazz)) {
-                des.put("pkField", desc.getIdentityField().displayName);
+                desJson.put("pkField", desc.getIdentityField().displayName);
             }
             extractProps = desc.getExtractProps();
             if (!extractProps.isEmpty()) {
-                des.put("extractProps", extractProps);
+                desJson.put("extractProps", extractProps);
             }
 
             attrs = new JSONArray();
-            ArrayList<Map.Entry<String, PropertyType>> entries
-                    = Lists.newArrayList(pluginFormPropertyTypes.getKVTuples());
+            ArrayList<Map.Entry<String, PropertyType>> entries =
+                    Lists.newArrayList(pluginFormPropertyTypes.getKVTuples());
 
             entries.sort(((o1, o2) -> o1.getValue().ordinal() - o2.getValue().ordinal()));
             boolean containAdvanceField = false;
             for (Map.Entry<String, PropertyType> pp : entries) {
                 key = pp.getKey();
                 val = pp.getValue();
+                extraProps = val.getExtraProps();
+
+                if (extraProps != null && extraProps.getBooleanValue(PluginExtraProps.KEY_DISABLE)) {
+                    continue;
+                }
                 // fieldAnnot = val.getFormField();
                 attrVal = new JSONObject();
                 attrVal.put("key", key);
@@ -162,7 +174,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                     containAdvanceField = true;
                     attrVal.put(DescriptorsJSON.KEY_ADVANCE, true);
                 }
-                extraProps = val.getExtraProps();
+
                 if (extraProps != null) {
                     // 额外属性
                     attrVal.put("eprops", extraProps);
@@ -183,30 +195,49 @@ public class DescriptorsJSON<T extends Describable<T>> {
                 attrs.add(attrVal);
             }
             // 对象拥有的属性
-            des.put("attrs", attrs);
+            desJson.put("attrs", attrs);
             // 包含高级字段
-            des.put("containAdvance", containAdvanceField);
+            desJson.put("containAdvance", containAdvanceField);
             // processor.process(attrs.keySet(), d);
-            descriptors.put(desc.getId(), des);
+            descriptors.put(desc.getId(), desJson);
         }
         return descriptors;
+    }
+
+    private List<Descriptor<?>> getAcceptDescs(Optional<IPropertyType.SubFormFilter> subFormFilter) {
+        PluginFormProperties pluginFormPropertyTypes = null;
+        List<Descriptor<?>> acceptDescs = Lists.newArrayList(this.descriptors);
+        for (Descriptor<T> dd : this.descriptors) {
+            pluginFormPropertyTypes = dd.getPluginFormPropertyTypes(subFormFilter);
+            pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
+                @Override
+                public Void visit(BaseSubFormProperties props) {
+                    if (dd instanceof CompanionPluginFactory) {
+                        acceptDescs.add(((CompanionPluginFactory) dd).getCompanionDescriptor());
+                    }
+                    return null;
+                }
+            });
+        }
+        return acceptDescs;
     }
 
     public static void setDescInfo(Descriptor d, JSONObject des) {
         des.put(KEY_DISPLAY_NAME, d.getDisplayName());
 
         des.put(KEY_IMPL, d.getId());
-        des.put(KEY_IMPL_URL, Config.TIS_PUB_PLUGINS_DOC_URL + StringUtils.remove(StringUtils.lowerCase(d.clazz.getName()), "."));
+        des.put(KEY_IMPL_URL,
+                Config.TIS_PUB_PLUGINS_DOC_URL + StringUtils.remove(StringUtils.lowerCase(d.clazz.getName()), "."));
     }
 
-    public static List<Descriptor.SelectOption> getSelectOptions(Descriptor descriptor, PropertyType propType, String fieldKey) {
+    public static List<Descriptor.SelectOption> getSelectOptions(Descriptor descriptor, PropertyType propType,
+                                                                 String fieldKey) {
         ISelectOptionsGetter optionsCreator = null;
         if (propType.typeIdentity() != FormFieldType.SELECTABLE.getIdentity()) {
             throw new IllegalStateException("propType must be:" + FormFieldType.SELECTABLE + " but now is:" + propType.typeIdentity());
         }
         if (!(descriptor instanceof ISelectOptionsGetter)) {
-            throw new IllegalStateException("descriptor:" + descriptor.getClass()
-                    + " has a selectable field:" + fieldKey + " descriptor must be an instance of 'ISelectOptionsGetter'");
+            throw new IllegalStateException("descriptor:" + descriptor.getClass() + " has a selectable field:" + fieldKey + " descriptor must be an instance of 'ISelectOptionsGetter'");
         }
         optionsCreator = descriptor;
         List<Descriptor.SelectOption> selectOptions = optionsCreator.getSelectOptions(fieldKey);

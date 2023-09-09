@@ -309,72 +309,9 @@ public class PluginItems {
     if (items == null) {
       throw new IllegalStateException("prop items can not be null");
     }
-//    Descriptor.ParseDescribable describable = null;
-//    AttrValMap attrValMap = null;
 
     PluginWithStore store = getStorePlugins();
-//    List<Describable> describableList = Lists.newArrayList();
-//    List<Descriptor.ParseDescribable<?>> dlist = getPlugins(describableList);
-//    IPluginStoreSave<?> store = getStore(dlist);
-//    if (heteroEnum == HeteroEnum.APP_SOURCE) {
-//
-//      for (Descriptor.ParseDescribable<?> d : dlist) {
-//        Object inst = d.getInstance();
-//        if (inst instanceof IdentityName) {
-//          StoreResourceType resType = ((IAppSource) inst).getResType();
-//          store = IAppSource.getPluginStore(pluginContext, resType, ((IdentityName) d.getInstance()).identityValue());
-//          break;
-//        }
-//      }
-//
-//      Objects.requireNonNull(store, "plugin type:" + heteroEnum.getIdentity() + " can not find relevant Store");
-//
-//    } else if (this.pluginContext.isDataSourceAware()) {
-//
-//      store = new IPluginStoreSave<DataSourceFactory>() {
-//        PostedDSProp dbExtraProps = PostedDSProp.parse(pluginMeta);
-//        DataSourceFactoryPluginStore pluginStore = TIS.getDataSourceFactoryPluginStore(dbExtraProps);
-//
-//        @Override
-//        public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context
-//          , List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
-//          SetPluginsResult finalResult = new SetPluginsResult(true, false);
-//          for (Descriptor.ParseDescribable<DataSourceFactory> plugin : dlist) {
-//            if (StringUtils.isEmpty(pluginMeta.getExtraParam(PostedDSProp.KEY_DB_NAME))) {
-//              pluginMeta.putExtraParams(PostedDSProp.KEY_DB_NAME, ((IdentityName) plugin.getInstance()).identityValue());
-//            }
-//
-//            SetPluginsResult result = pluginStore
-//              .setPlugins(pluginContext, context, Collections.singletonList(plugin), dbExtraProps.isUpdate());
-//            if (!result.success) {
-//              return result;
-//            }
-//            if (result.cfgChanged) {
-//              finalResult.cfgChanged = true;
-//            }
-//          }
-//          return finalResult;
-//        }
-//      };
-//    } else if (heteroEnum == HeteroEnum.DATAX_WRITER || heteroEnum == HeteroEnum.DATAX_READER) {
-//
-//      store = HeteroEnum.getDataXReaderAndWriterStore(this.pluginContext
-//        , this.heteroEnum == HeteroEnum.DATAX_READER, this.pluginMeta, pluginMeta.getSubFormFilter());
-//
-//    } else if (heteroEnum == HeteroEnum.PARAMS_CONFIG) {
-//      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
-//    } else if (heteroEnum == HeteroEnum.DATAX_WORKER) {
-//      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
-//    } else {
-//      if (heteroEnum.isAppNameAware()) {
-//        if (!this.pluginContext.isCollectionAware()) {
-//          throw new IllegalStateException(heteroEnum.getExtensionPoint().getName() + " must be collection aware");
-//        }
-//        store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
-//      } else {
-//        store = TIS.getPluginStore(heteroEnum.getExtensionPoint());
-//      }
-//    }
+
     // store.
     //dlist
     SetPluginsResult result = store.setPlugins(pluginContext, Optional.of(context));

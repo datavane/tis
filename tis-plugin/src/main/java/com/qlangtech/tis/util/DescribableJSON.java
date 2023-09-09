@@ -25,6 +25,7 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
+import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import com.qlangtech.tis.plugin.IdentityName;
 
 import java.util.Objects;
@@ -38,7 +39,7 @@ public class DescribableJSON<T extends Describable<T>> {
 
     private final T instance;
 
-    private final Descriptor<T> descriptor;
+    public final Descriptor<T> descriptor;
 
     public DescribableJSON(T instance, Descriptor<T> descriptor) {
         this.instance = Objects.requireNonNull(instance, "param instance can not be null");
@@ -71,12 +72,19 @@ public class DescribableJSON<T extends Describable<T>> {
 
             @Override
             public Descriptor visit(BaseSubFormProperties props) {
+
+                //                if(descriptor instanceof CompanionPluginFactory){
+                //                    ((CompanionPluginFactory)descriptor).getCompaonPlugin()
+                //                }
+
                 return props.subFormFieldsDescriptor;
             }
         }), item);
 
 
         final JSON vals = pluginFormPropertyTypes.getInstancePropsJson(this.instance);
+
+
         item.put(AttrValMap.PLUGIN_EXTENSION_VALS, vals);
         if (instance instanceof IdentityName) {
             item.put("identityName", ((IdentityName) instance).identityValue());

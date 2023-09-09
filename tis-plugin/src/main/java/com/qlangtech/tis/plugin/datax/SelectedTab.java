@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.datax;
 
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.ESTableAlias;
 import com.qlangtech.tis.extension.*;
@@ -27,6 +28,7 @@ import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.EnumFieldMode;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -56,13 +58,14 @@ import java.util.stream.Stream;
  **/
 public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, IdentityName {
     private static final String KEY_TABLE_COLS = "tableRelevantCols";
+    public static final String KEY_SOURCE_PROPS = "sourceProps";
     public static final String KEY_FIELD_COLS = "cols";
     private static final Logger logger = LoggerFactory.getLogger(SelectedTab.class);
 
     // 针对增量构建流程中的属性扩展
     private SelectedTabExtend incrSourceProps;
     private SelectedTabExtend incrSinkProps;
-    private SelectedTabExtend sourceProps;
+    public SelectedTabExtend sourceProps;
 
     // 表名称
     @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
@@ -255,7 +258,10 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
     @TISExtension
     public static class DefaultDescriptor extends Descriptor<SelectedTab> implements SubForm.ISubFormItemValidate,
-            FormFieldType.IMultiSelectValidator {
+            FormFieldType.IMultiSelectValidator  {
+
+
+
 
         @Override
         protected final boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {

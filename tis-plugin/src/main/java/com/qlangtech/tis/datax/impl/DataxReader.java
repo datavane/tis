@@ -205,8 +205,8 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                             }
 
                             private void setReaderSubFormProp(BaseSubFormProperties props,
-                                                              List<? extends Describable> subItems, Map<String,
-                                    SelectedTab> subItemsExtend) {
+                                                              List<? extends Describable> subItems //
+                                    , Map<String, SelectedTab> subItemsExtend) {
                                 setReaderSubFormProp(props, reader, subItems, subItemsExtend);
                             }
 
@@ -225,6 +225,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                                         if (ext != null) {
                                             tab.setIncrSourceProps(ext.getIncrSourceProps());
                                             tab.setIncrSinkProps(ext.getIncrSinkProps());
+                                            tab.setSourceProps(ext.getSourceProps());
                                         }
                                     }
                                 });

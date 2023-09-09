@@ -30,7 +30,6 @@ import com.qlangtech.tis.extension.init.InitMilestone;
 import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
 import com.qlangtech.tis.extension.model.UpdateCenter;
-import com.qlangtech.tis.extension.model.UpdateCenterResource;
 import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.install.InstallState;
@@ -455,7 +454,7 @@ public class TIS {
 
         protected Class<Describable> getPluginClass(Map.Entry<?, ?> next) {
             KeyedPluginStore.Key key = (KeyedPluginStore.Key) next.getKey();
-            return key.pluginClass;
+            return key.pluginClass.getClazz();
             //   return (Class<Describable>) next.getKey();
         }
     }

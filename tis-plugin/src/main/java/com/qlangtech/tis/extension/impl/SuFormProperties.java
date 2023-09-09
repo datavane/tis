@@ -22,16 +22,15 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
-import com.qlangtech.tis.util.DescribableJSON;
-import com.qlangtech.tis.util.DescriptorsJSON;
-import com.qlangtech.tis.util.HeteroEnum;
-import com.qlangtech.tis.util.UploadPluginMeta;
+import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
+import com.qlangtech.tis.util.*;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -127,6 +126,22 @@ public class SuFormProperties extends BaseSubFormProperties {
                 Optional.of(subFormField));
         overwriteSubform.ifPresent((ep) -> {
             ep.forEach((fieldKey, val) -> {
+
+                if (SelectedTab.KEY_SOURCE_PROPS.equals(fieldKey)) {
+                    //                    String sourceTabExtendImpl = val.getProps().getString(AttrValMap
+                    //                    .PLUGIN_EXTENSION_IMPL);
+                    //                    if (StringUtils.isNotEmpty(sourceTabExtendImpl)) {
+                    //                        PluginFormProperties extendProps =
+                    //                                Objects.requireNonNull(TIS.get().getDescriptor
+                    //                                (sourceTabExtendImpl),
+                    //                                        "sourceTabExtendImpl:" + sourceTabExtendImpl + "
+                    //                                        relevant descriptor can not "
+                    //                                                + "be null").getPluginFormPropertyTypes();
+                    //                      //  extendProps.getKVTuples()
+                    //                    }
+                    return;
+                }
+
                 Objects.requireNonNull(fieldsType.get(fieldKey),
                         "fieldKey:" + fieldKey + " relevant PropertyType " + "can" + " not be null").extraProp.merge(val);
             });
@@ -135,7 +150,7 @@ public class SuFormProperties extends BaseSubFormProperties {
         //        if () {
         //            this.instClazz = ;
         //        }
-        if (MapUtils.isNotEmpty(fieldsType)) {
+        if (MapUtils.isNotEmpty(this.fieldsType)) {
             Optional<Map.Entry<String, PropertyType>> idType =
                     fieldsType.entrySet().stream().filter((ft) -> ft.getValue().isIdentity()).findFirst();
             if (!idType.isPresent()) {
@@ -257,9 +272,17 @@ public class SuFormProperties extends BaseSubFormProperties {
     @Override
     protected void addSubItems(SelectedTab ext, JSONArray pair) throws Exception {
         DescribableJSON itemJson = null;
+        SelectedTabExtend sourceExtendProps = null;
         if (ext != null) {
             itemJson = new DescribableJSON(ext);
             pair.add(itemJson.getItemJson(new RootFormProperties(this.fieldsType)));
+
+
+            sourceExtendProps = ext.getSourceProps();
+            if (sourceExtendProps != null) {
+                itemJson = new DescribableJSON(sourceExtendProps);
+                pair.add(itemJson.getItemJson());
+            }
         }
     }
 

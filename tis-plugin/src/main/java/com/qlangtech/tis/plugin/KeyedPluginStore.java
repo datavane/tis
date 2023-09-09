@@ -45,21 +45,20 @@ import java.util.regex.Pattern;
 public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
     public static final String TMP_DIR_NAME = ".tmp/";
     public static final String KEY_EXEC_ID = "execId";
-    // private static final Pattern DATAX_UPDATE_PATH = Pattern.compile("/x/(" + ValidatorCommons.pattern_identity + ")/update");
+    // private static final Pattern DATAX_UPDATE_PATH = Pattern.compile("/x/(" + ValidatorCommons.pattern_identity +
+    // ")/update");
 
     private static final Pattern DATAX_UPDATE_PATH = Pattern.compile("\\?" + KEY_EXEC_ID + "=.+?");
 
     public transient final Key key;
 
     public static void main(String[] args) {
-        Matcher matcher = DATAX_UPDATE_PATH.matcher("/offline/wf_profile_update/update?execId=e5bad69e-d519-5799-c798-f593eb0555f2#writer");
+        Matcher matcher = DATAX_UPDATE_PATH.matcher("/offline/wf_profile_update/update?execId=e5bad69e-d519-5799-c798"
+                + "-f593eb0555f2#writer");
         System.out.println(matcher.find());
     }
 
-    public static <TT extends Describable> KeyedPluginStore<TT> getPluginStore(
-            DataxReader.SubFieldFormAppKey<TT> subFieldFormKey //, IPluginProcessCallback<TT>... pluginCreateCallback
-    ) {
-        //  return new KeyedPluginStore(subFieldFormKey, pluginCreateCallback);
+    public static <TT extends Describable> KeyedPluginStore<TT> getPluginStore(DataxReader.SubFieldFormAppKey<TT> subFieldFormKey) {
         return (KeyedPluginStore<TT>) TIS.dataXReaderSubFormPluginStore.get(subFieldFormKey);
     }
 
@@ -75,7 +74,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
      * @return
      */
     public static PluginMetas getAppAwarePluginMetas(boolean isDB, String name) {
-        AppKey appKey = new AppKey(null, StoreResourceType.parse(isDB), name, null);
+        AppKey appKey = new AppKey(null, StoreResourceType.parse(isDB), name, (PluginClassCategory) null);
         File appDir = getSubPathDir(appKey);
         File lastModify = getLastModifyToken(appKey);// new File(appDir, CenterResource.KEY_LAST_MODIFIED_EXTENDION);
         long lastModfiyTimeStamp = -1;
@@ -88,14 +87,14 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
                     //throw new IllegalStateException("lastModify is not exist ,path:" + lastModify.getAbsolutePath());
                     lastModfiyTimeStamp = Long.parseLong(FileUtils.readFileToString(lastModify, TisUTF8.get()));
                 }
-                Iterator<File> files = FileUtils.iterateFiles(appDir
-                        , new String[]{DOMUtil.XML_RESERVED_PREFIX}, true);
+                Iterator<File> files = FileUtils.iterateFiles(appDir, new String[]{DOMUtil.XML_RESERVED_PREFIX}, true);
                 metas = ComponentMeta.loadPluginMeta(() -> {
                     return Lists.newArrayList(files);
                 });
-//                if (lastModfiyTimeStamp < 0) {
-//                    throw new IllegalStateException("please check lastModify file:" + lastModify.getAbsolutePath());
-//                }
+                //                if (lastModfiyTimeStamp < 0) {
+                //                    throw new IllegalStateException("please check lastModify file:" + lastModify
+                //                    .getAbsolutePath());
+                //                }
             }
             return new PluginMetas(appDir, metas, lastModfiyTimeStamp);
         } catch (IOException e) {
@@ -130,7 +129,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
     }
 
     public KeyedPluginStore(Key key, IPluginProcessCallback<T>... pluginCreateCallback) {
-        super(key.pluginClass, key.getSotreFile(), pluginCreateCallback);
+        super(key.pluginClass.getClazz(), key.getSotreFile(), pluginCreateCallback);
         this.key = key;
     }
 
@@ -150,13 +149,12 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
     }
 
     @Override
-    public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext
-            , Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
+    public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context,
+                                                    List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
         SetPluginsResult updateResult = super.setPlugins(pluginContext, context, dlist, update);
         if (updateResult.success && updateResult.cfgChanged) {
             // 本地写入时间戳文件，以备分布式文件同步之用
-            updateResult.lastModifyTimeStamp
-                    = writeLastModifyTimeStamp(getLastModifyToken(this.key));
+            updateResult.lastModifyTimeStamp = writeLastModifyTimeStamp(getLastModifyToken(this.key));
         }
         return updateResult;
     }
@@ -176,7 +174,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         public final KeyVal keyVal;
         protected final String groupName;
         private final boolean metaCfgDir;
-        public final Class<T> pluginClass;
+        public final PluginClassCategory<T> pluginClass;
 
         public Key(String groupName, String keyVal, Class<T> pluginClass) {
             this(groupName, new KeyVal(keyVal), pluginClass, false);
@@ -187,6 +185,10 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         public Key(String groupName, KeyVal keyVal, Class<T> pluginClass, boolean metaCfgDir) {
+            this(groupName, keyVal, new PluginClassCategory(pluginClass), metaCfgDir);
+        }
+
+        public Key(String groupName, KeyVal keyVal, PluginClassCategory<T> pluginClass, boolean metaCfgDir) {
             Objects.requireNonNull(keyVal, "keyVal can not be null");
             this.keyVal = keyVal;
             this.pluginClass = pluginClass;
@@ -219,6 +221,32 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         @Override
         public int hashCode() {
             return Objects.hash(keyVal.getKeyVal(), pluginClass);
+        }
+    }
+
+    public static class PluginClassCategory<T> {
+        private final Class<T> pluginClass;
+        private final Optional<String> suffix;
+
+        public PluginClassCategory(Class<T> pluginClass) {
+            this(pluginClass, Optional.empty());
+        }
+
+        public PluginClassCategory(Class<T> pluginClass, String suffix) {
+            this(pluginClass, Optional.of(suffix));
+        }
+
+        private PluginClassCategory(Class<T> pluginClass, Optional<String> suffix) {
+            this.pluginClass = pluginClass;
+            this.suffix = suffix;
+        }
+
+        public String getName() {
+            return pluginClass.getName() + suffix.orElse(StringUtils.EMPTY);
+        }
+
+        public Class<T> getClazz() {
+            return this.pluginClass;
         }
     }
 
@@ -261,9 +289,15 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         public final StoreResourceType resourceType;
 
         public AppKey(IPluginContext pluginContext, StoreResourceType resourceType, String appname, Class<TT> clazz) {
+            this(pluginContext, resourceType, appname, new PluginClassCategory(clazz));
+        }
+
+        public AppKey(IPluginContext pluginContext, StoreResourceType resourceType, String appname,
+                      PluginClassCategory<TT> clazz) {
             super(resourceType.getType(), calAppName(pluginContext, appname), clazz, resourceType.useMetaCfgDir);
             this.resourceType = resourceType;
         }
+
 
         public boolean isDB() {
             return this.resourceType == StoreResourceType.DataBase;
@@ -279,8 +313,8 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             if (inUpdateProcess && !pluginContext.isCollectionAware()) {
                 throw new IllegalStateException("pluginContext.isCollectionAware() must be true");
             }
-            return (pluginContext != null && inUpdateProcess)
-                    ? new KeyVal(appname, pluginContext.getExecId()) : new KeyVal(appname);
+            return (pluginContext != null && inUpdateProcess) ? new KeyVal(appname, pluginContext.getExecId()) :
+                    new KeyVal(appname);
         }
 
         @Override

@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.util;
 
@@ -25,6 +25,7 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import org.apache.commons.lang.StringUtils;
 
 import java.net.URLEncoder;
@@ -109,8 +110,8 @@ public class HeteroList<T extends Describable<T>> {
         o.put("cardinality", this.getSelectable().identity);
         o.put("extensionPoint", this.extensionPoint.getName());
         //http://tis.pub/docs/guide/plugin/plugins/#%E6%89%A9%E5%B1%95%E7%82%B9comqlangtechtisasyncmessageclientconsumerimplabstractasyncmsgdeserialize
-        o.put("extensionPointUrl", Config.TIS_PUB_PLUGINS_DOC_URL
-                + URLEncoder.encode(  StringUtils.lowerCase(StringUtils.remove(this.extensionPoint.getName(), ".")), TisUTF8.getName()));
+        o.put("extensionPointUrl",
+                Config.TIS_PUB_PLUGINS_DOC_URL + URLEncoder.encode(StringUtils.lowerCase(StringUtils.remove(this.extensionPoint.getName(), ".")), TisUTF8.getName()));
 
 
         Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
@@ -119,26 +120,49 @@ public class HeteroList<T extends Describable<T>> {
 
         if (this.getItems().size() == 1) {
             for (T plugin : this.getItems()) {
-                Map<Class<? extends Descriptor>, Describable> pluginThreadLocal
-                        = GroovyShellEvaluate.pluginThreadLocal.get();
+                Map<Class<? extends Descriptor>, Describable> pluginThreadLocal =
+                        GroovyShellEvaluate.pluginThreadLocal.get();
                 pluginThreadLocal.put(plugin.getDescriptor().getClass(), plugin);
                 break;
             }
             // GroovyShellEvaluate.pluginThreadLocal.set(this.getItems().get(0));
         }
         o.put("descriptors", desc2Json.getDescriptorsJSON(subFormFilter));
-        o.put("items", createItemsJSONArray(this.getItems(), subFormFilter));
+        o.put("items", createItemsJSONArray(this.pluginMeta, this.getItems(), subFormFilter));
 
         return o;
     }
 
-    public static <TT extends Describable<TT>> JSONArray createItemsJSONArray(
-            List<TT> items, Optional<IPropertyType.SubFormFilter> subFormFilter) throws Exception {
+    private static <TT extends Describable<TT>> JSONArray createItemsJSONArray(UploadPluginMeta pluginMeta,
+                                                                               List<TT> items,
+                                                                               Optional<IPropertyType.SubFormFilter> subFormFilter) throws Exception {
         JSONArray result = new JSONArray();
         JSONObject item = null;
+
         for (TT i : items) {
-            item = (new DescribableJSON(i)).getItemJson(subFormFilter);
+            DescribableJSON pluginJson = new DescribableJSON(i);
+            item = pluginJson.getItemJson(subFormFilter);
             result.add(item);
+
+
+            subFormFilter.ifPresent((formFilter) -> {
+                if (!formFilter.subformDetailView) {
+                    return;
+                }
+                try {
+                    if (pluginJson.descriptor instanceof CompanionPluginFactory) {
+                        Describable companionPlugin = ((CompanionPluginFactory) pluginJson.descriptor) //
+                                .getCompanionPlugin(pluginMeta);
+                        if (companionPlugin != null) {
+                            result.add(new DescribableJSON(companionPlugin).getItemJson());
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+
         }
         return result;
     }
