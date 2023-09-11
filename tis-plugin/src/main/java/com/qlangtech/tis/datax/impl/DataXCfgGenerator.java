@@ -241,13 +241,17 @@ public class DataXCfgGenerator {
 
                     } else if (dataxProcessor.isRDBMS2UnStructed(this.pluginCtx)) {
                         // example: mysql -> oss
-                        Map<String, ISelectedTab> selectedTabs = selectedTabsCall.call();
-                        ISelectedTab tab = selectedTabs.get(readerContext.getSourceTableName());
-                        Objects.requireNonNull(tab,
-                                readerContext.getSourceTableName() + " relevant tab can not be " + "null");
-                        IDataxProcessor.TableMap m =
-                                new IDataxProcessor.TableMap(Objects.requireNonNull(tabAlias.get(tab.getName()),
-                                        "table:" + tab.getName() + " relevant alias can not be null"), tab);
+                        //                        Map<String, ISelectedTab> selectedTabs = selectedTabsCall.call();
+                        //                        ISelectedTab tab = selectedTabs.get(readerContext
+                        //                        .getSourceTableName());
+                        //                        Objects.requireNonNull(tab,
+                        //                                readerContext.getSourceTableName() + " relevant tab can not
+                        //                                be " + "null");
+                        IDataxProcessor.TableMap m = createTableMap(tabAlias, selectedTabsCall.call(), readerContext);
+                        //                                new IDataxProcessor.TableMap(Objects.requireNonNull
+                        //                                (tabAlias.get(tab.getName()),
+                        //                                        "table:" + tab.getName() + " relevant alias can not
+                        //                                        be null"), tab);
                         //m.setSourceCols(tab.getCols());
                         //                m.setTo(tab.getName());
                         //                m.setFrom(tab.getName());
@@ -535,21 +539,22 @@ public class DataXCfgGenerator {
     private IDataxProcessor.TableMap createTableMap(TableAliasMapper tabAlias, Map<String, ISelectedTab> selectedTabs
             , IDataxReaderContext readerContext) {
 
-        TableAlias tableAlias = tabAlias.get(readerContext.getSourceTableName());
-        if (tableAlias == null) {
-            throw new IllegalStateException("sourceTable:" + readerContext.getSourceTableName() + " can not find " +
-                    "relevant 'tableAlias' keys:[" + tabAlias.getFromTabDesc() + "]");
-        }
-        ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceTableName());
-        if (selectedTab == null) {
-            throw new IllegalStateException("sourceTable:" + readerContext.getSourceTableName() + " can not find " +
-                    "relevant '" + ISelectedTab.class.getSimpleName() + "' keys:[" + String.join(",",
-                    selectedTabs.keySet()) + "]");
-        }
-        IDataxProcessor.TableMap tableMap = new IDataxProcessor.TableMap(tableAlias, selectedTab);
-        //        tableMap.setFrom(tableAlias.getFrom());
-        //        tableMap.setTo(tableAlias.getTo());
-        return tableMap;
+        return readerContext.createTableMap(tabAlias, selectedTabs);
+
+//        TableAlias tableAlias = tabAlias.get(readerContext.getSourceTableName());
+//        if (tableAlias == null) {
+//            throw new IllegalStateException("sourceTable:" + readerContext.getSourceTableName() + " can not find " +
+//                    "relevant 'tableAlias' keys:[" + tabAlias.getFromTabDesc() + "]");
+//        }
+//        ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceTableName());
+//        if (selectedTab == null) {
+//            throw new IllegalStateException("sourceTable:" + readerContext.getSourceTableName() + " can not find " +
+//                    "relevant '" + ISelectedTab.class.getSimpleName() + "' keys:[" + String.join(",",
+//                    selectedTabs.keySet()) + "]");
+//        }
+//        IDataxProcessor.TableMap tableMap = new IDataxProcessor.TableMap(tableAlias, selectedTab);
+//
+//        return tableMap;
     }
 
     /**

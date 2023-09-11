@@ -18,7 +18,6 @@
 
 package com.qlangtech.tis.plugin.ds;
 
-import java.sql.Types;
 import java.util.*;
 
 /**

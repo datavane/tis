@@ -18,7 +18,20 @@
 
 package com.qlangtech.tis.plugin.ds;
 
-import java.sql.Statement;
+import com.alibaba.datax.common.util.Configuration;
+import com.alibaba.datax.core.job.IJobContainerContext;
+import com.alibaba.datax.plugin.rdbms.util.DataXResourceName;
+import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.offline.DataxUtils;
+import com.qlangtech.tis.plugin.StoreResourceType;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * 适配 BasicDataXRdbmsReader 和 BasicDataXRdbmsWriter DataSource获取借口
@@ -27,6 +40,62 @@ import java.sql.Statement;
  * @create: 2021-09-06 12:14
  **/
 public interface IDataSourceFactoryGetter {
+    public static IDataSourceFactoryGetter getWriterDataSourceFactoryGetter(Configuration originalConfig, IJobContainerContext containerContext) {
+        return getDataSourceFactoryGetter(originalConfig, containerContext, (res) -> {
+            return DataxWriter.load(null, res.resType, res.getDataXName(), true);
+        });
+    }
+    public static IDataSourceFactoryGetter getReaderDataSourceFactoryGetter(Configuration config,
+                                                                            IJobContainerContext containerContext) {
+        return getDataSourceFactoryGetter(config, containerContext, (res) -> {
+
+            if (res.resType != StoreResourceType.DataFlow) {
+                IDataxProcessor processor = DataxProcessor.load(null, res.resType, res.getDataXName());
+                IDataxReader reader = null;
+                if ((reader = processor.getReader(null)) instanceof IDataSourceFactoryGetter) {
+                    return reader;
+                }
+            }
+
+
+            final DBIdentity dbFactoryId = DBIdentity.parseId(config.getString(DataxUtils.DATASOURCE_FACTORY_IDENTITY));
+            return new IDataSourceFactoryGetter() {
+                @Override
+                public DataSourceFactory getDataSourceFactory() {
+                    return TIS.getDataBasePlugin(new PostedDSProp(dbFactoryId));
+                }
+
+                @Override
+                public Integer getRowFetchSize() {
+                    return 2000;
+                }
+            };
+        });
+    }
+
+    static IDataSourceFactoryGetter getDataSourceFactoryGetter(Configuration originalConfig,
+                                                               IJobContainerContext containerContext,
+                                                               Function<DataXResourceName, Object> callable) {
+
+
+        String dataXName = containerContext.getTISDataXName(); // originalConfig.getString(DataxUtils.DATAX_NAME);
+        StoreResourceType resType =
+                StoreResourceType.parse(originalConfig.getString(StoreResourceType.KEY_STORE_RESOURCE_TYPE));
+        if (StringUtils.isEmpty(dataXName)) {
+            throw new IllegalArgumentException("param dataXName:" + dataXName + "can not be null");
+        }
+        try {
+            Object dataxPlugin = callable.apply(new DataXResourceName(() -> dataXName, resType));
+            Objects.requireNonNull(dataxPlugin, "dataXName:" + dataXName + " relevant instance can not be null");
+            if (!(dataxPlugin instanceof IDataSourceFactoryGetter)) {
+                throw new IllegalStateException("dataxWriter:" + dataxPlugin.getClass() + " mus be type of " + IDataSourceFactoryGetter.class);
+            }
+            return (IDataSourceFactoryGetter) dataxPlugin;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     DataSourceFactory getDataSourceFactory();
 

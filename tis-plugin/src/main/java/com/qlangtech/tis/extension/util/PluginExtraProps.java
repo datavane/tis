@@ -391,22 +391,23 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         }), TupleList("tuplelist" //
                 , (attrDesc, msgHandler, context, eprops) -> {
 
-            Optional<CMeta.ElementCreatorFactory> elementCreator =
-                    (Optional<CMeta.ElementCreatorFactory>) attrDesc.extraProp.getProps().get(CMeta.ElementCreatorFactory.class.getName());
-            if (elementCreator == null) {
-                elementCreator = Optional.empty();
-                try {
-                    String selectElementCreator =
-                            attrDesc.extraProp.getProps().getString(CMeta.KEY_ELEMENT_CREATOR_FACTORY);
-                    if (StringUtils.isNotEmpty(selectElementCreator)) {
-                        elementCreator =
-                                Optional.of((CMeta.ElementCreatorFactory) TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                attrDesc.extraProp.getProps().put(CMeta.ElementCreatorFactory.class.getName(), elementCreator);
-            }
+            Optional<CMeta.ElementCreatorFactory> elementCreator = attrDesc.extraProp.getCMetaCreator();//.getProps()
+            // .get
+            // (CMeta.ElementCreatorFactory.class.getName());
+//            if (elementCreator == null) {
+//                elementCreator = Optional.empty();
+//                try {
+//                    String selectElementCreator =
+//                            attrDesc.extraProp.getProps().getString(CMeta.KEY_ELEMENT_CREATOR_FACTORY);
+//                    if (StringUtils.isNotEmpty(selectElementCreator)) {
+//                        elementCreator =
+//                                Optional.of((CMeta.ElementCreatorFactory) TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
+//                    }
+//                } catch (Exception e) {
+//                    throw new RuntimeException(e);
+//                }
+//                attrDesc.extraProp.getProps().put(CMeta.ElementCreatorFactory.class.getName(), elementCreator);
+//            }
 
 
             String keyColsMeta = "";
@@ -550,6 +551,32 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         public JSONObject getProps() {
             return this.props;
         }
+
+        private Optional<CMeta.ElementCreatorFactory> elementCreator;
+
+        @JSONField(serialize = false)
+        public Optional<CMeta.ElementCreatorFactory> getCMetaCreator() {
+            //            Optional<CMeta.ElementCreatorFactory> elementCreator =
+            //                    (Optional<CMeta.ElementCreatorFactory>) this.getProps().get(CMeta
+            //                    .ElementCreatorFactory.class.getName());
+
+            if (elementCreator == null) {
+                elementCreator = Optional.empty();
+                try {
+                    String selectElementCreator = this.getProps().getString(CMeta.KEY_ELEMENT_CREATOR_FACTORY);
+                    if (StringUtils.isNotEmpty(selectElementCreator)) {
+                        elementCreator =
+                                Optional.of((CMeta.ElementCreatorFactory) TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                //                this.getProps().put(CMeta.ElementCreatorFactory.class.getName(), elementCreator);
+            }
+
+            return elementCreator;
+        }
+
 
         public void merge(Props p) {
             jsonMerge(props, p.props);

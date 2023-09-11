@@ -8,6 +8,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -35,8 +36,24 @@ import java.util.Map;
 public class CMeta implements Serializable, IColMetaGetter, IdentityName {
 
 
-    public interface ElementCreatorFactory{
+    public interface ElementCreatorFactory {
+
+        CMeta createDefault();
+
         CMeta create(JSONObject targetCol);
+    }
+
+    public static CMeta create(String colName, JDBCTypes type) {
+        return create(Optional.empty(), colName, type);
+    }
+
+    public static CMeta create(Optional<ElementCreatorFactory> elementCreator, String colName, JDBCTypes type) {
+        CMeta cmeta = elementCreator.map((factory) -> {
+            return factory.createDefault();
+        }).orElse(new CMeta());// new CMeta();
+        cmeta.setName(colName);
+        cmeta.setType(DataTypeMeta.getDataTypeMeta(type).getType());
+        return cmeta;
     }
 
     public static final String KEY_ELEMENT_CREATOR_FACTORY = "elementCreator";
@@ -47,8 +64,6 @@ public class CMeta implements Serializable, IColMetaGetter, IdentityName {
 
     private String comment;
     private boolean nullable;
-
-
 
 
     /**

@@ -48,7 +48,7 @@ public class ColumnMetaData extends Option {
 
     public static void fillSelectedTabMeta(ISelectedTab tab,
                                            Function<ISelectedTab, Map<String, ColumnMetaData>> tableColsMetaGetter) {
-        Map<String, ColumnMetaData> colsMeta = tableColsMetaGetter.apply(tab);//tabsMeta.get(tab.getName());
+        Map<String, ColumnMetaData> colsMeta = tableColsMetaGetter.apply(tab);
         ColumnMetaData colMeta = null;
         if (colsMeta.size() < 1) {
             throw new IllegalStateException("table:" + tab.getName() + " relevant cols meta can not be null");

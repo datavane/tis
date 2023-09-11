@@ -76,7 +76,7 @@ public class PropertyType implements IPropertyType {
 
     public final FormField formField;
 
-    private final Field f;
+    public final Field f;
 
     private Boolean inputRequired;
 
