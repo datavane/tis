@@ -24,7 +24,6 @@ import com.alibaba.fastjson.annotation.JSONField;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
-import java.sql.Types;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

@@ -35,6 +35,7 @@ import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.db.parser.DBConfigSuit;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.extension.PluginFormProperties;
@@ -57,10 +58,13 @@ import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.offline.pojo.GitRepositoryCommitPojo;
 import com.qlangtech.tis.offline.pojo.TISDb;
 import com.qlangtech.tis.offline.pojo.WorkflowPojo;
+import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
@@ -1207,45 +1211,63 @@ public class OfflineDatasourceAction extends BasicModule {
    * @param tab2cols
    * @return
    */
-  private ISelectedTab createNewSelectedTab(PluginFormProperties pluginFormPropertyTypes, Map.Entry<String,
-    List<ColumnMetaData>> tab2cols) {
+  private ISelectedTab createNewSelectedTab(PluginFormProperties pluginFormPropertyTypes //
+    , Map.Entry<String, List<ColumnMetaData>> tab2cols) {
     return pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
 
 
       @Override
       public ISelectedTab visit(BaseSubFormProperties props) {
+
+
         try {
-          ISelectedTab subForm = props.newSubDetailed();
+          SelectedTab subForm = props.newSubDetailed();
 
-          Set<Map.Entry<String, PropertyType>> kvs = props.getKVTuples();
-          PropertyType pp = null;
+          fillDefaultVals(props, subForm);
 
-          final Set<String> skipProps = Sets.newHashSet();
-          ppDftValGetter:
-          for (Map.Entry<String, PropertyType> pentry : kvs) {
-            pp = pentry.getValue();
-            if (pp.isIdentity()) {
-              pp.setVal(subForm, tab2cols.getKey());
-              skipProps.add(pentry.getKey());
-              continue;
-            }
-            if (pp.formField.type() == FormFieldType.MULTI_SELECTABLE) {
-              skipProps.add(pentry.getKey());
-              pp.setVal(subForm, tab2cols.getValue().stream() //
-                .map(ColumnMetaData::convert).collect(Collectors.toList()));
-              continue ppDftValGetter;
-            }
+          Descriptor parentDesc = props.getParentPluginDesc();
+
+          if (parentDesc instanceof CompanionPluginFactory) {
+            Descriptor<Describable> companionDesc = ((CompanionPluginFactory) parentDesc).getCompanionDescriptor();
+            SelectedTabExtend tabExt = (SelectedTabExtend) companionDesc.clazz.newInstance();
+            fillDefaultVals(companionDesc.getPluginFormPropertyTypes(), tabExt);
+            subForm.setSourceProps(tabExt);
           }
 
-          return createPluginByDefaultVals(new StringBuffer(props.instClazz.getName()), skipProps, kvs, subForm);
+          return subForm;
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
 
+
       }
 
-      private <T> T createPluginByDefaultVals(StringBuffer propPath, final Set<String> skipProps,
-                                              Set<Map.Entry<String, PropertyType>> kvTuples, T plugin) throws Exception {
+      private void fillDefaultVals(PluginFormProperties props, Describable subForm) {
+        Set<Map.Entry<String, PropertyType>> kvs = props.getKVTuples();
+        PropertyType pp = null;
+
+        final Set<String> skipProps = Sets.newHashSet();
+        ppDftValGetter:
+        for (Map.Entry<String, PropertyType> pentry : kvs) {
+          pp = pentry.getValue();
+          if (pp.isIdentity()) {
+            pp.setVal(subForm, tab2cols.getKey());
+            skipProps.add(pentry.getKey());
+            continue;
+          }
+          if (pp.formField.type() == FormFieldType.MULTI_SELECTABLE) {
+            skipProps.add(pentry.getKey());
+            pp.setVal(subForm, tab2cols.getValue().stream() //
+              .map(ColumnMetaData::convert).collect(Collectors.toList()));
+            continue ppDftValGetter;
+          }
+        }
+
+        createPluginByDefaultVals(new StringBuffer(subForm.getClass().getName()), skipProps, kvs, subForm);
+      }
+
+      private Describable createPluginByDefaultVals(StringBuffer propPath, final Set<String> skipProps,
+                                                    Set<Map.Entry<String, PropertyType>> kvTuples, Describable plugin) {
         PropertyType pp = null;
         ppDftValGetter:
         for (Map.Entry<String, PropertyType> pentry : kvTuples) {
@@ -1258,12 +1280,19 @@ public class OfflineDatasourceAction extends BasicModule {
             if (pp.dftVal() != null) {
               if (pp.isDescribable()) {
                 List<? extends Descriptor> descriptors = pp.getApplicableDescriptors();
-                for (Descriptor desc : descriptors) {
-                  if (StringUtils.endsWithIgnoreCase(String.valueOf(pp.dftVal()), desc.getDisplayName())) {
-                    pp.setVal(plugin,
-                      createPluginByDefaultVals((new StringBuffer(propPath)).append("->").append(pentry.getKey()).append(":").append(pp.clazz.getName()), Sets.newHashSet(), desc.getPluginFormPropertyTypes().getKVTuples(), desc.clazz.newInstance()));
-                    continue ppDftValGetter;
+                try {
+                  for (Descriptor desc : descriptors) {
+                    if (StringUtils.endsWithIgnoreCase(String.valueOf(pp.dftVal()), desc.getDisplayName())) {
+                      pp.setVal(plugin, createPluginByDefaultVals((new StringBuffer(propPath)).append("->") //
+                          .append(pentry.getKey()).append(":").append(pp.clazz.getName()) //
+                        , Sets.newHashSet() //
+                        , desc.getPluginFormPropertyTypes().getKVTuples() //
+                        , (Describable) desc.clazz.newInstance()));
+                      continue ppDftValGetter;
+                    }
                   }
+                } catch (Exception e) {
+                  throw new RuntimeException(e);
                 }
               } else {
                 pp.setVal(plugin, pp.dftVal());
@@ -1295,7 +1324,7 @@ public class OfflineDatasourceAction extends BasicModule {
             throw new IllegalStateException("have not prepare for table:" + tab2cols.getKey() + " creating:" + propPath + ",prop name:'" + pentry.getKey() + "',subform class:" + plugin.getClass().getName());
           }
         }
-        return (T) plugin;
+        return plugin;
       }
     });
   }

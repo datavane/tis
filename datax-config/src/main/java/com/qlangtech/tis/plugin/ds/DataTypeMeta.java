@@ -18,14 +18,23 @@
 
 package com.qlangtech.tis.plugin.ds;
 
-import java.util.*;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-08-10 13:36
  **/
 public class DataTypeMeta {
-    private final DataType type;
+    private final DataType _type;
 
     /**
      * 接受的两种类型:
@@ -38,9 +47,59 @@ public class DataTypeMeta {
      * @return
      */
     public static Map<String, Object> createViewBiz(Object tabMapper) {
-        Map<String, Object> biz = new HashMap<>();
+        JSONObject biz = new JSONObject();
+        // Map<String, Object> biz = new HashMap<>();
         biz.put("tabMapper", Objects.requireNonNull(tabMapper, "tabMapper can not be null"));
-        biz.put("colMetas", DataTypeMeta.typeMetas);
+
+        JSONArray types = new JSONArray();
+        JSONObject type = null;
+        JSONObject dt = null;
+        DataType t = null;
+
+
+        for (DataTypeMeta meta : DataTypeMeta.typeMetas) {
+            type = new JSONObject();
+            type.put("containColSize", meta.isContainColSize());
+            type.put("containDecimalRange", meta.isContainDecimalRange());
+            dt = new JSONObject();
+
+            t = meta.getType();
+
+            dt.put("columnSize", t.getColumnSize());
+            dt.put("decimalDigits", t.getDecimalDigits());
+            dt.put("type", t.getType());
+            dt.put("typeDesc", t.getTypeDesc());
+            dt.put("typeName", t.typeName);
+
+            ColSizeRange colsSizeRange = meta.getColsSizeRange();
+            if (colsSizeRange != null) {
+                //                "colsSizeRange": {
+                //                    "max": 46,
+                //                            "min": 1
+                //                },
+                JSONObject range = new JSONObject();
+                range.put("max", colsSizeRange.getMax());
+                range.put("min", colsSizeRange.getMin());
+                type.put("colsSizeRange", range);
+            }
+
+            DecimalRange decimalRange = meta.getDecimalRange();
+            if (decimalRange != null) {
+                JSONObject range = new JSONObject();
+                //                "decimalRange": {
+                //                    "max": 20,
+                //                            "min": 1
+                //                },
+                range.put("max", decimalRange.getMax());
+                range.put("min", decimalRange.getMin());
+                type.put("decimalRange", range);
+            }
+
+            type.put("type", dt);
+            types.add(type);
+        }
+
+        biz.put("colMetas", types);
         return biz;
     }
 
@@ -67,37 +126,44 @@ public class DataTypeMeta {
     //            case Types.LONGVARBINARY:
     //            case Types.VARBINARY:
 
+    private static List<DataTypeMeta> createTypes(DataTypeMeta... metas) {
+        List<DataTypeMeta> result = new ArrayList<>();
+        for (DataTypeMeta meta : metas) {
+            result.add(meta);
+        }
+        return Collections.unmodifiableList(result);
+    }
 
-    public static final DataTypeMeta[] typeMetas //
-            = new DataTypeMeta[]{ //
-            new DataTypeMeta(DataType.createVarChar(32), new ColSizeRange(1, 2000)),
-            new DataTypeMeta(new DataType(JDBCTypes.INTEGER)) //
-            , new DataTypeMeta(new DataType(JDBCTypes.TINYINT)) //
-            , new DataTypeMeta(new DataType(JDBCTypes.SMALLINT)) //
-            , new DataTypeMeta(new DataType(JDBCTypes.BIGINT)) //
-            , new DataTypeMeta(new DataType(JDBCTypes.FLOAT)) //
-            , new DataTypeMeta(new DataType(JDBCTypes.DOUBLE)) //
-            , new DataTypeMeta(new DataType(JDBCTypes.DECIMAL, 20).setDecimalDigits(2), new ColSizeRange(1, 46),
-            new DecimalRange(1, 20)) //
-            , new DataTypeMeta(new DataType(JDBCTypes.DATE)) //
-            , new DataTypeMeta(new DataType(JDBCTypes.TIME)), //
-            new DataTypeMeta(new DataType(JDBCTypes.TIMESTAMP)) //
-            , new DataTypeMeta(new DataType(JDBCTypes.BIT)) //
-            , new DataTypeMeta(new DataType(JDBCTypes.LONGVARCHAR)) //
-            , new DataTypeMeta(new DataType(JDBCTypes.LONGNVARCHAR)) //
-            , new DataTypeMeta(new DataType(JDBCTypes.BOOLEAN)) //
-            //    , new DataTypeMeta(new DataType(Types.T, "BOOLEAN")) //
-            , new DataTypeMeta(new DataType(JDBCTypes.BLOB,1000), new ColSizeRange(1, 2000))//
-            , new DataTypeMeta(new DataType(JDBCTypes.BINARY,1000), new ColSizeRange(1, 2000)) //
-            , new DataTypeMeta(new DataType(JDBCTypes.LONGVARBINARY, 1000), new ColSizeRange(1, 2000)) //
-            , new DataTypeMeta(new DataType(JDBCTypes.VARBINARY, 1000), new ColSizeRange(1, 4000))};
+    public static final List<DataTypeMeta> typeMetas //
+            =  //
+            createTypes(new DataTypeMeta(DataType.createVarChar(32), new ColSizeRange(1, 2000)),
+                    new DataTypeMeta(new DataType(JDBCTypes.INTEGER)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.TINYINT)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.SMALLINT)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.BIGINT)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.FLOAT)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.DOUBLE)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.DECIMAL, 20).setDecimalDigits(2), new ColSizeRange(1,
+                            46), new DecimalRange(1, 20)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.DATE)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.TIME)), //
+                    new DataTypeMeta(new DataType(JDBCTypes.TIMESTAMP)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.BIT)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.LONGVARCHAR)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.LONGNVARCHAR)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.BOOLEAN)) //
+                    //    , new DataTypeMeta(new DataType(Types.T, "BOOLEAN")) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.BLOB, 1000), new ColSizeRange(1, 2000))//
+                    , new DataTypeMeta(new DataType(JDBCTypes.BINARY, 1000), new ColSizeRange(1, 2000)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.LONGVARBINARY, 1000), new ColSizeRange(1, 2000)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.VARBINARY, 1000), new ColSizeRange(1, 4000)));
 
     private static final Map<JDBCTypes, DataTypeMeta> typeMetasDic;
 
     static {
         Map<JDBCTypes, DataTypeMeta> dic = new HashMap<>();
         for (DataTypeMeta type : typeMetas) {
-            dic.put(type.type.getJdbcType(), type);
+            dic.put(type._type.getJdbcType(), type);
         }
         typeMetasDic = Collections.unmodifiableMap(dic);
     }
@@ -129,13 +195,13 @@ public class DataTypeMeta {
     }
 
     private DataTypeMeta(DataType type, Optional<ColSizeRange> colSizeRange, Optional<DecimalRange> decimalRange) {
-        this.type = type;
+        this._type = Objects.requireNonNull(type, "dataType can not be null");
         this.colSizeRange = colSizeRange;
         this.decimalRange = decimalRange;
     }
 
     public DataType getType() {
-        return this.type;
+        return Objects.requireNonNull(this._type, "type can not be null");
     }
 
     public boolean isContainColSize() {

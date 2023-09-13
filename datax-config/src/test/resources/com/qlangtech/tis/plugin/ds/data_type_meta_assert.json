@@ -1,0 +1,242 @@
+{
+  "tabMapper": [],
+  "colMetas": [
+    {
+      "colsSizeRange": {
+        "max": 2000,
+        "min": 1
+      },
+      "containColSize": true,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": 32,
+        "decimalDigits": -1,
+        "type": 12,
+        "typeDesc": "varchar(32)",
+        "typeName": "VARCHAR"
+      }
+    },
+    {
+      "containColSize": false,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": -1,
+        "decimalDigits": -1,
+        "type": 4,
+        "typeDesc": "int",
+        "typeName": "INTEGER"
+      }
+    },
+    {
+      "containColSize": false,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": -1,
+        "decimalDigits": -1,
+        "type": -6,
+        "typeDesc": "tinyint",
+        "typeName": "TINYINT"
+      }
+    },
+    {
+      "containColSize": false,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": -1,
+        "decimalDigits": -1,
+        "type": 5,
+        "typeDesc": "smallint",
+        "typeName": "SMALLINT"
+      }
+    },
+    {
+      "containColSize": false,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": -1,
+        "decimalDigits": -1,
+        "type": -5,
+        "typeDesc": "bigint",
+        "typeName": "BIGINT"
+      }
+    },
+    {
+      "containColSize": false,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": -1,
+        "decimalDigits": -1,
+        "type": 6,
+        "typeDesc": "float",
+        "typeName": "FLOAT"
+      }
+    },
+    {
+      "containColSize": false,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": -1,
+        "decimalDigits": -1,
+        "type": 8,
+        "typeDesc": "double",
+        "typeName": "DOUBLE"
+      }
+    },
+    {
+      "colsSizeRange": {
+        "max": 46,
+        "min": 1
+      },
+      "containColSize": true,
+      "containDecimalRange": true,
+      "decimalRange": {
+        "max": 20,
+        "min": 1
+      },
+      "type": {
+        "columnSize": 20,
+        "decimalDigits": 2,
+        "type": 3,
+        "typeDesc": "decimal(20,2)",
+        "typeName": "DECIMAL"
+      }
+    },
+    {
+      "containColSize": false,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": -1,
+        "decimalDigits": -1,
+        "type": 91,
+        "typeDesc": "date",
+        "typeName": "DATE"
+      }
+    },
+    {
+      "containColSize": false,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": -1,
+        "decimalDigits": -1,
+        "type": 92,
+        "typeDesc": "time",
+        "typeName": "TIME"
+      }
+    },
+    {
+      "containColSize": false,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": -1,
+        "decimalDigits": -1,
+        "type": 93,
+        "typeDesc": "timestamp",
+        "typeName": "TIMESTAMP"
+      }
+    },
+    {
+      "containColSize": false,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": -1,
+        "decimalDigits": -1,
+        "type": -7,
+        "typeDesc": "bit",
+        "typeName": "BIT"
+      }
+    },
+    {
+      "containColSize": false,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": -1,
+        "decimalDigits": -1,
+        "type": -1,
+        "typeDesc": "varchar(-1)",
+        "typeName": "LONGVARCHAR"
+      }
+    },
+    {
+      "containColSize": false,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": -1,
+        "decimalDigits": -1,
+        "type": -16,
+        "typeDesc": "varchar(-1)",
+        "typeName": "LONGNVARCHAR"
+      }
+    },
+    {
+      "containColSize": false,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": -1,
+        "decimalDigits": -1,
+        "type": 16,
+        "typeDesc": "bool",
+        "typeName": "BOOLEAN"
+      }
+    },
+    {
+      "colsSizeRange": {
+        "max": 2000,
+        "min": 1
+      },
+      "containColSize": true,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": 1000,
+        "decimalDigits": -1,
+        "type": 2004,
+        "typeDesc": "blob(1000)",
+        "typeName": "BLOB"
+      }
+    },
+    {
+      "colsSizeRange": {
+        "max": 2000,
+        "min": 1
+      },
+      "containColSize": true,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": 1000,
+        "decimalDigits": -1,
+        "type": -2,
+        "typeDesc": "blob(1000)",
+        "typeName": "BINARY"
+      }
+    },
+    {
+      "colsSizeRange": {
+        "max": 2000,
+        "min": 1
+      },
+      "containColSize": true,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": 1000,
+        "decimalDigits": -1,
+        "type": -4,
+        "typeDesc": "blob(1000)",
+        "typeName": "LONGVARBINARY"
+      }
+    },
+    {
+      "colsSizeRange": {
+        "max": 4000,
+        "min": 1
+      },
+      "containColSize": true,
+      "containDecimalRange": false,
+      "type": {
+        "columnSize": 1000,
+        "decimalDigits": -1,
+        "type": -3,
+        "typeDesc": "blob(1000)",
+        "typeName": "VARBINARY"
+      }
+    }
+  ]
+}

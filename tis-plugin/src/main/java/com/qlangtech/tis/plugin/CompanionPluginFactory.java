@@ -32,7 +32,7 @@ public interface CompanionPluginFactory< COMPANION_PLUGIN extends Describable> {
     /**
      * 取得伴生插件对象
      *
-     * @param hostPlugin
+     * @param pluginMeta hostPlugin
      * @return
      */
     public COMPANION_PLUGIN getCompanionPlugin(UploadPluginMeta pluginMeta);

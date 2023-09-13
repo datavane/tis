@@ -562,26 +562,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
 
-    //    public static JSONArray resolveEnumProp(Descriptor descriptor, PropertyType propType) {
-    //        return resolveEnumProp(descriptor, propType.extraProp);
-    //    }
 
     private static JSONArray resolveEnumProp(Descriptor descriptor, PluginExtraProps.Props fieldExtraProps,
                                              Function<Object, Object> process) {
         Object anEnum = fieldExtraProps.getProps().get(KEY_ENUM_PROP);
-        //                                if (anEnum == null) {
-        //                                    throw new IllegalStateException("fieldName:" + f.getName() + " relevant
-        //                                    enum descriptor in json config can not be null");
-        //                                }
         JSONArray enums = new JSONArray();
         if (anEnum != null && anEnum instanceof String) {
             try {
                 GroovyShellEvaluate.descriptorThreadLocal.set(descriptor);
-                fieldExtraProps.getProps().put(KEY_ENUM_PROP, GroovyShellEvaluate.scriptEval((String) anEnum, process
-                        //                        (opts) -> {
-                        //                    return Option.toJson((List<Option>) opts);
-                        //                }
-                ));
+                fieldExtraProps.getProps().put(KEY_ENUM_PROP, GroovyShellEvaluate.scriptEval((String) anEnum, process));
             } finally {
                 GroovyShellEvaluate.descriptorThreadLocal.remove();
             }
