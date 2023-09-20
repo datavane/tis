@@ -29,10 +29,12 @@ public enum JDBCTypes {
     , LONGNVARCHAR(Types.LONGNVARCHAR, "LONGNVARCHAR") //
     , NVARCHAR(Types.NVARCHAR, "NVARCHAR") //
     , REAL(Types.REAL, "REAL") //
+    , CLOB(Types.CLOB, "CLOB") //
     , NUMERIC(Types.NUMERIC, "NUMERIC") //
     , VARCHAR(Types.VARCHAR, "VARCHAR") //
     , INTEGER(Types.INTEGER, "INTEGER") //
     , TINYINT(Types.TINYINT, "TINYINT") //
+    , OTHER(Types.OTHER, "OTHER") //
     , SMALLINT(Types.SMALLINT, "SMALLINT") //
     , BIGINT(Types.BIGINT, "BIGINT") //
     , FLOAT(Types.FLOAT, "FLOAT") //

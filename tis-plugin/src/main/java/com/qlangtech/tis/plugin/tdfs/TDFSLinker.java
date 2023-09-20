@@ -51,14 +51,6 @@ public abstract class TDFSLinker implements Describable<TDFSLinker> {
         return path;
     }
 
-//    public abstract OutputStream getOutputStream(String path);
-//
-//    public abstract InputStream getInputStream(String path);
-
-//    public abstract void login();
-//
-//    public abstract void logout();
-
     public abstract ITDFSSession createTdfsSession(Integer timeout);
 
     public abstract ITDFSSession createTdfsSession();

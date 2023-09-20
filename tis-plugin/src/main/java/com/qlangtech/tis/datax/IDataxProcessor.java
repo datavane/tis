@@ -31,6 +31,7 @@ import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceTypeGetter;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
+import com.qlangtech.tis.plugin.ds.IDBReservedKeys;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -304,25 +305,27 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
 
     public class TabCols {
         private final List<String> cols;
+        private final IDBReservedKeys dbReservedKeys;
 
-        public static TabCols create(TableMap tm) {
-            return new TabCols(tm.getSourceCols().stream().map((c) -> c.getName()).collect(Collectors.toList()));
+        public static TabCols create(IDBReservedKeys dbReservedKeys, TableMap tm) {
+            return new TabCols(dbReservedKeys, tm.getSourceCols().stream().map((c) -> c.getName()).collect(Collectors.toList()));
         }
 
-        private TabCols(List<String> cols) {
+        private TabCols(IDBReservedKeys dbReservedKeys, List<String> cols) {
             this.cols = cols;
+            this.dbReservedKeys = dbReservedKeys;
         }
 
         public String getColsQuotes() {
-            return getColumnWithLink("\"`", "`\"");
+            return getColumnWithLink(Optional.of("\""));
         }
 
         public String getCols() {
-            return getColumnWithLink("`", "`");
+            return getColumnWithLink(Optional.empty());
         }
 
-        private String getColumnWithLink(String left, String right) {
-            return this.cols.stream().map(r -> (left + r + right)).collect(Collectors.joining(","));
+        protected String getColumnWithLink(Optional<String> includeIn) {
+            return this.cols.stream().map(r -> this.dbReservedKeys.getEscapedEntity(includeIn, r)).collect(Collectors.joining(","));
         }
     }
 }

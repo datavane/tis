@@ -346,8 +346,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     if (writerDescriptor != null && writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
                         subPluginFormPropertyTypes =
                                 Objects.requireNonNull(((DataxWriter.IRewriteSuFormProperties) writerDescriptor) //
-                                        .overwriteSubPluginFormPropertyTypes(subPluginFormPropertyTypes) //
-                                , "result can not be null " + PluginFormProperties.class.getSimpleName());
+                                                .overwriteSubPluginFormPropertyTypes(subPluginFormPropertyTypes) //
+                                        , "result can not be null " + PluginFormProperties.class.getSimpleName());
                     }
 
                 } catch (Exception e) {
@@ -528,11 +528,13 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
                                             List<CMeta> mcols = (List<CMeta>) cols;
                                             // cols有两种显示模式
-                                            switch (feProps.multiItemsViewType()) {
+                                            PluginExtraProps.MultiItemsViewType  //
+                                                    multiItemsViewType = feProps.multiItemsViewType();
+                                            switch (multiItemsViewType.viewType) {
                                                 case IdList:
                                                     return Option.toJson(mcols);
                                                 case TupleList:
-                                                    return DataTypeMeta.createViewBiz(mcols);
+                                                    return DataTypeMeta.createViewBiz(multiItemsViewType.getElementPropertyKeys(), mcols);
                                                 default:
                                                     throw new IllegalStateException("unhandle view type:" + feProps.multiItemsViewType());
                                             }
@@ -560,7 +562,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             throw new RuntimeException("parse desc:" + clazz.getName(), e);
         }
     }
-
 
 
     private static JSONArray resolveEnumProp(Descriptor descriptor, PluginExtraProps.Props fieldExtraProps,
@@ -641,8 +642,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     if (subFormFilter.isPresent()) {
                         Descriptor parentDesc = subFormFilter.get().getTargetDescriptor();
                         if (parentDesc instanceof SubForm.ISubFormItemValidate) {
-                            return ((SubForm.ISubFormItemValidate) parentDesc).validateSubForm(msgHandler, context,
-                                    postFormVals.newInstance());
+                            return ((SubForm.ISubFormItemValidate) parentDesc).validateSubForm( //
+                                    msgHandler, context, postFormVals.newInstance());
                         }
                     }
 
@@ -695,15 +696,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         // 提交表单的时候子表单是 {idfieldName1:{key1:val1,key2:val2},idfieldName2:{key1:val1,key2:val2}} 这样的格式
                         validateResult = props.visitAllSubDetailed(formData,
                                 new SuFormProperties.ISubDetailedProcess<PluginValidateResult>() {
-                            @Override
-                            public PluginValidateResult process(String subFormId, AttrValMap sform) {
-                                PluginValidateResult vResult = sform.validate(msgHandler, context, verify);
-                                if (!vResult.isValid()) {
-                                    return vResult;
-                                }
-                                return (PluginValidateResult) null;
-                            }
-                        });
+                                    @Override
+                                    public PluginValidateResult process(String subFormId, AttrValMap sform) {
+                                        PluginValidateResult vResult = sform.validate(msgHandler, context, verify);
+                                        if (!vResult.isValid()) {
+                                            return vResult;
+                                        }
+                                        return (PluginValidateResult) null;
+                                    }
+                                });
                         if (validateResult != null) {
                             return validateResult;
                         }

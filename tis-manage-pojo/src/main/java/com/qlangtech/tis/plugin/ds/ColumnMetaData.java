@@ -20,9 +20,11 @@ package com.qlangtech.tis.plugin.ds;
 import com.google.common.base.Joiner;
 import com.qlangtech.tis.manage.common.Option;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.map.CaseInsensitiveMap;
 
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,7 +37,9 @@ public class ColumnMetaData extends Option {
     public static final String KEY_COLS_METADATA = "cols-metadata";
 
     public static Map<String, ColumnMetaData> toMap(List<ColumnMetaData> cols) {
-        return cols.stream().collect(Collectors.toMap((c) -> c.getName(), (c) -> c));
+        TreeMap<String, ColumnMetaData> result = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        result.putAll(cols.stream().collect(Collectors.toMap((c) -> c.getName(), (c) -> c)));
+        return result;
     }
 
     public static StringBuffer buildExtractSQL(String tableName, List<ColumnMetaData> cols) {

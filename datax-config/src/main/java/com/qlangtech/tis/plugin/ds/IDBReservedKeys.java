@@ -30,14 +30,21 @@ public interface IDBReservedKeys {
     }
 
     default String getEscapedEntity(String name) {
-        Optional<String> escapeChar = this.getEscapeChar();
-        if (escapeChar.isPresent()) {
-            String ec = escapeChar.get();
-            return ec + name + ec;
-        } else {
-            return name;
-        }
+        return getEscapedEntity(Optional.empty(), name);
     }
+
+    /**
+     * @param includeIn 需要额外套一层符号
+     * @param name
+     * @return
+     */
+    default String getEscapedEntity(Optional<String> includeIn, String name) {
+        Optional<String> escapeChar = this.getEscapeChar();
+        String result = escapeChar.map((ec) -> ec + name + ec).orElse(name);
+        return includeIn.map((i) -> i + result + i).orElse(result);
+    }
+
+
 
     default String removeEscapeChar(String entityName) {
         if (entityName == null) {

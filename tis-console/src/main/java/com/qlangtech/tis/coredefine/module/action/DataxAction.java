@@ -976,7 +976,7 @@ public class DataxAction extends BasicModule {
     //    biz.put("colMetas", DataTypeMeta.typeMetas);
 
 
-    this.setBizResult(context, DataTypeMeta.createViewBiz(tabMapper));
+    this.setBizResult(context, DataTypeMeta.createViewBiz(Collections.emptyList(), tabMapper));
   }
 
   @Func(value = PermissionConstant.APP_ADD)

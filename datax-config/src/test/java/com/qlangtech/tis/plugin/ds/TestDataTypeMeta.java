@@ -27,6 +27,8 @@ import org.junit.Test;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -42,7 +44,7 @@ public class TestDataTypeMeta {
         try (InputStream metaAssert = TestDataTypeMeta.class.getResourceAsStream("data_type_meta_assert.json")) {
             Assert.assertEquals( //
                     json2String(IOUtils.toString(metaAssert, Charset.forName("utf-8"))) //
-                    , json2String(DataTypeMeta.createViewBiz(cms)));
+                    , json2String(DataTypeMeta.createViewBiz(Collections.emptyList(),cms)));
         }
 
     }

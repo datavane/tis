@@ -36,7 +36,10 @@ import java.util.Optional;
 public class CMeta implements Serializable, IColMetaGetter, IdentityName {
 
 
+    public static final String FIELD_NAME = "name";
+
     public interface ElementCreatorFactory {
+
 
         CMeta createDefault();
 

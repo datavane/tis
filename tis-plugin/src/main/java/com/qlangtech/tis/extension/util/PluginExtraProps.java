@@ -38,6 +38,7 @@ import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import org.apache.commons.beanutils.BeanUtilsBean2;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.ClassUtils;
@@ -46,6 +47,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -346,6 +348,41 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         }
     }
 
+    public static class MultiItemsViewType {
+        public final ViewType viewType;
+        public final Optional<CMeta.ElementCreatorFactory> tupleFactory;
+
+        private List<String> elementPropertyKeys;
+
+        public MultiItemsViewType(ViewType viewType, Optional<CMeta.ElementCreatorFactory> tupleFactory) {
+            this.viewType = viewType;
+            this.tupleFactory = Objects.requireNonNull(tupleFactory, "tupleFactory can not be null");
+        }
+
+        public List<FormFieldType.SelectedItem> getPostSelectedItems(PropertyType attrDesc,
+                                                                     IControlMsgHandler msgHandler, Context context,
+                                                                     JSONObject eprops) {
+            return this.viewType.getPostSelectedItems(attrDesc,msgHandler,context,eprops);
+        }
+
+        public List<String> getElementPropertyKeys() {
+            if (elementPropertyKeys == null) {
+                elementPropertyKeys = tupleFactory.map((factory) -> {
+                    try {
+                        return Lists.newArrayList(BeanUtilsBean2.getInstance().describe(factory.createDefault()).keySet());
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }).orElseGet(() -> new ArrayList<>());
+            }
+            return elementPropertyKeys;
+        }
+
+        public List<?> serialize2Frontend(Object bizInstance) {
+            return viewType.serialize2Frontend(bizInstance);
+        }
+    }
+
     /**
      * Fieldtype 为 MULTI_SELECTABLE 类型显示的类型
      * <ol>
@@ -391,24 +428,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         }), TupleList("tuplelist" //
                 , (attrDesc, msgHandler, context, eprops) -> {
 
-            Optional<CMeta.ElementCreatorFactory> elementCreator = attrDesc.extraProp.getCMetaCreator();//.getProps()
-            // .get
-            // (CMeta.ElementCreatorFactory.class.getName());
-//            if (elementCreator == null) {
-//                elementCreator = Optional.empty();
-//                try {
-//                    String selectElementCreator =
-//                            attrDesc.extraProp.getProps().getString(CMeta.KEY_ELEMENT_CREATOR_FACTORY);
-//                    if (StringUtils.isNotEmpty(selectElementCreator)) {
-//                        elementCreator =
-//                                Optional.of((CMeta.ElementCreatorFactory) TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
-//                    }
-//                } catch (Exception e) {
-//                    throw new RuntimeException(e);
-//                }
-//                attrDesc.extraProp.getProps().put(CMeta.ElementCreatorFactory.class.getName(), elementCreator);
-//            }
-
+            Optional<CMeta.ElementCreatorFactory> elementCreator = attrDesc.extraProp.getCMetaCreator();
 
             String keyColsMeta = "";
             JSONArray mcols = eprops.getJSONObject(Descriptor.KEY_ENUM_PROP).getJSONArray("_mcols");
@@ -477,6 +497,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         private final JSONObject props;
         private String asynHelp;
 
+        private MultiItemsViewType multiItemsViewType;
+
         public Props(JSONObject props) {
             this.props = props;
         }
@@ -510,8 +532,25 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
          *
          * @return
          */
-        public ViewType multiItemsViewType() {
-            return ViewType.parse(this.props.getString(KEY_VIEW_TYPE));
+        @JSONField(serialize = false)
+        public MultiItemsViewType multiItemsViewType() {
+
+            if (multiItemsViewType == null) {
+                Optional<CMeta.ElementCreatorFactory> elementCreator = Optional.empty();
+                try {
+                    String selectElementCreator = this.getProps().getString(CMeta.KEY_ELEMENT_CREATOR_FACTORY);
+                    if (StringUtils.isNotEmpty(selectElementCreator)) {
+                        elementCreator = Optional.of((CMeta.ElementCreatorFactory) //
+                                TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                multiItemsViewType = new MultiItemsViewType(ViewType.parse(this.props.getString(KEY_VIEW_TYPE)),
+                        elementCreator);
+            }
+
+            return multiItemsViewType;
         }
 
 
@@ -552,29 +591,11 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return this.props;
         }
 
-        private Optional<CMeta.ElementCreatorFactory> elementCreator;
+        // private Optional<CMeta.ElementCreatorFactory> elementCreator;
 
         @JSONField(serialize = false)
         public Optional<CMeta.ElementCreatorFactory> getCMetaCreator() {
-            //            Optional<CMeta.ElementCreatorFactory> elementCreator =
-            //                    (Optional<CMeta.ElementCreatorFactory>) this.getProps().get(CMeta
-            //                    .ElementCreatorFactory.class.getName());
-
-            if (elementCreator == null) {
-                elementCreator = Optional.empty();
-                try {
-                    String selectElementCreator = this.getProps().getString(CMeta.KEY_ELEMENT_CREATOR_FACTORY);
-                    if (StringUtils.isNotEmpty(selectElementCreator)) {
-                        elementCreator =
-                                Optional.of((CMeta.ElementCreatorFactory) TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                //                this.getProps().put(CMeta.ElementCreatorFactory.class.getName(), elementCreator);
-            }
-
-            return elementCreator;
+            return this.multiItemsViewType().tupleFactory;
         }
 
 

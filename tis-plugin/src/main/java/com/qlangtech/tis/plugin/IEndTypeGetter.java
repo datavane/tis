@@ -54,6 +54,7 @@ public interface IEndTypeGetter {
         , Cassandra("cassandra") //, HDFS("hdfs")
         , SqlServer("sqlServer"), TiDB("TiDB") //
         , RocketMQ("rocketMq"), Kafka("kafka"), DataFlow("dataflow") //
+        , DaMeng("daMeng")
         , AliyunODPS("aliyunOdps"), HiveMetaStore("hms"), RabbitMQ("rabbitmq");
         private final String val;
 

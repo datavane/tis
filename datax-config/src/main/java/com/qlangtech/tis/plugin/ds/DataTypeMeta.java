@@ -46,18 +46,25 @@ public class DataTypeMeta {
      * @param tabMapper
      * @return
      */
-    public static Map<String, Object> createViewBiz(Object tabMapper) {
+    public static Map<String, Object> createViewBiz(List<String> elementGetKeys, Object tabMapper) {
         JSONObject biz = new JSONObject();
         // Map<String, Object> biz = new HashMap<>();
+        if (elementGetKeys != null && !elementGetKeys.isEmpty()) {
+            biz.put("elementKeys", elementGetKeys);
+        }
         biz.put("tabMapper", Objects.requireNonNull(tabMapper, "tabMapper can not be null"));
 
         JSONArray types = new JSONArray();
         JSONObject type = null;
         JSONObject dt = null;
         DataType t = null;
+        DataTypeMeta meta = null;
+        JDBCTypes jdbcType = null;
 
-
-        for (DataTypeMeta meta : DataTypeMeta.typeMetas) {
+        for (Map.Entry<JDBCTypes, DataTypeMeta> entry
+                : DataTypeMeta.getTypeMetasDic().entrySet()) {
+            meta = entry.getValue();
+            jdbcType = entry.getKey();
             type = new JSONObject();
             type.put("containColSize", meta.isContainColSize());
             type.put("containDecimalRange", meta.isContainDecimalRange());
@@ -67,9 +74,10 @@ public class DataTypeMeta {
 
             dt.put("columnSize", t.getColumnSize());
             dt.put("decimalDigits", t.getDecimalDigits());
-            dt.put("type", t.getType());
+            dt.put("type", jdbcType.type);
             dt.put("typeDesc", t.getTypeDesc());
-            dt.put("typeName", t.typeName);
+            // dt.put("typeName", t.typeName);
+            dt.put("typeName", jdbcType.getLiteria());
 
             ColSizeRange colsSizeRange = meta.getColsSizeRange();
             if (colsSizeRange != null) {
@@ -141,10 +149,11 @@ public class DataTypeMeta {
                     , new DataTypeMeta(new DataType(JDBCTypes.TINYINT)) //
                     , new DataTypeMeta(new DataType(JDBCTypes.SMALLINT)) //
                     , new DataTypeMeta(new DataType(JDBCTypes.BIGINT)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.CHAR)) //
                     , new DataTypeMeta(new DataType(JDBCTypes.FLOAT)) //
                     , new DataTypeMeta(new DataType(JDBCTypes.DOUBLE)) //
-                    , new DataTypeMeta(new DataType(JDBCTypes.DECIMAL, 20).setDecimalDigits(2), new ColSizeRange(1,
-                            46), new DecimalRange(1, 20)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.DECIMAL, 20) //
+                            .setDecimalDigits(0), new ColSizeRange(1, 46), new DecimalRange(1, 20)) //
                     , new DataTypeMeta(new DataType(JDBCTypes.DATE)) //
                     , new DataTypeMeta(new DataType(JDBCTypes.TIME)), //
                     new DataTypeMeta(new DataType(JDBCTypes.TIMESTAMP)) //
@@ -165,6 +174,9 @@ public class DataTypeMeta {
         for (DataTypeMeta type : typeMetas) {
             dic.put(type._type.getJdbcType(), type);
         }
+        dic.put(JDBCTypes.OTHER, dic.get(JDBCTypes.VARCHAR));
+        dic.put(JDBCTypes.REAL, dic.get(JDBCTypes.FLOAT));
+        dic.put(JDBCTypes.NUMERIC, dic.get(JDBCTypes.DECIMAL));
         typeMetasDic = Collections.unmodifiableMap(dic);
     }
 

@@ -19,22 +19,30 @@
 package com.qlangtech.tis.plugin.datax;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.ESTableAlias;
-import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.EnumFieldMode;
+import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.manage.common.Option;
-import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.ds.*;
+import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.DataSourceMeta;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
@@ -46,11 +54,15 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler.joinField;
 
 /**
  * @author: baisui 百岁
@@ -60,6 +72,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     private static final String KEY_TABLE_COLS = "tableRelevantCols";
     public static final String KEY_SOURCE_PROPS = "sourceProps";
     public static final String KEY_FIELD_COLS = "cols";
+    public static final String KEY_FIELD_PRIMARY_KEYS = "primaryKeys";
     private static final Logger logger = LoggerFactory.getLogger(SelectedTab.class);
 
     // 针对增量构建流程中的属性扩展
@@ -258,9 +271,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
     @TISExtension
     public static class DefaultDescriptor extends Descriptor<SelectedTab> implements SubForm.ISubFormItemValidate,
-            FormFieldType.IMultiSelectValidator  {
-
-
+            FormFieldType.IMultiSelectValidator {
 
 
         @Override
@@ -305,6 +316,16 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
                                             BaseSubFormProperties props, IPropertyType.SubFormFilter filter,
                                             AttrVals formData) {
 
+            formData.vistAttrValMap((tab, item) -> {
+                if (item instanceof JSONObject) {
+                    msgHandler.addErrorMessage(context, "请为表‘" + tab + "’设置必要属性");
+                }
+            });
+
+            if (context.hasErrors()) {
+                return false;
+            }
+
             Integer maxReaderTabCount = Integer.MAX_VALUE;
             try {
                 maxReaderTabCount =
@@ -331,6 +352,8 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         }
 
         protected boolean validateAll(IControlMsgHandler msgHandler, Context context, SelectedTab tab) {
+            Descriptor<SelectedTab> tabDesc = tab.getDescriptor();
+            tabDesc.getExtractProps();
             List<String> lackPks = Lists.newArrayList();
             List<String> colKeys = tab.getColKeys();
             for (String pk : tab.primaryKeys) {
@@ -339,8 +362,34 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
                 }
             }
             if (lackPks.size() > 0) {
-                msgHandler.addFieldError(context, KEY_FIELD_COLS, "由于" + String.join(",", lackPks) + "选为主键," +
-                        "因此需要将它（们）选上");
+                PropertyType colProp = (PropertyType) tab.getDescriptor().getPropertyType(KEY_FIELD_COLS);
+
+                List<String> fieldNames = Lists.newArrayList();
+                switch (colProp.extraProp.multiItemsViewType().viewType) {
+                    case IdList:
+                        fieldNames = Lists.newArrayList(KEY_FIELD_COLS);
+                        break;
+                    case TupleList:
+                        List<CMeta> tabCols = tab.cols;
+                        AtomicInteger index = new AtomicInteger();
+                        Map<String, Integer> colsIndex //
+                                = tabCols.stream().collect(Collectors.toMap((c) -> c.getName(),
+                                (c) -> index.getAndIncrement()));
+                        for (String lackKey : lackPks) {
+                            fieldNames.add(joinField(KEY_FIELD_COLS,
+                                    Collections.singletonList(colsIndex.get(lackKey)), CMeta.FIELD_NAME));
+                        }
+
+                        break;
+                    default:
+                        throw new IllegalStateException("unhandle view type:" + colProp.extraProp.multiItemsViewType());
+                }
+
+                for (String fieldName : fieldNames) {
+                    msgHandler.addFieldError(context, fieldName, "由于" + String.join(",", lackPks) + "选为主键," +
+                            "因此需要将它（们）选上");
+                }
+
                 return false;
             }
 
