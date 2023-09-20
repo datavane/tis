@@ -28,6 +28,7 @@ import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.*;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
@@ -721,15 +722,15 @@ public class PluginAction extends BasicModule {
   public void doSubformDetailedClick(Context context) throws Exception {
 
     List<UploadPluginMeta> pluginsMeta = getPluginMeta();
-    List<Describable> plugins = null;
+    List<DataxReader> plugins = null;
 
     IPluginEnum heteroEnum = null;
     HeteroList<?> hList = null;
 
     for (UploadPluginMeta meta : pluginsMeta) {
 
-      heteroEnum = meta.getHeteroEnum();
-      plugins = heteroEnum.getPlugins(this, meta);
+     // heteroEnum = meta.getHeteroEnum();
+      plugins = meta.getDataxReaders(this);// heteroEnum.getPlugins(this, meta);
       for (Describable plugin : plugins) {
 
         SuFormProperties.setSuFormGetterContext(plugin, meta,

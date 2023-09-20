@@ -22,6 +22,7 @@ import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.coredefine.module.action.ProcessModel;
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
@@ -208,6 +209,12 @@ public class UploadPluginMeta {
         }
     }
 
+    public List<DataxReader> getDataxReaders(IPluginContext pluginContext) {
+        return HeteroEnum.DATAX_READER.getPlugins(pluginContext, UploadPluginMeta.parse(pluginContext,
+                this.name + ":" + DataxUtils.DATAX_NAME + "_" + this.getDataXName(),
+                useCache));
+    }
+
     public IPluginEnum getHeteroEnum() {
 
         Optional<IPropertyType.SubFormFilter> subFormFilter = null;
@@ -237,10 +244,15 @@ public class UploadPluginMeta {
                                     Collections.singletonList(ext.getSourceProps());
                         }
 
-                        return DATAX_READER.getPlugins(pluginContext, UploadPluginMeta.parse(pluginContext,
-                                pluginMeta.name + ":" + DataxUtils.DATAX_NAME + "_" + pluginMeta.getDataXName(),
-                                useCache));
+                        //  throw new IllegalStateException("subFilter.subformDetailView shall be true");
+                        return pluginMeta.getDataxReaders(pluginContext);
                     }
+
+//                    private List<DataxReader> getDataxReaders(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+//                        return DATAX_READER.getPlugins(pluginContext, UploadPluginMeta.parse(pluginContext,
+//                                pluginMeta.name + ":" + DataxUtils.DATAX_NAME + "_" + pluginMeta.getDataXName(),
+//                                useCache));
+//                    }
 
                     @Override
                     public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
