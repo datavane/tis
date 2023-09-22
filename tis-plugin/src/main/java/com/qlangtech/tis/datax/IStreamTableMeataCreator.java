@@ -19,6 +19,7 @@
 package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 
 import java.util.List;
 
@@ -50,6 +51,7 @@ public interface IStreamTableMeataCreator //extends IStreamIncrGenerateStrategy
 
 
     interface ISourceStreamMetaCreator extends IStreamTableMeataCreator {
+        public ISelectedTab getSelectedTab(String tableName);
     }
 
     interface ISinkStreamMetaCreator extends IStreamTableMeataCreator {

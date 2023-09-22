@@ -19,6 +19,7 @@ package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -39,6 +40,19 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta, IStreamT
     }
 
     <T extends ISelectedTab> List<T> getSelectedTabs();
+
+    @Override
+    default ISelectedTab getSelectedTab(String tableName) {
+        if (StringUtils.isEmpty(tableName)) {
+            throw new IllegalArgumentException("param tableName can not be null");
+        }
+        for (ISelectedTab tab : getSelectedTabs()) {
+            if (tableName.equals(tab.getName())) {
+                return tab;
+            }
+        }
+        throw new IllegalStateException("tableName:" + tableName + " relevant tab can not be null");
+    }
 
     /**
      * 取得子任务

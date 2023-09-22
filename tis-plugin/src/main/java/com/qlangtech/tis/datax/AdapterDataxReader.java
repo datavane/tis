@@ -35,6 +35,7 @@ import java.util.function.Predicate;
 public class AdapterDataxReader implements IDataxReader {
     private final IDataxReader reader;
 
+
     public AdapterDataxReader(IDataxReader reader) {
         this.reader = reader;
     }
