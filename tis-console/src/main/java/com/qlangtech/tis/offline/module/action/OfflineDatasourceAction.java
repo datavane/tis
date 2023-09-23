@@ -103,6 +103,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.qlangtech.tis.sql.parser.er.ERRules.$;
 import static java.sql.Types.*;
@@ -1136,7 +1137,7 @@ public class OfflineDatasourceAction extends BasicModule {
     if (tabs == null) {
       throw new IllegalArgumentException("initialize Tabs can not be null");
     }
-    List<String> selectedTabs = tabs.stream().map((tab) -> (String) tab).collect(Collectors.toList());
+    List<String> selectedTabs = ((Stream<String>) tabs.stream()).map((tab) -> (String) tab).collect(Collectors.toList());
 
     UploadPluginMeta pluginMeta = Objects.requireNonNull(getPluginMeta(body), "pluginMeta can not be null");
 

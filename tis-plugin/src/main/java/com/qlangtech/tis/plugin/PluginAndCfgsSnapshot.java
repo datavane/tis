@@ -35,6 +35,7 @@ import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.realtime.utils.NetUtils;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.RobustReflectionConverter2;
@@ -220,14 +221,14 @@ public class PluginAndCfgsSnapshot {
         // Manifest manifest = null;
         RobustReflectionConverter2.PluginMetas pluginMetas =
                 RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
-            MQListenerFactory sourceFactory = HeteroEnum.getIncrSourceListenerFactory(collection.getName());
-            sourceFactory.create();
+                    MQListenerFactory sourceFactory = HeteroEnum.getIncrSourceListenerFactory(collection.getName());
+                    sourceFactory.create();
 
-            // 先收集plugmeta，特别是通过dataXWriter的dataSource关联的元数据
-            IDataxProcessor processor = DataxProcessor.load(null, collection.getName());
-            TISSinkFactory incrSinKFactory = TISSinkFactory.getIncrSinKFactory(collection.getName());
-            incrSinKFactory.createSinkFunction(processor);
-        });
+                    // 先收集plugmeta，特别是通过dataXWriter的dataSource关联的元数据
+                    IDataxProcessor processor = DataxProcessor.load(null, collection.getName());
+                    TISSinkFactory incrSinKFactory = TISSinkFactory.getIncrSinKFactory(collection.getName());
+                    incrSinKFactory.createSinkFunction(processor);
+                });
         return createFlinkIncrJobManifestCfgAttrs(collection, timestamp, pluginMetas.getMetas());
     }
 
@@ -594,13 +595,13 @@ public class PluginAndCfgsSnapshot {
         }
         JSONArray ms = null;
         String metsAttr = null;
-        try {//KeyedPluginStore.PluginMetas.KEY_PLUGIN_META
+        try {
             metsAttr = pluginMetas.getValue(Config.KEY_PLUGIN_METAS);
             ms = JSONArray.parseArray(metsAttr);
         } catch (Exception e) {
             throw new RuntimeException("illegal metaAttr:" + metsAttr, e);
         }
-        List<PluginMeta> metas = PluginMeta.parse(ms.toArray(new String[ms.size()]));
+        List<PluginMeta> metas = PluginMeta.parse(JsonUtil.toArray(ms));
         metas.forEach((meta) -> {
             if (meta.isLastModifyTimeStampNull()) {
                 throw new IllegalStateException("pluginMeta:" + meta.getKey() + " relevant LastModify timestamp can " + "not be null");
