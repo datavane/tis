@@ -293,7 +293,7 @@ public class DataType implements Serializable {
 
     @JSONField(serialize = false)
     public String getS() {
-        return this.type + "," + this.getColumnSize() + "," + (this.decimalDigits != null ? this.decimalDigits :
+        return this.type.type + "," + this.getColumnSize() + "," + (this.decimalDigits != null ? this.decimalDigits :
                 StringUtils.EMPTY);
     }
 

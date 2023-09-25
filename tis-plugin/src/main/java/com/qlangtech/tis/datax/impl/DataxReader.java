@@ -18,6 +18,9 @@
 package com.qlangtech.tis.datax.impl;
 
 import com.alibaba.datax.plugin.writer.hdfswriter.HdfsColMeta;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
@@ -46,6 +49,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -97,21 +102,37 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
 
     }
 
+
+    private transient LoadingCache<String, IStreamTableMeta> tabMetaCache;
+
     @Override
+    public final IStreamTableMeta getStreamTableMeta(String tableName) {
 
-    public IStreamTableMeta getStreamTableMeta(String tableName) {
-        try {
-            List<ColumnMetaData> cols = this.getTableMetadata(false, EntityName.parse(tableName));
-
-            return new IStreamTableMeta() {
+        if (this.tabMetaCache == null) {
+            tabMetaCache = CacheBuilder.newBuilder().expireAfterWrite(40, TimeUnit.SECONDS).build(new CacheLoader<String, IStreamTableMeta>() {
                 @Override
-                public List<IColMetaGetter> getColsMeta() {
-                    return cols.stream().map((c) -> new HdfsColMeta(c.getName(), c.isNullable(), c.isPk(),
-                            c.getType())).collect(Collectors.toList());
+                public IStreamTableMeta load(String tableName) throws Exception {
+                    try {
+                        List<ColumnMetaData> cols = getTableMetadata(false, EntityName.parse(tableName));
+                        final List<IColMetaGetter> colsMeta = cols.stream().map((c) -> new HdfsColMeta(c.getName(), c.isNullable(), c.isPk(),
+                                c.getType())).collect(Collectors.toList());
+                        return new IStreamTableMeta() {
+                            @Override
+                            public List<IColMetaGetter> getColsMeta() {
+                                return colsMeta;
+                            }
+                        };
+                    } catch (TableNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
-            };
-        } catch (TableNotFoundException e) {
-            throw new RuntimeException(e);
+            });
+        }
+
+        try {
+            return tabMetaCache.get(tableName);
+        } catch (ExecutionException e) {
+            throw new RuntimeException("tableName:" + tableName, e);
         }
     }
 
@@ -161,85 +182,85 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                                                               String appname) {
         final TIS.DataXReaderAppKey key = new TIS.DataXReaderAppKey(pluginContext, db, appname,
                 new PluginStore.IPluginProcessCallback<DataxReader>() {
-            @Override
-            public void afterDeserialize(final DataxReader reader) {
+                    @Override
+                    public void afterDeserialize(final DataxReader reader) {
 
-                List<PluginFormProperties> subFieldFormPropertyTypes =
-                        reader.getDescriptor().getSubPluginFormPropertyTypes();
-                if (subFieldFormPropertyTypes.size() > 0) {
-                    // 加载子字段
-                    subFieldFormPropertyTypes.forEach((pt) -> {
-                        pt.accept(new PluginFormProperties.IVisitor() {
-                            @Override
-                            public Void visit(final BaseSubFormProperties props) {
-                                SubFieldFormAppKey<? extends Describable> subFieldKey =
-                                        new SubFieldFormAppKey<>(pluginContext, db, appname, props, DataxReader.class);
-
-                                KeyedPluginStore<? extends Describable> subFieldStore =
-                                        KeyedPluginStore.getPluginStore(subFieldKey);
-
-                                UploadPluginMeta extMeta = UploadPluginMeta.parse(pluginContext,
-                                        "name:" + DataxUtils.DATAX_NAME + "_" + appname, true);
-                                Map<String, SelectedTab> tabsExtend = SelectedTabExtend.getTabExtend(extMeta,
-                                        new PluginStore.PluginsUpdateListener(DataxUtils.DATAX_NAME + "_" + appname,
-                                                reader) {
+                        List<PluginFormProperties> subFieldFormPropertyTypes =
+                                reader.getDescriptor().getSubPluginFormPropertyTypes();
+                        if (subFieldFormPropertyTypes.size() > 0) {
+                            // 加载子字段
+                            subFieldFormPropertyTypes.forEach((pt) -> {
+                                pt.accept(new PluginFormProperties.IVisitor() {
                                     @Override
-                                    public void accept(PluginStore<Describable> store) {
-                                        setReaderSubFormProp(props, subFieldStore.getPlugins(),
-                                                SelectedTabExtend.getTabExtend(extMeta));
-                                    }
-                                });
-                                // 子表单中的内容更新了之后，要同步父表单中的状态
-                                subFieldStore.addPluginsUpdateListener(new PluginStore.PluginsUpdateListener(subFieldKey.getSerializeFileName(), reader) {
-                                    @Override
-                                    public void accept(PluginStore<Describable> pluginStore) {
-                                        setReaderSubFormProp(props, pluginStore.getPlugins(), tabsExtend);
-                                    }
-                                });
-                                List<? extends Describable> subItems = subFieldStore.getPlugins();
-                                if (CollectionUtils.isEmpty(subItems)) {
-                                    return null;
-                                }
-                                setReaderSubFormProp(props, subItems, tabsExtend);
-                                return null;
-                            }
+                                    public Void visit(final BaseSubFormProperties props) {
+                                        SubFieldFormAppKey<? extends Describable> subFieldKey =
+                                                new SubFieldFormAppKey<>(pluginContext, db, appname, props, DataxReader.class);
 
-                            private void setReaderSubFormProp(BaseSubFormProperties props,
-                                                              List<? extends Describable> subItems //
-                                    , Map<String, SelectedTab> subItemsExtend) {
-                                setReaderSubFormProp(props, reader, subItems, subItemsExtend);
-                            }
+                                        KeyedPluginStore<? extends Describable> subFieldStore =
+                                                KeyedPluginStore.getPluginStore(subFieldKey);
 
-                            private void setReaderSubFormProp(BaseSubFormProperties props, DataxReader reader, List<?
-                                    extends Describable> subItems, Map<String, SelectedTab> subItemsExtend) {
-                                if (reader == null) {
-                                    return;
-                                }
-                                subItems.forEach((item) -> {
-                                    if (!props.instClazz.isAssignableFrom(item.getClass())) {
-                                        throw new IllegalStateException("appname:" + appname + ",item class[" + item.getClass().getSimpleName() + "] is not type of " + props.instClazz.getName());
+                                        UploadPluginMeta extMeta = UploadPluginMeta.parse(pluginContext,
+                                                "name:" + DataxUtils.DATAX_NAME + "_" + appname, true);
+                                        Map<String, SelectedTab> tabsExtend = SelectedTabExtend.getTabExtend(extMeta,
+                                                new PluginStore.PluginsUpdateListener(DataxUtils.DATAX_NAME + "_" + appname,
+                                                        reader) {
+                                                    @Override
+                                                    public void accept(PluginStore<Describable> store) {
+                                                        setReaderSubFormProp(props, subFieldStore.getPlugins(),
+                                                                SelectedTabExtend.getTabExtend(extMeta));
+                                                    }
+                                                });
+                                        // 子表单中的内容更新了之后，要同步父表单中的状态
+                                        subFieldStore.addPluginsUpdateListener(new PluginStore.PluginsUpdateListener(subFieldKey.getSerializeFileName(), reader) {
+                                            @Override
+                                            public void accept(PluginStore<Describable> pluginStore) {
+                                                setReaderSubFormProp(props, pluginStore.getPlugins(), tabsExtend);
+                                            }
+                                        });
+                                        List<? extends Describable> subItems = subFieldStore.getPlugins();
+                                        if (CollectionUtils.isEmpty(subItems)) {
+                                            return null;
+                                        }
+                                        setReaderSubFormProp(props, subItems, tabsExtend);
+                                        return null;
                                     }
-                                    if (item instanceof SelectedTab) {
-                                        SelectedTab tab = ((SelectedTab) item);
-                                        SelectedTab ext = subItemsExtend.get(tab.identityValue());
-                                        if (ext != null) {
-                                            tab.setIncrSourceProps(ext.getIncrSourceProps());
-                                            tab.setIncrSinkProps(ext.getIncrSinkProps());
-                                            tab.setSourceProps(ext.getSourceProps());
+
+                                    private void setReaderSubFormProp(BaseSubFormProperties props,
+                                                                      List<? extends Describable> subItems //
+                                            , Map<String, SelectedTab> subItemsExtend) {
+                                        setReaderSubFormProp(props, reader, subItems, subItemsExtend);
+                                    }
+
+                                    private void setReaderSubFormProp(BaseSubFormProperties props, DataxReader reader, List<?
+                                            extends Describable> subItems, Map<String, SelectedTab> subItemsExtend) {
+                                        if (reader == null) {
+                                            return;
+                                        }
+                                        subItems.forEach((item) -> {
+                                            if (!props.instClazz.isAssignableFrom(item.getClass())) {
+                                                throw new IllegalStateException("appname:" + appname + ",item class[" + item.getClass().getSimpleName() + "] is not type of " + props.instClazz.getName());
+                                            }
+                                            if (item instanceof SelectedTab) {
+                                                SelectedTab tab = ((SelectedTab) item);
+                                                SelectedTab ext = subItemsExtend.get(tab.identityValue());
+                                                if (ext != null) {
+                                                    tab.setIncrSourceProps(ext.getIncrSourceProps());
+                                                    tab.setIncrSinkProps(ext.getIncrSinkProps());
+                                                    tab.setSourceProps(ext.getSourceProps());
+                                                }
+                                            }
+                                        });
+                                        try {
+                                            props.subFormField.set(reader, subItems);
+                                        } catch (IllegalAccessException e) {
+                                            throw new RuntimeException("get subField:" + props.getSubFormFieldName(), e);
                                         }
                                     }
                                 });
-                                try {
-                                    props.subFormField.set(reader, subItems);
-                                } catch (IllegalAccessException e) {
-                                    throw new RuntimeException("get subField:" + props.getSubFormFieldName(), e);
-                                }
-                            }
-                        });
-                    });
-                }
-            }
-        });
+                            });
+                        }
+                    }
+                });
         return key;
     }
 

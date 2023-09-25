@@ -601,7 +601,7 @@ public class PluginAndCfgsSnapshot {
         } catch (Exception e) {
             throw new RuntimeException("illegal metaAttr:" + metsAttr, e);
         }
-        List<PluginMeta> metas = PluginMeta.parse(JsonUtil.toArray(ms));
+        List<PluginMeta> metas = PluginMeta.parse(JsonUtil.toArray(String.class, ms));
         metas.forEach((meta) -> {
             if (meta.isLastModifyTimeStampNull()) {
                 throw new IllegalStateException("pluginMeta:" + meta.getKey() + " relevant LastModify timestamp can " + "not be null");

@@ -16,29 +16,14 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.config.hive;
-
-import com.qlangtech.tis.config.authtoken.UserToken;
-import com.qlangtech.tis.config.hive.meta.IHiveMetaStore;
-import com.qlangtech.tis.plugin.IdentityName;
+package com.qlangtech.tis.lang;
 
 /**
- * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-05-28 10:49
- **/
-public interface IHiveConnGetter extends IdentityName {
-    String PLUGIN_NAME = "HiveConn";
-    String NAME_HIVESERVER2 = "Hiveserver2";
+ * @author 百岁 (baisui@qlangtech.com)
+ * @date 2023/9/25
+ */
+public interface ILogErrorDetail {
+    public String getDetail();
 
-    String HIVE2_JDBC_SCHEMA = "jdbc:hive2://";
-
-    public String getDbName();
-
-    public UserToken getUserToken();
-
-    public String getJdbcUrl();
-
-    public String getMetaStoreUrls();
-
-    public IHiveMetaStore createMetaStoreClient();
+    public String getAbstractInfo();
 }

@@ -20,6 +20,7 @@ package com.qlangtech.tis.runtime.module.action;
 import com.alibaba.citrus.turbine.Context;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.ibatis.BasicCriteria;
+import com.qlangtech.tis.lang.ILogErrorDetail;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.dao.IOperationLogDAO;
@@ -68,7 +69,7 @@ public class OperationLogAction extends BasicModule {
     }
     List<TisException.ErrMsg> pageView = errorLogs.subList(fromIndex, toIndex);
     pageView.forEach((err) -> {
-      TisException.ILogErrorDetail logError = TisException.getLogError(err.getLogFileName());
+      ILogErrorDetail logError = TisException.getLogError(err.getLogFileName());
       err.setAbstractInfo(logError.getAbstractInfo());
     });
     this.setBizResult(context, new PaginationResult(pager, pageView));

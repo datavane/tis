@@ -439,8 +439,6 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             dbConfig.vistDbURL(false, 5, (dbName, dbHost, jdbcUrl) -> {
                 try (JDBCConnection conn = dsFactory.getConnection(jdbcUrl)) {
                     validateConnection(conn);
-                } catch (TisException e) {
-                    throw e;
                 } catch (Exception e) {
                     faild[0] = e;
                     logger.warn(e.getMessage(), e);

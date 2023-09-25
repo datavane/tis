@@ -105,15 +105,15 @@ public class JsonUtil {
         SerializeConfig.global.put(UnCacheString.class, serializer);
     }
 
-    public static <T> T[] toArray(JSONArray ms) {
-        //   T[] t = (T[]) Array.newInstance(clazz, ms.size());
-        return (T[]) ms.toArray();
-//        int i = 0;
-//        for (Object e : ) {
-//            t[i++] = (T) e;
-//        }
-//
-//        return t;
+    public static <T> T[] toArray(Class<T> elementClazz, JSONArray ms) {
+        T[] t = (T[]) Array.newInstance(elementClazz, ms.size());
+       
+        int i = 0;
+        for (Object e : ms.toArray()) {
+            t[i++] = (T) e;
+        }
+
+        return t;
     }
 
 

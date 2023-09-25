@@ -84,17 +84,12 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         try {
             if (appDir.exists()) {
                 if (lastModify.exists()) {
-                    //throw new IllegalStateException("lastModify is not exist ,path:" + lastModify.getAbsolutePath());
                     lastModfiyTimeStamp = Long.parseLong(FileUtils.readFileToString(lastModify, TisUTF8.get()));
                 }
                 Iterator<File> files = FileUtils.iterateFiles(appDir, new String[]{DOMUtil.XML_RESERVED_PREFIX}, true);
                 metas = ComponentMeta.loadPluginMeta(() -> {
                     return Lists.newArrayList(files);
                 });
-                //                if (lastModfiyTimeStamp < 0) {
-                //                    throw new IllegalStateException("please check lastModify file:" + lastModify
-                //                    .getAbsolutePath());
-                //                }
             }
             return new PluginMetas(appDir, metas, lastModfiyTimeStamp);
         } catch (IOException e) {
@@ -220,7 +215,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
         @Override
         public int hashCode() {
-            return Objects.hash(keyVal.getKeyVal(), pluginClass);
+            return Objects.hash(keyVal.getKeyVal(), pluginClass.hashCode());
         }
     }
 
@@ -239,6 +234,23 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         private PluginClassCategory(Class<T> pluginClass, Optional<String> suffix) {
             this.pluginClass = pluginClass;
             this.suffix = suffix;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            PluginClassCategory<?> that = (PluginClassCategory<?>) o;
+            return Objects.equals(this.hashCode(), that.hashCode());
+        }
+
+        @Override
+        public int hashCode() {
+            if (suffix.isPresent()) {
+                return Objects.hash(pluginClass, suffix.get());
+            } else {
+                return Objects.hash(pluginClass);
+            }
         }
 
         public String getName() {
