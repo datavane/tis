@@ -46,6 +46,11 @@ public class AdapterDataxReader implements IDataxReader {
     }
 
     @Override
+    public void startScanDependency() {
+        reader.startScanDependency();
+    }
+
+    @Override
     public <T extends ISelectedTab> List<T> getSelectedTabs() {
         return reader.getSelectedTabs();
     }

@@ -59,6 +59,11 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
     }
 
     @Override
+    public void startScanDependency() {
+
+    }
+
+    @Override
     public ExecutePhaseRange getPhaseRange() {
         return new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.JOIN);
     }

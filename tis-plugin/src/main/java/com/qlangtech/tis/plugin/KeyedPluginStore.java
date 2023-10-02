@@ -204,7 +204,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         @Override
-        public boolean equals(Object o) {
+        public final boolean equals(Object o) {
             if (this == o)
                 return true;
             if (o == null || getClass() != o.getClass())
@@ -330,7 +330,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         @Override
-        public int hashCode() {
+        public final int hashCode() {
             return Objects.hash(keyVal.getKeyVal(), resourceType.getType(), pluginClass);
         }
     }
