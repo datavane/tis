@@ -386,12 +386,23 @@ public class TIS {
     private static TIS tis;
 
     public static void clean() {
+        clean(true);
+    }
+
+    /**
+     * @param removeTIS 是否需要将TIS实例删除？ https://github.com/datavane/tis/issues/270
+     */
+    public static void clean(boolean removeTIS) {
         if (tis != null) {
             tis.cleanExtensionCache();
-            tis = null;
+            if (removeTIS) {
+                tis = null;
+            }
         }
         cleanPluginStore();
-        initialized = false;
+        if (removeTIS) {
+            initialized = false;
+        }
     }
 
     public void cleanExtensionCache() {

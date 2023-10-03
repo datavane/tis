@@ -41,7 +41,7 @@ public class TestDorisSelectedTab extends TestCase {
         Assert.assertEquals(1, pluginsCollector.getPlugins().size());
         SelectedTab tab = pluginsCollector.getPlugins().get(0);
 
-        TIS.clean();
+        TIS.clean(false);
 
         pluginsCollector = loadSelectedTab("OffSeqKey");
         Assert.assertNotNull(pluginsCollector);
