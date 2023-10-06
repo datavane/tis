@@ -15,42 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.qlangtech.tis.plugin.ds;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+package com.alibaba.datax.common.spi;
 
 /**
- * 选中需要导入的表
- *
- * @author 百岁（baisui@qlangtech.com）
- * @date 2021-04-18 10:16
+ * @author 百岁 (baisui@qlangtech.com)
+ * @date 2023/10/5
  */
-public interface ISelectedTab {
+public interface IDataXCfg {
+    public String connectKeyParameter = "parameter";
 
-
-    default String getName() {
-        throw new UnsupportedOperationException();
-    }
-
-    default String getWhere() {
-        return null;
-    }
-
-    default boolean isAllCols() {
-        return true;
-    }
-
-    List<CMeta> getCols();
-
-    default Set<String> acceptedCols() {
-        final Set<String> acceptKeys = this.getCols().stream().filter((c) -> !c.isDisable()).map((c) -> c.getName()).collect(Collectors.toSet());
-        return acceptKeys;
-    }
-
-    public default List<String> getPrimaryKeys() {
-        throw new UnsupportedOperationException();
-    }
-
+     String readerKeyPrefix = "job.content[0].reader." + connectKeyParameter + ".";
+     String writerKeyPrefix = "job.content[0].writer." + connectKeyParameter + ".";
 }

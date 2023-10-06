@@ -23,11 +23,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.solrdao.ISchema;
+import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrdao.SchemaMetaContent;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -64,9 +66,13 @@ public interface ISearchEngineTypeTransfer {
      */
     public SchemaMetaContent initSchemaMetaContent(ISelectedTab tab);
 
-    public ISchema projectionFromExpertModel(TableAlias tableAlias, Consumer<byte[]> schemaContentConsumer);
+    public ISchema projectionFromExpertModel(ISelectedTab esTab, TableAlias tableAlias, Consumer<byte[]> schemaContentConsumer);
 
-    public ISchema projectionFromExpertModel(JSONObject body);
+    public default ISchema projectionFromExpertModel(JSONObject body) {
+        return projectionFromExpertModel(body, (field) -> true);
+    }
+
+    public ISchema projectionFromExpertModel(JSONObject body, Predicate<ISchemaField> fieldAcceptPredicate);
 
     public JSONObject mergeFromStupidModel(ISchema schema, JSONObject expertSchema);
 }

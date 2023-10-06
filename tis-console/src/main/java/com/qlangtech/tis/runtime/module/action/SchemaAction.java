@@ -76,9 +76,6 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-//import org.json.JSONArray;
-//import org.json.JSONException;
-//import org.json.JSONObject;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -116,6 +113,7 @@ public class SchemaAction extends BasicModule {
       break;
     }
     Objects.requireNonNull(esTab, "esTab can not be null");
+
     // ESField field = null;
     if (stepType.update) {
       IDataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);
@@ -124,7 +122,7 @@ public class SchemaAction extends BasicModule {
       if (f.isPresent()) {
         TableAlias tabMapper = f.get();
         if (StringUtils.equals(tabMapper.getFrom(), esTab.getName())) {
-          writerStructFields(context, tabMapper, typeTransfer);
+          writerStructFields(context, esTab, tabMapper, typeTransfer);
           return;
         } else {
           // 更新时，源表改变了重新初始化
@@ -449,10 +447,10 @@ public class SchemaAction extends BasicModule {
     writerStructFields(context, body, typeTransfer);
   }
 
-  private void writerStructFields(Context context, TableAlias tableAlias, ISearchEngineTypeTransfer typeTransfer) {
+  private void writerStructFields(Context context, ISelectedTab esTab, TableAlias tableAlias, ISearchEngineTypeTransfer typeTransfer) {
 
     SchemaMetaContent schemaContent = new SchemaMetaContent();
-    schemaContent.parseResult = typeTransfer.projectionFromExpertModel(tableAlias, (content) -> {
+    schemaContent.parseResult = typeTransfer.projectionFromExpertModel(esTab, tableAlias, (content) -> {
       schemaContent.content = content;
     });
     this.setBizResult(context, schemaContent.toJSON());
