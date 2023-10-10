@@ -280,6 +280,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
 
             this.plugins = collect;
             boolean changed = this.file.write(this, pluginsMeta);
+            this.loaded = true;
             long lastModifyTimestamp = -1;
             if (changed) {
                 // 将代表组文件的更新时间戳更新
@@ -311,6 +312,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             if (changed) {
                 pluginsResult.lastModifyTimeStamp = lastModifyTimestamp;
             }
+
             return pluginsResult;
         } catch (Exception e) {
             throw new RuntimeException(e);

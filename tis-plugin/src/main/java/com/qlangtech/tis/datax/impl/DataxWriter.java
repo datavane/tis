@@ -54,13 +54,13 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
     private static transient LoadingCache<String, TableInDB> tabsInDBCache;
 
 
-    private static TableInDB getExistTabsInSink(String dataXName) throws ExecutionException {
+    private TableInDB getExistTabsInSink(String dataXName) throws ExecutionException {
         if (tabsInDBCache == null) {
-            tabsInDBCache = CacheBuilder.newBuilder().expireAfterWrite(12, TimeUnit.SECONDS)
+            tabsInDBCache = CacheBuilder.newBuilder().expireAfterAccess(3, TimeUnit.SECONDS)
                     .build(new CacheLoader<String, TableInDB>() {
                         @Override
                         public TableInDB load(String dataXName) throws Exception {
-                            IDataSourceFactoryGetter writer = (IDataSourceFactoryGetter) DataxWriter.load(null, dataXName);
+                            IDataSourceFactoryGetter writer = (IDataSourceFactoryGetter) DataxWriter.this;// (IDataSourceFactoryGetter) DataxWriter.load(null, dataXName);
                             final DataSourceFactory ds = writer.getDataSourceFactory();
                             return ds.getTablesInDB();
                         }
@@ -88,14 +88,17 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
             throw new IllegalArgumentException("param dataXName can not be null");
         }
 
-        TableInDB existTabs = getExistTabsInSink(dataXName);
+
+
+        DataxWriter writer = DataxWriter.load(null, dataXName);
+        TableInDB existTabs = writer.getExistTabsInSink(dataXName);
         if (existTabs.contains(tableName)) {
             // 表已经存在不用初始化啦
             return;
         }
 
         IInitWriterTableExecutor dataXWriter
-                = (IInitWriterTableExecutor) DataxWriter.load(null, dataXName);
+                = (IInitWriterTableExecutor) writer;
 
         Objects.requireNonNull(dataXWriter, "dataXWriter can not be null,dataXName:" + dataXName);
         dataXWriter.initWriterTable(tableName, jdbcUrls);

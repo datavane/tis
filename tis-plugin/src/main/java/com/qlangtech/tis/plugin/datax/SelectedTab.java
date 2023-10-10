@@ -76,9 +76,9 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     private static final Logger logger = LoggerFactory.getLogger(SelectedTab.class);
 
     // 针对增量构建流程中的属性扩展
-    private SelectedTabExtend incrSourceProps;
-    private SelectedTabExtend incrSinkProps;
-    public SelectedTabExtend sourceProps;
+    private transient SelectedTabExtend incrSourceProps;
+    private transient SelectedTabExtend incrSinkProps;
+    public transient SelectedTabExtend sourceProps;
 
     // 表名称
     @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})

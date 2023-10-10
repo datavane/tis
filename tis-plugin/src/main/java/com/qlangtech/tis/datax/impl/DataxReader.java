@@ -47,6 +47,8 @@ import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -61,6 +63,7 @@ import java.util.stream.Collectors;
  */
 @Public
 public abstract class DataxReader implements Describable<DataxReader>, IDataxReader, IPluginStore.RecyclableController {
+    private static final Logger logger = LoggerFactory.getLogger(DataxReader.class);
     public static final String HEAD_KEY_REFERER = "Referer";
     public static final ThreadLocal<DataxReader> dataxReaderThreadLocal = new ThreadLocal<>();
 
@@ -201,20 +204,23 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
 
                                         UploadPluginMeta extMeta = UploadPluginMeta.parse(pluginContext,
                                                 "name:" + DataxUtils.DATAX_NAME + "_" + appname, true);
-                                        Map<String, SelectedTab> tabsExtend = SelectedTabExtend.getTabExtend(extMeta,
-                                                new PluginStore.PluginsUpdateListener(DataxUtils.DATAX_NAME + "_" + appname,
-                                                        reader) {
-                                                    @Override
-                                                    public void accept(PluginStore<Describable> store) {
-                                                        setReaderSubFormProp(props, subFieldStore.getPlugins(),
-                                                                SelectedTabExtend.getTabExtend(extMeta));
-                                                    }
-                                                });
+                                        Map<String, SelectedTab> tabsExtend = SelectedTabExtend.getTabExtend(extMeta
+//                                                ,  new PluginStore.PluginsUpdateListener(DataxUtils.DATAX_NAME + "_" + appname,
+//                                                        reader) {
+//                                                    @Override
+//                                                    public void accept(PluginStore<Describable> store) {
+//                                                        // logger.info("execute setReaderSubFormProp1,subitem count:" + subFieldStore.getPlugins().size() + ",extendCount:" + SelectedTabExtend.getTabExtend(extMeta).size());
+//                                                        setReaderSubFormProp(props, subFieldStore.getPlugins(),
+//                                                                SelectedTabExtend.getTabExtend(extMeta));
+//                                                    }
+//                                                }
+                                                );
                                         // 子表单中的内容更新了之后，要同步父表单中的状态
                                         subFieldStore.addPluginsUpdateListener(new PluginStore.PluginsUpdateListener(subFieldKey.getSerializeFileName(), reader) {
                                             @Override
                                             public void accept(PluginStore<Describable> pluginStore) {
-                                                setReaderSubFormProp(props, pluginStore.getPlugins(), tabsExtend);
+                                                // logger.info("execute setReaderSubFormProp2,subitem count:" + pluginStore.getPlugins().size() + ",extendCount:" + tabsExtend.size());
+                                                setReaderSubFormProp(props, pluginStore.getPlugins(), Collections.emptyMap() /**千万要为emptyMap()，不然在和上面getTabExtend中的listener的回调重复了，且会覆盖脏数据*/);
                                             }
                                         });
                                         List<? extends Describable> subItems = subFieldStore.getPlugins();

@@ -144,7 +144,7 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
 
         for (PluginStore.PluginsUpdateListener listener : updateListener) {
             incrExtendStore.addPluginsUpdateListener(listener);
-            batchExtendStore.addPluginsUpdateListener(listener);
+          //  batchExtendStore.addPluginsUpdateListener(listener);
         }
         Memoizer<String, SelectedTab> result = new Memoizer<String, SelectedTab>() {
             @Override
@@ -221,7 +221,7 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
 
                 Map<String, SelectedTabExtend> selectedExtendTabs = Maps.newHashMap();
                 // 需要将selected tab 和 extendTab 分流
-                List<SelectedTab> selectedTabs = Lists.newArrayList();
+                Map<String, SelectedTab> selectedTabs = Maps.newHashMap();
 
                 for (Descriptor.ParseDescribable plugin : plugins) {
 
@@ -235,21 +235,26 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
                             selectedExtendTabs.put(stExt.tabName, stExt);
                             //  selectedExtendTabs.add(stExt);
                         } else {
-                            selectedTabs.add((SelectedTab) p);
+                            SelectedTab tab = (SelectedTab) p;
+                            selectedTabs.put(tab.getName(), tab);
                         }
                     }
-
-
                 }
+
+
                 if (MapUtils.isNotEmpty(selectedExtendTabs)) {
+
+                    for (Map.Entry<String, SelectedTabExtend> entry : selectedExtendTabs.entrySet()) {
+                        selectedTabs.get(entry.getKey()).setSourceProps(entry.getValue());
+                    }
                     tabExtendStore.setPlugins(pluginContext, optional,
                             Collections.singletonList(new Descriptor.ParseDescribable(Lists.newArrayList(selectedExtendTabs.values()))), update);
                 }
-                if (CollectionUtils.isEmpty(selectedTabs)) {
+                if (MapUtils.isEmpty(selectedTabs)) {
                     throw new IllegalStateException("selectedTabs can not be empty");
                 }
                 return subFormStore.setPlugins(pluginContext, optional,
-                        Collections.singletonList(new Descriptor.ParseDescribable(selectedTabs)), update);
+                        Collections.singletonList(new Descriptor.ParseDescribable(Lists.newArrayList(selectedTabs.values()))), update);
             }
 
             @Override
@@ -317,8 +322,8 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
     @TISExtension
     public static final HeteroEnum<SelectedTabExtend> BATCH_SOURCE_SELECTED_TAB_EXTEND =
             createTabExtendHetero((pluginContext, dataxName) -> {
-        return SelectedTabExtend.getBatchPluginStore(pluginContext, dataxName);
-    });
+                return SelectedTabExtend.getBatchPluginStore(pluginContext, dataxName);
+            });
     //            new HeteroEnum<SelectedTabExtend>(//
     //            SelectedTabExtend.class, //
     //            HETERO_ENUM_IDENTITY, //

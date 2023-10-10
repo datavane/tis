@@ -47,6 +47,7 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.ISelectOptionsGetter;
@@ -747,7 +748,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }
             if (attrDesc.isDescribable()) {
                 JSONObject descVal = valJ.getJSONObject(KEY_DESC_VAL);
-                impl = descVal.getString(AttrValMap.PLUGIN_EXTENSION_IMPL);
+                impl = Objects.requireNonNull(descVal, "prop:" + KEY_DESC_VAL + " json:" + JsonUtil.toString(valJ))
+                        .getString(AttrValMap.PLUGIN_EXTENSION_IMPL);
                 if (StringUtils.isBlank(impl)) {
                     addFieldRequiredError(msgHandler, context, attr);
                     valid = false;
