@@ -20,6 +20,7 @@ package com.qlangtech.tis.extension.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -55,6 +56,11 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
     @Override
     public Descriptor getParentPluginDesc() {
         return this.parentPluginDesc;
+    }
+
+    @Override
+    public Class<? extends Describable> getParentPluginClass() {
+        return this.parentPluginDesc.clazz;
     }
 
     @Override
@@ -153,14 +159,4 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
     public Set<Map.Entry<String, PropertyType>> getKVTuples() {
         return Descriptor.filterFieldProp(subFormFieldsDescriptor).entrySet();
     }
-
-    // private Map<String, PropertyType> props = null;
-
-
-    //    public Map<String, PropertyType> getPropertyType() {
-    ////        if (props == null) {
-    ////            props = Descriptor.filterFieldProp(subFormFieldsDescriptor);
-    ////        }
-    ////        return props;
-    //    }
 }

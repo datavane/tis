@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.plugin.IdentityName;
 import org.apache.commons.lang.StringUtils;
 
+import javax.management.Descriptor;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +38,8 @@ public class CMeta implements Serializable, IColMetaGetter, IdentityName {
 
 
     public static final String FIELD_NAME = "name";
+
+
 
     public interface ElementCreatorFactory {
 

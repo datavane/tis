@@ -65,14 +65,9 @@ public class RewriteSuFormPropertiesPlugin implements Describable<RewriteSuFormP
 
         @Override
         public SuFormProperties overwriteSubPluginFormPropertyTypes(SuFormProperties subformProps) throws Exception {
-//            String overwriteSubField = IOUtils.loadResourceFromClasspath(RewriteSuFormPropertiesPlugin.class
-//                    , RewriteSuFormPropertiesPlugin.class.getSimpleName()
-//                            + "." + subformProps.getSubFormFieldName() + ".json", true);
-//            JSONObject subField = JSON.parseObject(overwriteSubField);
-//            Class<? extends Describable> clazz =
-//                    (Class<? extends Describable>) RewriteSuFormPropertiesPlugin.class.getClassLoader().loadClass(subField.getString(SubForm.FIELD_DES_CLASS));
             Descriptor subFormDescriptor = getRewriterSelectTabDescriptor();
-            return SuFormProperties.copy(filterFieldProp(Descriptor.buildPropertyTypes(Optional.of(subFormDescriptor), clazz)), clazz, subFormDescriptor, subformProps);
+            return SuFormProperties.copy(filterFieldProp(Descriptor.buildPropertyTypes(
+                    Optional.of( new ElementPluginDesc(subFormDescriptor)), clazz)), clazz, subFormDescriptor, subformProps);
         }
 
 //        @Override

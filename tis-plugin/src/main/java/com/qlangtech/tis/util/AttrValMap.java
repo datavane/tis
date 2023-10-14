@@ -25,6 +25,8 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.INotebookable;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.plugin.IRepositoryTargetFile;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.impl.AttrVals;
@@ -65,9 +67,8 @@ public class AttrValMap {
         return describableAttrValMapList;
     }
 
-    public static AttrValMap parseDescribableMap( //IControlMsgHandler fieldErrorHandler
-                                                  Optional<IPropertyType.SubFormFilter> subFormFilter,
-                                                  com.alibaba.fastjson.JSONObject jsonObject) {
+    public static AttrValMap parseDescribableMap(Optional<IPropertyType.SubFormFilter> subFormFilter,
+                                                 com.alibaba.fastjson.JSONObject jsonObject) {
         String impl = null;
         Descriptor descriptor;
         impl = jsonObject.getString(PLUGIN_EXTENSION_IMPL);
@@ -77,7 +78,6 @@ public class AttrValMap {
         }
         Object vals = jsonObject.get(PLUGIN_EXTENSION_VALS);
         AttrVals attrValMap = Descriptor.parseAttrValMap(vals);
-        // return descriptor.newInstance(attrValMap);
         return new AttrValMap(attrValMap, subFormFilter, descriptor);
     }
 
@@ -90,6 +90,11 @@ public class AttrValMap {
     }
 
 
+    public Descriptor.PluginValidateResult validate(IControlMsgHandler msgHandler, Context context, boolean verify) {
+        // return this.descriptor.verify(msgHandler, context, verify, attrValMap, subFormFilter);
+        return this.validate(msgHandler, context, Optional.empty(), verify);
+    }
+
     /**
      * 校验表单输入内容
      *
@@ -97,8 +102,13 @@ public class AttrValMap {
      * @param verify  是否进行业务逻辑校验
      * @return true：校验没有错误 false：校验有错误
      */
-    public Descriptor.PluginValidateResult validate(IControlMsgHandler msgHandler, Context context, boolean verify) {
-        return this.descriptor.verify(msgHandler, context, verify, attrValMap, subFormFilter);
+    public Descriptor.PluginValidateResult validate(IControlMsgHandler msgHandler, Context context, Optional<PluginFormProperties> propertyTypes, boolean verify) {
+        // if (this.descriptor == propertyTypes.getDescriptor()) {
+        return this.descriptor.verify(msgHandler, context, verify, attrValMap, propertyTypes, subFormFilter);
+//        } else {
+//            return this.descriptor.verify(msgHandler, context, verify, attrValMap, subFormFilter);
+//        }
+
     }
 
     public String createOrGetNotebook(IControlMsgHandler msgHandler, Context context) throws Exception {
@@ -111,13 +121,17 @@ public class AttrValMap {
                 this.attrValMap)).newInstance());
     }
 
+    public Descriptor.ParseDescribable createDescribable(IPluginContext pluginContext) {
+        return this.createDescribable(pluginContext, Optional.empty());
+    }
+
     /**
      * 创建插件实例对象
      *
      * @return
      */
-    public Descriptor.ParseDescribable createDescribable(IPluginContext pluginContext) {
-        return this.descriptor.newInstance(pluginContext, this.attrValMap, this.subFormFilter);
+    public Descriptor.ParseDescribable createDescribable(IPluginContext pluginContext, Optional<PluginFormProperties> formProperties) {
+        return this.descriptor.parseDescribable(pluginContext, this.attrValMap, (formProperties), this.subFormFilter);
     }
 
     public int size() {

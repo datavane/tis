@@ -29,6 +29,7 @@ import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.Converter;
@@ -40,6 +41,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -66,6 +68,7 @@ public class PropertyType implements IPropertyType {
         }, List.class);
     }
 
+   // private final Optional<Descriptor.ElementPluginDesc> parentPluginDesc;
     public final Class clazz;
 
     public final Type type;
@@ -78,9 +81,16 @@ public class PropertyType implements IPropertyType {
 
     public final Field f;
 
+
     private Boolean inputRequired;
 
+    private PluginExtraProps.MultiItemsViewType multiItemsViewType;
+
     public PluginExtraProps.Props extraProp;
+
+    public PropertyType(Field f, FormField formField) {
+        this(f, f.getType(), f.getGenericType(), f.getName(), formField);
+    }
 
     PropertyType(Field f, Class clazz, Type type, String displayName, FormField formField) {
         this.f = f;
@@ -93,6 +103,39 @@ public class PropertyType implements IPropertyType {
         this.formField = formField;
     }
 
+    private static String getStrProp(PluginExtraProps.Props props, String key) {
+        return props.getProps().getString(key);
+    }
+
+    public static PluginExtraProps.MultiItemsViewType createMultiItemsViewType(PluginExtraProps.Props props) {
+//        if (this.multiItemsViewType == null) {
+        Optional<CMeta.ElementCreatorFactory> elementCreator = Optional.empty();
+        try {
+            String selectElementCreator = getStrProp(props, CMeta.KEY_ELEMENT_CREATOR_FACTORY);
+            if (StringUtils.isNotEmpty(selectElementCreator)) {
+                elementCreator = Optional.of((CMeta.ElementCreatorFactory) //
+                        TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return new PluginExtraProps.MultiItemsViewType(PluginExtraProps.ViewType.parse(getStrProp(props, PluginExtraProps.Props.KEY_VIEW_TYPE)),
+                elementCreator);
+        // }
+        // return this.multiItemsViewType;
+    }
+
+
+    public PluginExtraProps.MultiItemsViewType getMultiItemsViewType() {
+        if (this.multiItemsViewType == null) {
+            this.multiItemsViewType = createMultiItemsViewType(new PluginExtraProps.Props(new JSONObject()));
+        }
+        return this.multiItemsViewType;
+    }
+
+    public void setMultiItemsViewType(PluginExtraProps.MultiItemsViewType multiItemsViewType) {
+        this.multiItemsViewType = multiItemsViewType;
+    }
 
     /**
      * 是否是主键
@@ -160,9 +203,6 @@ public class PropertyType implements IPropertyType {
         return inputRequired;
     }
 
-    public PropertyType(Field f, FormField formField) {
-        this(f, f.getType(), f.getGenericType(), f.getName(), formField);
-    }
 
     // PropertyType(Method getter) {
     // this(getter.getReturnType(), getter.getGenericReturnType(), getter.toString());
@@ -191,7 +231,9 @@ public class PropertyType implements IPropertyType {
         try {
             Object val = this.f.get(instance);
             if (this.formField.type() == FormFieldType.MULTI_SELECTABLE) {
-                return this.extraProp.multiItemsViewType().serialize2Frontend(val);
+
+                return this.getMultiItemsViewType().serialize2Frontend(val);
+                //  return this.extraProp.multiItemsViewType(this.getParentHostClass()).serialize2Frontend(val);
             }
             return val;
         } catch (Exception e) {
@@ -294,5 +336,9 @@ public class PropertyType implements IPropertyType {
             return null;
         }
         return TIS.get().getDescriptorList(itemType);
+    }
+
+    public Optional<CMeta.ElementCreatorFactory> getCMetaCreator() {
+        return this.multiItemsViewType.tupleFactory;
     }
 }

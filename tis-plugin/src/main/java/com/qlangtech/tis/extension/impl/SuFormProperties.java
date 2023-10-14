@@ -22,11 +22,11 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
-import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
@@ -48,8 +48,8 @@ public class SuFormProperties extends BaseSubFormProperties {
 
     public static final ThreadLocal<SuFormGetterContext> subFormGetterProcessThreadLocal =
             ThreadLocal.withInitial(() -> {
-        return new SuFormGetterContext();
-    });
+                return new SuFormGetterContext();
+            });
 
     public static SuFormGetterContext setSuFormGetterContext(Describable plugin, UploadPluginMeta pluginMeta,
                                                              String subFormDetailId) {
@@ -67,11 +67,13 @@ public class SuFormProperties extends BaseSubFormProperties {
 
 
     public final SubForm subFormFieldsAnnotation;
-    public final Class<?> parentClazz;
+    public final Class<? extends Describable> parentClazz;
     public final Descriptor parentPluginDesc;
     public final PropertyType pkPropertyType;
 
     private DescriptorsJSON.IPropGetter subFormFieldsEnumGetter;
+
+
 
     @Override
     public PropertyType getPropertyType(String fieldName) {
@@ -111,7 +113,7 @@ public class SuFormProperties extends BaseSubFormProperties {
      * @param subFormFieldsDescriptor Example: SelectedTable.DefaultDescriptor
      * @param fieldsType              Example: SelectedTable.DefaultDescriptor 对应plugin的 props
      */
-    public SuFormProperties(Class<?> parentClazz, Field subFormField, SubForm subFormFieldsAnnotation,
+    public SuFormProperties(Class<? extends Describable> parentClazz, Field subFormField, SubForm subFormFieldsAnnotation,
                             Descriptor subFormFieldsDescriptor, Map<String, PropertyType> fieldsType) {
         super(subFormField, subFormFieldsAnnotation != null ? subFormFieldsAnnotation.desClazz() : null,
                 subFormFieldsDescriptor);
@@ -126,30 +128,17 @@ public class SuFormProperties extends BaseSubFormProperties {
                 Optional.of(subFormField));
         overwriteSubform.ifPresent((ep) -> {
             ep.forEach((fieldKey, val) -> {
-
                 if (SelectedTab.KEY_SOURCE_PROPS.equals(fieldKey)) {
-                    //                    String sourceTabExtendImpl = val.getProps().getString(AttrValMap
-                    //                    .PLUGIN_EXTENSION_IMPL);
-                    //                    if (StringUtils.isNotEmpty(sourceTabExtendImpl)) {
-                    //                        PluginFormProperties extendProps =
-                    //                                Objects.requireNonNull(TIS.get().getDescriptor
-                    //                                (sourceTabExtendImpl),
-                    //                                        "sourceTabExtendImpl:" + sourceTabExtendImpl + "
-                    //                                        relevant descriptor can not "
-                    //                                                + "be null").getPluginFormPropertyTypes();
-                    //                      //  extendProps.getKVTuples()
-                    //                    }
                     return;
                 }
-
-                Objects.requireNonNull(fieldsType.get(fieldKey),
-                        "fieldKey:" + fieldKey + " relevant PropertyType " + "can" + " not be null").extraProp.merge(val);
+                PropertyType pt = Objects.requireNonNull(fieldsType.get(fieldKey),
+                        "fieldKey:" + fieldKey + " relevant PropertyType can not be null");
+                if (pt.formField.type() == FormFieldType.MULTI_SELECTABLE) {
+                    pt.setMultiItemsViewType(PropertyType.createMultiItemsViewType(val));
+                }
             });
         });
         this.fieldsType = Collections.unmodifiableMap(fieldsType);
-        //        if () {
-        //            this.instClazz = ;
-        //        }
         if (MapUtils.isNotEmpty(this.fieldsType)) {
             Optional<Map.Entry<String, PropertyType>> idType =
                     fieldsType.entrySet().stream().filter((ft) -> ft.getValue().isIdentity()).findFirst();
@@ -160,9 +149,17 @@ public class SuFormProperties extends BaseSubFormProperties {
         } else {
             this.pkPropertyType = null;
         }
-
-        //this.subFormFieldsDescriptor = subFormFieldsDescriptor;
     }
+
+    @Override
+    public Class<? extends Describable> getParentPluginClass() {
+        return this.parentClazz;
+    }
+
+
+//    public Optional<Descriptor.ElementPluginDesc> createElementPluginDesc(Descriptor<?> newSubDescriptor) {
+//        return Optional.of(new Descriptor.ElementPluginDesc(newSubDescriptor));
+//    }
 
 
     private String getIdListGetScript() {
@@ -275,7 +272,7 @@ public class SuFormProperties extends BaseSubFormProperties {
         SelectedTabExtend sourceExtendProps = null;
         if (ext != null) {
             itemJson = new DescribableJSON(ext);
-            pair.add(itemJson.getItemJson(new RootFormProperties(this.fieldsType)));
+            pair.add(itemJson.getItemJson(new RootFormProperties(this.subFormFieldsDescriptor, this.fieldsType)));
 
 
             sourceExtendProps = ext.getSourceProps();

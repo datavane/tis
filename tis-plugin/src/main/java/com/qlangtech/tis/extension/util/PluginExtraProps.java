@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.IOUtils;
@@ -43,11 +44,12 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -62,6 +64,9 @@ import java.util.stream.Collectors;
  * @date 2020/04/13
  */
 public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
+
+    private static final Logger logger = LoggerFactory.getLogger(PluginExtraProps.class);
+
     public static final String KEY_DFTVAL_PROP = "dftVal";
     public static final String KEY_PLACEHOLDER_PROP = "placeholder";
     public static final String KEY_DISABLE = "disable";
@@ -108,7 +113,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return null;
         });
 
-        String resourceName = pluginClazz.getSimpleName() + subformFieldName + ".json";
+        final String resourceName = pluginClazz.getSimpleName() + subformFieldName + ".json";
         try {
             try (InputStream i = pluginClazz.getResourceAsStream(resourceName)) {
                 if (i == null) {
@@ -145,7 +150,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
      * @return
      * @throws IOException
      */
-    public static Optional<PluginExtraProps> load(Optional<Descriptor> desc, Class<?> clazz) {
+    public static Optional<PluginExtraProps> load(Optional<Descriptor.ElementPluginDesc> desc, Class<?> clazz) {
 
 
         PluginExtraProps ep = visitAncestorsClass(clazz, (c, extraProps) -> {
@@ -169,7 +174,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         }
         PluginExtraProps e = null;
-        if (desc.isPresent() && MapUtils.isNotEmpty(e = desc.get().fieldExtraDescs)) {
+        if (desc.isPresent() && MapUtils.isNotEmpty(e = desc.get().getFieldExtraDescs())) {
             if (ep != null) {
                 ep.mergeProps(e, desc);
             } else {
@@ -322,7 +327,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         this.mergeProps(props, Optional.empty());
     }
 
-    public void mergeProps(PluginExtraProps props, Optional<Descriptor> desc) {
+    public void mergeProps(PluginExtraProps props, Optional<Descriptor.ElementPluginDesc> desc) {
         if (props == null) {
             throw new IllegalArgumentException("param props can not be null");
         }
@@ -335,12 +340,15 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 p.merge(entry.getValue());
             } else {
                 if (desc.isPresent()) {
-                    // && !(fieldKeys = desc.get().getPropertyFields()).contains(entry.getKey())
+                    Descriptor.ElementPluginDesc elmtDesc = desc.get();
+
+
                     Map<String, IPropertyType> pp = ppRef.updateAndGet((pre) -> {
-                        return (pre == null) ? Descriptor.buildPropertyTypes(Optional.empty(), desc.get().clazz) : pre;
+                        return (pre == null) ? Descriptor.buildPropertyTypes(Optional.empty(), elmtDesc.getElementDesc().clazz) : pre;
                     });
                     if (!pp.containsKey(entry.getKey())) {
-                        throw new IllegalStateException("prop key:" + entry.getKey() + " relevant prop must exist , " + "exist props keys:" + pp.keySet().stream().collect(Collectors.joining(",")));
+                        throw new IllegalStateException("prop key:" + entry.getKey()
+                                + " relevant prop must exist , " + "exist props keys:" + pp.keySet().stream().collect(Collectors.joining(",")));
                     }
                 }
                 this.put(entry.getKey(), entry.getValue());
@@ -351,18 +359,20 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     public static class MultiItemsViewType {
         public final ViewType viewType;
         public final Optional<CMeta.ElementCreatorFactory> tupleFactory;
-
+        //  private final Class<? extends Describable> hostPluginClazz;
         private List<String> elementPropertyKeys;
+
 
         public MultiItemsViewType(ViewType viewType, Optional<CMeta.ElementCreatorFactory> tupleFactory) {
             this.viewType = viewType;
             this.tupleFactory = Objects.requireNonNull(tupleFactory, "tupleFactory can not be null");
+            // this.hostPluginClazz = hostPluginClazz;
         }
 
         public List<FormFieldType.SelectedItem> getPostSelectedItems(PropertyType attrDesc,
                                                                      IControlMsgHandler msgHandler, Context context,
                                                                      JSONObject eprops) {
-            return this.viewType.getPostSelectedItems(attrDesc,msgHandler,context,eprops);
+            return this.viewType.getPostSelectedItems(attrDesc, msgHandler, context, eprops);
         }
 
         public List<String> getElementPropertyKeys() {
@@ -380,6 +390,14 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         public List<?> serialize2Frontend(Object bizInstance) {
             return viewType.serialize2Frontend(bizInstance);
+        }
+
+        @Override
+        public String toString() {
+            return "{" +
+                    "viewType=" + viewType +
+                    ", tupleFactory=" + tupleFactory.map((tf) -> tf.getClass().getSimpleName()).orElse("empty") +
+                    '}';
         }
     }
 
@@ -428,7 +446,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         }), TupleList("tuplelist" //
                 , (attrDesc, msgHandler, context, eprops) -> {
 
-            Optional<CMeta.ElementCreatorFactory> elementCreator = attrDesc.extraProp.getCMetaCreator();
+            Optional<CMeta.ElementCreatorFactory> elementCreator = attrDesc.getCMetaCreator();
 
             String keyColsMeta = "";
             JSONArray mcols = eprops.getJSONObject(Descriptor.KEY_ENUM_PROP).getJSONArray("_mcols");
@@ -497,8 +515,23 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         private final JSONObject props;
         private String asynHelp;
 
-        private MultiItemsViewType multiItemsViewType;
-
+        /**
+         * // Example: the descriptor for cols element of selectedTab
+         * // The host plugin class for the cols element
+         * //  hostPluginClazz 宿主plugin Class
+         */
+//        private final Map<Class<? extends Describable>, HostedExtraProps> hostedExtraProps = new HashMap<Class<? extends Describable>, HostedExtraProps>() {
+//            @Override
+//            public HostedExtraProps get(Object key) {
+//                HostedExtraProps val = super.get(key);
+//                if (val == null) {
+//                    val = new HostedExtraProps(new Props(new JSONObject()));
+//                    logger.warn("key:" + key + " relevant extraProp");
+//                    this.put((Class<? extends Describable>) key, val);
+//                }
+//                return val;
+//            }
+//        };
         public Props(JSONObject props) {
             this.props = props;
         }
@@ -532,28 +565,37 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
          *
          * @return
          */
-        @JSONField(serialize = false)
-        public MultiItemsViewType multiItemsViewType() {
+//        @JSONField(serialize = false)
+//        public MultiItemsViewType multiItemsViewType(Class<? extends Describable> hostPluginClazz) {
+//
+//            final HostedExtraProps hostExtraProp = (this.hostedExtraProps.get(hostPluginClazz));
+//            if (hostExtraProp == null) {
+//                throw new IllegalStateException("hostPluginClazz:" + hostPluginClazz + " relevant plugin class can not be null,relevant hostProps keys:"
+//                        + this.hostedExtraProps.keySet().stream().map((clazz) -> clazz.getName()).collect(Collectors.joining(",")));
+//            }
+//
+//            if (hostExtraProp.multiItemsViewType == null) {
+//                Optional<CMeta.ElementCreatorFactory> elementCreator = Optional.empty();
+//                try {
+//                    String selectElementCreator = hostExtraProp.getStrProp(CMeta.KEY_ELEMENT_CREATOR_FACTORY);
+//                    if (StringUtils.isNotEmpty(selectElementCreator)) {
+//                        elementCreator = Optional.of((CMeta.ElementCreatorFactory) //
+//                                TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
+//                    }
+//                } catch (Exception e) {
+//                    throw new RuntimeException(e);
+//                }
+//                hostExtraProp.multiItemsViewType = new MultiItemsViewType(ViewType.parse(hostExtraProp.getStrProp(KEY_VIEW_TYPE)),
+//                        elementCreator, hostPluginClazz);
+//            }
+//
+//            return hostExtraProp.multiItemsViewType;
+//        }
 
-            if (multiItemsViewType == null) {
-                Optional<CMeta.ElementCreatorFactory> elementCreator = Optional.empty();
-                try {
-                    String selectElementCreator = this.getProps().getString(CMeta.KEY_ELEMENT_CREATOR_FACTORY);
-                    if (StringUtils.isNotEmpty(selectElementCreator)) {
-                        elementCreator = Optional.of((CMeta.ElementCreatorFactory) //
-                                TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                multiItemsViewType = new MultiItemsViewType(ViewType.parse(this.props.getString(KEY_VIEW_TYPE)),
-                        elementCreator);
-            }
-
-            return multiItemsViewType;
-        }
-
-
+//        @JSONField(serialize = false)
+//        public Optional<CMeta.ElementCreatorFactory> getCMetaCreator(Class<? extends Describable> hostPluginClazz) {
+//            return this.multiItemsViewType(hostPluginClazz).tupleFactory;
+//        }
         @JSONField(serialize = false)
         public String getPlaceholder() {
             Object p = props.get(KEY_PLACEHOLDER_PROP);
@@ -593,11 +635,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         // private Optional<CMeta.ElementCreatorFactory> elementCreator;
 
-        @JSONField(serialize = false)
-        public Optional<CMeta.ElementCreatorFactory> getCMetaCreator() {
-            return this.multiItemsViewType().tupleFactory;
-        }
-
+//        public void merge(Class<? extends Describable> hostedPluginClazz, Props p) {
+//            this.hostedExtraProps.put(hostedPluginClazz, new HostedExtraProps(p));
+//        }
 
         public void merge(Props p) {
             jsonMerge(props, p.props);
@@ -664,4 +704,5 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         public boolean validateFaild = false;
         public boolean pkHasSelected = false;
     }
+
 }

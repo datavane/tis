@@ -91,6 +91,8 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     @FormField(ordinal = 100, type = FormFieldType.INPUTTEXT)
     public String where;
 
+    private transient Class<? extends Describable> parentPluginClazz;
+
     @Override
     public List<String> getPrimaryKeys() {
         return this.primaryKeys;
@@ -101,6 +103,11 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
      */
     @FormField(ordinal = 200, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
     public List<CMeta> cols = Lists.newArrayList();
+
+
+    public Class<? extends Describable> getParentPluginClazz() {
+        return Objects.requireNonNull(this.parentPluginClazz, "parentPluginClazz can not be null");
+    }
 
     public List<String> getColKeys() {
         return this.cols.stream().filter((c) -> !c.isDisable()).map((c) -> c.getName()).collect(Collectors.toList());
@@ -365,7 +372,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
                 PropertyType colProp = (PropertyType) tab.getDescriptor().getPropertyType(KEY_FIELD_COLS);
 
                 List<String> fieldNames = Lists.newArrayList();
-                switch (colProp.extraProp.multiItemsViewType().viewType) {
+                switch (colProp.getMultiItemsViewType().viewType) {
                     case IdList:
                         fieldNames = Lists.newArrayList(KEY_FIELD_COLS);
                         break;
@@ -382,7 +389,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
                         break;
                     default:
-                        throw new IllegalStateException("unhandle view type:" + colProp.extraProp.multiItemsViewType());
+                        throw new IllegalStateException("unhandle view type:" + colProp.getMultiItemsViewType());
                 }
 
                 for (String fieldName : fieldNames) {

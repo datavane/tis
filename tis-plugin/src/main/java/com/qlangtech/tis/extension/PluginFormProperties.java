@@ -32,6 +32,8 @@ import java.util.Set;
  * @date 2021-04-12 11:01
  */
 public abstract class PluginFormProperties {
+    public abstract Descriptor getDescriptor();
+
     public abstract Set<Map.Entry<String, PropertyType>> getKVTuples();
 
     public abstract JSON getInstancePropsJson(Object instance);

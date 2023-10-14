@@ -17,12 +17,10 @@
  */
 package com.qlangtech.tis.extension;
 
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.Objects;
 import java.util.Optional;
 
 /**
