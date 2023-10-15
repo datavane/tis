@@ -177,7 +177,13 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
                 if (extraProps != null) {
                     // 额外属性
-                    attrVal.put("eprops", extraProps);
+                    JSONObject ep = extraProps;
+                    JSONObject n = val.multiSelectablePropProcess((vt) -> {
+                        JSONObject clone = (JSONObject) ep.clone();
+                        clone.put(PluginExtraProps.Props.KEY_VIEW_TYPE, vt.getViewTypeToken());
+                        return clone;
+                    });
+                    attrVal.put("eprops", n != null ? n : ep);
                 }
 
                 if (val.typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {

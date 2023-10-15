@@ -37,6 +37,11 @@ public abstract class AdapterPluginFormProperties extends PluginFormProperties {
     }
 
     @Override
+    public boolean containProperty(String fieldName) {
+        return target.containProperty(fieldName);
+    }
+
+    @Override
     public Descriptor getDescriptor() {
         return target.getDescriptor();
     }

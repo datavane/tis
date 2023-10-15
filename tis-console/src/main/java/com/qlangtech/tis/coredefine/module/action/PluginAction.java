@@ -250,29 +250,30 @@ public class PluginAction extends BasicModule {
   public void doGetPluginFieldHelp(Context context) {
     DescriptorField descField = parseDescField();
 
-    String plugin = this.getString("plugin");
-    Optional<IPropertyType.SubFormFilter> subFormFilter = Optional.empty();
-    if (StringUtils.isNotEmpty(plugin)) {
-      UploadPluginMeta pluginMeta = UploadPluginMeta.parse(this, plugin, true);
-      subFormFilter = pluginMeta.getSubFormFilter();
-    }
+  //  String plugin = this.getString("plugin");
+   // Optional<IPropertyType.SubFormFilter> subFormFilter = Optional.empty();
+   // if (StringUtils.isNotEmpty(plugin)) {
+   //   UploadPluginMeta pluginMeta = UploadPluginMeta.parse(this, plugin, true);
+    //  subFormFilter = pluginMeta.getSubFormFilter();
+   // }
 
+    PluginExtraProps.Props props = descField.getFieldPropType().extraProp;
 
-    PluginFormProperties pluginFormPropertyTypes = descField.getTargetDesc().getPluginFormPropertyTypes(subFormFilter);
-
-    PluginExtraProps.Props props =
-      pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
-      @Override
-      public PluginExtraProps.Props visit(BaseSubFormProperties props) {
-        PropertyType propertyType = props.getPropertyType(descField.field);
-        return propertyType.extraProp;
-      }
-
-      @Override
-      public PluginExtraProps.Props visit(RootFormProperties props) {
-        return descField.getFieldPropType().extraProp;
-      }
-    });
+//    PluginFormProperties pluginFormPropertyTypes = descField.getTargetDesc().getPluginFormPropertyTypes(subFormFilter);
+//
+//    PluginExtraProps.Props props =
+//      pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
+//      @Override
+//      public PluginExtraProps.Props visit(BaseSubFormProperties props) {
+//        PropertyType propertyType = props.getPropertyType(descField.field);
+//        return propertyType.extraProp;
+//      }
+//
+//      @Override
+//      public PluginExtraProps.Props visit(RootFormProperties props) {
+//        return descField.getFieldPropType().extraProp;
+//      }
+//    });
 
 
     if (!props.isAsynHelp()) {
@@ -729,7 +730,7 @@ public class PluginAction extends BasicModule {
 
     for (UploadPluginMeta meta : pluginsMeta) {
 
-     // heteroEnum = meta.getHeteroEnum();
+      // heteroEnum = meta.getHeteroEnum();
       plugins = meta.getDataxReaders(this);// heteroEnum.getPlugins(this, meta);
       for (Describable plugin : plugins) {
 

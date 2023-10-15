@@ -91,7 +91,6 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     @FormField(ordinal = 100, type = FormFieldType.INPUTTEXT)
     public String where;
 
-    private transient Class<? extends Describable> parentPluginClazz;
 
     @Override
     public List<String> getPrimaryKeys() {
@@ -104,10 +103,6 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     @FormField(ordinal = 200, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
     public List<CMeta> cols = Lists.newArrayList();
 
-
-    public Class<? extends Describable> getParentPluginClazz() {
-        return Objects.requireNonNull(this.parentPluginClazz, "parentPluginClazz can not be null");
-    }
 
     public List<String> getColKeys() {
         return this.cols.stream().filter((c) -> !c.isDisable()).map((c) -> c.getName()).collect(Collectors.toList());
@@ -136,7 +131,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     }
 
     public SelectedTabExtend getSourceProps() {
-        return sourceProps;
+        return this.sourceProps;
     }
 
     public void setSourceProps(SelectedTabExtend sourceProps) {
@@ -370,27 +365,31 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
             }
             if (lackPks.size() > 0) {
                 PropertyType colProp = (PropertyType) tab.getDescriptor().getPropertyType(KEY_FIELD_COLS);
+                final List<String> fieldNames = Lists.newArrayList();
 
-                List<String> fieldNames = Lists.newArrayList();
-                switch (colProp.getMultiItemsViewType().viewType) {
-                    case IdList:
-                        fieldNames = Lists.newArrayList(KEY_FIELD_COLS);
-                        break;
-                    case TupleList:
-                        List<CMeta> tabCols = tab.cols;
-                        AtomicInteger index = new AtomicInteger();
-                        Map<String, Integer> colsIndex //
-                                = tabCols.stream().collect(Collectors.toMap((c) -> c.getName(),
-                                (c) -> index.getAndIncrement()));
-                        for (String lackKey : lackPks) {
-                            fieldNames.add(joinField(KEY_FIELD_COLS,
-                                    Collections.singletonList(colsIndex.get(lackKey)), CMeta.FIELD_NAME));
-                        }
+                colProp.multiSelectablePropProcess((viewType) -> {
+                    switch (viewType.viewType) {
+                        case IdList:
+                            fieldNames.add(KEY_FIELD_COLS);// = Lists.newArrayList();
+                            break;
+                        case TupleList:
+                            List<CMeta> tabCols = tab.cols;
+                            AtomicInteger index = new AtomicInteger();
+                            Map<String, Integer> colsIndex //
+                                    = tabCols.stream().collect(Collectors.toMap((c) -> c.getName(),
+                                    (c) -> index.getAndIncrement()));
+                            for (String lackKey : lackPks) {
+                                fieldNames.add(joinField(KEY_FIELD_COLS,
+                                        Collections.singletonList(colsIndex.get(lackKey)), CMeta.FIELD_NAME));
+                            }
 
-                        break;
-                    default:
-                        throw new IllegalStateException("unhandle view type:" + colProp.getMultiItemsViewType());
-                }
+                            break;
+                        default:
+                            throw new IllegalStateException("unhandle view type:" + viewType);
+                    }
+                    return null;
+                });
+
 
                 for (String fieldName : fieldNames) {
                     msgHandler.addFieldError(context, fieldName, "由于" + String.join(",", lackPks) + "选为主键," +

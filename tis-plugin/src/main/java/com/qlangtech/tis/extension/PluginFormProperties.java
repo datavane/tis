@@ -34,6 +34,8 @@ import java.util.Set;
 public abstract class PluginFormProperties {
     public abstract Descriptor getDescriptor();
 
+    public abstract boolean containProperty(String fieldName);
+
     public abstract Set<Map.Entry<String, PropertyType>> getKVTuples();
 
     public abstract JSON getInstancePropsJson(Object instance);

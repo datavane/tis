@@ -69,6 +69,11 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
     }
 
     @Override
+    public boolean containProperty(String fieldName) {
+        return this.getPropertyType(fieldName) != null;
+    }
+
+    @Override
     public boolean atLeastOne() {
         return true;
     }
@@ -155,8 +160,9 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
         }
     }
 
+
     @Override
     public Set<Map.Entry<String, PropertyType>> getKVTuples() {
-        return Descriptor.filterFieldProp(subFormFieldsDescriptor).entrySet();
+        return PropertyType.filterFieldProp(subFormFieldsDescriptor).entrySet();
     }
 }

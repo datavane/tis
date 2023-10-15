@@ -73,11 +73,15 @@ public class SuFormProperties extends BaseSubFormProperties {
 
     private DescriptorsJSON.IPropGetter subFormFieldsEnumGetter;
 
-
+    @Override
+    public boolean containProperty(String fieldName) {
+        return this.fieldsType.containsKey(fieldName);
+    }
 
     @Override
     public PropertyType getPropertyType(String fieldName) {
-        PropertyType propertyType = this.fieldsType.get(fieldName);
+        PropertyType propertyType = Objects.requireNonNull(this.fieldsType.get(fieldName)
+                , "fieldName:" + fieldName + " relevant property can not be null");
         return propertyType;
     }
 
@@ -98,6 +102,18 @@ public class SuFormProperties extends BaseSubFormProperties {
 
     public static SuFormProperties copy(Map<String, /*** fieldname */PropertyType> fieldsType, Class<?> instClazz,
                                         Descriptor subFormFieldsDescriptor, SuFormProperties old) {
+
+        for (Map.Entry<String, /*** fieldname */PropertyType> entry : fieldsType.entrySet()) {
+            if (old.containProperty(entry.getKey())) {
+                PropertyType oldPt = old.getPropertyType(entry.getKey());
+                PropertyType pt = entry.getValue();
+                pt.multiSelectablePropProcess((vt) -> {
+                    pt.setMultiItemsViewType(oldPt);
+                    return null;
+                });
+            }
+        }
+
         SuFormProperties result = new SuFormProperties(old.parentClazz, old.subFormField, old.subFormFieldsAnnotation
                 , subFormFieldsDescriptor, fieldsType);
         if (!old.subFormFieldsAnnotation.desClazz().isAssignableFrom(instClazz)) {

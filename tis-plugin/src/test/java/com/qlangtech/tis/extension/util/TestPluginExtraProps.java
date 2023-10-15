@@ -21,7 +21,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.DefaultPlugin;
-import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.ElementPluginDesc;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import junit.framework.TestCase;
 
@@ -107,8 +107,8 @@ public class TestPluginExtraProps extends TestCase {
         DefaultPlugin plugin = new DefaultPlugin();
 
         Optional<PluginExtraProps> extraProps
-                = PluginExtraProps.load(
-                Optional.of(new Descriptor.ElementPluginDesc(plugin.getDescriptor())), DefaultPlugin.class);
+                = PluginExtraProps.load(ElementPluginDesc.create(plugin.getDescriptor())
+                , DefaultPlugin.class);
 
         Assert.assertTrue(extraProps.isPresent());
 
@@ -128,7 +128,7 @@ public class TestPluginExtraProps extends TestCase {
             DefaultPlugin plugin = new DefaultPlugin();
             DefaultPlugin.DefaultDescriptor desc = (DefaultPlugin.DefaultDescriptor) plugin.getDescriptor();
             desc.addFieldDescriptor("xxx", DefaultPlugin.DFT_NAME_VALUE, DefaultPlugin.FILED_NAME_DESCRIPTION);
-            PluginExtraProps.load(Optional.of(new Descriptor.ElementPluginDesc(desc)), DefaultPlugin.class);
+            PluginExtraProps.load(ElementPluginDesc.create(desc), DefaultPlugin.class);
             Assert.fail("must be faild");
         } catch (Exception e) {
             Assert.assertEquals("prop key:xxx relevant prop must exist , exist props keys:name,cols", e.getMessage());

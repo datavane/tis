@@ -49,6 +49,11 @@ public class RootFormProperties extends PluginFormProperties {
     }
 
     @Override
+    public boolean containProperty(String fieldName) {
+        return this.propertiesType.containsKey(fieldName);
+    }
+
+    @Override
     public Set<Map.Entry<String, PropertyType>> getKVTuples() {
         return this.propertiesType.entrySet();
     }

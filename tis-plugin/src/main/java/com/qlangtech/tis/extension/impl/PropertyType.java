@@ -23,26 +23,38 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.ElementPluginDesc;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
+import com.qlangtech.tis.extension.util.MultiItemsViewType;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.DataTypeMeta;
+import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.Converter;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.tiger_types.Types;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -68,7 +80,7 @@ public class PropertyType implements IPropertyType {
         }, List.class);
     }
 
-   // private final Optional<Descriptor.ElementPluginDesc> parentPluginDesc;
+    // private final Optional<Descriptor.ElementPluginDesc> parentPluginDesc;
     public final Class clazz;
 
     public final Type type;
@@ -84,7 +96,7 @@ public class PropertyType implements IPropertyType {
 
     private Boolean inputRequired;
 
-    private PluginExtraProps.MultiItemsViewType multiItemsViewType;
+    private MultiItemsViewType multiItemsViewType;
 
     public PluginExtraProps.Props extraProp;
 
@@ -107,7 +119,7 @@ public class PropertyType implements IPropertyType {
         return props.getProps().getString(key);
     }
 
-    public static PluginExtraProps.MultiItemsViewType createMultiItemsViewType(PluginExtraProps.Props props) {
+    public static MultiItemsViewType createMultiItemsViewType(PluginExtraProps.Props props) {
 //        if (this.multiItemsViewType == null) {
         Optional<CMeta.ElementCreatorFactory> elementCreator = Optional.empty();
         try {
@@ -119,23 +131,192 @@ public class PropertyType implements IPropertyType {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return new PluginExtraProps.MultiItemsViewType(PluginExtraProps.ViewType.parse(getStrProp(props, PluginExtraProps.Props.KEY_VIEW_TYPE)),
+        return new MultiItemsViewType(MultiItemsViewType.ViewType.parse(getStrProp(props, PluginExtraProps.Props.KEY_VIEW_TYPE)),
                 elementCreator);
         // }
         // return this.multiItemsViewType;
     }
 
+    public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(Map<String,
+            /*** fieldname*/IPropertyType> props) {
+        return props.entrySet().stream().filter((e) -> e.getValue() instanceof PropertyType) //
+                .collect(Collectors.toMap((e) -> e.getKey(), (e) -> (PropertyType) e.getValue()));
+    }
 
-    public PluginExtraProps.MultiItemsViewType getMultiItemsViewType() {
+    /**
+     * 可能plugin form 表单需要几个步骤才能 填充完一个plugin form 表单就需要单独取出部分表单属性去渲染前端页面
+     *
+     * @param clazz
+     * @return
+     */
+    public static Map<String, /*** fieldname */IPropertyType> buildPropertyTypes( //
+                                                                                  Optional<ElementPluginDesc> descriptor,
+                                                                                  Class<? extends Describable> clazz) {
+        try {
+            Map<String, IPropertyType> propMapper = new HashMap<>();
+
+            Optional<PluginExtraProps> extraProps = PluginExtraProps.load(descriptor, clazz);
+
+            // 支持使用继承的方式来实现复用，例如：DataXHiveWriter继承DataXHdfsWriter来实现
+            PluginExtraProps.visitAncestorsClass(clazz, new PluginExtraProps.IClassVisitor<Void>() {
+                @Override
+                public Void process(Class<?> targetClass, Void v) {
+                    FormField formField = null;
+                    SubForm subFormFields = null;
+                    //   ptype = null;
+
+                    Class<? extends Describable> subFromDescClass = null;
+                    try {
+                        for (Field f : targetClass.getDeclaredFields()) {
+                            if (!Modifier.isPublic(f.getModifiers()) || Modifier.isStatic(f.getModifiers())) {
+                                continue;
+                            }
+
+                            if ((subFormFields = f.getAnnotation(SubForm.class)) != null) {
+                                subFromDescClass = subFormFields.desClazz();
+                                if (subFromDescClass == null) {
+                                    throw new IllegalStateException("field " + f.getName() + "'s SubForm annotation " + "descClass can not be null");
+                                }
+
+                                final Descriptor subFormDesc =
+                                        Objects.requireNonNull(TIS.get().getDescriptor(subFromDescClass),
+                                                "subFromDescClass:" + subFromDescClass + " relevant descriptor can not be null");
+
+                                propMapper.put(f.getName(), new SuFormProperties(clazz, f, subFormFields, subFormDesc,
+                                        filterFieldProp(buildPropertyTypes(ElementPluginDesc.create(subFormDesc), subFromDescClass))));
+                            } else if ((formField = f.getAnnotation(FormField.class)) != null) {
+
+                                PluginExtraProps.Props fieldExtraProps = null;
+                                final PropertyType ptype = new PropertyType(f, formField);
+                                if (extraProps.isPresent() && (fieldExtraProps = extraProps.get().getProp(f.getName())) != null) {
+
+                                    ptype.setExtraProp(fieldExtraProps);
+                                    String placeholder = fieldExtraProps.getPlaceholder();
+                                    Object dftVal = fieldExtraProps.getDftVal();
+                                    String help = fieldExtraProps.getHelpContent();
+
+                                    if (fieldExtraProps.getBoolean(PluginExtraProps.KEY_DISABLE)) {
+                                        propMapper.remove(f.getName());
+                                        continue;
+                                        //return null;
+                                    }
+                                    JSONObject props = fieldExtraProps.getProps();
+                                    if (StringUtils.isNotEmpty(help) && StringUtils.startsWith(help,
+                                            IMessageHandler.TSEARCH_PACKAGE)) {
+                                        props.put(PluginExtraProps.Props.KEY_HELP, GroovyShellEvaluate.eval(help));
+                                    }
+
+                                    if (dftVal != null && StringUtils.startsWith(String.valueOf(dftVal),
+                                            IMessageHandler.TSEARCH_PACKAGE)) {
+                                        final PropertyType pt = ptype;
+
+                                        Function<Object, Object> process = pt.getEnumFieldMode() != null ?
+                                                pt.getEnumFieldMode().createDefaultValProcess(targetClass, f) :
+                                                Function.identity();
+
+                                        props.put(PluginExtraProps.KEY_DFTVAL_PROP,
+                                                GroovyShellEvaluate.scriptEval(String.valueOf(dftVal), process));
+                                    }
+
+                                    if (placeholder != null && StringUtils.startsWith(placeholder,
+                                            IMessageHandler.TSEARCH_PACKAGE)) {
+                                        props.put(PluginExtraProps.KEY_PLACEHOLDER_PROP,
+                                                GroovyShellEvaluate.scriptEval(placeholder));
+                                    }
+
+                                    if (descriptor.isPresent() //
+                                            && (formField.type() == FormFieldType.ENUM)) {
+                                        resolveEnumProp(descriptor.get().getElementDesc(), fieldExtraProps, (opts) -> {
+                                            return Option.toJson((List<Option>) opts);
+                                        });
+                                    }
+
+                                    if (descriptor.isPresent() //
+                                            && (formField.type() == FormFieldType.MULTI_SELECTABLE)) {
+
+                                        final PluginExtraProps.Props feProps = fieldExtraProps;
+
+                                        ElementPluginDesc paretPluginRef = descriptor.get();
+                                        resolveEnumProp(paretPluginRef.getElementDesc(), feProps, (cols) -> {
+                                            final List<CMeta> mcols = (List<CMeta>) cols;
+//                                            if (CollectionUtils.isEmpty(mcols)) {
+//                                                throw new IllegalStateException("mcols can not be empty");
+//                                            }
+                                            return ptype.multiSelectablePropProcess((viewType) -> {
+                                                // cols有两种显示模式
+                                                MultiItemsViewType multiItemsViewType = viewType;
+                                                switch (multiItemsViewType.viewType) {
+                                                    case IdList:
+                                                        return Option.toJson(mcols);
+                                                    case TupleList:
+                                                        return DataTypeMeta.createViewBiz(multiItemsViewType.getElementPropertyKeys(), mcols);
+                                                    default:
+                                                        throw new IllegalStateException("unhandle view type:" + multiItemsViewType);
+                                                }
+
+                                            }, true);
+                                        });
+
+
+                                    }
+
+
+                                }
+                                propMapper.put(f.getName(), ptype);
+                            } else {
+                                // throw new IllegalStateException("field:" + f.getName() + " is illegal");
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                    return null;
+                }
+
+
+            });
+
+            return propMapper;
+        } catch (Exception e) {
+            throw new RuntimeException("parse desc:" + clazz.getName(), e);
+        }
+    }
+
+    private static JSONArray resolveEnumProp(Descriptor descriptor, PluginExtraProps.Props fieldExtraProps,
+                                             Function<Object, Object> process) {
+        Object anEnum = fieldExtraProps.getProps().get(Descriptor.KEY_ENUM_PROP);
+        JSONArray enums = new JSONArray();
+        if (anEnum != null && anEnum instanceof String) {
+            try {
+                GroovyShellEvaluate.descriptorThreadLocal.set(descriptor);
+                fieldExtraProps.getProps().put(Descriptor.KEY_ENUM_PROP, GroovyShellEvaluate.scriptEval((String) anEnum, process));
+            } finally {
+                GroovyShellEvaluate.descriptorThreadLocal.remove();
+            }
+        }
+        return enums;
+    }
+
+    public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(Descriptor descriptor) {
+        return filterFieldProp(descriptor.getPropertyTypes());
+    }
+
+
+    private MultiItemsViewType getMultiItemsViewType() {
         if (this.multiItemsViewType == null) {
             this.multiItemsViewType = createMultiItemsViewType(new PluginExtraProps.Props(new JSONObject()));
         }
         return this.multiItemsViewType;
     }
 
-    public void setMultiItemsViewType(PluginExtraProps.MultiItemsViewType multiItemsViewType) {
+    public void setMultiItemsViewType(MultiItemsViewType multiItemsViewType) {
         this.multiItemsViewType = multiItemsViewType;
     }
+
+    public void setMultiItemsViewType(PropertyType oldPt) {
+        this.multiItemsViewType = oldPt.getMultiItemsViewType();
+    }
+
 
     /**
      * 是否是主键
@@ -239,6 +420,25 @@ public class PropertyType implements IPropertyType {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public <T> T multiSelectablePropProcess(Function<MultiItemsViewType, T> consumer) {
+        return multiSelectablePropProcess(consumer, false);
+    }
+
+    /**
+     * 当类型为multiSelectable 属性的设置
+     *
+     * @param consumer
+     */
+    public <T> T multiSelectablePropProcess(Function<MultiItemsViewType, T> consumer, boolean validate) {
+        if (this.formField.type() == FormFieldType.MULTI_SELECTABLE) {
+            return consumer.apply(this.getMultiItemsViewType());
+        }
+        if (validate) {
+            throw new IllegalStateException(" illegal form type:" + this.formField.type());
+        }
+        return null;
     }
 
     public void setVal(Object instance, Object val) {
