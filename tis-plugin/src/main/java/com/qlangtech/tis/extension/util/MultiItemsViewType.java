@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.extension.util;
@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
  * @date 2023/10/15
  */
 public class MultiItemsViewType {
+    public static final String keyColsMeta = "colsMeta";
     public final ViewType viewType;
     public final Optional<CMeta.ElementCreatorFactory> tupleFactory;
     //  private final Class<? extends Describable> hostPluginClazz;
@@ -136,9 +137,9 @@ public class MultiItemsViewType {
 
             Optional<CMeta.ElementCreatorFactory> elementCreator = attrDesc.getCMetaCreator();
 
-            String keyColsMeta = "";
+           // String keyColsMeta = StringUtils.EMPTY;
             JSONArray mcols = eprops.getJSONObject(Descriptor.KEY_ENUM_PROP).getJSONArray("_mcols");
-            PluginExtraProps.ParsePostMCols parsePostMCols = PluginExtraProps.parsePostMCols(elementCreator, msgHandler, context, keyColsMeta, mcols);
+            CMeta.ParsePostMCols parsePostMCols = PluginExtraProps.parsePostMCols(elementCreator, msgHandler, context, keyColsMeta, mcols);
             if (parsePostMCols.validateFaild) {
                 return Collections.emptyList();
             }

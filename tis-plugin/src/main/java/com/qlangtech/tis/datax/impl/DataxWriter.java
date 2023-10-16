@@ -87,15 +87,13 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
         if (StringUtils.isEmpty(dataXName)) {
             throw new IllegalArgumentException("param dataXName can not be null");
         }
-
-
-
         DataxWriter writer = DataxWriter.load(null, dataXName);
-        TableInDB existTabs = writer.getExistTabsInSink(dataXName);
-        if (existTabs.contains(tableName)) {
-            // 表已经存在不用初始化啦
-            return;
-        }
+        // 由于TableInDB 实例缓存时间太长了，如果在数据库中直接drop表之后在此处，执行全量构建就不会创建表了，先把缓存去掉
+//        TableInDB existTabs = writer.getExistTabsInSink(dataXName);
+//        if (existTabs.contains(tableName)) {
+//            // 表已经存在不用初始化啦
+//            return;
+//        }
 
         IInitWriterTableExecutor dataXWriter
                 = (IInitWriterTableExecutor) writer;

@@ -343,17 +343,17 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 SuFormProperties subProps =
                         (SuFormProperties) parentDesc.getSubPluginFormPropertyTypes(filter.subFieldName);
 
-                return subProps;
+                //  return subProps;
 
-//                Objects.requireNonNull(subProps, "prop:" + filter.subFieldName + " relevant subProps can not be null ");
-//
-//                subPluginFormPropertyTypes = SuFormProperties.copy(
-//                        filterFieldProp(this.getPropertyTypes(subProps.createElementPluginDesc(this)))
-//                        , this.clazz
-//                        , this
-//                        , subProps);
-//
-//                return subPluginFormPropertyTypes.overWriteInstClazz(this.clazz);
+                Objects.requireNonNull(subProps, "prop:" + filter.subFieldName + " relevant subProps can not be null ");
+
+                subPluginFormPropertyTypes = SuFormProperties.copy(
+                        PropertyType.filterFieldProp(this.getPropertyTypes(ElementPluginDesc.create(this)))
+                        , this.clazz
+                        , this
+                        , subProps);
+
+                return subPluginFormPropertyTypes.overWriteInstClazz(this.clazz);
             } else {
                 subPluginFormPropertyTypes = (SuFormProperties) getSubPluginFormPropertyTypes(filter.subFieldName);
 

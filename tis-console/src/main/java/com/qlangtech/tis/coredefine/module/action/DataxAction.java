@@ -26,8 +26,20 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
-import com.qlangtech.tis.datax.*;
-import com.qlangtech.tis.datax.impl.*;
+import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.datax.IDataxReaderContext;
+import com.qlangtech.tis.datax.IDataxWriter;
+import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
+import com.qlangtech.tis.datax.TableAlias;
+import com.qlangtech.tis.datax.TableAliasMapper;
+import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
+import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.datax.impl.ESTableAlias;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
@@ -38,7 +50,13 @@ import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
-import com.qlangtech.tis.manage.common.*;
+import com.qlangtech.tis.manage.common.AppDomainInfo;
+import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.manage.common.ManageUtils;
+import com.qlangtech.tis.manage.common.MockContext;
+import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.common.RunContext;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
@@ -50,7 +68,11 @@ import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.ds.*;
+import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.DataTypeMeta;
+import com.qlangtech.tis.plugin.ds.DefaultTab;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
@@ -58,7 +80,13 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JsonPostMsgHandler;
 import com.qlangtech.tis.solrdao.ISchema;
-import com.qlangtech.tis.util.*;
+import com.qlangtech.tis.util.DescribableJSON;
+import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.HeteroList;
+import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.Selectable;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
 import org.apache.commons.io.FileUtils;
@@ -72,10 +100,18 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import com.qlangtech.tis.extension.util.MultiItemsViewType;
 
 /**
  * manage DataX pipe process logic
@@ -1030,7 +1066,7 @@ public class DataxAction extends BasicModule {
     IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(new DefaultTab(dataxName, writerCols));
     // tableMapper.setSourceCols(writerCols);
     ////////////////////
-    final String keyColsMeta = "colsMeta";
+    // final String keyColsMeta = "colsMeta";
     IControlMsgHandler handler = new DelegateControl4JsonPostMsgHandler(this, this.parseJsonPost());
     if (!Validator.validate(handler, context, Validator.fieldsValidator( //
       "writerTargetTabName" //
@@ -1044,7 +1080,7 @@ public class DataxAction extends BasicModule {
         public void setFieldVal(String val) {
           tableMapper.setFrom(val);
         }
-      }, keyColsMeta //
+      }, MultiItemsViewType.keyColsMeta //
       , new Validator.FieldValidators(Validator.require) {
         @Override
         public void setFieldVal(String val) {
@@ -1064,8 +1100,8 @@ public class DataxAction extends BasicModule {
             return false;
           }
 
-          PluginExtraProps.ParsePostMCols postMCols = PluginExtraProps.parsePostMCols(Optional.empty(), msgHandler,
-            context, keyColsMeta, targetCols);
+          CMeta.ParsePostMCols postMCols = PluginExtraProps.parsePostMCols(Optional.empty(), msgHandler,
+            context, MultiItemsViewType.keyColsMeta, targetCols);
 
           //          Map<String, Integer> existCols = Maps.newHashMap();
           //          boolean validateFaild = false;

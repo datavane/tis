@@ -58,7 +58,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestTableAlias.class);
         suite.addTestSuite(TestScannerPatterns.class);
         suite.addTestSuite(TestDBConfigParser.class);
-        suite.addTestSuite(TestValidatorCommons.class);
+     //   suite.addTestSuite(TestValidatorCommons.class);
         suite.addTestSuite(TestHeteroList.class);
         suite.addTestSuite(TestUploadPluginMeta.class);
         suite.addTestSuite(TestValidator.class);

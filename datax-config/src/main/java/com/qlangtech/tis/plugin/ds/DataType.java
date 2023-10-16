@@ -19,7 +19,6 @@
 package com.qlangtech.tis.plugin.ds;
 
 
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import org.apache.commons.lang3.StringUtils;
 
@@ -35,15 +34,6 @@ import java.util.regex.Pattern;
 public class DataType implements Serializable {
 
     public static final String KEY_UNSIGNED = "UNSIGNED";
-
-    public static DataType parseType(JSONObject targetCol) {
-        JSONObject type = null;
-        type = Objects.requireNonNull(targetCol, "targetCol can not be null").getJSONObject("type");
-        DataType dataType = DataType.create(type.getInteger("type"), type.getString("typeName"), type.getInteger(
-                "columnSize"));
-        dataType.setDecimalDigits(type.getInteger("decimalDigits"));
-        return dataType;
-    }
 
     public static DataType createVarChar(int size) {
         if (size < 1) {
@@ -98,7 +88,10 @@ public class DataType implements Serializable {
     }
 
     public static DataType create(Integer type, String typeName, Integer columnSize) {
-        return new DataType(JDBCTypes.parse(type), typeName, columnSize, StringUtils.containsIgnoreCase(typeName,
+        return new DataType(JDBCTypes.parse(Objects.requireNonNull(type, "param type can not be null")) //
+                , typeName //
+                , Objects.requireNonNull(columnSize, "param columnSize can not be null") //
+                , StringUtils.containsIgnoreCase(typeName,
                 KEY_UNSIGNED));
     }
 

@@ -17,21 +17,55 @@
  */
 package com.qlangtech.tis.extension.util;
 
+import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.DefaultPlugin;
 import com.qlangtech.tis.extension.ElementPluginDesc;
+import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import junit.framework.TestCase;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 /**
  *
  */
 public class TestPluginExtraProps extends TestCase {
+
+    public void testParsePostMCols() {
+
+        Optional<CMeta.ElementCreatorFactory> elementCreator = Optional.of(new TestElementCreatorFactory());
+        IFieldErrorHandler msgHandler = null;
+        Context context = null;
+        String keyColsMeta = null;
+        JSONArray targetCols = null;
+
+        PluginExtraProps.parsePostMCols(elementCreator, msgHandler, context, keyColsMeta, targetCols);
+    }
+
+    private static class TestElementCreatorFactory implements CMeta.ElementCreatorFactory{
+        @Override
+        public CMeta createDefault() {
+            return new CMeta();
+        }
+
+        @Override
+        public CMeta create(JSONObject targetCol, BiConsumer<String, String> errorProcess) {
+            return new CMeta();
+        }
+
+//        @Override
+//        public CMeta create(JSONObject targetCol) {
+//            return new CMeta();
+//        }
+    }
+
+
     public void testLode() throws Exception {
         Optional<PluginExtraProps> ep = PluginExtraProps.load(TestPluginExtraProps.class);
         assertNotNull(ep);

@@ -59,7 +59,6 @@ public class HiveColumn {
     }
 
 
-
     public void setName(String name) {
         this.name = name;
         if (getRawName() == null) {
@@ -123,7 +122,7 @@ public class HiveColumn {
 
         @Override
         public String bitType(DataType type) {
-            return "STRING";
+            return "BINARY";
         }
 
         @Override
@@ -133,7 +132,11 @@ public class HiveColumn {
 
         @Override
         public String varcharType(DataType type) {
-            return "STRING";
+            if (type.getColumnSize() > 500 || type.getColumnSize() < 1) {
+                return "STRING";
+            } else {
+                return "VARCHAR(" + type.getColumnSize() + ")";
+            }
         }
     };
 

@@ -392,8 +392,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
 
                 for (String fieldName : fieldNames) {
-                    msgHandler.addFieldError(context, fieldName, "由于" + String.join(",", lackPks) + "选为主键," +
-                            "因此需要将它（们）选上");
+                    msgHandler.addFieldError(context, fieldName, "由于" + String.join(",", lackPks) + "选为主键,因此需要将它（们）选上");
                 }
 
                 return false;

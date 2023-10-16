@@ -498,7 +498,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             return colType;
         }
 
-        protected DataType createColDataType(String colName, String typeName, int dbColType, int colSize, int decimalDigits) throws SQLException {
+        protected DataType createColDataType(
+                String colName, String typeName, int dbColType, int colSize, int decimalDigits) throws SQLException {
             // 类似oracle驱动内部有一套独立的类型 oracle.jdbc.OracleTypes,有需要可以在具体的实现类里面去实现
             DataType type = DataType.create(dbColType, typeName, colSize);
             type.setDecimalDigits(decimalDigits);

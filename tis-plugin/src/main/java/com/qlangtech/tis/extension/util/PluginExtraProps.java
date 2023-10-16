@@ -30,8 +30,10 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
@@ -193,17 +195,26 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         return extraProps;
     }
 
-    public static ParsePostMCols parsePostMCols(Optional<CMeta.ElementCreatorFactory> elementCreator,
-                                                IFieldErrorHandler msgHandler, Context context, String keyColsMeta,
-                                                JSONArray targetCols) {
+    /**
+     * 多选列前置校验
+     *
+     * @param elementCreator
+     * @param msgHandler
+     * @param context
+     * @param keyColsMeta
+     * @param targetCols
+     * @return
+     */
+    public static CMeta.ParsePostMCols parsePostMCols(Optional<CMeta.ElementCreatorFactory> elementCreator,
+                                                      IFieldErrorHandler msgHandler, Context context, String keyColsMeta,
+                                                      JSONArray targetCols) {
         if (targetCols == null) {
             throw new IllegalArgumentException("param targetCols can not be null");
         }
-        ParsePostMCols postMCols = new ParsePostMCols();
+        CMeta.ParsePostMCols postMCols = new CMeta.ParsePostMCols();
         CMeta colMeta = null;
 
-        JSONObject targetCol = null;
-        int index;
+
         String targetColName = null;
         DataType dataType = null;
 
@@ -216,10 +227,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         Integer previousColIndex = null;
         boolean pk;
         // boolean pkHasSelected = false;
-        JSONObject type = null;
+        // JSONObject type = null;
         for (int i = 0; i < targetCols.size(); i++) {
-            targetCol = targetCols.getJSONObject(i);
-            index = targetCol.getInteger("index");
+            JSONObject targetCol = targetCols.getJSONObject(i);
+            int index = targetCol.getInteger("index") - 1;
             pk = targetCol.getBooleanValue("pk");
             targetColName = targetCol.getString("name");
             if (StringUtils.isNotBlank(targetColName) && (previousColIndex = existCols.put(targetColName, index)) != null) {
@@ -237,7 +248,15 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             }
 
 
-            colMeta = elementCreator.isPresent() ? elementCreator.get().create(targetCol) : new CMeta();
+            colMeta = elementCreator.map((creator) -> {
+                return creator.create(targetCol, (propKey, errMsg) -> {
+                    msgHandler.addFieldError(context
+                            , IFieldErrorHandler.joinField(SelectedTab.KEY_FIELD_COLS, Collections.singletonList(index), propKey)
+                            , errMsg);
+                    postMCols.validateFaild = true;
+                });
+            }).orElseGet(() -> new CMeta());
+
             colMeta.setDisable(targetCol.getBooleanValue("disable"));
             colMeta.setName(targetColName);
             colMeta.setPk(pk);
@@ -246,7 +265,22 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             }
             //{"s":"3,12,2","typeDesc":"decimal(12,2)","columnSize":12,"typeName":"VARCHAR","unsigned":false,
             // "decimalDigits":4,"type":3,"unsignedToken":""}
-            dataType = DataType.parseType(targetCol);
+//            if (targetCol.getInteger(DataType.KEY_COLUMN_SIZE) == null) {
+//                msgHandler.addFieldError(context, keyColsMeta + "[" + index + "]", "不能为空");
+//                postMCols.validateFaild = true;
+//            }
+//
+//            if (targetCol.getInteger(DataType.KEY_DECIMAL_DIGITS) == null) {
+//
+//                postMCols.validateFaild = true;
+//            }
+
+            dataType = CMeta.parseType(targetCol, (propKey, errMsg) -> {
+                msgHandler.addFieldError(context
+                        , IFieldErrorHandler.joinField(SelectedTab.KEY_FIELD_COLS, Collections.singletonList(index), propKey)
+                        , errMsg);
+                postMCols.validateFaild = true;
+            });
 
             //            dataType = DataType.create(type.getInteger("type"), type.getString("typeName"), type
             //            .getInteger(
@@ -255,8 +289,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             //            dataType.setDecimalDigits(type.getInteger("decimalDigits"));
             // DataType dataType = targetCol.getObject("type", DataType.class);
             // colMeta.setType(ISelectedTab.DataXReaderColType.parse(targetCol.getString("type")));
-            colMeta.setType(dataType);
-            postMCols.writerCols.add(colMeta);
+            if (dataType != null) {
+                colMeta.setType(dataType);
+                postMCols.writerCols.add(colMeta);
+            }
         }
 
         return postMCols;
@@ -547,12 +583,6 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 }
             });
         }
-    }
-
-    public static class ParsePostMCols {
-        public List<CMeta> writerCols = Lists.newArrayList();
-        public boolean validateFaild = false;
-        public boolean pkHasSelected = false;
     }
 
 }
