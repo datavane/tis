@@ -20,6 +20,7 @@ package com.qlangtech.tis.extension.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -39,7 +40,6 @@ import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.Converter;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.tiger_types.Types;
 
@@ -48,11 +48,13 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -366,16 +368,42 @@ public class PropertyType implements IPropertyType {
         return formField.type().getIdentity();
     }
 
+    private Validator[] validators;
 
     public Validator[] getValidator() {
-        return formField.validate();
+
+        if (this.validators == null) {
+            Set<Validator> result = Sets.newHashSet();
+
+            Map<Validator, PluginExtraProps.Props.ValidatorCfg> validators
+                    = (extraProp == null ? Collections.emptyList() : (this.extraProp.getExtraValidators()))
+                    .stream().collect(Collectors.toMap((v) -> ((PluginExtraProps.Props.ValidatorCfg) v).validator, (v) -> (PluginExtraProps.Props.ValidatorCfg) v));
+
+            PluginExtraProps.Props.ValidatorCfg validatorCfg = null;
+            for (Validator v : formField.validate()) {
+                if ((validatorCfg = validators.get(v)) != null) {
+                    if (!validatorCfg.disable) {
+                        result.add(v);
+                    }
+                } else {
+                    result.add(v);
+                }
+            }
+            for (PluginExtraProps.Props.ValidatorCfg cfg : validators.values()) {
+                if (!cfg.disable) {
+                    result.add(cfg.validator);
+                }
+            }
+            this.validators = result.toArray(new Validator[result.size()]);
+        }
+
+        return this.validators;
     }
 
     public boolean isInputRequired() {
         if (inputRequired == null) {
             inputRequired = false;
-            Validator[] validators = this.formField.validate();
-            for (Validator v : validators) {
+            for (Validator v : this.getValidator()) {
                 if (v == Validator.require) {
                     return inputRequired = true;
                 }

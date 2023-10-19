@@ -28,6 +28,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -99,6 +100,10 @@ public enum Validator {
                 ValidatorCommons.MSG_NONE_BLANK_ERROR), fieldKey, fieldData);
     }),
     ;
+
+    public static Validator parse(String token) {
+        return Objects.requireNonNull(Validator.valueOf(token));
+    }
 
     public static ValidateRule rule(Pattern p, String errMsg) {
         return new ValidateRule(p, errMsg);

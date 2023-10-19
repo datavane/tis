@@ -396,6 +396,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
     public static class Props {
         public static final String KEY_HELP = "help";
+        public static final String KEY_VALIDATOR = "validators";
         public static final String KEY_VIEW_TYPE = "viewtype";
         private static final String KEY_ASYNC_HELP = "asyncHelp";
         private final JSONObject props;
@@ -440,6 +441,49 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         @JSONField(serialize = false)
         public String getHelpContent() {
             return (String) props.get(KEY_HELP);
+        }
+
+        public List<ValidatorCfg> getExtraValidators() {
+            Object v = props.get(KEY_VALIDATOR);
+            if (v == null) {
+                return Collections.emptyList();
+            }
+            if (v instanceof String) {
+                return Collections.singletonList(ValidatorCfg.parse((String) v));
+            }
+            if (v instanceof JSONArray) {
+                List<ValidatorCfg> result = Lists.newArrayList();
+                for (Object validator : (JSONArray) v) {
+                    result.add(ValidatorCfg.parse(String.valueOf(validator)));
+                }
+                return result;
+            }
+            throw new IllegalStateException("validate:" + v);
+        }
+
+        public static class ValidatorCfg {
+            public final Validator validator;
+            public final boolean disable;
+
+            private static ValidatorCfg parse(String token) {
+                String[] split = StringUtils.split(token, ":");
+                if (split.length == 1) {
+                    return new ValidatorCfg(Validator.parse(String.valueOf(split[0])));
+                } else if (split.length == 2) {
+                    return new ValidatorCfg(Validator.parse(String.valueOf(split[0])), KEY_DISABLE.equalsIgnoreCase(split[1]));
+                }
+
+                throw new IllegalStateException("in validate token:" + token);
+            }
+
+            public ValidatorCfg(Validator validator) {
+                this(validator, false);
+            }
+
+            public ValidatorCfg(Validator validator, boolean disable) {
+                this.validator = validator;
+                this.disable = disable;
+            }
         }
 
         public boolean isAdvance() {

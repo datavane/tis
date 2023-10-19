@@ -1,5 +1,8 @@
 {
   "cols": {
     "dftVal": "com.qlangtech.tis.extension.DefaultPlugin.getColsDefaultVal():uncache_true"
+  },
+  "password": {
+    "validators": "require"
   }
 }

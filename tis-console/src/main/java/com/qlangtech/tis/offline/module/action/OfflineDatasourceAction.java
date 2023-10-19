@@ -1256,6 +1256,7 @@ public class OfflineDatasourceAction extends BasicModule {
             skipProps.add(pentry.getKey());
             continue;
           }
+
           if (pp.formField.type() == FormFieldType.MULTI_SELECTABLE) {
             skipProps.add(pentry.getKey());
             pp.setVal(subForm, tab2cols.getValue().stream() //
@@ -1276,53 +1277,56 @@ public class OfflineDatasourceAction extends BasicModule {
           if (skipProps.contains(pentry.getKey())) {
             continue;
           }
-          if (pp.isInputRequired()) {
 
-            if (pp.dftVal() != null) {
-              if (pp.isDescribable()) {
-                List<? extends Descriptor> descriptors = pp.getApplicableDescriptors();
-                try {
-                  for (Descriptor desc : descriptors) {
-                    if (StringUtils.endsWithIgnoreCase(String.valueOf(pp.dftVal()), desc.getDisplayName())) {
-                      pp.setVal(plugin, createPluginByDefaultVals((new StringBuffer(propPath)).append("->") //
-                          .append(pentry.getKey()).append(":").append(pp.clazz.getName()) //
-                        , Sets.newHashSet() //
-                        , desc.getPluginFormPropertyTypes().getKVTuples() //
-                        , (Describable) desc.clazz.newInstance()));
-                      continue ppDftValGetter;
-                    }
+
+          if (pp.dftVal() != null) {
+            if (pp.isDescribable()) {
+              List<? extends Descriptor> descriptors = pp.getApplicableDescriptors();
+              try {
+                for (Descriptor desc : descriptors) {
+                  if (StringUtils.endsWithIgnoreCase(String.valueOf(pp.dftVal()), desc.getDisplayName())) {
+                    pp.setVal(plugin, createPluginByDefaultVals((new StringBuffer(propPath)).append("->") //
+                        .append(pentry.getKey()).append(":").append(pp.clazz.getName()) //
+                      , Sets.newHashSet() //
+                      , desc.getPluginFormPropertyTypes().getKVTuples() //
+                      , (Describable) desc.clazz.newInstance()));
+                    continue ppDftValGetter;
                   }
-                } catch (Exception e) {
-                  throw new RuntimeException(e);
                 }
+              } catch (Exception e) {
+                throw new RuntimeException(e);
+              }
+            } else {
+              pp.setVal(plugin, pp.dftVal());
+              continue ppDftValGetter;
+            }
+
+
+          } else {
+            //pp.getEnumConstants()
+            FormFieldType fieldType = pp.formField.type();
+            if (fieldType == FormFieldType.SELECTABLE || fieldType == FormFieldType.ENUM) {
+
+              Object enumPp = pp.getExtraProps().get(Descriptor.KEY_ENUM_PROP);
+              JSONArray enums = null;
+              if (enumPp instanceof JSONArray) {
+                enums = (JSONArray) enumPp;
+              } else if (enumPp instanceof JsonUtil.UnCacheString) {
+                enums = ((JsonUtil.UnCacheString<JSONArray>) enumPp).getValue();
               } else {
-                pp.setVal(plugin, pp.dftVal());
+                throw new IllegalStateException("unsupport type:" + pp.getClass().getName());
+              }
+              for (int i = 0; i < enums.size(); i++) {
+                JSONObject opt = enums.getJSONObject(i);
+                pp.setVal(plugin, opt.get(Option.KEY_VALUE));
                 continue ppDftValGetter;
               }
-
-
-            } else {
-              //pp.getEnumConstants()
-              FormFieldType fieldType = pp.formField.type();
-              if (fieldType == FormFieldType.SELECTABLE || fieldType == FormFieldType.ENUM) {
-
-                Object enumPp = pp.getExtraProps().get(Descriptor.KEY_ENUM_PROP);
-                JSONArray enums = null;
-                if (enumPp instanceof JSONArray) {
-                  enums = (JSONArray) enumPp;
-                } else if (enumPp instanceof JsonUtil.UnCacheString) {
-                  enums = ((JsonUtil.UnCacheString<JSONArray>) enumPp).getValue();
-                } else {
-                  throw new IllegalStateException("unsupport type:" + pp.getClass().getName());
-                }
-                for (int i = 0; i < enums.size(); i++) {
-                  JSONObject opt = enums.getJSONObject(i);
-                  pp.setVal(plugin, opt.get(Option.KEY_VALUE));
-                  continue ppDftValGetter;
-                }
-              }
             }
-            throw new IllegalStateException("have not prepare for table:" + tab2cols.getKey() + " creating:" + propPath + ",prop name:'" + pentry.getKey() + "',subform class:" + plugin.getClass().getName());
+          }
+
+          if (pp.isInputRequired()) {
+            throw new IllegalStateException("have not prepare for table:" + tab2cols.getKey()
+              + " creating:" + propPath + ",prop name:'" + pentry.getKey() + "',subform class:" + plugin.getClass().getName());
           }
         }
         return plugin;
