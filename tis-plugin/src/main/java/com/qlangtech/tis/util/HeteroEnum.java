@@ -304,48 +304,55 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                     // DataxReader.SubFieldFormAppKey<Describable> key =
                     return HeteroEnum.createDataXReaderAndWriterRelevant(pluginContext, pluginMeta,
                             new HeteroEnum.DataXReaderAndWriterRelevantCreator<IPluginStore>() {
-                        @Override
-                        public IPluginStore dbRelevant(IPluginContext pluginContext, String saveDbName) {
-                            DataxReader.SubFieldFormAppKey key = new DataxReader.SubFieldFormAppKey<>(pluginContext,
-                                    true, saveDbName, props, clazz);
+                                @Override
+                                public IPluginStore dbRelevant(IPluginContext pluginContext, String saveDbName) {
+                                    DataxReader.SubFieldFormAppKey key = new DataxReader.SubFieldFormAppKey<>(pluginContext,
+                                            true, saveDbName, props, clazz);
 
-                            return KeyedPluginStore.getPluginStore(key);
-                        }
+                                    return KeyedPluginStore.getPluginStore(key);
+                                }
 
-                        @Override
-                        public IPluginStore appRelevant(IPluginContext pluginContext, String dataxName) {
+                                @Override
+                                public IPluginStore appRelevant(IPluginContext pluginContext, String dataxName) {
 
-                            DataxReader.SubFieldFormAppKey key = new DataxReader.SubFieldFormAppKey<>(pluginContext,
-                                    false, dataxName, props, clazz);
-                            KeyedPluginStore<SelectedTab> subFormStore = KeyedPluginStore.getPluginStore(key);
+                                    DataxReader.SubFieldFormAppKey key = new DataxReader.SubFieldFormAppKey<>(pluginContext,
+                                            false, dataxName, props, clazz);
+                                    KeyedPluginStore<SelectedTab> subFormStore = KeyedPluginStore.getPluginStore(key);
 
-                            return SelectedTabExtend.wrapSubFormStore(pluginContext,dataxName, subFormStore);
-                        }
-                    });
+                                    return SelectedTabExtend.wrapSubFormStore(pluginContext, dataxName, subFormStore);
+                                }
+                            });
                 }
             });
         } else {
-            store = createDataXReaderAndWriterRelevant(pluginContext, pluginMeta,
-                    new DataXReaderAndWriterRelevantCreator<IPluginStore<?>>() {
-                @Override
-                public IPluginStore<?> dbRelevant(IPluginContext pluginContext, String saveDbName) {
-                    if (!getReader) {
-                        throw new IllegalStateException("getReader must be true");
-                    }
-                    return DataxReader.getPluginStore(pluginContext, true, saveDbName);
-                }
-
-                @Override
-                public IPluginStore<?> appRelevant(IPluginContext pluginContext, String dataxName) {
-
-
-                    KeyedPluginStore<?> keyStore = (getReader) ?
-                            DataxReader.getPluginStore(pluginContext, dataxName) :
-                            DataxWriter.getPluginStore(pluginContext, pluginMeta.getProcessModel().resType, dataxName);
-                    return keyStore;
-                }
-            });
+            store = getDataXReaderAndWriterRelevantPluginStore(pluginContext, getReader, pluginMeta);
         }
+        return store;
+    }
+
+    public static IPluginStore<?> getDataXReaderAndWriterRelevantPluginStore(
+            IPluginContext pluginContext, boolean getReader, UploadPluginMeta pluginMeta) {
+        IPluginStore<?> store;
+        store = createDataXReaderAndWriterRelevant(pluginContext, pluginMeta,
+                new DataXReaderAndWriterRelevantCreator<IPluginStore<?>>() {
+                    @Override
+                    public IPluginStore<?> dbRelevant(IPluginContext pluginContext, String saveDbName) {
+                        if (!getReader) {
+                            throw new IllegalStateException("getReader must be true");
+                        }
+                        return DataxReader.getPluginStore(pluginContext, true, saveDbName);
+                    }
+
+                    @Override
+                    public IPluginStore<?> appRelevant(IPluginContext pluginContext, String dataxName) {
+
+
+                        KeyedPluginStore<?> keyStore = getReader ?
+                                DataxReader.getPluginStore(pluginContext, dataxName) :
+                                DataxWriter.getPluginStore(pluginContext, pluginMeta.getProcessModel().resType, dataxName);
+                        return keyStore;
+                    }
+                });
         return store;
     }
 

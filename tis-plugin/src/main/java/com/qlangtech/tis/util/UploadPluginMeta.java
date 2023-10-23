@@ -210,9 +210,13 @@ public class UploadPluginMeta {
     }
 
     public List<DataxReader> getDataxReaders(IPluginContext pluginContext) {
-        return HeteroEnum.DATAX_READER.getPlugins(pluginContext, UploadPluginMeta.parse(pluginContext,
-                this.name + ":" + DataxUtils.DATAX_NAME + "_" + this.getDataXName(),
-                useCache));
+//        return HeteroEnum.DATAX_READER.getPlugins(pluginContext, UploadPluginMeta.parse(pluginContext,
+//                this.name + ":" + DataxUtils.DATAX_NAME + "_" + this.getDataXName(),
+//                useCache));
+        IPluginStore<DataxReader> store = (IPluginStore<DataxReader>) HeteroEnum.getDataXReaderAndWriterRelevantPluginStore(
+                pluginContext, true, this);
+        return store.getPlugins();
+
     }
 
     public IPluginEnum getHeteroEnum() {

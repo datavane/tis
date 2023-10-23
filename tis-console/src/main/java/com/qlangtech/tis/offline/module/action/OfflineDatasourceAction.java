@@ -1303,7 +1303,8 @@ public class OfflineDatasourceAction extends BasicModule {
 
 
           } else {
-            //pp.getEnumConstants()
+
+
             FormFieldType fieldType = pp.formField.type();
             if (fieldType == FormFieldType.SELECTABLE || fieldType == FormFieldType.ENUM) {
 
@@ -1629,34 +1630,6 @@ public class OfflineDatasourceAction extends BasicModule {
     this.offlineManager.syncDbRecord(datasourceDb, this, context);
   }
 
-  //  /**
-  //   * 线上控制台使用，用来添加table记录
-  //   *
-  //   * @param context
-  //   */
-  //  public void doSyncTableRecord(Context context) {
-  //    Integer id = this.getInt("id");
-  //    if (id == null) {
-  //      this.addErrorMessage(context, "id不能为空");
-  //      this.setBizResult(context, false);
-  //      return;
-  //    }
-  //    String name = this.getString("name");
-  //    String tableLogicName = this.getString("tableLogicName");
-  //    Integer dbId = this.getInt("db_id");
-  //    if (dbId == null) {
-  //      this.addErrorMessage(context, "db_id不能为空");
-  //      this.setBizResult(context, false);
-  //      return;
-  //    }
-  //    DatasourceTable datasourceTable = new DatasourceTable();
-  //    datasourceTable.setId(id);
-  //    datasourceTable.setName(name);
-  //    datasourceTable.setDbId(dbId);
-  //    Date now = new Date();
-  //    datasourceTable.setCreateTime(now);
-  //    this.offlineManager.syncTableRecord(datasourceTable, this, context);
-  //  }
 
   /**
    * 删除db
@@ -1725,80 +1698,6 @@ public class OfflineDatasourceAction extends BasicModule {
     this.setBizResult(context, this.offlineManager.getWorkflowConfig(id, true));
   }
 
-  // /**
-  // * 获取一个工作流的配置
-  // *
-  // * @param context
-  // */
-  // public void doGetWorkflowConfigBranch(Context context) {
-  // Integer id = this.getInt("id");
-  // if (id == null) {
-  // this.addErrorMessage(context, "请输入工作流id");
-  // return;
-  // }
-  // this.setBizResult(context, this.offlineManager.getWorkflowConfig(id, false));
-  // }
-  // /**
-  // * 获取某个
-  // *
-  // * @param context
-  // */
-  // public void doGetWorkflowConfigSha1(Context context) {
-  // String name = this.getString("name");
-  // if (StringUtils.isBlank(name)) {
-  // this.addErrorMessage(context, "工作流名字不能为空");
-  // return;
-  // }
-  // String gitSha1 = this.getString("gitSha1");
-  // if (StringUtils.isBlank(gitSha1)) {
-  // this.addErrorMessage(context, "请输入正确的commit id");
-  // return;
-  // }
-  // this.setBizResult(context, this.offlineManager.getWorkflowConfig(name,
-  // gitSha1));
-  // }
-  // public void doUseWorkflowChange(Context context) {
-  // Integer id = this.getInt("id");
-  // if (id == null) {
-  // this.addErrorMessage(context, "请传入变更id");
-  // return;
-  // }
-  // this.offlineManager.useWorkflowChange(id, this, context);
-  // }
-  // public void doCompareWorkflowChanges(Context context) {
-  // String path = this.getString("path");
-  // String fromVersion = this.getString("fromVersion");
-  // String toVersion = this.getString("toVersion");
-  // String fromString =
-  // GitUtils.$().getWorkflowSha(GitUtils.WORKFLOW_GIT_PROJECT_ID, fromVersion,
-  // path).getTask();
-  // String toString =
-  // GitUtils.$().getWorkflowSha(GitUtils.WORKFLOW_GIT_PROJECT_ID, toVersion,
-  // path).getTask();
-  // this.setBizResult(context, getTwoStringDiffHtml(fromString, toString));
-  // }
-  // private static String getTwoStringDiffHtml(String s1, String s2) {
-  // StringBuilder sb = new StringBuilder();
-  // LinkedList<diff_match_patch.Diff> differ = DIFF_MATCH_PATCH.diff_main(s1, s2,
-  // true);
-  //
-  // for (diff_match_patch.Diff d : differ) {
-  //
-  // if (d.operation == diff_match_patch.Operation.EQUAL) {
-  // sb.append(StringEscapeUtils.escapeXml(d.text));
-  // } else if (d.operation == diff_match_patch.Operation.DELETE) {
-  // sb.append("<span
-  // style='text-decoration:line-through;background-color:pink;'>")
-  // .append(StringEscapeUtils.escapeXml(d.text)).append("</span>");
-  // } else if (d.operation == diff_match_patch.Operation.INSERT) {
-  // sb.append("<span
-  // style=\"background-color:#00FF00;\">").append(StringEscapeUtils.escapeXml(d.text))
-  // .append("</span>");
-  // }
-  //
-  // }
-  // return sb.toString();
-  // }
   @Autowired
   public void setWfDaoFacade(IWorkflowDAOFacade facade) {
     this.offlineDAOFacade = facade;

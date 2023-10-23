@@ -220,7 +220,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         //  return columns;
     }
 
-    public List<ColumnMetaData> wrapColsMeta(boolean inSink, EntityName table, ResultSet columns1) throws SQLException {
+    public List<ColumnMetaData> wrapColsMeta(boolean inSink, EntityName table, ResultSet columns1) throws SQLException, TableNotFoundException {
         return wrapColsMeta(inSink, table, columns1, Collections.emptySet());
     }
 
@@ -234,11 +234,13 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     public static final String KEY_DATA_TYPE = "DATA_TYPE";
     public static final String KEY_COLUMN_SIZE = "COLUMN_SIZE";
 
-    public List<ColumnMetaData> wrapColsMeta(boolean inSink, EntityName table, ResultSet columns1, Set<String> pkCols) throws SQLException {
+    public List<ColumnMetaData> wrapColsMeta(
+            boolean inSink, EntityName table, ResultSet columns1, Set<String> pkCols) throws SQLException, TableNotFoundException {
         return this.wrapColsMeta(inSink, table, columns1, new CreateColumnMeta(pkCols, columns1));
     }
 
-    public List<ColumnMetaData> wrapColsMeta(boolean inSink, EntityName table, ResultSet columns1, CreateColumnMeta columnMetaCreator) throws SQLException {
+    public List<ColumnMetaData> wrapColsMeta(
+            boolean inSink, EntityName table, ResultSet columns1, CreateColumnMeta columnMetaCreator) throws SQLException, TableNotFoundException {
 
         ColumnMetaData colMeta;
         String colName = null;
@@ -290,7 +292,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return columns;
     }
 
-    protected HashSet<String> createAddedCols(EntityName table) {
+    protected HashSet<String> createAddedCols(EntityName table) throws TableNotFoundException {
         return Sets.newHashSet();
     }
 
