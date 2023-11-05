@@ -146,12 +146,13 @@ public class DataxAction extends BasicModule {
       return;
     }
 
-    List<HttpUtils.PostParam> params = Lists.newArrayList();
-    params.add(new HttpUtils.PostParam(CoreAction.KEY_APPNAME, this.getCollectionName()));
+//    List<HttpUtils.PostParam> params = Lists.newArrayList();
+//    params.add(new HttpUtils.PostParam(TriggerBuildResult.KEY_APPNAME, this.getCollectionName()));
     //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getName()));
     //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.JOIN.getName()));
 
-    this.setBizResult(context, CoreAction.triggerBuild(this, context, params));
+    // this.setBizResult(context, TriggerBuildResult.triggerBuild(this, context, params));
+    this.setBizResult(context, dataXJobSubmit.get().triggerJob(this, context, this.getCollectionName()));
   }
 
 
@@ -412,6 +413,22 @@ public class DataxAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doSaveDataxWorker(Context context) {
+
+    List<UploadPluginMeta> metas = this.getPluginMeta();
+    DataXJobWorker.PowerjobCptType powerjobCptType = null;
+    for(UploadPluginMeta meta : metas){
+     powerjobCptType = DataXJobWorker.PowerjobCptType.parse(meta.getDataXName());
+    }
+   // DataXJobWorker.PowerjobCptType powerjobCptType = DataXJobWorker.PowerjobCptType.parse(this.getString("powerjobCptType"));
+    saveWorker(context, DataXJobWorker.K8S_DATAX_INSTANCE_NAME, Optional.of(powerjobCptType));
+  }
+
+  @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doSaveFlinkWorker(Context context) {
+    saveWorker(context, DataXJobWorker.K8S_FLINK_CLUSTER_NAME, Optional.empty());
+  }
+
+  public void saveWorker(Context context, TargetResName resName, Optional<DataXJobWorker.PowerjobCptType> powerjobCptType) {
     JSONObject postContent = this.parseJsonPost();
     JSONObject k8sSpec = postContent.getJSONObject("k8sSpec");
 
@@ -419,15 +436,15 @@ public class DataxAction extends BasicModule {
     if (!incrSpecResult.isSuccess()) {
       return;
     }
-
-    TargetResName resName = this.getK8SJobWorkerTargetName();
+    // this.getK8SJobWorkerTargetName();
+    //TargetResName resName = DataXJobWorker.K8S_DATAX_INSTANCE_NAME;
     DataXJobWorker worker = DataXJobWorker.getJobWorker(resName);
 
     worker.setReplicasSpec(incrSpecResult.getSpec());
     if (incrSpecResult.hpa != null) {
       worker.setHpa(incrSpecResult.hpa);
     }
-    DataXJobWorker.setJobWorker(resName, worker);
+    DataXJobWorker.setJobWorker(resName, powerjobCptType, worker);
   }
 
 

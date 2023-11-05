@@ -36,6 +36,7 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.Util;
@@ -561,6 +562,18 @@ public class UpdateSite {
                     }
                 }
             }
+        }
+
+        public List<String> getEndTypeIcons() {
+            List<String> types = Lists.newArrayList();
+            for (String endtype : this.endTypes) {
+                IEndTypeGetter.EndType type = IEndTypeGetter.EndType.parse(endtype);
+                IEndTypeGetter.Icon icon = type.getIcon();
+                if (icon != null) {
+                    types.add(type.getVal());
+                }
+            }
+            return types;
         }
 
         @Override

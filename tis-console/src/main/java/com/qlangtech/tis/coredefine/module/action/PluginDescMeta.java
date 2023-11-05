@@ -21,6 +21,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.util.DescriptorsJSON;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -31,7 +32,7 @@ public class PluginDescMeta<T extends Describable<T>> {
 
   protected final DescriptorsJSON pluginDesc;
 
-  public PluginDescMeta(List<Descriptor<T>> descList) {
+  public PluginDescMeta(Collection<Descriptor<T>> descList) {
     this.pluginDesc = new DescriptorsJSON(descList);
   }
 

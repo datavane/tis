@@ -17,7 +17,6 @@
  */
 package com.qlangtech.tis.util;
 
-import com.google.common.collect.Lists;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
@@ -26,13 +25,19 @@ import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
-import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.ExtensionList;
+import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
-import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.FileSystemFactory;
-import com.qlangtech.tis.plugin.*;
+import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
@@ -40,7 +45,6 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
@@ -122,7 +126,9 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             if (!pluginContext.isCollectionAware()) {
                 throw new IllegalStateException("must be collection aware");
             }
-            return DataXJobWorker.getJobWorkerStore(new TargetResName(pluginContext.getCollectionName()));
+            DataXJobWorker.PowerjobCptType powerjobCptType = DataXJobWorker.PowerjobCptType.parse(pluginMeta.getDataXName());
+
+            return DataXJobWorker.getJobWorkerStore(new TargetResName(pluginContext.getCollectionName()), Optional.of(powerjobCptType));
 
             //return super.getPluginStore(pluginContext, pluginMeta);
         }

@@ -67,22 +67,17 @@ import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.ItemsSaveResult;
 import com.qlangtech.tis.web.start.TisAppLaunch;
-import com.qlangtech.tis.web.start.TisSubModule;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.pojo.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
@@ -98,7 +93,7 @@ import java.util.stream.Collectors;
 public class CoreAction extends BasicModule {
   public static final String ADMIN_COLLECTION_PATH = "/solr/admin/collections";
   public static final String CREATE_COLLECTION_PATH = ADMIN_COLLECTION_PATH + "?action=CREATE&name=";
-  public static final String TRIGGER_FULL_BUILD_COLLECTION_PATH = "/trigger";
+
 
   public static final String DEFAULT_SOLR_CONFIG = "tis_mock_config";
 
@@ -226,7 +221,7 @@ public class CoreAction extends BasicModule {
     headers.add(new ConfigFileContext.Header(IParamContext.KEY_ASYN_JOB_NAME, String.valueOf(processState == ExecResult.ASYN_DOING)));
     headers.add(new ConfigFileContext.Header(IFullBuildContext.KEY_APP_NAME, IAppSourcePipelineController.DATAX_FULL_PIPELINE + buildHistory.getAppName()));
 
-    TriggerBuildResult triggerResult = CoreAction.triggerBuild(this, context, ConfigFileContext.HTTPMethod.DELETE, Collections.emptyList(), headers);
+    TriggerBuildResult triggerResult = TriggerBuildResult.triggerBuild(this, context, ConfigFileContext.HTTPMethod.DELETE, Collections.emptyList(), headers);
     if (!triggerResult.success) {
       return;
     }
@@ -736,8 +731,6 @@ public class CoreAction extends BasicModule {
     }
   }
 
-  private static final String bizKey = "biz";
-  public static final String KEY_APPNAME = "appname";
 
   /**
    * @param context
@@ -749,90 +742,12 @@ public class CoreAction extends BasicModule {
     BasicModule module, final Context context, AppendParams appendParams) throws Exception {
 
     List<HttpUtils.PostParam> params = appendParams.getParam();
-    params.add(new PostParam(KEY_APPNAME, module.getCollectionName()));
-    return triggerBuild(module, context, params);
-  }
-
-  public static TriggerBuildResult triggerBuild(
-    BasicModule module, final Context context, List<PostParam> appendParams) throws MalformedURLException {
-    return triggerBuild(module, context, ConfigFileContext.HTTPMethod.POST, appendParams, Collections.emptyList());
+    params.add(new PostParam(TriggerBuildResult.KEY_APPNAME, module.getCollectionName()));
+    return TriggerBuildResult.triggerBuild(module, context, params);
   }
 
 
-  public static TriggerBuildResult triggerBuild(
-    BasicModule module, final Context context, ConfigFileContext.HTTPMethod httpMethod, List<PostParam> appendParams
-    , List<ConfigFileContext.Header> headers) throws MalformedURLException {
-    final String assembleNodeAddress = getAssembleNodeAddress(module.getSolrZkClient());
 
-    TriggerBuildResult triggerResult
-      = HttpUtils.process(new URL(assembleNodeAddress + TRIGGER_FULL_BUILD_COLLECTION_PATH)
-      , appendParams, new PostFormStreamProcess<TriggerBuildResult>() {
-        @Override
-        public List<ConfigFileContext.Header> getHeaders() {
-          return headers;
-        }
-
-        @Override
-        public ContentType getContentType() {
-          return ContentType.Application_x_www_form_urlencoded;
-        }
-
-        @Override
-        public TriggerBuildResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-          TriggerBuildResult triggerResult = null;
-          try {
-            JSONTokener token = new JSONTokener(stream);
-            JSONObject result = new JSONObject(token);
-            final String successKey = "success";
-            if (result.isNull(successKey)) {
-              return new TriggerBuildResult(false);
-            }
-            triggerResult = new TriggerBuildResult(true);
-            if (!result.isNull(bizKey)) {
-              JSONObject o = result.getJSONObject(bizKey);
-              if (!o.isNull(JobCommon.KEY_TASK_ID)) {
-                triggerResult.taskid = Integer.parseInt(o.getString(JobCommon.KEY_TASK_ID));
-              }
-              module.setBizResult(context, o);
-            }
-            if (result.getBoolean(successKey)) {
-              return triggerResult;
-            }
-            module.addErrorMessage(context, result.getString("msg"));
-            return new TriggerBuildResult(false);
-          } catch (Exception e) {
-            throw new RuntimeException(e);
-          }
-        }
-      }, httpMethod);
-    return triggerResult;
-  }
-
-  public static String getAssembleNodeAddress(ITISCoordinator coordinator) {
-    // 增量状态收集节点
-    final String incrStateCollectAddress =
-      ZkUtils.getFirstChildValue(
-        coordinator,
-        ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
-        true);
-    return "http://" + StringUtils.substringBefore(incrStateCollectAddress, ":")
-      + ":" + (TisSubModule.TIS_ASSEMBLE.getLaunchPort()) + TisSubModule.TIS_ASSEMBLE.servletContext;
-  }
-
-  public static class TriggerBuildResult {
-
-    public final boolean success;
-
-    private int taskid;
-
-    public TriggerBuildResult(boolean success) {
-      this.success = success;
-    }
-
-    public int getTaskid() {
-      return taskid;
-    }
-  }
 
   // #################################################################################
   public void doGetWorkflow(Context context) throws Exception {

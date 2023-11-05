@@ -393,6 +393,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
             eprops.put(KEY_SUPPORT_INCR, this.isSupportIncr());
             eprops.put(KEY_SUPPORT_BATCH, this.isSupportBatch());
             eprops.put(KEY_END_TYPE, this.getEndType().getVal());
+            eprops.put(KEY_SUPPORT_ICON, this.getEndType().getIcon() != null);
             return eprops;
         }
 

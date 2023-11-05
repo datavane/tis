@@ -21,6 +21,7 @@ package com.qlangtech.tis.datax;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
+import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.ExtensionList;
@@ -79,7 +80,8 @@ public abstract class DataXJobSubmit {
         if (TisAppLaunch.isTestMock()) {
             return InstanceType.EMBEDDED;
         }
-        DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME);
+        DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME
+                , Optional.of(DataXJobWorker.PowerjobCptType.Server));
         boolean dataXWorkerServiceOnDuty = jobWorker != null && jobWorker.inService();
         return dataXWorkerServiceOnDuty ? DataXJobSubmit.InstanceType.DISTRIBUTE : DataXJobSubmit.InstanceType.LOCAL;
     }
@@ -191,6 +193,17 @@ public abstract class DataXJobSubmit {
     }
 
     /**
+     * 从TIS Console组件中触发构建全量任务
+     *
+     * @param module
+     * @param context
+     * @param appName
+     * @return
+     */
+    public abstract TriggerBuildResult triggerJob(IControlMsgHandler module, final Context context, String appName);
+
+
+    /**
      * 创建dataX任务
      *
      * @param taskContext
@@ -207,7 +220,7 @@ public abstract class DataXJobSubmit {
             RobustReflectionConverter2.PluginMetas pluginMetas =
                     RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
 
-            });
+                    });
         }
 
         CuratorDataXTaskMessage dataXJobDTO = getDataXJobDTO(taskContext, jobName, processor);
@@ -282,7 +295,6 @@ public abstract class DataXJobSubmit {
                 public String getName() {
                     return tabName;
                 }
-
 
 
                 @Override

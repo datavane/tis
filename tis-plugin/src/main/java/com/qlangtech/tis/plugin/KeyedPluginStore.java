@@ -264,7 +264,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
     public static class KeyVal {
         private final String val;
-        private final String suffix;
+        protected final String suffix;
 
 
         public KeyVal(String val, String suffix) {
@@ -273,6 +273,10 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             }
             this.val = val;
             this.suffix = suffix;
+        }
+
+        public KeyVal(String val) {
+            this(val, StringUtils.EMPTY);
         }
 
         @Override
@@ -284,9 +288,6 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             return StringUtils.isBlank(this.suffix) ? getVal() : TMP_DIR_NAME + (getVal() + "-" + this.suffix);
         }
 
-        public KeyVal(String val) {
-            this(val, StringUtils.EMPTY);
-        }
 
         public String getVal() {
             return val;

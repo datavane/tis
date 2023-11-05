@@ -52,6 +52,7 @@ import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IERRulesGetter;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
@@ -97,6 +98,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   public Optional<ERRules> getErRules(String dfName) {
     Objects.requireNonNull(erRulesGetter, "erRulesGetter can not be null");
     return erRulesGetter.getErRules(dfName);
+  }
+
+  protected List<UploadPluginMeta> getPluginMeta() {
+    final boolean useCache = Boolean.parseBoolean(this.getString("use_cache", "true"));
+    return UploadPluginMeta.parse(this, this.getStringArray("plugin"), useCache);
   }
 
 //  protected static WorkFlow getAppBindedWorkFlow(BasicModule module) {
@@ -911,7 +917,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return getRequest().getParameter(key);
   }
 
-  protected final String[] getStringArray(String key) {
+  public final String[] getStringArray(String key) {
     Assert.assertNotNull("the request can not be null", getRequest());
     return getRequest().getParameterValues(key);
   }

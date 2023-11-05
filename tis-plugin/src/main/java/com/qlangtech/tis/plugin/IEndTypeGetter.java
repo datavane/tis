@@ -18,6 +18,8 @@
 
 package com.qlangtech.tis.plugin;
 
+import com.qlangtech.tis.extension.impl.IOUtils;
+
 import java.util.Set;
 
 /**
@@ -29,6 +31,7 @@ import java.util.Set;
 public interface IEndTypeGetter {
 
     String KEY_END_TYPE = "endType";
+    String KEY_SUPPORT_ICON = "supportIcon";
 
     public static void main(String[] args) {
         for (EndType value : EndType.values()) {
@@ -47,16 +50,17 @@ public interface IEndTypeGetter {
      * 端类型
      */
     enum EndType {
-        Greenplum("greenplum"), MySQL("mysql"), Postgres("pg"), Oracle("oracle") //
-        , ElasticSearch("es"), MongoDB("mongoDB"), StarRocks("starRocks"), Doris("doris") //
-        , Clickhouse("clickhouse"), Hudi("hudi") //, AliyunOSS("aliyunOSS")
-        , TDFS("t-dfs") //
+        Greenplum("greenplum"), MySQL("mysql", true), Postgres("pg",true), Oracle("oracle",true) //
+        , ElasticSearch("es",true), MongoDB("mongoDB",true) //
+        , StarRocks("starRocks",true), Doris("doris",true) //
+        , Clickhouse("clickhouse",true), Hudi("hudi") //, AliyunOSS("aliyunOSS")
+        , TDFS("t-dfs",true) //
         , Cassandra("cassandra") //, HDFS("hdfs")
-        , SqlServer("sqlServer"), TiDB("TiDB") //
-        , RocketMQ("rocketMq"), Kafka("kafka"), DataFlow("dataflow") //
-        , DaMeng("daMeng")
-        , AliyunODPS("aliyunOdps"), HiveMetaStore("hms"), RabbitMQ("rabbitmq");
+        , SqlServer("sqlServer",true), TiDB("TiDB",true) //
+        , RocketMQ("rocketMq",true), Kafka("kafka",true), DataFlow("dataflow") //
+        , DaMeng("daMeng"), AliyunODPS("aliyunOdps"), HiveMetaStore("hms", true), RabbitMQ("rabbitmq");
         private final String val;
+        private final boolean containICON;
 
         public static EndType parse(String endType) {
             for (EndType end : EndType.values()) {
@@ -67,17 +71,55 @@ public interface IEndTypeGetter {
             throw new IllegalStateException("illegal endType:" + endType);
         }
 
-
         EndType(String val) {
+            this(val, false);
+        }
+
+        EndType(String val, boolean containICON) {
             this.val = val;
+            this.containICON = containICON;
         }
 
         public String getVal() {
             return this.val;
         }
 
+        private Icon icon;
+
+        public Icon getIcon() {
+            if (!this.containICON) {
+                return icon;
+            }
+
+            if (icon == null) {
+                icon = new Icon() {
+                    private String loadIconWithSuffix(String theme) {
+                        return IOUtils.loadResourceFromClasspath(IEndTypeGetter.class
+                                , "endtype/icon/" + val + "/" + theme + ".svg", true);
+                    }
+                    @Override
+                    public String fillType() {
+                        return loadIconWithSuffix("fill");
+                    }
+
+                    @Override
+                    public String outlineType() {
+                        return loadIconWithSuffix("outline");
+                    }
+                };
+            }
+            return icon;
+        }
+
         public boolean containIn(Set<String> endTypes) {
             return endTypes.contains(this.getVal());
         }
+    }
+
+
+    public interface Icon {
+        public String fillType();
+
+        public String outlineType();
     }
 }

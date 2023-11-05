@@ -27,9 +27,9 @@ import com.google.common.collect.Sets;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.FullbuildPhase;
-import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.action.DataxAction;
 import com.qlangtech.tis.coredefine.module.action.PluginDescMeta;
+import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -59,6 +59,7 @@ import com.qlangtech.tis.offline.pojo.GitRepositoryCommitPojo;
 import com.qlangtech.tis.offline.pojo.TISDb;
 import com.qlangtech.tis.offline.pojo.WorkflowPojo;
 import com.qlangtech.tis.plugin.CompanionPluginFactory;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -1074,12 +1075,15 @@ public class OfflineDatasourceAction extends BasicModule {
     boolean filterSupportReader = this.getBoolean("filterSupportReader");
     DescriptorExtensionList<DataSourceFactory, Descriptor<DataSourceFactory>> dbDescs =
       TIS.get().getDescriptorList(DataSourceFactory.class);
-    this.setBizResult(context, filterSupportReader ? new ConfigDsMeta(offlineManager.getDatasourceInfo(), dbDescs) {
+
+    Map<String, DataSourceFactory.BaseDataSourceFactoryDescriptor> descMap =
+      dbDescs.stream().collect(Collectors.toMap((desc) -> StringUtils.lowerCase(desc.getDisplayName()),
+        (desc) -> (DataSourceFactory.BaseDataSourceFactoryDescriptor) desc));
+
+    this.setBizResult(context, filterSupportReader ? new ConfigDsMeta(offlineManager.getDatasourceInfo(), descMap) {
       @Override
       public Collection<DatasourceDb> getDbsSupportDataXReader() {
-        Map<String, DataSourceFactory.BaseDataSourceFactoryDescriptor> descMap =
-          dbDescs.stream().collect(Collectors.toMap((desc) -> StringUtils.lowerCase(desc.getDisplayName()),
-            (desc) -> (DataSourceFactory.BaseDataSourceFactoryDescriptor) desc));
+
         return this.dbs.stream().filter((db) -> {
           DataSourceFactory.BaseDataSourceFactoryDescriptor desc = descMap.get(StringUtils.lowerCase(db.extensionDesc));
           if (desc == null) {
@@ -1090,17 +1094,25 @@ public class OfflineDatasourceAction extends BasicModule {
           return desc.getDefaultDataXReaderDescName().isPresent();
         }).collect(Collectors.toList());
       }
-    } : new ConfigDsMeta(offlineManager.getDatasourceInfo(), dbDescs));
+    } : new ConfigDsMeta(offlineManager.getDatasourceInfo(), descMap));
   }
 
   public static class ConfigDsMeta extends PluginDescMeta {
     final Collection<OfflineDatasourceAction.DatasourceDb> dbs;
 
-    public ConfigDsMeta(Collection<DatasourceDb> dbs, DescriptorExtensionList<DataSourceFactory,
-      Descriptor<DataSourceFactory>> descList) {
-      super(descList);
+    public ConfigDsMeta(Collection<DatasourceDb> dbs, Map<String, DataSourceFactory.BaseDataSourceFactoryDescriptor> descMap) {
+      super(descMap.values());
       this.dbs = dbs;
-
+      this.dbs.forEach((db) -> {
+        DataSourceFactory.BaseDataSourceFactoryDescriptor desc = descMap.get(StringUtils.lowerCase(db.extensionDesc));
+        if (desc != null) {
+          IEndTypeGetter.EndType endType = desc.getEndType();
+          IEndTypeGetter.Icon icon = endType.getIcon();
+          if (icon != null) {
+            db.setIconEndtype(endType.getVal());
+          }
+        }
+      });
     }
 
     public Collection<DatasourceDb> getDbs() {
@@ -1467,7 +1479,7 @@ public class OfflineDatasourceAction extends BasicModule {
     params.add(new PostParam(IFullBuildContext.KEY_APP_SHARD_COUNT, IFullBuildContext.KEY_APP_SHARD_COUNT_SINGLE));
     params.add(new PostParam(COMPONENT_START, FullbuildPhase.FullDump.getName()));
     params.add(new PostParam(COMPONENT_END, FullbuildPhase.JOIN.getName()));
-    if (!CoreAction.triggerBuild(this, context, params).success) {
+    if (!TriggerBuildResult.triggerBuild(this, context, params).success) {
       // throw new IllegalStateException("dataflowid:" + id + " trigger faild");
     }
   }
@@ -1708,11 +1720,15 @@ public class OfflineDatasourceAction extends BasicModule {
     final int id;
 
     String name;
+
+    private String iconEndtype;
+
     private final String extensionDesc;
 
     List<DatasourceTable> tables;
 
     // byte syncOnline;
+
 
     public DatasourceDb(int id, String extensionDesc) {
       if (StringUtils.isEmpty(extensionDesc)) {
@@ -1722,13 +1738,22 @@ public class OfflineDatasourceAction extends BasicModule {
       this.extensionDesc = extensionDesc;
     }
 
+    /**
+     * 图标类型
+     *
+     * @return
+     */
+    public String getIconEndtype() {
+      return this.iconEndtype;
+    }
+
+    public void setIconEndtype(String iconEndtype) {
+      this.iconEndtype = iconEndtype;
+    }
+
     public int getId() {
       return id;
     }
-
-    //    public void setId(int id) {
-    //      this.id = id;
-    //    }
 
     public String getName() {
       return name;
@@ -1752,14 +1777,6 @@ public class OfflineDatasourceAction extends BasicModule {
       }
       this.tables.add(datasourceTable);
     }
-
-    //    public byte getSyncOnline() {
-    //      return syncOnline;
-    //    }
-    //
-    //    public void setSyncOnline(byte syncOnline) {
-    //      this.syncOnline = syncOnline;
-    //    }
   }
 
   public static String getHiveType(int type) {

@@ -340,7 +340,18 @@ public class TIS {
      * @return
      */
     public static <T extends Describable> IPluginStore<T> getPluginStore(String groupName, String collection, Class<T> key) {
-        IPluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key(groupName, collection, key));
+        return getPluginStore(new KeyedPluginStore.Key(groupName, collection, key));
+//        IPluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key(groupName, collection, key));
+//        if (pluginStore == null) {
+//            // 如果和collection自身绑定的plugin没有找到，就尝试找全局plugin
+//            return getPluginStore(key);
+//        } else {
+//            return pluginStore;
+//        }
+    }
+
+    public static <T extends Describable> IPluginStore<T> getPluginStore(KeyedPluginStore.Key key) {
+        IPluginStore<T> pluginStore = collectionPluginStore.get(key);
         if (pluginStore == null) {
             // 如果和collection自身绑定的plugin没有找到，就尝试找全局plugin
             return getPluginStore(key);
