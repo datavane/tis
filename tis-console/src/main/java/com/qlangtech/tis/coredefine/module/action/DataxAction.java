@@ -51,7 +51,6 @@ import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
-import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.ManageUtils;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.Option;
@@ -145,14 +144,15 @@ public class DataxAction extends BasicModule {
       this.addErrorMessage(context, "还没有安装本地触发类型的执行器:" + triggerType + ",请先安装");
       return;
     }
-
+    DataXJobSubmit jobSubmit = dataXJobSubmit.get();
+    logger.info("jobSubmit " + jobSubmit.getType() + " the submit instance type of :" + jobSubmit.getClass().getName());
 //    List<HttpUtils.PostParam> params = Lists.newArrayList();
 //    params.add(new HttpUtils.PostParam(TriggerBuildResult.KEY_APPNAME, this.getCollectionName()));
     //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getName()));
     //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.JOIN.getName()));
 
     // this.setBizResult(context, TriggerBuildResult.triggerBuild(this, context, params));
-    this.setBizResult(context, dataXJobSubmit.get().triggerJob(this, context, this.getCollectionName()));
+    this.setBizResult(context, jobSubmit.triggerJob(this, context, this.getCollectionName()));
   }
 
 
@@ -294,18 +294,21 @@ public class DataxAction extends BasicModule {
       throw new IllegalStateException("dataxJobWorker is in serivce ,can not launch repeat");
     }
 
-    dataxJobWorker.launchService();
-    try {
-      Thread.sleep(4000l);
-    } catch (InterruptedException e) {
+    dataxJobWorker.launchService(() -> {
+      try {
+        Thread.sleep(4000l);
+      } catch (InterruptedException e) {
 
-    }
+      }
+    });
+
     this.doGetJobWorkerMeta(context);
     AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
     DataXJobWorkerStatus jobWorkerStatus = (DataXJobWorkerStatus) actionExecResult.getBizResult();
     if (jobWorkerStatus == null || !jobWorkerStatus.isK8sReplicationControllerCreated()) {
       throw new IllegalStateException("Job Controller launch faild please contract administer");
     }
+
     this.addActionMessage(context, "已经成功启动DataX执行器");
   }
 
@@ -415,11 +418,11 @@ public class DataxAction extends BasicModule {
   public void doSaveDataxWorker(Context context) {
 
     List<UploadPluginMeta> metas = this.getPluginMeta();
-    DataXJobWorker.PowerjobCptType powerjobCptType = null;
-    for(UploadPluginMeta meta : metas){
-     powerjobCptType = DataXJobWorker.PowerjobCptType.parse(meta.getDataXName());
+    DataXJobWorker.K8SWorkerCptType powerjobCptType = null;
+    for (UploadPluginMeta meta : metas) {
+      powerjobCptType = DataXJobWorker.K8SWorkerCptType.parse(meta.getDataXName());
     }
-   // DataXJobWorker.PowerjobCptType powerjobCptType = DataXJobWorker.PowerjobCptType.parse(this.getString("powerjobCptType"));
+    // DataXJobWorker.PowerjobCptType powerjobCptType = DataXJobWorker.PowerjobCptType.parse(this.getString("powerjobCptType"));
     saveWorker(context, DataXJobWorker.K8S_DATAX_INSTANCE_NAME, Optional.of(powerjobCptType));
   }
 
@@ -428,7 +431,7 @@ public class DataxAction extends BasicModule {
     saveWorker(context, DataXJobWorker.K8S_FLINK_CLUSTER_NAME, Optional.empty());
   }
 
-  public void saveWorker(Context context, TargetResName resName, Optional<DataXJobWorker.PowerjobCptType> powerjobCptType) {
+  public void saveWorker(Context context, TargetResName resName, Optional<DataXJobWorker.K8SWorkerCptType> powerjobCptType) {
     JSONObject postContent = this.parseJsonPost();
     JSONObject k8sSpec = postContent.getJSONObject("k8sSpec");
 
@@ -603,7 +606,7 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doValidateDataxProfile(Context context) throws Exception {
     Application app = this.parseJsonPost(Application.class);
-    SchemaAction.CreateAppResult validateResult = this.createNewApp(context, app, true, (newAppId) -> {
+    SchemaAction.CreateAppResult validateResult = this.createNewApp(context, app, null, true, (newAppId) -> {
       throw new UnsupportedOperationException();
     });
   }
@@ -777,13 +780,11 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doCreateDatax(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    // ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
-    // IDataxProcessor dataxProcessor = (IDataxProcessor)pmodel.loadDataXProcessor(this,dataxName);
-
     DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(null, StoreResourceType.DataApp, dataxName);
     Application app = dataxProcessor.buildApp();
 
-    SchemaAction.CreateAppResult createAppResult = this.createNewApp(context, app, false, (newAppId) -> {
+    SchemaAction.CreateAppResult createAppResult
+      = this.createNewApp(context, app, dataxProcessor, false, (newAppId) -> {
       SchemaAction.CreateAppResult appResult = new SchemaAction.CreateAppResult();
       appResult.setSuccess(true);
       appResult.setNewAppId(newAppId);

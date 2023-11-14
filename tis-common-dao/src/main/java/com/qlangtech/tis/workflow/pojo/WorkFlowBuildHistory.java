@@ -116,6 +116,10 @@ public class WorkFlowBuildHistory implements Serializable {
     this.endTime = endTime;
   }
 
+  /**
+   * @see ExecResult.parse()
+   * @return
+   */
   public Byte getState() {
     return state;
   }

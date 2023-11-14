@@ -96,8 +96,9 @@ public class TestDataXExecuteInterceptorForMethodBuildTaskTriggers extends Basic
         replay();
 
         RemoteTaskTriggers triggers = new RemoteTaskTriggers(null);
+        chainContext.setTskTriggers(triggers);
 
-        DataXExecuteInterceptor.buildTaskTriggers(triggers, chainContext, dataXProcessor, submit, statusRpc, tab, tab.getName(), dagSessionSpec);
+        DAGSessionSpec.buildTaskTriggers(chainContext, dataXProcessor, submit, statusRpc, tab, tab.getName(), dagSessionSpec);
 
 
         Assert.assertEquals("->prep_customer_order_relation prep_customer_order_relation->customer_order_relation_1.json customer_order_relation_1.json->post_customer_order_relation->customer_order_relation"

@@ -15,14 +15,44 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.qlangtech.tis.runtime.module.misc;
 
-import com.qlangtech.tis.runtime.module.action.IParamGetter;
+package com.qlangtech.tis.manage.common;
+
+import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2020/09/25
- */
-public interface IControlMsgHandler extends IFieldErrorHandler, IMessageHandler, IParamGetter {
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2021-06-03 16:42
+ **/
+public class CreateNewTaskResult {
 
+    private int taskid;
+
+    private Application app;
+
+    public CreateNewTaskResult() {
+    }
+
+    public CreateNewTaskResult(int taskid, Application app) {
+        super();
+        this.taskid = taskid;
+        this.app = app;
+    }
+
+    public void setTaskid(int taskid) {
+        this.taskid = taskid;
+    }
+
+    public void setApp(Application app) {
+        this.app = app;
+    }
+
+
+    public int getTaskid() {
+        return taskid;
+    }
+
+    public Application getApp() {
+        return app;
+    }
 }

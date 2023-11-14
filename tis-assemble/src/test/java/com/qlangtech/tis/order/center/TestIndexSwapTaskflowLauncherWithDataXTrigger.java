@@ -18,11 +18,16 @@
 
 package com.qlangtech.tis.order.center;
 
+import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
+import com.qlangtech.tis.dao.ICommonDAOContext;
 import com.qlangtech.tis.datax.CuratorDataXTaskMessage;
 import com.qlangtech.tis.datax.DataXJobInfo;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
@@ -31,7 +36,9 @@ import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.taskflow.TestParamContext;
 import com.qlangtech.tis.job.common.JobCommon;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.test.TISTestCase;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import junit.framework.Assert;
 import org.junit.After;
@@ -100,11 +107,23 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
             return InstanceType.LOCAL;
         }
 
+        @Override
+        public void createJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor) {
+
+        }
+        @Override
+        public ExecResult processExecHistoryRecord(ICommonDAOContext commonDAO, WorkFlowBuildHistory buildHistory) {
+            throw new UnsupportedOperationException();
+        }
 
         @Override
-        protected IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc
-                , DataXJobInfo jobName, IDataxProcessor dataxProcessor, CuratorDataXTaskMessage dataXJobDTO) {
+        public TriggerBuildResult triggerJob(IControlMsgHandler module, Context context, String appName) {
+            return null;
+        }
 
+        @Override
+        public IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc
+                , DataXJobInfo jobName, IDataxProcessor dataxProcessor, CuratorDataXTaskMessage dataXJobDTO) {
 
 
             return jobTrigger;

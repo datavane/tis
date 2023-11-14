@@ -22,8 +22,6 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.ajax.AjaxResult;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
-import com.qlangtech.tis.assemble.TriggerType;
-import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
@@ -52,9 +50,6 @@ public class DagTaskUtils {
     public static final MessageFormat WORKFLOW_CONFIG_URL_FORMAT
             = new MessageFormat(Config.getConfigRepositoryHost()
             + "/config/config.ajax?action={0}&event_submit_{1}=true&handler={2}{3}");
-    public static final MessageFormat WORKFLOW_CONFIG_URL_POST_FORMAT
-            = new MessageFormat(Config.getConfigRepositoryHost()
-            + "/config/config.ajax?action={0}&event_submit_{1}=true");
 
 
     public static void feedbackAsynTaskStatus(int taskid, String subTaskName, boolean success) {
@@ -92,19 +87,6 @@ public class DagTaskUtils {
     }
 
     /**
-     * 开始执行一個新的任務
-     *
-     * @param newTaskParam taskid
-     * @return
-     */
-    public static Integer createNewTask(NewTaskParam newTaskParam) {
-        String url = WORKFLOW_CONFIG_URL_POST_FORMAT
-                .format(new Object[]{"fullbuild_workflow_action", "do_create_new_task"});
-        AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote(url, newTaskParam.params(), CreateNewTaskResult.class);
-        return result.getBizresult().getTaskid();
-    }
-
-    /**
      * 取得最近一次workflow成功执行的taskid
      *
      * @param appName
@@ -114,7 +96,7 @@ public class DagTaskUtils {
         if (StringUtils.isBlank(appName)) {
             throw new IllegalArgumentException("param appName can not be empty");
         }
-        String url = WORKFLOW_CONFIG_URL_POST_FORMAT
+        String url = IExecChainContext.WORKFLOW_CONFIG_URL_POST_FORMAT
                 .format(new Object[]{"fullbuild_workflow_action", "do_get_latest_success_workflow"});
         List<HttpUtils.PostParam> params = Lists.newArrayList();
         params.add(new HttpUtils.PostParam(IFullBuildContext.KEY_APP_NAME, appName));
@@ -136,7 +118,7 @@ public class DagTaskUtils {
         if (taskId == null || taskId < 1) {
             throw new IllegalArgumentException("param taskId can not be empty");
         }
-        String url = WORKFLOW_CONFIG_URL_POST_FORMAT
+        String url = IExecChainContext.WORKFLOW_CONFIG_URL_POST_FORMAT
                 .format(new Object[]{"fullbuild_workflow_action", "do_get_wf"});
         List<HttpUtils.PostParam> params = Lists.newArrayList();
         params.add(new HttpUtils.PostParam(JobCommon.KEY_TASK_ID, taskId));
@@ -180,72 +162,4 @@ public class DagTaskUtils {
         return postTaskTrigger;
     }
 
-    public static class NewTaskParam {
-
-        private Integer workflowid;
-
-        private TriggerType triggerType;
-
-        private String appname;
-
-        // 历史任务ID
-        private Integer historyTaskId;
-
-        public void setHistoryTaskId(Integer historyTaskId) {
-            this.historyTaskId = historyTaskId;
-        }
-
-        private ExecutePhaseRange executeRanage;
-
-        public Integer getWorkflowid() {
-            return workflowid;
-        }
-
-        public void setWorkflowid(Integer workflowid) {
-            this.workflowid = workflowid;
-        }
-
-        public TriggerType getTriggerType() {
-            return triggerType;
-        }
-
-        public void setTriggerType(TriggerType triggerType) {
-            this.triggerType = triggerType;
-        }
-
-        public String getAppname() {
-            return appname;
-        }
-
-        public void setAppname(String appname) {
-            this.appname = appname;
-        }
-
-        public ExecutePhaseRange getExecuteRanage() {
-            return executeRanage;
-        }
-
-        public void setExecuteRanage(ExecutePhaseRange executeRanage) {
-            this.executeRanage = executeRanage;
-        }
-
-        private List<HttpUtils.PostParam> params() {
-            List<HttpUtils.PostParam> params = Lists.newArrayList( //
-                    new HttpUtils.PostParam(IFullBuildContext.KEY_WORKFLOW_ID, workflowid)
-                    , new HttpUtils.PostParam(IFullBuildContext.KEY_TRIGGER_TYPE, triggerType.getValue())
-                    , new HttpUtils.PostParam(IParamContext.COMPONENT_START, executeRanage.getStart().getValue())
-                    , new HttpUtils.PostParam(IParamContext.COMPONENT_END, executeRanage.getEnd().getValue()));
-            if (!executeRanage.contains(FullbuildPhase.FullDump)) {
-                if (historyTaskId == null) {
-                    throw new IllegalStateException("param historyTaskId can not be null");
-                }
-                params.add(new HttpUtils.PostParam(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID, historyTaskId));
-            }
-            if (StringUtils.isNotBlank(appname)) {
-                // result.append("&").append(IFullBuildContext.KEY_APP_NAME).append("=").append(appname);
-                params.add(new HttpUtils.PostParam(IFullBuildContext.KEY_APP_NAME, appname));
-            }
-            return params;
-        }
-    }
 }

@@ -16,20 +16,27 @@
  * limitations under the License.
  */
 
-import junit.framework.TestCase;
+package com.qlangtech.tis.dao;
+
+import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
+import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
+import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
+import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 
 /**
- *env setter: ZEPPELIN_HOME=/Users/mozhenghua/Downloads/zeppelin-0.10.1-bin-all
- * @author 百岁（baisui@qlangtech.com）
- * @create: 2020-04-18 11:44
+ * @author 百岁 (baisui@qlangtech.com)
+ * @date 2023/11/9
  */
-public class StartTISWeb extends TestCase {
+public interface ICommonDAOContext {
+    public IApplicationDAO getApplicationDAO();
 
-  public void testStart() throws Exception {
+    public IWorkflowDAOFacade getWorkflowDAOFacade();
 
+    default IWorkFlowBuildHistoryDAO getTaskBuildHistoryDAO() {
+        return this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();
+    }
 
-
-    String[] args = new String[]{};
-    ConsoleStart.main(args);
-  }
+    default IWorkFlowDAO getWorkFlowDAO() {
+        return this.getWorkflowDAOFacade().getWorkFlowDAO();
+    }
 }

@@ -34,6 +34,7 @@ import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails
 import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer.CoreNode;
+import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -234,7 +235,7 @@ public class CoreAction extends BasicModule {
 
     workFlowBuildDAO.updateByExampleSelective(record, criteria);
     this.addActionMessage(context, "已经成功终止当前任务");
-    this.setBizResult(context, new ExtendWorkFlowBuildHistory(
+    this.setBizResult(context, new ExtendWorkFlowBuildHistory(this,
       this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().loadFromWriteDB(triggerResult.getTaskid())));
   }
 
@@ -702,7 +703,7 @@ public class CoreAction extends BasicModule {
     if (buildHistory == null) {
       throw new IllegalStateException(JobCommon.KEY_TASK_ID + ":" + taskid + "relevant buildHistory can not be null");
     }
-    this.setBizResult(context, new ExtendWorkFlowBuildHistory(buildHistory));
+    this.setBizResult(context, new ExtendWorkFlowBuildHistory(this, buildHistory));
   }
 
   /**
@@ -745,8 +746,6 @@ public class CoreAction extends BasicModule {
     params.add(new PostParam(TriggerBuildResult.KEY_APPNAME, module.getCollectionName()));
     return TriggerBuildResult.triggerBuild(module, context, params);
   }
-
-
 
 
   // #################################################################################
@@ -795,14 +794,17 @@ public class CoreAction extends BasicModule {
     IWorkFlowBuildHistoryDAO historyDAO = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();
     Pager pager = this.createPager();
     pager.setTotalCount(historyDAO.countByExample(query));
+
+
     this.setBizResult(context
-      , new PaginationResult(pager, adapterBuildHistory(historyDAO.selectByExample(query, pager.getCurPage(), pager.getRowsPerPage()))
+      , new PaginationResult(pager, adapterBuildHistory(
+        historyDAO.selectByExample(query, pager.getCurPage(), pager.getRowsPerPage()))
         , workFlow.getName()));
   }
 
   private List<ExtendWorkFlowBuildHistory> adapterBuildHistory(List<WorkFlowBuildHistory> histories) {
     return histories.stream().map((r) -> {
-      return new ExtendWorkFlowBuildHistory(r);
+      return new ExtendWorkFlowBuildHistory(this, r);
     }).collect(Collectors.toList());
   }
 

@@ -192,11 +192,13 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 int count = 0;
                 List<String> matchEntries = Lists.newArrayList();
                 while (tables.next()) {
-                    matchEntries.add(tables.getString("TABLE_NAME") + "(" + tables.getString("TABLE_TYPE") + "," + tables.getString("TABLE_SCHEM") + ")");
+                    matchEntries.add(tables.getString("TABLE_NAME")
+                            + "(" + tables.getString("TABLE_TYPE")
+                            + "," + tables.getString("TABLE_SCHEM") + ")");
                     count++;
                 }
                 if (count < 1) {
-                    throw new TableNotFoundException(this, table.getFullName());
+                    throw new TableNotFoundException(this, table.getFullName() + ",url:" + conn.getUrl());
                 } else if (count > 1) {
                     throw new IllegalStateException("duplicate table entities exist:" + String.join(",", matchEntries));
                 }

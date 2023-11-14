@@ -21,8 +21,10 @@ package com.qlangtech.tis.fullbuild.indexbuild;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -46,10 +48,11 @@ public class RemoteTaskTriggers {
         this.joinPhaseTasks.add(joinTsk);
     }
 
-//    public void merge(RemoteTaskTriggers tskTriggers) {
-//        this.dumpPhaseTasks.addAll(tskTriggers.dumpPhaseTasks);
-//        this.joinPhaseTasks.addAll(tskTriggers.joinPhaseTasks);
-//    }
+
+    public Map<String, IRemoteTaskTrigger> getTriggerDict() {
+        return Stream.concat(dumpPhaseTasks.stream(), joinPhaseTasks.stream()).collect(Collectors.toMap((t) -> t.getTaskName(), (t) -> t));
+    }
+
 
     public List<IRemoteTaskTrigger> getDumpPhaseTasks() {
         return Collections.unmodifiableList(this.dumpPhaseTasks);

@@ -22,6 +22,7 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import org.jvnet.hudson.reactor.*;
 
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,7 +44,7 @@ public class TISReactor {
         this.execContext = execContext;
     }
 
-    public void execute(ExecutorService executor, Reactor s, ReactorListener... addedListeners) throws Exception {
+    public void execute(Executor executor, Reactor s, ReactorListener... addedListeners) throws Exception {
         execContext.rebindLoggingMDCParams();
         //StringWriter sw = new StringWriter();
         // System.out.println("----");

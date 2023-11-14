@@ -121,6 +121,13 @@
 
     <dependencyManagement>
         <dependencies>
+
+            <dependency>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-common-dao</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.qlangtech.tis</groupId>
                 <artifactId>tis-web-start-api</artifactId>

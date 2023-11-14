@@ -29,7 +29,6 @@ import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.exec.datax.DataXAssembleSvcCompsite;
-import com.qlangtech.tis.exec.datax.DataXExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
@@ -85,12 +84,10 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
                     public void createSingleTableDump(RemoteTaskTriggers tskTrigger, DependencyNode dump, boolean hasValidTableDump, String pt
                             , ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus, ITaskPhaseInfo taskPhaseInfo
                             , DAGSessionSpec dagSessionSpec) {
-                        //  RemoteTaskTriggers tskTrigger = new RemoteTaskTriggers();
 
-                        DataXExecuteInterceptor.buildTaskTriggers(tskTrigger,
+                        DAGSessionSpec.buildTaskTriggers(
                                 execChainContext, dataxProc, submit, dataXExecReporter, new DefaultTab(dump.getName()), dump.getId(), dagSessionSpec);
 
-                       // return tskTrigger;
                     }
                 },
                 new ISolrAppSource.IDataProcessFeedback() {

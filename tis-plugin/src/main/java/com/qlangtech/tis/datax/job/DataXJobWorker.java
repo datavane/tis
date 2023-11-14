@@ -19,7 +19,6 @@
 package com.qlangtech.tis.datax.job;
 
 import com.alibaba.citrus.turbine.Context;
-import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.config.k8s.HorizontalpodAutoscaler;
@@ -66,16 +65,24 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     public static final TargetResName K8S_DATAX_INSTANCE_NAME = new TargetResName("datax-worker");
     public static final TargetResName K8S_FLINK_CLUSTER_NAME = new TargetResName("flink-cluster");
 
-    public enum PowerjobCptType {
-        Server("powerjob-server"), Worker("powerjob-worker"), JobTpl("powerjob-job-tpl");
+    public enum K8SWorkerCptType {
+        Server("powerjob-server", null), Worker("powerjob-worker"), JobTpl("powerjob-job-tpl"),
+        UsingExistCluster("powerjob-use-exist-cluster", null),
+        FlinkCluster("flink-cluster", null);
         private final String token;
+        public final String storeSuffix;
 
-        private PowerjobCptType(String token) {
-            this.token = token;
+        private K8SWorkerCptType(String token) {
+            this(token, token);
         }
 
-        public static PowerjobCptType parse(String cptType) {
-            for (PowerjobCptType type : PowerjobCptType.values()) {
+        private K8SWorkerCptType(String token, String storeSuffix) {
+            this.token = token;
+            this.storeSuffix = storeSuffix;
+        }
+
+        public static K8SWorkerCptType parse(String cptType) {
+            for (K8SWorkerCptType type : K8SWorkerCptType.values()) {
                 if (type.token.equalsIgnoreCase(cptType)) {
                     return type;
                 }
@@ -113,7 +120,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
     public static DataXJobWorker getJobWorker(TargetResName resName) {
         if (resName.equalWithName(K8S_DATAX_INSTANCE_NAME.getName())) {
-            return getJobWorker(K8S_DATAX_INSTANCE_NAME, Optional.of(PowerjobCptType.Server));
+            return getJobWorker(K8S_DATAX_INSTANCE_NAME, Optional.of(K8SWorkerCptType.Server));
         } else if (resName.equalWithName(K8S_FLINK_CLUSTER_NAME.getName())) {
             return getJobWorker(K8S_FLINK_CLUSTER_NAME, Optional.empty());
         }
@@ -121,7 +128,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         throw new IllegalStateException("illegal resName:" + resName);
     }
 
-    public static DataXJobWorker getJobWorker(TargetResName resName, Optional<DataXJobWorker.PowerjobCptType> powerjobCptType) {
+    public static DataXJobWorker getJobWorker(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType) {
         IPluginStore<DataXJobWorker> dataxJobWorkerStore = getJobWorkerStore(resName, powerjobCptType);
 //        Optional<DataXJobWorker> firstWorker
 //                = dataxJobWorkerStore.getPlugins().stream().filter((p) -> isJobWorkerMatch(resName, p.getDescriptor())).findFirst();
@@ -132,18 +139,18 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         return dataxJobWorkerStore.getPlugin();
     }
 
-    public static IPluginStore<DataXJobWorker> getJobWorkerStore(TargetResName resName, Optional<DataXJobWorker.PowerjobCptType> powerjobCptType) {
+    public static IPluginStore<DataXJobWorker> getJobWorkerStore(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType) {
         return TIS.getPluginStore(
                 new KeyedPluginStore.Key("jobworker"
                         , new KeyedPluginStore.KeyVal(resName.getName()
-                        , powerjobCptType.map((type) -> ("-" + type.token)).orElse(StringUtils.EMPTY)) {
+                        , powerjobCptType.map((type) -> type.storeSuffix).map((storeSuffix) -> ("-" + storeSuffix)).orElse(StringUtils.EMPTY)) {
                     public String getKeyVal() {
                         return (getVal() + this.suffix);
                     }
                 }, DataXJobWorker.class));
     }
 
-    public static void setJobWorker(TargetResName resName, Optional<DataXJobWorker.PowerjobCptType> powerjobCptType, DataXJobWorker worker) {
+    public static void setJobWorker(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType, DataXJobWorker worker) {
         IPluginStore<DataXJobWorker> store = getJobWorkerStore(resName, powerjobCptType);
         store.setPlugins(null, Optional.empty(), Collections.singletonList(PluginStore.getDescribablesWithMeta(store, worker)));
     }
@@ -280,7 +287,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     /**
      * 启动服务
      */
-    public abstract void launchService();
+    public abstract void launchService(Runnable launchProcess);
 
 
     @Override
@@ -300,6 +307,13 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         }
 
         @Override
+        public final String getDisplayName() {
+            return this.getWorkerCptType().token;
+        }
+
+        protected abstract K8SWorkerCptType getWorkerCptType();
+
+        @Override
         public Map<String, Object> getExtractProps() {
             Map<String, Object> extractProps = super.getExtractProps();
             extractProps.put(KEY_WORKER_TYPE, getWorkerType().getName());
@@ -315,7 +329,8 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         }
 
         public IPluginStore<DataXJobWorker> getJobWorkerStore() {
-            return DataXJobWorker.getJobWorkerStore(getWorkerType(), Optional.of(DataXJobWorker.PowerjobCptType.parse(this.getDisplayName())));
+            return DataXJobWorker.getJobWorkerStore(getWorkerType()
+                    , Optional.of(K8SWorkerCptType.parse(this.getDisplayName())));
         }
     }
 

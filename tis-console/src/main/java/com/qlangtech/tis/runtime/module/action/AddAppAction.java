@@ -383,6 +383,8 @@ public class AddAppAction extends SchemaAction implements ModelDriven<Applicatio
     snapshotResult.setNewAppId(newAppid);
     snapshotResult.setSuccess(true);
 
+//    module.getApplication()
+
     SchemaAction.CreateAppResult createAppResult = null;
     if (!(createAppResult = afterAppCreate.process(newAppid)).isSuccess()) {
       return createAppResult;

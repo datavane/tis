@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.coredefine.module.action;
 
@@ -21,11 +21,15 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
+import com.qlangtech.tis.dao.ICommonDAOContext;
+import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.job.ITISPowerJob;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Optional;
 import java.util.TimeZone;
 
 /**
@@ -36,9 +40,26 @@ public class ExtendWorkFlowBuildHistory {
 
   private final WorkFlowBuildHistory delegate;
 
-  public ExtendWorkFlowBuildHistory(WorkFlowBuildHistory delegate) {
+  private ExecResult execResult;
+
+  public ExtendWorkFlowBuildHistory(ICommonDAOContext commonDAO, WorkFlowBuildHistory delegate) {
     super();
     this.delegate = delegate;
+
+    this.execResult = ExecResult.parse(this.delegate.getState());
+    if (ITISPowerJob.getPowerJobWorkflowInstanceId(delegate, false) != null
+      && !(this.execResult.isComplete())) {
+      DataXJobSubmit.InstanceType instanceType = DataXJobSubmit.getDataXTriggerType();
+      Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, instanceType);
+      DataXJobSubmit jobSubmit = dataXJobSubmit
+        .orElseThrow(() -> new IllegalStateException("triggerType:" + instanceType + " relevant jobSubmit can not be null"));
+
+      ExecResult stateChange = jobSubmit.processExecHistoryRecord(commonDAO, delegate);
+      if (stateChange != null) {
+        this.execResult = stateChange;
+      }
+    }
+
   }
 
   /**
@@ -47,8 +68,8 @@ public class ExtendWorkFlowBuildHistory {
    * @return
    */
   public String getConsuming() {
-    ExecResult result = ExecResult.parse(this.delegate.getState());
-    Date endTime = ((result == ExecResult.FAILD || result == ExecResult.SUCCESS) && this.getEndTime() != null) ? this.getEndTime() : new Date();
+    // ExecResult result = ExecResult.parse(this.delegate.getState());
+    Date endTime = ((execResult.isComplete()) && this.getEndTime() != null) ? this.getEndTime() : new Date();
     int consuming = (int) ((endTime.getTime() - this.getStartTime().getTime()) / 1000);
     if (consuming < 60) {
       return consuming + "秒";

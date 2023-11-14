@@ -126,7 +126,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             if (!pluginContext.isCollectionAware()) {
                 throw new IllegalStateException("must be collection aware");
             }
-            DataXJobWorker.PowerjobCptType powerjobCptType = DataXJobWorker.PowerjobCptType.parse(pluginMeta.getDataXName());
+            DataXJobWorker.K8SWorkerCptType powerjobCptType = DataXJobWorker.K8SWorkerCptType.parse(pluginMeta.getDataXName());
 
             return DataXJobWorker.getJobWorkerStore(new TargetResName(pluginContext.getCollectionName()), Optional.of(powerjobCptType));
 

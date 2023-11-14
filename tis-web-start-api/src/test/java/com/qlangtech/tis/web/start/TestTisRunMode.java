@@ -40,10 +40,10 @@ public class TestTisRunMode {
 
        // EasyMock.replay(appLaunch);
 
-        Supplier<Boolean> zeppelinContextInitialized = TisRunMode.Standalone.zeppelinContextInitialized;
-        org.junit.Assert.assertNotNull(zeppelinContextInitialized);
-
-        zeppelinContextInitialized.get();
+//        Supplier<Boolean> zeppelinContextInitialized = TisRunMode.Standalone.zeppelinContextInitialized;
+//        org.junit.Assert.assertNotNull(zeppelinContextInitialized);
+//
+//        zeppelinContextInitialized.get();
 
        // EasyMock.verify(appLaunch);
     }

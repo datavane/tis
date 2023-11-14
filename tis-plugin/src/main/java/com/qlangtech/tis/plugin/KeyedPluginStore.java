@@ -320,7 +320,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             if (pluginContext == null) {
                 return new KeyVal(appname);
             }
-            String referer = pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER);
+            String referer = StringUtils.trimToEmpty(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER));
             Matcher configPathMatcher = DATAX_UPDATE_PATH.matcher(referer);
             boolean inUpdateProcess = configPathMatcher.find();
             if (inUpdateProcess && !pluginContext.isCollectionAware()) {
