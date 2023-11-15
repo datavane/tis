@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.realtime.yarn.rpc;
 
+import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
@@ -71,5 +72,5 @@ public interface IncrStatusUmbilicalProtocol {
      *
      * @param buildStatus
      */
-    public void reportJoinStatus(JoinPhaseStatus.JoinTaskStatus buildStatus);
+    public void initSynJob(PhaseStatusCollection buildStatus);
 }

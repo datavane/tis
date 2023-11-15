@@ -19,6 +19,7 @@ package com.tis.hadoop.rpc;
 
 import com.google.common.collect.Iterators;
 import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
@@ -276,8 +277,10 @@ public class StatusRpcClient {
 
         public void reportBuildIndexStatus(BuildSharedPhaseStatus buildStatus) {
             statReceiveSvc.reportBuildIndexStatus(buildStatus);
+        }
 
-
+        public void initSynJob(PhaseStatusCollection buildStatus) {
+            statReceiveSvc.initSynJob(buildStatus);
         }
     }
 
@@ -328,6 +331,11 @@ public class StatusRpcClient {
 
         @Override
         public void close() throws IOException {
+        }
+
+        @Override
+        public void initSynJob(PhaseStatusCollection buildStatus) {
+
         }
 
         @Override

@@ -53,8 +53,13 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
             taskPhaseReference = new WeakHashMap<>();
 
     public static PhaseStatusCollection initialTaskPhase(Integer taskid) {
-        PhaseStatusCollection statusCollection = new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange());
-        taskPhaseReference.put(taskid, statusCollection);
+        PhaseStatusCollection statusCollection
+                = new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange());
+        return initialTaskPhase(statusCollection);
+    }
+
+    public static PhaseStatusCollection initialTaskPhase(PhaseStatusCollection statusCollection) {
+        taskPhaseReference.put(statusCollection.getTaskid(), statusCollection);
         return statusCollection;
     }
 

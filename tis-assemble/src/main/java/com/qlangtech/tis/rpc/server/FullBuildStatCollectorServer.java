@@ -1,32 +1,31 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.rpc.server;
 
 import ch.qos.logback.classic.spi.LoggingEvent;
+import com.google.common.collect.Lists;
+import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
-import com.qlangtech.tis.fullbuild.phasestatus.JobLog;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildPhaseStatus;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.IndexBackFlowPhaseStatus;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.log.RealtimeLoggerCollectorAppender;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
+import com.qlangtech.tis.realtime.yarn.rpc.PingResult;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
 import com.qlangtech.tis.rpc.grpc.log.stream.*;
 import com.qlangtech.tis.trigger.jst.MonotorTarget;
@@ -37,6 +36,7 @@ import io.grpc.ServerBuilder;
 import io.grpc.Status;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,9 +44,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Map;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
 /**
  * 全量执行各个节点状态收集，供console端实时拉取
@@ -253,6 +257,50 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
         return target;
     }
 
+    /**
+     * 分布式任务启动时候，同步rpc的方式向 assemble节点注册注册
+     *
+     * @param request
+     * @param responseObserver
+     */
+    @Override
+    public void initTask(com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection request,
+                         io.grpc.stub.StreamObserver<com.qlangtech.tis.rpc.grpc.log.common.Empty> responseObserver) {
+
+        List<Supplier<FullbuildPhase>> phaseJudgemment = Lists.newArrayList();
+        phaseJudgemment.add(() -> request.getDumpPhase() != null ? FullbuildPhase.FullDump : null);
+        phaseJudgemment.add(() -> request.getJoinPhase() != null ? FullbuildPhase.JOIN : null);
+        phaseJudgemment.add(() -> request.getBuildPhase() != null ? FullbuildPhase.BUILD : null);
+        phaseJudgemment.add(() -> request.getIndexBackFlowPhaseStatus() != null ? FullbuildPhase.IndexBackFlow : null);
+
+        ExecutePhaseRange phaseRange = createPhaseRange(phaseJudgemment);
+
+        TrackableExecuteInterceptor.initialTaskPhase(LogCollectorClient.convert(request, phaseRange));
+
+        responseObserver.onNext(com.qlangtech.tis.rpc.grpc.log.common.Empty.newBuilder().build());
+        responseObserver.onCompleted();
+
+    }
+
+    private static ExecutePhaseRange createPhaseRange(List<Supplier<FullbuildPhase>> phaseJudgemment) {
+        FullbuildPhase start = null;
+        FullbuildPhase end = null;
+        for (Supplier<FullbuildPhase> s : phaseJudgemment) {
+            if ((start = s.get()) != null) {
+                break;
+            }
+        }
+        Supplier<FullbuildPhase>[] reversed = (Supplier<FullbuildPhase>[]) phaseJudgemment.toArray();
+        CollectionUtils.reverseArray(reversed);
+        for (Supplier<FullbuildPhase> s : reversed) {
+            if ((end = s.get()) != null) {
+                break;
+            }
+        }
+        return new ExecutePhaseRange(start, end);
+    }
+
+
     @Override
     public void buildPhraseStatus(PBuildPhaseStatusParam request, StreamObserver<PPhaseStatusCollection> responseObserver) {
         final int taskid = (int) request.getTaskid();
@@ -276,7 +324,7 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
                 } while (serverCallStreamObserver.isReady() && isStatusNotPresent(phaseStatusSet));
                 logger.info("ready to send taskid:" + taskid + "relevant stat info");
                 while (serverCallStreamObserver.isReady()) {
-                    serverCallStreamObserver.onNext(convertPP(phaseStatusSet));
+                    serverCallStreamObserver.onNext(LogCollectorClient.convertPP(phaseStatusSet));
                     if (phaseStatusSet.isComplete()) {
                         // 如果已经完成了就立即停止发送消息
                         break;
@@ -290,91 +338,6 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
                 serverCallStreamObserver.onCompleted();
             }
         });
-    }
-
-    public PPhaseStatusCollection convertPP(PhaseStatusCollection phaseStatusSet) {
-        PPhaseStatusCollection.Builder scBuilder = PPhaseStatusCollection.newBuilder();
-        scBuilder.setTaskId(phaseStatusSet.getTaskid());
-        DumpPhaseStatus dumpPhase = phaseStatusSet.getDumpPhase();
-        JoinPhaseStatus joinPhase = phaseStatusSet.getJoinPhase();
-        BuildPhaseStatus buildPhase = phaseStatusSet.getBuildPhase();
-        IndexBackFlowPhaseStatus indexBackFlowPhase = phaseStatusSet.getIndexBackFlowPhaseStatus();
-        if (dumpPhase != null) {
-            PDumpPhaseStatus.Builder builder = PDumpPhaseStatus.newBuilder();
-            com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus.Builder tabDump = null;
-            DumpPhaseStatus.TableDumpStatus s = null;
-            for (Map.Entry<String, DumpPhaseStatus.TableDumpStatus> entry : dumpPhase.tablesDump.entrySet()) {
-                s = entry.getValue();
-                tabDump = com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus.newBuilder();
-                tabDump.setAllRows(s.getAllRows());
-                tabDump.setTableName(s.getName());
-                tabDump.setTaskid(s.getTaskid());
-                tabDump.setReadRows(s.getReadRows());
-                tabDump.setFaild(s.isFaild());
-                tabDump.setComplete(s.isComplete());
-                tabDump.setWaiting(s.isWaiting());
-                builder.putTablesDump(entry.getKey(), tabDump.build());
-            }
-            scBuilder.setDumpPhase(builder);
-        }
-        if (joinPhase != null) {
-            PJoinPhaseStatus.Builder builder = PJoinPhaseStatus.newBuilder();
-            com.qlangtech.tis.rpc.grpc.log.common.JoinTaskStatus.Builder pbuilder = null;
-            JoinPhaseStatus.JoinTaskStatus j = null;
-            com.qlangtech.tis.rpc.grpc.log.common.JobLog.Builder jlog = null;
-            JobLog jl = null;
-            for (Map.Entry<String, JoinPhaseStatus.JoinTaskStatus> entry : joinPhase.taskStatus.entrySet()) {
-                pbuilder = com.qlangtech.tis.rpc.grpc.log.common.JoinTaskStatus.newBuilder();
-                j = entry.getValue();
-                pbuilder.setJoinTaskName(j.getName());
-                pbuilder.setFaild(j.isFaild());
-                pbuilder.setComplete(j.isComplete());
-                pbuilder.setWaiting(j.isWaiting());
-                for (Map.Entry<Integer, JobLog> e : j.jobsStatus.entrySet()) {
-                    jl = e.getValue();
-                    jlog = com.qlangtech.tis.rpc.grpc.log.common.JobLog.newBuilder();
-                    jlog.setMapper(jl.getMapper());
-                    jlog.setReducer(jl.getReducer());
-                    jlog.setWaiting(jl.isWaiting());
-                    pbuilder.putJobStatus(e.getKey(), jlog.build());
-                }
-                builder.putTaskStatus(entry.getKey(), pbuilder.build());
-            }
-            scBuilder.setJoinPhase(builder);
-        }
-        if (buildPhase != null) {
-            PBuildPhaseStatus.Builder builder = PBuildPhaseStatus.newBuilder();
-            buildPhase.nodeBuildStatus.entrySet().stream().forEach((e) -> {
-                com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus bf = null;
-                com.qlangtech.tis.rpc.grpc.log.common.BuildSharedPhaseStatus.Builder bfBuilder = com.qlangtech.tis.rpc.grpc.log.common.BuildSharedPhaseStatus.newBuilder();
-                bf = e.getValue();
-                bfBuilder.setAllBuildSize(bf.getAllBuildSize());
-                bfBuilder.setBuildReaded(bf.getBuildReaded());
-                bfBuilder.setTaskid(bf.getTaskid());
-                bfBuilder.setSharedName(bf.getSharedName());
-                bfBuilder.setFaild(bf.isFaild());
-                bfBuilder.setComplete(bf.isComplete());
-                bfBuilder.setWaiting(bf.isWaiting());
-                builder.putNodeBuildStatus(e.getKey(), bfBuilder.build());
-            });
-            scBuilder.setBuildPhase(builder);
-        }
-        if (indexBackFlowPhase != null) {
-            PIndexBackFlowPhaseStatus.Builder builder = PIndexBackFlowPhaseStatus.newBuilder();
-            indexBackFlowPhase.nodesStatus.entrySet().stream().forEach((e) -> {
-                IndexBackFlowPhaseStatus.NodeBackflowStatus ib = e.getValue();
-                com.qlangtech.tis.rpc.grpc.log.common.NodeBackflowStatus.Builder ibBuilder = com.qlangtech.tis.rpc.grpc.log.common.NodeBackflowStatus.newBuilder();
-                ibBuilder.setNodeName(ib.getName());
-                ibBuilder.setAllSize(ib.getAllSize());
-                ibBuilder.setReaded(ib.getReaded());
-                ibBuilder.setFaild(ib.isFaild());
-                ibBuilder.setComplete(ib.isComplete());
-                ibBuilder.setWaiting(ib.isWaiting());
-                builder.putNodesStatus(e.getKey(), ibBuilder.build());
-            });
-            scBuilder.setIndexBackFlowPhaseStatus(builder);
-        }
-        return scBuilder.build();
     }
 
     private boolean isStatusNotPresent(PhaseStatusCollection phaseStatusSet) {
