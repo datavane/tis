@@ -12,10 +12,11 @@ service LogCollector {
     // 订阅日志信息
     rpc RegisterMonitorEvent (stream PMonotorTarget) returns (stream PExecuteState) {
     }
-
     // 订阅全量/DataFlow构建过程中各阶段执行的状态信息
     rpc BuildPhraseStatus (PBuildPhaseStatusParam) returns (stream PPhaseStatusCollection) {
     }
+    // 分布式环境下，启动一个同步任务先需要向assemble节点注册所有子任务
+    rpc InitTask (PPhaseStatusCollection) returns () {}
 }
 
 message PBuildPhaseStatusParam {

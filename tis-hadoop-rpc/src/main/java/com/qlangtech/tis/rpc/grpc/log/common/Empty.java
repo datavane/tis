@@ -4,18 +4,18 @@
 package com.qlangtech.tis.rpc.grpc.log.common;
 
 /**
- * Protobuf type {@code JobLog}
+ * Protobuf type {@code Empty}
  */
-public  final class JobLog extends
+public  final class Empty extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:JobLog)
-    JobLogOrBuilder {
+    // @@protoc_insertion_point(message_implements:Empty)
+    EmptyOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use JobLog.newBuilder() to construct.
-  private JobLog(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use Empty.newBuilder() to construct.
+  private Empty(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private JobLog() {
+  private Empty() {
   }
 
   @java.lang.Override
@@ -23,7 +23,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private JobLog(
+  private Empty(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -31,7 +31,6 @@ private static final long serialVersionUID = 0L;
     if (extensionRegistry == null) {
       throw new java.lang.NullPointerException();
     }
-    int mutable_bitField0_ = 0;
     com.google.protobuf.UnknownFieldSet.Builder unknownFields =
         com.google.protobuf.UnknownFieldSet.newBuilder();
     try {
@@ -42,21 +41,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          case 8: {
-
-            waiting_ = input.readBool();
-            break;
-          }
-          case 16: {
-
-            mapper_ = input.readUInt32();
-            break;
-          }
-          case 24: {
-
-            reducer_ = input.readUInt32();
-            break;
-          }
           default: {
             if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
@@ -78,42 +62,15 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return com.qlangtech.tis.rpc.grpc.log.common.LogCollectorProto.internal_static_JobLog_descriptor;
+    return com.qlangtech.tis.rpc.grpc.log.common.LogCollectorProto.internal_static_Empty_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.qlangtech.tis.rpc.grpc.log.common.LogCollectorProto.internal_static_JobLog_fieldAccessorTable
+    return com.qlangtech.tis.rpc.grpc.log.common.LogCollectorProto.internal_static_Empty_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.qlangtech.tis.rpc.grpc.log.common.JobLog.class, com.qlangtech.tis.rpc.grpc.log.common.JobLog.Builder.class);
-  }
-
-  public static final int WAITING_FIELD_NUMBER = 1;
-  private boolean waiting_;
-  /**
-   * <code>bool waiting = 1;</code>
-   */
-  public boolean getWaiting() {
-    return waiting_;
-  }
-
-  public static final int MAPPER_FIELD_NUMBER = 2;
-  private int mapper_;
-  /**
-   * <code>uint32 mapper = 2;</code>
-   */
-  public int getMapper() {
-    return mapper_;
-  }
-
-  public static final int REDUCER_FIELD_NUMBER = 3;
-  private int reducer_;
-  /**
-   * <code>uint32 reducer = 3;</code>
-   */
-  public int getReducer() {
-    return reducer_;
+            com.qlangtech.tis.rpc.grpc.log.common.Empty.class, com.qlangtech.tis.rpc.grpc.log.common.Empty.Builder.class);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -130,15 +87,6 @@ private static final long serialVersionUID = 0L;
   @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (waiting_ != false) {
-      output.writeBool(1, waiting_);
-    }
-    if (mapper_ != 0) {
-      output.writeUInt32(2, mapper_);
-    }
-    if (reducer_ != 0) {
-      output.writeUInt32(3, reducer_);
-    }
     unknownFields.writeTo(output);
   }
 
@@ -148,18 +96,6 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    if (waiting_ != false) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(1, waiting_);
-    }
-    if (mapper_ != 0) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeUInt32Size(2, mapper_);
-    }
-    if (reducer_ != 0) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeUInt32Size(3, reducer_);
-    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -170,17 +106,11 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof com.qlangtech.tis.rpc.grpc.log.common.JobLog)) {
+    if (!(obj instanceof com.qlangtech.tis.rpc.grpc.log.common.Empty)) {
       return super.equals(obj);
     }
-    com.qlangtech.tis.rpc.grpc.log.common.JobLog other = (com.qlangtech.tis.rpc.grpc.log.common.JobLog) obj;
+    com.qlangtech.tis.rpc.grpc.log.common.Empty other = (com.qlangtech.tis.rpc.grpc.log.common.Empty) obj;
 
-    if (getWaiting()
-        != other.getWaiting()) return false;
-    if (getMapper()
-        != other.getMapper()) return false;
-    if (getReducer()
-        != other.getReducer()) return false;
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -192,81 +122,74 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    hash = (37 * hash) + WAITING_FIELD_NUMBER;
-    hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-        getWaiting());
-    hash = (37 * hash) + MAPPER_FIELD_NUMBER;
-    hash = (53 * hash) + getMapper();
-    hash = (37 * hash) + REDUCER_FIELD_NUMBER;
-    hash = (53 * hash) + getReducer();
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static com.qlangtech.tis.rpc.grpc.log.common.JobLog parseFrom(
+  public static com.qlangtech.tis.rpc.grpc.log.common.Empty parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.qlangtech.tis.rpc.grpc.log.common.JobLog parseFrom(
+  public static com.qlangtech.tis.rpc.grpc.log.common.Empty parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.qlangtech.tis.rpc.grpc.log.common.JobLog parseFrom(
+  public static com.qlangtech.tis.rpc.grpc.log.common.Empty parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.qlangtech.tis.rpc.grpc.log.common.JobLog parseFrom(
+  public static com.qlangtech.tis.rpc.grpc.log.common.Empty parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.qlangtech.tis.rpc.grpc.log.common.JobLog parseFrom(byte[] data)
+  public static com.qlangtech.tis.rpc.grpc.log.common.Empty parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.qlangtech.tis.rpc.grpc.log.common.JobLog parseFrom(
+  public static com.qlangtech.tis.rpc.grpc.log.common.Empty parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.qlangtech.tis.rpc.grpc.log.common.JobLog parseFrom(java.io.InputStream input)
+  public static com.qlangtech.tis.rpc.grpc.log.common.Empty parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.qlangtech.tis.rpc.grpc.log.common.JobLog parseFrom(
+  public static com.qlangtech.tis.rpc.grpc.log.common.Empty parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.qlangtech.tis.rpc.grpc.log.common.JobLog parseDelimitedFrom(java.io.InputStream input)
+  public static com.qlangtech.tis.rpc.grpc.log.common.Empty parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static com.qlangtech.tis.rpc.grpc.log.common.JobLog parseDelimitedFrom(
+  public static com.qlangtech.tis.rpc.grpc.log.common.Empty parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.qlangtech.tis.rpc.grpc.log.common.JobLog parseFrom(
+  public static com.qlangtech.tis.rpc.grpc.log.common.Empty parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.qlangtech.tis.rpc.grpc.log.common.JobLog parseFrom(
+  public static com.qlangtech.tis.rpc.grpc.log.common.Empty parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -279,7 +202,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.qlangtech.tis.rpc.grpc.log.common.JobLog prototype) {
+  public static Builder newBuilder(com.qlangtech.tis.rpc.grpc.log.common.Empty prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   @java.lang.Override
@@ -295,26 +218,26 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code JobLog}
+   * Protobuf type {@code Empty}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:JobLog)
-      com.qlangtech.tis.rpc.grpc.log.common.JobLogOrBuilder {
+      // @@protoc_insertion_point(builder_implements:Empty)
+      com.qlangtech.tis.rpc.grpc.log.common.EmptyOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.qlangtech.tis.rpc.grpc.log.common.LogCollectorProto.internal_static_JobLog_descriptor;
+      return com.qlangtech.tis.rpc.grpc.log.common.LogCollectorProto.internal_static_Empty_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.qlangtech.tis.rpc.grpc.log.common.LogCollectorProto.internal_static_JobLog_fieldAccessorTable
+      return com.qlangtech.tis.rpc.grpc.log.common.LogCollectorProto.internal_static_Empty_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.qlangtech.tis.rpc.grpc.log.common.JobLog.class, com.qlangtech.tis.rpc.grpc.log.common.JobLog.Builder.class);
+              com.qlangtech.tis.rpc.grpc.log.common.Empty.class, com.qlangtech.tis.rpc.grpc.log.common.Empty.Builder.class);
     }
 
-    // Construct using com.qlangtech.tis.rpc.grpc.log.common.JobLog.newBuilder()
+    // Construct using com.qlangtech.tis.rpc.grpc.log.common.Empty.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -332,29 +255,23 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public Builder clear() {
       super.clear();
-      waiting_ = false;
-
-      mapper_ = 0;
-
-      reducer_ = 0;
-
       return this;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return com.qlangtech.tis.rpc.grpc.log.common.LogCollectorProto.internal_static_JobLog_descriptor;
+      return com.qlangtech.tis.rpc.grpc.log.common.LogCollectorProto.internal_static_Empty_descriptor;
     }
 
     @java.lang.Override
-    public com.qlangtech.tis.rpc.grpc.log.common.JobLog getDefaultInstanceForType() {
-      return com.qlangtech.tis.rpc.grpc.log.common.JobLog.getDefaultInstance();
+    public com.qlangtech.tis.rpc.grpc.log.common.Empty getDefaultInstanceForType() {
+      return com.qlangtech.tis.rpc.grpc.log.common.Empty.getDefaultInstance();
     }
 
     @java.lang.Override
-    public com.qlangtech.tis.rpc.grpc.log.common.JobLog build() {
-      com.qlangtech.tis.rpc.grpc.log.common.JobLog result = buildPartial();
+    public com.qlangtech.tis.rpc.grpc.log.common.Empty build() {
+      com.qlangtech.tis.rpc.grpc.log.common.Empty result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
@@ -362,11 +279,8 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public com.qlangtech.tis.rpc.grpc.log.common.JobLog buildPartial() {
-      com.qlangtech.tis.rpc.grpc.log.common.JobLog result = new com.qlangtech.tis.rpc.grpc.log.common.JobLog(this);
-      result.waiting_ = waiting_;
-      result.mapper_ = mapper_;
-      result.reducer_ = reducer_;
+    public com.qlangtech.tis.rpc.grpc.log.common.Empty buildPartial() {
+      com.qlangtech.tis.rpc.grpc.log.common.Empty result = new com.qlangtech.tis.rpc.grpc.log.common.Empty(this);
       onBuilt();
       return result;
     }
@@ -405,25 +319,16 @@ private static final long serialVersionUID = 0L;
     }
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.qlangtech.tis.rpc.grpc.log.common.JobLog) {
-        return mergeFrom((com.qlangtech.tis.rpc.grpc.log.common.JobLog)other);
+      if (other instanceof com.qlangtech.tis.rpc.grpc.log.common.Empty) {
+        return mergeFrom((com.qlangtech.tis.rpc.grpc.log.common.Empty)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.qlangtech.tis.rpc.grpc.log.common.JobLog other) {
-      if (other == com.qlangtech.tis.rpc.grpc.log.common.JobLog.getDefaultInstance()) return this;
-      if (other.getWaiting() != false) {
-        setWaiting(other.getWaiting());
-      }
-      if (other.getMapper() != 0) {
-        setMapper(other.getMapper());
-      }
-      if (other.getReducer() != 0) {
-        setReducer(other.getReducer());
-      }
+    public Builder mergeFrom(com.qlangtech.tis.rpc.grpc.log.common.Empty other) {
+      if (other == com.qlangtech.tis.rpc.grpc.log.common.Empty.getDefaultInstance()) return this;
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -439,95 +344,17 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      com.qlangtech.tis.rpc.grpc.log.common.JobLog parsedMessage = null;
+      com.qlangtech.tis.rpc.grpc.log.common.Empty parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (com.qlangtech.tis.rpc.grpc.log.common.JobLog) e.getUnfinishedMessage();
+        parsedMessage = (com.qlangtech.tis.rpc.grpc.log.common.Empty) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
           mergeFrom(parsedMessage);
         }
       }
-      return this;
-    }
-
-    private boolean waiting_ ;
-    /**
-     * <code>bool waiting = 1;</code>
-     */
-    public boolean getWaiting() {
-      return waiting_;
-    }
-    /**
-     * <code>bool waiting = 1;</code>
-     */
-    public Builder setWaiting(boolean value) {
-      
-      waiting_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>bool waiting = 1;</code>
-     */
-    public Builder clearWaiting() {
-      
-      waiting_ = false;
-      onChanged();
-      return this;
-    }
-
-    private int mapper_ ;
-    /**
-     * <code>uint32 mapper = 2;</code>
-     */
-    public int getMapper() {
-      return mapper_;
-    }
-    /**
-     * <code>uint32 mapper = 2;</code>
-     */
-    public Builder setMapper(int value) {
-      
-      mapper_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>uint32 mapper = 2;</code>
-     */
-    public Builder clearMapper() {
-      
-      mapper_ = 0;
-      onChanged();
-      return this;
-    }
-
-    private int reducer_ ;
-    /**
-     * <code>uint32 reducer = 3;</code>
-     */
-    public int getReducer() {
-      return reducer_;
-    }
-    /**
-     * <code>uint32 reducer = 3;</code>
-     */
-    public Builder setReducer(int value) {
-      
-      reducer_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>uint32 reducer = 3;</code>
-     */
-    public Builder clearReducer() {
-      
-      reducer_ = 0;
-      onChanged();
       return this;
     }
     @java.lang.Override
@@ -543,41 +370,41 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:JobLog)
+    // @@protoc_insertion_point(builder_scope:Empty)
   }
 
-  // @@protoc_insertion_point(class_scope:JobLog)
-  private static final com.qlangtech.tis.rpc.grpc.log.common.JobLog DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:Empty)
+  private static final com.qlangtech.tis.rpc.grpc.log.common.Empty DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new com.qlangtech.tis.rpc.grpc.log.common.JobLog();
+    DEFAULT_INSTANCE = new com.qlangtech.tis.rpc.grpc.log.common.Empty();
   }
 
-  public static com.qlangtech.tis.rpc.grpc.log.common.JobLog getDefaultInstance() {
+  public static com.qlangtech.tis.rpc.grpc.log.common.Empty getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  private static final com.google.protobuf.Parser<JobLog>
-      PARSER = new com.google.protobuf.AbstractParser<JobLog>() {
+  private static final com.google.protobuf.Parser<Empty>
+      PARSER = new com.google.protobuf.AbstractParser<Empty>() {
     @java.lang.Override
-    public JobLog parsePartialFrom(
+    public Empty parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new JobLog(input, extensionRegistry);
+      return new Empty(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<JobLog> parser() {
+  public static com.google.protobuf.Parser<Empty> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<JobLog> getParserForType() {
+  public com.google.protobuf.Parser<Empty> getParserForType() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.qlangtech.tis.rpc.grpc.log.common.JobLog getDefaultInstanceForType() {
+  public com.qlangtech.tis.rpc.grpc.log.common.Empty getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

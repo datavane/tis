@@ -24,6 +24,8 @@ service IncrStatus {
 
     rpc reportBuildIndexStatus (BuildSharedPhaseStatus) returns (Empty) {
     }
+
+
 }
 
 
@@ -92,9 +94,7 @@ message TableSingleDataIndexStatus {
 }
 
 
-message Empty {
 
-}
 
 message PingResult {
     string value = 1;
