@@ -1,24 +1,25 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.realtime.yarn.rpc;
 
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 
 /**
  * 增量子节点会实时将自己的状态信息汇报给master节点
@@ -51,6 +52,7 @@ public interface IncrStatusUmbilicalProtocol {
     // * @param upateCounter
     // */
     // public void reportQueryNodeStatus(UpdateCounterMap upateCounter);
+
     /**
      * 报告表dump状态
      */
@@ -62,4 +64,12 @@ public interface IncrStatusUmbilicalProtocol {
      * @param buildStatus
      */
     public void reportBuildIndexStatus(BuildSharedPhaseStatus buildStatus);
+
+
+    /**
+     * 返回join阶段的执行状态
+     *
+     * @param buildStatus
+     */
+    public void reportJoinStatus(JoinPhaseStatus.JoinTaskStatus buildStatus);
 }

@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -49,7 +50,7 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
     private static final Logger log = LoggerFactory.getLogger(TrackableExecuteInterceptor.class);
 
     private static final Map<Integer, PhaseStatusCollection> /*** taskid*/
-            taskPhaseReference = new HashMap<>();
+            taskPhaseReference = new WeakHashMap<>();
 
     public static PhaseStatusCollection initialTaskPhase(Integer taskid) {
         PhaseStatusCollection statusCollection = new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange());

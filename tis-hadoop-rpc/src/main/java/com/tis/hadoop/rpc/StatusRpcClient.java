@@ -229,7 +229,9 @@ public class StatusRpcClient {
 
         public abstract void close();
 
-        public void reportDumpJobStatus(boolean faild, boolean complete, boolean waiting, Integer taskId, String jobName, int readRows, int allRows) {
+        public void reportDumpJobStatus(
+                boolean faild, boolean complete, boolean waiting
+                , Integer taskId, String jobName, int readRows, int allRows) {
             StatusRpcClient.AssembleSvcCompsite svc = this;
             DumpPhaseStatus.TableDumpStatus dumpStatus = new DumpPhaseStatus.TableDumpStatus(jobName, taskId);
             dumpStatus.setFaild(faild);
@@ -238,6 +240,7 @@ public class StatusRpcClient {
             dumpStatus.setReadRows(readRows);
             dumpStatus.setAllRows(allRows);
             svc.reportDumpTableStatus(dumpStatus);
+
         }
 
         public AssembleSvcCompsite(IncrStatusUmbilicalProtocol statReceiveSvc, ILogReporter statReportSvc) {
@@ -273,6 +276,8 @@ public class StatusRpcClient {
 
         public void reportBuildIndexStatus(BuildSharedPhaseStatus buildStatus) {
             statReceiveSvc.reportBuildIndexStatus(buildStatus);
+
+
         }
     }
 

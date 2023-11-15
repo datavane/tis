@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * 访问angluar主页面用
+ * 访问angular主页面用
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2017年3月30日

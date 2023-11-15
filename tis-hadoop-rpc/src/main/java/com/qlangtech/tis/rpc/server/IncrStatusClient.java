@@ -19,6 +19,7 @@ package com.qlangtech.tis.rpc.server;
 
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.grpc.Empty;
 import com.qlangtech.tis.grpc.IncrStatusGrpc;
 import com.qlangtech.tis.grpc.LaunchReportInfoEntry;
@@ -137,6 +138,18 @@ public class IncrStatusClient implements IncrStatusUmbilicalProtocol {
         builder.setTaskid(tableDumpStatus.getTaskid());
         builder.setWaiting(tableDumpStatus.isWaiting());
         return builder.build();
+    }
+
+    @Override
+    public void reportJoinStatus(JoinPhaseStatus.JoinTaskStatus buildStatus) {
+        com.qlangtech.tis.rpc.grpc.log.common.JoinTaskStatus.Builder builder = com.qlangtech.tis.rpc.grpc.log.common.JoinTaskStatus.newBuilder();
+        builder.setComplete();
+        builder.setFaild();
+        builder.setWaiting();
+        builder.setJoinTaskName();
+        builder.build();
+
+        blockingStub.repo
     }
 
     @Override
