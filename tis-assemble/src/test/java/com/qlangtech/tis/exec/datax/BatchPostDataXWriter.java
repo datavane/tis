@@ -27,6 +27,8 @@ import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPostTrigger;
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPreviousTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 
@@ -59,13 +61,18 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
     }
 
     @Override
+    public void startScanDependency() {
+
+    }
+
+    @Override
     public ExecutePhaseRange getPhaseRange() {
         return new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.JOIN);
     }
 
     @Override
-    public IRemoteTaskTrigger createPreExecuteTask(IExecChainContext execContext, ISelectedTab tab) {
-        return new IRemoteTaskTrigger() {
+    public IRemoteTaskPreviousTrigger createPreExecuteTask(IExecChainContext execContext, ISelectedTab tab) {
+        return new IRemoteTaskPreviousTrigger() {
             @Override
             public String getTaskName() {
                 return IDataXBatchPost.getPreExecuteTaskName(tab);
@@ -79,8 +86,8 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
     }
 
     @Override
-    public IRemoteTaskTrigger createPostTask(IExecChainContext execContext, final ISelectedTab tab, DataXCfgGenerator.GenerateCfgs cfgFileNames) {
-        return new IRemoteTaskTrigger() {
+    public IRemoteTaskPostTrigger createPostTask(IExecChainContext execContext, final ISelectedTab tab, DataXCfgGenerator.GenerateCfgs cfgFileNames) {
+        return new IRemoteTaskPostTrigger() {
             @Override
             public String getTaskName() {
                 return KEY_POST + tab.getName();

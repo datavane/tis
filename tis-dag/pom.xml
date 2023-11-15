@@ -34,10 +34,14 @@
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-plugin</artifactId>
         </dependency>
-
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-sql-parser</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-common-dao</artifactId>
         </dependency>
 
     </dependencies>

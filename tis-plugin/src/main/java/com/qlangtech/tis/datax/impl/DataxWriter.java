@@ -54,13 +54,13 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
     private static transient LoadingCache<String, TableInDB> tabsInDBCache;
 
 
-    private static TableInDB getExistTabsInSink(String dataXName) throws ExecutionException {
+    private TableInDB getExistTabsInSink(String dataXName) throws ExecutionException {
         if (tabsInDBCache == null) {
-            tabsInDBCache = CacheBuilder.newBuilder().expireAfterWrite(12, TimeUnit.SECONDS)
+            tabsInDBCache = CacheBuilder.newBuilder().expireAfterAccess(3, TimeUnit.SECONDS)
                     .build(new CacheLoader<String, TableInDB>() {
                         @Override
                         public TableInDB load(String dataXName) throws Exception {
-                            IDataSourceFactoryGetter writer = (IDataSourceFactoryGetter) DataxWriter.load(null, dataXName);
+                            IDataSourceFactoryGetter writer = (IDataSourceFactoryGetter) DataxWriter.this;// (IDataSourceFactoryGetter) DataxWriter.load(null, dataXName);
                             final DataSourceFactory ds = writer.getDataSourceFactory();
                             return ds.getTablesInDB();
                         }
@@ -87,15 +87,16 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
         if (StringUtils.isEmpty(dataXName)) {
             throw new IllegalArgumentException("param dataXName can not be null");
         }
-
-        TableInDB existTabs = getExistTabsInSink(dataXName);
-        if (existTabs.contains(tableName)) {
-            // 表已经存在不用初始化啦
-            return;
-        }
+        DataxWriter writer = DataxWriter.load(null, dataXName);
+        // 由于TableInDB 实例缓存时间太长了，如果在数据库中直接drop表之后在此处，执行全量构建就不会创建表了，先把缓存去掉
+//        TableInDB existTabs = writer.getExistTabsInSink(dataXName);
+//        if (existTabs.contains(tableName)) {
+//            // 表已经存在不用初始化啦
+//            return;
+//        }
 
         IInitWriterTableExecutor dataXWriter
-                = (IInitWriterTableExecutor) DataxWriter.load(null, dataXName);
+                = (IInitWriterTableExecutor) writer;
 
         Objects.requireNonNull(dataXWriter, "dataXWriter can not be null,dataXName:" + dataXName);
         dataXWriter.initWriterTable(tableName, jdbcUrls);
@@ -219,6 +220,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
             eprops.put(KEY_SUPPORT_INCR, this.isSupportIncr());
             eprops.put(KEY_SUPPORT_BATCH, this.isSupportBatch());
             eprops.put(KEY_END_TYPE, this.getEndType().getVal());
+            eprops.put(KEY_SUPPORT_ICON, this.getEndType().getIcon() != null);
             return eprops;
         }
 

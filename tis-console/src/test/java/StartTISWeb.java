@@ -26,6 +26,9 @@ import junit.framework.TestCase;
 public class StartTISWeb extends TestCase {
 
   public void testStart() throws Exception {
+
+
+
     String[] args = new String[]{};
     ConsoleStart.main(args);
   }

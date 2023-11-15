@@ -80,7 +80,6 @@
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-sql-parser</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
 <!--        <dependency>-->

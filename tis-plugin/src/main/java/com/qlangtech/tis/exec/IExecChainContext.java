@@ -17,12 +17,25 @@
  */
 package com.qlangtech.tis.exec;
 
+import com.google.common.collect.Lists;
+import com.qlangtech.tis.ajax.AjaxResult;
+import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.fs.ITISFileSystem;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
+import com.qlangtech.tis.job.common.JobCommon;
+import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.CreateNewTaskResult;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.List;
 
 /**
@@ -31,6 +44,57 @@ import java.util.List;
  */
 public interface IExecChainContext extends IJoinTaskContext {
 
+    Logger logger = LoggerFactory.getLogger(IExecChainContext.class);
+    MessageFormat WORKFLOW_CONFIG_URL_POST_FORMAT
+            = new MessageFormat(Config.getConfigRepositoryHost()
+            + "/config/config.ajax?action={0}&event_submit_{1}=true");
+
+    /**
+     * 创建新的task
+     *
+     * @param chainContext
+     * @return taskid
+     */
+    static Integer createNewTask(IExecChainContext chainContext) {
+        Integer workflowId = chainContext.getWorkflowId();
+        NewTaskParam newTaskParam = new NewTaskParam();
+        ExecutePhaseRange executeRanage = chainContext.getExecutePhaseRange();
+        if (executeRanage == null) {
+            throw new IllegalStateException("executeRanage can not be null");
+        }
+        if (chainContext.hasIndexName() || executeRanage.getEnd().bigThan(FullbuildPhase.JOIN)) {
+            String indexname = chainContext.getIndexName();
+            newTaskParam.setAppname(indexname);
+        }
+        String histroyTaskId = chainContext.getString(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID);
+        if (StringUtils.isNotBlank(histroyTaskId)) {
+            newTaskParam.setHistoryTaskId(Integer.parseInt(histroyTaskId));
+        }
+        newTaskParam.setWorkflowid(workflowId);
+        newTaskParam.setExecuteRanage(executeRanage);
+
+        newTaskParam.setTriggerType(TriggerType.MANUAL);
+        /**=============================================
+         * 提交task请求
+         =============================================*/
+        Integer taskid = createNewTask(newTaskParam);
+        logger.info("create new taskid:" + taskid);
+        chainContext.setAttribute(JobCommon.KEY_TASK_ID, taskid);
+        return taskid;
+    }
+
+    /**
+     * 开始执行一個新的任務
+     *
+     * @param newTaskParam taskid
+     * @return
+     */
+    static Integer createNewTask(NewTaskParam newTaskParam) {
+        String url = WORKFLOW_CONFIG_URL_POST_FORMAT
+                .format(new Object[]{"fullbuild_workflow_action", "do_create_new_task"});
+        AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote(url, newTaskParam.params(), CreateNewTaskResult.class);
+        return result.getBizresult().getTaskid();
+    }
 
     IDataxProcessor getProcessor();
 
@@ -41,6 +105,8 @@ public interface IExecChainContext extends IJoinTaskContext {
     public boolean containAsynJob();
 
     void setTskTriggers(RemoteTaskTriggers tskTriggers);
+
+    public RemoteTaskTriggers getTskTriggers();
 
     /**
      * 取消当前正在运行的任务
@@ -78,4 +144,76 @@ public interface IExecChainContext extends IJoinTaskContext {
 //    IndexBuilderTriggerFactory getIndexBuilderFactory();
 
     void rebindLoggingMDCParams();
+
+    class NewTaskParam {
+
+        private Integer workflowid;
+
+        private TriggerType triggerType;
+
+        private String appname;
+
+        // 历史任务ID
+        private Integer historyTaskId;
+
+        public void setHistoryTaskId(Integer historyTaskId) {
+            this.historyTaskId = historyTaskId;
+        }
+
+        private ExecutePhaseRange executeRanage;
+
+        public Integer getWorkflowid() {
+            return workflowid;
+        }
+
+        public void setWorkflowid(Integer workflowid) {
+            this.workflowid = workflowid;
+        }
+
+        public TriggerType getTriggerType() {
+            return triggerType;
+        }
+
+        public void setTriggerType(TriggerType triggerType) {
+            this.triggerType = triggerType;
+        }
+
+        public String getAppname() {
+            return appname;
+        }
+
+        public void setAppname(String appname) {
+            this.appname = appname;
+        }
+
+        public ExecutePhaseRange getExecuteRanage() {
+            return executeRanage;
+        }
+
+        public void setExecuteRanage(ExecutePhaseRange executeRanage) {
+            this.executeRanage = executeRanage;
+        }
+
+        public List<HttpUtils.PostParam> params() {
+            if (executeRanage == null) {
+                throw new IllegalStateException("executeRanage can not be null");
+            }
+            List<HttpUtils.PostParam> params = Lists.newArrayList( //
+                    new HttpUtils.PostParam(IFullBuildContext.KEY_WORKFLOW_ID, workflowid)
+                    , new HttpUtils.PostParam(IFullBuildContext.KEY_TRIGGER_TYPE, triggerType.getValue())
+                    , new HttpUtils.PostParam(COMPONENT_START, executeRanage.getStart().getValue())
+                    , new HttpUtils.PostParam(COMPONENT_END, executeRanage.getEnd().getValue()));
+            if (!executeRanage.contains(FullbuildPhase.FullDump)) {
+                if (historyTaskId == null) {
+                    throw new IllegalStateException("param historyTaskId can not be null");
+                }
+                params.add(new HttpUtils.PostParam(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID, historyTaskId));
+            }
+            if (StringUtils.isNotBlank(appname)) {
+                // result.append("&").append(IFullBuildContext.KEY_APP_NAME).append("=").append(appname);
+                params.add(new HttpUtils.PostParam(IFullBuildContext.KEY_APP_NAME, appname));
+            }
+            return params;
+        }
+    }
 }

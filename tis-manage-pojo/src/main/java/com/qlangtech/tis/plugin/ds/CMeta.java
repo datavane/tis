@@ -2,13 +2,20 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.ValidatorCommons;
 import org.apache.commons.lang.StringUtils;
 
+import javax.management.Descriptor;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -37,13 +44,50 @@ public class CMeta implements Serializable, IColMetaGetter, IdentityName {
 
 
     public static final String FIELD_NAME = "name";
+    public static final String KEY_COLUMN_SIZE = "columnSize";
+    public static final String KEY_DECIMAL_DIGITS = "decimalDigits";
+
+    public static DataType parseType(JSONObject targetCol, BiConsumer<String, String> errorProcess) {
+        JSONObject type = null;
+        type = Objects.requireNonNull(targetCol, "targetCol can not be null").getJSONObject("type");
+        Integer jdbcType = type.getInteger("type");
+
+        DataTypeMeta typeMeta = DataTypeMeta.getDataTypeMeta(JDBCTypes.parse(jdbcType));
+
+        boolean hasError = false;
+        Integer colSize = 0;
+        if ((colSize = type.getInteger(KEY_COLUMN_SIZE)) == null && typeMeta.isContainColSize()) {
+            errorProcess.accept(KEY_COLUMN_SIZE, ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
+            hasError = true;
+        }
+        Integer decimalDigits = 0;
+        if ((decimalDigits = type.getInteger(KEY_DECIMAL_DIGITS)) == null && typeMeta.isContainDecimalRange()) {
+            errorProcess.accept(KEY_DECIMAL_DIGITS, ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
+            hasError = true;
+        }
+
+        if (hasError) {
+            return null;
+        }
+
+        DataType dataType = DataType.create(jdbcType, type.getString("typeName"), colSize);
+        dataType.setDecimalDigits(decimalDigits);
+        return dataType;
+    }
+
 
     public interface ElementCreatorFactory {
 
 
         CMeta createDefault();
 
-        CMeta create(JSONObject targetCol);
+        default CMeta create(JSONObject targetCol) {
+            return create(targetCol, (key, errMsg) -> {
+                throw new IllegalStateException("key:" + key + " ,errMsg:" + errMsg + " shall not occur");
+            });
+        }
+
+        CMeta create(JSONObject targetCol, BiConsumer<String, String> errorProcess);
     }
 
     public static CMeta create(String colName, JDBCTypes type) {
@@ -153,5 +197,11 @@ public class CMeta implements Serializable, IColMetaGetter, IdentityName {
     @Override
     public Class<?> getDescribleClass() {
         return IdentityName.super.getDescribleClass();
+    }
+
+    public static class ParsePostMCols {
+        public List<CMeta> writerCols = Lists.newArrayList();
+        public boolean validateFaild = false;
+        public boolean pkHasSelected = false;
     }
 }

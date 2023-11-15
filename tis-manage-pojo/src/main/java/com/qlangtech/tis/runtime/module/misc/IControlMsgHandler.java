@@ -24,4 +24,5 @@ import com.qlangtech.tis.runtime.module.action.IParamGetter;
  * @date 2020/09/25
  */
 public interface IControlMsgHandler extends IFieldErrorHandler, IMessageHandler, IParamGetter {
+
 }

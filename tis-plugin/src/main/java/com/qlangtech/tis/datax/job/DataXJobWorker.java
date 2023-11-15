@@ -1,25 +1,24 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.datax.job;
 
 import com.alibaba.citrus.turbine.Context;
-import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.config.k8s.HorizontalpodAutoscaler;
@@ -31,6 +30,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -41,6 +41,7 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.util.HeteroEnum;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,6 +65,34 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     public static final TargetResName K8S_DATAX_INSTANCE_NAME = new TargetResName("datax-worker");
     public static final TargetResName K8S_FLINK_CLUSTER_NAME = new TargetResName("flink-cluster");
 
+    public enum K8SWorkerCptType {
+        Server("powerjob-server", null), Worker("powerjob-worker"), JobTpl("powerjob-job-tpl"),
+        UsingExistCluster("powerjob-use-exist-cluster", null),
+        FlinkCluster("flink-cluster", null);
+        private final String token;
+        public final String storeSuffix;
+
+        private K8SWorkerCptType(String token) {
+            this(token, token);
+        }
+
+        private K8SWorkerCptType(String token, String storeSuffix) {
+            this.token = token;
+            this.storeSuffix = storeSuffix;
+        }
+
+        public static K8SWorkerCptType parse(String cptType) {
+            for (K8SWorkerCptType type : K8SWorkerCptType.values()) {
+                if (type.token.equalsIgnoreCase(cptType)) {
+                    return type;
+                }
+            }
+
+            throw new IllegalStateException("param cptType:" + cptType + " is not illegal");
+        }
+    }
+
+
     public static void validateTargetName(String targetName) {
         if (K8S_DATAX_INSTANCE_NAME.getName().equals(targetName)
                 || K8S_FLINK_CLUSTER_NAME.getName().equals(targetName)) {
@@ -86,11 +115,21 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 //    }
 
     public static DataXJobWorker getFlinkClusterWorker() {
-        return getJobWorker(K8S_FLINK_CLUSTER_NAME);
+        return getJobWorker(K8S_FLINK_CLUSTER_NAME, Optional.empty());
     }
 
     public static DataXJobWorker getJobWorker(TargetResName resName) {
-        IPluginStore<DataXJobWorker> dataxJobWorkerStore = getJobWorkerStore(resName);
+        if (resName.equalWithName(K8S_DATAX_INSTANCE_NAME.getName())) {
+            return getJobWorker(K8S_DATAX_INSTANCE_NAME, Optional.of(K8SWorkerCptType.Server));
+        } else if (resName.equalWithName(K8S_FLINK_CLUSTER_NAME.getName())) {
+            return getJobWorker(K8S_FLINK_CLUSTER_NAME, Optional.empty());
+        }
+
+        throw new IllegalStateException("illegal resName:" + resName);
+    }
+
+    public static DataXJobWorker getJobWorker(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType) {
+        IPluginStore<DataXJobWorker> dataxJobWorkerStore = getJobWorkerStore(resName, powerjobCptType);
 //        Optional<DataXJobWorker> firstWorker
 //                = dataxJobWorkerStore.getPlugins().stream().filter((p) -> isJobWorkerMatch(resName, p.getDescriptor())).findFirst();
 //        if (firstWorker.isPresent()) {
@@ -100,12 +139,19 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         return dataxJobWorkerStore.getPlugin();
     }
 
-    public static IPluginStore<DataXJobWorker> getJobWorkerStore(TargetResName resName) {
-        return TIS.getPluginStore("jobworker", resName.getName(), DataXJobWorker.class);
+    public static IPluginStore<DataXJobWorker> getJobWorkerStore(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType) {
+        return TIS.getPluginStore(
+                new KeyedPluginStore.Key("jobworker"
+                        , new KeyedPluginStore.KeyVal(resName.getName()
+                        , powerjobCptType.map((type) -> type.storeSuffix).map((storeSuffix) -> ("-" + storeSuffix)).orElse(StringUtils.EMPTY)) {
+                    public String getKeyVal() {
+                        return (getVal() + this.suffix);
+                    }
+                }, DataXJobWorker.class));
     }
 
-    public static void setJobWorker(TargetResName resName, DataXJobWorker worker) {
-        IPluginStore<DataXJobWorker> store = getJobWorkerStore(resName);
+    public static void setJobWorker(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType, DataXJobWorker worker) {
+        IPluginStore<DataXJobWorker> store = getJobWorkerStore(resName, powerjobCptType);
         store.setPlugins(null, Optional.empty(), Collections.singletonList(PluginStore.getDescribablesWithMeta(store, worker)));
     }
 
@@ -144,8 +190,13 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     }
 
     protected File getServerLaunchTokenFile() {
+
+        BasicDescriptor basicDesc = ((BasicDescriptor) this.getDescriptor());
+
+        IPluginStore<DataXJobWorker> workerStore = basicDesc.getJobWorkerStore();
+
         TargetResName workerType = ((BasicDescriptor) this.getDescriptor()).getWorkerType();
-        IPluginStore<DataXJobWorker> workerStore = getJobWorkerStore(workerType);
+//        IPluginStore<DataXJobWorker> workerStore = getJobWorkerStore(workerType);
         File target = workerStore.getTargetFile().getFile();
         return new File(target.getParentFile(), (workerType.getName() + ".launch_token"));
     }
@@ -187,14 +238,14 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 //        return services.size() > 0 && jobWorkerStore.getPlugin().inService();
 //    }
 
-    /**
-     * 通过Curator来实现分布式任务overseer-worker模式
-     *
-     * @return
-     */
-    public abstract String getZookeeperAddress();
-
-    public abstract String getZkQueuePath();
+//    /**
+//     * 通过Curator来实现分布式任务overseer-worker模式
+//     *
+//     * @return
+//     */
+//    public abstract String getZookeeperAddress();
+//
+//    public abstract String getZkQueuePath();
 
     protected final K8sImage getK8SImage() {
         K8sImage k8sImage = TIS.getPluginStore(K8sImage.class).find(this.k8sImage);
@@ -236,7 +287,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     /**
      * 启动服务
      */
-    public abstract void launchService();
+    public abstract void launchService(Runnable launchProcess);
 
 
     @Override
@@ -256,6 +307,13 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         }
 
         @Override
+        public final String getDisplayName() {
+            return this.getWorkerCptType().token;
+        }
+
+        protected abstract K8SWorkerCptType getWorkerCptType();
+
+        @Override
         public Map<String, Object> getExtractProps() {
             Map<String, Object> extractProps = super.getExtractProps();
             extractProps.put(KEY_WORKER_TYPE, getWorkerType().getName());
@@ -268,6 +326,11 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         protected boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
 
             return true;
+        }
+
+        public IPluginStore<DataXJobWorker> getJobWorkerStore() {
+            return DataXJobWorker.getJobWorkerStore(getWorkerType()
+                    , Optional.of(K8SWorkerCptType.parse(this.getDisplayName())));
         }
     }
 

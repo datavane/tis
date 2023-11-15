@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.Validator;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -34,6 +35,9 @@ public class DefaultPlugin implements Describable<DefaultPlugin> {
 
     @FormField(identity = false, type = FormFieldType.INPUTTEXT)
     public String name;
+
+    @FormField(ordinal = 7, type = FormFieldType.PASSWORD, validate = {Validator.none_blank})
+    public String password;
 
     @FormField(type = FormFieldType.TEXTAREA)
     public String cols;

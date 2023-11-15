@@ -1,0 +1,20 @@
+{
+  "pre":"prep_payinfo",
+  "post":"hive_payinfo_bind",
+  "table":"payinfo",
+  "exec":{
+    "jobId":-1,
+    "execEpochMilli":0,
+    "resType":"DataApp",
+    "dataXName":"mysql_aliyun_hive",
+    "taskSerializeNum":1,
+    "allRowsApproximately":-1,
+    "jobInfo":[
+      {
+        "dataXInfo":"payinfo_0.json/order2/payinfo",
+        "taskSerializeNum":1
+      }
+    ]
+  },
+  "dataxName":"mysql_aliyun_hive"
+}

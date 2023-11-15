@@ -65,6 +65,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -800,7 +801,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       });
     }
     JSONArray targetCols = colMeta.getJSONArray("columns");
-    Map<String, TargetCol> targetColMap = targetCols.stream().map((c) -> {
+    Map<String, TargetCol> targetColMap = ((Stream<JSONObject>) targetCols.stream()).map((c) -> {
       JSONObject o = (JSONObject) c;
       TargetCol targetCol = new TargetCol(o.getString("name"));
       Boolean indexable = o.getBoolean("search");
@@ -826,25 +827,17 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     if (incrPluginItems.items.size() < 1) {
       throw new IllegalStateException("incr plugin item size can not small than 1");
     }
-// BasicModule module, Context context, int pluginIndex, boolean verify
+
     PluginAction.PluginItemsParser validate = incrPluginItems.validate(this, context, 0, false);
     if (validate.faild) {
       return false;
     }
 
-//    for (AttrValMap vals : incrPluginItems.items) {
-//      if (!vals.validate(this, context, false).isValid()) {
-//        // return columnMeta.invalid();
-//        return false;
-//      }
-//      break;
-//    }
     incrPluginItems.save(context);
 
     /**=======================================
      *开始生成脚本并且编译打包
      *=======================================*/
-    // SqlTaskNodeMeta.SqlDataFlowTopology wfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(df.getName());
 
     IndexIncrStatus incrStatus = CoreAction.generateDAOAndIncrScript(
       this, context, true, true, false);

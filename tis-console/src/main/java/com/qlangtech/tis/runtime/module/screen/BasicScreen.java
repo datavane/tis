@@ -51,10 +51,6 @@ public abstract class BasicScreen extends BasicModule {
         context.put("shallnotShowEnvironment", true);
     }
 
-    public boolean isShallPresentInFrame() {
-        return true;
-    }
-
     /**
      * @param groupName
      */

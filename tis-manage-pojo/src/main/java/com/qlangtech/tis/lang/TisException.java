@@ -240,15 +240,7 @@ public class TisException extends RuntimeException {
                 return getPersisObj().getString(KEY_ABSTRACT);
             }
         };
-
-
     }
 
-
-    public interface ILogErrorDetail {
-        public String getDetail();
-
-        public String getAbstractInfo();
-    }
 
 }

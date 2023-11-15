@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.datax;
 
+import com.alibaba.fastjson.JSON;
 import com.qlangtech.tis.plugin.StoreResourceType;
 
 /**
@@ -25,6 +26,15 @@ import com.qlangtech.tis.plugin.StoreResourceType;
  * @create: 2021-05-06 15:01
  **/
 public class CuratorDataXTaskMessage implements IDataXTaskRelevant {
+
+    public static String serialize(CuratorDataXTaskMessage item) {
+        return JSON.toJSONString(item, false);
+    }
+
+    public static CuratorDataXTaskMessage deserialize(String json) {
+        return JSON.parseObject(json, CuratorDataXTaskMessage.class);
+    }
+
     /**
      * 也可能是WorkFlow名称，不想在类中额外添加属性了，直接使用这个属性就行了
      */

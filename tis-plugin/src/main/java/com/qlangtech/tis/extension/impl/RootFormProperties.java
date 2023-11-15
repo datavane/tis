@@ -20,11 +20,13 @@ package com.qlangtech.tis.extension.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.util.DescribableJSON;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,9 +36,21 @@ import java.util.stream.Collectors;
  */
 public class RootFormProperties extends PluginFormProperties {
     public final Map<String, /*** fieldname*/PropertyType> propertiesType;
+    private final Descriptor descriptor;
 
-    public RootFormProperties(Map<String, PropertyType> propertiesType) {
-        this.propertiesType = propertiesType;
+    public RootFormProperties(Descriptor descriptor, Map<String, PropertyType> propertiesType) {
+        this.propertiesType = Objects.requireNonNull(propertiesType, "param propertiesType can not be null");
+        this.descriptor = descriptor;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+        return this.descriptor;
+    }
+
+    @Override
+    public boolean containProperty(String fieldName) {
+        return this.propertiesType.containsKey(fieldName);
     }
 
     @Override

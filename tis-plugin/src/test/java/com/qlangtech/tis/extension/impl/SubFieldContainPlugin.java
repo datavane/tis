@@ -70,6 +70,11 @@ public class SubFieldContainPlugin extends DataxReader implements IdentityName {
 //    }
 
     @Override
+    public void startScanDependency() {
+
+    }
+
+    @Override
     public <T extends ISelectedTab> List<T> getSelectedTabs() {
         return null;
     }

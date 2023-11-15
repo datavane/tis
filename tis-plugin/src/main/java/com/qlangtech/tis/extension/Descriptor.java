@@ -27,26 +27,27 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxWriter;
-import com.qlangtech.tis.extension.impl.*;
-import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
+import com.qlangtech.tis.extension.impl.AdapterPluginFormProperties;
+import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
+import com.qlangtech.tis.extension.impl.EnumFieldMode;
+import com.qlangtech.tis.extension.impl.PropertyType;
+import com.qlangtech.tis.extension.impl.RootFormProperties;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
-import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.datax.SelectedTab;
-import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.ds.CMeta;
-import com.qlangtech.tis.plugin.ds.DataTypeMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
-import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.ISelectOptionsGetter;
@@ -59,16 +60,27 @@ import org.jvnet.tiger_types.Types;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.*;
+import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX;
+import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX;
+import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.popFieldStack;
+import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.pushFieldStack;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -327,13 +339,20 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                  * 提交表单的时候子表单是 {idfieldName1:{key1:val1,key2:val2},idfieldName2:{key1:val1,key2:val2}} 这样的格式
                  */
                 Descriptor parentDesc = filter.getTargetDescriptor();
-                //                        Objects.requireNonNull(TIS.get().getDescriptor(filter.targetDescImpl)
-                //                        , filter.targetDescriptorName + " relevant desc can not be null");
+
                 SuFormProperties subProps =
                         (SuFormProperties) parentDesc.getSubPluginFormPropertyTypes(filter.subFieldName);
+
+                //  return subProps;
+
                 Objects.requireNonNull(subProps, "prop:" + filter.subFieldName + " relevant subProps can not be null ");
-                subPluginFormPropertyTypes = new SuFormProperties(subProps.parentClazz, subProps.subFormField,
-                        subProps.subFormFieldsAnnotation, this, filterFieldProp(this.getPropertyTypes()));
+
+                subPluginFormPropertyTypes = SuFormProperties.copy(
+                        PropertyType.filterFieldProp(this.getPropertyTypes(ElementPluginDesc.create(this)))
+                        , this.clazz
+                        , this
+                        , subProps);
+
                 return subPluginFormPropertyTypes.overWriteInstClazz(this.clazz);
             } else {
                 subPluginFormPropertyTypes = (SuFormProperties) getSubPluginFormPropertyTypes(filter.subFieldName);
@@ -358,6 +377,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     final String subformDetailId = filter.subformDetailId;
                     final SuFormProperties _subPluginFormPropertyTypes = subPluginFormPropertyTypes;
                     return new AdapterPluginFormProperties(subPluginFormPropertyTypes) {
+
+
                         @Override
                         public JSON getInstancePropsJson(Object instance) {
 
@@ -365,14 +386,16 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                     _subPluginFormPropertyTypes.getSubFormPropVal(instance);
                             for (IdentityName subProp : subFormPropVal) {
                                 if (StringUtils.equals(subformDetailId, subProp.identityValue())) {
-                                    return (new RootFormProperties(_subPluginFormPropertyTypes.fieldsType)).getInstancePropsJson(subProp);
+                                    return _subPluginFormPropertyTypes.convertRootFormProps().getInstancePropsJson(subProp);
+//                                    return (new RootFormProperties(
+//                                            _subPluginFormPropertyTypes.subFormFieldsDescriptor, _subPluginFormPropertyTypes.fieldsType)).getInstancePropsJson(subProp);
                                 }
                             }
 
                             ISelectedTab subDetailed = _subPluginFormPropertyTypes.newSubDetailed();
                             _subPluginFormPropertyTypes.pkPropertyType.setVal(subDetailed, subformDetailId);
-
-                            return (new RootFormProperties(_subPluginFormPropertyTypes.fieldsType)).getInstancePropsJson(subDetailed);
+                            return _subPluginFormPropertyTypes.convertRootFormProps().getInstancePropsJson(subDetailed);
+                            // return (new RootFormProperties(_subPluginFormPropertyTypes.subFormFieldsDescriptor, _subPluginFormPropertyTypes.fieldsType)).getInstancePropsJson(subDetailed);
                             // throw new IllegalStateException("subformDetailId:" + subformDetailId + " has not find
                             // subForm instance");
                         }
@@ -384,23 +407,16 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }
         }
 
-        return new RootFormProperties(filterFieldProp(getPropertyTypes()));
+        return new RootFormProperties(this, PropertyType.filterFieldProp(getPropertyTypes()));
     }
 
-    public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(Descriptor descriptor) {
-        return filterFieldProp(descriptor.getPropertyTypes());
+    public Map<String, /*** fieldname*/IPropertyType> getPropertyTypes() {
+        return getPropertyTypes(ElementPluginDesc.create(this));
     }
 
-    public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(Map<String,
-            /*** fieldname*/IPropertyType> props) {
-        return props.entrySet().stream().filter((e) -> e.getValue() instanceof PropertyType) //
-                .collect(Collectors.toMap((e) -> e.getKey(), (e) -> (PropertyType) e.getValue()));
-    }
-
-
-    private Map<String, /*** fieldname*/IPropertyType> getPropertyTypes() {
+    private Map<String, /*** fieldname*/IPropertyType> getPropertyTypes(Optional<ElementPluginDesc> descriptor) {
         if (propertyTypes == null) {
-            propertyTypes = buildPropertyTypes(Optional.of(this), clazz);
+            propertyTypes = Collections.unmodifiableMap(PropertyType.buildPropertyTypes(descriptor, clazz));
 
             List<PropertyType> identityFields = propertyTypes.values().stream().filter((p) -> {
                 return (p instanceof PropertyType) && ((PropertyType) p).isIdentity();
@@ -424,160 +440,14 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return propertyTypes;
     }
 
-    /**
-     * 可能plugin form 表单需要几个步骤才能 填充完一个plugin form 表单就需要单独取出部分表单属性去渲染前端页面
-     *
-     * @param clazz
-     * @return
-     */
-    public static Map<String, /*** fieldname */IPropertyType> buildPropertyTypes( //
-                                                                                  Optional<Descriptor> descriptor,
-                                                                                  Class<?> clazz) {
-        try {
-            Map<String, IPropertyType> r = new HashMap<>();
 
-            Optional<PluginExtraProps> extraProps = PluginExtraProps.load(descriptor, clazz);
-
-            // 支持使用继承的方式来实现复用，例如：DataXHiveWriter继承DataXHdfsWriter来实现
-            PluginExtraProps.visitAncestorsClass(clazz, new PluginExtraProps.IClassVisitor<Void>() {
-                @Override
-                public Void process(Class<?> targetClass, Void v) {
-                    FormField formField = null;
-                    SubForm subFormFields = null;
-                    PropertyType ptype = null;
-                    PluginExtraProps.Props fieldExtraProps = null;
-                    Class<? extends Describable> subFromDescClass = null;
-                    try {
-                        for (Field f : targetClass.getDeclaredFields()) {
-                            if (!Modifier.isPublic(f.getModifiers()) || Modifier.isStatic(f.getModifiers())) {
-                                continue;
-                            }
-
-                            if ((subFormFields = f.getAnnotation(SubForm.class)) != null) {
-                                subFromDescClass = subFormFields.desClazz();
-                                if (subFromDescClass == null) {
-                                    throw new IllegalStateException("field " + f.getName() + "'s SubForm annotation " + "descClass can not be null");
-                                }
-                                //                                if (!Describable.class.isAssignableFrom
-                                //                                (subFromDescClass)) {
-                                //                                    throw new IllegalStateException
-                                //                                    ("subFromDescClass:" + subFromDescClass
-                                //                                            + " must be a subClass of " +
-                                //                                            Describable.class.getSimpleName());
-                                //                                }
-
-                                final Descriptor subFormDesc =
-                                        Objects.requireNonNull(TIS.get().getDescriptor(subFromDescClass),
-                                                "subFromDescClass:" + subFromDescClass + " relevant descriptor can " + "not be null");
-                                r.put(f.getName(), new SuFormProperties(clazz, f, subFormFields, subFormDesc,
-                                        filterFieldProp(buildPropertyTypes(Optional.of(subFormDesc),
-                                                subFromDescClass))));
-                            }
-
-                            formField = f.getAnnotation(FormField.class);
-                            if (formField != null) {
-                                ptype = new PropertyType(f, formField);
-                                if (extraProps.isPresent() && (fieldExtraProps =
-                                        extraProps.get().getProp(f.getName())) != null) {
-
-                                    ptype.setExtraProp(fieldExtraProps);
-                                    String placeholder = fieldExtraProps.getPlaceholder();
-                                    Object dftVal = fieldExtraProps.getDftVal();
-                                    String help = fieldExtraProps.getHelpContent();
-
-                                    if (fieldExtraProps.getBoolean(PluginExtraProps.KEY_DISABLE)) {
-                                        r.remove(f.getName());
-                                        continue;
-                                        //return null;
-                                    }
-                                    JSONObject props = fieldExtraProps.getProps();
-                                    if (StringUtils.isNotEmpty(help) && StringUtils.startsWith(help,
-                                            IMessageHandler.TSEARCH_PACKAGE)) {
-                                        props.put(PluginExtraProps.Props.KEY_HELP, GroovyShellEvaluate.eval(help));
-                                    }
-
-                                    if (dftVal != null && StringUtils.startsWith(String.valueOf(dftVal),
-                                            IMessageHandler.TSEARCH_PACKAGE)) {
-                                        final PropertyType pt = ptype;
-
-                                        Function<Object, Object> process = pt.getEnumFieldMode() != null ?
-                                                pt.getEnumFieldMode().createDefaultValProcess(targetClass, f) :
-                                                Function.identity();
-
-                                        props.put(PluginExtraProps.KEY_DFTVAL_PROP,
-                                                GroovyShellEvaluate.scriptEval(String.valueOf(dftVal), process));
-                                    }
-
-                                    if (placeholder != null && StringUtils.startsWith(placeholder,
-                                            IMessageHandler.TSEARCH_PACKAGE)) {
-                                        props.put(PluginExtraProps.KEY_PLACEHOLDER_PROP,
-                                                GroovyShellEvaluate.scriptEval(placeholder));
-                                    }
-
-                                    if (descriptor.isPresent() //
-                                            && (formField.type() == FormFieldType.ENUM)) {
-                                        resolveEnumProp(descriptor.get(), fieldExtraProps, (opts) -> {
-                                            return Option.toJson((List<Option>) opts);
-                                        });
-                                    }
-
-                                    if (descriptor.isPresent() //
-                                            && (formField.type() == FormFieldType.MULTI_SELECTABLE)) {
-                                        final PluginExtraProps.Props feProps = fieldExtraProps;
-                                        resolveEnumProp(descriptor.get(), fieldExtraProps, (cols) -> {
-
-                                            List<CMeta> mcols = (List<CMeta>) cols;
-                                            // cols有两种显示模式
-                                            PluginExtraProps.MultiItemsViewType  //
-                                                    multiItemsViewType = feProps.multiItemsViewType();
-                                            switch (multiItemsViewType.viewType) {
-                                                case IdList:
-                                                    return Option.toJson(mcols);
-                                                case TupleList:
-                                                    return DataTypeMeta.createViewBiz(multiItemsViewType.getElementPropertyKeys(), mcols);
-                                                default:
-                                                    throw new IllegalStateException("unhandle view type:" + feProps.multiItemsViewType());
-                                            }
-
-                                            // return Option.toJson((List<Option>) opts);
-                                        });
-                                    }
-
-
-                                }
-                                r.put(f.getName(), ptype);
-                            }
-                        }
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                    return null;
-                }
-
-
-            });
-
-            return r;
-        } catch (Exception e) {
-            throw new RuntimeException("parse desc:" + clazz.getName(), e);
-        }
-    }
-
-
-    private static JSONArray resolveEnumProp(Descriptor descriptor, PluginExtraProps.Props fieldExtraProps,
-                                             Function<Object, Object> process) {
-        Object anEnum = fieldExtraProps.getProps().get(KEY_ENUM_PROP);
-        JSONArray enums = new JSONArray();
-        if (anEnum != null && anEnum instanceof String) {
-            try {
-                GroovyShellEvaluate.descriptorThreadLocal.set(descriptor);
-                fieldExtraProps.getProps().put(KEY_ENUM_PROP, GroovyShellEvaluate.scriptEval((String) anEnum, process));
-            } finally {
-                GroovyShellEvaluate.descriptorThreadLocal.remove();
-            }
-        }
-        return enums;
-    }
+    //    public final PluginValidateResult verify(IControlMsgHandler msgHandler, Context context //
+//            , boolean verify //
+//            , AttrVals formData, Optional<IPropertyType.SubFormFilter> subFormFilter) {
+//        final PluginFormProperties /** * fieldname */
+//                propertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
+//        return verify(msgHandler, context, verify, formData, propertyTypes, subFormFilter);
+//    }
 
     /**
      * 校验客户端提交的表单
@@ -590,24 +460,21 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      */
     public final PluginValidateResult verify(IControlMsgHandler msgHandler, Context context //
             , boolean verify //
-            , AttrVals formData, Optional<IPropertyType.SubFormFilter> subFormFilter) {
-        //        String impl = null;
-        //        Descriptor descriptor;
-        //        String attr;
-        //        PropertyType attrDesc;
-        //        JSONObject valJ;
-        //        String attrVal;
+            , AttrVals formData, Optional<PluginFormProperties> pTypes, Optional<IPropertyType.SubFormFilter> subFormFilter) {
+
 
         try {
             // IRepositoryTargetFile.TARGET_FILE_CONTEXT.set(targetFile);
-            final PluginFormProperties /** * fieldname */
-                    propertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
+//            final PluginFormProperties /** * fieldname */
+//                    propertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
+
+            PluginFormProperties propertyTypes = getPropertyTypes(pTypes, subFormFilter);
 
             return propertyTypes.accept(new PluginFormProperties.IVisitor() {
                 @Override
                 public PluginValidateResult visit(RootFormProperties props) {
 
-                    PostFormVals postFormVals = new PostFormVals(Descriptor.this, msgHandler, formData);
+                    PostFormVals postFormVals = new PostFormVals(Descriptor.this, props, subFormFilter, msgHandler, formData);
 
                     PluginValidateResult validateResult = new PluginValidateResult(postFormVals,
                             (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX),
@@ -653,17 +520,14 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 @Override
                 public PluginValidateResult visit(BaseSubFormProperties props) {
                     PluginValidateResult validateResult = null;
-                    //                String subFormId = null;
-                    //                JSONObject subformData = null;
-                    //                Map<String, JSONObject> subform = null
-                    //                PostFormVals postFormVals = null;
                     if (!subFormFilter.isPresent()) {
                         throw new IllegalStateException("subFormFilter must be present");
                     }
                     IPropertyType.SubFormFilter filter = subFormFilter.get();
                     if (filter.subformDetailView) {
+
                         // 校验的时候子表单是{key1:val1,key2:val2} 的格式
-                        PostFormVals formVals = new PostFormVals(Descriptor.this, msgHandler, formData);
+                        PostFormVals formVals = new PostFormVals(Descriptor.this, props, subFormFilter, msgHandler, formData);
                         // boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, formVals);
                         boolean valid = validatePostFormVals(formVals, subFormFilter);
                         if (!valid) {
@@ -698,7 +562,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                 new SuFormProperties.ISubDetailedProcess<PluginValidateResult>() {
                                     @Override
                                     public PluginValidateResult process(String subFormId, AttrValMap sform) {
-                                        PluginValidateResult vResult = sform.validate(msgHandler, context, verify);
+                                        PluginValidateResult vResult = sform.validate(msgHandler, context, Optional.of(props.convertRootFormProps()), verify);
                                         if (!vResult.isValid()) {
                                             return vResult;
                                         }
@@ -725,6 +589,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     private boolean isValid(IControlMsgHandler msgHandler, Context context, boolean bizValidate,
                             Optional<IPropertyType.SubFormFilter> subFormFilter, PluginFormProperties propertyTypes,
                             PostFormVals postFormVals) {
+
         Objects.requireNonNull(postFormVals, "postFormVals can not be null");
         Map<String, JSONObject> formData = postFormVals.rawFormData.asRootFormVals();
         boolean valid = true;
@@ -747,7 +612,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }
             if (attrDesc.isDescribable()) {
                 JSONObject descVal = valJ.getJSONObject(KEY_DESC_VAL);
-                impl = descVal.getString(AttrValMap.PLUGIN_EXTENSION_IMPL);
+                impl = Objects.requireNonNull(descVal, "prop:" + KEY_DESC_VAL + " json:" + JsonUtil.toString(valJ))
+                        .getString(AttrValMap.PLUGIN_EXTENSION_IMPL);
                 if (StringUtils.isBlank(impl)) {
                     addFieldRequiredError(msgHandler, context, attr);
                     valid = false;
@@ -771,27 +637,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     if (context.hasErrors()) {
                         return false;
                     }
-                    // 多选类型的 multi select
-                    //                    JSONObject eprops = valJ.getJSONObject("_eprops");
-                    //                    Objects.requireNonNull(eprops, "property '_eprops' of attr:" + attr + " can
-                    //                    not be null");
-                    //                    // enums 格式例子：`com/qlangtech/tis/extension/form-prop-enum-example.json`
-                    //                    JSONArray enums = eprops.getJSONArray("enum");
-                    //                    JSONObject select = null;
-                    //                    int selected = 0;
-                    //                    List<FormFieldType.SelectedItem> selectedItems = Lists.newArrayList();
-                    //                    FormFieldType.SelectedItem item = null;
-                    //                    for (int i = 0; i < enums.size(); i++) {
-                    //                        select = enums.getJSONObject(i);
-                    //                        item = new FormFieldType.SelectedItem(select.getString("label"), select
-                    //                        .getString("val")
-                    //                                , select.containsKey(keyChecked) && select.getBoolean
-                    //                                (keyChecked));
-                    //                        if (item.isChecked()) {
-                    //                            selected++;
-                    //                        }
-                    //                        selectedItems.add(item);
-                    //                    }
                     if (selectedItems.size() < 1) {
                         // 没有选中
                         Validator[] validators = attrDesc.getValidator();
@@ -858,47 +703,32 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return valid;
     }
 
-    private List<FormFieldType.SelectedItem> getSelectedMultiItems( //
-                                                                    IControlMsgHandler msgHandler, Context context,
-                                                                    PropertyType attrDesc, JSONObject valJ) {
+    private List<FormFieldType.SelectedItem> getSelectedMultiItems(
+            IControlMsgHandler msgHandler, Context context,
+            PropertyType attrDesc, JSONObject valJ) {
 
         // 多选类型的 multi select
         JSONObject eprops = valJ.getJSONObject("_eprops");
         Objects.requireNonNull(eprops, "property '_eprops'   can not be null");
         // enums 格式例子：`com/qlangtech/tis/extension/form-prop-enum-example.json`
+        return attrDesc.multiSelectablePropProcess((viewType) -> {
+            return viewType.getPostSelectedItems(attrDesc, msgHandler, context, eprops);
+        });
+        //return attrDesc.getMultiItemsViewType().getPostSelectedItems(attrDesc, msgHandler, context, eprops);
 
-        return attrDesc.extraProp.multiItemsViewType().getPostSelectedItems(attrDesc, msgHandler, context, eprops);
+//        return propertyTypes.accept(new PluginFormProperties.IVisitor() {
+//            @Override
+//            public List<FormFieldType.SelectedItem> visit(RootFormProperties props) {
+//                throw new UnsupportedOperationException("RootFormProperties");
+//            }
+//
+//            @Override
+//            public List<FormFieldType.SelectedItem> visit(BaseSubFormProperties props) {
+//
+//            }
+//        });
 
-        //        switch (attrDesc.extraProp.multiItemsViewType()) {
-        //            case TupleList:
-        //                break;
-        //            case IdList:
-        //                break;
-        //            default:
-        //                throw new IllegalStateException("illegal multiItemsViewType:" + attrDesc.extraProp
-        //                .multiItemsViewType());
-        //        }
-        //
-        //        JSONArray enums = eprops.getJSONArray(Descriptor.KEY_ENUM_PROP);
-        //        if (enums == null) {
-        //            enums = new JSONArray();
-        //            //   throw new IllegalStateException("enums of prop can not be null");
-        //        }
-        //        JSONObject select = null;
-        //        int selected = 0;
-        //        List<FormFieldType.SelectedItem> selectedItems = Lists.newArrayList();
-        //        FormFieldType.SelectedItem item = null;
-        //        for (int i = 0; i < enums.size(); i++) {
-        //            select = enums.getJSONObject(i);
-        //            item = new FormFieldType.SelectedItem(select.getString(PluginExtraProps.KEY_LABEL) //
-        //                    , select.getString("val") //
-        //                    , select.containsKey(keyChecked) && select.getBoolean(keyChecked));
-        //            if (item.isChecked()) {
-        //                selected++;
-        //            }
-        //            selectedItems.add(item);
-        //        }
-        //        return selectedItems;
+
     }
 
     public static class PluginValidateResult {
@@ -1038,17 +868,23 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                                      AttrValMap.IAttrVals formData, //
                                                      Optional<IPropertyType.SubFormFilter> subFormFilter) {
         try {
-            return parseDescribable(pluginContext, formData, subFormFilter);
+            return parseDescribable(pluginContext, formData, Optional.empty(), subFormFilter);
         } catch (Exception e) {
             throw new RuntimeException("class:" + this.clazz.getName(), e);
         }
     }
 
+//    private ParseDescribable<Describable> parseDescribable(IPluginContext pluginContext
+//            , AttrValMap.IAttrVals keyValMap, Optional<IPropertyType.SubFormFilter> subFormFilter) {
+//        return parseDescribable(pluginContext, keyValMap, , subFormFilter);
+//    }
 
-    private ParseDescribable<Describable> parseDescribable(IPluginContext pluginContext //, T describable
-            , AttrValMap.IAttrVals keyValMap, Optional<IPropertyType.SubFormFilter> subFormFilter) {
+    public ParseDescribable<Describable> parseDescribable(IPluginContext pluginContext
+            , AttrValMap.IAttrVals keyValMap, Optional<PluginFormProperties> pTypes, Optional<IPropertyType.SubFormFilter> subFormFilter) {
 
-        PluginFormProperties propertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
+        PluginFormProperties propertyTypes = getPropertyTypes(pTypes, subFormFilter);
+
+        //   PluginFormProperties propertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
 
         return propertyTypes.accept(new PluginFormProperties.IVisitor() {
             @Override
@@ -1067,6 +903,14 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 }
             }
 
+            private Describable setParentPluginClass(ParseDescribable<Describable> r) {
+                Describable plugin = r.getInstance();
+//                if (plugin instanceof IParentHostPluginAware) {
+//                    ((IParentHostPluginAware) plugin).setParentHostPluginClass(props.getParentPluginDesc().clazz);
+//                }
+                return plugin;
+            }
+
             @Override
             public ParseDescribable<Describable> visit(BaseSubFormProperties props) {
 
@@ -1075,7 +919,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 }
                 IPropertyType.SubFormFilter filter = subFormFilter.get();
                 if (filter.subformDetailView) {
-                    return new ParseDescribable<>(createPluginInstance().instance);
+                    return new ParseDescribable<>(setParentPluginClass(createPluginInstance()));
                 } else {
                     try {
                         // 子表单聚合提交，多个selected tab 一起提交进行保存
@@ -1088,9 +932,12 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         props.visitAllSubDetailed(keyValMap, new SuFormProperties.ISubDetailedProcess<Void>() {
                             public Void process(String subFormId, AttrValMap attrVals) {
 
-                                ParseDescribable<Describable> r = attrVals.createDescribable(pluginContext);
+                                ParseDescribable<Describable> r = attrVals.createDescribable(pluginContext, Optional.of(props.convertRootFormProps()));
 
-                                Describable plugin = r.getInstance();
+                                Describable plugin = setParentPluginClass(r);
+//                                if (plugin instanceof IParentHostPluginAware) {
+//                                    ((IParentHostPluginAware) plugin).setParentHostPluginClass(props.getParentPluginDesc().clazz);
+//                                }
                                 // BATCH_SOURCE 类型的 tabExtend 需要将他set到 Selected中去
                                 //                                SelectedTabExtend sourceBatchExtend = null;
                                 //                                if (plugin instanceof SelectedTabExtend //
@@ -1124,6 +971,14 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     }
                 }
             }
+        });
+    }
+
+    private PluginFormProperties getPropertyTypes(Optional<PluginFormProperties> pTypes, Optional<IPropertyType.SubFormFilter> subFormFilter) {
+        return pTypes.map((pp) -> {
+            return (Descriptor.this == pp.getDescriptor()) ? pp : null;
+        }).orElseGet(() -> {
+            return this.getPluginFormPropertyTypes(subFormFilter);
         });
     }
 
@@ -1371,22 +1226,39 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         // public final Map<String, /*** attr key */com.alibaba.fastjson.JSONObject> rawFormData;
         public final AttrValMap.IAttrVals rawFormData;
         private final Descriptor desc;
+        private final PluginFormProperties formProperties;
+        private final Optional<IPropertyType.SubFormFilter> subFormFilter;
+
         private final IControlMsgHandler msgHandler;
 
         private Describable instance;
 
         public <T extends Describable> T newInstance() {
             if (instance == null) {
-                ParseDescribable<Describable> plugin = desc.newInstance((IPluginContext) msgHandler, this.rawFormData
-                        , Optional.empty());
+
+                ParseDescribable<Describable> plugin = desc.parseDescribable(
+                        (IPluginContext) msgHandler, this.rawFormData, Optional.of(this.formProperties), subFormFilter);
+
+//                ParseDescribable<Describable> plugin = desc.newInstance((IPluginContext) msgHandler, this.rawFormData
+//                        , Optional.empty());
                 instance = plugin.getInstance();
             }
             return (T) instance;
         }
 
-        public PostFormVals(Descriptor desc, IControlMsgHandler msgHandler, AttrValMap.IAttrVals rawFormData) {
+        public PostFormVals(Descriptor desc //
+                , IControlMsgHandler msgHandler, AttrValMap.IAttrVals rawFormData) {
+            // Optional<IPropertyType.SubFormFilter> subFormFilter = Optional.empty();
+            this(desc, desc.getPluginFormPropertyTypes(Optional.empty()), Optional.empty(), msgHandler, rawFormData);
+        }
+
+        public PostFormVals(Descriptor desc, PluginFormProperties formProperties //
+                , Optional<IPropertyType.SubFormFilter> subFormFilter //
+                , IControlMsgHandler msgHandler, AttrValMap.IAttrVals rawFormData) {
             this.rawFormData = rawFormData;
             this.desc = desc;
+            this.formProperties = formProperties;
+            this.subFormFilter = subFormFilter;
             this.msgHandler = msgHandler;
         }
 

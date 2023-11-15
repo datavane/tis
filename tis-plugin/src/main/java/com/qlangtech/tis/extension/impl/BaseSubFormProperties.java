@@ -21,6 +21,7 @@ package com.qlangtech.tis.extension.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
@@ -34,6 +35,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -56,7 +58,14 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
         this.subFormFieldsDescriptor = subFormFieldsDescriptor;
     }
 
+    @Override
+    public final Descriptor getDescriptor() {
+        return this.subFormFieldsDescriptor;
+    }
+
     public abstract Descriptor getParentPluginDesc();
+
+    public abstract Class<? extends Describable> getParentPluginClass();
 
     public abstract PropertyType getPropertyType(String fieldName);
     //PropertyType propertyType = props.fieldsType.get(descField.field)
@@ -64,6 +73,11 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
     public String getSubFormFieldName() {
         return this.subFormField.getName();
     }
+
+    public RootFormProperties convertRootFormProps() {
+        return new RootFormProperties(this.subFormFieldsDescriptor, this.getKVTuples().stream().collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue())));
+    }
+
 
     /**
      * 至少选一个

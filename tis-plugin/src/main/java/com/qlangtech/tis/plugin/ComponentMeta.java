@@ -18,6 +18,7 @@
 package com.qlangtech.tis.plugin;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.util.PluginMeta;
@@ -42,7 +43,7 @@ import java.util.stream.Collectors;
  */
 public class ComponentMeta {
     private static final Logger logger = LoggerFactory.getLogger(ComponentMeta.class);
-    public final List<IRepositoryResource> resources;
+    public final Set<IRepositoryResource> resources;
 
     /**
      * key 为文件名，val：最后更新时间 20开头的
@@ -64,7 +65,7 @@ public class ComponentMeta {
 
 
     public ComponentMeta(List<IRepositoryResource> resources) {
-        this.resources = resources;
+        this.resources = Sets.newHashSet(resources);
     }
 
     public ComponentMeta(IRepositoryResource resource) {

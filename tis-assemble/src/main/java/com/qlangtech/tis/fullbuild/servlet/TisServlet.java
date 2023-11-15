@@ -1,27 +1,24 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.fullbuild.servlet;
 
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.ExecResult;
-import com.qlangtech.tis.assemble.FullbuildPhase;
-import com.qlangtech.tis.assemble.TriggerType;
-import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
@@ -31,7 +28,6 @@ import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.servlet.impl.HttpExecContext;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
-import com.qlangtech.tis.manage.common.DagTaskUtils.NewTaskParam;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
@@ -198,7 +194,7 @@ public class TisServlet extends HttpServlet {
                     while (true) {
                         try {
                             if (lock.lock()) {
-                                final Integer newTaskId = createNewTask(chainContext);
+                                final Integer newTaskId = IExecChainContext.createNewTask(chainContext);
                                 future.setTaskId(newTaskId);
                                 try {
                                     String msg = "trigger task" + mdcContext.getExecLockKey() + " successful";
@@ -328,7 +324,7 @@ public class TisServlet extends HttpServlet {
                 throw new IllegalArgumentException("param taskid can not be empty");
             }
             this.taskid = taskid;
-          //  MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(taskid));
+            //  MDC.put(JobCommon.KEY_TASK_ID, String.valueOf(taskid));
 
             JobCommon.setMDC(taskid);
         }
@@ -434,34 +430,6 @@ public class TisServlet extends HttpServlet {
         boolean validateParam() throws ServletException {
             return true;
         }
-    }
-
-    /**
-     * 创建新的task
-     *
-     * @param chainContext
-     * @return taskid
-     */
-    Integer createNewTask(IExecChainContext chainContext) {
-        Integer workflowId = chainContext.getWorkflowId();
-        NewTaskParam newTaskParam = new NewTaskParam();
-        ExecutePhaseRange executeRanage = chainContext.getExecutePhaseRange();
-        if (chainContext.hasIndexName() || executeRanage.getEnd().bigThan(FullbuildPhase.JOIN)) {
-            String indexname = chainContext.getIndexName();
-            newTaskParam.setAppname(indexname);
-        }
-        String histroyTaskId = chainContext.getString(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID);
-        if (StringUtils.isNotBlank(histroyTaskId)) {
-            newTaskParam.setHistoryTaskId(Integer.parseInt(histroyTaskId));
-        }
-        newTaskParam.setWorkflowid(workflowId);
-        newTaskParam.setExecuteRanage(executeRanage);
-
-        newTaskParam.setTriggerType(TriggerType.MANUAL);
-        Integer taskid = DagTaskUtils.createNewTask(newTaskParam);
-        logger.info("create new taskid:" + taskid);
-        chainContext.setAttribute(JobCommon.KEY_TASK_ID, taskid);
-        return taskid;
     }
 
     protected Logger getLog() {

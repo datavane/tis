@@ -17,12 +17,12 @@
  */
 package com.qlangtech.tis.full.dump;
 
-import com.qlangtech.tis.manage.common.DagTaskUtils;
+import com.qlangtech.tis.exec.IExecChainContext;
 import org.apache.commons.lang3.StringUtils;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
-import com.qlangtech.tis.manage.common.DagTaskUtils.NewTaskParam;
+import com.qlangtech.tis.exec.IExecChainContext.NewTaskParam;
 import junit.framework.TestCase;
 
 /**
@@ -44,7 +44,7 @@ public class TestTask extends TestCase {
         newTaskParam.setExecuteRanage(execRange);
         // newTaskParam.setToPhase(FullbuildPhase.IndexBackFlow);
         newTaskParam.setTriggerType(TriggerType.MANUAL);
-        Integer taskid = DagTaskUtils.createNewTask(newTaskParam);
+        Integer taskid = IExecChainContext.createNewTask(newTaskParam);
         System.out.println(taskid);
     }
 }

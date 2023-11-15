@@ -84,17 +84,12 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         try {
             if (appDir.exists()) {
                 if (lastModify.exists()) {
-                    //throw new IllegalStateException("lastModify is not exist ,path:" + lastModify.getAbsolutePath());
                     lastModfiyTimeStamp = Long.parseLong(FileUtils.readFileToString(lastModify, TisUTF8.get()));
                 }
                 Iterator<File> files = FileUtils.iterateFiles(appDir, new String[]{DOMUtil.XML_RESERVED_PREFIX}, true);
                 metas = ComponentMeta.loadPluginMeta(() -> {
                     return Lists.newArrayList(files);
                 });
-                //                if (lastModfiyTimeStamp < 0) {
-                //                    throw new IllegalStateException("please check lastModify file:" + lastModify
-                //                    .getAbsolutePath());
-                //                }
             }
             return new PluginMetas(appDir, metas, lastModfiyTimeStamp);
         } catch (IOException e) {
@@ -209,7 +204,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         @Override
-        public boolean equals(Object o) {
+        public final boolean equals(Object o) {
             if (this == o)
                 return true;
             if (o == null || getClass() != o.getClass())
@@ -220,7 +215,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
         @Override
         public int hashCode() {
-            return Objects.hash(keyVal.getKeyVal(), pluginClass);
+            return Objects.hash(keyVal.getKeyVal(), pluginClass.hashCode());
         }
     }
 
@@ -241,6 +236,23 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             this.suffix = suffix;
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            PluginClassCategory<?> that = (PluginClassCategory<?>) o;
+            return Objects.equals(this.hashCode(), that.hashCode());
+        }
+
+        @Override
+        public int hashCode() {
+            if (suffix.isPresent()) {
+                return Objects.hash(pluginClass, suffix.get());
+            } else {
+                return Objects.hash(pluginClass);
+            }
+        }
+
         public String getName() {
             return pluginClass.getName() + suffix.orElse(StringUtils.EMPTY);
         }
@@ -252,7 +264,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
     public static class KeyVal {
         private final String val;
-        private final String suffix;
+        protected final String suffix;
 
 
         public KeyVal(String val, String suffix) {
@@ -261,6 +273,10 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             }
             this.val = val;
             this.suffix = suffix;
+        }
+
+        public KeyVal(String val) {
+            this(val, StringUtils.EMPTY);
         }
 
         @Override
@@ -272,9 +288,6 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             return StringUtils.isBlank(this.suffix) ? getVal() : TMP_DIR_NAME + (getVal() + "-" + this.suffix);
         }
 
-        public KeyVal(String val) {
-            this(val, StringUtils.EMPTY);
-        }
 
         public String getVal() {
             return val;
@@ -307,7 +320,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             if (pluginContext == null) {
                 return new KeyVal(appname);
             }
-            String referer = pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER);
+            String referer = StringUtils.trimToEmpty(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER));
             Matcher configPathMatcher = DATAX_UPDATE_PATH.matcher(referer);
             boolean inUpdateProcess = configPathMatcher.find();
             if (inUpdateProcess && !pluginContext.isCollectionAware()) {
@@ -318,7 +331,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         @Override
-        public int hashCode() {
+        public final int hashCode() {
             return Objects.hash(keyVal.getKeyVal(), resourceType.getType(), pluginClass);
         }
     }

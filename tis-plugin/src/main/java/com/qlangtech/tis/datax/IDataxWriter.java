@@ -18,6 +18,7 @@
 package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.plugin.IRepositoryResourceScannable;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
 
 import java.util.Optional;
@@ -26,7 +27,7 @@ import java.util.Optional;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 14:36
  */
-public interface IDataxWriter extends IDataXPluginMeta {
+public interface IDataxWriter extends IDataXPluginMeta , IRepositoryResourceScannable {
     public String getTemplate();
 
     public DataxWriter.BaseDataxWriterDescriptor getWriterDescriptor();

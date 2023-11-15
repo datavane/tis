@@ -50,7 +50,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
     public static final String KEY_IMPL_URL = "implUrl";
     public static final String KEY_ADVANCE = "advance";
 
-    private final List<Descriptor<T>> descriptors;
+    private final Collection<Descriptor<T>> descriptors;
 
     public static JSONObject desc(String requestDescId) {
         return new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON();
@@ -60,7 +60,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
         return new DescriptorsJSON(desc).getDescriptorsJSON();
     }
 
-    public DescriptorsJSON(List<Descriptor<T>> descriptors) {
+    public DescriptorsJSON(Collection<Descriptor<T>> descriptors) {
         this.descriptors = descriptors;
     }
 
@@ -177,7 +177,13 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
                 if (extraProps != null) {
                     // 额外属性
-                    attrVal.put("eprops", extraProps);
+                    JSONObject ep = extraProps;
+                    JSONObject n = val.multiSelectablePropProcess((vt) -> {
+                        JSONObject clone = (JSONObject) ep.clone();
+                        clone.put(PluginExtraProps.Props.KEY_VIEW_TYPE, vt.getViewTypeToken());
+                        return clone;
+                    });
+                    attrVal.put("eprops", n != null ? n : ep);
                 }
 
                 if (val.typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {

@@ -18,6 +18,8 @@
 package com.qlangtech.tis.plugin.ds;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 选中需要导入的表
@@ -41,6 +43,11 @@ public interface ISelectedTab {
     }
 
     List<CMeta> getCols();
+
+    default Set<String> acceptedCols() {
+        final Set<String> acceptKeys = this.getCols().stream().filter((c) -> !c.isDisable()).map((c) -> c.getName()).collect(Collectors.toSet());
+        return acceptKeys;
+    }
 
     public default List<String> getPrimaryKeys() {
         throw new UnsupportedOperationException();

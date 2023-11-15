@@ -160,6 +160,7 @@ public class DataXCfgGenerator {
         });
     }
 
+
     public GenerateCfgs startGenerateCfg(IGenerateScriptFile scriptFileGenerator) throws Exception {
 
 
@@ -241,20 +242,8 @@ public class DataXCfgGenerator {
 
                     } else if (dataxProcessor.isRDBMS2UnStructed(this.pluginCtx)) {
                         // example: mysql -> oss
-                        //                        Map<String, ISelectedTab> selectedTabs = selectedTabsCall.call();
-                        //                        ISelectedTab tab = selectedTabs.get(readerContext
-                        //                        .getSourceTableName());
-                        //                        Objects.requireNonNull(tab,
-                        //                                readerContext.getSourceTableName() + " relevant tab can not
-                        //                                be " + "null");
                         IDataxProcessor.TableMap m = createTableMap(tabAlias, selectedTabsCall.call(), readerContext);
-                        //                                new IDataxProcessor.TableMap(Objects.requireNonNull
-                        //                                (tabAlias.get(tab.getName()),
-                        //                                        "table:" + tab.getName() + " relevant alias can not
-                        //                                        be null"), tab);
-                        //m.setSourceCols(tab.getCols());
-                        //                m.setTo(tab.getName());
-                        //                m.setFrom(tab.getName());
+
                         tableMapper = Optional.of(m);
                     } else if (dataxProcessor.isRDBMS2RDBMS(this.pluginCtx)) {
                         // example: mysql -> mysql
@@ -316,8 +305,7 @@ public class DataXCfgGenerator {
         //                IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
         File configFile = DataXJobInfo.getJobPath(dataXCfgDir, readerContext.getReaderContextId(),
                 readerContext.getTaskName() + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
-        FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, tableMapper), TisUTF8.get(),
-                false);
+        FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, tableMapper), TisUTF8.get(), false);
 
     }
 
@@ -412,14 +400,14 @@ public class DataXCfgGenerator {
             if (this._dataxFiles == null) {
                 this._dataxFiles =
                         this.getGroupedChildTask().values().stream().flatMap((tasks) -> tasks.stream()).map((task) -> {
-                    task.getDbFactoryId();
-                    File dataXCfg = task.getJobPath(this.dataxCfgDir);
+                            task.getDbFactoryId();
+                            File dataXCfg = task.getJobPath(this.dataxCfgDir);
 
-                    if (!dataXCfg.exists()) {
-                        throw new IllegalStateException("dataXCfg is not exist, path:" + dataXCfg.getAbsolutePath());
-                    }
-                    return (new DataXCfgFile()).setFile(dataXCfg).setDbFactoryId(task.dbFactoryId);
-                }).collect(Collectors.toList());
+                            if (!dataXCfg.exists()) {
+                                throw new IllegalStateException("dataXCfg is not exist, path:" + dataXCfg.getAbsolutePath());
+                            }
+                            return (new DataXCfgFile()).setFile(dataXCfg).setDbFactoryId(task.dbFactoryId);
+                        }).collect(Collectors.toList());
             }
             return this._dataxFiles;
         }

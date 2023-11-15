@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.datax.meta;
 
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPreviousTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.tdfs.TDFSLinker;
@@ -39,7 +40,7 @@ public abstract class MetaDataWriter implements Describable<MetaDataWriter> {
      * @param tab
      * @return
      */
-    public abstract IRemoteTaskTrigger createMetaDataWriteTask(
+    public abstract IRemoteTaskPreviousTrigger createMetaDataWriteTask(
             TDFSLinker dfsLinker, IExecChainContext execContext, ISelectedTab tab);
 
     /**

@@ -26,8 +26,20 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
-import com.qlangtech.tis.datax.*;
-import com.qlangtech.tis.datax.impl.*;
+import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.datax.IDataxReaderContext;
+import com.qlangtech.tis.datax.IDataxWriter;
+import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
+import com.qlangtech.tis.datax.TableAlias;
+import com.qlangtech.tis.datax.TableAliasMapper;
+import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
+import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.datax.impl.ESTableAlias;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
@@ -38,7 +50,12 @@ import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
-import com.qlangtech.tis.manage.common.*;
+import com.qlangtech.tis.manage.common.AppDomainInfo;
+import com.qlangtech.tis.manage.common.ManageUtils;
+import com.qlangtech.tis.manage.common.MockContext;
+import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.common.RunContext;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
@@ -50,7 +67,11 @@ import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.ds.*;
+import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.DataTypeMeta;
+import com.qlangtech.tis.plugin.ds.DefaultTab;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
@@ -58,7 +79,13 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JsonPostMsgHandler;
 import com.qlangtech.tis.solrdao.ISchema;
-import com.qlangtech.tis.util.*;
+import com.qlangtech.tis.util.DescribableJSON;
+import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.HeteroList;
+import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.Selectable;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
 import org.apache.commons.io.FileUtils;
@@ -72,10 +99,18 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import com.qlangtech.tis.extension.util.MultiItemsViewType;
 
 /**
  * manage DataX pipe process logic
@@ -109,13 +144,15 @@ public class DataxAction extends BasicModule {
       this.addErrorMessage(context, "还没有安装本地触发类型的执行器:" + triggerType + ",请先安装");
       return;
     }
-
-    List<HttpUtils.PostParam> params = Lists.newArrayList();
-    params.add(new HttpUtils.PostParam(CoreAction.KEY_APPNAME, this.getCollectionName()));
+    DataXJobSubmit jobSubmit = dataXJobSubmit.get();
+    logger.info("jobSubmit " + jobSubmit.getType() + " the submit instance type of :" + jobSubmit.getClass().getName());
+//    List<HttpUtils.PostParam> params = Lists.newArrayList();
+//    params.add(new HttpUtils.PostParam(TriggerBuildResult.KEY_APPNAME, this.getCollectionName()));
     //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getName()));
     //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.JOIN.getName()));
 
-    this.setBizResult(context, CoreAction.triggerBuild(this, context, params));
+    // this.setBizResult(context, TriggerBuildResult.triggerBuild(this, context, params));
+    this.setBizResult(context, jobSubmit.triggerJob(this, context, this.getCollectionName()));
   }
 
 
@@ -257,18 +294,21 @@ public class DataxAction extends BasicModule {
       throw new IllegalStateException("dataxJobWorker is in serivce ,can not launch repeat");
     }
 
-    dataxJobWorker.launchService();
-    try {
-      Thread.sleep(4000l);
-    } catch (InterruptedException e) {
+    dataxJobWorker.launchService(() -> {
+      try {
+        Thread.sleep(4000l);
+      } catch (InterruptedException e) {
 
-    }
+      }
+    });
+
     this.doGetJobWorkerMeta(context);
     AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
     DataXJobWorkerStatus jobWorkerStatus = (DataXJobWorkerStatus) actionExecResult.getBizResult();
     if (jobWorkerStatus == null || !jobWorkerStatus.isK8sReplicationControllerCreated()) {
       throw new IllegalStateException("Job Controller launch faild please contract administer");
     }
+
     this.addActionMessage(context, "已经成功启动DataX执行器");
   }
 
@@ -376,6 +416,22 @@ public class DataxAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doSaveDataxWorker(Context context) {
+
+    List<UploadPluginMeta> metas = this.getPluginMeta();
+    DataXJobWorker.K8SWorkerCptType powerjobCptType = null;
+    for (UploadPluginMeta meta : metas) {
+      powerjobCptType = DataXJobWorker.K8SWorkerCptType.parse(meta.getDataXName());
+    }
+    // DataXJobWorker.PowerjobCptType powerjobCptType = DataXJobWorker.PowerjobCptType.parse(this.getString("powerjobCptType"));
+    saveWorker(context, DataXJobWorker.K8S_DATAX_INSTANCE_NAME, Optional.of(powerjobCptType));
+  }
+
+  @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doSaveFlinkWorker(Context context) {
+    saveWorker(context, DataXJobWorker.K8S_FLINK_CLUSTER_NAME, Optional.empty());
+  }
+
+  public void saveWorker(Context context, TargetResName resName, Optional<DataXJobWorker.K8SWorkerCptType> powerjobCptType) {
     JSONObject postContent = this.parseJsonPost();
     JSONObject k8sSpec = postContent.getJSONObject("k8sSpec");
 
@@ -383,15 +439,15 @@ public class DataxAction extends BasicModule {
     if (!incrSpecResult.isSuccess()) {
       return;
     }
-
-    TargetResName resName = this.getK8SJobWorkerTargetName();
+    // this.getK8SJobWorkerTargetName();
+    //TargetResName resName = DataXJobWorker.K8S_DATAX_INSTANCE_NAME;
     DataXJobWorker worker = DataXJobWorker.getJobWorker(resName);
 
     worker.setReplicasSpec(incrSpecResult.getSpec());
     if (incrSpecResult.hpa != null) {
       worker.setHpa(incrSpecResult.hpa);
     }
-    DataXJobWorker.setJobWorker(resName, worker);
+    DataXJobWorker.setJobWorker(resName, powerjobCptType, worker);
   }
 
 
@@ -550,7 +606,7 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doValidateDataxProfile(Context context) throws Exception {
     Application app = this.parseJsonPost(Application.class);
-    SchemaAction.CreateAppResult validateResult = this.createNewApp(context, app, true, (newAppId) -> {
+    SchemaAction.CreateAppResult validateResult = this.createNewApp(context, app, null, true, (newAppId) -> {
       throw new UnsupportedOperationException();
     });
   }
@@ -724,13 +780,11 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doCreateDatax(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    // ProcessModel pmodel = ProcessModel.parse(this.getString(KEY_PROCESS_MODEL));
-    // IDataxProcessor dataxProcessor = (IDataxProcessor)pmodel.loadDataXProcessor(this,dataxName);
-
     DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(null, StoreResourceType.DataApp, dataxName);
     Application app = dataxProcessor.buildApp();
 
-    SchemaAction.CreateAppResult createAppResult = this.createNewApp(context, app, false, (newAppId) -> {
+    SchemaAction.CreateAppResult createAppResult
+      = this.createNewApp(context, app, dataxProcessor, false, (newAppId) -> {
       SchemaAction.CreateAppResult appResult = new SchemaAction.CreateAppResult();
       appResult.setSuccess(true);
       appResult.setNewAppId(newAppId);
@@ -1030,7 +1084,7 @@ public class DataxAction extends BasicModule {
     IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(new DefaultTab(dataxName, writerCols));
     // tableMapper.setSourceCols(writerCols);
     ////////////////////
-    final String keyColsMeta = "colsMeta";
+    // final String keyColsMeta = "colsMeta";
     IControlMsgHandler handler = new DelegateControl4JsonPostMsgHandler(this, this.parseJsonPost());
     if (!Validator.validate(handler, context, Validator.fieldsValidator( //
       "writerTargetTabName" //
@@ -1044,7 +1098,7 @@ public class DataxAction extends BasicModule {
         public void setFieldVal(String val) {
           tableMapper.setFrom(val);
         }
-      }, keyColsMeta //
+      }, MultiItemsViewType.keyColsMeta //
       , new Validator.FieldValidators(Validator.require) {
         @Override
         public void setFieldVal(String val) {
@@ -1064,8 +1118,8 @@ public class DataxAction extends BasicModule {
             return false;
           }
 
-          PluginExtraProps.ParsePostMCols postMCols = PluginExtraProps.parsePostMCols(Optional.empty(), msgHandler,
-            context, keyColsMeta, targetCols);
+          CMeta.ParsePostMCols postMCols = PluginExtraProps.parsePostMCols(Optional.empty(), msgHandler,
+            context, MultiItemsViewType.keyColsMeta, targetCols);
 
           //          Map<String, Integer> existCols = Maps.newHashMap();
           //          boolean validateFaild = false;

@@ -19,6 +19,8 @@ package com.qlangtech.tis.util;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.plugin.IPluginMetasInfo;
+import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.thoughtworks.xstream.XStreamException;
 import com.thoughtworks.xstream.converters.*;
 import com.thoughtworks.xstream.converters.reflection.ObjectAccessException;
@@ -75,8 +77,9 @@ public class RobustReflectionConverter2 implements XStream2.ConverterValve {
         return metas.unCacheableFromPluginStore();
     }
 
-    public static class PluginMetas {
+    public static class PluginMetas implements IPluginMetasInfo {
         private final Set<PluginMeta> metas = new HashSet<>();
+        private final Set<IRepositoryResource> repoRes = new HashSet<>();
         // 可以从pluginStore中取数据
         private boolean cacheable = true;
 
@@ -92,16 +95,23 @@ public class RobustReflectionConverter2 implements XStream2.ConverterValve {
             }
         }
 
+        @Override
         public Set<PluginMeta> getMetas() {
             return this.metas;
+        }
+
+        @Override
+        public Set<IRepositoryResource> getRepoResources() {
+            return this.repoRes;
         }
 
 //        public void add(PluginMeta meta) {
 //            this.metas.add(meta);
 //        }
 
-        public void addAll(Collection<PluginMeta> metas) {
+        public void addAll(Collection<PluginMeta> metas, IRepositoryResource res) {
             this.metas.addAll(metas);
+            this.repoRes.add(res);
         }
 
         private PluginMetas unCacheableFromPluginStore() {
@@ -215,7 +225,7 @@ public class RobustReflectionConverter2 implements XStream2.ConverterValve {
         }
         oc.startVisiting(writer, owners);
         try {
-          //  doMarshal(source, writer, context);
+            //  doMarshal(source, writer, context);
         } finally {
             oc.stopVisiting();
         }

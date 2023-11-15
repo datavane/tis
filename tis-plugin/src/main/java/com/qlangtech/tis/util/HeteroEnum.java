@@ -17,7 +17,6 @@
  */
 package com.qlangtech.tis.util;
 
-import com.google.common.collect.Lists;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
@@ -26,13 +25,19 @@ import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
-import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.ExtensionList;
+import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
-import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.FileSystemFactory;
-import com.qlangtech.tis.plugin.*;
+import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
@@ -40,7 +45,6 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
@@ -122,7 +126,9 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             if (!pluginContext.isCollectionAware()) {
                 throw new IllegalStateException("must be collection aware");
             }
-            return DataXJobWorker.getJobWorkerStore(new TargetResName(pluginContext.getCollectionName()));
+            DataXJobWorker.K8SWorkerCptType powerjobCptType = DataXJobWorker.K8SWorkerCptType.parse(pluginMeta.getDataXName());
+
+            return DataXJobWorker.getJobWorkerStore(new TargetResName(pluginContext.getCollectionName()), Optional.of(powerjobCptType));
 
             //return super.getPluginStore(pluginContext, pluginMeta);
         }
@@ -304,48 +310,55 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                     // DataxReader.SubFieldFormAppKey<Describable> key =
                     return HeteroEnum.createDataXReaderAndWriterRelevant(pluginContext, pluginMeta,
                             new HeteroEnum.DataXReaderAndWriterRelevantCreator<IPluginStore>() {
-                        @Override
-                        public IPluginStore dbRelevant(IPluginContext pluginContext, String saveDbName) {
-                            DataxReader.SubFieldFormAppKey key = new DataxReader.SubFieldFormAppKey<>(pluginContext,
-                                    true, saveDbName, props, clazz);
+                                @Override
+                                public IPluginStore dbRelevant(IPluginContext pluginContext, String saveDbName) {
+                                    DataxReader.SubFieldFormAppKey key = new DataxReader.SubFieldFormAppKey<>(pluginContext,
+                                            true, saveDbName, props, clazz);
 
-                            return KeyedPluginStore.getPluginStore(key);
-                        }
+                                    return KeyedPluginStore.getPluginStore(key);
+                                }
 
-                        @Override
-                        public IPluginStore appRelevant(IPluginContext pluginContext, String dataxName) {
+                                @Override
+                                public IPluginStore appRelevant(IPluginContext pluginContext, String dataxName) {
 
-                            DataxReader.SubFieldFormAppKey key = new DataxReader.SubFieldFormAppKey<>(pluginContext,
-                                    false, dataxName, props, clazz);
-                            KeyedPluginStore<SelectedTab> subFormStore = KeyedPluginStore.getPluginStore(key);
+                                    DataxReader.SubFieldFormAppKey key = new DataxReader.SubFieldFormAppKey<>(pluginContext,
+                                            false, dataxName, props, clazz);
+                                    KeyedPluginStore<SelectedTab> subFormStore = KeyedPluginStore.getPluginStore(key);
 
-                            return SelectedTabExtend.wrapSubFormStore(pluginContext,dataxName, subFormStore);
-                        }
-                    });
+                                    return SelectedTabExtend.wrapSubFormStore(pluginContext, dataxName, subFormStore);
+                                }
+                            });
                 }
             });
         } else {
-            store = createDataXReaderAndWriterRelevant(pluginContext, pluginMeta,
-                    new DataXReaderAndWriterRelevantCreator<IPluginStore<?>>() {
-                @Override
-                public IPluginStore<?> dbRelevant(IPluginContext pluginContext, String saveDbName) {
-                    if (!getReader) {
-                        throw new IllegalStateException("getReader must be true");
-                    }
-                    return DataxReader.getPluginStore(pluginContext, true, saveDbName);
-                }
-
-                @Override
-                public IPluginStore<?> appRelevant(IPluginContext pluginContext, String dataxName) {
-
-
-                    KeyedPluginStore<?> keyStore = (getReader) ?
-                            DataxReader.getPluginStore(pluginContext, dataxName) :
-                            DataxWriter.getPluginStore(pluginContext, pluginMeta.getProcessModel().resType, dataxName);
-                    return keyStore;
-                }
-            });
+            store = getDataXReaderAndWriterRelevantPluginStore(pluginContext, getReader, pluginMeta);
         }
+        return store;
+    }
+
+    public static IPluginStore<?> getDataXReaderAndWriterRelevantPluginStore(
+            IPluginContext pluginContext, boolean getReader, UploadPluginMeta pluginMeta) {
+        IPluginStore<?> store;
+        store = createDataXReaderAndWriterRelevant(pluginContext, pluginMeta,
+                new DataXReaderAndWriterRelevantCreator<IPluginStore<?>>() {
+                    @Override
+                    public IPluginStore<?> dbRelevant(IPluginContext pluginContext, String saveDbName) {
+                        if (!getReader) {
+                            throw new IllegalStateException("getReader must be true");
+                        }
+                        return DataxReader.getPluginStore(pluginContext, true, saveDbName);
+                    }
+
+                    @Override
+                    public IPluginStore<?> appRelevant(IPluginContext pluginContext, String dataxName) {
+
+
+                        KeyedPluginStore<?> keyStore = getReader ?
+                                DataxReader.getPluginStore(pluginContext, dataxName) :
+                                DataxWriter.getPluginStore(pluginContext, pluginMeta.getProcessModel().resType, dataxName);
+                        return keyStore;
+                    }
+                });
         return store;
     }
 

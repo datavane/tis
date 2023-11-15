@@ -430,13 +430,7 @@ public class OfflineManager {
       dsDb.setName(db.getName());
       dbsMap.put(db.getId(), dsDb);
     }
-//    for (DatasourceTable table : tableList) {
-//      int dbId = table.getDbId();
-//      if (dbsMap.containsKey(dbId)) {
-//        OfflineDatasourceAction.DatasourceDb datasourceDb = dbsMap.get(dbId);
-//        datasourceDb.addTable(table);
-//      }
-//    }
+
     return dbsMap.values();
   }
 

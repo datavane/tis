@@ -76,9 +76,9 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     private static final Logger logger = LoggerFactory.getLogger(SelectedTab.class);
 
     // 针对增量构建流程中的属性扩展
-    private SelectedTabExtend incrSourceProps;
-    private SelectedTabExtend incrSinkProps;
-    public SelectedTabExtend sourceProps;
+    private transient SelectedTabExtend incrSourceProps;
+    private transient SelectedTabExtend incrSinkProps;
+    public transient SelectedTabExtend sourceProps;
 
     // 表名称
     @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
@@ -91,6 +91,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     @FormField(ordinal = 100, type = FormFieldType.INPUTTEXT)
     public String where;
 
+
     @Override
     public List<String> getPrimaryKeys() {
         return this.primaryKeys;
@@ -101,6 +102,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
      */
     @FormField(ordinal = 200, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
     public List<CMeta> cols = Lists.newArrayList();
+
 
     public List<String> getColKeys() {
         return this.cols.stream().filter((c) -> !c.isDisable()).map((c) -> c.getName()).collect(Collectors.toList());
@@ -129,7 +131,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     }
 
     public SelectedTabExtend getSourceProps() {
-        return sourceProps;
+        return this.sourceProps;
     }
 
     public void setSourceProps(SelectedTabExtend sourceProps) {
@@ -363,31 +365,34 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
             }
             if (lackPks.size() > 0) {
                 PropertyType colProp = (PropertyType) tab.getDescriptor().getPropertyType(KEY_FIELD_COLS);
+                final List<String> fieldNames = Lists.newArrayList();
 
-                List<String> fieldNames = Lists.newArrayList();
-                switch (colProp.extraProp.multiItemsViewType().viewType) {
-                    case IdList:
-                        fieldNames = Lists.newArrayList(KEY_FIELD_COLS);
-                        break;
-                    case TupleList:
-                        List<CMeta> tabCols = tab.cols;
-                        AtomicInteger index = new AtomicInteger();
-                        Map<String, Integer> colsIndex //
-                                = tabCols.stream().collect(Collectors.toMap((c) -> c.getName(),
-                                (c) -> index.getAndIncrement()));
-                        for (String lackKey : lackPks) {
-                            fieldNames.add(joinField(KEY_FIELD_COLS,
-                                    Collections.singletonList(colsIndex.get(lackKey)), CMeta.FIELD_NAME));
-                        }
+                colProp.multiSelectablePropProcess((viewType) -> {
+                    switch (viewType.viewType) {
+                        case IdList:
+                            fieldNames.add(KEY_FIELD_COLS);// = Lists.newArrayList();
+                            break;
+                        case TupleList:
+                            List<CMeta> tabCols = tab.cols;
+                            AtomicInteger index = new AtomicInteger();
+                            Map<String, Integer> colsIndex //
+                                    = tabCols.stream().collect(Collectors.toMap((c) -> c.getName(),
+                                    (c) -> index.getAndIncrement()));
+                            for (String lackKey : lackPks) {
+                                fieldNames.add(joinField(KEY_FIELD_COLS,
+                                        Collections.singletonList(colsIndex.get(lackKey)), CMeta.FIELD_NAME));
+                            }
 
-                        break;
-                    default:
-                        throw new IllegalStateException("unhandle view type:" + colProp.extraProp.multiItemsViewType());
-                }
+                            break;
+                        default:
+                            throw new IllegalStateException("unhandle view type:" + viewType);
+                    }
+                    return null;
+                });
+
 
                 for (String fieldName : fieldNames) {
-                    msgHandler.addFieldError(context, fieldName, "由于" + String.join(",", lackPks) + "选为主键," +
-                            "因此需要将它（们）选上");
+                    msgHandler.addFieldError(context, fieldName, "由于" + String.join(",", lackPks) + "选为主键,因此需要将它（们）选上");
                 }
 
                 return false;

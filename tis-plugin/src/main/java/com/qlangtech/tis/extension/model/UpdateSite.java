@@ -36,6 +36,7 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.Util;
@@ -62,6 +63,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.qlangtech.tis.util.MemoryReductionUtil.*;
 
@@ -496,13 +498,13 @@ public class UpdateSite {
             if (pluginTags == null) {
                 throw new IllegalStateException(JsonUtil.toString(o) + " lack relevant property pluginTags");
             }
-            this.pluginTags = pluginTags.stream()
+            this.pluginTags = ((Stream<String>) pluginTags.stream())
                     .map((t) -> IPluginTaggable.PluginTag.parse((String) t)).collect(Collectors.toSet());
             JSONArray endTypes = o.getJSONArray("endTypes");
             if (endTypes == null) {
                 throw new IllegalStateException(JsonUtil.toString(o) + " lack relevant property endTypes");
             }
-            this.endTypes = endTypes.stream().map((e) -> (String) e).collect(Collectors.toSet());
+            this.endTypes = ((Stream<String>) endTypes.stream()).map((e) -> (String) e).collect(Collectors.toSet());
 
             JSONObject extendPoints = o.getJSONObject("extendPoints");
             this.extendPoints = Maps.newHashMap();
@@ -560,6 +562,18 @@ public class UpdateSite {
                     }
                 }
             }
+        }
+
+        public List<String> getEndTypeIcons() {
+            List<String> types = Lists.newArrayList();
+            for (String endtype : this.endTypes) {
+                IEndTypeGetter.EndType type = IEndTypeGetter.EndType.parse(endtype);
+                IEndTypeGetter.Icon icon = type.getIcon();
+                if (icon != null) {
+                    types.add(type.getVal());
+                }
+            }
+            return types;
         }
 
         @Override
@@ -1170,7 +1184,7 @@ public class UpdateSite {
                 supportMultiClassifier = pluginMeta.getBooleanValue("supportMultiClassifier");
                 JSONArray classifierInfo = pluginMeta.getJSONArray(PluginManager.PACAKGE_CLASSIFIER);
                 if (supportMultiClassifier && classifierInfo != null && classifierInfo.size() > 0) {
-                    classifiers = classifierInfo.stream()
+                    classifiers = ((Stream<JSONObject>) classifierInfo.stream())
                             .map((i) -> {
                                 return (new DftCoord(e.getKey(), (JSONObject) i));
                             }).collect(Collectors.toList());

@@ -31,6 +31,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -113,7 +114,7 @@ public class ConfigFileContext {
         int retryCount = 0;
         while (true) {
             try {
-                HttpURLConnection conn = getNetInputStream(url, process.getHeaders(), method, content);
+                HttpURLConnection conn = getNetInputStream(url, process, method, content);
                 try {
                     reader = conn.getInputStream();
                 } catch (IOException e) {
@@ -147,7 +148,9 @@ public class ConfigFileContext {
         }
     }
 
-    private static HttpURLConnection getNetInputStream(URL url, List<Header> heads, HTTPMethod method, byte[] content) throws MalformedURLException, IOException {
+    private static HttpURLConnection getNetInputStream(URL url, StreamProcess streamProcess, HTTPMethod method, byte[] content) throws IOException {
+        List<Header> heads = streamProcess.getHeaders();
+
         if (HttpUtils.mockConnMaker != null) {
             HttpURLConnection conn = HttpUtils.mockConnMaker.create(url, heads, method, content);
             if (conn != null) {
@@ -157,6 +160,7 @@ public class ConfigFileContext {
         HttpURLConnection conn = null;
         HttpURLConnection.setFollowRedirects(false);
         conn = (HttpURLConnection) url.openConnection();
+        streamProcess.preSet(conn);
         // 设置15秒超时
         conn.setConnectTimeout(15 * 1000);
         conn.setReadTimeout(15 * 1000);
@@ -190,6 +194,27 @@ public class ConfigFileContext {
             List<Header> tmpList = Lists.newArrayList(HEADER_TEXT_HTML);
             tmpList.add(new Header(HEADER_KEY_GET_FILE_META, String.valueOf(true)));
             HEADER_GET_META = Collections.unmodifiableList(tmpList);
+        }
+
+        protected static void setAuthorization(HttpURLConnection conn, String userName, String password) {
+            String userpass = userName + ":" + StringUtils.trimToEmpty(password);
+            String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
+            conn.setRequestProperty("Authorization", basicAuth);
+        }
+
+        /**
+         * 可以做在提交之前 先设置用户名密码之类的
+         *
+         * @param conn
+         * @throws IOException
+         */
+        public void preSet(HttpURLConnection conn) throws IOException {
+//            URL url = new URL(“location address”);
+//            URLConnection uc = url.openConnection();
+//            String userpass = username + ":" + password;
+//            String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
+//            uc.setRequestProperty ("Authorization", basicAuth);
+//            InputStream in = uc.getInputStream();
         }
 
         public T p(HttpURLConnection conn, InputStream stream) throws IOException {

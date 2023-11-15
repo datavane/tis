@@ -16,6 +16,7 @@
  *   limitations under the License.
  */
 
+import com.qlangtech.tis.powerjob.TestSelectedTabTriggers;
 import com.qlangtech.tis.sql.parser.*;
 import com.qlangtech.tis.sql.parser.er.TestERRules;
 import com.qlangtech.tis.sql.parser.shop.TestShopTopologyParse;
@@ -48,6 +49,7 @@ public class TestAll extends TestCase {
         // suite.addTestSuite(TestMqConfigMeta.class);
         suite.addTestSuite(TestDBNode.class);
         suite.addTestSuite(TestERRules.class);
+        suite.addTestSuite(TestSelectedTabTriggers.class);
         return suite;
     }
 }

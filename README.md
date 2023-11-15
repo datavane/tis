@@ -12,9 +12,9 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
 > 视频： [>>TIS介绍](https://www.bilibili.com/video/BV11y4y1B7Mk) [>>操作实例](https://www.bilibili.com/video/BV1Uv41167SH/)
  -->
 
-## v3.7.2发布（2023/6/01）：
+## v3.8.0发布（2023/10/25）：
 
-https://github.com/qlangtech/tis/releases/tag/v3.7.2
+https://github.com/datavane/tis/releases/tag/v3.8.0
  
 ## 安装说明
 
@@ -111,8 +111,10 @@ TIS基于数据库元数据信息自动生成Flink-SQL脚本,您没看错全部�
 - DataX [https://github.com/qlangtech/DataX](https://github.com/qlangtech/DataX)
 - tis-logback-flume-appender [https://github.com/baisui1981/tis-logback-flume-appender](https://github.com/baisui1981/tis-logback-flume-appender)
 - Flink Extend [https://github.com/qlangtech/flink](https://github.com/qlangtech/flink)
+- TIS 插件功能脚手架 [https://github.com/qlangtech/tis-archetype-plugin](https://github.com/qlangtech/tis-archetype-plugin)
 - Chunjun [https://github.com/qlangtech/chunjun](https://github.com/qlangtech/chunjun)
 - Zeppelin [https://github.com/qlangtech/zeppelin](https://github.com/qlangtech/zeppelin)
+- TIS Docs Manager [https://github.com/qlangtech/tis-doc](https://github.com/qlangtech/tis-doc)
 - 部分插件参数配置参考 Airbyte [https://github.com/airbytehq/airbyte](https://github.com/airbytehq/airbyte) 
 - 架构思想参考 [https://github.com/jenkinsci/jenkins](https://github.com/jenkinsci/jenkins)
 

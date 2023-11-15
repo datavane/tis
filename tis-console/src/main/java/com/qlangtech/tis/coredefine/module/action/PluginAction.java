@@ -28,8 +28,8 @@ import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.*;
-import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
@@ -57,7 +57,6 @@ import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.struts2.convention.annotation.InterceptorRef;
@@ -115,6 +114,33 @@ public class PluginAction extends BasicModule {
     } catch (Exception e) {
       logger.warn("apply clean " + targetResource + ",consume:" + (System.currentTimeMillis() - start) + "ms, cache " + "faild " + e.getMessage());
     }
+  }
+
+  public void doGetEndtypeIcons(Context context) throws Exception {
+    JSONArray iconsDefs = new JSONArray();
+    JSONObject icon = null;
+    IEndTypeGetter.Icon i = null;
+
+    for (IEndTypeGetter.EndType type : IEndTypeGetter.EndType.values()) {
+
+      i = type.getIcon();
+      if (i == null) {
+        continue;
+      }
+      icon = new JSONObject();
+      icon.put("name", type.getVal());
+      icon.put("theme", "fill");
+      icon.put("icon",i.fillType());
+      iconsDefs.add(icon);
+
+      icon = new JSONObject();
+      icon.put("name", type.getVal());
+      icon.put("theme", "outline");
+      icon.put("icon",i.outlineType());
+      iconsDefs.add(icon);
+
+    }
+    this.setBizResult(context, iconsDefs);
   }
 
   /**
@@ -249,29 +275,30 @@ public class PluginAction extends BasicModule {
   public void doGetPluginFieldHelp(Context context) {
     DescriptorField descField = parseDescField();
 
-    String plugin = this.getString("plugin");
-    Optional<IPropertyType.SubFormFilter> subFormFilter = Optional.empty();
-    if (StringUtils.isNotEmpty(plugin)) {
-      UploadPluginMeta pluginMeta = UploadPluginMeta.parse(this, plugin, true);
-      subFormFilter = pluginMeta.getSubFormFilter();
-    }
+    //  String plugin = this.getString("plugin");
+    // Optional<IPropertyType.SubFormFilter> subFormFilter = Optional.empty();
+    // if (StringUtils.isNotEmpty(plugin)) {
+    //   UploadPluginMeta pluginMeta = UploadPluginMeta.parse(this, plugin, true);
+    //  subFormFilter = pluginMeta.getSubFormFilter();
+    // }
 
+    PluginExtraProps.Props props = descField.getFieldPropType().extraProp;
 
-    PluginFormProperties pluginFormPropertyTypes = descField.getTargetDesc().getPluginFormPropertyTypes(subFormFilter);
-
-    PluginExtraProps.Props props =
-      pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
-      @Override
-      public PluginExtraProps.Props visit(BaseSubFormProperties props) {
-        PropertyType propertyType = props.getPropertyType(descField.field);
-        return propertyType.extraProp;
-      }
-
-      @Override
-      public PluginExtraProps.Props visit(RootFormProperties props) {
-        return descField.getFieldPropType().extraProp;
-      }
-    });
+//    PluginFormProperties pluginFormPropertyTypes = descField.getTargetDesc().getPluginFormPropertyTypes(subFormFilter);
+//
+//    PluginExtraProps.Props props =
+//      pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
+//      @Override
+//      public PluginExtraProps.Props visit(BaseSubFormProperties props) {
+//        PropertyType propertyType = props.getPropertyType(descField.field);
+//        return propertyType.extraProp;
+//      }
+//
+//      @Override
+//      public PluginExtraProps.Props visit(RootFormProperties props) {
+//        return descField.getFieldPropType().extraProp;
+//      }
+//    });
 
 
     if (!props.isAsynHelp()) {
@@ -324,6 +351,7 @@ public class PluginAction extends BasicModule {
         // pluginInfo.put("meta", info);
         pluginInfo.put("releaseTimestamp", info.releaseTimestamp);
         pluginInfo.put("excerpt", info.excerpt);
+        pluginInfo.put("endTypeIcons",info.getEndTypeIcons());
       }
 
       if (CollectionUtils.isNotEmpty(extendpoint)) {
@@ -353,6 +381,7 @@ public class PluginAction extends BasicModule {
       // pluginInfo.put("bundled", plugin.isBundled);
       pluginInfo.put("deleted", plugin.isDeleted());
       pluginInfo.put("downgradable", plugin.isDowngradable());
+
       pluginInfo.put("website", plugin.getUrl());
       List<PluginWrapper.Dependency> dependencies = plugin.getDependencies();
       if (dependencies != null && !dependencies.isEmpty()) {
@@ -721,15 +750,15 @@ public class PluginAction extends BasicModule {
   public void doSubformDetailedClick(Context context) throws Exception {
 
     List<UploadPluginMeta> pluginsMeta = getPluginMeta();
-    List<Describable> plugins = null;
+    List<DataxReader> plugins = null;
 
     IPluginEnum heteroEnum = null;
     HeteroList<?> hList = null;
 
     for (UploadPluginMeta meta : pluginsMeta) {
 
-      heteroEnum = meta.getHeteroEnum();
-      plugins = heteroEnum.getPlugins(this, meta);
+      // heteroEnum = meta.getHeteroEnum();
+      plugins = meta.getDataxReaders(this);// heteroEnum.getPlugins(this, meta);
       for (Describable plugin : plugins) {
 
         SuFormProperties.setSuFormGetterContext(plugin, meta,
@@ -937,10 +966,6 @@ public class PluginAction extends BasicModule {
     public PluginItems pluginItems;
   }
 
-  private List<UploadPluginMeta> getPluginMeta() {
-    final boolean useCache = Boolean.parseBoolean(this.getString("use_cache", "true"));
-    return UploadPluginMeta.parse(this, this.getStringArray("plugin"), useCache);
-  }
 
   /**
    * 是否是和数据源相关的流程处理

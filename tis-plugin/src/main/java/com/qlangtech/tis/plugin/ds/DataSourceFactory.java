@@ -192,11 +192,13 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 int count = 0;
                 List<String> matchEntries = Lists.newArrayList();
                 while (tables.next()) {
-                    matchEntries.add(tables.getString("TABLE_NAME") + "(" + tables.getString("TABLE_TYPE") + "," + tables.getString("TABLE_SCHEM") + ")");
+                    matchEntries.add(tables.getString("TABLE_NAME")
+                            + "(" + tables.getString("TABLE_TYPE")
+                            + "," + tables.getString("TABLE_SCHEM") + ")");
                     count++;
                 }
                 if (count < 1) {
-                    throw new TableNotFoundException(this, table.getFullName());
+                    throw new TableNotFoundException(this, table.getFullName() + ",url:" + conn.getUrl());
                 } else if (count > 1) {
                     throw new IllegalStateException("duplicate table entities exist:" + String.join(",", matchEntries));
                 }
@@ -220,7 +222,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         //  return columns;
     }
 
-    public List<ColumnMetaData> wrapColsMeta(boolean inSink, EntityName table, ResultSet columns1) throws SQLException {
+    public List<ColumnMetaData> wrapColsMeta(boolean inSink, EntityName table, ResultSet columns1) throws SQLException, TableNotFoundException {
         return wrapColsMeta(inSink, table, columns1, Collections.emptySet());
     }
 
@@ -234,11 +236,13 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     public static final String KEY_DATA_TYPE = "DATA_TYPE";
     public static final String KEY_COLUMN_SIZE = "COLUMN_SIZE";
 
-    public List<ColumnMetaData> wrapColsMeta(boolean inSink, EntityName table, ResultSet columns1, Set<String> pkCols) throws SQLException {
+    public List<ColumnMetaData> wrapColsMeta(
+            boolean inSink, EntityName table, ResultSet columns1, Set<String> pkCols) throws SQLException, TableNotFoundException {
         return this.wrapColsMeta(inSink, table, columns1, new CreateColumnMeta(pkCols, columns1));
     }
 
-    public List<ColumnMetaData> wrapColsMeta(boolean inSink, EntityName table, ResultSet columns1, CreateColumnMeta columnMetaCreator) throws SQLException {
+    public List<ColumnMetaData> wrapColsMeta(
+            boolean inSink, EntityName table, ResultSet columns1, CreateColumnMeta columnMetaCreator) throws SQLException, TableNotFoundException {
 
         ColumnMetaData colMeta;
         String colName = null;
@@ -290,7 +294,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return columns;
     }
 
-    protected HashSet<String> createAddedCols(EntityName table) {
+    protected HashSet<String> createAddedCols(EntityName table) throws TableNotFoundException {
         return Sets.newHashSet();
     }
 
@@ -385,6 +389,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         public final Map<String, Object> getExtractProps() {
             Map<String, Object> eprops = super.getExtractProps();
             eprops.put(KEY_END_TYPE, this.getEndType().getVal());
+            eprops.put(KEY_SUPPORT_ICON, this.getEndType().getIcon() != null);
             eprops.put("supportFacade", this.supportFacade());
             eprops.put("facadeSourceTypes", this.facadeSourceTypes());
             Optional<String> dataXReaderDesc = this.getDefaultDataXReaderDescName();
@@ -439,8 +444,6 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             dbConfig.vistDbURL(false, 5, (dbName, dbHost, jdbcUrl) -> {
                 try (JDBCConnection conn = dsFactory.getConnection(jdbcUrl)) {
                     validateConnection(conn);
-                } catch (TisException e) {
-                    throw e;
                 } catch (Exception e) {
                     faild[0] = e;
                     logger.warn(e.getMessage(), e);
@@ -493,16 +496,19 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             int decimalDigits = columns1.getInt(KEY_DECIMAL_DIGITS);
             //数据如果是INT类型，但如果是UNSIGNED，那实际类型需要转换成Long,INT UNSIGNED
             String typeName = columns1.getString(KEY_TYPE_NAME);
-            DataType colType = createColDataType(colName, typeName, columns1.getInt(KEY_DATA_TYPE), columns1.getInt(KEY_COLUMN_SIZE));
+            DataType colType = createColDataType(colName, typeName, columns1.getInt(KEY_DATA_TYPE), columns1.getInt(KEY_COLUMN_SIZE), decimalDigits);
             if (decimalDigits > 0) {
                 colType.setDecimalDigits(decimalDigits);
             }
             return colType;
         }
 
-        protected DataType createColDataType(String colName, String typeName, int dbColType, int colSize) throws SQLException {
+        protected DataType createColDataType(
+                String colName, String typeName, int dbColType, int colSize, int decimalDigits) throws SQLException {
             // 类似oracle驱动内部有一套独立的类型 oracle.jdbc.OracleTypes,有需要可以在具体的实现类里面去实现
-            return  DataType.create(dbColType, typeName, colSize);
+            DataType type = DataType.create(dbColType, typeName, colSize);
+            type.setDecimalDigits(decimalDigits);
+            return type;
         }
     }
 

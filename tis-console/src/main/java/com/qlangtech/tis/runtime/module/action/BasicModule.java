@@ -32,6 +32,8 @@ import com.opensymphony.xwork2.ActionSupport;
 import com.opensymphony.xwork2.config.entities.ActionConfig;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
+import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import com.qlangtech.tis.manage.biz.dal.dao.*;
@@ -52,6 +54,7 @@ import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IERRulesGetter;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
@@ -97,6 +100,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   public Optional<ERRules> getErRules(String dfName) {
     Objects.requireNonNull(erRulesGetter, "erRulesGetter can not be null");
     return erRulesGetter.getErRules(dfName);
+  }
+
+  protected List<UploadPluginMeta> getPluginMeta() {
+    final boolean useCache = Boolean.parseBoolean(this.getString("use_cache", "true"));
+    return UploadPluginMeta.parse(this, this.getStringArray("plugin"), useCache);
   }
 
 //  protected static WorkFlow getAppBindedWorkFlow(BasicModule module) {
@@ -461,7 +469,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
    * @return
    * @throws Exception
    */
-  protected SchemaAction.CreateAppResult createNewApp(Context context, Application app
+  protected SchemaAction.CreateAppResult createNewApp(Context context, Application app, DataxProcessor dataxProcessor
     , boolean justValidate, IAfterApplicationCreate afterAppCreate, Object... validateParam) throws Exception {
     IControlMsgHandler handler = new DelegateControl4JavaBeanMsgHandler(this, app);
     Map<String, Validator.FieldValidators> validateRule = //
@@ -485,6 +493,15 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     app.setIsAutoDeploy(true);
     if (!justValidate) {
       result = AddAppAction.createApplication(app, context, this, afterAppCreate);
+
+      Optional<DataXJobSubmit> dataXJobSubmit //
+        = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit.getDataXTriggerType());
+      if (!dataXJobSubmit.isPresent()) {
+        throw new IllegalStateException("dataXJobSubmit must be present");
+      }
+      // 这里可以在pwoerjob 中创建workflow任务
+      dataXJobSubmit.get().createJob(this, context, dataxProcessor);
+
       addActionMessage(context, "已经成功创建实例[" + app.getProjectName() + "]");
     }
     return result;
@@ -911,7 +928,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return getRequest().getParameter(key);
   }
 
-  protected final String[] getStringArray(String key) {
+  public final String[] getStringArray(String key) {
     Assert.assertNotNull("the request can not be null", getRequest());
     return getRequest().getParameterValues(key);
   }
@@ -1135,6 +1152,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   /**
    * @return the daoContext
    */
+
   public RunContext getDaoContext() {
     Assert.assertNotNull("daoContextGetter can not be null", daoContextGetter);
     return daoContextGetter.get();

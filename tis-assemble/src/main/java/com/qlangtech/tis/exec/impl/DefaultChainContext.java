@@ -105,6 +105,11 @@ public class DefaultChainContext implements IExecChainContext {
     }
 
     @Override
+    public RemoteTaskTriggers getTskTriggers( ) {
+      return this.tskTriggers;
+    }
+
+    @Override
     public List<AsynSubJob> getAsynSubJobs() {
         return this.asynSubJobs;
     }

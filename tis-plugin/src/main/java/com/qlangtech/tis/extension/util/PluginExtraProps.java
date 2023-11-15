@@ -25,32 +25,32 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.ElementPluginDesc;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.util.DescriptorsJSON;
-import org.apache.commons.beanutils.BeanUtilsBean2;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -62,6 +62,9 @@ import java.util.stream.Collectors;
  * @date 2020/04/13
  */
 public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
+
+    private static final Logger logger = LoggerFactory.getLogger(PluginExtraProps.class);
+
     public static final String KEY_DFTVAL_PROP = "dftVal";
     public static final String KEY_PLACEHOLDER_PROP = "placeholder";
     public static final String KEY_DISABLE = "disable";
@@ -108,7 +111,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return null;
         });
 
-        String resourceName = pluginClazz.getSimpleName() + subformFieldName + ".json";
+        final String resourceName = pluginClazz.getSimpleName() + subformFieldName + ".json";
         try {
             try (InputStream i = pluginClazz.getResourceAsStream(resourceName)) {
                 if (i == null) {
@@ -145,7 +148,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
      * @return
      * @throws IOException
      */
-    public static Optional<PluginExtraProps> load(Optional<Descriptor> desc, Class<?> clazz) {
+    public static Optional<PluginExtraProps> load(Optional<ElementPluginDesc> desc, Class<?> clazz) {
 
 
         PluginExtraProps ep = visitAncestorsClass(clazz, (c, extraProps) -> {
@@ -169,7 +172,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         }
         PluginExtraProps e = null;
-        if (desc.isPresent() && MapUtils.isNotEmpty(e = desc.get().fieldExtraDescs)) {
+        if (desc.isPresent() && MapUtils.isNotEmpty(e = desc.get().getFieldExtraDescs())) {
             if (ep != null) {
                 ep.mergeProps(e, desc);
             } else {
@@ -192,17 +195,26 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         return extraProps;
     }
 
-    public static ParsePostMCols parsePostMCols(Optional<CMeta.ElementCreatorFactory> elementCreator,
-                                                IFieldErrorHandler msgHandler, Context context, String keyColsMeta,
-                                                JSONArray targetCols) {
+    /**
+     * 多选列前置校验
+     *
+     * @param elementCreator
+     * @param msgHandler
+     * @param context
+     * @param keyColsMeta
+     * @param targetCols
+     * @return
+     */
+    public static CMeta.ParsePostMCols parsePostMCols(Optional<CMeta.ElementCreatorFactory> elementCreator,
+                                                      IFieldErrorHandler msgHandler, Context context, String keyColsMeta,
+                                                      JSONArray targetCols) {
         if (targetCols == null) {
             throw new IllegalArgumentException("param targetCols can not be null");
         }
-        ParsePostMCols postMCols = new ParsePostMCols();
+        CMeta.ParsePostMCols postMCols = new CMeta.ParsePostMCols();
         CMeta colMeta = null;
 
-        JSONObject targetCol = null;
-        int index;
+
         String targetColName = null;
         DataType dataType = null;
 
@@ -215,10 +227,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         Integer previousColIndex = null;
         boolean pk;
         // boolean pkHasSelected = false;
-        JSONObject type = null;
+        // JSONObject type = null;
         for (int i = 0; i < targetCols.size(); i++) {
-            targetCol = targetCols.getJSONObject(i);
-            index = targetCol.getInteger("index");
+            JSONObject targetCol = targetCols.getJSONObject(i);
+            int index = targetCol.getInteger("index") - 1;
             pk = targetCol.getBooleanValue("pk");
             targetColName = targetCol.getString("name");
             if (StringUtils.isNotBlank(targetColName) && (previousColIndex = existCols.put(targetColName, index)) != null) {
@@ -236,7 +248,15 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             }
 
 
-            colMeta = elementCreator.isPresent() ? elementCreator.get().create(targetCol) : new CMeta();
+            colMeta = elementCreator.map((creator) -> {
+                return creator.create(targetCol, (propKey, errMsg) -> {
+                    msgHandler.addFieldError(context
+                            , IFieldErrorHandler.joinField(SelectedTab.KEY_FIELD_COLS, Collections.singletonList(index), propKey)
+                            , errMsg);
+                    postMCols.validateFaild = true;
+                });
+            }).orElseGet(() -> new CMeta());
+
             colMeta.setDisable(targetCol.getBooleanValue("disable"));
             colMeta.setName(targetColName);
             colMeta.setPk(pk);
@@ -245,7 +265,22 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             }
             //{"s":"3,12,2","typeDesc":"decimal(12,2)","columnSize":12,"typeName":"VARCHAR","unsigned":false,
             // "decimalDigits":4,"type":3,"unsignedToken":""}
-            dataType = DataType.parseType(targetCol);
+//            if (targetCol.getInteger(DataType.KEY_COLUMN_SIZE) == null) {
+//                msgHandler.addFieldError(context, keyColsMeta + "[" + index + "]", "不能为空");
+//                postMCols.validateFaild = true;
+//            }
+//
+//            if (targetCol.getInteger(DataType.KEY_DECIMAL_DIGITS) == null) {
+//
+//                postMCols.validateFaild = true;
+//            }
+
+            dataType = CMeta.parseType(targetCol, (propKey, errMsg) -> {
+                msgHandler.addFieldError(context
+                        , IFieldErrorHandler.joinField(SelectedTab.KEY_FIELD_COLS, Collections.singletonList(index), propKey)
+                        , errMsg);
+                postMCols.validateFaild = true;
+            });
 
             //            dataType = DataType.create(type.getInteger("type"), type.getString("typeName"), type
             //            .getInteger(
@@ -254,8 +289,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             //            dataType.setDecimalDigits(type.getInteger("decimalDigits"));
             // DataType dataType = targetCol.getObject("type", DataType.class);
             // colMeta.setType(ISelectedTab.DataXReaderColType.parse(targetCol.getString("type")));
-            colMeta.setType(dataType);
-            postMCols.writerCols.add(colMeta);
+            if (dataType != null) {
+                colMeta.setType(dataType);
+                postMCols.writerCols.add(colMeta);
+            }
         }
 
         return postMCols;
@@ -322,7 +359,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         this.mergeProps(props, Optional.empty());
     }
 
-    public void mergeProps(PluginExtraProps props, Optional<Descriptor> desc) {
+    public void mergeProps(PluginExtraProps props, Optional<ElementPluginDesc> desc) {
         if (props == null) {
             throw new IllegalArgumentException("param props can not be null");
         }
@@ -335,152 +372,19 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 p.merge(entry.getValue());
             } else {
                 if (desc.isPresent()) {
-                    // && !(fieldKeys = desc.get().getPropertyFields()).contains(entry.getKey())
+                    ElementPluginDesc elmtDesc = desc.get();
+
+
                     Map<String, IPropertyType> pp = ppRef.updateAndGet((pre) -> {
-                        return (pre == null) ? Descriptor.buildPropertyTypes(Optional.empty(), desc.get().clazz) : pre;
+                        return (pre == null) ? PropertyType.buildPropertyTypes(Optional.empty(), elmtDesc.getElementDesc().clazz) : pre;
                     });
                     if (!pp.containsKey(entry.getKey())) {
-                        throw new IllegalStateException("prop key:" + entry.getKey() + " relevant prop must exist , " + "exist props keys:" + pp.keySet().stream().collect(Collectors.joining(",")));
+                        throw new IllegalStateException("prop key:" + entry.getKey()
+                                + " relevant prop must exist , " + "exist props keys:" + pp.keySet().stream().collect(Collectors.joining(",")));
                     }
                 }
                 this.put(entry.getKey(), entry.getValue());
             }
-        }
-    }
-
-    public static class MultiItemsViewType {
-        public final ViewType viewType;
-        public final Optional<CMeta.ElementCreatorFactory> tupleFactory;
-
-        private List<String> elementPropertyKeys;
-
-        public MultiItemsViewType(ViewType viewType, Optional<CMeta.ElementCreatorFactory> tupleFactory) {
-            this.viewType = viewType;
-            this.tupleFactory = Objects.requireNonNull(tupleFactory, "tupleFactory can not be null");
-        }
-
-        public List<FormFieldType.SelectedItem> getPostSelectedItems(PropertyType attrDesc,
-                                                                     IControlMsgHandler msgHandler, Context context,
-                                                                     JSONObject eprops) {
-            return this.viewType.getPostSelectedItems(attrDesc,msgHandler,context,eprops);
-        }
-
-        public List<String> getElementPropertyKeys() {
-            if (elementPropertyKeys == null) {
-                elementPropertyKeys = tupleFactory.map((factory) -> {
-                    try {
-                        return Lists.newArrayList(BeanUtilsBean2.getInstance().describe(factory.createDefault()).keySet());
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                }).orElseGet(() -> new ArrayList<>());
-            }
-            return elementPropertyKeys;
-        }
-
-        public List<?> serialize2Frontend(Object bizInstance) {
-            return viewType.serialize2Frontend(bizInstance);
-        }
-    }
-
-    /**
-     * Fieldtype 为 MULTI_SELECTABLE 类型显示的类型
-     * <ol>
-     *     <li>IdList：显示为Id列表</li>
-     *     <li>TupleList：显示为table列表</li>
-     * </ol>
-     *
-     * @see FormFieldType
-     */
-    public enum ViewType {
-        IdList("idlist" //
-                , (attrDesc, msgHandler, context, eprops) -> {
-            final String keyChecked = "checked";
-            JSONArray enums = eprops.getJSONArray(Descriptor.KEY_ENUM_PROP);
-            if (enums == null) {
-                enums = new JSONArray();
-                //   throw new IllegalStateException("enums of prop can not be null");
-            }
-            JSONObject select = null;
-            int selected = 0;
-            List<FormFieldType.SelectedItem> selectedItems = Lists.newArrayList();
-            FormFieldType.SelectedItem item = null;
-            Object val = null;
-            for (int i = 0; i < enums.size(); i++) {
-                select = enums.getJSONObject(i);
-                val = select.get("val");
-                if (val.getClass() != String.class) {
-                    throw new IllegalStateException("val:" + val + " must be type of String,but now is " + val.getClass());
-                }
-                item = new FormFieldType.SelectedItem(select.getString(PluginExtraProps.KEY_LABEL) //
-                        , String.valueOf(val) //
-                        , select.containsKey(keyChecked) && select.getBoolean(keyChecked));
-                if (item.isChecked()) {
-                    selected++;
-                }
-                selectedItems.add(item);
-            }
-            return selectedItems;
-        } // start bizSerializeFrontend
-                , (obj) -> {
-            List<CMeta> mulitOpt = (List<CMeta>) obj;
-            return mulitOpt.stream().map((c) -> c.getName()).collect(Collectors.toList());
-        }), TupleList("tuplelist" //
-                , (attrDesc, msgHandler, context, eprops) -> {
-
-            Optional<CMeta.ElementCreatorFactory> elementCreator = attrDesc.extraProp.getCMetaCreator();
-
-            String keyColsMeta = "";
-            JSONArray mcols = eprops.getJSONObject(Descriptor.KEY_ENUM_PROP).getJSONArray("_mcols");
-            ParsePostMCols parsePostMCols = parsePostMCols(elementCreator, msgHandler, context, keyColsMeta, mcols);
-            if (parsePostMCols.validateFaild) {
-                return Collections.emptyList();
-            }
-            //List<FormFieldType.SelectedItem>
-            return parsePostMCols.writerCols.stream() //
-                    .map((cmeta) -> new FormFieldType.SelectedItem(cmeta)).collect(Collectors.toList());
-        } // start bizSerializeFrontend
-                , (obj) -> {
-            return (List<CMeta>) obj;
-        });
-
-        private final String token;
-        private final IPostSelectedItemsGetter postSelectedItemsGetter;
-        /**
-         * 将biz层 object 转化成前端可序列化实例
-         */
-        private final Function<Object, List<?>> bizSerializeFrontend;
-
-        private ViewType(String token, IPostSelectedItemsGetter postSelectedItemsGetter,
-                         Function<Object, List<?>> bizSerializeFrontend) {
-            this.token = token;
-            this.postSelectedItemsGetter = postSelectedItemsGetter;
-            this.bizSerializeFrontend = bizSerializeFrontend;
-        }
-
-        public static ViewType parse(String token) {
-            if (StringUtils.isEmpty(token)) {
-                return ViewType.IdList;
-            }
-            for (ViewType t : ViewType.values()) {
-                if (t.token.equalsIgnoreCase(token)) {
-                    return t;
-                }
-            }
-            throw new IllegalStateException("token value:" + token + " is invalid");
-        }
-
-        /**
-         * 将biz层 object 转化成前端可序列化实例
-         */
-        public List<?> serialize2Frontend(Object bizInstance) {
-            return bizSerializeFrontend.apply(bizInstance);
-        }
-
-        public List<FormFieldType.SelectedItem> getPostSelectedItems(PropertyType attrDesc,
-                                                                     IControlMsgHandler msgHandler, Context context,
-                                                                     JSONObject eprops) {
-            return this.postSelectedItemsGetter.apply(attrDesc, msgHandler, context, eprops);
         }
     }
 
@@ -492,13 +396,29 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
     public static class Props {
         public static final String KEY_HELP = "help";
+        public static final String KEY_VALIDATOR = "validators";
         public static final String KEY_VIEW_TYPE = "viewtype";
         private static final String KEY_ASYNC_HELP = "asyncHelp";
         private final JSONObject props;
         private String asynHelp;
 
-        private MultiItemsViewType multiItemsViewType;
-
+        /**
+         * // Example: the descriptor for cols element of selectedTab
+         * // The host plugin class for the cols element
+         * //  hostPluginClazz 宿主plugin Class
+         */
+//        private final Map<Class<? extends Describable>, HostedExtraProps> hostedExtraProps = new HashMap<Class<? extends Describable>, HostedExtraProps>() {
+//            @Override
+//            public HostedExtraProps get(Object key) {
+//                HostedExtraProps val = super.get(key);
+//                if (val == null) {
+//                    val = new HostedExtraProps(new Props(new JSONObject()));
+//                    logger.warn("key:" + key + " relevant extraProp");
+//                    this.put((Class<? extends Describable>) key, val);
+//                }
+//                return val;
+//            }
+//        };
         public Props(JSONObject props) {
             this.props = props;
         }
@@ -523,6 +443,49 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return (String) props.get(KEY_HELP);
         }
 
+        public List<ValidatorCfg> getExtraValidators() {
+            Object v = props.get(KEY_VALIDATOR);
+            if (v == null) {
+                return Collections.emptyList();
+            }
+            if (v instanceof String) {
+                return Collections.singletonList(ValidatorCfg.parse((String) v));
+            }
+            if (v instanceof JSONArray) {
+                List<ValidatorCfg> result = Lists.newArrayList();
+                for (Object validator : (JSONArray) v) {
+                    result.add(ValidatorCfg.parse(String.valueOf(validator)));
+                }
+                return result;
+            }
+            throw new IllegalStateException("validate:" + v);
+        }
+
+        public static class ValidatorCfg {
+            public final Validator validator;
+            public final boolean disable;
+
+            private static ValidatorCfg parse(String token) {
+                String[] split = StringUtils.split(token, ":");
+                if (split.length == 1) {
+                    return new ValidatorCfg(Validator.parse(String.valueOf(split[0])));
+                } else if (split.length == 2) {
+                    return new ValidatorCfg(Validator.parse(String.valueOf(split[0])), KEY_DISABLE.equalsIgnoreCase(split[1]));
+                }
+
+                throw new IllegalStateException("in validate token:" + token);
+            }
+
+            public ValidatorCfg(Validator validator) {
+                this(validator, false);
+            }
+
+            public ValidatorCfg(Validator validator, boolean disable) {
+                this.validator = validator;
+                this.disable = disable;
+            }
+        }
+
         public boolean isAdvance() {
             return props.getBooleanValue(DescriptorsJSON.KEY_ADVANCE);
         }
@@ -532,28 +495,37 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
          *
          * @return
          */
-        @JSONField(serialize = false)
-        public MultiItemsViewType multiItemsViewType() {
+//        @JSONField(serialize = false)
+//        public MultiItemsViewType multiItemsViewType(Class<? extends Describable> hostPluginClazz) {
+//
+//            final HostedExtraProps hostExtraProp = (this.hostedExtraProps.get(hostPluginClazz));
+//            if (hostExtraProp == null) {
+//                throw new IllegalStateException("hostPluginClazz:" + hostPluginClazz + " relevant plugin class can not be null,relevant hostProps keys:"
+//                        + this.hostedExtraProps.keySet().stream().map((clazz) -> clazz.getName()).collect(Collectors.joining(",")));
+//            }
+//
+//            if (hostExtraProp.multiItemsViewType == null) {
+//                Optional<CMeta.ElementCreatorFactory> elementCreator = Optional.empty();
+//                try {
+//                    String selectElementCreator = hostExtraProp.getStrProp(CMeta.KEY_ELEMENT_CREATOR_FACTORY);
+//                    if (StringUtils.isNotEmpty(selectElementCreator)) {
+//                        elementCreator = Optional.of((CMeta.ElementCreatorFactory) //
+//                                TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
+//                    }
+//                } catch (Exception e) {
+//                    throw new RuntimeException(e);
+//                }
+//                hostExtraProp.multiItemsViewType = new MultiItemsViewType(ViewType.parse(hostExtraProp.getStrProp(KEY_VIEW_TYPE)),
+//                        elementCreator, hostPluginClazz);
+//            }
+//
+//            return hostExtraProp.multiItemsViewType;
+//        }
 
-            if (multiItemsViewType == null) {
-                Optional<CMeta.ElementCreatorFactory> elementCreator = Optional.empty();
-                try {
-                    String selectElementCreator = this.getProps().getString(CMeta.KEY_ELEMENT_CREATOR_FACTORY);
-                    if (StringUtils.isNotEmpty(selectElementCreator)) {
-                        elementCreator = Optional.of((CMeta.ElementCreatorFactory) //
-                                TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                multiItemsViewType = new MultiItemsViewType(ViewType.parse(this.props.getString(KEY_VIEW_TYPE)),
-                        elementCreator);
-            }
-
-            return multiItemsViewType;
-        }
-
-
+//        @JSONField(serialize = false)
+//        public Optional<CMeta.ElementCreatorFactory> getCMetaCreator(Class<? extends Describable> hostPluginClazz) {
+//            return this.multiItemsViewType(hostPluginClazz).tupleFactory;
+//        }
         @JSONField(serialize = false)
         public String getPlaceholder() {
             Object p = props.get(KEY_PLACEHOLDER_PROP);
@@ -593,11 +565,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         // private Optional<CMeta.ElementCreatorFactory> elementCreator;
 
-        @JSONField(serialize = false)
-        public Optional<CMeta.ElementCreatorFactory> getCMetaCreator() {
-            return this.multiItemsViewType().tupleFactory;
-        }
-
+//        public void merge(Class<? extends Describable> hostedPluginClazz, Props p) {
+//            this.hostedExtraProps.put(hostedPluginClazz, new HostedExtraProps(p));
+//        }
 
         public void merge(Props p) {
             jsonMerge(props, p.props);
@@ -659,9 +629,4 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         }
     }
 
-    public static class ParsePostMCols {
-        public List<CMeta> writerCols = Lists.newArrayList();
-        public boolean validateFaild = false;
-        public boolean pkHasSelected = false;
-    }
 }

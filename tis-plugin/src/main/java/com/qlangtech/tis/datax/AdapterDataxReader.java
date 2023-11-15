@@ -35,6 +35,7 @@ import java.util.function.Predicate;
 public class AdapterDataxReader implements IDataxReader {
     private final IDataxReader reader;
 
+
     public AdapterDataxReader(IDataxReader reader) {
         this.reader = reader;
     }
@@ -42,6 +43,11 @@ public class AdapterDataxReader implements IDataxReader {
     @Override
     public boolean hasMulitTable() {
         return reader.hasMulitTable();
+    }
+
+    @Override
+    public void startScanDependency() {
+        reader.startScanDependency();
     }
 
     @Override

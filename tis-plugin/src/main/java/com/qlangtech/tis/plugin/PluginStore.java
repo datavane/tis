@@ -31,6 +31,7 @@ import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.RobustReflectionConverter2;
+import com.thoughtworks.xstream.core.MapBackedDataHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -42,6 +43,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -107,11 +109,24 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     }
 
     @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PluginStore<?> that = (PluginStore<?>) o;
+        return (this.hashCode() == that.hashCode());
+    }
+
+    @Override
+    public final int hashCode() {
+        return Objects.hash(file.getFile().getAbsolutePath());
+    }
+
+    @Override
     public List<T> getPlugins() {
         this.load();
         RobustReflectionConverter2.PluginMetas metas = null;
         if (pluginMetas != null && !(metas = RobustReflectionConverter2.usedPluginInfo.get()).isCacheable()) {
-            metas.addAll(pluginMetas);
+            metas.addAll(pluginMetas, this);
         }
         return plugins;
     }
@@ -265,6 +280,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
 
             this.plugins = collect;
             boolean changed = this.file.write(this, pluginsMeta);
+            this.loaded = true;
             long lastModifyTimestamp = -1;
             if (changed) {
                 // 将代表组文件的更新时间戳更新
@@ -296,6 +312,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             if (changed) {
                 pluginsResult.lastModifyTimeStamp = lastModifyTimestamp;
             }
+
             return pluginsResult;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -396,12 +413,22 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             throw new RuntimeException(e);
         }
 
+        processError(dataHolder, (e) -> {
+            return file.getFile().getAbsolutePath() + "\n" + TIS.get().getPluginManager().getFaildPluginsDesc();
+        });
+        this.pluginMetas = CollectionUtils.isEmpty(pluginMetas) ? null : pluginMetas;
+    }
+
+    public static void processError(MapBackedDataHolder dataHolder) {
+        processError(dataHolder, (err) -> err.getMessage());
+    }
+
+    private static void processError(MapBackedDataHolder dataHolder, Function<Throwable, String> errMsgCreator) {
         ArrayList<Throwable> errors = (ArrayList<Throwable>) dataHolder.get("ReadError");
         if (CollectionUtils.isNotEmpty(errors)) {
             for (Throwable t : errors) {
-                throw new RuntimeException(file.getFile().getAbsolutePath() + "\n" + TIS.get().getPluginManager().getFaildPluginsDesc(), t);
+                throw new RuntimeException(errMsgCreator.apply(t), t);
             }
         }
-        this.pluginMetas = CollectionUtils.isEmpty(pluginMetas) ? null : pluginMetas;
     }
 }

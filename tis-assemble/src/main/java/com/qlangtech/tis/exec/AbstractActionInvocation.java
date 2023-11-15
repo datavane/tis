@@ -43,28 +43,8 @@ public class AbstractActionInvocation implements ActionInvocation {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractActionInvocation.class);
 
-//    private static final IExecuteInterceptor[] directBuild = new IExecuteInterceptor[]{ // /////
-//            new IndexBuildWithHdfsPathInterceptor(), new IndexBackFlowInterceptor()};
-
-    // 工作流執行方式
-//    public static final IExecuteInterceptor[] workflowBuild = new IExecuteInterceptor[]{ // new WorkflowTableJoinInterceptor(),
-//            new WorkflowDumpAndJoinInterceptor(), new WorkflowIndexBuildInterceptor(), new IndexBackFlowInterceptor()};
-
     public static final IExecuteInterceptor[] dataXBuild = new IExecuteInterceptor[]{new DataXExecuteInterceptor()};
 
-//    private static IIndexMetaData createIndexMetaData(DefaultChainContext chainContext) {
-//        if (!chainContext.hasIndexName()) {
-//            return new DummyIndexMetaData();
-//        }
-//        try {
-//            SnapshotDomain domain = HttpConfigFileReader.getResource(chainContext.getIndexName(), RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA);
-//            return SolrFieldsParser.parse(() -> {
-//                return ConfigFileReader.FILE_SCHEMA.getContent(domain);
-//            });
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
 
     /**
      * 创建执行链
@@ -76,62 +56,11 @@ public class AbstractActionInvocation implements ActionInvocation {
         IExecuteInterceptor[] ints = null;
 
         if (!chainContext.hasIndexName() && chainContext.getWorkflowId() != null) {
-
-
             ints = new IExecuteInterceptor[]{new WorkflowDumpAndJoinInterceptor()};
-
-
-            //console中直接用workflow触发
-//            throw new NotImplementedException("console中直接用workflow触发");
-
         } else if (chainContext.hasIndexName()) {
-
-            // IBasicAppSource appSource = chainContext.getAppSource();
-
             ints = dataXBuild;
-            // appSource.accept(new IBasicAppSource.IAppSourceVisitor<IExecuteInterceptor[]>() {
-//                @Override
-//                public IExecuteInterceptor[] visit(DataxProcessor app) {
-//                    return dataXBuild;
-//                }
-//
-//                @Override
-//                public IExecuteInterceptor[] visit(ISingleTableAppSource single) {
-//                    //   return visitSolrAppSource(single);
-//                    throw new UnsupportedOperationException();
-//                }
-//
-//                @Override
-//                public IExecuteInterceptor[] visit(IDataFlowAppSource dataflow) {
-//                    // return visitSolrAppSource(dataflow);
-//                    throw new UnsupportedOperationException();
-//                }
-//
-//                // private IExecuteInterceptor[] visitSolrAppSource(ISolrAppSource appSource) {
-//
-////                    Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
-////                    Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");
-////                    // chainContext.setIndexMetaData(createIndexMetaData(chainContext));
-////
-////                    EntityName targetEntity = appSource.getTargetEntity();
-////                    chainContext.setAttribute(IExecChainContext.KEY_BUILD_TARGET_TABLE_NAME, targetEntity);
-////                    IPrimaryTabFinder pTabFinder = appSource.getPrimaryTabFinder();
-////                    chainContext.setAttribute(IFullBuildContext.KEY_ER_RULES, pTabFinder);
-////                    return workflowBuild;
-//                //  throw new UnsupportedOperationException();
-//                //}
-//
-//
-//            });
-
-
         } else {
-//            if ("true".equalsIgnoreCase(chainContext.getString(COMMAND_KEY_DIRECTBUILD))) {
-//                ints = directBuild;
-//            } else {
-            // ints = fullints;
             throw new UnsupportedOperationException();
-            //}
         }
         Integer taskid = chainContext.getTaskId();
         TrackableExecuteInterceptor.initialTaskPhase(taskid);
@@ -212,7 +141,8 @@ public class AbstractActionInvocation implements ActionInvocation {
             try {
                 current = componentOrders.get(FullbuildPhase.getFirst(interceptor.getPhase()));
             } catch (Throwable e) {
-                throw new IllegalStateException("component:" + FullbuildPhase.desc(interceptor.getPhase()) + " can not find value in componentOrders," + componentOrders.toString());
+                throw new IllegalStateException("component:" + FullbuildPhase.desc(interceptor.getPhase())
+                        + " can not find value in componentOrders," + componentOrders.toString());
             }
             if (current >= startIndex && current <= endIndex) {
                 logger.info("execute " + FullbuildPhase.desc(interceptor.getPhase()) + ":" + current + "[" + startIndex + "," + endIndex + "]");

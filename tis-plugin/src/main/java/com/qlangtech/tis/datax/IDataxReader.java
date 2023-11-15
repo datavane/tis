@@ -17,8 +17,10 @@
  */
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.plugin.IRepositoryResourceScannable;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -27,7 +29,7 @@ import java.util.function.Predicate;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 14:36
  */
-public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta, IStreamTableMeataCreator.ISourceStreamMetaCreator {
+public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta, IStreamTableMeataCreator.ISourceStreamMetaCreator, IRepositoryResourceScannable {
 
     /**
      * 是否支持导入多个子表，当reader如果只支持单个表，那writer如果是MysqlWriter就可以指定表名称和列名
@@ -39,6 +41,19 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta, IStreamT
     }
 
     <T extends ISelectedTab> List<T> getSelectedTabs();
+
+    @Override
+    default ISelectedTab getSelectedTab(String tableName) {
+        if (StringUtils.isEmpty(tableName)) {
+            throw new IllegalArgumentException("param tableName can not be null");
+        }
+        for (ISelectedTab tab : getSelectedTabs()) {
+            if (tableName.equals(tab.getName())) {
+                return tab;
+            }
+        }
+        throw new IllegalStateException("tableName:" + tableName + " relevant tab can not be null");
+    }
 
     /**
      * 取得子任务

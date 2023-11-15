@@ -349,14 +349,6 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 
     @Override
     public File getDataxCreateDDLDir(IPluginContext pluginContext) {
-//        File dataXWorkDir = getDataXWorkDir(pluginContext);
-//        File ddlDir = new File(dataXWorkDir, DATAX_CREATE_DDL_DIR_NAME);
-//        try {
-//            FileUtils.forceMkdir(ddlDir);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//        return ddlDir;
         return getDataxCreateDDLDir(pluginContext, this);
     }
 

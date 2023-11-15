@@ -21,7 +21,10 @@ package com.qlangtech.tis.datax;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
+import com.qlangtech.tis.assemble.ExecResult;
+import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.TISExtensible;
@@ -39,8 +42,11 @@ import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.RobustReflectionConverter2;
 import com.qlangtech.tis.web.start.TisAppLaunch;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.tis.hadoop.rpc.RpcServiceReference;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import com.qlangtech.tis.dao.ICommonDAOContext;
 
 import java.net.URL;
 import java.util.Enumeration;
@@ -76,12 +82,17 @@ public abstract class DataXJobSubmit {
     public Integer parallelism;
 
     public static DataXJobSubmit.InstanceType getDataXTriggerType() {
-        if (TisAppLaunch.isTestMock()) {
+
+        DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME
+                , Optional.of(DataXJobWorker.K8SWorkerCptType.Server));
+        boolean dataXWorkerServiceOnDuty = jobWorker != null && jobWorker.inService();
+        DataXJobSubmit.InstanceType execType
+                = dataXWorkerServiceOnDuty ? DataXJobSubmit.InstanceType.DISTRIBUTE : DataXJobSubmit.InstanceType.LOCAL;
+
+        if (execType == DataXJobSubmit.InstanceType.LOCAL && TisAppLaunch.isTestMock()) {
             return InstanceType.EMBEDDED;
         }
-        DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME);
-        boolean dataXWorkerServiceOnDuty = jobWorker != null && jobWorker.inService();
-        return dataXWorkerServiceOnDuty ? DataXJobSubmit.InstanceType.DISTRIBUTE : DataXJobSubmit.InstanceType.LOCAL;
+        return execType;
     }
 
     public static Optional<DataXJobSubmit> getDataXJobSubmit(boolean dryRun,
@@ -109,6 +120,10 @@ public abstract class DataXJobSubmit {
     public static Optional<DataXJobSubmit> getDataXJobSubmit(IJoinTaskContext joinTaskContext,
                                                              DataXJobSubmit.InstanceType expectDataXJobSumit) {
         return getDataXJobSubmit(joinTaskContext.isDryRun(), expectDataXJobSumit);
+    }
+
+    public ExecResult processExecHistoryRecord(ICommonDAOContext commonDAO, WorkFlowBuildHistory buildHistory) {
+        throw new UnsupportedOperationException();
     }
 
     public enum InstanceType {
@@ -191,6 +206,27 @@ public abstract class DataXJobSubmit {
     }
 
     /**
+     * 从TIS Console组件中触发构建全量任务
+     *
+     * @param module
+     * @param context
+     * @param appName
+     * @return
+     */
+    public abstract TriggerBuildResult triggerJob(IControlMsgHandler module, final Context context, String appName);
+
+
+    /**
+     * 创建任务, 例如此处可以初始化powerjob的workflow实例
+     *
+     * @param module
+     * @param context
+     * @param dataxProcessor
+     */
+    public abstract void createJob(IControlMsgHandler module, final Context context, DataxProcessor dataxProcessor);
+
+
+    /**
      * 创建dataX任务
      *
      * @param taskContext
@@ -207,7 +243,7 @@ public abstract class DataXJobSubmit {
             RobustReflectionConverter2.PluginMetas pluginMetas =
                     RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
 
-            });
+                    });
         }
 
         CuratorDataXTaskMessage dataXJobDTO = getDataXJobDTO(taskContext, jobName, processor);
@@ -215,9 +251,9 @@ public abstract class DataXJobSubmit {
         return createDataXJob(taskContext, statusRpc, jobName, processor, dataXJobDTO);
     }
 
-    protected abstract IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc,
-                                                         DataXJobInfo jobName, IDataxProcessor dataxProcessor,
-                                                         CuratorDataXTaskMessage dataXJobDTO);
+    public abstract IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc,
+                                                      DataXJobInfo jobName, IDataxProcessor dataxProcessor,
+                                                      CuratorDataXTaskMessage dataXJobDTO);
 
 
     private DataXJobInfo getDataXJobInfo(final TableDataXEntity tabDataXEntity, IDataXJobContext taskContext,
@@ -225,6 +261,10 @@ public abstract class DataXJobSubmit {
 
         List<IDataxReader> readers = taskContext.getTaskContext().getAttribute(KEY_DATAX_READERS,
                 () -> dataxProcessor.getReaders(null));
+
+        if (CollectionUtils.isEmpty(readers)) {
+            throw new IllegalStateException("readers can not be empty");
+        }
 
         return getDataXJobInfo(tabDataXEntity, (p) -> {
             TableInDB tabsInDB = p.getLeft();
@@ -282,7 +322,6 @@ public abstract class DataXJobSubmit {
                 public String getName() {
                     return tabName;
                 }
-
 
 
                 @Override
