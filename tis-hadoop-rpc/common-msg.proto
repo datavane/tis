@@ -67,3 +67,7 @@ message TableDumpStatus {
     bool complete = 6;
     bool waiting = 7;
 }
+
+message Empty {
+
+}
