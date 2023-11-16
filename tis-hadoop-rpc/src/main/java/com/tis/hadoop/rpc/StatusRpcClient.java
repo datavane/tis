@@ -23,6 +23,7 @@ import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.realtime.yarn.rpc.*;
 import com.qlangtech.tis.rpc.grpc.log.ILogReporter;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
@@ -335,6 +336,11 @@ public class StatusRpcClient {
 
         @Override
         public void initSynJob(PhaseStatusCollection buildStatus) {
+
+        }
+
+        @Override
+        public void reportJoinStatus(JoinPhaseStatus.JoinTaskStatus joinTaskStatus) {
 
         }
 

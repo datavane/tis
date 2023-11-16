@@ -59,6 +59,8 @@ public interface IncrStatusUmbilicalProtocol {
      */
     public void reportDumpTableStatus(TableDumpStatus tableDumpStatus);
 
+    public void reportJoinStatus(JoinPhaseStatus.JoinTaskStatus joinTaskStatus);
+
     /**
      * 报告索引build階段執行狀態
      *

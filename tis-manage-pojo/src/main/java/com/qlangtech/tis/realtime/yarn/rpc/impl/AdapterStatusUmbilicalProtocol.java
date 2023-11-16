@@ -21,6 +21,7 @@ package com.qlangtech.tis.realtime.yarn.rpc.impl;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.realtime.yarn.rpc.*;
 import org.apache.commons.lang.NotImplementedException;
 
@@ -46,6 +47,11 @@ public class AdapterStatusUmbilicalProtocol implements IncrStatusUmbilicalProtoc
 
     @Override
     public void nodeLaunchReport(LaunchReportInfo launchReportInfo) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void reportJoinStatus(JoinPhaseStatus.JoinTaskStatus joinTaskStatus) {
         throw new NotImplementedException();
     }
 

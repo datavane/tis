@@ -44,6 +44,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -268,14 +269,15 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
                          io.grpc.stub.StreamObserver<com.qlangtech.tis.rpc.grpc.log.common.Empty> responseObserver) {
 
         List<Supplier<FullbuildPhase>> phaseJudgemment = Lists.newArrayList();
-        phaseJudgemment.add(() -> request.getDumpPhase() != null ? FullbuildPhase.FullDump : null);
-        phaseJudgemment.add(() -> request.getJoinPhase() != null ? FullbuildPhase.JOIN : null);
-        phaseJudgemment.add(() -> request.getBuildPhase() != null ? FullbuildPhase.BUILD : null);
-        phaseJudgemment.add(() -> request.getIndexBackFlowPhaseStatus() != null ? FullbuildPhase.IndexBackFlow : null);
+        phaseJudgemment.add(() -> request.getDumpPhase().getTablesDumpCount() > 0 ? FullbuildPhase.FullDump : null);
+        phaseJudgemment.add(() -> request.getJoinPhase().getTaskStatusCount() > 0 ? FullbuildPhase.JOIN : null);
+        phaseJudgemment.add(() -> request.getBuildPhase().getNodeBuildStatusCount() > 0 ? FullbuildPhase.BUILD : null);
+        phaseJudgemment.add(() -> request.getIndexBackFlowPhaseStatus().getNodesStatusCount() > 0 ? FullbuildPhase.IndexBackFlow : null);
 
         ExecutePhaseRange phaseRange = createPhaseRange(phaseJudgemment);
-
-        TrackableExecuteInterceptor.initialTaskPhase(LogCollectorClient.convert(request, phaseRange));
+        PhaseStatusCollection statusCollection = LogCollectorClient.convert(request, phaseRange);
+        statusCollection.flushStatus2Local();
+        TrackableExecuteInterceptor.initialTaskPhase(statusCollection);
 
         responseObserver.onNext(com.qlangtech.tis.rpc.grpc.log.common.Empty.newBuilder().build());
         responseObserver.onCompleted();
@@ -290,8 +292,8 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
                 break;
             }
         }
-        Supplier<FullbuildPhase>[] reversed = (Supplier<FullbuildPhase>[]) phaseJudgemment.toArray();
-        CollectionUtils.reverseArray(reversed);
+        List<Supplier<FullbuildPhase>> reversed = Lists.newArrayList(phaseJudgemment);
+        Collections.reverse(reversed);
         for (Supplier<FullbuildPhase> s : reversed) {
             if ((end = s.get()) != null) {
                 break;

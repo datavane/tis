@@ -169,6 +169,12 @@ public class IncrStatusClient implements IncrStatusUmbilicalProtocol {
         blockingStub.reportBuildIndexStatus(builder.build());
     }
 
+
+    @Override
+    public void reportJoinStatus(JoinPhaseStatus.JoinTaskStatus joinTaskStatus) {
+      //  blockingStub.re
+    }
+
     /**
      * Issues several different requests and then exits.
      */
