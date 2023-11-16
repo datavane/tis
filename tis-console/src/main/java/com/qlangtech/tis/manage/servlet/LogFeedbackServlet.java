@@ -190,6 +190,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
     private StreamObserver<PMonotorTarget> getMonitorSet() {
       if (pMonotorObserver == null) {
         StatusRpcClient.AssembleSvcCompsite feedback = getStatusRpc().get();
+
         pMonotorObserver = feedback.registerMonitorEvent(this);
       }
       return pMonotorObserver;
