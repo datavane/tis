@@ -16,7 +16,7 @@ service LogCollector {
     rpc BuildPhraseStatus (PBuildPhaseStatusParam) returns (stream PPhaseStatusCollection) {
     }
     // 分布式环境下，启动一个同步任务先需要向assemble节点注册所有子任务
-    rpc InitTask (PPhaseStatusCollection) returns () {}
+    rpc InitTask (PPhaseStatusCollection) returns (Empty) {}
 }
 
 message PBuildPhaseStatusParam {
