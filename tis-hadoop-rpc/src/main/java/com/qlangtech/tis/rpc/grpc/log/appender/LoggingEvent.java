@@ -17,6 +17,7 @@ private static final long serialVersionUID = 0L;
   }
   private LoggingEvent() {
     body_ = "";
+    level_ = 0;
   }
 
   @java.lang.Override
@@ -62,6 +63,12 @@ private static final long serialVersionUID = 0L;
             body_ = s;
             break;
           }
+          case 24: {
+            int rawValue = input.readEnum();
+
+            level_ = rawValue;
+            break;
+          }
           default: {
             if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
@@ -104,6 +111,121 @@ private static final long serialVersionUID = 0L;
     return com.qlangtech.tis.rpc.grpc.log.appender.LogAppenderService.internal_static_stream_LoggingEvent_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.class, com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.Builder.class);
+  }
+
+  /**
+   * Protobuf enum {@code stream.LoggingEvent.Level}
+   */
+  public enum Level
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <pre>
+     * 说明是空对象
+     * </pre>
+     *
+     * <code>INFO = 0;</code>
+     */
+    INFO(0),
+    /**
+     * <code>WARNING = 1;</code>
+     */
+    WARNING(1),
+    /**
+     * <code>ERROR = 2;</code>
+     */
+    ERROR(2),
+    UNRECOGNIZED(-1),
+    ;
+
+    /**
+     * <pre>
+     * 说明是空对象
+     * </pre>
+     *
+     * <code>INFO = 0;</code>
+     */
+    public static final int INFO_VALUE = 0;
+    /**
+     * <code>WARNING = 1;</code>
+     */
+    public static final int WARNING_VALUE = 1;
+    /**
+     * <code>ERROR = 2;</code>
+     */
+    public static final int ERROR_VALUE = 2;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static Level valueOf(int value) {
+      return forNumber(value);
+    }
+
+    public static Level forNumber(int value) {
+      switch (value) {
+        case 0: return INFO;
+        case 1: return WARNING;
+        case 2: return ERROR;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<Level>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        Level> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<Level>() {
+            public Level findValueByNumber(int number) {
+              return Level.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.getDescriptor().getEnumTypes().get(0);
+    }
+
+    private static final Level[] VALUES = values();
+
+    public static Level valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private Level(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:stream.LoggingEvent.Level)
   }
 
   private int bitField0_;
@@ -217,6 +339,23 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int LEVEL_FIELD_NUMBER = 3;
+  private int level_;
+  /**
+   * <code>.stream.LoggingEvent.Level level = 3;</code>
+   */
+  public int getLevelValue() {
+    return level_;
+  }
+  /**
+   * <code>.stream.LoggingEvent.Level level = 3;</code>
+   */
+  public com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.Level getLevel() {
+    @SuppressWarnings("deprecation")
+    com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.Level result = com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.Level.valueOf(level_);
+    return result == null ? com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.Level.UNRECOGNIZED : result;
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -240,6 +379,9 @@ private static final long serialVersionUID = 0L;
     if (!getBodyBytes().isEmpty()) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, body_);
     }
+    if (level_ != com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.Level.INFO.getNumber()) {
+      output.writeEnum(3, level_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -262,6 +404,10 @@ private static final long serialVersionUID = 0L;
     if (!getBodyBytes().isEmpty()) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, body_);
     }
+    if (level_ != com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.Level.INFO.getNumber()) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeEnumSize(3, level_);
+    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -281,6 +427,7 @@ private static final long serialVersionUID = 0L;
         other.internalGetHeaders())) return false;
     if (!getBody()
         .equals(other.getBody())) return false;
+    if (level_ != other.level_) return false;
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -298,6 +445,8 @@ private static final long serialVersionUID = 0L;
     }
     hash = (37 * hash) + BODY_FIELD_NUMBER;
     hash = (53 * hash) + getBody().hashCode();
+    hash = (37 * hash) + LEVEL_FIELD_NUMBER;
+    hash = (53 * hash) + level_;
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -456,6 +605,8 @@ private static final long serialVersionUID = 0L;
       internalGetMutableHeaders().clear();
       body_ = "";
 
+      level_ = 0;
+
       return this;
     }
 
@@ -487,6 +638,7 @@ private static final long serialVersionUID = 0L;
       result.headers_ = internalGetHeaders();
       result.headers_.makeImmutable();
       result.body_ = body_;
+      result.level_ = level_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -541,6 +693,9 @@ private static final long serialVersionUID = 0L;
       if (!other.getBody().isEmpty()) {
         body_ = other.body_;
         onChanged();
+      }
+      if (other.level_ != 0) {
+        setLevelValue(other.getLevelValue());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -760,6 +915,51 @@ private static final long serialVersionUID = 0L;
   checkByteStringIsUtf8(value);
       
       body_ = value;
+      onChanged();
+      return this;
+    }
+
+    private int level_ = 0;
+    /**
+     * <code>.stream.LoggingEvent.Level level = 3;</code>
+     */
+    public int getLevelValue() {
+      return level_;
+    }
+    /**
+     * <code>.stream.LoggingEvent.Level level = 3;</code>
+     */
+    public Builder setLevelValue(int value) {
+      level_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>.stream.LoggingEvent.Level level = 3;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.Level getLevel() {
+      @SuppressWarnings("deprecation")
+      com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.Level result = com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.Level.valueOf(level_);
+      return result == null ? com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.Level.UNRECOGNIZED : result;
+    }
+    /**
+     * <code>.stream.LoggingEvent.Level level = 3;</code>
+     */
+    public Builder setLevel(com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.Level value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      
+      level_ = value.getNumber();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>.stream.LoggingEvent.Level level = 3;</code>
+     */
+    public Builder clearLevel() {
+      
+      level_ = 0;
       onChanged();
       return this;
     }
