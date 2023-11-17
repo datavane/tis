@@ -25,9 +25,12 @@ import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.log.RealtimeLoggerCollectorAppender;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
-import com.qlangtech.tis.realtime.yarn.rpc.PingResult;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
-import com.qlangtech.tis.rpc.grpc.log.stream.*;
+import com.qlangtech.tis.rpc.grpc.log.stream.LogCollectorGrpc;
+import com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam;
+import com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState;
+import com.qlangtech.tis.rpc.grpc.log.stream.PMonotorTarget;
+import com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection;
 import com.qlangtech.tis.trigger.jst.MonotorTarget;
 import com.qlangtech.tis.trigger.socket.LogType;
 import com.qlangtech.tis.utils.Utils;
@@ -36,7 +39,6 @@ import io.grpc.ServerBuilder;
 import io.grpc.Status;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,10 +50,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
 import java.util.function.Supplier;
-
-import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
 /**
  * 全量执行各个节点状态收集，供console端实时拉取
