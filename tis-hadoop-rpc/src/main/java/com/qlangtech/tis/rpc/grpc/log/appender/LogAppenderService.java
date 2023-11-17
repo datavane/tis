@@ -34,13 +34,16 @@ public final class LogAppenderService {
   static {
     java.lang.String[] descriptorData = {
       "\n\025logger-appender.proto\022\006stream\032\020common-" +
-      "msg.proto\"\200\001\n\014LoggingEvent\0222\n\007headers\030\001 " +
+      "msg.proto\"\326\001\n\014LoggingEvent\0222\n\007headers\030\001 " +
       "\003(\0132!.stream.LoggingEvent.HeadersEntry\022\014" +
-      "\n\004body\030\002 \001(\t\032.\n\014HeadersEntry\022\013\n\003key\030\001 \001(" +
-      "\t\022\r\n\005value\030\002 \001(\t:\0028\00127\n\013LogAppender\022(\n\006A" +
-      "ppend\022\024.stream.LoggingEvent\032\006.Empty\"\000BF\n" +
-      "\'com.qlangtech.tis.rpc.grpc.log.appender" +
-      "B\022LogAppenderServiceP\001\242\002\004HLWSb\006proto3"
+      "\n\004body\030\002 \001(\t\022)\n\005level\030\003 \001(\0162\032.stream.Log" +
+      "gingEvent.Level\032.\n\014HeadersEntry\022\013\n\003key\030\001" +
+      " \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\")\n\005Level\022\010\n\004INFO" +
+      "\020\000\022\013\n\007WARNING\020\001\022\t\n\005ERROR\020\00227\n\013LogAppende" +
+      "r\022(\n\006Append\022\024.stream.LoggingEvent\032\006.Empt" +
+      "y\"\000BF\n\'com.qlangtech.tis.rpc.grpc.log.ap" +
+      "penderB\022LogAppenderServiceP\001\242\002\004HLWSb\006pro" +
+      "to3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -60,7 +63,7 @@ public final class LogAppenderService {
     internal_static_stream_LoggingEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_stream_LoggingEvent_descriptor,
-        new java.lang.String[] { "Headers", "Body", });
+        new java.lang.String[] { "Headers", "Body", "Level", });
     internal_static_stream_LoggingEvent_HeadersEntry_descriptor =
       internal_static_stream_LoggingEvent_descriptor.getNestedTypes().get(0);
     internal_static_stream_LoggingEvent_HeadersEntry_fieldAccessorTable = new

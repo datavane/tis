@@ -50,4 +50,13 @@ public interface LoggingEventOrBuilder extends
    */
   com.google.protobuf.ByteString
       getBodyBytes();
+
+  /**
+   * <code>.stream.LoggingEvent.Level level = 3;</code>
+   */
+  int getLevelValue();
+  /**
+   * <code>.stream.LoggingEvent.Level level = 3;</code>
+   */
+  com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.Level getLevel();
 }
