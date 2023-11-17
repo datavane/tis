@@ -17,16 +17,18 @@
  */
 package com.qlangtech.tis.rpc.server;
 
+import com.qlangtech.tis.fullbuild.phasestatus.JobLog;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
-import com.qlangtech.tis.grpc.Empty;
+import com.qlangtech.tis.rpc.grpc.log.common.Empty;
 import com.qlangtech.tis.grpc.IncrStatusGrpc;
 import com.qlangtech.tis.grpc.LaunchReportInfoEntry;
 import com.qlangtech.tis.grpc.TableSingleDataIndexStatus;
 import com.qlangtech.tis.realtime.yarn.rpc.*;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
+import com.qlangtech.tis.rpc.grpc.log.common.JoinTaskStatus;
 import com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus;
 import com.qlangtech.tis.rpc.grpc.log.stream.LogCollectorGrpc;
 import com.qlangtech.tis.rpc.grpc.log.stream.PJoinPhaseStatus;
@@ -37,6 +39,7 @@ import io.grpc.ManagedChannelBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -167,12 +170,29 @@ public class IncrStatusClient implements IncrStatusUmbilicalProtocol {
         builder.setTaskid(buildStatus.getTaskid());
         builder.setWaiting(buildStatus.isWaiting());
         blockingStub.reportBuildIndexStatus(builder.build());
+
     }
 
 
     @Override
     public void reportJoinStatus(JoinPhaseStatus.JoinTaskStatus joinTaskStatus) {
-      //  blockingStub.re
+        //  blockingStub.re
+        JoinTaskStatus.Builder joinStatBuilder = JoinTaskStatus.newBuilder();
+        joinStatBuilder.setJoinTaskName(joinTaskStatus.getName());
+        joinStatBuilder.setWaiting(joinTaskStatus.isWaiting());
+        joinStatBuilder.setFaild(joinTaskStatus.isFaild());
+        joinStatBuilder.setComplete(joinTaskStatus.isComplete());
+        com.qlangtech.tis.rpc.grpc.log.common.JobLog.Builder logBuilder = null;
+        JobLog log = null;
+        for (Map.Entry<Integer, JobLog> entry : joinTaskStatus.jobsStatus.entrySet()) {
+            log = entry.getValue();
+            logBuilder = com.qlangtech.tis.rpc.grpc.log.common.JobLog.newBuilder();
+            logBuilder.setMapper(log.getMapper());
+            logBuilder.setReducer(log.getReducer());
+            logBuilder.setWaiting(log.isWaiting());
+            joinStatBuilder.putJobStatus(entry.getKey(), logBuilder.build());
+        }
+        blockingStub.reportJoinStatus(joinStatBuilder.build());
     }
 
     /**
