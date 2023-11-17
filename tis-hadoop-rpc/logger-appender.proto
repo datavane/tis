@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+import "common-msg.proto";
+option java_multiple_files = true;
+option java_package = "com.qlangtech.tis.rpc.grpc.log.appender";
+option java_outer_classname = "LogAppenderService";
+option objc_class_prefix = "HLWS";
+
+package stream;
+
+service LogAppender {
+
+    // 分布式环境下，写日志
+    rpc Append (LoggingEvent) returns (Empty) {
+    }
+}
+
+
+message LoggingEvent {
+    map<string /* key */, string> headers = 1;
+    string body = 2;
+}
+
+
+
+
