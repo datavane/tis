@@ -28,6 +28,11 @@ public interface NodeBackflowStatusOrBuilder extends
   long getReaded();
 
   /**
+   * <code>uint32 taskid = 4;</code>
+   */
+  int getTaskid();
+
+  /**
    * <code>bool faild = 5;</code>
    */
   boolean getFaild();

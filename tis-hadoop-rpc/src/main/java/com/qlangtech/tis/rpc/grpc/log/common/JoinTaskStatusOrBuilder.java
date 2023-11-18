@@ -52,6 +52,11 @@ public interface JoinTaskStatusOrBuilder extends
       int key);
 
   /**
+   * <code>uint32 taskid = 3;</code>
+   */
+  int getTaskid();
+
+  /**
    * <code>bool faild = 5;</code>
    */
   boolean getFaild();

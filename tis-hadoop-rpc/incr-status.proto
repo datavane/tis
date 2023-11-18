@@ -22,7 +22,7 @@ service IncrStatus {
     rpc reportDumpTableStatus (TableDumpStatus) returns (Empty) {
     };
 
-    rpc reportJoinStatus (JoinTaskStatus) returns (Empty) {
+    rpc reportJoinStatus (   JoinTaskStatus) returns (Empty) {
     };
 
     rpc reportBuildIndexStatus (BuildSharedPhaseStatus) returns (Empty) {

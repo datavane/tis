@@ -58,26 +58,27 @@ public final class LogCollectorProto {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\020common-msg.proto\"y\n\022NodeBackflowStatus" +
-      "\022\020\n\010nodeName\030\001 \001(\t\022\017\n\007allSize\030\002 \001(\004\022\016\n\006r" +
-      "eaded\030\003 \001(\004\022\r\n\005faild\030\005 \001(\010\022\020\n\010complete\030\006" +
-      " \001(\010\022\017\n\007waiting\030\007 \001(\010\"\306\001\n\016JoinTaskStatus" +
-      "\022\024\n\014joinTaskName\030\001 \001(\t\0221\n\tjobStatus\030\002 \003(" +
-      "\0132\036.JoinTaskStatus.JobStatusEntry\022\r\n\005fai" +
-      "ld\030\005 \001(\010\022\020\n\010complete\030\006 \001(\010\022\017\n\007waiting\030\007 " +
-      "\001(\010\0329\n\016JobStatusEntry\022\013\n\003key\030\001 \001(\r\022\026\n\005va" +
-      "lue\030\002 \001(\0132\007.JobLog:\0028\001\":\n\006JobLog\022\017\n\007wait" +
-      "ing\030\001 \001(\010\022\016\n\006mapper\030\002 \001(\r\022\017\n\007reducer\030\003 \001" +
-      "(\r\"\231\001\n\026BuildSharedPhaseStatus\022\024\n\014allBuil" +
-      "dSize\030\001 \001(\004\022\023\n\013buildReaded\030\002 \001(\004\022\016\n\006task" +
-      "id\030\003 \001(\r\022\022\n\nsharedName\030\004 \001(\t\022\r\n\005faild\030\005 " +
-      "\001(\010\022\020\n\010complete\030\006 \001(\010\022\017\n\007waiting\030\007 \001(\010\"\211" +
-      "\001\n\017TableDumpStatus\022\021\n\ttableName\030\001 \001(\t\022\016\n" +
-      "\006taskid\030\002 \001(\r\022\017\n\007allRows\030\003 \001(\r\022\020\n\010readRo" +
-      "ws\030\004 \001(\r\022\r\n\005faild\030\005 \001(\010\022\020\n\010complete\030\006 \001(" +
-      "\010\022\017\n\007waiting\030\007 \001(\010\"\007\n\005EmptyBC\n%com.qlang" +
-      "tech.tis.rpc.grpc.log.commonB\021LogCollect" +
-      "orProtoP\001\242\002\004HLWSb\006proto3"
+      "\n\020common-msg.proto\"\211\001\n\022NodeBackflowStatu" +
+      "s\022\020\n\010nodeName\030\001 \001(\t\022\017\n\007allSize\030\002 \001(\004\022\016\n\006" +
+      "readed\030\003 \001(\004\022\016\n\006taskid\030\004 \001(\r\022\r\n\005faild\030\005 " +
+      "\001(\010\022\020\n\010complete\030\006 \001(\010\022\017\n\007waiting\030\007 \001(\010\"\326" +
+      "\001\n\016JoinTaskStatus\022\024\n\014joinTaskName\030\001 \001(\t\022" +
+      "1\n\tjobStatus\030\002 \003(\0132\036.JoinTaskStatus.JobS" +
+      "tatusEntry\022\016\n\006taskid\030\003 \001(\r\022\r\n\005faild\030\005 \001(" +
+      "\010\022\020\n\010complete\030\006 \001(\010\022\017\n\007waiting\030\007 \001(\010\0329\n\016" +
+      "JobStatusEntry\022\013\n\003key\030\001 \001(\r\022\026\n\005value\030\002 \001" +
+      "(\0132\007.JobLog:\0028\001\":\n\006JobLog\022\017\n\007waiting\030\001 \001" +
+      "(\010\022\016\n\006mapper\030\002 \001(\r\022\017\n\007reducer\030\003 \001(\r\"\231\001\n\026" +
+      "BuildSharedPhaseStatus\022\024\n\014allBuildSize\030\001" +
+      " \001(\004\022\023\n\013buildReaded\030\002 \001(\004\022\016\n\006taskid\030\003 \001(" +
+      "\r\022\022\n\nsharedName\030\004 \001(\t\022\r\n\005faild\030\005 \001(\010\022\020\n\010" +
+      "complete\030\006 \001(\010\022\017\n\007waiting\030\007 \001(\010\"\211\001\n\017Tabl" +
+      "eDumpStatus\022\021\n\ttableName\030\001 \001(\t\022\016\n\006taskid" +
+      "\030\002 \001(\r\022\017\n\007allRows\030\003 \001(\r\022\020\n\010readRows\030\004 \001(" +
+      "\r\022\r\n\005faild\030\005 \001(\010\022\020\n\010complete\030\006 \001(\010\022\017\n\007wa" +
+      "iting\030\007 \001(\010\"\007\n\005EmptyBC\n%com.qlangtech.ti" +
+      "s.rpc.grpc.log.commonB\021LogCollectorProto" +
+      "P\001\242\002\004HLWSb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -96,13 +97,13 @@ public final class LogCollectorProto {
     internal_static_NodeBackflowStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_NodeBackflowStatus_descriptor,
-        new java.lang.String[] { "NodeName", "AllSize", "Readed", "Faild", "Complete", "Waiting", });
+        new java.lang.String[] { "NodeName", "AllSize", "Readed", "Taskid", "Faild", "Complete", "Waiting", });
     internal_static_JoinTaskStatus_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_JoinTaskStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_JoinTaskStatus_descriptor,
-        new java.lang.String[] { "JoinTaskName", "JobStatus", "Faild", "Complete", "Waiting", });
+        new java.lang.String[] { "JoinTaskName", "JobStatus", "Taskid", "Faild", "Complete", "Waiting", });
     internal_static_JoinTaskStatus_JobStatusEntry_descriptor =
       internal_static_JoinTaskStatus_descriptor.getNestedTypes().get(0);
     internal_static_JoinTaskStatus_JobStatusEntry_fieldAccessorTable = new

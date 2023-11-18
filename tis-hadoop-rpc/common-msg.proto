@@ -11,7 +11,7 @@ message NodeBackflowStatus{
     string nodeName=1;
     uint64 allSize=2;
     uint64 readed=3;
-
+    uint32 taskid = 4;
     bool faild = 5;
     bool complete = 6;
     bool waiting = 7;
@@ -21,7 +21,7 @@ message NodeBackflowStatus{
 message JoinTaskStatus {
     string joinTaskName = 1;
     map<uint32, JobLog> jobStatus = 2;
-
+    uint32 taskid = 3;
     bool faild = 5;
     bool complete = 6;
     bool waiting = 7;
