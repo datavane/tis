@@ -59,6 +59,11 @@ private static final long serialVersionUID = 0L;
             readed_ = input.readUInt64();
             break;
           }
+          case 32: {
+
+            taskid_ = input.readUInt32();
+            break;
+          }
           case 40: {
 
             faild_ = input.readBool();
@@ -158,6 +163,15 @@ private static final long serialVersionUID = 0L;
     return readed_;
   }
 
+  public static final int TASKID_FIELD_NUMBER = 4;
+  private int taskid_;
+  /**
+   * <code>uint32 taskid = 4;</code>
+   */
+  public int getTaskid() {
+    return taskid_;
+  }
+
   public static final int FAILD_FIELD_NUMBER = 5;
   private boolean faild_;
   /**
@@ -208,6 +222,9 @@ private static final long serialVersionUID = 0L;
     if (readed_ != 0L) {
       output.writeUInt64(3, readed_);
     }
+    if (taskid_ != 0) {
+      output.writeUInt32(4, taskid_);
+    }
     if (faild_ != false) {
       output.writeBool(5, faild_);
     }
@@ -236,6 +253,10 @@ private static final long serialVersionUID = 0L;
     if (readed_ != 0L) {
       size += com.google.protobuf.CodedOutputStream
         .computeUInt64Size(3, readed_);
+    }
+    if (taskid_ != 0) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeUInt32Size(4, taskid_);
     }
     if (faild_ != false) {
       size += com.google.protobuf.CodedOutputStream
@@ -270,6 +291,8 @@ private static final long serialVersionUID = 0L;
         != other.getAllSize()) return false;
     if (getReaded()
         != other.getReaded()) return false;
+    if (getTaskid()
+        != other.getTaskid()) return false;
     if (getFaild()
         != other.getFaild()) return false;
     if (getComplete()
@@ -295,6 +318,8 @@ private static final long serialVersionUID = 0L;
     hash = (37 * hash) + READED_FIELD_NUMBER;
     hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
         getReaded());
+    hash = (37 * hash) + TASKID_FIELD_NUMBER;
+    hash = (53 * hash) + getTaskid();
     hash = (37 * hash) + FAILD_FIELD_NUMBER;
     hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
         getFaild());
@@ -443,6 +468,8 @@ private static final long serialVersionUID = 0L;
 
       readed_ = 0L;
 
+      taskid_ = 0;
+
       faild_ = false;
 
       complete_ = false;
@@ -478,6 +505,7 @@ private static final long serialVersionUID = 0L;
       result.nodeName_ = nodeName_;
       result.allSize_ = allSize_;
       result.readed_ = readed_;
+      result.taskid_ = taskid_;
       result.faild_ = faild_;
       result.complete_ = complete_;
       result.waiting_ = waiting_;
@@ -538,6 +566,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.getReaded() != 0L) {
         setReaded(other.getReaded());
+      }
+      if (other.getTaskid() != 0) {
+        setTaskid(other.getTaskid());
       }
       if (other.getFaild() != false) {
         setFaild(other.getFaild());
@@ -694,6 +725,32 @@ private static final long serialVersionUID = 0L;
     public Builder clearReaded() {
       
       readed_ = 0L;
+      onChanged();
+      return this;
+    }
+
+    private int taskid_ ;
+    /**
+     * <code>uint32 taskid = 4;</code>
+     */
+    public int getTaskid() {
+      return taskid_;
+    }
+    /**
+     * <code>uint32 taskid = 4;</code>
+     */
+    public Builder setTaskid(int value) {
+      
+      taskid_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>uint32 taskid = 4;</code>
+     */
+    public Builder clearTaskid() {
+      
+      taskid_ = 0;
       onChanged();
       return this;
     }
