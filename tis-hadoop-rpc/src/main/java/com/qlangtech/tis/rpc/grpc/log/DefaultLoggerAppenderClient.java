@@ -16,29 +16,27 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.exec.datax;
+package com.qlangtech.tis.rpc.grpc.log;
 
-import com.qlangtech.tis.realtime.yarn.rpc.IncrStatusUmbilicalProtocol;
-import com.qlangtech.tis.rpc.grpc.log.ILogReporter;
-import com.qlangtech.tis.rpc.grpc.log.ILoggerAppenderClient;
-import com.tis.hadoop.rpc.StatusRpcClient;
+import com.qlangtech.tis.rpc.grpc.log.appender.LogAppenderGrpc;
+import com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent;
+import io.grpc.ManagedChannel;
+
+import java.util.Objects;
 
 /**
- * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-05-04 09:19
- **/
-public class DataXAssembleSvcCompsite extends StatusRpcClient.AssembleSvcCompsite {
+ * @author 百岁 (baisui@qlangtech.com)
+ * @date 2023/11/17
+ */
+public class DefaultLoggerAppenderClient implements ILoggerAppenderClient {
+    final LogAppenderGrpc.LogAppenderBlockingStub logAppenderBlockingStub;
 
-    public DataXAssembleSvcCompsite(IncrStatusUmbilicalProtocol statReceiveSvc) {
-        super(statReceiveSvc, new StatusRpcClient.MockLogReporter(), ILoggerAppenderClient.createMock());
+    public DefaultLoggerAppenderClient(ManagedChannel channel) {
+        this.logAppenderBlockingStub = LogAppenderGrpc.newBlockingStub(channel);
     }
 
     @Override
-    public void close() {
-    }
-
-    @Override
-    public StatusRpcClient.AssembleSvcCompsite unwrap() {
-        return this;
+    public void append(LoggingEvent event) {
+        this.logAppenderBlockingStub.append(Objects.requireNonNull(event, "param event can not be null"));
     }
 }

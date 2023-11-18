@@ -25,8 +25,11 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.realtime.yarn.rpc.*;
+import com.qlangtech.tis.rpc.grpc.log.DefaultLoggerAppenderClient;
 import com.qlangtech.tis.rpc.grpc.log.ILogReporter;
+import com.qlangtech.tis.rpc.grpc.log.ILoggerAppenderClient;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
+import com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent;
 import com.qlangtech.tis.rpc.grpc.log.stream.PMonotorTarget;
 import com.qlangtech.tis.rpc.server.IncrStatusClient;
 import com.qlangtech.tis.solrj.util.ZkUtils;
@@ -131,9 +134,11 @@ public class StatusRpcClient {
             final ManagedChannel channel = ManagedChannelBuilder.forTarget(incrStateCollectAddress).usePlaintext().build();
             IncrStatusClient newRpc = new IncrStatusClient(channel);
             LogCollectorClient logCollectorClient = new LogCollectorClient(channel);
+            DefaultLoggerAppenderClient loggerAppenderClient = new DefaultLoggerAppenderClient(channel);
+
             // IncrStatusUmbilicalProtocol newRpc = RPC.getProxy(IncrStatusUmbilicalProtocol.class, IncrStatusUmbilicalProtocol.versionID, address, new Configuration());
             info("successful connect to " + address + ",pingResult:" + newRpc.ping());
-            return rpcCallback.process(oldRpc, new AssembleSvcCompsite(newRpc, logCollectorClient) {
+            return rpcCallback.process(oldRpc, new AssembleSvcCompsite(newRpc, logCollectorClient, loggerAppenderClient) {
                 @Override
                 public void close() {
                     try {
@@ -207,7 +212,12 @@ public class StatusRpcClient {
      */
     public abstract static class AssembleSvcCompsite implements ITISRpcService {
 
-        public static final AssembleSvcCompsite MOCK_PRC = new AssembleSvcCompsite(new MockIncrStatusUmbilicalProtocol(), new MockLogReporter()) {
+        public static final AssembleSvcCompsite MOCK_PRC = new AssembleSvcCompsite(new MockIncrStatusUmbilicalProtocol(), new MockLogReporter(), new ILoggerAppenderClient() {
+            @Override
+            public void append(LoggingEvent event) {
+
+            }
+        }) {
             @Override
             public void close() {
             }
@@ -225,6 +235,7 @@ public class StatusRpcClient {
 
         // 各个子节点汇报状态用
         public final IncrStatusUmbilicalProtocol statReceiveSvc;
+        private final ILoggerAppenderClient loggerAppenderClient;
 
         // 汇总状态之后供，console节点来访问用
         public final ILogReporter statReportSvc;
@@ -242,14 +253,24 @@ public class StatusRpcClient {
             dumpStatus.setReadRows(readRows);
             dumpStatus.setAllRows(allRows);
             svc.reportDumpTableStatus(dumpStatus);
-
         }
 
-        public AssembleSvcCompsite(IncrStatusUmbilicalProtocol statReceiveSvc, ILogReporter statReportSvc) {
+        /**
+         * 分布式写日志
+         *
+         * @param event
+         */
+        public final void append(LoggingEvent event) {
+            loggerAppenderClient.append(event);
+        }
+
+        public AssembleSvcCompsite(IncrStatusUmbilicalProtocol statReceiveSvc, ILogReporter statReportSvc, ILoggerAppenderClient loggerAppenderClient) {
             Objects.requireNonNull(statReceiveSvc, "param statReceiveSvc can not be null");
             Objects.requireNonNull(statReportSvc, "param statReportSvc can not be null");
+            Objects.requireNonNull(loggerAppenderClient, "param loggerAppenderClient can not be null");
             this.statReceiveSvc = statReceiveSvc;
             this.statReportSvc = statReportSvc;
+            this.loggerAppenderClient = loggerAppenderClient;
         }
 
         public StreamObserver<PMonotorTarget> registerMonitorEvent(ILogListener logListener) {
@@ -266,6 +287,10 @@ public class StatusRpcClient {
 
         public MasterJob reportStatus(UpdateCounterMap upateCounter) {
             return statReceiveSvc.reportStatus(upateCounter);
+        }
+
+        public void reportJoinStatus(JoinPhaseStatus.JoinTaskStatus joinStatus) {
+            this.statReceiveSvc.reportJoinStatus(joinStatus);
         }
 
         public void nodeLaunchReport(LaunchReportInfo launchReportInfo) {

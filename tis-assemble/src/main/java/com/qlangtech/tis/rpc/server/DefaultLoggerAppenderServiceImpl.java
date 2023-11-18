@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,10 +36,17 @@ import java.util.Map;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/11/17
  */
-public class LoggerAppenderService extends LogAppenderGrpc.LogAppenderImplBase {
+public class DefaultLoggerAppenderServiceImpl extends LogAppenderGrpc.LogAppenderImplBase {
+
+    private static DefaultLoggerAppenderServiceImpl instance = new DefaultLoggerAppenderServiceImpl();
+
+    public static DefaultLoggerAppenderServiceImpl getInstance() {
+        return instance;
+    }
 
     private static final Logger logger = LoggerFactory.getLogger(TisIncrLoggerSink.class);
     private static final Map<String, Logger> loggers = new HashMap<String, Logger>();
+
     public Logger getLogger(String name) {
         Logger logger = loggers.get(name);
         if (logger == null) {
@@ -49,11 +55,13 @@ public class LoggerAppenderService extends LogAppenderGrpc.LogAppenderImplBase {
         }
         return logger;
     }
+
     @Override
     public void append(LoggingEvent request, StreamObserver<Empty> responseObserver) {
-      //  super.append(request, responseObserver);
+        //  super.append(request, responseObserver);
 
         Map<String, String> headers = request.getHeadersMap();
+        LoggingEvent.Level level = request.getLevel();
 
         String execGroup = headers.get("incr_exec_group");
         String application = headers.get("application");
@@ -70,7 +78,17 @@ public class LoggerAppenderService extends LogAppenderGrpc.LogAppenderImplBase {
         if (StringUtils.isEmpty(logtype)) {
             logger.info(request.getBody());
         } else {
-            getLogger(logtype).info(request.getBody());
+            Logger targetLogger = getLogger(logtype);
+            switch (level) {
+                case INFO:
+                    targetLogger.info(request.getBody());
+                case ERROR:
+                    targetLogger.error(request.getBody());
+                case WARNING:
+                    targetLogger.warn(request.getBody());
+                default:
+                    throw new IllegalStateException("illegal level:" + level);
+            }
         }
 
 

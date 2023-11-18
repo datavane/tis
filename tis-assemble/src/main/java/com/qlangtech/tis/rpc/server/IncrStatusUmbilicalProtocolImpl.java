@@ -26,7 +26,6 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
-import com.qlangtech.tis.grpc.Empty;
 import com.qlangtech.tis.grpc.IncrStatusGrpc;
 import com.qlangtech.tis.grpc.MasterJob;
 import com.qlangtech.tis.grpc.TableSingleDataIndexStatus;
@@ -35,9 +34,9 @@ import com.qlangtech.tis.realtime.transfer.IIncreaseCounter;
 import com.qlangtech.tis.realtime.transfer.TableMultiDataIndexStatus;
 import com.qlangtech.tis.realtime.yarn.rpc.ConsumeDataKeeper;
 import com.qlangtech.tis.realtime.yarn.rpc.IndexJobRunningStatus;
-
 import com.qlangtech.tis.realtime.yarn.rpc.PingResult;
 import com.qlangtech.tis.realtime.yarn.rpc.impl.YarnStateStatistics;
+import com.qlangtech.tis.rpc.grpc.log.common.Empty;
 import com.tis.hadoop.rpc.StatusRpcClient;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang.StringUtils;
@@ -46,8 +45,17 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 服务端接收客户端发送过来的日志消息(服务端)

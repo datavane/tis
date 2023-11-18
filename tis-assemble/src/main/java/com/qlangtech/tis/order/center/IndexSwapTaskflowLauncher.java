@@ -29,6 +29,7 @@ import com.qlangtech.tis.flume.FlumeApplication;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.*;
 import com.qlangtech.tis.realtime.transfer.IOnsListenerStatus;
+import com.qlangtech.tis.rpc.server.DefaultLoggerAppenderServiceImpl;
 import com.qlangtech.tis.rpc.server.FullBuildStatCollectorServer;
 import com.qlangtech.tis.rpc.server.IncrStatusServer;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
@@ -162,6 +163,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         final int exportPort = ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PORT; //NetUtils.getFreeSocketPort();
         incrStatusServer = new IncrStatusServer(exportPort);
         incrStatusServer.addService(IncrStatusUmbilicalProtocolImpl.getInstance());
+        incrStatusServer.addService(DefaultLoggerAppenderServiceImpl.getInstance());
         incrStatusServer.addService(FullBuildStatCollectorServer.getInstance());
         incrStatusServer.start();
         final List<IOnsListenerStatus> result = new ArrayList<>();
