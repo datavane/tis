@@ -35,7 +35,7 @@ import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.sql.parser.DAGSessionSpec;
 import com.tis.hadoop.rpc.ITISRpcService;
 import com.tis.hadoop.rpc.RpcServiceReference;
-import com.tis.hadoop.rpc.StatusRpcClient;
+import com.tis.hadoop.rpc.StatusRpcClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.ClassRule;
@@ -85,7 +85,7 @@ public class TestDataXExecuteInterceptorForMethodBuildTaskTriggers extends Basic
 
         DataXJobSubmit submit = new TestIndexSwapTaskflowLauncherWithDataXTrigger.MockDataXJobSubmit(dumpTrigger);
         AtomicReference<ITISRpcService> ref = new AtomicReference<>();
-        ref.set(StatusRpcClient.AssembleSvcCompsite.MOCK_PRC);
+        ref.set(StatusRpcClientFactory.AssembleSvcCompsite.MOCK_PRC);
         RpcServiceReference statusRpc = new RpcServiceReference(ref, () -> {
         });
 

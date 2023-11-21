@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * ZK的抽象
@@ -39,6 +40,10 @@ public interface ITISCoordinator extends ICoordinator {
     static Logger logger = LoggerFactory.getLogger(ITISCoordinator.class);
 
     static ITISCoordinator create() {
+        return create(Optional.empty());
+    }
+
+    static ITISCoordinator create(Optional<String> assembleHost) {
         //if (Config.isStandaloneMode()) {
         logger.info("create ITISCoordinator with Standalone Mode");
         return new ITISCoordinator() {
@@ -68,7 +73,8 @@ public interface ITISCoordinator extends ICoordinator {
                     , boolean b) {
                 if (StringUtils.equals(s
                         , ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH + ZkUtils.PATH_SPLIT + DEFAULT_CHILD1_PATH)) {
-                    return (Config.getAssembleHost() + ":" + ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PORT).getBytes(TisUTF8.get());
+                    return assembleHost.orElse((Config.getAssembleHost() + ":" + ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PORT))
+                            .getBytes(TisUTF8.get());
                 }
                 throw new IllegalStateException("zkPath:" + s + " is illegal");
             }

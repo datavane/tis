@@ -37,6 +37,20 @@ public interface IDataXBatchPost {
     String KEY_POST = "post_";
     String KEY_PREP = "prep_";
 
+    public enum LifeCycleHook {
+        Prep(KEY_PREP), Post(KEY_POST);
+        private final String token;
+
+        private LifeCycleHook(String token) {
+            this.token = token;
+        }
+
+        public String getToken() {
+            return this.token;
+        }
+    }
+
+
     /**
      * 本次批次操作会涉及到的阶段区间
      *

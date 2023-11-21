@@ -225,6 +225,19 @@ public abstract class DataXJobSubmit {
      */
     public abstract void createJob(IControlMsgHandler module, final Context context, DataxProcessor dataxProcessor);
 
+//    /**
+//     * 创建数据同步 pre，post hook
+//     *
+//     * @param taskContext
+//     * @param statusRpc
+//     * @param processor
+//     * @param lifeCycleHookInfo
+//     * @return
+//     */
+//    public abstract IRemoteTaskTrigger createDataXJob(
+//            IDataXJobContext taskContext, RpcServiceReference statusRpc,
+//            IDataxProcessor processor, Pair<String, IDataXBatchPost.LifeCycleHook> lifeCycleHookInfo, String tabName
+//    );
 
     /**
      * 创建dataX任务
@@ -365,6 +378,39 @@ public abstract class DataXJobSubmit {
 
     public interface IDataXJobContext extends IDataXTaskRelevant {
         // public <T> T getContextInstance();
+
+        public static IDataXJobContext create(IJoinTaskContext parentContext){
+            return new DataXJobSubmit.IDataXJobContext() {
+                @Override
+                public IJoinTaskContext getTaskContext() {
+                    return parentContext;
+                }
+
+                @Override
+                public Integer getTaskId() {
+                    return parentContext.getTaskId();
+                }
+
+                @Override
+                public String getJobName() {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public String getDataXName() {
+                    return parentContext.getIndexName();
+                }
+
+                @Override
+                public long getExecEpochMilli() {
+                    return parentContext.getPartitionTimestampWithMillis();
+                }
+
+                @Override
+                public void destroy() {
+                }
+            };
+        }
 
         IJoinTaskContext getTaskContext();
 

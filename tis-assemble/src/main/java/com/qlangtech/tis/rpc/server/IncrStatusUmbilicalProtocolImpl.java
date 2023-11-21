@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.rpc.server;
 
@@ -26,6 +26,7 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.grpc.IncrStatusGrpc;
 import com.qlangtech.tis.grpc.MasterJob;
 import com.qlangtech.tis.grpc.TableSingleDataIndexStatus;
@@ -36,8 +37,10 @@ import com.qlangtech.tis.realtime.yarn.rpc.ConsumeDataKeeper;
 import com.qlangtech.tis.realtime.yarn.rpc.IndexJobRunningStatus;
 import com.qlangtech.tis.realtime.yarn.rpc.PingResult;
 import com.qlangtech.tis.realtime.yarn.rpc.impl.YarnStateStatistics;
+import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
 import com.qlangtech.tis.rpc.grpc.log.common.Empty;
-import com.tis.hadoop.rpc.StatusRpcClient;
+import com.qlangtech.tis.rpc.grpc.log.common.JoinTaskStatus;
+import com.tis.hadoop.rpc.StatusRpcClientFactory;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -99,6 +102,22 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
 
     private static final ThreadLocal<SimpleDateFormat> formatYyyyMMddHHmmss
             = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+
+    @Override
+    public void reportJoinStatus(JoinTaskStatus joinStat, StreamObserver<Empty> responseObserver) {
+        int taskid = joinStat.getTaskid();
+        PhaseStatusCollection phaseStatusSet = TrackableExecuteInterceptor.getTaskPhaseReference(taskid);
+        if (phaseStatusSet == null) {
+            returnEmpty(responseObserver);
+            return;
+        }
+        log.info("taskid:" + taskid + ",tablename:" + joinStat.getJoinTaskName() + ",compile:"
+                + joinStat.getComplete() + ",faild:" + joinStat.getFaild());
+        JoinPhaseStatus joinPhase = phaseStatusSet.getJoinPhase();
+        JoinPhaseStatus.JoinTaskStatus joinTskStatus = LogCollectorClient.convert(joinStat);
+        joinPhase.taskStatus.put(joinStat.getJoinTaskName(), joinTskStatus);
+        returnEmpty(responseObserver);
+    }
 
     @Override
     public void ping(Empty request, StreamObserver<com.qlangtech.tis.grpc.PingResult> responseObserver) {
@@ -187,7 +206,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
 //        builder.setComplete(complete);
 //        builder.setWaiting(waiting);
 
-        this.reportDumpTableStatus(IncrStatusClient.convert(tableDumpStatus), new StatusRpcClient.NoopStreamObserver<>());
+        this.reportDumpTableStatus(IncrStatusClient.convert(tableDumpStatus), new StatusRpcClientFactory.NoopStreamObserver<>());
     }
 
 
@@ -209,7 +228,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         builder.setFaild(true);
         builder.setComplete(true);
         builder.setWaiting(false);
-        this.reportBuildIndexStatus(builder.build(), new StatusRpcClient.NoopStreamObserver<>());
+        this.reportBuildIndexStatus(builder.build(), new StatusRpcClientFactory.NoopStreamObserver<>());
     }
 
     @Override

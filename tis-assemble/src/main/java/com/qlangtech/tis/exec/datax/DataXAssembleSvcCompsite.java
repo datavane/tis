@@ -19,18 +19,17 @@
 package com.qlangtech.tis.exec.datax;
 
 import com.qlangtech.tis.realtime.yarn.rpc.IncrStatusUmbilicalProtocol;
-import com.qlangtech.tis.rpc.grpc.log.ILogReporter;
 import com.qlangtech.tis.rpc.grpc.log.ILoggerAppenderClient;
-import com.tis.hadoop.rpc.StatusRpcClient;
+import com.tis.hadoop.rpc.StatusRpcClientFactory;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-05-04 09:19
  **/
-public class DataXAssembleSvcCompsite extends StatusRpcClient.AssembleSvcCompsite {
+public class DataXAssembleSvcCompsite extends StatusRpcClientFactory.AssembleSvcCompsite {
 
     public DataXAssembleSvcCompsite(IncrStatusUmbilicalProtocol statReceiveSvc) {
-        super(statReceiveSvc, new StatusRpcClient.MockLogReporter(), ILoggerAppenderClient.createMock());
+        super(statReceiveSvc, new StatusRpcClientFactory.MockLogReporter(), ILoggerAppenderClient.createMock());
     }
 
     @Override
@@ -38,7 +37,7 @@ public class DataXAssembleSvcCompsite extends StatusRpcClient.AssembleSvcCompsit
     }
 
     @Override
-    public StatusRpcClient.AssembleSvcCompsite unwrap() {
+    public StatusRpcClientFactory.AssembleSvcCompsite unwrap() {
         return this;
     }
 }

@@ -93,8 +93,9 @@ public class CuratorDataXTaskMessage implements IDataXTaskRelevant {
         return dataXName;
     }
 
-    public Integer getJobId() {
-        return jobId;
+    @Override
+    public Integer getTaskId() {
+        return this.jobId;
     }
 
 

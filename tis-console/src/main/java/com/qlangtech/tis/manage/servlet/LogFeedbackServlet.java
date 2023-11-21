@@ -45,7 +45,7 @@ import com.qlangtech.tis.trigger.socket.ExecuteState;
 import com.qlangtech.tis.trigger.socket.LogType;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.tis.hadoop.rpc.RpcServiceReference;
-import com.tis.hadoop.rpc.StatusRpcClient;
+import com.tis.hadoop.rpc.StatusRpcClientFactory;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang.StringUtils;
@@ -93,7 +93,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
     }
     try {
       Objects.requireNonNull(zkGetter, "zkGetter can not be null");
-      this.statusRpc = StatusRpcClient.getService(zkGetter.getInstance());
+      this.statusRpc = StatusRpcClientFactory.getService(zkGetter.getInstance());
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -189,7 +189,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
 
     private StreamObserver<PMonotorTarget> getMonitorSet() {
       if (pMonotorObserver == null) {
-        StatusRpcClient.AssembleSvcCompsite feedback = getStatusRpc().get();
+        StatusRpcClientFactory.AssembleSvcCompsite feedback = getStatusRpc().get();
 
         pMonotorObserver = feedback.registerMonitorEvent(this);
       }
@@ -297,7 +297,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
       } else if (monitorTarget.testLogType(LogType.BuildPhraseMetrics)) {
         executorService.execute(() -> {
           try {
-            StatusRpcClient.AssembleSvcCompsite feedback = getStatusRpc().get();
+            StatusRpcClientFactory.AssembleSvcCompsite feedback = getStatusRpc().get();
             final Iterator<PPhaseStatusCollection> statIt = feedback.buildPhraseStatus(taskid);
             boolean serverSideBreak = true;
             while (isConnected() && statIt.hasNext()) {

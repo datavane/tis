@@ -74,7 +74,7 @@ public class DefaultLoggerAppenderServiceImpl extends LogAppenderGrpc.LogAppende
         if (taskid != null) {
             MDC.put(JobParams.KEY_TASK_ID, String.valueOf(taskid));
         }
-        String logtype = headers.get("logtype");
+        String logtype = headers.get(JobParams.KEY_LOG_TYPE);
         if (StringUtils.isEmpty(logtype)) {
             logger.info(request.getBody());
         } else {
@@ -82,10 +82,13 @@ public class DefaultLoggerAppenderServiceImpl extends LogAppenderGrpc.LogAppende
             switch (level) {
                 case INFO:
                     targetLogger.info(request.getBody());
+                    break;
                 case ERROR:
                     targetLogger.error(request.getBody());
+                    break;
                 case WARNING:
                     targetLogger.warn(request.getBody());
+                    break;
                 default:
                     throw new IllegalStateException("illegal level:" + level);
             }

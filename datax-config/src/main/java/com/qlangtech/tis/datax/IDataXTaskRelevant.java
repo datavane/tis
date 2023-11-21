@@ -25,6 +25,14 @@ package com.qlangtech.tis.datax;
 public interface IDataXTaskRelevant {
 
 
+    public Integer getTaskId();
+
+    public String getJobName();
+
+    public String getDataXName();
+
+    public long getExecEpochMilli();
+
     /**
      * 保证一个批次执行的DataX任务的每个子任务都有一个唯一的序列号，例如在ODPS数据导入的场景中
      * ，MySQL中有多个分库的表需要导入到ODPS中采用pt+pmod（该值通过唯一序列号）的分区组合来避免不同分库数据导入相同分区的冲突

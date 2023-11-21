@@ -22,17 +22,21 @@ import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
-import com.qlangtech.tis.rpc.grpc.log.common.Empty;
 import com.qlangtech.tis.grpc.IncrStatusGrpc;
 import com.qlangtech.tis.grpc.LaunchReportInfoEntry;
 import com.qlangtech.tis.grpc.TableSingleDataIndexStatus;
-import com.qlangtech.tis.realtime.yarn.rpc.*;
+import com.qlangtech.tis.realtime.yarn.rpc.IncrStatusUmbilicalProtocol;
+import com.qlangtech.tis.realtime.yarn.rpc.JobType;
+import com.qlangtech.tis.realtime.yarn.rpc.LaunchReportInfo;
+import com.qlangtech.tis.realtime.yarn.rpc.MasterJob;
+import com.qlangtech.tis.realtime.yarn.rpc.PingResult;
+import com.qlangtech.tis.realtime.yarn.rpc.TopicInfo;
+import com.qlangtech.tis.realtime.yarn.rpc.UpdateCounterMap;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
+import com.qlangtech.tis.rpc.grpc.log.common.Empty;
 import com.qlangtech.tis.rpc.grpc.log.common.JoinTaskStatus;
 import com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus;
 import com.qlangtech.tis.rpc.grpc.log.stream.LogCollectorGrpc;
-import com.qlangtech.tis.rpc.grpc.log.stream.PJoinPhaseStatus;
-import com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection;
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -40,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -175,9 +180,11 @@ public class IncrStatusClient implements IncrStatusUmbilicalProtocol {
 
 
     @Override
-    public void reportJoinStatus(JoinPhaseStatus.JoinTaskStatus joinTaskStatus) {
+    public void reportJoinStatus(Integer taskId, JoinPhaseStatus.JoinTaskStatus joinTaskStatus) {
         //  blockingStub.re
+        Objects.requireNonNull(taskId, "taskId can not be null");
         JoinTaskStatus.Builder joinStatBuilder = JoinTaskStatus.newBuilder();
+        joinStatBuilder.setTaskid(taskId);
         joinStatBuilder.setJoinTaskName(joinTaskStatus.getName());
         joinStatBuilder.setWaiting(joinTaskStatus.isWaiting());
         joinStatBuilder.setFaild(joinTaskStatus.isFaild());

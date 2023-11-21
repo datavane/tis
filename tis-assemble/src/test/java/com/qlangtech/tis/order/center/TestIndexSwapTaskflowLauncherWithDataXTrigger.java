@@ -26,6 +26,7 @@ import com.qlangtech.tis.dao.ICommonDAOContext;
 import com.qlangtech.tis.datax.CuratorDataXTaskMessage;
 import com.qlangtech.tis.datax.DataXJobInfo;
 import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.IDataXBatchPost;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
@@ -41,6 +42,7 @@ import com.qlangtech.tis.test.TISTestCase;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import junit.framework.Assert;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 
 import java.util.List;
@@ -111,6 +113,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
         public void createJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor) {
 
         }
+
         @Override
         public ExecResult processExecHistoryRecord(ICommonDAOContext commonDAO, WorkFlowBuildHistory buildHistory) {
             throw new UnsupportedOperationException();
@@ -142,20 +145,21 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
 
         @Override
         public IDataXJobContext createJobContext(final IJoinTaskContext parentContext) {
-            return new IDataXJobContext() {
+            return IDataXJobContext.create(parentContext);
+//                    new IDataXJobContext() {
+////                @Override
+////                IJoinTaskContext getTaskContext();
+//
 //                @Override
-//                IJoinTaskContext getTaskContext();
-
-                @Override
-                public IJoinTaskContext getTaskContext() {
-                    return parentContext;
-                }
-
-                @Override
-                public void destroy() {
-
-                }
-            };
+//                public IJoinTaskContext getTaskContext() {
+//                    return parentContext;
+//                }
+//
+//                @Override
+//                public void destroy() {
+//
+//                }
+//            };
         }
 
 

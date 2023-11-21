@@ -21,15 +21,15 @@ package com.tis.hadoop.rpc;
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-09-09 09:43
  */
-public abstract class AdapterAssembleSvcCompsiteCallback implements StatusRpcClient.AssembleSvcCompsiteCallback {
+public abstract class AdapterAssembleSvcCompsiteCallback implements StatusRpcClientFactory.AssembleSvcCompsiteCallback {
 
     @Override
-    public final StatusRpcClient.AssembleSvcCompsite getOld() {
+    public final StatusRpcClientFactory.AssembleSvcCompsite getOld() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public final void errorOccur(StatusRpcClient.AssembleSvcCompsite oldrpc, Exception e) {
+    public final void errorOccur(StatusRpcClientFactory.AssembleSvcCompsite oldrpc, Exception e) {
         throw new UnsupportedOperationException();
     }
 }
