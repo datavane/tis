@@ -22,6 +22,7 @@ import com.qlangtech.tis.ajax.AjaxResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
@@ -30,6 +31,7 @@ import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.CreateNewTaskResult;
 import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -37,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -49,13 +52,17 @@ public interface IExecChainContext extends IJoinTaskContext {
             = new MessageFormat(Config.getConfigRepositoryHost()
             + "/config/config.ajax?action={0}&event_submit_{1}=true");
 
+    static Integer createNewTask(IExecChainContext chainContext) {
+        return createNewTask(chainContext, TriggerType.MANUAL);
+    }
+
     /**
      * 创建新的task
      *
      * @param chainContext
      * @return taskid
      */
-    static Integer createNewTask(IExecChainContext chainContext) {
+    static Integer createNewTask(IExecChainContext chainContext, TriggerType triggerType) {
         Integer workflowId = chainContext.getWorkflowId();
         NewTaskParam newTaskParam = new NewTaskParam();
         ExecutePhaseRange executeRanage = chainContext.getExecutePhaseRange();
@@ -73,7 +80,7 @@ public interface IExecChainContext extends IJoinTaskContext {
         newTaskParam.setWorkflowid(workflowId);
         newTaskParam.setExecuteRanage(executeRanage);
 
-        newTaskParam.setTriggerType(TriggerType.MANUAL);
+        newTaskParam.setTriggerType(triggerType);
         /**=============================================
          * 提交task请求
          =============================================*/
@@ -84,7 +91,7 @@ public interface IExecChainContext extends IJoinTaskContext {
     }
 
     /**
-     * 开始执行一個新的任務
+     * 开始执行一個新的任務, 只是创建一个taskid而已
      *
      * @param newTaskParam taskid
      * @return
@@ -95,6 +102,20 @@ public interface IExecChainContext extends IJoinTaskContext {
         AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote(url, newTaskParam.params(), CreateNewTaskResult.class);
         return result.getBizresult().getTaskid();
     }
+
+    /**
+     * 创建一个新的同步任务
+     *
+     * @param triggerNewTaskParam
+     * @return
+     */
+    static Integer triggerNewTask(TriggerNewTaskParam triggerNewTaskParam) {
+        String url = WORKFLOW_CONFIG_URL_POST_FORMAT
+                .format(new Object[]{"fullbuild_workflow_action", "do_initialize_trigger_task"});
+        AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote(url, triggerNewTaskParam.params(), CreateNewTaskResult.class);
+        return result.getBizresult().getTaskid();
+    }
+
 
     IDataxProcessor getProcessor();
 
@@ -144,6 +165,24 @@ public interface IExecChainContext extends IJoinTaskContext {
 //    IndexBuilderTriggerFactory getIndexBuilderFactory();
 
     void rebindLoggingMDCParams();
+
+    class TriggerNewTaskParam {
+        private final Long powerJobWorkflowInstanceId;
+        private final String appname;
+
+
+        public TriggerNewTaskParam(Long powerJobWorkflowInstanceId, String appname) {
+            this.powerJobWorkflowInstanceId = Objects.requireNonNull(powerJobWorkflowInstanceId);
+            this.appname = Objects.requireNonNull(appname, "appname can not be null");
+        }
+
+        public List<HttpUtils.PostParam> params() {
+            return Lists.newArrayList(
+                    new HttpUtils.PostParam(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, powerJobWorkflowInstanceId)
+                    , new HttpUtils.PostParam(TriggerBuildResult.KEY_APPNAME, appname)
+            );
+        }
+    }
 
     class NewTaskParam {
 

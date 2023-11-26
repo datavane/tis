@@ -21,9 +21,6 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.opensymphony.xwork2.ActionInvocation;
-import com.qlangtech.tis.extension.impl.SuFormProperties;
-import com.qlangtech.tis.extension.model.UpdateSite;
-import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.IAjaxResult;
 import com.qlangtech.tis.manage.common.MockContext;
@@ -32,7 +29,6 @@ import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.result.StrutsResultSupport;
 
@@ -41,9 +37,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
-//import org.json.JSONArray;
-//import org.json.JSONException;
-//import org.json.JSONObject;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

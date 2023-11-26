@@ -18,6 +18,7 @@
 package com.qlangtech.tis;
 
 //import com.qlangtech.tis.collectinfo.CoreStatisticsReport;
+
 import com.qlangtech.tis.collectinfo.api.ICoreService;
 import com.qlangtech.tis.collectinfo.api.ICoreStatistics;
 import com.qlangtech.tis.dataplatform.dao.IClusterSnapshotDAO;
@@ -25,11 +26,7 @@ import com.qlangtech.tis.dataplatform.pojo.ClusterSnapshot;
 import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
-import com.qlangtech.tis.manage.common.SendSMSUtils;
-import com.qlangtech.tis.realtime.utils.NetUtils;
-import com.tis.zookeeper.ZkPathUtils;
 import org.apache.commons.lang.StringUtils;
-//import org.apache.solr.common.cloud.*;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.SessionExpiredException;
 import org.json.JSONException;
@@ -41,7 +38,12 @@ import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -519,7 +521,7 @@ public class TSearcherClusterInfoCollect implements // Daemon
         JSONObject result = new JSONObject();
         result.put("view_time", format.format(date));
         result.put(TIMESTAMP_PROPERTY, String.valueOf(date.getTime()));
-        result.put("execute_ip", NetUtils.getHost());
+      //  result.put("execute_ip", NetUtils.getHost());
         return result.toString().getBytes();
     }
 

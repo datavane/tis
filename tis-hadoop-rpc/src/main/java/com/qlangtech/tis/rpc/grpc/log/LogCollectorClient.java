@@ -359,7 +359,8 @@ public class LogCollectorClient implements ILogReporter {
         if (executePhaseRange.contains(FullbuildPhase.BUILD) && buildPhase != null) {
             BuildPhaseStatus build = result.getBuildPhase();
             buildPhase.getNodeBuildStatusMap().forEach((k, v) -> {
-                com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus s = new com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus();
+                com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus s
+                        = new com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus();
                 s.setAllBuildSize(v.getAllBuildSize());
                 s.setBuildReaded(v.getBuildReaded());
                 s.setTaskid(v.getTaskid());
@@ -373,7 +374,8 @@ public class LogCollectorClient implements ILogReporter {
         if (executePhaseRange.contains(FullbuildPhase.IndexBackFlow) && backflow != null) {
             IndexBackFlowPhaseStatus bf = result.getIndexBackFlowPhaseStatus();
             backflow.getNodesStatusMap().forEach((k, v) -> {
-                IndexBackFlowPhaseStatus.NodeBackflowStatus s = new IndexBackFlowPhaseStatus.NodeBackflowStatus(v.getNodeName());
+                IndexBackFlowPhaseStatus.NodeBackflowStatus s
+                        = new IndexBackFlowPhaseStatus.NodeBackflowStatus(v.getNodeName());
                 s.setAllSize((int) v.getAllSize());
                 s.setReaded((int) v.getReaded());
                 s.setComplete(v.getComplete());

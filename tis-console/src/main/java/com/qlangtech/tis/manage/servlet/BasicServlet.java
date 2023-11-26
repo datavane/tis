@@ -40,48 +40,25 @@ public class BasicServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
 
-  // public static final XStream xstream = new XStream();
-  //
-  // static {
-  // xstream.alias("sdomain", SnapshotDomain.class);
-  // }
   protected RunContext getContext() {
     return getBeanByType(this.getServletContext(), RunContext.class);
   }
 
-  // protected RpcCoreManage getRpcCoreManage() {
-  // return WebApplicationContextUtils.getWebApplicationContext(
-  // this.getServletContext()).getBean("rpcCoreManage",
-  // RpcCoreManage.class);
-  // }
-  // static {
-  //
-  // try {
-  // Class.forName("com.taobao.terminator.manage.common.ActionTool");
-  // } catch (ClassNotFoundException e) {
-  // throw new RuntimeException(e);
-  // }
-  //
-  // }
-  // protected BasicModule getBasicModule() {
-  // return getBeanByType(BasicModule.class);
-  // }
   public static <T> T getBeanByType(ServletContext servletContext, Class<T> clazz) {
 
-    ApplicationContext applicationContext = (ApplicationContext) servletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+    ApplicationContext applicationContext = (ApplicationContext)
+      servletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+
     Objects.requireNonNull(applicationContext
-      , "applicationContext can not be null in servletContent by key:" + WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+      , "applicationContext can not be null in servletContent by key:"
+        + WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 
     for (Object context : applicationContext.getBeansOfType(clazz).values()) {
-    //  for (Object context : WebApplicationContextUtils.getWebApplicationContext(servletContext).getBeansOfType(clazz).values()) {
       return clazz.cast(context);
     }
     throw new IllegalStateException("can no t find:" + clazz);
   }
 
-  // protected ActionTool getActionTool() {
-  // return getBeanByType(this.getServletContext(), ActionTool.class);
-  // }
   protected void wirteXml2Client(HttpServletResponse response, Object o) throws IOException {
     response.setContentType(DownloadResource.XML_CONTENT_TYPE);
     HttpConfigFileReader.xstream.toXML(o, response.getWriter());

@@ -28,6 +28,8 @@ import java.util.function.Supplier;
  */
 public class DataxUtils {
     public static final String DATAX_NAME = "dataxName";
+    public static final String POWERJOB_WORKFLOW_INSTANCE_ID = "powerJobWorkflowInstanceId";
+
     // 用于保存DB对应的 tables
     public static final String DATAX_DB_NAME = "dataxDB";
     public static final String EXEC_TIMESTAMP = "execTimeStamp";

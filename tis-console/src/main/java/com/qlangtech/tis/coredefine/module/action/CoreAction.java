@@ -235,7 +235,7 @@ public class CoreAction extends BasicModule {
 
     workFlowBuildDAO.updateByExampleSelective(record, criteria);
     this.addActionMessage(context, "已经成功终止当前任务");
-    this.setBizResult(context, new ExtendWorkFlowBuildHistory(this,
+    this.setBizResult(context, new ExtendWorkFlowBuildHistory(
       this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().loadFromWriteDB(triggerResult.getTaskid())));
   }
 
@@ -703,7 +703,7 @@ public class CoreAction extends BasicModule {
     if (buildHistory == null) {
       throw new IllegalStateException(JobCommon.KEY_TASK_ID + ":" + taskid + "relevant buildHistory can not be null");
     }
-    this.setBizResult(context, new ExtendWorkFlowBuildHistory(this, buildHistory));
+    this.setBizResult(context, new ExtendWorkFlowBuildHistory(buildHistory));
   }
 
   /**
@@ -804,7 +804,7 @@ public class CoreAction extends BasicModule {
 
   private List<ExtendWorkFlowBuildHistory> adapterBuildHistory(List<WorkFlowBuildHistory> histories) {
     return histories.stream().map((r) -> {
-      return new ExtendWorkFlowBuildHistory(this, r);
+      return new ExtendWorkFlowBuildHistory(r);
     }).collect(Collectors.toList());
   }
 

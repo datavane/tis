@@ -29,6 +29,7 @@ import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.CreateNewTaskResult;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
@@ -55,6 +56,17 @@ public class FullbuildWorkflowAction extends BasicModule {
    * description: table有效时间
    */
   private static final long VALID_TIME = 4 * 60 * 60 * 1000;
+
+  /**
+   * 接收Powerjob发送过来的初始化触发任务，主要目标在TIS中进行必要的初始化工作
+   *
+   * @param context
+   */
+  public void doInitializeTriggerTask(Context context) {
+    // 校验参数必须有
+    this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID);
+    this.getRundata().forwardTo("coredefine", "datax_action", "trigger_fullbuild_task");
+  }
 
   /**
    * assemble 节点接收到来自console节点的触发任务，开始执行需要创建一个new的workflowbuildhistory记录

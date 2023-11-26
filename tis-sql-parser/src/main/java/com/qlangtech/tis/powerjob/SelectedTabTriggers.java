@@ -50,10 +50,15 @@ public class SelectedTabTriggers {
     private List<IRemoteTaskTrigger> splitTabTriggers;
     private final ISelectedTab entry;
     private final IDataxProcessor appSource;
+    private JSONObject mrParams = null;
 
     public SelectedTabTriggers(ISelectedTab entry, IDataxProcessor appSource) {
         this.entry = Objects.requireNonNull(entry, "selected tab can not be null");
         this.appSource = Objects.requireNonNull(appSource, "appSource can not be null");
+    }
+
+    public String getTabName() {
+        return this.entry.getName();
     }
 
     public IRemoteTaskPreviousTrigger getPreTrigger() {
@@ -115,33 +120,37 @@ public class SelectedTabTriggers {
     }
 
     public JSONObject createMRParams() {
-        JSONObject mrParams = null;
-        JSONObject execCfg = null;
-        JSONArray dataxJobInfo = null;
-        PowerJobRemoteTaskTrigger splitTabTrigger = null;
-        mrParams = new JSONObject();
-        mrParams.put(KEY_TABLE, this.entry.getName());
-        mrParams.put(DataxUtils.DATAX_NAME, this.appSource.identityValue());
-        if (this.getPreTrigger() != null) {
-            mrParams.put(KEY_PRE, this.getPreTrigger().getTaskName());
-        }
 
-        if (this.getPostTrigger() != null) {
-            mrParams.put(KEY_POST, this.getPostTrigger().getTaskName());
-        }
-
-        execCfg = null;
-
-        for (IRemoteTaskTrigger splitTrigger : this.getSplitTabTriggers()) {
-            splitTabTrigger = Objects.requireNonNull((PowerJobRemoteTaskTrigger) splitTrigger);
-            if (execCfg == null) {
-                mrParams.put(KEY_EXEC, execCfg = JSONObject.parseObject(splitTabTrigger.getTskMsgSerialize()));
-                dataxJobInfo = new JSONArray();
-                execCfg.put(KEY_JOB_INFO, dataxJobInfo);
+        if (this.mrParams == null) {
+            JSONObject execCfg = null;
+            JSONArray dataxJobInfo = null;
+            PowerJobRemoteTaskTrigger splitTabTrigger = null;
+            mrParams = new JSONObject();
+            mrParams.put(KEY_TABLE, this.entry.getName());
+            mrParams.put(DataxUtils.DATAX_NAME, this.appSource.identityValue());
+            if (this.getPreTrigger() != null) {
+                mrParams.put(KEY_PRE, this.getPreTrigger().getTaskName());
             }
 
-            dataxJobInfo.add(new SplitTabInfo(splitTabTrigger.getTaskSerializeNum(), splitTabTrigger.getDataXJobInfo().serialize()));
+            if (this.getPostTrigger() != null) {
+                mrParams.put(KEY_POST, this.getPostTrigger().getTaskName());
+            }
+
+            execCfg = null;
+
+            for (IRemoteTaskTrigger splitTrigger : this.getSplitTabTriggers()) {
+                splitTabTrigger = Objects.requireNonNull((PowerJobRemoteTaskTrigger) splitTrigger);
+                if (execCfg == null) {
+                    mrParams.put(KEY_EXEC, execCfg = JSONObject.parseObject(splitTabTrigger.getTskMsgSerialize()));
+                    dataxJobInfo = new JSONArray();
+                    execCfg.put(KEY_JOB_INFO, dataxJobInfo);
+                }
+
+                dataxJobInfo.add(new SplitTabInfo(splitTabTrigger.getTaskSerializeNum(), splitTabTrigger.getDataXJobInfo().serialize()));
+            }
         }
+
+
         return mrParams;
     }
 

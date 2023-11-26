@@ -51,6 +51,13 @@ public class PhaseStatusCollection implements IPhaseStatusCollection {
                 && (!executePhaseRange.contains(FullbuildPhase.IndexBackFlow) || indexBackFlowPhaseStatus.isComplete());
     }
 
+    public boolean isFaild() {
+        return (executePhaseRange.contains(FullbuildPhase.FullDump) && dumpPhase.isFaild())
+                || (executePhaseRange.contains(FullbuildPhase.JOIN) && joinPhase.isFaild())
+                || (executePhaseRange.contains(FullbuildPhase.BUILD) && buildPhase.isFaild())
+                || (executePhaseRange.contains(FullbuildPhase.IndexBackFlow) && indexBackFlowPhaseStatus.isFaild());
+    }
+
     public void flushStatus2Local() {
         if (executePhaseRange.contains(FullbuildPhase.FullDump)) {
             dumpPhase.writeStatus2Local();

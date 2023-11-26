@@ -38,7 +38,7 @@ import java.io.IOException;
 
 /**
  * 通过taskid取全量执行状态
- *
+ * example: http://localhost:8083/tis-assemble/task_status?taskid=1956
  * @author 百岁（baisui@qlangtech.com）
  * @date 2017年7月12日
  */

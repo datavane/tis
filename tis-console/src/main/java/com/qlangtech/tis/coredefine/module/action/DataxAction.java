@@ -126,6 +126,10 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doTriggerFullbuildTask(Context context) throws Exception {
 
+    // 在powerjob 系统中 定时任务触发，已经生成wfInstanceId
+    Optional<Long> powerJobWorkflowInstanceId
+      = Optional.ofNullable(this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, null));
+
     DataXJobSubmit.InstanceType triggerType = DataXJobSubmit.getDataXTriggerType();
     IDataxProcessor dataXProcessor = DataxProcessor.load(null, this.getCollectionName());
 
@@ -152,7 +156,8 @@ public class DataxAction extends BasicModule {
     //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.JOIN.getName()));
 
     // this.setBizResult(context, TriggerBuildResult.triggerBuild(this, context, params));
-    this.setBizResult(context, jobSubmit.triggerJob(this, context, this.getCollectionName()));
+    this.setBizResult(context, jobSubmit.triggerJob(
+      this, context, this.getCollectionName(), powerJobWorkflowInstanceId));
   }
 
 
@@ -335,10 +340,10 @@ public class DataxAction extends BasicModule {
   public void doWorkerDesc(Context context) {
     final TargetResName targetName = getK8SJobWorkerTargetName();
 
-    DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(targetName);
-    if (jobWorker != null && jobWorker.inService()) {
-      throw new IllegalStateException("dataX worker is on duty");
-    }
+//    DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(targetName);
+//    if (jobWorker != null && jobWorker.inService()) {
+//      throw new IllegalStateException("dataX worker is on duty");
+//    }
 
     this.setBizResult(context, new PluginDescMeta(DataXJobWorker.getDesc(targetName)));
   }
@@ -794,6 +799,28 @@ public class DataxAction extends BasicModule {
 
   private static final Pattern PatternEdittingDirSuffix =
     Pattern.compile("\\-[\\da-z]{8}\\-[\\da-z]{4}\\-[\\da-z]{4" + "}\\-[\\da-z]{4}\\-[\\da-z]{12}");
+
+  /**
+   * 更新Powerjob worker与应用绑定,更新Crontab
+   *
+   * @param context
+   * @throws Exception
+   */
+  @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doUpdatePowerJob(Context context) throws Exception {
+
+    Optional<DataXJobSubmit> dataXJobSubmit //
+      = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit.getDataXTriggerType());
+
+    DataXJobSubmit jobSubmit = dataXJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must be present"));
+
+    DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(
+      null, StoreResourceType.DataApp, this.getAppDomain().getAppName());
+    // 这里可以在pwoerjob 中创建workflow任务
+    jobSubmit.saveJob(this, context, dataxProcessor);
+    this.setBizResult(context, dataxProcessor.identityValue());
+  }
+
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doUpdateDatax(Context context) throws Exception {

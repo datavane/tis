@@ -23,7 +23,9 @@ import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.impl.IOUtils;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -31,9 +33,11 @@ import org.json.JSONTokener;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -107,7 +111,7 @@ public class JsonUtil {
 
     public static <T> T[] toArray(Class<T> elementClazz, JSONArray ms) {
         T[] t = (T[]) Array.newInstance(elementClazz, ms.size());
-       
+
         int i = 0;
         for (Object e : ms.toArray()) {
             t[i++] = (T) e;
@@ -133,11 +137,19 @@ public class JsonUtil {
         }
     }
 
-    public static String toString(Object json) {
+    public static String toString(Object json, boolean prettyFormat) {
 
+        List<SerializerFeature> features = Lists.newArrayList(SerializerFeature.DisableCircularReferenceDetect);
+        if (prettyFormat) {
+            features.add(SerializerFeature.PrettyFormat);
+        }
 
         return com.alibaba.fastjson.JSON.toJSONString(
-                json, SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat);
+                json, features.toArray(new SerializerFeature[features.size()]));
+    }
+
+    public static String toString(Object json) {
+        return toString(json, TisAppLaunch.isTestMock());
     }
 
 

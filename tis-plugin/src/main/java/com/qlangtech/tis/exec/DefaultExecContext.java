@@ -21,9 +21,10 @@ package com.qlangtech.tis.exec;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
-import com.qlangtech.tis.fullbuild.phasestatus.IPhaseStatusCollection;
+import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.sql.parser.TabPartitions;
@@ -36,7 +37,6 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/11/18
  */
@@ -45,12 +45,19 @@ public class DefaultExecContext implements IExecChainContext {
     private final long ps;
     private Integer workflowId;
     private ExecutePhaseRange executePhaseRange;
-    private String appname;
+    private final String dataXName;
     private boolean dryRun;
+    private ITISCoordinator coordinator;
+    private PhaseStatusCollection latestPhaseStatusCollection;
 
-    public DefaultExecContext(Long triggerTimestamp) {
+    public DefaultExecContext(String dataXName, Long triggerTimestamp) {
         this.ps = triggerTimestamp;
+        this.dataXName = dataXName;
         ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
+    }
+
+    public void setCoordinator(ITISCoordinator coordinator) {
+        this.coordinator = coordinator;
     }
 
     public void setExecutePhaseRange(ExecutePhaseRange executePhaseRange) {
@@ -61,17 +68,14 @@ public class DefaultExecContext implements IExecChainContext {
         this.dryRun = dryRun;
     }
 
-    public void setAppname(String appname) {
-        this.appname = appname;
-    }
 
     public void setWorkflowId(Integer workflowId) {
         this.workflowId = workflowId;
     }
 
     @Override
-    public IDataxProcessor getProcessor() {
-        throw new UnsupportedOperationException();
+    public final IDataxProcessor getProcessor() {
+        return DataxProcessor.load(null, this.dataXName);
     }
 
     @Override
@@ -103,12 +107,12 @@ public class DefaultExecContext implements IExecChainContext {
 
     @Override
     public void cancelTask() {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public ITISCoordinator getZkClient() {
-        return null;
+        return this.coordinator;
     }
 
     @Override
@@ -118,17 +122,17 @@ public class DefaultExecContext implements IExecChainContext {
 
     @Override
     public String getWorkflowName() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public ITISFileSystem getIndexBuildFileSystem() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void rebindLoggingMDCParams() {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -138,7 +142,7 @@ public class DefaultExecContext implements IExecChainContext {
 
     @Override
     public int getIndexShardCount() {
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     private final Map<String, Object> attribute = new HashMap<>();
@@ -181,12 +185,12 @@ public class DefaultExecContext implements IExecChainContext {
 
     @Override
     public String getIndexName() {
-        return this.appname;
+        return this.dataXName;
     }
 
     @Override
     public boolean hasIndexName() {
-        return StringUtils.isNotEmpty(this.appname);
+        return StringUtils.isNotEmpty(this.dataXName);
     }
 
     @Override
@@ -196,7 +200,7 @@ public class DefaultExecContext implements IExecChainContext {
 
     @Override
     public String getString(String key) {
-      throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -219,8 +223,12 @@ public class DefaultExecContext implements IExecChainContext {
         return ps;
     }
 
+    public void setLatestPhaseStatusCollection(PhaseStatusCollection latestPhaseStatusCollection) {
+        this.latestPhaseStatusCollection = latestPhaseStatusCollection;
+    }
+
     @Override
-    public <T extends IPhaseStatusCollection> T loadPhaseStatusFromLatest() {
-        return null;
+    public PhaseStatusCollection loadPhaseStatusFromLatest() {
+        return this.latestPhaseStatusCollection;
     }
 }

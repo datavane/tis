@@ -55,6 +55,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -191,6 +192,14 @@ public class StatusRpcClientFactory {
 
     private static final ExecutorService reConnectSchedule = Executors.newSingleThreadExecutor();
 
+
+    public static RpcServiceReference getMockStub() {
+        final AtomicReference<ITISRpcService> ref = new AtomicReference<>();
+        ref.set(AssembleSvcCompsite.MOCK_PRC);
+        return new RpcServiceReference(ref, () -> {
+        });
+    }
+
     /**
      * 连接到Assemble服务器
      *
@@ -198,62 +207,92 @@ public class StatusRpcClientFactory {
      * @throws Exception
      */
     private RpcServiceReference connect2RemoteIncrStatusServer(ITISCoordinator zookeeper, AdapterAssembleSvcCompsiteCallback... callbacks) throws Exception {
-        final AtomicReference<ITISRpcService> ref = new AtomicReference<>();
-        ref.set(AssembleSvcCompsite.MOCK_PRC);
+
+        //  final ReentrantLock tryConnectServerLock = new ReentrantLock();
+        RpcServiceReference svcRef = getMockStub();
+//        ref.set(AssembleSvcCompsite.MOCK_PRC);
         if (!zookeeper.shallConnect2RemoteIncrStatusServer()) {
-            return new RpcServiceReference(ref, () -> {
-            });
+//            return new RpcServiceReference(ref, () -> {
+//            });
+
+            return svcRef;
         }
-        AtomicBoolean successConnected = new AtomicBoolean(false);
+        // AtomicBoolean successConnected = new AtomicBoolean(false);
 
 
-        Runnable connect = () -> {
-            StatusRpcClientFactory statusRpcClient = new StatusRpcClientFactory();
-            statusRpcClient.connect2RemoteIncrStatusServer(zookeeper, true, /* reConnect */
-                    new AssembleSvcCompsiteCallback() {
-                        @Override
-                        public AssembleSvcCompsite process(AssembleSvcCompsite oldrpc, AssembleSvcCompsite newrpc) {
-                            ref.compareAndSet(oldrpc, newrpc);
-                            successConnected.set(true);
-                            for (AdapterAssembleSvcCompsiteCallback c : callbacks) {
-                                c.process(oldrpc, newrpc);
-                            }
-                            return newrpc;
-                        }
-
-                        @Override
-                        public AssembleSvcCompsite getOld() {
-                            return ref.get().unwrap();
-                        }
-
-                        @Override
-                        public void errorOccur(AssembleSvcCompsite oldrpc, Exception e) {
-                            ref.compareAndSet(oldrpc, AssembleSvcCompsite.MOCK_PRC);
-                            successConnected.set(false);
-                        }
-                    });
-        };
+        TryConnection connect = new TryConnection(zookeeper, svcRef.getRef(), callbacks);
 
         connect.run();
 
-        startConnect2RPC(successConnected, connect);
+        startConnect2RPC(connect);
 
-        return new RpcServiceReference(ref, connect);
+        return new RpcServiceReference(svcRef.getRef(), connect);
     }
 
-    private static void startConnect2RPC(AtomicBoolean successConnected, Runnable connect) {
-        if (successConnected.get()) {
-            return;
+    public static class TryConnection implements Runnable {
+        private ITISCoordinator zookeeper;
+        private AtomicReference<ITISRpcService> ref;
+        AtomicBoolean successConnected = new AtomicBoolean(false);
+        AdapterAssembleSvcCompsiteCallback[] callbacks;
+
+        private final ReentrantLock tryConnectLock = new ReentrantLock();
+
+        public TryConnection(ITISCoordinator zookeeper, AtomicReference<ITISRpcService> ref, AdapterAssembleSvcCompsiteCallback[] callbacks) {
+            this.zookeeper = zookeeper;
+            this.ref = ref;
+            this.callbacks = callbacks;
         }
+
+        @Override
+        public void run() {
+
+            if (tryConnectLock.tryLock()) {
+                StatusRpcClientFactory statusRpcClient = new StatusRpcClientFactory();
+                statusRpcClient.connect2RemoteIncrStatusServer(zookeeper, true, /* reConnect */
+                        new AssembleSvcCompsiteCallback() {
+                            @Override
+                            public AssembleSvcCompsite process(AssembleSvcCompsite oldrpc, AssembleSvcCompsite newrpc) {
+                                ref.compareAndSet(oldrpc, newrpc);
+                                successConnected.set(true);
+                                for (AdapterAssembleSvcCompsiteCallback c : callbacks) {
+                                    c.process(oldrpc, newrpc);
+                                }
+                                return newrpc;
+                            }
+
+                            @Override
+                            public AssembleSvcCompsite getOld() {
+                                return ref.get().unwrap();
+                            }
+
+                            @Override
+                            public void errorOccur(AssembleSvcCompsite oldrpc, Exception e) {
+                                ref.compareAndSet(oldrpc, AssembleSvcCompsite.MOCK_PRC);
+                                successConnected.set(false);
+                            }
+                        });
+            }
+        }
+    }
+
+    private static void startConnect2RPC(TryConnection connect) {
+
         AtomicInteger tryCount = new AtomicInteger();
         reConnectSchedule.submit(() -> {
 
             while (true) {
                 logger.info("start reconnect rpc server,tryCount:" + tryCount.incrementAndGet());
-                connect.run();
-                if (successConnected.get()) {
-                    return;
+                connect.tryConnectLock.tryLock();
+                synchronized (connect) {
+                    if (connect.successConnected.get()) {
+                        connect.tryConnectLock.unlock();
+                        connect.wait();
+                        logger.info("reconnect process was notify,tryCount:" + tryCount.incrementAndGet());
+                    }
                 }
+
+                connect.run();
+
                 try {
                     Thread.sleep(8000);
                 } catch (InterruptedException e) {

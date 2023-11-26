@@ -44,6 +44,7 @@ import com.qlangtech.tis.trigger.jst.RegisterMonotorTarget;
 import com.qlangtech.tis.trigger.socket.ExecuteState;
 import com.qlangtech.tis.trigger.socket.LogType;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClientFactory;
 import io.grpc.StatusRuntimeException;
@@ -150,17 +151,16 @@ public class LogFeedbackServlet extends WebSocketServlet {
     }
 
     private ExtendWorkFlowBuildHistory getBuildHistory() {
+      return getBuildHistory(null);
+    }
 
-      return new ExtendWorkFlowBuildHistory(new ICommonDAOContext() {
-        @Override
-        public IApplicationDAO getApplicationDAO() {
-          throw new UnsupportedOperationException();
-        }
-        @Override
-        public IWorkflowDAOFacade getWorkflowDAOFacade() {
-          return wfDao;
-        }
-      }, wfDao.getWorkFlowBuildHistoryDAO().selectByPrimaryKey(this.taskid));
+    private ExtendWorkFlowBuildHistory getBuildHistory(ExecResult execResult) {
+      WorkFlowBuildHistory wfBuildHistory = wfDao.getWorkFlowBuildHistoryDAO().selectByPrimaryKey(this.taskid);
+      if (execResult == null) {
+        return new ExtendWorkFlowBuildHistory(wfBuildHistory);
+      } else {
+        return new ExtendWorkFlowBuildHistory(wfBuildHistory, execResult);
+      }
     }
 
     private void addMonitor(List<RegisterMonotorTarget> typies) {
@@ -389,6 +389,12 @@ public class LogFeedbackServlet extends WebSocketServlet {
             }
           } while (true);
           preTaskComplete = buildState.isComplete();
+          // 既然状态变了，肯定是结束了
+          if (!jobStop) {
+            status = getBuildHistory(buildState.isFaild() ? ExecResult.FAILD : ExecResult.SUCCESS);
+            jobStop = true;
+          }
+
         }
       } else {
         status = getBuildHistory();
@@ -405,8 +411,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
     }
 
     private boolean isTerminal(ExtendWorkFlowBuildHistory status) {
-      return ExecResult.parse(status.getState()) != ExecResult.DOING &&
-        ExecResult.parse(status.getState()) != ExecResult.ASYN_DOING;
+      return ExecResult.parse(status.getState()).isComplete();
     }
 
     @Override

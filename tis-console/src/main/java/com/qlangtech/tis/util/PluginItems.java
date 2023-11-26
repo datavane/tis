@@ -266,6 +266,8 @@ public class PluginItems {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.DATAX_WORKER) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
+    } else if (heteroEnum == HeteroEnum.appJobWorkerTplReWriter) {
+      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else {
       if (heteroEnum.isAppNameAware()) {
         if (!this.pluginContext.isCollectionAware()) {

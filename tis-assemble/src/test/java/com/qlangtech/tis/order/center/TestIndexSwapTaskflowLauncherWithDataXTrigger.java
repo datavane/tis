@@ -46,6 +46,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -115,12 +116,12 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
         }
 
         @Override
-        public ExecResult processExecHistoryRecord(ICommonDAOContext commonDAO, WorkFlowBuildHistory buildHistory) {
-            throw new UnsupportedOperationException();
+        public void saveJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor) {
+             throw new UnsupportedOperationException();
         }
 
         @Override
-        public TriggerBuildResult triggerJob(IControlMsgHandler module, Context context, String appName) {
+        public TriggerBuildResult triggerJob(IControlMsgHandler module, Context context, String appName, Optional<Long> workflowInstanceIdOpt) {
             return null;
         }
 

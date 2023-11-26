@@ -116,6 +116,9 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         JoinPhaseStatus joinPhase = phaseStatusSet.getJoinPhase();
         JoinPhaseStatus.JoinTaskStatus joinTskStatus = LogCollectorClient.convert(joinStat);
         joinPhase.taskStatus.put(joinStat.getJoinTaskName(), joinTskStatus);
+        if (phaseStatusSet.isComplete()) {
+            phaseStatusSet.flushStatus2Local();
+        }
         returnEmpty(responseObserver);
     }
 

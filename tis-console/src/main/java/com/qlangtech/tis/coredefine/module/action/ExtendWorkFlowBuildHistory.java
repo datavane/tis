@@ -42,24 +42,14 @@ public class ExtendWorkFlowBuildHistory {
 
   private ExecResult execResult;
 
-  public ExtendWorkFlowBuildHistory(ICommonDAOContext commonDAO, WorkFlowBuildHistory delegate) {
+  public ExtendWorkFlowBuildHistory(WorkFlowBuildHistory delegate) {
+    this(delegate, ExecResult.parse(delegate.getState()));
+  }
+
+  public ExtendWorkFlowBuildHistory(WorkFlowBuildHistory delegate, ExecResult execResult) {
     super();
     this.delegate = delegate;
-
-    this.execResult = ExecResult.parse(this.delegate.getState());
-    if (ITISPowerJob.getPowerJobWorkflowInstanceId(delegate, false) != null
-      && !(this.execResult.isComplete())) {
-      DataXJobSubmit.InstanceType instanceType = DataXJobSubmit.getDataXTriggerType();
-      Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, instanceType);
-      DataXJobSubmit jobSubmit = dataXJobSubmit
-        .orElseThrow(() -> new IllegalStateException("triggerType:" + instanceType + " relevant jobSubmit can not be null"));
-
-      ExecResult stateChange = jobSubmit.processExecHistoryRecord(commonDAO, delegate);
-      if (stateChange != null) {
-        this.execResult = stateChange;
-      }
-    }
-
+    this.execResult = execResult;
   }
 
   /**
@@ -116,8 +106,8 @@ public class ExtendWorkFlowBuildHistory {
 
   public String getStateClass() {
     // SUCCESS(1, "成功"), FAILD(-1, "失败"), DOING(2, "执行中"), CANCEL(3, "终止");
-    ExecResult result = ExecResult.parse(this.delegate.getState());
-    switch (result) {
+    // ExecResult result = ExecResult.parse(this.delegate.getState());
+    switch (execResult) {
       case DOING:
       case ASYN_DOING:
         return "loading";
@@ -129,14 +119,14 @@ public class ExtendWorkFlowBuildHistory {
         // 取消了
         return "stop";
       default:
-        throw new IllegalStateException("result:" + result + " status is illegal");
+        throw new IllegalStateException("result:" + execResult + " status is illegal");
     }
   }
 
   public String getStateColor() {
     // [ngStyle]="{'max-width.px': widthExp}"
-    ExecResult result = ExecResult.parse(this.delegate.getState());
-    switch (result) {
+    // ExecResult result = ExecResult.parse(this.delegate.getState());
+    switch (execResult) {
       case DOING:
       case ASYN_DOING:
         return "blue";
@@ -148,7 +138,7 @@ public class ExtendWorkFlowBuildHistory {
         // 取消了
         return "red";
       default:
-        throw new IllegalStateException("result:" + result + " status is illegal");
+        throw new IllegalStateException("result:" + execResult + " status is illegal");
     }
   }
 
@@ -162,7 +152,7 @@ public class ExtendWorkFlowBuildHistory {
    * @return
    */
   public String getLiteralState() {
-    return ExecResult.parse(this.delegate.getState()).getLiteral();
+    return execResult.getLiteral();
   }
 
   public String getTriggerType() {

@@ -27,13 +27,23 @@ public class RpcServiceReference {
     private final AtomicReference<ITISRpcService> ref;
     private final Runnable connect;
 
+
+
     public RpcServiceReference(AtomicReference<ITISRpcService> ref, Runnable connect) {
         this.ref = ref;
         this.connect = connect;
     }
 
+    public AtomicReference<ITISRpcService> getRef() {
+        return ref;
+    }
+
     public void reConnect() {
-        this.connect.run();
+        synchronized (connect) {
+            this.connect.run();
+            // 唤醒 Runnable，连接继续
+            this.connect.notifyAll();
+        }
     }
 
     /**

@@ -72,7 +72,7 @@ public abstract class Krb5Res implements Describable<Krb5Res>, InnerPropOfIdenti
                 File krb5Path = (krb5Res.getKrb5Path());
                 if (!krb5Path.exists()) {
                     msgHandler.addFieldError(context, getResPropFieldName()
-                            , NetUtils.getHostname() + "节点中，文件文件：" + krb5Path.getAbsolutePath() + "不存在该路径");
+                            , NetUtils.getHost() + "节点中，文件文件：" + krb5Path.getAbsolutePath() + "不存在该路径");
                     return false;
                 }
 

@@ -122,9 +122,6 @@ public abstract class DataXJobSubmit {
         return getDataXJobSubmit(joinTaskContext.isDryRun(), expectDataXJobSumit);
     }
 
-    public ExecResult processExecHistoryRecord(ICommonDAOContext commonDAO, WorkFlowBuildHistory buildHistory) {
-        throw new UnsupportedOperationException();
-    }
 
     public enum InstanceType {
         DISTRIBUTE("distribute") {
@@ -211,9 +208,10 @@ public abstract class DataXJobSubmit {
      * @param module
      * @param context
      * @param appName
+     *  @param powerJobWorkflowInstanceIdOpt 如果是手动触发则为空,如果是定时触发的，例如在powerjob系统中已经生成了powerjob 的workflowInstanceId
      * @return
      */
-    public abstract TriggerBuildResult triggerJob(IControlMsgHandler module, final Context context, String appName);
+    public abstract TriggerBuildResult triggerJob(IControlMsgHandler module, final Context context, String appName, Optional<Long> powerJobWorkflowInstanceIdOpt);
 
 
     /**
@@ -225,6 +223,15 @@ public abstract class DataXJobSubmit {
      */
     public abstract void createJob(IControlMsgHandler module, final Context context, DataxProcessor dataxProcessor);
 
+
+    /**
+     * 更新任务
+     *
+     * @param module
+     * @param context
+     * @param dataxProcessor
+     */
+    public abstract void saveJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor);
 //    /**
 //     * 创建数据同步 pre，post hook
 //     *
@@ -379,7 +386,7 @@ public abstract class DataXJobSubmit {
     public interface IDataXJobContext extends IDataXTaskRelevant {
         // public <T> T getContextInstance();
 
-        public static IDataXJobContext create(IJoinTaskContext parentContext){
+        public static IDataXJobContext create(IJoinTaskContext parentContext) {
             return new DataXJobSubmit.IDataXJobContext() {
                 @Override
                 public IJoinTaskContext getTaskContext() {

@@ -96,6 +96,18 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             return super.getPluginStore(pluginContext, pluginMeta);
         }
     };
+
+    @TISExtension
+    public static final HeteroEnum<DataXJobWorker> appJobWorkerTplReWriter = new HeteroEnum<DataXJobWorker>(//
+            DataXJobWorker.class, //
+            DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite.token
+            , DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite.name(), Selectable.Single, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            return super.getPluginStore(pluginContext, pluginMeta);
+        }
+    };
+
     // ////////////////////////////////////////////////////////
     @TISExtension
     public static final HeteroEnum<ParamsConfig> PARAMS_CONFIG = new HeteroEnum<ParamsConfig>(//

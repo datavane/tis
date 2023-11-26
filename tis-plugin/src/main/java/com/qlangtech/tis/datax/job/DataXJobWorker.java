@@ -67,9 +67,11 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
     public enum K8SWorkerCptType {
         Server("powerjob-server", null), Worker("powerjob-worker"), JobTpl("powerjob-job-tpl"),
-        UsingExistCluster("powerjob-use-exist-cluster", null),
+        // 具体app中可以覆写默认JobTpl中指定的参数值，并且还能定时任务表达式
+        JobTplAppOverwrite("powerjob-job-tpl-app-overwrite") //
+        , UsingExistCluster("powerjob-use-exist-cluster", null),
         FlinkCluster("flink-cluster", null);
-        private final String token;
+        public final String token;
         public final String storeSuffix;
 
         private K8SWorkerCptType(String token) {
