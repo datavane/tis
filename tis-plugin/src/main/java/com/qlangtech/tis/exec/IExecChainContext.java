@@ -100,6 +100,9 @@ public interface IExecChainContext extends IJoinTaskContext {
         String url = WORKFLOW_CONFIG_URL_POST_FORMAT
                 .format(new Object[]{"fullbuild_workflow_action", "do_create_new_task"});
         AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote(url, newTaskParam.params(), CreateNewTaskResult.class);
+        if (!result.isSuccess()) {
+            throw new IllegalStateException("error:" + String.join(",", result.getErrormsg()));
+        }
         return result.getBizresult().getTaskid();
     }
 
@@ -113,6 +116,9 @@ public interface IExecChainContext extends IJoinTaskContext {
         String url = WORKFLOW_CONFIG_URL_POST_FORMAT
                 .format(new Object[]{"fullbuild_workflow_action", "do_initialize_trigger_task"});
         AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote(url, triggerNewTaskParam.params(), CreateNewTaskResult.class);
+        if (!result.isSuccess()) {
+            throw new IllegalStateException("error:" + String.join(",", result.getErrormsg()));
+        }
         return result.getBizresult().getTaskid();
     }
 

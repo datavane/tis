@@ -17,7 +17,10 @@
  */
 package com.qlangtech.tis.offline;
 
+import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.datax.TimeFormat;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.job.common.JobParams;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.function.Supplier;
@@ -35,6 +38,15 @@ public class DataxUtils {
     public static final String EXEC_TIMESTAMP = "execTimeStamp";
 
     public static final String DATASOURCE_FACTORY_IDENTITY = "dataSourceFactoryId";
+
+    public static JSONObject createInstanceParams(Integer tisTaskId, String appName, boolean dryRun) {
+        JSONObject instanceParams = new JSONObject();
+        instanceParams.put(JobParams.KEY_TASK_ID, tisTaskId);
+        instanceParams.put(JobParams.KEY_COLLECTION, appName);
+        instanceParams.put(DataxUtils.EXEC_TIMESTAMP, TimeFormat.getCurrentTimeStamp());
+        instanceParams.put(IFullBuildContext.DRY_RUN, dryRun);
+        return instanceParams;
+    }
 
     public static long getDumpTimeStamp() {
         return getDumpTimeStamp(true, () -> {

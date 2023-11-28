@@ -21,7 +21,6 @@ package com.qlangtech.tis.datax;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
-import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -42,15 +41,14 @@ import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.RobustReflectionConverter2;
 import com.qlangtech.tis.web.start.TisAppLaunch;
-import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import com.qlangtech.tis.dao.ICommonDAOContext;
 
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -208,7 +206,7 @@ public abstract class DataXJobSubmit {
      * @param module
      * @param context
      * @param appName
-     *  @param powerJobWorkflowInstanceIdOpt 如果是手动触发则为空,如果是定时触发的，例如在powerjob系统中已经生成了powerjob 的workflowInstanceId
+     * @param powerJobWorkflowInstanceIdOpt 如果是手动触发则为空,如果是定时触发的，例如在powerjob系统中已经生成了powerjob 的workflowInstanceId
      * @return
      */
     public abstract TriggerBuildResult triggerJob(IControlMsgHandler module, final Context context, String appName, Optional<Long> powerJobWorkflowInstanceIdOpt);
@@ -225,13 +223,24 @@ public abstract class DataXJobSubmit {
 
 
     /**
-     * 更新任务
+     * 取得所有当前管理的实例,Powerjob 中实现返回所有的workflow
+     * pager.getCurPage(), pager.getRowsPerPage()
      *
+     * @param <T>
+     * @return
+     */
+    public <T> Pair<Integer, List<T>> fetchAllInstance(Map<String, Object> criteria, int page, int pageSize) {
+        throw new UnsupportedOperationException(this.getClass().getName());
+    }
+
+    /**
+     * 更新任务
+     *tech.powerjob.common.response.WorkflowInfoDTO
      * @param module
      * @param context
      * @param dataxProcessor
      */
-    public abstract void saveJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor);
+    public abstract <WorkflowInfoDTO> WorkflowInfoDTO  saveJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor);
 //    /**
 //     * 创建数据同步 pre，post hook
 //     *

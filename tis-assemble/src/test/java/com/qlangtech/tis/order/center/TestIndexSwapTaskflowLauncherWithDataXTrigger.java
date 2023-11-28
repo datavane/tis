@@ -116,7 +116,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
         }
 
         @Override
-        public void saveJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor) {
+        public <T> T saveJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor) {
              throw new UnsupportedOperationException();
         }
 

@@ -24,6 +24,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.datax.DataXJobSubmit;
@@ -90,6 +91,7 @@ import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.convention.annotation.InterceptorRef;
 import org.apache.struts2.convention.annotation.InterceptorRefs;
@@ -122,6 +124,20 @@ import com.qlangtech.tis.extension.util.MultiItemsViewType;
 public class DataxAction extends BasicModule {
   private static final Logger logger = LoggerFactory.getLogger(DataxAction.class);
   private static final String PARAM_KEY_DATAX_NAME = DataxUtils.DATAX_NAME;
+
+  @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doGetAllPowerjobWorkflowRecord(Context context) throws Exception {
+
+    Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit.getDataXTriggerType());
+
+    DataXJobSubmit jobSubmit = dataXJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must be present"));
+    Map<String, Object> criteria = Maps.newHashMap();
+
+    Pager pager = createPager();
+    Pair<Integer, List<Object>> workflows = jobSubmit.fetchAllInstance(criteria, pager.getCurPage(), pager.getRowsPerPage());
+    pager.setTotalCount(workflows.getKey());
+    this.setBizResult(context,new PaginationResult(pager, workflows.getRight()));
+  }
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doTriggerFullbuildTask(Context context) throws Exception {
@@ -817,8 +833,7 @@ public class DataxAction extends BasicModule {
     DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(
       null, StoreResourceType.DataApp, this.getAppDomain().getAppName());
     // 这里可以在pwoerjob 中创建workflow任务
-    jobSubmit.saveJob(this, context, dataxProcessor);
-    this.setBizResult(context, dataxProcessor.identityValue());
+    this.setBizResult(context, jobSubmit.saveJob(this, context, dataxProcessor));
   }
 
 

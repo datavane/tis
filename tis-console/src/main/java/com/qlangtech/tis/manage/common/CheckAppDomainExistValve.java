@@ -37,67 +37,21 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class CheckAppDomainExistValve {
 
-  // private static final Pattern p = Pattern
-  // .compile("bizid(\\d+)appid(\\d+)run(\\d+)");
-  // app.getProjectName()
-  // + "_run" + form.getRunEnviron()
   @Autowired
   private HttpServletRequest request;
 
-  // @Autowired
-  // private URIBrokerService uriService;
-  //
-  // public static final String CHANGE_DOMAIN_TARGET = "/changedomain";
-  //
-  // public void invoke(PipelineContext pipelineContext) throws Exception {
-  //
-  // AppDomainInfo appDomain = getAppDomain((RunContext) null);
-  //
-  // if (appDomain == null) {
-  // TurbineRunData rundata = TurbineUtil.getTurbineRunData(request);
-  //
-  // if (!StringUtils.equalsIgnoreCase(rundata.getTarget(),
-  // CHANGE_DOMAIN_TARGET)) {
-  // String jumpTo = BasicModule.getBroker(uriService).setTarget(
-  // CHANGE_DOMAIN_TARGET).toString();
-  // rundata.setRedirectLocation(jumpTo
-  // + "?_fm.ch._0.g="
-  // + URLEncoder.encode(String.valueOf(request
-  // .getRequestURL()), BasicModule.getEncode()));
-  // pipelineContext.breakPipeline(Pipeline.TOP_LABEL);
-  // }
-  //
-  // }
-  //
-  // pipelineContext.invokeNext();
-  // }
-  // public static AppDomainInfo getAppDomain(RunContext context) {
-  // return getAppDomain(context.getApplicationDAO());
-  // }
   public static AppDomainInfo getAppDomain(RunContext context) {
     HttpServletRequest request = ServletActionContext.getRequest();
     return getAppDomain(request, context);
   }
 
   public static AppDomainInfo getAppDomain(HttpServletRequest request, RunContext context) {
-    // Assert.assertNotNull(applicationDAO);
     AppDomainInfo domain = (AppDomainInfo) request.getAttribute(ActionTool.REQUEST_DOMAIN_KEY);
     if (domain != null) {
       return domain;
     }
-    // Integer bizid = null;
-    // Integer appid = null;
+
     AppDomainInfo appDomain = null;
-    // Cookie cookie = getCookie(request,
-    // ChangeDomainAction.COOKIE_SELECT_APP);
-    // if (cookie == null) {
-    // // domain = new NullAppDomainInfo(applicationDAO);
-    // domain = AppDomainInfo.createAppNotAware(getRuntime());
-    // request.setAttribute(ActionTool.REQUEST_DOMAIN_KEY, domain);
-    // return domain;
-    // }
-    // Matcher match = p2.matcher(cookie.getValue());
-    // .getRuntime(request);
     AppAndRuntime environment = DefaultFilter.getAppAndRuntime();
     if (environment == null) {
       domain = AppDomainInfo.createAppNotAware(DefaultFilter.getRuntime());

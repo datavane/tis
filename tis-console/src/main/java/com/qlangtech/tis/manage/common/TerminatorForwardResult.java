@@ -92,6 +92,7 @@ public class TerminatorForwardResult extends StrutsResultSupport {
       // 直接forward到另外一個action上去
       ActionMapping forwardMapping = defaultActionMapper.getMapping(request, null);
       forwardMapping.setName(forward.getAction());
+      forwardMapping.setNamespace(forward.getNamespace());
       forwardAction(invocation, forwardMapping);
     }
 

@@ -908,7 +908,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     try {
       return Long.parseLong(val);
     } catch (Throwable e) {
-      if (ignoreError) {
+      if (!ignoreError) {
         throw new RuntimeException("key:" + key + " val:[" + val + "] relevant value is ERROR", e);
       }
       return dft;

@@ -198,8 +198,16 @@ public class HttpUtils {
                 if (!r.isSuccess()) {
                     errors = result.getJSONArray(IAjaxResult.KEY_ERROR_MSG);
 
-                    List<String> errMsg = ((Stream<String>) errors.stream()).map((rr) -> {
-                        return (String) rr;
+                    List<String> errMsg = ((Stream<Object>) errors.stream()).map((rr) -> {
+                        if (rr instanceof String) {
+                            return (String) rr;
+                        } else if (rr instanceof com.alibaba.fastjson.JSONObject) {
+                            com.alibaba.fastjson.JSONObject err = (com.alibaba.fastjson.JSONObject) rr;
+                            return err.entrySet().stream()
+                                    .map((entry) -> entry.getKey() + "->" + entry.getValue())
+                                    .collect(Collectors.joining("\n"));
+                        }
+                        throw new IllegalStateException("illegal type:" + rr.getClass().getName());
                     }).collect(Collectors.toList());
 
                     r.setErrormsg(errMsg);
