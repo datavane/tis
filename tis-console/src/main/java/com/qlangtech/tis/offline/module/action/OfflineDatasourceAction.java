@@ -30,6 +30,8 @@ import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.coredefine.module.action.DataxAction;
 import com.qlangtech.tis.coredefine.module.action.PluginDescMeta;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
+import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.IDataXPowerJobSubmit;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -53,6 +55,7 @@ import com.qlangtech.tis.manage.common.IUser;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.DbScope;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.offline.pojo.GitRepositoryCommitPojo;
@@ -953,6 +956,11 @@ public class OfflineDatasourceAction extends BasicModule {
       this(user, offlineDAOFacade, false);
     }
 
+    /**
+     * @param user
+     * @param offlineDAOFacade
+     * @param idempotent       幂等
+     */
     public CreateTopologyUpdateCallback(IUser user, IWorkflowDAOFacade offlineDAOFacade, boolean idempotent) {
       this.user = user;
       this.offlineDAOFacade = offlineDAOFacade;
@@ -961,7 +969,13 @@ public class OfflineDatasourceAction extends BasicModule {
 
     @Override
     public void afterPersistence(IPluginContext pluginContext, Context context, SqlDataFlowTopology topology) {
-      DataxAction.generateDataXCfgs(pluginContext, context, StoreResourceType.DataFlow, topology.getName(), false);
+      DataxAction.generateDataXCfgs(
+        pluginContext, context, StoreResourceType.DataFlow, topology.getName(), false);
+
+      DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
+        submit.createWorkflowJob((IControlMsgHandler) pluginContext, context, topology);
+      });
+
     }
 
     @Override
@@ -1371,7 +1385,8 @@ public class OfflineDatasourceAction extends BasicModule {
   public void doGetDatasourceTableCols(Context context) throws TableNotFoundException {
     String tableName = this.getString("tabName");
     com.qlangtech.tis.workflow.pojo.DatasourceDb db = getDsDb();
-    DataxReader dbDataxReader = OfflineManager.getDBDataxReader(this, db.getName());
+    DataxReader dbDataxReader = Objects.requireNonNull(OfflineManager.getDBDataxReader(this, db.getName())
+      , "dbName:" + db.getName() + " relevant reader can not be null");
     List<ColumnMetaData> colsMeta = dbDataxReader.getTableMetadata(false, EntityName.parse(tableName));
     this.setBizResult(context, colsMeta);
   }
@@ -1454,9 +1469,9 @@ public class OfflineDatasourceAction extends BasicModule {
     }
   }
 
-  public static final String COMPONENT_START = "component.start";
-
-  public static final String COMPONENT_END = "component.end";
+//  public static final String COMPONENT_START = "component.start";
+//
+//  public static final String COMPONENT_END = "component.end";
 
   /**
    * Do execute workflow. 执行数据流任务<br>
@@ -1471,17 +1486,29 @@ public class OfflineDatasourceAction extends BasicModule {
     Boolean dryRun = this.getBoolean("dryRun");
     List<PostParam> params = Lists.newArrayList();
     WorkFlow df = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(id);
-    Objects.requireNonNull(df, "id:" + id + " relevant workflow can not be null");
-    params.add(new PostParam(IFullBuildContext.DRY_RUN, dryRun));
-    params.add(new PostParam(IFullBuildContext.KEY_WORKFLOW_NAME, df.getName()));
-    params.add(new PostParam(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(id)));
-    // TODO 单独触发的DF执行后期要保证该流程最后的执行的结果数据不能用于索引build
-    params.add(new PostParam(IFullBuildContext.KEY_APP_SHARD_COUNT, IFullBuildContext.KEY_APP_SHARD_COUNT_SINGLE));
-    params.add(new PostParam(COMPONENT_START, FullbuildPhase.FullDump.getName()));
-    params.add(new PostParam(COMPONENT_END, FullbuildPhase.JOIN.getName()));
-    if (!TriggerBuildResult.triggerBuild(this, context, params).success) {
+
+    DataXJobSubmit jobSubmit = DataXJobSubmit.getDataXJobSubmit();
+
+    // 在powerjob 系统中 定时任务触发，已经生成wfInstanceId
+    Optional<Long> powerJobWorkflowInstanceId
+      = Optional.ofNullable(this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, null));
+
+    TriggerBuildResult buildResult = jobSubmit.triggerWorkflowJob(this, context, df, dryRun, powerJobWorkflowInstanceId);
+    if (!buildResult.success) {
       // throw new IllegalStateException("dataflowid:" + id + " trigger faild");
     }
+
+//    Objects.requireNonNull(df, "id:" + id + " relevant workflow can not be null");
+//    params.add(new PostParam(IFullBuildContext.DRY_RUN, dryRun));
+//    params.add(new PostParam(IFullBuildContext.KEY_WORKFLOW_NAME, df.getName()));
+//    params.add(new PostParam(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(id)));
+//    // TODO 单独触发的DF执行后期要保证该流程最后的执行的结果数据不能用于索引build
+//    params.add(new PostParam(IFullBuildContext.KEY_APP_SHARD_COUNT, IFullBuildContext.KEY_APP_SHARD_COUNT_SINGLE));
+//    params.add(new PostParam(COMPONENT_START, FullbuildPhase.FullDump.getName()));
+//    params.add(new PostParam(COMPONENT_END, FullbuildPhase.JOIN.getName()));
+//    if (!TriggerBuildResult.triggerBuild(this, context, params).success) {
+//      // throw new IllegalStateException("dataflowid:" + id + " trigger faild");
+//    }
   }
 
   public static final String KEY_DATA_READER_SETTED = "dataReaderSetted";

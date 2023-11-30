@@ -34,6 +34,7 @@ import com.qlangtech.tis.fullbuild.taskflow.JoinTask;
 import com.qlangtech.tis.fullbuild.taskflow.TaskAndMilestone;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.powerjob.IDAGSessionSpec;
 import com.qlangtech.tis.sql.parser.DAGSessionSpec;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.lang.StringUtils;
@@ -128,14 +129,14 @@ public class DagTaskUtils {
     }
 
     public static List<IRemoteTaskTrigger> createTasks(IExecChainContext execChainContext, ITaskPhaseInfo phaseStatus
-            , DAGSessionSpec dagSessionSpec, RemoteTaskTriggers tskTriggers) {
+            , IDAGSessionSpec dagSessionSpec, RemoteTaskTriggers tskTriggers) {
         List<IRemoteTaskTrigger> triggers = Lists.newArrayList();
         for (IRemoteTaskTrigger trigger : tskTriggers.getDumpPhaseTasks()) {
-            triggers.add(addDumpTask(execChainContext, phaseStatus, dagSessionSpec, trigger));
+            triggers.add(addDumpTask(execChainContext, phaseStatus, (DAGSessionSpec) dagSessionSpec, trigger));
         }
 
         for (IRemoteTaskTrigger trigger : tskTriggers.getJoinPhaseTasks()) {
-            triggers.add(addJoinTask(execChainContext, phaseStatus, dagSessionSpec, trigger));
+            triggers.add(addJoinTask(execChainContext, phaseStatus, (DAGSessionSpec) dagSessionSpec, trigger));
         }
         return triggers;
     }

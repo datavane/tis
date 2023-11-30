@@ -28,6 +28,7 @@ import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.IDataXPowerJobSubmit;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxReaderContext;
@@ -128,15 +129,17 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doGetAllPowerjobWorkflowRecord(Context context) throws Exception {
 
-    Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit.getDataXTriggerType());
+    // Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit.getDataXTriggerType());
 
-    DataXJobSubmit jobSubmit = dataXJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must be present"));
+    Optional<IDataXPowerJobSubmit> powerJobSubmit = DataXJobSubmit.getPowerJobSubmit();
+
+    IDataXPowerJobSubmit jobSubmit = powerJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must be present"));
     Map<String, Object> criteria = Maps.newHashMap();
 
     Pager pager = createPager();
     Pair<Integer, List<Object>> workflows = jobSubmit.fetchAllInstance(criteria, pager.getCurPage(), pager.getRowsPerPage());
     pager.setTotalCount(workflows.getKey());
-    this.setBizResult(context,new PaginationResult(pager, workflows.getRight()));
+    this.setBizResult(context, new PaginationResult(pager, workflows.getRight()));
   }
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
@@ -825,10 +828,10 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doUpdatePowerJob(Context context) throws Exception {
 
-    Optional<DataXJobSubmit> dataXJobSubmit //
-      = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit.getDataXTriggerType());
+    Optional<IDataXPowerJobSubmit> dataXJobSubmit //
+      = DataXJobSubmit.getPowerJobSubmit();
 
-    DataXJobSubmit jobSubmit = dataXJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must be present"));
+    IDataXPowerJobSubmit jobSubmit = dataXJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must be present"));
 
     DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(
       null, StoreResourceType.DataApp, this.getAppDomain().getAppName());
@@ -842,7 +845,7 @@ public class DataxAction extends BasicModule {
     String dataxName = this.getCollectionName();
 
     ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
-    IDataxProcessor old = (IDataxProcessor) pmodel.loadDataXProcessor(null, dataxName);
+    DataxProcessor old = (DataxProcessor) pmodel.loadDataXProcessor(null, dataxName);
 
     // DataxProcessor old = DataxProcessor.load(null, dataxName);
     IDataxProcessor editting = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataxName);
@@ -878,6 +881,12 @@ public class DataxAction extends BasicModule {
     this.getApplicationDAO().updateByExampleSelective(dataXApp, appCriteria);
     IAppSource.cleanAppSourcePluginStoreCache(null, dataxName);
     IAppSource.cleanAppSourcePluginStoreCache(this, dataxName);
+
+
+    DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
+      submit.saveJob(this, context, old);
+    });
+
     this.addActionMessage(context, "已经成功更新");
   }
 

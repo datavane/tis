@@ -21,9 +21,9 @@ package com.qlangtech.tis.datax;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
+import com.qlangtech.tis.build.task.IBuildHistory;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
-import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.TISExtensible;
@@ -41,6 +41,7 @@ import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.RobustReflectionConverter2;
 import com.qlangtech.tis.web.start.TisAppLaunch;
+import com.qlangtech.tis.workflow.pojo.IWorkflow;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -48,7 +49,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -92,6 +92,22 @@ public abstract class DataXJobSubmit {
         }
         return execType;
     }
+
+    public static DataXJobSubmit getDataXJobSubmit() {
+        Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit.getDataXTriggerType());
+        DataXJobSubmit jobSubmit = dataXJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must be present"));
+        return jobSubmit;
+    }
+
+    public static Optional<IDataXPowerJobSubmit> getPowerJobSubmit() {
+        DataXJobSubmit dataXJobSubmit = getDataXJobSubmit();
+
+        if (dataXJobSubmit instanceof IDataXPowerJobSubmit) {
+            return Optional.of((IDataXPowerJobSubmit) dataXJobSubmit);
+        }
+        return Optional.empty();
+    }
+
 
     public static Optional<DataXJobSubmit> getDataXJobSubmit(boolean dryRun,
                                                              DataXJobSubmit.InstanceType expectDataXJobSumit) {
@@ -211,36 +227,27 @@ public abstract class DataXJobSubmit {
      */
     public abstract TriggerBuildResult triggerJob(IControlMsgHandler module, final Context context, String appName, Optional<Long> powerJobWorkflowInstanceIdOpt);
 
-
     /**
-     * 创建任务, 例如此处可以初始化powerjob的workflow实例
+     * 触发workflow执行
      *
      * @param module
      * @param context
-     * @param dataxProcessor
-     */
-    public abstract void createJob(IControlMsgHandler module, final Context context, DataxProcessor dataxProcessor);
-
-
-    /**
-     * 取得所有当前管理的实例,Powerjob 中实现返回所有的workflow
-     * pager.getCurPage(), pager.getRowsPerPage()
-     *
-     * @param <T>
+     * @param workflow
+     * @param dryRun
+     * @param powerJobWorkflowInstanceIdOpt powerJobWorkflowInstanceIdOpt 如果是手动触发则为空,如果是定时触发的，例如在powerjob系统中已经生成了powerjob 的workflowInstanceId
      * @return
      */
-    public <T> Pair<Integer, List<T>> fetchAllInstance(Map<String, Object> criteria, int page, int pageSize) {
-        throw new UnsupportedOperationException(this.getClass().getName());
-    }
+    public abstract TriggerBuildResult triggerWorkflowJob(
+            IControlMsgHandler module, final Context context, IWorkflow workflow, Boolean dryRun, Optional<Long> powerJobWorkflowInstanceIdOpt);
+
 
     /**
-     * 更新任务
-     *tech.powerjob.common.response.WorkflowInfoDTO
-     * @param module
-     * @param context
-     * @param dataxProcessor
+     * 终止正在执行的任务
+     *
+     * @param buildHistory
      */
-    public abstract <WorkflowInfoDTO> WorkflowInfoDTO  saveJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor);
+    public abstract boolean cancelTask(IControlMsgHandler module, final Context context, IBuildHistory buildHistory);
+
 //    /**
 //     * 创建数据同步 pre，post hook
 //     *

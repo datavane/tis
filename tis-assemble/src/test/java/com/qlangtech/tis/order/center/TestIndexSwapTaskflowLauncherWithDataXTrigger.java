@@ -21,6 +21,7 @@ package com.qlangtech.tis.order.center;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.build.task.IBuildHistory;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.dao.ICommonDAOContext;
 import com.qlangtech.tis.datax.CuratorDataXTaskMessage;
@@ -110,15 +111,20 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
             return InstanceType.LOCAL;
         }
 
-        @Override
-        public void createJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor) {
+//        @Override
+//        public void createJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor) {
+//
+//        }
 
+        @Override
+        public boolean cancelTask(IControlMsgHandler module, Context context, IBuildHistory buildHistory) {
+ throw new UnsupportedOperationException();
         }
 
-        @Override
-        public <T> T saveJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor) {
-             throw new UnsupportedOperationException();
-        }
+//        @Override
+//        public <T> T saveJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor) {
+//             throw new UnsupportedOperationException();
+//        }
 
         @Override
         public TriggerBuildResult triggerJob(IControlMsgHandler module, Context context, String appName, Optional<Long> workflowInstanceIdOpt) {

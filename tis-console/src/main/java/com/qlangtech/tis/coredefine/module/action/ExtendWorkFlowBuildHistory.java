@@ -21,15 +21,11 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
-import com.qlangtech.tis.dao.ICommonDAOContext;
-import com.qlangtech.tis.datax.DataXJobSubmit;
-import com.qlangtech.tis.datax.job.ITISPowerJob;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Optional;
 import java.util.TimeZone;
 
 /**

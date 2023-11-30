@@ -16,6 +16,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.taskflow.TaskAndMilestone;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.powerjob.IDAGSessionSpec;
 import com.qlangtech.tis.powerjob.SelectedTabTriggers;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.apache.commons.collections.CollectionUtils;
@@ -51,7 +52,7 @@ import java.util.stream.Collectors;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-02-14 10:08
  **/
-public class DAGSessionSpec {
+public class DAGSessionSpec implements IDAGSessionSpec {
     Map<String, DAGSessionSpec> dptNodes = Maps.newHashMap();
     private static final String KEY_ROOT = "root";
     private final String id;
@@ -80,7 +81,7 @@ public class DAGSessionSpec {
     public static SelectedTabTriggers buildTaskTriggers(IExecChainContext execChainContext, IDataxProcessor appSource
             , DataXJobSubmit submit
             , RpcServiceReference statusRpc //
-            , ISelectedTab entry, String dumpTaskId, DAGSessionSpec dagSessionSpec) {
+            , ISelectedTab entry, String dumpTaskId, IDAGSessionSpec dagSessionSpec) {
         SelectedTabTriggers tabTriggers = new SelectedTabTriggers(entry, appSource);
         RemoteTaskTriggers triggers = Objects.requireNonNull(execChainContext.getTskTriggers(), "triggers can not be null");
         if (org.apache.commons.lang3.StringUtils.isEmpty(dumpTaskId)) {
@@ -93,8 +94,8 @@ public class DAGSessionSpec {
         if (CollectionUtils.isEmpty(cfgFileNames.getDataXCfgFiles())) {
             throw new IllegalStateException("dataX cfgFileNames can not be empty");
         }
-        DAGSessionSpec postSpec = null;
-        DAGSessionSpec dumpSpec = dagSessionSpec.getDpt(dumpTaskId).setMilestone();
+        IDAGSessionSpec postSpec = null;
+        IDAGSessionSpec dumpSpec = dagSessionSpec.getDpt(dumpTaskId).setMilestone();
         IRemoteTaskPreviousTrigger preExec = null;
         if (writer instanceof IDataXBatchPost) {
 
@@ -129,7 +130,7 @@ public class DAGSessionSpec {
                     , statusRpc, appSource
                     , new DataXJobSubmit.TableDataXEntity(fileName, entry));
 
-            DAGSessionSpec childDumpSpec = getDumpSpec(postSpec, dumpSpec)
+            IDAGSessionSpec childDumpSpec = getDumpSpec(postSpec, dumpSpec)
                     .getDpt(Objects.requireNonNull(jobTrigger, "jobTrigger can not be null").getTaskName());
 
             if (preExec != null) {
@@ -171,7 +172,7 @@ public class DAGSessionSpec {
                 execChainContext, statusRpc, appSource, fileName);
     }
 
-    private static DAGSessionSpec getDumpSpec(DAGSessionSpec postSpec, DAGSessionSpec dumpSpec) {
+    private static IDAGSessionSpec getDumpSpec(IDAGSessionSpec postSpec, IDAGSessionSpec dumpSpec) {
         if (postSpec != null) {
             return postSpec;
         }
@@ -185,7 +186,7 @@ public class DAGSessionSpec {
         return taskMap;
     }
 
-    public DAGSessionSpec setMilestone() {
+    public IDAGSessionSpec setMilestone() {
         this.milestone = true;
         this.taskMap.put(this.id, TaskAndMilestone.createMilestone(this.id));
         return this;
@@ -234,7 +235,7 @@ public class DAGSessionSpec {
         return specs;
     }
 
-    public DAGSessionSpec getDpt(String id) {
+    public IDAGSessionSpec getDpt(String id) {
         DAGSessionSpec spec = null;
         if ((spec = dptNodes.get(id)) == null) {
             spec = this.addDpt(id);

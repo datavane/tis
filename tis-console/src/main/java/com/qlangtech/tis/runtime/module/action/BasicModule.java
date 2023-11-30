@@ -494,13 +494,17 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     if (!justValidate) {
       result = AddAppAction.createApplication(app, context, this, afterAppCreate);
 
-      Optional<DataXJobSubmit> dataXJobSubmit //
-        = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit.getDataXTriggerType());
-      if (!dataXJobSubmit.isPresent()) {
-        throw new IllegalStateException("dataXJobSubmit must be present");
-      }
+//      Optional<DataXJobSubmit> dataXJobSubmit //
+//        = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit.getDataXTriggerType());
+//      if (!dataXJobSubmit.isPresent()) {
+//        throw new IllegalStateException("dataXJobSubmit must be present");
+//      }
       // 这里可以在pwoerjob 中创建workflow任务
-      dataXJobSubmit.get().createJob(this, context, dataxProcessor);
+      // dataXJobSubmit.get().createJob(this, context, dataxProcessor);
+
+      DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
+        submit.createJob(this, context, dataxProcessor);
+      });
 
       addActionMessage(context, "已经成功创建实例[" + app.getProjectName() + "]");
     }

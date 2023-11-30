@@ -41,9 +41,11 @@ import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
+import com.qlangtech.tis.powerjob.IDAGSessionSpec;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.sql.parser.DAGSessionSpec;
 import com.qlangtech.tis.sql.parser.DBNode;
+import com.qlangtech.tis.sql.parser.ISqlTask;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.er.*;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
@@ -200,7 +202,7 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
             , ISingleTableDumpFactory singleTableDumpFactory, IDataProcessFeedback dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo) throws Exception {
         // 执行工作流数据结构
         SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(dataflowName);
-        DAGSessionSpec dagSessionSpec = topology.getDAGSessionSpec();
+        DAGSessionSpec dagSessionSpec = (DAGSessionSpec) topology.getDAGSessionSpec();
 
         // 取得workflowdump需要依赖的表
         Collection<DependencyNode> tables = topology.getDumpNodes();
@@ -236,13 +238,13 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
 
         return flatTableBuilder.startTask((context) -> {
             DataflowTask process = null;
-            for (SqlTaskNodeMeta pnode : topology.getNodeMetas()) {
+            for (ISqlTask pnode : topology.getParseNodes()) {
                 /**
                  * ***********************************
                  * 构建宽表构建任务节点
                  * ************************************
                  */
-                process = flatTableBuilder.createTask(pnode, false//StringUtils.equals(fNode.getId(), pnode.getId())
+                process = flatTableBuilder.createTask(pnode, false
                         , execChainContext, context, joinPhaseStatus.getTaskStatus(pnode.getExportName())
                         , this.dsGetter, primaryTabFinder);
 

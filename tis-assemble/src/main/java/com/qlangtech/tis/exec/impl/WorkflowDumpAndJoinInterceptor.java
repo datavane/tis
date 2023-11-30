@@ -37,6 +37,7 @@ import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.DefaultTab;
+import com.qlangtech.tis.powerjob.IDAGSessionSpec;
 import com.qlangtech.tis.sql.parser.DAGSessionSpec;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
@@ -83,7 +84,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
                     @Override
                     public void createSingleTableDump(RemoteTaskTriggers tskTrigger, DependencyNode dump, boolean hasValidTableDump, String pt
                             , ITISCoordinator zkClient, IExecChainContext execChainContext, DumpPhaseStatus dumpPhaseStatus, ITaskPhaseInfo taskPhaseInfo
-                            , DAGSessionSpec dagSessionSpec) {
+                            , IDAGSessionSpec dagSessionSpec) {
 
                         DAGSessionSpec.buildTaskTriggers(
                                 execChainContext, dataxProc, submit, dataXExecReporter, new DefaultTab(dump.getName()), dump.getId(), dagSessionSpec);
@@ -106,8 +107,6 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
                     }
                 }, this
         );
-//
-        //   final ExecuteResult[] faildResult = getProcessDataResults(execChainContext, zkClient, this);
 
         if (faildResult != null) {
             return faildResult;
@@ -116,88 +115,6 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
             return ExecuteResult.createSuccess().setMessage(JSON.toJSONString(summary, true));
         }
     }
-
-//    private ExecuteResult[] getProcessDataResults(IExecChainContext execChainContext, TisZkClient zkClient, ITaskPhaseInfo taskPhaseInfo) throws Exception {
-//        // 执行工作流数据结构
-//        SqlDataFlowTopology topology = execChainContext.getAttribute(IFullBuildContext.KEY_WORKFLOW_ID);
-//        Map<String, TaskAndMilestone> /*** taskid*/
-//                taskMap = Maps.newHashMap();
-//        // 取得workflowdump需要依赖的表
-//        Collection<DependencyNode> tables = topology.getDumpNodes();
-//        StringBuffer dumps = new StringBuffer("dependency table:\n");
-//        dumps.append("\t\t=======================\n");
-//        for (DependencyNode t : tables) {
-//            dumps.append("\t\t").append(t.getDbName()).append(".").append(t.getName())
-//                    .append("[").append(t.getTabid()).append(",").append("] \n");
-//        }
-//        dumps.append("\t\t=======================\n");
-//        logger.info(dumps.toString());
-//        // 将所有的表的状态先初始化出来
-//        DumpPhaseStatus dumpPhaseStatus = getPhaseStatus(execChainContext, FullbuildPhase.FullDump);
-//        SingleTableDump tabDump = null;
-//        for (DependencyNode dump : topology.getDumpNodes()) {
-//            tabDump = new SingleTableDump(dump, false, /* isHasValidTableDump */
-//                    "tableDump.getPt()", zkClient, execChainContext, dumpPhaseStatus);
-//            taskMap.put(dump.getId(), new TaskAndMilestone(tabDump));
-//        }
-//        final ExecuteResult[] faildResult = new ExecuteResult[1];
-//        if (topology.isSingleTableModel()) {
-//            executeDAG(execChainContext, topology, taskMap, faildResult);
-//        } else {
-//            TemplateContext tplContext = new TemplateContext(execChainContext);
-//            JoinPhaseStatus joinPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
-//            PluginStore<FlatTableBuilder> pluginStore = TIS.getPluginStore(FlatTableBuilder.class);
-//            Objects.requireNonNull(pluginStore.getPlugin(), "flatTableBuilder can not be null");
-//            // chainContext.setFlatTableBuilderPlugin(pluginStore.getPlugin());
-//            final IFlatTableBuilder flatTableBuilder = pluginStore.getPlugin();// execChainContext.getFlatTableBuilder();
-//            final SqlTaskNodeMeta fNode = topology.getFinalNode();
-//            flatTableBuilder.startTask((context) -> {
-//                DataflowTask process = null;
-//                for (SqlTaskNodeMeta pnode : topology.getNodeMetas()) {
-//                    /**
-//                     * ***********************************
-//                     * 构建宽表构建任务节点
-//                     * ************************************
-//                     */
-//                    process = flatTableBuilder.createTask(pnode, StringUtils.equals(fNode.getId(), pnode.getId())
-//                            , tplContext, context, execChainContext.getTableDumpFactory(), joinPhaseStatus.getTaskStatus(pnode.getExportName()));
-//                    taskMap.put(pnode.getId(), new TaskAndMilestone(process));
-//                }
-//                executeDAG(execChainContext, topology, taskMap, faildResult);
-//            });
-//        }
-//        return faildResult;
-//    }
-
-
-//    private void processTaskResult(IExecChainContext execContext, TISReactor.TaskImpl t, ITaskResultProcessor resultProcessor) {
-//        TISReactor.TaskImpl task = t;
-//        PhaseStatusCollection pstats = TrackableExecuteInterceptor.taskPhaseReference.get(execContext.getTaskId());
-//        if (pstats != null) {
-//            switch (task.getPhase()) {
-//                case FullDump:
-//                    // pstats.getDumpPhase()
-//                    // IncrStatusUmbilicalProtocolImpl statReceiver = IncrStatusUmbilicalProtocolImpl.getInstance();
-//                    // statReceiver.reportDumpTableStatusError(execContext.getTaskId(), task.getIdentityName());
-//                    pstats.getDumpPhase().isComplete();
-//                    resultProcessor.process(pstats.getDumpPhase(), task);
-//                    return;
-//                case JOIN:
-//                    // JoinPhaseStatus.JoinTaskStatus stat
-//                    // = pstats.getJoinPhase().getTaskStatus(task.getIdentityName());
-//                    // //statReceiver.reportBuildIndexStatErr(execContext.getTaskId(),task.getIdentityName());
-//                    // stat.setWaiting(false);
-//                    // stat.setFaild(true);
-//                    // stat.setComplete(true);
-//                    pstats.getJoinPhase().isComplete();
-//                    resultProcessor.process(pstats.getJoinPhase(), task);
-//                    return;
-//                default:
-//                    throw new IllegalStateException("taskphase:" + task.getPhase() + " is illegal");
-//            }
-//        }
-//    }
-
 
     @Override
     public Set<FullbuildPhase> getPhase() {

@@ -29,6 +29,7 @@ import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.powerjob.IDAGSessionSpec;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.sql.parser.DAGSessionSpec;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
@@ -97,7 +98,7 @@ public interface ISolrAppSource extends IBasicAppSource, IStreamIncrGenerateStra
     interface ISingleTableDumpFactory {
         void createSingleTableDump(RemoteTaskTriggers trigger, DependencyNode dump, boolean hasValidTableDump, String pt
                 , ITISCoordinator zkClient, IExecChainContext execChainContext
-                , DumpPhaseStatus dumpPhaseStatus, ITaskPhaseInfo taskPhaseInfo, DAGSessionSpec dagSessionSpec);
+                , DumpPhaseStatus dumpPhaseStatus, ITaskPhaseInfo taskPhaseInfo, IDAGSessionSpec dagSessionSpec);
     }
 }
 

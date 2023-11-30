@@ -209,7 +209,8 @@ public class CoreAction extends BasicModule {
   public void doCancelTask(Context context) throws Exception {
     Integer taskId = this.getInt(JobCommon.KEY_TASK_ID);
 
-    IWorkFlowBuildHistoryDAO workFlowBuildDAO = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();
+    IWorkFlowBuildHistoryDAO workFlowBuildDAO
+      = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();
     WorkFlowBuildHistory buildHistory = workFlowBuildDAO.loadFromWriteDB(taskId);
     ExecResult processState = ExecResult.parse(buildHistory.getState());
     if (!processState.isProcessing()) {
@@ -217,26 +218,29 @@ public class CoreAction extends BasicModule {
       return;
     }
 
-    List<ConfigFileContext.Header> headers = Lists.newArrayList();
-    headers.add(new ConfigFileContext.Header(JobCommon.KEY_TASK_ID, String.valueOf(taskId)));
-    headers.add(new ConfigFileContext.Header(IParamContext.KEY_ASYN_JOB_NAME, String.valueOf(processState == ExecResult.ASYN_DOING)));
-    headers.add(new ConfigFileContext.Header(IFullBuildContext.KEY_APP_NAME, IAppSourcePipelineController.DATAX_FULL_PIPELINE + buildHistory.getAppName()));
+    DataXJobSubmit dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit();
+    dataXJobSubmit.cancelTask(this, context, buildHistory);
 
-    TriggerBuildResult triggerResult = TriggerBuildResult.triggerBuild(this, context, ConfigFileContext.HTTPMethod.DELETE, Collections.emptyList(), headers);
-    if (!triggerResult.success) {
-      return;
-    }
+//    List<ConfigFileContext.Header> headers = Lists.newArrayList();
+//    headers.add(new ConfigFileContext.Header(JobCommon.KEY_TASK_ID, String.valueOf(taskId)));
+//    headers.add(new ConfigFileContext.Header(IParamContext.KEY_ASYN_JOB_NAME, String.valueOf(processState == ExecResult.ASYN_DOING)));
+//    headers.add(new ConfigFileContext.Header(IFullBuildContext.KEY_APP_NAME, IAppSourcePipelineController.DATAX_FULL_PIPELINE + buildHistory.getAppName()));
+//
+//    TriggerBuildResult triggerResult = TriggerBuildResult.triggerBuild(this, context, ConfigFileContext.HTTPMethod.DELETE, Collections.emptyList(), headers);
+//    if (!triggerResult.success) {
+//      return;
+//    }
 
     WorkFlowBuildHistory record = new WorkFlowBuildHistory();
     record.setState((byte) ExecResult.CANCEL.getValue());
 
     WorkFlowBuildHistoryCriteria criteria = new WorkFlowBuildHistoryCriteria();
-    criteria.createCriteria().andIdEqualTo(triggerResult.getTaskid());
+    criteria.createCriteria().andIdEqualTo(buildHistory.getId());
 
     workFlowBuildDAO.updateByExampleSelective(record, criteria);
     this.addActionMessage(context, "已经成功终止当前任务");
     this.setBizResult(context, new ExtendWorkFlowBuildHistory(
-      this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().loadFromWriteDB(triggerResult.getTaskid())));
+      this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().loadFromWriteDB(buildHistory.getId())));
   }
 
 

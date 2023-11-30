@@ -33,13 +33,13 @@ import org.json.JSONTokener;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -118,6 +118,57 @@ public class JsonUtil {
         }
 
         return t;
+    }
+
+    /**
+     * 比较两个json 是否相等
+     *
+     * @param o1
+     * @param o2
+     * @param ignorePaths example: Sets.newHashSet("/exec/taskSerializeNum","/exec/jobInfo[]/taskSerializeNum")
+     * @return
+     */
+    public static boolean objEquals(com.alibaba.fastjson.JSONObject o1, com.alibaba.fastjson.JSONObject o2, Set<String> ignorePaths) {
+        StringBuffer vistPath = new StringBuffer();
+        return objEquals(o1, o2, Collections.unmodifiableSet(ignorePaths), vistPath);
+    }
+
+    private static boolean objEquals(com.alibaba.fastjson.JSONObject o1, com.alibaba.fastjson.JSONObject o2, Set<String> ignorePaths, StringBuffer vistPath) {
+        for (Map.Entry<String, Object> entry1 : o1.entrySet()) {
+            Object prop2 = o2.get(entry1.getKey());
+            if (!compareEqual(entry1.getValue(), prop2, ignorePaths, (new StringBuffer(vistPath)).append("/").append(entry1.getKey()))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean compareEqual(Object prop1, Object prop2, Set<String> ignorePaths, StringBuffer vistPath) {
+        if (ignorePaths.contains(vistPath.toString())) {
+            return true;
+        }
+        if (prop2 instanceof com.alibaba.fastjson.JSONObject
+                && prop1 instanceof com.alibaba.fastjson.JSONObject) {
+            if (!objEquals((com.alibaba.fastjson.JSONObject) prop1, (com.alibaba.fastjson.JSONObject) prop2, ignorePaths, vistPath)) {
+                return false;
+            }
+        } else if (prop2 instanceof JSONArray && prop1 instanceof JSONArray) {
+            JSONArray a1 = (JSONArray) prop1;
+            JSONArray a2 = (JSONArray) prop2;
+            if (a1.size() != a2.size()) {
+                return false;
+            }
+            for (int i = 0; i < a1.size(); i++) {
+                if (!compareEqual(a1.get(i), a2.get(i), ignorePaths, (new StringBuffer(vistPath)).append("[]"))) {
+                    return false;
+                }
+            }
+        } else {
+            if (!prop2.equals(prop1)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 
