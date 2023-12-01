@@ -29,6 +29,11 @@ import java.util.Set;
  * @create: 2023-03-05 10:13
  **/
 public interface IEndTypeGetter {
+    interface IEndType {
+        public String getVal();
+
+        public Icon getIcon();
+    }
 
     String KEY_END_TYPE = "endType";
     String KEY_SUPPORT_ICON = "supportIcon";
@@ -49,15 +54,15 @@ public interface IEndTypeGetter {
     /**
      * 端类型
      */
-    enum EndType {
-        Greenplum("greenplum"), MySQL("mysql", true), Postgres("pg",true), Oracle("oracle",true) //
-        , ElasticSearch("es",true), MongoDB("mongoDB",true) //
-        , StarRocks("starRocks",true), Doris("doris",true) //
-        , Clickhouse("clickhouse",true), Hudi("hudi") //, AliyunOSS("aliyunOSS")
-        , TDFS("t-dfs",true) //
+    enum EndType implements IEndType {
+        Greenplum("greenplum"), MySQL("mysql", true), Postgres("pg", true), Oracle("oracle", true) //
+        , ElasticSearch("es", true), MongoDB("mongoDB", true) //
+        , StarRocks("starRocks", true), Doris("doris", true) //
+        , Clickhouse("clickhouse", true), Hudi("hudi") //, AliyunOSS("aliyunOSS")
+        , TDFS("t-dfs", true) //
         , Cassandra("cassandra") //, HDFS("hdfs")
-        , SqlServer("sqlServer",true), TiDB("TiDB",true) //
-        , RocketMQ("rocketMq",true), Kafka("kafka",true), DataFlow("dataflow") //
+        , SqlServer("sqlServer", true), TiDB("TiDB", true) //
+        , RocketMQ("rocketMq", true), Kafka("kafka", true), DataFlow("dataflow") //
         , DaMeng("daMeng"), AliyunODPS("aliyunOdps"), HiveMetaStore("hms", true), RabbitMQ("rabbitmq");
         private final String val;
         private final boolean containICON;
@@ -80,12 +85,14 @@ public interface IEndTypeGetter {
             this.containICON = containICON;
         }
 
+        @Override
         public String getVal() {
             return this.val;
         }
 
         private Icon icon;
 
+        @Override
         public Icon getIcon() {
             if (!this.containICON) {
                 return icon;
@@ -97,6 +104,7 @@ public interface IEndTypeGetter {
                         return IOUtils.loadResourceFromClasspath(IEndTypeGetter.class
                                 , "endtype/icon/" + val + "/" + theme + ".svg", true);
                     }
+
                     @Override
                     public String fillType() {
                         return loadIconWithSuffix("fill");
