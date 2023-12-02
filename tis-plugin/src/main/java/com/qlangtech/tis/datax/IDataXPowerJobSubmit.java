@@ -43,12 +43,13 @@ public interface IDataXPowerJobSubmit {
      */
     public void createJob(IControlMsgHandler module, final Context context, DataxProcessor dataxProcessor);
 
+
     /**
      * 创建workflow任务
      *
      * @param module
      * @param context
-     * @param IDataFlowTopology
+     * @param topology
      */
     public void createWorkflowJob(IControlMsgHandler module, final Context context, IDataFlowTopology topology);
 

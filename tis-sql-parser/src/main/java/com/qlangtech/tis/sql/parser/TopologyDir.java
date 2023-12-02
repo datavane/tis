@@ -22,10 +22,14 @@ import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +70,9 @@ public class TopologyDir {
 
         Map<String, Boolean[]> localFileTag
                 = localSubFileDir.exists()
-                ? Arrays.stream(localSubFileDir.list((d, n) -> !n.endsWith(CenterResource.KEY_LAST_MODIFIED_EXTENDION)))
+                ? Arrays.stream(localSubFileDir.list((d, n) -> {
+                    return (new File(d, n)).isFile() && !n.endsWith(CenterResource.KEY_LAST_MODIFIED_EXTENDION);
+                }))
                 .collect(Collectors.toMap((r) -> r, (r) -> new Boolean[]{Boolean.FALSE}))
                 : Collections.emptyMap();
 
