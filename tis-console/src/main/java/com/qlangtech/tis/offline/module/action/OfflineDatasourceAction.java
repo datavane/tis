@@ -1484,7 +1484,7 @@ public class OfflineDatasourceAction extends BasicModule {
   public void doExecuteWorkflow(Context context) throws Exception {
     Integer id = this.getInt("id");
     Boolean dryRun = this.getBoolean("dryRun");
-    List<PostParam> params = Lists.newArrayList();
+   // List<PostParam> params = Lists.newArrayList();
     WorkFlow df = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(id);
 
     DataXJobSubmit jobSubmit = DataXJobSubmit.getDataXJobSubmit();

@@ -435,6 +435,9 @@ public class SqlTaskNodeMeta implements ISqlTask {
     }
 
     public static TopologyDir getTopologyDir(String topologyName) {
+        if (StringUtils.isEmpty(topologyName)) {
+            throw new IllegalArgumentException("param topologyName can not be null");
+        }
         File wfDir = SqlTaskNode.parent;
         wfDir = new File(wfDir, topologyName);
         try {

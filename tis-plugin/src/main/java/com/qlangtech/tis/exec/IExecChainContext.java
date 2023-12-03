@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.exec;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.ajax.AjaxResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
@@ -24,15 +25,18 @@ import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.job.common.JobCommon;
+import com.qlangtech.tis.job.common.JobParams;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.CreateNewTaskResult;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,6 +126,35 @@ public interface IExecChainContext extends IJoinTaskContext {
         return result.getBizresult().getTaskid();
     }
 
+    static JSONObject createInstanceParams(Integer tisTaskId, String appName, boolean dryRun) {
+
+        JSONObject instanceParams = new JSONObject();
+        instanceParams.put(JobParams.KEY_TASK_ID, tisTaskId);
+        instanceParams.put(JobParams.KEY_COLLECTION, appName);
+        instanceParams.put(DataxUtils.EXEC_TIMESTAMP, TimeFormat.getCurrentTimeStamp());
+        instanceParams.put(IFullBuildContext.DRY_RUN, dryRun);
+        return instanceParams;
+    }
+
+    /**
+     * 反序列化
+     *
+     * @param instanceParams
+     * @return
+     */
+    public static DefaultExecContext deserializeInstanceParams(JSONObject instanceParams) {
+        Integer taskId = Objects.requireNonNull(instanceParams.getInteger(JobParams.KEY_TASK_ID),
+                JobParams.KEY_TASK_ID + " can not be null," + JsonUtil.toString(instanceParams));
+        boolean dryRun = instanceParams.getBooleanValue(IFullBuildContext.DRY_RUN);
+        String appName = instanceParams.getString(JobParams.KEY_COLLECTION);
+        Long triggerTimestamp = instanceParams.getLong(DataxUtils.EXEC_TIMESTAMP);
+        DefaultExecContext execChainContext = new DefaultExecContext(appName, triggerTimestamp);
+        execChainContext.setCoordinator(ITISCoordinator.create());
+        execChainContext.setDryRun(dryRun);
+        execChainContext.setAttribute(JobCommon.KEY_TASK_ID, taskId);
+        return execChainContext;
+    }
+
 
     IDataxProcessor getProcessor();
 
@@ -175,16 +208,24 @@ public interface IExecChainContext extends IJoinTaskContext {
     class TriggerNewTaskParam {
         private final Long powerJobWorkflowInstanceId;
         private final String appname;
+        private final boolean tisDataflowType;
 
 
-        public TriggerNewTaskParam(Long powerJobWorkflowInstanceId, String appname) {
+        /**
+         * @param powerJobWorkflowInstanceId
+         * @param appname                    可能是dataX pipeline 名称，也可能是 tis DataFlow名称
+         * @param tisDataflowType            是否是DataXFlow名称
+         */
+        public TriggerNewTaskParam(Long powerJobWorkflowInstanceId, String appname, boolean tisDataflowType) {
             this.powerJobWorkflowInstanceId = Objects.requireNonNull(powerJobWorkflowInstanceId);
             this.appname = Objects.requireNonNull(appname, "appname can not be null");
+            this.tisDataflowType = tisDataflowType;
         }
 
         public List<HttpUtils.PostParam> params() {
             return Lists.newArrayList(
-                    new HttpUtils.PostParam(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, powerJobWorkflowInstanceId)
+                    new HttpUtils.PostParam(DataxUtils.TIS_WORK_FLOW_CHANNEL, tisDataflowType)
+                    , new HttpUtils.PostParam(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, powerJobWorkflowInstanceId)
                     , new HttpUtils.PostParam(TriggerBuildResult.KEY_APPNAME, appname)
             );
         }

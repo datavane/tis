@@ -40,6 +40,7 @@ import com.qlangtech.tis.fullbuild.taskflow.TestParamContext;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.test.TISTestCase;
+import com.qlangtech.tis.workflow.pojo.IWorkflow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import junit.framework.Assert;
@@ -111,6 +112,11 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
             return InstanceType.LOCAL;
         }
 
+        @Override
+        public TriggerBuildResult triggerWorkflowJob(IControlMsgHandler module, Context context
+                , IWorkflow workflow, Boolean dryRun, Optional<Long> powerJobWorkflowInstanceIdOpt) {
+            throw new UnsupportedOperationException();
+        }
 //        @Override
 //        public void createJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor) {
 //
@@ -118,7 +124,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
 
         @Override
         public boolean cancelTask(IControlMsgHandler module, Context context, IBuildHistory buildHistory) {
- throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException();
         }
 
 //        @Override

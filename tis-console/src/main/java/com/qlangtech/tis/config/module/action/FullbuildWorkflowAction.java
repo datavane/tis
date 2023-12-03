@@ -65,7 +65,12 @@ public class FullbuildWorkflowAction extends BasicModule {
   public void doInitializeTriggerTask(Context context) {
     // 校验参数必须有
     this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID);
-    this.getRundata().forwardTo("coredefine", "datax_action", "trigger_fullbuild_task");
+    Rundata rundata = this.getRundata();
+    if (this.getBoolean(DataxUtils.TIS_WORK_FLOW_CHANNEL)) {
+      rundata.forwardTo("offline", "offline_datasource_action", "execute_workflow");
+    } else {
+      rundata.forwardTo("coredefine", "datax_action", "trigger_fullbuild_task");
+    }
   }
 
   /**

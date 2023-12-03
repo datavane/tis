@@ -51,7 +51,10 @@ public class DefaultExecContext implements IExecChainContext {
     private PhaseStatusCollection latestPhaseStatusCollection;
 
     public DefaultExecContext(String dataXName, Long triggerTimestamp) {
-        this.ps = triggerTimestamp;
+        this.ps = Objects.requireNonNull(triggerTimestamp, "param triggerTimestamp can not be null");
+        if (StringUtils.isEmpty(dataXName)) {
+            throw new IllegalArgumentException("param dataXName can not be null");
+        }
         this.dataXName = dataXName;
         ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
     }
