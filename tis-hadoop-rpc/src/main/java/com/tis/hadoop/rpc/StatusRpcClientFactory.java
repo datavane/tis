@@ -18,6 +18,7 @@
 package com.tis.hadoop.rpc;
 
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
@@ -48,6 +49,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -382,6 +384,18 @@ public class StatusRpcClientFactory {
          */
         public final void append(LoggingEvent event) {
             loggerAppenderClient.append(event);
+        }
+
+        public final void appendLog(LoggingEvent.Level level, Integer taskId, Optional<String> appName, String message) {
+            LoggingEvent.Builder evtBuilder = LoggingEvent.newBuilder();
+            evtBuilder.setLevel(level);
+            evtBuilder.setBody(message);
+            Map<String, String> headers = Maps.newHashMap();
+            headers.put(JobParams.KEY_TASK_ID, String.valueOf(taskId));
+            headers.put(JobParams.KEY_COLLECTION, appName.orElse("unknow"));
+            headers.put("logtype", "fullbuild");
+            evtBuilder.putAllHeaders(headers);
+            this.append(evtBuilder.build());
         }
 
         public AssembleSvcCompsite(IncrStatusUmbilicalProtocol statReceiveSvc, ILogReporter statReportSvc, ILoggerAppenderClient loggerAppenderClient) {

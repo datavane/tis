@@ -28,6 +28,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPostTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPreviousTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.offline.DataxUtils;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.lang.StringUtils;
@@ -44,6 +45,7 @@ public class SelectedTabTriggers {
     private static final String KEY_PRE = "pre";
     private static final String KEY_POST = "post";
     private static final String KEY_EXEC = "exec";
+    private static final String KEY_RES_TYPE = "resType";
     private static final String KEY_JOB_INFO = "jobInfo";
     private IRemoteTaskPreviousTrigger preTrigger;
     private IRemoteTaskPostTrigger postTrigger;
@@ -90,8 +92,16 @@ public class SelectedTabTriggers {
         if (jobParams == null) {
             throw new IllegalArgumentException("param jobParams can not be null");
         }
+        if (!jobParams.containsKey(KEY_EXEC)) {
+            throw new IllegalStateException("shall contain property with key:"
+                    + KEY_EXEC + "\n" + JsonUtil.toString(jobParams));
+        }
+        JSONObject exec = jobParams.getJSONObject(KEY_EXEC);
+
+
         SelectedTabTriggersConfig triggersConfig
-                = new SelectedTabTriggersConfig(jobParams.getString(DataxUtils.DATAX_NAME), jobParams.getString(KEY_TABLE));
+                = new SelectedTabTriggersConfig(StoreResourceType.valueOf(exec.getString(KEY_RES_TYPE))
+                , jobParams.getString(DataxUtils.DATAX_NAME), jobParams.getString(KEY_TABLE));
         if (jobParams.containsKey(KEY_PRE)) {
             triggersConfig.preTrigger = jobParams.getString(KEY_PRE);
         }
@@ -100,13 +110,9 @@ public class SelectedTabTriggers {
             triggersConfig.postTrigger = jobParams.getString(KEY_POST);
         }
 
-        if (!jobParams.containsKey(KEY_EXEC)) {
-            throw new IllegalStateException("shall contain property with key:"
-                    + KEY_EXEC + "\n" + JsonUtil.toString(jobParams));
-        }
 
         CuratorDataXTaskMessage taskMessage = null;
-        JSONObject exec = jobParams.getJSONObject(KEY_EXEC);
+
 
         JSONArray splitTabCfgs = exec.getJSONArray(KEY_JOB_INFO);
         List<SplitTabInfo> splits = splitTabCfgs.toJavaList(SplitTabInfo.class);
@@ -158,8 +164,10 @@ public class SelectedTabTriggers {
 
         private final String tabName;
         private final String dataXName;
+        private final StoreResourceType resType;
 
-        public SelectedTabTriggersConfig(String dataXName, String tabName) {
+        public SelectedTabTriggersConfig(StoreResourceType resType, String dataXName, String tabName) {
+            this.resType = Objects.requireNonNull(resType, "resType can not be null");
             if (StringUtils.isEmpty(dataXName)) {
                 throw new IllegalArgumentException("param dataXName can not be empty");
             }
@@ -173,6 +181,10 @@ public class SelectedTabTriggers {
         private String preTrigger;
         private String postTrigger;
         private List<CuratorDataXTaskMessage> splitTabsCfg = Lists.newArrayList();
+
+        public StoreResourceType getResType() {
+            return this.resType;
+        }
 
         public String getDataXName() {
             return this.dataXName;

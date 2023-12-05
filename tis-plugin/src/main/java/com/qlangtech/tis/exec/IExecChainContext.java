@@ -285,8 +285,8 @@ public interface IExecChainContext extends IJoinTaskContext {
                 throw new IllegalStateException("executeRanage can not be null");
             }
             List<HttpUtils.PostParam> params = Lists.newArrayList( //
-                    new HttpUtils.PostParam(IFullBuildContext.KEY_WORKFLOW_ID, workflowid)
-                    , new HttpUtils.PostParam(IFullBuildContext.KEY_TRIGGER_TYPE, triggerType.getValue())
+                    // new HttpUtils.PostParam(IFullBuildContext.KEY_WORKFLOW_ID, workflowid)
+                    new HttpUtils.PostParam(IFullBuildContext.KEY_TRIGGER_TYPE, triggerType.getValue())
                     , new HttpUtils.PostParam(COMPONENT_START, executeRanage.getStart().getValue())
                     , new HttpUtils.PostParam(COMPONENT_END, executeRanage.getEnd().getValue()));
             if (!executeRanage.contains(FullbuildPhase.FullDump)) {
@@ -295,9 +295,18 @@ public interface IExecChainContext extends IJoinTaskContext {
                 }
                 params.add(new HttpUtils.PostParam(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID, historyTaskId));
             }
+            int requireParamCount = 0;
+            if (this.workflowid != null) {
+                params.add(new HttpUtils.PostParam(IFullBuildContext.KEY_WORKFLOW_ID, workflowid));
+                requireParamCount++;
+            }
             if (StringUtils.isNotBlank(appname)) {
                 // result.append("&").append(IFullBuildContext.KEY_APP_NAME).append("=").append(appname);
                 params.add(new HttpUtils.PostParam(IFullBuildContext.KEY_APP_NAME, appname));
+                requireParamCount++;
+            }
+            if (requireParamCount < 1) {
+                throw new IllegalStateException("neither of param workflowid:" + workflowid + " appname:" + appname + " can be null");
             }
             return params;
         }

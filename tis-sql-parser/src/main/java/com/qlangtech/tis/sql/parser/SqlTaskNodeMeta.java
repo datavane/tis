@@ -314,7 +314,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
             throw e;
         } catch (Exception e) {
             String dp = dumpPartition.toString();
-            throw new IllegalStateException("task:" + taskName + ",isfinalNode:" + isFinalNode + ",dump tabs pt:" + dp + "\n" + e.getMessage(), e);
+            throw new IllegalStateException("task:" + taskName + ",isfinalNode:"
+                    + isFinalNode + ",dump tabs pt:" + dp + "\n" + e.getMessage(), e);
         }
         SqlRewriter.AliasTable primaryTable = rewriter.getPrimayTable();
         if (primaryTable == null) {
@@ -328,7 +329,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         try {
             return sqlParser.createStatement(sql, new ParsingOptions());
         } catch (ParsingException e) {
-            throw new TisSqlFormatException(e.getErrorMessage(), Optional.of(new NodeLocation(e.getLineNumber(), e.getColumnNumber())));
+            throw new TisSqlFormatException(e.getErrorMessage(), Optional.of(sql), Optional.of(new NodeLocation(e.getLineNumber(), e.getColumnNumber())));
         }
     }
 
@@ -531,6 +532,14 @@ public class SqlTaskNodeMeta implements ISqlTask {
         sqlTaskNodeMeta = yaml.get().loadAs(scriptReader, SqlTaskNodeMeta.class);
         return sqlTaskNodeMeta;
 
+    }
+
+    public static SqlTaskNodeMeta deserializeTaskNode(ISqlTask.SqlTaskCfg sqlTskCfg) {
+        SqlTaskNodeMeta taskNode = new SqlTaskNodeMeta();
+        taskNode.setSql(sqlTskCfg.getSqlScript());
+        taskNode.setId(sqlTskCfg.getId());
+        taskNode.setExportName(sqlTskCfg.getExportName());
+        return taskNode;
     }
 
     public static class TopologyProfile {
@@ -952,7 +961,11 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
     @JSONField(serialize = false)
     public NodeType getNodeType() {
-        return NodeType.parse(this.type);
+        try {
+            return NodeType.parse(this.type);
+        } catch (NodeType.NodeTypeParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void setType(String type) {

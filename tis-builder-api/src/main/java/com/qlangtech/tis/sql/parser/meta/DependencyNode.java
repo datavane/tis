@@ -118,13 +118,17 @@ public class DependencyNode {
     }
 
     public NodeType parseNodeType(boolean validateTabId) {
-        NodeType result = NodeType.parse(this.type);
-        if (result == NodeType.DUMP) {
-            if (validateTabId && StringUtils.isBlank(this.tabid)) {
-                throw new IllegalStateException("tabid can not be null,id:" + this.id);
+        try {
+            NodeType result = NodeType.parse(this.type);
+            if (result == NodeType.DUMP) {
+                if (validateTabId && StringUtils.isBlank(this.tabid)) {
+                    throw new IllegalStateException("tabid can not be null,id:" + this.id);
+                }
             }
+            return result;
+        } catch (NodeType.NodeTypeParseException e) {
+            throw new RuntimeException(e);
         }
-        return result;
     }
 
     public String getId() {

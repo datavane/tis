@@ -38,6 +38,9 @@ public class RpcServiceReference {
         return ref;
     }
 
+    /**
+     * when throw an error of  io.grpc.StatusRuntimeException,then shall execute reConnect()
+     */
     public void reConnect() {
         synchronized (connect) {
             this.connect.run();

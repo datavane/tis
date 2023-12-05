@@ -94,26 +94,30 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
             return processorGetter.get(dataXName);
         }
 
-        Optional<IAppSource> appSource = IAppSource.loadNullable(pluginContext, resType, dataXName);
-        if (appSource.isPresent()) {
-            return (IDataxProcessor) appSource.get();
-        } else {
+        try {
+            Optional<IAppSource> appSource = IAppSource.loadNullable(pluginContext, resType, dataXName);
+            if (appSource.isPresent()) {
+                return (IDataxProcessor) appSource.get();
+            } else {
 
-            Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta(resType.pluginDescName);
-            Objects.requireNonNull(pluginDescMeta);
-            //Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
-            Map<String, /** * attr key */com.alibaba.fastjson.JSONObject> formData
-                    = new HashMap<String, com.alibaba.fastjson.JSONObject>() {
-                @Override
-                public JSONObject get(Object key) {
-                    JSONObject o = new JSONObject();
-                    o.put(Descriptor.KEY_primaryVal, null);
-                    return o;
-                }
-            };
-            Descriptor.ParseDescribable<Describable> appSourceParseDescribable
-                    = pluginDescMeta.newInstance(pluginContext, AttrValMap.IAttrVals.rootForm(formData), Optional.empty());
-            return (DataxProcessor) appSourceParseDescribable.getInstance();
+                Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta(resType.pluginDescName);
+                Objects.requireNonNull(pluginDescMeta);
+                //Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
+                Map<String, /** * attr key */JSONObject> formData
+                        = new HashMap<String, JSONObject>() {
+                    @Override
+                    public JSONObject get(Object key) {
+                        JSONObject o = new JSONObject();
+                        o.put(Descriptor.KEY_primaryVal, null);
+                        return o;
+                    }
+                };
+                Descriptor.ParseDescribable<Describable> appSourceParseDescribable
+                        = pluginDescMeta.newInstance(pluginContext, AttrValMap.IAttrVals.rootForm(formData), Optional.empty());
+                return (DataxProcessor) appSourceParseDescribable.getInstance();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("targetName:" + dataXName + ",resType:" + resType, e);
         }
     }
 

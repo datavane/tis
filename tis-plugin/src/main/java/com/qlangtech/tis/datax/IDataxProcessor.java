@@ -216,8 +216,6 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
      * 类似MySQL(A库)导入MySQL(B库) A库中的一张a表可能对应的B库的表为aa表名称会不一致，
      */
     public class TableMap extends TableAlias {
-
-        // private List<ISelectedTab.ColMeta> sourceCols;
         private final ISelectedTab tab;
 
         public TableMap(TableAlias tabAlia, ISelectedTab tab) {
@@ -236,17 +234,22 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
         }
 
         public TableMap(Optional<String> tabName, final List<CMeta> cmetas) {
-            this.tab = new ISelectedTab() {
+            this.tab = (new ISelectedTab() {
                 @Override
                 public String getName() {
                     return tabName.get();
                 }
 
                 @Override
+                public List<String> getPrimaryKeys() {
+                    return Collections.emptyList();
+                }
+
+                @Override
                 public List<CMeta> getCols() {
                     return cmetas;
                 }
-            };
+            });
         }
 
         public static TableMap create(String tableName, List<IColMetaGetter> cols) {

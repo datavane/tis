@@ -18,6 +18,7 @@
 package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.fullbuild.indexbuild.IPartionableWarehouse;
 import com.qlangtech.tis.plugin.IRepositoryResourceScannable;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
 
@@ -28,6 +29,13 @@ import java.util.Optional;
  * @date 2021-04-07 14:36
  */
 public interface IDataxWriter extends IDataXPluginMeta, IRepositoryResourceScannable {
+
+    public static IPartionableWarehouse getPartionableWarehouse(IDataxWriter writer) {
+        if (!(writer instanceof IPartionableWarehouse)) {
+            throw new IllegalStateException("writer:" + writer.getClass().getName() + " must be type of " + IPartionableWarehouse.class);
+        }
+        return (IPartionableWarehouse) writer;
+    }
 
     public static IDataXBatchPost castBatchPost(IDataxWriter dataxWriter) {
         if (!(dataxWriter instanceof IDataXBatchPost)) {

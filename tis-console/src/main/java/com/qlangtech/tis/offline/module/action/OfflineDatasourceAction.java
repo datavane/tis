@@ -1484,7 +1484,7 @@ public class OfflineDatasourceAction extends BasicModule {
   public void doExecuteWorkflow(Context context) throws Exception {
     Integer id = this.getInt("id");
     Boolean dryRun = this.getBoolean("dryRun");
-   // List<PostParam> params = Lists.newArrayList();
+    // List<PostParam> params = Lists.newArrayList();
     WorkFlow df = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(id);
 
     DataXJobSubmit jobSubmit = DataXJobSubmit.getDataXJobSubmit();
@@ -1494,8 +1494,12 @@ public class OfflineDatasourceAction extends BasicModule {
       = Optional.ofNullable(this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, null));
 
     TriggerBuildResult buildResult = jobSubmit.triggerWorkflowJob(this, context, df, dryRun, powerJobWorkflowInstanceId);
-    if (!buildResult.success) {
+    if (buildResult.success) {
       // throw new IllegalStateException("dataflowid:" + id + " trigger faild");
+      if (buildResult.getTaskid() < 1) {
+        throw new IllegalStateException("dataflowid:" + id + " trigger faild,taskId can not be null");
+      }
+      this.setBizResult(context, buildResult);
     }
 
 //    Objects.requireNonNull(df, "id:" + id + " relevant workflow can not be null");

@@ -23,10 +23,13 @@ import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.fs.ITISFileSystem;
+import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
+import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 import org.apache.commons.lang.StringUtils;
 
@@ -44,11 +47,13 @@ public class DefaultExecContext implements IExecChainContext {
 
     private final long ps;
     private Integer workflowId;
+    private String workflowName;
     private ExecutePhaseRange executePhaseRange;
     private final String dataXName;
     private boolean dryRun;
     private ITISCoordinator coordinator;
     private PhaseStatusCollection latestPhaseStatusCollection;
+    private StoreResourceType resType;
 
     public DefaultExecContext(String dataXName, Long triggerTimestamp) {
         this.ps = Objects.requireNonNull(triggerTimestamp, "param triggerTimestamp can not be null");
@@ -57,6 +62,18 @@ public class DefaultExecContext implements IExecChainContext {
         }
         this.dataXName = dataXName;
         ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
+    }
+
+    public void putTablePt(IDumpTable table, ITabPartition pt) {
+        ExecChainContextUtils.getDependencyTablesPartitions(this).putPt(table, pt);
+    }
+
+    public StoreResourceType getResType() {
+        return resType;
+    }
+
+    public void setResType(StoreResourceType resType) {
+        this.resType = resType;
     }
 
     public void setCoordinator(ITISCoordinator coordinator) {
@@ -77,8 +94,22 @@ public class DefaultExecContext implements IExecChainContext {
     }
 
     @Override
-    public final IDataxProcessor getProcessor() {
-        return DataxProcessor.load(null, this.dataXName);
+    public IDataxProcessor getProcessor() {
+
+        StoreResourceType resType = Objects.requireNonNull(getResType(), "resType can not be null");
+        switch (resType) {
+            case DataApp:
+                return DataxProcessor.load(null, resType, this.dataXName);
+            case DataFlow:
+                if (StringUtils.isEmpty(this.getWorkflowName())) {
+                    throw new IllegalStateException("proper workflowName can not be empty");
+                }
+                return DataxProcessor.load(null, resType, this.getWorkflowName());
+            default:
+                throw new IllegalStateException("illegal resType:" + resType);
+        }
+
+
     }
 
     @Override
@@ -125,7 +156,11 @@ public class DefaultExecContext implements IExecChainContext {
 
     @Override
     public String getWorkflowName() {
-        throw new UnsupportedOperationException();
+        return this.workflowName;
+    }
+
+    public void setWorkflowName(String workflowName) {
+        this.workflowName = workflowName;
     }
 
     @Override
