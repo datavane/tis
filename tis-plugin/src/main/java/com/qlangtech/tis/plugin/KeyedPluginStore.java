@@ -68,13 +68,17 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         return lastModify;
     }
 
+    public static PluginMetas getAppAwarePluginMetas(boolean isDB, String name) {
+        return getAppAwarePluginMetas(StoreResourceType.parse(isDB), name);
+    }
+
     /**
      * 取得某个应用下面相关的插件元数据信息用于分布式任务同步用
      *
      * @return
      */
-    public static PluginMetas getAppAwarePluginMetas(boolean isDB, String name) {
-        AppKey appKey = new AppKey(null, StoreResourceType.parse(isDB), name, (PluginClassCategory) null);
+    public static PluginMetas getAppAwarePluginMetas(StoreResourceType resourceType, String name) {
+        AppKey appKey = new AppKey(null, resourceType, name, (PluginClassCategory) null);
         File appDir = getSubPathDir(appKey);
         File lastModify = getLastModifyToken(appKey);// new File(appDir, CenterResource.KEY_LAST_MODIFIED_EXTENDION);
         long lastModfiyTimeStamp = -1;

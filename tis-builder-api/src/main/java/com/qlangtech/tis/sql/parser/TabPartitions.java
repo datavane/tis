@@ -25,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -53,6 +54,10 @@ public class TabPartitions {
     public Optional<ITabPartition> getMinTablePartition() {
         Optional<ITabPartition> min = tabPartition.values().stream().min(Comparator.comparing((r) -> Long.parseLong(r.getPt())));
         return min;
+    }
+
+    public void visitAll(Consumer<Map.Entry<IDumpTable, ITabPartition>> consumer) {
+        tabPartition.entrySet().forEach(consumer);
     }
 
 

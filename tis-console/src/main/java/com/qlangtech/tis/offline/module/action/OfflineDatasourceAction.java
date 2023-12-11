@@ -1483,7 +1483,7 @@ public class OfflineDatasourceAction extends BasicModule {
   @Func(value = PermissionConstant.DATAFLOW_MANAGE)
   public void doExecuteWorkflow(Context context) throws Exception {
     Integer id = this.getInt("id");
-    Boolean dryRun = this.getBoolean("dryRun");
+    Boolean dryRun = this.getBoolean(IFullBuildContext.DRY_RUN);
     // List<PostParam> params = Lists.newArrayList();
     WorkFlow df = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(id);
 
@@ -1502,17 +1502,6 @@ public class OfflineDatasourceAction extends BasicModule {
       this.setBizResult(context, buildResult);
     }
 
-//    Objects.requireNonNull(df, "id:" + id + " relevant workflow can not be null");
-//    params.add(new PostParam(IFullBuildContext.DRY_RUN, dryRun));
-//    params.add(new PostParam(IFullBuildContext.KEY_WORKFLOW_NAME, df.getName()));
-//    params.add(new PostParam(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(id)));
-//    // TODO 单独触发的DF执行后期要保证该流程最后的执行的结果数据不能用于索引build
-//    params.add(new PostParam(IFullBuildContext.KEY_APP_SHARD_COUNT, IFullBuildContext.KEY_APP_SHARD_COUNT_SINGLE));
-//    params.add(new PostParam(COMPONENT_START, FullbuildPhase.FullDump.getName()));
-//    params.add(new PostParam(COMPONENT_END, FullbuildPhase.JOIN.getName()));
-//    if (!TriggerBuildResult.triggerBuild(this, context, params).success) {
-//      // throw new IllegalStateException("dataflowid:" + id + " trigger faild");
-//    }
   }
 
   public static final String KEY_DATA_READER_SETTED = "dataReaderSetted";

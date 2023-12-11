@@ -18,25 +18,36 @@
 
 package com.qlangtech.tis.exec;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.fs.ITISFileSystem;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.job.common.JobCommon;
+import com.qlangtech.tis.job.common.JobParams;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
+import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
+import com.qlangtech.tis.plugin.PluginAndCfgsSnapshotUtils;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.sql.parser.TabPartitions;
+import com.qlangtech.tis.trigger.util.JsonUtil;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -62,6 +73,43 @@ public class DefaultExecContext implements IExecChainContext {
         }
         this.dataXName = dataXName;
         ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
+    }
+
+    /**
+     * 反序列化
+     *
+     * @param instanceParams
+     * @return
+     */
+    static DefaultExecContext deserializeInstanceParams(JSONObject instanceParams, boolean resolveCfgsSnapshotConsumer, Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
+        Integer taskId = Objects.requireNonNull(instanceParams.getInteger(JobParams.KEY_TASK_ID),
+                JobParams.KEY_TASK_ID + " can not be null," + JsonUtil.toString(instanceParams));
+        boolean dryRun = instanceParams.getBooleanValue(IFullBuildContext.DRY_RUN);
+        String appName = instanceParams.getString(JobParams.KEY_COLLECTION);
+        Long triggerTimestamp = instanceParams.getLong(DataxUtils.EXEC_TIMESTAMP);
+        DefaultExecContext execChainContext = new DefaultExecContext(appName, triggerTimestamp);
+        execChainContext.setCoordinator(ITISCoordinator.create());
+        execChainContext.setDryRun(dryRun);
+        execChainContext.setAttribute(JobCommon.KEY_TASK_ID, taskId);
+
+        if (resolveCfgsSnapshotConsumer) {
+
+            String pluginCfgsMetas = instanceParams.getString(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS);
+
+            if (StringUtils.isEmpty(pluginCfgsMetas)) {
+                throw new IllegalStateException("property:"
+                        + PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS + " of instanceParams can not be null");
+            }
+
+            final Base64 base64 = new Base64();
+            try (InputStream manifestJar = new ByteArrayInputStream(base64.decode(pluginCfgsMetas))) {
+                cfgsSnapshotConsumer.accept(PluginAndCfgsSnapshot.getRepositoryCfgsSnapshot(appName, manifestJar));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return execChainContext;
     }
 
     public void putTablePt(IDumpTable table, ITabPartition pt) {

@@ -30,6 +30,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.CreateNewTaskResult;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DataxUtils;
+import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
@@ -60,6 +61,8 @@ public class FullbuildWorkflowAction extends BasicModule {
   /**
    * 接收Powerjob发送过来的初始化触发任务，主要目标在TIS中进行必要的初始化工作
    *
+   * @see com.qlangtech.tis.coredefine.module.action.DataxAction
+   *  @see OfflineDatasourceAction
    * @param context
    */
   public void doInitializeTriggerTask(Context context) {

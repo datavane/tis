@@ -23,6 +23,7 @@ import com.qlangtech.tis.ajax.AjaxResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.coredefine.module.action.PowerjobTriggerBuildResult;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.TimeFormat;
@@ -36,14 +37,21 @@ import com.qlangtech.tis.manage.common.CreateNewTaskResult;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
-import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
+import com.qlangtech.tis.plugin.PluginAndCfgsSnapshotUtils;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.text.MessageFormat;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -116,43 +124,61 @@ public interface IExecChainContext extends IJoinTaskContext {
      * @param triggerNewTaskParam
      * @return
      */
-    static Integer triggerNewTask(TriggerNewTaskParam triggerNewTaskParam) {
+    static PowerjobTriggerBuildResult triggerNewTask(TriggerNewTaskParam triggerNewTaskParam) {
         String url = WORKFLOW_CONFIG_URL_POST_FORMAT
                 .format(new Object[]{"fullbuild_workflow_action", "do_initialize_trigger_task"});
-        AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote(url, triggerNewTaskParam.params(), CreateNewTaskResult.class);
+        AjaxResult<PowerjobTriggerBuildResult> result = HttpUtils.soapRemote(url, triggerNewTaskParam.params(), PowerjobTriggerBuildResult.class);
         if (!result.isSuccess()) {
             throw new IllegalStateException("error:" + String.join(",", result.getErrormsg()));
         }
-        return result.getBizresult().getTaskid();
+        return result.getBizresult();
     }
 
-    static JSONObject createInstanceParams(Integer tisTaskId, String appName, boolean dryRun) {
+
+    static JSONObject createInstanceParams( //
+                                            Integer tisTaskId, IdentityName processor, boolean dryRun, Optional<String> pluginCfgsMetas) {
 
         JSONObject instanceParams = new JSONObject();
         instanceParams.put(JobParams.KEY_TASK_ID, tisTaskId);
-        instanceParams.put(JobParams.KEY_COLLECTION, appName);
+        instanceParams.put(JobParams.KEY_COLLECTION, processor.identityValue());
         instanceParams.put(DataxUtils.EXEC_TIMESTAMP, TimeFormat.getCurrentTimeStamp());
         instanceParams.put(IFullBuildContext.DRY_RUN, dryRun);
+
+        instanceParams.put(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS, pluginCfgsMetas.orElseGet(() -> {
+            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                // 将数据通道的依赖插件以及配置信息添加到instanceParams中
+                PluginAndCfgsSnapshotUtils.writeManifest2OutputStream(outputStream
+                        , PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs((IDataxProcessor) processor, Optional.empty(), Collections.emptyMap()));
+                final Base64 base64 = new Base64();
+                return base64.encodeAsString(outputStream.toByteArray());
+                // instanceParams.put(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS, base64.encodeAsString(outputStream.toByteArray()));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }));
+
+
+//        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+//            // 将数据通道的依赖插件以及配置信息添加到instanceParams中
+//            PluginAndCfgsSnapshotUtils.writeManifest2OutputStream(outputStream
+//                    , PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs(processor, Optional.empty(), Collections.emptyMap()));
+//            final Base64 base64 = new Base64();
+//            instanceParams.put(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS, base64.encodeAsString(outputStream.toByteArray()));
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+
         return instanceParams;
     }
 
-    /**
-     * 反序列化
-     *
-     * @param instanceParams
-     * @return
-     */
+    public static DefaultExecContext deserializeInstanceParams(JSONObject instanceParams, Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
+        return DefaultExecContext.deserializeInstanceParams(instanceParams, true, cfgsSnapshotConsumer);
+    }
+
     public static DefaultExecContext deserializeInstanceParams(JSONObject instanceParams) {
-        Integer taskId = Objects.requireNonNull(instanceParams.getInteger(JobParams.KEY_TASK_ID),
-                JobParams.KEY_TASK_ID + " can not be null," + JsonUtil.toString(instanceParams));
-        boolean dryRun = instanceParams.getBooleanValue(IFullBuildContext.DRY_RUN);
-        String appName = instanceParams.getString(JobParams.KEY_COLLECTION);
-        Long triggerTimestamp = instanceParams.getLong(DataxUtils.EXEC_TIMESTAMP);
-        DefaultExecContext execChainContext = new DefaultExecContext(appName, triggerTimestamp);
-        execChainContext.setCoordinator(ITISCoordinator.create());
-        execChainContext.setDryRun(dryRun);
-        execChainContext.setAttribute(JobCommon.KEY_TASK_ID, taskId);
-        return execChainContext;
+        return DefaultExecContext.deserializeInstanceParams(instanceParams, false, (snapshot) -> {
+            throw new UnsupportedOperationException("shall not be execute");
+        });
     }
 
 

@@ -193,8 +193,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
     protected File getServerLaunchTokenFile() {
 
-        BasicDescriptor basicDesc = ((BasicDescriptor) this.getDescriptor());
-
+        BasicDescriptor basicDesc = Objects.requireNonNull((BasicDescriptor) this.getDescriptor(), "basicDesc can not be null");
         IPluginStore<DataXJobWorker> workerStore = basicDesc.getJobWorkerStore();
 
         TargetResName workerType = ((BasicDescriptor) this.getDescriptor()).getWorkerType();

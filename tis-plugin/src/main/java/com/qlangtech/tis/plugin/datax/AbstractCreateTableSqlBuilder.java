@@ -37,7 +37,7 @@ public abstract class AbstractCreateTableSqlBuilder {
 
     protected final List<String> pks;
     public int maxColNameLength;
-    protected final String escapeChar;
+    protected final DataSourceMeta dsMeta;
 
     public AbstractCreateTableSqlBuilder(IDataxProcessor.TableMap tableMapper, DataSourceMeta dsMeta) {
         this.tableMapper = tableMapper;
@@ -56,15 +56,16 @@ public abstract class AbstractCreateTableSqlBuilder {
             }
         }
         maxColNameLength += 4;
-        if (supportColEscapeChar()) {
-            Optional<String> escape = dsMeta.getEscapeChar();
-            if (!escape.isPresent()) {
-                throw new IllegalArgumentException("must contain escapeChar for DB entity");
-            }
-            this.escapeChar = escape.get();
-        } else {
-            this.escapeChar = StringUtils.EMPTY;
-        }
+        this.dsMeta = dsMeta;
+//        if (supportColEscapeChar()) {
+//            Optional<String> escape = dsMeta.getEscapeChar();
+//            if (!escape.isPresent()) {
+//                throw new IllegalArgumentException("must contain escapeChar for DB entity");
+//            }
+//            this.escapeChar = escape.get();
+//        } else {
+//            this.escapeChar = StringUtils.EMPTY;
+//        }
     }
 
     public abstract CreateTableSqlBuilder.CreateDDL build();
@@ -75,12 +76,12 @@ public abstract class AbstractCreateTableSqlBuilder {
     }
 
     protected String wrapWithEscape(String val) {
-        return this.escapeChar + val + this.escapeChar;
+        return dsMeta.getEscapedEntity(val);
     }
 
-    protected boolean supportColEscapeChar() {
-        return true;
-    }
+//    protected boolean supportColEscapeChar() {
+//        return true;
+//    }
 
     protected List<CMeta> getCols() {
         return this.tableMapper.getSourceCols();

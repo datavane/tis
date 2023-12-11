@@ -71,7 +71,8 @@ public class LoginAction extends BasicModule {
       return;
     }
     final String host = this.getRequest().getHeader("Host");
-    ChangeDomainAction.addCookie(getResponse(), UserUtils.USER_TOKEN, Secret.encrypt(username, USER_TOKEN_cryptKey), StringUtils.substringBefore(host, ":"), 60 * 60 * 24 * 365);
+    ChangeDomainAction.addCookie(getResponse(), UserUtils.USER_TOKEN
+      , Secret.encrypt(username, USER_TOKEN_cryptKey), StringUtils.substringBefore(host, ":"), 60 * 60 * 24 * 365);
     this.getRundata().redirectTo(this.getRequest().getContextPath() + TERMINATOR_INDEX_PAGE_PATH);
   }
 

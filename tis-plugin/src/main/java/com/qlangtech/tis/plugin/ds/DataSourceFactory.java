@@ -361,6 +361,14 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      */
     @Public
     public interface ISchemaSupported {
+
+        public static Optional<ISchemaSupported> schemaSupported(DataSourceFactory dsFactory) {
+            if (dsFactory instanceof ISchemaSupported) {
+                return Optional.of((ISchemaSupported) dsFactory);
+            }
+            return Optional.empty();
+        }
+
         public String getDBSchema();
     }
 

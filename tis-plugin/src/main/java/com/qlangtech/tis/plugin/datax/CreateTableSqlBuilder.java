@@ -81,8 +81,7 @@ public abstract class CreateTableSqlBuilder extends AbstractCreateTableSqlBuilde
 
 
     public void appendColName(String col) {
-        script.append(escapeChar)
-                .append(String.format("%-" + (maxColNameLength) + "s", col + (escapeChar)));
+        script.append(String.format("%-" + (maxColNameLength) + "s", this.dsMeta.getEscapedEntity(col)));
     }
 
 

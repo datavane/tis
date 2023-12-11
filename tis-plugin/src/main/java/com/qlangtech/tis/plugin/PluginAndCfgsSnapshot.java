@@ -25,26 +25,22 @@ import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
-import com.qlangtech.tis.datax.IDataxGlobalCfg;
 import com.qlangtech.tis.datax.IDataxProcessor;
-import com.qlangtech.tis.datax.IDataxReader;
-import com.qlangtech.tis.datax.IDataxWriter;
-import com.qlangtech.tis.datax.IGroupChildTaskIterator;
-import com.qlangtech.tis.datax.TableAliasMapper;
-import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
-import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.extension.impl.PluginManifest;
-import com.qlangtech.tis.manage.common.*;
+import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.ConfigFileContext;
+import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.HeteroEnum;
-import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.RobustReflectionConverter2;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -62,12 +58,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
-import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -214,47 +216,37 @@ public class PluginAndCfgsSnapshot {
         this.appMetas = Optional.ofNullable(appMetas);
     }
 
-    public static void createManifestCfgAttrs2File(File manifestJar, TargetResName collection, long timestamp,
+    public static void createManifestCfgAttrs2File(File manifestJar, StoreResourceType resourceType, TargetResName collection, long timestamp,
                                                    Optional<Predicate<PluginMeta>> pluginMetasFilter) throws Exception {
-        createManifestCfgAttrs2File(manifestJar, collection, timestamp, pluginMetasFilter, Collections.emptyMap());
+        createManifestCfgAttrs2File(manifestJar, resourceType, collection, timestamp, pluginMetasFilter, Collections.emptyMap());
+    }
+
+    public static Manifest createDataBatchJobManifestCfgAttrs(TargetResName collection
+            , Optional<Predicate<PluginMeta>> pluginMetasFilter, Map<String, String> extraEnvPropss) throws Exception {
+        IDataxProcessor processor = DataxProcessor.load(null, StoreResourceType.DataApp, collection.getName());
+        return createDataBatchJobManifestCfgAttrs(processor, pluginMetasFilter, extraEnvPropss);
     }
 
     /**
      * 通过运行时遍历的方式取得 DataX 批量任务对应的Manifest
      *
-     * @param collection
+     * @param processor
      * @return
      * @throws Exception
      */
-    public static Manifest createDataBatchJobManifestCfgAttrs(TargetResName collection //
-            , Optional<Predicate<PluginMeta>> pluginMetasFilter, Map<String, String> extraEnvPropss) throws Exception {
+    public static Manifest createDataBatchJobManifestCfgAttrs(IDataxProcessor processor,
+                                                              Optional<Predicate<PluginMeta>> pluginMetasFilter, Map<String, String> extraEnvPropss) throws Exception {
         Objects.requireNonNull(pluginMetasFilter, "pluginMetasFilter can not be null");
         Objects.requireNonNull(extraEnvPropss, "extraEnvPropss can not be null");
         RobustReflectionConverter2.PluginMetas pluginMetas =
                 RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
                     // 先收集plugmeta，特别是通过dataXWriter的dataSource关联的元数据
-                    IDataxProcessor processor = DataxProcessor.load(null, collection.getName());
+
                     processor.getReaders(null).forEach((reader) -> reader.startScanDependency());
                     processor.getWriter(null).startScanDependency();
-//                    File dataXWorkDir = new File(FileUtils.getTempDirectory(), "datax_works");
-//                    AdapterDataxProcessor process = new AdapterDataxProcessor(processor, dataXWorkDir);
-//                    try {
-//                        File dataxCfgDir = process.getDataxCfgDir(null);
-//                        (new DataXCfgGenerator(null, collection.getName(), process)).startGenerateCfg(dataxCfgDir);
-//                    } catch (Exception e) {
-//                        throw new RuntimeException(e);
-//                    } finally {
-//                        FileUtils.deleteQuietly(dataXWorkDir);
-//                    }
-//                    IDataxWriter writer = process.getWriter(null, true);
-//                    if (writer.getWriterDescriptor().isSupportTabCreate()) {
-//                        if (!process.saveCreateTableDDLExecuted.get()) {
-//                            throw new IllegalStateException("saveCreateTableDDLExecuted shall be executed");
-//                        }
-//                    }
                 });
-
-        return createManifestCfgAttrs(collection, System.currentTimeMillis(), extraEnvPropss, pluginMetasFilter, pluginMetas).getValue();
+        return createManifestCfgAttrs(processor.getResType(), new TargetResName(processor.identityValue()), System.currentTimeMillis()
+                , extraEnvPropss, pluginMetasFilter, pluginMetas).getValue();
     }
 
     /**
@@ -267,43 +259,36 @@ public class PluginAndCfgsSnapshot {
      */
     public static Manifest createFlinkIncrJobManifestCfgAttrs(TargetResName collection, long timestamp) throws Exception {
         // Manifest manifest = null;
+        StoreResourceType resourceType = StoreResourceType.DataApp;
         RobustReflectionConverter2.PluginMetas pluginMetas =
                 RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
                     MQListenerFactory sourceFactory = HeteroEnum.getIncrSourceListenerFactory(collection.getName());
                     sourceFactory.create();
 
                     // 先收集plugmeta，特别是通过dataXWriter的dataSource关联的元数据
-                    IDataxProcessor processor = DataxProcessor.load(null, collection.getName());
+                    IDataxProcessor processor = DataxProcessor.load(null, resourceType, collection.getName());
                     TISSinkFactory incrSinKFactory = TISSinkFactory.getIncrSinKFactory(collection.getName());
                     incrSinKFactory.createSinkFunction(processor);
                 });
-        return createFlinkIncrJobManifestCfgAttrs(collection, timestamp, pluginMetas);
+        return createFlinkIncrJobManifestCfgAttrs(resourceType, collection, timestamp, pluginMetas);
     }
 
-    public static Pair<PluginAndCfgsSnapshot, Manifest> createManifestCfgAttrs2File(File manifestJar,
+    public static Pair<PluginAndCfgsSnapshot, Manifest> createManifestCfgAttrs2File(File manifestJar, StoreResourceType resourceType,
                                                                                     TargetResName collection,
                                                                                     long timestamp,
                                                                                     Optional<Predicate<PluginMeta>> pluginMetasFilter, Map<String, String> extraEnvProps) throws Exception {
-        Pair<PluginAndCfgsSnapshot, Manifest> manifestCfgAttrs = createManifestCfgAttrs(collection, timestamp,
+        Pair<PluginAndCfgsSnapshot, Manifest> manifestCfgAttrs = createManifestCfgAttrs(resourceType, collection, timestamp,
                 extraEnvProps, pluginMetasFilter, new IPluginMetasInfo() {
                 });
-        writeManifest2Jar(manifestJar, manifestCfgAttrs.getRight());
+        PluginAndCfgsSnapshotUtils.writeManifest2Jar(manifestJar, manifestCfgAttrs.getRight());
         return manifestCfgAttrs;
     }
 
-    public static void writeManifest2Jar(File manifestJar, Manifest manifestCfgAttrs) throws IOException {
-        try (JarOutputStream jaroutput = new JarOutputStream(FileUtils.openOutputStream(manifestJar, false),
-                manifestCfgAttrs)) {
-            jaroutput.putNextEntry(new ZipEntry(getTaskEntryName()));
-            jaroutput.flush();
-        }
-    }
-
-    public static Manifest createFlinkIncrJobManifestCfgAttrs(TargetResName collection, long timestamp,
+    public static Manifest createFlinkIncrJobManifestCfgAttrs(StoreResourceType resourceType, TargetResName collection, long timestamp,
                                                               IPluginMetasInfo appendPluginMeta) throws Exception {
 
 
-        return createManifestCfgAttrs(collection, timestamp, Optional.empty(), new IPluginMetasInfo() {
+        return createManifestCfgAttrs(resourceType, collection, timestamp, Optional.empty(), new IPluginMetasInfo() {
             @Override
             public Set<PluginMeta> getMetas() {
                 return Sets.union(appendPluginMeta.getMetas(),
@@ -319,14 +304,14 @@ public class PluginAndCfgsSnapshot {
     }
 
 
-    public static Manifest createManifestCfgAttrs(TargetResName collection, long timestamp,
+    public static Manifest createManifestCfgAttrs(StoreResourceType resourceType, TargetResName collection, long timestamp,
                                                   Optional<Predicate<PluginMeta>> pluginMetasFilter,
                                                   IPluginMetasInfo appendPluginMeta) throws Exception {
-        return createManifestCfgAttrs(collection, timestamp, Collections.emptyMap(), pluginMetasFilter, appendPluginMeta).getRight();
+        return createManifestCfgAttrs(resourceType, collection, timestamp, Collections.emptyMap(), pluginMetasFilter, appendPluginMeta).getRight();
     }
 
     public static Pair<PluginAndCfgsSnapshot, Manifest> //
-    createManifestCfgAttrs(TargetResName collection,
+    createManifestCfgAttrs(StoreResourceType resourceType, TargetResName collection,
                            long timestamp,
                            Map<String, String> extraEnvProps,
                            Optional<Predicate<PluginMeta>> pluginMetasFilter, IPluginMetasInfo appendPluginMeta) throws Exception {
@@ -362,7 +347,7 @@ public class PluginAndCfgsSnapshot {
         //"globalPluginStore"  "pluginMetas"  "appLastModifyTimestamp"
 
 
-        PluginAndCfgsSnapshot localSnapshot = getLocalPluginAndCfgsSnapshot(collection, pluginMetasFilter,
+        PluginAndCfgsSnapshot localSnapshot = getLocalPluginAndCfgsSnapshot(resourceType, collection, pluginMetasFilter,
                 appendPluginMeta);
 
         localSnapshot.attachPluginCfgSnapshot2Manifest(manifest);
@@ -690,10 +675,10 @@ public class PluginAndCfgsSnapshot {
      * @param appendPluginMeta
      * @return
      */
-    public static PluginAndCfgsSnapshot getWorkerPluginAndCfgsSnapshot(TargetResName collection,
+    public static PluginAndCfgsSnapshot getWorkerPluginAndCfgsSnapshot(StoreResourceType resourceType, TargetResName collection,
                                                                        Set<PluginMeta> appendPluginMeta) {
 
-        return getLocalPluginAndCfgsSnapshot(collection, (pluginMetas, dataxComponentMeta) -> {
+        return getLocalPluginAndCfgsSnapshot(resourceType, collection, (pluginMetas, dataxComponentMeta) -> {
             PluginMetaSet collector = new PluginMetaSet(Optional.empty());
 
             File pluginDir = getPluginRootDir();
@@ -723,11 +708,11 @@ public class PluginAndCfgsSnapshot {
      * @return
      */
     private static PluginAndCfgsSnapshot //
-    getLocalPluginAndCfgsSnapshot(TargetResName collection,
+    getLocalPluginAndCfgsSnapshot(StoreResourceType resourceType, TargetResName collection,
                                   Optional<Predicate<PluginMeta>> pluginMetasFilter, IPluginMetasInfo appendPluginMeta) {
         //  ExtensionList<HeteroEnum> hlist = TIS.get().getExtensionList(HeteroEnum.class);
 
-        return getLocalPluginAndCfgsSnapshot(collection, (pluginMetas, dataxComponentMeta) -> {
+        return getLocalPluginAndCfgsSnapshot(resourceType, collection, (pluginMetas, dataxComponentMeta) -> {
             appendPluginMeta.getRepoResources().forEach((res) -> {
                 dataxComponentMeta.addResource(res);
             });
@@ -754,10 +739,10 @@ public class PluginAndCfgsSnapshot {
         });
     }
 
-    private static PluginAndCfgsSnapshot getLocalPluginAndCfgsSnapshot(TargetResName collection,
+    private static PluginAndCfgsSnapshot getLocalPluginAndCfgsSnapshot(StoreResourceType resourceType, TargetResName collection,
                                                                        MetaSetProductor metaSetProductor) {
         // 本次任务相关插件元信息
-        KeyedPluginStore.PluginMetas pluginMetas = KeyedPluginStore.getAppAwarePluginMetas(false, collection.getName());
+        KeyedPluginStore.PluginMetas pluginMetas = KeyedPluginStore.getAppAwarePluginMetas(resourceType, collection.getName());
         //  Set<PluginMeta> globalPluginMetas = null;
         Map<String, Long> gPluginStoreLastModify = Collections.emptyMap();
         UploadPluginMeta upm = UploadPluginMeta.parse("x:require", true);
