@@ -35,6 +35,7 @@ import com.qlangtech.tis.plugin.annotation.TestValidator;
 import com.qlangtech.tis.plugin.datax.TestSelectedTab;
 import com.qlangtech.tis.plugin.ds.TestDataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.TestTableInDB;
+import com.qlangtech.tis.plugin.k8s.TestK8sImage;
 import com.qlangtech.tis.util.TestAttrValMap;
 import com.qlangtech.tis.util.TestHeteroList;
 import com.qlangtech.tis.util.TestUploadPluginMeta;
@@ -60,7 +61,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestTableAlias.class);
         suite.addTestSuite(TestScannerPatterns.class);
         suite.addTestSuite(TestDBConfigParser.class);
-     //   suite.addTestSuite(TestValidatorCommons.class);
+        //   suite.addTestSuite(TestValidatorCommons.class);
         suite.addTestSuite(TestHeteroList.class);
         suite.addTestSuite(TestUploadPluginMeta.class);
         suite.addTestSuite(TestValidator.class);
@@ -79,6 +80,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestPluginAndCfgsSnapshot.class);
         suite.addTestSuite(TestContainAdvanceFieldPlugin.class);
         suite.addTestSuite(TestInnerPropOfIdentityName.class);
+        suite.addTestSuite(TestK8sImage.class);
 
         return suite;
     }

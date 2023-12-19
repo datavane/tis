@@ -35,12 +35,12 @@ public class PowerjobTriggerBuildResult extends TriggerBuildResult {
     public PowerjobTriggerBuildResult() {
     }
 
-    public PowerjobTriggerBuildResult(boolean success, AtomicReference<JSONObject> instanceParamsRef) {
+    public PowerjobTriggerBuildResult(boolean success, JSONObject instanceParams) {
         super(success);
-        JSONObject instanceParams = Objects.requireNonNull(instanceParamsRef).get();
-        if (instanceParams != null) {
-            pluginCfgsMetas = instanceParams.getString(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS);
-        }
+        // JSONObject instanceParams = Objects.requireNonNull(instanceParamsRef).get();
+        pluginCfgsMetas = Objects.requireNonNull(instanceParams, "instanceParams can not be null") //
+                .getString(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS);
+
     }
 
     public String getPluginCfgsMetas() {

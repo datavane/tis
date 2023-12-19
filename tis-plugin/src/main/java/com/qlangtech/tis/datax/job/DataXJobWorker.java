@@ -40,6 +40,7 @@ import com.qlangtech.tis.plugin.k8s.K8sImage;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -48,6 +49,9 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.qlangtech.tis.util.UploadPluginMeta.ATTR_KEY_VALUE_SPLIT;
+import static com.qlangtech.tis.util.UploadPluginMeta.KEY_TARGET_PLUGIN_DESC;
 
 /**
  * DataX 任务执行容器
@@ -248,10 +252,15 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 //
 //    public abstract String getZkQueuePath();
 
-    protected final K8sImage getK8SImage() {
-        K8sImage k8sImage = TIS.getPluginStore(K8sImage.class).find(this.k8sImage);
+    protected final <T extends K8sImage> T getK8SImage() {
+        T k8sImage = (T) K8sImage.getPluginStore(this.getK8SImageCategory())
+                .find(Objects.requireNonNull(this.k8sImage, "k8sImage can not be null"));
         Objects.requireNonNull(k8sImage, "k8sImage:" + this.k8sImage + " can not be null");
         return k8sImage;
+    }
+
+    protected K8sImage.ImageCategory getK8SImageCategory() {
+        return K8sImage.ImageCategory.DEFAULT_DESC_NAME;
     }
 
     private ReplicasSpec replicasSpec;
@@ -302,9 +311,15 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         public BasicDescriptor() {
             super();
             this.registerSelectOptions(KEY_FIELD_NAME, () -> {
-                IPluginStore<K8sImage> images = TIS.getPluginStore(K8sImage.class);
-                return images.getPlugins();
+
+                IPluginStore pluginStore = K8sImage.getPluginStore(this.getK8SImageCategory());
+                // IPluginStore<K8sImage> images = TIS.getPluginStore(getK8SImageCfgClazz());
+                return pluginStore.getPlugins();
             });
+        }
+
+        protected K8sImage.ImageCategory getK8SImageCategory() {
+            return K8sImage.ImageCategory.DEFAULT_DESC_NAME;
         }
 
         @Override

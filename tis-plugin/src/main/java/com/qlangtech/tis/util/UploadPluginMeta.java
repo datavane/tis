@@ -51,7 +51,7 @@ public class UploadPluginMeta {
 
     public static final String KEY_PLUGIN_META = UploadPluginMeta.class.getName();
 
-    private static final String ATTR_KEY_VALUE_SPLIT = "_";
+    public static final String ATTR_KEY_VALUE_SPLIT = "_";
 
     private static final String KEY_JUST_GET_ITEM_RELEVANT = "justGetItemRelevant";
 

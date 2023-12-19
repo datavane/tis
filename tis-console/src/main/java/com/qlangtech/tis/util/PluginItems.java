@@ -264,6 +264,8 @@ public class PluginItems {
 
     } else if (heteroEnum == HeteroEnum.PARAMS_CONFIG) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
+    } else if (heteroEnum == HeteroEnum.K8S_IMAGES) {
+      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.DATAX_WORKER) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.appJobWorkerTplReWriter) {

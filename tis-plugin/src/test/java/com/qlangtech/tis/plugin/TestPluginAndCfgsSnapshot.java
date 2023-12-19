@@ -50,7 +50,7 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
 
     public void testCreateDataBatchJobManifestCfgAttrs() throws Exception {
         String appName = "mysql_hudi";
-       // String appName = "mysql_doris3";
+        // String appName = "mysql_doris3";
         Manifest manifest = PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs( //
                 new TargetResName(appName), Optional.empty(), Collections.emptyMap());
         Assert.assertNotNull(manifest);
@@ -79,7 +79,7 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
         PluginMeta flinkPluginMeta
                 = new PluginMeta(TISSinkFactory.KEY_PLUGIN_TPI_CHILD_PATH + datax.getName()
                 , Config.getMetaProps().getVersion(), Optional.empty(), null);
-        PluginAndCfgsSnapshot snapshot = PluginAndCfgsSnapshot.getWorkerPluginAndCfgsSnapshot(datax, Collections.singleton(flinkPluginMeta));
+        PluginAndCfgsSnapshot snapshot = PluginAndCfgsSnapshot.getWorkerPluginAndCfgsSnapshot(StoreResourceType.DataApp, datax, Collections.singleton(flinkPluginMeta));
         Assert.assertNotNull(snapshot);
 
         Assert.assertEquals(datax.getName(), snapshot.getAppName().getName());
@@ -118,13 +118,13 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
         PluginMeta flinkPluginMeta
                 = new PluginMeta(TISSinkFactory.KEY_PLUGIN_TPI_CHILD_PATH + datax.getName()
                 , Config.getMetaProps().getVersion(), Optional.empty());
-        PluginAndCfgsSnapshot remote = PluginAndCfgsSnapshot.getWorkerPluginAndCfgsSnapshot(datax, Collections.singleton(flinkPluginMeta));
+        PluginAndCfgsSnapshot remote = PluginAndCfgsSnapshot.getWorkerPluginAndCfgsSnapshot(StoreResourceType.DataApp, datax, Collections.singleton(flinkPluginMeta));
         Assert.assertNotNull(remote);
 
         Config.setTestDataDir();
         TIS.clean();
 
-        PluginAndCfgsSnapshot local = PluginAndCfgsSnapshot.getWorkerPluginAndCfgsSnapshot(datax, Collections.singleton(flinkPluginMeta));
+        PluginAndCfgsSnapshot local = PluginAndCfgsSnapshot.getWorkerPluginAndCfgsSnapshot(StoreResourceType.DataApp, datax, Collections.singleton(flinkPluginMeta));
         Assert.assertNotNull(local);
 
 //        Set<XStream2.PluginMeta> pluginMetas = remote.shallBeUpdateTpis(local);

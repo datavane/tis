@@ -54,4 +54,12 @@ public interface ITISPowerJob {
     String KEY_POWERJOB_WORKFLOW_INSTANCE_ID = "pwoerjob_instance_id";
 
     public <PowerJobClient> PowerJobClient getPowerJobClient();
+
+    /**
+     * 注册新app
+     *
+     * @param appName
+     * @param password
+     */
+    public void registerPowerJobApp(String powerjobDomain, String appName, String password);
 }
