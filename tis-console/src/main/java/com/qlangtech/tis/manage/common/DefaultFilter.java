@@ -23,8 +23,14 @@ import com.qlangtech.tis.runtime.module.action.ChangeDomainAction;
 import junit.framework.Assert;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
@@ -155,6 +161,7 @@ public final class DefaultFilter implements Filter {
       request.setCharacterEncoding(TisUTF8.getName());
       response.setCharacterEncoding(TisUTF8.getName());
       final TISHttpServletRequestWrapper wrapperRequest = new TISHttpServletRequestWrapper((HttpServletRequest) request);
+      final TISHttpServletResponseWrapper wrapperResponse = new TISHttpServletResponseWrapper((HttpServletResponse) response);
       responseLocal.set(response);
       requestLocal.set(wrapperRequest);
       appAndRuntimeLocal.set(getRuntime(wrapperRequest));
@@ -170,7 +177,7 @@ public final class DefaultFilter implements Filter {
         // .getSysUser(wrapperRequest));
       }
       // SecurityContextHolder.setContext(securityContext);
-      chain.doFilter(wrapperRequest, response);
+      chain.doFilter(wrapperRequest, wrapperResponse);
     } finally {
       // responseLocal.set(null);
       // requestLocal.set(null);

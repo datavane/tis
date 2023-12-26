@@ -24,6 +24,7 @@ import com.opensymphony.xwork2.ActionInvocation;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.IAjaxResult;
 import com.qlangtech.tis.manage.common.MockContext;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.runtime.module.misc.DefaultMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
@@ -205,7 +206,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
     // } catch (InterruptedException e) {
     //
     // }
-    response.setContentType("text/json;charset=UTF-8");
+    response.setContentType("text/json;charset=" + TisUTF8.getName());
     response.getWriter().write(execResult.toString());
   }
 

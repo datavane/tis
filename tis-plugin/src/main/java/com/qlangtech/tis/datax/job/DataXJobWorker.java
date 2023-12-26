@@ -19,6 +19,7 @@
 package com.qlangtech.tis.datax.job;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.config.k8s.HorizontalpodAutoscaler;
@@ -40,18 +41,17 @@ import com.qlangtech.tis.plugin.k8s.K8sImage;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.util.HeteroEnum;
-import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.qlangtech.tis.util.UploadPluginMeta.ATTR_KEY_VALUE_SPLIT;
-import static com.qlangtech.tis.util.UploadPluginMeta.KEY_TARGET_PLUGIN_DESC;
 
 /**
  * DataX 任务执行容器
@@ -60,11 +60,12 @@ import static com.qlangtech.tis.util.UploadPluginMeta.KEY_TARGET_PLUGIN_DESC;
  * @create: 2021-04-23 17:49
  **/
 @Public
-public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
+public abstract class DataXJobWorker implements Describable<DataXJobWorker>, ILaunchingOrchestrate {
 
     public static final String KEY_FIELD_NAME = "k8sImage";
-
     public static final String KEY_WORKER_TYPE = "workerType";
+    public static final String GROUP_KEY_JOBWORKER = "jobworker";
+    public static final String KEY_CPT_TYPE = "cptType";
 
     public static final TargetResName K8S_DATAX_INSTANCE_NAME = new TargetResName("datax-worker");
     public static final TargetResName K8S_FLINK_CLUSTER_NAME = new TargetResName("flink-cluster");
@@ -115,6 +116,11 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 //        return ((BasicDescriptor) this.getDescriptor()).getWorkerType().getName();
 //    }
 
+    @Override
+    public List<ExecuteStep> getExecuteSteps() {
+        throw new UnsupportedOperationException(this.getClass().getName());
+    }
+
 
 //    public static DataXJobWorker getDataxJobWorker() {
 //        return getJobWorker(K8S_DATAX_INSTANCE_NAME);
@@ -125,10 +131,15 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     }
 
     public static DataXJobWorker getJobWorker(TargetResName resName) {
+        Optional<ServerLaunchToken> token = getLaunchToken(resName);
+        Optional<K8SWorkerCptType> powerjobCptType = token.map((t) -> t.workerCptType);
+        if (!powerjobCptType.isPresent()) {
+            throw new IllegalStateException("resName:" + resName.getName() + " relevant powerjobCptType can not be empty");
+        }
         if (resName.equalWithName(K8S_DATAX_INSTANCE_NAME.getName())) {
-            return getJobWorker(K8S_DATAX_INSTANCE_NAME, Optional.of(K8SWorkerCptType.Server));
+            return getJobWorker(K8S_DATAX_INSTANCE_NAME, powerjobCptType);
         } else if (resName.equalWithName(K8S_FLINK_CLUSTER_NAME.getName())) {
-            return getJobWorker(K8S_FLINK_CLUSTER_NAME, Optional.empty());
+            return getJobWorker(K8S_FLINK_CLUSTER_NAME, powerjobCptType);
         }
 
         throw new IllegalStateException("illegal resName:" + resName);
@@ -145,9 +156,10 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         return dataxJobWorkerStore.getPlugin();
     }
 
+
     public static IPluginStore<DataXJobWorker> getJobWorkerStore(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType) {
         return TIS.getPluginStore(
-                new KeyedPluginStore.Key("jobworker"
+                new KeyedPluginStore.Key(GROUP_KEY_JOBWORKER
                         , new KeyedPluginStore.KeyVal(resName.getName()
                         , powerjobCptType.map((type) -> type.storeSuffix).map((storeSuffix) -> ("-" + storeSuffix)).orElse(StringUtils.EMPTY)) {
                     public String getKeyVal() {
@@ -180,30 +192,80 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
      * @return
      */
     public boolean inService() {
-        File launchToken = this.getServerLaunchTokenFile();
-        return launchToken.exists();
+        return this.getServerLaunchTokenFile().isLaunchTokenExist();
     }
 
-    protected void writeLaunchToken() throws IOException {
-        File launchToken = this.getServerLaunchTokenFile();
-        SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        FileUtils.write(launchToken, timeFormat.format(new Date()), TisUTF8.get());
+    private void writeLaunchToken() {
+        ServerLaunchToken launchToken = this.getServerLaunchTokenFile();
+
+        launchToken.writeLaunchToken();
+        //  SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//        JSONObject token = new JSONObject();
+//        //  TimeFormat.yyyyMMddHHmmss.format()
+//        token.put("launchTime", TimeFormat.getCurrentTimeStamp());
+//        token.put("");
+//
+//        FileUtils.write(launchToken, timeFormat.format(new Date()), TisUTF8.get());
     }
 
     protected void deleteLaunchToken() {
-        File launchToken = this.getServerLaunchTokenFile();
-        FileUtils.deleteQuietly(launchToken);
+        this.getServerLaunchTokenFile().deleteLaunchToken();
     }
 
-    protected File getServerLaunchTokenFile() {
+    public ServerLaunchToken getServerLaunchTokenFile() {
 
         BasicDescriptor basicDesc = Objects.requireNonNull((BasicDescriptor) this.getDescriptor(), "basicDesc can not be null");
         IPluginStore<DataXJobWorker> workerStore = basicDesc.getJobWorkerStore();
-
-        TargetResName workerType = ((BasicDescriptor) this.getDescriptor()).getWorkerType();
+        // TargetResName workerType = basicDesc.getWorkerType();
 //        IPluginStore<DataXJobWorker> workerStore = getJobWorkerStore(workerType);
         File target = workerStore.getTargetFile().getFile();
-        return new File(target.getParentFile(), (workerType.getName() + ".launch_token"));
+        return ServerLaunchToken.create(target.getParentFile().getParentFile(), basicDesc);
+    }
+
+
+    enum LaunchToken {
+        /**
+         * 正在执行
+         */
+        DOING(".launching_token")
+        /**
+         * 成功启动
+         */
+        , SUCCESS_COMPLETE(".launched_token");
+
+        private final String token;
+
+        private LaunchToken(String token) {
+            this.token = token;
+        }
+
+        public File getTokenFile(File parent, TargetResName workerType) {
+            return new File(parent, getTokenFileName(workerType));
+        }
+
+        public String getTokenFileName(TargetResName workerType) {
+            return (workerType.getName() + this.token);
+        }
+    }
+
+
+//    private static String getTokenFileName(TargetResName workerType) {
+//        return (workerType.getName() + ".launched_token");
+//    }
+
+    public static Optional<ServerLaunchToken> getLaunchToken(TargetResName workerType) {
+        File parent = new File(TIS.pluginCfgRoot, GROUP_KEY_JOBWORKER);
+        File tokenFile = new File(parent,
+                LaunchToken.SUCCESS_COMPLETE.getTokenFileName(workerType));
+        try {
+            if (!tokenFile.exists()) {
+                return Optional.empty();
+            }
+            JSONObject content = JSONObject.parseObject(FileUtils.readFileToString(tokenFile, TisUTF8.get()));
+            return Optional.of(ServerLaunchToken.create(parent, workerType, K8SWorkerCptType.parse(content.getString(KEY_CPT_TYPE))));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -215,13 +277,14 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
     public abstract void relaunch(String podName);
 
+
     /**
      * 获取已经启动的RC运行参数
      *
      * @param
      * @return
      */
-    public abstract RcDeployment getRCDeployment();
+    public abstract List<RcDeployment> getRCDeployments();
 
     public abstract RcHpaStatus getHpaStatus();
 
@@ -294,10 +357,15 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
      */
     public abstract void remove();
 
+    public final void executeLaunchService(SSERunnable launchProcess) {
+        this.launchService(launchProcess);
+        this.writeLaunchToken();
+    }
+
     /**
      * 启动服务
      */
-    public abstract void launchService(Runnable launchProcess);
+    protected abstract void launchService(SSERunnable launchProcess);
 
 
     @Override
@@ -327,7 +395,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
             return this.getWorkerCptType().token;
         }
 
-        protected abstract K8SWorkerCptType getWorkerCptType();
+        public abstract K8SWorkerCptType getWorkerCptType();
 
         @Override
         public Map<String, Object> getExtractProps() {

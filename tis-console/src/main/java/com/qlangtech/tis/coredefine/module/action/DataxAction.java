@@ -27,6 +27,8 @@ import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
+import com.qlangtech.tis.coredefine.module.action.DefaultSSERunnable.SubJobLog;
+import com.qlangtech.tis.coredefine.module.action.DefaultSSERunnable.k8SLaunching;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataXPowerJobSubmit;
 import com.qlangtech.tis.datax.IDataxProcessor;
@@ -43,9 +45,12 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.impl.ESTableAlias;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
+import com.qlangtech.tis.datax.job.DataXJobWorker.K8SWorkerCptType;
+import com.qlangtech.tis.datax.job.ServerLaunchToken;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.util.MultiItemsViewType;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.IAppSource;
@@ -99,8 +104,10 @@ import org.apache.struts2.convention.annotation.InterceptorRefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -112,8 +119,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import com.qlangtech.tis.extension.util.MultiItemsViewType;
 
 /**
  * manage DataX pipe process logic
@@ -301,6 +306,49 @@ public class DataxAction extends BasicModule {
     this.setBizResult(context, pluginInfo);
   }
 
+  @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doTestLaunchDataxWorker(Context context) throws IOException {
+    HttpServletResponse response = ServletActionContext.getResponse();
+    response.setContentType("text/event-stream");
+    response.setCharacterEncoding(TisUTF8.getName());
+
+    int timeout = 40 * 1000;
+    long start = System.currentTimeMillis();
+    long end = System.currentTimeMillis();
+    PrintWriter printWriter = response.getWriter();
+//    while ((end - start) < timeout) {
+//      //https://stackoverflow.com/questions/28673371/eventsource-onmessage-is-not-working-where-onopen-and-onerror-works-proper
+//
+//
+//      printWriter.println("event: message");
+//      printWriter.println("data: {\"name\":\"" + new Date().toString() + "\"}");
+//      printWriter.println(); // note the additional line being written to the stream..
+//
+//      printWriter.println("event: other");
+//      printWriter.println("data: {name:'baisui'}");
+//      printWriter.println(); // note the additional line being written to the stream..
+//      printWriter.flush();
+//
+//      try {
+//        Thread.currentThread().sleep(1000);
+//      } catch (InterruptedException e) {
+//        e.printStackTrace();
+//      }
+//      end = System.currentTimeMillis();
+//    }
+
+    printWriter.println("event: message");
+    printWriter.println("data: xxxxxxxxxxxxxxxxx");
+    printWriter.println(); // note the additional line being written to the stream..
+    printWriter.flush();
+
+    System.out.println("Exiting handleSSE()-suscribe" + Thread.currentThread().getName());
+
+  }
+
+  public static final String KEY_USING_POWERJOB_USE_EXIST_CLUSTER = "usingPowderJobUseExistCluster";
+  public static final String KEY_TARGET_NAME = "targetName";
+
   /**
    * 启动DataX执行器
    *
@@ -309,7 +357,13 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doLaunchDataxWorker(Context context) {
 
-    DataXJobWorker dataxJobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName());
+    HttpServletResponse response = ServletActionContext.getResponse();
+    response.setContentType("text/event-stream");
+    response.setCharacterEncoding(TisUTF8.getName());
+
+    K8SWorkerCptType cptType = this.getBoolean(KEY_USING_POWERJOB_USE_EXIST_CLUSTER)
+      ? K8SWorkerCptType.UsingExistCluster : K8SWorkerCptType.Server;
+    DataXJobWorker dataxJobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName(), Optional.of(cptType));
     if (dataxJobWorker == null) {
       throw new IllegalStateException("dataxJobWorker can not be null,relevant target type:" + this.getK8SJobWorkerTargetName());
     }
@@ -318,22 +372,57 @@ public class DataxAction extends BasicModule {
       throw new IllegalStateException("dataxJobWorker is in serivce ,can not launch repeat");
     }
 
-    dataxJobWorker.launchService(() -> {
+    DefaultSSERunnable launchProcess = new DefaultSSERunnable(response, dataxJobWorker, () -> {
       try {
         Thread.sleep(4000l);
       } catch (InterruptedException e) {
-
       }
     });
+    ServerLaunchToken launchToken = dataxJobWorker.getServerLaunchTokenFile();
+    k8SLaunching k8SLaunching = launchProcess.hasLaunchingToken(dataxJobWorker.getExecuteSteps(), launchToken);
 
-    this.doGetJobWorkerMeta(context);
-    AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
-    DataXJobWorkerStatus jobWorkerStatus = (DataXJobWorkerStatus) actionExecResult.getBizResult();
-    if (jobWorkerStatus == null || !jobWorkerStatus.isK8sReplicationControllerCreated()) {
-      throw new IllegalStateException("Job Controller launch faild please contract administer");
+
+    launchProcess.writeExecuteSteps(k8SLaunching.getExecuteSteps());
+    if (k8SLaunching.isLaunching()) {
+
+      if (k8SLaunching.isFaild()) {
+//        k8SLaunching.getExecuteSteps();
+//        k8SLaunching.getMilestones();
+
+        // launchProcess.writeExecuteSteps(k8SLaunching.getExecuteSteps());
+
+        for (SubJobLog subJobLog : k8SLaunching.getLogs()) {
+          //public void writeMessage(InfoType logLevel, long timestamp, String msg)
+          launchProcess.writeHistoryLog(subJobLog);
+        }
+        return;
+      } else if (launchToken.hasWriteOwner()) {
+
+        // 说明启动流程正在执行，attach 到执行流程
+        launchToken.addObserver(k8SLaunching);
+        //  k8SLaunching.attach2RunningProcessor();
+        return;
+      }
+
     }
 
-    this.addActionMessage(context, "已经成功启动DataX执行器");
+    try {
+      launchProcess.setLaunchToken(launchToken);
+      launchProcess.startLaunch();
+
+      dataxJobWorker.executeLaunchService(launchProcess);
+
+      this.doGetJobWorkerMeta(context);
+      AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
+      DataXJobWorkerStatus jobWorkerStatus = (DataXJobWorkerStatus) actionExecResult.getBizResult();
+      if (jobWorkerStatus == null || !jobWorkerStatus.isK8sReplicationControllerCreated()) {
+        throw new IllegalStateException("Job Controller launch faild please contract administer");
+      }
+
+      this.addActionMessage(context, "已经成功启动DataX执行器");
+    } finally {
+      launchProcess.terminate();
+    }
   }
 
   /**
@@ -381,34 +470,32 @@ public class DataxAction extends BasicModule {
 
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetJobWorkerMeta(Context context) {
-    // PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
     final TargetResName targetName = getK8SJobWorkerTargetName();
     getJobWoker(context, targetName);
   }
 
   private void getJobWoker(Context context, TargetResName targetName) {
-    Optional<DataXJobWorker> firstWorker = Optional.ofNullable(DataXJobWorker.getJobWorker((targetName)));
-    //dataxJobWorkerStore.getPlugins().stream().filter((p) -> isJobWorkerMatch(targetName, p.getDescriptor()))
-    // .findFirst();
+
+    Optional<ServerLaunchToken> launchToken = DataXJobWorker.getLaunchToken(targetName);
 
     DataXJobWorkerStatus jobWorkerStatus = new DataXJobWorkerStatus();
-    if (!firstWorker.isPresent()) {
+    if (!launchToken.isPresent()) {
       jobWorkerStatus.setState(IFlinkIncrJobStatus.State.NONE);
       this.setBizResult(context, jobWorkerStatus);
       return;
     }
-    DataXJobWorker jobWorker = firstWorker.get();
+    DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(targetName, launchToken.map((t) -> t.getWorkerCptType()));
     boolean disableRcdeployment = this.getBoolean("disableRcdeployment");
     jobWorkerStatus.setState(jobWorker.inService() ? IFlinkIncrJobStatus.State.RUNNING :
       IFlinkIncrJobStatus.State.NONE);
     if (jobWorkerStatus.getState() == IFlinkIncrJobStatus.State.RUNNING && !disableRcdeployment) {
-      jobWorkerStatus.setRcDeployment(jobWorker.getRCDeployment());
+      jobWorkerStatus.setRcDeployments(jobWorker.getRCDeployments());
     }
     this.setBizResult(context, jobWorkerStatus);
   }
 
   private TargetResName getK8SJobWorkerTargetName() {
-    final String targetName = this.getString("targetName");
+    final String targetName = this.getString(KEY_TARGET_NAME);
     DataXJobWorker.validateTargetName(targetName);
     return new TargetResName(targetName);
   }
@@ -465,7 +552,7 @@ public class DataxAction extends BasicModule {
     }
     // this.getK8SJobWorkerTargetName();
     //TargetResName resName = DataXJobWorker.K8S_DATAX_INSTANCE_NAME;
-    DataXJobWorker worker = DataXJobWorker.getJobWorker(resName);
+    DataXJobWorker worker = DataXJobWorker.getJobWorker(resName, powerjobCptType);
 
     worker.setReplicasSpec(incrSpecResult.getSpec());
     if (incrSpecResult.hpa != null) {

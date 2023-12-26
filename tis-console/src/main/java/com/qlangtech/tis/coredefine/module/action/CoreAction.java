@@ -45,12 +45,14 @@ import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.*;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
-import com.qlangtech.tis.manage.common.*;
+import com.qlangtech.tis.manage.common.AppDomainInfo;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
+import com.qlangtech.tis.manage.common.ManageUtils;
+import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.servlet.DownloadResource;
 import com.qlangtech.tis.manage.servlet.DownloadServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
-import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
@@ -309,7 +311,7 @@ public class CoreAction extends BasicModule {
       rcConfig.accept(new IDeploymentDetail.IDeploymentDetailVisitor() {
         @Override
         public void visit(RcDeployment rcDeployment) {
-          incrStatus.setRcDeployment(rcDeployment);
+          incrStatus.setRcDeployments(Collections.singletonList(rcDeployment));
         }
 
         @Override

@@ -55,11 +55,11 @@ public interface ITISPowerJob {
 
     public <PowerJobClient> PowerJobClient getPowerJobClient();
 
-    /**
-     * 注册新app
-     *
-     * @param appName
-     * @param password
-     */
-    public void registerPowerJobApp(String powerjobDomain, String appName, String password);
+//    /**
+//     * 注册新app
+//     *
+//     * @param appName
+//     * @param password
+//     */
+//    public void registerPowerJobApp(String powerjobDomain, String appName, String password);
 }

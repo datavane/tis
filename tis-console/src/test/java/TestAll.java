@@ -16,6 +16,7 @@
  *   limitations under the License.
  */
 
+import com.qlangtech.tis.coredefine.module.action.TestDataXAction;
 import com.qlangtech.tis.coredefine.module.action.TestPluginAction;
 import com.qlangtech.tis.manage.servlet.TestIncrTagHeatBeatMonitor;
 import com.qlangtech.tis.offline.module.action.TestOfflineDatasourceAction;
@@ -46,6 +47,7 @@ public class TestAll extends TestCase {
     //suite.addTestSuite(TestCollectionAction.class);
     suite.addTestSuite(TestPluginAction.class);
     suite.addTestSuite(TestOfflineDatasourceAction.class);
+    suite.addTestSuite(TestDataXAction.class);
 
     return suite;
   }
