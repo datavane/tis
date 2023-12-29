@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
  * @create: 2021-04-23 17:49
  **/
 @Public
-public abstract class DataXJobWorker implements Describable<DataXJobWorker>, ILaunchingOrchestrate {
+public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
     public static final String KEY_FIELD_NAME = "k8sImage";
     public static final String KEY_WORKER_TYPE = "workerType";
@@ -69,6 +69,31 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker>, ILa
 
     public static final TargetResName K8S_DATAX_INSTANCE_NAME = new TargetResName("datax-worker");
     public static final TargetResName K8S_FLINK_CLUSTER_NAME = new TargetResName("flink-cluster");
+
+    /**
+     * 取得执行编排
+     *
+     * @return
+     */
+    public static ILaunchingOrchestrate getOrchestrate(DataXJobWorker dataXWorker) {
+        if (!(isOrchestrate(dataXWorker))) {
+            throw new IllegalArgumentException("dataXWorker must be type of " + ILaunchingOrchestrate.class.getName());
+        }
+        return (ILaunchingOrchestrate) dataXWorker;
+    }
+
+    public static boolean isOrchestrate(DataXJobWorker dataXWorker) {
+        return Objects.requireNonNull(dataXWorker, "dataXWorker can not be null") instanceof ILaunchingOrchestrate;
+    }
+
+    /**
+     * 更新到最新PodNumber
+     *
+     * @param podNum
+     */
+    public void updatePodNumber(Integer podNum) {
+        throw new UnsupportedOperationException();
+    }
 
     public enum K8SWorkerCptType {
         Server("powerjob-server", null), Worker("powerjob-worker"), JobTpl("powerjob-job-tpl"),
@@ -115,11 +140,6 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker>, ILa
 //    public final String identityValue() {
 //        return ((BasicDescriptor) this.getDescriptor()).getWorkerType().getName();
 //    }
-
-    @Override
-    public List<ExecuteStep> getExecuteSteps() {
-        throw new UnsupportedOperationException(this.getClass().getName());
-    }
 
 
 //    public static DataXJobWorker getDataxJobWorker() {

@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.coredefine.module.action;
 
@@ -45,6 +45,26 @@ import java.util.regex.Pattern;
  */
 public class IncrUtils {
 
+  final static String fieldPods = "pods";
+  final static String fieldCuprequest = "cuprequest";
+  final static String fieldCuprequestUnit = "cuprequestunit";
+  final static String KEY_CPU_UNIT_CORES = "cores";
+
+  final static String filedCpuLimit = "cuplimit";
+  final static String KEY_CPU_LIMIT_UNIT = "cuplimitunit";
+
+  final static String fieldMemoryRequest = "memoryrequest";
+  final static String KEY_MEMORY_REQUEST_UNIT = "memoryrequestunit";
+
+  final static String fieldMemorylimit = "memorylimit";
+  final static String field_Memorylimit_UNIT = "memorylimitunit";
+
+  final static String KEY_MIN_HPA_POD = "minHpaPod";
+  final static String KEY_MAX_HPA_POD = "maxHpaPod";
+  final static String KEY_CPU_AVERAGE_UTILIZATION = "cpuAverageUtilization";
+
+  final static String KEY_SUPPORT_HPA = "supportHpa";
+
   private IncrUtils() {
   }
 
@@ -56,6 +76,47 @@ public class IncrUtils {
   }
 
   /**
+   * 将资源规格序列化成JSON
+   *
+   * @param s
+   * @return
+   */
+  public static JSONObject serializeSpec(IncrSpecResult s) {
+    JSONObject result = new JSONObject();
+    ReplicasSpec spec = s.getSpec();
+    HorizontalpodAutoscaler hpa = s.hpa;
+
+    result.put(KEY_SUPPORT_HPA, hpa != null);
+    hpa = (hpa != null) ? hpa : HorizontalpodAutoscaler.getDft();
+
+    result.put(KEY_MIN_HPA_POD, hpa.getMinPod());
+    result.put(KEY_MAX_HPA_POD, hpa.getMaxPod());
+    result.put(KEY_CPU_AVERAGE_UTILIZATION, hpa.getCpuAverageUtilization());
+
+    result.put(fieldPods, spec.getReplicaCount());
+    Specification cpuRequest = spec.getCpuRequest();
+    result.put(fieldCuprequest, cpuRequest.getVal());
+    result.put(fieldCuprequestUnit, cpuRequest.getUnit());
+
+    Specification cpuLimit = spec.getCpuLimit();
+
+    result.put(filedCpuLimit, cpuLimit.getVal());
+    result.put(KEY_CPU_LIMIT_UNIT, cpuLimit.getUnit());
+
+    Specification memoryRequest = spec.getMemoryRequest();
+
+    result.put(fieldMemoryRequest, memoryRequest.getVal());
+    result.put(KEY_MEMORY_REQUEST_UNIT, memoryRequest.getUnit());
+
+    Specification memoryLimit = spec.getMemoryLimit();
+    result.put(fieldMemorylimit, memoryLimit.getVal());
+    result.put(field_Memorylimit_UNIT, memoryLimit.getUnit());
+
+    return result;
+  }
+
+
+  /**
    * @param context
    * @param form
    * @param msg
@@ -65,7 +126,7 @@ public class IncrUtils {
     ReplicasSpec spec = new ReplicasSpec();
     IncrSpecResult result = new IncrSpecResult(spec, context, msg);
     result.success = false;
-    String fieldPods = "pods";
+
     int replicCount = form.getIntValue(fieldPods);
     if (replicCount < 1) {
       // msg.addErrorMessage(context, "请设置Pods，不能小于1");
@@ -77,13 +138,13 @@ public class IncrUtils {
     }
     spec.setReplicaCount(replicCount);
     Specification s = null;
-    String fieldCuprequest = "cuprequest";
+
     String cpurequest = StringUtils.trimToEmpty(form.getString(fieldCuprequest));
-    String cpuRequestUnit = form.getString("cuprequestunit");
+    String cpuRequestUnit = form.getString(fieldCuprequestUnit);
     if (StringUtils.isEmpty(cpuRequestUnit)) {
       msg.addFieldError(context, fieldCuprequest, "请填写CPU请求单位");
     }
-    cpuRequestUnit = "cores".equals(cpuRequestUnit) ? StringUtils.EMPTY : cpuRequestUnit;
+    cpuRequestUnit = KEY_CPU_UNIT_CORES.equals(cpuRequestUnit) ? StringUtils.EMPTY : cpuRequestUnit;
     if (StringUtils.isEmpty(cpurequest)) {
       msg.addFieldError(context, fieldCuprequest, "请填写");
     } else if (!IncrUtils.isNumber(cpurequest)) {
@@ -103,13 +164,12 @@ public class IncrUtils {
     }
 
 
-    String filedCpuLimit = "cuplimit";
     String cupLimit = StringUtils.trimToEmpty(form.getString(filedCpuLimit));
-    String cupLimitUnit = form.getString("cuplimitunit");
+    String cupLimitUnit = form.getString(KEY_CPU_LIMIT_UNIT);
     if (StringUtils.isEmpty(cupLimitUnit)) {
       msg.addFieldError(context, filedCpuLimit, "请填写CPU最大请求单位");
     }
-    cupLimitUnit = "cores".equals(cupLimitUnit) ? StringUtils.EMPTY : cupLimitUnit;
+    cupLimitUnit = KEY_CPU_UNIT_CORES.equals(cupLimitUnit) ? StringUtils.EMPTY : cupLimitUnit;
     if (StringUtils.isEmpty(cupLimit)) {
       msg.addFieldError(context, filedCpuLimit, "请填写");
     } else if (!IncrUtils.isNumber(cupLimit)) {
@@ -136,9 +196,9 @@ public class IncrUtils {
 
 
     // cupLimit = cupLimit + cupLimitUnit;
-    String fieldMemoryRequest = "memoryrequest";
+
     String memoryRequest = form.getString(fieldMemoryRequest);
-    String memoryRequestUnit = form.getString("memoryrequestunit");
+    String memoryRequestUnit = form.getString(KEY_MEMORY_REQUEST_UNIT);
     if (StringUtils.isEmpty(memoryRequest)) {
       msg.addFieldError(context, fieldMemoryRequest, "请填写");
     } else if (!IncrUtils.isNumber(memoryRequest)) {
@@ -161,9 +221,9 @@ public class IncrUtils {
       msg.addFieldError(context, fieldMemoryRequest, "请填写内存请求单位");
       //return result;
     }
-    String fieldMemorylimit = "memorylimit";
+
     String memoryLimit = (form.getString(fieldMemorylimit));
-    String memoryLimitUnit = form.getString("memorylimitunit");
+    String memoryLimitUnit = form.getString(field_Memorylimit_UNIT);
     if (StringUtils.isEmpty(memoryLimit)) {
       msg.addFieldError(context, fieldMemorylimit, "请填写");
     } else if (!IncrUtils.isNumber(memoryLimit)) {
@@ -187,17 +247,17 @@ public class IncrUtils {
     }
 
 
-    if (spec.getMemoryRequest() != null && spec.getMemoryLimit() != null && spec.getMemoryRequest().memoryBigThan(spec.getMemoryLimit())) {
+    if (spec.getMemoryRequest() != null
+      && spec.getMemoryLimit() != null
+      && spec.getMemoryRequest().memoryBigThan(spec.getMemoryLimit())) {
+
       msg.addFieldError(context, fieldMemoryRequest, "请检查内存`申请资源`，不能大于`最大申请资源`");
       msg.addFieldError(context, fieldMemorylimit, "请检查内存`最大申请资源`，不能小于`申请资源`");
       // return result;
     }
 
-    final String KEY_MIN_HPA_POD = "minHpaPod";
-    final String KEY_MAX_HPA_POD = "maxHpaPod";
-    final String KEY_CPU_AVERAGE_UTILIZATION = "cpuAverageUtilization";
 
-    boolean supportHpa = form.getBooleanValue("supportHpa");
+    boolean supportHpa = form.getBooleanValue(KEY_SUPPORT_HPA);
     if (supportHpa) {
       // 支持弹性扩容
       Integer maxHpaPod = form.getInteger(KEY_MAX_HPA_POD);
@@ -267,6 +327,12 @@ public class IncrUtils {
     private final Context context;
 
     private final IMessageHandler msgHandler;
+
+    public static IncrSpecResult create(ReplicasSpec spec, HorizontalpodAutoscaler hpa) {
+      IncrSpecResult result = new IncrSpecResult(spec, null, null);
+      result.hpa = hpa;
+      return result;
+    }
 
     public ReplicasSpec getSpec() {
       return this.spec;

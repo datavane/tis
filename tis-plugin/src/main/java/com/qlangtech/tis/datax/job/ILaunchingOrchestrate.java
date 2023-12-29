@@ -18,8 +18,6 @@
 
 package com.qlangtech.tis.datax.job;
 
-import com.qlangtech.tis.coredefine.module.action.TargetResName;
-
 import java.util.List;
 
 /**
@@ -28,27 +26,34 @@ import java.util.List;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-12-23 14:53
  **/
-public interface ILaunchingOrchestrate {
+public interface ILaunchingOrchestrate<T> {
 
-    public List<ExecuteStep> getExecuteSteps();
+    public List<ExecuteStep<T>> getExecuteSteps();
 
-    public class ExecuteStep extends SubJobMilestone {
-        public ExecuteStep(TargetResName resName, String describe) {
-            super(resName.getName(), describe, false, false);
+    public class ExecuteStep<T> extends SubJobMilestone {
+        private final SubJobResName<T> subJob;
+
+        public ExecuteStep(SubJobResName<T> resName, String describe) {
+            this(resName, describe, false, false);
         }
 
-        public ExecuteStep(TargetResName name, String describe, boolean complete, boolean success) {
+        public ExecuteStep(SubJobResName<T> name, String describe, boolean complete, boolean success) {
             super(name.getName(), describe, complete, success);
+            this.subJob = name;
         }
 
-        public ExecuteStep copy(SubJobMilestone subJobStone) {
-            ExecuteStep step = new ExecuteStep(new TargetResName(subJobStone.getName())
+        public SubJobResName<T> getSubJob() {
+            return this.subJob;
+        }
+
+        public ExecuteStep<T> copy(SubJobMilestone subJobStone) {
+            ExecuteStep<T> step = new ExecuteStep<T>(subJob
                     , this.getDescribe(), subJobStone.isComplete(), subJobStone.isSuccess());
             return step;
         }
 
-        public ExecuteStep copy() {
-            return new ExecuteStep(new TargetResName(this.getName()), this.getDescribe());
+        public ExecuteStep<T> copy() {
+            return new ExecuteStep<T>(subJob, this.getDescribe(), this.isComplete(), this.isSuccess());
         }
     }
 

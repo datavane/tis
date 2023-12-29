@@ -58,9 +58,11 @@ public class DefaultSSERunnable implements SSERunnable {
   private final List<ExecuteStep> executeSteps;
 
   // boolean inAttach2RunningProcessor = false;
+//  public DefaultSSERunnable(HttpServletResponse response, DataXJobWorker dataxJobWorker, Runnable runnable) {
+//    this(response, dataxJobWorker, dataxJobWorker.getExecuteSteps(), runnable);
+//  }
 
-
-  public DefaultSSERunnable(HttpServletResponse response, DataXJobWorker dataxJobWorker, Runnable runnable) {
+  public DefaultSSERunnable(HttpServletResponse response, DataXJobWorker dataxJobWorker, List<ExecuteStep> executeSteps, Runnable runnable) {
     SSERunnable.setLocalThread(this);
     try {
       this.httpClientWriter = response.getWriter();
@@ -69,7 +71,7 @@ public class DefaultSSERunnable implements SSERunnable {
       throw new RuntimeException(e);
     }
     //  this.launchToken = dataxJobWorker.getServerLaunchTokenFile();
-    this.executeSteps = dataxJobWorker.getExecuteSteps();
+    this.executeSteps = executeSteps;// dataxJobWorker.getExecuteSteps();
     if (CollectionUtils.isEmpty(this.executeSteps)) {
       throw new IllegalStateException("executeSteps can not be empty,dataxJobWorker:" + dataxJobWorker.getClass().getName());
     }
@@ -399,6 +401,7 @@ public class DefaultSSERunnable implements SSERunnable {
     httpClientWriter.println("event: " + event.getEventType());
     httpClientWriter.println("data: " + data);
     httpClientWriter.println(); // note the additional line being written to the stream..
+    httpClientWriter.flush();
 
     //  if (!inAttach2RunningProcessor) {
     launchToken.ifPresent((lt) -> {

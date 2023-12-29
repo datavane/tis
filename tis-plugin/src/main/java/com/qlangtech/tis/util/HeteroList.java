@@ -29,7 +29,11 @@ import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import org.apache.commons.lang.StringUtils;
 
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -133,9 +137,9 @@ public class HeteroList<T extends Describable<T>> {
         return o;
     }
 
-    private static <TT extends Describable<TT>> JSONArray createItemsJSONArray(UploadPluginMeta pluginMeta,
-                                                                               List<TT> items,
-                                                                               Optional<IPropertyType.SubFormFilter> subFormFilter) throws Exception {
+    private static <TT extends Describable<TT>> JSONArray createItemsJSONArray(
+            UploadPluginMeta pluginMeta, List<TT> items,
+            Optional<IPropertyType.SubFormFilter> subFormFilter) throws Exception {
         JSONArray result = new JSONArray();
         JSONObject item = null;
 

@@ -18,9 +18,11 @@
 
 package com.qlangtech.tis.datax.job;
 
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.trigger.feedback.IJobFeedback;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -32,6 +34,16 @@ import java.util.Objects;
 public interface SSERunnable extends Runnable, IJobFeedback {
 
     static ThreadLocal<SSERunnable> local = new ThreadLocal<>();
+
+    Map<Class, Object> contextAttrs = Maps.newHashMap();
+
+    default <T> void setContextAttr(Class<T> key, T val) {
+        contextAttrs.put(Objects.requireNonNull(key), Objects.requireNonNull(val));
+    }
+
+    default <T> T getContextAttr(Class<T> key) {
+        return Objects.requireNonNull((T) contextAttrs.get(key), "key:" + key + " relevant instance can not be null");
+    }
 
     public static void setLocalThread(SSERunnable sseRunnable) {
         local.set(sseRunnable);
