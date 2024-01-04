@@ -37,13 +37,13 @@ public abstract class SubJobResName<T> extends TargetResName {
         SSERunnable sse = SSERunnable.getLocal();
         boolean success = false;
         try {
-            sse.info(this.getName(), TimeFormat.getCurrentTimeStamp(), "start to publish " + this.getResourceType() + "'" + this.getName() + "'");
+            sse.info(this.getName(), TimeFormat.getCurrentTimeStamp(), "〇〇 start to publish " + this.getResourceType() + "'" + this.getName() + "'");
             subJobExec.accept(t);
             success = true;
-            sse.info(this.getName(), TimeFormat.getCurrentTimeStamp(), "successful to publish " + this.getResourceType() + "'" + this.getName() + "'");
+            sse.info(this.getName(), TimeFormat.getCurrentTimeStamp(), "✔✔ successful to publish " + this.getResourceType() + "'" + this.getName() + "'");
         } finally {
             if (!success) {
-                sse.info(this.getName(), TimeFormat.getCurrentTimeStamp(), "faild to publish " + this.getResourceType() + "'" + this.getName() + "'");
+                sse.info(this.getName(), TimeFormat.getCurrentTimeStamp(), "✕✕ faild to publish " + this.getResourceType() + "'" + this.getName() + "'");
             }
             sse.writeComplete(this, success);
         }

@@ -32,7 +32,7 @@ import java.util.Objects;
  * @create: 2023-12-23 13:34
  **/
 public interface SSERunnable extends Runnable, IJobFeedback {
-
+    char splitChar = '\005';
     static ThreadLocal<SSERunnable> local = new ThreadLocal<>();
 
     Map<Class, Object> contextAttrs = Maps.newHashMap();
@@ -56,6 +56,13 @@ public interface SSERunnable extends Runnable, IJobFeedback {
      */
     public static SSERunnable getLocal() {
         return Objects.requireNonNull(local.get(), "instance shall not null in threadlocal");
+    }
+
+    /**
+     * 成功执行之后回调执行
+     */
+    default void afterLaunched() {
+
     }
 
     /**

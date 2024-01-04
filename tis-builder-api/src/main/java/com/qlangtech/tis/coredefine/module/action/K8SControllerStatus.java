@@ -21,7 +21,9 @@ package com.qlangtech.tis.coredefine.module.action;
 import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails;
 import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -31,7 +33,16 @@ public class K8SControllerStatus {
     // k8s的RC是否已经创建
     private IFlinkIncrJobStatus.State state;
     private List<RcDeployment> rcDeployments;
+    private Map<String, Object> payloads = Collections.emptyMap();
     private FlinkJobDeploymentDetails flinJobDetail;
+
+    public Map<String, Object> getPayloads() {
+        return this.payloads;
+    }
+
+    public void setPayloads(Map<String, Object> payloads) {
+        this.payloads = payloads;
+    }
 
     public FlinkJobDeploymentDetails getFlinkJobDetail() {
         return flinJobDetail;

@@ -27,8 +27,6 @@ import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
-import com.qlangtech.tis.coredefine.module.action.DefaultSSERunnable.SubJobLog;
-import com.qlangtech.tis.coredefine.module.action.DefaultSSERunnable.k8SLaunching;
 import com.qlangtech.tis.coredefine.module.action.IncrUtils.IncrSpecResult;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataXPowerJobSubmit;
@@ -47,6 +45,7 @@ import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.impl.ESTableAlias;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.datax.job.DataXJobWorker.K8SWorkerCptType;
+import com.qlangtech.tis.datax.job.DefaultSSERunnable;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
 import com.qlangtech.tis.datax.job.ServerLaunchToken;
@@ -356,9 +355,9 @@ public class DataxAction extends BasicModule {
   public void doApplyPodNumber(Context context) throws Exception {
     HttpServletResponse response = getEventStreamResponse();
 
-
-    K8SWorkerCptType cptType = K8SWorkerCptType.parse(this.getString(DataXJobWorker.KEY_CPT_TYPE));
-    DataXJobWorker dataxJobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName(), Optional.of(cptType));
+    Integer podNum = this.getInt("podNumber");
+    TargetResName cptType = new TargetResName(this.getString(DataXJobWorker.KEY_CPT_TYPE));
+    DataXJobWorker dataxJobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName());
 
     ExecuteStep execStep = new ExecuteStep(new SubJobResName("scalaPods", (_t) -> {
       throw new UnsupportedOperationException();
@@ -369,16 +368,23 @@ public class DataxAction extends BasicModule {
       }
     }, "");
 
+    List<ExecuteStep> executeSteps = Collections.singletonList(execStep);
     DefaultSSERunnable launchProcess = new DefaultSSERunnable(
-      response, dataxJobWorker, Collections.singletonList(execStep), () -> {
+      response.getWriter(), dataxJobWorker, executeSteps, () -> {
       try {
         Thread.sleep(4000l);
       } catch (InterruptedException e) {
       }
     });
 
-    Integer podNum = this.getInt("podNumber");
-    dataxJobWorker.updatePodNumber(podNum);
+    ServerLaunchToken launchToken = dataxJobWorker.getProcessTokenFile(cptType, true, K8SWorkerCptType.K8SPods);
+    launchToken.deleteLaunchToken();
+
+    DefaultSSERunnable.execute(launchProcess, false, launchToken, () -> {
+      // dataxJobWorker.executeLaunchService(launchProcess);
+      dataxJobWorker.updatePodNumber(launchProcess, cptType, podNum);
+    });
+
   }
 
   /**
@@ -392,13 +398,29 @@ public class DataxAction extends BasicModule {
 //    DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName());
 //    jobWorker.remove();
 //    this.doLaunchDataxWorker(context);
+    K8SWorkerCptType cptType = getPowerJobCptType();
+    relaunchK8SCluster(context, cptType);
+  }
+
+  private K8SWorkerCptType getPowerJobCptType() {
+    return this.getBoolean(KEY_USING_POWERJOB_USE_EXIST_CLUSTER)
+      ? K8SWorkerCptType.UsingExistCluster : K8SWorkerCptType.Server;
+  }
+
+  public void relaunchK8SCluster(Context context, K8SWorkerCptType cptType) throws Exception {
     HttpServletResponse response = getEventStreamResponse();
-    DataXJobWorker dataxJobWorker = getDataXJobWorker();
+
+    DataXJobWorker dataxJobWorker = getDataXJobWorker(cptType);
     dataxJobWorker.remove();
 
     Thread.sleep(3000);
 
     this.launchDataxWorker(context, response, dataxJobWorker, DataXJobWorker.getOrchestrate(dataxJobWorker));
+  }
+
+  @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doRelaunchFlinkCluster(Context context) throws Exception {
+    this.relaunchK8SCluster(context, K8SWorkerCptType.FlinkCluster);
   }
 
   /**
@@ -455,22 +477,34 @@ public class DataxAction extends BasicModule {
    * @param context
    */
   @Func(value = PermissionConstant.DATAX_MANAGE)
-  public void doLaunchDataxWorker(Context context) {
+  public void doLaunchDataxWorker(Context context) throws Exception {
 
-    HttpServletResponse response = getEventStreamResponse();
-    DataXJobWorker dataxJobWorker = getDataXJobWorker();
+    K8SWorkerCptType cptType = getPowerJobCptType();
+    this.launchK8SCluster(context, cptType);
+
+  }
+
+
+  @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doLaunchFlinkCluster(Context context) throws Exception {
+    this.launchK8SCluster(context, K8SWorkerCptType.FlinkCluster);
+  }
+
+  public void launchK8SCluster(Context context, K8SWorkerCptType cptType) throws Exception {
+    DataXJobWorker dataxJobWorker = getDataXJobWorker(cptType);
 
 //    if (dataxJobWorker.inService()) {
 //      throw new IllegalStateException("dataxJobWorker is in serivce ,can not launch repeat");
 //    }
     boolean orchestrate = DataXJobWorker.isOrchestrate(dataxJobWorker);
     if (orchestrate) {
+      HttpServletResponse response = getEventStreamResponse();
       this.launchDataxWorker(context, response, dataxJobWorker, DataXJobWorker.getOrchestrate(dataxJobWorker));
     } else {
       throw new NotImplementedException("to do for " + K8SWorkerCptType.UsingExistCluster);
     }
-
   }
+
 
   public HttpServletResponse getEventStreamResponse() {
     HttpServletResponse response = ServletActionContext.getResponse();
@@ -480,71 +514,85 @@ public class DataxAction extends BasicModule {
   }
 
 
-  private void launchDataxWorker(Context context, HttpServletResponse response, DataXJobWorker dataxJobWorker, ILaunchingOrchestrate orchestrate) {
-    DefaultSSERunnable launchProcess = new DefaultSSERunnable(response, dataxJobWorker, orchestrate.getExecuteSteps(), () -> {
+  private void launchDataxWorker(Context context
+    , HttpServletResponse response, DataXJobWorker dataxJobWorker, ILaunchingOrchestrate orchestrate) throws Exception {
+    DefaultSSERunnable launchProcess = new DefaultSSERunnable(response.getWriter(), dataxJobWorker, orchestrate.getExecuteSteps(), () -> {
       try {
         Thread.sleep(4000l);
       } catch (InterruptedException e) {
       }
-    });
-    ServerLaunchToken launchToken = dataxJobWorker.getServerLaunchTokenFile();
-    k8SLaunching k8SLaunching = launchProcess.hasLaunchingToken(orchestrate.getExecuteSteps(), launchToken);
-
-
-    launchProcess.writeExecuteSteps(k8SLaunching.getExecuteSteps());
-    if (dataxJobWorker.inService()) {
-      // throw new IllegalStateException("dataxJobWorker is in serivce ,can not launch repeat");
-      for (SubJobLog subJobLog : k8SLaunching.getLogs()) {
-        //public void writeMessage(InfoType logLevel, long timestamp, String msg)
-        launchProcess.writeHistoryLog(subJobLog);
-      }
-      return;
-    }
-    if (k8SLaunching.isLaunching()) {
-
-      if (k8SLaunching.isFaild()) {
-//        k8SLaunching.getExecuteSteps();
-//        k8SLaunching.getMilestones();
-
-        // launchProcess.writeExecuteSteps(k8SLaunching.getExecuteSteps());
-
-        for (SubJobLog subJobLog : k8SLaunching.getLogs()) {
-          //public void writeMessage(InfoType logLevel, long timestamp, String msg)
-          launchProcess.writeHistoryLog(subJobLog);
+    }) {
+      @Override
+      public void afterLaunched() {
+        doGetJobWorkerMeta(context);
+        AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
+        DataXJobWorkerStatus jobWorkerStatus = (DataXJobWorkerStatus) actionExecResult.getBizResult();
+        if (jobWorkerStatus == null || !jobWorkerStatus.isK8sReplicationControllerCreated()) {
+          throw new IllegalStateException("Job Controller launch faild please contract administer");
         }
-        return;
-      } else if (launchToken.hasWriteOwner()) {
 
-        // 说明启动流程正在执行，attach 到执行流程
-        launchToken.addObserver(k8SLaunching);
-        //  k8SLaunching.attach2RunningProcessor();
-        return;
+        addActionMessage(context, "已经成功启动DataX执行器");
       }
+    };
+    ServerLaunchToken launchToken = dataxJobWorker.getProcessTokenFile();
+    // k8SLaunching k8SLaunching = launchProcess.hasLaunchingToken(orchestrate.getExecuteSteps(), launchToken);
 
-    }
-
-    try {
-      launchProcess.setLaunchToken(launchToken);
-      launchProcess.startLaunch();
-
+    DefaultSSERunnable.execute(launchProcess, dataxJobWorker.inService(), launchToken, () -> {
       dataxJobWorker.executeLaunchService(launchProcess);
+    });
 
-      this.doGetJobWorkerMeta(context);
-      AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
-      DataXJobWorkerStatus jobWorkerStatus = (DataXJobWorkerStatus) actionExecResult.getBizResult();
-      if (jobWorkerStatus == null || !jobWorkerStatus.isK8sReplicationControllerCreated()) {
-        throw new IllegalStateException("Job Controller launch faild please contract administer");
-      }
 
-      this.addActionMessage(context, "已经成功启动DataX执行器");
-    } finally {
-      launchProcess.terminate();
-    }
+//    launchProcess.writeExecuteSteps(k8SLaunching.getExecuteSteps());
+//    if (dataxJobWorker.inService()) {
+//      // throw new IllegalStateException("dataxJobWorker is in serivce ,can not launch repeat");
+//      for (SubJobLog subJobLog : k8SLaunching.getLogs()) {
+//        //public void writeMessage(InfoType logLevel, long timestamp, String msg)
+//        launchProcess.writeHistoryLog(subJobLog);
+//      }
+//      return;
+//    }
+//    if (k8SLaunching.isLaunching()) {
+//
+//      if (k8SLaunching.isFaild()) {
+////        k8SLaunching.getExecuteSteps();
+////        k8SLaunching.getMilestones();
+//
+//        // launchProcess.writeExecuteSteps(k8SLaunching.getExecuteSteps());
+//
+//        for (SubJobLog subJobLog : k8SLaunching.getLogs()) {
+//          //public void writeMessage(InfoType logLevel, long timestamp, String msg)
+//          launchProcess.writeHistoryLog(subJobLog);
+//        }
+//        return;
+//      } else if (launchToken.hasWriteOwner()) {
+//
+//        // 说明启动流程正在执行，attach 到执行流程
+//        launchToken.addObserver(k8SLaunching);
+//        //  k8SLaunching.attach2RunningProcessor();
+//        return;
+//      }
+//
+//    }
+//
+//    try {
+//      launchProcess.setLaunchToken(launchToken);
+//      launchProcess.startLaunch();
+//
+//      dataxJobWorker.executeLaunchService(launchProcess);
+//
+//
+//    } finally {
+//      launchProcess.terminate();
+//    }
   }
 
-  private DataXJobWorker getDataXJobWorker() {
-    K8SWorkerCptType cptType = this.getBoolean(KEY_USING_POWERJOB_USE_EXIST_CLUSTER)
-      ? K8SWorkerCptType.UsingExistCluster : K8SWorkerCptType.Server;
+//  private DataXJobWorker getDataXJobWorker() {
+//    K8SWorkerCptType cptType = this.getBoolean(KEY_USING_POWERJOB_USE_EXIST_CLUSTER)
+//      ? K8SWorkerCptType.UsingExistCluster : K8SWorkerCptType.Server;
+//    return getDataXJobWorker(cptType);
+//  }
+
+  private DataXJobWorker getDataXJobWorker(K8SWorkerCptType cptType) {
     DataXJobWorker dataxJobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName(), Optional.of(cptType));
     if (dataxJobWorker == null) {
       throw new IllegalStateException("dataxJobWorker can not be null,relevant target type:" + this.getK8SJobWorkerTargetName());
@@ -616,6 +664,7 @@ public class DataxAction extends BasicModule {
     jobWorkerStatus.setState(jobWorker.inService() ? IFlinkIncrJobStatus.State.RUNNING :
       IFlinkIncrJobStatus.State.NONE);
     if (jobWorkerStatus.getState() == IFlinkIncrJobStatus.State.RUNNING && !disableRcdeployment) {
+      jobWorkerStatus.setPayloads(jobWorker.getPayloadInfo());
       jobWorkerStatus.setRcDeployments(jobWorker.getRCDeployments());
     }
     this.setBizResult(context, jobWorkerStatus);
@@ -654,6 +703,10 @@ public class DataxAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doSaveDataxWorker(Context context) {
+    if (!this.isCollectionAware()) {
+      throw new IllegalStateException("must be collection aware");
+    }
+    TargetResName resName = new TargetResName(this.getCollectionName());
 
     List<UploadPluginMeta> metas = this.getPluginMeta();
     DataXJobWorker.K8SWorkerCptType powerjobCptType = null;
@@ -661,15 +714,15 @@ public class DataxAction extends BasicModule {
       powerjobCptType = DataXJobWorker.K8SWorkerCptType.parse(meta.getDataXName());
     }
     // DataXJobWorker.PowerjobCptType powerjobCptType = DataXJobWorker.PowerjobCptType.parse(this.getString("powerjobCptType"));
-    saveWorker(context, DataXJobWorker.K8S_DATAX_INSTANCE_NAME, Optional.of(powerjobCptType));
+    saveWorker(context, resName, Optional.of(powerjobCptType));
   }
 
-  @Func(value = PermissionConstant.DATAX_MANAGE)
-  public void doSaveFlinkWorker(Context context) {
-    saveWorker(context, DataXJobWorker.K8S_FLINK_CLUSTER_NAME, Optional.empty());
-  }
+//  @Func(value = PermissionConstant.DATAX_MANAGE)
+//  public void doSaveFlinkWorker(Context context) {
+//    saveWorker(context, DataXJobWorker.K8S_FLINK_CLUSTER_NAME, Optional.empty());
+//  }
 
-  public void saveWorker(Context context, TargetResName resName, Optional<DataXJobWorker.K8SWorkerCptType> powerjobCptType) {
+  private void saveWorker(Context context, TargetResName resName, Optional<DataXJobWorker.K8SWorkerCptType> cptType) {
     JSONObject postContent = this.parseJsonPost();
     JSONObject k8sSpec = postContent.getJSONObject("k8sSpec");
 
@@ -679,13 +732,13 @@ public class DataxAction extends BasicModule {
     }
     // this.getK8SJobWorkerTargetName();
     //TargetResName resName = DataXJobWorker.K8S_DATAX_INSTANCE_NAME;
-    DataXJobWorker worker = DataXJobWorker.getJobWorker(resName, powerjobCptType);
+    DataXJobWorker worker = DataXJobWorker.getJobWorker(resName, cptType);
 
     worker.setReplicasSpec(incrSpecResult.getSpec());
     if (incrSpecResult.hpa != null) {
       worker.setHpa(incrSpecResult.hpa);
     }
-    DataXJobWorker.setJobWorker(resName, powerjobCptType, worker);
+    DataXJobWorker.setJobWorker(resName, cptType, worker);
   }
 
 

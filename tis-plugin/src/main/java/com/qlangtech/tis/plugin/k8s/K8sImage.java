@@ -30,7 +30,6 @@ import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
-import java.util.Objects;
 
 import static com.qlangtech.tis.util.UploadPluginMeta.ATTR_KEY_VALUE_SPLIT;
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_TARGET_PLUGIN_DESC;
@@ -53,13 +52,15 @@ public abstract class K8sImage implements Describable<K8sImage>, IdentityName {
      */
     public static IPluginStore getPluginStore(K8sImage.ImageCategory imageCategory) {
         UploadPluginMeta pluginMeta = UploadPluginMeta.parse(
-                HeteroEnum.K8S_IMAGES.identity+":"+ UploadPluginMeta.KEY_REQUIRE + "," + KEY_TARGET_PLUGIN_DESC + ATTR_KEY_VALUE_SPLIT + imageCategory.token);
+                HeteroEnum.K8S_IMAGES.identity + ":" + UploadPluginMeta.KEY_REQUIRE + "," + KEY_TARGET_PLUGIN_DESC + ATTR_KEY_VALUE_SPLIT + imageCategory.token);
         return pluginMeta.getHeteroEnum().getPluginStore(null, pluginMeta);
     }
 
 
     public static enum ImageCategory {
-        DEFAULT_DESC_NAME("dft-image"), DEFAULT_POWERJOB_DESC_NAME("powerjob-image");
+        DEFAULT_DESC_NAME("dft-image") //
+        , DEFAULT_POWERJOB_DESC_NAME("powerjob-image") //
+        , DEFAULT_FLINK_DESC_NAME("flink-image");
         public final String token;
 
         ImageCategory(String token) {

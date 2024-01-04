@@ -45,6 +45,7 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
+import com.qlangtech.tis.plugin.k8s.K8sImage.ImageCategory;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
@@ -53,9 +54,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.qlangtech.tis.plugin.k8s.K8sImage.ImageCategory.DEFAULT_DESC_NAME;
-import static com.qlangtech.tis.plugin.k8s.K8sImage.ImageCategory.DEFAULT_POWERJOB_DESC_NAME;
 
 //import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 
@@ -134,16 +132,23 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
             UploadPluginMeta.TargetDesc targetDesc = pluginMeta.getTargetDesc();
             KeyedPluginStore.Key key;
-            switch (K8sImage.ImageCategory.parse(targetDesc.matchTargetPluginDescName)) {
-                case DEFAULT_DESC_NAME:
-                    key = new KeyedPluginStore.Key(KEY_K8S_IMAGES, DEFAULT_DESC_NAME.token, this.extensionPoint);
-                    break;
-                case DEFAULT_POWERJOB_DESC_NAME:
-                    key = new KeyedPluginStore.Key(KEY_K8S_IMAGES, DEFAULT_POWERJOB_DESC_NAME.token, this.extensionPoint);
-                    break;
-                default:
-                    throw new IllegalStateException("illegal descDisplayName:" + targetDesc.descDisplayName);
-            }
+
+            ImageCategory imageCategory = K8sImage.ImageCategory.parse(targetDesc.matchTargetPluginDescName);
+            key = new KeyedPluginStore.Key(KEY_K8S_IMAGES, imageCategory.token, this.extensionPoint);
+
+//            switch (imageCategory = K8sImage.ImageCategory.parse(targetDesc.matchTargetPluginDescName)) {
+//                case DEFAULT_DESC_NAME:
+//                    key = new KeyedPluginStore.Key(KEY_K8S_IMAGES, DEFAULT_DESC_NAME.token, this.extensionPoint);
+//                    break;
+//                case DEFAULT_POWERJOB_DESC_NAME:
+//                    key = new KeyedPluginStore.Key(KEY_K8S_IMAGES, DEFAULT_POWERJOB_DESC_NAME.token, this.extensionPoint);
+//                    break;
+//                case DEFAULT_FLINK_DESC_NAME:
+//                    key = new KeyedPluginStore.Key(KEY_K8S_IMAGES, ImageCategory.DEFAULT_FLINK_DESC_NAME.token, this.extensionPoint);
+//                    break;
+//                default:
+//                    throw new IllegalStateException("illegal descDisplayName:" + targetDesc.descDisplayName);
+//            }
 
             return TIS.getPluginStore(key);
         }

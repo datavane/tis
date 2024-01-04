@@ -19,6 +19,7 @@
 import com.qlangtech.tis.TestTIS;
 import com.qlangtech.tis.datax.impl.TestDataxReader;
 import com.qlangtech.tis.datax.impl.TestTableAlias;
+import com.qlangtech.tis.datax.job.TestServerLaunchToken;
 import com.qlangtech.tis.db.parser.TestDBConfigParser;
 import com.qlangtech.tis.db.parser.TestScannerPatterns;
 import com.qlangtech.tis.extension.TestContainAdvanceFieldPlugin;
@@ -30,7 +31,11 @@ import com.qlangtech.tis.extension.impl.TestXmlFile;
 import com.qlangtech.tis.extension.model.TestUpdateCenter;
 import com.qlangtech.tis.extension.util.TestGroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.TestPluginExtraProps;
-import com.qlangtech.tis.plugin.*;
+import com.qlangtech.tis.plugin.TestComponentMeta;
+import com.qlangtech.tis.plugin.TestInnerPropOfIdentityName;
+import com.qlangtech.tis.plugin.TestKeyedPluginStore;
+import com.qlangtech.tis.plugin.TestPluginAndCfgsSnapshot;
+import com.qlangtech.tis.plugin.TestPluginStore;
 import com.qlangtech.tis.plugin.annotation.TestValidator;
 import com.qlangtech.tis.plugin.datax.TestSelectedTab;
 import com.qlangtech.tis.plugin.ds.TestDataSourceFactoryPluginStore;
@@ -81,6 +86,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestContainAdvanceFieldPlugin.class);
         suite.addTestSuite(TestInnerPropOfIdentityName.class);
         suite.addTestSuite(TestK8sImage.class);
+        suite.addTestSuite(TestServerLaunchToken.class);
 
         return suite;
     }

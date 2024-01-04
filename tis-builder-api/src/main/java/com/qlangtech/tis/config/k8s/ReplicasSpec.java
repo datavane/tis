@@ -29,6 +29,11 @@ import org.apache.commons.lang.StringUtils;
 public class ReplicasSpec {
 
     private int replicaCount = 1;
+    /**
+     * 副本（pods）数目是否可变
+     */
+    private boolean replicaScalable;
+    private IReplicaScalaLog rcScalaLog;
 
     private Specification cpuRequest;
 
@@ -38,6 +43,21 @@ public class ReplicasSpec {
 
     private Specification memoryLimit;
 
+    public IReplicaScalaLog getRcScalaLog() {
+        return rcScalaLog;
+    }
+
+    public void setRcScalaLog(IReplicaScalaLog rcScalaLog) {
+        this.rcScalaLog = rcScalaLog;
+    }
+
+    public boolean isReplicaScalable() {
+        return replicaScalable;
+    }
+
+    public void setReplicaScalable(boolean replicaScalable) {
+        this.replicaScalable = replicaScalable;
+    }
 
     public int getReplicaCount() {
         return replicaCount;
