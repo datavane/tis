@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  */
 public interface ValidatorCommons {
 
-    String _host = "[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]";
+    String _host = "[-A-Za-z0-9+&@#%?=~_|!,.;]+[-A-Za-z0-9+&@#/%=~_|]";
 
     Pattern PATTERN_URL = Pattern.compile("(https?|hdfs)://" + _host);
 

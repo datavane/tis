@@ -122,37 +122,29 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     };
     // ////////////////////////////////////////////////////////
     private static final String KEY_K8S_IMAGES = "k8s-images";
-    @TISExtension
-    public static final HeteroEnum<K8sImage> K8S_IMAGES = new HeteroEnum<K8sImage>(//
-            K8sImage.class, //
-            KEY_K8S_IMAGES, // },//
-            "K8S-Images", Selectable.Multi, false) {
+
+    private static class DockerImageHeteroEnum extends HeteroEnum<K8sImage> {
+        private ImageCategory imageCategory;
+
+        public DockerImageHeteroEnum(ImageCategory imageCategory) {
+            super(K8sImage.class, KEY_K8S_IMAGES, KEY_K8S_IMAGES);
+            this.imageCategory = imageCategory;
+        }
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-
-            UploadPluginMeta.TargetDesc targetDesc = pluginMeta.getTargetDesc();
-            KeyedPluginStore.Key key;
-
-            ImageCategory imageCategory = K8sImage.ImageCategory.parse(targetDesc.matchTargetPluginDescName);
-            key = new KeyedPluginStore.Key(KEY_K8S_IMAGES, imageCategory.token, this.extensionPoint);
-
-//            switch (imageCategory = K8sImage.ImageCategory.parse(targetDesc.matchTargetPluginDescName)) {
-//                case DEFAULT_DESC_NAME:
-//                    key = new KeyedPluginStore.Key(KEY_K8S_IMAGES, DEFAULT_DESC_NAME.token, this.extensionPoint);
-//                    break;
-//                case DEFAULT_POWERJOB_DESC_NAME:
-//                    key = new KeyedPluginStore.Key(KEY_K8S_IMAGES, DEFAULT_POWERJOB_DESC_NAME.token, this.extensionPoint);
-//                    break;
-//                case DEFAULT_FLINK_DESC_NAME:
-//                    key = new KeyedPluginStore.Key(KEY_K8S_IMAGES, ImageCategory.DEFAULT_FLINK_DESC_NAME.token, this.extensionPoint);
-//                    break;
-//                default:
-//                    throw new IllegalStateException("illegal descDisplayName:" + targetDesc.descDisplayName);
-//            }
-
+            // UploadPluginMeta.TargetDesc targetDesc = pluginMeta.getTargetDesc();
+            // ImageCategory imageCategory = K8sImage.ImageCategory.parse(targetDesc.matchTargetPluginDescName);
+            KeyedPluginStore.Key key = new KeyedPluginStore.Key(KEY_K8S_IMAGES, imageCategory.token, this.extensionPoint);
             return TIS.getPluginStore(key);
         }
-    };
+    }
+
+    @TISExtension
+    public static final HeteroEnum<K8sImage> K8S_DEFAULT_IMAGES = new DockerImageHeteroEnum(ImageCategory.DEFAULT_DESC_NAME);
+    @TISExtension
+    public static final HeteroEnum<K8sImage> K8S_POWERJOB_IMAGES = new DockerImageHeteroEnum(ImageCategory.DEFAULT_POWERJOB_DESC_NAME);
+    @TISExtension
+    public static final HeteroEnum<K8sImage> K8S_FLINK_IMAGES = new DockerImageHeteroEnum(ImageCategory.DEFAULT_FLINK_DESC_NAME);
     // ////////////////////////////////////////////////////////
 
     @TISExtension

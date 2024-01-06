@@ -752,7 +752,10 @@ public class PluginAndCfgsSnapshot {
         if (tis != null) {
             ExtensionList<HeteroEnum> hlist = TIS.get().getExtensionList(HeteroEnum.class);
             keyedPluginStores =
-                    hlist.stream().filter((e) -> !e.isAppNameAware()).flatMap((e) -> e.getPluginStore(null, upm).getAll().stream()).collect(Collectors.toList());
+                    hlist.stream()
+                            .filter((e) -> !e.isAppNameAware())
+                            .flatMap((e) -> e.getPluginStore(null, upm).getAll().stream())
+                            .collect(Collectors.toList());
         }
 
 

@@ -115,7 +115,6 @@ public class IncrUtils {
     return result;
   }
 
-
   /**
    * @param context
    * @param form
@@ -126,6 +125,7 @@ public class IncrUtils {
     ReplicasSpec spec = new ReplicasSpec();
     IncrSpecResult result = new IncrSpecResult(spec, context, msg);
     result.success = false;
+
 
     int replicCount = form.getIntValue(fieldPods);
     if (replicCount < 1) {
@@ -155,9 +155,9 @@ public class IncrUtils {
       s = new Specification();
       s.setVal(Integer.parseInt(cpurequest));
       s.setUnit(cpuRequestUnit);
-      int maxCpuCoresRequest = 4;
-      if (s.normalizeCPU() > (maxCpuCoresRequest * 1024)) {
-        msg.addFieldError(context, fieldCuprequest, "请检查CPU请求资源，不能大于" + maxCpuCoresRequest + "cores");
+
+      if (s.normalizeCPU() > (ReplicasSpec.maxCpuCoresRequest * 1024)) {
+        msg.addFieldError(context, fieldCuprequest, "请检查CPU请求资源，不能大于" + ReplicasSpec.maxCpuCoresRequest + "cores");
         //  return result;
       }
       spec.setCpuRequest(s);
@@ -180,9 +180,9 @@ public class IncrUtils {
       s = new Specification();
       s.setVal(Integer.parseInt(cupLimit));
       s.setUnit(cupLimitUnit);
-      int maxCpuCoresLimit = 8;
-      if (s.normalizeCPU() > maxCpuCoresLimit * 1024) {
-        msg.addFieldError(context, filedCpuLimit, "请检查CPU最大申请资源，不能大于" + maxCpuCoresLimit + "cores");
+
+      if (s.normalizeCPU() > ReplicasSpec.maxCpuCoresLimit * 1024) {
+        msg.addFieldError(context, filedCpuLimit, "请检查CPU最大申请资源，不能大于" + ReplicasSpec.maxCpuCoresLimit + "cores");
         // return result;
       }
       spec.setCpuLimit(s);

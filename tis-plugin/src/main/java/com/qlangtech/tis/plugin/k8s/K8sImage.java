@@ -26,13 +26,10 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.util.HeteroEnum;
-import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
-
-import static com.qlangtech.tis.util.UploadPluginMeta.ATTR_KEY_VALUE_SPLIT;
-import static com.qlangtech.tis.util.UploadPluginMeta.KEY_TARGET_PLUGIN_DESC;
+import java.util.function.Supplier;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -51,20 +48,27 @@ public abstract class K8sImage implements Describable<K8sImage>, IdentityName {
      * @return
      */
     public static IPluginStore getPluginStore(K8sImage.ImageCategory imageCategory) {
-        UploadPluginMeta pluginMeta = UploadPluginMeta.parse(
-                HeteroEnum.K8S_IMAGES.identity + ":" + UploadPluginMeta.KEY_REQUIRE + "," + KEY_TARGET_PLUGIN_DESC + ATTR_KEY_VALUE_SPLIT + imageCategory.token);
-        return pluginMeta.getHeteroEnum().getPluginStore(null, pluginMeta);
+//        UploadPluginMeta pluginMeta = UploadPluginMeta.parse(
+//                HeteroEnum.K8S_IMAGES.identity + ":" + UploadPluginMeta.KEY_REQUIRE + "," + KEY_TARGET_PLUGIN_DESC + ATTR_KEY_VALUE_SPLIT + imageCategory.token);
+//        return pluginMeta.getHeteroEnum().getPluginStore(null, pluginMeta);
+        return imageCategory.getPluginStore();
     }
 
 
     public static enum ImageCategory {
-        DEFAULT_DESC_NAME("dft-image") //
-        , DEFAULT_POWERJOB_DESC_NAME("powerjob-image") //
-        , DEFAULT_FLINK_DESC_NAME("flink-image");
+        DEFAULT_DESC_NAME("dft-image", () -> HeteroEnum.K8S_DEFAULT_IMAGES.getPluginStore(null, null)) //
+        , DEFAULT_POWERJOB_DESC_NAME("powerjob-image", () -> HeteroEnum.K8S_POWERJOB_IMAGES.getPluginStore(null, null)) //
+        , DEFAULT_FLINK_DESC_NAME("flink-image", () -> HeteroEnum.K8S_FLINK_IMAGES.getPluginStore(null, null));
         public final String token;
+        private final Supplier<IPluginStore<K8sImage>> pluginStoreGetter;
 
-        ImageCategory(String token) {
+        ImageCategory(String token, Supplier<IPluginStore<K8sImage>> pluginStoreGetter) {
             this.token = token;
+            this.pluginStoreGetter = pluginStoreGetter;
+        }
+
+        public IPluginStore<K8sImage> getPluginStore() {
+            return pluginStoreGetter.get();
         }
 
         public static ImageCategory parse(String token) {

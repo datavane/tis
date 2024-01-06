@@ -1,24 +1,25 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.plugin.annotation;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.citrus.turbine.impl.DefaultContext;
+import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
@@ -39,6 +40,21 @@ public class TestValidator extends TestCase {
     static final String field1Name = "testField";
 
     static final String field2Name = "test2Field";
+
+    public void testHost() {
+        final String fieldHost = "host";
+        IControlMsgHandler msgHandler = EasyMock.createMock("msgHandler", IControlMsgHandler.class);
+        Context context = new DefaultContext();
+        msgHandler.addFieldError(context, fieldHost, ValidatorCommons.MSG_HOST_IP_ERROR);
+        EasyMock.expectLastCall().times(2);
+        EasyMock.replay(msgHandler);
+        Assert.assertFalse("must be faild", Validator.host.validate(msgHandler, context, fieldHost, "http://192.168.64.3:31135"));
+        Assert.assertTrue("must be valid", Validator.host.validate(msgHandler, context, fieldHost, "192.168.64.3:31135"));
+        Assert.assertTrue("must be valid", Validator.host.validate(msgHandler, context, fieldHost, "baidu.com:31135"));
+        Assert.assertFalse("must be faild", Validator.host.validate(msgHandler, context, fieldHost, "baidu.com"));
+
+        EasyMock.verify(msgHandler);
+    }
 
 
     /**

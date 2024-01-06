@@ -28,6 +28,9 @@ import org.apache.commons.lang.StringUtils;
  */
 public class ReplicasSpec {
 
+    public static final int maxCpuCoresLimit = 8;
+    public static final int maxCpuCoresRequest = 4;
+
     private int replicaCount = 1;
     /**
      * 副本（pods）数目是否可变
