@@ -1076,7 +1076,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         if (identityProp == null) {
             getPropertyTypes();
             if (identityProp == null) {
-                throw new IllegalStateException("property identityProp can not be null");
+                throw new IllegalStateException("property identityProp can not be null,desc:" + this.getClass());
             }
         }
         return identityProp;

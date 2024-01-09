@@ -149,7 +149,7 @@ public class ZkUtils {
      */
     private static String registerMyIp(final String parentNodepath, String ip, int port, ITISCoordinator zookeeper) {
         try {
-            if ("127.0.0.1".equals(ip)) {
+            if (NetUtils.LOCAL_HOST_VALUE.equals(ip)) {
                 throw new IllegalStateException("ip can not be 127.0.0.1");
             }
             if (port > 0) {

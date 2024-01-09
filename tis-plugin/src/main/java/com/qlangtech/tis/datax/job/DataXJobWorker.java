@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
  **/
 @Public
 public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
-
+   protected static final String CLUSTER_ENTRYPOINT_HOST = "server_port_host";
     public static final String KEY_FIELD_NAME = "k8sImage";
     public static final String KEY_WORKER_TYPE = "workerType";
     public static final String GROUP_KEY_JOBWORKER = "jobworker";

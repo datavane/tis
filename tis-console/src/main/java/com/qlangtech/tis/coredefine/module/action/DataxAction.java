@@ -442,7 +442,7 @@ public class DataxAction extends BasicModule {
 
     JSONObject dataXWorker = new JSONObject();
 
-    Optional<ServerLaunchToken> launchToken = DataXJobWorker.getLaunchToken(DataXJobWorker.K8S_DATAX_INSTANCE_NAME);
+    Optional<ServerLaunchToken> launchToken = DataXJobWorker.getLaunchToken(getK8SJobWorkerTargetName());
     ServerLaunchToken lt = launchToken.orElseThrow(() -> new IllegalStateException("launchToken must be present"));
 
 
@@ -1026,7 +1026,7 @@ public class DataxAction extends BasicModule {
       }
       //增量配置脚本移位置
       scriptRootDir = StreamContextConstant.getStreamScriptRootDir(appDomain.getAppName());
-      scriptDootDirTrash = StreamContextConstant.getStreamScriptRootDir(appDomain.getAppName(), true);
+      scriptDootDirTrash = StreamContextConstant.getStreamScriptRootDir(appDomain.getAppName(), true).getFile();
       if (scriptRootDir.exists()) {
         FileUtils.moveDirectory(scriptRootDir, scriptDootDirTrash);
       }

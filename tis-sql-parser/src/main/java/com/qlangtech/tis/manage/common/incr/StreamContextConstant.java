@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.manage.common.incr;
 
+import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.ds.DBConfig;
 import com.qlangtech.tis.sql.parser.DBNode;
@@ -62,7 +63,7 @@ public class StreamContextConstant {
     }
 
     public static File getStreamScriptRootDir(String collectionName) {
-        return getStreamScriptRootDir(collectionName, false);
+        return getStreamScriptRootDir(collectionName, false).file;
     }
 
     /**
@@ -72,9 +73,32 @@ public class StreamContextConstant {
      * @param trash
      * @return
      */
-    public static File getStreamScriptRootDir(String collectionName, boolean trash) {
-        return new File(Config.getMetaCfgDir() + "/" + DIR_STREAMS_SCRIPT
-                + (trash ? "/"+KEY_DIR_TRASH_NAME : StringUtils.EMPTY) + "/" + collectionName);
+    public static TISRes getStreamScriptRootDir(String collectionName, boolean trash) {
+        final String relevantPath = DIR_STREAMS_SCRIPT
+                + (trash ? "/" + KEY_DIR_TRASH_NAME : StringUtils.EMPTY) + "/" + collectionName;
+        return new TISRes(new File(Config.getMetaCfgDir() + "/" + relevantPath), relevantPath);
+    }
+
+    public static class TISRes {
+        private final File file;
+        private final String relevantPath;
+
+        public TISRes(File file, String relevantPath) {
+            this.file = file;
+            this.relevantPath = relevantPath;
+        }
+
+        public void sync2Local(boolean isConfig) {
+            CenterResource.copyFromRemote2Local(this.relevantPath, isConfig);
+        }
+
+        public File getFile() {
+            return this.file;
+        }
+
+        public String getRelevantPath() {
+            return this.relevantPath;
+        }
     }
 
     public static File getStreamScriptRootDir(String collectionName, long timestamp) {

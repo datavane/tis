@@ -19,18 +19,19 @@
 package com.qlangtech.tis.config.flink;
 
 /**
- * FlinkCluster Configuration
- *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-10-23 12:21
+ * @create: 2024-01-07 12:56
  **/
-public interface IFlinkClusterConfig {
 
-    static IFlinkClusterConfig create(IFlinkClusterConfig clusterConfig) {
-        return new Dft(clusterConfig.getJobManagerAddress());
+class Dft implements IFlinkClusterConfig {
+    private final JobManagerAddress managerAddress;
+
+    public Dft(JobManagerAddress managerAddress) {
+        this.managerAddress = managerAddress;
     }
 
-    JobManagerAddress getJobManagerAddress();
-
-    //  String getClusterId();
+    @Override
+    public JobManagerAddress getJobManagerAddress() {
+        return managerAddress;
+    }
 }
