@@ -31,7 +31,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -95,7 +101,8 @@ public class Config extends BasicConfig {
 
     public static final String TIS_PUB_PLUGINS_DOC_URL = "http://tis.pub/docs/plugin/plugins/#";
 
-    private static final String bundlePath = "tis-web-config/config";
+    public static final String bundlePath = StringUtils.defaultIfEmpty(System.getenv(KEY_ENV_TIS_CFG_BUNDLE_PATH), KEY_DEFAULT_TIS_CFG_BUNDLE_PATH);// ;
+    public static final String bundlePathClasspath = bundlePath + ".properties";
     public static final String KEY_TIS_DATASOURCE_TYPE = "tis.datasource.type";
     public static final String KEY_TIS_DATASOURCE_DBNAME = "tis.datasource.dbname";
 
@@ -279,25 +286,35 @@ public class Config extends BasicConfig {
         // localDftValsKeys.add(KEY_TIS_DATASOURCE_DBNAME);
     }
 
+    private final P propGetter;
+
+    public void consumeOriginSource(Consumer<InputStream> originSource) {
+        try (InputStream cfgSource = propGetter.getOriginSource()) {
+            originSource.accept(cfgSource);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     private Config() {
-        P p = P.create();
+        this.propGetter = P.create();
 
         // this.zkHost = p.getString(KEY_ZK_HOST, true);
         //  = p.getString(KEY_ASSEMBLE_HOST, true);
-        this.assembleHost = (p.getString(KEY_ASSEMBLE_HOST, true));
-        this.tisHost = p.getString(KEY_TIS_HOST, true);
-        this.runtime = p.getString(KEY_RUNTIME, true);
+        this.assembleHost = (propGetter.getString(KEY_ASSEMBLE_HOST, true));
+        this.tisHost = propGetter.getString(KEY_TIS_HOST, true);
+        this.runtime = propGetter.getString(KEY_RUNTIME, true);
 
-        this.deployMode = p.getString(KEY_DEPLOY_MODE);
+        this.deployMode = propGetter.getString(KEY_DEPLOY_MODE);
 
         this.dataDir = new File(
-                StringUtils.defaultIfEmpty(p.getString(KEY_DATA_DIR)
+                StringUtils.defaultIfEmpty(propGetter.getString(KEY_DATA_DIR)
                         , System.getProperty(KEY_DATA_DIR, DEFAULT_DATA_DIR)));
 
         this.dbCfg = new TisDbConfig();
         try {
-            dbCfg.dbtype = p.getString(KEY_TIS_DATASOURCE_TYPE, true);
-            dbCfg.dbname = p.getString(KEY_TIS_DATASOURCE_DBNAME, true);
+            dbCfg.dbtype = propGetter.getString(KEY_TIS_DATASOURCE_TYPE, true);
+            dbCfg.dbname = propGetter.getString(KEY_TIS_DATASOURCE_DBNAME, true);
 
             if (!(DB_TYPE_MYSQL.equals(dbCfg.dbtype)
                     || DB_TYPE_DERBY.equals(dbCfg.dbtype))) {
@@ -305,10 +322,10 @@ public class Config extends BasicConfig {
             }
 
             if (DB_TYPE_MYSQL.equals(dbCfg.dbtype)) {
-                dbCfg.port = Integer.parseInt(p.getString("tis.datasource.port"));
-                dbCfg.url = p.getString("tis.datasource.url");
-                dbCfg.userName = p.getString("tis.datasource.username");
-                dbCfg.password = p.getString("tis.datasource.password");
+                dbCfg.port = Integer.parseInt(propGetter.getString("tis.datasource.port"));
+                dbCfg.url = propGetter.getString("tis.datasource.url");
+                dbCfg.userName = propGetter.getString("tis.datasource.username");
+                dbCfg.password = propGetter.getString("tis.datasource.password");
             }
         } catch (Exception e) {
             throw new IllegalStateException("please check the tis datasource cfg", e);
@@ -453,6 +470,11 @@ public class Config extends BasicConfig {
             if (Boolean.getBoolean(KEY_JAVA_RUNTIME_PROP_ENV_PROPS)) {
                 return new P() {
                     @Override
+                    protected InputStream getOriginSource() {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override
                     protected String getProp(String key) {
                         if (localDftValsKeys.contains(key)) {
                             return "defaultVal";
@@ -472,6 +494,11 @@ public class Config extends BasicConfig {
                     ResourceBundle bundle = ResourceBundle.getBundle(bundlePath);
                     return new P() {
                         @Override
+                        protected InputStream getOriginSource() {
+                            return Config.class.getResourceAsStream(bundlePathClasspath);
+                        }
+
+                        @Override
                         protected String getProp(String key) {
                             return bundle.getString(key);
                         }
@@ -487,6 +514,15 @@ public class Config extends BasicConfig {
                         }
                         TisAppLaunch.setTest(true);
                         return new P() {
+                            @Override
+                            protected InputStream getOriginSource() {
+                                try {
+                                    return FileUtils.openInputStream(cfgStream.propsFile);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+
                             @Override
                             protected String getProp(String key) {
                                 return props.getProperty(key);
@@ -525,6 +561,8 @@ public class Config extends BasicConfig {
         }
 
         protected abstract String getProp(String key);
+
+        protected abstract InputStream getOriginSource();
     }
 
     public static String getGenerateParentPackage() {
