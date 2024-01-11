@@ -155,7 +155,7 @@ public abstract class ExtensionFinder {
             if (superType == null) {
                 throw new IllegalArgumentException("param className can not be null");
             }
-            if (CollectionUtils.isNotEmpty(indices)) {
+            if (CollectionUtils.isEmpty(indices)) {
                 return;
             }
             try {
