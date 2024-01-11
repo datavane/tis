@@ -37,7 +37,12 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
@@ -238,7 +243,13 @@ public class PluginMeta {
                     .map((d) -> {
                         // PluginClassifier c = null;
                         Optional<PluginClassifier> dc = Optional.empty();
-                        if (classifier.isPresent()) {
+//                        dc =   classifier.map((c)->{
+//                            if(PluginClassifier.MATCH_ALL_CLASSIFIER.getClassifier().equals(c.getClassifier())){
+//
+//                            }
+//                        });
+                        if (classifier.isPresent()
+                                && !PluginClassifier.MATCH_ALL_CLASSIFIER.getClassifier().equals(classifier.get().getClassifier())) {
                             //   c = classifier.get();
                             from.setIdentityName(d.shortName);
                             UpdateSite.Plugin depPlugin = TIS.get().getUpdateCenter().getPlugin(d.shortName);
