@@ -24,12 +24,8 @@ import com.google.common.cache.LoadingCache;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
-import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.Phases;
-import org.codehaus.groovy.control.SourceUnit;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,33 +43,66 @@ public class GroovyShellUtil {
             return new ConcurrentHashMap<>();
         }
     };
-    static final CustomerGroovyClassLoader loader = new CustomerGroovyClassLoader();
-    final static GroovyShell shell = new GroovyShell(new ClassLoader(GroovyShellEvaluate.class.getClassLoader()) {
-        @Override
-        protected Class<?> findClass(String name) throws ClassNotFoundException {
-            return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-        }
-    });
-    static final LoadingCache<String, Script> scriptCache
-            = CacheBuilder.newBuilder().build(new CacheLoader<String, Script>() {
-        @Override
-        public Script load(String key) throws Exception {
-            Script parse = shell.parse(key);
-            return parse;
-        }
-    });
+    private static CustomerGroovyClassLoader loader;
+    private static GroovyShell shell;
+    private static LoadingCache<String, Script> scriptCache;
 
     public static void loadMyClass(String className, String script) {
         try {
-            loader.loadMyClass(className, script);
+            getGroovyLoader().loadMyClass(className, script);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    private static LoadingCache<String, Script> getScriptCache() {
+        if (scriptCache == null) {
+            synchronized (GroovyShellUtil.class) {
+                if (scriptCache == null) {
+                    scriptCache
+                            = CacheBuilder.newBuilder().build(new CacheLoader<String, Script>() {
+                        @Override
+                        public Script load(String key) throws Exception {
+                            Script parse = getGroovyShell().parse(key);
+                            return parse;
+                        }
+                    });
+                }
+            }
+        }
+        return scriptCache;
+    }
+
+    private static GroovyShell getGroovyShell() {
+        if (shell == null) {
+            synchronized (GroovyShellUtil.class) {
+                if (shell == null) {
+                    shell = new GroovyShell(new ClassLoader(GroovyShellEvaluate.class.getClassLoader()) {
+                        @Override
+                        protected Class<?> findClass(String name) throws ClassNotFoundException {
+                            return TIS.get().getPluginManager().uberClassLoader.findClass(name);
+                        }
+                    });
+                }
+            }
+        }
+        return shell;
+    }
+
+    private static CustomerGroovyClassLoader getGroovyLoader() {
+        if (loader == null) {
+            synchronized (GroovyShellUtil.class) {
+                if (loader == null) {
+                    loader = new CustomerGroovyClassLoader();
+                }
+            }
+        }
+        return loader;
+    }
+
     public static Class<?> loadClass(String pkg, String className) {
         try {
-            return loader.loadClass(pkg + "." + className);
+            return getGroovyLoader().loadClass(pkg + "." + className);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -85,38 +114,11 @@ public class GroovyShellUtil {
             return null;
         }
         try {
-            Script script = scriptCache.get(javaScript);
+            Script script = getScriptCache().get(javaScript);
             return (T) script.run();
         } catch (Throwable e) {
             throw new RuntimeException(javaScript, e);
         }
     }
 
-    private static final class CustomerGroovyClassLoader extends GroovyClassLoader {
-        public CustomerGroovyClassLoader() {
-            super(new ClassLoader(GroovyShellEvaluate.class.getClassLoader()) {
-                      @Override
-                      protected Class<?> findClass(String name) throws ClassNotFoundException {
-                          // return super.findClass(name);
-                          return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-                      }
-                  }
-            );
-        }
-
-        @SuppressWarnings("all")
-        public void loadMyClass(String name, String script) throws Exception {
-            CompilationUnit unit = new CompilationUnit(this);
-            SourceUnit su = unit.addSource(name, script);
-            ClassCollector collector = createCollector(unit, su);
-            unit.setClassgenCallback(collector);
-            unit.compile(Phases.CLASS_GENERATION);
-            int classEntryCount = 0;
-            for (Object o : collector.getLoadedClasses()) {
-                setClassCacheEntry((Class<?>) o);
-                // System.out.println(o);
-                classEntryCount++;
-            }
-        }
-    }
 }
