@@ -23,7 +23,7 @@ import com.opensymphony.xwork2.ActionProxy;
 import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.extension.model.UpdateSite;
-import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
+import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.TisActionMapper;
@@ -119,7 +119,7 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
       }
     } finally {
       SuFormProperties.subFormGetterProcessThreadLocal.remove();
-      GroovyShellEvaluate.pluginThreadLocal.remove();
+      GroovyShellUtil.pluginThreadLocal.remove();
       UpdateSite.pluginArts.remove();
     }
   }

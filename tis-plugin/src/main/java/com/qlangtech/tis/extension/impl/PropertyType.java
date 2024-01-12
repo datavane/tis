@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.ElementPluginDesc;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
+import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.extension.util.MultiItemsViewType;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Option;
@@ -205,7 +206,7 @@ public class PropertyType implements IPropertyType {
                                     JSONObject props = fieldExtraProps.getProps();
                                     if (StringUtils.isNotEmpty(help) && StringUtils.startsWith(help,
                                             IMessageHandler.TSEARCH_PACKAGE)) {
-                                        props.put(PluginExtraProps.Props.KEY_HELP, GroovyShellEvaluate.eval(help));
+                                        props.put(PluginExtraProps.Props.KEY_HELP, GroovyShellUtil.eval(help));
                                     }
 
                                     if (dftVal != null && StringUtils.startsWith(String.valueOf(dftVal),
@@ -290,10 +291,10 @@ public class PropertyType implements IPropertyType {
         JSONArray enums = new JSONArray();
         if (anEnum != null && anEnum instanceof String) {
             try {
-                GroovyShellEvaluate.descriptorThreadLocal.set(descriptor);
+                GroovyShellUtil.descriptorThreadLocal.set(descriptor);
                 fieldExtraProps.getProps().put(Descriptor.KEY_ENUM_PROP, GroovyShellEvaluate.scriptEval((String) anEnum, process));
             } finally {
-                GroovyShellEvaluate.descriptorThreadLocal.remove();
+                GroovyShellUtil.descriptorThreadLocal.remove();
             }
         }
         return enums;

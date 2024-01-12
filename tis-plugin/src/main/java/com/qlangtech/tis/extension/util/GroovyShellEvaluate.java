@@ -17,24 +17,10 @@
  */
 package com.qlangtech.tis.extension.util;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.Describable;
-import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyShell;
-import groovy.lang.Script;
-import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.Phases;
-import org.codehaus.groovy.control.SourceUnit;
 
-import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
@@ -52,53 +38,6 @@ public class GroovyShellEvaluate {
         isInConsoleModule = loaded;
     }
 
-    public final static ThreadLocal<Descriptor> descriptorThreadLocal = new ThreadLocal<>();
-
-    public final static ThreadLocal<Map<Class<? extends Descriptor>, Describable>> pluginThreadLocal
-            = new ThreadLocal<Map<Class<? extends Descriptor>, Describable>>() {
-        @Override
-        protected Map<Class<? extends Descriptor>, Describable> initialValue() {
-            return new ConcurrentHashMap<>();
-        }
-    };
-
-    final static GroovyShell shell = new GroovyShell(new ClassLoader(GroovyShellEvaluate.class.getClassLoader()) {
-        @Override
-        protected Class<?> findClass(String name) throws ClassNotFoundException {
-            return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-        }
-    });
-
-    private static final CustomerGroovyClassLoader loader = new CustomerGroovyClassLoader();
-
-    private static final class CustomerGroovyClassLoader extends GroovyClassLoader {
-        public CustomerGroovyClassLoader() {
-            super(new ClassLoader(GroovyShellEvaluate.class.getClassLoader()) {
-                      @Override
-                      protected Class<?> findClass(String name) throws ClassNotFoundException {
-                          // return super.findClass(name);
-                          return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-                      }
-                  }
-            );
-        }
-
-        @SuppressWarnings("all")
-        public void loadMyClass(String name, String script) throws Exception {
-            CompilationUnit unit = new CompilationUnit(this);
-            SourceUnit su = unit.addSource(name, script);
-            ClassCollector collector = createCollector(unit, su);
-            unit.setClassgenCallback(collector);
-            unit.compile(Phases.CLASS_GENERATION);
-            int classEntryCount = 0;
-            for (Object o : collector.getLoadedClasses()) {
-                setClassCacheEntry((Class<?>) o);
-                // System.out.println(o);
-                classEntryCount++;
-            }
-        }
-    }
-
     public static <T> T createParamizerScript(Class parentClazz, String className, String script) {
         try {
 //        String className = parentClazz.getSimpleName() + "_SubFormIdListGetter_" + subFormField.getName();
@@ -112,8 +51,8 @@ public class GroovyShellEvaluate {
 //                + "	@Override"
 //                + "	public Object build(IPropertyType.SubFormFilter filter) {" + this.getIdListGetScript() + "	}" + "}";
             //this.getIdListGetScript()
-            loader.loadMyClass(className, script);
-            Class<?> groovyClass = loader.loadClass(pkg + "." + className);
+            GroovyShellUtil.loadMyClass(className, script);
+            Class<?> groovyClass = GroovyShellUtil.loadClass(pkg, className);
             return (T) groovyClass.newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -127,9 +66,9 @@ public class GroovyShellEvaluate {
 
             Callable<Object> valGetter = () -> {
                 for (Function<Object, Object> f : process) {
-                    return f.apply(eval(meta.getName()));
+                    return f.apply(GroovyShellUtil.eval(meta.getName()));
                 }
-                return eval(meta.getName());
+                return GroovyShellUtil.eval(meta.getName());
             };
             return unCache ? new JsonUtil.UnCacheString(valGetter) : valGetter.call();
         } catch (Exception e) {
@@ -146,29 +85,7 @@ public class GroovyShellEvaluate {
 //        }
 //    });
 
-    private static final LoadingCache<String, Script> scriptCache
-            = CacheBuilder.newBuilder().build(new CacheLoader<String, Script>() {
-        @Override
-        public Script load(String key) throws Exception {
-            Script parse = shell.parse(key);
-            return parse;
-        }
-    });
-
     private GroovyShellEvaluate() {
-    }
-
-    public static <T> T eval(String javaScript) {
-        if (!isInConsoleModule) {
-            // 如果不在console中运行则返回空即可
-            return null;
-        }
-        try {
-            Script script = scriptCache.get(javaScript);
-            return (T) script.run();
-        } catch (Throwable e) {
-            throw new RuntimeException(javaScript, e);
-        }
     }
 
 }

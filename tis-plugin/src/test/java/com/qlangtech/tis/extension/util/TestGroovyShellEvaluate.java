@@ -30,7 +30,7 @@ import java.util.List;
 public class TestGroovyShellEvaluate extends TestCase {
 
     public void testEval() {
-        List<Option> fieldTyps = GroovyShellEvaluate.eval("com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()");
+        List<Option> fieldTyps = GroovyShellUtil.eval("com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()");
         assertNotNull(fieldTyps);
         List<Option> allOpts = ReflectSchemaFieldType.all();
         assertEquals(allOpts.size(), fieldTyps.size());

@@ -19,7 +19,7 @@
 package com.qlangtech.tis.extension;
 
 import com.alibaba.fastjson.JSONObject;
-import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
+import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import junit.framework.TestCase;
@@ -35,7 +35,7 @@ public class TestDescriptor extends TestCase {
 
     public void testGetPluginFormPropertyTypes() {
 
-        GroovyShellEvaluate.eval("com.qlangtech.tis.extension.DefaultPlugin.getColsDefaultVal()");
+        GroovyShellUtil.eval("com.qlangtech.tis.extension.DefaultPlugin.getColsDefaultVal()");
 
         DefaultPlugin dftPlugin = new DefaultPlugin();
        // DescriptorsJSON descJson = new DescriptorsJSON(dftPlugin.getDescriptor());

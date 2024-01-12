@@ -22,7 +22,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
-import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
+import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.CompanionPluginFactory;
@@ -125,7 +125,7 @@ public class HeteroList<T extends Describable<T>> {
         if (this.getItems().size() == 1) {
             for (T plugin : this.getItems()) {
                 Map<Class<? extends Descriptor>, Describable> pluginThreadLocal =
-                        GroovyShellEvaluate.pluginThreadLocal.get();
+                        GroovyShellUtil.pluginThreadLocal.get();
                 pluginThreadLocal.put(plugin.getDescriptor().getClass(), plugin);
                 break;
             }

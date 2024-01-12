@@ -25,9 +25,8 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.coredefine.module.action.PluginAction;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.Plugin;
 import com.qlangtech.tis.extension.impl.XmlFile;
-import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
+import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
@@ -133,7 +132,7 @@ public class PluginItems {
       throw new IllegalArgumentException("param extendClass can not be null");
     }
 
-    Descriptor descriptor = GroovyShellEvaluate.descriptorThreadLocal.get();
+    Descriptor descriptor = GroovyShellUtil.descriptorThreadLocal.get();
     if (listen2SaveEvent && dbUpdateEventObservers.add(Objects.requireNonNull(descriptor, "descriptor can not be null"))) {
       // 当有数据源更新时需要将descriptor的属性重新更新一下
       addPluginItemsSaveObserver(new PluginItemsSaveObserver() {
