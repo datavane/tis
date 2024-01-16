@@ -37,6 +37,8 @@ public abstract class IncrStreamFactory implements Describable<IncrStreamFactory
 
     public abstract IRCController getIncrSync();
 
+
+
     /**
      * 增量任务是否可恢复？例如，Flink重启之后，可以利用savepoint或者checkpoint恢复job
      *

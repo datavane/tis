@@ -25,6 +25,7 @@ import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
+import com.qlangtech.tis.datax.job.DataXJobWorker.K8SWorkerCptType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.ExtensionList;
@@ -98,16 +99,6 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         }
     };
 
-    @TISExtension
-    public static final HeteroEnum<DataXJobWorker> appJobWorkerTplReWriter = new HeteroEnum<DataXJobWorker>(//
-            DataXJobWorker.class, //
-            DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite.token
-            , DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite.name(), Selectable.Single, true) {
-        @Override
-        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            return super.getPluginStore(pluginContext, pluginMeta);
-        }
-    };
 
     // ////////////////////////////////////////////////////////
     @TISExtension
@@ -130,6 +121,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             super(K8sImage.class, KEY_K8S_IMAGES, KEY_K8S_IMAGES);
             this.imageCategory = imageCategory;
         }
+
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
             // UploadPluginMeta.TargetDesc targetDesc = pluginMeta.getTargetDesc();
@@ -146,7 +138,16 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     @TISExtension
     public static final HeteroEnum<K8sImage> K8S_FLINK_IMAGES = new DockerImageHeteroEnum(ImageCategory.DEFAULT_FLINK_DESC_NAME);
     // ////////////////////////////////////////////////////////
-
+    @TISExtension
+    public static final HeteroEnum<DataXJobWorker> appJobWorkerTplReWriter = new HeteroEnum<DataXJobWorker>(//
+            DataXJobWorker.class, //
+            DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite.token
+            , DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite.name(), Selectable.Single, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            return super.getPluginStore(pluginContext, pluginMeta);
+        }
+    };
     @TISExtension
     public static final HeteroEnum<DataXJobWorker> DATAX_WORKER = new HeteroEnum<DataXJobWorker>(//
             DataXJobWorker.class, //
@@ -162,6 +163,22 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
             return DataXJobWorker.getJobWorkerStore(new TargetResName(pluginContext.getCollectionName()), Optional.of(powerjobCptType));
 
+            //return super.getPluginStore(pluginContext, pluginMeta);
+        }
+    };
+
+    @TISExtension
+    public static final HeteroEnum<DataXJobWorker> Flink_Kubernetes_Application_Cfg = new HeteroEnum<DataXJobWorker>(//
+            DataXJobWorker.class, //
+            K8SWorkerCptType.FlinkKubernetesApplicationCfg.token, // },//
+            K8SWorkerCptType.FlinkKubernetesApplicationCfg.name(), Selectable.Multi, true) {
+        @Override
+        public boolean isIdentityUnique() {
+            return true;
+        }
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            return DataXJobWorker.getFlinkKubernetesApplicationCfgStore();
             //return super.getPluginStore(pluginContext, pluginMeta);
         }
     };

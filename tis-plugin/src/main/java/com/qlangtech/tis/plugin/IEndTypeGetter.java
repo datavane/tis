@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.plugin;
 
+import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.impl.IOUtils;
 
 import java.util.Set;
@@ -63,9 +64,12 @@ public interface IEndTypeGetter {
         , Cassandra("cassandra") //, HDFS("hdfs")
         , SqlServer("sqlServer", true), TiDB("TiDB", true) //
         , RocketMQ("rocketMq", true), Kafka("kafka", true), DataFlow("dataflow") //
-        , DaMeng("daMeng"), AliyunODPS("aliyunOdps"), HiveMetaStore("hms", true), RabbitMQ("rabbitmq");
+        , DaMeng("daMeng"), AliyunODPS("aliyunOdps"), HiveMetaStore("hms", true) //
+        , RabbitMQ("rabbitmq"), UnKnowStoreType("unknowStoreType", true);
         private final String val;
         private final boolean containICON;
+
+        private static final DefaultIconReference unknowType = new DefaultIconReference(UnKnowStoreType);
 
         public static EndType parse(String endType) {
             for (EndType end : EndType.values()) {
@@ -94,15 +98,23 @@ public interface IEndTypeGetter {
 
         @Override
         public Icon getIcon() {
-            if (!this.containICON) {
-                return icon;
-            }
+
 
             if (icon == null) {
+
+                if (!this.containICON) {
+                    return (icon = unknowType);
+                }
+
                 icon = new Icon() {
                     private String loadIconWithSuffix(String theme) {
                         return IOUtils.loadResourceFromClasspath(IEndTypeGetter.class
                                 , "endtype/icon/" + val + "/" + theme + ".svg", true);
+                    }
+
+                    @Override
+                    public void setRes(JSONObject icon, boolean fillStyle) {
+                        icon.put("icon", fillStyle ? this.fillType() : this.outlineType());
                     }
 
                     @Override
@@ -129,5 +141,47 @@ public interface IEndTypeGetter {
         public String fillType();
 
         public String outlineType();
+
+        public void setRes(JSONObject icon, boolean fillStyle);//{
+//            if (isRef) {
+//                icon.put("ref", ((IconReference) i).endType().getVal());
+//            } else {
+//                icon.put("icon", i.fillType());
+//            }
+//        }
+    }
+
+    public interface IconReference {
+        public EndType endType();
+    }
+
+    public static class DefaultIconReference implements Icon, IconReference {
+        private final EndType endType;
+
+        public DefaultIconReference(EndType endType) {
+            this.endType = endType;
+        }
+
+        @Override
+        public EndType endType() {
+            return this.endType;
+        }
+
+        @Override
+        public void setRes(JSONObject icon, boolean fillStyle) {
+            icon.put("ref", endType.getVal());
+        }
+
+        @Override
+        public String fillType() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String outlineType() {
+            throw new UnsupportedOperationException();
+        }
+
+
     }
 }

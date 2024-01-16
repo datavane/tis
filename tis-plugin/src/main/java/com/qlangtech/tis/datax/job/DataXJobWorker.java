@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
  **/
 @Public
 public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
-   protected static final String CLUSTER_ENTRYPOINT_HOST = "server_port_host";
+    protected static final String CLUSTER_ENTRYPOINT_HOST = "server_port_host";
     public static final String KEY_FIELD_NAME = "k8sImage";
     public static final String KEY_WORKER_TYPE = "workerType";
     public static final String GROUP_KEY_JOBWORKER = "jobworker";
@@ -101,6 +101,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         JobTplAppOverwrite("powerjob-job-tpl-app-overwrite") //
         , UsingExistCluster("powerjob-use-exist-cluster", null),
         FlinkCluster("flink-cluster", null),
+        FlinkKubernetesApplicationCfg("flink-kubernetes-application-cfg"),
         K8SPods("k8s-pods");
         public final String token;
         public final String storeSuffix;
@@ -183,6 +184,10 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     }
 
 
+    public static IPluginStore<DataXJobWorker> getFlinkKubernetesApplicationCfgStore() {
+        return DataXJobWorker.getJobWorkerStore(DataXJobWorker.K8S_FLINK_CLUSTER_NAME, Optional.of(K8SWorkerCptType.FlinkKubernetesApplicationCfg));
+    }
+
     public static IPluginStore<DataXJobWorker> getJobWorkerStore(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType) {
         if (!(resName.equalWithName(K8S_DATAX_INSTANCE_NAME.getName())
                 || resName.equalWithName(K8S_FLINK_CLUSTER_NAME.getName()))) {
@@ -225,24 +230,25 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         return this.getProcessTokenFile().isLaunchTokenExist();
     }
 
-    private void writeLaunchToken() {
-        ServerLaunchToken launchToken = this.getProcessTokenFile();
-
-        launchToken.writeLaunchToken();
-        //  SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//    private void writeLaunchToken() {
+//        ServerLaunchToken launchToken = this.getProcessTokenFile();
+//
+//        launchToken.writeLaunchToken();
+    //  SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 //        JSONObject token = new JSONObject();
 //        //  TimeFormat.yyyyMMddHHmmss.format()
 //        token.put("launchTime", TimeFormat.getCurrentTimeStamp());
 //        token.put("");
 //
 //        FileUtils.write(launchToken, timeFormat.format(new Date()), TisUTF8.get());
-    }
+    //  }
 
     protected void deleteLaunchToken() {
         this.getProcessTokenFile().deleteLaunchToken();
     }
 
     public ServerLaunchToken getProcessTokenFile() {
+
         BasicDescriptor basicDesc = Objects.requireNonNull((BasicDescriptor) this.getDescriptor(), "basicDesc can not be null");
         return this.getProcessTokenFile(basicDesc.getWorkerType(), false, basicDesc.getWorkerCptType());
     }
@@ -420,8 +426,13 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     public abstract void remove();
 
     public final void executeLaunchService(SSERunnable launchProcess) {
-        this.launchService(launchProcess);
-        this.writeLaunchToken();
+        ServerLaunchToken launchToken = this.getProcessTokenFile();
+
+        launchToken.writeLaunchToken(() -> {
+            this.launchService(launchProcess);
+            return Optional.empty();
+        });
+        //  this.writeLaunchToken();
         launchProcess.afterLaunched();
     }
 

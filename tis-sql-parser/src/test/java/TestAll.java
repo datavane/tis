@@ -16,6 +16,7 @@
  *   limitations under the License.
  */
 
+import com.qlangtech.tis.manage.common.incr.TestUberJarUtil;
 import com.qlangtech.tis.powerjob.TestSelectedTabTriggers;
 import com.qlangtech.tis.sql.parser.*;
 import com.qlangtech.tis.sql.parser.er.TestERRules;
@@ -50,6 +51,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestDBNode.class);
         suite.addTestSuite(TestERRules.class);
         suite.addTestSuite(TestSelectedTabTriggers.class);
+        suite.addTestSuite(TestUberJarUtil.class);
         return suite;
     }
 }

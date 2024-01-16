@@ -29,7 +29,14 @@ import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
-import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.Descriptor.PluginValidateResult;
+import com.qlangtech.tis.extension.INotebookable;
+import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.PluginManager;
+import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
@@ -47,13 +54,21 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IEndTypeGetter.IconReference;
 import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
-import com.qlangtech.tis.util.*;
+import com.qlangtech.tis.util.AttrValMap;
+import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.HeteroList;
+import com.qlangtech.tis.util.ItemsSaveResult;
+import com.qlangtech.tis.util.PluginItems;
+import com.qlangtech.tis.util.Selectable;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import org.apache.commons.collections.CollectionUtils;
@@ -72,7 +87,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -127,16 +152,25 @@ public class PluginAction extends BasicModule {
       if (i == null) {
         continue;
       }
+     // boolean isRef = (i instanceof IconReference);
+
       icon = new JSONObject();
       icon.put("name", type.getVal());
       icon.put("theme", "fill");
-      icon.put("icon",i.fillType());
+      i.setRes(icon, true);
+//      if (isRef) {
+//        icon.put("ref", ((IconReference) i).endType().getVal());
+//      } else {
+//        icon.put("icon", i.fillType());
+//      }
+
       iconsDefs.add(icon);
 
       icon = new JSONObject();
       icon.put("name", type.getVal());
       icon.put("theme", "outline");
-      icon.put("icon",i.outlineType());
+     // icon.put("icon", i.outlineType());
+      i.setRes(icon, false);
       iconsDefs.add(icon);
 
     }
@@ -351,7 +385,7 @@ public class PluginAction extends BasicModule {
         // pluginInfo.put("meta", info);
         pluginInfo.put("releaseTimestamp", info.releaseTimestamp);
         pluginInfo.put("excerpt", info.excerpt);
-        pluginInfo.put("endTypeIcons",info.getEndTypeIcons());
+        pluginInfo.put("endTypeIcons", info.getEndTypeIcons());
       }
 
       if (CollectionUtils.isNotEmpty(extendpoint)) {
@@ -915,7 +949,7 @@ public class PluginAction extends BasicModule {
   public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta, Context context,
                                                    int pluginIndex, JSONArray itemsArray, boolean verify) {
     context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
-    List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
+    // List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
     Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
 
     IPluginEnum hEnum = pluginMeta.getHeteroEnum();
@@ -929,28 +963,32 @@ public class PluginAction extends BasicModule {
 
     PluginItemsParser parseResult = pluginItems.validate(module, context, pluginIndex, verify);
 
-
+    int newAddItemsCount = parseResult.items.size();
     /**===============================================
      * 校验Item字段的identity字段不能重复，不然就报错
      ===============================================*/
     Map<String, Descriptor.PluginValidateResult> identityUniqueMap = Maps.newHashMap();
 
     Descriptor.PluginValidateResult previous = null;
-    if (!parseResult.faild && hEnum.isIdentityUnique() && hEnum.getSelectable() == Selectable.Multi && (items.size() > 1 || pluginMeta.isAppend())) {
+    if (!parseResult.faild
+      && hEnum.isIdentityUnique()
+      && hEnum.getSelectable() == Selectable.Multi
+      && (parseResult.items.size() > 1 || pluginMeta.isAppend())) {
 
       Descriptor desc = null;
       if (pluginMeta.isAppend()) {
+        // 已经存在的添加到identityUniqueMap
         List<IdentityName> plugins = hEnum.getPlugins(module, pluginMeta);
         for (IdentityName p : plugins) {
           desc = ((Describable) p).getDescriptor();
           Descriptor.PluginValidateResult r = new Descriptor.PluginValidateResult(new Descriptor.PostFormVals(desc,
-            module, AttrValMap.IAttrVals.rootForm(Collections.emptyMap())), 0, 0);
+            module, AttrValMap.IAttrVals.rootForm(Collections.emptyMap())), pluginIndex, newAddItemsCount++);
           r.setDescriptor(desc);
           identityUniqueMap.put(p.identityValue(), r);
         }
       }
 
-      for (Descriptor.PluginValidateResult i : items) {
+      for (Descriptor.PluginValidateResult i : parseResult.items) {
         if ((previous = identityUniqueMap.put(i.getIdentityFieldValue(), i)) != null) {
           previous.addIdentityFieldValueDuplicateError(module, context);
           i.addIdentityFieldValueDuplicateError(module, context);
@@ -964,6 +1002,11 @@ public class PluginAction extends BasicModule {
   public static class PluginItemsParser {
     public boolean faild = false;
     public PluginItems pluginItems;
+    public final List<Descriptor.PluginValidateResult> items;
+
+    public PluginItemsParser(List<PluginValidateResult> items) {
+      this.items = items;
+    }
   }
 
 

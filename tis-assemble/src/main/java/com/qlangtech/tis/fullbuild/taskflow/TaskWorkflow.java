@@ -121,6 +121,7 @@ public class TaskWorkflow {
                     throw new IllegalStateException("to task:'" + to + "' can not be found in taskMap");
                 }
                 final TaskDependency doTask = toTask;
+
                 forkExecutorService.execute(() -> {
                     doTask.satisfaction(fork.getName());
                     this.execute(doTask, params);

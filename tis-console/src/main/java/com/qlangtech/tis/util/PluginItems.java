@@ -88,10 +88,11 @@ public class PluginItems {
    * @return
    */
   public PluginAction.PluginItemsParser validate(BasicModule module, Context context, int pluginIndex, boolean verify) {
-    PluginAction.PluginItemsParser parseResult = new PluginAction.PluginItemsParser();
+    List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
+    PluginAction.PluginItemsParser parseResult = new PluginAction.PluginItemsParser(items);
     parseResult.pluginItems = this;
     Descriptor.PluginValidateResult validateResult = null;
-    List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
+
     AttrValMap attrValMap = null;
 
     try {

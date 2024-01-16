@@ -25,7 +25,11 @@ import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Stack;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -203,7 +207,7 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
 
         @Override
         public void addNestMsg(String nestKey, String val) {
-            throw new UnsupportedOperationException("nestKey:" + nestKey + ",val:" + val);
+            throw new UnsupportedOperationException("nestKey:" + nestKey + ",val:" + val + ",msg:" + this.msg);
         }
     }
 
@@ -254,8 +258,8 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
         // System.out.println(msg);
     }
 
-    private static IFieldMsg setVal(JSONObject json, String complexPropKey, String val, Optional<Function<String,
-            IFieldMsg>> primaryKeyConsumer) {
+    private static IFieldMsg setVal(JSONObject json, String complexPropKey, String val
+            , Optional<Function<String, IFieldMsg>> primaryKeyConsumer) {
         Matcher arrayMatcher = JSONARRAR_TOKEN.matcher(complexPropKey);
         Matcher objMatcher = JSONOBJECT_TOKEN.matcher(complexPropKey);
         int matchStart = 0;

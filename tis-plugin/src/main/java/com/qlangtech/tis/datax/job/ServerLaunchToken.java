@@ -30,7 +30,10 @@ import com.qlangtech.tis.datax.job.DefaultSSERunnable.LaunchWALLineVisitor;
 import com.qlangtech.tis.datax.job.DefaultSSERunnable.SubJobLog;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
 import com.qlangtech.tis.datax.job.SSERunnable.SSEEventType;
+import com.qlangtech.tis.lang.TisException;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -45,6 +48,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Observable;
+import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 /**
  * 标记K8S K8SWorker 启动执行状态
@@ -169,6 +175,80 @@ public class ServerLaunchToken extends Observable implements Closeable {
 
     }
 
+    private static final FlinkClusterTokenManager flinkClusterTokenManager = new FlinkClusterTokenManager();
+
+    public static FlinkClusterTokenManager createFlinkClusterToken() {
+//        File flinkClusterParentDir = new File(Config.getMetaCfgDir(), K8SWorkerCptType.FlinkCluster.token);
+//        return create(flinkClusterParentDir, new TargetResName(clusterType.token + workerType.getName()), false, K8SWorkerCptType.FlinkCluster);
+        return flinkClusterTokenManager;
+    }
+
+    public static class FlinkClusterTokenManager {
+        public final static String JSON_KEY_WEB_INTERFACE_URL = "webInterfaceURL";
+        public final static String JSON_KEY_CLUSTER_ID = "clusterId";
+        public final static String JSON_KEY_APP_NAME = DataxUtils.DATAX_NAME;
+        public final static String JSON_KEY_CLUSTER_TYPE = "clusterType";
+        public final static String JSON_KEY_K8S_NAMESPACE = "k8s_namespace";
+        public final static String JSON_KEY_K8S_BASE_PATH = "k8s_base_path";
+        public final static String JSON_KEY_K8S_ID = "k8s_id";
+
+        public final static String JSON_KEY_LAUNCH_TIME = "launchTime";
+
+        final File flinkClusterParentDir = new File(Config.getMetaCfgDir(), K8SWorkerCptType.FlinkCluster.token);
+
+        public ServerLaunchToken token(FlinkClusterType clusterType, TargetResName workerType) {
+            return create(flinkClusterParentDir, new TargetResName(clusterType.token + workerType.getName()), false, K8SWorkerCptType.FlinkCluster);
+        }
+
+        public List<FlinkClusterPojo> getAllClusters() throws Exception {
+            List<FlinkClusterPojo> result = Lists.newLinkedList();
+            FlinkClusterPojo c = null;
+            String[] clusters = flinkClusterParentDir.list();
+            JSONObject meta = null;
+            File clusterFile = null;
+            for (String cluster : clusters) {
+                clusterFile = new File(flinkClusterParentDir, cluster);
+                c = new FlinkClusterPojo();
+                meta = JSONObject.parseObject(FileUtils.readFileToString(clusterFile, TisUTF8.get()));
+                c.setClusterId(meta.getString(JSON_KEY_CLUSTER_ID));
+                c.setDataXName(meta.getString(JSON_KEY_APP_NAME));
+                c.setWebInterfaceURL(meta.getString(JSON_KEY_WEB_INTERFACE_URL));
+                c.setClusterType(FlinkClusterType.parse(meta.getString(JSON_KEY_CLUSTER_TYPE)));
+                c.setK8sNamespace(meta.getString(JSON_KEY_K8S_NAMESPACE));
+                c.setK8sBasePath(meta.getString(JSON_KEY_K8S_BASE_PATH));
+                c.setK8sId(meta.getString(JSON_KEY_K8S_ID));
+                c.setCreateTime(meta.getLongValue(JSON_KEY_LAUNCH_TIME));
+                result.add(c);
+            }
+
+            return result;
+        }
+    }
+
+    public enum FlinkClusterType {
+        K8SApplication("k8s_application_"),
+        K8SSession("k8s_session_");
+
+        public static FlinkClusterType parse(String token) {
+            for (FlinkClusterType type : FlinkClusterType.values()) {
+                if (type.token.equals(token)) {
+                    return type;
+                }
+            }
+            throw new IllegalStateException("invalid token:" + token);
+        }
+
+        private final String token;
+
+        public String getToken() {
+            return token;
+        }
+
+        FlinkClusterType(String token) {
+            this.token = token;
+        }
+    }
+
     public static ServerLaunchToken create(
             File launchTokenParentDir, TargetResName workerType, boolean launchTokenUseCptType, K8SWorkerCptType workerCptType) {
         synchronized (ServerLaunchToken.class) {
@@ -231,17 +311,23 @@ public class ServerLaunchToken extends Observable implements Closeable {
         return this.workerCptType;
     }
 
+
+
     /**
      * 启动成功之后写入相应的配置信息
      */
-    protected void writeLaunchToken() {
+    public void writeLaunchToken(Callable<Optional<JSONObject>> bizLogic) {
+        if (this.isLaunchTokenExist()) {
+            throw TisException.create("launch token :" + this.launchedToken.getPath() + " shall not be exist");
+        }
         try {
-            JSONObject token = new JSONObject();
+            Optional<JSONObject> t = Objects.requireNonNull(bizLogic.call(), "bizLogic can not be null");
+            JSONObject token = t.orElseGet(() -> new JSONObject());
             //  TimeFormat.yyyyMMddHHmmss.format()
-            token.put("launchTime", TimeFormat.getCurrentTimeStamp());
+            token.put(FlinkClusterTokenManager.JSON_KEY_LAUNCH_TIME, TimeFormat.getCurrentTimeStamp());
             token.put(DataXJobWorker.KEY_CPT_TYPE, workerCptType.token);
             FileUtils.write(launchedToken, JsonUtil.toString(token, true), TisUTF8.get(), false);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

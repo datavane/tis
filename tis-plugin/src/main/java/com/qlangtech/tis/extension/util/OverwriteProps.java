@@ -38,6 +38,10 @@ public class OverwriteProps {
         return (new OverwriteProps()).setDftVal(dftVal);
     }
 
+    public static OverwriteProps placeholder(Object placeholder) {
+        return (new OverwriteProps()).setPlaceholder(placeholder);
+    }
+
     public static OverwriteProps withAppendHelper(String appendHelper) {
         return (new OverwriteProps()).setAppendHelper(appendHelper);
     }
@@ -58,8 +62,13 @@ public class OverwriteProps {
         return dftVal != null ? dftValConvert.apply(dftVal) : (this.dftVal != null ? this.dftVal : null);
     }
 
+    public Object getPlaceholder() {
+        return this.placeholder;
+    }
+
     public Optional<String> appendHelper = Optional.empty();
     private Object dftVal;
+    private Object placeholder;
     public Optional<List<Option>> opts = Optional.empty();
     public Function<Object, Object> dftValConvert = (val) -> val;
 
@@ -72,4 +81,10 @@ public class OverwriteProps {
         this.dftVal = dftVal;
         return this;
     }
+
+    public OverwriteProps setPlaceholder(Object placeholder) {
+        this.placeholder = placeholder;
+        return this;
+    }
+
 }

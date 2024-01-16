@@ -39,12 +39,24 @@ import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.datax.job.FlinkClusterPojo;
+import com.qlangtech.tis.datax.job.ServerLaunchToken;
+import com.qlangtech.tis.datax.job.ServerLaunchToken.FlinkClusterTokenManager;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.lang.TisException;
-import com.qlangtech.tis.manage.*;
-import com.qlangtech.tis.manage.biz.dal.pojo.*;
+import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.IBasicAppSource;
+import com.qlangtech.tis.manage.IDataFlowAppSource;
+import com.qlangtech.tis.manage.ISingleTableAppSource;
+import com.qlangtech.tis.manage.ISolrAppSource;
+import com.qlangtech.tis.manage.PermissionConstant;
+import com.qlangtech.tis.manage.biz.dal.pojo.Application;
+import com.qlangtech.tis.manage.biz.dal.pojo.Server;
+import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup;
+import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria;
+import com.qlangtech.tis.manage.biz.dal.pojo.SnapshotCriteria;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
@@ -71,7 +83,11 @@ import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.ItemsSaveResult;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
-import com.qlangtech.tis.workflow.pojo.*;
+import com.qlangtech.tis.workflow.pojo.DatasourceDb;
+import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
+import com.qlangtech.tis.workflow.pojo.WorkFlow;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -81,7 +97,14 @@ import java.io.File;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -96,8 +119,6 @@ import java.util.stream.Collectors;
 public class CoreAction extends BasicModule {
   public static final String ADMIN_COLLECTION_PATH = "/solr/admin/collections";
   public static final String CREATE_COLLECTION_PATH = ADMIN_COLLECTION_PATH + "?action=CREATE&name=";
-
-
   public static final String DEFAULT_SOLR_CONFIG = "tis_mock_config";
 
   private static final long serialVersionUID = -6753169329484480543L;
@@ -154,6 +175,14 @@ public class CoreAction extends BasicModule {
     IPluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
     IncrStreamFactory incrStream = incrStreamStore.getPlugin();
     return incrStream.getIncrSync();
+  }
+
+  @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
+  public void doGetFlinkClusterList(Context context) throws Exception {
+    FlinkClusterTokenManager clusters = ServerLaunchToken.createFlinkClusterToken();
+
+    List<FlinkClusterPojo> allClusters = clusters.getAllClusters();
+    this.setBizResult(context, allClusters);
   }
 
   /**
