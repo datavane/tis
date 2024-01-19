@@ -40,7 +40,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -138,11 +144,19 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
 
     @Override
     public T find(String name, boolean throwNotFoundErr) {
-        List<T> plugins = this.getPlugins();
-        if (!IdentityName.class.isAssignableFrom(this.pluginClass)) {
-            throw new IllegalStateException(this.pluginClass + " can not find by name:" + name);
+        if (StringUtils.isEmpty(name)) {
+            throw new IllegalArgumentException("param of name can not be empty");
         }
+        List<T> plugins = this.getPlugins();
+//        if (!IdentityName.class.isAssignableFrom(this.pluginClass)) {
+//
+//        }
         for (T item : plugins) {
+
+            if (!(item instanceof IdentityName)) {
+                throw new IllegalStateException("item of " + item.getClass().getSimpleName()
+                        + " must be type of " + IdentityName.class.getSimpleName());
+            }
 
             if (StringUtils.equals(name, ((IdentityName) item).identityValue())) {
                 return item;

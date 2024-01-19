@@ -27,6 +27,7 @@ import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.coredefine.module.action.RcHpaStatus;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
+import com.qlangtech.tis.datax.job.ServerLaunchToken.FlinkClusterType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.TisUTF8;
@@ -68,7 +69,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     public static final String KEY_CPT_TYPE = "cptType";
 
     public static final TargetResName K8S_DATAX_INSTANCE_NAME = new TargetResName("datax-worker");
-    public static final TargetResName K8S_FLINK_CLUSTER_NAME = new TargetResName("flink-cluster");
+    public static final FlinkSessionResName K8S_FLINK_CLUSTER_NAME = new FlinkSessionResName();
 
     /**
      * 取得执行编排
@@ -129,7 +130,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
     public static void validateTargetName(String targetName) {
         if (K8S_DATAX_INSTANCE_NAME.getName().equals(targetName)
-                || K8S_FLINK_CLUSTER_NAME.getName().equals(targetName)) {
+                || K8S_FLINK_CLUSTER_NAME.match(targetName)) {
             return;
         }
         throw new IllegalArgumentException("targetName:" + targetName + " is illegal");
@@ -148,11 +149,13 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 //        return getJobWorker(K8S_DATAX_INSTANCE_NAME);
 //    }
 
-    public static DataXJobWorker getFlinkClusterWorker() {
-        return getJobWorker(K8S_FLINK_CLUSTER_NAME, Optional.empty());
-    }
+//    public static DataXJobWorker getFlinkClusterWorker() {
+//        return getJobWorker(K8S_FLINK_CLUSTER_NAME, Optional.empty());
+//    }
 
     public static DataXJobWorker getJobWorker(TargetResName resName) {
+
+        //ServerLaunchToken.createFlinkClusterToken()
         Optional<ServerLaunchToken> token = getLaunchToken(resName);
         Optional<K8SWorkerCptType> powerjobCptType = token.map((t) -> t.workerCptType);
         if (!powerjobCptType.isPresent()) {
@@ -169,7 +172,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
     public static DataXJobWorker getJobWorker(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType) {
 
-        if (!(resName.equalWithName(K8S_DATAX_INSTANCE_NAME.getName()) || resName.equalWithName(K8S_FLINK_CLUSTER_NAME.getName()))) {
+        if (!(resName.equalWithName(K8S_DATAX_INSTANCE_NAME.getName()) || K8S_FLINK_CLUSTER_NAME.match(resName))) {
             throw new IllegalStateException("illegal resName:" + resName);
         }
 
@@ -185,12 +188,12 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
 
     public static IPluginStore<DataXJobWorker> getFlinkKubernetesApplicationCfgStore() {
-        return DataXJobWorker.getJobWorkerStore(DataXJobWorker.K8S_FLINK_CLUSTER_NAME, Optional.of(K8SWorkerCptType.FlinkKubernetesApplicationCfg));
+        return DataXJobWorker.getJobWorkerStore(DataXJobWorker.K8S_FLINK_CLUSTER_NAME.group(), Optional.of(K8SWorkerCptType.FlinkKubernetesApplicationCfg));
     }
 
     public static IPluginStore<DataXJobWorker> getJobWorkerStore(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType) {
         if (!(resName.equalWithName(K8S_DATAX_INSTANCE_NAME.getName())
-                || resName.equalWithName(K8S_FLINK_CLUSTER_NAME.getName()))) {
+                || K8S_FLINK_CLUSTER_NAME.match(resName))) {
             throw new IllegalStateException("illegal resName:" + resName);
         }
         return TIS.getPluginStore(
@@ -307,6 +310,15 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     }
 
     private static Optional<ServerLaunchToken> getLaunchToken(TargetResName workerType, Optional<K8SWorkerCptType> cptType) {
+
+
+        if (DataXJobWorker.K8S_FLINK_CLUSTER_NAME.match(workerType)) {
+            ServerLaunchToken flinkClusterToken = ServerLaunchToken.createFlinkClusterToken().token(
+                    FlinkClusterType.K8SSession, DataXJobWorker.K8S_FLINK_CLUSTER_NAME.resName(workerType));
+            return Optional.ofNullable(flinkClusterToken.isLaunchTokenExist() ? flinkClusterToken : null);
+        }
+
+
         File parent = new File(TIS.pluginCfgRoot, GROUP_KEY_JOBWORKER);
         boolean launchTokenUseCptType = cptType.isPresent();
         File tokenFile = new File(parent,
@@ -383,8 +395,8 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 //
 //    public abstract String getZkQueuePath();
 
-    protected final <T extends K8sImage> T getK8SImage() {
-        T k8sImage = (T) K8sImage.getPluginStore(this.getK8SImageCategory())
+    protected <T extends K8sImage> T getK8SImage() {
+        T k8sImage = (T) this.getK8SImageCategory().getPluginStore() //(T) K8sImage.getPluginStore(this.getK8SImageCategory())
                 .find(Objects.requireNonNull(this.k8sImage, "k8sImage can not be null"));
         Objects.requireNonNull(k8sImage, "k8sImage:" + this.k8sImage + " can not be null");
         return k8sImage;
@@ -429,8 +441,8 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         ServerLaunchToken launchToken = this.getProcessTokenFile();
 
         launchToken.writeLaunchToken(() -> {
-            this.launchService(launchProcess);
-            return Optional.empty();
+            return this.launchService(launchProcess);
+            // return Optional.empty();
         });
         //  this.writeLaunchToken();
         launchProcess.afterLaunched();
@@ -439,7 +451,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     /**
      * 启动服务
      */
-    protected abstract void launchService(SSERunnable launchProcess);
+    protected abstract Optional<JSONObject> launchService(SSERunnable launchProcess);
 
 
     @Override
@@ -454,7 +466,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
             super();
             this.registerSelectOptions(KEY_FIELD_NAME, () -> {
 
-                IPluginStore pluginStore = K8sImage.getPluginStore(this.getK8SImageCategory());
+                IPluginStore pluginStore = this.getK8SImageCategory().getPluginStore();
                 // IPluginStore<K8sImage> images = TIS.getPluginStore(getK8SImageCfgClazz());
                 return pluginStore.getPlugins();
             });

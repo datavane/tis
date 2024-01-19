@@ -40,7 +40,7 @@ public class FlinkClusterPojo {
     private String k8sNamespace;
     private String k8sBasePath;
     private String k8sId;
-    private FlinkClusterType clusterType;
+    public FlinkClusterType clusterType;
     private long createTime;
 
     public long getCreateTime() {
@@ -55,8 +55,8 @@ public class FlinkClusterPojo {
         this.clusterType = clusterType;
     }
 
-    public FlinkClusterType getClusterType() {
-        return clusterType;
+    public String getClusterType() {
+        return clusterType.getToken();
     }
 
     public String getWebInterfaceURL() {

@@ -49,6 +49,7 @@ import com.qlangtech.tis.datax.job.DefaultSSERunnable;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
 import com.qlangtech.tis.datax.job.ServerLaunchToken;
+import com.qlangtech.tis.datax.job.ServerLaunchToken.FlinkClusterType;
 import com.qlangtech.tis.datax.job.SubJobResName;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
@@ -440,11 +441,11 @@ public class DataxAction extends BasicModule {
 //
 //    ;
 
-    JSONObject dataXWorker = new JSONObject();
+
 
     Optional<ServerLaunchToken> launchToken = DataXJobWorker.getLaunchToken(getK8SJobWorkerTargetName());
     ServerLaunchToken lt = launchToken.orElseThrow(() -> new IllegalStateException("launchToken must be present"));
-
+    JSONObject dataXWorker = new JSONObject();
 
     dataXWorker.put("usingPowderJobUseExistCluster", lt.workerCptType == K8SWorkerCptType.UsingExistCluster);
 
@@ -649,9 +650,19 @@ public class DataxAction extends BasicModule {
     getJobWoker(context, targetName);
   }
 
-  private void getJobWoker(Context context, TargetResName targetName) {
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
+  public void doGetFlinkSession(Context context) {
+    final TargetResName targetName = getK8SJobWorkerTargetName(false);
+    Optional<ServerLaunchToken> launchToken = Optional.of(ServerLaunchToken.createFlinkClusterToken().token(FlinkClusterType.K8SSession, targetName));
+    getJobWoker(context, targetName, launchToken);
+  }
 
-    Optional<ServerLaunchToken> launchToken = DataXJobWorker.getLaunchToken(targetName);
+  private void getJobWoker(Context context, TargetResName targetName) {
+    getJobWoker(context, targetName, DataXJobWorker.getLaunchToken(targetName));
+  }
+
+  private void getJobWoker(Context context, TargetResName targetName, Optional<ServerLaunchToken> launchToken) {
+
 
     DataXJobWorkerStatus jobWorkerStatus = new DataXJobWorkerStatus();
     if (!launchToken.isPresent()) {
@@ -671,8 +682,14 @@ public class DataxAction extends BasicModule {
   }
 
   private TargetResName getK8SJobWorkerTargetName() {
+    return getK8SJobWorkerTargetName(true);
+  }
+
+  private TargetResName getK8SJobWorkerTargetName(boolean validate) {
     final String targetName = this.getString(KEY_TARGET_NAME);
-    DataXJobWorker.validateTargetName(targetName);
+    if (validate) {
+      DataXJobWorker.validateTargetName(targetName);
+    }
     return new TargetResName(targetName);
   }
 

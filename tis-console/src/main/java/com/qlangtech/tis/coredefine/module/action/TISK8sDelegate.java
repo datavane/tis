@@ -96,8 +96,9 @@ public class TISK8sDelegate {
       throw new IllegalArgumentException("param indexName can not be null");
     }
     if (DataXJobWorker.K8S_DATAX_INSTANCE_NAME.getName().equals(indexName)
-      || DataXJobWorker.K8S_FLINK_CLUSTER_NAME.getName().equals(indexName)
+      || DataXJobWorker.K8S_FLINK_CLUSTER_NAME.match(indexName)
     ) {
+     // DataXJobWorker.getFlinkClusterWorker();
       DataXJobWorker dataxWorker = DataXJobWorker.getJobWorker(new TargetResName(indexName));
       this.incrSync = new AdapterRCController() {
         @Override

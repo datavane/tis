@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -161,8 +162,8 @@ public class TestServerLaunchToken extends TestCase {
         }
 
         @Override
-        protected void launchService(SSERunnable launchProcess) {
-
+        protected Optional<JSONObject> launchService(SSERunnable launchProcess) {
+            return null;
         }
     }
 }

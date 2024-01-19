@@ -118,7 +118,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         private ImageCategory imageCategory;
 
         public DockerImageHeteroEnum(ImageCategory imageCategory) {
-            super(K8sImage.class, KEY_K8S_IMAGES, KEY_K8S_IMAGES);
+            super(K8sImage.class, imageCategory.token, KEY_K8S_IMAGES);
             this.imageCategory = imageCategory;
         }
 
@@ -167,6 +167,29 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         }
     };
 
+    public static <T extends DataXJobWorker> T getFlinkK8SSessionCluster(String clusterId) {
+        return (T) K8S_SESSION_WORKER.getPluginStore(null
+                , UploadPluginMeta.parse(K8SWorkerCptType.FlinkCluster.token + ":"
+                        + UploadPluginMeta.KEY_REQUIRE + "," + DataxUtils.DATAX_NAME + "_" + clusterId)).getPlugin();
+    }
+
+    @TISExtension
+    public static final HeteroEnum<DataXJobWorker> K8S_SESSION_WORKER = new HeteroEnum<DataXJobWorker>(//
+            DataXJobWorker.class, //
+            K8SWorkerCptType.FlinkCluster.token, // },//
+            K8SWorkerCptType.FlinkCluster.name(), Selectable.Single, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+
+//            if (!pluginContext.isCollectionAware()) {
+//                throw new IllegalStateException("must be collection aware");
+//            }
+            return DataXJobWorker.getJobWorkerStore(
+                    new TargetResName(K8SWorkerCptType.FlinkCluster.token + "/" + pluginMeta.getDataXName())
+                    , Optional.of(K8SWorkerCptType.FlinkCluster));
+        }
+    };
+
     @TISExtension
     public static final HeteroEnum<DataXJobWorker> Flink_Kubernetes_Application_Cfg = new HeteroEnum<DataXJobWorker>(//
             DataXJobWorker.class, //
@@ -176,6 +199,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         public boolean isIdentityUnique() {
             return true;
         }
+
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
             return DataXJobWorker.getFlinkKubernetesApplicationCfgStore();

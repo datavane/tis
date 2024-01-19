@@ -29,7 +29,7 @@ import junit.framework.TestCase;
 public class TestK8sImage extends TestCase {
 
     public void testGetPluginStore() {
-        IPluginStore pluginStore = K8sImage.getPluginStore(K8sImage.ImageCategory.DEFAULT_POWERJOB_DESC_NAME);
+        IPluginStore pluginStore = K8sImage.ImageCategory.DEFAULT_POWERJOB_DESC_NAME.getPluginStore();
         Assert.assertNotNull(pluginStore);
     }
 }

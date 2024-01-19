@@ -50,7 +50,6 @@ import java.util.Objects;
 import java.util.Observable;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.function.Supplier;
 
 /**
  * 标记K8S K8SWorker 启动执行状态
@@ -194,34 +193,73 @@ public class ServerLaunchToken extends Observable implements Closeable {
 
         public final static String JSON_KEY_LAUNCH_TIME = "launchTime";
 
+        private List<FlinkClusterPojo> _clusters;
+
         final File flinkClusterParentDir = new File(Config.getMetaCfgDir(), K8SWorkerCptType.FlinkCluster.token);
 
         public ServerLaunchToken token(FlinkClusterType clusterType, TargetResName workerType) {
             return create(flinkClusterParentDir, new TargetResName(clusterType.token + workerType.getName()), false, K8SWorkerCptType.FlinkCluster);
         }
 
+        public void cleanCache() {
+            this._clusters = null;
+        }
+
         public List<FlinkClusterPojo> getAllClusters() throws Exception {
-            List<FlinkClusterPojo> result = Lists.newLinkedList();
-            FlinkClusterPojo c = null;
-            String[] clusters = flinkClusterParentDir.list();
-            JSONObject meta = null;
-            File clusterFile = null;
-            for (String cluster : clusters) {
-                clusterFile = new File(flinkClusterParentDir, cluster);
-                c = new FlinkClusterPojo();
-                meta = JSONObject.parseObject(FileUtils.readFileToString(clusterFile, TisUTF8.get()));
-                c.setClusterId(meta.getString(JSON_KEY_CLUSTER_ID));
-                c.setDataXName(meta.getString(JSON_KEY_APP_NAME));
-                c.setWebInterfaceURL(meta.getString(JSON_KEY_WEB_INTERFACE_URL));
-                c.setClusterType(FlinkClusterType.parse(meta.getString(JSON_KEY_CLUSTER_TYPE)));
-                c.setK8sNamespace(meta.getString(JSON_KEY_K8S_NAMESPACE));
-                c.setK8sBasePath(meta.getString(JSON_KEY_K8S_BASE_PATH));
-                c.setK8sId(meta.getString(JSON_KEY_K8S_ID));
-                c.setCreateTime(meta.getLongValue(JSON_KEY_LAUNCH_TIME));
-                result.add(c);
+
+            if (_clusters == null) {
+
+                _clusters = Lists.newLinkedList();
+                FlinkClusterPojo c = null;
+                String[] clusters = flinkClusterParentDir.list();
+                JSONObject meta = null;
+                File clusterFile = null;
+                for (String cluster : clusters) {
+                    clusterFile = new File(flinkClusterParentDir, cluster);
+                    try {
+                        c = new FlinkClusterPojo();
+                        try {
+                            meta = JSONObject.parseObject(FileUtils.readFileToString(clusterFile, TisUTF8.get()));
+                            if (meta == null) {
+                                continue;
+                            }
+                        } catch (Throwable e) {
+                            continue;
+                        }
+                        c.setClusterId(meta.getString(JSON_KEY_CLUSTER_ID));
+                        c.setDataXName(meta.getString(JSON_KEY_APP_NAME));
+                        c.setWebInterfaceURL(meta.getString(JSON_KEY_WEB_INTERFACE_URL));
+                        c.setClusterType(FlinkClusterType.parse(meta.getString(JSON_KEY_CLUSTER_TYPE)));
+                        c.setK8sNamespace(meta.getString(JSON_KEY_K8S_NAMESPACE));
+                        c.setK8sBasePath(meta.getString(JSON_KEY_K8S_BASE_PATH));
+                        c.setK8sId(meta.getString(JSON_KEY_K8S_ID));
+                        c.setCreateTime(meta.getLongValue(JSON_KEY_LAUNCH_TIME));
+                        _clusters.add(c);
+                    } catch (Exception e) {
+                        throw new RuntimeException(clusterFile.getAbsolutePath(), e);
+                    }
+                }
+
+            }
+            return _clusters;
+        }
+
+        public FlinkClusterPojo find(FlinkClusterType clusterType, String clusterId) {
+            if (StringUtils.isEmpty(clusterId)) {
+                throw new IllegalArgumentException("param clusterId can not be empty");
+            }
+            try {
+                for (FlinkClusterPojo cluster : getAllClusters()) {
+                    if (cluster.clusterType == Objects.requireNonNull(clusterType)
+                            && StringUtils.equals(cluster.getClusterId(), clusterId)) {
+                        return cluster;
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
 
-            return result;
+            return null;
         }
     }
 
@@ -310,7 +348,6 @@ public class ServerLaunchToken extends Observable implements Closeable {
     public K8SWorkerCptType getWorkerCptType() {
         return this.workerCptType;
     }
-
 
 
     /**

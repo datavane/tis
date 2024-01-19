@@ -30,8 +30,14 @@ import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
+import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
-import com.qlangtech.tis.plugin.*;
+import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IPluginStoreSave;
+import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.SetPluginsResult;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
@@ -44,7 +50,13 @@ import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.ServletActionContext;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -269,6 +281,17 @@ public class PluginItems {
     } else if (heteroEnum == HeteroEnum.K8S_FLINK_IMAGES) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.K8S_POWERJOB_IMAGES) {
+      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
+    } else if (heteroEnum == HeteroEnum.K8S_SESSION_WORKER) {
+      boolean hasSetDataXId = false;
+      for (Descriptor.ParseDescribable<?> plugin : dlist) {
+        pluginMeta.putExtraParams(DataxUtils.DATAX_NAME, ((IdentityName) plugin.getInstance()).identityValue());
+        hasSetDataXId = true;
+        break;
+      }
+      if (!hasSetDataXId) {
+        throw new IllegalStateException("has not set " + DataxUtils.DATAX_NAME);
+      }
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.DATAX_WORKER) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
