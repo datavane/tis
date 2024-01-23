@@ -30,18 +30,56 @@ import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionProxy;
 import com.opensymphony.xwork2.ActionSupport;
 import com.opensymphony.xwork2.config.entities.ActionConfig;
+import com.qlangtech.tis.assemble.ExecResult;
+import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.exec.ExecutePhaseRange;
+import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
-import com.qlangtech.tis.manage.biz.dal.dao.*;
-import com.qlangtech.tis.manage.biz.dal.pojo.*;
-import com.qlangtech.tis.manage.common.*;
+import com.qlangtech.tis.manage.biz.dal.dao.IAppTriggerJobRelationDAO;
+import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
+import com.qlangtech.tis.manage.biz.dal.dao.IBizFuncAuthorityDAO;
+import com.qlangtech.tis.manage.biz.dal.dao.IClusterSnapshotDAO;
+import com.qlangtech.tis.manage.biz.dal.dao.IDepartmentDAO;
+import com.qlangtech.tis.manage.biz.dal.dao.IFuncDAO;
+import com.qlangtech.tis.manage.biz.dal.dao.IFuncRoleRelationDAO;
+import com.qlangtech.tis.manage.biz.dal.dao.IGroupInfoDAO;
+import com.qlangtech.tis.manage.biz.dal.dao.IResourceParametersDAO;
+import com.qlangtech.tis.manage.biz.dal.dao.IRoleDAO;
+import com.qlangtech.tis.manage.biz.dal.dao.IServerGroupDAO;
+import com.qlangtech.tis.manage.biz.dal.dao.ISnapshotDAO;
+import com.qlangtech.tis.manage.biz.dal.dao.ISnapshotViewDAO;
+import com.qlangtech.tis.manage.biz.dal.dao.IUploadResourceDAO;
+import com.qlangtech.tis.manage.biz.dal.dao.IUsrDptRelationDAO;
+import com.qlangtech.tis.manage.biz.dal.pojo.Application;
+import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
+import com.qlangtech.tis.manage.biz.dal.pojo.Department;
+import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup;
+import com.qlangtech.tis.manage.biz.dal.pojo.Snapshot;
+import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelation;
+import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria;
+import com.qlangtech.tis.manage.common.AppDomainInfo;
+import com.qlangtech.tis.manage.common.CheckAppDomainExistValve;
+import com.qlangtech.tis.manage.common.CreateNewTaskResult;
+import com.qlangtech.tis.manage.common.IUser;
+import com.qlangtech.tis.manage.common.ManageUtils;
+import com.qlangtech.tis.manage.common.MockContext;
+import com.qlangtech.tis.manage.common.Module;
+import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.common.RunContext;
+import com.qlangtech.tis.manage.common.RunContextGetter;
+import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.manage.common.UserUtils;
 import com.qlangtech.tis.manage.common.apps.AppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
+import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -55,9 +93,11 @@ import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IERRulesGetter;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import junit.framework.Assert;
 import org.apache.commons.io.IOUtils;
@@ -74,7 +114,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 //import org.apache.solr.common.cloud.ClusterState;
@@ -1045,6 +1094,10 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return getDaoContext().getRoleDAO();
   }
 
+  protected final IWorkFlowBuildHistoryDAO getHistoryDAO() {
+    return this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();
+  }
+
   @Override
   public IWorkflowDAOFacade getWorkflowDAOFacade() {
     return getDaoContext().getWorkflowDAOFacade();
@@ -1239,5 +1292,53 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     public List<?> getRows() {
       return rows;
     }
+  }
+
+  @Override
+  public CreateNewTaskResult createNewDataXTask(IExecChainContext chainContext, TriggerType triggerType) {
+    // final TriggerType triggerType = TriggerType.parse(this.getInt(IFullBuildContext.KEY_TRIGGER_TYPE));
+    Application app = null;
+    ExecutePhaseRange executeRanage = chainContext.getExecutePhaseRange();
+   ;
+    // appname 可以为空
+    // String appname = this.getString(IFullBuildContext.KEY_APP_NAME);
+    // Integer workflowId = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID, null, false);
+    String appname = chainContext.getIndexName();
+    if (StringUtils.isNotBlank(appname)) {
+      app = this.getApplicationDAO().selectByName(appname);
+      if (app == null) {
+        throw new IllegalStateException("appname:" + appname + " relevant app pojo is not exist");
+      }
+    }
+    Integer workflowId =   chainContext.getWorkflowId();
+    WorkFlowBuildHistory task = new WorkFlowBuildHistory();
+    task.setCreateTime(new Date());
+    task.setStartTime(new Date());
+    task.setWorkFlowId(workflowId);
+    task.setTriggerType(triggerType.getValue());
+    task.setState((byte) ExecResult.DOING.getValue());
+    // Integer buildHistoryId = null;
+    // 从什么阶段开始执行
+    FullbuildPhase fromPhase = executeRanage.getStart();// FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getValue()));
+    FullbuildPhase endPhase = executeRanage.getEnd();// FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END, FullbuildPhase.IndexBackFlow.getValue()));
+    if (app == null) {
+      if (endPhase.bigThan(FullbuildPhase.JOIN)) {
+        endPhase = FullbuildPhase.JOIN;
+      }
+    }
+    if (fromPhase.getValue() > FullbuildPhase.FullDump.getValue()) {
+      // 如果是从非第一步开始执行的话，需要客户端提供依赖的history记录id
+      task.setHistoryId(this.getInt(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID));
+    }
+    // 说明只有workflow的流程和索引没有关系，所以不可能执行到索引build阶段去
+    // task.setEndPhase((app == null) ? FullbuildPhase.JOIN.getValue() : FullbuildPhase.IndexBackFlow.getValue());
+    task.setEndPhase(endPhase.getValue());
+    task.setStartPhase(fromPhase.getValue());
+    if (app != null) {
+      task.setAppId(app.getAppId());
+      task.setAppName(app.getProjectName());
+    }
+    // 生成一个新的taskid
+    return new CreateNewTaskResult(getHistoryDAO().insertSelective(task), app);
   }
 }

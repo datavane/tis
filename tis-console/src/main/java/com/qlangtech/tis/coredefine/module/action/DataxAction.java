@@ -137,6 +137,14 @@ public class DataxAction extends BasicModule {
   private static final String PARAM_KEY_DATAX_NAME = DataxUtils.DATAX_NAME;
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doDeletePowerJobWorkflow(Context context) throws Exception {
+    Long pjWorkflowId = this.getLong("id");
+    Optional<IDataXPowerJobSubmit> powerJobSubmit = DataXJobSubmit.getPowerJobSubmit();
+    IDataXPowerJobSubmit jobSubmit = powerJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must be present"));
+    jobSubmit.deleteWorkflow(this, context, pjWorkflowId);
+  }
+
+  @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doGetAllPowerjobWorkflowRecord(Context context) throws Exception {
 
     // Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit.getDataXTriggerType());
@@ -442,7 +450,6 @@ public class DataxAction extends BasicModule {
 //    ;
 
 
-
     Optional<ServerLaunchToken> launchToken = DataXJobWorker.getLaunchToken(getK8SJobWorkerTargetName());
     ServerLaunchToken lt = launchToken.orElseThrow(() -> new IllegalStateException("launchToken must be present"));
     JSONObject dataXWorker = new JSONObject();
@@ -502,7 +509,8 @@ public class DataxAction extends BasicModule {
       HttpServletResponse response = getEventStreamResponse();
       this.launchDataxWorker(context, response, dataxJobWorker, DataXJobWorker.getOrchestrate(dataxJobWorker));
     } else {
-      throw new NotImplementedException("to do for " + K8SWorkerCptType.UsingExistCluster);
+      throw new NotImplementedException("to do for " + K8SWorkerCptType.UsingExistCluster
+        + ",worker:" + dataxJobWorker.getClass().getName());
     }
   }
 

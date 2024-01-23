@@ -34,6 +34,16 @@ import java.util.Map;
  * @date 2023/11/29
  */
 public interface IDataXPowerJobSubmit {
+
+    /**
+     * 删除PowerJob工作流
+     *
+     * @param module
+     * @param context
+     * @param wfId
+     */
+    public void deleteWorkflow(IControlMsgHandler module, final Context context, Long wfId);
+
     /**
      * 创建任务, 例如此处可以初始化powerjob的workflow实例
      *

@@ -34,7 +34,12 @@ import org.easymock.EasyMock;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -53,11 +58,12 @@ public class TestIncrTagHeatBeatMonitor extends TestCase {
   // System.out.println(  String.format("hell%d",1) );
   // }
   public void testBuild() throws Exception {
-    String resName = "collection_TopicTags_status_%d.json";
+    final String resName = "collection_TopicTags_status_%d.json";
     AtomicInteger resFetchCount = new AtomicInteger();
     HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker() {
       @Override
-      protected MockHttpURLConnection createConnection(URL url, List<ConfigFileContext.Header> heads, ConfigFileContext.HTTPMethod method
+      protected MockHttpURLConnection createConnection(//
+        URL url, List<ConfigFileContext.Header> heads, ConfigFileContext.HTTPMethod method
         , byte[] content, HttpUtils.IClasspathRes cpRes) {
         String res = String.format(resName, resFetchCount.incrementAndGet());
         try {
@@ -109,12 +115,12 @@ public class TestIncrTagHeatBeatMonitor extends TestCase {
     TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
     MockWebSocketMessagePush wsMessagePush = new MockWebSocketMessagePush();
     MockMQConsumerStatus mqConsumerStatus = new MockMQConsumerStatus();
-//    IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(
-//      this.collectionName, wsMessagePush, transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, mqConsumerStatus, zookeeper);
+    IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(
+      this.collectionName, wsMessagePush, transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, mqConsumerStatus, zookeeper);
 
     EasyMock.replay(zookeeper, coordinator);
 
-    //incrTagHeatBeatMonitor.build();
+    incrTagHeatBeatMonitor.build();
     assertEquals(6, wsMessagePush.count);
 
     EasyMock.verify(zookeeper, coordinator);

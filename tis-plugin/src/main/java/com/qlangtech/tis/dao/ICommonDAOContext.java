@@ -18,7 +18,10 @@
 
 package com.qlangtech.tis.dao;
 
+import com.qlangtech.tis.assemble.TriggerType;
+import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
+import com.qlangtech.tis.manage.common.CreateNewTaskResult;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
@@ -31,6 +34,16 @@ public interface ICommonDAOContext {
     public IApplicationDAO getApplicationDAO();
 
     public IWorkflowDAOFacade getWorkflowDAOFacade();
+
+    /**
+     * reference: IExecChainContext.createNewTask(
+     * chainContext, workflowInstanceIdOpt.isPresent() ? TriggerType.CRONTAB : TriggerType.MANUAL);
+     *
+     * @param chainContext
+     * @param triggerType
+     * @return
+     */
+    public CreateNewTaskResult createNewDataXTask(IExecChainContext chainContext, TriggerType triggerType);
 
     default IWorkFlowBuildHistoryDAO getTaskBuildHistoryDAO() {
         return this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();

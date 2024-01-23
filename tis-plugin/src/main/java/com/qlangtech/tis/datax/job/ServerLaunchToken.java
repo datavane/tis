@@ -44,6 +44,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -106,7 +107,9 @@ public class ServerLaunchToken extends Observable implements Closeable {
     public ServerLaunchLog buildWALLog(List<ExecuteStep> executeSteps) {
         ServerLaunchLog k8SLaunching = new ServerLaunchLog(this.isLaunchingTokenExist());
         k8SLaunching.setExecuteSteps(executeSteps);
+
         if (!this.isLaunchingTokenExist()) {
+            k8SLaunching.setMilestones(Collections.emptyList());
             return k8SLaunching;
         }
 

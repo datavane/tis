@@ -38,11 +38,11 @@ import java.util.Map;
  */
 public enum JobType {
 
-    IndexJobRunning(1, "JobRunning");
+    IndexJobRunning(1, "JobRunning"),
 //    //
 //    QueryIndexJobRunningStatus(2, "QueryIncrStatus"),
 //    // incr process tags的状态
-//    Collection_TopicTags_status(3, "collection_topic_tags_status"),
+    Collection_TopicTags_status(3, "collection_topic_tags_status");
 //    // 取得增量监听的tags
 //    ACTION_getTopicTags(4, "get_topic_tags");
 

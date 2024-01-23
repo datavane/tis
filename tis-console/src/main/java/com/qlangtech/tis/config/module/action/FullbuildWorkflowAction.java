@@ -23,6 +23,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
+import com.qlangtech.tis.exec.DefaultExecContext;
+import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.PermissionConstant;
@@ -33,7 +35,6 @@ import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
-import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
 import org.apache.commons.lang.StringUtils;
@@ -61,9 +62,9 @@ public class FullbuildWorkflowAction extends BasicModule {
   /**
    * 接收Powerjob发送过来的初始化触发任务，主要目标在TIS中进行必要的初始化工作
    *
-   * @see com.qlangtech.tis.coredefine.module.action.DataxAction
-   *  @see OfflineDatasourceAction
    * @param context
+   * @see com.qlangtech.tis.coredefine.module.action.DataxAction
+   * @see OfflineDatasourceAction
    */
   public void doInitializeTriggerTask(Context context) {
     // 校验参数必须有
@@ -90,43 +91,52 @@ public class FullbuildWorkflowAction extends BasicModule {
     String appname = this.getString(IFullBuildContext.KEY_APP_NAME);
     Integer workflowId = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID, null, false);
 
-    if (StringUtils.isNotBlank(appname)) {
-      app = this.getApplicationDAO().selectByName(appname);
-      if (app == null) {
-        throw new IllegalStateException("appname:" + appname + " relevant app pojo is not exist");
-      }
-    }
+    DefaultExecContext execContext = new DefaultExecContext(appname, 0l);
+    execContext.setWorkflowId(workflowId);
 
-    WorkFlowBuildHistory task = new WorkFlowBuildHistory();
-    task.setCreateTime(new Date());
-    task.setStartTime(new Date());
-    task.setWorkFlowId(workflowId);
-    task.setTriggerType(triggerType.getValue());
-    task.setState((byte) ExecResult.DOING.getValue());
-    // Integer buildHistoryId = null;
-    // 从什么阶段开始执行
-    FullbuildPhase fromPhase = FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getValue()));
-    FullbuildPhase endPhase = FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END, FullbuildPhase.IndexBackFlow.getValue()));
-    if (app == null) {
-      if (endPhase.bigThan(FullbuildPhase.JOIN)) {
-        endPhase = FullbuildPhase.JOIN;
-      }
-    }
-    if (fromPhase.getValue() > FullbuildPhase.FullDump.getValue()) {
-      // 如果是从非第一步开始执行的话，需要客户端提供依赖的history记录id
-      task.setHistoryId(this.getInt(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID));
-    }
-    // 说明只有workflow的流程和索引没有关系，所以不可能执行到索引build阶段去
-    // task.setEndPhase((app == null) ? FullbuildPhase.JOIN.getValue() : FullbuildPhase.IndexBackFlow.getValue());
-    task.setEndPhase(endPhase.getValue());
-    task.setStartPhase(fromPhase.getValue());
-    if (app != null) {
-      task.setAppId(app.getAppId());
-      task.setAppName(app.getProjectName());
-    }
+    execContext.setExecutePhaseRange(new ExecutePhaseRange(
+      FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getValue()))
+      , FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END, FullbuildPhase.IndexBackFlow.getValue()))));
+    CreateNewTaskResult newTaskResult = this.createNewDataXTask(execContext, triggerType);
+
+//    if (StringUtils.isNotBlank(appname)) {
+//      app = this.getApplicationDAO().selectByName(appname);
+//      if (app == null) {
+//        throw new IllegalStateException("appname:" + appname + " relevant app pojo is not exist");
+//      }
+//    }
+//
+//    WorkFlowBuildHistory task = new WorkFlowBuildHistory();
+//    task.setCreateTime(new Date());
+//    task.setStartTime(new Date());
+//    task.setWorkFlowId(workflowId);
+//    task.setTriggerType(triggerType.getValue());
+//    task.setState((byte) ExecResult.DOING.getValue());
+//    // Integer buildHistoryId = null;
+//    // 从什么阶段开始执行
+//    FullbuildPhase fromPhase = FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getValue()));
+//    FullbuildPhase endPhase = FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END, FullbuildPhase.IndexBackFlow.getValue()));
+//    if (app == null) {
+//      if (endPhase.bigThan(FullbuildPhase.JOIN)) {
+//        endPhase = FullbuildPhase.JOIN;
+//      }
+//    }
+//    if (fromPhase.getValue() > FullbuildPhase.FullDump.getValue()) {
+//      // 如果是从非第一步开始执行的话，需要客户端提供依赖的history记录id
+//      task.setHistoryId(this.getInt(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID));
+//    }
+//    // 说明只有workflow的流程和索引没有关系，所以不可能执行到索引build阶段去
+//    // task.setEndPhase((app == null) ? FullbuildPhase.JOIN.getValue() : FullbuildPhase.IndexBackFlow.getValue());
+//    task.setEndPhase(endPhase.getValue());
+//    task.setStartPhase(fromPhase.getValue());
+//    if (app != null) {
+//      task.setAppId(app.getAppId());
+//      task.setAppName(app.getProjectName());
+//    }
     // 生成一个新的taskid
-    this.setBizResult(context, new CreateNewTaskResult(getHistoryDAO().insertSelective(task), app));
+    this.setBizResult(context, newTaskResult);
   }
+
 
   /**
    * 取得最近一次成功执行的workflowhistory
@@ -311,9 +321,6 @@ public class FullbuildWorkflowAction extends BasicModule {
     return history;
   }
 
-  protected IWorkFlowBuildHistoryDAO getHistoryDAO() {
-    return this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();
-  }
 
 //  private DatasourceTable getTable(String tabName) {
 //    DatasourceTableCriteria query = new DatasourceTableCriteria();

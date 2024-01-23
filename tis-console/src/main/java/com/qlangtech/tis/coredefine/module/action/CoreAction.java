@@ -58,6 +58,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup;
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.SnapshotCriteria;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
 import com.qlangtech.tis.manage.common.ManageUtils;
@@ -136,6 +137,17 @@ public class CoreAction extends BasicModule {
 
   public static final String CREATE_CORE_SELECT_COREINFO = "selectCoreinfo";
 
+  public static String getAssembleNodeAddress(ITISCoordinator coordinator) {
+    // 增量状态收集节点
+//    final String incrStateCollectAddress =
+//      ZkUtils.getFirstChildValue(
+//        coordinator,
+//        ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
+//        true);
+    return Config.getAssembleHttpHost();
+//    "http://" + StringUtils.substringBefore(incrStateCollectAddress, ":")
+//      + ":8080" + Config.CONTEXT_ASSEMBLE;
+  }
 
   /**
    * @param context

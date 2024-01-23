@@ -65,6 +65,7 @@ public interface IEndTypeGetter {
         , SqlServer("sqlServer", true), TiDB("TiDB", true) //
         , RocketMQ("rocketMq", true), Kafka("kafka", true), DataFlow("dataflow") //
         , DaMeng("daMeng"), AliyunODPS("aliyunOdps"), HiveMetaStore("hms", true) //
+        , Spark("spark", true) //
         , RabbitMQ("rabbitmq"), UnKnowStoreType("unknowStoreType", true);
         private final String val;
         private final boolean containICON;

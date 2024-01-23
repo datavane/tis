@@ -20,6 +20,8 @@ package com.qlangtech.tis.datax;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.pubhook.common.RunEnvironment;
 
 import java.io.File;
 import java.util.List;
@@ -31,6 +33,28 @@ import java.util.function.Supplier;
  * @see DataXJobSubmit 运行时可以修改运行所依赖的参数
  */
 public interface DataXJobRunEnvironmentParamsSetter {
+
+    public static void main(String[] args) {
+        System.out.println(createSysPramsSuppiler().serialize());
+    }
+
+    public static DataXJobRunEnvironmentParamsSetter.ExtraJavaSystemPramsSuppiler createSysPramsSuppiler() {
+        DataXJobRunEnvironmentParamsSetter.ExtraJavaSystemPramsSuppiler systemPramsSuppiler =
+                new DataXJobRunEnvironmentParamsSetter.ExtraJavaSystemPramsSuppiler() {
+                    @Override
+                    public List<String> get() {
+                        List<String> params = Lists.newArrayList(super.get());
+                        params.add("-D" + Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS + "=true");
+                        params.add("-D" + Config.KEY_ASSEMBLE_HOST + "=" + Config.getAssembleHost());
+                        params.add("-D" + Config.KEY_TIS_HOST + "=" + Config.getTisHost());
+                        params.add("-D" + Config.KEY_RUNTIME + "=" + RunEnvironment.getSysRuntime().getKeyName());
+                        //  params.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=50005");
+                        return params;
+                    }
+                };
+        return systemPramsSuppiler;
+    }
+
     public void setClasspath(String classpath);
 
     public void setWorkingDirectory(File workingDirectory);
@@ -38,6 +62,11 @@ public interface DataXJobRunEnvironmentParamsSetter {
     public void setExtraJavaSystemPramsSuppiler(ExtraJavaSystemPramsSuppiler extraJavaSystemPramsSuppiler);
 
     public static class ExtraJavaSystemPramsSuppiler implements Supplier<List<String>> {
+
+        public String serialize() {
+            return String.join(" ", this.get());
+        }
+
         @Override
         public List<String> get() {
             return Lists.newArrayList("-D" + CenterResource.KEY_notFetchFromCenterRepository + "=true");
