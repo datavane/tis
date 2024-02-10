@@ -30,6 +30,7 @@ import com.qlangtech.tis.datax.job.DataXJobWorker.K8SWorkerCptType;
 import com.qlangtech.tis.datax.job.DefaultSSERunnable.SubJobLog;
 import com.qlangtech.tis.datax.job.DefaultSSERunnable.k8SLaunching;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
+import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteSteps;
 import com.qlangtech.tis.datax.job.SSERunnable.SSEEventType;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
 import com.qlangtech.tis.trigger.jst.ILogListener;
@@ -93,7 +94,8 @@ public class TestServerLaunchToken extends TestCase {
         executeSteps.add(new ExecuteStep(new DefaultSubJobResName("subJobRes"), "desc info"));
         TestDataXJobWorker jobWorker = new TestDataXJobWorker();
         StringWriter writer = new StringWriter();
-        DefaultSSERunnable sseRunnable = new DefaultSSERunnable(new PrintWriter(writer), jobWorker, executeSteps, () -> {
+
+        DefaultSSERunnable sseRunnable = new DefaultSSERunnable(new PrintWriter(writer), new ExecuteSteps(jobWorker, executeSteps), () -> {
 
         });
 

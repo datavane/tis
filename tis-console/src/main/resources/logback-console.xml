@@ -29,6 +29,11 @@
 		</layout>
 	</appender>
 
+  <!--收集客户端 EventSource发起请求，服务端执行生成的日志信息-->
+  <appender name="wpCollector" class="com.qlangtech.tis.logger.WaittingProcessCollectorAppender">
+  </appender>
+
+
 
 	<appender name="executeactionappender"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -57,18 +62,18 @@
 		</encoder>
 	</appender>
 
-	<appender name="zookeeper"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<File>${log.dir}/zookeeper.log</File>
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-zookeeper.log
-			</fileNamePattern>
-			<maxHistory>15</maxHistory>
-		</rollingPolicy>
-		<encoder>
-			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{35}- %msg%n]]></pattern>
-		</encoder>
-	</appender>
+<!--	<appender name="zookeeper"-->
+<!--		class="ch.qos.logback.core.rolling.RollingFileAppender">-->
+<!--		<File>${log.dir}/zookeeper.log</File>-->
+<!--		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">-->
+<!--			<fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-zookeeper.log-->
+<!--			</fileNamePattern>-->
+<!--			<maxHistory>15</maxHistory>-->
+<!--		</rollingPolicy>-->
+<!--		<encoder>-->
+<!--			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{35}- %msg%n]]></pattern>-->
+<!--		</encoder>-->
+<!--	</appender>-->
 
 	<logger name="executeaction">
 		<level value="INFO" />
@@ -80,16 +85,17 @@
 		<appender-ref ref="console" />
 	</logger>
 	 -->
-	<logger name="org.apache.solr.common.cloud.ConnectionManager">
-		<level value="INFO" />
-		<appender-ref ref="zookeeper" />
-	</logger>
+<!--	<logger name="org.apache.solr.common.cloud.ConnectionManager">-->
+<!--		<level value="INFO" />-->
+<!--		<appender-ref ref="zookeeper" />-->
+<!--	</logger>-->
 
 
 	<root>
 		<level value="INFO" />
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="console" />
+    <appender-ref ref="wpCollector" />
 	</root>
 
 </configuration>

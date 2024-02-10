@@ -39,9 +39,14 @@ import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.datax.job.DefaultSSERunnable;
 import com.qlangtech.tis.datax.job.FlinkClusterPojo;
+import com.qlangtech.tis.datax.job.ILaunchingOrchestrate;
+import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
+import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteSteps;
 import com.qlangtech.tis.datax.job.ServerLaunchToken;
 import com.qlangtech.tis.datax.job.ServerLaunchToken.FlinkClusterTokenManager;
+import com.qlangtech.tis.datax.job.SubJobResName;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.job.common.JobCommon;
@@ -571,43 +576,163 @@ public class CoreAction extends BasicModule {
    */
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doDeployIncrSyncChannal(Context context) throws Exception {
-    // 先进行打包编译
-    StringBuffer logger = new StringBuffer("flink sync app:" + this.getCollectionName());
-    try {
-      TISK8sDelegate k8sClient = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
-      k8sClient.checkUseable();
+
+    TISK8sDelegate k8sClient = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
+    k8sClient.checkUseable();
+
+    ILaunchingOrchestrate<FlinkJobDeployDTO> orchestrate = getFlinkJobWorkingOrchestrate();
+    final ExecuteSteps executeSteps = orchestrate.createExecuteSteps(this);
+    DefaultSSERunnable launchProcess = new DefaultSSERunnable(this, executeSteps, () -> {
+      try {
+        Thread.sleep(4000l);
+      } catch (InterruptedException e) {
+      }
+    }) {
+      @Override
+      public void afterLaunched() {
+        addActionMessage(context, "已经成功启动Flink增量实例");
+      }
+    };
+
+    IncrStreamFactory streamFactory = IncrStreamFactory.getFactory(this.getCollectionName());
+    final ServerLaunchToken incrLaunchToken = ServerLaunchToken.createFlinkClusterToken().token(
+      streamFactory.getClusterType(), new TargetResName(this.getCollectionName()));
+    DefaultSSERunnable.execute(launchProcess, false
+      , incrLaunchToken, () -> {
+        incrLaunchToken.writeLaunchToken(() -> {
+
+          // return this.launchService(launchProcess);
+
+          for (ExecuteStep execStep : executeSteps.getExecuteSteps()) {
+            execStep.getSubJob().execSubJob(new FlinkJobDeployDTO(context, k8sClient));
+          }
+
+          return Optional.empty();
+        });
+        //  this.writeLaunchToken();
+        launchProcess.afterLaunched();
+      });
+
+
+    //=====================================================
+//    // 先进行打包编译
+//    StringBuffer logger = new StringBuffer("flink sync app:" + this.getCollectionName());
+//    try {
+//
+//      long start = System.currentTimeMillis();
+//      /**
+//       * ==========================================================
+//       * compile&deploy
+//       * ==========================================================
+//       */
+//      this.doCompileAndPackage(context);
+//      if (context.hasErrors()) {
+//        return;
+//      }
+//      logger.append("\n compile and package consume:" + (System.currentTimeMillis() - start) + "ms ");
+//      // 编译并且打包
+//      IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
+//
+//      // 将打包好的构建，发布到k8s集群中去
+//      // https://github.com/kubernetes-client/java
+//
+//      start = System.currentTimeMillis();
+//      /**
+//       * ==========================================================
+//       * 通过k8s发布
+//       * ==========================================================
+//       */
+//      k8sClient.deploy(null, indexStreamCodeGenerator.getIncrScriptTimestamp());
+//      logger.append("\n deploy to flink cluster consume:" + (System.currentTimeMillis() - start) + "ms ");
+      IndexIncrStatus incrStatus = new IndexIncrStatus();
+      this.setBizResult(context, incrStatus);
+//    } catch (Exception ex) {
+//     // logger.append("an error occur:" + ex.getMessage());
+//      throw TisException.create(ex.getMessage(), ex);
+//    } finally {
+//      //log.info(logger.toString());
+//    }
+  }
+
+  private ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobWorkingOrchestrate() {
+
+    final SubJobResName<FlinkJobDeployDTO> compileAndPackage
+      = new SubJobResName<FlinkJobDeployDTO>("compile-package", (dto) -> {
       long start = System.currentTimeMillis();
       /**
        * ==========================================================
        * compile&deploy
        * ==========================================================
        */
-      this.doCompileAndPackage(context);
-      if (context.hasErrors()) {
+      this.doCompileAndPackage(dto.context);
+      if (dto.hasErrors()) {
         return;
       }
-      logger.append("\n compile and package consume:" + (System.currentTimeMillis() - start) + "ms ");
-      // 编译并且打包
+      dto.appendLog("\n compile and package consume:" + (System.currentTimeMillis() - start) + "ms ");
+    }) {
+      @Override
+      protected String getResourceType() {
+        return "Incr " + getCollectionName() + " Compile And Package";
+      }
+    };
+
+    final SubJobResName<FlinkJobDeployDTO> deploy
+      = new SubJobResName<FlinkJobDeployDTO>("deploy", (dto) -> {
+
       IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
 
       // 将打包好的构建，发布到k8s集群中去
       // https://github.com/kubernetes-client/java
 
-      start = System.currentTimeMillis();
+      long start = System.currentTimeMillis();
       /**
        * ==========================================================
        * 通过k8s发布
        * ==========================================================
        */
-      k8sClient.deploy(null, indexStreamCodeGenerator.getIncrScriptTimestamp());
-      logger.append("\n deploy to flink cluster consume:" + (System.currentTimeMillis() - start) + "ms ");
-      IndexIncrStatus incrStatus = new IndexIncrStatus();
-      this.setBizResult(context, incrStatus);
-    } catch (Exception ex) {
-      logger.append("an error occur:" + ex.getMessage());
-      throw TisException.create(ex.getMessage(), ex);
-    } finally {
-      log.info(logger.toString());
+      dto.k8sClient.deploy(null, indexStreamCodeGenerator.getIncrScriptTimestamp());
+      dto.appendLog("\n deploy to flink cluster consume:" + (System.currentTimeMillis() - start) + "ms ");
+
+    }) {
+      @Override
+      protected String getResourceType() {
+        return "Incr " + getCollectionName() + " Deploy";
+      }
+    };
+
+    final SubJobResName[] flinkDeployRes //
+      = new SubJobResName[]{
+      compileAndPackage, deploy
+    };
+
+    return new ILaunchingOrchestrate() {
+      @Override
+      public List<ExecuteStep<FlinkJobDeployDTO>> getExecuteSteps() {
+        List<ExecuteStep<FlinkJobDeployDTO>> launchSteps = Lists.newArrayList();
+        for (SubJobResName rcRes : flinkDeployRes) {
+          launchSteps.add(new ExecuteStep(rcRes, null));
+        }
+        return launchSteps;
+      }
+    };
+  }
+
+  private class FlinkJobDeployDTO {
+    private final Context context;
+    private final TISK8sDelegate k8sClient;
+    private final StringBuffer logger = new StringBuffer("flink sync app:" + getCollectionName());
+
+    public FlinkJobDeployDTO(Context context, TISK8sDelegate k8sClient) {
+      this.context = context;
+      this.k8sClient = k8sClient;
+    }
+
+    public boolean hasErrors() {
+      return context.hasErrors();
+    }
+
+    public void appendLog(String loggerMsg) {
+      logger.append(loggerMsg);
     }
   }
 

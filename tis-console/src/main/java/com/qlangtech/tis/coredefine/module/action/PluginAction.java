@@ -675,7 +675,7 @@ public class PluginAction extends BasicModule {
   }
 
   public Predicate<UpdateSite.Plugin> getEndTypeMatcher() {
-    final String endType = this.getString(IEndTypeGetter.KEY_END_TYPE);
+    final String endType = this.getString(IEndTypeGetter.EndType.KEY_END_TYPE);
     return (plugin) -> {
       if (StringUtils.isEmpty(endType)) {
         // 需要，将会收集

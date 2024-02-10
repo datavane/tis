@@ -45,6 +45,8 @@ import com.qlangtech.tis.workflow.pojo.IWorkflow;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.util.Enumeration;
@@ -61,6 +63,7 @@ import java.util.function.Function;
 @TISExtensible
 @Public
 public abstract class DataXJobSubmit {
+    private static final Logger logger = LoggerFactory.getLogger(DataXJobSubmit.class);
     public static final String KEY_DATAX_READERS = "dataX_readers";
     public static final int MAX_TABS_NUM_IN_PER_JOB = 40;
 
@@ -101,6 +104,8 @@ public abstract class DataXJobSubmit {
 
     public static Optional<IDataXPowerJobSubmit> getPowerJobSubmit() {
         DataXJobSubmit dataXJobSubmit = getDataXJobSubmit();
+        logger.info("get dataXJobSubmit instanceof :" + dataXJobSubmit.getClass().getName()
+                + ",triggerType:" + DataXJobSubmit.getDataXTriggerType());
 
         if (dataXJobSubmit instanceof IDataXPowerJobSubmit) {
             return Optional.of((IDataXPowerJobSubmit) dataXJobSubmit);

@@ -22,6 +22,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.PrintWriter;
+
 /**
  * 支持json post处理
  *
@@ -50,5 +52,10 @@ public class DelegateControl4JsonPostMsgHandler extends BasicDelegateMsgHandler 
     @Override
     public boolean getBoolean(String key) {
         return postData.getBoolean(key);
+    }
+
+    @Override
+    public PrintWriter getEventStreamWriter() {
+        throw new UnsupportedOperationException();
     }
 }

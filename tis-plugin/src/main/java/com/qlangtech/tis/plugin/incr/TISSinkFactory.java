@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.incr;
 
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
+import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.compiler.incr.ICompileAndPackage;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxProcessor;
@@ -48,6 +49,7 @@ import java.util.function.Function;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-09-29 10:50
+ * @see MQListenerFactory
  **/
 @Public
 public abstract class TISSinkFactory implements Describable<TISSinkFactory>, KeyedPluginStore.IPluginKeyAware {
@@ -155,6 +157,7 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
         public Map<String, Object> getExtractProps() {
             Map<String, Object> vals = super.getExtractProps();
             EndType targetType = this.getTargetType();
+            this.getEndType().appendProps(vals);
             vals.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.getVal());
             vals.put(ISelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP
                     , (this instanceof ISelectedTabExtendFactory)

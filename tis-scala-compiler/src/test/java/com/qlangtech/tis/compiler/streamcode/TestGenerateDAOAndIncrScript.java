@@ -27,6 +27,7 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import junit.framework.TestCase;
 
+import java.io.PrintWriter;
 import java.util.Map;
 
 /**
@@ -81,6 +82,11 @@ public class TestGenerateDAOAndIncrScript extends TestCase {
     private static class DefaultMessageHandler implements IControlMsgHandler {
 
         @Override
+        public PrintWriter getEventStreamWriter() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
             throw new UnsupportedOperationException();
         }
@@ -119,5 +125,6 @@ public class TestGenerateDAOAndIncrScript extends TestCase {
         @Override
         public void addErrorMessage(Context context, String msg) {
         }
+
     }
 }

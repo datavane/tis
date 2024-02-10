@@ -48,6 +48,7 @@ import com.qlangtech.tis.datax.job.DataXJobWorker.K8SWorkerCptType;
 import com.qlangtech.tis.datax.job.DefaultSSERunnable;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
+import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteSteps;
 import com.qlangtech.tis.datax.job.ServerLaunchToken;
 import com.qlangtech.tis.datax.job.ServerLaunchToken.FlinkClusterType;
 import com.qlangtech.tis.datax.job.SubJobResName;
@@ -109,7 +110,6 @@ import org.apache.struts2.convention.annotation.InterceptorRefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -321,12 +321,12 @@ public class DataxAction extends BasicModule {
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doTestLaunchDataxWorker(Context context) throws IOException {
-    HttpServletResponse response = getEventStreamResponse();
+    PrintWriter printWriter = getEventStreamWriter();
 
     int timeout = 40 * 1000;
     long start = System.currentTimeMillis();
     long end = System.currentTimeMillis();
-    PrintWriter printWriter = response.getWriter();
+    // PrintWriter printWriter = response.getWriter();
 //    while ((end - start) < timeout) {
 //      //https://stackoverflow.com/questions/28673371/eventsource-onmessage-is-not-working-where-onopen-and-onerror-works-proper
 //
@@ -362,7 +362,7 @@ public class DataxAction extends BasicModule {
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doApplyPodNumber(Context context) throws Exception {
-    HttpServletResponse response = getEventStreamResponse();
+    PrintWriter writer = getEventStreamWriter();
 
     Integer podNum = this.getInt("podNumber");
     TargetResName cptType = new TargetResName(this.getString(DataXJobWorker.KEY_CPT_TYPE));
@@ -379,7 +379,7 @@ public class DataxAction extends BasicModule {
 
     List<ExecuteStep> executeSteps = Collections.singletonList(execStep);
     DefaultSSERunnable launchProcess = new DefaultSSERunnable(
-      response.getWriter(), dataxJobWorker, executeSteps, () -> {
+      writer, new ExecuteSteps(dataxJobWorker, executeSteps), () -> {
       try {
         Thread.sleep(4000l);
       } catch (InterruptedException e) {
@@ -417,14 +417,14 @@ public class DataxAction extends BasicModule {
   }
 
   public void relaunchK8SCluster(Context context, K8SWorkerCptType cptType) throws Exception {
-    HttpServletResponse response = getEventStreamResponse();
+    PrintWriter writer = getEventStreamWriter();
 
     DataXJobWorker dataxJobWorker = getDataXJobWorker(cptType);
     dataxJobWorker.remove();
 
     Thread.sleep(3000);
 
-    this.launchDataxWorker(context, response, dataxJobWorker, DataXJobWorker.getOrchestrate(dataxJobWorker));
+    this.launchDataxWorker(context, writer, dataxJobWorker, DataXJobWorker.getOrchestrate(dataxJobWorker));
   }
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
@@ -506,8 +506,8 @@ public class DataxAction extends BasicModule {
 //    }
     boolean orchestrate = DataXJobWorker.isOrchestrate(dataxJobWorker);
     if (orchestrate) {
-      HttpServletResponse response = getEventStreamResponse();
-      this.launchDataxWorker(context, response, dataxJobWorker, DataXJobWorker.getOrchestrate(dataxJobWorker));
+      PrintWriter httpResponseWriter = getEventStreamWriter();
+      this.launchDataxWorker(context, httpResponseWriter, dataxJobWorker, DataXJobWorker.getOrchestrate(dataxJobWorker));
     } else {
       throw new NotImplementedException("to do for " + K8SWorkerCptType.UsingExistCluster
         + ",worker:" + dataxJobWorker.getClass().getName());
@@ -515,17 +515,9 @@ public class DataxAction extends BasicModule {
   }
 
 
-  public HttpServletResponse getEventStreamResponse() {
-    HttpServletResponse response = ServletActionContext.getResponse();
-    response.setContentType("text/event-stream");
-    response.setCharacterEncoding(TisUTF8.getName());
-    return response;
-  }
-
-
   private void launchDataxWorker(Context context
-    , HttpServletResponse response, DataXJobWorker dataxJobWorker, ILaunchingOrchestrate orchestrate) throws Exception {
-    DefaultSSERunnable launchProcess = new DefaultSSERunnable(response.getWriter(), dataxJobWorker, orchestrate.getExecuteSteps(), () -> {
+    , PrintWriter httpResponseWriter, DataXJobWorker dataxJobWorker, ILaunchingOrchestrate orchestrate) throws Exception {
+    DefaultSSERunnable launchProcess = new DefaultSSERunnable(httpResponseWriter, orchestrate.createExecuteSteps(dataxJobWorker), () -> {
       try {
         Thread.sleep(4000l);
       } catch (InterruptedException e) {
@@ -637,7 +629,13 @@ public class DataxAction extends BasicModule {
 //      throw new IllegalStateException("dataX worker is on duty");
 //    }
 
-    this.setBizResult(context, new PluginDescMeta(DataXJobWorker.getDesc(targetName)));
+    // String appName = this.getCollectionName();
+    PluginDescMeta pluginDescMeta = new PluginDescMeta(DataXJobWorker.getDesc(targetName));
+
+    pluginDescMeta.addTypedPlugins(DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite
+      , HeteroEnum.appJobWorkerTplReWriter.getPlugins(this, null));
+
+    this.setBizResult(context, pluginDescMeta);
   }
 
 

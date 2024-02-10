@@ -39,6 +39,7 @@
 
   </profiles>
   <dependencies>
+
     <dependency>
       <groupId>com.qlangtech.tis</groupId>
       <artifactId>tis-hadoop-rpc</artifactId>
@@ -76,11 +77,11 @@
       <artifactId>easymock</artifactId>
     </dependency>
 
-<!--    <dependency>-->
-<!--      <groupId>com.qlangtech.tis</groupId>-->
-<!--      <artifactId>tis-solrcore-extend</artifactId>-->
-<!--      <scope>test</scope>-->
-<!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>com.qlangtech.tis</groupId>-->
+    <!--      <artifactId>tis-solrcore-extend</artifactId>-->
+    <!--      <scope>test</scope>-->
+    <!--    </dependency>-->
 
 
     <dependency>
@@ -151,25 +152,25 @@
       <version>5.1</version>
     </dependency>
 
-<!--    <dependency>-->
-<!--      <groupId>jaxen</groupId>-->
-<!--      <artifactId>jaxen</artifactId>-->
-<!--      <version>1.1.1</version>-->
-<!--      <exclusions>-->
-<!--        <exclusion>-->
-<!--          <groupId>com.ibm.icu</groupId>-->
-<!--          <artifactId>icu4j</artifactId>-->
-<!--        </exclusion>-->
-<!--        <exclusion>-->
-<!--          <groupId>xml-apis</groupId>-->
-<!--          <artifactId>xml-apis</artifactId>-->
-<!--        </exclusion>-->
-<!--        <exclusion>-->
-<!--          <groupId>xerces</groupId>-->
-<!--          <artifactId>xmlParserAPIs</artifactId>-->
-<!--        </exclusion>-->
-<!--      </exclusions>-->
-<!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>jaxen</groupId>-->
+    <!--      <artifactId>jaxen</artifactId>-->
+    <!--      <version>1.1.1</version>-->
+    <!--      <exclusions>-->
+    <!--        <exclusion>-->
+    <!--          <groupId>com.ibm.icu</groupId>-->
+    <!--          <artifactId>icu4j</artifactId>-->
+    <!--        </exclusion>-->
+    <!--        <exclusion>-->
+    <!--          <groupId>xml-apis</groupId>-->
+    <!--          <artifactId>xml-apis</artifactId>-->
+    <!--        </exclusion>-->
+    <!--        <exclusion>-->
+    <!--          <groupId>xerces</groupId>-->
+    <!--          <artifactId>xmlParserAPIs</artifactId>-->
+    <!--        </exclusion>-->
+    <!--      </exclusions>-->
+    <!--    </dependency>-->
 
     <dependency>
       <groupId>com.qlangtech.tis</groupId>
@@ -278,11 +279,11 @@
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
     </dependency>
-<!--    <dependency>-->
-<!--      <groupId>org.apache.velocity</groupId>-->
-<!--      <artifactId>velocity</artifactId>-->
-<!--      <version>1.6.4</version>-->
-<!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>org.apache.velocity</groupId>-->
+    <!--      <artifactId>velocity</artifactId>-->
+    <!--      <version>1.6.4</version>-->
+    <!--    </dependency>-->
 
     <dependency>
       <groupId>org.apache.struts</groupId>
@@ -309,11 +310,11 @@
       <version>${struts2.version}</version>
     </dependency>
 
-<!--    <dependency>-->
-<!--      <groupId>velocity-tools</groupId>-->
-<!--      <artifactId>velocity-tools-view</artifactId>-->
-<!--      <version>2.0-beta1</version>-->
-<!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>velocity-tools</groupId>-->
+    <!--      <artifactId>velocity-tools-view</artifactId>-->
+    <!--      <version>2.0-beta1</version>-->
+    <!--    </dependency>-->
 
     <dependency>
       <groupId>org.jdom</groupId>

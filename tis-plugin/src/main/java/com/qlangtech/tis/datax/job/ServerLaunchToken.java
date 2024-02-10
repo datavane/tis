@@ -268,7 +268,8 @@ public class ServerLaunchToken extends Observable implements Closeable {
 
     public enum FlinkClusterType {
         K8SApplication("k8s_application_"),
-        K8SSession("k8s_session_");
+        K8SSession("k8s_session_"),
+        Standalone("standalone_");
 
         public static FlinkClusterType parse(String token) {
             for (FlinkClusterType type : FlinkClusterType.values()) {

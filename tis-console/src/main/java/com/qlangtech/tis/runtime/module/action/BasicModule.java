@@ -79,7 +79,6 @@ import com.qlangtech.tis.manage.common.UserUtils;
 import com.qlangtech.tis.manage.common.apps.AppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
-import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -113,6 +112,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1299,7 +1299,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     // final TriggerType triggerType = TriggerType.parse(this.getInt(IFullBuildContext.KEY_TRIGGER_TYPE));
     Application app = null;
     ExecutePhaseRange executeRanage = chainContext.getExecutePhaseRange();
-   ;
+    ;
     // appname 可以为空
     // String appname = this.getString(IFullBuildContext.KEY_APP_NAME);
     // Integer workflowId = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID, null, false);
@@ -1310,7 +1310,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
         throw new IllegalStateException("appname:" + appname + " relevant app pojo is not exist");
       }
     }
-    Integer workflowId =   chainContext.getWorkflowId();
+    Integer workflowId = chainContext.getWorkflowId();
     WorkFlowBuildHistory task = new WorkFlowBuildHistory();
     task.setCreateTime(new Date());
     task.setStartTime(new Date());
@@ -1340,5 +1340,17 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     }
     // 生成一个新的taskid
     return new CreateNewTaskResult(getHistoryDAO().insertSelective(task), app);
+  }
+
+  @Override
+  public final PrintWriter getEventStreamWriter() {
+    try {
+      HttpServletResponse response = ServletActionContext.getResponse();
+      response.setContentType("text/event-stream");
+      response.setCharacterEncoding(TisUTF8.getName());
+      return response.getWriter();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

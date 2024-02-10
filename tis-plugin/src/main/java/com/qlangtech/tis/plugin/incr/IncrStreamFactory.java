@@ -22,9 +22,12 @@ import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.coredefine.module.action.IFlinkIncrJobStatus;
 import com.qlangtech.tis.coredefine.module.action.IRCController;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.datax.job.ServerLaunchToken.FlinkClusterType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.plugin.IPluginStore;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Optional;
 
@@ -35,9 +38,26 @@ import java.util.Optional;
 @Public
 public abstract class IncrStreamFactory implements Describable<IncrStreamFactory> {
 
+    public static IncrStreamFactory getFactory(String indexName) {
+        if (StringUtils.isEmpty(indexName)) {
+            throw new IllegalArgumentException("indexName:" + indexName + " can not be empty");
+        }
+        IPluginStore<IncrStreamFactory> store = TIS.getPluginStore(indexName, IncrStreamFactory.class);
+        IncrStreamFactory k8sConfig = store.getPlugin();
+        if (k8sConfig == null) {
+            throw new IllegalStateException("key" + indexName + " have not set k8s plugin");
+        }
+        return k8sConfig;
+    }
+
     public abstract IRCController getIncrSync();
 
-
+    /**
+     * 取得集群部署类型类型
+     *
+     * @return
+     */
+    public abstract FlinkClusterType getClusterType();
 
     /**
      * 增量任务是否可恢复？例如，Flink重启之后，可以利用savepoint或者checkpoint恢复job

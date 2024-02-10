@@ -22,6 +22,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
+import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteSteps;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.trigger.socket.InfoType;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -55,6 +57,13 @@ public class DefaultSSERunnable implements SSERunnable {
 //      this(response.getWriter(),dataxJobWorker);
 //  }
 
+    /**
+     * @param launchProcess
+     * @param inService     是否正在执行启动流程
+     * @param launchToken
+     * @param runnable
+     * @return
+     */
     public static k8SLaunching execute(DefaultSSERunnable launchProcess, boolean inService
             , ServerLaunchToken launchToken, Runnable runnable) {
         // ServerLaunchToken launchToken = dataxJobWorker.getProcessTokenFile();
@@ -107,17 +116,23 @@ public class DefaultSSERunnable implements SSERunnable {
         }
     }
 
-    public DefaultSSERunnable(PrintWriter clientWriter, DataXJobWorker dataxJobWorker, List<ExecuteStep> executeSteps, Runnable runnable) {
+    public DefaultSSERunnable(IControlMsgHandler controlHandler
+            , ExecuteSteps executeSteps, Runnable runnable) {
+        this(controlHandler.getEventStreamWriter(), executeSteps, runnable);
+    }
+
+    public DefaultSSERunnable(PrintWriter clientWriter, ExecuteSteps executeSteps, Runnable runnable) {
         SSERunnable.setLocalThread(this);
         this.httpClientWriter = clientWriter;
         this.runnable = runnable;
 
         //  this.launchToken = dataxJobWorker.getServerLaunchTokenFile();
-        this.executeSteps = executeSteps;// dataxJobWorker.getExecuteSteps();
-        if (CollectionUtils.isEmpty(this.executeSteps)) {
-            throw new IllegalStateException("executeSteps can not be empty,dataxJobWorker:" + dataxJobWorker.getClass().getName());
-        }
+        this.executeSteps = executeSteps.getExecuteSteps();// dataxJobWorker.getExecuteSteps();
+//        if (CollectionUtils.isEmpty(this.executeSteps)) {
+//            throw new IllegalStateException("executeSteps can not be empty,dataxJobWorker:" + dataxJobWorker.getClass().getName());
+//        }
     }
+
 
     public k8SLaunching hasLaunchingToken(List<ExecuteStep> executeSteps, ServerLaunchToken launchToken) {
         ServerLaunchLog launchWALLog = launchToken.buildWALLog(executeSteps);

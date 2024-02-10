@@ -58,6 +58,10 @@ public interface SSERunnable extends Runnable, IJobFeedback {
         return Objects.requireNonNull(local.get(), "instance shall not null in threadlocal");
     }
 
+    public static boolean sseAware() {
+        return local.get() != null;
+    }
+
     /**
      * 成功执行之后回调执行
      */

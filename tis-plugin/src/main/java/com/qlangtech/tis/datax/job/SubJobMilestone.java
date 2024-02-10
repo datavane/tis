@@ -80,7 +80,8 @@ public class SubJobMilestone {
         return steps;
     }
 
-    public static List<ExecuteStep> readSubJobJSONArray(List<ExecuteStep> example, Function<String, SubJobMilestone> executeSubJobFinder) {
+    public static List<ExecuteStep> readSubJobJSONArray( //
+                                                         List<ExecuteStep> example, Function<String, SubJobMilestone> executeSubJobFinder) {
         List<ExecuteStep> result = Lists.newArrayList();
         SubJobMilestone subJobStone = null;
         for (ExecuteStep e : example) {

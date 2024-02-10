@@ -26,7 +26,6 @@ import com.qlangtech.tis.extension.init.InitMilestone;
 import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
 import com.qlangtech.tis.extension.model.UpdateCenter;
-import com.qlangtech.tis.extension.model.UpdateCenterResource;
 import com.qlangtech.tis.extension.util.CyclicGraphDetector;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
@@ -49,11 +48,24 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-import static com.qlangtech.tis.extension.init.InitMilestone.*;
+import static com.qlangtech.tis.extension.init.InitMilestone.COMPLETED;
+import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_LISTED;
+import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_PREPARED;
+import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_STARTED;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -368,8 +380,10 @@ public class PluginManager {
                                     public void run(Reactor session1) throws Exception {
                                         try {
                                             PluginWrapper p = strategy.createPluginWrapper(arc);
-                                            if (isDuplicate(p))
+
+                                            if (isDuplicate(p)) {
                                                 return;
+                                            }
                                             p.isBundled = containsHpiJpi(bundledPlugins, arc.getName());
                                             plugins.add(p);
                                         } catch (IOException e) {
@@ -428,8 +442,10 @@ public class PluginManager {
                                             }
 
                                             @Override
-                                            protected void reactOnCycle(PluginWrapper q, List<PluginWrapper> cycle) throws CyclicGraphDetector.CycleDetectedException {
-                                                LOGGER.info("found cycle in plugin dependencies: (root=" + q + ", deactivating all involved) " + Util.join(cycle, " -> "));
+                                            protected void reactOnCycle(PluginWrapper q, List<PluginWrapper> cycle)
+                                                    throws CyclicGraphDetector.CycleDetectedException {
+                                                LOGGER.info("found cycle in plugin dependencies: (root=" + q
+                                                        + ", deactivating all involved) " + Util.join(cycle, " -> "));
                                                 for (PluginWrapper pluginWrapper : cycle) {
                                                     pluginWrapper.setHasCycleDependency(true);
                                                     failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(), new CycleDetectedException(cycle)));
@@ -484,26 +500,27 @@ public class PluginManager {
                         TaskGraphBuilder g = new TaskGraphBuilder();
                         // schedule execution of loading plugins
                         for (final PluginWrapper pluginWrapper : activePlugins.toArray(new PluginWrapper[activePlugins.size()])) {
-                            g.followedBy().notFatal().attains(PLUGINS_PREPARED).add("Loading plugin " + pluginWrapper.getShortName(), new Executable() {
+                            g.followedBy().notFatal().attains(PLUGINS_PREPARED)
+                                    .add("Loading plugin " + pluginWrapper.getShortName(), new Executable() {
 
-                                public void run(Reactor session) throws Exception {
-                                    try {
-                                        pluginWrapper.resolvePluginDependencies();
-                                        strategy.load(pluginWrapper);
-                                    } catch (MissingDependencyException e) {
-                                        failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(), e));
-                                        activePlugins.remove(pluginWrapper);
-                                        plugins.remove(pluginWrapper);
-                                        LOGGER.error("Failed to install {}: {}", pluginWrapper.getShortName(), e.getMessage());
-                                        return;
-                                    } catch (IOException e) {
-                                        failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(), e));
-                                        activePlugins.remove(pluginWrapper);
-                                        plugins.remove(pluginWrapper);
-                                        throw e;
-                                    }
-                                }
-                            });
+                                        public void run(Reactor session) throws Exception {
+                                            try {
+                                                pluginWrapper.resolvePluginDependencies();
+                                                strategy.load(pluginWrapper);
+                                            } catch (MissingDependencyException e) {
+                                                failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(), e));
+                                                activePlugins.remove(pluginWrapper);
+                                                plugins.remove(pluginWrapper);
+                                                LOGGER.error("Failed to install {}: {}", pluginWrapper.getShortName(), e.getMessage());
+                                                return;
+                                            } catch (IOException e) {
+                                                failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(), e));
+                                                activePlugins.remove(pluginWrapper);
+                                                plugins.remove(pluginWrapper);
+                                                throw e;
+                                            }
+                                        }
+                                    });
                         }
                         // schedule execution of initializing plugins
                         for (final PluginWrapper p : activePlugins.toArray(new PluginWrapper[activePlugins.size()])) {

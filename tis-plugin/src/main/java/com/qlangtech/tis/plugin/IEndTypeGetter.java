@@ -21,6 +21,7 @@ package com.qlangtech.tis.plugin;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.impl.IOUtils;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -36,8 +37,6 @@ public interface IEndTypeGetter {
         public Icon getIcon();
     }
 
-    String KEY_END_TYPE = "endType";
-    String KEY_SUPPORT_ICON = "supportIcon";
 
     public static void main(String[] args) {
         for (EndType value : EndType.values()) {
@@ -72,6 +71,9 @@ public interface IEndTypeGetter {
 
         private static final DefaultIconReference unknowType = new DefaultIconReference(UnKnowStoreType);
 
+        public static String KEY_END_TYPE = "endType";
+        private static String KEY_SUPPORT_ICON = "supportIcon";
+
         public static EndType parse(String endType) {
             for (EndType end : EndType.values()) {
                 if (end.val.equals(endType)) {
@@ -88,6 +90,12 @@ public interface IEndTypeGetter {
         EndType(String val, boolean containICON) {
             this.val = val;
             this.containICON = containICON;
+        }
+
+        public void appendProps(Map<String, Object> eprops) {
+
+            eprops.put(KEY_END_TYPE, this.getVal());
+            eprops.put(KEY_SUPPORT_ICON, this.getIcon() != null);
         }
 
         @Override

@@ -397,8 +397,11 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         @Override
         public final Map<String, Object> getExtractProps() {
             Map<String, Object> eprops = super.getExtractProps();
-            eprops.put(KEY_END_TYPE, this.getEndType().getVal());
-            eprops.put(KEY_SUPPORT_ICON, this.getEndType().getIcon() != null);
+
+            this.getEndType().appendProps(eprops);
+
+//            eprops.put(KEY_END_TYPE, this.getEndType().getVal());
+//            eprops.put(KEY_SUPPORT_ICON, this.getEndType().getIcon() != null);
             eprops.put("supportFacade", this.supportFacade());
             eprops.put("facadeSourceTypes", this.facadeSourceTypes());
             Optional<String> dataXReaderDesc = this.getDefaultDataXReaderDescName();

@@ -107,11 +107,11 @@ public class TISK8sDelegate {
         }
       };
     } else {
-      IPluginStore<IncrStreamFactory> store = TIS.getPluginStore(indexName, IncrStreamFactory.class);
-      IncrStreamFactory k8sConfig = store.getPlugin();
-      if (k8sConfig == null) {
-        throw new IllegalStateException("key" + indexName + " have not set k8s plugin");
-      }
+    //  IPluginStore<IncrStreamFactory> store = TIS.getPluginStore(indexName, IncrStreamFactory.class);
+      IncrStreamFactory k8sConfig = IncrStreamFactory.getFactory(indexName);// store.getPlugin();
+//      if (k8sConfig == null) {
+//        throw new IllegalStateException("key" + indexName + " have not set k8s plugin");
+//      }
       this.incrSync = k8sConfig.getIncrSync();
     }
 

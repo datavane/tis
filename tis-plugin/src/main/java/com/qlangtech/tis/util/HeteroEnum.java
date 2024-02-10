@@ -147,6 +147,10 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
             return super.getPluginStore(pluginContext, pluginMeta);
         }
+        @Override
+        public List<DataXJobWorker> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            return super.getPlugins(pluginContext, pluginMeta);
+        }
     };
     @TISExtension
     public static final HeteroEnum<DataXJobWorker> DATAX_WORKER = new HeteroEnum<DataXJobWorker>(//

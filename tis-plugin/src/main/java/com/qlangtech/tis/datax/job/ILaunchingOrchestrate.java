@@ -18,7 +18,11 @@
 
 package com.qlangtech.tis.datax.job;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 启动执行剧本
@@ -29,6 +33,27 @@ import java.util.List;
 public interface ILaunchingOrchestrate<T> {
 
     public List<ExecuteStep<T>> getExecuteSteps();
+
+    public default ExecuteSteps createExecuteSteps(Object owner) {
+        return new ExecuteSteps(owner, this.getExecuteSteps().stream().collect(Collectors.toList()));
+    }
+
+    public class ExecuteSteps {
+
+        private final List<ExecuteStep> executeSteps;
+
+        public List<ExecuteStep> getExecuteSteps() {
+            return this.executeSteps;
+        }
+
+        public ExecuteSteps(Object owner, List<ExecuteStep> executeSteps) {
+            this.executeSteps = executeSteps;
+            if (CollectionUtils.isEmpty(this.executeSteps)) {
+                throw new IllegalStateException("executeSteps can not be empty,owner:"
+                        + Objects.requireNonNull(owner, "owner can not be null").getClass().getName());
+            }
+        }
+    }
 
     public class ExecuteStep<T> extends SubJobMilestone {
         private final SubJobResName<T> subJob;

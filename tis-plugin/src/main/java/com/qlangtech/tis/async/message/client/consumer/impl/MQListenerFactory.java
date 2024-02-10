@@ -29,6 +29,7 @@ import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginVenderGetter;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.incr.ISelectedTabExtendFactory;
+import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.util.HeteroEnum;
 
 import java.util.Map;
@@ -39,6 +40,7 @@ import java.util.Optional;
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
+ * @see TISSinkFactory
  */
 @Public
 public abstract class MQListenerFactory
@@ -91,7 +93,10 @@ public abstract class MQListenerFactory
         public final Map<String, Object> getExtractProps() {
             Map<String, Object> eprops = super.getExtractProps();
             Optional<IEndTypeGetter.EndType> targetType = this.getTargetType();
-            eprops.put(KEY_END_TYPE, this.getEndType());
+            //  eprops.put(KEY_END_TYPE, this.getEndType());
+
+            this.getEndType().appendProps(eprops);
+
             eprops.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.isPresent() ? targetType.get().getVal() : "all");
             eprops.put(ISelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP
                     , (this instanceof ISelectedTabExtendFactory) && (((ISelectedTabExtendFactory) this).getSelectedTableExtendDescriptor() != null));

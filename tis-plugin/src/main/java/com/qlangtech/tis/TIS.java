@@ -22,7 +22,13 @@ import com.qlangtech.tis.component.GlobalComponent;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
-import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.DescriptorExtensionList;
+import com.qlangtech.tis.extension.ExtensionComponentSet;
+import com.qlangtech.tis.extension.ExtensionFinder;
+import com.qlangtech.tis.extension.ExtensionList;
+import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.impl.ClassicPluginStrategy;
 import com.qlangtech.tis.extension.impl.ExtensionRefreshException;
 import com.qlangtech.tis.extension.impl.XmlFile;
@@ -36,23 +42,43 @@ import com.qlangtech.tis.install.InstallState;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DbScope;
-import com.qlangtech.tis.plugin.*;
-import com.qlangtech.tis.plugin.ds.*;
-import com.qlangtech.tis.util.*;
+import com.qlangtech.tis.plugin.ComponentMeta;
+import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IRepositoryResource;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.plugin.ds.DBIdentity;
+import com.qlangtech.tis.plugin.ds.DSKey;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
+import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.Memoizer;
+import com.qlangtech.tis.util.PluginMeta;
+import com.qlangtech.tis.util.RobustReflectionConverter2;
+import com.qlangtech.tis.util.XStream2PluginInfoReader;
 import org.apache.commons.lang.StringUtils;
-import org.jvnet.hudson.reactor.*;
+import org.jvnet.hudson.reactor.Reactor;
+import org.jvnet.hudson.reactor.ReactorException;
+import org.jvnet.hudson.reactor.Task;
+import org.jvnet.hudson.reactor.TaskBuilder;
+import org.jvnet.hudson.reactor.TaskGraphBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_PREPARED;
-
-//import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
-//import com.qlangtech.tis.offline.TableDumpFactory;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

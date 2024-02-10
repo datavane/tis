@@ -117,10 +117,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
                 , IWorkflow workflow, Boolean dryRun, Optional<Long> powerJobWorkflowInstanceIdOpt) {
             throw new UnsupportedOperationException();
         }
-//        @Override
-//        public void createJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor) {
-//
-//        }
+
 
         @Override
         public boolean cancelTask(IControlMsgHandler module, Context context, IBuildHistory buildHistory) {
