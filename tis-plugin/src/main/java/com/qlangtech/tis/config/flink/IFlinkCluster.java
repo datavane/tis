@@ -27,6 +27,8 @@ import com.qlangtech.tis.plugin.IdentityName;
  * @create: 2021-10-23 12:21
  **/
 public interface IFlinkCluster extends IdentityName, IFlinkClusterConfig {
+    String PLUGIN_DEPENDENCY_FLINK_DEPENDENCY = "tis-flink-dependency";
+    String PLUGIN_SKIP_FLINK_EXTENDS = "tis-flink-extends-plugin";
     String SKIP_CLASSLOADER_FACTORY_CREATION = "skip_classloader_factory_creation";
     String KEY_DISPLAY_NAME = "Flink-Cluster";
 }
