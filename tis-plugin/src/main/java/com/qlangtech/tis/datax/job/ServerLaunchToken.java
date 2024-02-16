@@ -232,7 +232,8 @@ public class ServerLaunchToken extends Observable implements Closeable {
                         c.setClusterId(meta.getString(JSON_KEY_CLUSTER_ID));
                         c.setDataXName(meta.getString(JSON_KEY_APP_NAME));
                         c.setWebInterfaceURL(meta.getString(JSON_KEY_WEB_INTERFACE_URL));
-                        c.setClusterType(FlinkClusterType.parse(meta.getString(JSON_KEY_CLUSTER_TYPE)));
+                        c.setClusterType(FlinkClusterType.parse(
+                                StringUtils.defaultIfEmpty(meta.getString(JSON_KEY_CLUSTER_TYPE), FlinkClusterType.Standalone.getToken())));
                         c.setK8sNamespace(meta.getString(JSON_KEY_K8S_NAMESPACE));
                         c.setK8sBasePath(meta.getString(JSON_KEY_K8S_BASE_PATH));
                         c.setK8sId(meta.getString(JSON_KEY_K8S_ID));
