@@ -632,8 +632,11 @@ public class DataxAction extends BasicModule {
     // String appName = this.getCollectionName();
     PluginDescMeta pluginDescMeta = new PluginDescMeta(DataXJobWorker.getDesc(targetName));
 
-    pluginDescMeta.addTypedPlugins(DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite
-      , HeteroEnum.appJobWorkerTplReWriter.getPlugins(this, null));
+    boolean addJobTplOverwritePlugin = this.getBoolean("addJobTplOverwritePlugin");
+    if(addJobTplOverwritePlugin){
+      pluginDescMeta.addTypedPlugins(DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite
+        , HeteroEnum.appJobWorkerTplReWriter.getPlugins(this, null));
+    }
 
     this.setBizResult(context, pluginDescMeta);
   }

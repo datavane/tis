@@ -65,13 +65,13 @@ public class ServerLaunchToken extends Observable implements Closeable {
     // 正在启动标志文件
     private final File launchingToken;
     public final K8SWorkerCptType workerCptType;
-
+    private final LaunchTokenKey tokenKey;
+    private static final Map<LaunchTokenKey, ServerLaunchToken> launchTokens = Maps.newHashMap();
     /**
      * 不为空，说明该token正在被执行启动流程，正在写入
      */
     private Object writeOwner;
 
-    private static final Map<LaunchTokenKey, ServerLaunchToken> launchTokens = Maps.newHashMap();
 
     private static class LaunchTokenKey {
         private final TargetResName workerType;
@@ -293,12 +293,13 @@ public class ServerLaunchToken extends Observable implements Closeable {
     }
 
     public static ServerLaunchToken create(
-            File launchTokenParentDir, TargetResName workerType, boolean launchTokenUseCptType, K8SWorkerCptType workerCptType) {
+            File launchTokenParentDir, TargetResName workerType
+            , boolean launchTokenUseCptType, K8SWorkerCptType workerCptType) {
         synchronized (ServerLaunchToken.class) {
             ServerLaunchToken launchToken = null;
             LaunchTokenKey tokenKey = new LaunchTokenKey(workerType, launchTokenUseCptType, workerCptType);
             if ((launchToken = launchTokens.get(tokenKey)) == null) {
-                launchToken = new ServerLaunchToken(launchTokenParentDir, workerType, launchTokenUseCptType, workerCptType);
+                launchToken = new ServerLaunchToken(tokenKey, launchTokenParentDir, workerType, launchTokenUseCptType, workerCptType);
                 launchTokens.put(tokenKey, launchToken);
             }
             return launchToken;
@@ -314,10 +315,14 @@ public class ServerLaunchToken extends Observable implements Closeable {
 //                , basicDesc.getWorkerCptType());
 //    }
 
-    private ServerLaunchToken(File launchTokenParentDir, TargetResName workerType, boolean launchTokenUseCptType, K8SWorkerCptType workerCptType) {
-        this.launchedToken = LaunchToken.SUCCESS_COMPLETE.getTokenFile(launchTokenParentDir, workerType, launchTokenUseCptType, workerCptType);// new File(launchTokenParentDir, getTokenFileName(workerType));// Objects.requireNonNull(launchToken, "launchToken can not be null");
-        this.launchingToken = LaunchToken.DOING.getTokenFile(launchTokenParentDir, workerType, launchTokenUseCptType, workerCptType);// new File(launchTokenParentDir, getTokenFileName(workerType));
+    private ServerLaunchToken(LaunchTokenKey tokenKey, File launchTokenParentDir
+            , TargetResName workerType, boolean launchTokenUseCptType, K8SWorkerCptType workerCptType) {
+        this.launchedToken = LaunchToken.SUCCESS_COMPLETE.getTokenFile(
+                launchTokenParentDir, workerType, launchTokenUseCptType, workerCptType);// new File(launchTokenParentDir, getTokenFileName(workerType));// Objects.requireNonNull(launchToken, "launchToken can not be null");
+        this.launchingToken = LaunchToken.DOING.getTokenFile(
+                launchTokenParentDir, workerType, launchTokenUseCptType, workerCptType);// new File(launchTokenParentDir, getTokenFileName(workerType));
         this.workerCptType = Objects.requireNonNull(workerCptType, "workerCptType can not be null");
+        this.tokenKey = Objects.requireNonNull(tokenKey, "tokenKey can not be null");
     }
 
     public void setWriteOwner(Object writeOwner) {
@@ -344,6 +349,7 @@ public class ServerLaunchToken extends Observable implements Closeable {
     public void deleteLaunchToken() {
         FileUtils.deleteQuietly(this.launchingToken);
         FileUtils.deleteQuietly(this.launchedToken);
+        launchTokens.remove(this.tokenKey);
     }
 
     public boolean isLaunchTokenExist() {

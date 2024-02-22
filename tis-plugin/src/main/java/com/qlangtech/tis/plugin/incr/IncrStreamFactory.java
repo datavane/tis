@@ -22,6 +22,7 @@ import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.coredefine.module.action.IFlinkIncrJobStatus;
 import com.qlangtech.tis.coredefine.module.action.IRCController;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.datax.job.ServerLaunchToken;
 import com.qlangtech.tis.datax.job.ServerLaunchToken.FlinkClusterType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -48,6 +49,11 @@ public abstract class IncrStreamFactory implements Describable<IncrStreamFactory
             throw new IllegalStateException("key" + indexName + " have not set k8s plugin");
         }
         return k8sConfig;
+    }
+
+    public ServerLaunchToken getLaunchToken(TargetResName indexName) {
+        return ServerLaunchToken.createFlinkClusterToken().token(this.getClusterType(), indexName);
+       // return incrLaunchToken;
     }
 
     public abstract IRCController getIncrSync();

@@ -30,6 +30,7 @@ import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.compiler.streamcode.GenerateDAOAndIncrScript;
 import com.qlangtech.tis.compiler.streamcode.IndexStreamCodeGenerator;
 import com.qlangtech.tis.coredefine.biz.FCoreRequest;
+import com.qlangtech.tis.coredefine.module.action.IDeploymentDetail.IDeploymentDetailVisitor;
 import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails;
 import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
@@ -112,6 +113,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -123,6 +125,7 @@ import java.util.stream.Collectors;
  * @date 2016年8月4日
  */
 public class CoreAction extends BasicModule {
+
   public static final String ADMIN_COLLECTION_PATH = "/solr/admin/collections";
   public static final String CREATE_COLLECTION_PATH = ADMIN_COLLECTION_PATH + "?action=CREATE&name=";
   public static final String DEFAULT_SOLR_CONFIG = "tis_mock_config";
@@ -595,8 +598,11 @@ public class CoreAction extends BasicModule {
     };
 
     IncrStreamFactory streamFactory = IncrStreamFactory.getFactory(this.getCollectionName());
-    final ServerLaunchToken incrLaunchToken = ServerLaunchToken.createFlinkClusterToken().token(
-      streamFactory.getClusterType(), new TargetResName(this.getCollectionName()));
+    final ServerLaunchToken incrLaunchToken = streamFactory.getLaunchToken(new TargetResName(this.getCollectionName()));
+//    ServerLaunchToken.createFlinkClusterToken().token(
+//      streamFactory.getClusterType(), new TargetResName(this.getCollectionName()));
+
+
     DefaultSSERunnable.execute(launchProcess, false
       , incrLaunchToken, () -> {
         incrLaunchToken.writeLaunchToken(() -> {
@@ -644,8 +650,8 @@ public class CoreAction extends BasicModule {
 //       */
 //      k8sClient.deploy(null, indexStreamCodeGenerator.getIncrScriptTimestamp());
 //      logger.append("\n deploy to flink cluster consume:" + (System.currentTimeMillis() - start) + "ms ");
-      IndexIncrStatus incrStatus = new IndexIncrStatus();
-      this.setBizResult(context, incrStatus);
+    IndexIncrStatus incrStatus = new IndexIncrStatus();
+    this.setBizResult(context, incrStatus);
 //    } catch (Exception ex) {
 //     // logger.append("an error occur:" + ex.getMessage());
 //      throw TisException.create(ex.getMessage(), ex);
@@ -700,9 +706,48 @@ public class CoreAction extends BasicModule {
       }
     };
 
+    final SubJobResName<FlinkJobDeployDTO> confirm
+      = new SubJobResName<FlinkJobDeployDTO>("confirm", (dto) -> {
+
+      AtomicBoolean loop = new AtomicBoolean(true);
+      AtomicInteger tryCount = new AtomicInteger();
+      while (loop.get() && tryCount.getAndIncrement() < 10) {
+        IDeploymentDetail rcConfig = dto.k8sClient.getRcConfig(false);
+        rcConfig.accept(new IDeploymentDetailVisitor() {
+
+          @Override
+          public void visit(RcDeployment rcDeployment) {
+            throw new UnsupportedOperationException(rcDeployment.getName());
+          }
+
+          @Override
+          public void visit(FlinkJobDeploymentDetails details) {
+            switch (details.getIncrJobStatus().getState()) {
+              case FAILED:
+                throw TisException.create(getCollectionName() + " faild");
+              case RUNNING:
+                loop.set(false);
+                break;
+              default:
+            }
+          }
+        });
+        if (loop.get()) {
+          log.info("check " + getCollectionName() + " deploy status,tryCount:" + tryCount.get());
+          Thread.sleep(3000);
+        }
+      }
+
+    }) {
+      @Override
+      protected String getResourceType() {
+        return "Incr " + getCollectionName() + " Confirm";
+      }
+    };
+
     final SubJobResName[] flinkDeployRes //
       = new SubJobResName[]{
-      compileAndPackage, deploy
+      compileAndPackage, deploy, confirm
     };
 
     return new ILaunchingOrchestrate() {
