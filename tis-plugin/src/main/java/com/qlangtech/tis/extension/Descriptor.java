@@ -558,20 +558,29 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         }
 
                         // 提交表单的时候子表单是 {idfieldName1:{key1:val1,key2:val2},idfieldName2:{key1:val1,key2:val2}} 这样的格式
-                        validateResult = props.visitAllSubDetailed(formData,
+                        SubDetailedPluginValidateResult subDetailedValidateResult = new SubDetailedPluginValidateResult();
+                        props.visitAllSubDetailed(context, formData,
                                 new SuFormProperties.ISubDetailedProcess<PluginValidateResult>() {
                                     @Override
                                     public PluginValidateResult process(String subFormId, AttrValMap sform) {
                                         PluginValidateResult vResult = sform.validate(msgHandler, context, Optional.of(props.convertRootFormProps()), verify);
-                                        if (!vResult.isValid()) {
-                                            return vResult;
-                                        }
+                                        // if (!vResult.isValid()) {
+
+                                        subDetailedValidateResult.addSubDetailVaildateResult(subFormId, vResult);
+
+//                                            return vResult;
+//                                        }
                                         return (PluginValidateResult) null;
                                     }
                                 });
-                        if (validateResult != null) {
-                            return validateResult;
+
+                        if (!subDetailedValidateResult.isValid()) {
+                            return subDetailedValidateResult;
                         }
+
+//                        if (validateResult != null) {
+//                            return validateResult;
+//                        }
                     }
 
 
@@ -582,6 +591,31 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             });
         } finally {
             // IRepositoryTargetFile.TARGET_FILE_CONTEXT.remove();
+        }
+    }
+
+    private static class SubDetailedPluginValidateResult extends PluginValidateResult {
+        Map<String, PluginValidateResult> detailedValidateResult = Maps.newHashMap();
+
+        public SubDetailedPluginValidateResult() {
+            super(null, 0, 0);
+        }
+
+        public void addSubDetailVaildateResult(String subFormId, PluginValidateResult vResult) {
+            this.detailedValidateResult.put(subFormId, vResult);
+        }
+
+        @Override
+        public boolean isValid() {
+            if (this.valid != null) {
+                return this.valid;
+            }
+            for (Map.Entry<String, PluginValidateResult> entry : detailedValidateResult.entrySet()) {
+                if (!entry.getValue().isValid()) {
+                    return this.valid = false;
+                }
+            }
+            return this.valid = true;
         }
     }
 
@@ -733,12 +767,25 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     public static class PluginValidateResult {
         private final PostFormVals itemForm;
-        private boolean valid;
+        public Boolean valid;
         private Descriptor descriptor;
 
         // 标注当前 item表单在整个大表单中的位置
         private final Integer validatePluginIndex;
         private final Integer validatePluginItemIndex;
+
+        public PluginValidateResult(PostFormVals itemForm, Integer validatePluginIndex,
+                                    Integer validatePluginItemIndex) {
+            this.itemForm = itemForm;
+            if (validatePluginIndex == null) {
+                throw new IllegalArgumentException("param validatePluginIndex can not be null");
+            }
+            if (validatePluginItemIndex == null) {
+                throw new IllegalArgumentException("param validatePluginItemIndex can not be null");
+            }
+            this.validatePluginIndex = validatePluginIndex;
+            this.validatePluginItemIndex = validatePluginItemIndex;
+        }
 
         public void setDescriptor(Descriptor descriptor) {
             this.descriptor = descriptor;
@@ -775,21 +822,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
 
         public boolean isValid() {
-            return valid;
+            return Boolean.TRUE.equals(valid);
         }
 
-        public PluginValidateResult(PostFormVals itemForm, Integer validatePluginIndex,
-                                    Integer validatePluginItemIndex) {
-            this.itemForm = itemForm;
-            if (validatePluginIndex == null) {
-                throw new IllegalArgumentException("param validatePluginIndex can not be null");
-            }
-            if (validatePluginItemIndex == null) {
-                throw new IllegalArgumentException("param validatePluginItemIndex can not be null");
-            }
-            this.validatePluginIndex = validatePluginIndex;
-            this.validatePluginItemIndex = validatePluginItemIndex;
-        }
+
     }
 
     /**
@@ -929,7 +965,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         // 保存子form detail list
                         List<Describable> subDetailedList = Lists.newArrayList();
                         //AtomicReference<SelectedTabExtend> batchSourceExtendRef = new AtomicReference<>();
-                        props.visitAllSubDetailed(keyValMap, new SuFormProperties.ISubDetailedProcess<Void>() {
+                        props.visitAllSubDetailed(null, keyValMap, new SuFormProperties.ISubDetailedProcess<Void>() {
                             public Void process(String subFormId, AttrValMap attrVals) {
 
                                 ParseDescribable<Describable> r = attrVals.createDescribable(pluginContext, Optional.of(props.convertRootFormProps()));

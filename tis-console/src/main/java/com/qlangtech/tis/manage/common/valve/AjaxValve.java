@@ -19,7 +19,6 @@ package com.qlangtech.tis.manage.common.valve;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.opensymphony.xwork2.ActionInvocation;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.IAjaxResult;
@@ -29,6 +28,7 @@ import com.qlangtech.tis.runtime.module.misc.DefaultMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
+import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.ItemsErrors;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.result.StrutsResultSupport;
@@ -84,7 +84,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
       //? Collections.emptyList() :
       actionExecResult.getMsgList();
 
-    List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList = actionExecResult.getPluginErrorList();
+    List<List<ItemsErrors>> pluginErrorList = actionExecResult.getPluginErrorList();
     Object bizResult = actionExecResult.getBizResult();
     Boolean errorPageShow = actionExecResult.getErrorPageShow();
     writeInfo2Client(actionExecResult, response, errorPageShow, errorMsgList, msgList, pluginErrorList, bizResult);
@@ -103,7 +103,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
    */
   public static void writeInfo2Client(IExecResult actionExecResult, HttpServletResponse response,
                                       Boolean errorPageShow, List<Object> errorMsgList, List<String> msgList,
-                                      List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList,
+                                      List<List<ItemsErrors>> pluginErrorList,
                                       Object extendVal) throws IOException {
     //try {
     StringBuffer result = buildResultStruct(actionExecResult, errorPageShow, errorMsgList, msgList, pluginErrorList,
@@ -121,7 +121,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
 
   private static StringBuffer buildResultStruct(IExecResult actionExecResult, Boolean errorPageShow,
                                                 List<Object> errorMsgList, List<String> msgList,
-                                                List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList
+                                                List<List<ItemsErrors>> pluginErrorList
     , Object extendVal) {
     StringBuffer result = new StringBuffer();
     result.append("{\n");
@@ -165,11 +165,9 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
     }
     if (pluginErrorList != null) {
       JSONArray pluginErrs = new JSONArray();
-      for (List<List<DefaultFieldErrorHandler.FieldError>> /**
-       * item
-       */
+      for (List<ItemsErrors> /** item*/
         onePluginOfItems : pluginErrorList) {
-        JSONArray itemErrs = convertItemsErrorList(onePluginOfItems);
+        JSONArray itemErrs = convertItemsErrorList( onePluginOfItems) ;// convertItemsErrorList(onePluginOfItems);
         pluginErrs.add(itemErrs);
       }
       result.append(",\n \"").append(IAjaxResult.KEY_ERROR_FIELDS).append("\":");
@@ -179,26 +177,28 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
     return result;
   }
 
-  private static JSONArray convertItemsErrorList(List<List<DefaultFieldErrorHandler.FieldError>> itemsErrorList) {
+  private static JSONArray convertItemsErrorList(List<ItemsErrors> itemsErrorList) {
     JSONArray itemErrs = new JSONArray();
-    for (List<DefaultMessageHandler.FieldError> fieldErrors : itemsErrorList) {
-      JSONArray ferrs = new JSONArray();
-      JSONObject o = null;
-      for (DefaultMessageHandler.FieldError ferr : fieldErrors) {
-        o = new JSONObject();
-        o.put("name", ferr.getFieldName());
-        if ((ferr.getMsg()) != null) {
-          o.put("content", ferr.getMsg());
-        }
-        if (ferr.itemsErrorList != null) {
-          o.put(IAjaxResult.KEY_ERROR_FIELDS, convertItemsErrorList(ferr.itemsErrorList));
-        }
-        ferrs.add(o);
-      }
-      itemErrs.add(ferrs);
+    for (ItemsErrors fieldErrors : itemsErrorList) {
+//      JSONArray ferrs = new JSONArray();
+//      JSONObject o = null;
+//      for (DefaultMessageHandler.FieldError ferr : fieldErrors) {
+//        o = new JSONObject();
+//        o.put("name", ferr.getFieldName());
+//        if ((ferr.getMsg()) != null) {
+//          o.put("content", ferr.getMsg());
+//        }
+//        if (ferr.itemsErrorList != null) {
+//          o.put(IAjaxResult.KEY_ERROR_FIELDS, convertItemsErrorList(ferr.itemsErrorList));
+//        }
+//        ferrs.add(o);
+//      }
+      itemErrs.add(fieldErrors.serial2JSON());
     }
     return itemErrs;
   }
+
+
 
   private static void writeJson(HttpServletResponse response, StringBuffer execResult) throws IOException {
     // try {
@@ -227,7 +227,9 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
 
     private List<String> msgList;
 
-    private List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList;
+  //  private List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList;
+
+    private List<List<ItemsErrors>> pluginErrorList;
 
     private Object bizResult;
 
@@ -248,7 +250,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
       return msgList;
     }
 
-    public List<List<List<DefaultFieldErrorHandler.FieldError>>> getPluginErrorList() {
+    public List<List<ItemsErrors>> getPluginErrorList() {
       return pluginErrorList;
     }
 
@@ -268,7 +270,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
       errorMsgList = getErrorMsgList(context);
       msgList = (List<String>) context.get(IMessageHandler.ACTION_MSG);
       pluginErrorList =
-        (List<List<List<DefaultFieldErrorHandler.FieldError>>>) context.get(IFieldErrorHandler.ACTION_ERROR_FIELDS);
+        (List<List<ItemsErrors>>) context.get(IFieldErrorHandler.ACTION_ERROR_FIELDS);
       bizResult = DefaultMessageHandler.getBizResult(context);// context.get(IMessageHandler.ACTION_BIZ_RESULT);
       errorPageShow = (Boolean) context.get(IMessageHandler.ACTION_ERROR_PAGE_SHOW);
       return this;

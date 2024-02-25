@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.extension.impl;
 
+import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -27,6 +28,7 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescriptorsJSON;
 
@@ -168,27 +170,34 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
 
 
     public final <T> T visitAllSubDetailed(
-            // Map<String, /*** attr key */JSONArray> formData
+            Context context,
             AttrValMap.IAttrVals formData, ISubDetailedProcess<T> subDetailedProcess) {
         String subFormId = null;
         //JSONObject subformData = null;
         AttrValMap attrVals = null;
+        try {
+            for (Map.Entry<String /*tableName*/, JSONArray> entry : formData.asSubFormDetails().entrySet()) {
+                subFormId = entry.getKey();
 
-        for (Map.Entry<String /*tableName*/, JSONArray> entry : formData.asSubFormDetails().entrySet()) {
-            subFormId = entry.getKey();
+                //  subform = Maps.newHashMap();
+                for (Object o : entry.getValue()) {
+                    attrVals = AttrValMap.parseDescribableMap(Optional.empty(), (JSONObject) o);
+                    // KEY_VALIDATE_ITEM_SUBITEM_DETAILED_PK_VAL
+                    if (context != null) {
+                        context.put(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_SUBITEM_DETAILED_PK_VAL, subFormId);
+                    }
 
-            //  subform = Maps.newHashMap();
-
-            for (Object o : entry.getValue()) {
-
-                attrVals = AttrValMap.parseDescribableMap(Optional.empty(), (JSONObject) o);
-
-                T result = subDetailedProcess.process(subFormId, attrVals);
-                if (result != null) {
-                    return result;
+                    T result = subDetailedProcess.process(subFormId, attrVals);
+                    if (result != null) {
+                        return result;
+                    }
                 }
-            }
 
+            }
+        } finally {
+            if (context != null) {
+                context.remove(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_SUBITEM_DETAILED_PK_VAL);
+            }
         }
         return null;
     }

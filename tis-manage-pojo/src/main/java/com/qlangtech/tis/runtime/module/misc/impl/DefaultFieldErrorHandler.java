@@ -18,9 +18,12 @@
 package com.qlangtech.tis.runtime.module.misc.impl;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.qlangtech.tis.manage.common.IAjaxResult;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.lang.StringUtils;
@@ -44,6 +47,7 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
     public static final String KEY_VALIDATE_FIELDS_STACK = "validate_fields_stack";
 
     public static final String KEY_VALIDATE_ITEM_INDEX = "validate_item_index";
+    public static final String KEY_VALIDATE_ITEM_SUBITEM_DETAILED_PK_VAL = "validate_item_subitem_detailed_pk_val";
 
     public static final String KEY_VALIDATE_PLUGIN_INDEX = "validate_plugin_index";
 
@@ -79,10 +83,12 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
     public final void addFieldError(Context context, String fieldName, String msg, Object... params) {
         Integer pluginIndex = (Integer) context.get(KEY_VALIDATE_PLUGIN_INDEX);
         Integer itemIndex = (Integer) context.get(KEY_VALIDATE_ITEM_INDEX);
+        Optional<String> subItemDetiledPk
+                = Optional.ofNullable((String) context.get(KEY_VALIDATE_ITEM_SUBITEM_DETAILED_PK_VAL));
         final Stack<FieldIndex> fieldStack = getFieldStack(context);
         itemIndex = (itemIndex == null ? 0 : itemIndex);
         pluginIndex = (pluginIndex == null ? 0 : pluginIndex);
-        List<FieldError> fieldsErrorList = getFieldsError(context, fieldStack, pluginIndex, itemIndex);
+        List<FieldError> fieldsErrorList = getFieldsError(context, fieldStack, pluginIndex, itemIndex, subItemDetiledPk);
 
         String pkName = getKeyFieldName(fieldName);
         Objects.requireNonNull(pkName, "pkName can not be null");
@@ -100,19 +106,61 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
         }
     }
 
+    /**
+     * @param context
+     * @param fieldStack
+     * @param pluginIndex
+     * @param itemIndex
+     * @param subItemDetiledPk 使用选表请款选择表
+     * @return
+     */
     private List<FieldError> getFieldsError(Context context, Stack<FieldIndex> fieldStack, Integer pluginIndex,
-                                            Integer itemIndex) {
-        List<List<List<FieldError>>> /**
-         * item
-         */
-                pluginErrorList = (List<List<List<FieldError>>>) context.get(ACTION_ERROR_FIELDS);
+                                            Integer itemIndex, Optional<String> subItemDetiledPk) {
+
+        List<List<ItemsErrors>> pluginErrorList = null;
+
+        pluginErrorList = (List<List<ItemsErrors>>) context.get(ACTION_ERROR_FIELDS);
         if (pluginErrorList == null) {
             pluginErrorList = Lists.newArrayList();
             context.put(ACTION_ERROR_FIELDS, pluginErrorList);
         }
-        List<List<FieldError>> /*       item         */
+        /**item*/
+        List<ItemsErrors>
                 itemsErrorList = getFieldErrors(pluginIndex, pluginErrorList, () -> Lists.newArrayList());
-        List<FieldError> fieldsErrorList = getFieldErrors(itemIndex, itemsErrorList, () -> Lists.newArrayList());
+
+        List<FieldError> fieldsErrorList = null;
+        if (subItemDetiledPk.isPresent()) {
+            // List<List<Map<String /**detail Id Name*/, List<FieldError>>>>
+            SubFromDetailedItemsErrors multiDetailed
+                    = (SubFromDetailedItemsErrors) getFieldErrors(itemIndex, itemsErrorList, () -> new SubFromDetailedItemsErrors());
+
+            fieldsErrorList = multiDetailed.getDetailedFormError(subItemDetiledPk.get());
+
+//            fieldsErrorList = multiDetailed.get(subItemDetiledPk.get());
+//            if (fieldsErrorList == null) {
+//                fieldsErrorList = Lists.newArrayList();
+//                multiDetailed.put(subItemDetiledPk.get(), fieldsErrorList);
+//            }
+
+        } else {
+//            /**
+//             * item
+//             */
+//
+//            pluginErrorList = (List<List<ItemsErrors>>) context.get(ACTION_ERROR_FIELDS);
+//            if (pluginErrorList == null) {
+//                pluginErrorList = Lists.newArrayList();
+//                context.put(ACTION_ERROR_FIELDS, pluginErrorList);
+//            }
+//            /**item*/
+//            List<List<FieldError>>
+//                    itemsErrorList = getFieldErrors(pluginIndex, pluginErrorList, () -> Lists.newArrayList());
+
+            ListDetailedItemsErrors fieldErrors = (ListDetailedItemsErrors) getFieldErrors(itemIndex, itemsErrorList, () -> new ListDetailedItemsErrors());
+            fieldsErrorList = fieldErrors.fieldsErrorList;
+        }
+
+
         if (fieldStack == null || fieldStack.size() < 1) {
             return fieldsErrorList;
         } else {
@@ -131,8 +179,8 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
                 if (fieldErr.itemsErrorList == null) {
                     fieldErr.itemsErrorList = Lists.newArrayList();
                 }
-                fieldsErrorList = getFieldErrors(fieldIndex.itemIndex, fieldErr.itemsErrorList,
-                        () -> Lists.newArrayList());
+                fieldsErrorList = ((ListDetailedItemsErrors) getFieldErrors(fieldIndex.itemIndex, fieldErr.itemsErrorList,
+                        () -> new ListDetailedItemsErrors())).fieldsErrorList;
             }
         }
         return fieldsErrorList;
@@ -157,6 +205,85 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
         }
     }
 
+    public static abstract class ItemsErrors {
+
+        public abstract JSON serial2JSON();
+    }
+
+    private static class SubFromDetailedItemsErrors extends ItemsErrors {
+        private Map<String /**detail Id Name*/, List<FieldError>> multiDetailed = Maps.newHashMap();
+
+        List<FieldError> getDetailedFormError(String subItemDetiledPk) {
+            if (StringUtils.isEmpty(subItemDetiledPk)) {
+                throw new IllegalArgumentException("param subItemDetiledPk can not be null");
+            }
+            List<FieldError> fieldsErrorList = multiDetailed.get(subItemDetiledPk);
+            if (fieldsErrorList == null) {
+                fieldsErrorList = Lists.newArrayList();
+                multiDetailed.put(subItemDetiledPk, fieldsErrorList);
+            }
+            return fieldsErrorList;
+        }
+
+        @Override
+        public JSON serial2JSON() {
+            JSONObject errors = new JSONObject();
+            for (Map.Entry<String /**detail Id Name*/, List<FieldError>> entry : multiDetailed.entrySet()) {
+                errors.put(entry.getKey(), ListDetailedItemsErrors.convertItemsErrorList(entry.getValue()));
+            }
+            return errors;
+        }
+    }
+
+    private static class ListDetailedItemsErrors extends ItemsErrors {
+        private List<FieldError> fieldsErrorList = Lists.newArrayList();
+
+        @Override
+        public JSON serial2JSON() {
+//            JSONArray ferrs = new JSONArray();
+//            JSONObject o = null;
+//            for (FieldError ferr : fieldsErrorList) {
+//                o = new JSONObject();
+//                o.put("name", ferr.getFieldName());
+//                if ((ferr.getMsg()) != null) {
+//                    o.put("content", ferr.getMsg());
+//                }
+//                if (ferr.itemsErrorList != null) {
+//                    o.put(IAjaxResult.KEY_ERROR_FIELDS, this.serial2JSONArray(ferr.itemsErrorList));
+//                }
+//                ferrs.add(o);
+//            }
+//            return ferrs;
+            return convertItemsErrorList((fieldsErrorList));
+        }
+
+        private static JSONArray convertItemsErrorList(List<FieldError> fieldErrors) {
+//            JSONArray itemErrs = new JSONArray();
+//            for (FieldError fieldErrors : itemsErrorList) {
+            JSONArray ferrs = new JSONArray();
+            JSONObject o = null;
+            for (FieldError ferr : fieldErrors) {
+                o = new JSONObject();
+                o.put("name", ferr.getFieldName());
+                if ((ferr.getMsg()) != null) {
+                    o.put("content", ferr.getMsg());
+                }
+                if (ferr.itemsErrorList != null) {
+                    JSONArray subErrs = new JSONArray();
+                    for (ItemsErrors itemErros : ferr.itemsErrorList) {
+                        subErrs.add(itemErros.serial2JSON());
+                    }
+                    o.put(IAjaxResult.KEY_ERROR_FIELDS, subErrs);
+                }
+                ferrs.add(o);
+            }
+            return ferrs;
+//                itemErrs.add(ferrs);
+//            }
+//            return itemErrs;
+        }
+    }
+
     public static class FieldError {
 
         private final String fieldName;
@@ -167,7 +294,7 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
         private final IFieldMsg msg;
 
         // 当field为插件类型时，并且定义了属性成员，则当字段出错
-        public List<List<FieldError>/** item*/> itemsErrorList;
+        public List<ItemsErrors> itemsErrorList;
 
         public FieldError(String fieldName, String msg) {
             this.fieldName = getKeyFieldName(fieldName);

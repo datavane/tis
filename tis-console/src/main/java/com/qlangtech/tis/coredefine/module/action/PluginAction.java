@@ -887,7 +887,7 @@ public class PluginAction extends BasicModule {
 
       pluginMeta = plugins.get(pluginIndex);
       JSONArray itemsArray = pluginArray.getJSONArray(pluginIndex);
-      pluginItemsParser = parsePluginItems(this, pluginMeta, context, pluginIndex, itemsArray, verify);
+       pluginItemsParser = parsePluginItems(this, pluginMeta, context, pluginIndex, itemsArray, verify);
       if (pluginItemsParser.faild) {
         faild = true;
       }
@@ -925,7 +925,8 @@ public class PluginAction extends BasicModule {
     // 成功保存的主键信息返回给客户端
     if (context.get(IMessageHandler.ACTION_BIZ_RESULT) == null) {
       this.setBizResult(context,
-        describables.stream().flatMap((itemSaveResult) -> itemSaveResult.describableList.stream()).filter((d) -> d instanceof IdentityName).map((d) -> ((IdentityName) d).identityValue()).collect(Collectors.toList()));
+        describables.stream().flatMap((itemSaveResult) -> itemSaveResult.describableList.stream())
+          .filter((d) -> d instanceof IdentityName).map((d) -> ((IdentityName) d).identityValue()).collect(Collectors.toList()));
     }
   }
 
@@ -948,7 +949,7 @@ public class PluginAction extends BasicModule {
 
   public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta, Context context,
                                                    int pluginIndex, JSONArray itemsArray, boolean verify) {
-    context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
+     context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
     // List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
     Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
 

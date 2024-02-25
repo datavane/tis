@@ -34,6 +34,9 @@ import java.util.Optional;
  * @create: 2023-08-10 13:36
  **/
 public class DataTypeMeta {
+
+    public static final int DEFAULT_DECIMAL_PRECISION = 38;
+
     private final DataType _type;
 
     /**

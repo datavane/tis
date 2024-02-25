@@ -19,6 +19,7 @@
 package com.qlangtech.tis.logger;
 
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import com.qlangtech.tis.datax.job.SSERunnable;
 
@@ -27,6 +28,17 @@ import com.qlangtech.tis.datax.job.SSERunnable;
  * @create: 2024-02-09 10:00
  **/
 public class WaittingProcessCollectorAppender extends UnsynchronizedAppenderBase<ch.qos.logback.classic.spi.LoggingEvent> {
+  private PatternLayout layout;
+
+  @Override
+  public void start() {
+    this.layout = new PatternLayout();
+    this.layout.setPattern("%msg%n");
+    this.layout.setContext(this.getContext());
+    super.start();
+    this.layout.start();
+  }
+
   @Override
   protected void append(ch.qos.logback.classic.spi.LoggingEvent e) {
     // System.out.println(e.getClass());
@@ -38,7 +50,7 @@ public class WaittingProcessCollectorAppender extends UnsynchronizedAppenderBase
       SSERunnable sse = SSERunnable.getLocal();
       level = e.getLevel();
       if (level.isGreaterOrEqual(Level.ERROR)) {
-        sse.error(null, e.getTimeStamp(), e.getFormattedMessage());
+        sse.error(null, e.getTimeStamp(), this.layout.doLayout(e));
         return;
       }
 
@@ -51,4 +63,6 @@ public class WaittingProcessCollectorAppender extends UnsynchronizedAppenderBase
       throw new IllegalStateException("unhandler error level:" + level + " msg:" + e.getFormattedMessage());
     }
   }
+
+
 }
