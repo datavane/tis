@@ -445,7 +445,8 @@ public class PropertyType implements IPropertyType {
                 return this.getMultiItemsViewType().serialize2Frontend(val);
                 //  return this.extraProp.multiItemsViewType(this.getParentHostClass()).serialize2Frontend(val);
             }
-            return val;
+
+            return this.formField.type().valProcessor.serialize2Output(this, val);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -471,12 +472,36 @@ public class PropertyType implements IPropertyType {
     }
 
     public void setVal(Object instance, Object val) {
-        Object prop = null;
+        PropVal fieldVal = new PropVal(val, this.clazz, this.extraProp);
         try {
-            prop = convertUtils.convert(val, this.clazz);
-            this.f.set(instance, this.formField.type().valProcessor.process(instance, prop));
+            this.f.set(instance, this.formField.type().valProcessor.processInput(instance, fieldVal));
         } catch (Throwable e) {
-            throw new RuntimeException("\ntarget instance:" + instance.getClass() + "\nfield:" + this.f.getName() + (prop == null ? StringUtils.EMPTY : "\nprop class:" + prop.getClass()), e);
+            throw new RuntimeException("\ntarget instance:" + instance.getClass()
+                    + "\nfield:" + this.f.getName() + ("\nprop class:" + val.getClass()), e);
+        }
+    }
+
+    public static class PropVal {
+        private final Object val;
+        private final Class targetClazz;
+        public final PluginExtraProps.Props extraProp;
+
+        public PropVal(Object val, Class targetClazz, PluginExtraProps.Props extraProp) {
+            this.val = val;
+            this.targetClazz = targetClazz;
+            this.extraProp = extraProp;
+        }
+
+        public <T> T convertedVal() {
+            return (T) convertUtils.convert(val, this.targetClazz);
+        }
+
+        public Object rawVal() {
+            return this.val;
+        }
+
+        public Class getTargetClazz() {
+            return this.targetClazz;
         }
     }
 

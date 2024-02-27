@@ -2,6 +2,7 @@ package com.qlangtech.tis.datax;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.sql.Time;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -64,5 +65,9 @@ public enum TimeFormat {
             }
         }
         throw new IllegalStateException("illegal token:" + token);
+    }
+
+    public static void main(String[] args) {
+        System.out.println( TimeFormat.yyyyMMddHHmmss.format(1709001500699l));
     }
 }

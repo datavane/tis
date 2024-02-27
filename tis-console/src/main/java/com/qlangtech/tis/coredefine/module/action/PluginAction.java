@@ -54,7 +54,6 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
-import com.qlangtech.tis.plugin.IEndTypeGetter.IconReference;
 import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -69,6 +68,7 @@ import com.qlangtech.tis.util.ItemsSaveResult;
 import com.qlangtech.tis.util.PluginItems;
 import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import org.apache.commons.collections.CollectionUtils;
@@ -125,6 +125,10 @@ public class PluginAction extends BasicModule {
   }
 
   private static void notifyPluginUpdate2AssembleNode(String applyParams, String targetResource) {
+    if (TisAppLaunch.isTestMock()) {
+      logger.info("skip apply clean " + targetResource + " cache by " + applyParams);
+      return;
+    }
     long start = System.currentTimeMillis();
     try {
 
@@ -152,7 +156,7 @@ public class PluginAction extends BasicModule {
       if (i == null) {
         continue;
       }
-     // boolean isRef = (i instanceof IconReference);
+      // boolean isRef = (i instanceof IconReference);
 
       icon = new JSONObject();
       icon.put("name", type.getVal());
@@ -169,7 +173,7 @@ public class PluginAction extends BasicModule {
       icon = new JSONObject();
       icon.put("name", type.getVal());
       icon.put("theme", "outline");
-     // icon.put("icon", i.outlineType());
+      // icon.put("icon", i.outlineType());
       i.setRes(icon, false);
       iconsDefs.add(icon);
 
@@ -887,7 +891,7 @@ public class PluginAction extends BasicModule {
 
       pluginMeta = plugins.get(pluginIndex);
       JSONArray itemsArray = pluginArray.getJSONArray(pluginIndex);
-       pluginItemsParser = parsePluginItems(this, pluginMeta, context, pluginIndex, itemsArray, verify);
+      pluginItemsParser = parsePluginItems(this, pluginMeta, context, pluginIndex, itemsArray, verify);
       if (pluginItemsParser.faild) {
         faild = true;
       }
@@ -949,7 +953,7 @@ public class PluginAction extends BasicModule {
 
   public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta, Context context,
                                                    int pluginIndex, JSONArray itemsArray, boolean verify) {
-     context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
+    context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
     // List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
     Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
 

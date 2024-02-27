@@ -18,13 +18,20 @@
 package com.qlangtech.tis.plugin.annotation;
 
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.impl.PropertyType;
+import com.qlangtech.tis.extension.impl.PropertyType.PropVal;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,11 +56,12 @@ public enum FormFieldType {
     PASSWORD(7), // 支持文件上传
     FILE(9, new IPropValProcessor() {
         @Override
-        public Object process(Object instance, Object val) throws Exception {
+        public Object processInput(Object instance, PropVal pval) throws Exception {
+            String val = pval.convertedVal();
             if (!(instance instanceof ITmpFileStore)) {
                 throw new IllegalStateException("instance of " + instance.getClass() + " must be type of " + ITmpFileStore.class.getName());
             }
-            String[] filePath = StringUtils.split((String) val, ";");
+            String[] filePath = StringUtils.split(val, ";");
             if (filePath.length == 2) {
                 // 创建/更新
                 File tmpPath = new File(filePath[0]);
@@ -80,7 +88,52 @@ public enum FormFieldType {
     /**
      * 输入一个数字
      */
-    INT_NUMBER(4), ENUM(5);
+    INT_NUMBER(4), ENUM(5), DateTime(10, new IPropValProcessor() {
+        final DateTimeFormatter isoFormat = DateTimeFormatter.ISO_DATE_TIME;
+
+        @Override
+        public Object processInput(Object instance, PropVal val) throws Exception {
+
+            //  SimpleDateFormat dateTimeFormat = val.extraProp.getDateTimeFormat();
+            LocalDateTime dateTime = LocalDateTime.parse((String) val.rawVal(), isoFormat);
+            Instant ist = dateTime.atZone(TimeFormat.sysZoneId).toInstant();
+            //  Date dateTime = dateTimeFormat.parse();
+            Class targetClazz = val.getTargetClazz();
+            if (targetClazz == Long.class) {
+                return ist.toEpochMilli();
+            } else if (targetClazz == java.util.Date.class) {
+                return Date.from(ist);
+            } else {
+                throw new IllegalStateException("invalid target class:" + targetClazz);
+            }
+        }
+
+        @Override
+        public Object serialize2Output(final PropertyType pt, Object val) throws Exception {
+
+            Class targetClazz = pt.clazz;
+            Instant ist = null;
+            if (targetClazz == Long.class) {
+                ist = Instant.ofEpochMilli((Long) val);
+            } else if (targetClazz == java.util.Date.class) {
+                ist = ((Date) val).toInstant();
+                //  return LocalDateTime.ofInstant(, TimeFormat.sysZoneId).format(isoFormat)
+            } else {
+                throw new IllegalStateException("invalid target class:" + targetClazz);
+            }
+            return LocalDateTime.ofInstant(ist, TimeFormat.sysZoneId).format(isoFormat);
+        }
+    });
+
+    public static void main(String[] args) throws Exception {
+        //  SimpleDateFormat dateTimeFormat =new SimpleDateFormat("yyyy-MM-ddTHH:mm:ss.SSS");
+        //  System.out.println(  dateTimeFormat.parse("));
+
+
+//        LocalDateTime dateTime = LocalDateTime.parse("2024-02-27T08:32:21.069Z", isoFormat);
+//        System.out.println(dateTime);
+//        System.out.println(TimeFormat.yyyyMMddHHmmss.format());
+    }
 
     private final int identity;
     public final IPropValProcessor valProcessor;
@@ -147,7 +200,11 @@ public enum FormFieldType {
          * @param val 从json中取出来的值
          * @return
          */
-        public default Object process(Object instance, Object val) throws Exception {
+        public default Object processInput(Object instance, PropVal val) throws Exception {
+            return val.convertedVal();
+        }
+
+        public default Object serialize2Output(final PropertyType pt, Object val) throws Exception {
             return val;
         }
     }

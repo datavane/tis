@@ -30,7 +30,6 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
@@ -49,7 +48,14 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,6 +73,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
     public static final String KEY_DFTVAL_PROP = "dftVal";
     public static final String KEY_PLACEHOLDER_PROP = "placeholder";
+    /**
+     * for: FormFieldType.DateTime
+     */
+    public static final String KEY_DATETIME_FORMAT = "dateTimeFormat";
     public static final String KEY_DISABLE = "disable";
     public static final String KEY_CREATOR = "creator";
 
@@ -526,6 +536,21 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 //        public Optional<CMeta.ElementCreatorFactory> getCMetaCreator(Class<? extends Describable> hostPluginClazz) {
 //            return this.multiItemsViewType(hostPluginClazz).tupleFactory;
 //        }
+        private SimpleDateFormat dateFormat;
+
+        @JSONField(serialize = false)
+        public SimpleDateFormat getDateTimeFormat() {
+            if (dateFormat == null) {
+                Object p = props.get(KEY_DATETIME_FORMAT);
+                if (p != null) {
+                    dateFormat = new SimpleDateFormat(String.valueOf(p));
+                } else {
+                    throw new IllegalStateException("key:" + KEY_DATETIME_FORMAT + " can not be null");
+                }
+            }
+            return dateFormat;
+        }
+
         @JSONField(serialize = false)
         public String getPlaceholder() {
             Object p = props.get(KEY_PLACEHOLDER_PROP);

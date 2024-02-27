@@ -24,6 +24,8 @@ import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
+import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.ItemsErrors;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import junit.framework.TestCase;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
@@ -40,6 +42,24 @@ public class TestValidator extends TestCase {
     static final String field1Name = "testField";
 
     static final String field2Name = "test2Field";
+
+    public void testRelativePath() {
+        IControlMsgHandler msgHandler = EasyMock.createMock("msgHandler", IControlMsgHandler.class);
+        Context context = new DefaultContext();
+        final String fieldPath = "path";
+        msgHandler.addFieldError(context, fieldPath, ValidatorCommons.MSG_RELATIVE_PATH_ERROR);
+        EasyMock.expectLastCall().times(1);
+        EasyMock.replay(msgHandler);
+        assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "user/home/admin"));
+        assertFalse("shall not be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "/user/home/admin"));
+        assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "xxx/instancedetail*"));
+        assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "xxx/instancedetail*.text"));
+        assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "xxx/instancedetail*.csv"));
+        assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "xxx/*.json"));
+
+        EasyMock.verify(msgHandler);
+    }
+
 
     public void testHost() {
         final String fieldHost = "host";
@@ -108,14 +128,21 @@ public class TestValidator extends TestCase {
         DefaultContext context = new DefaultContext();
         context.put(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX, new Integer(2));
         assertTrue("error shall none error", identityValidator.validate(fEHandler, context, field1Name, "base123"));
-        assertFalse(identityValidator.validate(fEHandler, context, field1Name, "_base123"));
-        List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList
-                = (List<List<List<DefaultFieldErrorHandler.FieldError>>>) context.get(IFieldErrorHandler.ACTION_ERROR_FIELDS);
+        assertFalse(identityValidator.validate(fEHandler, context, field1Name, "_bas&e123"));
+        List<List<ItemsErrors>> pluginErrorList
+                = (List<List<ItemsErrors>>) context.get(IFieldErrorHandler.ACTION_ERROR_FIELDS);
         assertEquals(3, pluginErrorList.size());
-        DefaultFieldErrorHandler.FieldError fError = pluginErrorList.get(2).get(0).get(0);
-        assertEquals(field1Name, fError.getFieldName());
-        assertEquals(ValidatorCommons.MSG_IDENTITY_ERROR, fError.getMsg());
-        assertNull(fError.itemsErrorList);
+        ItemsErrors itemError = pluginErrorList.get(2).get(0);
+        assertNotNull("fError can not be null", itemError);
+
+        //System.out.println();
+
+        assertEquals("[{\"name\":\"testField\",\"content\":\"必须由小写字母，大写字母，数字、下划线、减号组成\"}]"
+                , JsonUtil.toString(itemError.serial2JSON(), false));
+
+//        assertEquals(field1Name, fError.getFieldName());
+//        assertEquals(ValidatorCommons.MSG_IDENTITY_ERROR, fError.getMsg());
+//        assertNull(fError.itemsErrorList);
     }
 
     public void testCreateValidateField() {
