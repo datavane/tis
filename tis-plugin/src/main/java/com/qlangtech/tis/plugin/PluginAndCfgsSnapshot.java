@@ -437,6 +437,7 @@ public class PluginAndCfgsSnapshot {
             URL appCfgUrl = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO,
                     Config.KEY_TIS_PLUGIN_CONFIG + "/" + appKey.getSubDirPath());
 
+            updateTpisLogger.append("app cfg url:" + appCfgUrl + " config file enum:");
             KeyedPluginStore.PluginMetas appMetas = localSnaphsot.appMetas.get();
             HttpUtils.get(appCfgUrl, new ConfigFileContext.StreamProcess<Void>() {
                 @Override
@@ -448,6 +449,7 @@ public class PluginAndCfgsSnapshot {
                         while ((entry = zipInput.getNextEntry()) != null) {
                             try (OutputStream output = FileUtils.openOutputStream(new File(appMetas.appDir,
                                     entry.getName()))) {
+                                updateTpisLogger.append(entry.getName()).append(",");
                                 IOUtils.copy(zipInput, output);
                             }
                             zipInput.closeEntry();
@@ -458,6 +460,7 @@ public class PluginAndCfgsSnapshot {
                     return null;
                 }
             });
+            updateTpisLogger.append("\n");
             // cfgChanged = true;
         }
 
