@@ -40,7 +40,7 @@ public interface DataXJobRunEnvironmentParamsSetter {
 
     public static DataXJobRunEnvironmentParamsSetter.ExtraJavaSystemPramsSuppiler createSysPramsSuppiler() {
         DataXJobRunEnvironmentParamsSetter.ExtraJavaSystemPramsSuppiler systemPramsSuppiler =
-                new DataXJobRunEnvironmentParamsSetter.ExtraJavaSystemPramsSuppiler() {
+                new DataXJobRunEnvironmentParamsSetter.ExtraJavaSystemPramsSuppiler(false) {
                     @Override
                     public List<String> get() {
                         List<String> params = Lists.newArrayList(super.get());
@@ -63,13 +63,19 @@ public interface DataXJobRunEnvironmentParamsSetter {
 
     public static class ExtraJavaSystemPramsSuppiler implements Supplier<List<String>> {
 
+        private final boolean notFetchFromCenterRepository;
+
+        public ExtraJavaSystemPramsSuppiler(boolean notFetchFromCenterRepository) {
+            this.notFetchFromCenterRepository = notFetchFromCenterRepository;
+        }
+
         public String serialize() {
             return String.join(" ", this.get());
         }
 
         @Override
         public List<String> get() {
-            return Lists.newArrayList("-D" + CenterResource.KEY_notFetchFromCenterRepository + "=true");
+            return Lists.newArrayList("-D" + CenterResource.KEY_notFetchFromCenterRepository + "=" + notFetchFromCenterRepository);
         }
     }
 }

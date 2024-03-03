@@ -463,9 +463,16 @@ public class PluginAndCfgsSnapshot {
 
         Set<PluginMeta> result = getShallUpdatePluginMeta(localSnaphsot, updateTpisLogger);
 
+        int copyCount = 0;
         for (PluginMeta update : result) {
-            update.copyFromRemote(Collections.emptyList(), true, true);
+            if (update.copyFromRemote(Collections.emptyList(), true, true)) {
+                copyCount++;
+            }
         }
+
+        updateTpisLogger.append("success synchronized files count:" + copyCount).append("\n");
+
+
         // TIS tis = TIS.get();
         //        PluginManager pluginManager = tis.getPluginManager();
         //        Set<PluginMeta> loaded = Sets.newHashSet();
