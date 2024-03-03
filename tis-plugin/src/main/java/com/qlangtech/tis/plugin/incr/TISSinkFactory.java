@@ -157,7 +157,7 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
         public Map<String, Object> getExtractProps() {
             Map<String, Object> vals = super.getExtractProps();
             EndType targetType = this.getTargetType();
-            this.getEndType().appendProps(vals);
+           // this.getEndType().appendProps(vals);
             vals.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.getVal());
             vals.put(ISelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP
                     , (this instanceof ISelectedTabExtendFactory)

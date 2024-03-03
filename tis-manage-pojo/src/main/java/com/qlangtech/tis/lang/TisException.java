@@ -117,6 +117,11 @@ public class TisException extends RuntimeException {
             this.ex = ex;
         }
 
+        @JSONField(serialize = false)
+        public Throwable getEx() {
+            return ex;
+        }
+
         public String getLogFileName() {
             return String.valueOf(this.logFileName);
         }

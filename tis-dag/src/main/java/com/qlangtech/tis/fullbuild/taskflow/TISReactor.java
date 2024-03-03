@@ -19,11 +19,22 @@ package com.qlangtech.tis.fullbuild.taskflow;
 
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.exec.IExecChainContext;
-import org.jvnet.hudson.reactor.*;
+import org.jvnet.hudson.reactor.Milestone;
+import org.jvnet.hudson.reactor.Reactor;
+import org.jvnet.hudson.reactor.ReactorListener;
+import org.jvnet.hudson.reactor.Task;
+import org.jvnet.hudson.reactor.TaskBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -34,6 +45,7 @@ import java.util.stream.Collectors;
  */
 public class TISReactor {
 
+    private static final Logger logger = LoggerFactory.getLogger(TISReactor.class);
     private final Map<String, TaskAndMilestone> taskMap;
 
     private final IExecChainContext execContext;
@@ -57,7 +69,11 @@ public class TISReactor {
         } else {
             throw new IllegalStateException("param addedListeners length can not small than 1");
         }
-        s.execute(executor, listener);
+        try {
+            s.execute(executor, listener);
+        } catch (InterruptedException e) {
+            logger.warn("task:" + execContext.getTaskId() + " has been cancel", e);
+        }
         //return sw.toString();
     }
 

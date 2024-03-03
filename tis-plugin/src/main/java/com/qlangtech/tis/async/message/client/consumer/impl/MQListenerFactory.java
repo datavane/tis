@@ -95,7 +95,7 @@ public abstract class MQListenerFactory
             Optional<IEndTypeGetter.EndType> targetType = this.getTargetType();
             //  eprops.put(KEY_END_TYPE, this.getEndType());
 
-            this.getEndType().appendProps(eprops);
+            //this.getEndType().appendProps(eprops);
 
             eprops.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.isPresent() ? targetType.get().getVal() : "all");
             eprops.put(ISelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP

@@ -37,6 +37,9 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IEndTypeGetter.EndType;
+import com.qlangtech.tis.plugin.IEndTypeGetter.IEndType;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -201,7 +204,18 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         notebook.put("ability", (this instanceof INotebookable));
         notebook.put("activate", TisAppLaunch.get().isZeppelinActivate());
         props.put("notebook", notebook);
+
+        if (this instanceof IEndTypeGetter) {
+            appendProps(((IEndTypeGetter) this).getEndType(), (props));
+        }
+
         return props;
+    }
+
+    private Map<String, Object> appendProps(IEndType endType, Map<String, Object> eprops) {
+        eprops.put(EndType.KEY_END_TYPE, endType.getVal());
+        eprops.put(EndType.KEY_SUPPORT_ICON, endType.getIcon() != null);
+        return eprops;
     }
 
     private Map<String, Method> createValidateMap() {

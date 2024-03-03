@@ -66,7 +66,7 @@ public class RemoteTaskTriggers {
         Stream.concat(dumpPhaseTasks.stream(), joinPhaseTasks.stream()).forEach((trigger) -> {
             trigger.cancel();
         });
-        executorService.shutdown();
+        executorService.shutdownNow();
         try {
             if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
                 // Cancel currently executing tasks

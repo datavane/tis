@@ -219,7 +219,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
             eprops.put("createDDL", this.isSupportTabCreate());
             eprops.put(KEY_SUPPORT_INCR, this.isSupportIncr());
             eprops.put(KEY_SUPPORT_BATCH, this.isSupportBatch());
-            this.getEndType().appendProps(eprops);
+           // this.getEndType().appendProps(eprops);
 //            eprops.put(KEY_END_TYPE, this.getEndType().getVal());
 //            eprops.put(KEY_SUPPORT_ICON, this.getEndType().getIcon() != null);
             return eprops;

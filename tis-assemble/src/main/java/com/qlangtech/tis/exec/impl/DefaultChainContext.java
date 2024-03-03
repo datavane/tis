@@ -96,7 +96,7 @@ public class DefaultChainContext implements IExecChainContext {
                 return;
             }
         }
-        Objects.requireNonNull(tskTriggers, "tskTriggers can not be null").allCancel();
+        //  Objects.requireNonNull(tskTriggers, "tskTriggers can not be null").allCancel();
     }
 
     @Override
@@ -105,8 +105,8 @@ public class DefaultChainContext implements IExecChainContext {
     }
 
     @Override
-    public RemoteTaskTriggers getTskTriggers( ) {
-      return this.tskTriggers;
+    public RemoteTaskTriggers getTskTriggers() {
+        return this.tskTriggers;
     }
 
     @Override

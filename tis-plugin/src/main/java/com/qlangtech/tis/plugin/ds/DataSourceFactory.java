@@ -37,9 +37,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.sql.*;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Wrapper;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -52,7 +62,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public abstract class DataSourceFactory implements Describable<DataSourceFactory>, Serializable, DBIdentity, DataSourceMeta, Wrapper {
     public static final ZoneId DEFAULT_SERVER_TIME_ZONE = ZoneId.of("Asia/Shanghai");
     public static final String DS_TYPE_MYSQL = "MySQL";
-    public  static final String DS_TYPE_MYSQL_V8 = DS_TYPE_MYSQL + "-V8";
+    public static final String DS_TYPE_MYSQL_V8 = DS_TYPE_MYSQL + "-V8";
 
     @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.identity})
     public String name;
@@ -114,7 +124,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     protected void validateConnection(String jdbcUrl, IConnProcessor p) throws TableNotFoundException {
         JDBCConnection conn = null;
         try {
-            conn = getConnection(jdbcUrl);
+            conn = getConnection(jdbcUrl, true);
             p.vist(conn);
         } catch (TableNotFoundException e) {
             throw e;
@@ -159,16 +169,17 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      *         return DriverManager.getConnection(jdbcUrl, StringUtils.trimToNull(username), StringUtils.trimToNull(password));
      *     }
      * </pre>
+     * * @param verify 创建数据库阶段，验证数据库是否可用，需要数据库连接时设置超时时间
      *
      * @param jdbcUrl
      * @return
      */
-    public JDBCConnection getConnection(String jdbcUrl) throws SQLException {
+    public JDBCConnection getConnection(String jdbcUrl, boolean verify) throws SQLException {
         throw new UnsupportedOperationException("jdbcUrl:" + jdbcUrl);
     }
 
-    public JDBCConnection getConnection(String jdbcUrl, boolean usingPool) throws SQLException {
-        return this.getConnection(jdbcUrl);
+    public JDBCConnection getConnection(String jdbcUrl, boolean usingPool, boolean verify) throws SQLException {
+        return this.getConnection(jdbcUrl, verify);
     }
 
 //        // 密码可以为空
@@ -398,7 +409,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         public final Map<String, Object> getExtractProps() {
             Map<String, Object> eprops = super.getExtractProps();
 
-            this.getEndType().appendProps(eprops);
+            // this.getEndType().appendProps(eprops);
 
 //            eprops.put(KEY_END_TYPE, this.getEndType().getVal());
 //            eprops.put(KEY_SUPPORT_ICON, this.getEndType().getIcon() != null);
@@ -445,6 +456,10 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             return validateDSFactory(msgHandler, context, instance);
         }
 
+        /**
+         * @param conn
+         * @throws TisException
+         */
         protected void validateConnection(JDBCConnection conn) throws TisException {
 
         }
@@ -454,7 +469,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             DBConfig dbConfig = Objects.requireNonNull(dsFactory.getDbConfig(), "dbConfig can not be null");
             Exception[] faild = new Exception[1];
             dbConfig.vistDbURL(false, 5, (dbName, dbHost, jdbcUrl) -> {
-                try (JDBCConnection conn = dsFactory.getConnection(jdbcUrl)) {
+                try (JDBCConnection conn = dsFactory.getConnection(jdbcUrl, true)) {
                     validateConnection(conn);
                 } catch (Exception e) {
                     faild[0] = e;

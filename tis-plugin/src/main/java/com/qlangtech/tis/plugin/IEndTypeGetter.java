@@ -21,7 +21,6 @@ package com.qlangtech.tis.plugin;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.impl.IOUtils;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -58,21 +57,25 @@ public interface IEndTypeGetter {
         Greenplum("greenplum"), MySQL("mysql", true), Postgres("pg", true), Oracle("oracle", true) //
         , ElasticSearch("es", true), MongoDB("mongoDB", true) //
         , StarRocks("starRocks", true), Doris("doris", true) //
-        , Clickhouse("clickhouse", true), Hudi("hudi") //, AliyunOSS("aliyunOSS")
+        , Clickhouse("clickhouse", true), Hudi("hudi", true) //, AliyunOSS("aliyunOSS")
         , TDFS("t-dfs", true) //
         , Cassandra("cassandra") //, HDFS("hdfs")
         , SqlServer("sqlServer", true), TiDB("TiDB", true) //
         , RocketMQ("rocketMq", true), Kafka("kafka", true), DataFlow("dataflow") //
         , DaMeng("daMeng"), AliyunODPS("aliyunOdps"), HiveMetaStore("hms", true) //
         , Spark("spark", true) //
-        , RabbitMQ("rabbitmq"), UnKnowStoreType("unknowStoreType", true);
+        , RabbitMQ("rabbitmq", true), UnKnowStoreType("unknowStoreType", true),
+
+        PowerJob("powerjob", true),
+        Flink("flink", true), Docker("docker", true), K8S("k8s", true);
+
         private final String val;
         private final boolean containICON;
 
         private static final DefaultIconReference unknowType = new DefaultIconReference(UnKnowStoreType);
 
         public static String KEY_END_TYPE = "endType";
-        private static String KEY_SUPPORT_ICON = "supportIcon";
+        public static String KEY_SUPPORT_ICON = "supportIcon";
 
         public static EndType parse(String endType) {
             for (EndType end : EndType.values()) {
@@ -92,11 +95,6 @@ public interface IEndTypeGetter {
             this.containICON = containICON;
         }
 
-        public void appendProps(Map<String, Object> eprops) {
-
-            eprops.put(KEY_END_TYPE, this.getVal());
-            eprops.put(KEY_SUPPORT_ICON, this.getIcon() != null);
-        }
 
         @Override
         public String getVal() {

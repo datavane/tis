@@ -29,6 +29,44 @@ import java.util.regex.Matcher;
  **/
 public class TestValidatorCommons extends TestCase implements ValidatorCommons {
 
+    public void testUrlPattern() {
+        String url = "https://192.168.64.3:8443";
+        Matcher matcher = ValidatorCommons.PATTERN_URL.matcher(url);
+        Assert.assertTrue(url, matcher.matches());
+
+        url = "https://192.168.64.3";
+        matcher = ValidatorCommons.PATTERN_URL.matcher(url);
+        Assert.assertTrue(url, matcher.matches());
+
+        url = "http://192.168.64.3:8080";
+        matcher = ValidatorCommons.PATTERN_URL.matcher(url);
+        Assert.assertTrue(url, matcher.matches());
+
+        url = "http://192.168.64.3";
+        matcher = ValidatorCommons.PATTERN_URL.matcher(url);
+        Assert.assertTrue(url, matcher.matches());
+
+        url = "hdfs://192.168.64.3:8443";
+        matcher = ValidatorCommons.PATTERN_URL.matcher(url);
+        Assert.assertTrue(url, matcher.matches());
+
+        url = "hdfs://192.168.64.3";
+        matcher = ValidatorCommons.PATTERN_URL.matcher(url);
+        Assert.assertTrue(url, matcher.matches());
+
+        url = "https://baidu.com:443";
+        matcher = ValidatorCommons.PATTERN_URL.matcher(url);
+        Assert.assertTrue(url, matcher.matches());
+
+        url = "https://baidu.com";
+        matcher = ValidatorCommons.PATTERN_URL.matcher(url);
+        Assert.assertTrue(url, matcher.matches());
+
+        url = "https://baidu.com:abc";
+        matcher = ValidatorCommons.PATTERN_URL.matcher(url);
+        Assert.assertFalse(url, matcher.matches());
+    }
+
     public void testUserName() {
 
 //        Validator userNameValidator = Validator.user_name;
