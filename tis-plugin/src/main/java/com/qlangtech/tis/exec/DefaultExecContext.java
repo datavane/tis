@@ -41,6 +41,7 @@ import com.qlangtech.tis.sql.parser.TabPartitions;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -48,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -158,6 +160,7 @@ public class DefaultExecContext implements IExecChainContext, IdentityName {
                 throw new IllegalStateException("illegal resType:" + resType);
         }
     }
+
 
     @Override
     public String identityValue() {

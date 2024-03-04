@@ -175,7 +175,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      * @return
      */
     public JDBCConnection getConnection(String jdbcUrl, boolean verify) throws SQLException {
-        throw new UnsupportedOperationException("jdbcUrl:" + jdbcUrl);
+        throw new UnsupportedOperationException("class:" + this.getClass().getName() + ",jdbcUrl:" + jdbcUrl);
     }
 
     public JDBCConnection getConnection(String jdbcUrl, boolean usingPool, boolean verify) throws SQLException {
