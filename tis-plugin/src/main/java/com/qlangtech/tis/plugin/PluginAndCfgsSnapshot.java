@@ -383,6 +383,7 @@ public class PluginAndCfgsSnapshot {
     public void synchronizTpisAndConfs(PluginAndCfgsSnapshot localSnaphsot,
                                        Optional<PluginAndCfgsSnapshot> cacheSnaphsot) throws Exception {
         synchronized (TIS.class) {
+            logger.info("start synchronizTpisAndConfs,cacheSnaphsot.isPresent():" + cacheSnaphsot.isPresent() + ",TIS.initialized:" + TIS.initialized);
             this.synchronizTpisAndConfs(localSnaphsot);
             if (cacheSnaphsot.isPresent() && TIS.initialized /** 必须要TIS 已经初始化 完成，启动时 cacheSnaphsot
              内的依赖plugin为空致使启动报错*/) {
@@ -429,7 +430,9 @@ public class PluginAndCfgsSnapshot {
 
 
         updateTpisLogger.append(">>app cfg compare:\n");
-        updateTpisLogger.append("center:").append(this.appLastModifyTimestamp).append(this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp ? " > " : " <= ").append("local:").append(localSnaphsot.appLastModifyTimestamp).append("\n");
+        updateTpisLogger.append("center:").append(this.appLastModifyTimestamp)
+                .append(this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp ? " > " : " <= ")
+                .append("local:").append(localSnaphsot.appLastModifyTimestamp).append("\n");
         if (this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp) {
             // 更新app相关配置,下载并更新本地配置
             KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(null, StoreResourceType.parse(false),

@@ -33,6 +33,7 @@ import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.job.common.JobParams;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshotUtils;
 import com.qlangtech.tis.plugin.StoreResourceType;
@@ -54,7 +55,7 @@ import java.util.function.Supplier;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/11/18
  */
-public class DefaultExecContext implements IExecChainContext {
+public class DefaultExecContext implements IExecChainContext, IdentityName {
 
     private final long ps;
     private Integer workflowId;
@@ -156,8 +157,22 @@ public class DefaultExecContext implements IExecChainContext {
             default:
                 throw new IllegalStateException("illegal resType:" + resType);
         }
+    }
 
-
+    @Override
+    public String identityValue() {
+        StoreResourceType resType = Objects.requireNonNull(getResType(), "resType can not be null");
+        switch (resType) {
+            case DataApp:
+                return resType.getType() + "_" + this.getIndexName();
+            case DataFlow:
+                if (StringUtils.isEmpty(this.getWorkflowName())) {
+                    throw new IllegalStateException("proper workflowName can not be empty");
+                }
+                return resType.getType() + "_" + this.getWorkflowName();
+            default:
+                throw new IllegalStateException("illegal resType:" + resType);
+        }
     }
 
     @Override
