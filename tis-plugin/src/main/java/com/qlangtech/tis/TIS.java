@@ -76,6 +76,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_PREPARED;
@@ -536,11 +537,16 @@ public class TIS {
         return g;
     }
 
+    public static Consumer<TIS> afterTISCreate;
+
     public static TIS get() {
         if (permitInitialize && tis == null) {
             synchronized (TIS.class) {
                 if (permitInitialize && tis == null) {
                     tis = new TIS();
+                    if (afterTISCreate != null) {
+                        afterTISCreate.accept(tis);
+                    }
                 }
             }
         }
