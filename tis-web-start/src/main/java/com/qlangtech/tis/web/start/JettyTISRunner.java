@@ -193,6 +193,7 @@ public class JettyTISRunner {
                     + jarfiles.size() + ",enums:" + String.join(",", resNames));
             webAppContext.setClassLoader(contextCloassLoader);
         } else {
+            logger.info("context:" + context + " start with system classloader");
             webAppContext.setClassLoader(this.getClass().getClassLoader());
         }
         webAppContext.setDescriptor("/" + TisApp.PATH_WEB_XML);
