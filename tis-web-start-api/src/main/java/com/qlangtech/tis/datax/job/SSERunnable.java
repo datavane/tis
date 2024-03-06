@@ -18,10 +18,10 @@
 
 package com.qlangtech.tis.datax.job;
 
-import com.google.common.collect.Maps;
-import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.coredefine.module.action.ResName;
 import com.qlangtech.tis.trigger.feedback.IJobFeedback;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -35,7 +35,7 @@ public interface SSERunnable extends Runnable, IJobFeedback {
     char splitChar = '\005';
     static ThreadLocal<SSERunnable> local = new ThreadLocal<>();
 
-    Map<Class, Object> contextAttrs = Maps.newHashMap();
+    Map<Class, Object> contextAttrs = new HashMap<>();
 
     default <T> void setContextAttr(Class<T> key, T val) {
         contextAttrs.put(Objects.requireNonNull(key), Objects.requireNonNull(val));
@@ -75,7 +75,7 @@ public interface SSERunnable extends Runnable, IJobFeedback {
      * @param subJob
      * @param success
      */
-    public void writeComplete(TargetResName subJob, boolean success);
+    public void writeComplete(ResName subJob, boolean success);
 
     enum SSEEventType {
         TASK_MILESTONE("taskMilestone"),

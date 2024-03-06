@@ -16,39 +16,14 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.coredefine.module.action;
-
-import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
-import org.apache.commons.lang.StringUtils;
+package com.qlangtech.tis;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-10-15 15:59
+ * @create: 2024-03-06 10:41
  **/
-public class TargetResName extends ResName {
-
-
-    public String getStreamSourceHandlerClass() {
-        return "com.qlangtech.tis.realtime.transfer." + this.getName() + "." + UnderlineUtils.getJavaName(this.getName()) + "SourceHandle";
-    }
-
-    public TargetResName(String name) {
-        super(name);
-    }
-
-    public boolean equalWithName(String name) {
-        return this.getName().equals(name);
-    }
-
-
-    public String getK8SResName() {
-        return StringUtils.replace(this.getName(), "_", "-");
-    }
-
-    @Override
-    public String toString() {
-        return "{" +
-                "name='" + getName() + '\'' +
-                '}';
-    }
+public class Test {
+  public static void main(String[] args) throws Exception {
+    System.out.println(Class.forName("com.qlangtech.tis.log.WaittingProcessCollectorAppender"));
+  }
 }

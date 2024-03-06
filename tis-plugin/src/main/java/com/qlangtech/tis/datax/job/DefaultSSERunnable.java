@@ -20,6 +20,7 @@ package com.qlangtech.tis.datax.job;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.coredefine.module.action.ResName;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteSteps;
@@ -348,7 +349,7 @@ public class DefaultSSERunnable implements SSERunnable {
      * @param success
      */
     @Override
-    public void writeComplete(TargetResName subJob, boolean success) {
+    public void writeComplete(ResName subJob, boolean success) {
 
         JSONObject m = SubJobMilestone.createMilestoneJson(subJob.getName(), Optional.empty(), true, success);
         writeMessage(SSEEventType.TASK_MILESTONE, JsonUtil.toString(m, false));

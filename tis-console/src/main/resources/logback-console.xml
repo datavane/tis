@@ -30,7 +30,7 @@
 	</appender>
 
   <!--收集客户端 EventSource发起请求，服务端执行生成的日志信息-->
-  <appender name="wpCollector" class="com.qlangtech.tis.logger.WaittingProcessCollectorAppender">
+  <appender name="wpCollector" class="com.qlangtech.tis.log.WaittingProcessCollectorAppender">
   </appender>
 
 
