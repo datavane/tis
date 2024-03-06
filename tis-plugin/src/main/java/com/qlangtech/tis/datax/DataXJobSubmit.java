@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -130,7 +131,8 @@ public abstract class DataXJobSubmit {
         //            expectDataXJobSumit = InstanceType.EMBEDDED;
         //        }
 
-        ExtensionList<DataXJobSubmit> jobSumits = TIS.get().getExtensionList(DataXJobSubmit.class);
+        ExtensionList<DataXJobSubmit> jobSumits = Objects.requireNonNull(TIS.get(), "tis instance can not be null")
+                .getExtensionList(DataXJobSubmit.class);
         Optional<DataXJobSubmit> jobSubmit =
                 jobSumits.stream().filter((jsubmit) -> (targetType) == jsubmit.getType()).findFirst();
         return jobSubmit;
