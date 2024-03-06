@@ -21,7 +21,11 @@ import com.qlangtech.tis.health.check.IStatusChecker;
 import com.qlangtech.tis.health.check.StatusLevel;
 import com.qlangtech.tis.health.check.StatusModel;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
-import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.NetworkTrafficServerConnector;
+import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -170,7 +174,9 @@ public class JettyTISRunner {
                 throw new IllegalStateException("libs is illegal:" + libsDir.getAbsolutePath());
             }
             List<URL> jarfiles = new ArrayList<>();
+            List<String> resNames = new ArrayList<>();
             for (String path : libsDir.list()) {
+                resNames.add(path);
                 jarfiles.add((new File(libsDir, path)).toURI().toURL());
             }
             // contextCloassLoader.addJars(Resource.newResource(libsDir));
@@ -178,10 +184,13 @@ public class JettyTISRunner {
             if (!confDir.exists()) {
                 throw new IllegalStateException("web context:" + context + " dir not exist:" + confDir.getAbsolutePath());
             }
+            resNames.add(confDir.getName());
             // contextCloassLoader.addClassPath(Resource.newResource(confDir));
             jarfiles.add(confDir.toURI().toURL());
             TISAppClassLoader contextCloassLoader
                     = new TISAppClassLoader(context, this.parentLoader, jarfiles.toArray(new URL[jarfiles.size()]));
+            logger.info("context:" + context + " start with customer classLoader,resCount:"
+                    + jarfiles.size() + ",enums:" + String.join(",", resNames));
             webAppContext.setClassLoader(contextCloassLoader);
         } else {
             webAppContext.setClassLoader(this.getClass().getClassLoader());
