@@ -132,6 +132,7 @@
                 <groupId>com.qlangtech.tis</groupId>
                 <artifactId>tis-web-start-api</artifactId>
                 <version>${project.version}</version>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
