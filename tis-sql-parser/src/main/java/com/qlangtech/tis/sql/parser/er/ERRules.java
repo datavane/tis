@@ -37,6 +37,7 @@ import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -92,7 +93,7 @@ public class ERRules implements IPrimaryTabFinder, IERRules {
         dumperOptions.setSplitLines(true);
         dumperOptions.setLineBreak(DumperOptions.LineBreak.UNIX);
         dumperOptions.setWidth(1000000);
-        yaml = new Yaml(new Constructor(), new Representer() {
+        yaml = new Yaml(new Constructor(new LoaderOptions()), new Representer(dumperOptions) {
 
             @Override
             protected Node representScalar(Tag tag, String value, DumperOptions.ScalarStyle style) {
@@ -110,7 +111,7 @@ public class ERRules implements IPrimaryTabFinder, IERRules {
                 }
                 return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
             }
-        }, dumperOptions);
+        });
         yaml.addTypeDescription(new TypeDescription(TableRelation.class, Tag.MAP, TableRelation.class));
         yaml.addTypeDescription(new TypeDescription(ERRules.class, Tag.MAP, ERRules.class));
         yaml.addTypeDescription(new TypeDescription(DependencyNode.class, Tag.MAP, DependencyNode.class));

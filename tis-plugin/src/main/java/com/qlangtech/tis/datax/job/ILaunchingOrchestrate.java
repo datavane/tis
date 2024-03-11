@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.datax.job;
 
+import com.qlangtech.tis.datax.job.JobResName.IJobExec;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
  **/
 public interface ILaunchingOrchestrate<T> {
 
-    public List<ExecuteStep<T>> getExecuteSteps();
+    public List<ExecuteStep<T, ?>> getExecuteSteps();
 
     public default ExecuteSteps createExecuteSteps(Object owner) {
         return new ExecuteSteps(owner, this.getExecuteSteps().stream().collect(Collectors.toList()));
@@ -55,30 +56,30 @@ public interface ILaunchingOrchestrate<T> {
         }
     }
 
-    public class ExecuteStep<T> extends SubJobMilestone {
-        private final SubJobResName<T> subJob;
+    public class ExecuteStep<T, EXEC extends IJobExec<T>> extends SubJobMilestone {
+        private final JobResName<T, EXEC> subJob;
 
-        public ExecuteStep(SubJobResName<T> resName, String describe) {
+        public ExecuteStep(JobResName<T, EXEC> resName, String describe) {
             this(resName, describe, false, false);
         }
 
-        public ExecuteStep(SubJobResName<T> name, String describe, boolean complete, boolean success) {
+        public ExecuteStep(JobResName<T, EXEC> name, String describe, boolean complete, boolean success) {
             super(name.getName(), describe, complete, success);
             this.subJob = name;
         }
 
-        public SubJobResName<T> getSubJob() {
+        public JobResName<T, EXEC> getSubJob() {
             return this.subJob;
         }
 
-        public ExecuteStep<T> copy(SubJobMilestone subJobStone) {
-            ExecuteStep<T> step = new ExecuteStep<T>(subJob
+        public ExecuteStep<T, EXEC> copy(SubJobMilestone subJobStone) {
+            ExecuteStep<T, EXEC> step = new ExecuteStep<T, EXEC>(subJob
                     , this.getDescribe(), subJobStone.isComplete(), subJobStone.isSuccess());
             return step;
         }
 
-        public ExecuteStep<T> copy() {
-            return new ExecuteStep<T>(subJob, this.getDescribe(), this.isComplete(), this.isSuccess());
+        public ExecuteStep<T, EXEC> copy() {
+            return new ExecuteStep<T, EXEC>(subJob, this.getDescribe(), this.isComplete(), this.isSuccess());
         }
     }
 

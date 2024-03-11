@@ -368,14 +368,9 @@ public class DataxAction extends BasicModule {
     TargetResName cptType = new TargetResName(this.getString(DataXJobWorker.KEY_CPT_TYPE));
     DataXJobWorker dataxJobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName());
 
-    ExecuteStep execStep = new ExecuteStep(new SubJobResName("scalaPods", (_t) -> {
+    ExecuteStep execStep = new ExecuteStep(SubJobResName.createSubJob("scalaPods", (dto) -> {
       throw new UnsupportedOperationException();
-    }) {
-      @Override
-      protected String getResourceType() {
-        throw new UnsupportedOperationException();
-      }
-    }, "");
+    }), null);
 
     List<ExecuteStep> executeSteps = Collections.singletonList(execStep);
     DefaultSSERunnable launchProcess = new DefaultSSERunnable(
@@ -633,7 +628,7 @@ public class DataxAction extends BasicModule {
     PluginDescMeta pluginDescMeta = new PluginDescMeta(DataXJobWorker.getDesc(targetName));
 
     boolean addJobTplOverwritePlugin = this.getBoolean("addJobTplOverwritePlugin");
-    if(addJobTplOverwritePlugin){
+    if (addJobTplOverwritePlugin) {
       pluginDescMeta.addTypedPlugins(DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite
         , HeteroEnum.appJobWorkerTplReWriter.getPlugins(this, null));
     }

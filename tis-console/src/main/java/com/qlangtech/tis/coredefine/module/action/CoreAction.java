@@ -45,6 +45,8 @@ import com.qlangtech.tis.datax.job.FlinkClusterPojo;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteSteps;
+import com.qlangtech.tis.datax.job.JobResName;
+import com.qlangtech.tis.datax.job.JobResName.SubJobExec;
 import com.qlangtech.tis.datax.job.ServerLaunchToken;
 import com.qlangtech.tis.datax.job.ServerLaunchToken.FlinkClusterTokenManager;
 import com.qlangtech.tis.datax.job.SubJobResName;
@@ -636,40 +638,43 @@ public class CoreAction extends BasicModule {
 
   private ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobWorkingOrchestrate(TISK8sDelegate k8sClient) {
 
-    final SubJobResName<FlinkJobDeployDTO> checkEnvironment
-      = new SubJobResName<FlinkJobDeployDTO>("check-environment", (dto) -> {
+    final SubJobResName<FlinkJobDeployDTO> checkEnvironment =
+      JobResName.createSubJob(getCollectionName() + " check environment", (dto) -> {
+        k8sClient.checkUseable();
+      });
 
-      k8sClient.checkUseable();
-    }) {
-      @Override
-      protected String getResourceType() {
-        return getCollectionName() + " check environment";
-      }
-    };
+//      =
+//    new SubJobResName<FlinkJobDeployDTO, SubJobExec<FlinkJobDeployDTO>>("check-environment", new SubJobExec<FlinkJobDeployDTO>() {
+//      @Override
+//      public void accept(FlinkJobDeployDTO flinkJobDeployDTO) throws Exception {
+//        k8sClient.checkUseable();
+//      }
+//    }) {
+//      @Override
+//      protected String getResourceType() {
+//        return getCollectionName() + " check environment";
+//      }
+//    };
 
 
-    final SubJobResName<FlinkJobDeployDTO> compileAndPackage
-      = new SubJobResName<FlinkJobDeployDTO>("compile-package", (dto) -> {
-      long start = System.currentTimeMillis();
-      /**
-       * ==========================================================
-       * compile&deploy
-       * ==========================================================
-       */
-      this.doCompileAndPackage(dto.context);
-      if (dto.hasErrors()) {
-        return;
-      }
-      dto.appendLog("\n compile and package consume:" + (System.currentTimeMillis() - start) + "ms ");
-    }) {
-      @Override
-      protected String getResourceType() {
-        return "Incr " + getCollectionName() + " Compile And Package";
-      }
-    };
+    final SubJobResName<FlinkJobDeployDTO> compileAndPackage =
+      JobResName.createSubJob("Incr " + getCollectionName() + " Compile And Package", (dto) -> {
+        long start = System.currentTimeMillis();
+        /**
+         * ==========================================================
+         * compile&deploy
+         * ==========================================================
+         */
+        this.doCompileAndPackage(dto.context);
+        if (dto.hasErrors()) {
+          return;
+        }
+        dto.appendLog("\n compile and package consume:" + (System.currentTimeMillis() - start) + "ms ");
+      });
+
 
     final SubJobResName<FlinkJobDeployDTO> deploy
-      = new SubJobResName<FlinkJobDeployDTO>("deploy", (dto) -> {
+      = SubJobResName.createSubJob("Incr " + getCollectionName() + " Deploy", (dto) -> {
 
       IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
 
@@ -685,15 +690,10 @@ public class CoreAction extends BasicModule {
       dto.k8sClient.deploy(null, indexStreamCodeGenerator.getIncrScriptTimestamp());
       dto.appendLog("\n deploy to flink cluster consume:" + (System.currentTimeMillis() - start) + "ms ");
 
-    }) {
-      @Override
-      protected String getResourceType() {
-        return "Incr " + getCollectionName() + " Deploy";
-      }
-    };
+    });
 
     final SubJobResName<FlinkJobDeployDTO> confirm
-      = new SubJobResName<FlinkJobDeployDTO>("confirm", (dto) -> {
+      = SubJobResName.createSubJob("Confirm", (dto) -> {
 
       AtomicBoolean loop = new AtomicBoolean(true);
       AtomicInteger tryCount = new AtomicInteger();
@@ -724,12 +724,7 @@ public class CoreAction extends BasicModule {
         }
       }
 
-    }) {
-      @Override
-      protected String getResourceType() {
-        return "Incr " + getCollectionName() + " Confirm";
-      }
-    };
+    });
 
     final SubJobResName[] flinkDeployRes //
       = new SubJobResName[]{
@@ -738,8 +733,8 @@ public class CoreAction extends BasicModule {
 
     return new ILaunchingOrchestrate() {
       @Override
-      public List<ExecuteStep<FlinkJobDeployDTO>> getExecuteSteps() {
-        List<ExecuteStep<FlinkJobDeployDTO>> launchSteps = Lists.newArrayList();
+      public List<ExecuteStep<FlinkJobDeployDTO, SubJobExec<FlinkJobDeployDTO>>> getExecuteSteps() {
+        List<ExecuteStep<FlinkJobDeployDTO, SubJobExec<FlinkJobDeployDTO>>> launchSteps = Lists.newArrayList();
         for (SubJobResName rcRes : flinkDeployRes) {
           launchSteps.add(new ExecuteStep(rcRes, null));
         }

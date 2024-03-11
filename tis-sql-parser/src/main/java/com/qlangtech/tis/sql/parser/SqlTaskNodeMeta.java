@@ -57,6 +57,7 @@ import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.DumperOptions.LineBreak;
 import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -96,7 +97,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
             dumperOptions.setSplitLines(true);
             dumperOptions.setLineBreak(LineBreak.UNIX);
             dumperOptions.setWidth(1000000);
-            Yaml y = new Yaml(new Constructor(), new Representer() {
+            Yaml y = new Yaml(new Constructor(new LoaderOptions())
+                    , new Representer(dumperOptions) {
 
                 @Override
                 protected Node representScalar(Tag tag, String value, ScalarStyle style) {

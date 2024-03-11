@@ -31,6 +31,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
@@ -57,7 +58,7 @@ public class DBNode implements IDBNodeMeta {
     private static final Yaml yaml;
 
     static {
-        yaml = new Yaml(new Constructor());
+        yaml = new Yaml(new Constructor(new LoaderOptions()));
     }
 
 

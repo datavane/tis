@@ -18,46 +18,20 @@
 
 package com.qlangtech.tis.datax.job;
 
-import com.qlangtech.tis.coredefine.module.action.TargetResName;
-import com.qlangtech.tis.datax.TimeFormat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.qlangtech.tis.datax.job.JobResName.SubJobExec;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2023-12-29 10:01
+ * @create: 2024-03-11 12:37
  **/
-public abstract class SubJobResName<T> extends TargetResName {
-    private final SubJobExec<T> subJobExec;
-    private static final Logger logger = LoggerFactory.getLogger(SubJobResName.class);
+public abstract class SubJobResName<T> extends JobResName<T, SubJobExec<T>> {
 
-    public SubJobResName(String name, SubJobExec<T> subJobExec) {
-        super(name);
-        this.subJobExec = subJobExec;
+    SubJobResName(String name, SubJobExec<T> jobExec) {
+        super(name, jobExec);
     }
 
-    public final void execSubJob(T t) throws Exception {
-        SSERunnable sse = SSERunnable.getLocal();
-        boolean success = false;
-        try {
-            sse.info(this.getName(), TimeFormat.getCurrentTimeStamp(), "〇〇 start to publish " + this.getResourceType() + "'" + this.getName() + "'");
-            subJobExec.accept(t);
-            success = true;
-            sse.info(this.getName(), TimeFormat.getCurrentTimeStamp(), "✔✔ successful to publish " + this.getResourceType() + "'" + this.getName() + "'");
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            throw e;
-        } finally {
-            if (!success) {
-                sse.info(this.getName(), TimeFormat.getCurrentTimeStamp(), "✕✕ faild to publish " + this.getResourceType() + "'" + this.getName() + "'");
-            }
-            sse.writeComplete(this, success);
-        }
-    }
-
-    protected abstract String getResourceType();
-
-    public interface SubJobExec<T> {
-        public void accept(T t) throws Exception;
+    @Override
+    protected void execute(SSERunnable sse, T t, SubJobExec<T> jobExec) throws Exception {
+        jobExec.accept(t);
     }
 }

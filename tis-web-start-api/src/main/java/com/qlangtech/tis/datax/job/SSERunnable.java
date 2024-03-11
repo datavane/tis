@@ -41,12 +41,41 @@ public interface SSERunnable extends Runnable, IJobFeedback {
         contextAttrs.put(Objects.requireNonNull(key), Objects.requireNonNull(val));
     }
 
+    default <T> void cleanContextAttr(Class<T> key) {
+        contextAttrs.remove(Objects.requireNonNull(key));
+    }
+
     default <T> T getContextAttr(Class<T> key) {
         return Objects.requireNonNull((T) contextAttrs.get(key), "key:" + key + " relevant instance can not be null");
     }
 
     public static void setLocalThread(SSERunnable sseRunnable) {
         local.set(sseRunnable);
+    }
+
+    public static SSERunnable createMock() {
+        return new SSERunnable() {
+            @Override
+            public void writeComplete(ResName subJob, boolean success) {
+
+            }
+
+            @Override
+            public void info(String serviceName, long timestamp, String msg) {
+            }
+
+            @Override
+            public void error(String serviceName, long timestamp, String msg) {
+            }
+
+            @Override
+            public void fatal(String serviceName, long timestamp, String msg) {
+            }
+
+            @Override
+            public void run() {
+            }
+        };
     }
 
     /**
