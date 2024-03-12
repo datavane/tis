@@ -733,8 +733,8 @@ public class CoreAction extends BasicModule {
 
     return new ILaunchingOrchestrate() {
       @Override
-      public List<ExecuteStep<FlinkJobDeployDTO, SubJobExec<FlinkJobDeployDTO>>> getExecuteSteps() {
-        List<ExecuteStep<FlinkJobDeployDTO, SubJobExec<FlinkJobDeployDTO>>> launchSteps = Lists.newArrayList();
+      public List<ExecuteStep<FlinkJobDeployDTO>> getExecuteSteps() {
+        List<ExecuteStep<FlinkJobDeployDTO>> launchSteps = Lists.newArrayList();
         for (SubJobResName rcRes : flinkDeployRes) {
           launchSteps.add(new ExecuteStep(rcRes, null));
         }

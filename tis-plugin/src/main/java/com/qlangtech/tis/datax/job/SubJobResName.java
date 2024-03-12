@@ -18,20 +18,21 @@
 
 package com.qlangtech.tis.datax.job;
 
-import com.qlangtech.tis.datax.job.JobResName.SubJobExec;
-
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-03-11 12:37
  **/
-public abstract class SubJobResName<T> extends JobResName<T, SubJobExec<T>> {
+public abstract class SubJobResName<T> extends JobResName<T> {
 
-    SubJobResName(String name, SubJobExec<T> jobExec) {
-        super(name, jobExec);
+    private final SubJobExec<T> jobExec;
+
+    protected SubJobResName(String name, SubJobExec<T> jobExec) {
+        super(name);
+        this.jobExec = jobExec;
     }
 
     @Override
-    protected void execute(SSERunnable sse, T t, SubJobExec<T> jobExec) throws Exception {
+    protected void execute(SSERunnable sse, T t) throws Exception {
         jobExec.accept(t);
     }
 }

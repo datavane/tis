@@ -18,21 +18,23 @@
 
 package com.qlangtech.tis.datax.job;
 
-import com.qlangtech.tis.datax.job.JobResName.OwnerJobExec;
-
 import java.util.Objects;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-03-11 13:18
  **/
-public abstract class OwnerJobResName<T, RESULT> extends JobResName<T, OwnerJobExec<T, RESULT>> {
+public abstract class OwnerJobResName<T, RESULT> extends JobResName<T> {
+
+    private final OwnerJobExec<T, RESULT> jobExec;
+
     public OwnerJobResName(String name, OwnerJobExec<T, RESULT> jobExec) {
-        super(name, jobExec);
+        super(name);
+        this.jobExec = jobExec;
     }
 
     @Override
-    protected final void execute(SSERunnable sse, T t, OwnerJobExec<T, RESULT> jobExec) throws Exception {
+    protected final void execute(SSERunnable sse, T t) throws Exception {
         RESULT result = jobExec.accept(t);
         if (result != null) {
             sse.setContextAttr(SSEExecuteOwner.class, new SSEExecuteOwner(result));

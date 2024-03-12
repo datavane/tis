@@ -20,23 +20,21 @@ package com.qlangtech.tis.datax.job;
 
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.TimeFormat;
-import com.qlangtech.tis.datax.job.JobResName.IJobExec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.function.Consumer;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-12-29 10:01
  **/
-public abstract class JobResName<T, EXEC extends IJobExec<T>> extends TargetResName {
-    private final EXEC jobExec;
+public abstract class JobResName<T> extends TargetResName {
+    // private final EXEC jobExec;
     private static final Logger logger = LoggerFactory.getLogger(JobResName.class);
 
-    public JobResName(String name, EXEC jobExec) {
+    public JobResName(String name //, EXEC jobExec
+    ) {
         super(name);
-        this.jobExec = jobExec;
+        // this.jobExec = jobExec;
     }
 
 
@@ -70,7 +68,7 @@ public abstract class JobResName<T, EXEC extends IJobExec<T>> extends TargetResN
         boolean success = false;
         try {
             sse.info(this.getName(), TimeFormat.getCurrentTimeStamp(), "〇〇 start to publish " + this.getResourceType() + "'" + this.getName() + "'");
-            this.execute(sse, t, this.jobExec);
+            this.execute(sse, t);
             success = true;
             sse.info(this.getName(), TimeFormat.getCurrentTimeStamp(), "✔✔ successful to publish " + this.getResourceType() + "'" + this.getName() + "'");
         } catch (Exception e) {
@@ -84,7 +82,7 @@ public abstract class JobResName<T, EXEC extends IJobExec<T>> extends TargetResN
         }
     }
 
-    protected abstract void execute(SSERunnable sse, T t, EXEC jobExec) throws Exception;
+    protected abstract void execute(SSERunnable sse, T t) throws Exception;
 //        if (jobExec instanceof SubJobExec) {
 //            ((OwnerJobExec) jobExec).accept(t);
 //        } else {
@@ -94,15 +92,12 @@ public abstract class JobResName<T, EXEC extends IJobExec<T>> extends TargetResN
 
     protected abstract String getResourceType();
 
-    public interface IJobExec<T> {
 
-    }
-
-    public interface OwnerJobExec<T, RESULT> extends IJobExec<T> {
+    public interface OwnerJobExec<T, RESULT> {
         public RESULT accept(T t) throws Exception;
     }
 
-    public interface SubJobExec<T> extends IJobExec<T> {
+    public interface SubJobExec<T> {
         public void accept(T t) throws Exception;
     }
 
