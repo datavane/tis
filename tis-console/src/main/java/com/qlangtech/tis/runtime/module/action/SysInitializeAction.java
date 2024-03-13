@@ -17,10 +17,21 @@
  */
 package com.qlangtech.tis.runtime.module.action;
 
+import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.manage.biz.dal.dao.*;
-import com.qlangtech.tis.manage.biz.dal.pojo.*;
-import com.qlangtech.tis.manage.common.*;
+import com.qlangtech.tis.extension.model.UpdateCenterResource;
+import com.qlangtech.tis.manage.biz.dal.pojo.Application;
+import com.qlangtech.tis.manage.biz.dal.pojo.Department;
+import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria;
+import com.qlangtech.tis.manage.biz.dal.pojo.Snapshot;
+import com.qlangtech.tis.manage.biz.dal.pojo.SnapshotCriteria;
+import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria;
+import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
+import com.qlangtech.tis.manage.common.ConfigFileReader;
+import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.manage.common.MockContext;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.spring.TISDataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.UploadJarAction.ConfigContentGetter;
@@ -28,9 +39,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
+import org.apache.tools.tar.TarEntry;
+import org.apache.tools.tar.TarInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -38,14 +50,17 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 
 /**
  * 系统初始化
@@ -53,8 +68,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月17日
  */
-public class SysInitializeAction   //extends BasicModule
-{
+public class SysInitializeAction extends BasicModule {
 
   private static final long serialVersionUID = 1L;
   private static final Logger logger = LoggerFactory.getLogger(SysInitializeAction.class);
@@ -164,7 +178,7 @@ public class SysInitializeAction   //extends BasicModule
       "classpath:/tis.application.context.xml", "classpath:/tis.application.mockable.context.xml");
     appContext.getAutowireCapableBeanFactory().autowireBeanProperties(
       initAction, AutowireCapableBeanFactory.AUTOWIRE_BY_NAME, false);
-    initAction.doInit();
+    initAction.doInit(MockContext.instance);
   }
 
   /**
@@ -203,20 +217,22 @@ public class SysInitializeAction   //extends BasicModule
     return batchs;
   }
 
-  public void doInit() throws Exception {
+  public void doInit(Context context) throws Exception {
 
     // final File sysInitializedToken = new File(Config.getDataDir(), "system_initialized_token");
     if (isSysInitialized()) {
       throw new IllegalStateException("tis has initialized:" + getSysInitializedTokenFile().getAbsolutePath());
     }
 
-//    logger.info("needZkInit:{}", needZkInit);
-//
-//    if (needZkInit && !initializeZkPath(Config.getZKHost())) {
-//      // 初始化ZK失败
-//      logger.warn("ZkInit falid,zkAddress:{}", Config.getZKHost());
-//      return;
-//    }
+    /**
+     * 下载data目录
+     */
+    copyDataTarToLocal();
+
+    /**
+     * 取得SQL并且初始化
+     */
+
 
     UsrDptRelationCriteria c = new UsrDptRelationCriteria();
     c.createCriteria().andUsrIdEqualTo(ADMIN_ID);
@@ -228,16 +244,52 @@ public class SysInitializeAction   //extends BasicModule
     }
     // 添加一个系统管理员
     this.getUsrDptRelationDAO().addAdminUser();
-
     this.initializeDepartment();
-
     this.initializeAppAndSchema();
+
     touchSysInitializedToken();
   }
 
-  private IUsrDptRelationDAO getUsrDptRelationDAO() {
-    return this.getDaoContext().getUsrDptRelationDAO();
+  void copyDataTarToLocal() throws IOException {
+    final String dataPkgName = "tis-data.tar.gz";
+    URL dataPkg = UpdateCenterResource.getTISTarPkg(dataPkgName);
+    File tmpDataDir = FileUtils.getTempDirectory();//  Config.getDataDir();
+    HttpUtils.get(dataPkg, new StreamProcess<Void>() {
+        @Override
+        public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) throws IOException {
+          try (GZIPInputStream gis = new GZIPInputStream(stream);
+               TarInputStream tis = new TarInputStream(gis)) {
+            TarEntry entry = null;
+            while ((entry = tis.getNextEntry()) != null) {
+              if (entry.isDirectory()) {
+                File dir = new File(tmpDataDir, entry.getName());
+                if (!dir.exists()) {
+                  if (!dir.mkdirs()) {
+                    throw new IOException("Failed to create directory: " + dir.getAbsolutePath());
+                  }
+                }
+              } else {
+                File file = new File(tmpDataDir, entry.getName());
+                FileUtils.copyToFile(tis, file);
+                logger.info("write file:{}", file.getAbsolutePath());
+              }
+            }
+            return null;
+          }
+        }
+      }
+    );
+    File tmp = new File(tmpDataDir, "data");
+    final File dataDir = Config.getDataDir();
+    logger.info("move to:{} from:{}", dataDir.getAbsolutePath(), tmp);
+    FileUtils.deleteDirectory(dataDir);
+    FileUtils.moveDirectory(tmp, dataDir);
+
   }
+
+//  private IUsrDptRelationDAO getUsrDptRelationDAO() {
+//    return this.getDaoContext().getUsrDptRelationDAO();
+//  }
 
   public void initializeAppAndSchema() throws IOException {
     this.getApplicationDAO().deleteByPrimaryKey(TEMPLATE_APPLICATION_DEFAULT_ID);
@@ -498,34 +550,9 @@ public class SysInitializeAction   //extends BasicModule
     }
   }
 
-  public IApplicationDAO getApplicationDAO() {
-    return getDaoContext().getApplicationDAO();
-  }
+//  private RunContext getDaoContext() {
+//    return daoContextGetter.get();
+//  }
 
-  public IServerGroupDAO getServerGroupDAO() {
-    return getDaoContext().getServerGroupDAO();
-  }
 
-  public ISnapshotDAO getSnapshotDAO() {
-    return getDaoContext().getSnapshotDAO();
-  }
-
-  public IUploadResourceDAO getUploadResourceDAO() {
-    return getDaoContext().getUploadResourceDAO();
-  }
-
-  public IDepartmentDAO getDepartmentDAO() {
-    return getDaoContext().getDepartmentDAO();
-  }
-
-  private RunContextGetter daoContextGetter;
-
-  private RunContext getDaoContext() {
-    return daoContextGetter.get();
-  }
-
-  @Autowired
-  public final void setRunContextGetter(RunContextGetter daoContextGetter) {
-    this.daoContextGetter = daoContextGetter;
-  }
 }

@@ -37,6 +37,7 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter.EndType;
 import com.qlangtech.tis.plugin.IEndTypeGetter.IEndType;
@@ -1239,14 +1240,23 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public final List<SelectOption> getSelectOptions(String name) {
         Callable<List<? extends IdentityName>> opsCallable = selectOptsRegister.get(name);
         if (opsCallable == null) {
-            throw new IllegalStateException("fieldName:" + name + " is select options has not been register,class:" + this.getClass().getName() + ",has registed:" + selectOptsRegister.keySet().stream().collect(Collectors.joining(",")));
+            throw new IllegalStateException("fieldName:" + name + " is select options has not been register,class:"
+                    + this.getClass().getName()
+                    + ",has registed:" + selectOptsRegister.keySet().stream().collect(Collectors.joining(",")));
         }
         try {
             List<? extends IdentityName> opts = opsCallable.call();
             if (opts == null) {
                 return Collections.emptyList();
             }
-            return opts.stream().map((r) -> new SelectOption(r.identityValue(), r.getDescribleClass())).collect(Collectors.toList());
+            return opts.stream().map((r) -> {
+                Descriptor desc = null;
+                EndType endType = null;
+                if ((desc = ((Describable) r).getDescriptor()) instanceof IEndTypeGetter) {
+                    endType = ((IEndTypeGetter) desc).getEndType();
+                }
+                return new SelectOption(r.identityValue(), r.getDescribleClass(), endType);
+            }).collect(Collectors.toList());
         } catch (Exception e) {
             throw new RuntimeException("field name:" + name + ",class:" + this.getClass().getName(), e);
         }
@@ -1257,10 +1267,19 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         private final String name;
 
         private final Class<?> implClass;
+        private final IDataXEndTypeGetter.EndType endType;
 
-        public SelectOption(String name, Class<?> implClass) {
+        public SelectOption(String name, Class<?> implClass, IDataXEndTypeGetter.EndType endType) {
             this.name = name;
             this.implClass = implClass;
+            this.endType = endType;
+        }
+
+        public String getEndType() {
+            if (this.endType != null) {
+                return this.endType.getVal();
+            }
+            return null;
         }
 
         public String getName() {

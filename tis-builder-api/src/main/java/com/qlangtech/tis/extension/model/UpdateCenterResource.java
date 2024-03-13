@@ -49,11 +49,10 @@ public class UpdateCenterResource {
     /**
      * 取得 TIS的预置包
      *
-     * @param ver
      * @param pkgName
      * @return
      */
-    public static URL getTISTarPkg(String ver, String pkgName) {
-        return getTISReleaseRes(ver, "/tis", pkgName);
+    public static URL getTISTarPkg(String pkgName) {
+        return getTISReleaseRes(TisMetaProps.getInstance().getVersion(), "/tis", pkgName);
     }
 }

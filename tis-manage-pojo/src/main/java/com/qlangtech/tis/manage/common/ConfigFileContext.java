@@ -227,7 +227,7 @@ public class ConfigFileContext {
          * @param
          * @return
          */
-        public abstract T p(int status, InputStream stream, Map<String, List<String>> headerFields);
+        public abstract T p(int status, InputStream stream, Map<String, List<String>> headerFields) throws IOException;
 
         public void error(int status, InputStream errstream, IOException e) throws Exception {
             logger.error("error code:" + status + "\n" + IOUtils.toString(errstream, TisUTF8.get()));
