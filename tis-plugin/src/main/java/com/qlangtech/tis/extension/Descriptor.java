@@ -1250,12 +1250,12 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 return Collections.emptyList();
             }
             return opts.stream().map((r) -> {
-                Descriptor desc = null;
-                EndType endType = null;
-                if ((desc = ((Describable) r).getDescriptor()) instanceof IEndTypeGetter) {
-                    endType = ((IEndTypeGetter) desc).getEndType();
-                }
-                return new SelectOption(r.identityValue(), r.getDescribleClass(), endType);
+//                Descriptor desc = null;
+//                EndType endType = null;
+//                if ((desc = ((Describable) r).getDescriptor()) instanceof IEndTypeGetter) {
+//                    endType = ((IEndTypeGetter) desc).getEndType();
+//                }
+                return new SelectOption(r.identityValue(), r.getDescribleClass(), null);
             }).collect(Collectors.toList());
         } catch (Exception e) {
             throw new RuntimeException("field name:" + name + ",class:" + this.getClass().getName(), e);

@@ -1,31 +1,29 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.coredefine.module.action;
 
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.coredefine.module.action.impl.AdapterRCController;
 import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails;
 import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
-import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
@@ -98,7 +96,7 @@ public class TISK8sDelegate {
     if (DataXJobWorker.K8S_DATAX_INSTANCE_NAME.getName().equals(indexName)
       || DataXJobWorker.K8S_FLINK_CLUSTER_NAME.match(indexName)
     ) {
-     // DataXJobWorker.getFlinkClusterWorker();
+      // DataXJobWorker.getFlinkClusterWorker();
       DataXJobWorker dataxWorker = DataXJobWorker.getJobWorker(new TargetResName(indexName));
       this.incrSync = new AdapterRCController() {
         @Override
@@ -107,20 +105,25 @@ public class TISK8sDelegate {
         }
       };
     } else {
-    //  IPluginStore<IncrStreamFactory> store = TIS.getPluginStore(indexName, IncrStreamFactory.class);
-      IncrStreamFactory k8sConfig = IncrStreamFactory.getFactory(indexName);// store.getPlugin();
-//      if (k8sConfig == null) {
-//        throw new IllegalStateException("key" + indexName + " have not set k8s plugin");
-//      }
-      this.incrSync = k8sConfig.getIncrSync();
+      IncrStreamFactory k8sConfig = IncrStreamFactory.getFactory(indexName);
+      this.incrSync = k8sConfig;
     }
 
     // 因为K8S中名称不能有下划线所以在这里要替换一下
-    this.indexName = new TargetResName(indexName);// StringUtils.replace(indexName, "_", "-");
+    this.indexName = new TargetResName(indexName);
+  }
+
+  /**
+   * 实例是否已经被创建
+   *
+   * @return
+   */
+  public final boolean hasCreated() {
+    return incrSync.hasCreated(this.indexName);
   }
 
   public void checkUseable() {
-    incrSync.checkUseable();
+    incrSync.checkUseable(this.indexName);
   }
 
   public static void main(String[] args) throws Exception {

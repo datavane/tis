@@ -18,6 +18,7 @@
 package com.qlangtech.tis.manage.spring;
 
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.Config.SysDBType;
 import com.qlangtech.tis.manage.common.DaoUtils;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jndi.JndiAccessor;
 
 import javax.naming.NamingException;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -67,7 +69,17 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
          *
          * @return
          */
-        // public abstract boolean needInitZkPath();
+
+        public boolean dbTisConsoleExist(Config.TisDbConfig dbCfg) throws SQLException {
+
+            try (Connection conn = this.getDS().getConnection()) {
+                try (Statement statement = conn.createStatement()) {
+                    return dbTisConsoleExist(dbCfg, statement);
+                }
+            }
+        }
+
+
         public abstract boolean dbTisConsoleExist(Config.TisDbConfig dbCfg, Statement statement) throws SQLException;
 
         public abstract void createSysDB(Config.TisDbConfig dbCfg, Statement statement) throws SQLException;
@@ -148,7 +160,7 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
         return true;
     }
 
-    public static SystemDBInit createDataSource(String dbType, Config.TisDbConfig dbCfg, boolean useDBName, boolean dbAutoCreate) {
+    public static SystemDBInit createDataSource(SysDBType dbType, Config.TisDbConfig dbCfg, boolean useDBName, boolean dbAutoCreate) {
         if (systemDBInitThreadLocal.get() != null) {
             return systemDBInitThreadLocal.get();
         }
@@ -163,16 +175,17 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
      * @param getDSFromJNDI 当是derby数据源类型时，需要从jndi容器中取ds
      * @return
      */
-    public static SystemDBInit createDataSource(String dbType, Config.TisDbConfig dbCfg
+    public static SystemDBInit createDataSource(SysDBType dbType, Config.TisDbConfig dbCfg
             , boolean useDBName, final boolean dbAutoCreate, boolean getDSFromJNDI, TISDataSourceFactory dsFactory) {
-        if (StringUtils.isEmpty(dbType)) {
-            throw new IllegalArgumentException("param dbType can not be null");
-        }
+        Objects.requireNonNull(dbType, "param dbType can not be null");
+//        if () {
+//            throw new IllegalArgumentException("param dbType can not be null");
+//        }
         if (StringUtils.isEmpty(dbCfg.dbname)) {
             throw new IllegalArgumentException("param dbName can not be null");
         }
         BasicDataSource dataSource = new BasicDataSource();
-        if (Config.DB_TYPE_MYSQL.equals(dbType)) {
+        if (SysDBType.MySQL == (dbType)) {
 
             dataSource.setDriverClassName("com.mysql.jdbc.Driver");
             dataSource.setUrl("jdbc:mysql://" + dbCfg.url + ":" + dbCfg.port + (useDBName ? ("/" + dbCfg.dbname) : StringUtils.EMPTY)
@@ -206,14 +219,19 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
                 public void createSysDB(Config.TisDbConfig dbCfg, Statement statement) throws SQLException {
                     statement.addBatch("create database " + dbCfg.dbname + ";");
                     statement.addBatch("use " + dbCfg.dbname + ";");
+                    statement.executeBatch();
                 }
 
                 @Override
                 public boolean shallSkip(String sql) {
+                    if (StringUtils.startsWithIgnoreCase(sql, "CREATE DATABASE")
+                            || StringUtils.startsWithIgnoreCase(sql, "USE")) {
+                        return true;
+                    }
                     return false;
                 }
             };
-        } else if (Config.DB_TYPE_DERBY.equals(dbType)) {
+        } else if (SysDBType.DERBY == (dbType)) {
 
             if (getDSFromJNDI) {
                 dataSource = getJndiDatasource(dsFactory);

@@ -18,6 +18,9 @@
 package com.qlangtech.tis.runtime.module.action;
 
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.Config.SysDBType;
+import com.qlangtech.tis.manage.common.Config.TisDbConfig;
+import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.spring.TISDataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.test.TISEasyMock;
@@ -61,26 +64,67 @@ public class TestSysInitializeAction extends TestCase implements TISEasyMock {
     action.copyDataTarToLocal();
   }
 
+  public void testDoInit() throws Exception {
+
+//    tis.datasource.url=192.168.28.200
+//    tis.datasource.port=3306
+//    tis.datasource.username=root
+//    tis.datasource.password=123456
+//    tis.datasource.dbname=tis_console
+
+    Config.setTestDataDir();
+
+    Config.TisDbConfig dbType = new TisDbConfig();
+    dbType.dbtype = SysDBType.MySQL;
+    dbType.dbname = "tis_console1";
+    dbType.url = "192.168.28.200";
+    dbType.port = 3306;
+    dbType.userName = "root";
+    dbType.password = "123456";
+
+    initTisDbConfig(dbType);
+    replay();
+    SysInitializeAction action = SysInitializeAction.createSysInitializeAction();
+    action.doInit(MockContext.instance);
+    verifyAll();
+  }
+
+
+  private File initTisDbConfig(Config.TisDbConfig mockDBType) {
+    Config config = this.mock("config", Config.class);
+    File dataDir = Config.getDataDir();
+    EasyMock.expect(config.getRuntime()).andReturn(RunEnvironment.DAILY.getKeyName()).anyTimes();
+    EasyMock.expect(config.getDbConfig()).andReturn(mockDBType).anyTimes();
+    EasyMock.expect(config.dataDir()).andReturn(dataDir).anyTimes();
+
+    Config.setConfig(config);
+    File dbDir = new File(dataDir, mockDBType.dbname);
+    FileUtils.deleteQuietly(dbDir);
+    return dbDir;
+  }
+
   /**
    * 测试系统数据库初始化
    */
   public void testSystemDBInitializWithDerby() throws Exception {
     File initialSuccessToken = SysInitializeAction.getSysInitializedTokenFile();
     FileUtils.deleteQuietly(initialSuccessToken);
+    SysDBType sysDBType = SysDBType.DERBY;
     final String tis_ansible_home = StringUtils.defaultIfEmpty(System.getenv("tis_ansible_home"), "/opt/misc/tis-ansible");
-    String[] args = new String[]{tis_ansible_home + "/tis_console_derby.sql", Config.DB_TYPE_DERBY};
-    Config config = this.mock("config", Config.class);
+    String[] args = new String[]{tis_ansible_home + "/tis_console_derby.sql", sysDBType.getToken()};
+    // Config config = this.mock("config", Config.class);
 
 
     // EasyMock.expect(config.getZkHost()).andReturn("192.168.28.200:2181/tis/cloud");
-    EasyMock.expect(config.getRuntime()).andReturn(RunEnvironment.DAILY.getKeyName()).anyTimes();
+    // EasyMock.expect(config.getRuntime()).andReturn(RunEnvironment.DAILY.getKeyName()).anyTimes();
     Config.TisDbConfig mockDBType = new Config.TisDbConfig();
-    mockDBType.dbtype = Config.DB_TYPE_DERBY;
+    mockDBType.dbtype = sysDBType;
     mockDBType.dbname = "tis_console_db";
-    File dbDir = new File(Config.getDataDir(), mockDBType.dbname);
-    FileUtils.deleteQuietly(dbDir);
-    EasyMock.expect(config.getDbConfig()).andReturn(mockDBType).anyTimes();
-    Config.setConfig(config);
+    File dbDir = initTisDbConfig(mockDBType);
+
+
+    // EasyMock.expect(config.getDbConfig()).andReturn(mockDBType).anyTimes();
+    // Config.setConfig(config);
 
     replay();
     int[] tryIndex = new int[1];

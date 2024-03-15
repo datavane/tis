@@ -34,7 +34,7 @@ public abstract class BasicDAO<T, C> extends SqlMapClientDaoSupport implements O
    */
   protected Integer getLastInsertPkVal() {
     Config.TisDbConfig dbCfg = Config.getDbCfg();
-    Object newKey = this.getSqlMapClientTemplate().queryForObject("tiscommon.get_last_insert_id_" + dbCfg.dbtype);
+    Object newKey = this.getSqlMapClientTemplate().queryForObject("tiscommon.get_last_insert_id_" + dbCfg.dbtype.getToken());
     return (Integer) newKey;
   }
 

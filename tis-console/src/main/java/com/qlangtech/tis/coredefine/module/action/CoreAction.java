@@ -46,7 +46,6 @@ import com.qlangtech.tis.datax.job.ILaunchingOrchestrate;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteSteps;
 import com.qlangtech.tis.datax.job.JobResName;
-import com.qlangtech.tis.datax.job.JobResName.SubJobExec;
 import com.qlangtech.tis.datax.job.ServerLaunchToken;
 import com.qlangtech.tis.datax.job.ServerLaunchToken.FlinkClusterTokenManager;
 import com.qlangtech.tis.datax.job.SubJobResName;
@@ -196,7 +195,7 @@ public class CoreAction extends BasicModule {
   private IRCController getRCController() {
     IPluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
     IncrStreamFactory incrStream = incrStreamStore.getPlugin();
-    return incrStream.getIncrSync();
+    return incrStream;
   }
 
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
@@ -390,12 +389,14 @@ public class CoreAction extends BasicModule {
     IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
     IPluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
-    if ((store.getPlugin()) == null) {
+    TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(module.getCollectionName());
+
+    if ((store.getPlugin()) == null || !k8s.hasCreated()) {
       incrStatus.setK8sPluginInitialized(false);
       return incrStatus;
     }
 
-    TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(module.getCollectionName());
+
     k8s.checkUseable();
     IDeploymentDetail rcConfig = k8s.getRcConfig(getRcConfigInCache);
     return getIndexIncrStatus(module, rcConfig);
@@ -578,6 +579,8 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doReDeployIncrSyncChannal(Context context) throws Exception {
     IncrStreamFactory streamFactory = IncrStreamFactory.getFactory(this.getCollectionName());
+    streamFactory.removeInstance(new TargetResName(this.getCollectionName()));
+    Thread.sleep(4000);
     final ServerLaunchToken incrLaunchToken = streamFactory.getLaunchToken(new TargetResName(this.getCollectionName()));
     incrLaunchToken.deleteLaunchToken();
     this.launchIncrSyncChannel(context, incrLaunchToken);
@@ -594,6 +597,8 @@ public class CoreAction extends BasicModule {
   public void doDeployIncrSyncChannal(Context context) throws Exception {
     IncrStreamFactory streamFactory = IncrStreamFactory.getFactory(this.getCollectionName());
     final ServerLaunchToken incrLaunchToken = streamFactory.getLaunchToken(new TargetResName(this.getCollectionName()));
+
+
     this.launchIncrSyncChannel(context, incrLaunchToken);
 
     IndexIncrStatus incrStatus = new IndexIncrStatus();

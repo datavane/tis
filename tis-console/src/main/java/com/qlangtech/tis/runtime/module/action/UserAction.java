@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.runtime.module.action;
 
@@ -26,6 +26,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.DepartmentCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelation;
 import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.IUser;
 import com.qlangtech.tis.manage.common.ManageUtils;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.UserUtils;
@@ -34,7 +35,12 @@ import com.qlangtech.tis.manage.spring.aop.Func;
 import junit.framework.Assert;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * 用户更新
@@ -51,18 +57,21 @@ public class UserAction extends BasicModule {
    * @param context
    */
   public void doGetUserInfo(Context context) throws Exception {
-    Map<String, Object> sysInfo = Maps.newHashMap();
-    sysInfo.put("usr", UserUtils.getUser(this.getRequest(), this.getDaoContext()));
-    sysInfo.put("sysInitialized", SysInitializeAction.isSysInitialized());
-
-//    if (tisMetaProps == null) {
-//      try (InputStream reader = UserAction.class.getResourceAsStream("/tis-meta")) {
-//        tisMetaProps = new Properties();
-//        tisMetaProps.load(reader);
-//      }
-//    }
-    sysInfo.put("tisMeta", Config.getMetaProps().tisMetaProps);
+    IUser user = UserUtils.getUser(this.getRequest(), this.getDaoContext());
+    Map<String, Object> sysInfo = createSysInfo(user);
     this.setBizResult(context, sysInfo);
+  }
+
+  public static Map<String, Object> createSysInfo() {
+    return createSysInfo(UserUtils.getMockUser(null, null));
+  }
+
+  public static Map<String, Object> createSysInfo(IUser user) {
+    Map<String, Object> sysInfo = Maps.newHashMap();
+    sysInfo.put("usr", Objects.requireNonNull(user, "user can not be null"));
+    sysInfo.put("sysInitialized", SysInitializeAction.isSysInitialized());
+    sysInfo.put("tisMeta", Config.getMetaProps().tisMetaProps);
+    return sysInfo;
   }
 
   /**

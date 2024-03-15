@@ -62,10 +62,12 @@ public interface SSERunnable extends Runnable, IJobFeedback {
 
             @Override
             public void info(String serviceName, long timestamp, String msg) {
+                System.out.println("sseInfo:" + msg);
             }
 
             @Override
             public void error(String serviceName, long timestamp, String msg) {
+                System.out.println("sseError:" + msg);
             }
 
             @Override

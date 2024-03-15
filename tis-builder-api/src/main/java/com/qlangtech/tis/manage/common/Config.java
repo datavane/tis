@@ -126,8 +126,31 @@ public class Config extends BasicConfig {
     public static final String SUB_DIR_LIBS = "libs";
 
     public static final String SUB_DIR_CFG_REPO = "cfg_repo";
-    public static final String DB_TYPE_MYSQL = "mysql";
-    public static final String DB_TYPE_DERBY = "derby";
+
+    public enum SysDBType {
+        MySQL("mysql"), DERBY("derby");
+        String token;
+
+        private SysDBType(String token) {
+            this.token = token;
+        }
+
+        public String getToken() {
+            return this.token;
+        }
+
+        public static SysDBType parse(String token) {
+            for (SysDBType type : SysDBType.values()) {
+                if (type.token.equalsIgnoreCase(token)) {
+                    return type;
+                }
+            }
+            throw new IllegalStateException("illegal token:" + token);
+        }
+    }
+
+//    public static final String DB_TYPE_MYSQL = "mysql";
+//    public static final String DB_TYPE_DERBY = "derby";
 
     public static final String QLANGTECH_PACKAGE = "com.qlangtech";
 
@@ -192,7 +215,7 @@ public class Config extends BasicConfig {
         pairs.put(KEY_ASSEMBLE_HOST, this.assembleHost);
         pairs.put(KEY_TIS_HOST, this.tisHost);
         pairs.put(KEY_RUNTIME, this.runtime);
-        pairs.put(KEY_TIS_DATASOURCE_TYPE, dbCfg.dbtype);
+        pairs.put(KEY_TIS_DATASOURCE_TYPE, dbCfg.dbtype.token);
         pairs.put(KEY_TIS_DATASOURCE_DBNAME, dbCfg.dbname);
         pairs.put(KEY_DEPLOY_MODE, this.deployMode);
         pairs.put(TisAppLaunch.KEY_LOG_DIR, TisAppLaunch.getLogDir().getAbsolutePath());
@@ -250,7 +273,7 @@ public class Config extends BasicConfig {
     public static File getDataDir(boolean valiate) {
         File dir = null; //new File(System.getProperty(KEY_DATA_DIR, DEFAULT_DATA_DIR));
         try {
-            dir = getInstance().dataDir;
+            dir = getInstance().dataDir();
         } catch (Throwable e) {
             logger.warn("can not get dataDir from config instance:" + e.getMessage());
             dir = new File(System.getProperty(KEY_DATA_DIR, DEFAULT_DATA_DIR));
@@ -270,6 +293,10 @@ public class Config extends BasicConfig {
     private final String deployMode;
 
     private File dataDir;
+
+    public File dataDir() {
+        return this.dataDir;
+    }
 
 
     //    // 组装节点
@@ -313,15 +340,15 @@ public class Config extends BasicConfig {
 
         this.dbCfg = new TisDbConfig();
         try {
-            dbCfg.dbtype = propGetter.getString(KEY_TIS_DATASOURCE_TYPE, true);
+            dbCfg.dbtype = SysDBType.parse(propGetter.getString(KEY_TIS_DATASOURCE_TYPE, true));
             dbCfg.dbname = propGetter.getString(KEY_TIS_DATASOURCE_DBNAME, true);
 
-            if (!(DB_TYPE_MYSQL.equals(dbCfg.dbtype)
-                    || DB_TYPE_DERBY.equals(dbCfg.dbtype))) {
-                throw new IllegalStateException("dbCfg.dbtype:" + dbCfg.dbtype + " is illegal");
-            }
+//            if (!(DB_TYPE_MYSQL.equals(dbCfg.dbtype)
+//                    || DB_TYPE_DERBY.equals(dbCfg.dbtype))) {
+//                throw new IllegalStateException("dbCfg.dbtype:" + dbCfg.dbtype + " is illegal");
+//            }
 
-            if (DB_TYPE_MYSQL.equals(dbCfg.dbtype)) {
+            if (SysDBType.MySQL == (dbCfg.dbtype)) {
                 dbCfg.port = Integer.parseInt(propGetter.getString("tis.datasource.port"));
                 dbCfg.url = propGetter.getString("tis.datasource.url");
                 dbCfg.userName = propGetter.getString("tis.datasource.username");
@@ -484,7 +511,7 @@ public class Config extends BasicConfig {
                         }
 
                         if (KEY_TIS_DATASOURCE_TYPE.equals(key)) {
-                            return DB_TYPE_DERBY;
+                            return SysDBType.DERBY.token;
                         }
                         return StringUtils.defaultIfEmpty(System.getenv(key), System.getProperty(key));
                     }
@@ -590,7 +617,7 @@ public class Config extends BasicConfig {
 
     public static class TisDbConfig {
 
-        public String dbtype;
+        public SysDBType dbtype;
         public String dbname;
 
         //        tis.datasource.url=192.168.28.200
@@ -610,7 +637,7 @@ public class Config extends BasicConfig {
                     ", port=" + port +
                     ", url='" + url + '\'' +
                     ", userName='" + userName + '\'' +
-                    ", password='" + password + '\'' +
+                    //  ", password='" + password + '\'' +
                     '}';
         }
     }

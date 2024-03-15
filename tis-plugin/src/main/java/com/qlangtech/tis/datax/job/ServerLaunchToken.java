@@ -194,6 +194,7 @@ public class ServerLaunchToken extends Observable implements Closeable {
         public final static String JSON_KEY_K8S_BASE_PATH = "k8s_base_path";
         public final static String JSON_KEY_K8S_ID = "k8s_id";
 
+
         public final static String JSON_KEY_LAUNCH_TIME = "launchTime";
 
         private List<FlinkClusterPojo> _clusters;
@@ -211,10 +212,13 @@ public class ServerLaunchToken extends Observable implements Closeable {
         public List<FlinkClusterPojo> getAllClusters() throws Exception {
 
             if (_clusters == null) {
-
+                String[] clusters = flinkClusterParentDir.list();
+                if (clusters == null) {
+                    // 系统初始化状态，还没有创建flink相关的任何应用
+                    return Collections.emptyList();
+                }
                 _clusters = Lists.newLinkedList();
                 FlinkClusterPojo c = null;
-                String[] clusters = flinkClusterParentDir.list();
                 JSONObject meta = null;
                 File clusterFile = null;
                 for (String cluster : clusters) {

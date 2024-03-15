@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.manage.spring.aop;
 
@@ -24,9 +24,12 @@ import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
 import com.qlangtech.tis.manage.common.IUser;
 import com.qlangtech.tis.manage.common.RunContextGetter;
 import com.qlangtech.tis.manage.common.UserUtils;
+import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.BasicModule.Rundata;
 import com.qlangtech.tis.runtime.module.action.LoginAction;
+import com.qlangtech.tis.runtime.module.action.SysInitializeAction;
+import com.qlangtech.tis.runtime.module.action.UserAction;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.slf4j.Logger;
@@ -34,7 +37,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
+import java.util.Collections;
 
 /**
  * 权限校验
@@ -65,9 +70,19 @@ public class AuthorityCheckAdvice extends MethodFilterInterceptor {
 
   @Override
   protected String doIntercept(ActionInvocation invocation) throws Exception {
-
-
     BasicModule action = (BasicModule) invocation.getAction();
+    if (!SysInitializeAction.isSysInitialized()) {
+      if (!(action instanceof SysInitializeAction)) {
+        // 系统还没有进行初始化
+        HttpServletResponse response = ServletActionContext.getResponse();
+        AjaxValve.writeInfo2Client(() -> true, response, false
+          , Collections.emptyList(), Collections.emptyList(), Collections.emptyList()
+          , UserAction.createSysInfo());
+        return Action.NONE;
+      }
+    }
+
+
     ActionProxy proxy = invocation.getProxy();
     String namespace = proxy.getNamespace();
     final Method method = action.getExecuteMethod();
@@ -84,11 +99,7 @@ public class AuthorityCheckAdvice extends MethodFilterInterceptor {
       log.debug("target:" + proxy.getActionName() + ",method:" + method.getName() + " has not set FUNC");
       return invocation.invoke();
     }
-//        if (!user.hasGrantAuthority(func.value())) {
-//            log.warn("loginUser username:" + user.getName() + " userid:" + user.getId() + " has not grant authority on func:" + func.value());
-//            rundata.forwardTo("runtime", "hasnopermission.vm");
-//            return BasicModule.key_FORWARD;
-//        }
+
     return invocation.invoke();
   }
 

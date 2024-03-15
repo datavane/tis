@@ -27,12 +27,14 @@ import com.qlangtech.tis.manage.biz.dal.pojo.Snapshot;
 import com.qlangtech.tis.manage.biz.dal.pojo.SnapshotCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.Config.SysDBType;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.ConfigFileReader;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.spring.TISDataSourceFactory;
+import com.qlangtech.tis.manage.spring.TISDataSourceFactory.SystemDBInit;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.UploadJarAction.ConfigContentGetter;
 import org.apache.commons.io.FileUtils;
@@ -83,10 +85,71 @@ public class SysInitializeAction extends BasicModule {
   public static final String APP_NAME_TEMPLATE = "search4template";
   private static final Pattern PATTERN_ZK_ADDRESS = Pattern.compile("([^/]+)(/.+)$");
 
+  private static Boolean _isSysInitialized;
+
+  /**
+   * 当使用TIS作为docker容器启动，本地data目录作为容器卷，初始状态是空的，需要将空的卷初始化
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doInit(Context context) throws Exception {
+
+    if (isSysInitialized()) {
+      throw new IllegalStateException("tis has initialized:" + getSysInitializedTokenFile().getAbsolutePath());
+    }
+
+    /**=======================================
+     * 下载data目录
+     =======================================*/
+    this.copyDataTarToLocal();
+
+    Config.TisDbConfig dbCfg = Config.getDbCfg();
+    logger.info("dbCfg detail:{}", dbCfg);
+    if (dbCfg.dbtype == SysDBType.DERBY) {
+//      throw new IllegalStateException("TIS dbType must be MySQL,but now is :" + dbCfg.dbtype);
+      touchSysInitializedToken();
+      return;
+    }
+    SystemDBInit dataSource = TISDataSourceFactory.createDataSource(dbCfg.dbtype, dbCfg, false, true);
+
+    if (dataSource.dbTisConsoleExist(dbCfg)) {
+      // 判断数据库是否已经存在？
+      UsrDptRelationCriteria c = new UsrDptRelationCriteria();
+      c.createCriteria().andUsrIdEqualTo(ADMIN_ID);
+      if (this.getUsrDptRelationDAO().countByExample(c) > 0) {
+        touchSysInitializedToken();
+        //  throw new IllegalStateException("system has initialized successful,shall not initialize again");
+        this.addActionMessage(context, "system has initialized successful");
+        return;
+      }
+    }
+
+    // 数据还没有创建 或者 库中还是空的（没有任何表）
+    /**
+     * 取得SQL并且初始化
+     */
+    File mysqlInitScript = new File(Config.getDataDir(), "sql/tis_console_mysql.sql");
+    if (!mysqlInitScript.exists()) {
+      throw new IllegalStateException("mysql init script can not be none:" + mysqlInitScript.getAbsolutePath());
+    }
+
+    this.initializeDB(mysqlInitScript, dbCfg.dbtype);
+
+    // 添加一个系统管理员
+    this.getUsrDptRelationDAO().addAdminUser();
+    this.initializeDepartment();
+    this.initializeAppAndSchema();
+
+    touchSysInitializedToken();
+  }
 
   public static boolean isSysInitialized() {
-    final File sysInitializedToken = getSysInitializedTokenFile();
-    return sysInitializedToken.exists();
+    if (_isSysInitialized == null) {
+      final File sysInitializedToken = getSysInitializedTokenFile();
+      _isSysInitialized = sysInitializedToken.exists();
+    }
+    return _isSysInitialized;
   }
 
   static File getSysInitializedTokenFile() {
@@ -97,6 +160,7 @@ public class SysInitializeAction extends BasicModule {
     final File sysInitializedToken = getSysInitializedTokenFile();
     //return sysInitializedToken.exists();
     FileUtils.touch(sysInitializedToken);
+    _isSysInitialized = null;
   }
 
   /**
@@ -115,6 +179,12 @@ public class SysInitializeAction extends BasicModule {
       throw new IllegalStateException("tisConsoleSqlFile:" + tisConsoleSqlFile.getAbsolutePath() + " is not exist");
     }
     final String dbType = args[1];
+    initializeDB(tisConsoleSqlFile, SysDBType.parse(dbType));
+
+    systemDataInitialize();
+  }
+
+  private static void initializeDB(File tisConsoleSqlFile, SysDBType dbType) throws Exception {
     Config.TisDbConfig dbCfg = Config.getDbCfg();
     TISDataSourceFactory.SystemDBInit dsProcess = null;
 
@@ -161,7 +231,7 @@ public class SysInitializeAction extends BasicModule {
       }
 
       Objects.requireNonNull(dsProcess, "dataSource can not be null");
-      systemDataInitialize();
+
     } finally {
       try {
         dsProcess.close();
@@ -172,13 +242,18 @@ public class SysInitializeAction extends BasicModule {
 
 
   public static void systemDataInitialize() throws Exception {
+    SysInitializeAction initAction = createSysInitializeAction();
+    initAction.doInit(MockContext.instance);
+  }
+
+  static SysInitializeAction createSysInitializeAction() {
     SysInitializeAction initAction = new SysInitializeAction();
     //ClassPathXmlApplicationContext tis.application.context.xml src/main/resources/tis.application.mockable.context.xml
     ApplicationContext appContext = new ClassPathXmlApplicationContext(
       "classpath:/tis.application.context.xml", "classpath:/tis.application.mockable.context.xml");
     appContext.getAutowireCapableBeanFactory().autowireBeanProperties(
       initAction, AutowireCapableBeanFactory.AUTOWIRE_BY_NAME, false);
-    initAction.doInit(MockContext.instance);
+    return initAction;
   }
 
   /**
@@ -217,41 +292,9 @@ public class SysInitializeAction extends BasicModule {
     return batchs;
   }
 
-  public void doInit(Context context) throws Exception {
-
-    // final File sysInitializedToken = new File(Config.getDataDir(), "system_initialized_token");
-    if (isSysInitialized()) {
-      throw new IllegalStateException("tis has initialized:" + getSysInitializedTokenFile().getAbsolutePath());
-    }
-
-    /**
-     * 下载data目录
-     */
-    copyDataTarToLocal();
-
-    /**
-     * 取得SQL并且初始化
-     */
-
-
-    UsrDptRelationCriteria c = new UsrDptRelationCriteria();
-    c.createCriteria().andUsrIdEqualTo(ADMIN_ID);
-    if (this.getUsrDptRelationDAO().countByExample(c) > 0) {
-      touchSysInitializedToken();
-      //this.addActionMessage("系统已经完成初始化，请继续使用");
-      throw new IllegalStateException("system has initialized successful,shall not initialize again");
-      //return;
-    }
-    // 添加一个系统管理员
-    this.getUsrDptRelationDAO().addAdminUser();
-    this.initializeDepartment();
-    this.initializeAppAndSchema();
-
-    touchSysInitializedToken();
-  }
 
   void copyDataTarToLocal() throws IOException {
-    final String dataPkgName = "tis-data.tar.gz";
+    final String dataPkgName = "tis-data2.tar.gz";
     URL dataPkg = UpdateCenterResource.getTISTarPkg(dataPkgName);
     File tmpDataDir = FileUtils.getTempDirectory();//  Config.getDataDir();
     HttpUtils.get(dataPkg, new StreamProcess<Void>() {
@@ -282,14 +325,20 @@ public class SysInitializeAction extends BasicModule {
     File tmp = new File(tmpDataDir, "data");
     final File dataDir = Config.getDataDir();
     logger.info("move to:{} from:{}", dataDir.getAbsolutePath(), tmp);
-    FileUtils.deleteDirectory(dataDir);
-    FileUtils.moveDirectory(tmp, dataDir);
+    //FileUtils.deleteDirectory(dataDir);
+
+    for (String c : tmp.list()) {
+      File child = new File(tmp, c);
+      File dest = new File(dataDir, c);
+      if (child.isFile()) {
+        FileUtils.moveFile(child, dest);
+      } else {
+        FileUtils.moveDirectory(child, dest);
+      }
+    }
 
   }
 
-//  private IUsrDptRelationDAO getUsrDptRelationDAO() {
-//    return this.getDaoContext().getUsrDptRelationDAO();
-//  }
 
   public void initializeAppAndSchema() throws IOException {
     this.getApplicationDAO().deleteByPrimaryKey(TEMPLATE_APPLICATION_DEFAULT_ID);
@@ -321,177 +370,6 @@ public class SysInitializeAction extends BasicModule {
     app.setAppId(TEMPLATE_APPLICATION_DEFAULT_ID);
     this.initializeSchemaConfig(app);
   }
-
-//  // 初始化ZK内容
-//  public boolean initializeZkPath(String zkHost) {
-//
-//    Matcher matcher = PATTERN_ZK_ADDRESS.matcher(zkHost);
-//    if (!matcher.matches()) {
-//      throw new IllegalStateException("zk address " + zkHost + " is not match " + PATTERN_ZK_ADDRESS);
-//    }
-//
-//    final String zkServer = matcher.group(1);
-//    String zkSubDir = StringUtils.trimToEmpty(matcher.group(2));
-//    logger.info("zkServer:{},zkSubDir:{}", zkServer, zkSubDir);
-//
-//    if (StringUtils.endsWith(zkSubDir, "/")) {
-//      zkSubDir = StringUtils.substring(zkSubDir, 0, zkSubDir.length() - 1);
-//    }
-//
-//    ZooKeeper zk = null;
-//    StringBuffer buildLog = new StringBuffer();
-//    String createPath = null;
-//    List<String> createPaths = Lists.newArrayList();
-//    try {
-////      final Watcher watcher = new Watcher() {
-////        @Override
-////        public void process(WatchedEvent event) {
-////          logger.info(event.getType() + "," + event.getState() + "," + event.getPath());
-////        }
-////      };
-//      zk = this.createZK(zkServer); //new ZooKeeper(zkServer, 50000, watcher);
-//      zk.getChildren("/", false);
-//      buildLog.append("create zkServer ").append(zkServer);
-//      createPath = zkSubDir + "/tis";
-//
-//      ITISCoordinator coordinator = getCoordinator(zk);
-//      logger.info("guaranteeExist:{}", createPath);
-//      createPaths.add(createPath);
-//      ZkUtils.guaranteeExist(coordinator, createPath);
-//      buildLog.append(",path1:").append(createPath);
-//      createPath = zkSubDir + "/tis-lock/dumpindex";
-//      createPaths.add(createPath);
-//      ZkUtils.guaranteeExist(coordinator, createPath);
-//      buildLog.append(",path2:").append(createPath);
-////      createPath = zkSubDir + "/configs/" + CoreAction.DEFAULT_SOLR_CONFIG;
-////      createPaths.add(createPath);
-////      ZkUtils.guaranteeExist(coordinator, createPath);
-////      buildLog.append(",path3:").append(createPath);
-//      logger.info(buildLog.toString());
-//
-//
-//    } catch (Throwable e) {
-//      throw new IllegalStateException("zk address:" + zkServer + " can not connect Zookeeper server", e);
-//    } finally {
-//      try {
-//        zk.close();
-//      } catch (Throwable e) {
-//
-//      }
-//    }
-//
-//    try {
-//      Thread.sleep(10000);
-//    } catch (InterruptedException e) {
-//
-//    }
-//
-//    try {
-//      zk = this.createZK(zkServer);
-//      for (String p : createPaths) {
-//        if (zk.exists(p, false) == null) {
-//          throw new TisException("create path:" + p + " must be exist");
-//        }
-//      }
-//    } catch (TisException e) {
-//      throw e;
-//    } catch (Exception e) {
-//      throw new RuntimeException(e);
-//    } finally {
-//      try {
-//        zk.close();
-//      } catch (InterruptedException e) {
-//      }
-//    }
-//
-//
-//    return true;
-//  }
-
-//  private ZooKeeper createZK(String zkServer) throws IOException {
-//    final Watcher watcher = new Watcher() {
-//      @Override
-//      public void process(WatchedEvent event) {
-//        logger.info(event.getType() + "," + event.getState() + "," + event.getPath());
-//      }
-//    };
-//    return new ZooKeeper(zkServer, 50000, watcher);
-//  }
-
-//  private static ITISCoordinator getCoordinator(ZooKeeper zooKeeper) throws Exception {
-//    ITISCoordinator coordinator = null;
-//    coordinator = new AdapterTisCoordinator() {
-//      @Override
-//      public List<String> getChildren(String zkPath, Watcher watcher, boolean b) {
-//        try {
-//          return zooKeeper.getChildren(zkPath, watcher);
-//        } catch (Exception e) {
-//          throw new RuntimeException(e);
-//        }
-//      }
-//
-//      @Override
-//      public boolean exists(String path, boolean watch) {
-//        try {
-//          return zooKeeper.exists(path, watch) != null;
-//        } catch (Exception e) {
-//          throw new RuntimeException(path, e);
-//        }
-//      }
-//
-//      @Override
-//      public void create(String path, byte[] data, boolean persistent, boolean sequential) {
-//
-//        CreateMode createMode = null;
-//        if (persistent) {
-//          createMode = sequential ? CreateMode.PERSISTENT_SEQUENTIAL : CreateMode.PERSISTENT;
-//        } else {
-//          createMode = sequential ? CreateMode.EPHEMERAL_SEQUENTIAL : CreateMode.EPHEMERAL;
-//        }
-//        try {
-//          zooKeeper.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode);
-//        } catch (Exception e) {
-//          throw new RuntimeException("path:" + path, e);
-//        }
-//      }
-//
-//      @Override
-//      public byte[] getData(String zkPath, Watcher o, Stat stat, boolean b) {
-//        try {
-//          return zooKeeper.getData(zkPath, o, stat);
-//        } catch (Exception e) {
-//          throw new RuntimeException(e);
-//        }
-//      }
-//    };
-//    return coordinator;
-//  }
-//
-//  /**
-//   * 百岁add
-//   * copy from org.apache.solr.cloud.ZkController
-//   * Create the zknodes necessary for a cluster to operate
-//   *
-//   * @param zkClient a SolrZkClient
-//   * @throws KeeperException      if there is a Zookeeper error
-//   * @throws InterruptedException on interrupt
-//   */
-//  public static void createClusterZkNodes(SolrZkClient zkClient)
-//    throws KeeperException, InterruptedException, IOException {
-//    ZkCmdExecutor cmdExecutor = new ZkCmdExecutor(zkClient.getZkClientTimeout());
-//    cmdExecutor.ensureExists(ZkStateReader.LIVE_NODES_ZKNODE, zkClient);
-//    cmdExecutor.ensureExists(ZkStateReader.COLLECTIONS_ZKNODE, zkClient);
-//    cmdExecutor.ensureExists(ZkStateReader.ALIASES, zkClient);
-//    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_EVENTS_PATH, zkClient);
-//    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_TRIGGER_STATE_PATH, zkClient);
-//    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_NODE_ADDED_PATH, zkClient);
-//    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_NODE_LOST_PATH, zkClient);
-//    byte[] emptyJson = "{}".getBytes(StandardCharsets.UTF_8);
-//    cmdExecutor.ensureExists(ZkStateReader.CLUSTER_STATE, emptyJson, CreateMode.PERSISTENT, zkClient);
-//    cmdExecutor.ensureExists(ZkStateReader.SOLR_SECURITY_CONF_PATH, emptyJson, CreateMode.PERSISTENT, zkClient);
-//    cmdExecutor.ensureExists(ZkStateReader.SOLR_AUTOSCALING_CONF_PATH, emptyJson, CreateMode.PERSISTENT, zkClient);
-//    // bootstrapDefaultConfigSet(zkClient);
-//  }
 
 
   void initializeSchemaConfig(Application app) throws IOException {
@@ -549,10 +427,6 @@ public class SysInitializeAction extends BasicModule {
       throw new IllegalStateException("dptId:" + dptId + " must equal with:" + DEPARTMENT_DEFAULT_ID);
     }
   }
-
-//  private RunContext getDaoContext() {
-//    return daoContextGetter.get();
-//  }
 
 
 }

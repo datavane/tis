@@ -37,7 +37,7 @@ import java.util.Optional;
  * @date 2020/04/13
  */
 @Public
-public abstract class IncrStreamFactory implements Describable<IncrStreamFactory> {
+public abstract class IncrStreamFactory implements Describable<IncrStreamFactory>, IRCController {
 
     public static IncrStreamFactory getFactory(String indexName) {
         if (StringUtils.isEmpty(indexName)) {
@@ -53,10 +53,14 @@ public abstract class IncrStreamFactory implements Describable<IncrStreamFactory
 
     public ServerLaunchToken getLaunchToken(TargetResName indexName) {
         return ServerLaunchToken.createFlinkClusterToken().token(this.getClusterType(), indexName);
-       // return incrLaunchToken;
+        // return incrLaunchToken;
     }
 
-    public abstract IRCController getIncrSync();
+    @Override
+    public boolean hasCreated(TargetResName collection) {
+        return getLaunchToken(collection).isLaunchTokenExist();
+    }
+//  public abstract IRCController getIncrSync();
 
     /**
      * 取得集群部署类型类型
