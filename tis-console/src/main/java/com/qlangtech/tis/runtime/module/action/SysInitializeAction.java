@@ -122,7 +122,7 @@ public class SysInitializeAction extends BasicModule {
       throw new IllegalStateException("tisConsoleSqlFile:" + tisConsoleSqlFile.getAbsolutePath() + " is not exist");
     }
     final String dbType = args[1];
-    initializeDB(tisConsoleSqlFile, SysDBType.parse(dbType));
+    // initializeDB(tisConsoleSqlFile, SysDBType.parse(dbType));
 
     SysInitializeAction initAction = createSysInitializeAction();
     initAction.init(MockContext.instance, false, SysDBType.parse(dbType), tisConsoleSqlFile);
