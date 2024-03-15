@@ -93,25 +93,72 @@ public class SysInitializeAction extends BasicModule {
    * @param context
    * @throws Exception
    */
+
   public void doInit(Context context) throws Exception {
+    // 数据还没有创建 或者 库中还是空的（没有任何表）
+    /**
+     * 取得SQL并且初始化
+     */
+    File mysqlInitScript = new File(Config.getDataDir(), "sql/tis_console_mysql.sql");
+    if (!mysqlInitScript.exists()) {
+      throw new IllegalStateException("mysql init script can not be none:" + mysqlInitScript.getAbsolutePath());
+    }
+    init(context, true, Config.getDbCfg().dbtype, mysqlInitScript);
+  }
+
+  /**
+   * 执行系统初始化，数据库和zk节点初始化
+   *
+   * @param args
+   * @throws Exception
+   */
+  public static void main(String[] args) throws Exception {
+
+    if (args.length < 2) {
+      throw new IllegalArgumentException("args.length must big than 0");
+    }
+    File tisConsoleSqlFile = new File(args[0]);
+    if (!tisConsoleSqlFile.exists()) {
+      throw new IllegalStateException("tisConsoleSqlFile:" + tisConsoleSqlFile.getAbsolutePath() + " is not exist");
+    }
+    final String dbType = args[1];
+    initializeDB(tisConsoleSqlFile, SysDBType.parse(dbType));
+
+    SysInitializeAction initAction = createSysInitializeAction();
+    initAction.init(MockContext.instance, false, SysDBType.parse(dbType), tisConsoleSqlFile);
+
+  }
+
+  /**
+   * @param context
+   * @param dockerContainerInit docker容器初始化过程
+   * @param sysDBType
+   * @throws Exception
+   */
+  public void init(Context context, boolean dockerContainerInit, SysDBType sysDBType, File tisConsoleSqlFile) throws Exception {
 
     if (isSysInitialized()) {
       throw new IllegalStateException("tis has initialized:" + getSysInitializedTokenFile().getAbsolutePath());
     }
-
+    Config.TisDbConfig dbCfg = Config.getDbCfg();
+    if (sysDBType != dbCfg.dbtype) {
+      throw new IllegalStateException("param sysDBType must match with dbCfg:" + dbCfg);
+    }
+    logger.info("dbCfg detail:{}", dbCfg);
     /**=======================================
      * 下载data目录
      =======================================*/
-    this.copyDataTarToLocal();
-
-    Config.TisDbConfig dbCfg = Config.getDbCfg();
-    logger.info("dbCfg detail:{}", dbCfg);
-    if (dbCfg.dbtype == SysDBType.DERBY) {
-//      throw new IllegalStateException("TIS dbType must be MySQL,but now is :" + dbCfg.dbtype);
-      touchSysInitializedToken();
-      return;
+    if (dockerContainerInit) {
+      // 说明是在docker 容器启动过程中
+      this.copyDataTarToLocal();
+      if (sysDBType == SysDBType.DERBY) {
+        // data目录中已经将derby数据库初始化完成了
+        touchSysInitializedToken();
+        return;
+      }
     }
-    SystemDBInit dataSource = TISDataSourceFactory.createDataSource(dbCfg.dbtype, dbCfg, false, true);
+
+    SystemDBInit dataSource = TISDataSourceFactory.createDataSource(sysDBType, dbCfg, false, true);
 
     if (dataSource.dbTisConsoleExist(dbCfg)) {
       // 判断数据库是否已经存在？
@@ -125,16 +172,8 @@ public class SysInitializeAction extends BasicModule {
       }
     }
 
-    // 数据还没有创建 或者 库中还是空的（没有任何表）
-    /**
-     * 取得SQL并且初始化
-     */
-    File mysqlInitScript = new File(Config.getDataDir(), "sql/tis_console_mysql.sql");
-    if (!mysqlInitScript.exists()) {
-      throw new IllegalStateException("mysql init script can not be none:" + mysqlInitScript.getAbsolutePath());
-    }
 
-    this.initializeDB(mysqlInitScript, dbCfg.dbtype);
+    this.initializeDB(tisConsoleSqlFile, sysDBType);
 
     // 添加一个系统管理员
     this.getUsrDptRelationDAO().addAdminUser();
@@ -163,26 +202,6 @@ public class SysInitializeAction extends BasicModule {
     _isSysInitialized = null;
   }
 
-  /**
-   * 执行系统初始化，数据库和zk节点初始化
-   *
-   * @param args
-   * @throws Exception
-   */
-  public static void main(String[] args) throws Exception {
-
-    if (args.length < 2) {
-      throw new IllegalArgumentException("args.length must big than 0");
-    }
-    File tisConsoleSqlFile = new File(args[0]);
-    if (!tisConsoleSqlFile.exists()) {
-      throw new IllegalStateException("tisConsoleSqlFile:" + tisConsoleSqlFile.getAbsolutePath() + " is not exist");
-    }
-    final String dbType = args[1];
-    initializeDB(tisConsoleSqlFile, SysDBType.parse(dbType));
-
-    systemDataInitialize();
-  }
 
   private static void initializeDB(File tisConsoleSqlFile, SysDBType dbType) throws Exception {
     Config.TisDbConfig dbCfg = Config.getDbCfg();
@@ -240,11 +259,6 @@ public class SysInitializeAction extends BasicModule {
     }
   }
 
-
-  public static void systemDataInitialize() throws Exception {
-    SysInitializeAction initAction = createSysInitializeAction();
-    initAction.doInit(MockContext.instance);
-  }
 
   static SysInitializeAction createSysInitializeAction() {
     SysInitializeAction initAction = new SysInitializeAction();
