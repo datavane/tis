@@ -173,7 +173,7 @@ public class SysInitializeAction extends BasicModule {
     }
 
 
-    this.initializeDB(tisConsoleSqlFile, sysDBType);
+    initializeDB(tisConsoleSqlFile, sysDBType);
 
     // 添加一个系统管理员
     this.getUsrDptRelationDAO().addAdminUser();
