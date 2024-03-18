@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tis-console-loadbalancer
+spec:
+  ports:
+    - port: 8080
+      name: tis-console-8080
+      protocol: TCP
+      targetPort: tis-8080
+  selector:
+    app: tis-console
+  type: LoadBalancer
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-oss
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: oss
+  flexVolume:
+    driver: "alicloud/oss"
+    options:
+      bucket: "incr-log"
+      url: "oss-cn-hangzhou.aliyuncs.com"
+      path: "/tis-pv"
+      akId: ""
+      akSecret: ""
+      otherOpts: "-o max_stat_cache_size=0 -o allow_other"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: tis-console-pvc-oss
+spec:
+  storageClassName: oss
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+---
+# how to use aliyun pv: https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/mount-a-statically-provisioned-oss-volume?spm=a2c4g.11186623.0.0.39145057wGt7rB
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: tis-console
+spec:
+  replicas: 1
+  selector:
+    app: tis-console
+  template:
+    metadata:
+      labels:
+        app: tis-console
+    spec:
+      containers:
+        - name: tis-console
+          volumeMounts:
+            - name: tis-console-pvc-oss
+              mountPath: "/opt/data"
+          image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:4.0.0
+          ports:
+            - name: tis-8080
+              containerPort: 8080
+      volumes:
+        - name: tis-console-pvc-oss
+          persistentVolumeClaim:
+            claimName: tis-console-pvc-oss
+---
+
