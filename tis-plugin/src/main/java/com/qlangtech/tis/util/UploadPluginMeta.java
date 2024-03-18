@@ -88,6 +88,8 @@ public class UploadPluginMeta {
     private Map<String, String> extraParams = new HashMap<>();
     private final IPluginContext context;
 
+
+
     public boolean isUpdate() {
         return this.getBoolean(PostedDSProp.KEY_UPDATE);
     }

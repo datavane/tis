@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
@@ -49,14 +50,24 @@ import java.util.regex.Pattern;
  * @create: 2020-07-23 18:56
  */
 public class TisException extends RuntimeException {
+    private final Optional<ErrorCode> errCode;
+
+    /**
+     * TIS会有专门的错误提示及异常处理流程
+     */
+    public enum ErrorCode {
+        FLINK_CLUSTER_LOSS_OF_CONTACT,
+        POWER_JOB_CLUSTER_LOSS_OF_CONTACT
+    }
 
     public static ErrMsg getErrMsg(Throwable throwable) {
         TisException except = find(throwable);
         if (except == null) {
             Throwable cause = throwable.getCause();
-            return new ErrMsg(org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage(throwable), cause != null ? cause : throwable);
+            return new ErrMsg(org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage(throwable)
+                    , cause != null ? cause : throwable, Optional.empty());
         } else {
-            return new ErrMsg(except.getMessage(), except);
+            return new ErrMsg(except.getMessage(), except, except.errCode);
         }
     }
 
@@ -72,20 +83,26 @@ public class TisException extends RuntimeException {
         return last;
     }
 
-    private TisException(String message, Throwable cause) {
+    private TisException(Optional<ErrorCode> errorCode, String message, Throwable cause) {
         super(message, cause);
+        this.errCode = errorCode;
     }
 
     private TisException(String message) {
         super(message);
+        this.errCode = Optional.empty();
+    }
+
+    public static TisException create(String message, Throwable cause) {
+        return create(null, message, cause);
     }
 
 
-    public static TisException create(String message, Throwable cause) {
+    public static TisException create(ErrorCode errorCode, String message, Throwable cause) {
         if (cause instanceof TisException) {
             return (TisException) cause;
         } else {
-            return new TisException(message, cause);
+            return new TisException(Optional.ofNullable(errorCode), message, cause);
         }
     }
 
@@ -111,15 +128,21 @@ public class TisException extends RuntimeException {
         private long logFileName;
         // 异常摘要
         private String abstractInfo;
+        private final Optional<ErrorCode> errCode;
 
-        public ErrMsg(String message, Throwable ex) {
+        public ErrMsg(String message, Throwable ex, Optional<ErrorCode> errCode) {
             this.message = message;
             this.ex = ex;
+            this.errCode = Objects.requireNonNull(errCode, "errCode can not be null");
         }
 
         @JSONField(serialize = false)
         public Throwable getEx() {
             return ex;
+        }
+
+        public ErrorCode getErrCode() {
+            return this.errCode.orElse(null);
         }
 
         public String getLogFileName() {
@@ -197,7 +220,7 @@ public class TisException extends RuntimeException {
         List<ErrMsg> result = Lists.newArrayList(Arrays.stream(logs).filter((l) ->
                 p.matcher(l).matches()
         ).map((l) -> {
-            ErrMsg errMsg = new ErrMsg(null, null);
+            ErrMsg errMsg = new ErrMsg(null, null, Optional.empty());
             errMsg.logFileName = Long.parseLong(l);
             return errMsg;
         }).iterator());

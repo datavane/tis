@@ -68,40 +68,10 @@ public class Config extends BasicConfig {
     }
 
 
-//    /**
-//     * 通过在插件中的一个类找到插件的 WEB—INFO/lib 目录
-//     *
-//     * @param classInPlugin
-//     * @return
-//     */
-//    public static File getPluginLibDir(Class<?> classInPlugin)  {
-//        if (classInPlugin == null) {
-//            throw new IllegalArgumentException("classInPlugin can not be null");
-//        }
-//        String clazz = classInPlugin.getName();
-//
-//        URL location = classInPlugin.getResource("/" + StringUtils.replace(clazz, ".", "/") + ".class");
-//
-//        if (location != null) {
-//            final Pattern p = Pattern.compile("^.*file:(.+?" + PLUGIN_LIB_DIR + ").+?!.*$");
-//            Matcher m = p.matcher(location.toString());
-//            if (m.find()) {
-//                //   return URLDecoder.decode(, "UTF-8");
-//                return new File(m.group(1));
-//            } else {
-//                throw new IllegalStateException("location is illegal:" + location);
-//            }
-//            //   throw new ClassNotFoundException("Cannot parse location of '" + location + "'.  Probably not loaded from a Jar");
-//        }
-//        throw new IllegalStateException("Cannot find class '" + classInPlugin.getName() + " using the classloader");
-//
-//        // return getPluginLibDir(pluginName, true);
-//    }
-
-
     public static final String TIS_PUB_PLUGINS_DOC_URL = "http://tis.pub/docs/plugin/plugins/#";
 
-    public static final String bundlePath = StringUtils.defaultIfEmpty(System.getenv(KEY_ENV_TIS_CFG_BUNDLE_PATH), KEY_DEFAULT_TIS_CFG_BUNDLE_PATH);// ;
+    public static final String bundlePath
+            = StringUtils.defaultIfEmpty(System.getenv(KEY_ENV_TIS_CFG_BUNDLE_PATH), KEY_DEFAULT_TIS_CFG_BUNDLE_PATH);// ;
     public static final String bundlePathClasspath = bundlePath + ".properties";
     public static final String KEY_TIS_DATASOURCE_TYPE = "tis.datasource.type";
     public static final String KEY_TIS_DATASOURCE_DBNAME = "tis.datasource.dbname";
@@ -148,9 +118,6 @@ public class Config extends BasicConfig {
             throw new IllegalStateException("illegal token:" + token);
         }
     }
-
-//    public static final String DB_TYPE_MYSQL = "mysql";
-//    public static final String DB_TYPE_DERBY = "derby";
 
     public static final String QLANGTECH_PACKAGE = "com.qlangtech";
 

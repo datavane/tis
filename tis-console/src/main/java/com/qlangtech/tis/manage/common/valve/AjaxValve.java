@@ -27,7 +27,6 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.runtime.module.misc.DefaultMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
-import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.ItemsErrors;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.struts2.ServletActionContext;
@@ -167,7 +166,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
       JSONArray pluginErrs = new JSONArray();
       for (List<ItemsErrors> /** item*/
         onePluginOfItems : pluginErrorList) {
-        JSONArray itemErrs = convertItemsErrorList( onePluginOfItems) ;// convertItemsErrorList(onePluginOfItems);
+        JSONArray itemErrs = convertItemsErrorList(onePluginOfItems);// convertItemsErrorList(onePluginOfItems);
         pluginErrs.add(itemErrs);
       }
       result.append(",\n \"").append(IAjaxResult.KEY_ERROR_FIELDS).append("\":");
@@ -199,7 +198,6 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
   }
 
 
-
   private static void writeJson(HttpServletResponse response, StringBuffer execResult) throws IOException {
     // try {
     // Thread.sleep(1000);
@@ -227,7 +225,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
 
     private List<String> msgList;
 
-  //  private List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList;
+    //  private List<List<List<DefaultFieldErrorHandler.FieldError>>> pluginErrorList;
 
     private List<List<ItemsErrors>> pluginErrorList;
 

@@ -211,9 +211,13 @@ public class TISK8sDelegate {
       this.incrSync.removeInstance(this.indexName);
       this.cleanResource();
     } catch (Throwable e) {
-      // 看一下RC 是否已经没有了如果是没有了 就直接回收资源
-      if (this.incrSync.getRCDeployment(this.indexName) == null) {
-        this.cleanResource();
+      try {
+        // 看一下RC 是否已经没有了如果是没有了 就直接回收资源
+        if (this.incrSync.getRCDeployment(this.indexName) == null) {
+          this.cleanResource();
+        }
+      } catch (Exception ex) {
+        logger.warn(ex.getMessage());
       }
       throw new RuntimeException(this.indexName.getName(), e);
     }

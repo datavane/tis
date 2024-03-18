@@ -657,7 +657,8 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetFlinkSession(Context context) {
     final TargetResName targetName = getK8SJobWorkerTargetName(false);
-    Optional<ServerLaunchToken> launchToken = Optional.of(ServerLaunchToken.createFlinkClusterToken().token(FlinkClusterType.K8SSession, targetName));
+    Optional<ServerLaunchToken> launchToken
+      = Optional.of(ServerLaunchToken.createFlinkClusterToken().token(FlinkClusterType.K8SSession, targetName));
     getJobWoker(context, targetName, launchToken);
   }
 

@@ -162,21 +162,22 @@ public class PluginAction extends BasicModule {
       icon.put("name", type.getVal());
       icon.put("theme", "fill");
       i.setRes(icon, true);
+      iconsDefs.add(icon);
+
 //      if (isRef) {
 //        icon.put("ref", ((IconReference) i).endType().getVal());
 //      } else {
 //        icon.put("icon", i.fillType());
 //      }
 
-      iconsDefs.add(icon);
 
       icon = new JSONObject();
       icon.put("name", type.getVal());
       icon.put("theme", "outline");
       // icon.put("icon", i.outlineType());
-      i.setRes(icon, false);
-      iconsDefs.add(icon);
-
+      if (i.setRes(icon, false)) {
+        iconsDefs.add(icon);
+      }
     }
     this.setBizResult(context, iconsDefs);
   }
@@ -840,22 +841,6 @@ public class PluginAction extends BasicModule {
       //heteros.add(hetero);
       hlist.add(hetero.toJSON());
     }
-
-    //    Map<Class<?>, HeteroList<?>> extendHeteroList = new HashMap<>();
-    //    // 需要将有相同extendpoint 的HeteroList 合并一下，不然保存的时候会有问题
-    //    for (HeteroList<?> h : heteros) {
-    //      hetero = extendHeteroList.get(h.getExtensionPoint());
-    //      if (hetero == null) {
-    //        extendHeteroList.put(h.getExtensionPoint(), h);
-    //      } else {
-    //        hetero.setItems(ListUtils.union(hetero.getItems(), h.getItems()));
-    //        hetero.setDescriptors(ListUtils.union(hetero.getDescriptors(), h.getDescriptors()));
-    //      }
-    //    }
-
-    //    for (HeteroList<?> h : extendHeteroList.values()) {
-    //      hlist.add(h.toJSON());
-    //    }
 
     pluginDetail.put("plugins", hlist);
     this.setBizResult(context, pluginDetail);

@@ -201,9 +201,7 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doGetFlinkClusterList(Context context) throws Exception {
     FlinkClusterTokenManager clusters = ServerLaunchToken.createFlinkClusterToken();
-
-    List<FlinkClusterPojo> allClusters = clusters.getAllClusters();
-    this.setBizResult(context, allClusters);
+    this.setBizResult(context, clusters.getAllFlinkSessionClusters());
   }
 
   /**

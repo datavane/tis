@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin;
 
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.impl.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Set;
 
@@ -67,7 +68,9 @@ public interface IEndTypeGetter {
         , RabbitMQ("rabbitmq", true), UnKnowStoreType("unknowStoreType", true),
 
         PowerJob("powerjob", true),
-        Flink("flink", true), Docker("docker", true), K8S("k8s", true);
+        Flink("flink", true), Docker("docker", true), K8S("k8s", true),
+        BliBli("blibli", true),
+        StreamComputing("stream-computing", true);
 
         private final String val;
         private final boolean containICON;
@@ -114,24 +117,26 @@ public interface IEndTypeGetter {
                 }
 
                 icon = new Icon() {
-                    private String loadIconWithSuffix(String theme) {
+                    private String loadIconWithSuffix(String theme, boolean throwErr) {
                         return IOUtils.loadResourceFromClasspath(IEndTypeGetter.class
-                                , "endtype/icon/" + val + "/" + theme + ".svg", true);
+                                , "endtype/icon/" + val + "/" + theme + ".svg", throwErr);
                     }
 
                     @Override
-                    public void setRes(JSONObject icon, boolean fillStyle) {
-                        icon.put("icon", fillStyle ? this.fillType() : this.outlineType());
+                    public boolean setRes(JSONObject icon, boolean fillStyle) {
+                        String iconContent = fillStyle ? this.fillType() : this.outlineType();
+                        icon.put("icon", iconContent);
+                        return StringUtils.isNotEmpty(iconContent);
                     }
 
                     @Override
                     public String fillType() {
-                        return loadIconWithSuffix("fill");
+                        return loadIconWithSuffix("fill", true);
                     }
 
                     @Override
                     public String outlineType() {
-                        return loadIconWithSuffix("outline");
+                        return loadIconWithSuffix("outline", false);
                     }
                 };
             }
@@ -149,7 +154,7 @@ public interface IEndTypeGetter {
 
         public String outlineType();
 
-        public void setRes(JSONObject icon, boolean fillStyle);//{
+        public boolean setRes(JSONObject icon, boolean fillStyle);//{
 //            if (isRef) {
 //                icon.put("ref", ((IconReference) i).endType().getVal());
 //            } else {
@@ -175,8 +180,9 @@ public interface IEndTypeGetter {
         }
 
         @Override
-        public void setRes(JSONObject icon, boolean fillStyle) {
+        public boolean setRes(JSONObject icon, boolean fillStyle) {
             icon.put("ref", endType.getVal());
+            return true;
         }
 
         @Override

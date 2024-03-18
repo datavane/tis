@@ -19,6 +19,7 @@ package com.qlangtech.tis.util;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.impl.SuFormProperties.SuFormGetterContext;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import org.apache.commons.lang.StringUtils;
@@ -29,6 +30,8 @@ import org.apache.commons.lang.StringUtils;
  * @date 2020/04/13
  */
 public interface IPluginContext extends IMessageHandler {
+
+
 
     public static IPluginContext namedContext(String collectionName) {
         if (StringUtils.isEmpty(collectionName)) {

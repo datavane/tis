@@ -19,12 +19,13 @@
 package com.qlangtech.tis.datax.job;
 
 import com.qlangtech.tis.datax.job.ServerLaunchToken.FlinkClusterType;
+import com.qlangtech.tis.plugin.IdentityName;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-01-15 16:47
  **/
-public class FlinkClusterPojo {
+public class FlinkClusterPojo implements IdentityName {
 
 //    public final static String JSON_KEY_WEB_INTERFACE_URL = "webInterfaceURL";
 //    public final static String JSON_KEY_CLUSTER_ID = "clusterId";
@@ -42,6 +43,11 @@ public class FlinkClusterPojo {
     private String k8sId;
     public FlinkClusterType clusterType;
     private long createTime;
+
+    @Override
+    public String identityValue() {
+        return this.getClusterId();
+    }
 
     public long getCreateTime() {
         return createTime;

@@ -44,13 +44,17 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Observable;
 import java.util.Optional;
+import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * 标记K8S K8SWorker 启动执行状态
@@ -66,7 +70,7 @@ public class ServerLaunchToken extends Observable implements Closeable {
     private final File launchingToken;
     public final K8SWorkerCptType workerCptType;
     private final LaunchTokenKey tokenKey;
-    private static final Map<LaunchTokenKey, ServerLaunchToken> launchTokens = Maps.newHashMap();
+    private static final Map<LaunchTokenKey, ServerLaunchToken> launchTokens = new WeakHashMap<>();
     /**
      * 不为空，说明该token正在被执行启动流程，正在写入
      */
@@ -205,11 +209,23 @@ public class ServerLaunchToken extends Observable implements Closeable {
             return create(flinkClusterParentDir, new TargetResName(clusterType.token + workerType.getName()), false, K8SWorkerCptType.FlinkCluster);
         }
 
+        public void deleteFlinkSessionCluster(String clusterId) {
+            ServerLaunchToken token = token(FlinkClusterType.K8SSession, new TargetResName(clusterId));
+            token.deleteLaunchToken(true);
+            this.cleanCache();
+        }
+
         public void cleanCache() {
             this._clusters = null;
         }
 
-        public List<FlinkClusterPojo> getAllClusters() throws Exception {
+        public List<FlinkClusterPojo> getAllFlinkSessionClusters() throws Exception {
+            return getAllClusters().stream().filter((cluster) -> {
+                return cluster.clusterType == FlinkClusterType.K8SSession;
+            }).collect(Collectors.toList());
+        }
+
+        private List<FlinkClusterPojo> getAllClusters() throws Exception {
 
             if (_clusters == null) {
                 String[] clusters = flinkClusterParentDir.list();
@@ -273,7 +289,14 @@ public class ServerLaunchToken extends Observable implements Closeable {
 
     public enum FlinkClusterType {
         K8SApplication("k8s_application_"),
+        /**
+         * 创建的flink-k8s-session实例，供其他flink实例创建实例
+         */
         K8SSession("k8s_session_"),
+        /**
+         * 利用之前定义的flink-k8s-session穿件的flink 实例
+         */
+        K8SSessionReference("k8s_session_ref_"),
         Standalone("standalone_");
 
         public static FlinkClusterType parse(String token) {
@@ -351,9 +374,15 @@ public class ServerLaunchToken extends Observable implements Closeable {
     }
 
     public void deleteLaunchToken() {
+        this.deleteLaunchToken(false);
+    }
+
+    public void deleteLaunchToken(boolean removeCache) {
         FileUtils.deleteQuietly(this.launchingToken);
         FileUtils.deleteQuietly(this.launchedToken);
-        launchTokens.remove(this.tokenKey);
+        if (removeCache) {
+            launchTokens.remove(this.tokenKey);
+        }
     }
 
     public boolean isLaunchTokenExist() {
@@ -365,22 +394,52 @@ public class ServerLaunchToken extends Observable implements Closeable {
     }
 
 
+    private final AtomicInteger writeLaunchTokenLock = new AtomicInteger();
+
+    private List<JSONObject> notepadQueue;
+
+    public void appendJobNote(JSONObject note) {
+        Objects.requireNonNull(this.notepadQueue, "notepadQueue can not be null")
+                .add(Objects.requireNonNull(note, "note can not be null"));
+    }
+
     /**
      * 启动成功之后写入相应的配置信息
      */
     public void writeLaunchToken(Callable<Optional<JSONObject>> bizLogic) {
-        if (this.isLaunchTokenExist()) {
-            throw TisException.create("launch token :" + this.launchedToken.getPath() + " shall not be exist");
-        }
-        try {
-            Optional<JSONObject> t = Objects.requireNonNull(bizLogic.call(), "bizLogic can not be null");
-            JSONObject token = t.orElseGet(() -> new JSONObject());
-            //  TimeFormat.yyyyMMddHHmmss.format()
-            token.put(FlinkClusterTokenManager.JSON_KEY_LAUNCH_TIME, TimeFormat.getCurrentTimeStamp());
-            token.put(DataXJobWorker.KEY_CPT_TYPE, workerCptType.token);
-            FileUtils.write(launchedToken, JsonUtil.toString(token, true), TisUTF8.get(), false);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        if (writeLaunchTokenLock.compareAndSet(0, 1)) {
+
+            try {
+                notepadQueue = new ArrayList<>();
+                if (this.isLaunchTokenExist()) {
+                    throw TisException.create("launch token :" + this.launchedToken.getPath() + " shall not be exist");
+                }
+                try {
+                    Optional<JSONObject> t = Objects.requireNonNull(bizLogic.call(), "bizLogic can not be null");
+                    JSONObject token = t.orElseGet(() -> new JSONObject());
+                    List<JSONObject> notes = Lists.newArrayList(notepadQueue);
+                    JSONObject note = null;
+                    for (int idx = 0; idx < notes.size(); idx++) {
+                        note = notes.get(idx);
+                        for (String key : note.keySet()) {
+                            token.put(key, note.get(key));
+                        }
+                    }
+                    //  TimeFormat.yyyyMMddHHmmss.format()
+                    token.put(FlinkClusterTokenManager.JSON_KEY_LAUNCH_TIME, TimeFormat.getCurrentTimeStamp());
+                    token.put(DataXJobWorker.KEY_CPT_TYPE, workerCptType.token);
+                    FileUtils.write(launchedToken, JsonUtil.toString(token, true), TisUTF8.get(), false);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    FileUtils.deleteQuietly(this.launchingToken);
+                }
+            } finally {
+                notepadQueue = null;
+                writeLaunchTokenLock.decrementAndGet();
+            }
+        } else {
+            throw new IllegalStateException("can not process this writeLaunchToken");
         }
     }
 
