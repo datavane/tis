@@ -100,9 +100,7 @@ public class SysInitializeAction extends BasicModule {
      * 取得SQL并且初始化
      */
     File mysqlInitScript = new File(Config.getDataDir(), "sql/tis_console_mysql.sql");
-    if (!mysqlInitScript.exists()) {
-      throw new IllegalStateException("mysql init script can not be none:" + mysqlInitScript.getAbsolutePath());
-    }
+
     init(context, true, Config.getDbCfg().dbtype, mysqlInitScript);
   }
 
@@ -204,6 +202,9 @@ public class SysInitializeAction extends BasicModule {
 
 
   private static void initializeDB(File tisConsoleSqlFile, SysDBType dbType) throws Exception {
+    if (!tisConsoleSqlFile.exists()) {
+      throw new IllegalStateException("db init script can not be none:" + tisConsoleSqlFile.getAbsolutePath());
+    }
     Config.TisDbConfig dbCfg = Config.getDbCfg();
     TISDataSourceFactory.SystemDBInit dsProcess = null;
 
