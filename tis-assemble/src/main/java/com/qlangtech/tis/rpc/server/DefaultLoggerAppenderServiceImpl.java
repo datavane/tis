@@ -18,7 +18,6 @@
 
 package com.qlangtech.tis.rpc.server;
 
-import com.qlangtech.tis.flume.TisIncrLoggerSink;
 import com.qlangtech.tis.job.common.JobParams;
 import com.qlangtech.tis.rpc.grpc.log.appender.LogAppenderGrpc;
 import com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent;
@@ -44,7 +43,7 @@ public class DefaultLoggerAppenderServiceImpl extends LogAppenderGrpc.LogAppende
         return instance;
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(TisIncrLoggerSink.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultLoggerAppenderServiceImpl.class);
     private static final Map<String, Logger> loggers = new HashMap<String, Logger>();
 
     public Logger getLogger(String name) {

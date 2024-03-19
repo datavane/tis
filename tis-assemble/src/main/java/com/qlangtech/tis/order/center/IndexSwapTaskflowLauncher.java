@@ -25,9 +25,12 @@ import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
 import com.qlangtech.tis.extension.impl.XmlFile;
-import com.qlangtech.tis.flume.FlumeApplication;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.*;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.BasicPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.IndexBackFlowPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.realtime.transfer.IOnsListenerStatus;
 import com.qlangtech.tis.rpc.server.DefaultLoggerAppenderServiceImpl;
 import com.qlangtech.tis.rpc.server.FullBuildStatCollectorServer;
@@ -44,7 +47,11 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 //import org.apache.solr.cloud.ZkController;
 
@@ -122,7 +129,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         try {
             this.afterPropertiesSet();
             this.incrChannels = initIncrTransferStateCollect();
-            FlumeApplication.startFlume();
+            // FlumeApplication.startFlume();
             sce.getServletContext().setAttribute(KEY_INDEX_SWAP_TASK_FLOW_LAUNCHER, this);
         } catch (Exception e) {
             throw new RuntimeException(e);
