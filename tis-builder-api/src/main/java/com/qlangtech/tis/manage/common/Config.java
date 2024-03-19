@@ -55,6 +55,11 @@ public class Config extends BasicConfig {
 
     public static final String PLUGIN_LIB_DIR = "WEB-INF/lib";
 
+
+    public static void main(String[] args) {
+        System.out.println(Config.class.getResource("/"));
+    }
+
     public static File getPluginLibDir(String pluginName, boolean validateExist) {
         File libDir = new File(Config.getDataDir(), Config.LIB_PLUGINS_PATH + "/" + pluginName + "/" + PLUGIN_LIB_DIR);
         if (validateExist && (!libDir.exists() || libDir.isFile())) {
@@ -489,7 +494,14 @@ public class Config extends BasicConfig {
                     return new P() {
                         @Override
                         protected InputStream getOriginSource() {
-                            return Config.class.getResourceAsStream(bundlePathClasspath);
+
+                            InputStream source = Config.class.getResourceAsStream(bundlePathClasspath);
+                            if (source == null) {
+                                throw new NullPointerException("bundlePathClasspath:"
+                                        + bundlePathClasspath + " relevant inputStream can not be null,classpath root:"
+                                        + Config.class.getResource("/"));
+                            }
+                            return source;
                         }
 
                         @Override

@@ -309,7 +309,7 @@ public class SysInitializeAction extends BasicModule {
 
 
   void copyDataTarToLocal() throws IOException {
-    final String dataPkgName = "tis-data2.tar.gz";
+    final String dataPkgName = "tis-data.tar.gz";
     URL dataPkg = UpdateCenterResource.getTISTarPkg(dataPkgName);
     File tmpDataDir = FileUtils.getTempDirectory();//  Config.getDataDir();
     HttpUtils.get(dataPkg, new StreamProcess<Void>() {

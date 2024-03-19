@@ -13,39 +13,80 @@ spec:
   type: LoadBalancer
 ---
 
+#apiVersion: v1
+#kind: PersistentVolume
+#metadata:
+#  name: pv-oss
+#spec:
+#  capacity:
+#    storage: 5Gi
+#  accessModes:
+#    - ReadWriteMany
+#  storageClassName: oss
+#  flexVolume:
+#    driver: "alicloud/oss"
+#    options:
+#      bucket: "incr-log"
+#      url: "oss-cn-hangzhou.aliyuncs.com"
+#      path: "/tis-pv"
+#      akId: ""
+#      akSecret: ""
+#      otherOpts: "-o max_stat_cache_size=0 -o allow_other"
+#---
+#kind: PersistentVolumeClaim
+#apiVersion: v1
+#metadata:
+#  name: tis-console-pvc-oss
+#spec:
+#  storageClassName: oss
+#  accessModes:
+#    - ReadWriteMany
+#  resources:
+#    requests:
+#      storage: 5Gi
+
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: pv-oss
+  name: csi-pv
+  labels:
+    alicloud-pvname: disk-pv
 spec:
   capacity:
-    storage: 5Gi
+    storage: 20Gi
   accessModes:
-    - ReadWriteMany
-  storageClassName: oss
-  flexVolume:
-    driver: "alicloud/oss"
-    options:
-      bucket: "incr-log"
-      url: "oss-cn-hangzhou.aliyuncs.com"
-      path: "/tis-pv"
-      akId: ""
-      akSecret: ""
-      otherOpts: "-o max_stat_cache_size=0 -o allow_other"
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: diskplugin.csi.alibabacloud.com
+    volumeHandle: "d-bp15tdr3q90sxxz2l0dz"
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: topology.diskplugin.csi.alibabacloud.com/zone
+              operator: In
+              values:
+                - "cn-hangzhou-k"
 ---
-kind: PersistentVolumeClaim
+
 apiVersion: v1
+kind: PersistentVolumeClaim
 metadata:
-  name: tis-console-pvc-oss
+  name: disk-pvc
 spec:
-  storageClassName: oss
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
+      storage: 20Gi
+  selector:
+    matchLabels:
+      alicloud-pvname: disk-pv
+
 ---
 # how to use aliyun pv: https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/mount-a-statically-provisioned-oss-volume?spm=a2c4g.11186623.0.0.39145057wGt7rB
+# 使用 云盘：https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/use-a-statically-provisioned-disk-volume?spm=a2c4g.11186623.0.i5
 apiVersion: v1
 kind: ReplicationController
 metadata:
@@ -62,15 +103,15 @@ spec:
       containers:
         - name: tis-console
           volumeMounts:
-            - name: tis-console-pvc-oss
+            - name: tis-console-pvc
               mountPath: "/opt/data"
           image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:4.0.0
           ports:
             - name: tis-8080
               containerPort: 8080
       volumes:
-        - name: tis-console-pvc-oss
+        - name: tis-console-pvc
           persistentVolumeClaim:
-            claimName: tis-console-pvc-oss
+            claimName: disk-pvc
 ---
 
