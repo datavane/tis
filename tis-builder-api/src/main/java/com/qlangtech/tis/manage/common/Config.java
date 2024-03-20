@@ -491,15 +491,16 @@ public class Config extends BasicConfig {
             } else {
                 try {
                     ResourceBundle bundle = ResourceBundle.getBundle(bundlePath);
+                    final ClassLoader classLoader = Config.class.getClassLoader();
                     return new P() {
                         @Override
                         protected InputStream getOriginSource() {
 
-                            InputStream source = Config.class.getResourceAsStream(bundlePathClasspath);
+                            InputStream source = classLoader.getResourceAsStream(bundlePathClasspath);
                             if (source == null) {
                                 throw new NullPointerException("bundlePathClasspath:"
                                         + bundlePathClasspath + " relevant inputStream can not be null,classpath root:"
-                                        + Config.class.getResource("/"));
+                                        + classLoader.getResource("/"));
                             }
                             return source;
                         }

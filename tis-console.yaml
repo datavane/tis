@@ -105,7 +105,7 @@ spec:
           volumeMounts:
             - name: tis-console-pvc
               mountPath: "/opt/data"
-          image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:4.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:4.0.1
           ports:
             - name: tis-8080
               containerPort: 8080
