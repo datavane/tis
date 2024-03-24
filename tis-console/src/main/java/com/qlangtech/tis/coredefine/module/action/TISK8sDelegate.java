@@ -93,7 +93,7 @@ public class TISK8sDelegate {
     if (StringUtils.isEmpty(indexName)) {
       throw new IllegalArgumentException("param indexName can not be null");
     }
-    if (DataXJobWorker.K8S_DATAX_INSTANCE_NAME.getName().equals(indexName)
+    if (TargetResName.K8S_DATAX_INSTANCE_NAME.getName().equals(indexName)
       || DataXJobWorker.K8S_FLINK_CLUSTER_NAME.match(indexName)
     ) {
       // DataXJobWorker.getFlinkClusterWorker();

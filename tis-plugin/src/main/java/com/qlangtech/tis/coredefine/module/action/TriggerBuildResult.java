@@ -20,6 +20,7 @@ package com.qlangtech.tis.coredefine.module.action;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
@@ -44,7 +45,7 @@ import java.util.Map;
  */
 public class TriggerBuildResult {
     public static final String TRIGGER_FULL_BUILD_COLLECTION_PATH = "/trigger";
-    public static final String KEY_APPNAME = "appname";
+    public static final String KEY_APPNAME = IFullBuildContext.KEY_APP_NAME;// "appname";
     private static final String bizKey = "biz";
     public boolean success;
 

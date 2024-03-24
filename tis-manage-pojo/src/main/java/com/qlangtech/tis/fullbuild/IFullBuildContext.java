@@ -51,4 +51,5 @@ public interface IFullBuildContext {
     // public static final File parent = new File(
     // "D:\\j2ee_solution\\eclipse-standard-kepler-SR2-win32-x86_64\\workspace\\tis-saturn\\tis-sql-parser\\src\\main\\resources\\totalpaytest");
     String NAME_DATAFLOW_DIR = "df";
+    String KEY_TARGET_NAME = "targetName";
 }

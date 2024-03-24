@@ -59,6 +59,7 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
+import com.qlangtech.tis.runtime.module.misc.BasicRundata;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescriptorsJSON;
@@ -906,7 +907,9 @@ public class PluginAction extends BasicModule {
 
     if (forwardParams != null) {
       this.getRequest().setAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT, describables);
-      getRundata().forwardTo(forwardParams[0], forwardParams[1], forwardParams[2]);
+     // getRundata().forwardTo(forwardParams[0], forwardParams[1], forwardParams[2]);
+
+      BasicRundata.forward(getRundata(), forwardParams);
       return;
     }
 
@@ -923,7 +926,7 @@ public class PluginAction extends BasicModule {
     return (List<ItemsSaveResult>) request.getAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT);
   }
 
-  private String[] getActionForwardParam(JSONObject postData) {
+  protected String[] getActionForwardParam(JSONObject postData) {
     String serverForward = postData.getString("serverForward");
     String[] forwardParams = null;
     if (StringUtils.isNotEmpty(serverForward)) {

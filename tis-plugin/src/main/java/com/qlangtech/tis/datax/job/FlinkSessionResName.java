@@ -29,7 +29,7 @@ import org.apache.commons.lang3.tuple.Pair;
 public class FlinkSessionResName {
     private static final TargetResName K8S_FLINK_CLUSTER_NAME = new TargetResName("flink-cluster");
 
-    public final TargetResName group() {
+    public static final TargetResName group() {
         return K8S_FLINK_CLUSTER_NAME;
     }
 
@@ -52,7 +52,8 @@ public class FlinkSessionResName {
         if (splitLength < 1) {
             return Pair.of(false, null);
         }
-        return Pair.of(StringUtils.equals(split[0], K8S_FLINK_CLUSTER_NAME.getName()), (splitLength > 1 ? split[1] : null));
+        boolean containVal = (splitLength > 1);
+        return Pair.of(StringUtils.equals(split[0], K8S_FLINK_CLUSTER_NAME.getName()) && containVal, (containVal ? split[1] : null));
     }
 
     /**
@@ -62,6 +63,10 @@ public class FlinkSessionResName {
      * @return
      */
     public TargetResName resName(TargetResName targetName) {
-        return new TargetResName(matchPair(targetName.getName()).getRight());
+        Pair<Boolean, String> p = matchPair(targetName.getName());
+        if (!p.getLeft()) {
+            throw new IllegalStateException("can not find targetRes name:" + targetName);
+        }
+        return new TargetResName(p.getValue());
     }
 }

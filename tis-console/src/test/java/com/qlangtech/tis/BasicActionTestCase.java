@@ -18,6 +18,7 @@
 package com.qlangtech.tis;
 
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.spring.EnvironmentBindService;
@@ -40,7 +41,7 @@ public class BasicActionTestCase extends StrutsSpringTestCase implements TISEasy
 
 
   protected void setCollection(String collection) {
-    request.addHeader("appname", collection);
+    request.addHeader(TriggerBuildResult.KEY_APPNAME, collection);
     DefaultFilter.AppAndRuntime app = new DefaultFilter.AppAndRuntime();
     app.setAppName(collection);
     DefaultFilter.setAppAndRuntime(app);

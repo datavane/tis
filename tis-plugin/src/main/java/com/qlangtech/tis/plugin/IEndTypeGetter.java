@@ -55,7 +55,8 @@ public interface IEndTypeGetter {
      * 端类型
      */
     enum EndType implements IEndType {
-        Greenplum("greenplum"), MySQL("mysql", true), Postgres("pg", true), Oracle("oracle", true) //
+        Greenplum("greenplum"), MySQL("mysql", true) //
+        , Postgres("pg", true), Oracle("oracle", true) //
         , ElasticSearch("es", true), MongoDB("mongoDB", true) //
         , StarRocks("starRocks", true), Doris("doris", true) //
         , Clickhouse("clickhouse", true), Hudi("hudi", true) //, AliyunOSS("aliyunOSS")
@@ -63,7 +64,7 @@ public interface IEndTypeGetter {
         , Cassandra("cassandra") //, HDFS("hdfs")
         , SqlServer("sqlServer", true), TiDB("TiDB", true) //
         , RocketMQ("rocketMq", true), Kafka("kafka", true), DataFlow("dataflow") //
-        , DaMeng("daMeng"), AliyunODPS("aliyunOdps"), HiveMetaStore("hms", true) //
+        , DaMeng("daMeng", true), AliyunODPS("aliyunOdps"), HiveMetaStore("hms", true) //
         , Spark("spark", true) //
         , RabbitMQ("rabbitmq", true), UnKnowStoreType("unknowStoreType", true),
 

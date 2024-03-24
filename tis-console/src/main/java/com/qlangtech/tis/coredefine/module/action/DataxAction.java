@@ -57,6 +57,7 @@ import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.util.MultiItemsViewType;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
@@ -358,7 +359,6 @@ public class DataxAction extends BasicModule {
   }
 
   public static final String KEY_USING_POWERJOB_USE_EXIST_CLUSTER = "usingPowderJobUseExistCluster";
-  public static final String KEY_TARGET_NAME = "targetName";
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doApplyPodNumber(Context context) throws Exception {
@@ -393,7 +393,7 @@ public class DataxAction extends BasicModule {
 
   /**
    * 启动过程中出错，需要重启启动
-   *
+   *remove_datax_worker
    * @param context
    */
   @Func(value = PermissionConstant.DATAX_MANAGE)
@@ -454,9 +454,9 @@ public class DataxAction extends BasicModule {
     if (lt.workerCptType == K8SWorkerCptType.Server) {
 
       DataXJobWorker pjServer
-        = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME, Optional.of(K8SWorkerCptType.Server));
+        = DataXJobWorker.getJobWorker(TargetResName.K8S_DATAX_INSTANCE_NAME, Optional.of(K8SWorkerCptType.Server));
       DataXJobWorker pjWorker
-        = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME, Optional.of(K8SWorkerCptType.Worker));
+        = DataXJobWorker.getJobWorker(TargetResName.K8S_DATAX_INSTANCE_NAME, Optional.of(K8SWorkerCptType.Worker));
       dataXWorker.put("powderJobServerRCSpec"
         , IncrUtils.serializeSpec(IncrSpecResult.create(pjServer.getReplicasSpec(), pjServer.getHpa())));
       dataXWorker.put("powderJobWorkerRCSpec"
@@ -645,7 +645,7 @@ public class DataxAction extends BasicModule {
 
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetDataxWorkerMeta(Context context) {
-    getJobWoker(context, DataXJobWorker.K8S_DATAX_INSTANCE_NAME);
+    getJobWoker(context, TargetResName.K8S_DATAX_INSTANCE_NAME);
   }
 
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
@@ -677,8 +677,7 @@ public class DataxAction extends BasicModule {
     }
     DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(targetName, launchToken.map((t) -> t.getWorkerCptType()));
     boolean disableRcdeployment = this.getBoolean("disableRcdeployment");
-    jobWorkerStatus.setState(jobWorker.inService() ? IFlinkIncrJobStatus.State.RUNNING :
-      IFlinkIncrJobStatus.State.NONE);
+    jobWorkerStatus.setState((jobWorker != null && jobWorker.inService()) ? IFlinkIncrJobStatus.State.RUNNING : IFlinkIncrJobStatus.State.NONE);
     if (jobWorkerStatus.getState() == IFlinkIncrJobStatus.State.RUNNING && !disableRcdeployment) {
       jobWorkerStatus.setPayloads(jobWorker.getPayloadInfo());
       jobWorkerStatus.setRcDeployments(jobWorker.getRCDeployments());
@@ -691,7 +690,7 @@ public class DataxAction extends BasicModule {
   }
 
   private TargetResName getK8SJobWorkerTargetName(boolean validate) {
-    final String targetName = this.getString(KEY_TARGET_NAME);
+    final String targetName = this.getString(IFullBuildContext.KEY_TARGET_NAME);
     if (validate) {
       DataXJobWorker.validateTargetName(targetName);
     }

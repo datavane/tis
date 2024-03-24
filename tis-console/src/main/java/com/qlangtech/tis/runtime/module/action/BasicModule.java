@@ -83,6 +83,7 @@ import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import com.qlangtech.tis.runtime.module.misc.BasicRundata;
 import com.qlangtech.tis.runtime.module.misc.DefaultMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
@@ -374,6 +375,10 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   private static Rundata createRundata() {
     return new Rundata() {
+      @Override
+      public String getStringParam(String key) {
+        return getRequest().getParameter(key);
+      }
 
       @Override
       public HttpServletRequest getRequest() {
@@ -560,19 +565,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return result;
   }
 
-  public static interface Rundata {
+  public interface Rundata extends BasicRundata {
 
     public HttpServletRequest getRequest();
 
-    public default void forwardTo(String target) {
-      throw new UnsupportedOperationException(target);
-    }
 
-    public void forwardTo(String namespace, String target, String method);
-
-    public void setLayout(String layout);
-
-    public void redirectTo(String target);
     // public Context getContext();
   }
 

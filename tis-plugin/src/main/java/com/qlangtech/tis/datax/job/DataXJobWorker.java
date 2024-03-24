@@ -68,7 +68,6 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     public static final String GROUP_KEY_JOBWORKER = "jobworker";
     public static final String KEY_CPT_TYPE = "cptType";
 
-    public static final TargetResName K8S_DATAX_INSTANCE_NAME = new TargetResName("datax-worker");
     public static final FlinkSessionResName K8S_FLINK_CLUSTER_NAME = new FlinkSessionResName();
 
     /**
@@ -129,7 +128,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
 
     public static void validateTargetName(String targetName) {
-        if (K8S_DATAX_INSTANCE_NAME.getName().equals(targetName)
+        if (TargetResName.K8S_DATAX_INSTANCE_NAME.getName().equals(targetName)
                 || K8S_FLINK_CLUSTER_NAME.match(targetName)) {
             return;
         }
@@ -172,7 +171,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
     public static DataXJobWorker getJobWorker(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType) {
 
-        if (!(resName.equalWithName(K8S_DATAX_INSTANCE_NAME.getName()) || K8S_FLINK_CLUSTER_NAME.match(resName))) {
+        if (!(resName.equalWithName(TargetResName.K8S_DATAX_INSTANCE_NAME.getName()) || K8S_FLINK_CLUSTER_NAME.match(resName))) {
             throw new IllegalStateException("illegal resName:" + resName);
         }
 
@@ -192,7 +191,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     }
 
     public static IPluginStore<DataXJobWorker> getJobWorkerStore(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType) {
-        if (!(resName.equalWithName(K8S_DATAX_INSTANCE_NAME.getName())
+        if (!(resName.equalWithName(TargetResName.K8S_DATAX_INSTANCE_NAME.getName())
                 || K8S_FLINK_CLUSTER_NAME.match(resName))) {
             throw new IllegalStateException("illegal resName:" + resName);
         }

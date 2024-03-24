@@ -22,7 +22,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.BasicActionTestCase;
-import com.qlangtech.tis.datax.job.DataXJobWorker;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 
@@ -49,7 +49,7 @@ public class TestDataXAction extends BasicActionTestCase {
     request.setParameter("event_submit_do_launch_datax_worker", "y");
     request.setParameter("action", "datax_action");
     request.setParameter(DataxAction.KEY_USING_POWERJOB_USE_EXIST_CLUSTER, "false");
-    request.setParameter(DataxAction.KEY_TARGET_NAME, DataXJobWorker.K8S_DATAX_INSTANCE_NAME.getName());
+    request.setParameter(IFullBuildContext.KEY_TARGET_NAME, TargetResName.K8S_DATAX_INSTANCE_NAME.getName());
     //JSONObject content = new JSONObject();
 
     //content.put(CollectionAction.KEY_INDEX_NAME, TEST_TABLE_EMPLOYEES_NAME);

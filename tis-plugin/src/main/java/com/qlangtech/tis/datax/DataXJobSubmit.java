@@ -22,6 +22,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.build.task.IBuildHistory;
+import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
@@ -85,7 +86,7 @@ public abstract class DataXJobSubmit {
 
     public static DataXJobSubmit.InstanceType getDataXTriggerType() {
 
-        DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME
+        DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(TargetResName.K8S_DATAX_INSTANCE_NAME
                 , Optional.of(DataXJobWorker.K8SWorkerCptType.Server));
         boolean dataXWorkerServiceOnDuty = jobWorker != null && jobWorker.inService();
         DataXJobSubmit.InstanceType execType

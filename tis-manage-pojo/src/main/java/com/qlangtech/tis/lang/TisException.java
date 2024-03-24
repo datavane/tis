@@ -21,8 +21,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.runtime.module.misc.BasicRundata;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.io.FileUtils;
@@ -41,6 +44,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
@@ -50,14 +54,62 @@ import java.util.regex.Pattern;
  * @create: 2020-07-23 18:56
  */
 public class TisException extends RuntimeException {
-    private final Optional<ErrorCode> errCode;
+    private final Optional<ErrorValue> errCode;
+
+    private static class RemoveDataxWorkerForward implements Function<BasicRundata, String[]> {
+        @Override
+        public String[] apply(BasicRundata rundata) {
+            String targetName = rundata.getStringParam(IFullBuildContext.KEY_TARGET_NAME);
+            if (StringUtils.isEmpty(targetName)) {
+                throw new IllegalArgumentException("request param "
+                        + IFullBuildContext.KEY_TARGET_NAME + " can not be null");
+            }
+            return new String[]{"coredefine", "datax_action", "remove_datax_worker"};
+        }
+    }
 
     /**
      * TIS会有专门的错误提示及异常处理流程
      */
     public enum ErrorCode {
-        FLINK_CLUSTER_LOSS_OF_CONTACT,
-        POWER_JOB_CLUSTER_LOSS_OF_CONTACT
+        FLINK_INSTANCE_LOSS_OF_CONTACT((rundata) -> {
+            // example: coredefine:datax_action:save_datax_worker
+            // event_submit_do_incr_delete core_action
+            String appName = rundata.getStringParam(IFullBuildContext.KEY_APP_NAME);
+            if (StringUtils.isEmpty(appName)) {
+                throw new IllegalArgumentException("request param "
+                        + IFullBuildContext.KEY_APP_NAME + " can not be null");
+            }
+            return new String[]{"coredefine", "core_action", "incr_delete"};
+        }),
+        FLINK_SESSION_CLUSTER_LOSS_OF_CONTACT(new RemoveDataxWorkerForward()),
+        POWER_JOB_CLUSTER_LOSS_OF_CONTACT(new RemoveDataxWorkerForward() {
+            @Override
+            public String[] apply(BasicRundata rundata) {
+                String[] forwardParams = super.apply(rundata);
+                if (!TargetResName.K8S_DATAX_INSTANCE_NAME.equalWithName(rundata.getStringParam(IFullBuildContext.KEY_TARGET_NAME))) {
+                    throw new IllegalArgumentException("request param:" + IFullBuildContext.KEY_TARGET_NAME
+                            + " relevant val must be equal to:" + TargetResName.K8S_DATAX_INSTANCE_NAME.getName());
+                }
+                return forwardParams;
+            }
+        });
+        private final Function<BasicRundata, String[]> forward;
+
+        private ErrorCode(Function<BasicRundata, String[]> forward) {
+            this.forward = forward;
+        }
+
+        public void execForward(BasicRundata rundata) {
+            String[] forwardParams = forward.apply(rundata);
+            BasicRundata.forward(rundata, forwardParams);
+        }
+    }
+
+    public static ErrorCode parse(String val) {
+
+        ErrorCode errCode = ErrorCode.valueOf(val);
+        return errCode;
     }
 
     public static ErrMsg getErrMsg(Throwable throwable) {
@@ -83,7 +135,12 @@ public class TisException extends RuntimeException {
         return last;
     }
 
-    private TisException(Optional<ErrorCode> errorCode, String message, Throwable cause) {
+    private TisException(Optional<ErrorValue> errorCode, String message) {
+        super(message);
+        this.errCode = errorCode;
+    }
+
+    private TisException(Optional<ErrorValue> errorCode, String message, Throwable cause) {
         super(message, cause);
         this.errCode = errorCode;
     }
@@ -97,8 +154,11 @@ public class TisException extends RuntimeException {
         return create(null, message, cause);
     }
 
+    public static TisException create(ErrorValue errorCode, String message) {
+        return new TisException(Optional.ofNullable(errorCode), message);
+    }
 
-    public static TisException create(ErrorCode errorCode, String message, Throwable cause) {
+    public static TisException create(ErrorValue errorCode, String message, Throwable cause) {
         if (cause instanceof TisException) {
             return (TisException) cause;
         } else {
@@ -128,9 +188,9 @@ public class TisException extends RuntimeException {
         private long logFileName;
         // 异常摘要
         private String abstractInfo;
-        private final Optional<ErrorCode> errCode;
+        private final Optional<ErrorValue> errCode;
 
-        public ErrMsg(String message, Throwable ex, Optional<ErrorCode> errCode) {
+        public ErrMsg(String message, Throwable ex, Optional<ErrorValue> errCode) {
             this.message = message;
             this.ex = ex;
             this.errCode = Objects.requireNonNull(errCode, "errCode can not be null");
@@ -141,7 +201,7 @@ public class TisException extends RuntimeException {
             return ex;
         }
 
-        public ErrorCode getErrCode() {
+        public ErrorValue getErrCode() {
             return this.errCode.orElse(null);
         }
 
