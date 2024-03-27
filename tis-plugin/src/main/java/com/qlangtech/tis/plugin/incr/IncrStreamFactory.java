@@ -46,7 +46,7 @@ public abstract class IncrStreamFactory implements Describable<IncrStreamFactory
         IPluginStore<IncrStreamFactory> store = TIS.getPluginStore(indexName, IncrStreamFactory.class);
         IncrStreamFactory k8sConfig = store.getPlugin();
         if (k8sConfig == null) {
-            throw new IllegalStateException("key" + indexName + " have not set k8s plugin");
+            throw new IllegalStateException("key:" + indexName + " have not set k8s plugin");
         }
         return k8sConfig;
     }

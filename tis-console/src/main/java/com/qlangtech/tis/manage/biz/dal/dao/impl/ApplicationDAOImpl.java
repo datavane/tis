@@ -22,6 +22,8 @@ import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
 import com.qlangtech.tis.manage.common.BasicDAO;
 import org.apache.commons.lang3.StringUtils;
+
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -100,7 +102,7 @@ public class ApplicationDAOImpl extends BasicDAO<Application, ApplicationCriteri
     }
 
     public int updateByExampleSelective(Application record, ApplicationCriteria example) {
-        UpdateByExampleParms parms = new UpdateByExampleParms(record, example);
+      UpdateByExampleParms parms = new UpdateByExampleParms(record, example);
         return this.updateRecords("application.ibatorgenerated_updateByExampleSelective", parms);
     }
 

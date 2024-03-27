@@ -26,6 +26,7 @@ import com.qlangtech.tis.extension.ElementPluginDesc;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.util.DescriptorsJSON;
 import junit.framework.TestCase;
 
 import java.util.Map;
@@ -48,7 +49,7 @@ public class TestPluginExtraProps extends TestCase {
         PluginExtraProps.parsePostMCols(elementCreator, msgHandler, context, keyColsMeta, targetCols);
     }
 
-    private static class TestElementCreatorFactory implements CMeta.ElementCreatorFactory{
+    private static class TestElementCreatorFactory implements CMeta.ElementCreatorFactory {
         @Override
         public CMeta createDefault() {
             return new CMeta();
@@ -139,10 +140,9 @@ public class TestPluginExtraProps extends TestCase {
     public void testAddFieldDescriptor() {
 
         DefaultPlugin plugin = new DefaultPlugin();
-
+        Optional<ElementPluginDesc> pluginDesc = ElementPluginDesc.create(plugin.getDescriptor());
         Optional<PluginExtraProps> extraProps
-                = PluginExtraProps.load(ElementPluginDesc.create(plugin.getDescriptor())
-                , DefaultPlugin.class);
+                = PluginExtraProps.load(pluginDesc, DefaultPlugin.class);
 
         Assert.assertTrue(extraProps.isPresent());
 
@@ -154,6 +154,8 @@ public class TestPluginExtraProps extends TestCase {
         Assert.assertEquals(DefaultPlugin.FILED_NAME_DESCRIPTION, nameProp.getAsynHelp());
         Assert.assertEquals(DefaultPlugin.DFT_NAME_VALUE, nameProp.getDftVal());
 
+        DescriptorsJSON descJSON = new DescriptorsJSON(pluginDesc.get().getElementDesc());
+        System.out.println(JsonUtil.toString(descJSON.getDescriptorsJSON()));
 
     }
 
@@ -165,7 +167,7 @@ public class TestPluginExtraProps extends TestCase {
             PluginExtraProps.load(ElementPluginDesc.create(desc), DefaultPlugin.class);
             Assert.fail("must be faild");
         } catch (Exception e) {
-            Assert.assertEquals("prop key:xxx relevant prop must exist , exist props keys:name,cols", e.getMessage());
+            Assert.assertEquals("prop key:xxx relevant prop must exist , exist props keys:password,name,cols", e.getMessage());
         }
     }
 }

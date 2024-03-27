@@ -98,41 +98,6 @@ public class FullbuildWorkflowAction extends BasicModule {
       FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getValue()))
       , FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END, FullbuildPhase.IndexBackFlow.getValue()))));
     CreateNewTaskResult newTaskResult = this.createNewDataXTask(execContext, triggerType);
-
-//    if (StringUtils.isNotBlank(appname)) {
-//      app = this.getApplicationDAO().selectByName(appname);
-//      if (app == null) {
-//        throw new IllegalStateException("appname:" + appname + " relevant app pojo is not exist");
-//      }
-//    }
-//
-//    WorkFlowBuildHistory task = new WorkFlowBuildHistory();
-//    task.setCreateTime(new Date());
-//    task.setStartTime(new Date());
-//    task.setWorkFlowId(workflowId);
-//    task.setTriggerType(triggerType.getValue());
-//    task.setState((byte) ExecResult.DOING.getValue());
-//    // Integer buildHistoryId = null;
-//    // 从什么阶段开始执行
-//    FullbuildPhase fromPhase = FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getValue()));
-//    FullbuildPhase endPhase = FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END, FullbuildPhase.IndexBackFlow.getValue()));
-//    if (app == null) {
-//      if (endPhase.bigThan(FullbuildPhase.JOIN)) {
-//        endPhase = FullbuildPhase.JOIN;
-//      }
-//    }
-//    if (fromPhase.getValue() > FullbuildPhase.FullDump.getValue()) {
-//      // 如果是从非第一步开始执行的话，需要客户端提供依赖的history记录id
-//      task.setHistoryId(this.getInt(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID));
-//    }
-//    // 说明只有workflow的流程和索引没有关系，所以不可能执行到索引build阶段去
-//    // task.setEndPhase((app == null) ? FullbuildPhase.JOIN.getValue() : FullbuildPhase.IndexBackFlow.getValue());
-//    task.setEndPhase(endPhase.getValue());
-//    task.setStartPhase(fromPhase.getValue());
-//    if (app != null) {
-//      task.setAppId(app.getAppId());
-//      task.setAppName(app.getProjectName());
-//    }
     // 生成一个新的taskid
     this.setBizResult(context, newTaskResult);
   }

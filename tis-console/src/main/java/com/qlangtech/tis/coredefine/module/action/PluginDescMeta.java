@@ -23,6 +23,7 @@ import com.qlangtech.tis.datax.job.DataXJobWorker.K8SWorkerCptType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.DescriptorsJSONResult;
 
 import java.util.Collection;
 import java.util.List;
@@ -62,7 +63,7 @@ public class PluginDescMeta<T extends Describable<T>> {
     return this.plugins.entrySet().stream().collect(Collectors.toMap((e) -> e.getKey().token, (e) -> e.getValue().size()));
   }
 
-  public com.alibaba.fastjson.JSONObject getPluginDesc() {
+  public DescriptorsJSONResult getPluginDesc() {
     return pluginDesc.getDescriptorsJSON();
   }
 }

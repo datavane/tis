@@ -21,20 +21,32 @@ package com.qlangtech.tis.extension;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.util.DescriptorsJSONResult;
+
+import java.util.function.Supplier;
 
 /**
- * 在 RequiredPasswordPlugin.json 配置文件中 将require disable掉
- *
- * @author 百岁 (baisui@qlangtech.com)
- * @date 2023/10/19
- */
-public class RequiredPasswordPlugin implements Describable<RequiredPasswordPlugin> {
-    @FormField(ordinal = 7, type = FormFieldType.PASSWORD, validate = {Validator.none_blank, Validator.require})
-    public String password;
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2024-03-25 09:51
+ **/
+public class DefaultPluginNest implements Describable<DefaultPluginNest> {
+    @FormField(identity = false, type = FormFieldType.INT_NUMBER, validate = {Validator.require})
+    public Integer exportPort;
+
+    public static Integer dftExportPort() {
+        return ((DefaultExportPortProvider) DescriptorsJSONResult.getRootDescInstance()).get();
+    }
+
+    interface DefaultExportPortProvider extends Supplier<Integer> {
+
+    }
 
     @TISExtension
-    public static class DefaultDescriptor extends Descriptor<RequiredPasswordPlugin> {
+    public static class DefaultDescriptor extends Descriptor<DefaultPluginNest> {
         public DefaultDescriptor() {
+            super();
         }
     }
+
 }
+

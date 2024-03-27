@@ -94,6 +94,7 @@ import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JsonPostMsgHan
 import com.qlangtech.tis.solrdao.ISchema;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.DescriptorsJSONResult;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.HeteroList;
 import com.qlangtech.tis.util.IPluginContext;
@@ -268,7 +269,7 @@ public class DataxAction extends BasicModule {
     // KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(this, dataxName);
     //    DataxWriter writer = writerStore.getPlugin();
     Map<String, Object> pluginInfo = Maps.newHashMap();
-    JSONObject writeDesc = null;
+    DescriptorsJSONResult writeDesc = null;
     if (writer != null) {
       pluginInfo.put("item", (new DescribableJSON(writer)).getItemJson());
       writeDesc = DescriptorsJSON.desc(writer.getDescriptor());
@@ -1591,16 +1592,16 @@ public class DataxAction extends BasicModule {
     }
 
     @JSONField(serialize = false)
-    public com.alibaba.fastjson.JSONObject getPluginDesc() {
+    public DescriptorsJSONResult getPluginDesc() {
       throw new UnsupportedOperationException();
     }
 
-    public com.alibaba.fastjson.JSONObject getReaderDesc() {
+    public DescriptorsJSONResult getReaderDesc() {
       return pluginDesc.getDescriptorsJSON();
     }
 
 
-    public com.alibaba.fastjson.JSONObject getWriterDesc() {
+    public DescriptorsJSONResult getWriterDesc() {
       return writerTypesDesc.getDescriptorsJSON();
     }
   }

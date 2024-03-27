@@ -119,7 +119,7 @@ public class HeteroList<T extends Describable<T>> {
 
 
         Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
-        DescriptorsJSON desc2Json = new DescriptorsJSON(this.descriptors);
+        DescriptorsJSON desc2Json = new DescriptorsJSON(this.descriptors, true);
 
 
         if (this.getItems().size() == 1) {

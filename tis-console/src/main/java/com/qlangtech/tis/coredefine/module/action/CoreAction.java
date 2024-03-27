@@ -41,7 +41,6 @@ import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.job.DefaultSSERunnable;
-import com.qlangtech.tis.datax.job.FlinkClusterPojo;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteSteps;
@@ -387,9 +386,13 @@ public class CoreAction extends BasicModule {
     IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
     IPluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
-    TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(module.getCollectionName());
 
-    if ((store.getPlugin()) == null || !k8s.hasCreated()) {
+    if ((store.getPlugin()) == null) {
+      incrStatus.setK8sPluginInitialized(false);
+      return incrStatus;
+    }
+    TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(module.getCollectionName());
+    if (!k8s.hasCreated()) {
       incrStatus.setK8sPluginInitialized(false);
       return incrStatus;
     }

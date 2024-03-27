@@ -21,7 +21,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.TISExtensible;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
@@ -30,11 +34,15 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import com.qlangtech.tis.plugin.incr.ISelectedTabExtendFactory;
 import org.apache.commons.lang.StringUtils;
 
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -51,21 +59,35 @@ public class DescriptorsJSON<T extends Describable<T>> {
     public static final String KEY_ADVANCE = "advance";
 
     private final Collection<Descriptor<T>> descriptors;
+    /**
+     * 由于describe 可以嵌套，此标志位可以判断 是否是根元素
+     */
+    private final boolean rootDesc;
 
-    public static JSONObject desc(String requestDescId) {
+
+    public static DescriptorsJSONResult desc(String requestDescId) {
         return new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON();
     }
 
-    public static JSONObject desc(Descriptor desc) {
+    public static DescriptorsJSONResult desc(Descriptor desc) {
         return new DescriptorsJSON(desc).getDescriptorsJSON();
     }
 
     public DescriptorsJSON(Collection<Descriptor<T>> descriptors) {
-        this.descriptors = descriptors;
+        this(descriptors, true);
     }
 
     public DescriptorsJSON(Descriptor<T> descriptor) {
-        this(Collections.singletonList(descriptor));
+        this(descriptor, true);
+    }
+
+    public DescriptorsJSON(Collection<Descriptor<T>> descriptors, boolean rootDesc) {
+        this.descriptors = descriptors;
+        this.rootDesc = rootDesc;
+    }
+
+    public DescriptorsJSON(Descriptor<T> descriptor, boolean rootDesc) {
+        this(Collections.singletonList(descriptor), rootDesc);
     }
 
 
@@ -84,19 +106,19 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
     }
 
-    public JSONObject getDescriptorsJSON() {
+    public DescriptorsJSONResult getDescriptorsJSON() {
         return getDescriptorsJSON(Optional.empty());
     }
 
 
-    public JSONObject getDescriptorsJSON(Optional<IPropertyType.SubFormFilter> subFormFilter) {
+    public DescriptorsJSONResult getDescriptorsJSON(Optional<IPropertyType.SubFormFilter> subFormFilter) {
         JSONArray attrs;
         String key;
         PropertyType val;
         JSONObject extraProps = null;
         // FormField fieldAnnot;
         JSONObject attrVal;
-        JSONObject descriptors = new JSONObject();
+        DescriptorsJSONResult descriptors = new DescriptorsJSONResult(this.rootDesc);
         Map<String, Object> extractProps;
         // IPropertyType.SubFormFilter subFilter = null;
         PluginFormProperties pluginFormPropertyTypes;
@@ -105,107 +127,112 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
 
         for (Descriptor<?> dd : acceptDescs) {
-            pluginFormPropertyTypes = dd.getPluginFormPropertyTypes(subFormFilter);
+            try {
 
-            JSONObject desJson = new JSONObject();
-            // des.put("formLevel", formLevel);
-            Descriptor desc = pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
-                @Override
-                public Descriptor visit(RootFormProperties props) {
-                    return dd;
-                }
+                pluginFormPropertyTypes = dd.getPluginFormPropertyTypes(subFormFilter);
 
-                @Override
-                public Descriptor visit(BaseSubFormProperties props) {
-                    JSONObject subForm = new JSONObject();
-                    subForm.put("fieldName", props.getSubFormFieldName());
-                    if (subFormFilter.isPresent()) {
-
-                        IPropertyType.SubFormFilter filter = subFormFilter.get();
-                        if (!filter.subformDetailView) {
-                            desJson.put("subForm", true);
-                            subForm.put("idList", props.getSubFormIdListGetter(filter).build(filter));
-                        }
+                JSONObject desJson = new JSONObject();
+                // des.put("formLevel", formLevel);
+                Descriptor desc = pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
+                    @Override
+                    public Descriptor visit(RootFormProperties props) {
+                        return dd;
                     }
-                    desJson.put("subFormMeta", subForm);
-                    return props.subFormFieldsDescriptor;
+
+                    @Override
+                    public Descriptor visit(BaseSubFormProperties props) {
+                        JSONObject subForm = new JSONObject();
+                        subForm.put("fieldName", props.getSubFormFieldName());
+                        if (subFormFilter.isPresent()) {
+
+                            IPropertyType.SubFormFilter filter = subFormFilter.get();
+                            if (!filter.subformDetailView) {
+                                desJson.put("subForm", true);
+                                subForm.put("idList", props.getSubFormIdListGetter(filter).build(filter));
+                            }
+                        }
+                        desJson.put("subFormMeta", subForm);
+                        return props.subFormFieldsDescriptor;
+                    }
+                });
+
+                desJson.put(KEY_EXTEND_POINT, desc.getT().getName());
+
+                this.setDescInfo(desc, desJson);
+
+                desJson.put("veriflable", desc.overWriteValidateMethod);
+                if (IdentityName.class.isAssignableFrom(desc.clazz)) {
+                    desJson.put("pkField", desc.getIdentityField().displayName);
                 }
-            });
+                extractProps = desc.getExtractProps();
+                if (!extractProps.isEmpty()) {
+                    desJson.put("extractProps", extractProps);
+                }
 
-            desJson.put(KEY_EXTEND_POINT, desc.getT().getName());
+                attrs = new JSONArray();
+                ArrayList<Map.Entry<String, PropertyType>> entries =
+                        Lists.newArrayList(pluginFormPropertyTypes.getKVTuples());
 
-            this.setDescInfo(desc, desJson);
+                entries.sort(((o1, o2) -> o1.getValue().ordinal() - o2.getValue().ordinal()));
+                boolean containAdvanceField = false;
+                for (Map.Entry<String, PropertyType> pp : entries) {
+                    key = pp.getKey();
+                    val = pp.getValue();
+                    extraProps = val.getExtraProps();
 
-            desJson.put("veriflable", desc.overWriteValidateMethod);
-            if (IdentityName.class.isAssignableFrom(desc.clazz)) {
-                desJson.put("pkField", desc.getIdentityField().displayName);
+                    if (extraProps != null && extraProps.getBooleanValue(PluginExtraProps.KEY_DISABLE)) {
+                        continue;
+                    }
+                    // fieldAnnot = val.getFormField();
+                    attrVal = new JSONObject();
+                    attrVal.put("key", key);
+                    // 是否是主键
+                    attrVal.put("pk", val.isIdentity());
+                    attrVal.put("describable", val.isDescribable());
+
+                    attrVal.put("type", val.typeIdentity());
+                    attrVal.put("required", val.isInputRequired());
+                    attrVal.put("ord", val.ordinal());
+                    // 是否是高级组
+                    if (val.advance()) {
+                        containAdvanceField = true;
+                        attrVal.put(DescriptorsJSON.KEY_ADVANCE, true);
+                    }
+
+                    if (extraProps != null) {
+                        // 额外属性
+                        JSONObject ep = extraProps;
+                        JSONObject n = val.multiSelectablePropProcess((vt) -> {
+                            JSONObject clone = (JSONObject) ep.clone();
+                            clone.put(PluginExtraProps.Props.KEY_VIEW_TYPE, vt.getViewTypeToken());
+                            return clone;
+                        });
+                        attrVal.put("eprops", n != null ? n : ep);
+                    }
+
+                    if (val.typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
+                        attrVal.put("options", getSelectOptions(desc, val, key));
+                    }
+                    if (val.isDescribable()) {
+                        DescriptorsJSON des2Json = new DescriptorsJSON(val.getApplicableDescriptors(), false);
+                        attrVal.put("descriptors", des2Json.getDescriptorsJSON());
+                        Annotation extensible = val.clazz.getAnnotation(TISExtensible.class);
+                        // 可以运行时添加插件
+                        attrVal.put("extensible", (extensible != null));
+                        attrVal.put(KEY_EXTEND_POINT, val.clazz.getName());
+                    }
+                    // attrs.put(attrVal);
+                    attrs.add(attrVal);
+                }
+                // 对象拥有的属性
+                desJson.put("attrs", attrs);
+                // 包含高级字段
+                desJson.put("containAdvance", containAdvanceField);
+                // processor.process(attrs.keySet(), d);
+                descriptors.addDesc(desc.getId(), desJson, dd);
+            } finally {
+
             }
-            extractProps = desc.getExtractProps();
-            if (!extractProps.isEmpty()) {
-                desJson.put("extractProps", extractProps);
-            }
-
-            attrs = new JSONArray();
-            ArrayList<Map.Entry<String, PropertyType>> entries =
-                    Lists.newArrayList(pluginFormPropertyTypes.getKVTuples());
-
-            entries.sort(((o1, o2) -> o1.getValue().ordinal() - o2.getValue().ordinal()));
-            boolean containAdvanceField = false;
-            for (Map.Entry<String, PropertyType> pp : entries) {
-                key = pp.getKey();
-                val = pp.getValue();
-                extraProps = val.getExtraProps();
-
-                if (extraProps != null && extraProps.getBooleanValue(PluginExtraProps.KEY_DISABLE)) {
-                    continue;
-                }
-                // fieldAnnot = val.getFormField();
-                attrVal = new JSONObject();
-                attrVal.put("key", key);
-                // 是否是主键
-                attrVal.put("pk", val.isIdentity());
-                attrVal.put("describable", val.isDescribable());
-
-                attrVal.put("type", val.typeIdentity());
-                attrVal.put("required", val.isInputRequired());
-                attrVal.put("ord", val.ordinal());
-                // 是否是高级组
-                if (val.advance()) {
-                    containAdvanceField = true;
-                    attrVal.put(DescriptorsJSON.KEY_ADVANCE, true);
-                }
-
-                if (extraProps != null) {
-                    // 额外属性
-                    JSONObject ep = extraProps;
-                    JSONObject n = val.multiSelectablePropProcess((vt) -> {
-                        JSONObject clone = (JSONObject) ep.clone();
-                        clone.put(PluginExtraProps.Props.KEY_VIEW_TYPE, vt.getViewTypeToken());
-                        return clone;
-                    });
-                    attrVal.put("eprops", n != null ? n : ep);
-                }
-
-                if (val.typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
-                    attrVal.put("options", getSelectOptions(desc, val, key));
-                }
-                if (val.isDescribable()) {
-                    DescriptorsJSON des2Json = new DescriptorsJSON(val.getApplicableDescriptors());
-                    attrVal.put("descriptors", des2Json.getDescriptorsJSON());
-                    Annotation extensible = val.clazz.getAnnotation(TISExtensible.class);
-                    // 可以运行时添加插件
-                    attrVal.put("extensible", (extensible != null));
-                    attrVal.put(KEY_EXTEND_POINT, val.clazz.getName());
-                }
-                // attrs.put(attrVal);
-                attrs.add(attrVal);
-            }
-            // 对象拥有的属性
-            desJson.put("attrs", attrs);
-            // 包含高级字段
-            desJson.put("containAdvance", containAdvanceField);
-            // processor.process(attrs.keySet(), d);
-            descriptors.put(desc.getId(), desJson);
         }
         return descriptors;
     }

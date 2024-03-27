@@ -23,6 +23,7 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.DescriptorsJSONResult;
 import junit.framework.TestCase;
 
 /**
@@ -40,7 +41,7 @@ public class TestContainAdvanceFieldPlugin extends TestCase {
 
         Assert.assertTrue(propVal.formField.advance());
 
-        JSONObject desc = DescriptorsJSON.desc(descriptor);
+        DescriptorsJSONResult desc = DescriptorsJSON.desc(descriptor);
         Assert.assertNotNull(desc);
 
         System.out.println(JsonUtil.toString(desc));

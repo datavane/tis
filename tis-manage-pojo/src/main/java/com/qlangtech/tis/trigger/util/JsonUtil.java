@@ -23,8 +23,11 @@ import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSONWriter;
+import com.alibaba.fastjson2.writer.ObjectWriter;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.impl.IOUtils;
+import com.qlangtech.tis.util.DescriptorsJSONResult;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -106,7 +109,19 @@ public class JsonUtil {
             }
         };
 
+        ObjectWriter descSerializer = new ObjectWriter() {
+            @Override
+            public void write(JSONWriter jsonWriter, Object object, Object fieldName, Type fieldType, long features) {
+                DescriptorsJSONResult value = (DescriptorsJSONResult) object;
+                Objects.requireNonNull(value, "callable of " + fieldName + " can not be null");
+                jsonWriter.writeRaw(value.toJSONString());
+            }
+
+        };
+
+        com.alibaba.fastjson2.JSON.register(DescriptorsJSONResult.class, descSerializer);
         SerializeConfig.global.put(UnCacheString.class, serializer);
+        //  SerializeConfig.global.put(DescriptorsJSONResult.class, descSerializer);
     }
 
     public static <T> T[] toArray(Class<T> elementClazz, JSONArray ms) {
@@ -203,8 +218,12 @@ public class JsonUtil {
         return toString(json, TisAppLaunch.isTestMock());
     }
 
+    public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, DescriptorsJSONResult actual, IAssert azzert) {
+        assertJSONEqual(invokeClass, assertFileName, actual.toJSONString(), azzert);
+    }
 
     public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, String actual, IAssert azzert) {
+
 //        String expectJson = com.alibaba.fastjson.JSON.toJSONString(
 //                JSON.parseObject(IOUtils.loadResourceFromClasspath(invokeClass, assertFileName))
 //                , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat, SerializerFeature.MapSortField);

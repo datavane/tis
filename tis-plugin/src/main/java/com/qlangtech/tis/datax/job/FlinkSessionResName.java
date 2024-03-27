@@ -53,7 +53,7 @@ public class FlinkSessionResName {
             return Pair.of(false, null);
         }
         boolean containVal = (splitLength > 1);
-        return Pair.of(StringUtils.equals(split[0], K8S_FLINK_CLUSTER_NAME.getName()) && containVal, (containVal ? split[1] : null));
+        return Pair.of(StringUtils.equals(split[0], K8S_FLINK_CLUSTER_NAME.getName()), (containVal ? split[1] : null));
     }
 
     /**
@@ -64,7 +64,7 @@ public class FlinkSessionResName {
      */
     public TargetResName resName(TargetResName targetName) {
         Pair<Boolean, String> p = matchPair(targetName.getName());
-        if (!p.getLeft()) {
+        if (!p.getLeft() || StringUtils.isEmpty(p.getRight())) {
             throw new IllegalStateException("can not find targetRes name:" + targetName);
         }
         return new TargetResName(p.getValue());

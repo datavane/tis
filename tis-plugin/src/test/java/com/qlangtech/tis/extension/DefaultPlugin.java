@@ -1,25 +1,26 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.extension;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.extension.DefaultPluginNest.DefaultExportPortProvider;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -32,6 +33,7 @@ public class DefaultPlugin implements Describable<DefaultPlugin> {
 
     public static final String DFT_NAME_VALUE = "baisui";
     public static final String FILED_NAME_DESCRIPTION = "yours name descripion";
+    public static final Integer DFT_NEST_PROP_VAL = 9999;
 
     @FormField(identity = false, type = FormFieldType.INPUTTEXT)
     public String name;
@@ -41,6 +43,9 @@ public class DefaultPlugin implements Describable<DefaultPlugin> {
 
     @FormField(type = FormFieldType.TEXTAREA)
     public String cols;
+
+    @FormField()
+    public DefaultPluginNest nestProp;
 
     static int turn;
 
@@ -60,10 +65,16 @@ public class DefaultPlugin implements Describable<DefaultPlugin> {
 //    }
 
     @TISExtension
-    public static class DefaultDescriptor extends Descriptor<DefaultPlugin> {
+    public static class DefaultDescriptor extends Descriptor<DefaultPlugin> implements DefaultExportPortProvider {
         public DefaultDescriptor() {
             this.addFieldDescriptor("name", DFT_NAME_VALUE, FILED_NAME_DESCRIPTION);
-           // this.addFieldDescriptor("xxx", DFT_NAME_VALUE, FILED_NAME_DESCRIPTION);
+          //  this.addFieldDescriptor("nestProp.exportPort", DFT_NEST_PROP_VAL, null);
+            // this.addFieldDescriptor("xxx", DFT_NAME_VALUE, FILED_NAME_DESCRIPTION);
+        }
+
+        @Override
+        public Integer get() {
+            return DFT_NEST_PROP_VAL;
         }
 
         public void addFieldDescriptor(String fieldName, Object dftVal, String helperContent) {

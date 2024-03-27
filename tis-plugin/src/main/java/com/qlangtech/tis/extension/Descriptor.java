@@ -1349,7 +1349,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         JSONObject c = new JSONObject();
         c.put(PluginExtraProps.KEY_DFTVAL_PROP, dftVal);
         PluginExtraProps.Props props = new PluginExtraProps.Props(c);
-        props.tagAsynHelp(new StringBuffer(helperContent));
+        if(StringUtils.isNotEmpty(helperContent)){
+            props.tagAsynHelp(new StringBuffer(helperContent));
+        }
         if (enums.isPresent()) {
             c.put(KEY_ENUM_PROP, Option.toJson(enums.get()));
         }
