@@ -18,8 +18,6 @@
 
 package com.qlangtech.tis.extension.impl;
 
-import com.qlangtech.tis.manage.common.Option;
-
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -41,9 +39,9 @@ public enum EnumFieldMode {
             // 如果是List类型，则只需要将list的第一个option的值赋值给它就行
             dftVal = getFirstVal(dftVal);
         }
-        if (dftVal != null && !(dftVal instanceof String)) {
+        if (dftVal != null && !(dftVal instanceof String || dftVal instanceof Boolean)) {
             throw new IllegalStateException(fieldDesc + " ,default " + "val:" + dftVal + " " + " must" + " be " +
-                    "type of String ,but now is " + dftVal.getClass());
+                    "type of String or Boolean ,but now is " + dftVal.getClass());
         }
         return dftVal;
     });
