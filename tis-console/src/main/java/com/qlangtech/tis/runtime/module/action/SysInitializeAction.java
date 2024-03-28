@@ -88,7 +88,6 @@ public class SysInitializeAction extends BasicModule {
   private static Boolean _isSysInitialized;
 
 
-
   /**
    * 当使用TIS作为docker容器启动，本地data目录作为容器卷，初始状态是空的，需要将空的卷初始化
    *
@@ -347,11 +346,16 @@ public class SysInitializeAction extends BasicModule {
     for (String c : tmp.list()) {
       File child = new File(tmp, c);
       File dest = new File(dataDir, c);
+      if (dest.exists()) {
+        logger.info("dest :{} is already exist ,skip it", dest.getAbsolutePath());
+        continue;
+      }
       if (child.isFile()) {
         FileUtils.moveFile(child, dest);
       } else {
         FileUtils.moveDirectory(child, dest);
       }
+      logger.info("successful move {} to dest :{}", child.getAbsolutePath(), dest.getAbsolutePath());
     }
 
   }

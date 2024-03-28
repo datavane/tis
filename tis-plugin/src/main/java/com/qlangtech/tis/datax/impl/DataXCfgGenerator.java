@@ -25,7 +25,16 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.qlangtech.tis.datax.*;
+import com.qlangtech.tis.datax.DataXJobInfo;
+import com.qlangtech.tis.datax.IDataXPluginMeta;
+import com.qlangtech.tis.datax.IDataxContext;
+import com.qlangtech.tis.datax.IDataxGlobalCfg;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.datax.IDataxReaderContext;
+import com.qlangtech.tis.datax.IDataxWriter;
+import com.qlangtech.tis.datax.IGroupChildTaskIterator;
+import com.qlangtech.tis.datax.TableAliasMapper;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
@@ -43,7 +52,13 @@ import org.apache.velocity.app.VelocityEngine;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -524,25 +539,10 @@ public class DataXCfgGenerator {
         }
     }
 
-    private IDataxProcessor.TableMap createTableMap(TableAliasMapper tabAlias, Map<String, ISelectedTab> selectedTabs
+    private IDataxProcessor.TableMap createTableMap(
+            TableAliasMapper tabAlias, Map<String, ISelectedTab> selectedTabs
             , IDataxReaderContext readerContext) {
-
         return readerContext.createTableMap(tabAlias, selectedTabs);
-
-//        TableAlias tableAlias = tabAlias.get(readerContext.getSourceTableName());
-//        if (tableAlias == null) {
-//            throw new IllegalStateException("sourceTable:" + readerContext.getSourceTableName() + " can not find " +
-//                    "relevant 'tableAlias' keys:[" + tabAlias.getFromTabDesc() + "]");
-//        }
-//        ISelectedTab selectedTab = selectedTabs.get(readerContext.getSourceTableName());
-//        if (selectedTab == null) {
-//            throw new IllegalStateException("sourceTable:" + readerContext.getSourceTableName() + " can not find " +
-//                    "relevant '" + ISelectedTab.class.getSimpleName() + "' keys:[" + String.join(",",
-//                    selectedTabs.keySet()) + "]");
-//        }
-//        IDataxProcessor.TableMap tableMap = new IDataxProcessor.TableMap(tableAlias, selectedTab);
-//
-//        return tableMap;
     }
 
     /**
@@ -551,8 +551,9 @@ public class DataXCfgGenerator {
      * @return 生成的配置文件内容
      * @throws IOException
      */
-    public String generateDataxConfig(IDataxReaderContext readerContext, IDataxWriter writer, IDataxReader reader,
-                                      Optional<IDataxProcessor.TableMap> tableMap) throws IOException {
+    public String generateDataxConfig(
+            IDataxReaderContext readerContext, IDataxWriter writer, IDataxReader reader,
+            Optional<IDataxProcessor.TableMap> tableMap) throws IOException {
         Objects.requireNonNull(writer, "writer can not be null");
         StringWriter writerContent = null;
         final String tpl = getTemplateContent(reader, writer);
@@ -570,7 +571,7 @@ public class DataXCfgGenerator {
         try {
             JSONObject cfg = JSON.parseObject(content);
             validatePluginName(writer, reader, cfg);
-            return JsonUtil.toString(cfg);
+            return JsonUtil.toString(cfg, true);
         } catch (Exception e) {
             throw new RuntimeException(content, e);
         }

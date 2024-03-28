@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  serviceName: mysql-svc
+  template:
+    spec:
+      containers:
+      - env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "123456"
+        image: mysql:5.7
+        imagePullPolicy: IfNotPresent
+        name: mysql
+        ports:
+        - containerPort: 3306
+          name: mysql-3306
+          protocol: TCP
+        resources:
+          requests:
+            cpu: "2"
+            memory: 4Gi
+      terminationGracePeriodSeconds: 3
