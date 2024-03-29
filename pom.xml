@@ -195,18 +195,7 @@
                 <version>${log4j-to-slf4j.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.qlangtech.tis</groupId>
-                <artifactId>tis-logback-flume-appender</artifactId>
-                <classifier>shaded</classifier>
-                <version>${tis-logback-flume.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>*</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
+
 
             <dependency>
                 <groupId>commons-configuration</groupId>

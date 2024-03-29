@@ -109,7 +109,6 @@ TIS基于数据库元数据信息自动生成Flink-SQL脚本,您没看错全部�
 - TIS 插件 [https://github.com/qlangtech/plugins](https://github.com/qlangtech/plugins)
 - TIS 插件元数据生成工具 [https://github.com/qlangtech/update-center2](https://github.com/qlangtech/update-center2)
 - DataX [https://github.com/qlangtech/DataX](https://github.com/qlangtech/DataX)
-- tis-logback-flume-appender [https://github.com/baisui1981/tis-logback-flume-appender](https://github.com/baisui1981/tis-logback-flume-appender)
 - Flink Extend [https://github.com/qlangtech/flink](https://github.com/qlangtech/flink)
 - TIS 插件功能脚手架 [https://github.com/qlangtech/tis-archetype-plugin](https://github.com/qlangtech/tis-archetype-plugin)
 - Chunjun [https://github.com/qlangtech/chunjun](https://github.com/qlangtech/chunjun)

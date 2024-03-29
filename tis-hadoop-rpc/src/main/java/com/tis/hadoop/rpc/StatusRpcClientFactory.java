@@ -26,7 +26,11 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.job.common.JobParams;
-import com.qlangtech.tis.realtime.yarn.rpc.*;
+import com.qlangtech.tis.realtime.yarn.rpc.IncrStatusUmbilicalProtocol;
+import com.qlangtech.tis.realtime.yarn.rpc.LaunchReportInfo;
+import com.qlangtech.tis.realtime.yarn.rpc.MasterJob;
+import com.qlangtech.tis.realtime.yarn.rpc.PingResult;
+import com.qlangtech.tis.realtime.yarn.rpc.UpdateCounterMap;
 import com.qlangtech.tis.rpc.grpc.log.DefaultLoggerAppenderClient;
 import com.qlangtech.tis.rpc.grpc.log.ILogReporter;
 import com.qlangtech.tis.rpc.grpc.log.ILoggerAppenderClient;
@@ -52,7 +56,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -101,6 +104,7 @@ public class StatusRpcClientFactory {
                 if (instance == null) {
                     StatusRpcClientFactory clientFactory = new StatusRpcClientFactory();
                     instance = clientFactory.connect2RemoteIncrStatusServer(zookeeper, callbacks);
+                    AssembleSvcCompsite.statusRpc = instance;
                 }
 
             }
@@ -331,6 +335,15 @@ public class StatusRpcClientFactory {
      * 将Assemble节点上的几个服务节点作一个组合，合并用一个端口
      */
     public abstract static class AssembleSvcCompsite implements ITISRpcService {
+
+        public static RpcServiceReference statusRpc;// = new AtomicReference<>();
+
+        static {
+            AtomicReference<ITISRpcService> ref = new AtomicReference<>();
+            ref.set(StatusRpcClientFactory.AssembleSvcCompsite.MOCK_PRC);
+            statusRpc = new RpcServiceReference(ref, () -> {
+            });
+        }
 
         public static final AssembleSvcCompsite MOCK_PRC
                 = new AssembleSvcCompsite(new MockIncrStatusUmbilicalProtocol(), new MockLogReporter(), new ILoggerAppenderClient() {

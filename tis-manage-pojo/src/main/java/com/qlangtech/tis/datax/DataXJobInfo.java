@@ -31,7 +31,7 @@ import java.util.Optional;
  * @create: 2022-12-24 10:48
  **/
 public class DataXJobInfo {
-
+    public static int DATAX_THREAD_PROCESSING_CANCAL_EXITCODE = 943;
     private static final String FILENAME_SPLIT_CHAR = "/";
     private static final String TAB_SPLIT_CHAR = ",";
     private static DataXJobInfo currJobInfo;
