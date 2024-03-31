@@ -1,0 +1,46 @@
+version: '1.0'
+name: pipeline-20230422
+displayName: pipeline-20230422
+triggers:
+  trigger: auto
+  push:
+    branches:
+      prefix:
+        - ''
+stages:
+  - name: stage-ef6d3ce4
+    displayName: 未命名
+    strategy: naturally
+    trigger: auto
+    executor: []
+    steps:
+      - step: build@maven
+        name: build_maven
+        displayName: Maven 构建
+        jdkVersion: '8'
+        mavenVersion: 3.3.9
+        commands:
+          - '# 功能：打包'
+          - '# 参数说明：'
+          - '#    -Dmaven.test.skip=true：跳过单元测试'
+          - '#    -U：每次构建检查依赖更新，可避免缓存中快照版本依赖不更新问题，但会牺牲部分性能'
+          - '#    -e -X ：打印调试信息，定位疑难构建问题时建议使用此参数构建'
+          - '#    -B：以batch模式运行，可避免日志打印时出现ArrayIndexOutOfBoundsException异常'
+          - '# 使用场景：打包项目且不需要执行单元测试时使用'
+          - mvn clean package -Dmaven.test.skip=true -U -e -X -B
+          - ''
+          - '# 功能：自定义settings配置'
+          - '# 使用场景：如需手工指定settings.xml，可使用如下方式'
+          - '# 注意事项：如无需自定义settings配置且需要私有依赖仓库，可在该任务配置《私有仓库》处添加私有依赖'
+          - '# mvn -U clean package -s ./settings.xml'
+          - ''
+        artifacts:
+          - name: BUILD_ARTIFACT
+            path:
+              - ./target
+        settings: []
+        caches:
+          - ~/.m2
+        notify: []
+        strategy:
+          retry: '0'
