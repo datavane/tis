@@ -18,6 +18,8 @@ spec:
       - env:
         - name: MYSQL_ROOT_PASSWORD
           value: "123456"
+        - name: TZ
+          value: "Asia/Shanghai"
         image: mysql:5.7
         imagePullPolicy: IfNotPresent
         name: mysql
