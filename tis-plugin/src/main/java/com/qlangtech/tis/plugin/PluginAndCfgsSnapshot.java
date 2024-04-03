@@ -340,7 +340,7 @@ public class PluginAndCfgsSnapshot {
         for (Map.Entry<String, String> e : extraEnvProps.entrySet()) {
             addCfgAttrs(cfgAttrs, e);
         }
-        cfgAttrs.put(new Attributes.Name(convertCfgPropertyKey(Config.KEY_TIS_HOST, true)), NetUtils.getHost());
+        cfgAttrs.put(new Attributes.Name(convertCfgPropertyKey(Config.KEY_TIS_HOST, true)), Config.getTisHost());
         entries.put(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS, cfgAttrs);
 
 
