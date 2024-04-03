@@ -57,7 +57,7 @@
         <tisasm-maven-plugin.version>1.0.6</tisasm-maven-plugin.version>
         <tis.release.repository.host>http://tis-release.oss-cn-beijing.aliyuncs.com</tis.release.repository.host>
         <avro.version>1.11.0</avro.version>
-        <tis-logback-flume.version>1.0.0</tis-logback-flume.version>
+
     </properties>
 
 
