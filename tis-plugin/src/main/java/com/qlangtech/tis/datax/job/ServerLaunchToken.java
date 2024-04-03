@@ -66,6 +66,7 @@ import java.util.stream.Collectors;
 public class ServerLaunchToken extends Observable implements Closeable {
     // 已经启动标志文件
     private final File launchedToken;
+    private JSONObject launchedTokenJSON;
     // 正在启动标志文件
     private final File launchingToken;
     public final K8SWorkerCptType workerCptType;
@@ -380,6 +381,7 @@ public class ServerLaunchToken extends Observable implements Closeable {
     public void deleteLaunchToken(boolean removeCache) {
         FileUtils.deleteQuietly(this.launchingToken);
         FileUtils.deleteQuietly(this.launchedToken);
+        launchedTokenJSON = null;
         if (removeCache) {
             launchTokens.remove(this.tokenKey);
         }
@@ -443,6 +445,19 @@ public class ServerLaunchToken extends Observable implements Closeable {
         }
     }
 
+    public JSONObject readLaunchedToken() {
+        try {
+            if (launchedTokenJSON == null) {
+                if (!this.isLaunchTokenExist()) {
+                    throw new IllegalStateException("LaunchToken is not exist");
+                }
+                this.launchedTokenJSON = JSONObject.parseObject(FileUtils.readFileToString(launchedToken, TisUTF8.get()));
+            }
+            return launchedTokenJSON;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private PrintWriter launchingWriter;
 
