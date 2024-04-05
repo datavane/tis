@@ -78,7 +78,7 @@ public class RobustReflectionConverter2 implements XStream2.ConverterValve {
     }
 
     public static class PluginMetas implements IPluginMetasInfo {
-        private final Set<PluginMeta> metas = new HashSet<>();
+        private final Set<PluginMeta> metas = new HashSet<PluginMeta>();
         private final Set<IRepositoryResource> repoRes = new HashSet<>();
         // 可以从pluginStore中取数据
         private boolean cacheable = true;

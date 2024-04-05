@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
+import com.qlangtech.tis.config.flink.IFlinkCluster;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -38,7 +39,6 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
-import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.PluginMeta;
@@ -551,6 +551,9 @@ public class PluginAndCfgsSnapshot {
                 localSnaphsot.pluginMetas.stream().collect(Collectors.toMap((m) -> m.getKey(), (m) -> m));
         PluginMeta m = null;
         for (PluginMeta meta : pluginMetas) {
+            if (IFlinkCluster.SKIP_PLUGIN_NAMES.contains(meta.getPluginName())) {
+                continue;
+            }
             m = locals.get(meta.getKey());
             if (m == null || meta.getLastModifyTimeStamp() > m.getLastModifyTimeStamp()) {
                 result.add(meta);
