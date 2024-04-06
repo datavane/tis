@@ -38,7 +38,8 @@ public interface SSERunnable extends Runnable, IJobFeedback {
     Map<Class, Object> contextAttrs = new HashMap<>();
 
     default <T> void setContextAttr(Class<T> key, T val) {
-        contextAttrs.put(Objects.requireNonNull(key), Objects.requireNonNull(val));
+        contextAttrs.put(Objects.requireNonNull(key, "key can not be null")
+                , Objects.requireNonNull(val, "val can not be null"));
     }
 
     default <T> void cleanContextAttr(Class<T> key) {
