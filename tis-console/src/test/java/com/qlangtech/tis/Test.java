@@ -18,6 +18,9 @@
 
 package com.qlangtech.tis;
 
+import java.net.URL;
+import java.util.Enumeration;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-03-06 10:41
@@ -25,5 +28,20 @@ package com.qlangtech.tis;
 public class Test {
   public static void main(String[] args) throws Exception {
     System.out.println(Class.forName("com.qlangtech.tis.log.WaittingProcessCollectorAppender"));
+
+    Enumeration<URL> res = Thread.currentThread().getContextClassLoader().getResources("/org/apache/flink/calcite/shaded/org/codehaus/commons/compiler/CompileException.class");
+    while (res.hasMoreElements()) {
+      System.out.println(res.nextElement());
+    }
+    res = Thread.currentThread().getContextClassLoader().getResources("/org/codehaus/commons/compiler/CompileException.class");
+    while (res.hasMoreElements()) {
+      System.out.println(res.nextElement());
+    }
+
+    res = Thread.currentThread().getContextClassLoader().getResources("org/apache/flink/table/planner/calcite/FlinkRelOptClusterFactory.class");
+    while (res.hasMoreElements()) {
+      System.out.println(res.nextElement());
+    }
+
   }
 }

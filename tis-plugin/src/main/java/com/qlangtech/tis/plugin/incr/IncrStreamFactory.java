@@ -51,10 +51,12 @@ public abstract class IncrStreamFactory implements Describable<IncrStreamFactory
         return k8sConfig;
     }
 
-    public ServerLaunchToken getLaunchToken(TargetResName indexName) {
-        return ServerLaunchToken.createFlinkClusterToken().token(this.getClusterType(), indexName);
-        // return incrLaunchToken;
-    }
+
+    public abstract ServerLaunchToken getLaunchToken(TargetResName indexName);
+//    {
+//        return ServerLaunchToken.createFlinkClusterToken().token(this.getClusterType(), indexName);
+//        // return incrLaunchToken;
+//    }
 
     @Override
     public boolean hasCreated(TargetResName collection) {
