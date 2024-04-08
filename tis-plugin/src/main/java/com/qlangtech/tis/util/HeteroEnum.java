@@ -49,6 +49,7 @@ import com.qlangtech.tis.plugin.k8s.K8sImage;
 import com.qlangtech.tis.plugin.k8s.K8sImage.ImageCategory;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -117,9 +118,20 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     private static class DockerImageHeteroEnum extends HeteroEnum<K8sImage> {
         private ImageCategory imageCategory;
 
+        private static String parseCaption(String token) {
+            String[] tokens = StringUtils.split(token, "-");
+            return Arrays.stream(tokens).map((t) -> StringUtils.capitalize(t)).collect(Collectors.joining("-"));
+        }
+
         public DockerImageHeteroEnum(ImageCategory imageCategory) {
-            super(K8sImage.class, imageCategory.token, KEY_K8S_IMAGES);
+            super(K8sImage.class, imageCategory.token, parseCaption(imageCategory.token));
             this.imageCategory = imageCategory;
+        }
+
+        @Override
+        public List<Descriptor<K8sImage>> descriptors() {
+            List<Descriptor<K8sImage>> descs = getPluginStore(null, null).allDescriptor();
+            return descs.stream().filter((desc) -> imageCategory.token.equals(desc.getDisplayName())).collect(Collectors.toList());
         }
 
         @Override
@@ -147,6 +159,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
             return super.getPluginStore(pluginContext, pluginMeta);
         }
+
         @Override
         public List<DataXJobWorker> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
             return super.getPlugins(pluginContext, pluginMeta);

@@ -182,7 +182,7 @@ public class DBConfigParser {
             if (t.isTokenType(TokenTypes.TT_COLON)) {
                 tokenBuffer.popToken();
                 t = tokenBuffer.nextToken();
-                if (t.isTokenType(TokenTypes.TT_IDENTIFIER)) {
+                if (t.isTokenType(TokenTypes.TT_PASSWORD_VALUE)) {
                     tokenBuffer.popToken();
                     //  this.dbConfigResult.setPassword(t.getContent());
                 } else {

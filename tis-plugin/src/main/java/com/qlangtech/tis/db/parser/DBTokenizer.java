@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.db.parser;
 
@@ -74,18 +74,21 @@ public class DBTokenizer {
             matcher = pattern.matcher(scannerBuffer);
             if (matcher.find()) {
                 // System.out.println(matcher.group());
-                if (recognizer.isOutputToken()) {
-                    content = recognizer.getToken().getGourpIndex() > 0
-                            ? matcher.group(recognizer.getToken().getGourpIndex()) : matcher.group();
-                    tokenList.add(new Token(recognizer.getToken(), content));
+
+                content = recognizer.getToken().getGourpIndex() > 0
+                        ? matcher.group(recognizer.getToken().getGourpIndex()) : matcher.group();
+                if (recognizer.getToken().furtherChecker.apply(content)) {
+                    if (recognizer.isOutputToken()) {
+                        tokenList.add(new Token(recognizer.getToken(), content));
+                    }
+                    tokenMatch = true;
+                    scannerBuffer = scannerBuffer.substring(matcher.end());
                 }
-                tokenMatch = true;
-                scannerBuffer = scannerBuffer.substring(matcher.end());
-            // System.out.println(scannerBuffer);
+                // System.out.println(scannerBuffer);
             }
         } while (patternIterator.hasNext() && !tokenMatch);
         if (// || (matcher.end() == scannerBuffer.length())
-        !tokenMatch) {
+                !tokenMatch) {
             result = false;
         }
         return result;

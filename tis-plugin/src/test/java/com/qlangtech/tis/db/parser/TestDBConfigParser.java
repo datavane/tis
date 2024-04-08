@@ -18,6 +18,7 @@
 package com.qlangtech.tis.db.parser;
 
 import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.db.parser.ScannerPatterns.TokenTypes;
 import com.qlangtech.tis.plugin.ds.DBConfig;
 import junit.framework.TestCase;
 import org.apache.commons.collections.MapUtils;
@@ -29,6 +30,8 @@ import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -45,8 +48,25 @@ public class TestDBConfigParser extends TestCase {
         validateDbEnum(dbName, dbEnum);
     }
 
+    public void testK8SReplicaSetDomain() {
+        String mysqlHost = "mysql-0.mysql-svc.default";
+        String dbName = "dbname";
+        Pattern hostPattern = TokenTypes.TT_HOST.createPattern();
+        Matcher matcher = hostPattern.matcher(mysqlHost);
+        Assert.assertTrue(String.valueOf(hostPattern), matcher.matches());
+
+        Map<String, List<String>> dbname = DBConfigParser.parseDBEnum(dbName, mysqlHost);
+        Assert.assertEquals(1, dbname.size());
+        List<String> dbs = dbname.get(mysqlHost);
+        Assert.assertEquals(1, dbs.size());
+        Assert.assertTrue(dbs.contains(dbName));
+    }
+
     public void testParserErrorDBNodeDesc() throws Exception {
         Map<String, List<String>> dbname = DBConfigParser.parseDBEnum("dbname", "192.168.28。200");
+
+        TokenTypes.TT_IP.createPattern();
+
         Assert.assertNotNull(dbname);
         Assert.assertTrue("dbname shall be empty", MapUtils.isEmpty(dbname));
     }

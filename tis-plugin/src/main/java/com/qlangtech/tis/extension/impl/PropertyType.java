@@ -561,7 +561,7 @@ public class PropertyType implements IPropertyType {
                 String script = "	package " + pkg + " ;\n"  //
                         + "import java.util.function.Function;\n" //
                         + "import java.util.List;\n" //
-                        + "import com.qlangtech.tis.extension.Descriptor;\n"
+                        + "import "+com.qlangtech.tis.extension.Descriptor.class.getName()+";\n"
                         // + "import com.qlangtech.plugins.incr.flink.chunjun.sink.SinkTabPropsExtends;\n"
                         + "class " + className + " implements Function<List<? extends Descriptor>,List<? extends " //
                         + "Descriptor>> { \n" //
