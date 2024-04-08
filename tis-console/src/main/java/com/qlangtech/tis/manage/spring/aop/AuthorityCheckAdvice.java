@@ -79,6 +79,9 @@ public class AuthorityCheckAdvice extends MethodFilterInterceptor {
           , Collections.emptyList(), Collections.emptyList(), Collections.emptyList()
           , UserAction.createSysInfo());
         return Action.NONE;
+      } else {
+        // 直接进行初始化
+        return (action).execute();
       }
     }
 
