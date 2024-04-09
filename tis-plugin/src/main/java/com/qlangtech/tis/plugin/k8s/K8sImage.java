@@ -38,22 +38,6 @@ import java.util.function.Supplier;
 @Public
 public abstract class K8sImage implements Describable<K8sImage>, IdentityName {
 
-//    public static final String DEFAULT_DESC_NAME = "dft-image";
-//    public static final String DEFAULT_POWERJOB_DESC_NAME = "powerjob-image";
-
-//    /**
-//     * 获取Plugin存储器
-//     *
-//     * @param imageCategory
-//     * @return
-//     */
-   // public static IPluginStore getPluginStore(K8sImage.ImageCategory imageCategory) {
-//        UploadPluginMeta pluginMeta = UploadPluginMeta.parse(
-//                HeteroEnum.K8S_IMAGES.identity + ":" + UploadPluginMeta.KEY_REQUIRE + "," + KEY_TARGET_PLUGIN_DESC + ATTR_KEY_VALUE_SPLIT + imageCategory.token);
-//        return pluginMeta.getHeteroEnum().getPluginStore(null, pluginMeta);
-//        return imageCategory.getPluginStore();
-//    }
-
 
     public static enum ImageCategory {
         DEFAULT_DESC_NAME("dft-image", () -> HeteroEnum.K8S_DEFAULT_IMAGES.getPluginStore(null, null)) //
@@ -92,8 +76,12 @@ public abstract class K8sImage implements Describable<K8sImage>, IdentityName {
 
     public abstract List<HostAlias> getHostAliases();
 
-//    public static class HostAliases extends ArrayList<HostAlias> {
-//    }
+    /**
+     * 内部网络是否可触达
+     *
+     * @return
+     */
+    public abstract boolean internalClusterAvailable();
 
     /**
      * ParamsConfig.createConfigInstance(): io.kubernetes.client.openapi.ApiClient

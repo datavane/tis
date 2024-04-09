@@ -1,27 +1,30 @@
 version: "1"
 services:
-#  flink:
-#    image: registry.cn-hangzhou.aliyuncs.com/tis/flink:4.0.0.15
-#    hostname: flink
-#    environment:
-#      - FE_SERVERS=fe1:192.168.28.200:9010
-#      - FE_ID=1
-#    volumes:
-#      - /data/fe/doris-meta/:/opt/apache-doris/fe/doris-meta/
-#      - /data/fe/log/:/opt/apache-doris/fe/log/
-#      - ./fe.conf:/opt/apache-doris/fe/conf/fe.conf
-#    depends_on:
-#      - tis-console
+  flink:
+    image: registry.cn-hangzhou.aliyuncs.com/tis/flink:4.0.0
+    hostname: flink
+    mem_limit: 2048m
+    cpus: '1.0'
+    ports:
+      - "8081:8081"
+    command: ["/bin/bash","-c","./bin/start-cluster.sh && tail -f ./log/flink--standalonesession-0-*.log"]
+    environment:
+      - TZ=Asia/Shanghai
+    depends_on:
+      - tis-console
   tis-console:
-    image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:4.0.0.15
+    image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:4.0.0
     hostname: tis-console
+    mem_limit: "1.5G"
+    cpus: '2.5'
+    environment:
+      - TZ=Asia/Shanghai
+      - JAVA_JVM_OPTS=-Xms512m -Xmx1G -XX:MetaspaceSize=100m -XX:MaxMetaspaceSize=300m
     ports:
       - "8080:8080"
       - "56432:56432"
-#    environment:
-#      - FE_SERVERS=fe1:192.168.28.200:9010
-#      - BE_ADDR=192.168.28.200:9050
     volumes:
       - ${PWD}/config/config.properties:/opt/app/tis-uber/tjs/conf/tis-web-config/config.properties
       - ${PWD}/config/config.properties:/opt/app/tis-uber/tis-assemble/conf/tis-web-config/config.properties
+      - ${PWD}/data:/opt/data
       - ${PWD}/data:/opt/data
