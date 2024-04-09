@@ -19,14 +19,17 @@
 package com.qlangtech.tis.datax.job;
 
 import com.qlangtech.tis.plugin.k8s.K8sImage;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Objects;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-03-11 13:33
  **/
 public class ServiceResName<T> extends SubJobResName<T> {
-//    private static final String HOST_SUFFIX = "_SERVICE_HOST";
-//    private static final String PORT_SUFFIX = "_SERVICE_PORT";
+    //    private static final String HOST_SUFFIX = "_SERVICE_HOST";
+    private static final String PORT_SUFFIX = "_SERVICE_PORT";
 
     public ServiceResName(String name, SubJobExec<T> subJobExec) {
         super(name, subJobExec);
@@ -36,22 +39,23 @@ public class ServiceResName<T> extends SubJobResName<T> {
 //        return replaceAndUpperCase(getName()) + HOST_SUFFIX;
 //    }
 //
-//    public String getPortEvnName() {
-//        return replaceAndUpperCase(getName()) + PORT_SUFFIX;
-//    }
-//
+    public String getPortEvnName() {
+        return replaceAndUpperCase(getName()) + PORT_SUFFIX;
+    }
+
+    //
     public String getHostPortReplacement(K8sImage image) {
-        return getName() + "." + image.getNamespace();
+        return getName() + "." + image.getNamespace() + ":" + toVarReplacement(getPortEvnName());
         // return toVarReplacement(getHostEvnName()) + ":" + toVarReplacement(getPortEvnName());
     }
 
-//    private String toVarReplacement(String val) {
-//        return "$(" + Objects.requireNonNull(val, "val can not be null") + ")";
-//    }
+    private String toVarReplacement(String val) {
+        return "$(" + Objects.requireNonNull(val, "val can not be null") + ")";
+    }
 
-    // private String replaceAndUpperCase(String val) {
-//        return StringUtils.upperCase(StringUtils.replace(val, "-", "_"));
-//    }
+    private String replaceAndUpperCase(String val) {
+        return StringUtils.upperCase(StringUtils.replace(val, "-", "_"));
+    }
 
     @Override
     protected String getResourceType() {
