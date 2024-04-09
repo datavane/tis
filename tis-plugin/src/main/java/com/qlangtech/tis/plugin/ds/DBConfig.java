@@ -237,12 +237,13 @@ public class DBConfig implements IDbMeta {
      * @return
      */
     private String getHostIpAddress(String ip) {
-        try {
-            InetAddress address = InetAddress.getByName(ip);
-            return address.getHostAddress();
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
+        return ip;
+//        try {
+//            InetAddress address = InetAddress.getByName(ip);
+//            return address.getHostAddress();
+//        } catch (UnknownHostException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     public String getDbType() {
