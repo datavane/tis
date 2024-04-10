@@ -36,5 +36,7 @@ public interface IFlinkCluster extends IdentityName, IFlinkClusterConfig {
     String SKIP_CLASSLOADER_FACTORY_CREATION = "skip_classloader_factory_creation";
     String KEY_DISPLAY_NAME = "Flink-Cluster";
     Set<String> SKIP_PLUGIN_NAMES = Collections.unmodifiableSet(
-            Sets.newHashSet(IFlinkCluster.PLUGIN_DEPENDENCY_FLINK_DEPENDENCY, IFlinkCluster.PLUGIN_SKIP_FLINK_EXTENDS));
+            Sets.newHashSet(IFlinkCluster.PLUGIN_DEPENDENCY_FLINK_DEPENDENCY//
+                    , IFlinkCluster.PLUGIN_SKIP_FLINK_EXTENDS //
+                    , "tis-datax-local-executor"));
 }
