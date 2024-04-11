@@ -61,6 +61,7 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.BasicRundata;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
@@ -72,6 +73,7 @@ import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -146,41 +148,66 @@ public class PluginAction extends BasicModule {
     }
   }
 
-  public void doGetEndtypeIcons(Context context) throws Exception {
-    JSONArray iconsDefs = new JSONArray();
-    JSONObject icon = null;
-    IEndTypeGetter.Icon i = null;
+  private static class IconsDefs {
+    final JSONArray iconsDefs;
+    final String checkToken;
 
-    for (IEndTypeGetter.EndType type : IEndTypeGetter.EndType.values()) {
-
-      i = type.getIcon();
-      if (i == null) {
-        continue;
-      }
-      // boolean isRef = (i instanceof IconReference);
-
-      icon = new JSONObject();
-      icon.put("name", type.getVal());
-      icon.put("theme", "fill");
-      i.setRes(icon, true);
-      iconsDefs.add(icon);
-
-//      if (isRef) {
-//        icon.put("ref", ((IconReference) i).endType().getVal());
-//      } else {
-//        icon.put("icon", i.fillType());
-//      }
-
-
-      icon = new JSONObject();
-      icon.put("name", type.getVal());
-      icon.put("theme", "outline");
-      // icon.put("icon", i.outlineType());
-      if (i.setRes(icon, false)) {
-        iconsDefs.add(icon);
-      }
+    public IconsDefs(JSONArray iconsDefs) {
+      this.iconsDefs = iconsDefs;
+      this.checkToken = DigestUtils.md5Hex(JsonUtil.toString(iconsDefs));
     }
-    this.setBizResult(context, iconsDefs);
+
+    public JSONObject getIcons(String verToken) {
+      JSONObject result = new JSONObject();
+      result.put("verToken", this.checkToken);
+      result.put("iconsDefs", this.checkToken.equals(verToken) ? new JSONArray() : iconsDefs);
+      return result;
+    }
+
+//    public void add(JSONObject icon) {
+//      iconsDefs.add(icon);
+//    }
+  }
+
+  private static IconsDefs iconsDefsWithCheckSum;
+
+  public void doGetEndtypeIcons(Context context) throws Exception {
+
+    if (iconsDefsWithCheckSum == null) {
+      JSONArray iconsDefs = new JSONArray();
+      JSONObject icon = null;
+      IEndTypeGetter.Icon i = null;
+
+      for (IEndTypeGetter.EndType type : IEndTypeGetter.EndType.values()) {
+
+        i = type.getIcon();
+        if (i == null) {
+          continue;
+        }
+        // boolean isRef = (i instanceof IconReference);
+
+        icon = new JSONObject();
+        icon.put("name", type.getVal());
+        icon.put("theme", "fill");
+        i.setRes(icon, true);
+        iconsDefs.add(icon);
+
+
+        icon = new JSONObject();
+        icon.put("name", type.getVal());
+        icon.put("theme", "outline");
+        // icon.put("icon", i.outlineType());
+        if (i.setRes(icon, false)) {
+          iconsDefs.add(icon);
+        }
+      }
+
+      iconsDefsWithCheckSum = new IconsDefs(iconsDefs);
+    }
+
+    String verToken = this.getString("vertoken");
+
+    this.setBizResult(context, iconsDefsWithCheckSum.getIcons(verToken));
   }
 
   /**
@@ -314,33 +341,7 @@ public class PluginAction extends BasicModule {
    */
   public void doGetPluginFieldHelp(Context context) {
     DescriptorField descField = parseDescField();
-
-    //  String plugin = this.getString("plugin");
-    // Optional<IPropertyType.SubFormFilter> subFormFilter = Optional.empty();
-    // if (StringUtils.isNotEmpty(plugin)) {
-    //   UploadPluginMeta pluginMeta = UploadPluginMeta.parse(this, plugin, true);
-    //  subFormFilter = pluginMeta.getSubFormFilter();
-    // }
-
     PluginExtraProps.Props props = descField.getFieldPropType().extraProp;
-
-//    PluginFormProperties pluginFormPropertyTypes = descField.getTargetDesc().getPluginFormPropertyTypes(subFormFilter);
-//
-//    PluginExtraProps.Props props =
-//      pluginFormPropertyTypes.accept(new DescriptorsJSON.SubFormFieldVisitor(subFormFilter) {
-//      @Override
-//      public PluginExtraProps.Props visit(BaseSubFormProperties props) {
-//        PropertyType propertyType = props.getPropertyType(descField.field);
-//        return propertyType.extraProp;
-//      }
-//
-//      @Override
-//      public PluginExtraProps.Props visit(RootFormProperties props) {
-//        return descField.getFieldPropType().extraProp;
-//      }
-//    });
-
-
     if (!props.isAsynHelp()) {
       throw new IllegalStateException("plugin:" + descField.pluginImpl + ",field:" + descField.field + " is not " +
         "support async help content fecthing");
@@ -907,7 +908,7 @@ public class PluginAction extends BasicModule {
 
     if (forwardParams != null) {
       this.getRequest().setAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT, describables);
-     // getRundata().forwardTo(forwardParams[0], forwardParams[1], forwardParams[2]);
+      // getRundata().forwardTo(forwardParams[0], forwardParams[1], forwardParams[2]);
 
       BasicRundata.forward(getRundata(), forwardParams);
       return;
