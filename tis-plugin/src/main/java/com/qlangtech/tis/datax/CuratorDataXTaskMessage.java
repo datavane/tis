@@ -126,4 +126,18 @@ public class CuratorDataXTaskMessage implements IDataXTaskRelevant {
     public void setJobName(String jobName) {
         this.jobName = jobName;
     }
+
+
+    @Override
+    public String toString() {
+        return "{" +
+                "dataXName='" + dataXName + '\'' +
+                ", taskSerializeNum=" + taskSerializeNum +
+                ", resType=" + resType +
+                ", jobId=" + jobId +
+                ", jobName='" + jobName + '\'' +
+                ", allRowsApproximately=" + allRowsApproximately +
+                ", execEpochMilli=" + execEpochMilli +
+                '}';
+    }
 }
