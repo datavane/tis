@@ -65,6 +65,10 @@ public class DefaultChainContext implements IExecChainContext {
     // 执行阶段跨度
     private ExecutePhaseRange executePhaseRange;
 
+    @Override
+    public String getJavaMemSpec() {
+        return null;
+    }
 //    @Override
 //    public TableDumpFactory getTableDumpFactory() {
 //        throw new UnsupportedOperationException();

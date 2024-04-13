@@ -226,6 +226,11 @@ public class SqlTaskNodeMeta implements ISqlTask {
             }
 
             @Override
+            public String getJavaMemSpec() {
+                return null;
+            }
+
+            @Override
             public boolean isDryRun() {
                 return false;
             }
@@ -1021,6 +1026,11 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
         public DftJoinTaskContext(ExecutePhaseRange executePhaseRange) {
             this.executePhaseRange = executePhaseRange;
+        }
+
+        @Override
+        public String getJavaMemSpec() {
+            return null;
         }
 
         @Override
