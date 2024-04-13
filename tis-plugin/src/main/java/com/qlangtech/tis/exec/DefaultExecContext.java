@@ -41,7 +41,6 @@ import com.qlangtech.tis.sql.parser.TabPartitions;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -49,7 +48,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -68,6 +66,10 @@ public class DefaultExecContext implements IExecChainContext, IdentityName {
     private ITISCoordinator coordinator;
     private PhaseStatusCollection latestPhaseStatusCollection;
     private StoreResourceType resType;
+    /**
+     * java 启动内存参数ms mx
+     */
+    private String javaMemSpec;
 
     public DefaultExecContext(String dataXName, Long triggerTimestamp) {
         this.ps = Objects.requireNonNull(triggerTimestamp, "param triggerTimestamp can not be null");
@@ -89,11 +91,15 @@ public class DefaultExecContext implements IExecChainContext, IdentityName {
                 JobParams.KEY_TASK_ID + " can not be null," + JsonUtil.toString(instanceParams));
         boolean dryRun = instanceParams.getBooleanValue(IFullBuildContext.DRY_RUN);
         String appName = instanceParams.getString(JobParams.KEY_COLLECTION);
+        final String javaMemSpec = instanceParams.getString(JobParams.KEY_JAVA_MEMORY_SPEC);
+
         Long triggerTimestamp = instanceParams.getLong(DataxUtils.EXEC_TIMESTAMP);
         DefaultExecContext execChainContext = new DefaultExecContext(appName, triggerTimestamp);
+        execChainContext.setJavaMemSpec(javaMemSpec);
         execChainContext.setCoordinator(ITISCoordinator.create());
         execChainContext.setDryRun(dryRun);
         execChainContext.setAttribute(JobCommon.KEY_TASK_ID, taskId);
+
 
         if (resolveCfgsSnapshotConsumer) {
 
@@ -139,6 +145,14 @@ public class DefaultExecContext implements IExecChainContext, IdentityName {
         this.dryRun = dryRun;
     }
 
+    @Override
+    public String getJavaMemSpec() {
+        return javaMemSpec;
+    }
+
+    public void setJavaMemSpec(String javaMemSpec) {
+        this.javaMemSpec = javaMemSpec;
+    }
 
     public void setWorkflowId(Integer workflowId) {
         this.workflowId = workflowId;

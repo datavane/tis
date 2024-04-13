@@ -64,6 +64,8 @@ public interface IExecChainContext extends IJoinTaskContext {
             = new MessageFormat(Config.getConfigRepositoryHost()
             + "/config/config.ajax?action={0}&event_submit_{1}=true");
 
+
+
     static Integer createNewTask(IExecChainContext chainContext) {
         return createNewTask(chainContext, TriggerType.MANUAL);
     }

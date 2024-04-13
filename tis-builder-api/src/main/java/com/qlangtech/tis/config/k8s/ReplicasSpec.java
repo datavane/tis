@@ -20,6 +20,8 @@ package com.qlangtech.tis.config.k8s;
 import com.qlangtech.tis.coredefine.module.action.Specification;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Optional;
+
 /**
  * 发布实例(ReplicationController,RepliaSet,Deployment)时的pod规格
  *
@@ -110,9 +112,9 @@ public class ReplicasSpec {
         this.memoryLimit = memoryLimit;
     }
 
-    public String toJavaMemorySpec() {
-        return "-Xms" + (int) (this.getMemoryRequest().normalizeMemory() * 0.8)
-                + "m -Xmx" + (int) (this.getMemoryLimit().normalizeMemory() * 0.8) + "m";
+    public String toJavaMemorySpec(Optional<Integer> proportion) {
+        return "-Xms" + (int) (this.getMemoryRequest().normalizeMemory(proportion) * 0.8)
+                + "m -Xmx" + (int) (this.getMemoryLimit().normalizeMemory(proportion) * 0.8) + "m";
     }
 
     public static void main(String[] args) {

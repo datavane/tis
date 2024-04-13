@@ -29,8 +29,7 @@ import java.util.function.Supplier;
 public interface IJoinTaskContext extends IParamContext, IPipelineExecContext {
 
 
-
-
+    public String getJavaMemSpec();
 
 
     public boolean isDryRun();

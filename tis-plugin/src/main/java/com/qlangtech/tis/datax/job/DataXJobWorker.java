@@ -152,6 +152,12 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 //        return getJobWorker(K8S_FLINK_CLUSTER_NAME, Optional.empty());
 //    }
 
+    public static <K8SDataXPowerJobWorker extends DataXJobWorker> K8SDataXPowerJobWorker getK8SDataXPowerJobWorker() {
+        return (K8SDataXPowerJobWorker)
+                DataXJobWorker.getJobWorker(TargetResName.K8S_DATAX_INSTANCE_NAME
+                        , Optional.of(DataXJobWorker.K8SWorkerCptType.Worker));
+    }
+
     public static DataXJobWorker getJobWorker(TargetResName resName) {
 
         //ServerLaunchToken.createFlinkClusterToken()
