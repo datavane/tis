@@ -20,10 +20,10 @@ package com.qlangtech.tis.coredefine.module.action;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.job.common.JobParams;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshotUtils;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author 百岁 (baisui@qlangtech.com)
@@ -31,6 +31,10 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class PowerjobTriggerBuildResult extends TriggerBuildResult {
     private String pluginCfgsMetas;
+    /**
+     * 用于Crontab任务传递的参数
+     */
+    private String javaMemorySpec;
 
     public PowerjobTriggerBuildResult() {
     }
@@ -40,7 +44,16 @@ public class PowerjobTriggerBuildResult extends TriggerBuildResult {
         // JSONObject instanceParams = Objects.requireNonNull(instanceParamsRef).get();
         pluginCfgsMetas = Objects.requireNonNull(instanceParams, "instanceParams can not be null") //
                 .getString(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS);
+        this.javaMemorySpec = instanceParams.getString(JobParams.KEY_JAVA_MEMORY_SPEC);
 
+    }
+
+    public String getJavaMemorySpec() {
+        return javaMemorySpec;
+    }
+
+    public void setJavaMemorySpec(String javaMemorySpec) {
+        this.javaMemorySpec = javaMemorySpec;
     }
 
     public String getPluginCfgsMetas() {
