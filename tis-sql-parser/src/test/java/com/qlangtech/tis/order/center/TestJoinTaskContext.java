@@ -59,6 +59,11 @@ public class TestJoinTaskContext implements IJoinTaskContext {
     }
 
     @Override
+    public String getJavaMemSpec() {
+        return null;
+    }
+
+    @Override
     public boolean isDryRun() {
         return false;
     }

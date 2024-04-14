@@ -1169,14 +1169,12 @@ public class DataxAction extends BasicModule {
     appCriteria.createCriteria().andProjectNameEqualTo(dataxName);
     this.getApplicationDAO().updateByExampleSelective(dataXApp, appCriteria);
 
-    DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
-      submit.saveJob(this, context, old);
-    });
-
     IAppSource.cleanAppSourcePluginStoreCache(null, dataxName);
     IAppSource.cleanAppSourcePluginStoreCache(this, dataxName);
 
-
+    DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
+      submit.saveJob(this, context, old);
+    });
 
 
     this.addActionMessage(context, "已经成功更新");
