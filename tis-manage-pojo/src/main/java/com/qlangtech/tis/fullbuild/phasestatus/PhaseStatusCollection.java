@@ -60,16 +60,16 @@ public class PhaseStatusCollection implements IPhaseStatusCollection {
 
     public void flushStatus2Local() {
         if (executePhaseRange.contains(FullbuildPhase.FullDump)) {
-            dumpPhase.writeStatus2Local();
+            dumpPhase.intervalWriteStatus2Local();
         }
         if (executePhaseRange.contains(FullbuildPhase.JOIN)) {
-            joinPhase.writeStatus2Local();
+            joinPhase.intervalWriteStatus2Local();
         }
         if (executePhaseRange.contains(FullbuildPhase.BUILD)) {
-            buildPhase.writeStatus2Local();
+            buildPhase.intervalWriteStatus2Local();
         }
         if (executePhaseRange.contains(FullbuildPhase.IndexBackFlow)) {
-            indexBackFlowPhaseStatus.writeStatus2Local();
+            indexBackFlowPhaseStatus.intervalWriteStatus2Local();
         }
     }
 

@@ -86,7 +86,8 @@ public class DefaultExecContext implements IExecChainContext, IdentityName {
      * @param instanceParams
      * @return
      */
-    static DefaultExecContext deserializeInstanceParams(JSONObject instanceParams, boolean resolveCfgsSnapshotConsumer, Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
+    static DefaultExecContext deserializeInstanceParams(JSONObject instanceParams, boolean resolveCfgsSnapshotConsumer //
+            , Consumer<DefaultExecContext> execChainContextConsumer, Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
         Integer taskId = Objects.requireNonNull(instanceParams.getInteger(JobParams.KEY_TASK_ID),
                 JobParams.KEY_TASK_ID + " can not be null," + JsonUtil.toString(instanceParams));
         boolean dryRun = instanceParams.getBooleanValue(IFullBuildContext.DRY_RUN);
@@ -100,6 +101,10 @@ public class DefaultExecContext implements IExecChainContext, IdentityName {
         execChainContext.setDryRun(dryRun);
         execChainContext.setAttribute(JobCommon.KEY_TASK_ID, taskId);
 
+        execChainContextConsumer.accept(execChainContext);
+
+
+        // execChainContext.setLatestPhaseStatusCollection( );
 
         if (resolveCfgsSnapshotConsumer) {
 

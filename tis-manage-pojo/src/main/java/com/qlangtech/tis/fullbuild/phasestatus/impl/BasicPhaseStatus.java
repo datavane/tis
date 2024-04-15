@@ -1,26 +1,28 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.fullbuild.phasestatus.impl;
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.fullbuild.phasestatus.IChildProcessStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.IPhaseStatus;
 import com.qlangtech.tis.manage.common.Config;
+
 import java.io.File;
 import java.util.Collection;
 import java.util.Optional;
@@ -34,9 +36,13 @@ public abstract class BasicPhaseStatus<T extends IChildProcessStatus> implements
     private final int taskid;
 
     // 是否有将状态写入到本地磁盘
-    private boolean hasFlush2Local = false;
+    private transient boolean hasFlush2Local = false;
 
     public static transient IFlush2Local statusWriter = null;
+    /**
+     * 10秒执行一次速度
+     */
+    private transient final RateLimiter intervalWriteLimit = RateLimiter.create(0.1);
 
     public static File getFullBuildPhaseLocalFile(int taskid, FullbuildPhase phase) {
         return new File(Config.getMetaCfgDir(), "df-logs/" + taskid + "/" + phase.getName());
@@ -114,13 +120,30 @@ public abstract class BasicPhaseStatus<T extends IChildProcessStatus> implements
         }
         for (T ts : children) {
             if (ts.isFaild()) {
-                return writeStatus2Local();
+                return finalWriteStatus2Local();
             }
             if (!ts.isComplete()) {
                 return false;
             }
         }
-        return writeStatus2Local();
+        return finalWriteStatus2Local();
+    }
+
+    private boolean finalWriteStatus2Local() {
+        boolean result = false;
+        if (!this.hasFlush2Local) {
+            result = this.writeStatus2Local();
+            this.hasFlush2Local = true;
+        }
+        return result;
+    }
+
+    public boolean intervalWriteStatus2Local() {
+        if (this.intervalWriteLimit.tryAcquire()) {
+            this.writeStatus2Local();
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -128,24 +151,23 @@ public abstract class BasicPhaseStatus<T extends IChildProcessStatus> implements
      *
      * @return
      */
-    public boolean writeStatus2Local() {
-        if (!this.hasFlush2Local) {
-            if (statusWriter != null) {
-                synchronized (this) {
-                    File localFile = getFullBuildPhaseLocalFile(this.taskid, this.getPhase());
-                    this.hasFlush2Local = true;
-                    try {
-                        if (!localFile.exists()) {
-                            // 写入本地文件系统中，后续查看状态可以直接从本地文件中拿到
-                            statusWriter.write(localFile, this);
-                        }
-                    } catch (Exception e) {
-                        this.hasFlush2Local = false;
-                        throw new RuntimeException(e);
+    private boolean writeStatus2Local() {
+
+        if (statusWriter != null) {
+            synchronized (this) {
+                File localFile = getFullBuildPhaseLocalFile(this.taskid, this.getPhase());
+
+                try {
+                    if (!localFile.exists()) {
+                        // 写入本地文件系统中，后续查看状态可以直接从本地文件中拿到
+                        statusWriter.write(localFile, this);
                     }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
             }
         }
+
         return true;
     }
 

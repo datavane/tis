@@ -61,6 +61,11 @@ public class AdapterStatusUmbilicalProtocol implements IncrStatusUmbilicalProtoc
     }
 
     @Override
+    public PhaseStatusCollection loadPhaseStatusFromLatest(SynResTarget resTarget) {
+        throw new NotImplementedException();
+    }
+
+    @Override
     public void reportBuildIndexStatus(BuildSharedPhaseStatus buildStatus) {
         throw new NotImplementedException();
     }

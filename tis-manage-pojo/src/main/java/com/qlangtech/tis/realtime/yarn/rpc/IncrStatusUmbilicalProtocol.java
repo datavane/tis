@@ -75,4 +75,12 @@ public interface IncrStatusUmbilicalProtocol {
      * @param buildStatus
      */
     public void initSynJob(PhaseStatusCollection buildStatus);
+
+    /**
+     * 取得最近一次成功的同步任务状态
+     *
+     * @param resTarget
+     * @return
+     */
+    public PhaseStatusCollection loadPhaseStatusFromLatest(SynResTarget resTarget);
 }

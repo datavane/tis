@@ -17,13 +17,16 @@
  */
 package com.qlangtech.tis.datax.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.datax.*;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.datax.IDataxWriter;
+import com.qlangtech.tis.datax.TableAlias;
+import com.qlangtech.tis.datax.TableAliasMapper;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
@@ -33,10 +36,10 @@ import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
-import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
@@ -48,7 +51,10 @@ import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -99,26 +105,11 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         if (appSource.isPresent()) {
             return (IDataxProcessor) appSource.get();
         } else {
-            throw new RuntimeException("targetName:" + dataXName + ",resType:" + resType);
-//                Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta(resType.pluginDescName);
-//                Objects.requireNonNull(pluginDescMeta);
-//                //Descriptor<IAppSource> pluginDescMeta = DataxProcessor.getPluginDescMeta();
-//                Map<String, /** * attr key */JSONObject> formData
-//                        = new HashMap<String, JSONObject>() {
-//                    @Override
-//                    public JSONObject get(Object key) {
-//                        JSONObject o = new JSONObject();
-//                        o.put(Descriptor.KEY_primaryVal, null);
-//                        return o;
-//                    }
-//                };
-//                Descriptor.ParseDescribable<Describable> appSourceParseDescribable
-//                        = pluginDescMeta.newInstance(pluginContext, AttrValMap.IAttrVals.rootForm(formData), Optional.empty());
-//                return (DataxProcessor) appSourceParseDescribable.getInstance();
+            KeyedPluginStore<IAppSource> store = IAppSource.getPluginStore(pluginContext, resType, dataXName);
+            throw new RuntimeException("targetName:" + dataXName + ",resType:"
+                    + resType + ",store file is not exist:" + store.getTargetFile().getFile());
         }
-//        } catch (Exception e) {
-//
-//        }
+
     }
 
     public static Descriptor<IAppSource> getPluginDescMeta() {

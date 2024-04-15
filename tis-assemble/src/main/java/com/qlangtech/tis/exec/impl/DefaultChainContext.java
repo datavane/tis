@@ -34,18 +34,21 @@ import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.servlet.IRebindableMDC;
 import com.qlangtech.tis.job.common.JobCommon;
+import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.sql.parser.TabPartitions;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -368,20 +371,30 @@ public class DefaultChainContext implements IExecChainContext {
 
     @Override
     public PhaseStatusCollection loadPhaseStatusFromLatest() {
+        return loadPhaseStatusFromLatest(this.getIndexName());
+    }
 
-        // String appName = context.getIndexName();
+    /**
+     * 取得pipeline最近一次成功的执行状态
+     * TODO 还需要支持workflow的执行状态
+     *
+     * @param appName
+     * @return
+     */
+    public static PhaseStatusCollection loadPhaseStatusFromLatest(String appName) {
+        //FIXME 这段代码在执行workflow时候应该会不兼容，届时再调整
+        Optional<WorkFlowBuildHistory> latestWFSuccessTask = DagTaskUtils.getLatestWFSuccessTaskId(appName);
 
-        Integer taskId = this.getTaskId();
+        return latestWFSuccessTask.map((history) -> IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(history.getId())).orElse(null);
 
-//        Optional<WorkFlowBuildHistory> latestWFSuccessTask = DagTaskUtils.getLatestWFSuccessTaskId(appName);
 //        if (!latestWFSuccessTask.isPresent()) {
 //            return null;
 //        }
 //        WorkFlowBuildHistory h = latestWFSuccessTask.get();
-        PhaseStatusCollection phaseStatusCollection = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(taskId);
-        if (phaseStatusCollection == null) {
-            return null;
-        }
-        return phaseStatusCollection;
+//        PhaseStatusCollection phaseStatusCollection = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(h.getId());
+//        if (phaseStatusCollection == null) {
+//            return null;
+//        }
+//        return phaseStatusCollection;
     }
 }

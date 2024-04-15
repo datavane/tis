@@ -16,11 +16,25 @@ service LogCollector {
     rpc BuildPhraseStatus (PBuildPhaseStatusParam) returns (stream PPhaseStatusCollection) {
     }
     // 分布式环境下，启动一个同步任务先需要向assemble节点注册所有子任务
-    rpc InitTask (PPhaseStatusCollection) returns (Empty) {}
+    rpc InitTask (PPhaseStatusCollection) returns (Empty) {
+    }
+    /**
+    *取得最近一次成功的同步任务状态
+    */
+    rpc LoadPhaseStatusFromLatest (PSynResTarget) returns (PPhaseStatusCollection) {
+    }
 }
 
 message PBuildPhaseStatusParam {
     uint64 taskid = 1;
+}
+
+message PSynResTarget {
+    string name = 1;
+    /**
+     * dataX pipeline OR transform workflow
+     */
+    bool pipeline = 2;
 }
 
 message PPhaseStatusCollection {
@@ -54,14 +68,14 @@ message PMonotorTarget {
     uint32 taskid = 2;
     PExecuteState.LogType logtype = 3;
 
-//    enum LogType {
-//        INCR_DEPLOY_STATUS_CHANGE = 0;
-//        // 近一段时间内增量监听的各个tag的多少值
-//        MQ_TAGS_STATUS = 1;
-//        FULL = 2;
-//        INCR = 3;
-//        INCR_SEND = 4;
-//    }
+    //    enum LogType {
+    //        INCR_DEPLOY_STATUS_CHANGE = 0;
+    //        // 近一段时间内增量监听的各个tag的多少值
+    //        MQ_TAGS_STATUS = 1;
+    //        FULL = 2;
+    //        INCR = 3;
+    //        INCR_SEND = 4;
+    //    }
 }
 message PExecuteState {
 

@@ -30,6 +30,7 @@ import com.qlangtech.tis.realtime.yarn.rpc.JobType;
 import com.qlangtech.tis.realtime.yarn.rpc.LaunchReportInfo;
 import com.qlangtech.tis.realtime.yarn.rpc.MasterJob;
 import com.qlangtech.tis.realtime.yarn.rpc.PingResult;
+import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.realtime.yarn.rpc.TopicInfo;
 import com.qlangtech.tis.realtime.yarn.rpc.UpdateCounterMap;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
@@ -161,6 +162,11 @@ public class IncrStatusClient implements IncrStatusUmbilicalProtocol {
     public void initSynJob(PhaseStatusCollection buildStatus) {
 
         logCollectorBlockingStub.initTask(LogCollectorClient.convertPP(buildStatus));
+    }
+
+    @Override
+    public PhaseStatusCollection loadPhaseStatusFromLatest(SynResTarget resTarget) {
+        return null;
     }
 
     @Override

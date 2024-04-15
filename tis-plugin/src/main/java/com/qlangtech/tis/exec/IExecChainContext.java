@@ -65,7 +65,6 @@ public interface IExecChainContext extends IJoinTaskContext {
             + "/config/config.ajax?action={0}&event_submit_{1}=true");
 
 
-
     static Integer createNewTask(IExecChainContext chainContext) {
         return createNewTask(chainContext, TriggerType.MANUAL);
     }
@@ -173,14 +172,16 @@ public interface IExecChainContext extends IJoinTaskContext {
         return instanceParams;
     }
 
-    public static DefaultExecContext deserializeInstanceParams(JSONObject instanceParams, Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
-        return DefaultExecContext.deserializeInstanceParams(instanceParams, true, cfgsSnapshotConsumer);
+    public static DefaultExecContext deserializeInstanceParams(JSONObject instanceParams, Consumer<DefaultExecContext> execChainContextConsumer, Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
+        return DefaultExecContext.deserializeInstanceParams(instanceParams, true, execChainContextConsumer, cfgsSnapshotConsumer);
     }
 
     public static DefaultExecContext deserializeInstanceParams(JSONObject instanceParams) {
-        return DefaultExecContext.deserializeInstanceParams(instanceParams, false, (snapshot) -> {
-            throw new UnsupportedOperationException("shall not be execute");
-        });
+        return DefaultExecContext.deserializeInstanceParams(instanceParams, false
+                , (execChainContext) -> {
+                }, (snapshot) -> {
+                    throw new UnsupportedOperationException("shall not be execute");
+                });
     }
 
 
