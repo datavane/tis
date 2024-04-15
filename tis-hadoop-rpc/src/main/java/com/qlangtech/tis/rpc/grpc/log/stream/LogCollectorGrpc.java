@@ -120,35 +120,35 @@ public final class LogCollectorGrpc {
     return getInitTaskMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget,
-      com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> getLoadPhaseStatusFromLatestMethod;
+  private static volatile io.grpc.MethodDescriptor<com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam,
+      com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> getLoadPhaseStatusMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "LoadPhaseStatusFromLatest",
-      requestType = com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget.class,
+      fullMethodName = SERVICE_NAME + '/' + "LoadPhaseStatus",
+      requestType = com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam.class,
       responseType = com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget,
-      com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> getLoadPhaseStatusFromLatestMethod() {
-    io.grpc.MethodDescriptor<com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget, com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> getLoadPhaseStatusFromLatestMethod;
-    if ((getLoadPhaseStatusFromLatestMethod = LogCollectorGrpc.getLoadPhaseStatusFromLatestMethod) == null) {
+  public static io.grpc.MethodDescriptor<com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam,
+      com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> getLoadPhaseStatusMethod() {
+    io.grpc.MethodDescriptor<com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam, com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> getLoadPhaseStatusMethod;
+    if ((getLoadPhaseStatusMethod = LogCollectorGrpc.getLoadPhaseStatusMethod) == null) {
       synchronized (LogCollectorGrpc.class) {
-        if ((getLoadPhaseStatusFromLatestMethod = LogCollectorGrpc.getLoadPhaseStatusFromLatestMethod) == null) {
-          LogCollectorGrpc.getLoadPhaseStatusFromLatestMethod = getLoadPhaseStatusFromLatestMethod =
-              io.grpc.MethodDescriptor.<com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget, com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection>newBuilder()
+        if ((getLoadPhaseStatusMethod = LogCollectorGrpc.getLoadPhaseStatusMethod) == null) {
+          LogCollectorGrpc.getLoadPhaseStatusMethod = getLoadPhaseStatusMethod =
+              io.grpc.MethodDescriptor.<com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam, com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "LoadPhaseStatusFromLatest"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "LoadPhaseStatus"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget.getDefaultInstance()))
+                  com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection.getDefaultInstance()))
-              .setSchemaDescriptor(new LogCollectorMethodDescriptorSupplier("LoadPhaseStatusFromLatest"))
+              .setSchemaDescriptor(new LogCollectorMethodDescriptorSupplier("LoadPhaseStatus"))
               .build();
         }
       }
     }
-    return getLoadPhaseStatusFromLatestMethod;
+    return getLoadPhaseStatusMethod;
   }
 
   /**
@@ -235,9 +235,9 @@ public final class LogCollectorGrpc {
      *取得最近一次成功的同步任务状态
      * </pre>
      */
-    public void loadPhaseStatusFromLatest(com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget request,
+    public void loadPhaseStatus(com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam request,
         io.grpc.stub.StreamObserver<com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> responseObserver) {
-      asyncUnimplementedUnaryCall(getLoadPhaseStatusFromLatestMethod(), responseObserver);
+      asyncUnimplementedUnaryCall(getLoadPhaseStatusMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
@@ -264,12 +264,12 @@ public final class LogCollectorGrpc {
                 com.qlangtech.tis.rpc.grpc.log.common.Empty>(
                   this, METHODID_INIT_TASK)))
           .addMethod(
-            getLoadPhaseStatusFromLatestMethod(),
+            getLoadPhaseStatusMethod(),
             asyncUnaryCall(
               new MethodHandlers<
-                com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget,
+                com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam,
                 com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection>(
-                  this, METHODID_LOAD_PHASE_STATUS_FROM_LATEST)))
+                  this, METHODID_LOAD_PHASE_STATUS)))
           .build();
     }
   }
@@ -327,10 +327,10 @@ public final class LogCollectorGrpc {
      *取得最近一次成功的同步任务状态
      * </pre>
      */
-    public void loadPhaseStatusFromLatest(com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget request,
+    public void loadPhaseStatus(com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam request,
         io.grpc.stub.StreamObserver<com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getLoadPhaseStatusFromLatestMethod(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getLoadPhaseStatusMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -375,9 +375,9 @@ public final class LogCollectorGrpc {
      *取得最近一次成功的同步任务状态
      * </pre>
      */
-    public com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection loadPhaseStatusFromLatest(com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget request) {
+    public com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection loadPhaseStatus(com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam request) {
       return blockingUnaryCall(
-          getChannel(), getLoadPhaseStatusFromLatestMethod(), getCallOptions(), request);
+          getChannel(), getLoadPhaseStatusMethod(), getCallOptions(), request);
     }
   }
 
@@ -412,16 +412,16 @@ public final class LogCollectorGrpc {
      *取得最近一次成功的同步任务状态
      * </pre>
      */
-    public com.google.common.util.concurrent.ListenableFuture<com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> loadPhaseStatusFromLatest(
-        com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget request) {
+    public com.google.common.util.concurrent.ListenableFuture<com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> loadPhaseStatus(
+        com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam request) {
       return futureUnaryCall(
-          getChannel().newCall(getLoadPhaseStatusFromLatestMethod(), getCallOptions()), request);
+          getChannel().newCall(getLoadPhaseStatusMethod(), getCallOptions()), request);
     }
   }
 
   private static final int METHODID_BUILD_PHRASE_STATUS = 0;
   private static final int METHODID_INIT_TASK = 1;
-  private static final int METHODID_LOAD_PHASE_STATUS_FROM_LATEST = 2;
+  private static final int METHODID_LOAD_PHASE_STATUS = 2;
   private static final int METHODID_REGISTER_MONITOR_EVENT = 3;
 
   private static final class MethodHandlers<Req, Resp> implements
@@ -449,8 +449,8 @@ public final class LogCollectorGrpc {
           serviceImpl.initTask((com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection) request,
               (io.grpc.stub.StreamObserver<com.qlangtech.tis.rpc.grpc.log.common.Empty>) responseObserver);
           break;
-        case METHODID_LOAD_PHASE_STATUS_FROM_LATEST:
-          serviceImpl.loadPhaseStatusFromLatest((com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget) request,
+        case METHODID_LOAD_PHASE_STATUS:
+          serviceImpl.loadPhaseStatus((com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam) request,
               (io.grpc.stub.StreamObserver<com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection>) responseObserver);
           break;
         default:
@@ -520,7 +520,7 @@ public final class LogCollectorGrpc {
               .addMethod(getRegisterMonitorEventMethod())
               .addMethod(getBuildPhraseStatusMethod())
               .addMethod(getInitTaskMethod())
-              .addMethod(getLoadPhaseStatusFromLatestMethod())
+              .addMethod(getLoadPhaseStatusMethod())
               .build();
         }
       }

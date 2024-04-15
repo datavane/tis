@@ -21,7 +21,7 @@ service LogCollector {
     /**
     *取得最近一次成功的同步任务状态
     */
-    rpc LoadPhaseStatusFromLatest (PSynResTarget) returns (PPhaseStatusCollection) {
+    rpc LoadPhaseStatus (PBuildPhaseStatusParam) returns (PPhaseStatusCollection) {
     }
 }
 
@@ -29,13 +29,6 @@ message PBuildPhaseStatusParam {
     uint64 taskid = 1;
 }
 
-message PSynResTarget {
-    string name = 1;
-    /**
-     * dataX pipeline OR transform workflow
-     */
-    bool pipeline = 2;
-}
 
 message PPhaseStatusCollection {
     PDumpPhaseStatus dumpPhase = 1;

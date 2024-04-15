@@ -79,8 +79,8 @@ public interface IncrStatusUmbilicalProtocol {
     /**
      * 取得最近一次成功的同步任务状态
      *
-     * @param resTarget
+     * @param taskId
      * @return
      */
-    public PhaseStatusCollection loadPhaseStatusFromLatest(SynResTarget resTarget);
+    public PhaseStatusCollection loadPhaseStatusFromLatest(Integer taskId);
 }

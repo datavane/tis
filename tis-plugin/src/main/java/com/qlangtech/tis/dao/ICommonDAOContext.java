@@ -18,13 +18,21 @@
 
 package com.qlangtech.tis.dao;
 
+import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
 import com.qlangtech.tis.manage.common.CreateNewTaskResult;
+import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
+import org.apache.commons.lang.NotImplementedException;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author 百岁 (baisui@qlangtech.com)
@@ -34,6 +42,25 @@ public interface ICommonDAOContext {
     public IApplicationDAO getApplicationDAO();
 
     public IWorkflowDAOFacade getWorkflowDAOFacade();
+
+    public default WorkFlowBuildHistory getLatestSuccessWorkflowHistory(SynResTarget resTarget) {
+        Objects.requireNonNull(resTarget, "param resTarget can not be null");
+        if (!resTarget.isPipeline()) {
+            throw new NotImplementedException("resTarget:" + resTarget.getName() + " tranform workflow type has not been implemented");
+        }
+        WorkFlowBuildHistoryCriteria historyCriteria = new WorkFlowBuildHistoryCriteria();
+        historyCriteria.setOrderByClause("id desc");
+        historyCriteria.createCriteria()
+                .andAppNameEqualTo(resTarget.getName()).andStateEqualTo((byte) ExecResult.SUCCESS.getValue());
+
+        List<WorkFlowBuildHistory> histories
+                = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByExample(historyCriteria, 1, 1);
+
+        for (WorkFlowBuildHistory buildHistory : histories) {
+            return buildHistory;
+        }
+        return null;
+    }
 
     /**
      * reference: IExecChainContext.createNewTask(

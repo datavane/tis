@@ -31,7 +31,6 @@ import com.qlangtech.tis.realtime.yarn.rpc.JobType;
 import com.qlangtech.tis.realtime.yarn.rpc.LaunchReportInfo;
 import com.qlangtech.tis.realtime.yarn.rpc.MasterJob;
 import com.qlangtech.tis.realtime.yarn.rpc.PingResult;
-import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.realtime.yarn.rpc.TopicInfo;
 import com.qlangtech.tis.realtime.yarn.rpc.UpdateCounterMap;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
@@ -39,9 +38,8 @@ import com.qlangtech.tis.rpc.grpc.log.common.Empty;
 import com.qlangtech.tis.rpc.grpc.log.common.JoinTaskStatus;
 import com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus;
 import com.qlangtech.tis.rpc.grpc.log.stream.LogCollectorGrpc;
+import com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam;
 import com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection;
-import com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget;
-import com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget.Builder;
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -169,17 +167,28 @@ public class IncrStatusClient implements IncrStatusUmbilicalProtocol {
     }
 
     @Override
-    public PhaseStatusCollection loadPhaseStatusFromLatest(SynResTarget resTarget) {
+    public PhaseStatusCollection loadPhaseStatusFromLatest(Integer taskId) {
 
-        Builder builder = PSynResTarget.newBuilder();
-        builder.setPipeline(resTarget.isPipeline());
-        builder.setName(resTarget.getName());
-        PPhaseStatusCollection statusCollection = logCollectorBlockingStub.loadPhaseStatusFromLatest(builder.build());
+        Objects.requireNonNull(taskId, "taskId can not be null");
+        PPhaseStatusCollection statusCollection = logCollectorBlockingStub
+                .loadPhaseStatus(PBuildPhaseStatusParam.newBuilder().setTaskid(taskId).build());
         if (statusCollection == null || statusCollection.getTaskId() < 1) {
             return null;
         }
         return LogCollectorClient.convert(statusCollection, ExecutePhaseRange.fullRange());
     }
+//    @Override
+//    public PhaseStatusCollection loadPhaseStatusFromLatest(Integer taskId) {
+//
+//        Builder builder = PSynResTarget.newBuilder();
+//        builder.setPipeline(resTarget.isPipeline());
+//        builder.setName(resTarget.getName());
+//        PPhaseStatusCollection statusCollection = logCollectorBlockingStub.loadPhaseStatusFromLatest(builder.build());
+//        if (statusCollection == null || statusCollection.getTaskId() < 1) {
+//            return null;
+//        }
+//        return LogCollectorClient.convert(statusCollection, ExecutePhaseRange.fullRange());
+//    }
 
     @Override
     public void reportBuildIndexStatus(BuildSharedPhaseStatus buildStatus) {

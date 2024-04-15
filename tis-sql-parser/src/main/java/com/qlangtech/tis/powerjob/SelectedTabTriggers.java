@@ -179,16 +179,6 @@ public class SelectedTabTriggers {
             this.dataXName = dataXName;
         }
 
-        public SynResTarget getTargetRes() {
-            switch (this.getResType()) {
-                case DataFlow:
-                    return SynResTarget.transform(this.getDataXName());
-                case DataApp:
-                    return SynResTarget.pipeline(this.getDataXName());
-                default:
-                    throw new IllegalStateException("unsupport resType:" + this.getResType());
-            }
-        }
 
         private String preTrigger;
         private String postTrigger;

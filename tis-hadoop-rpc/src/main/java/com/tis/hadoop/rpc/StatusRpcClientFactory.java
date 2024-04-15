@@ -504,7 +504,7 @@ public class StatusRpcClientFactory {
         }
 
         @Override
-        public PhaseStatusCollection loadPhaseStatusFromLatest(SynResTarget resTarget) {
+        public PhaseStatusCollection loadPhaseStatusFromLatest(Integer taskId) {
             return null;
         }
 

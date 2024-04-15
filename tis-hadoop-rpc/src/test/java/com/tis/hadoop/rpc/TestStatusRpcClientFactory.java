@@ -19,9 +19,7 @@
 package com.tis.hadoop.rpc;
 
 import com.qlangtech.tis.cloud.ITISCoordinator;
-import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
-import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.tis.hadoop.rpc.StatusRpcClientFactory.AssembleSvcCompsite;
 import junit.framework.TestCase;
 
@@ -33,7 +31,7 @@ public class TestStatusRpcClientFactory extends TestCase {
     public void testLoadPhaseStatusFromLatest() throws Exception {
         RpcServiceReference ref = StatusRpcClientFactory.getService(ITISCoordinator.create());
         AssembleSvcCompsite svc = ref.get();
-        PhaseStatusCollection statusCollection = svc.statReceiveSvc.loadPhaseStatusFromLatest(SynResTarget.pipeline("mysql5"));
-       // Assert.assertNotNull("statusCollection can not be null", statusCollection);
+        PhaseStatusCollection statusCollection = svc.statReceiveSvc.loadPhaseStatusFromLatest(18);
+        // Assert.assertNotNull("statusCollection can not be null", statusCollection);
     }
 }

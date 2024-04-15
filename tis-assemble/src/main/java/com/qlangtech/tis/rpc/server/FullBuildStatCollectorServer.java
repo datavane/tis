@@ -21,7 +21,6 @@ import ch.qos.logback.classic.spi.LoggingEvent;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
-import com.qlangtech.tis.exec.impl.DefaultChainContext;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.log.RealtimeLoggerCollectorAppender;
@@ -32,7 +31,6 @@ import com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam;
 import com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState;
 import com.qlangtech.tis.rpc.grpc.log.stream.PMonotorTarget;
 import com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection;
-import com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget;
 import com.qlangtech.tis.trigger.jst.MonotorTarget;
 import com.qlangtech.tis.trigger.socket.LogType;
 import com.qlangtech.tis.utils.Utils;
@@ -41,7 +39,6 @@ import io.grpc.ServerBuilder;
 import io.grpc.Status;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
-import org.apache.commons.lang.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,18 +94,13 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
     public static RegisterMonitorEventHook registerMonitorEventHook = new RegisterMonitorEventHook();
 
     @Override
-    public void loadPhaseStatusFromLatest(PSynResTarget request, StreamObserver<PPhaseStatusCollection> responseObserver) {
-        boolean pipeline = request.getPipeline();
-        String targetResName = request.getName();
-        if (!pipeline) {
-            // 目前代码中还没有支持workflow资源的响应
-            throw new NotImplementedException("targetResName:" + targetResName + " must be pipeline");
-        }
-
-        PhaseStatusCollection statusCollection = DefaultChainContext.loadPhaseStatusFromLatest(targetResName);
+    public void loadPhaseStatus(PBuildPhaseStatusParam request, StreamObserver<PPhaseStatusCollection> responseObserver) {
+        PhaseStatusCollection statusCollection = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal((int) request.getTaskid());
+        logger.info("taskId:{} load relevant status from local persist is null:{}", request.getTaskid(), statusCollection != null);
         responseObserver.onNext((statusCollection != null) ? LogCollectorClient.convertPP(statusCollection) : null);
         responseObserver.onCompleted();
     }
+
 
     /**
      * 监听执行日志，详细信息

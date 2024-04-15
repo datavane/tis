@@ -18,6 +18,8 @@
 
 package com.qlangtech.tis.realtime.yarn.rpc;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-04-15 10:51
@@ -44,6 +46,9 @@ public class SynResTarget {
     }
 
     private SynResTarget(String name, boolean pipeline) {
+        if (StringUtils.isEmpty(name)) {
+            throw new IllegalArgumentException("param name can not be empty");
+        }
         this.name = name;
         this.pipeline = pipeline;
     }

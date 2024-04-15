@@ -22,7 +22,11 @@ import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
-import com.qlangtech.tis.realtime.yarn.rpc.*;
+import com.qlangtech.tis.realtime.yarn.rpc.IncrStatusUmbilicalProtocol;
+import com.qlangtech.tis.realtime.yarn.rpc.LaunchReportInfo;
+import com.qlangtech.tis.realtime.yarn.rpc.MasterJob;
+import com.qlangtech.tis.realtime.yarn.rpc.PingResult;
+import com.qlangtech.tis.realtime.yarn.rpc.UpdateCounterMap;
 import org.apache.commons.lang.NotImplementedException;
 
 /**
@@ -32,6 +36,11 @@ import org.apache.commons.lang.NotImplementedException;
 public class AdapterStatusUmbilicalProtocol implements IncrStatusUmbilicalProtocol {
     @Override
     public PingResult ping() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public PhaseStatusCollection loadPhaseStatusFromLatest(Integer taskId) {
         throw new NotImplementedException();
     }
 
@@ -60,10 +69,6 @@ public class AdapterStatusUmbilicalProtocol implements IncrStatusUmbilicalProtoc
         throw new NotImplementedException();
     }
 
-    @Override
-    public PhaseStatusCollection loadPhaseStatusFromLatest(SynResTarget resTarget) {
-        throw new NotImplementedException();
-    }
 
     @Override
     public void reportBuildIndexStatus(BuildSharedPhaseStatus buildStatus) {

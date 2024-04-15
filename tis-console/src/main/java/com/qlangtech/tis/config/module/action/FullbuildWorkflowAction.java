@@ -34,13 +34,15 @@ import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +50,7 @@ import java.util.stream.Collectors;
  * @date 2017年9月30日
  */
 public class FullbuildWorkflowAction extends BasicModule {
-
+  private static final Logger logger = LoggerFactory.getLogger(FullbuildWorkflowAction.class);
   /**
    *
    */
@@ -110,25 +112,36 @@ public class FullbuildWorkflowAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
   public void doGetLatestSuccessWorkflow(Context context) {
-    String appName = this.getString(IFullBuildContext.KEY_APP_NAME);
-    if (StringUtils.isEmpty(appName)) {
-      throw new IllegalArgumentException("param appName can not be null");
+    try {
+      String appName = this.getString(IFullBuildContext.KEY_APP_NAME);
+      if (StringUtils.isEmpty(appName)) {
+        throw new IllegalArgumentException("param appName can not be null");
+      }
+
+
+      WorkFlowBuildHistory latestSuccessWorkflowHistory = this.getLatestSuccessWorkflowHistory(SynResTarget.pipeline(appName));
+      if (latestSuccessWorkflowHistory != null) {
+        this.setBizResult(context, latestSuccessWorkflowHistory);
+        return;
+      }
+      this.addErrorMessage(context, "can not find build history by appname:" + appName);
+//      WorkFlowBuildHistoryCriteria historyCriteria = new WorkFlowBuildHistoryCriteria();
+//      historyCriteria.setOrderByClause("id desc");
+//      historyCriteria.createCriteria()
+//        .andAppNameEqualTo(appName).andStateEqualTo((byte) ExecResult.SUCCESS.getValue());
+//
+//      List<WorkFlowBuildHistory> histories
+//        = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByExample(historyCriteria, 1, 1);
+//
+//      for (WorkFlowBuildHistory buildHistory : histories) {
+//        this.setBizResult(context, buildHistory);
+//        return;
+//      }
+
+
+    } finally {
+      // logger.info("doGetLatestSuccessWorkflow return ");
     }
-
-    WorkFlowBuildHistoryCriteria historyCriteria = new WorkFlowBuildHistoryCriteria();
-    historyCriteria.setOrderByClause("id desc");
-    historyCriteria.createCriteria()
-      .andAppNameEqualTo(appName).andStateEqualTo((byte) ExecResult.SUCCESS.getValue());
-
-    List<WorkFlowBuildHistory> histories
-      = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByExample(historyCriteria, 1, 1);
-
-    for (WorkFlowBuildHistory buildHistory : histories) {
-      this.setBizResult(context, buildHistory);
-      return;
-    }
-
-    this.addErrorMessage(context, "can not find build history by appname:" + appName);
   }
 
   @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)

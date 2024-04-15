@@ -33,6 +33,7 @@ import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.IDBReservedKeys;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.io.FileUtils;
@@ -59,6 +60,17 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
     static File getWriterDescFile(IPluginContext pluginContext, String dataXName) {
         File workDir = getDataXWorkDir(pluginContext, dataXName);
         return new File(workDir, "writerDesc");
+    }
+
+    default SynResTarget getResTarget() {
+        switch (this.getResType()) {
+            case DataApp:
+                return SynResTarget.pipeline(this.identityValue());
+            case DataFlow:
+                return SynResTarget.transform(this.identityValue());
+            default:
+                throw new IllegalStateException("resType:" + this.getResType() + " is not support ");
+        }
     }
 
     static File getDataXWorkDir(IPluginContext pluginContext, String appName) {
