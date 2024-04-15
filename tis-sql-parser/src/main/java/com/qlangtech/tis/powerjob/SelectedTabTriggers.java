@@ -30,6 +30,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.lang.StringUtils;
 
@@ -176,6 +177,17 @@ public class SelectedTabTriggers {
             }
             this.tabName = tabName;
             this.dataXName = dataXName;
+        }
+
+        public SynResTarget getTargetRes() {
+            switch (this.getResType()) {
+                case DataFlow:
+                    return SynResTarget.transform(this.getDataXName());
+                case DataApp:
+                    return SynResTarget.pipeline(this.getDataXName());
+                default:
+                    throw new IllegalStateException("unsupport resType:" + this.getResType());
+            }
         }
 
         private String preTrigger;

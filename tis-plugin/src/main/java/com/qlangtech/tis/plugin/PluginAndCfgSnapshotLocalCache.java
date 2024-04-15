@@ -19,11 +19,14 @@
 package com.qlangtech.tis.plugin;
 
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -31,9 +34,26 @@ import java.util.function.Function;
  **/
 public class PluginAndCfgSnapshotLocalCache {
     private final Map<String, PluginAndCfgsSnapshot> localCache;
+    /**
+     * 当前task对应的前一次执行的状态缓存，为这次全量构建，例如allrows 提供百分比支持
+     */
+    private final Map<Integer, PhaseStatusCollection> taskPreviousStatusCache = new WeakHashMap<>();
 
     public PluginAndCfgSnapshotLocalCache() {
         this.localCache = new ConcurrentHashMap<>();
+    }
+
+    public PhaseStatusCollection getPreviousStatus(Integer currentTaskId, Supplier<PhaseStatusCollection> statSupplier) {
+        synchronized (taskPreviousStatusCache) {
+            PhaseStatusCollection status = taskPreviousStatusCache.get(currentTaskId);
+            if (status == null) {
+                status = statSupplier.get();
+                if (status != null) {
+                    taskPreviousStatusCache.put(currentTaskId, status);
+                }
+            }
+            return status;
+        }
     }
 
     /**

@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.rpc.server;
 
+import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.phasestatus.JobLog;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus;
@@ -38,6 +39,9 @@ import com.qlangtech.tis.rpc.grpc.log.common.Empty;
 import com.qlangtech.tis.rpc.grpc.log.common.JoinTaskStatus;
 import com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus;
 import com.qlangtech.tis.rpc.grpc.log.stream.LogCollectorGrpc;
+import com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection;
+import com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget;
+import com.qlangtech.tis.rpc.grpc.log.stream.PSynResTarget.Builder;
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -166,7 +170,15 @@ public class IncrStatusClient implements IncrStatusUmbilicalProtocol {
 
     @Override
     public PhaseStatusCollection loadPhaseStatusFromLatest(SynResTarget resTarget) {
-        return null;
+
+        Builder builder = PSynResTarget.newBuilder();
+        builder.setPipeline(resTarget.isPipeline());
+        builder.setName(resTarget.getName());
+        PPhaseStatusCollection statusCollection = logCollectorBlockingStub.loadPhaseStatusFromLatest(builder.build());
+        if (statusCollection == null) {
+            return null;
+        }
+        return LogCollectorClient.convert(statusCollection, ExecutePhaseRange.fullRange());
     }
 
     @Override

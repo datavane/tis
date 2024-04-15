@@ -28,7 +28,15 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.IndexBackFlowPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.rpc.grpc.log.common.JoinTaskStatus;
-import com.qlangtech.tis.rpc.grpc.log.stream.*;
+import com.qlangtech.tis.rpc.grpc.log.stream.LogCollectorGrpc;
+import com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatus;
+import com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam;
+import com.qlangtech.tis.rpc.grpc.log.stream.PDumpPhaseStatus;
+import com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState;
+import com.qlangtech.tis.rpc.grpc.log.stream.PIndexBackFlowPhaseStatus;
+import com.qlangtech.tis.rpc.grpc.log.stream.PJoinPhaseStatus;
+import com.qlangtech.tis.rpc.grpc.log.stream.PMonotorTarget;
+import com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.trigger.jst.MonotorTarget;
 import com.qlangtech.tis.trigger.socket.ExecuteState;
@@ -43,6 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -330,8 +339,7 @@ public class LogCollectorClient implements ILogReporter {
 
     public static PhaseStatusCollection convert(PPhaseStatusCollection stat, ExecutePhaseRange executePhaseRange) {
 
-
-        PDumpPhaseStatus dumpPhase = stat.getDumpPhase();
+        PDumpPhaseStatus dumpPhase = Objects.requireNonNull(stat, "param stat can not be null").getDumpPhase();
         PJoinPhaseStatus joinPhase = stat.getJoinPhase();
         PBuildPhaseStatus buildPhase = stat.getBuildPhase();
         PIndexBackFlowPhaseStatus backflow = stat.getIndexBackFlowPhaseStatus();
