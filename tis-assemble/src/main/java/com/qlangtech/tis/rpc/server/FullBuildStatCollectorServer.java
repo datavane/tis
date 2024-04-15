@@ -98,7 +98,6 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
 
     @Override
     public void loadPhaseStatusFromLatest(PSynResTarget request, StreamObserver<PPhaseStatusCollection> responseObserver) {
-        // super.loadPhaseStatusFromLatest(request, responseObserver);
         boolean pipeline = request.getPipeline();
         String targetResName = request.getName();
         if (!pipeline) {
@@ -107,7 +106,7 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
         }
 
         PhaseStatusCollection statusCollection = DefaultChainContext.loadPhaseStatusFromLatest(targetResName);
-        responseObserver.onNext(statusCollection != null ? LogCollectorClient.convertPP(statusCollection) : null);
+        responseObserver.onNext((statusCollection != null) ? LogCollectorClient.convertPP(statusCollection) : null);
         responseObserver.onCompleted();
     }
 

@@ -30,6 +30,7 @@ import com.qlangtech.tis.realtime.yarn.rpc.IncrStatusUmbilicalProtocol;
 import com.qlangtech.tis.realtime.yarn.rpc.LaunchReportInfo;
 import com.qlangtech.tis.realtime.yarn.rpc.MasterJob;
 import com.qlangtech.tis.realtime.yarn.rpc.PingResult;
+import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.realtime.yarn.rpc.UpdateCounterMap;
 import com.qlangtech.tis.rpc.grpc.log.DefaultLoggerAppenderClient;
 import com.qlangtech.tis.rpc.grpc.log.ILogReporter;
@@ -500,6 +501,11 @@ public class StatusRpcClientFactory {
 
         @Override
         public void nodeLaunchReport(LaunchReportInfo launchReportInfo) {
+        }
+
+        @Override
+        public PhaseStatusCollection loadPhaseStatusFromLatest(SynResTarget resTarget) {
+            return null;
         }
 
         @Override

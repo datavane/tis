@@ -175,7 +175,7 @@ public class IncrStatusClient implements IncrStatusUmbilicalProtocol {
         builder.setPipeline(resTarget.isPipeline());
         builder.setName(resTarget.getName());
         PPhaseStatusCollection statusCollection = logCollectorBlockingStub.loadPhaseStatusFromLatest(builder.build());
-        if (statusCollection == null) {
+        if (statusCollection == null || statusCollection.getTaskId() < 1) {
             return null;
         }
         return LogCollectorClient.convert(statusCollection, ExecutePhaseRange.fullRange());
