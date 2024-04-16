@@ -20,6 +20,7 @@ package com.qlangtech.tis.fullbuild.phasestatus.impl;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.fullbuild.phasestatus.IFlush2Local;
 import com.qlangtech.tis.fullbuild.phasestatus.IProcessDetailStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
 import org.apache.commons.lang.StringUtils;
@@ -37,8 +38,13 @@ public class DumpPhaseStatus extends BasicPhaseStatus<TableDumpStatus> {
     @JSONField(serialize = false)
     public final Map<String, TableDumpStatus> /* table name,db.tableName */
             tablesDump = Maps.newConcurrentMap();
+
     public DumpPhaseStatus(int taskid) {
         super(taskid);
+    }
+
+    public DumpPhaseStatus(int taskid, IFlush2Local statusWriter) {
+        super(taskid, statusWriter);
     }
 
     @Override

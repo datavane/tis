@@ -116,9 +116,11 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         JoinPhaseStatus joinPhase = phaseStatusSet.getJoinPhase();
         JoinPhaseStatus.JoinTaskStatus joinTskStatus = LogCollectorClient.convert(joinStat);
         joinPhase.taskStatus.put(joinStat.getJoinTaskName(), joinTskStatus);
-        if (phaseStatusSet.isComplete()) {
-            phaseStatusSet.flushStatus2Local();
-        }
+//        if (phaseStatusSet.isComplete()) {
+          //  phaseStatusSet.flushStatus2Local();
+//        }
+        joinPhase.isComplete();
+        phaseStatusSet.flushStatus2Local();
         returnEmpty(responseObserver);
     }
 
@@ -248,7 +250,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         log.info("taskid:" + taskid + ",tablename:" + tableDumpStatus.getTableName() + ",read:"
                 + tableDumpStatus.getReadRows() + ",all:" + tableDumpStatus.getAllRows());
         DumpPhaseStatus dumpPhase = phaseStatusSet.getDumpPhase();
-        TableDumpStatus dumpStatus = phaseStatusSet.getDumpPhase().getTable(tableDumpStatus.getTableName());
+        TableDumpStatus dumpStatus = dumpPhase.getTable(tableDumpStatus.getTableName());
         // }
         if (tableDumpStatus.getComplete()) {
             // 成功
@@ -264,6 +266,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
             dumpStatus.setWaiting(tableDumpStatus.getWaiting());
         }
         dumpPhase.isComplete();
+        phaseStatusSet.flushStatus2Local();
         returnEmpty(responseObserver);
     }
 

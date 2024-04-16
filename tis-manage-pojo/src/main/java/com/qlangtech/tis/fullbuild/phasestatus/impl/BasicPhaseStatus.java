@@ -20,11 +20,14 @@ package com.qlangtech.tis.fullbuild.phasestatus.impl;
 import com.google.common.util.concurrent.RateLimiter;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.fullbuild.phasestatus.IChildProcessStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.IFlush2Local;
+import com.qlangtech.tis.fullbuild.phasestatus.IFlush2LocalFactory;
 import com.qlangtech.tis.fullbuild.phasestatus.IPhaseStatus;
 import com.qlangtech.tis.manage.common.Config;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -38,14 +41,15 @@ public abstract class BasicPhaseStatus<T extends IChildProcessStatus> implements
     // 是否有将状态写入到本地磁盘
     private transient boolean hasFlush2Local = false;
 
-    public static transient IFlush2Local statusWriter = null;
+    public final transient IFlush2Local statusWriter;
     /**
      * 10秒执行一次速度
      */
     private transient final RateLimiter intervalWriteLimit = RateLimiter.create(0.1);
 
     public static File getFullBuildPhaseLocalFile(int taskid, FullbuildPhase phase) {
-        return new File(Config.getMetaCfgDir(), "df-logs/" + taskid + "/" + phase.getName());
+        return new File(Config.getMetaCfgDir(), "df-logs/" + taskid + "/"
+                + Objects.requireNonNull(phase, "param phase can not be null").getName());
     }
 
     protected abstract FullbuildPhase getPhase();
@@ -68,8 +72,31 @@ public abstract class BasicPhaseStatus<T extends IChildProcessStatus> implements
         this.hasFlush2Local = hasFlush2Local;
     }
 
+    public BasicPhaseStatus(int taskid, IFlush2Local statusWriter) {
+        this.taskid = taskid;
+        this.statusWriter = statusWriter;
+    }
+
     public BasicPhaseStatus(int taskid) {
         this.taskid = taskid;
+        this.statusWriter = IFlush2LocalFactory.createNew(
+                Thread.currentThread().getContextClassLoader(), getFullBuildPhaseLocalFile(taskid, this.getPhase()))
+                .orElse(null);
+
+
+//                new IFlush2Local() {
+//            @Override
+//            public void write( BasicPhaseStatus status) throws Exception {
+//                XmlFile xmlFile = new XmlFile(localFile);
+//                xmlFile.write(status, Collections.emptySet());
+//            }
+//
+//            @Override
+//            public BasicPhaseStatus loadPhase(File localFile) throws Exception {
+//                XmlFile xmlFile = new XmlFile(localFile);
+//                return (BasicPhaseStatus) xmlFile.read();
+//            }
+//        };
     }
 
     // 在客户端是否详细展示
@@ -120,23 +147,26 @@ public abstract class BasicPhaseStatus<T extends IChildProcessStatus> implements
         }
         for (T ts : children) {
             if (ts.isFaild()) {
-                return finalWriteStatus2Local();
+                finalWriteStatus2Local();
+                return true;
             }
             if (!ts.isComplete()) {
                 return false;
             }
         }
-        return finalWriteStatus2Local();
+        finalWriteStatus2Local();
+        return true;
     }
 
-    private boolean finalWriteStatus2Local() {
-        boolean result = false;
+    private void finalWriteStatus2Local() {
+        // boolean result = false;
         if (!this.hasFlush2Local) {
-            result = this.writeStatus2Local();
+            this.writeStatus2Local();
             this.hasFlush2Local = true;
         }
-        return result;
+        //return result;
     }
+
 
     public boolean intervalWriteStatus2Local() {
         if (this.intervalWriteLimit.tryAcquire()) {
@@ -155,13 +185,11 @@ public abstract class BasicPhaseStatus<T extends IChildProcessStatus> implements
 
         if (statusWriter != null) {
             synchronized (this) {
-                File localFile = getFullBuildPhaseLocalFile(this.taskid, this.getPhase());
-
                 try {
-                    if (!localFile.exists()) {
-                        // 写入本地文件系统中，后续查看状态可以直接从本地文件中拿到
-                        statusWriter.write(localFile, this);
-                    }
+                    // if (!localFile.exists()) {
+                    // 写入本地文件系统中，后续查看状态可以直接从本地文件中拿到
+                    statusWriter.write(this);
+                    //}
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -169,13 +197,6 @@ public abstract class BasicPhaseStatus<T extends IChildProcessStatus> implements
         }
 
         return true;
-    }
-
-    public interface IFlush2Local {
-
-        public void write(File localFile, BasicPhaseStatus status) throws Exception;
-
-        public BasicPhaseStatus loadPhase(File localFile) throws Exception;
     }
 
     @Override

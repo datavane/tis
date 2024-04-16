@@ -24,7 +24,8 @@ import com.qlangtech.tis.exec.ActionInvocation;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
-import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.fullbuild.phasestatus.IFlush2Local;
+import com.qlangtech.tis.fullbuild.phasestatus.IFlush2LocalFactory;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BasicPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildPhaseStatus;
@@ -49,7 +50,6 @@ import javax.servlet.ServletContextListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -69,25 +69,25 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     //private ZkStateReader zkStateReader;
 
     static {
-        initPhaseStatusStatusWriter();
+        //  initPhaseStatusStatusWriter();
     }
 
     public static void initPhaseStatusStatusWriter() {
-        if (BasicPhaseStatus.statusWriter == null) {
-            BasicPhaseStatus.statusWriter = new BasicPhaseStatus.IFlush2Local() {
-                @Override
-                public void write(File localFile, BasicPhaseStatus status) throws Exception {
-                    XmlFile xmlFile = new XmlFile(localFile);
-                    xmlFile.write(status, Collections.emptySet());
-                }
-
-                @Override
-                public BasicPhaseStatus loadPhase(File localFile) throws Exception {
-                    XmlFile xmlFile = new XmlFile(localFile);
-                    return (BasicPhaseStatus) xmlFile.read();
-                }
-            };
-        }
+        // if (BasicPhaseStatus.statusWriter == null) {
+//            BasicPhaseStatus.statusWriter = new BasicPhaseStatus.IFlush2Local() {
+//                @Override
+//                public void write(File localFile, BasicPhaseStatus status) throws Exception {
+//                    XmlFile xmlFile = new XmlFile(localFile);
+//                    xmlFile.write(status, Collections.emptySet());
+//                }
+//
+//                @Override
+//                public BasicPhaseStatus loadPhase(File localFile) throws Exception {
+//                    XmlFile xmlFile = new XmlFile(localFile);
+//                    return (BasicPhaseStatus) xmlFile.read();
+//                }
+//            };
+        //     }
     }
 
 
@@ -334,7 +334,9 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
                 if (result == null) {
                     result = new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange());
                 }
-                phaseStatus = BasicPhaseStatus.statusWriter.loadPhase(localFile);
+                IFlush2Local flush2Local = IFlush2LocalFactory.createNew(IndexSwapTaskflowLauncher.class.getClassLoader(), localFile)
+                        .orElseThrow(() -> new IllegalStateException("flush2Local must be present"));
+                phaseStatus = flush2Local.loadPhase(); // BasicPhaseStatus.statusWriter.loadPhase(localFile);
                 switch (phase) {
                     case FullDump:
                         result.setDumpPhase((DumpPhaseStatus) phaseStatus);

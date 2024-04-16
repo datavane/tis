@@ -45,6 +45,7 @@ import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.workflow.pojo.IWorkflow;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -215,12 +216,16 @@ public abstract class DataXJobSubmit {
         msg.setResType(processor.getResType());
 
         PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest();
+        logger.info("preTaskStatus is{} null", preTaskStatus != null ? " not" : StringUtils.EMPTY);
         DumpPhaseStatus.TableDumpStatus dataXJob = null;
-        if (preTaskStatus != null && (dataXJob = preTaskStatus.getDumpPhase().getTable(dataXJobInfo.jobFileName)) != null && dataXJob.getAllRows() > 0) {
+        if (preTaskStatus != null
+                && (dataXJob = preTaskStatus.getDumpPhase().getTable(dataXJobInfo.jobFileName)) != null
+                && dataXJob.getAllRows() > 0) {
             msg.setAllRowsApproximately(dataXJob.getReadRows());
         } else {
             msg.setAllRowsApproximately(-1);
         }
+        logger.info("job:{} relevant DataXJob:{}", dataXJobInfo.jobFileName, dataXJob != null ? "{" + dataXJob.getReadRows() + "}" : " is null");
         return msg;
     }
 
