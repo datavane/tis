@@ -149,7 +149,7 @@ public interface IExecChainContext extends IJoinTaskContext {
             try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 // 将数据通道的依赖插件以及配置信息添加到instanceParams中
                 PluginAndCfgsSnapshotUtils.writeManifest2OutputStream(outputStream
-                        , PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs((IDataxProcessor) processor, Optional.empty(), Collections.emptyMap()));
+                        , PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs((IDataxProcessor) processor));
                 final Base64 base64 = new Base64();
                 return base64.encodeAsString(outputStream.toByteArray());
                 // instanceParams.put(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS, base64.encodeAsString(outputStream.toByteArray()));
@@ -157,23 +157,13 @@ public interface IExecChainContext extends IJoinTaskContext {
                 throw new RuntimeException(e);
             }
         }));
-
-
-//        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-//            // 将数据通道的依赖插件以及配置信息添加到instanceParams中
-//            PluginAndCfgsSnapshotUtils.writeManifest2OutputStream(outputStream
-//                    , PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs(processor, Optional.empty(), Collections.emptyMap()));
-//            final Base64 base64 = new Base64();
-//            instanceParams.put(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS, base64.encodeAsString(outputStream.toByteArray()));
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-
         return instanceParams;
     }
 
-    public static DefaultExecContext deserializeInstanceParams(JSONObject instanceParams, Consumer<DefaultExecContext> execChainContextConsumer, Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
-        return DefaultExecContext.deserializeInstanceParams(instanceParams, true, execChainContextConsumer, cfgsSnapshotConsumer);
+    public static DefaultExecContext deserializeInstanceParams(JSONObject instanceParams
+            , Consumer<DefaultExecContext> execChainContextConsumer, Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
+        return DefaultExecContext.deserializeInstanceParams(instanceParams
+                , true, execChainContextConsumer, cfgsSnapshotConsumer);
     }
 
     public static DefaultExecContext deserializeInstanceParams(JSONObject instanceParams) {
@@ -212,8 +202,6 @@ public interface IExecChainContext extends IJoinTaskContext {
         }
     }
 
-//    <T extends IBasicAppSource> T getAppSource();
-
     ITISCoordinator getZkClient();
 
 
@@ -227,10 +215,6 @@ public interface IExecChainContext extends IJoinTaskContext {
     String getWorkflowName();
 
     ITISFileSystem getIndexBuildFileSystem();
-
-//    TableDumpFactory getTableDumpFactory();
-//
-//    IndexBuilderTriggerFactory getIndexBuilderFactory();
 
     void rebindLoggingMDCParams();
 

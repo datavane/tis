@@ -108,22 +108,40 @@ public class DefaultExecContext implements IExecChainContext, IdentityName {
 
         if (resolveCfgsSnapshotConsumer) {
 
-            String pluginCfgsMetas = instanceParams.getString(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS);
+//            String pluginCfgsMetas = instanceParams.getString(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS);
+//
+//            if (StringUtils.isEmpty(pluginCfgsMetas)) {
+//                throw new IllegalStateException("property:"
+//                        + PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS + " of instanceParams can not be null");
+//            }
+//
+//            final Base64 base64 = new Base64();
+//            try (InputStream manifestJar = new ByteArrayInputStream(base64.decode(pluginCfgsMetas))) {
+//                cfgsSnapshotConsumer.accept(PluginAndCfgsSnapshot.getRepositoryCfgsSnapshot(appName, manifestJar));
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+//            }
 
-            if (StringUtils.isEmpty(pluginCfgsMetas)) {
-                throw new IllegalStateException("property:"
-                        + PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS + " of instanceParams can not be null");
-            }
-
-            final Base64 base64 = new Base64();
-            try (InputStream manifestJar = new ByteArrayInputStream(base64.decode(pluginCfgsMetas))) {
-                cfgsSnapshotConsumer.accept(PluginAndCfgsSnapshot.getRepositoryCfgsSnapshot(appName, manifestJar));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            cfgsSnapshotConsumer.accept(resolveCfgsSnapshotConsumer(instanceParams));
         }
 
         return execChainContext;
+    }
+
+    static PluginAndCfgsSnapshot resolveCfgsSnapshotConsumer(JSONObject instanceParams) {
+        String pluginCfgsMetas = instanceParams.getString(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS);
+        String appName = instanceParams.getString(JobParams.KEY_COLLECTION);
+        if (StringUtils.isEmpty(pluginCfgsMetas)) {
+            throw new IllegalStateException("property:"
+                    + PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS + " of instanceParams can not be null");
+        }
+
+        final Base64 base64 = new Base64();
+        try (InputStream manifestJar = new ByteArrayInputStream(base64.decode(pluginCfgsMetas))) {
+            return PluginAndCfgsSnapshot.getRepositoryCfgsSnapshot(appName, manifestJar);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void putTablePt(IDumpTable table, ITabPartition pt) {

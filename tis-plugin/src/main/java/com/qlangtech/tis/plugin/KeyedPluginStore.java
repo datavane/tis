@@ -34,7 +34,12 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,28 +77,33 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         return getAppAwarePluginMetas(StoreResourceType.parse(isDB), name);
     }
 
+    public static PluginMetas getAppAwarePluginMetas(StoreResourceType resourceType, String name) {
+        return getAppAwarePluginMetas(resourceType, name, true);
+    }
+
     /**
      * 取得某个应用下面相关的插件元数据信息用于分布式任务同步用
      *
      * @return
      */
-    public static PluginMetas getAppAwarePluginMetas(StoreResourceType resourceType, String name) {
+    public static PluginMetas getAppAwarePluginMetas(StoreResourceType resourceType, String name, boolean resolveMeta) {
         AppKey appKey = new AppKey(null, resourceType, name, (PluginClassCategory) null);
         File appDir = getSubPathDir(appKey);
         File lastModify = getLastModifyToken(appKey);// new File(appDir, CenterResource.KEY_LAST_MODIFIED_EXTENDION);
         long lastModfiyTimeStamp = -1;
         Set<PluginMeta> metas = Collections.emptySet();
 
-
         try {
             if (appDir.exists()) {
                 if (lastModify.exists()) {
                     lastModfiyTimeStamp = Long.parseLong(FileUtils.readFileToString(lastModify, TisUTF8.get()));
                 }
-                Iterator<File> files = FileUtils.iterateFiles(appDir, new String[]{DOMUtil.XML_RESERVED_PREFIX}, true);
-                metas = ComponentMeta.loadPluginMeta(() -> {
-                    return Lists.newArrayList(files);
-                });
+                if (resolveMeta) {
+                    Iterator<File> files = FileUtils.iterateFiles(appDir, new String[]{DOMUtil.XML_RESERVED_PREFIX}, true);
+                    metas = ComponentMeta.loadPluginMeta(() -> {
+                        return Lists.newArrayList(files);
+                    });
+                }
             }
             return new PluginMetas(appDir, metas, lastModfiyTimeStamp);
         } catch (IOException e) {

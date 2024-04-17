@@ -35,6 +35,10 @@ public class PowerjobTriggerBuildResult extends TriggerBuildResult {
      * 用于Crontab任务传递的参数
      */
     private String javaMemorySpec;
+    /**
+     * 前一次执行的taskId，初次执行时为空
+     */
+    private Integer previousTaskId;
 
     public PowerjobTriggerBuildResult() {
     }
@@ -45,7 +49,15 @@ public class PowerjobTriggerBuildResult extends TriggerBuildResult {
         pluginCfgsMetas = Objects.requireNonNull(instanceParams, "instanceParams can not be null") //
                 .getString(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS);
         this.javaMemorySpec = instanceParams.getString(JobParams.KEY_JAVA_MEMORY_SPEC);
+        this.previousTaskId = instanceParams.getInteger(JobParams.KEY_PREVIOUS_TASK_ID);
+    }
 
+    public Integer getPreviousTaskId() {
+        return previousTaskId;
+    }
+
+    public void setPreviousTaskId(Integer previousTaskId) {
+        this.previousTaskId = previousTaskId;
     }
 
     public String getJavaMemorySpec() {

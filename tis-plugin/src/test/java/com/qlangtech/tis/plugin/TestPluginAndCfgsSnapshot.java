@@ -52,7 +52,7 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
         String appName = "mysql_hudi";
         // String appName = "mysql_doris3";
         Manifest manifest = PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs( //
-                new TargetResName(appName), Optional.empty(), Collections.emptyMap());
+                new TargetResName(appName));
         Assert.assertNotNull(manifest);
     }
 
