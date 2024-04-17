@@ -142,7 +142,12 @@ public class TIS {
             = new Memoizer<KeyedPluginStore.AppKey, KeyedPluginStore<IAppSource>>() {
         @Override
         public KeyedPluginStore<IAppSource> compute(KeyedPluginStore.AppKey key) {
-            return new KeyedPluginStore(key);
+            return new KeyedPluginStore(key, new PluginStore.IPluginProcessCallback<IAppSource>() {
+                @Override
+                public void afterDeserialize(PluginStore<IAppSource> pluginStore, IAppSource appSource) {
+                    appSource.setPluginStore(pluginStore);
+                }
+            });
         }
     };
 

@@ -25,6 +25,7 @@ import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.StoreResourceTypeGetter;
 import com.qlangtech.tis.util.IPluginContext;
@@ -113,5 +114,11 @@ public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGe
     default Descriptor<IAppSource> getDescriptor() {
         return TIS.get().getDescriptor(this.getClass());
     }
+
+    /**
+     * DefaultDataXProcessor中需要调用PluginStore 的writeLastModifyTimeStamp()，在客户主动更新了create table DDL之后,所以需要事先将pluginStore实例注入
+     * @param pluginStore
+     */
+    void setPluginStore(PluginStore<IAppSource> pluginStore);
 }
 

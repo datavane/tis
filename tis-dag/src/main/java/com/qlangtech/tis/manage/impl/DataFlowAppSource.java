@@ -34,10 +34,12 @@ import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.*;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IDataFlowAppSource;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
+import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
@@ -80,8 +82,11 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
     private final IFlatTableBuilder flatTableBuilder;
     private final IDataSourceFactoryGetter dsGetter;
 
+    @Override
+    public void setPluginStore(PluginStore<IAppSource> pluginStore) {
 
-    // protected static final ExecutorService executorService = Executors.newCachedThreadPool();
+    }
+// protected static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     //  protected static final ExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 

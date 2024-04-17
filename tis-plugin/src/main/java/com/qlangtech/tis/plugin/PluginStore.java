@@ -86,8 +86,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
      *
      * @param <T>
      */
-    public interface IPluginProcessCallback<T> {
-        void afterDeserialize(T t);
+    public interface IPluginProcessCallback<T extends Describable> {
+        void afterDeserialize(PluginStore<T> pluginStore, T t);
     }
 
     public void cleanPlugins() {
@@ -277,7 +277,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                                 + this.pluginClass.getName() + ", but now is " + instance.getClass().getName());
                     }
                     for (IPluginProcessCallback<T> callback : pluginCreateCallback) {
-                        callback.afterDeserialize(instance);
+                        callback.afterDeserialize(this, instance);
                     }
 
                 }
@@ -333,7 +333,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         }
     }
 
-    private long writeLastModifyTimeStamp() {
+    public long writeLastModifyTimeStamp() {
         File timestamp = getLastModifyTimeStampFile(this.file.getFile());
 //        String millisecTimeStamp = IParamContext.getCurrentMillisecTimeStamp();
 //        FileUtils.writeStringToFile(timestamp, millisecTimeStamp, TisUTF8.get());
@@ -418,7 +418,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             if (plugins != null) {
                 plugins.forEach((p) -> {
                     for (IPluginProcessCallback<T> callback : this.pluginCreateCallback) {
-                        callback.afterDeserialize(p);
+                        callback.afterDeserialize(this, p);
                     }
                 });
             }

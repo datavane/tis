@@ -37,6 +37,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
@@ -73,9 +74,15 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     public static final String DATAX_CREATE_DDL_DIR_NAME = "createDDL";
 
     private List<TableAlias> tableMaps;
+    private transient PluginStore<IAppSource> pluginStore;
 
     public interface IDataxProcessorGetter {
         DataxProcessor get(String dataXName);
+    }
+
+    @Override
+    public void setPluginStore(PluginStore<IAppSource> pluginStore) {
+        this.pluginStore = pluginStore;
     }
 
     // for TEST
@@ -232,6 +239,9 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
             , StringBuffer createDDL, String sqlFileName, boolean overWrite) throws IOException {
         File createDDLDir = this.getDataxCreateDDLDir(pluginCtx);
         saveCreateTableDDL(createDDL, createDDLDir, sqlFileName, overWrite);
+        // 主要更新一下最后更新时间，这样在执行powerjob任务可以顺利将更新后的ddl文件同步到powerjob的worker节点上去
+        Objects.requireNonNull(this.pluginStore,"pluginStore can be null,shall be set by method  setPluginStore ahead")
+                .writeLastModifyTimeStamp();
     }
 
     public static void saveCreateTableDDL(StringBuffer createDDL, File createDDLDir, String sqlFileName, boolean overWrite) throws IOException {

@@ -226,6 +226,14 @@ public class PluginAndCfgsSnapshot {
         return createDataBatchJobManifestCfgAttrs(processor);
     }
 
+
+    public static Manifest createDataBatchJobManifestCfgAttrs(IDataxProcessor processor) throws Exception {
+        Map<String, String> extraEnvProps = Collections.emptyMap();
+        Optional<Predicate<PluginMeta>> pluginMetasFilter = Optional.empty();
+        return createDataBatchJobManifestCfgAttrs(processor, extraEnvProps, pluginMetasFilter);
+
+    }
+
     /**
      * 通过运行时遍历的方式取得 DataX 批量任务对应的Manifest
      *
@@ -233,7 +241,8 @@ public class PluginAndCfgsSnapshot {
      * @return
      * @throws Exception
      */
-    public static Manifest createDataBatchJobManifestCfgAttrs(IDataxProcessor processor) throws Exception {
+    public static Manifest createDataBatchJobManifestCfgAttrs(IDataxProcessor processor
+            , Map<String, String> extraEnvProps, Optional<Predicate<PluginMeta>> pluginMetasFilter) throws Exception {
 
         if (processor.getResType() != StoreResourceType.DataApp) {
             throw new IllegalArgumentException("resType must be " + StoreResourceType.DataApp + " but now is " + processor.getResType());
@@ -257,7 +266,7 @@ public class PluginAndCfgsSnapshot {
 
 
         return createManifestCfgAttrs(resName, System.currentTimeMillis()
-                , Collections.emptyMap(), () -> {
+                , extraEnvProps, () -> {
 
                     KeyedPluginStore.PluginMetas metas
                             = KeyedPluginStore.getAppAwarePluginMetas(processor.getResType(), resName.getName(), false);
@@ -266,8 +275,13 @@ public class PluginAndCfgsSnapshot {
 
                     Map<String, Long> globalPluginStoreLastModify = ComponentMeta.getGlobalPluginStoreLastModifyTimestamp(dataxComponentMeta);
 
+                    PluginMetaSet collector = new PluginMetaSet(Optional.empty());
+                    for (PluginMeta meta : pluginMetas.getMetas()) {
+                        collectAllPluginMeta(meta, collector);
+                    }
+
                     return new PluginAndCfgsSnapshot(resName, globalPluginStoreLastModify
-                            , pluginMetas //
+                            , collector //
                             , metas.lastModifyTimestamp, metas);
 
                 }).getValue();

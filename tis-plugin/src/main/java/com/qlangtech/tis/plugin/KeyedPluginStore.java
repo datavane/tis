@@ -163,9 +163,18 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         SetPluginsResult updateResult = super.setPlugins(pluginContext, context, dlist, update);
         if (updateResult.success && updateResult.cfgChanged) {
             // 本地写入时间戳文件，以备分布式文件同步之用
-            updateResult.lastModifyTimeStamp = writeLastModifyTimeStamp(getLastModifyToken(this.key));
+            updateResult.lastModifyTimeStamp = writeLastModifyTimeStamp();
         }
         return updateResult;
+    }
+
+    /**
+     * 可以让外部主动地更新一下lastmodify时间戳，例如，更新了ddl文件，这样可以第一时间同步到powerjob的运行环境中去
+     *
+     * @return
+     */
+    public long writeLastModifyTimeStamp() {
+        return writeLastModifyTimeStamp(getLastModifyToken(this.key));
     }
 
     @Override

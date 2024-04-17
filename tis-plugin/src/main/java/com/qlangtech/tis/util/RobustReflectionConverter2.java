@@ -114,6 +114,13 @@ public class RobustReflectionConverter2 implements XStream2.ConverterValve {
             this.repoRes.add(res);
         }
 
+        public void fillWithDependencies() {
+            List<PluginMeta> deps = Lists.newArrayList();
+            for (PluginMeta meta : this.metas) {
+                meta.getMetaDependencies();
+            }
+        }
+
         private PluginMetas unCacheableFromPluginStore() {
             this.cacheable = false;
             return this;

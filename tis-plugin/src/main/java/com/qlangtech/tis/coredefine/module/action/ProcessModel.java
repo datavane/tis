@@ -177,7 +177,7 @@ public enum ProcessModel {
 //    } else {
 //      throw new IllegalStateException("illega type:" + this);
 //    }
-
+   // DataxProcessor.
     return (IAppSource) DataxProcessor.load(pluginContext, this.resType, name);
   }
 }

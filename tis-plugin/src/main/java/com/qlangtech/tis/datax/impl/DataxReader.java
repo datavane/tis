@@ -194,7 +194,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         final TIS.DataXReaderAppKey key = new TIS.DataXReaderAppKey(pluginContext, db, appname,
                 new PluginStore.IPluginProcessCallback<DataxReader>() {
                     @Override
-                    public void afterDeserialize(final DataxReader reader) {
+                    public void afterDeserialize(PluginStore<DataxReader> ps,final DataxReader reader) {
 
                         List<PluginFormProperties> subFieldFormPropertyTypes =
                                 reader.getDescriptor().getSubPluginFormPropertyTypes();
