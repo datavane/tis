@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
  */
 public class Specification {
 
-    private static final Pattern p = Pattern.compile("(\\d+(\\.\\d)?)([mGM]?)");
+    private static final Pattern p = Pattern.compile("(\\d+(\\.\\d)?)(([mGM]|Mi)?)");
 
     public static Specification parse(String val) {
         Matcher m = p.matcher(val);
@@ -72,7 +72,7 @@ public class Specification {
      */
     public int normalizeMemory(Optional<Integer> proportion) {
         float result = 0;
-        if ("M".equals(this.getUnit())) {
+        if ("Mi".equals(this.getUnit()) || "M".equals(this.getUnit())) {
             result = this.getVal();
         } else if ("G".equals(this.getUnit())) {
             result = this.getVal() * 1024;
@@ -103,7 +103,7 @@ public class Specification {
         } else {
             throw new IllegalStateException("invalid cpu unit:" + this.getUnit());
         }
-        return (int)result;
+        return (int) result;
     }
 
     public boolean memoryBigThan(Specification spec) {
