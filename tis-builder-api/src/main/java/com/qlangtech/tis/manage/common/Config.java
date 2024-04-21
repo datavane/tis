@@ -20,6 +20,7 @@ package com.qlangtech.tis.manage.common;
 
 import com.qlangtech.tis.config.BasicConfig;
 import com.qlangtech.tis.org.apache.commons.io.FileUtils;
+import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.utils.TisMetaProps;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.web.start.TisSubModule;
@@ -300,6 +301,7 @@ public class Config extends BasicConfig {
 
         // this.zkHost = p.getString(KEY_ZK_HOST, true);
         //  = p.getString(KEY_ASSEMBLE_HOST, true);
+        //  boolean inDocker = BasicConfig.inDockerContainer();
         this.assembleHost = (propGetter.getString(KEY_ASSEMBLE_HOST, true));
         this.tisHost = propGetter.getString(KEY_TIS_HOST, true);
         this.runtime = propGetter.getString(KEY_RUNTIME, true);
@@ -492,10 +494,9 @@ public class Config extends BasicConfig {
                 try {
                     ResourceBundle bundle = ResourceBundle.getBundle(bundlePath);
                     final ClassLoader classLoader = Config.class.getClassLoader();
-                    return new P() {
+                    return new LocalResBasedPropertyGetter() {
                         @Override
                         protected InputStream getOriginSource() {
-
                             InputStream source = classLoader.getResourceAsStream(bundlePathClasspath);
                             if (source == null) {
                                 throw new NullPointerException("bundlePathClasspath:"
@@ -506,7 +507,7 @@ public class Config extends BasicConfig {
                         }
 
                         @Override
-                        protected String getProp(String key) {
+                        protected String getPropValue(String key) {
                             return bundle.getString(key);
                         }
                     };
@@ -520,7 +521,7 @@ public class Config extends BasicConfig {
                             props.load(input);
                         }
                         TisAppLaunch.setTest(true);
-                        return new P() {
+                        return new LocalResBasedPropertyGetter() {
                             @Override
                             protected InputStream getOriginSource() {
                                 try {
@@ -529,9 +530,8 @@ public class Config extends BasicConfig {
                                     throw new RuntimeException(e);
                                 }
                             }
-
                             @Override
-                            protected String getProp(String key) {
+                            protected String getPropValue(String key) {
                                 return props.getProperty(key);
                             }
                         };
@@ -570,6 +570,21 @@ public class Config extends BasicConfig {
         protected abstract String getProp(String key);
 
         protected abstract InputStream getOriginSource();
+    }
+
+
+    private static abstract class LocalResBasedPropertyGetter extends P {
+        @Override
+        protected final String getProp(String key) {
+            if (KEY_ASSEMBLE_HOST.equals(key) || KEY_TIS_HOST.equals(key)) {
+                if (BasicConfig.inDockerContainer()) {
+                   return NetUtils.getHost();
+                }
+            }
+
+            return this.getPropValue(key);
+        }
+        protected abstract  String getPropValue(String key);
     }
 
     public static String getGenerateParentPackage() {

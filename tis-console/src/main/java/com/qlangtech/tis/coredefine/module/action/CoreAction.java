@@ -125,7 +125,7 @@ import java.util.stream.Collectors;
  * @date 2016年8月4日
  */
 public class CoreAction extends BasicModule {
-
+  private static final Logger logger = LoggerFactory.getLogger(CoreAction.class);
   public static final String ADMIN_COLLECTION_PATH = "/solr/admin/collections";
   public static final String CREATE_COLLECTION_PATH = ADMIN_COLLECTION_PATH + "?action=CREATE&name=";
   public static final String DEFAULT_SOLR_CONFIG = "tis_mock_config";
@@ -1136,101 +1136,6 @@ public class CoreAction extends BasicModule {
     return null;
   }
 
-//  /**
-//   * 各个副本节点描述信息
-//   *
-//   * @return
-//   * @throws Exception
-//   */
-//  private static InstanceDirDesc getInstanceDirDesc(BasicModule module) throws Exception {
-//    InstanceDirDesc dirDesc = new InstanceDirDesc();
-//    dirDesc.setValid(false);
-//    DocCollection collection = module.getIndex();
-//    final Set<String> instanceDir = new HashSet<String>();
-//    if (collection.getSlices().isEmpty()) {
-//      dirDesc.setDesc("实例尚未创建,未发现副本节点");
-//      return dirDesc;
-//    }
-//    boolean hasGetAllCount = false;
-//    URL url = null;
-//    for (Slice slice : collection.getSlices()) {
-//      for (final Replica replica : slice.getReplicas()) {
-//        if (!hasGetAllCount) {
-//          dirDesc.setAllcount(getAllRowsCount(collection.getName(), replica.getCoreUrl()));
-//          hasGetAllCount = true;
-//        }
-//        //ZkCoreNodeProps.getCoreUrl
-//        url = new URL(replica.getCoreUrl() + "admin/mbeans?stats=true&cat=CORE&key=core&wt=xml");
-//        // http://192.168.28.200:8080/solr/search4supplyGoods2_shard1_replica_n1/admin/mbeans?stats=true&cat=CORE&key=core&wt=xml
-//        ConfigFileContext.processContent(url, new StreamProcess<Object>() {
-//
-//          @Override
-//          @SuppressWarnings("all")
-//          public Object p(int s, InputStream stream, Map<String, List<String>> headerFields) {
-//            SimpleOrderedMap result = (SimpleOrderedMap) RESPONSE_PARSER.processResponse(stream, TisUTF8.getName());
-//            final SimpleOrderedMap mbeans = (SimpleOrderedMap) result.get("solr-mbeans");
-//            SimpleOrderedMap core = (SimpleOrderedMap) ((SimpleOrderedMap) mbeans.get("CORE")).get("core");
-//            SimpleOrderedMap status = ((SimpleOrderedMap) core.get("stats"));
-//            // core 节点刚创建status为空
-//            if (status == null) {
-//              return null;
-//            }
-//            String indexDir = StringUtils.substringAfterLast((String) status.get("CORE.indexDir"), "/");
-//            instanceDir.add(indexDir);
-//            ReplicState replicState = new ReplicState();
-//            replicState.setIndexDir(indexDir);
-//            replicState.setValid(StringUtils.isNotBlank(indexDir));
-//            if (StringUtils.isBlank(indexDir)) {
-//              replicState.setInvalidDesc("未完成全量构建");
-//            }
-//            replicState.setNodeName(StringUtils.substringBefore(replica.getNodeName(), ":"));
-//            ;
-//            replicState.setCoreName(StringUtils.substringAfter((String) core.get("class"), "_"));
-//            replicState.setState(replica.getState().toString());
-//            replicState.setLeader(replica.getBool("leader", false));
-//            dirDesc.addReplicState(slice.getName(), replicState);
-//            return null;
-//          }
-//        });
-//      }
-//    }
-//    final StringBuffer replicDirDesc = new StringBuffer();
-//    if (instanceDir.size() > 1) {
-//      replicDirDesc.append("(");
-//      int count = 0;
-//      for (String d : instanceDir) {
-//        replicDirDesc.append(d);
-//        if (++count < instanceDir.size()) {
-//          replicDirDesc.append(",");
-//        }
-//      }
-//      replicDirDesc.append(")");
-//      dirDesc.setDesc("副本目录不一致，分别为:" + replicDirDesc);
-//    } else if (instanceDir.size() == 1) {
-//      if (dirDesc.isAllReplicValid()) {
-//        dirDesc.setValid(true);
-//        for (String d : instanceDir) {
-//          dirDesc.setDesc("所有副本目录为:" + d);
-//          break;
-//        }
-//      } else {
-//        dirDesc.setValid(false);
-//        dirDesc.setDesc(dirDesc.invalidDesc().toString());
-//      }
-//    } else {
-//      dirDesc.setDesc("副本目录数异常,size:" + instanceDir.size());
-//    }
-//    return dirDesc;
-//  }
-
-//  public static long getAllRowsCount(String collectionName, String coreURL) throws SolrServerException, IOException {
-//    QueryCloudSolrClient solrClient = new QueryCloudSolrClient(coreURL);
-//    SolrQuery query = new SolrQuery();
-//    query.setRows(0);
-//    query.setQuery("*:*");
-//    return solrClient.query(collectionName, query).getResults().getNumFound();
-//  }
-
   /**
    * 删除增量通道
    *
@@ -1243,9 +1148,13 @@ public class CoreAction extends BasicModule {
     IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
     indexStreamCodeGenerator.deleteScript();
 
-    TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
-    // 删除增量实例
-    k8sDelegate.removeIncrProcess();
+    try {
+      TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
+      // 删除增量实例
+      k8sDelegate.removeIncrProcess();
+    } catch (Exception e) {
+      logger.warn(e.getMessage(),e);
+    }
   }
 
 
