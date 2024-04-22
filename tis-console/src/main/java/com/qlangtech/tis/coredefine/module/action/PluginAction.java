@@ -140,6 +140,7 @@ public class PluginAction extends BasicModule {
         @Override
         public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
           logger.info("has apply clean " + targetResource + " cache by " + applyParams);
+
           return null;
         }
       });
@@ -603,10 +604,14 @@ public class PluginAction extends BasicModule {
           }
           updateCenter.persistInstallStatus();
           if (!failures) {
-
-            InstallUtil.proceedToNextStateFrom(InstallState.INITIAL_PLUGINS_INSTALLING);
+            try {
+              // 为了使Assemble 节点有时间初始化
+              Thread.sleep(2000);
+            } catch (InterruptedException e) {
+            }
             // 为了让Assemble等节点的uberClassLoader重新加载一次，需要主动向Assemble等节点发送一个指令
             notifyPluginUpdate2AssembleNode(TIS.KEY_ACTION_CLEAN_TIS + "=true", "TIS");
+            InstallUtil.proceedToNextStateFrom(InstallState.INITIAL_PLUGINS_INSTALLING);
           }
         }
       }.start();

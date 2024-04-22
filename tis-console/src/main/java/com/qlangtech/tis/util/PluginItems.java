@@ -64,7 +64,6 @@ import java.util.stream.Collectors;
  * @date 2020-02-10 12:24
  */
 public class PluginItems {
-
   private final IPluginEnum heteroEnum;
   private final UploadPluginMeta pluginMeta;
   private final IPluginContext pluginContext;
@@ -90,6 +89,7 @@ public class PluginItems {
     } : pluginContext;
   }
 
+
   /**
    * 校验提交的表单
    *
@@ -111,12 +111,17 @@ public class PluginItems {
 
       for (int itemIndex = 0; itemIndex < this.items.size(); itemIndex++) {
         attrValMap = this.items.get(itemIndex);
-        Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
-        if (!(validateResult = attrValMap.validate(module, context, verify)).isValid()) {
-          parseResult.faild = true;
-        } else {
-          validateResult.setDescriptor(attrValMap.descriptor);
-          items.add(validateResult);
+        try {
+          AttrValMap.setCurrentRootPluginValidator(attrValMap.descriptor);
+          Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
+          if (!(validateResult = attrValMap.validate(module, context, verify)).isValid()) {
+            parseResult.faild = true;
+          } else {
+            validateResult.setDescriptor(attrValMap.descriptor);
+            items.add(validateResult);
+          }
+        } finally {
+          AttrValMap.removeCurrentRootPluginValidator();
         }
       }
     } finally {

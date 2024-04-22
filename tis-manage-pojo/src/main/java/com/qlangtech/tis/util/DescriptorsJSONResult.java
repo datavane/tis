@@ -30,7 +30,7 @@ import java.util.Objects;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-03-25 12:41
- * @ses DescriptorsJSON
+ * @seee DescriptorsJSON
  **/
 public class DescriptorsJSONResult {
     public static final ThreadLocal<Object> rootDescriptorLocal = new ThreadLocal<Object>();

@@ -33,6 +33,7 @@ import com.qlangtech.tis.util.impl.AttrVals;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -43,9 +44,20 @@ public class AttrValMap {
 
     public static final String PLUGIN_EXTENSION_IMPL = "impl";
     public static final String PLUGIN_EXTENSION_VALS = "vals";
+    private static final ThreadLocal<Descriptor> currentRootPluginValidator = new ThreadLocal<>();
 
-    //    private final Map<String, com.alibaba.fastjson.JSON> /*** attrName*/
-    //            attrValMap;
+    public static void setCurrentRootPluginValidator(Descriptor descriptor) {
+        currentRootPluginValidator.set(descriptor);
+    }
+
+    public static Descriptor getCurrentRootPluginValidator() {
+        return Objects.requireNonNull(currentRootPluginValidator.get()
+                , "currentRootPluginValidator must be present");
+    }
+
+    public static void removeCurrentRootPluginValidator() {
+        currentRootPluginValidator.remove();
+    }
 
     private final AttrVals attrValMap;
 

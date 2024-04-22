@@ -130,32 +130,10 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
 
         List<FieldError> fieldsErrorList = null;
         if (subItemDetiledPk.isPresent()) {
-            // List<List<Map<String /**detail Id Name*/, List<FieldError>>>>
             SubFromDetailedItemsErrors multiDetailed
                     = (SubFromDetailedItemsErrors) getFieldErrors(itemIndex, itemsErrorList, () -> new SubFromDetailedItemsErrors());
-
             fieldsErrorList = multiDetailed.getDetailedFormError(subItemDetiledPk.get());
-
-//            fieldsErrorList = multiDetailed.get(subItemDetiledPk.get());
-//            if (fieldsErrorList == null) {
-//                fieldsErrorList = Lists.newArrayList();
-//                multiDetailed.put(subItemDetiledPk.get(), fieldsErrorList);
-//            }
-
         } else {
-//            /**
-//             * item
-//             */
-//
-//            pluginErrorList = (List<List<ItemsErrors>>) context.get(ACTION_ERROR_FIELDS);
-//            if (pluginErrorList == null) {
-//                pluginErrorList = Lists.newArrayList();
-//                context.put(ACTION_ERROR_FIELDS, pluginErrorList);
-//            }
-//            /**item*/
-//            List<List<FieldError>>
-//                    itemsErrorList = getFieldErrors(pluginIndex, pluginErrorList, () -> Lists.newArrayList());
-
             ListDetailedItemsErrors fieldErrors = (ListDetailedItemsErrors) getFieldErrors(itemIndex, itemsErrorList, () -> new ListDetailedItemsErrors());
             fieldsErrorList = fieldErrors.fieldsErrorList;
         }
@@ -240,26 +218,10 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
 
         @Override
         public JSON serial2JSON() {
-//            JSONArray ferrs = new JSONArray();
-//            JSONObject o = null;
-//            for (FieldError ferr : fieldsErrorList) {
-//                o = new JSONObject();
-//                o.put("name", ferr.getFieldName());
-//                if ((ferr.getMsg()) != null) {
-//                    o.put("content", ferr.getMsg());
-//                }
-//                if (ferr.itemsErrorList != null) {
-//                    o.put(IAjaxResult.KEY_ERROR_FIELDS, this.serial2JSONArray(ferr.itemsErrorList));
-//                }
-//                ferrs.add(o);
-//            }
-//            return ferrs;
             return convertItemsErrorList((fieldsErrorList));
         }
 
         private static JSONArray convertItemsErrorList(List<FieldError> fieldErrors) {
-//            JSONArray itemErrs = new JSONArray();
-//            for (FieldError fieldErrors : itemsErrorList) {
             JSONArray ferrs = new JSONArray();
             JSONObject o = null;
             for (FieldError ferr : fieldErrors) {
@@ -278,9 +240,6 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
                 ferrs.add(o);
             }
             return ferrs;
-//                itemErrs.add(ferrs);
-//            }
-//            return itemErrs;
         }
     }
 
@@ -347,9 +306,6 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
 
         @Override
         public Object getContent() {
-            //            return Objects.requireNonNull(content.get(primaryKeyName), "primaryKeyName:" +
-            //            primaryKeyName + " " +
-            //                    "relevant property can not be null");
             for (Map.Entry<String, Object> entry : content.entrySet()) {
                 return entry.getValue();
             }
