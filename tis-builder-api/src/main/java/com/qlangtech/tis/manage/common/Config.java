@@ -577,7 +577,7 @@ public class Config extends BasicConfig {
         @Override
         protected final String getProp(String key) {
             if (KEY_ASSEMBLE_HOST.equals(key) || KEY_TIS_HOST.equals(key)) {
-                if (BasicConfig.inDockerContainer()) {
+                if (!BasicConfig.inDockerContainer()) {
                    return NetUtils.getHost();
                 }
             }
