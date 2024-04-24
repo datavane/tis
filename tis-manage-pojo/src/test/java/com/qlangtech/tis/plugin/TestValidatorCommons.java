@@ -34,6 +34,14 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
         Matcher matcher = ValidatorCommons.PATTERN_URL.matcher(url);
         Assert.assertTrue(url, matcher.matches());
 
+        url = "http://service.cn-hangzhou.maxcompute.aliyun.com/api";
+        matcher = ValidatorCommons.PATTERN_URL.matcher(url);
+        Assert.assertTrue(url, matcher.matches());
+
+        url = "https://service.cn-hangzhou.maxcompute.aliyun.com/api";
+        matcher = ValidatorCommons.PATTERN_URL.matcher(url);
+        Assert.assertTrue(url, matcher.matches());
+
         url = "https://192.168.64.3";
         matcher = ValidatorCommons.PATTERN_URL.matcher(url);
         Assert.assertTrue(url, matcher.matches());

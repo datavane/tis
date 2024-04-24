@@ -33,10 +33,11 @@ import java.util.Set;
 public interface IFlinkCluster extends IdentityName, IFlinkClusterConfig {
     String PLUGIN_DEPENDENCY_FLINK_DEPENDENCY = "tis-flink-dependency";
     String PLUGIN_SKIP_FLINK_EXTENDS = "tis-flink-extends-plugin";
+    String PLUGIN_TIS_DATAX_LOCAL_EXECOTOR = "tis-datax-local-executor";
     String SKIP_CLASSLOADER_FACTORY_CREATION = "skip_classloader_factory_creation";
     String KEY_DISPLAY_NAME = "Flink-Cluster";
     Set<String> SKIP_PLUGIN_NAMES = Collections.unmodifiableSet(
             Sets.newHashSet(IFlinkCluster.PLUGIN_DEPENDENCY_FLINK_DEPENDENCY//
                     , IFlinkCluster.PLUGIN_SKIP_FLINK_EXTENDS //
-                    , "tis-datax-local-executor"));
+                    , PLUGIN_TIS_DATAX_LOCAL_EXECOTOR));
 }

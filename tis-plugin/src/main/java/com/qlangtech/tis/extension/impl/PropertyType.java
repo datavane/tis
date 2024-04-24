@@ -197,13 +197,30 @@ public class PropertyType implements IPropertyType {
                                     String placeholder = fieldExtraProps.getPlaceholder();
                                     Object dftVal = fieldExtraProps.getDftVal();
                                     String help = fieldExtraProps.getHelpContent();
+                                    JSONObject props = fieldExtraProps.getProps();
+                                   // Object disabled = props.get(PluginExtraProps.KEY_DISABLE);
+
+//                                    if (disabled != null) {
+//                                        if (StringUtils.startsWith(String.valueOf(disabled), IMessageHandler.TSEARCH_PACKAGE)) {
+//                                            props.put(PluginExtraProps.KEY_DISABLE, GroovyShellEvaluate.scriptEval(String.valueOf(disabled)));
+//                                        }
+//                                    }
+//                                    disabled = props.get(PluginExtraProps.KEY_DISABLE);
+//                                    if (disabled != null) {
+//                                        if ((disabled instanceof JsonUtil.UnCacheString && ((JsonUtil.UnCacheString<Boolean>) disabled).getValue())
+//                                                || (disabled instanceof Boolean && (Boolean) disabled)
+//                                        ) {
+//                                            propMapper.remove(f.getName());
+//                                            continue;
+//                                        }
+//                                    }
 
                                     if (fieldExtraProps.getBoolean(PluginExtraProps.KEY_DISABLE)) {
                                         propMapper.remove(f.getName());
                                         continue;
                                         //return null;
                                     }
-                                    JSONObject props = fieldExtraProps.getProps();
+
                                     if (StringUtils.isNotEmpty(help) && StringUtils.startsWith(help,
                                             IMessageHandler.TSEARCH_PACKAGE)) {
                                         props.put(PluginExtraProps.Props.KEY_HELP, GroovyShellUtil.eval(help));
@@ -561,7 +578,7 @@ public class PropertyType implements IPropertyType {
                 String script = "	package " + pkg + " ;\n"  //
                         + "import java.util.function.Function;\n" //
                         + "import java.util.List;\n" //
-                        + "import "+com.qlangtech.tis.extension.Descriptor.class.getName()+";\n"
+                        + "import " + com.qlangtech.tis.extension.Descriptor.class.getName() + ";\n"
                         // + "import com.qlangtech.plugins.incr.flink.chunjun.sink.SinkTabPropsExtends;\n"
                         + "class " + className + " implements Function<List<? extends Descriptor>,List<? extends " //
                         + "Descriptor>> { \n" //
