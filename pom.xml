@@ -63,6 +63,7 @@
 
     <modules>
         <module>xmodifier</module>
+        <module>docker-compose</module>
         <module>datax-config</module>
         <module>tis-builder-api</module>
         <module>tis-manage-pojo</module>
@@ -90,6 +91,7 @@
         <!-- <module>tis-scala-compiler-dependencies</module>-->
 
         <module>maven-tpi-plugin</module>
+        <module>tis-k8s</module>
         <!--        <module>tis-datax-executor</module>-->
         <!--        <module>tis-zeppelin</module>-->
 

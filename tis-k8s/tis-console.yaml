@@ -1,0 +1,171 @@
+# export KUBECONFIG=~/.kube/aliyun
+apiVersion: v1
+kind: Service
+metadata:
+  name: tis-console-loadbalancer
+spec:
+  ports:
+    - port: 8080
+      name: tis-console-8080
+      protocol: TCP
+      targetPort: tis-8080
+  selector:
+    app: tis-console
+  type: LoadBalancer
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: tis-console-cluster-svc
+spec:
+  ports:
+    - port: 8080
+      name: tis-console-8080
+      protocol: TCP
+      targetPort: tis-8080
+    - port: 56432
+      name: tis-console-grpc
+      protocol: TCP
+      targetPort: tis-grpc
+  selector:
+    app: tis-console
+  type: ClusterIP
+---
+
+#apiVersion: v1
+#kind: PersistentVolume
+#metadata:
+#  name: pv-oss
+#spec:
+#  capacity:
+#    storage: 5Gi
+#  accessModes:
+#    - ReadWriteMany
+#  storageClassName: oss
+#  flexVolume:
+#    driver: "alicloud/oss"
+#    options:
+#      bucket: "incr-log"
+#      url: "oss-cn-hangzhou.aliyuncs.com"
+#      path: "/tis-pv"
+#      akId: ""
+#      akSecret: ""
+#      otherOpts: "-o max_stat_cache_size=0 -o allow_other"
+#---
+#kind: PersistentVolumeClaim
+#apiVersion: v1
+#metadata:
+#  name: tis-console-pvc-oss
+#spec:
+#  storageClassName: oss
+#  accessModes:
+#    - ReadWriteMany
+#  resources:
+#    requests:
+#      storage: 5Gi
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-pv
+  labels:
+    alicloud-pvname: disk-pv
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: diskplugin.csi.alibabacloud.com
+    volumeHandle: "d-bp15tdr3q90sxxz2l0dz"
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: topology.diskplugin.csi.alibabacloud.com/zone
+              operator: In
+              values:
+                - "cn-hangzhou-k"
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: disk-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  selector:
+    matchLabels:
+      alicloud-pvname: disk-pv
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tis-config
+data:
+  config.properties: |-
+    project.name=TIS
+    runtime=daily
+
+    #tis.datasource.type=mysql
+    #tis.datasource.url=192.168.28.200
+    #tis.datasource.port=3306
+    #tis.datasource.username=root
+    #tis.datasource.password=123456
+    #tis.datasource.dbname=tis_console1
+
+    tis.datasource.type=derby
+    tis.datasource.dbname=tis_console_db
+
+    assemble.host=tis-console-cluster-svc.default
+    tis.host=tis-console-cluster-svc.default
+
+
+---
+# how to use aliyun pv: https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/mount-a-statically-provisioned-oss-volume?spm=a2c4g.11186623.0.0.39145057wGt7rB
+# 使用 云盘：https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/use-a-statically-provisioned-disk-volume?spm=a2c4g.11186623.0.i5
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: tis-console
+spec:
+  replicas: 1
+  selector:
+    app: tis-console
+  template:
+    metadata:
+      labels:
+        app: tis-console
+    spec:
+      containers:
+        - name: tis-console
+          volumeMounts:
+            - name: tis-config-volume
+              mountPath: /opt/app/tis-uber/tjs/conf/tis-web-config/
+            - name: tis-config-volume
+              mountPath: /opt/app/tis-uber/tis-assemble/conf/tis-web-config/
+            - name: tis-console-pvc
+              mountPath: "/opt/data"
+          image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:4.0.0
+        #  command: [ "/bin/sh", "-c", "sleep 1000000" ]
+          ports:
+            - name: tis-8080
+              containerPort: 8080
+            - name: tis-grpc
+              containerPort: 56432
+      volumes:
+        - name: tis-config-volume
+          configMap:
+            name: tis-config
+        - name: tis-console-pvc
+          persistentVolumeClaim:
+            claimName: disk-pvc
+---
+

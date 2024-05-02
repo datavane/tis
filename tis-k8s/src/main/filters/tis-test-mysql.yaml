@@ -1,0 +1,72 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-cnf
+data:
+  my.cnf: |
+   [mysqld]
+   expire_logs_days=10
+   default-time_zone='+8:00'
+   log-bin=mysql-bin
+   server-id=1
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  serviceName: mysql-svc
+  template:
+    metadata:
+      name: mysql
+      labels:
+        app: mysql
+    spec:
+      volumes:
+        - name: my-cnf-volume
+          configMap:
+            name: my-cnf
+      containers:
+      - env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "123456"
+        - name: TZ
+          value: "Asia/Shanghai"
+        image: mysql:5.7
+        imagePullPolicy: IfNotPresent
+        name: mysql
+        volumeMounts:
+          - name: my-cnf-volume
+            mountPath: "/etc/mysql/my.cnf"
+            subPath: my.cnf
+            readOnly: true
+        ports:
+        - containerPort: 3306
+          name: mysql-3306
+          protocol: TCP
+        resources:
+          requests:
+            cpu: "2"
+            memory: 4Gi
+      terminationGracePeriodSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-svc
+spec:
+  ports:
+    - name: mysql-svc
+      nodePort: 32005
+      port: 3306
+      protocol: TCP
+      targetPort: 3306
+  selector:
+    app: mysql
+  type: LoadBalancer
+
