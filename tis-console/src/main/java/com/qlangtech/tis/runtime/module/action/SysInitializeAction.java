@@ -101,8 +101,12 @@ public class SysInitializeAction extends BasicModule {
      * 取得SQL并且初始化
      */
     File mysqlInitScript = new File(Config.getDataDir(), "sql/tis_console_mysql.sql");
+    this.init(context, true, Config.getDbCfg().dbtype, mysqlInitScript);
+  }
 
-    init(context, true, Config.getDbCfg().dbtype, mysqlInitScript);
+  @Override
+  public String getReturnCode() {
+    return super.getReturnCode();
   }
 
   /**

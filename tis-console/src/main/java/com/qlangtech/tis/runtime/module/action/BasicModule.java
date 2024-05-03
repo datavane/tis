@@ -323,7 +323,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   protected String getReturnCode() {
 
-    ActionContext actionCtx = ActionContext.getContext();
+   // ActionContext actionCtx = ActionContext.getContext();
     //ActionProxy proxy = actionCtx.getActionInvocation().getProxy();
     // 并且只有screen中的 模块可以设置forward
     if (this.getRequest().getAttribute(TERMINATOR_FORWARD) != null) {

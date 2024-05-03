@@ -22,6 +22,7 @@ import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.ActionProxy;
 import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
 import com.qlangtech.tis.manage.common.IUser;
+import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.RunContextGetter;
 import com.qlangtech.tis.manage.common.UserUtils;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
@@ -81,7 +82,9 @@ public class AuthorityCheckAdvice extends MethodFilterInterceptor {
         return Action.NONE;
       } else {
         // 直接进行初始化
-        return (action).execute();
+        SysInitializeAction initAction = (SysInitializeAction) action;
+        initAction.doInit(new MockContext());
+        return initAction.getReturnCode();
       }
     }
 

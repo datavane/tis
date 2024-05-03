@@ -110,7 +110,8 @@ public class TestSysInitializeAction extends TestCase implements TISEasyMock {
     File initialSuccessToken = SysInitializeAction.getSysInitializedTokenFile();
     FileUtils.deleteQuietly(initialSuccessToken);
     SysDBType sysDBType = SysDBType.DERBY;
-    final String tis_ansible_home = StringUtils.defaultIfEmpty(System.getenv("tis_ansible_home"), "/opt/misc/tis-ansible");
+    final String tis_ansible_home
+      = StringUtils.defaultIfEmpty(System.getenv("tis_ansible_home"), "/opt/misc/tis-ansible");
     String[] args = new String[]{tis_ansible_home + "/tis_console_derby.sql", sysDBType.getToken()};
     // Config config = this.mock("config", Config.class);
 
