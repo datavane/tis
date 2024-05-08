@@ -34,7 +34,8 @@ public class GroovyShellEvaluate {
         boolean loaded = false;
         try {
             loaded = (null != Class.forName("com.qlangtech.tis.runtime.module.action.BasicModule"));
-        } catch (ClassNotFoundException e) { }
+        } catch (ClassNotFoundException e) {
+        }
         isInConsoleModule = loaded;
     }
 
@@ -66,7 +67,11 @@ public class GroovyShellEvaluate {
 
             Callable<Object> valGetter = () -> {
                 for (Function<Object, Object> f : process) {
-                    return f.apply(GroovyShellUtil.eval(meta.getName()));
+                    Object val = GroovyShellUtil.eval(meta.getName());
+                    if (val == null) {
+                        return null;
+                    }
+                    return f.apply(val);
                 }
                 return GroovyShellUtil.eval(meta.getName());
             };
