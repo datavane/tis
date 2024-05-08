@@ -36,7 +36,7 @@
     <name>tis</name>
     <url>http://maven.apache.org</url>
     <properties>
-        <revision>4.0.0</revision>
+        <revision>4.0.0-rc1</revision>
         <testcontainers.version>1.15.3</testcontainers.version>
         <flink.version>tis-1.18.1</flink.version>
         <alibaba.datax.version>${project.version}</alibaba.datax.version>
