@@ -12,9 +12,9 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
 > 视频： [>>TIS介绍](https://www.bilibili.com/video/BV11y4y1B7Mk) [>>操作实例](https://www.bilibili.com/video/BV1Uv41167SH/)
  -->
 
-## v3.8.0发布（2023/10/25）：
+## v4.0.0-rc1 发布（2024/5/8）：
 
-https://github.com/datavane/tis/releases/tag/v3.8.0
+https://github.com/datavane/tis/releases/tag/v4.0.0-rc1
  
 ## 安装说明
 
@@ -105,6 +105,7 @@ TIS基于数据库元数据信息自动生成Flink-SQL脚本,您没看错全部�
 ## 依赖项目 
 
 - WEB UI [https://github.com/qlangtech/ng-tis](https://github.com/qlangtech/ng-tis)
+- 发版信息生成器[https://github.com/qlangtech/tis-git-manager](https://github.com/qlangtech/tis-git-manager)
 - 基于Ansible的打包工具 [https://github.com/qlangtech/tis-ansible](https://github.com/qlangtech/tis-ansible)
 - TIS 插件 [https://github.com/qlangtech/plugins](https://github.com/qlangtech/plugins)
 - TIS 插件元数据生成工具 [https://github.com/qlangtech/update-center2](https://github.com/qlangtech/update-center2)
