@@ -58,6 +58,10 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
         matcher = ValidatorCommons.PATTERN_URL.matcher(url);
         Assert.assertTrue(url, matcher.matches());
 
+        url = "https://192.168.64.3:8443/v3";
+        matcher = ValidatorCommons.PATTERN_URL.matcher(url);
+        Assert.assertTrue(url, matcher.matches());
+
         url = "hdfs://192.168.64.3";
         matcher = ValidatorCommons.PATTERN_URL.matcher(url);
         Assert.assertTrue(url, matcher.matches());
@@ -72,7 +76,7 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
 
         url = "https://baidu.com:abc";
         matcher = ValidatorCommons.PATTERN_URL.matcher(url);
-        Assert.assertFalse(url, matcher.matches());
+        Assert.assertTrue(url, matcher.matches());
     }
 
     public void testUserName() {

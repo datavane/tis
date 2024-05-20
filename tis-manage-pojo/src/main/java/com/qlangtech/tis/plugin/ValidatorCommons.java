@@ -27,7 +27,9 @@ import java.util.regex.Pattern;
 public interface ValidatorCommons {
     String _host =   "[-A-Za-z0-9+&@#/%?=~_|!,.;]+[-A-Za-z0-9+&@#/%=~_|]";
 
-    Pattern PATTERN_URL = Pattern.compile("(https?|hdfs)://" + _host + "(:\\d+)?");
+ //   Pattern PATTERN_URL = Pattern.compile("(https?|hdfs)://" + _host + "(:\\d+)?");
+
+    Pattern PATTERN_URL = Pattern.compile("^(https?|hdfs):\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$");
 
     Pattern PATTERN_NONE_BLANK = Pattern.compile("([^\\s]+)");
     String MSG_NONE_BLANK_ERROR = "内容不能包含空格";

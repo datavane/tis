@@ -53,8 +53,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-//import org.apache.solr.cloud.ZkController;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2015年11月5日 下午6:57:19
@@ -64,30 +62,13 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     private static final Logger logger = LoggerFactory.getLogger(IndexSwapTaskflowLauncher.class);
 
     public static final String KEY_INDEX_SWAP_TASK_FLOW_LAUNCHER = "IndexSwapTaskflowLauncher";
-    //   private TisZkClient zkClient;
     private ITISCoordinator zkClient;
-    //private ZkStateReader zkStateReader;
 
     static {
-        //  initPhaseStatusStatusWriter();
     }
 
     public static void initPhaseStatusStatusWriter() {
-        // if (BasicPhaseStatus.statusWriter == null) {
-//            BasicPhaseStatus.statusWriter = new BasicPhaseStatus.IFlush2Local() {
-//                @Override
-//                public void write(File localFile, BasicPhaseStatus status) throws Exception {
-//                    XmlFile xmlFile = new XmlFile(localFile);
-//                    xmlFile.write(status, Collections.emptySet());
-//                }
-//
-//                @Override
-//                public BasicPhaseStatus loadPhase(File localFile) throws Exception {
-//                    XmlFile xmlFile = new XmlFile(localFile);
-//                    return (BasicPhaseStatus) xmlFile.read();
-//                }
-//            };
-        //     }
+
     }
 
 
@@ -109,12 +90,9 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     }
 
     public ITISCoordinator getZkClient() {
-        // return zkClient;
         throw new UnsupportedOperationException();
     }
-//    public void setZkStateReader(ZkStateReader zkStateReader) {
-//        this.zkStateReader = zkStateReader;
-//    }
+
 
     private Collection<IOnsListenerStatus> incrChannels;
 
@@ -136,23 +114,8 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         }
     }
 
-
-    // @Override
     public void afterPropertiesSet() throws Exception {
-
-        // try {
-        // this.setZkClient(new TisZkClient(Config.getZKHost(), 60000));
-        // return
-
         this.setZkClient(ITISCoordinator.create());
-//        } catch (Exception e) {
-//          //  throw new RuntimeException("ZKHost:" + Config.getZKHost(), e);
-//        }
-        // 当初始集群初始化的时候assemble先与solr启动时不执行createClusterZkNodes会出错
-        // ZkController.createClusterZkNodes(this.zkClient.getZK());
-        // ZkStateReader zkStateReader = new ZkStateReader(zkClient.getZK());
-        // zkStateReader.createClusterStateWatchersAndUpdate();
-        // this.setZkStateReader(zkStateReader);
     }
 
     private IncrStatusServer incrStatusServer;
@@ -175,13 +138,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         incrStatusServer.start();
         final List<IOnsListenerStatus> result = new ArrayList<>();
         Collection<IOnsListenerStatus> incrChannels = getAllTransferChannel(result);
-//        zkClient.addOnReconnect(() -> {
-//            try {
-//                Thread.sleep(6000);
-//            } catch (InterruptedException e) {
-//            }
-//            getAllTransferChannel(result);
-//        });
+
 
         ZkUtils.registerAddress2ZK(// "/tis/incr-transfer-group/incr-state-collect"
                 this.zkClient, // "/tis/incr-transfer-group/incr-state-collect"
@@ -190,72 +147,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         return incrChannels;
     }
 
-    //private List<String> indexNames;
-
-//    public boolean containIndex(String collection) {
-//        int retry = 0;
-//        while (retry++ < 4) {
-//            List<String> indexNames = getIndexNames();
-//            if (indexNames.contains(collection)) {
-//                return true;
-//            }
-//            try {
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//
-//            }
-//        }
-//        return false;
-//    }
-
-//    public List<String> getIndexNames() {
-//        List<String> result = null;
-//        try {
-//            int retry = 0;
-//            while ((result = indexNames) == null && (retry++) < 5) {
-//                Thread.sleep(1000);
-//            }
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
-//        if (result == null) {
-//            throw new IllegalStateException("index name can not be null");
-//        }
-//        return result;
-//    }
-
     public List<IOnsListenerStatus> getAllTransferChannel(final List<IOnsListenerStatus> result) {
-//        try {
-//            this.indexNames = zkClient.getChildren("/collections", new AbstractWatcher() {
-//
-//                @Override
-//                protected void process(Watcher watcher) throws KeeperException, InterruptedException {
-//                    Thread.sleep(3000);
-//                    getAllTransferChannel(result);
-//                }
-//            }, true);
-//
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//        Set<String> exist = new HashSet<String>();
-//        String collectionName = null;
-//        Iterator<IOnsListenerStatus> it = result.iterator();
-//        while (it.hasNext()) {
-//            collectionName = it.next().getCollectionName();
-//            if (!indexNames.contains(collectionName)) {
-//                it.remove();
-//            }
-//            exist.add(collectionName);
-//        }
-//        MasterListenerStatus listenerStatus = null;
-//        for (String indexName : indexNames) {
-//            if (exist.contains(indexName)) {
-//                continue;
-//            }
-//            listenerStatus = new MasterListenerStatus(indexName, IncrStatusUmbilicalProtocolImpl.getInstance());
-//            result.add(listenerStatus);
-//        }
         return result;
     }
 
@@ -271,24 +163,17 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         ActionInvocation invoke = null;
         ExecutePhaseRange range = chainContext.getExecutePhaseRange();
         logger.info("start component:" + range.getStart() + ",end component:" + range.getEnd());
-        // chainContext.setZkClient(zkClient);
         Objects.requireNonNull(this.zkClient, "zkClient can not be null");
         chainContext.setZkClient(this.zkClient);
-        // chainContext.setZkStateReader(zkStateReader);
-//        Objects.requireNonNull(chainContext.getIndexBuildFileSystem(), "IndexBuildFileSystem of chainContext can not be null");
-//        Objects.requireNonNull(chainContext.getTableDumpFactory(), "tableDumpFactory of chainContext can not be null");
-//        chainContext.setIndexMetaData(createIndexMetaData(chainContext));
         invoke = AbstractActionInvocation.createExecChain(chainContext);
         ExecuteResult execResult = invoke.invoke();
         if (!execResult.isSuccess()) {
             logger.warn(execResult.getMessage());
-            //SendSMSUtils.send("[ERR]fulbud:" + chainContext.getIndexName() + " falid," + execResult.getMessage(), SendSMSUtils.BAISUI_PHONE);
         }
         return execResult;
     }
 
 
-    // ///daemon/////////////////===========================================
     @Override
     public void init(DaemonContext context) throws DaemonInitException, Exception {
     }
