@@ -104,6 +104,19 @@ spec:
     matchLabels:
       alicloud-pvname: disk-pv
 ---
+# 使用本地磁盘
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  name: disk-pvc
+#spec:
+#  accessModes:
+#    - ReadWriteOnce
+#  resources:
+#    requests:
+#      storage: 2Gi
+#  storageClassName: local-path
+---
 
 apiVersion: v1
 kind: ConfigMap
@@ -124,18 +137,19 @@ data:
     tis.datasource.type=derby
     tis.datasource.dbname=tis_console_db
 
-    assemble.host=tis-console-cluster-svc.default
-    tis.host=tis-console-cluster-svc.default
+    assemble.host=tis-console-cluster-svc
+    tis.host=tis-console-cluster-svc
 
 
 ---
 # how to use aliyun pv: https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/mount-a-statically-provisioned-oss-volume?spm=a2c4g.11186623.0.0.39145057wGt7rB
 # 使用 云盘：https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/use-a-statically-provisioned-disk-volume?spm=a2c4g.11186623.0.i5
 apiVersion: v1
-kind: ReplicationController
+kind: Deployment
 metadata:
   name: tis-console
 spec:
+  progressDeadlineSeconds: 600
   replicas: 1
   selector:
     app: tis-console
@@ -160,6 +174,13 @@ spec:
               containerPort: 8080
             - name: tis-grpc
               containerPort: 56432
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 2048Mi
+            requests:
+              cpu: 1000m
+              memory: 1024Mi
       volumes:
         - name: tis-config-volume
           configMap:
