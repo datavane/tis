@@ -52,7 +52,7 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
         return (DSKey) this.key;
     }
 
-    public FacadeDataSource createFacadeDataSource() throws Exception {
+    public FacadeDataSource createFacadeDataSource()  {
         DataSourceFactory plugin = this.getPlugin();
         if (plugin == null) {
             throw new IllegalStateException("dbName:" + key.keyVal + " relevant facade datasource has not been defined,file:" + this.getSerializeFileName());

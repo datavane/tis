@@ -34,7 +34,7 @@ public abstract class OwnerJobResName<T, RESULT> extends JobResName<T> {
     }
 
     @Override
-    protected final void execute(SSERunnable sse, T t) throws Exception {
+    protected final void execute(SSERunnable sse, T t) throws JobOrchestrateException {
         RESULT result = jobExec.accept(t);
         if (result != null) {
             sse.setContextAttr(SSEExecuteOwner.class, new SSEExecuteOwner(result));

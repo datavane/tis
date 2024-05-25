@@ -28,7 +28,7 @@ package com.qlangtech.tis.datax.job;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/12/18
  */
-public class PowerjobOrchestrateException extends Exception {
+public class PowerjobOrchestrateException extends JobOrchestrateException {
     public PowerjobOrchestrateException(String message) {
         super(message);
     }

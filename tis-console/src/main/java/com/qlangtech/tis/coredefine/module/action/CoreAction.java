@@ -44,7 +44,9 @@ import com.qlangtech.tis.datax.job.DefaultSSERunnable;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteSteps;
+import com.qlangtech.tis.datax.job.JobOrchestrateException;
 import com.qlangtech.tis.datax.job.JobResName;
+import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.datax.job.ServerLaunchToken;
 import com.qlangtech.tis.datax.job.ServerLaunchToken.FlinkClusterTokenManager;
 import com.qlangtech.tis.datax.job.SubJobResName;
@@ -69,6 +71,7 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
 import com.qlangtech.tis.manage.common.ManageUtils;
 import com.qlangtech.tis.manage.common.RunContext;
+import com.qlangtech.tis.manage.common.valve.AjaxValve.ActionExecResult;
 import com.qlangtech.tis.manage.servlet.DownloadResource;
 import com.qlangtech.tis.manage.servlet.DownloadServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
@@ -556,7 +559,7 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_CONFIG_EDIT)
-  public void doCompileAndPackage(Context context) throws Exception {
+  public void doCompileAndPackage(Context context)  {
 
     // IBasicAppSource appSource = IAppSource.load(null, this.getCollectionName());
 
@@ -662,9 +665,10 @@ public class CoreAction extends BasicModule {
 //      }
 //    };
 
-
+   final  String subJobName = "Incr " + getCollectionName() + " Compile And Package";
     final SubJobResName<FlinkJobDeployDTO> compileAndPackage =
-      JobResName.createSubJob("Incr " + getCollectionName() + " Compile And Package", (dto) -> {
+      JobResName.createSubJob(subJobName, (dto) -> {
+        final SSERunnable sse = SSERunnable.getLocal();
         long start = System.currentTimeMillis();
         /**
          * ==========================================================
@@ -673,7 +677,14 @@ public class CoreAction extends BasicModule {
          */
         this.doCompileAndPackage(dto.context);
         if (dto.hasErrors()) {
-          return;
+
+//          ActionExecResult r = new ActionExecResult(this.getContext()).invoke();
+//          r.getErrorMsgs();
+//          for(){
+//
+//          }
+          throw new JobOrchestrateException(subJobName +" faild");
+          //return;
         }
         dto.appendLog("\n compile and package consume:" + (System.currentTimeMillis() - start) + "ms ");
       });
@@ -726,7 +737,11 @@ public class CoreAction extends BasicModule {
         });
         if (loop.get()) {
           log.info("check " + getCollectionName() + " deploy status,tryCount:" + tryCount.get());
-          Thread.sleep(3000);
+          try {
+            Thread.sleep(3000);
+          } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+          }
         }
       }
 
@@ -781,7 +796,7 @@ public class CoreAction extends BasicModule {
       .collect(Collectors.toMap(DatasourceDb::getId, (r) -> ManageUtils.formatNowYyyyMMddHHmmss(r.getOpTime())));
   }
 
-  private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(BasicModule module) throws Exception {
+  private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(BasicModule module)  {
 
     IBasicAppSource appSource = IAppSource.load(null, module.getCollectionName());
 

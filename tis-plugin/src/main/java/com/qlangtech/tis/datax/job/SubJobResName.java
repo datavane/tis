@@ -32,7 +32,7 @@ public abstract class SubJobResName<T> extends JobResName<T> {
     }
 
     @Override
-    protected void execute(SSERunnable sse, T t) throws Exception {
+    protected void execute(SSERunnable sse, T t) throws JobOrchestrateException {
         jobExec.accept(t);
     }
 }

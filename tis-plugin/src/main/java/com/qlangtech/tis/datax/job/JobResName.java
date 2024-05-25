@@ -50,7 +50,7 @@ public abstract class JobResName<T> extends TargetResName {
         final SubJobResName<T> created
                 = new SubJobResName<T>(jobName, new SubJobExec<T>() {
             @Override
-            public void accept(T dto) throws Exception {
+            public void accept(T dto) throws JobOrchestrateException {
                 exec.accept(dto);
             }
         }) {
@@ -63,7 +63,7 @@ public abstract class JobResName<T> extends TargetResName {
     }
 
 
-    public final void execSubJob(T t) throws Exception {
+    public final void execSubJob(T t) throws JobOrchestrateException {
         SSERunnable sse = SSERunnable.getLocal();
         boolean success = false;
         try {
@@ -71,7 +71,7 @@ public abstract class JobResName<T> extends TargetResName {
             this.execute(sse, t);
             success = true;
             sse.info(this.getName(), TimeFormat.getCurrentTimeStamp(), "✔✔ successful to publish " + this.getResourceType() + "'" + this.getName() + "'");
-        } catch (Exception e) {
+        } catch (JobOrchestrateException e) {
             logger.error(e.getMessage(), e);
             throw e;
         } finally {
@@ -82,7 +82,7 @@ public abstract class JobResName<T> extends TargetResName {
         }
     }
 
-    protected abstract void execute(SSERunnable sse, T t) throws Exception;
+    protected abstract void execute(SSERunnable sse, T t) throws JobOrchestrateException;
 //        if (jobExec instanceof SubJobExec) {
 //            ((OwnerJobExec) jobExec).accept(t);
 //        } else {
@@ -94,16 +94,16 @@ public abstract class JobResName<T> extends TargetResName {
 
 
     public interface OwnerJobExec<T, RESULT> {
-        public RESULT accept(T t) throws Exception;
+        public RESULT accept(T t) throws JobOrchestrateException;
     }
 
     public interface SubJobExec<T> {
-        public void accept(T t) throws Exception;
+        public void accept(T t) throws JobOrchestrateException;
     }
 
 
     @FunctionalInterface
     public interface ThrowableConsumer<T> {
-        void accept(T t) throws Exception;
+        void accept(T t) throws JobOrchestrateException;
     }
 }

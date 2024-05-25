@@ -26,6 +26,7 @@ import com.qlangtech.tis.compiler.java.IOutputEntry;
 import com.qlangtech.tis.compiler.java.JavaCompilerProcess;
 import com.qlangtech.tis.coredefine.module.action.IbatorProperties;
 import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
+import com.qlangtech.tis.datax.job.JobOrchestrateException;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.offline.DbScope;
@@ -69,7 +70,7 @@ public class GenerateDAOAndIncrScript {
      * @param dependencyDbs      Map<Integer,Long[DBID]>
      * @throws Exception
      */
-    public void generate(Context context, IndexIncrStatus incrStatus, boolean compilerAndPackage, Map<Integer, Long> dependencyDbs) throws Exception {
+    public void generate(Context context, IndexIncrStatus incrStatus, boolean compilerAndPackage, Map<Integer, Long> dependencyDbs)  {
         generateDAOScript(context, dependencyDbs);
         generateIncrScript(context, incrStatus, compilerAndPackage, Collections.unmodifiableMap(indexStreamCodeGenerator.getDbTables()), false);
     }
@@ -139,7 +140,7 @@ public class GenerateDAOAndIncrScript {
         }
     }
 
-    private void generateDAOScript(Context context, Map<Integer, Long> dependencyDbs) throws Exception {
+    private void generateDAOScript(Context context, Map<Integer, Long> dependencyDbs)  {
         final Map<DBNode, List<String>> dbNameMap = Collections.unmodifiableMap(indexStreamCodeGenerator.getDbTables());
         if (dbNameMap.size() < 1) {
             throw new IllegalStateException("dbNameMap size can not small than 1");
@@ -208,7 +209,7 @@ public class GenerateDAOAndIncrScript {
                 }
             } catch (Exception e) {
                 // 将文件夹清空
-                FileUtils.forceDelete(properties.getDaoDir());
+                FileUtils.deleteQuietly(properties.getDaoDir());
                 throw new RuntimeException("dao path:" + properties.getDaoDir(), e);
             }
         }

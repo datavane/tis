@@ -24,6 +24,7 @@ import com.qlangtech.tis.coredefine.module.action.impl.AdapterRCController;
 import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails;
 import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
+import com.qlangtech.tis.datax.job.JobOrchestrateException;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
@@ -137,7 +138,7 @@ public class TISK8sDelegate {
     incrK8s.isRCDeployment(true);
   }
 
-  public void deploy(ReplicasSpec incrSpec, final long timestamp) throws Exception {
+  public void deploy(ReplicasSpec incrSpec, final long timestamp) throws JobOrchestrateException {
     this.incrSync.deploy(this.indexName, incrSpec, timestamp);
   }
 

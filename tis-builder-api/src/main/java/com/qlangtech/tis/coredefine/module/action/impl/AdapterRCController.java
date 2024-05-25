@@ -21,6 +21,7 @@ package com.qlangtech.tis.coredefine.module.action.impl;
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.coredefine.module.action.IRCController;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.datax.job.JobOrchestrateException;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 
@@ -30,7 +31,7 @@ import com.qlangtech.tis.trigger.jst.ILogListener;
  **/
 public class AdapterRCController implements IRCController {
     @Override
-    public void deploy(TargetResName collection, ReplicasSpec incrSpec, long timestamp) throws Exception {
+    public void deploy(TargetResName collection, ReplicasSpec incrSpec, long timestamp) throws JobOrchestrateException {
         throw new UnsupportedOperationException();
     }
 

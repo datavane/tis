@@ -61,7 +61,7 @@ public class IndexStreamCodeGenerator {
 
 
     public IndexStreamCodeGenerator(String collection, IBasicAppSource streamIncrGenerateStrategy, long incrScriptTimestamp
-            , IDBTableNamesGetter dbTableNamesGetter) throws Exception {
+            , IDBTableNamesGetter dbTableNamesGetter)  {
         if (StringUtils.isEmpty(collection)) {
             throw new IllegalArgumentException("argument collection can not be null");
         }
@@ -85,7 +85,7 @@ public class IndexStreamCodeGenerator {
         FileUtils.deleteQuietly(streamScriptRootDir);
     }
 
-    private void initialize() throws Exception {
+    private void initialize()  {
         // FullbuildWorkflowAction.getDataflowTopology(CoreAction.this, this.workFlow);
         // this.dfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(this.workflowName);
         //  this.dbTables = getDependencyTables(dfTopology);

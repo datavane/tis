@@ -530,6 +530,7 @@ public class Config extends BasicConfig {
                                     throw new RuntimeException(e);
                                 }
                             }
+
                             @Override
                             protected String getPropValue(String key) {
                                 return props.getProperty(key);
@@ -576,15 +577,21 @@ public class Config extends BasicConfig {
     private static abstract class LocalResBasedPropertyGetter extends P {
         @Override
         protected final String getProp(String key) {
-            if (KEY_ASSEMBLE_HOST.equals(key) || KEY_TIS_HOST.equals(key)) {
+
+            if (TisAppLaunch.isTestMock()) {
+                return this.getPropValue(key);
+            }
+
+            if ((KEY_ASSEMBLE_HOST.equals(key) || KEY_TIS_HOST.equals(key))) {
                 if (!BasicConfig.inDockerContainer()) {
-                   return NetUtils.getHost();
+                    return NetUtils.getHost();
                 }
             }
 
             return this.getPropValue(key);
         }
-        protected abstract  String getPropValue(String key);
+
+        protected abstract String getPropValue(String key);
     }
 
     public static String getGenerateParentPackage() {

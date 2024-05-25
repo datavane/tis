@@ -18,6 +18,7 @@
 package com.qlangtech.tis.coredefine.module.action;
 
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
+import com.qlangtech.tis.datax.job.JobOrchestrateException;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 
@@ -50,7 +51,7 @@ public interface IRCController {
      * @param timestamp
      * @throws Exception
      */
-    void deploy(TargetResName collection, ReplicasSpec incrSpec, long timestamp) throws Exception;
+    void deploy(TargetResName collection, ReplicasSpec incrSpec, long timestamp) throws JobOrchestrateException;
 
     /**
      * 删除 增量实例
