@@ -104,7 +104,7 @@ public class TIS {
 
     public static final String KEY_ALT_SYSTEM_PROP_TIS_PLUGIN_ROOT = "plugin_dir_root";
     public static final String KEY_TIS_PLUGIN_ROOT = "plugins";
-    public static final String KEY_ACTION_CLEAN_TIS = "cleanTis";
+  //  public static final String KEY_ACTION_CLEAN_TIS = "cleanTis";
 
     // public static final String KEY_TIS_INCR_COMPONENT_CONFIG_FILE = "incr_config.xml";
     public static final String KEY_TIE_GLOBAL_COMPONENT_CONFIG_FILE = "global_config.xml";

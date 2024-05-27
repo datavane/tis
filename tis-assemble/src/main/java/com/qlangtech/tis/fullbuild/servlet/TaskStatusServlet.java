@@ -64,11 +64,11 @@ public class TaskStatusServlet extends HttpServlet {
             throw new ServletException("clean plugin store cache faild ", e);
         }
 
-        if (Boolean.parseBoolean(req.getParameter(TIS.KEY_ACTION_CLEAN_TIS))) {
-            TIS.clean();
-            logger.info(" clean TIS cache", extendPoint);
-            return;
-        }
+//        if (Boolean.parseBoolean(req.getParameter(TIS.KEY_ACTION_CLEAN_TIS))) {
+//            TIS.clean();
+//            logger.info(" clean TIS cache", extendPoint);
+//            return;
+//        }
 
 
         int taskid = Integer.parseInt(req.getParameter(JobCommon.KEY_TASK_ID));

@@ -32,7 +32,9 @@ import java.util.regex.Pattern;
  */
 public class Specification {
 
-    private static final Pattern p = Pattern.compile("(\\d+(\\.\\d)?)(([mGM]|Mi)?)");
+    public static final String MEMORY_UNIT_MEGABYTE = "Mi";
+
+    private static final Pattern p = Pattern.compile("(\\d+(\\.\\d)?)(([mGM]|"+MEMORY_UNIT_MEGABYTE+")?)");
 
     public static Specification parse(String val) {
         Matcher m = p.matcher(val);
@@ -72,7 +74,7 @@ public class Specification {
      */
     public int normalizeMemory(Optional<Integer> proportion) {
         float result = 0;
-        if ("Mi".equals(this.getUnit()) || "M".equals(this.getUnit())) {
+        if (MEMORY_UNIT_MEGABYTE.equals(this.getUnit()) || "M".equals(this.getUnit())) {
             result = this.getVal();
         } else if ("G".equals(this.getUnit())) {
             result = this.getVal() * 1024;

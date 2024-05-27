@@ -69,6 +69,7 @@ public class AbstractActionInvocation implements ActionInvocation {
 
 
     public static ActionInvocation createInvocation(IExecChainContext chainContext, IExecuteInterceptor[] ints) {
+
         final ComponentOrders componentOrders = new ComponentOrders();
         AbstractActionInvocation preInvocation = new AbstractActionInvocation();
         preInvocation.setContext(chainContext);

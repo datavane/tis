@@ -22,7 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
-import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.DataXJobSubmitParams;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
@@ -120,10 +120,11 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
     }
 
     public static ExecutorService createExecutorService(IExecChainContext execChainContext) {
-        int nThreads = 1;
+        final DataXJobSubmitParams submitParams = DataXJobSubmitParams.getDftIfEmpty();
+        int nThreads = submitParams.pipelineParallelism;
         return new ThreadPoolExecutor(
                 nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB),
+                new LinkedBlockingQueue<>(submitParams.maxJobs),
                 new ThreadFactory() {
                     @Override
                     public Thread newThread(Runnable r) {

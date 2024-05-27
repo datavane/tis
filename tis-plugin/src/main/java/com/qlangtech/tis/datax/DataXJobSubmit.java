@@ -32,9 +32,6 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
-import com.qlangtech.tis.plugin.annotation.FormField;
-import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
@@ -69,6 +66,7 @@ public abstract class DataXJobSubmit {
     private static final Logger logger = LoggerFactory.getLogger(DataXJobSubmit.class);
     public static final String KEY_DATAX_READERS = "dataX_readers";
     public static final int MAX_TABS_NUM_IN_PER_JOB = 40;
+    public static final int DEFAULT_PARALLELISM_IN_VM = 1;// parallelism
 
     public static Callable<DataXJobSubmit> mockGetter;
 
@@ -82,8 +80,8 @@ public abstract class DataXJobSubmit {
         // System.out.println(  DataXJobSubmit.class("com/google/common/base/Preconditions.class"));
     }
 
-    @FormField(ordinal = 0, type = FormFieldType.INT_NUMBER, validate = {Validator.require})
-    public Integer parallelism;
+//    @FormField(ordinal = 0, type = FormFieldType.INT_NUMBER, validate = {Validator.require})
+//    public Integer parallelism;
 
     public static DataXJobSubmit.InstanceType getDataXTriggerType() {
 
@@ -165,8 +163,9 @@ public abstract class DataXJobSubmit {
             @Override
             public boolean validate(IControlMsgHandler controlMsgHandler, Context context,
                                     List<DataXCfgGenerator.DataXCfgFile> cfgFileNames) {
-                if (cfgFileNames.size() > MAX_TABS_NUM_IN_PER_JOB) {
-                    controlMsgHandler.addErrorMessage(context, "单机版，单次表导入不能超过" + MAX_TABS_NUM_IN_PER_JOB +
+                DataXJobSubmitParams submitParams  = DataXJobSubmitParams.getDftIfEmpty();
+                if (cfgFileNames.size() > submitParams.maxJobs) {
+                    controlMsgHandler.addErrorMessage(context, "单机版，单次表导入不能超过" +  submitParams.maxJobs +
                             "张，如需要导入更多表，请使用分布式K8S DataX执行期");
                     return false;
                 }

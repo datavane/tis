@@ -82,6 +82,7 @@
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-dag</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -117,6 +118,7 @@
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-hadoop-rpc</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -128,6 +130,7 @@
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-sql-parser</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -175,6 +178,7 @@
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-manage-pojo</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!--for flume-ng-node log collector

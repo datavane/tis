@@ -42,7 +42,7 @@ public class TestSpecification extends TestCase {
         assertEquals(512, mem.normalizeMemory(Optional.of(50)));
 
         mem = Specification.parse("1500Mi");
-        assertEquals("Mi", mem.getUnit());
+        assertEquals(Specification.MEMORY_UNIT_MEGABYTE, mem.getUnit());
         assertEquals(1500, mem.normalizeMemory());
         assertEquals(750, mem.normalizeMemory(Optional.of(50)));
 

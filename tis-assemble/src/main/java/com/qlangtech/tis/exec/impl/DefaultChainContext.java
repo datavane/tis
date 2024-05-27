@@ -21,6 +21,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.config.k8s.ReplicasSpec;
+import com.qlangtech.tis.coredefine.module.action.Specification;
+import com.qlangtech.tis.datax.DataXJobSubmitParams;
 import com.qlangtech.tis.datax.IDataXBatchPost;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxWriter;
@@ -70,7 +73,8 @@ public class DefaultChainContext implements IExecChainContext {
 
     @Override
     public String getJavaMemSpec() {
-        return null;
+        DataXJobSubmitParams submitParams = DataXJobSubmitParams.getDftIfEmpty();
+        return submitParams.getJavaMemorySpec();
     }
 //    @Override
 //    public TableDumpFactory getTableDumpFactory() {

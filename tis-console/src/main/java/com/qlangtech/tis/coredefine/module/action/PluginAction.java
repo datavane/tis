@@ -128,25 +128,25 @@ public class PluginAction extends BasicModule {
   }
 
   private static void notifyPluginUpdate2AssembleNode(String applyParams, String targetResource) {
-    if (TisAppLaunch.isTestMock()) {
-      logger.info("skip apply clean " + targetResource + " cache by " + applyParams);
-      return;
-    }
-    long start = System.currentTimeMillis();
-    try {
-
-      URL url = new URL(Config.getAssembleHttpHost() + "/task_status?" + applyParams);
-      HttpUtils.get(url, new ConfigFileContext.StreamProcess<Void>() {
-        @Override
-        public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-          logger.info("has apply clean " + targetResource + " cache by " + applyParams);
-
-          return null;
-        }
-      });
-    } catch (Exception e) {
-      logger.warn("apply clean " + targetResource + ",consume:" + (System.currentTimeMillis() - start) + "ms, cache " + "faild " + e.getMessage());
-    }
+//    if (TisAppLaunch.isTestMock()) {
+//      logger.info("skip apply clean " + targetResource + " cache by " + applyParams);
+//      return;
+//    }
+//    long start = System.currentTimeMillis();
+//    try {
+//
+//      URL url = new URL(Config.getAssembleHttpHost() + "/task_status?" + applyParams);
+//      HttpUtils.get(url, new ConfigFileContext.StreamProcess<Void>() {
+//        @Override
+//        public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+//          logger.info("has apply clean " + targetResource + " cache by " + applyParams);
+//
+//          return null;
+//        }
+//      });
+//    } catch (Exception e) {
+//      logger.warn("apply clean " + targetResource + ",consume:" + (System.currentTimeMillis() - start) + "ms, cache " + "faild " + e.getMessage());
+//    }
   }
 
   private static class IconsDefs {
@@ -610,7 +610,7 @@ public class PluginAction extends BasicModule {
             } catch (InterruptedException e) {
             }
             // 为了让Assemble等节点的uberClassLoader重新加载一次，需要主动向Assemble等节点发送一个指令
-            notifyPluginUpdate2AssembleNode(TIS.KEY_ACTION_CLEAN_TIS + "=true", "TIS");
+         //   notifyPluginUpdate2AssembleNode(TIS.KEY_ACTION_CLEAN_TIS + "=true", "TIS");
             InstallUtil.proceedToNextStateFrom(InstallState.INITIAL_PLUGINS_INSTALLING);
           }
         }

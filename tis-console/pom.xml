@@ -43,18 +43,20 @@
     <dependency>
       <groupId>com.qlangtech.tis</groupId>
       <artifactId>tis-hadoop-rpc</artifactId>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>com.qlangtech.tis</groupId>
       <artifactId>tis-common-dao</artifactId>
-
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>com.qlangtech.tis</groupId>
       <artifactId>tis-dag</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -205,6 +207,7 @@
       <groupId>com.qlangtech.tis</groupId>
       <artifactId>tis-plugin</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -221,6 +224,7 @@
     <dependency>
       <groupId>com.qlangtech.tis</groupId>
       <artifactId>tis-manage-pojo</artifactId>
+      <scope>provided</scope>
       <exclusions>
         <exclusion>
           <groupId>commons-logging</groupId>
@@ -236,6 +240,7 @@
     <dependency>
       <groupId>com.qlangtech.tis</groupId>
       <artifactId>tis-common</artifactId>
+      <scope>provided</scope>
       <exclusions>
         <exclusion>
           <groupId>commons-logging</groupId>
