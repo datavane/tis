@@ -21,13 +21,14 @@ package com.qlangtech.tis.extension.util;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.util.impl.DefaultGroovyShellFactory;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -55,7 +56,7 @@ public class GroovyShellUtil {
         }
     }
 
-    private static LoadingCache<String, Script> getScriptCache() {
+    public static LoadingCache<String, Script> getScriptCache() {
         if (scriptCache == null) {
             synchronized (GroovyShellUtil.class) {
                 if (scriptCache == null) {
@@ -77,23 +78,40 @@ public class GroovyShellUtil {
         if (shell == null) {
             synchronized (GroovyShellUtil.class) {
                 if (shell == null) {
-                    shell = new GroovyShell(new ClassLoader(GroovyShellEvaluate.class.getClassLoader()) {
-                        @Override
-                        protected Class<?> findClass(String name) throws ClassNotFoundException {
-                            return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-                        }
-                    });
+//                    shell = new GroovyShell(new ClassLoader(GroovyShellEvaluate.class.getClassLoader()) {
+//                        @Override
+//                        protected Class<?> findClass(String name) throws ClassNotFoundException {
+//                            return TIS.get().getPluginManager().uberClassLoader.findClass(name);
+//                        }
+//                    });
+                    shell = getGroovyShellFactory().createGroovyShell();
                 }
             }
         }
         return shell;
     }
 
+    private static GroovyShellFactory shellFactory;
+
+    public  static GroovyShellFactory getGroovyShellFactory() {
+
+        if (shellFactory == null) {
+            ServiceLoader<GroovyShellFactory> shellFactoryLoader = ServiceLoader.load(GroovyShellFactory.class);
+            for (GroovyShellFactory f : shellFactoryLoader) {
+                return shellFactory = f;
+            }
+            return shellFactory = new DefaultGroovyShellFactory();
+        }
+
+
+        return shellFactory;
+    }
+
     private static CustomerGroovyClassLoader getGroovyLoader() {
         if (loader == null) {
             synchronized (GroovyShellUtil.class) {
                 if (loader == null) {
-                    loader = new CustomerGroovyClassLoader();
+                    loader = getGroovyShellFactory().createGroovyLoader();
                 }
             }
         }
@@ -105,19 +123,6 @@ public class GroovyShellUtil {
             return getGroovyLoader().loadClass(pkg + "." + className);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    public static <T> T eval(String javaScript) {
-        if (!GroovyShellEvaluate.isInConsoleModule) {
-            // 如果不在console中运行则返回空即可
-            return null;
-        }
-        try {
-            Script script = getScriptCache().get(javaScript);
-            return (T) script.run();
-        } catch (Throwable e) {
-            throw new RuntimeException(javaScript, e);
         }
     }
 

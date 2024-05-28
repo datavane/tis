@@ -240,7 +240,16 @@ public class SuFormProperties extends BaseSubFormProperties {
                                 this.parentClazz.getSimpleName() + "_SubFormIdListGetter_" + subFormField.getName();
                         String pkg = this.parentClazz.getPackage().getName();
                         String script =
-                                "	package " + pkg + " ;" + "import java.util.Map;" + "import com.qlangtech" + ".tis" + ".coredefine.module.action.DataxAction; " + "import com.qlangtech.tis.util" + ".DescriptorsJSON.IPropGetter; " + "import com.qlangtech.tis.extension" + ".IPropertyType; " + "class " + className + " implements IPropGetter {" + "	" + "@Override" + "	public " + "Object build(IPropertyType.SubFormFilter filter)" + " " + "{" + this.getIdListGetScript() + "	}" + "}";
+                                "	package " + pkg + " ;" //
+                                        + "import java.util.Map;" //
+                                        + "import com.qlangtech.tis.coredefine.module.action.DataxAction; " //
+                                        + "import com.qlangtech.tis.util.DescriptorsJSON.IPropGetter; " //
+                                        + "import com.qlangtech.tis.extension.IPropertyType; " //
+                                        + "class " + className + " implements IPropGetter {" //
+                                        + "	" //
+                                        + "@Override" //
+                                        + "	public Object build(IPropertyType.SubFormFilter filter)" + " " //
+                                        + "{" + this.getIdListGetScript() + "	}" + "}";
                         //                        //this.getIdListGetScript()
                         //                        loader.loadMyClass(className, script);
                         //                        Class<?> groovyClass = loader.loadClass(pkg + "." + className);

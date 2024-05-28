@@ -28,9 +28,9 @@ import org.codehaus.groovy.control.SourceUnit;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-01-12 10:02
  **/
-final class CustomerGroovyClassLoader extends GroovyClassLoader {
-    public CustomerGroovyClassLoader() {
-        super(new ClassLoader(GroovyShellEvaluate.class.getClassLoader()) {
+public final class CustomerGroovyClassLoader extends GroovyClassLoader {
+    public CustomerGroovyClassLoader(ClassLoader parent) {
+        super(new ClassLoader(parent) {
                   @Override
                   protected Class<?> findClass(String name) throws ClassNotFoundException {
                       // return super.findClass(name);

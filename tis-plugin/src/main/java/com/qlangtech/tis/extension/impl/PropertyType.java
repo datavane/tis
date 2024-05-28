@@ -223,7 +223,7 @@ public class PropertyType implements IPropertyType {
 
                                     if (StringUtils.isNotEmpty(help) && StringUtils.startsWith(help,
                                             IMessageHandler.TSEARCH_PACKAGE)) {
-                                        props.put(PluginExtraProps.Props.KEY_HELP, GroovyShellUtil.eval(help));
+                                        props.put(PluginExtraProps.Props.KEY_HELP, GroovyShellEvaluate.eval(help));
                                     }
 
                                     if (dftVal != null && StringUtils.startsWith(String.valueOf(dftVal),

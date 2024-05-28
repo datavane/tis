@@ -19,7 +19,9 @@ package com.qlangtech.tis.extension.util;
 
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import groovy.lang.Script;
 
+import java.util.ServiceLoader;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
@@ -38,20 +40,34 @@ public class GroovyShellEvaluate {
         }
         isInConsoleModule = loaded;
     }
+//    private static GroovyShellEvaluateService getEvaluateService(){
+//
+//        ServiceLoader<GroovyShellEvaluateService> evaluateServiceLoader = ServiceLoader.load(GroovyShellEvaluateService.class);
+//
+//        for(GroovyShellEvaluateService eservie : evaluateServiceLoader){
+//              return eservie;
+//        }
+//        return new GroovyShellEvaluateService() {
+//            @Override
+//            public <T> T createParamizerScript(Class parentClazz, String className, String script) {
+//                return null;
+//            }
+//
+//            @Override
+//            public Object scriptEval(String script, Function<Object, Object>... process) {
+//                return null;
+//            }
+//
+//            @Override
+//            public <T> T eval(String javaScript) {
+//                return null;
+//            }
+//        };
+//    }
 
     public static <T> T createParamizerScript(Class parentClazz, String className, String script) {
         try {
-//        String className = parentClazz.getSimpleName() + "_SubFormIdListGetter_" + subFormField.getName();
             String pkg = parentClazz.getPackage().getName();
-//        String script = "	package " + pkg + " ;"
-//                + "import java.util.Map;"
-//                + "import com.qlangtech.tis.coredefine.module.action.DataxAction; "
-//                + "import com.qlangtech.tis.util.DescriptorsJSON.IPropGetter; "
-//                + "import com.qlangtech.tis.extension.IPropertyType; "
-//                + "class " + className + " implements IPropGetter {"
-//                + "	@Override"
-//                + "	public Object build(IPropertyType.SubFormFilter filter) {" + this.getIdListGetScript() + "	}" + "}";
-            //this.getIdListGetScript()
             GroovyShellUtil.loadMyClass(className, script);
             Class<?> groovyClass = GroovyShellUtil.loadClass(pkg, className);
             return (T) groovyClass.newInstance();
@@ -67,13 +83,13 @@ public class GroovyShellEvaluate {
 
             Callable<Object> valGetter = () -> {
                 for (Function<Object, Object> f : process) {
-                    Object val = GroovyShellUtil.eval(meta.getName());
+                    Object val = eval(meta.getName());
                     if (val == null) {
                         return null;
                     }
                     return f.apply(val);
                 }
-                return GroovyShellUtil.eval(meta.getName());
+                return eval(meta.getName());
             };
             return unCache ? new JsonUtil.UnCacheString(valGetter) : valGetter.call();
         } catch (Exception e) {
@@ -82,15 +98,19 @@ public class GroovyShellEvaluate {
     }
 
 
-//    final static GroovyShell shell = new GroovyShell(new ClassLoader(GroovyShellEvaluate.class.getClassLoader()) {
-//        @Override
-//        protected Class<?> findClass(String name) throws ClassNotFoundException {
-//            // return super.findClass(name);
-//            return TIS.get().getPluginManager().uberClassLoader.findClass(name);
-//        }
-//    });
-
     private GroovyShellEvaluate() {
     }
 
+    public static <T> T eval(String javaScript) {
+        if (!GroovyShellUtil.getGroovyShellFactory().isInConsoleModule()) {
+            // 如果不在console中运行则返回空即可
+            return null;
+        }
+        try {
+            Script script = GroovyShellUtil.getScriptCache().get(javaScript);
+            return (T) script.run();
+        } catch (Throwable e) {
+            throw new RuntimeException(javaScript, e);
+        }
+    }
 }
