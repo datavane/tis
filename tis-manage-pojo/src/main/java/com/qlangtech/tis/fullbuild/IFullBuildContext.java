@@ -32,6 +32,11 @@ public interface IFullBuildContext {
     String KEY_APP_SHARD_COUNT_SINGLE = "1";
 
     String KEY_APP_NAME = "appname";
+    //
+    /**
+     * 全量构建中执行部份表对象同步流程
+     */
+    String KEY_PARTIAL_TABS_JOB_TRIGGER = "partialTabs";
 
     String KEY_WORKFLOW_ID = "workflow_id";
 

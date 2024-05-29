@@ -8,7 +8,8 @@ import com.qlangtech.tis.datax.IDataXBatchPost;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxWriter;
-import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
+import com.qlangtech.tis.datax.DBDataXChildTask;
+import com.qlangtech.tis.datax.impl.DataXCfgGenerator.GenerateCfgs;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPostTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPreviousTrigger;
@@ -17,6 +18,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.taskflow.TaskAndMilestone;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.powerjob.IDAGSessionSpec;
+import com.qlangtech.tis.datax.IDataXGenerateCfgs;
 import com.qlangtech.tis.powerjob.SelectedTabTriggers;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.apache.commons.collections.CollectionUtils;
@@ -68,6 +70,7 @@ public class DAGSessionSpec implements IDAGSessionSpec {
         return this.dptNodes.keySet();
     }
 
+
     /**
      * 触发一个逻辑表相关子任务
      *
@@ -81,7 +84,7 @@ public class DAGSessionSpec implements IDAGSessionSpec {
     public static SelectedTabTriggers buildTaskTriggers(IExecChainContext execChainContext, IDataxProcessor appSource
             , DataXJobSubmit submit
             , RpcServiceReference statusRpc //
-            , ISelectedTab entry, String dumpTaskId, IDAGSessionSpec dagSessionSpec) {
+            , ISelectedTab entry, String dumpTaskId, IDAGSessionSpec dagSessionSpec, IDataXGenerateCfgs cfgFileNames) {
         SelectedTabTriggers tabTriggers = new SelectedTabTriggers(entry, appSource);
         RemoteTaskTriggers triggers = Objects.requireNonNull(execChainContext.getTskTriggers(), "triggers can not be null");
         if (org.apache.commons.lang3.StringUtils.isEmpty(dumpTaskId)) {
@@ -90,7 +93,10 @@ public class DAGSessionSpec implements IDAGSessionSpec {
         //  RemoteTaskTriggers triggers = new RemoteTaskTriggers();
         IRemoteTaskTrigger jobTrigger = null;
         IDataxWriter writer = appSource.getWriter(null, true);
-        DataXCfgGenerator.GenerateCfgs cfgFileNames = appSource.getDataxCfgFileNames(null);
+        //execChainContext.getString()
+
+
+        // = appSource.getDataxCfgFileNames(null, JobTrigger.getTriggerFromHttpParam(execChainContext));
         if (CollectionUtils.isEmpty(cfgFileNames.getDataXCfgFiles())) {
             throw new IllegalStateException("dataX cfgFileNames can not be empty");
         }
@@ -118,13 +124,13 @@ public class DAGSessionSpec implements IDAGSessionSpec {
             }
         }
 
-        List<DataXCfgGenerator.DBDataXChildTask> dataXCfgsOfTab = cfgFileNames.getDataXTaskDependencies(entry.getName());
+        List<DBDataXChildTask> dataXCfgsOfTab = cfgFileNames.getDataXTaskDependencies(entry.getName());
 
 
         final DataXJobSubmit.IDataXJobContext dataXJobContext = submit.createJobContext(execChainContext);
         Objects.requireNonNull(dataXJobContext, "dataXJobContext can not be null");
         List<IRemoteTaskTrigger> splitTabTriggers = Lists.newArrayList();
-        for (DataXCfgGenerator.DBDataXChildTask fileName : dataXCfgsOfTab) {
+        for (DBDataXChildTask fileName : dataXCfgsOfTab) {
 
             jobTrigger = createDataXJob(dataXJobContext, submit
                     , statusRpc, appSource
@@ -145,12 +151,21 @@ public class DAGSessionSpec implements IDAGSessionSpec {
     }
 
     public static Pair<DAGSessionSpec, List<ISelectedTab>> createDAGSessionSpec(IExecChainContext execChainContext
-            , RpcServiceReference statusRpc, IDataxProcessor appSource, DataXJobSubmit submit) {
+            , RpcServiceReference statusRpc, IDataxProcessor appSource, GenerateCfgs cfgFileNames, DataXJobSubmit submit) {
         IDataxReader reader = appSource.getReader(null);
         DAGSessionSpec sessionSpec = new DAGSessionSpec();
         List<ISelectedTab> selectedTabs = reader.getSelectedTabs();
+
+        int selectedTabCount = 0;
         for (ISelectedTab entry : selectedTabs) {
-            buildTaskTriggers(execChainContext, appSource, submit, statusRpc, entry, entry.getName(), sessionSpec);
+            if (!cfgFileNames.getTargetTabs().contains(entry.getName())) {
+                continue;
+            }
+            selectedTabCount++;
+            buildTaskTriggers(execChainContext, appSource, submit, statusRpc, entry, entry.getName(), sessionSpec, cfgFileNames);
+        }
+        if (selectedTabCount < 1) {
+            throw new IllegalStateException("selectedTabCount can not small than 1");
         }
         return Pair.of(sessionSpec, selectedTabs);
     }

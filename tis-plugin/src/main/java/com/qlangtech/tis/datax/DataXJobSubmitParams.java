@@ -28,6 +28,7 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -97,7 +98,7 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
     }
 
     @Override
-    public void afterSaved() {
+    public void afterSaved(IPluginContext pluginContext, Optional<Context> context) {
         this.availableAreaController = null;
     }
 

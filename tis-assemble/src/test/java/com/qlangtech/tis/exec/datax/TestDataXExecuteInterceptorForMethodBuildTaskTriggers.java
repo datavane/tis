@@ -43,6 +43,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -70,7 +71,7 @@ public class TestDataXExecuteInterceptorForMethodBuildTaskTriggers extends Basic
 
         DataXCfgGenerator.GenerateCfgs genCfgs = mockGenerateCfgs(dataxCfgDir);
 
-        EasyMock.expect(dataXProcessor.getDataxCfgFileNames(null)).andReturn(genCfgs);
+        EasyMock.expect(dataXProcessor.getDataxCfgFileNames(null, Optional.empty())).andReturn(genCfgs);
 
         IExecChainContext chainContext = this.mockExecChainContext(dataXProcessor);
         //  List<IDataxReader> readers
@@ -97,8 +98,8 @@ public class TestDataXExecuteInterceptorForMethodBuildTaskTriggers extends Basic
 
         RemoteTaskTriggers triggers = new RemoteTaskTriggers(null);
         chainContext.setTskTriggers(triggers);
-
-        DAGSessionSpec.buildTaskTriggers(chainContext, dataXProcessor, submit, statusRpc, tab, tab.getName(), dagSessionSpec);
+        DataXCfgGenerator.GenerateCfgs generateCfgs = dataXProcessor.getDataxCfgFileNames(null, Optional.empty());
+        DAGSessionSpec.buildTaskTriggers(chainContext, dataXProcessor, submit, statusRpc, tab, tab.getName(), dagSessionSpec, generateCfgs);
 
 
         Assert.assertEquals("->prep_customer_order_relation prep_customer_order_relation->customer_order_relation_1.json customer_order_relation_1.json->post_customer_order_relation->customer_order_relation"

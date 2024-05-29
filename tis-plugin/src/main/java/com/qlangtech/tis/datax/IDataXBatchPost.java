@@ -78,6 +78,6 @@ public interface IDataXBatchPost {
      * @param tab
      * @return
      */
-    public IRemoteTaskPostTrigger createPostTask(IExecChainContext execContext, ISelectedTab tab, DataXCfgGenerator.GenerateCfgs cfgFileNames);
+    public IRemoteTaskPostTrigger createPostTask(IExecChainContext execContext, ISelectedTab tab, IDataXGenerateCfgs cfgFileNames);
 
 }

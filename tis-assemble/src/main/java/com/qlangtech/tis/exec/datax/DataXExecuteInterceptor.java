@@ -21,6 +21,7 @@ package com.qlangtech.tis.exec.datax;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.datax.*;
+import com.qlangtech.tis.datax.impl.DataXCfgGenerator.GenerateCfgs;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
@@ -70,9 +71,10 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         final ExecutorService executorService = DataFlowAppSource.createExecutorService(execChainContext);
         RemoteTaskTriggers tskTriggers = new RemoteTaskTriggers(executorService);
         execChainContext.setTskTriggers(tskTriggers);
-
+        GenerateCfgs cfgFileNames
+                = appSource.getDataxCfgFileNames(null, com.qlangtech.tis.plugin.trigger.JobTrigger.getTriggerFromHttpParam(execChainContext));
         DAGSessionSpec sessionSpec = DAGSessionSpec.createDAGSessionSpec(
-                execChainContext, statusRpc, appSource, submit).getLeft();
+                execChainContext, statusRpc, appSource,cfgFileNames ,submit).getLeft();
         List<IRemoteTaskTrigger> triggers = DagTaskUtils.createTasks(execChainContext, this, sessionSpec, tskTriggers);
 
         final DataXJobSubmit.IDataXJobContext dataXJobContext = submit.createJobContext(execChainContext);

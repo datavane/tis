@@ -47,6 +47,7 @@ import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
 import com.qlangtech.tis.plugin.k8s.K8sImage.ImageCategory;
+import com.qlangtech.tis.plugin.trigger.JobTrigger;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Arrays;
@@ -311,14 +312,20 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
             final String dataxName = pluginMeta.getDataXName();// (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
-            //            if (StringUtils.isEmpty(dataxName)) {
-            //                throw new IllegalArgumentException(
-            //                        "plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can
-            //                        not be null");
-            //            }
-
             return com.qlangtech.tis.manage.IAppSource.getPluginStore(pluginContext,
                     pluginMeta.getProcessModel().resType, dataxName);
+        }
+    };
+
+    @TISExtension
+    public static final HeteroEnum<JobTrigger> JOB_TRIGGER = new HeteroEnum<JobTrigger>(//
+            JobTrigger.class, //
+            "jobTrigger", //
+            "Job Trigger", //
+            Selectable.Single, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+           return IPluginStore.noSaveStore();
         }
     };
 

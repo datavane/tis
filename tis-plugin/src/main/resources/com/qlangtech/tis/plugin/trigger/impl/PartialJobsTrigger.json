@@ -1,0 +1,8 @@
+{
+  "tabs": {
+    "label": "Tables",
+    "viewtype": "idlist",
+    "enum": "com.qlangtech.tis.plugin.trigger.impl.PartialJobsTrigger.getTabsCandidate():uncache_true",
+    "help": "需要同步的表"
+  }
+}

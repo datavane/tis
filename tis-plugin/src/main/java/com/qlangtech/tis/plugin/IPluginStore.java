@@ -18,16 +18,89 @@
 
 package com.qlangtech.tis.plugin;
 
+import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
+import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.util.IPluginContext;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-12-07 18:28
  **/
 public interface IPluginStore<T extends Describable> extends IRepositoryResource, IPluginStoreSave<T> {
+
+    /**
+     * 不需要持久化的pluginStore，例如JobTrigger
+     *
+     * @param <T>
+     * @return
+     * @see com.qlangtech.tis.plugin.trigger.JobTrigger
+     */
+    public static <T extends Describable> IPluginStore<T> noSaveStore() {
+        return new IPluginStore<T>() {
+            @Override
+            public T getPlugin() {
+                return null;
+            }
+
+            @Override
+            public List<T> getPlugins() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public void cleanPlugins() {
+
+            }
+
+            @Override
+            public List<Descriptor<T>> allDescriptor() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public T find(String name, boolean throwNotFoundErr) {
+                return null;
+            }
+
+            @Override
+            public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context, List<ParseDescribable<T>> dlist, boolean update) {
+
+                dlist.stream().forEach((plugin) -> {
+                    plugin.getSubFormInstances().forEach((p) -> {
+                        if (!(p instanceof AfterPluginSaved)) {
+                            throw new IllegalStateException("instance of " + p.getClass().getName()
+                                    + " must be type of " + AfterPluginSaved.class.getSimpleName());
+                        }
+                        ((AfterPluginSaved) p).afterSaved( pluginContext,  context);
+                    });
+                });
+
+                return new SetPluginsResult(true, false);
+            }
+
+            @Override
+            public void copyConfigFromRemote() {
+
+            }
+
+            @Override
+            public long getWriteLastModifyTimeStamp() {
+                return 0;
+            }
+
+            @Override
+            public XmlFile getTargetFile() {
+                return null;
+            }
+        };
+    }
 
     public T getPlugin();
 
@@ -60,6 +133,6 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
         /**
          * Plugin 保存执行回调执行
          */
-        void afterSaved();
+        void afterSaved(IPluginContext pluginContext, Optional<Context> context);
     }
 }

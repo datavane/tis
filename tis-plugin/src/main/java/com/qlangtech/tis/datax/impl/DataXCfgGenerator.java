@@ -25,6 +25,8 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.qlangtech.tis.datax.DBDataXChildTask;
+import com.qlangtech.tis.datax.DataXCfgFile;
 import com.qlangtech.tis.datax.DataXJobInfo;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxContext;
@@ -40,6 +42,8 @@ import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.trigger.JobTrigger;
+import com.qlangtech.tis.datax.IDataXGenerateCfgs;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.collections.CollectionUtils;
@@ -143,7 +147,7 @@ public class DataXCfgGenerator {
 
         generateCfgs.createDDLFiles = getExistDDLFiles();
 
-        GenerateCfgs cfgs = GenerateCfgs.readFromGen(dataxCfgDir);
+        GenerateCfgs cfgs = GenerateCfgs.readFromGen(dataxCfgDir, Optional.empty());
         generateCfgs.setGenTime(cfgs.getGenTime());
         generateCfgs.setGroupedChildTask(cfgs.getGroupedChildTask());
         return generateCfgs;
@@ -157,7 +161,7 @@ public class DataXCfgGenerator {
     private List<String> getExistDDLFiles() {
         File dataxCreateDDLDir = dataxProcessor.getDataxCreateDDLDir(this.pluginCtx);
         return Lists.newArrayList(dataxCreateDDLDir.list((dir, f) -> {
-            return StringUtils.endsWith(f, IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX);
+            return StringUtils.endsWith(f, DataXCfgFile.DATAX_CREATE_DDL_FILE_NAME_SUFFIX);
         }));
     }
 
@@ -319,7 +323,7 @@ public class DataXCfgGenerator {
         //                , readerContext.getReaderContextId() + File.separator + readerContext.getTaskName() +
         //                IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
         File configFile = DataXJobInfo.getJobPath(dataXCfgDir, readerContext.getReaderContextId(),
-                readerContext.getTaskName() + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
+                readerContext.getTaskName() + DataXCfgFile.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
         FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, tableMapper), TisUTF8.get(), false);
 
     }
@@ -343,7 +347,7 @@ public class DataXCfgGenerator {
             // 创建ddl
 
             IDataxProcessor.TableMap mapper = tableMapper.get();
-            String sqlFileName = mapper.getTo() + IDataxProcessor.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
+            String sqlFileName = mapper.getTo() + DataXCfgFile.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
             if (!createDDLFiles.contains(sqlFileName)) {
 
                 CreateTableSqlBuilder.CreateDDL createDDL = Objects.requireNonNull(writer.generateCreateDDL(mapper),
@@ -356,47 +360,10 @@ public class DataXCfgGenerator {
         }
     }
 
-    public static class DataXCfgFile {
-        private File file;
-        private String fileName;
-        private String dbFactoryId;
-
-        public DataXCfgFile() {
-        }
-
-        public DataXCfgFile setFile(File file) {
-            this.file = file;
-            this.fileName = file.getName();
-            return this;
-        }
-
-        public void setFileName(String fileName) {
-            this.fileName = fileName;
-        }
-
-        public DataXCfgFile setDbFactoryId(String dbFactoryId) {
-            this.dbFactoryId = dbFactoryId;
-            return this;
-        }
-
-        public String getDbFactoryId() {
-            return dbFactoryId;
-        }
-
-        public String getFileName() {
-            return this.fileName;
-        }
-
-        @JSONField(serialize = false)
-        public File getFile() {
-            return this.file;
-        }
-    }
-
-    public static class GenerateCfgs {
+    public static class GenerateCfgs implements IDataXGenerateCfgs {
         private List<DataXCfgFile> _dataxFiles;
         private List<String> createDDLFiles = Collections.emptyList();
-        private Map<String, List<DataXCfgGenerator.DBDataXChildTask>> groupedChildTask = Maps.newHashMap();
+        private Map<String, List<DBDataXChildTask>> groupedChildTask = Maps.newHashMap();
         private long genTime;
 
         private final File dataxCfgDir;
@@ -428,19 +395,23 @@ public class DataXCfgGenerator {
         }
 
 
+        public final Set<String> getTargetTabs() {
+            return this.getGroupedChildTask().keySet();
+        }
+
         /**
          * Map<String, List<String>> key: logicTableName
          *
          * @return
          */
-        private Map<String, List<DataXCfgGenerator.DBDataXChildTask>> getGroupedChildTask() {
+        private Map<String, List<DBDataXChildTask>> getGroupedChildTask() {
             if (groupedChildTask == null) {
                 throw new IllegalStateException("groupedChildTask can not be null");
             }
             return groupedChildTask;
         }
 
-        public void setGroupedChildTask(Map<String, List<DataXCfgGenerator.DBDataXChildTask>> groupedChildTask) {
+        public void setGroupedChildTask(Map<String, List<DBDataXChildTask>> groupedChildTask) {
             this.groupedChildTask = groupedChildTask;
         }
 
@@ -450,9 +421,9 @@ public class DataXCfgGenerator {
          * @param taskGroupName 通常是一个表的名称
          * @return
          */
-        public List<DataXCfgGenerator.DBDataXChildTask> getDataXTaskDependencies(String taskGroupName) {
-            List<DataXCfgGenerator.DBDataXChildTask> subChildTask = null;
-            Map<String, List<DataXCfgGenerator.DBDataXChildTask>> groupdTsk = this.getGroupedChildTask();
+        public List<DBDataXChildTask> getDataXTaskDependencies(String taskGroupName) {
+            List<DBDataXChildTask> subChildTask = null;
+            Map<String, List<DBDataXChildTask>> groupdTsk = this.getGroupedChildTask();
             if (CollectionUtils.isEmpty(subChildTask = groupdTsk.get(taskGroupName))) {
                 throw new IllegalStateException("taskGroupName:" + taskGroupName + " relevant childTask:" + String.join(",", groupdTsk.keySet()) + " can not be empty");
             }
@@ -495,7 +466,7 @@ public class DataXCfgGenerator {
          * @param dataxCfgDir
          * @return
          */
-        public static GenerateCfgs readFromGen(File dataxCfgDir) {
+        public static GenerateCfgs readFromGen(File dataxCfgDir, Optional<JobTrigger> partialTrigger) {
             try {
                 GenerateCfgs cfgs = new GenerateCfgs(dataxCfgDir);
                 JSONObject o = JSON.parseObject(FileUtils.readFileToString(new File(dataxCfgDir,
@@ -503,13 +474,26 @@ public class DataXCfgGenerator {
 
                 cfgs.genTime = o.getLongValue(KEY_GEN_TIME);
 
-                Map<String, List<DataXCfgGenerator.DBDataXChildTask>> groupedChildTasks = Maps.newHashMap();
+                Map<String, List<DBDataXChildTask>> groupedChildTasks = Maps.newHashMap();
 
                 Map<String, JSONArray> childTasks = o.getObject(KEY_GROUP_CHILD_TASKS, Map.class);
+                Set<String> filterTabsName = null;
+                if (partialTrigger.isPresent()) {
+                    filterTabsName = partialTrigger.get()
+                            .selectedTabs().stream().map((tab) -> tab.identityValue()).collect(Collectors.toSet());
+                }
 
-                List<DataXCfgGenerator.DBDataXChildTask> tasks = null;
+                List<DBDataXChildTask> tasks = null;
                 for (Map.Entry<String, JSONArray> entry : childTasks.entrySet()) {
-                    tasks = entry.getValue().toJavaList(DataXCfgGenerator.DBDataXChildTask.class);
+
+                    if (filterTabsName != null) {
+                        if (!filterTabsName.contains(entry.getKey())) {
+                            // 如果不存在则跳过
+                            continue;
+                        }
+                    }
+
+                    tasks = entry.getValue().toJavaList(DBDataXChildTask.class);
                     groupedChildTasks.put(entry.getKey(), tasks);
                 }
 
@@ -611,47 +595,4 @@ public class DataXCfgGenerator {
         return velocityContext;
     }
 
-    public static class DBDataXChildTask {
-        // 需要执行数据抽取的数据库编号，如果支持JDBC的DB 一般为DB的jdbcUrl
-        private final String dbIdenetity;
-        private final String dbFactoryId;
-        private final String dataXCfgFileName;
-
-        public DBDataXChildTask(String dbIdenetity, String dbFactoryId, String dataXCfgFileName) {
-            this.dbIdenetity = dbIdenetity;
-            this.dataXCfgFileName = dataXCfgFileName;
-            this.dbFactoryId = dbFactoryId;
-        }
-
-        public String getDbFactoryId() {
-            return this.dbFactoryId;
-        }
-
-        public String getDbIdenetity() {
-            return this.dbIdenetity;
-        }
-
-        public String getDataXCfgFileName() {
-            return this.dataXCfgFileName;
-        }
-
-        @JSONField(serialize = false)
-        public String getDataXCfgFileNameWithSuffix() {
-            return this.getDataXCfgFileName() + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX;
-        }
-
-        public File getJobPath(File dataxCfgDir) {
-            //return new File(dataxCfgDir, jobFileName);
-            //            File dataXCfg = new File(dataxCfgDir
-            //                    , this.getDbFactoryId() + File.separator + this.getDataXCfgFileNameWithSuffix());
-            //            return dataXCfg;
-            return DataXJobInfo.getJobPath(dataxCfgDir, this.getDbFactoryId(), this.getDataXCfgFileNameWithSuffix());
-        }
-
-        @Override
-        public String toString() {
-            return "{" + "dbIdenetity='" + dbIdenetity + '\'' + ", dbFactoryId='" + dbFactoryId + '\'' + ", " +
-                    "dataXCfgFileName='" + dataXCfgFileName + '\'' + '}';
-        }
-    }
 }

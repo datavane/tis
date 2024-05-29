@@ -33,6 +33,7 @@ import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.IDBReservedKeys;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.trigger.JobTrigger;
 import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -54,8 +55,6 @@ import java.util.stream.Collectors;
  * @date 2021-04-07 14:38
  */
 public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
-    public String DATAX_CREATE_DDL_FILE_NAME_SUFFIX = ".sql";
-    String DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX = ".json";
 
     static File getWriterDescFile(IPluginContext pluginContext, String dataXName) {
         File workDir = getDataXWorkDir(pluginContext, dataXName);
@@ -147,7 +146,7 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
      * @param criteria
      * @return
      */
-    public default File getDataXCfgFile(IPluginContext pluginCtx, DataXCfgGenerator.DataXCfgFile criteria) {
+    public default File getDataXCfgFile(IPluginContext pluginCtx, DataXCfgFile criteria) {
         File cfgDir = getDataxCfgDir(pluginCtx);
         File cfgFile = new File(cfgDir, criteria.getDbFactoryId() + File.separator + criteria.getFileName());
         if (!cfgFile.exists()) {
@@ -189,12 +188,16 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
 
     public boolean isWriterSupportMultiTableInReader(IPluginContext pluginCtx);
 
+//    public default DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginCtx) {
+//        return getDataxCfgFileNames(pluginCtx, Optional.empty());
+//    }
+
     /**
      * dataX配置文件列表
      *
      * @return
      */
-    public DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginCtx);
+    public DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginCtx, Optional<JobTrigger> partialTrigger);
 
     /**
      * 表映射

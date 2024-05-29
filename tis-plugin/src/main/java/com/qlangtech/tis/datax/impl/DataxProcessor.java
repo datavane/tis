@@ -40,6 +40,7 @@ import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.trigger.JobTrigger;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.beanutils.BeanUtilsBean;
@@ -240,7 +241,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         File createDDLDir = this.getDataxCreateDDLDir(pluginCtx);
         saveCreateTableDDL(createDDL, createDDLDir, sqlFileName, overWrite);
         // 主要更新一下最后更新时间，这样在执行powerjob任务可以顺利将更新后的ddl文件同步到powerjob的worker节点上去
-        Objects.requireNonNull(this.pluginStore,"pluginStore can be null,shall be set by method  setPluginStore ahead")
+        Objects.requireNonNull(this.pluginStore, "pluginStore can be null,shall be set by method  setPluginStore ahead")
                 .writeLastModifyTimeStamp();
     }
 
@@ -392,7 +393,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
      * @return
      */
     @Override
-    public DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginContext) {
+    public DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginContext, Optional<JobTrigger> partialTrigger) {
 //        File dataxCfgDir = getDataxCfgDir(pluginContext);
 //        if (!dataxCfgDir.exists()) {
 //            throw new IllegalStateException("dataxCfgDir is not exist:" + dataxCfgDir.getAbsolutePath());
@@ -402,10 +403,12 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 //        }
 //        DataXCfgGenerator.GenerateCfgs genCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(dataxCfgDir);
 //        return genCfgs;
-        return DataxProcessor.getDataxCfgFileNames(pluginContext, this);
+        return DataxProcessor.getDataxCfgFileNames(pluginContext, partialTrigger, this);
     }
 
-    public static DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginContext, IDataxProcessor processor) {
+    public static DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames( //
+                                                                       IPluginContext pluginContext //
+            , Optional<JobTrigger> partialTrigger, IDataxProcessor processor) {
         File dataxCfgDir = processor.getDataxCfgDir(pluginContext);
         if (!dataxCfgDir.exists()) {
             throw new IllegalStateException("dataxCfgDir is not exist:" + dataxCfgDir.getAbsolutePath());
@@ -413,7 +416,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         if (dataxCfgDir.list().length < 1) {
             throw new IllegalStateException("dataxCfgDir is empty can not find any files:" + dataxCfgDir.getAbsolutePath());
         }
-        DataXCfgGenerator.GenerateCfgs genCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(dataxCfgDir);
+        DataXCfgGenerator.GenerateCfgs genCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(dataxCfgDir, partialTrigger);
         return genCfgs;
     }
 

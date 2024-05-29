@@ -38,6 +38,7 @@ import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.datax.TableAliasMapper;
 import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
+import com.qlangtech.tis.datax.DataXCfgFile;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -85,6 +86,7 @@ import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta;
 import com.qlangtech.tis.plugin.ds.DefaultTab;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.trigger.JobTrigger;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
@@ -176,7 +178,10 @@ public class DataxAction extends BasicModule {
       this.addErrorMessage(context, "该数据通道不支持批量数据同步，请使用实时同步");
       return;
     }
-    DataXCfgGenerator.GenerateCfgs cfgFileNames = dataXProcessor.getDataxCfgFileNames(null);
+
+
+    Optional<JobTrigger> partialTrigger = JobTrigger.getPartialTriggerFromContext(context); // Optional.ofNullable((JobTrigger) context.get(JobTrigger.class.getName()));
+    DataXCfgGenerator.GenerateCfgs cfgFileNames = dataXProcessor.getDataxCfgFileNames(null,partialTrigger);
     if (!triggerType.validate(this, context, cfgFileNames.getDataXCfgFiles())) {
       return;
     }
@@ -394,7 +399,8 @@ public class DataxAction extends BasicModule {
 
   /**
    * 启动过程中出错，需要重启启动
-   *remove_datax_worker
+   * remove_datax_worker
+   *
    * @param context
    */
   @Func(value = PermissionConstant.DATAX_MANAGE)
@@ -818,7 +824,7 @@ public class DataxAction extends BasicModule {
 
     //  String fileName = this.getString("fileName");
 
-    DataXCfgGenerator.DataXCfgFile cfgFileCriteria = this.parseJsonPost(DataXCfgGenerator.DataXCfgFile.class);
+    DataXCfgFile cfgFileCriteria = this.parseJsonPost(DataXCfgFile.class);
 
     GenCfgFileType fileType = GenCfgFileType.parse(this.getString("fileType"));
     ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));

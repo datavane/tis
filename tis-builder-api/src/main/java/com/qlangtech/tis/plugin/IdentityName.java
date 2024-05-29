@@ -28,6 +28,14 @@ public interface IdentityName {
 
     String MSG_ERROR_NAME_DUPLICATE = "名称重复";
 
+    public static IdentityName create(final String value) {
+        return new IdentityName() {
+            @Override
+            public String identityValue() {
+                return value;
+            }
+        };
+    }
 
 //    /**
 //     * 相同类型的插件不能重名
@@ -39,7 +47,7 @@ public interface IdentityName {
     /**
      * 取得唯一ID
      *
-     * @return
+     * @returnIdentityName
      */
     //default
     String identityValue();// {

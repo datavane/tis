@@ -20,7 +20,6 @@ package com.qlangtech.tis.manage.common;
 import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
-import com.qlangtech.tis.manage.common.DefaultFilter.AppAndRuntime;
 import com.qlangtech.tis.pubhook.common.Nullable;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import org.apache.commons.lang.StringUtils;
@@ -52,7 +51,7 @@ public class CheckAppDomainExistValve {
     }
 
     AppDomainInfo appDomain = null;
-    AppAndRuntime environment = DefaultFilter.getAppAndRuntime();
+    AppAndRuntime environment = AppAndRuntime.getAppAndRuntime();
     if (environment == null) {
       domain = AppDomainInfo.createAppNotAware(DefaultFilter.getRuntime());
       request.setAttribute(ActionTool.REQUEST_DOMAIN_KEY, domain);

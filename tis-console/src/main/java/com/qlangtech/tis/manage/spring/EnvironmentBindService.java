@@ -20,7 +20,7 @@ package com.qlangtech.tis.manage.spring;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
 import com.qlangtech.tis.manage.common.DefaultFilter;
-import com.qlangtech.tis.manage.common.DefaultFilter.AppAndRuntime;
+import com.qlangtech.tis.manage.common.AppAndRuntime;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -76,7 +76,7 @@ public abstract class EnvironmentBindService<T> {
 
 
   public T getInstance() {
-    AppAndRuntime appAndRuntime = DefaultFilter.getAppAndRuntime();
+    AppAndRuntime appAndRuntime = AppAndRuntime.getAppAndRuntime();
     if (appAndRuntime == null) {
       appAndRuntime = new AppAndRuntime();
       appAndRuntime.setRuntime(DefaultFilter.getRuntime());

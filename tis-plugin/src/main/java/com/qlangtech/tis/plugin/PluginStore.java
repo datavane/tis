@@ -302,7 +302,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                 if (this.plugins != null) {
                     this.plugins.forEach((plugin) -> {
                         if (plugin instanceof AfterPluginSaved) {
-                            ((AfterPluginSaved) plugin).afterSaved();
+                            ((AfterPluginSaved) plugin).afterSaved( pluginContext,  context);
                         }
                     });
                 }

@@ -24,6 +24,7 @@ import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxWriter;
+import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
@@ -80,6 +81,10 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
 
         DataXJobSubmit submit = jobSubmit.get();
         final DataXAssembleSvcCompsite svcCompsite = dataXExecReporter.get();
+
+        final DataXCfgGenerator.GenerateCfgs cfgFileNames
+                = dataxProc.getDataxCfgFileNames(null, Optional.empty());
+
         final ExecuteResult faildResult = appRule.getProcessDataResults(execChainContext, new ISolrAppSource.ISingleTableDumpFactory() {
                     @Override
                     public void createSingleTableDump(RemoteTaskTriggers tskTrigger, DependencyNode dump, boolean hasValidTableDump, String pt
@@ -87,7 +92,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
                             , IDAGSessionSpec dagSessionSpec) {
 
                         DAGSessionSpec.buildTaskTriggers(
-                                execChainContext, dataxProc, submit, dataXExecReporter, new DefaultTab(dump.getName()), dump.getId(), dagSessionSpec);
+                                execChainContext, dataxProc, submit, dataXExecReporter, new DefaultTab(dump.getName()), dump.getId(), dagSessionSpec, cfgFileNames);
 
                     }
                 },

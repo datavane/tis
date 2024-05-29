@@ -21,6 +21,7 @@ package com.qlangtech.tis.datax.impl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.datax.DBDataXChildTask;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,6 +30,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -47,25 +49,25 @@ public class TestGenerateCfgs {
         DataXCfgGenerator.GenerateCfgs genCfgs = new DataXCfgGenerator.GenerateCfgs(dataxCfgDir);
         long timestamp = System.currentTimeMillis();
         genCfgs.setGenTime(timestamp);
-        Map<String, List<DataXCfgGenerator.DBDataXChildTask>> groupedChildTask = Maps.newHashMap();
+        Map<String, List<DBDataXChildTask>> groupedChildTask = Maps.newHashMap();
         String tabName = "user";
         final String jdbcUrl = "jdbc:mysql://192.168.28.200:3306/order2?useUnicode=yes&useCursorFetch=true&useSSL=false&serverTimezone=Asia%2FShanghai&useCompression=false&characterEncoding=utf8";
         groupedChildTask.put(tabName
                 , Lists.newArrayList(
-                        new DataXCfgGenerator.DBDataXChildTask(jdbcUrl, "order2", tabName + "_1")
-                        , new DataXCfgGenerator.DBDataXChildTask(jdbcUrl, "order2", tabName + "_2")));
+                        new DBDataXChildTask(jdbcUrl, "order2", tabName + "_1")
+                        , new DBDataXChildTask(jdbcUrl, "order2", tabName + "_2")));
         genCfgs.setGroupedChildTask(groupedChildTask);
 
 
         genCfgs.write2GenFile(dataxCfgDir);
 
-        DataXCfgGenerator.GenerateCfgs generateCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(dataxCfgDir);
+        DataXCfgGenerator.GenerateCfgs generateCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(dataxCfgDir, Optional.empty());
 
         Assert.assertEquals(timestamp, generateCfgs.getGenTime());
 
-        List<DataXCfgGenerator.DBDataXChildTask> childTasks = generateCfgs.getDataXTaskDependencies(tabName);
+        List<DBDataXChildTask> childTasks = generateCfgs.getDataXTaskDependencies(tabName);
         Assert.assertNotNull(childTasks);
-        for (DataXCfgGenerator.DBDataXChildTask childTask : childTasks) {
+        for (DBDataXChildTask childTask : childTasks) {
             Assert.assertEquals(jdbcUrl, childTask.getDbIdenetity());
         }
 

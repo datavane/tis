@@ -41,20 +41,7 @@ public final class DefaultFilter implements Filter {
 
   private static ThreadLocal<ServletResponse> responseLocal = new ThreadLocal<ServletResponse>();
 
-  private static ThreadLocal<AppAndRuntime> appAndRuntimeLocal = new ThreadLocal<AppAndRuntime>();
-
   private static ThreadLocal<TISHttpServletRequestWrapper> requestLocal = new ThreadLocal<TISHttpServletRequestWrapper>();
-
-  // public static void setThreadRequest(AdapterHttpRequest request) {
-  // requestLocal.set(request);
-  // }
-  public static AppAndRuntime getAppAndRuntime() {
-    return appAndRuntimeLocal.get();
-  }
-
-  public static void setAppAndRuntime(AppAndRuntime appAndRuntime) {
-    appAndRuntimeLocal.set(appAndRuntime);
-  }
 
   public static ServletResponse getRespone() {
     // ServletActionContext.getResponse();
@@ -80,7 +67,7 @@ public final class DefaultFilter implements Filter {
       // if (cookie == null) {
       if (StringUtils.isBlank(appName)) {
         // RunEnvironment.getSysEnvironment();//
-        appAndRuntime.runtime = RunEnvironment.getSysRuntime();
+        appAndRuntime.setRuntime(RunEnvironment.getSysRuntime());
         // ManageUtils.isDevelopMode()
         // ?
         // RunEnvironment.DAILY
@@ -92,17 +79,17 @@ public final class DefaultFilter implements Filter {
       }
       // Matcher match = p2.matcher(cookie.getValue());
       // if (match.matches()) {
-      appAndRuntime.appName = appName;
+      appAndRuntime.setAppName(appName);
       // RunEnvironment.getSysEnvironment();//
-      appAndRuntime.runtime = RunEnvironment.getSysRuntime();
+      appAndRuntime.setRuntime(RunEnvironment.getSysRuntime());
       // RunEnvironment.getEnum(Short.parseShort(match.group(2)));
-      if (!ManageUtils.isDaily() && appAndRuntime.runtime != RunEnvironment.DAILY) {
+      if (!ManageUtils.isDaily() && appAndRuntime.getRuntime() != RunEnvironment.DAILY) {
         request.setAttribute(key, appAndRuntime);
         // 只有预发和线上的可能了
         return appAndRuntime;
       }
       // }
-      appAndRuntime.runtime = getRuntime();
+      appAndRuntime.setRuntime(getRuntime());
       request.setAttribute(key, appAndRuntime);
       return appAndRuntime;
     }
@@ -112,29 +99,6 @@ public final class DefaultFilter implements Filter {
   public static RunEnvironment getRuntime() {
     // RunEnvironment.getSysEnvironment();
     return RunEnvironment.getSysRuntime();
-  }
-
-  public static class AppAndRuntime {
-
-    private String appName;
-
-    private RunEnvironment runtime;
-
-    public void setAppName(String appName) {
-      this.appName = appName;
-    }
-
-    public void setRuntime(RunEnvironment runtime) {
-      this.runtime = runtime;
-    }
-
-    public String getAppName() {
-      return appName;
-    }
-
-    public RunEnvironment getRuntime() {
-      return runtime;
-    }
   }
 
   // public static Cookie getCookie(HttpServletRequest request, String
@@ -164,7 +128,7 @@ public final class DefaultFilter implements Filter {
       final TISHttpServletResponseWrapper wrapperResponse = new TISHttpServletResponseWrapper((HttpServletResponse) response);
       responseLocal.set(response);
       requestLocal.set(wrapperRequest);
-      appAndRuntimeLocal.set(getRuntime(wrapperRequest));
+      AppAndRuntime.appAndRuntimeLocal.set(getRuntime(wrapperRequest));
       if (ManageUtils.isDaily()) {
         // com.alibaba.hecla.acl.dataobject.SysUser user = new
         // com.alibaba.hecla.acl.dataobject.SysUser();

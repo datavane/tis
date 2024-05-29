@@ -24,7 +24,6 @@ import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.build.task.IBuildHistory;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
-import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.TISExtensible;
@@ -148,13 +147,13 @@ public abstract class DataXJobSubmit {
         DISTRIBUTE("distribute") {
             @Override
             public boolean validate(IControlMsgHandler controlMsgHandler, Context context,
-                                    List<DataXCfgGenerator.DataXCfgFile> cfgFileNames) {
+                                    List<DataXCfgFile> cfgFileNames) {
                 return true;
             }
         }, EMBEDDED("embedded") {
             @Override
             public boolean validate(IControlMsgHandler controlMsgHandler, Context context,
-                                    List<DataXCfgGenerator.DataXCfgFile> cfgFileNames) {
+                                    List<DataXCfgFile> cfgFileNames) {
                 return true;
             }
         }
@@ -162,7 +161,7 @@ public abstract class DataXJobSubmit {
         , LOCAL("local") {
             @Override
             public boolean validate(IControlMsgHandler controlMsgHandler, Context context,
-                                    List<DataXCfgGenerator.DataXCfgFile> cfgFileNames) {
+                                    List<DataXCfgFile> cfgFileNames) {
                 DataXJobSubmitParams submitParams  = DataXJobSubmitParams.getDftIfEmpty();
                 if (cfgFileNames.size() > submitParams.maxJobs) {
                     controlMsgHandler.addErrorMessage(context, "单机版，单次表导入不能超过" +  submitParams.maxJobs +
@@ -188,7 +187,7 @@ public abstract class DataXJobSubmit {
         }
 
         public abstract boolean validate(IControlMsgHandler controlMsgHandler, Context context,
-                                         List<DataXCfgGenerator.DataXCfgFile> cfgFileNames);
+                                         List<DataXCfgFile> cfgFileNames);
     }
 
 
@@ -337,7 +336,7 @@ public abstract class DataXJobSubmit {
 
     public static class TableDataXEntity implements DBIdentity {
         public static final String TEST_JDBC_URL = "jdbc_url_test";
-        public final DataXCfgGenerator.DBDataXChildTask fileName;
+        public final DBDataXChildTask fileName;
         private final ISelectedTab selectedTab;
 
         @Override
@@ -377,11 +376,11 @@ public abstract class DataXJobSubmit {
                     throw new UnsupportedOperationException();
                 }
             };
-            return new DataXJobSubmit.TableDataXEntity(new DataXCfgGenerator.DBDataXChildTask(dbIdenetity, null,
+            return new DataXJobSubmit.TableDataXEntity(new DBDataXChildTask(dbIdenetity, null,
                     dataXCfgFileName), selTab);
         }
 
-        public TableDataXEntity(DataXCfgGenerator.DBDataXChildTask fileName, ISelectedTab selectedTab) {
+        public TableDataXEntity(DBDataXChildTask fileName, ISelectedTab selectedTab) {
             this.fileName = fileName;
             this.selectedTab = selectedTab;
         }

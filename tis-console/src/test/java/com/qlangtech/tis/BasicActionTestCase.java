@@ -42,9 +42,9 @@ public class BasicActionTestCase extends StrutsSpringTestCase implements TISEasy
 
   protected void setCollection(String collection) {
     request.addHeader(TriggerBuildResult.KEY_APPNAME, collection);
-    DefaultFilter.AppAndRuntime app = new DefaultFilter.AppAndRuntime();
+    AppAndRuntime app = new AppAndRuntime();
     app.setAppName(collection);
-    DefaultFilter.setAppAndRuntime(app);
+    AppAndRuntime.setAppAndRuntime(app);
   }
 
   @Override

@@ -20,10 +20,12 @@ package com.qlangtech.tis.exec.datax;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.datax.DataXCfgFile;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataxGlobalCfg;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.TimeFormat;
+import com.qlangtech.tis.datax.DBDataXChildTask;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -58,7 +60,7 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
     protected static final String tableName = "customer_order_relation";
     protected static final String dataCfgTaskName = tableName + "_1";
     protected static final String dataCfgFileName
-            = dataCfgTaskName + IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX;
+            = dataCfgTaskName + DataXCfgFile.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX;
     static final int testTaskId = 999;
 
 
@@ -112,9 +114,9 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
     protected DataXCfgGenerator.GenerateCfgs mockGenerateCfgs(File dataxCfgDir) throws IOException {
         DataXCfgGenerator.GenerateCfgs genCfg = new DataXCfgGenerator.GenerateCfgs(dataxCfgDir);
         genCfg.setGenTime(System.currentTimeMillis());
-        Map<String, List<DataXCfgGenerator.DBDataXChildTask>> groupedChildTask = Maps.newHashMap();
+        Map<String, List<DBDataXChildTask>> groupedChildTask = Maps.newHashMap();
         groupedChildTask.put(tableName, Lists.newArrayList(
-                new DataXCfgGenerator.DBDataXChildTask(DataXJobSubmit.TableDataXEntity.TEST_JDBC_URL, dbName, dataCfgTaskName)));
+                new DBDataXChildTask(DataXJobSubmit.TableDataXEntity.TEST_JDBC_URL, dbName, dataCfgTaskName)));
         genCfg.setGroupedChildTask(groupedChildTask);
         genCfg.write2GenFile(dataxCfgDir);
 

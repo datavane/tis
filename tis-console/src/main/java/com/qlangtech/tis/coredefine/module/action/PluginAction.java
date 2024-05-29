@@ -749,6 +749,7 @@ public class PluginAction extends BasicModule {
       throw new IllegalArgumentException("extendpoints can not be null");
     }
 
+
     for (String extend : extendpoints) {
       this.setBizResult(context,
         new DescriptorsJSON(TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend))).getDescriptorsJSON());
