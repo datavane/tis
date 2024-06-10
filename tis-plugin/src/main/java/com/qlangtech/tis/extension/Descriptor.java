@@ -48,6 +48,7 @@ import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.ds.TypeBase;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
@@ -1068,7 +1069,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
                 if (attrDesc.typeIdentity() == FormFieldType.MULTI_SELECTABLE.getIdentity()) {
                     List<FormFieldType.SelectedItem> selectedItems = getSelectedMultiItems(null, null, attrDesc, valJ);
-                    List<CMeta> multi = selectedItems.stream().filter((item) -> item.isChecked()).map((item) -> {
+                    List<TypeBase> multi = selectedItems.stream().filter((item) -> item.isChecked()).map((item) -> {
                         if (item.getCmeta() != null) {
                             return item.getCmeta();
                         } else {

@@ -57,7 +57,6 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.util.MultiItemsViewType;
-import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.IAppSource;
@@ -84,8 +83,11 @@ import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta;
+import com.qlangtech.tis.plugin.ds.DataTypeMeta.IMultiItemsView;
 import com.qlangtech.tis.plugin.ds.DefaultTab;
+import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.ds.IdlistElementCreatorFactory;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
@@ -181,7 +183,7 @@ public class DataxAction extends BasicModule {
 
 
     Optional<JobTrigger> partialTrigger = JobTrigger.getPartialTriggerFromContext(context); // Optional.ofNullable((JobTrigger) context.get(JobTrigger.class.getName()));
-    DataXCfgGenerator.GenerateCfgs cfgFileNames = dataXProcessor.getDataxCfgFileNames(null,partialTrigger);
+    DataXCfgGenerator.GenerateCfgs cfgFileNames = dataXProcessor.getDataxCfgFileNames(null, partialTrigger);
     if (!triggerType.validate(this, context, cfgFileNames.getDataXCfgFiles())) {
       return;
     }
@@ -1345,7 +1347,7 @@ public class DataxAction extends BasicModule {
       }
     }
 
-    this.setBizResult(context, DataTypeMeta.createViewBiz(Collections.emptyList(), tabMapper));
+    this.setBizResult(context, DataTypeMeta.createViewBiz(IMultiItemsView.unknow(), tabMapper));
   }
 
   @Func(value = PermissionConstant.APP_ADD)
@@ -1433,7 +1435,7 @@ public class DataxAction extends BasicModule {
             return false;
           }
 
-          CMeta.ParsePostMCols postMCols = PluginExtraProps.parsePostMCols(Optional.empty(), msgHandler,
+          CMeta.ParsePostMCols postMCols = (new IdlistElementCreatorFactory()).parsePostMCols(msgHandler,
             context, MultiItemsViewType.keyColsMeta, targetCols);
 
           //          Map<String, Integer> existCols = Maps.newHashMap();

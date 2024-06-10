@@ -23,7 +23,9 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.PropertyType.PropVal;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.TypeBase;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import org.apache.commons.lang.StringUtils;
 
@@ -84,7 +86,22 @@ public enum FormFieldType {
 
 
         }
-    }), TEXTAREA(2), DATE(3),
+    }) //
+    , TEXTAREA(2) //
+    , DATE(3) //
+    , JDBCColumn(11, new IPropValProcessor() {
+        @Override
+        public Object processInput(Object instance, PropVal val) throws Exception {
+           // return IPropValProcessor.super.processInput(instance, val);
+            return null;
+        }
+
+        @Override
+        public Object serialize2Output(PropertyType pt, Object val) throws Exception {
+           // return IPropValProcessor.super.serialize2Output(pt, val);
+            return null;
+        }
+    }),
     /**
      * 输入一个数字
      */
@@ -123,7 +140,9 @@ public enum FormFieldType {
             }
             return LocalDateTime.ofInstant(ist, TimeFormat.sysZoneId).format(isoFormat);
         }
-    });
+    }
+
+    );
 
     public static void main(String[] args) throws Exception {
         //  SimpleDateFormat dateTimeFormat =new SimpleDateFormat("yyyy-MM-ddTHH:mm:ss.SSS");
@@ -164,15 +183,28 @@ public enum FormFieldType {
          * @param items         多选条目列表
          * @return
          */
-        public boolean validate(IFieldErrorHandler msgHandler, Optional<IPropertyType.SubFormFilter> subFormFilter,
-                                Context context, String fieldName, List<SelectedItem> items);
+        public default boolean validate(IFieldErrorHandler msgHandler, Optional<IPropertyType.SubFormFilter> subFormFilter,
+                                        Context context, String fieldName, List<SelectedItem> items) {
+
+            int selectCount = 0;
+            for (FormFieldType.SelectedItem item : items) {
+                if (item.isChecked()) {
+                    selectCount++;
+                }
+            }
+            if (selectCount < 1) {
+                msgHandler.addFieldError(context, fieldName, "至少选择一项");
+                return false;
+            }
+            return true;
+        }
     }
 
     public static class SelectedItem extends Option {
         // 是否选中了
         private boolean checked;
 
-        private CMeta cmeta;
+        private TypeBase cmeta;
 
         public SelectedItem(String name, String value, boolean checked) {
             super(name, value);
@@ -180,13 +212,13 @@ public enum FormFieldType {
             this.checked = checked;
         }
 
-        public SelectedItem(CMeta cmeta) {
+        public SelectedItem(TypeBase cmeta) {
             this(cmeta.getName(), cmeta.getName(), true // !cmeta.isDisable()
             );
             this.cmeta = cmeta;
         }
 
-        public CMeta getCmeta() {
+        public TypeBase getCmeta() {
             return cmeta;
         }
 

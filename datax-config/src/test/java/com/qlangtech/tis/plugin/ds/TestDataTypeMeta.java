@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.qlangtech.tis.plugin.ds.DataTypeMeta.IMultiItemsView;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,7 +45,7 @@ public class TestDataTypeMeta {
         try (InputStream metaAssert = TestDataTypeMeta.class.getResourceAsStream("data_type_meta_assert.json")) {
             Assert.assertEquals( //
                     json2String(IOUtils.toString(metaAssert, Charset.forName("utf-8"))) //
-                    , json2String(DataTypeMeta.createViewBiz(Collections.emptyList(),cms)));
+                    , json2String(DataTypeMeta.createViewBiz(IMultiItemsView.unknow(),cms)));
         }
 
     }

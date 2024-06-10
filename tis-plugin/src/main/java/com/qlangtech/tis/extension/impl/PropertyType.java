@@ -37,6 +37,7 @@ import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta;
+import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.beanutils.ConvertUtilsBean;
@@ -118,27 +119,7 @@ public class PropertyType implements IPropertyType {
         this.formField = formField;
     }
 
-    private static String getStrProp(PluginExtraProps.Props props, String key) {
-        return props.getProps().getString(key);
-    }
 
-    public static MultiItemsViewType createMultiItemsViewType(PluginExtraProps.Props props) {
-//        if (this.multiItemsViewType == null) {
-        Optional<CMeta.ElementCreatorFactory> elementCreator = Optional.empty();
-        try {
-            String selectElementCreator = getStrProp(props, CMeta.KEY_ELEMENT_CREATOR_FACTORY);
-            if (StringUtils.isNotEmpty(selectElementCreator)) {
-                elementCreator = Optional.of((CMeta.ElementCreatorFactory) //
-                        TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return new MultiItemsViewType(MultiItemsViewType.ViewType.parse(getStrProp(props, PluginExtraProps.Props.KEY_VIEW_TYPE)),
-                elementCreator);
-        // }
-        // return this.multiItemsViewType;
-    }
 
     public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(Map<String,
             /*** fieldname*/IPropertyType> props) {
@@ -198,7 +179,7 @@ public class PropertyType implements IPropertyType {
                                     Object dftVal = fieldExtraProps.getDftVal();
                                     String help = fieldExtraProps.getHelpContent();
                                     JSONObject props = fieldExtraProps.getProps();
-                                   // Object disabled = props.get(PluginExtraProps.KEY_DISABLE);
+                                    // Object disabled = props.get(PluginExtraProps.KEY_DISABLE);
 
 //                                    if (disabled != null) {
 //                                        if (StringUtils.startsWith(String.valueOf(disabled), IMessageHandler.TSEARCH_PACKAGE)) {
@@ -269,7 +250,7 @@ public class PropertyType implements IPropertyType {
                                                     case IdList:
                                                         return Option.toJson(mcols);
                                                     case TupleList:
-                                                        return DataTypeMeta.createViewBiz(multiItemsViewType.getElementPropertyKeys(), mcols);
+                                                        return DataTypeMeta.createViewBiz(multiItemsViewType, mcols);
                                                     default:
                                                         throw new IllegalStateException("unhandle view type:" + multiItemsViewType);
                                                 }
@@ -324,7 +305,8 @@ public class PropertyType implements IPropertyType {
 
     private MultiItemsViewType getMultiItemsViewType() {
         if (this.multiItemsViewType == null) {
-            this.multiItemsViewType = createMultiItemsViewType(new PluginExtraProps.Props(new JSONObject()));
+
+            this.multiItemsViewType = MultiItemsViewType.createMultiItemsViewType(this);
         }
         return this.multiItemsViewType;
     }
@@ -609,7 +591,7 @@ public class PropertyType implements IPropertyType {
         return TIS.get().getDescriptorList(itemType);
     }
 
-    public Optional<CMeta.ElementCreatorFactory> getCMetaCreator() {
+    public ElementCreatorFactory getCMetaCreator() {
         return this.multiItemsViewType.tupleFactory;
     }
 }

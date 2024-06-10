@@ -3,19 +3,15 @@ package com.qlangtech.tis.plugin.ds;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import org.apache.commons.lang.StringUtils;
 
-import javax.management.Descriptor;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -40,21 +36,33 @@ import java.util.function.Consumer;
  * <p>
  * //@see com.qlangtech.tis.plugin.ds.ColumnMetaData
  */
-public class CMeta implements Serializable, IColMetaGetter, IdentityName {
+public class CMeta extends TypeBase implements Serializable, IColMetaGetter, IdentityName {
 
 
     public static final String FIELD_NAME = "name";
     public static final String KEY_COLUMN_SIZE = "columnSize";
     public static final String KEY_DECIMAL_DIGITS = "decimalDigits";
 
+    private String name;
+
+    @Override
+    public String getName() {
+        return this.name;
+    }
+
     public static DataType parseType(JSONObject targetCol, BiConsumer<String, String> errorProcess) {
+        boolean hasError = false;
         JSONObject type = null;
         type = Objects.requireNonNull(targetCol, "targetCol can not be null").getJSONObject("type");
+        if (type == null) {
+            errorProcess.accept(FIELD_NAME, ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
+            return null;
+        }
         Integer jdbcType = type.getInteger("type");
 
         DataTypeMeta typeMeta = DataTypeMeta.getDataTypeMeta(JDBCTypes.parse(jdbcType));
 
-        boolean hasError = false;
+
         Integer colSize = 0;
         if ((colSize = type.getInteger(KEY_COLUMN_SIZE)) == null && typeMeta.isContainColSize()) {
             errorProcess.accept(KEY_COLUMN_SIZE, ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
@@ -76,25 +84,11 @@ public class CMeta implements Serializable, IColMetaGetter, IdentityName {
     }
 
 
-    public interface ElementCreatorFactory {
-
-
-        CMeta createDefault();
-
-        default CMeta create(JSONObject targetCol) {
-            return create(targetCol, (key, errMsg) -> {
-                throw new IllegalStateException("key:" + key + " ,errMsg:" + errMsg + " shall not occur");
-            });
-        }
-
-        CMeta create(JSONObject targetCol, BiConsumer<String, String> errorProcess);
-    }
-
     public static CMeta create(String colName, JDBCTypes type) {
         return create(Optional.empty(), colName, type);
     }
 
-    public static CMeta create(Optional<ElementCreatorFactory> elementCreator, String colName, JDBCTypes type) {
+    public static CMeta create(Optional<ElementCreatorFactory<CMeta>> elementCreator, String colName, JDBCTypes type) {
         CMeta cmeta = elementCreator.map((factory) -> {
             return factory.createDefault();
         }).orElse(new CMeta());// new CMeta();
@@ -105,8 +99,8 @@ public class CMeta implements Serializable, IColMetaGetter, IdentityName {
 
     public static final String KEY_ELEMENT_CREATOR_FACTORY = "elementCreator";
 
-    private String name;
-    private DataType type;
+    //  private String name;
+    // private DataType type;
     private Boolean pk = false;
 
     private String comment;
@@ -167,30 +161,18 @@ public class CMeta implements Serializable, IColMetaGetter, IdentityName {
         this.pk = pk;
     }
 
-    public String getName() {
-        return name;
-    }
 
     public void setName(String name) {
-
         if (StringUtils.indexOf(name, "{") > -1) {
             throw new IllegalArgumentException("illegal param name:" + name);
         }
-
         this.name = name;
     }
 
-    public DataType getType() {
-        return type;
-    }
-
-    public void setType(DataType type) {
-        this.type = type;
-    }
 
     @Override
     public String toString() {
-        return "{" + "name='" + name + '\'' + ", type=" + type + '}';
+        return "{" + "name='" + this.getName() + '\'' + ", type=" + this.getType() + '}';
     }
 
     @JSONField(serialize = false)
@@ -199,8 +181,8 @@ public class CMeta implements Serializable, IColMetaGetter, IdentityName {
         return IdentityName.super.getDescribleClass();
     }
 
-    public static class ParsePostMCols {
-        public List<CMeta> writerCols = Lists.newArrayList();
+    public static class ParsePostMCols<T extends TypeBase> {
+        public List<T> writerCols = Lists.newArrayList();
         public boolean validateFaild = false;
         public boolean pkHasSelected = false;
     }

@@ -53,14 +53,7 @@ public class ESTableAlias extends IDataxProcessor.TableMap {
         JSONObject col = null;
         for (int i = 0; i < cols.size(); i++) {
             col = cols.getJSONObject(i);
-            colMeta = new CMeta() {
-
-                @Override
-                public DataType getType() {
-                    //return super.getType();
-                    throw new UnsupportedOperationException();
-                }
-            };
+            colMeta = new CMeta();
             colMeta.setName(col.getString("name"));
             colMeta.setPk(col.getBoolean("pk"));
             colsMeta.add(colMeta);

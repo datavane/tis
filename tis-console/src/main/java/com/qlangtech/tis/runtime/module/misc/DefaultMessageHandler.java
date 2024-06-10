@@ -47,17 +47,11 @@ public class DefaultMessageHandler extends DefaultFieldErrorHandler implements I
 
     if ((previous = context.get(ACTION_BIZ_RESULT)) != null) {
       if ((previous instanceof CanNotOverwriteableWrapper)) {
-        //context.put(ACTION_BIZ_RESULT, value);
         return;
       }
     }
 
     context.put(ACTION_BIZ_RESULT, value);
-//    if ((previous = context.put(ACTION_BIZ_RESULT, value)) != null) {
-//      if (previous instanceof CanNotOverwriteableWrapper) {
-//        throw new IllegalStateException("setBizResult relevant val can not be overwrite in apply context");
-//      }
-//    }
   }
 
   public static Object getBizResult(Context context) {

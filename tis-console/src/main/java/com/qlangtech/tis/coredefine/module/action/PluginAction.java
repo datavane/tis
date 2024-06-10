@@ -871,7 +871,8 @@ public class PluginAction extends BasicModule {
     JSONObject postData = this.parseJsonPost();
     String[] forwardParams = getActionForwardParam(postData);
 
-    JSONArray pluginArray = Objects.requireNonNull(postData.getJSONArray("items"), "json prop items can not be null");
+    JSONArray pluginArray = Objects.requireNonNull(
+      postData.getJSONArray("items"), "json prop items can not be null");
     UploadPluginMeta pluginMeta = null;
 
     boolean faild = false;

@@ -77,7 +77,7 @@ public class PartialJobsTrigger extends JobTrigger implements AfterPluginSaved {
     }
 
     @TISExtension
-    public static class DefaultDesc extends Descriptor<JobTrigger> {
+    public static class DefaultDesc extends Descriptor<JobTrigger> implements FormFieldType.IMultiSelectValidator {
         @Override
         public String getDisplayName() {
             return "PartialTables";

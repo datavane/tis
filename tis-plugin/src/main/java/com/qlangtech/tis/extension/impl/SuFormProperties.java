@@ -23,6 +23,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
+import com.qlangtech.tis.extension.util.MultiItemsViewType;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -150,7 +151,7 @@ public class SuFormProperties extends BaseSubFormProperties {
                 PropertyType pt = Objects.requireNonNull(fieldsType.get(fieldKey),
                         "fieldKey:" + fieldKey + " relevant PropertyType can not be null");
                 if (pt.formField.type() == FormFieldType.MULTI_SELECTABLE) {
-                    pt.setMultiItemsViewType(PropertyType.createMultiItemsViewType(val));
+                    pt.setMultiItemsViewType(MultiItemsViewType.createMultiItemsViewType(pt, val));
                 }
             });
         });

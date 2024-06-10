@@ -33,23 +33,32 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.FileSystemFactory;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
+import com.qlangtech.tis.plugin.KeyedPluginStore.KeyVal;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
+import com.qlangtech.tis.plugin.datax.transformer.TargetColumn;
+import com.qlangtech.tis.plugin.datax.transformer.UDFDefinition;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
 import com.qlangtech.tis.plugin.k8s.K8sImage.ImageCategory;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -68,28 +77,54 @@ import java.util.stream.Collectors;
  */
 public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
-    //    @TISExtension
-    //    public final static HeteroEnum<FlatTableBuilder> FLAT_TABLE_BUILDER = new HeteroEnum(//
-    //            FlatTableBuilder.class, //
-    //            "flat_table_builder", "宽表构建", Selectable.Single);
-    // ////////////////////////////////////////////////////////
-    //    @TISExtension
-    //    public static final HeteroEnum<IndexBuilderTriggerFactory> INDEX_BUILD_CONTAINER = new
-    //    HeteroEnum<IndexBuilderTriggerFactory>(//
-    //            IndexBuilderTriggerFactory.class, //
-    //            "index_build_container", // },
-    //            "索引构建容器", Selectable.Single);
-    //    // ////////////////////////////////////////////////////////
-    //    @TISExtension
-    //    public static final HeteroEnum<TableDumpFactory> DS_DUMP = new HeteroEnum<TableDumpFactory>(//
-    //            TableDumpFactory.class, //
-    //            "ds_dump", // },
-    //            "数据导出", Selectable.Single);
-    // ////////////////////////////////////////////////////////
     @TISExtension
     public static final HeteroEnum<FileSystemFactory> FS = new HeteroEnum<FileSystemFactory>(//
             FileSystemFactory.class, //
             "fs", "存储");
+
+    @TISExtension
+    public static final HeteroEnum<RecordTransformerRules> TRANSFORMER_RULES //
+            = new HeteroEnum<RecordTransformerRules>(//
+            RecordTransformerRules.class, //
+            "transformer", "Transformer", Selectable.Multi, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+
+           // IControlMsgHandler msgHandler = (IControlMsgHandler) pluginContext;
+            String tableName = pluginMeta.getExtraParam(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID);
+
+            if (StringUtils.isEmpty(tableName)) {
+                throw new IllegalStateException("extra param " + SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID + " can not be empty");
+            }
+            KeyVal keyVal = new KeyVal(pluginContext.getCollectionName() + File.separator + "transformer" + File.separator + tableName);
+            Key key = new Key(IFullBuildContext.NAME_APP_DIR, keyVal, this.extensionPoint);
+            return TIS.getPluginStore(key);
+        }
+    };
+
+    @TISExtension
+    public static final HeteroEnum<UDFDefinition> TRANSFORMER_UDF //
+            = new HeteroEnum<UDFDefinition>(//
+            UDFDefinition.class, //
+            "transformerUDF", "Transformer UDF", Selectable.Multi, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            return IPluginStore.noSaveStore();
+        }
+    };
+
+    @TISExtension
+    public static final HeteroEnum<TargetColumn> TARGET_COLUMN //
+            = new HeteroEnum<TargetColumn>(//
+            TargetColumn.class, //
+            "target-column", "Target Column", Selectable.Multi, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            return IPluginStore.noSaveStore();
+        }
+    };
+
+
     // ////////////////////////////////////////////////////////
     @TISExtension
     public static final HeteroEnum<MQListenerFactory> MQ = new HeteroEnum<MQListenerFactory>(//
@@ -325,7 +360,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             Selectable.Single, true) {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-           return IPluginStore.noSaveStore();
+            return IPluginStore.noSaveStore();
         }
     };
 

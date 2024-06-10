@@ -30,7 +30,12 @@ import groovy.lang.GroovyShell;
  */
 public class DefaultGroovyShellFactory implements GroovyShellFactory {
 
+    private static  boolean _isInConsoleModule = false;
     private final ClassLoader parent;
+
+    public static void setInConsoleModule() {
+        DefaultGroovyShellFactory._isInConsoleModule = true;
+    }
 
     public DefaultGroovyShellFactory() {
         this(GroovyShellEvaluate.class.getClassLoader());
@@ -57,6 +62,6 @@ public class DefaultGroovyShellFactory implements GroovyShellFactory {
 
     @Override
     public boolean isInConsoleModule() {
-        return false;
+        return _isInConsoleModule;
     }
 }

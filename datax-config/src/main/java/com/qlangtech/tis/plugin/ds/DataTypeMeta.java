@@ -39,6 +39,35 @@ public class DataTypeMeta {
 
     private final DataType _type;
 
+    public interface IMultiItemsView {
+        public static IMultiItemsView unknow() {
+            return new IMultiItemsView() {
+                @Override
+                public List<String> getElementPropertyKeys() {
+                    return Collections.emptyList();
+                }
+
+                @Override
+                public ViewContent getViewContent() {
+                    return ViewContent.Unknow;
+                }
+            };
+        }
+
+        public List<String> getElementPropertyKeys();
+
+        public ViewContent getViewContent();
+
+        /**
+         * 向客户端传输的json内容中额外添加自动移属性
+         *
+         * @param biz
+         */
+        default void appendExternalJsonProp(JSONObject biz) {
+
+        }
+    }
+
     /**
      * 接受的两种类型:
      * <ol>
@@ -49,8 +78,10 @@ public class DataTypeMeta {
      * @param tabMapper
      * @return
      */
-    public static Map<String, Object> createViewBiz(List<String> elementGetKeys, Object tabMapper) {
+    public static Map<String, Object> createViewBiz(IMultiItemsView multiItemsView, Object tabMapper) {
+        List<String> elementGetKeys = Objects.requireNonNull(multiItemsView).getElementPropertyKeys();
         JSONObject biz = new JSONObject();
+        biz.put("viewContentType", multiItemsView.getViewContent().getToken());
         // Map<String, Object> biz = new HashMap<>();
         if (elementGetKeys != null && !elementGetKeys.isEmpty()) {
             biz.put("elementKeys", elementGetKeys);
@@ -111,6 +142,7 @@ public class DataTypeMeta {
         }
 
         biz.put("colMetas", types);
+        multiItemsView.appendExternalJsonProp(biz);
         return biz;
     }
 

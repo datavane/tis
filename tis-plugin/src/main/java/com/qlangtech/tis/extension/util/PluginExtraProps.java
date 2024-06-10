@@ -32,11 +32,7 @@ import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.datax.SelectedTab;
-import com.qlangtech.tis.plugin.ds.CMeta;
-import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
-import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.LineIterator;
@@ -84,7 +80,6 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     public static final String KEY_LABEL = "label";
     // 枚举过滤器,只对底层Describle类型的enum起效
     public static final String KEY_ENUM_FILTER = "subDescEnumFilter";
-    // private static final Parser mdParser = Parser.builder().build();
 
     private static Optional<PluginExtraProps> parseExtraProps(Class<?> pluginClazz) {
         return parseExtraProps(pluginClazz, Optional.empty());
@@ -205,109 +200,6 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         return extraProps;
     }
 
-    /**
-     * 多选列前置校验
-     *
-     * @param elementCreator
-     * @param msgHandler
-     * @param context
-     * @param keyColsMeta
-     * @param targetCols
-     * @return
-     */
-    public static CMeta.ParsePostMCols parsePostMCols(Optional<CMeta.ElementCreatorFactory> elementCreator,
-                                                      IFieldErrorHandler msgHandler, Context context, String keyColsMeta,
-                                                      JSONArray targetCols) {
-        if (targetCols == null) {
-            throw new IllegalArgumentException("param targetCols can not be null");
-        }
-        CMeta.ParsePostMCols postMCols = new CMeta.ParsePostMCols();
-        CMeta colMeta = null;
-
-
-        String targetColName = null;
-        DataType dataType = null;
-
-        //    if (targetCols.size() < 1) {
-        //      msgHandler.addFieldError(context, fieldKey, "Writer目标表列不能为空");
-        //      return false;
-        //    }
-        Map<String, Integer> existCols = Maps.newHashMap();
-        //   boolean validateFaild = false;
-        Integer previousColIndex = null;
-        boolean pk;
-        // boolean pkHasSelected = false;
-        // JSONObject type = null;
-        for (int i = 0; i < targetCols.size(); i++) {
-            JSONObject targetCol = targetCols.getJSONObject(i);
-            int index = targetCol.getInteger("index") - 1;
-            pk = targetCol.getBooleanValue("pk");
-            targetColName = targetCol.getString("name");
-            if (StringUtils.isNotBlank(targetColName) && (previousColIndex = existCols.put(targetColName, index)) != null) {
-                msgHandler.addFieldError(context, keyColsMeta + "[" + previousColIndex + "]", "内容不能与第" + index + "行重复");
-                msgHandler.addFieldError(context, keyColsMeta + "[" + index + "]", "内容不能与第" + previousColIndex + "行重复");
-                // return false;
-                postMCols.validateFaild = true;
-                return postMCols;
-            }
-            if (!Validator.require.validate(msgHandler, context, keyColsMeta + "[" + index + "]", targetColName)) {
-                postMCols.validateFaild = true;
-            } else if (!Validator.db_col_name.validate(msgHandler, context, keyColsMeta + "[" + index + "]",
-                    targetColName)) {
-                postMCols.validateFaild = true;
-            }
-
-
-            colMeta = elementCreator.map((creator) -> {
-                return creator.create(targetCol, (propKey, errMsg) -> {
-                    msgHandler.addFieldError(context
-                            , IFieldErrorHandler.joinField(SelectedTab.KEY_FIELD_COLS, Collections.singletonList(index), propKey)
-                            , errMsg);
-                    postMCols.validateFaild = true;
-                });
-            }).orElseGet(() -> new CMeta());
-
-            colMeta.setDisable(targetCol.getBooleanValue("disable"));
-            colMeta.setName(targetColName);
-            colMeta.setPk(pk);
-            if (pk) {
-                postMCols.pkHasSelected = true;
-            }
-            //{"s":"3,12,2","typeDesc":"decimal(12,2)","columnSize":12,"typeName":"VARCHAR","unsigned":false,
-            // "decimalDigits":4,"type":3,"unsignedToken":""}
-//            if (targetCol.getInteger(DataType.KEY_COLUMN_SIZE) == null) {
-//                msgHandler.addFieldError(context, keyColsMeta + "[" + index + "]", "不能为空");
-//                postMCols.validateFaild = true;
-//            }
-//
-//            if (targetCol.getInteger(DataType.KEY_DECIMAL_DIGITS) == null) {
-//
-//                postMCols.validateFaild = true;
-//            }
-
-            dataType = CMeta.parseType(targetCol, (propKey, errMsg) -> {
-                msgHandler.addFieldError(context
-                        , IFieldErrorHandler.joinField(SelectedTab.KEY_FIELD_COLS, Collections.singletonList(index), propKey)
-                        , errMsg);
-                postMCols.validateFaild = true;
-            });
-
-            //            dataType = DataType.create(type.getInteger("type"), type.getString("typeName"), type
-            //            .getInteger(
-            //                    "columnSize"));
-            //
-            //            dataType.setDecimalDigits(type.getInteger("decimalDigits"));
-            // DataType dataType = targetCol.getObject("type", DataType.class);
-            // colMeta.setType(ISelectedTab.DataXReaderColType.parse(targetCol.getString("type")));
-            if (dataType != null) {
-                colMeta.setType(dataType);
-                postMCols.writerCols.add(colMeta);
-            }
-        }
-
-        return postMCols;
-    }
-
 
     public interface IClassVisitor<T> {
         T process(Class<?> clazz, T extraProps);
@@ -412,23 +304,6 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         private final JSONObject props;
         private String asynHelp;
 
-        /**
-         * // Example: the descriptor for cols element of selectedTab
-         * // The host plugin class for the cols element
-         * //  hostPluginClazz 宿主plugin Class
-         */
-//        private final Map<Class<? extends Describable>, HostedExtraProps> hostedExtraProps = new HashMap<Class<? extends Describable>, HostedExtraProps>() {
-//            @Override
-//            public HostedExtraProps get(Object key) {
-//                HostedExtraProps val = super.get(key);
-//                if (val == null) {
-//                    val = new HostedExtraProps(new Props(new JSONObject()));
-//                    logger.warn("key:" + key + " relevant extraProp");
-//                    this.put((Class<? extends Describable>) key, val);
-//                }
-//                return val;
-//            }
-//        };
         public Props(JSONObject props) {
             this.props = props;
         }
@@ -500,42 +375,6 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return props.getBooleanValue(DescriptorsJSON.KEY_ADVANCE);
         }
 
-        /**
-         * Fieldtype 为 MULTI_SELECTABLE 类型显示的类型
-         *
-         * @return
-         */
-//        @JSONField(serialize = false)
-//        public MultiItemsViewType multiItemsViewType(Class<? extends Describable> hostPluginClazz) {
-//
-//            final HostedExtraProps hostExtraProp = (this.hostedExtraProps.get(hostPluginClazz));
-//            if (hostExtraProp == null) {
-//                throw new IllegalStateException("hostPluginClazz:" + hostPluginClazz + " relevant plugin class can not be null,relevant hostProps keys:"
-//                        + this.hostedExtraProps.keySet().stream().map((clazz) -> clazz.getName()).collect(Collectors.joining(",")));
-//            }
-//
-//            if (hostExtraProp.multiItemsViewType == null) {
-//                Optional<CMeta.ElementCreatorFactory> elementCreator = Optional.empty();
-//                try {
-//                    String selectElementCreator = hostExtraProp.getStrProp(CMeta.KEY_ELEMENT_CREATOR_FACTORY);
-//                    if (StringUtils.isNotEmpty(selectElementCreator)) {
-//                        elementCreator = Optional.of((CMeta.ElementCreatorFactory) //
-//                                TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
-//                    }
-//                } catch (Exception e) {
-//                    throw new RuntimeException(e);
-//                }
-//                hostExtraProp.multiItemsViewType = new MultiItemsViewType(ViewType.parse(hostExtraProp.getStrProp(KEY_VIEW_TYPE)),
-//                        elementCreator, hostPluginClazz);
-//            }
-//
-//            return hostExtraProp.multiItemsViewType;
-//        }
-
-//        @JSONField(serialize = false)
-//        public Optional<CMeta.ElementCreatorFactory> getCMetaCreator(Class<? extends Describable> hostPluginClazz) {
-//            return this.multiItemsViewType(hostPluginClazz).tupleFactory;
-//        }
         private SimpleDateFormat dateFormat;
 
         @JSONField(serialize = false)
@@ -587,12 +426,6 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         public JSONObject getProps() {
             return this.props;
         }
-
-        // private Optional<CMeta.ElementCreatorFactory> elementCreator;
-
-//        public void merge(Class<? extends Describable> hostedPluginClazz, Props p) {
-//            this.hostedExtraProps.put(hostedPluginClazz, new HostedExtraProps(p));
-//        }
 
         public void merge(Props p) {
             jsonMerge(props, p.props);

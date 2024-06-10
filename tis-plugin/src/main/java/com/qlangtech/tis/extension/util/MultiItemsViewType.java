@@ -22,19 +22,22 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.DataTypeMeta.IMultiItemsView;
+import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
+import com.qlangtech.tis.plugin.ds.IdlistElementCreatorFactory;
+import com.qlangtech.tis.plugin.ds.ViewContent;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.beanutils.BeanUtilsBean2;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -42,21 +45,55 @@ import java.util.stream.Collectors;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/10/15
  */
-public class MultiItemsViewType {
+public class MultiItemsViewType implements IMultiItemsView {
     public static final String keyColsMeta = "colsMeta";
-    public final ViewType viewType;
-    public final Optional<CMeta.ElementCreatorFactory> tupleFactory;
-    //  private final Class<? extends Describable> hostPluginClazz;
+    public final ViewFormatType viewType;
+    public final ElementCreatorFactory tupleFactory;
+    private final PropertyType propertyType;
     private List<String> elementPropertyKeys;
 
-    public String getViewTypeToken() {
+    private static String getStrProp(PluginExtraProps.Props props, String key) {
+        return props.getProps().getString(key);
+    }
+
+    public static MultiItemsViewType createMultiItemsViewType(PropertyType propertyType) {
+        return createMultiItemsViewType(propertyType, propertyType.extraProp);
+    }
+
+    public static MultiItemsViewType createMultiItemsViewType(PropertyType propertyType, PluginExtraProps.Props props) {
+//        if (this.multiItemsViewType == null) {
+        // PluginExtraProps.Props props = propertyType.extraProp;
+        ElementCreatorFactory elementCreator = null;
+        ViewFormatType formatType = ViewFormatType.parse(getStrProp(props, PluginExtraProps.Props.KEY_VIEW_TYPE));
+        try {
+            String selectElementCreator = getStrProp(props, CMeta.KEY_ELEMENT_CREATOR_FACTORY);
+            if (StringUtils.isEmpty(selectElementCreator)) {
+                if (formatType == ViewFormatType.IdList) {
+                    elementCreator = new IdlistElementCreatorFactory();
+                } else {
+                    throw new IllegalStateException("param " + CMeta.KEY_ELEMENT_CREATOR_FACTORY + " can not be empty,formatType:" + formatType);
+                }
+            } else {
+                elementCreator = ((ElementCreatorFactory) //
+                        TIS.get().getPluginManager().uberClassLoader.loadClass(selectElementCreator).newInstance());
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return new MultiItemsViewType(propertyType, formatType, elementCreator);
+        // }
+        // return this.multiItemsViewType;
+    }
+
+    public final String getViewTypeToken() {
         return this.viewType.token;
     }
 
-    public MultiItemsViewType(ViewType viewType, Optional<CMeta.ElementCreatorFactory> tupleFactory) {
+    public MultiItemsViewType(PropertyType propertyType, ViewFormatType viewType, ElementCreatorFactory tupleFactory) {
         this.viewType = viewType;
         this.tupleFactory = Objects.requireNonNull(tupleFactory, "tupleFactory can not be null");
-        // this.hostPluginClazz = hostPluginClazz;
+        this.propertyType = propertyType;
     }
 
     public List<FormFieldType.SelectedItem> getPostSelectedItems(PropertyType attrDesc,
@@ -65,18 +102,34 @@ public class MultiItemsViewType {
         return this.viewType.getPostSelectedItems(attrDesc, msgHandler, context, eprops);
     }
 
+    @Override
+    public void appendExternalJsonProp(JSONObject biz) {
+        this.tupleFactory.appendExternalJsonProp(biz);
+    }
+
+    @Override
     public List<String> getElementPropertyKeys() {
         if (elementPropertyKeys == null) {
-            elementPropertyKeys = tupleFactory.map((factory) -> {
-                try {
-                    return Lists.newArrayList(BeanUtilsBean2.getInstance().describe(factory.createDefault()).keySet());
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }).orElseGet(() -> new ArrayList<>());
+            try {
+                elementPropertyKeys = Lists.newArrayList(BeanUtilsBean2.getInstance().describe(tupleFactory.createDefault()).keySet());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+//            elementPropertyKeys = tupleFactory.map((factory) -> {
+//
+//            }).orElseGet(() -> new ArrayList<>());
         }
         return elementPropertyKeys;
     }
+
+    @Override
+    public ViewContent getViewContent() {
+        return tupleFactory.getViewContentType();
+//        return tupleFactory.orElseThrow(() -> {
+//            return new IllegalStateException("tupleFactory shall not be empty");
+//        }).getViewContentType();
+    }
+
 
     public List<?> serialize2Frontend(Object bizInstance) {
         return viewType.serialize2Frontend(bizInstance);
@@ -86,7 +139,7 @@ public class MultiItemsViewType {
     public String toString() {
         return "{" +
                 "viewType=" + viewType +
-                ", tupleFactory=" + tupleFactory.map((tf) -> tf.getClass().getSimpleName()).orElse("empty") +
+                ", tupleFactory=" + tupleFactory.getClass().getSimpleName() +
                 '}';
     }
 
@@ -99,7 +152,7 @@ public class MultiItemsViewType {
      *
      * @see FormFieldType
      */
-    public enum ViewType {
+    public enum ViewFormatType {
         IdList("idlist" //
                 , (attrDesc, msgHandler, context, eprops) -> {
             final String keyChecked = "checked";
@@ -135,11 +188,11 @@ public class MultiItemsViewType {
         }), TupleList("tuplelist" //
                 , (attrDesc, msgHandler, context, eprops) -> {
 
-            Optional<CMeta.ElementCreatorFactory> elementCreator = attrDesc.getCMetaCreator();
+            ElementCreatorFactory elementCreator = attrDesc.getCMetaCreator();
 
-           // String keyColsMeta = StringUtils.EMPTY;
+            // String keyColsMeta = StringUtils.EMPTY;
             JSONArray mcols = eprops.getJSONObject(Descriptor.KEY_ENUM_PROP).getJSONArray("_mcols");
-            CMeta.ParsePostMCols parsePostMCols = PluginExtraProps.parsePostMCols(elementCreator, msgHandler, context, keyColsMeta, mcols);
+            CMeta.ParsePostMCols<?> parsePostMCols = elementCreator.parsePostMCols(msgHandler, context, keyColsMeta, mcols);
             if (parsePostMCols.validateFaild) {
                 return Collections.emptyList();
             }
@@ -158,18 +211,18 @@ public class MultiItemsViewType {
          */
         private final Function<Object, List<?>> bizSerializeFrontend;
 
-        private ViewType(String token, PluginExtraProps.IPostSelectedItemsGetter postSelectedItemsGetter,
-                         Function<Object, List<?>> bizSerializeFrontend) {
+        private ViewFormatType(String token, PluginExtraProps.IPostSelectedItemsGetter postSelectedItemsGetter,
+                               Function<Object, List<?>> bizSerializeFrontend) {
             this.token = token;
             this.postSelectedItemsGetter = postSelectedItemsGetter;
             this.bizSerializeFrontend = bizSerializeFrontend;
         }
 
-        public static ViewType parse(String token) {
+        public static ViewFormatType parse(String token) {
             if (StringUtils.isEmpty(token)) {
-                return ViewType.IdList;
+                return ViewFormatType.IdList;
             }
-            for (ViewType t : ViewType.values()) {
+            for (ViewFormatType t : ViewFormatType.values()) {
                 if (t.token.equalsIgnoreCase(token)) {
                     return t;
                 }
