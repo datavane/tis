@@ -24,6 +24,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
@@ -59,10 +60,10 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
     }
 
     @Override
-    public void appendExternalJsonProp(JSONObject biz) {
+    public void appendExternalJsonProp(IPropertyType propertyType, JSONObject biz) {
         // 源表可选的列
-        List<CMeta> colsCandidate = SelectedTab.getColsCandidate();
-        biz.put("sourceTabCols", colsCandidate);
+//        List<CMeta> colsCandidate = SelectedTab.getColsCandidate();
+//        biz.put("sourceTabCols", colsCandidate);
     }
 
     @Override
@@ -72,8 +73,8 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
 
 
     @Override
-    public ParsePostMCols<RecordTransformer> parsePostMCols(
-            IFieldErrorHandler msgHandler, Context context, String _keyColsMeta, JSONArray targetCols) {
+    public ParsePostMCols<RecordTransformer> parsePostMCols(IPropertyType propertyType,
+                                                            IFieldErrorHandler msgHandler, Context context, String _keyColsMeta, JSONArray targetCols) {
         final String keyColsMeta = "rules";
         final String keyTarget = "target";
         final String keyUdf = "udf";
@@ -81,40 +82,40 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
         RecordTransformer transformerRule = null;
         postMCols.validateFaild = false;
 
-        DataType dataType = null;
+        // DataType dataType = null;
         UDFDefinition udf = null;
         JSONObject udfObj = null;
         AttrValMap valsMap = null;
-        String targetColName = null;
+        //  String targetColName = null;
         // 校验是否有相同的列的名称
         Map<String, List<Integer>> duplicateCols = Maps.newHashMap();
         for (int i = 0; i < targetCols.size(); i++) {
             final int index = i;
             JSONObject targetCol = targetCols.getJSONObject(index);
             udfObj = targetCol.getJSONObject(keyUdf);
-            targetColName = targetCol.getString(keyTarget);
+            // targetColName = targetCol.getString(keyTarget);
 
 
-            if (!Validator.require.validate(msgHandler, context
-                    , IFieldErrorHandler.joinField(keyColsMeta, Collections.singletonList(index), keyTarget), targetColName)) {
-                postMCols.validateFaild = true;
-            } else {
-                List<Integer> cols = duplicateCols.get(targetColName);
-                if (cols == null) {
-                    cols = Lists.newArrayList();
-                    duplicateCols.put(targetColName, cols);
-                }
-                cols.add(index);
-            }
+//            if (!Validator.require.validate(msgHandler, context
+//                    , IFieldErrorHandler.joinField(keyColsMeta, Collections.singletonList(index), keyTarget), targetColName)) {
+//                postMCols.validateFaild = true;
+//            } else {
+//                List<Integer> cols = duplicateCols.get(targetColName);
+//                if (cols == null) {
+//                    cols = Lists.newArrayList();
+//                    duplicateCols.put(targetColName, cols);
+//                }
+//                cols.add(index);
+//            }
 
             transformerRule = new RecordTransformer();
 
-            dataType = CMeta.parseType(targetCol, (propKey, errMsg) -> {
-                msgHandler.addFieldError(context
-                        , IFieldErrorHandler.joinField(keyColsMeta, Collections.singletonList(index), propKey)
-                        , errMsg);
-                postMCols.validateFaild = true;
-            });
+//            dataType = CMeta.parseType(targetCol, (propKey, errMsg) -> {
+//                msgHandler.addFieldError(context
+//                        , IFieldErrorHandler.joinField(keyColsMeta, Collections.singletonList(index), propKey)
+//                        , errMsg);
+//                postMCols.validateFaild = true;
+//            });
 
             if (udfObj == null) {
                 msgHandler.addFieldError(context
@@ -122,7 +123,7 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
                         , ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
                 postMCols.validateFaild = true;
             }
-            if (dataType == null || udfObj == null) {
+            if (udfObj == null) {
                 continue;
             }
 
@@ -143,8 +144,8 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
             ParseDescribable describable = valsMap.createDescribable(null);
             udf = (UDFDefinition) describable.getInstance();
             transformerRule.setUdf(udf);
-            transformerRule.setType(dataType);
-            transformerRule.setTarget(targetColName);
+           // transformerRule.setType(dataType);
+            //  transformerRule.setTarget(targetColName);
             postMCols.writerCols.add(transformerRule);
         }
         // postMCols.validateFaild = false;

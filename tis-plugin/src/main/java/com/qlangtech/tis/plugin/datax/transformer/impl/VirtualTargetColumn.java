@@ -24,6 +24,7 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.transformer.TargetColumn;
+import com.qlangtech.tis.plugin.datax.transformer.UDFDesc;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +35,7 @@ import java.util.List;
  **/
 public class VirtualTargetColumn extends TargetColumn {
 
-    @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.db_col_name})
+    @FormField(ordinal = 1, identity = true, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.db_col_name})
     public String name;
 
     @Override
@@ -43,8 +44,13 @@ public class VirtualTargetColumn extends TargetColumn {
     }
 
     @Override
-    public List<String> getLiteria() {
-        return Collections.singletonList("virtual col:" + this.name);
+    public String identityValue() {
+        return this.getName();
+    }
+
+    @Override
+    public List<UDFDesc> getLiteria() {
+        return Collections.singletonList(new UDFDesc("virtual col", this.name));
     }
 
     @TISExtension

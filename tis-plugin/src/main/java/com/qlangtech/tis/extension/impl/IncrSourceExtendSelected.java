@@ -22,7 +22,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
@@ -79,7 +79,7 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
     }
 
     @Override
-    public DescriptorsJSON.IPropGetter getSubFormIdListGetter(IPropertyType.SubFormFilter filter) {
+    public DescriptorsJSON.IPropGetter getSubFormIdListGetter(SubFormFilter filter) {
         //        return (filter) -> {
         //            IPluginStore<?> readerSubFieldStore
         //                    = HeteroEnum.getDataXReaderAndWriterStore(filter.uploadPluginMeta.getPluginContext(),

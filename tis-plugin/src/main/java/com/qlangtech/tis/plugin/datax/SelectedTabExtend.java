@@ -32,7 +32,6 @@ import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.util.*;
 import com.qlangtech.tis.datax.impl.DataxReader;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 
 import java.util.*;
@@ -376,7 +375,7 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
 
     protected static abstract class BaseDescriptor extends Descriptor<SelectedTabExtend> {
         @Override
-        public PluginFormProperties getPluginFormPropertyTypes(Optional<IPropertyType.SubFormFilter> subFormFilter) {
+        public PluginFormProperties getPluginFormPropertyTypes(Optional<SubFormFilter> subFormFilter) {
             return super.getPluginFormPropertyTypes(Optional.empty());
         }
     }

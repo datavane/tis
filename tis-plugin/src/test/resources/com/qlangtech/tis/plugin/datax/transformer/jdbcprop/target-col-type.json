@@ -1,0 +1,16 @@
+{
+  "name": {
+    "impl": "com.qlangtech.tis.plugin.datax.transformer.impl.ExistTargetCoumn",
+    "literia": [
+      "replace col:user_name"
+    ],
+    "name": "user_name"
+  },
+  "type": {
+    "columnSize": 32,
+    "decimalDigits": -1,
+    "type": 12,
+    "typeDesc": "varchar(32)",
+    "typeName": "VARCHAR"
+  }
+}

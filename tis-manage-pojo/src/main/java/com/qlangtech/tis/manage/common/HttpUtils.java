@@ -216,7 +216,7 @@ public class HttpUtils {
                     }
                 }
                 msgs = result.getJSONArray(IAjaxResult.KEY_MSG);
-                r.setMsg(((Stream<String>) msgs.stream()).map((m) -> (String) m).collect(Collectors.toList()));
+                r.setMsg(((Stream<Object>) msgs.stream()).map((m) -> (String) m).collect(Collectors.toList()));
                 if (clazz == Void.class) {
                     return r;
                 }

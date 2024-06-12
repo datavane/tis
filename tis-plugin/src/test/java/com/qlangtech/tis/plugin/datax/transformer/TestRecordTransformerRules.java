@@ -34,8 +34,8 @@ public class TestRecordTransformerRules extends TestCase {
         try {
             T plugin = clazz.newInstance();// RecordTransformerRules.class.newInstance();
 // DescriptorsJSON descJson = new DescriptorsJSON(plugin.getDescriptor());
-            JsonUtil.assertJSONEqual(RecordTransformerRules.class, assertFileName
-                    , DescriptorsJSON.desc(plugin.getDescriptor()).toJSONString(), (m, e, a) -> {
+            JsonUtil.assertJSONEqual(clazz, assertFileName
+                    ,JsonUtil.toString( DescriptorsJSON.desc(plugin.getDescriptor()) ), (m, e, a) -> {
                         Assert.assertEquals(m, e, a);
                     });
             //return plugin;

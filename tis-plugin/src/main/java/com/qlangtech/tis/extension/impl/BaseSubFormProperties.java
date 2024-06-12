@@ -26,6 +26,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
@@ -49,6 +50,10 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
     public Class instClazz;
     public final Descriptor subFormFieldsDescriptor;
 
+    @Override
+    public boolean isCollectionType() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * @param subFormField
@@ -107,7 +112,7 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
         //        }
     }
 
-    public abstract DescriptorsJSON.IPropGetter getSubFormIdListGetter(IPropertyType.SubFormFilter filter);
+    public abstract DescriptorsJSON.IPropGetter getSubFormIdListGetter(SubFormFilter filter);
 
     public Collection<IdentityName> getSubFormPropVal(Object instance) {
         Class<?> fieldType = subFormField.getType();

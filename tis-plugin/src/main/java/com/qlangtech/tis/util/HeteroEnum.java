@@ -29,8 +29,8 @@ import com.qlangtech.tis.datax.job.DataXJobWorker.K8SWorkerCptType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.ExtensionList;
-import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
@@ -55,7 +55,6 @@ import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
 import com.qlangtech.tis.plugin.k8s.K8sImage.ImageCategory;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
-import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -415,11 +414,11 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
     public static IPluginStore<?> getDataXReaderAndWriterStore(IPluginContext pluginContext, boolean getReader,
                                                                UploadPluginMeta pluginMeta,
-                                                               Optional<IPropertyType.SubFormFilter> subFormFilter) {
+                                                               Optional<SubFormFilter> subFormFilter) {
         IPluginStore<?> store = null;
 
         if (subFormFilter.isPresent()) {
-            IPropertyType.SubFormFilter filter = subFormFilter.get();
+            SubFormFilter filter = subFormFilter.get();
             Descriptor targetDescriptor = filter.getTargetDescriptor();
             final Class<Describable> clazz = targetDescriptor.getT();
             //            Optional<Descriptor> firstDesc = heteroEnum.descriptors().stream()

@@ -23,6 +23,7 @@ import com.alibaba.fastjson2.annotation.JSONField;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IPluginStore.AfterPluginSaved;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.util.IPluginContext;
 
 import java.util.Optional;
@@ -31,12 +32,18 @@ import java.util.Optional;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-09 13:43
  **/
-public abstract class TargetColumn implements Describable<TargetColumn>, AfterPluginSaved, PluginLiteriaDesc {
+public abstract class TargetColumn implements Describable<TargetColumn>, AfterPluginSaved, PluginLiteriaDesc, IdentityName {
 
 
     public abstract String getName();
 
+    @JSONField(serialize = false)
+    @Override
+    public Class<?> getDescribleClass() {
+        return IdentityName.super.getDescribleClass();
+    }
 
+    @Override
     public final String getImpl() {
         return this.getClass().getName();
     }

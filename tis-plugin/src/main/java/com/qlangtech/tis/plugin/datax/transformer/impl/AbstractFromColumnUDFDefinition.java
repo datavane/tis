@@ -18,20 +18,17 @@
 
 package com.qlangtech.tis.plugin.datax.transformer.impl;
 
-import com.alibaba.citrus.turbine.Context;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.transformer.UDFDefinition;
+import com.qlangtech.tis.plugin.datax.transformer.UDFDesc;
 import com.qlangtech.tis.plugin.ds.CMeta;
-import com.qlangtech.tis.util.DescribableJSON;
-import com.qlangtech.tis.util.IPluginContext;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -43,8 +40,8 @@ public abstract class AbstractFromColumnUDFDefinition extends UDFDefinition {
     public String from;
 
     @Override
-    public List<String> getLiteria() {
-        return Collections.singletonList("from:" + this.from);
+    public List<UDFDesc> getLiteria() {
+        return Lists.newArrayList(new UDFDesc("from", this.from));
     }
 
 

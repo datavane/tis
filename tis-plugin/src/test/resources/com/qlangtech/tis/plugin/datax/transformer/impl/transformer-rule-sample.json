@@ -1,12 +1,4 @@
 [{
-  "target": "sort_num",
-  "type": {
-    "columnSize": 19,
-    "decimalDigits": 0,
-    "type": -5,
-    "typeDesc": "bigint",
-    "typeName": "BIGINT"
-  },
   "udf": {
     "updateModel": false,
     "impl": "com.qlangtech.tis.plugin.datax.transformer.impl.CopyValUDF",

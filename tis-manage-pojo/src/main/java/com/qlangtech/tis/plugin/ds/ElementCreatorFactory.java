@@ -21,6 +21,7 @@ package com.qlangtech.tis.plugin.ds;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 
 import java.util.function.BiConsumer;
@@ -37,7 +38,7 @@ public interface ElementCreatorFactory<T extends TypeBase> {
      * @param targetCols
      * @return
      */
-    public   CMeta.ParsePostMCols<T> parsePostMCols(
+    public   CMeta.ParsePostMCols<T> parsePostMCols(IPropertyType propertyType,
                                                                        IFieldErrorHandler msgHandler, Context context, String keyColsMeta,
                                                                        JSONArray targetCols);
 
@@ -61,7 +62,7 @@ public interface ElementCreatorFactory<T extends TypeBase> {
      *
      * @param biz
      */
-    default void appendExternalJsonProp(JSONObject biz) {
+    default void appendExternalJsonProp(IPropertyType propertyType, JSONObject biz) {
 
     }
 }

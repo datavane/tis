@@ -27,8 +27,8 @@ import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
@@ -80,7 +80,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         return reader;
     }
 
-    public static <T extends DataxReader> T getDataxReader(IPropertyType.SubFormFilter filter) {
+    public static <T extends DataxReader> T getDataxReader(SubFormFilter filter) {
         return getDataxReader(filter.uploadPluginMeta);
     }
 
@@ -366,8 +366,8 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
 
     public static abstract class BaseDataxReaderDescriptor extends Descriptor<DataxReader> implements IDataXEndTypeGetter {
         @Override
-        public PluginFormProperties getPluginFormPropertyTypes(Optional<IPropertyType.SubFormFilter> subFormFilter) {
-            IPropertyType.SubFormFilter filter = null;
+        public PluginFormProperties getPluginFormPropertyTypes(Optional<SubFormFilter> subFormFilter) {
+            SubFormFilter filter = null;
             if (subFormFilter.isPresent()) {
                 filter = subFormFilter.get();
                 if (filter.isIncrProcessExtend()) {

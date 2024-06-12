@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.DefaultPlugin;
 import com.qlangtech.tis.extension.ElementPluginDesc;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.CMeta.ParsePostMCols;
 import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
@@ -47,8 +48,8 @@ public class TestPluginExtraProps extends TestCase {
         Context context = null;
         String keyColsMeta = null;
         JSONArray targetCols = null;
-
-        elementCreator.parsePostMCols( msgHandler, context, keyColsMeta, targetCols);
+        IPropertyType propertyType = null;
+        elementCreator.parsePostMCols(propertyType, msgHandler, context, keyColsMeta, targetCols);
     }
 
     private static class TestElementCreatorFactory implements ElementCreatorFactory<CMeta> {
@@ -63,8 +64,8 @@ public class TestPluginExtraProps extends TestCase {
         }
 
         @Override
-        public ParsePostMCols<CMeta> parsePostMCols(IFieldErrorHandler msgHandler, Context context, String keyColsMeta, JSONArray targetCols) {
-           throw new UnsupportedOperationException();
+        public ParsePostMCols<CMeta> parsePostMCols(IPropertyType propertyType,IFieldErrorHandler msgHandler, Context context, String keyColsMeta, JSONArray targetCols) {
+            throw new UnsupportedOperationException();
         }
 //        @Override
 //        public CMeta create(JSONObject targetCol) {

@@ -25,8 +25,8 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.ESTableAlias;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.EnumFieldMode;
@@ -282,7 +282,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         }
 
         @Override
-        public boolean validate(IFieldErrorHandler msgHandler, Optional<IPropertyType.SubFormFilter> subFormFilter,
+        public boolean validate(IFieldErrorHandler msgHandler, Optional<SubFormFilter> subFormFilter,
                                 Context context, String fieldName, List<FormFieldType.SelectedItem> items) {
 
             if (SelectedTab.KEY_FIELD_COLS.equals(fieldName)) {
@@ -315,7 +315,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
         @Override
         public boolean validateSubFormItems(IControlMsgHandler msgHandler, Context context,
-                                            BaseSubFormProperties props, IPropertyType.SubFormFilter filter,
+                                            BaseSubFormProperties props, SubFormFilter filter,
                                             AttrVals formData) {
 
             formData.vistAttrValMap((tab, item) -> {
@@ -344,7 +344,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
             return true;
         }
 
-        public PluginFormProperties getPluginFormPropertyTypes(Optional<IPropertyType.SubFormFilter> subFormFilter) {
+        public PluginFormProperties getPluginFormPropertyTypes(Optional<SubFormFilter> subFormFilter) {
 
             return super.getPluginFormPropertyTypes(subFormFilter);
         }

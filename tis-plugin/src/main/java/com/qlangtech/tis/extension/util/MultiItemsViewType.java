@@ -104,7 +104,8 @@ public class MultiItemsViewType implements IMultiItemsView {
 
     @Override
     public void appendExternalJsonProp(JSONObject biz) {
-        this.tupleFactory.appendExternalJsonProp(biz);
+
+        this.tupleFactory.appendExternalJsonProp(this.propertyType, biz);
     }
 
     @Override
@@ -192,7 +193,7 @@ public class MultiItemsViewType implements IMultiItemsView {
 
             // String keyColsMeta = StringUtils.EMPTY;
             JSONArray mcols = eprops.getJSONObject(Descriptor.KEY_ENUM_PROP).getJSONArray("_mcols");
-            CMeta.ParsePostMCols<?> parsePostMCols = elementCreator.parsePostMCols(msgHandler, context, keyColsMeta, mcols);
+            CMeta.ParsePostMCols<?> parsePostMCols = elementCreator.parsePostMCols(attrDesc,msgHandler, context, attrDesc.f.getName(), mcols);
             if (parsePostMCols.validateFaild) {
                 return Collections.emptyList();
             }

@@ -24,10 +24,8 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.INotebookable;
-import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
-import com.qlangtech.tis.extension.impl.RootFormProperties;
-import com.qlangtech.tis.plugin.IRepositoryTargetFile;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.impl.AttrVals;
 
@@ -64,10 +62,10 @@ public class AttrValMap {
     public final Descriptor descriptor;
 
     //private IControlMsgHandler msgHandler;
-    private final Optional<IPropertyType.SubFormFilter> subFormFilter;
+    private final Optional<SubFormFilter> subFormFilter;
 
     public static List<AttrValMap> describableAttrValMapList(JSONArray itemsArray,
-                                                             Optional<IPropertyType.SubFormFilter> subFormFilter) {
+                                                             Optional<SubFormFilter> subFormFilter) {
         List<AttrValMap> describableAttrValMapList = Lists.newArrayList();
         AttrValMap describableAttrValMap = null;
         JSONObject itemObj = null;
@@ -79,7 +77,7 @@ public class AttrValMap {
         return describableAttrValMapList;
     }
 
-    public static AttrValMap parseDescribableMap(Optional<IPropertyType.SubFormFilter> subFormFilter,
+    public static AttrValMap parseDescribableMap(Optional<SubFormFilter> subFormFilter,
                                                  com.alibaba.fastjson.JSONObject jsonObject) {
         String impl = null;
         Descriptor descriptor;
@@ -94,7 +92,7 @@ public class AttrValMap {
     }
 
     public AttrValMap(//IControlMsgHandler msgHandler,
-                      AttrVals attrValMap, Optional<IPropertyType.SubFormFilter> subFormFilter, Descriptor descriptor) {
+                      AttrVals attrValMap, Optional<SubFormFilter> subFormFilter, Descriptor descriptor) {
         this.attrValMap = attrValMap;
         this.descriptor = descriptor;
         //  this.msgHandler = msgHandler;

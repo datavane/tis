@@ -20,7 +20,7 @@ package com.qlangtech.tis.extension.impl;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.Describable;
-import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.JDBCTypes;
@@ -30,7 +30,6 @@ import com.qlangtech.tis.test.TISEasyMock;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.easymock.EasyMock;
 
-import java.sql.Types;
 import java.util.List;
 
 /**
@@ -60,10 +59,10 @@ public class StubSuFormGetterContext {
         this.metaPlugin = easyMock.mock("metaPlugin", MockPlugin.class);
         this.param = easyMock.mock("param", UploadPluginMeta.class);
 
-        param.putExtraParams(IPropertyType.SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE, id1);
+        param.putExtraParams(SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE, id1);
         EasyMock.expectLastCall().times(1);
         EasyMock.expect(param.getExtraParam(
-                IPropertyType.SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE)).andReturn(id1);
+                SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE)).andReturn(id1);
 
         List<ColumnMetaData> cols = Lists.newArrayList();
         // (int index, String key, DataType type, boolean pk)

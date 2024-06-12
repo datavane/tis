@@ -27,8 +27,8 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
@@ -324,7 +324,7 @@ public class TestSuFormProperties extends TestCase {
         // dataxName_" + dataXName
         UploadPluginMeta pluginMeta = UploadPluginMeta.parse(meta);
 
-        IPropertyType.SubFormFilter subFormFilter = pluginMeta.getSubFormFilter().get();
+        SubFormFilter subFormFilter = pluginMeta.getSubFormFilter().get();
 //                = new IPropertyType.SubFormFilter(pluginMeta
 //                , new UploadPluginMeta.TargetDesc(SubFieldContainPlugin.PLUGIN_NAME), SubFieldContainPlugin.class.getName(), SubFieldContainPlugin.SUB_PROP_FIELD_NAME);
 

@@ -26,12 +26,10 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.coredefine.module.action.DataxAction;
 import com.qlangtech.tis.coredefine.module.action.PluginDescMeta;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.DataXJobSubmit;
-import com.qlangtech.tis.datax.IDataXPowerJobSubmit;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -50,7 +48,6 @@ import com.qlangtech.tis.git.GitUtils.JoinRule;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
-import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
 import com.qlangtech.tis.manage.common.IUser;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
@@ -85,6 +82,7 @@ import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.*;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.trigger.util.UnCacheString;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroList;
 import com.qlangtech.tis.util.IPluginContext;
@@ -1163,7 +1161,7 @@ public class OfflineDatasourceAction extends BasicModule {
     if (tabs == null) {
       throw new IllegalArgumentException("initialize Tabs can not be null");
     }
-    List<String> selectedTabs = ((Stream<String>) tabs.stream()).map((tab) -> (String) tab).collect(Collectors.toList());
+    List<String> selectedTabs = ((Stream<Object>) tabs.stream()).map((tab) -> (String) tab).collect(Collectors.toList());
 
     UploadPluginMeta pluginMeta = Objects.requireNonNull(getPluginMeta(body), "pluginMeta can not be null");
 
@@ -1193,7 +1191,7 @@ public class OfflineDatasourceAction extends BasicModule {
           allNewTabs.add(createNewSelectedTab(pluginFormPropertyTypes, tab2cols));
           // 需要将desc中的取option列表解析一下（JsonUtil.UnCacheString）
           tabDesc.put(tab2cols.getKey(),
-            JSON.parseObject(desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()).toJSONString()));
+            JSON.parseObject(JsonUtil.toString(desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()))));
         } finally {
           SuFormProperties.subFormGetterProcessThreadLocal.remove();
         }
@@ -1338,8 +1336,8 @@ public class OfflineDatasourceAction extends BasicModule {
               JSONArray enums = null;
               if (enumPp instanceof JSONArray) {
                 enums = (JSONArray) enumPp;
-              } else if (enumPp instanceof JsonUtil.UnCacheString) {
-                enums = ((JsonUtil.UnCacheString<JSONArray>) enumPp).getValue();
+              } else if (enumPp instanceof UnCacheString) {
+                enums = ((UnCacheString<JSONArray>) enumPp).getValue();
               } else {
                 throw new IllegalStateException("unsupport type:" + pp.getClass().getName());
               }

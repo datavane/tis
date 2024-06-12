@@ -801,7 +801,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       });
     }
     JSONArray targetCols = colMeta.getJSONArray("columns");
-    Map<String, TargetCol> targetColMap = ((Stream<JSONObject>) targetCols.stream()).map((c) -> {
+    Map<String, TargetCol> targetColMap = ((Stream<Object>) targetCols.stream()).map((c) -> {
       JSONObject o = (JSONObject) c;
       TargetCol targetCol = new TargetCol(o.getString("name"));
       Boolean indexable = o.getBoolean("search");

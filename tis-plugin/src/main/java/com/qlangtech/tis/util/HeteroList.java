@@ -21,7 +21,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
@@ -118,7 +118,7 @@ public class HeteroList<T extends Describable<T>> {
                 Config.TIS_PUB_PLUGINS_DOC_URL + URLEncoder.encode(StringUtils.lowerCase(StringUtils.remove(this.extensionPoint.getName(), ".")), TisUTF8.getName()));
 
 
-        Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
+        Optional<SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
         DescriptorsJSON desc2Json = new DescriptorsJSON(this.descriptors, true);
 
 
@@ -139,7 +139,7 @@ public class HeteroList<T extends Describable<T>> {
 
     private static <TT extends Describable<TT>> JSONArray createItemsJSONArray(
             UploadPluginMeta pluginMeta, List<TT> items,
-            Optional<IPropertyType.SubFormFilter> subFormFilter) throws Exception {
+            Optional<SubFormFilter> subFormFilter) throws Exception {
         JSONArray result = new JSONArray();
         JSONObject item = null;
 

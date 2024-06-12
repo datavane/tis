@@ -19,12 +19,10 @@ package com.qlangtech.tis.plugin.annotation;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.datax.TimeFormat;
-import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.PropertyType.PropVal;
 import com.qlangtech.tis.manage.common.Option;
-import com.qlangtech.tis.plugin.datax.SelectedTab;
-import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.TypeBase;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import org.apache.commons.lang.StringUtils;
@@ -183,7 +181,7 @@ public enum FormFieldType {
          * @param items         多选条目列表
          * @return
          */
-        public default boolean validate(IFieldErrorHandler msgHandler, Optional<IPropertyType.SubFormFilter> subFormFilter,
+        public default boolean validate(IFieldErrorHandler msgHandler, Optional<SubFormFilter> subFormFilter,
                                         Context context, String fieldName, List<SelectedItem> items) {
 
             int selectCount = 0;

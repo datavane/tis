@@ -23,8 +23,6 @@ import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.alibaba.fastjson2.JSONWriter;
-import com.alibaba.fastjson2.writer.ObjectWriter;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.util.DescriptorsJSONResult;
@@ -43,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -53,6 +50,7 @@ public class JsonUtil {
 
     private JsonUtil() {
     }
+
 
     /**
      * 将map中的内容序反列化成一个map结果
@@ -90,37 +88,57 @@ public class JsonUtil {
 
     static {
 
-        com.alibaba.fastjson.serializer.ObjectSerializer serializer = new ObjectSerializer() {
-            @Override
-            public void write(JSONSerializer serializer, Object object, Object fieldName, Type fieldType, int features) throws IOException {
-                try {
-                    //  SerializeWriter out = serializer.out;
+//        com.alibaba.fastjson.serializer.ObjectSerializer serializer = new ObjectSerializer() {
+//            @Override
+//            public void write(JSONSerializer serializer, Object object, Object fieldName, Type fieldType, int features) throws IOException {
+//                try {
+//                    //  SerializeWriter out = serializer.out;
+//
+//                    UnCacheString value = (UnCacheString) object;
+//                    Objects.requireNonNull(value, "callable of " + fieldName + " can not be null");
+//
+//                    //  out.writeString(value.getValue());
+//
+//                    serializer.write(value.getValue());
+//
+//                } catch (Exception e) {
+//                    throw new IOException(e);
+//                }
+//            }
+//        };
 
-                    UnCacheString value = (UnCacheString) object;
-                    Objects.requireNonNull(value, "callable of " + fieldName + " can not be null");
+//        com.alibaba.fastjson.serializer.ObjectSerializer jsonSerializer = new ObjectSerializer() {
+//            @Override
+//            public void write(JSONSerializer serializer, Object object, Object fieldName, Type fieldType, int features) throws IOException {
+//                try {
+//                    //  SerializeWriter out = serializer.out;
+//
+//                    JsonSerializer value = (JsonSerializer) object;
+//                    Objects.requireNonNull(value, "callable of " + fieldName + " can not be null");
+//
+//                    //  out.writeString(value.getValue());
+//
+//                    serializer.write(Objects.requireNonNull(value.serialize(), "serialize object can not be null"));
+//
+//                } catch (Exception e) {
+//                    throw new IOException(e);
+//                }
+//            }
+//        };
 
-                    //  out.writeString(value.getValue());
+//        ObjectWriter descSerializer = new ObjectWriter() {
+//            @Override
+//            public void write(JSONWriter jsonWriter, Object object, Object fieldName, Type fieldType, long features) {
+//                DescriptorsJSONResult value = (DescriptorsJSONResult) object;
+//                Objects.requireNonNull(value, "callable of " + fieldName + " can not be null");
+//                jsonWriter.writeRaw(value.toJSONString());
+//            }
+//
+//        };
 
-                    serializer.write(value.getValue());
-
-                } catch (Exception e) {
-                    throw new IOException(e);
-                }
-            }
-        };
-
-        ObjectWriter descSerializer = new ObjectWriter() {
-            @Override
-            public void write(JSONWriter jsonWriter, Object object, Object fieldName, Type fieldType, long features) {
-                DescriptorsJSONResult value = (DescriptorsJSONResult) object;
-                Objects.requireNonNull(value, "callable of " + fieldName + " can not be null");
-                jsonWriter.writeRaw(value.toJSONString());
-            }
-
-        };
-
-        com.alibaba.fastjson2.JSON.register(DescriptorsJSONResult.class, descSerializer);
-        SerializeConfig.global.put(UnCacheString.class, serializer);
+        //  com.alibaba.fastjson2.JSON.register(DescriptorsJSONResult.class, descSerializer);
+       // SerializeConfig.global.put(UnCacheString.class, serializer);
+        // SerializeConfig.global.put(JsonSerializer.class, jsonSerializer);
         //  SerializeConfig.global.put(DescriptorsJSONResult.class, descSerializer);
     }
 
@@ -187,22 +205,6 @@ public class JsonUtil {
     }
 
 
-    public static final class UnCacheString<T> {
-        private final Callable<T> valGetter;
-
-        public UnCacheString(Callable<T> valGetter) {
-            this.valGetter = valGetter;
-        }
-
-        public T getValue() {
-            try {
-                return this.valGetter.call();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
     public static String toString(Object json, boolean prettyFormat) {
 
         List<SerializerFeature> features = Lists.newArrayList(SerializerFeature.DisableCircularReferenceDetect);
@@ -219,7 +221,7 @@ public class JsonUtil {
     }
 
     public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, DescriptorsJSONResult actual, IAssert azzert) {
-        assertJSONEqual(invokeClass, assertFileName, actual.toJSONString(), azzert);
+        assertJSONEqual(invokeClass, assertFileName, JsonUtil.toString(actual,true), azzert);
     }
 
     public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, String actual, IAssert azzert) {

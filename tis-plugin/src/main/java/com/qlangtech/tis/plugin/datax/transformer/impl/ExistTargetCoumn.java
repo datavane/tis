@@ -24,6 +24,7 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.transformer.TargetColumn;
+import com.qlangtech.tis.plugin.datax.transformer.UDFDesc;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +35,7 @@ import java.util.List;
  **/
 public class ExistTargetCoumn extends TargetColumn {
 
-    @FormField(ordinal = 1, type = FormFieldType.ENUM, validate = {Validator.require})
+    @FormField(ordinal = 1, identity = true, type = FormFieldType.ENUM, validate = {Validator.require})
     public String name;
 
     @Override
@@ -43,8 +44,13 @@ public class ExistTargetCoumn extends TargetColumn {
     }
 
     @Override
-    public List<String> getLiteria() {
-        return Collections.singletonList("replace col:" + this.name);
+    public String identityValue() {
+        return this.name;
+    }
+
+    @Override
+    public List<UDFDesc> getLiteria() {
+        return Collections.singletonList(new UDFDesc("replace col", this.name));
     }
 
     @TISExtension

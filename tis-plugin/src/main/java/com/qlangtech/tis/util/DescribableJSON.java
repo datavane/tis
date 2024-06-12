@@ -21,11 +21,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
-import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import com.qlangtech.tis.plugin.IdentityName;
 
 import java.util.Objects;
@@ -55,7 +54,7 @@ public class DescribableJSON<T extends Describable<T>> {
         return this.getItemJson(Optional.empty());
     }
 
-    public JSONObject getItemJson(Optional<IPropertyType.SubFormFilter> subFormFilter) throws Exception {
+    public JSONObject getItemJson(Optional<SubFormFilter> subFormFilter) throws Exception {
         PluginFormProperties pluginFormPropertyTypes = descriptor.getPluginFormPropertyTypes(subFormFilter);
         return getItemJson(pluginFormPropertyTypes);
     }

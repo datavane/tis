@@ -33,10 +33,10 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.Descriptor.PluginValidateResult;
 import com.qlangtech.tis.extension.INotebookable;
-import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
@@ -47,9 +47,6 @@ import com.qlangtech.tis.extension.util.TextFile;
 import com.qlangtech.tis.install.InstallState;
 import com.qlangtech.tis.install.InstallUtil;
 import com.qlangtech.tis.manage.IAppSource;
-import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.manage.common.ConfigFileContext;
-import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
@@ -70,7 +67,6 @@ import com.qlangtech.tis.util.ItemsSaveResult;
 import com.qlangtech.tis.util.PluginItems;
 import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -88,8 +84,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -951,7 +945,7 @@ public class PluginAction extends BasicModule {
                                                    int pluginIndex, JSONArray itemsArray, boolean verify) {
     context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
     // List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
-    Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
+    Optional<SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
 
     IPluginEnum hEnum = pluginMeta.getHeteroEnum();
     PluginItems pluginItems = new PluginItems(module, pluginMeta);

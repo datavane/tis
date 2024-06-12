@@ -18,7 +18,7 @@
 package com.qlangtech.tis.util;
 
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.SubFormFilter;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
 
@@ -98,16 +98,16 @@ public class TestUploadPluginMeta extends TestCase {
         plugins = new String[]{pluginName + ":" + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME
                 + "_" + targetDescriptor
                 + "," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_" + targetDescriptorImpl
-                + "," + IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_" + subFieldName + ",require"};
+                + "," + SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_" + subFieldName + ",require"};
 
         pluginMetas = UploadPluginMeta.parse(plugins);
 
         assertEquals(1, pluginMetas.size());
         meta = pluginMetas.get(0);
         assertTrue(meta.isRequired());
-        Optional<IPropertyType.SubFormFilter> subFormFilter = meta.getSubFormFilter();
+        Optional<SubFormFilter> subFormFilter = meta.getSubFormFilter();
         assertTrue(subFormFilter.isPresent());
-        IPropertyType.SubFormFilter filter = subFormFilter.get();
+        SubFormFilter filter = subFormFilter.get();
 
         assertEquals(targetDescriptor, filter.targetDesc.descDisplayName);
         assertEquals(targetDescriptorImpl, filter.targetDesc.impl);

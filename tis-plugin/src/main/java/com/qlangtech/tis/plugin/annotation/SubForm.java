@@ -19,7 +19,7 @@ package com.qlangtech.tis.plugin.annotation;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.extension.Describable;
-import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
@@ -70,7 +70,7 @@ public @interface SubForm {
          * @return
          */
         boolean validateSubFormItems(IControlMsgHandler msgHandler, Context context, BaseSubFormProperties props,
-                                     IPropertyType.SubFormFilter subFormFilter, AttrVals formData);
+                                     SubFormFilter subFormFilter, AttrVals formData);
 
         /**
          * 校验单个selected表单

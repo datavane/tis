@@ -18,17 +18,35 @@
 
 package com.qlangtech.tis.plugin.datax.transformer.jdbcprop;
 
+import com.alibaba.fastjson.annotation.JSONType;
+import com.google.common.collect.Lists;
+import com.qlangtech.tis.plugin.datax.transformer.PluginLiteria;
 import com.qlangtech.tis.plugin.datax.transformer.TargetColumn;
+import com.qlangtech.tis.plugin.datax.transformer.UDFDesc;
 import com.qlangtech.tis.plugin.ds.TypeBase;
 
+import java.util.List;
+
 /**
+ * https://github.com/alibaba/fastjson/wiki/JSONType_serializer
  *
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-10 10:10
  **/
-public class TargetColType extends TypeBase {
+@JSONType(serializer = TargetColTypeSerializer.class)
+public class TargetColType extends TypeBase implements PluginLiteria {
 
-    private TargetColumn target;
+    TargetColumn target;
+
+    @Override
+    public List<UDFDesc> getLiteria() {
+
+        List<UDFDesc> result = Lists.newArrayList(target.getLiteria());
+        result.forEach((desc) -> {
+            desc.addPair("type", this.getType().getTypeDesc());
+        });
+        return result;
+    }
 
     @Override
     public String getName() {

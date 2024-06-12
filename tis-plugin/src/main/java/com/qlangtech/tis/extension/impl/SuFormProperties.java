@@ -21,7 +21,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.MultiItemsViewType;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
@@ -59,7 +59,7 @@ public class SuFormProperties extends BaseSubFormProperties {
         }
         SuFormProperties.SuFormGetterContext subFormContext = subFormGetterProcessThreadLocal.get();
         subFormContext.plugin = plugin;
-        pluginMeta.putExtraParams(IPropertyType.SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE, subFormDetailId);
+        pluginMeta.putExtraParams(SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE, subFormDetailId);
         subFormContext.param = pluginMeta;
         return subFormContext;
     }
@@ -221,7 +221,7 @@ public class SuFormProperties extends BaseSubFormProperties {
 
 
     @Override
-    public DescriptorsJSON.IPropGetter getSubFormIdListGetter(IPropertyType.SubFormFilter filter) {
+    public DescriptorsJSON.IPropGetter getSubFormIdListGetter(SubFormFilter filter) {
 
         if (filter.isIncrProcessExtend()) {
             return (f) -> {
@@ -246,10 +246,11 @@ public class SuFormProperties extends BaseSubFormProperties {
                                         + "import com.qlangtech.tis.coredefine.module.action.DataxAction; " //
                                         + "import com.qlangtech.tis.util.DescriptorsJSON.IPropGetter; " //
                                         + "import com.qlangtech.tis.extension.IPropertyType; " //
+                                        + "import com.qlangtech.tis.extension.SubFormFilter;"
                                         + "class " + className + " implements IPropGetter {" //
                                         + "	" //
                                         + "@Override" //
-                                        + "	public Object build(IPropertyType.SubFormFilter filter)" + " " //
+                                        + "	public Object build(SubFormFilter filter)" + " " //
                                         + "{" + this.getIdListGetScript() + "	}" + "}";
                         //                        //this.getIdListGetScript()
                         //                        loader.loadMyClass(className, script);
@@ -324,9 +325,9 @@ public class SuFormProperties extends BaseSubFormProperties {
         }
 
         public String getSubFormIdentityField() {
-            String id = param.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE);
+            String id = param.getExtraParam(SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE);
             if (StringUtils.isEmpty(id)) {
-                throw new IllegalStateException(IPropertyType.SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE + " " + "can not be empty");
+                throw new IllegalStateException(SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE + " " + "can not be empty");
             }
             return id;
         }

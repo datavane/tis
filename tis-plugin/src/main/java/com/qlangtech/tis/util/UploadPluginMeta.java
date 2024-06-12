@@ -25,7 +25,7 @@ import com.qlangtech.tis.coredefine.module.action.ProcessModel;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
@@ -36,7 +36,6 @@ import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -223,11 +222,11 @@ public class UploadPluginMeta {
 
     public IPluginEnum getHeteroEnum() {
 
-        Optional<IPropertyType.SubFormFilter> subFormFilter = null;
+        Optional<SubFormFilter> subFormFilter = null;
 
         subFormFilter = this.getSubFormFilter();
         if (subFormFilter.isPresent()) {
-            IPropertyType.SubFormFilter subFilter = subFormFilter.get();
+            SubFormFilter subFilter = subFormFilter.get();
             final boolean[] incrExtend = new boolean[1];
             if ((incrExtend[0] = subFilter.isIncrProcessExtend()) || subFilter.isBatchSourceProcessExtend()) {
 
@@ -298,12 +297,12 @@ public class UploadPluginMeta {
     }
 
 
-    public Optional<IPropertyType.SubFormFilter> getSubFormFilter() {
+    public Optional<SubFormFilter> getSubFormFilter() {
 
         TargetDesc targetDesc = this.getTargetDesc();
-        String subFormField = this.getExtraParam(IPropertyType.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD);
+        String subFormField = this.getExtraParam(SubFormFilter.PLUGIN_META_SUB_FORM_FIELD);
         if (StringUtils.isNotEmpty(targetDesc.descDisplayName) && StringUtils.isNotEmpty(subFormField)) {
-            return Optional.of(new IPropertyType.SubFormFilter(this, targetDesc //, targetDescImpl
+            return Optional.of(new SubFormFilter(this, targetDesc //, targetDescImpl
                     , subFormField));
         }
         return Optional.empty();
@@ -341,7 +340,7 @@ public class UploadPluginMeta {
         }
 
         public boolean isNameMatch(String displayName) {
-            return IPropertyType.SubFormFilter.KEY_INCR_PROCESS_EXTEND.equals(matchTargetPluginDescName)  //
+            return SubFormFilter.KEY_INCR_PROCESS_EXTEND.equals(matchTargetPluginDescName)  //
                     || StringUtils.equals(displayName, this.matchTargetPluginDescName);
         }
 

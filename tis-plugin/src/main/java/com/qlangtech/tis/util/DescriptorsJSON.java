@@ -23,8 +23,8 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.TISExtensible;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
@@ -98,9 +98,9 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
     public static abstract class SubFormFieldVisitor implements PluginFormProperties.IVisitor {
 
-        final Optional<IPropertyType.SubFormFilter> subFormFilter;
+        final Optional<SubFormFilter> subFormFilter;
 
-        public SubFormFieldVisitor(Optional<IPropertyType.SubFormFilter> subFormFilter) {
+        public SubFormFieldVisitor(Optional<SubFormFilter> subFormFilter) {
             this.subFormFilter = subFormFilter;
         }
 
@@ -111,7 +111,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
     }
 
 
-    public DescriptorsJSONResult getDescriptorsJSON(Optional<IPropertyType.SubFormFilter> subFormFilter) {
+    public DescriptorsJSONResult getDescriptorsJSON(Optional<SubFormFilter> subFormFilter) {
         JSONArray attrs;
         String key;
         PropertyType val;
@@ -145,7 +145,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                         subForm.put("fieldName", props.getSubFormFieldName());
                         if (subFormFilter.isPresent()) {
 
-                            IPropertyType.SubFormFilter filter = subFormFilter.get();
+                            SubFormFilter filter = subFormFilter.get();
                             if (!filter.subformDetailView) {
                                 desJson.put("subForm", true);
                                 subForm.put("idList", props.getSubFormIdListGetter(filter).build(filter));
@@ -237,7 +237,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
         return descriptors;
     }
 
-    private List<Descriptor<?>> getAcceptDescs(Optional<IPropertyType.SubFormFilter> subFormFilter) {
+    private List<Descriptor<?>> getAcceptDescs(Optional<SubFormFilter> subFormFilter) {
         PluginFormProperties pluginFormPropertyTypes = null;
         List<Descriptor<?>> acceptDescs = Lists.newArrayList(this.descriptors);
         for (Descriptor<T> dd : this.descriptors) {
@@ -279,6 +279,6 @@ public class DescriptorsJSON<T extends Describable<T>> {
     }
 
     public interface IPropGetter {
-        public Object build(IPropertyType.SubFormFilter filter);
+        public Object build(SubFormFilter filter);
     }
 }

@@ -39,7 +39,7 @@ import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta;
 import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
-import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.trigger.util.UnCacheString;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.Converter;
 import org.apache.commons.lang.StringUtils;
@@ -71,8 +71,8 @@ public class PropertyType implements IPropertyType {
         convertUtils.register(new Converter() {
             @Override
             public <T> T convert(Class<T> type, Object value) {
-                if (value instanceof JsonUtil.UnCacheString) {
-                    return (T) ((JsonUtil.UnCacheString) value).getValue();
+                if (value instanceof UnCacheString) {
+                    return (T) ((UnCacheString) value).getValue();
                 } else if (value instanceof JSONArray) {
                     JSONArray array = (JSONArray) value;
                     List<String> convert = array.toJavaList(String.class);
@@ -119,7 +119,11 @@ public class PropertyType implements IPropertyType {
         this.formField = formField;
     }
 
-
+    @Override
+    public boolean isCollectionType() {
+     //   PropertyType pt = (PropertyType) propertyType;
+        return List.class.isAssignableFrom(this.clazz);
+    }
 
     public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(Map<String,
             /*** fieldname*/IPropertyType> props) {

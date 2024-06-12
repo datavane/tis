@@ -18,18 +18,11 @@
 
 package com.qlangtech.tis.plugin.datax.transformer;
 
-import java.util.List;
-
 /**
- *
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-09 17:05
  **/
-public interface PluginLiteriaDesc {
-    /**
-     * 用于粗略生成Transformer 的描述
-     *
-     * @return
-     */
-    public  List<String> getLiteria();
+public interface PluginLiteriaDesc extends PluginLiteria, PluginImpl {
+
+
 }

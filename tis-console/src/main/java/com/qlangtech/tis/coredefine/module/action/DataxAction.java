@@ -55,7 +55,7 @@ import com.qlangtech.tis.datax.job.ServerLaunchToken.FlinkClusterType;
 import com.qlangtech.tis.datax.job.SubJobResName;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
-import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.util.MultiItemsViewType;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.lang.TisException;
@@ -85,7 +85,6 @@ import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta.IMultiItemsView;
 import com.qlangtech.tis.plugin.ds.DefaultTab;
-import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.IdlistElementCreatorFactory;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
@@ -1435,8 +1434,8 @@ public class DataxAction extends BasicModule {
             return false;
           }
 
-          CMeta.ParsePostMCols postMCols = (new IdlistElementCreatorFactory()).parsePostMCols(msgHandler,
-            context, MultiItemsViewType.keyColsMeta, targetCols);
+          CMeta.ParsePostMCols postMCols = (new IdlistElementCreatorFactory()).parsePostMCols(null, msgHandler,
+            context, fieldKey /*MultiItemsViewType.keyColsMeta*/, targetCols);
 
           //          Map<String, Integer> existCols = Maps.newHashMap();
           //          boolean validateFaild = false;
@@ -1581,7 +1580,7 @@ public class DataxAction extends BasicModule {
   }
 
 
-  public static List<String> getTablesInDB(IPropertyType.SubFormFilter filter) {
+  public static List<String> getTablesInDB(SubFormFilter filter) {
     DataxReader reader = DataxReader.getDataxReader(filter);
     return reader.getTablesInDB().getTabs();
   }

@@ -17,11 +17,10 @@
  */
 package com.qlangtech.tis.extension.util;
 
-import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.trigger.util.UnCacheString;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import groovy.lang.Script;
 
-import java.util.ServiceLoader;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
@@ -91,7 +90,7 @@ public class GroovyShellEvaluate {
                 }
                 return eval(meta.getName());
             };
-            return unCache ? new JsonUtil.UnCacheString(valGetter) : valGetter.call();
+            return unCache ? new UnCacheString(valGetter) : valGetter.call();
         } catch (Exception e) {
             throw new RuntimeException("script:" + script, e);
         }

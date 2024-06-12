@@ -20,7 +20,7 @@ package com.qlangtech.tis.offline.module.action;
 
 import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.BasicActionTestCase;
-import com.qlangtech.tis.extension.IPropertyType.SubFormFilter;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.offline.DataxUtils;

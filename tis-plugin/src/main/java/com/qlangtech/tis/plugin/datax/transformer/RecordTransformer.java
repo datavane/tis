@@ -27,14 +27,15 @@ public class RecordTransformer extends TypeBase {
 
 
     public final String getName() {
-        return target;
+        // return target;
+        return null;
     }
 
     /**
      * 自定义规则
      */
     private UDFDefinition udf;
-    private String target;
+    // private String target;
 
     public UDFDefinition getUdf() {
         return udf;
@@ -44,11 +45,11 @@ public class RecordTransformer extends TypeBase {
         this.udf = udf;
     }
 
-    public String getTarget() {
-        return target;
-    }
-
-    public void setTarget(String target) {
-        this.target = target;
-    }
+//    public String getTarget() {
+//        return target;
+//    }
+//
+//    public void setTarget(String target) {
+//        this.target = target;
+//    }
 }

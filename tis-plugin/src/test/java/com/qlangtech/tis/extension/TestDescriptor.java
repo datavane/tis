@@ -42,13 +42,13 @@ public class TestDescriptor extends TestCase {
         //descJson.getDescriptorsJSON();
 
         JsonUtil.assertJSONEqual(DefaultPlugin.class, "default-plugin-descriptor-turn-1.json"
-                , desc.toJSONString(), (m, e, a) -> {
+                , JsonUtil.toString(desc), (m, e, a) -> {
                     assertEquals(m, e, a);
                 });
 
 
         JsonUtil.assertJSONEqual(DefaultPlugin.class, "default-plugin-descriptor-turn-2.json"
-                , desc.toJSONString(), (m, e, a) -> {
+                , JsonUtil.toString(desc), (m, e, a) -> {
                     assertEquals(m, e, a);
                 });
     }

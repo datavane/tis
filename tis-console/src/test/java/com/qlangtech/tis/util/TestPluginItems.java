@@ -24,11 +24,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.coredefine.module.action.DataxAction;
+import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.*;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.datax.impl.DataxReader;
-import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
@@ -98,7 +98,7 @@ public class TestPluginItems extends TestCase {
         return true;
       }
     }));
-    Optional<IPropertyType.SubFormFilter> subFormFilter = subFieldPluginMeta.getSubFormFilter();
+    Optional<SubFormFilter> subFormFilter = subFieldPluginMeta.getSubFormFilter();
     assertTrue(subFormFilter.isPresent());
     PluginFormProperties pluginFormPropertyTypes = reader.getDescriptor().getPluginFormPropertyTypes(subFormFilter);
     assertTrue("get SuFormProperties process result", pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
@@ -163,7 +163,7 @@ public class TestPluginItems extends TestCase {
     Context context = EasyMock.createMock("context", Context.class);
     //targetDescriptorName_MySQL,subFormFieldName_selectedTabs
 
-    Optional<IPropertyType.SubFormFilter> subFormFilter = subFieldPluginMeta.getSubFormFilter();
+    Optional<SubFormFilter> subFormFilter = subFieldPluginMeta.getSubFormFilter();
     assertTrue("subFormFilter.isPresent():true", subFormFilter.isPresent());
     PluginItems pluginItems = new PluginItems(pluginContext, subFieldPluginMeta);
     IControlMsgHandler fieldErrorHandler = EasyMock.createMock("fieldErrorHandler", IControlMsgHandler.class);
@@ -203,7 +203,7 @@ public class TestPluginItems extends TestCase {
     });
 
     JSONArray itemsArray = jsonArray.getJSONArray(0);
-    Optional<IPropertyType.SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
+    Optional<SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
     assertFalse("subFormFilter.isPresent():false", subFormFilter.isPresent());
     List<AttrValMap> items = AttrValMap.describableAttrValMapList( itemsArray, subFormFilter);
     pluginItems.items = items;
