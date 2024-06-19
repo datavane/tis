@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.datax.impl;
 
+import com.alibaba.datax.core.util.container.TransformerConstant;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -28,6 +29,7 @@ import com.google.common.collect.Sets;
 import com.qlangtech.tis.datax.DBDataXChildTask;
 import com.qlangtech.tis.datax.DataXCfgFile;
 import com.qlangtech.tis.datax.DataXJobInfo;
+import com.qlangtech.tis.datax.IDataXNameAware;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxContext;
 import com.qlangtech.tis.datax.IDataxGlobalCfg;
@@ -40,6 +42,7 @@ import com.qlangtech.tis.datax.TableAliasMapper;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
@@ -70,7 +73,7 @@ import java.util.stream.Collectors;
  * @author: baisui 百岁
  * @create: 2021-04-20 18:06
  **/
-public class DataXCfgGenerator {
+public class DataXCfgGenerator implements IDataXNameAware {
 
     private transient static final VelocityEngine velocityEngine;
 
@@ -95,6 +98,11 @@ public class DataXCfgGenerator {
     private final String dataxName;
     private final IPluginContext pluginCtx;
 
+    @Override
+    public String getCollectionName() {
+        return this.dataxName;
+    }
+
     public DataXCfgGenerator(IPluginContext pluginCtx, String dataxName, IDataxProcessor dataxProcessor) {
         Objects.requireNonNull(dataxProcessor, "dataXprocessor can not be null");
         IDataxGlobalCfg dataXGlobalCfg = dataxProcessor.getDataXGlobalCfg();
@@ -105,22 +113,35 @@ public class DataXCfgGenerator {
         this.pluginCtx = pluginCtx;
     }
 
-    protected String getTemplateContent(IDataxReader reader, IDataxWriter writer) {
+    protected String getTemplateContent(IDataxReaderContext readerContext, IDataxReader reader, IDataxWriter writer) {
         final String tpl = globalCfg.getTemplate();
 
         // List<IDataxReader> readers = dataxProcessor.getReaders(pluginCtx);
         //        for (IDataxReader reader : readers) {
         //IDataxReader reader = dataxProcessor.getReader(pluginCtx);
         // IDataxWriter writer = dataxProcessor.getWriter(pluginCtx);
-        String readerTpl = reader.getTemplate();
-        String writerTpl = writer.getTemplate();
-        if (StringUtils.isEmpty(readerTpl)) {
+        if (StringUtils.isEmpty(reader.getTemplate())) {
             throw new IllegalStateException("readerTpl of '" + reader.getDataxMeta().getName() + "' can not be null");
         }
+        StringBuffer readerTpl = new StringBuffer(reader.getTemplate());
+        String writerTpl = writer.getTemplate();
+
         if (StringUtils.isEmpty(writerTpl)) {
             throw new IllegalStateException("writerTpl of '" + writer.getDataxMeta().getName() + "' can not be null");
         }
-        String template = StringUtils.replace(tpl, "<!--reader-->", readerTpl);
+
+        RecordTransformerRules transformerRules
+                = RecordTransformerRules.loadTransformerRules(this, readerContext.getSourceEntityName());
+        if (transformerRules != null) {
+            readerTpl.append(",\n\t\"")
+                    .append(TransformerConstant.JOB_TRANSFORMER).append("\":\t\t\n {\"").append(TransformerConstant.JOB_TRANSFORMER_NAME)
+                    .append("\":\"").append(readerContext.getSourceEntityName()).append("\",\n\"")
+                    .append(TransformerConstant.JOB_TRANSFORMER_RELEVANT_KEYS).append("\":").append("[")
+                    .append(transformerRules.relevantColKeys().stream().map((col) -> "\"" + col + "\"").collect(Collectors.joining(",")))
+                    .append("]").append("}");
+        }
+
+        String template = StringUtils.replace(tpl, "<!--reader-->", readerTpl.toString());
         template = StringUtils.replace(template, "<!--writer-->", writerTpl);
         return template;
         // }
@@ -305,6 +326,7 @@ public class DataXCfgGenerator {
         cfgs.genTime = current;
         return cfgs;
     }
+
 
     public interface IGenerateScriptFile {
         void generateScriptFile(IDataxReader reader, IDataxWriter writer, IDataxReaderContext readerContext,
@@ -540,7 +562,9 @@ public class DataXCfgGenerator {
             Optional<IDataxProcessor.TableMap> tableMap) throws IOException {
         Objects.requireNonNull(writer, "writer can not be null");
         StringWriter writerContent = null;
-        final String tpl = getTemplateContent(reader, writer);
+
+
+        final String tpl = getTemplateContent(readerContext, reader, writer);
         if (StringUtils.isEmpty(tpl)) {
             throw new IllegalStateException("velocity template content can not be null");
         }

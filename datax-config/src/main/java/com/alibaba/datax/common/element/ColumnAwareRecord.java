@@ -16,30 +16,38 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.plugin.datax.transformer;
+package com.alibaba.datax.common.element;
 
-import com.qlangtech.tis.plugin.ds.IMultiElement;
+import java.util.Map;
 
 /**
- * 定义一条 记录处理规则
- */
-public class RecordTransformer implements IMultiElement {
-
-    @Override
-    public String getName() {
-        return "transformer-rule";
-    }
+ *
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2024-06-18 17:40
+ **/
+public interface ColumnAwareRecord<ColValType> {
 
     /**
-     * 自定义规则
+     * 设置列名称到列所在index的位置
+     *
+     * @param mapper
      */
-    private UDFDefinition udf;
+    public void setCol2Index(Map<String, Integer> mapper);
 
-    public UDFDefinition getUdf() {
-        return udf;
-    }
+    /**
+     * @param field  字段名称
+     * @param colVal
+     */
+    public void setColumn(String field, final ColValType colVal);
 
-    public void setUdf(UDFDefinition udf) {
-        this.udf = udf;
-    }
+
+    public void setString(String field, final String val);
+
+    /**
+     * @param field 字段名称
+     * @return
+     */
+    public ColValType getColumn(String field);
+
+    public String getString(String field);
 }

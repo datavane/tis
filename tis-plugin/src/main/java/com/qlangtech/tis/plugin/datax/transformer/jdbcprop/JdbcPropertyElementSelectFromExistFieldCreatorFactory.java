@@ -16,30 +16,20 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.plugin.datax.transformer;
+package com.qlangtech.tis.plugin.datax.transformer.jdbcprop;
 
-import com.qlangtech.tis.plugin.ds.IMultiElement;
+import com.alibaba.fastjson.JSONObject;
 
 /**
- * 定义一条 记录处理规则
- */
-public class RecordTransformer implements IMultiElement {
-
+ * 从已有的数据表中选择一个已有的数据列
+ *
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2024-06-17 10:21
+ **/
+public class JdbcPropertyElementSelectFromExistFieldCreatorFactory extends JdbcPropertyElementCreatorFactory {
     @Override
-    public String getName() {
-        return "transformer-rule";
-    }
-
-    /**
-     * 自定义规则
-     */
-    private UDFDefinition udf;
-
-    public UDFDefinition getUdf() {
-        return udf;
-    }
-
-    public void setUdf(UDFDefinition udf) {
-        this.udf = udf;
+    protected void setPropertyInCollectionFieldType(JSONObject biz) {
+        super.setPropertyInCollectionFieldType(biz);
+        biz.put("selectFromExistField", true);
     }
 }

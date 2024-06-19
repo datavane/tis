@@ -23,12 +23,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.plugin.ds.CMeta.ParsePostMCols;
-import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 
 import java.util.function.BiConsumer;
 
 /**
- *
  * //@see com.qlangtech.tis.extension.util.MultiItemsViewType.ViewFormatType
  */
 public class IdlistElementCreatorFactory implements ElementCreatorFactory<CMeta> {
@@ -50,7 +49,7 @@ public class IdlistElementCreatorFactory implements ElementCreatorFactory<CMeta>
 
     @Override
     public ParsePostMCols<CMeta> parsePostMCols(IPropertyType propertyType,
-            IFieldErrorHandler msgHandler, Context context, String keyColsMeta, JSONArray targetCols) {
-       throw new UnsupportedOperationException();
+                                                IControlMsgHandler msgHandler, Context context, String keyColsMeta, JSONArray targetCols) {
+        throw new UnsupportedOperationException();
     }
 }

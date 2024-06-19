@@ -181,7 +181,7 @@ public class CMeta extends TypeBase implements Serializable, IColMetaGetter, Ide
         return IdentityName.super.getDescribleClass();
     }
 
-    public static class ParsePostMCols<T extends TypeBase> {
+    public static class ParsePostMCols<T extends IMultiElement> {
         public List<T> writerCols = Lists.newArrayList();
         public boolean validateFaild = false;
         public boolean pkHasSelected = false;

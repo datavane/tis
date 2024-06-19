@@ -16,29 +16,25 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.plugin.datax.transformer.jdbcprop;
+package com.qlangtech.tis.plugin.incr;
 
-import com.alibaba.fastjson.serializer.JSONSerializer;
-import com.alibaba.fastjson.serializer.ObjectSerializer;
-import com.alibaba.fastjson2.JSONWriter;
+import com.google.common.collect.Maps;
+import com.qlangtech.tis.datax.TableAlias;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Type;
+import java.util.Map;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-06-12 16:56
+ * @create: 2024-06-19 14:10
  **/
-public class PainTargetColumnSerializer implements ObjectSerializer {
-    @Override
-    public void write(JSONWriter jsonWriter, Object object, Object fieldName, Type fieldType, long features) {
-        PainTargetColumn targetColumn = (PainTargetColumn) object;
-        jsonWriter.writeRaw("\"" + targetColumn.getName() + "\"");
+public class CreatedSinkFunction<SinkFunc, FlinkColType> {
+
+    public final Map<TableAlias, SinkFunc> tabSinkFunc = Maps.newHashMap();
+
+    public CreatedSinkFunction() {
     }
 
-    @Override
-    public void write(JSONSerializer jsonSerializer, Object o, Object o1, Type type, int i) throws IOException {
-        throw new UnsupportedEncodingException();
+    public void addTabSinkFunc(TableAlias tab, SinkFunc sinkFunc) {
+        this.tabSinkFunc.put(tab, sinkFunc);
     }
 }

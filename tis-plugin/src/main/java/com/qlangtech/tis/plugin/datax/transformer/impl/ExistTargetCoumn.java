@@ -39,6 +39,11 @@ public class ExistTargetCoumn extends TargetColumn {
     public String name;
 
     @Override
+    public boolean isVirtual() {
+        return false;
+    }
+
+    @Override
     public String getName() {
         return this.name;
     }

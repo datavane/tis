@@ -19,6 +19,9 @@ package com.qlangtech.tis.runtime.module.misc.impl;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+
+import java.io.PrintWriter;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -26,10 +29,15 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
  */
 public abstract class BasicDelegateMsgHandler implements IControlMsgHandler {
 
+
     private final IControlMsgHandler delegate;
 
     public BasicDelegateMsgHandler(IControlMsgHandler delegate) {
         this.delegate = delegate;
+    }
+
+    public BasicDelegateMsgHandler(IFieldErrorHandler msgHandler) {
+        this((IControlMsgHandler) msgHandler);
     }
 
     @Override
@@ -38,7 +46,7 @@ public abstract class BasicDelegateMsgHandler implements IControlMsgHandler {
     }
 
     @Override
-    public final void addFieldError(Context context, String fieldName, String msg, Object... params) {
+    public void addFieldError(Context context, String fieldName, String msg, Object... params) {
         delegate.addFieldError(context, fieldName, msg, params);
     }
 
@@ -60,5 +68,40 @@ public abstract class BasicDelegateMsgHandler implements IControlMsgHandler {
     @Override
     public final void addErrorMessage(Context context, String msg) {
         delegate.addErrorMessage(context, msg);
+    }
+
+    @Override
+    public boolean isCollectionAware() {
+        return delegate.isCollectionAware();
+    }
+
+    @Override
+    public String getCollectionName() {
+        return delegate.getCollectionName();
+    }
+
+    @Override
+    public String getTISDataXName() {
+        return delegate.getTISDataXName();
+    }
+
+    @Override
+    public PrintWriter getEventStreamWriter() {
+        return delegate.getEventStreamWriter();
+    }
+
+    @Override
+    public String getString(String key) {
+        return delegate.getString(key);
+    }
+
+    @Override
+    public String getString(String key, String dftVal) {
+        return delegate.getString(key, dftVal);
+    }
+
+    @Override
+    public boolean getBoolean(String key) {
+        return delegate.getBoolean(key);
     }
 }

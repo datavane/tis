@@ -20,6 +20,7 @@ package com.qlangtech.tis;
 
 import com.qlangtech.tis.fs.TestIPath;
 import com.qlangtech.tis.manage.common.TestConfig;
+import com.qlangtech.tis.realtime.transfer.TestUnderlineUtils;
 import com.qlangtech.tis.utils.TestTisMetaProps;
 import com.qlangtech.tis.utils.TestUtils;
 import junit.framework.Test;
@@ -41,6 +42,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestUtils.class);
         suite.addTestSuite(TestTisMetaProps.class);
         suite.addTestSuite(TestIPath.class);
+        suite.addTestSuite(TestUnderlineUtils.class);
 
         return suite;
     }

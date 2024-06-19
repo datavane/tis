@@ -32,8 +32,15 @@ import java.util.Optional;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-09 13:43
  **/
+
 public abstract class TargetColumn implements Describable<TargetColumn>, AfterPluginSaved, PluginLiteriaDesc, IdentityName {
 
+    /**
+     * 是否是虚拟列（通过原表记录值计算之后新增加的列）
+     *
+     * @return
+     */
+    public abstract boolean isVirtual();
 
     public abstract String getName();
 

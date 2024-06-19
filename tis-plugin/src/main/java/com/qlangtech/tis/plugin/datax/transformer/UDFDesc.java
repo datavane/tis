@@ -32,11 +32,19 @@ import java.util.List;
 public class UDFDesc {
     private List<Option> pairs = Lists.newArrayList();
 
-    public UDFDesc(String key, Object content) {
+    public UDFDesc(String key, String content) {
         this.addPair(key, content);
     }
 
-    public void addPair(String key, Object content) {
+    public UDFDesc(String key,List<UDFDesc> content){
+        this.addPair(key, content);
+    }
+
+    public void addPair(String key, String  content) {
+        this.pairs.add(new Option(key, content));
+    }
+
+    public void addPair(String key, List<UDFDesc>  content) {
         this.pairs.add(new Option(key, content));
     }
 

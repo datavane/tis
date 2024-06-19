@@ -40,6 +40,7 @@ import com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
 import com.qlangtech.tis.runtime.module.action.SysInitializeAction;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
 import com.qlangtech.tis.solrdao.SchemaResult;
@@ -560,7 +561,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
 
   private TargetColumnMeta getTargetColumnMeta(
-    IPluginContext pluginContext, Context context, JSONObject post, String targetTable, PluginItems dataSourceItems)
+    IControlMsgHandler pluginContext, Context context, JSONObject post, String targetTable, PluginItems dataSourceItems)
     throws TableNotFoundException {
     TargetColumnMeta columnMeta = new TargetColumnMeta(targetTable);
     Map<String, ColumnMetaData> colMetas = null;
@@ -572,7 +573,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 //      if (!vals.validate(this, context, false).isValid()) {
 //        return columnMeta.invalid();
 //      }
-      DataSourceFactory dsFactory = (DataSourceFactory) vals.createDescribable(pluginContext).getInstance();
+      DataSourceFactory dsFactory = (DataSourceFactory) vals.createDescribable(pluginContext, context).getInstance();
       List<ColumnMetaData> tableMetadata = null;
       tableMetadata = dsFactory.getTableMetadata(false, EntityName.parse(targetTable));
 
@@ -823,7 +824,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     // 生成DAO脚本
     HeteroEnum pluginType = HeteroEnum.MQ;
     UploadPluginMeta pluginMeta = UploadPluginMeta.parse(pluginType.identity + ":" + UploadPluginMeta.KEY_REQUIRE);
-    PluginItems incrPluginItems = getPluginItems(incrCfg, pluginType, pluginMeta);
+    PluginItems incrPluginItems = getPluginItems(context, incrCfg, pluginType, pluginMeta);
     if (incrPluginItems.items.size() < 1) {
       throw new IllegalStateException("incr plugin item size can not small than 1");
     }
@@ -866,15 +867,15 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     return true;
   }
 
-  private PluginItems getDataSourceItems(JSONObject datasource) {
-    HeteroEnum pluginType = HeteroEnum.DATASOURCE;
-    UploadPluginMeta pluginMeta = UploadPluginMeta.parse(pluginType.identity
-      + ":" + UploadPluginMeta.KEY_REQUIRE + "," + PostedDSProp.KEY_TYPE + "_detailed,update_false");
-    return getPluginItems(datasource, pluginType, pluginMeta);
-  }
+//  private PluginItems getDataSourceItems(JSONObject datasource) {
+//    HeteroEnum pluginType = HeteroEnum.DATASOURCE;
+//    UploadPluginMeta pluginMeta = UploadPluginMeta.parse(pluginType.identity
+//      + ":" + UploadPluginMeta.KEY_REQUIRE + "," + PostedDSProp.KEY_TYPE + "_detailed,update_false");
+//    return getPluginItems(datasource, pluginType, pluginMeta);
+//  }
 
 
-  private PluginItems getPluginItems(JSONObject pluginCfg, HeteroEnum pluginType, UploadPluginMeta pluginMeta) {
+  private PluginItems getPluginItems(Context context, JSONObject pluginCfg, HeteroEnum pluginType, UploadPluginMeta pluginMeta) {
     Map<String, String> dsParams = Maps.newHashMap();
     for (String dsKey : pluginCfg.keySet()) {
       dsParams.put(dsKey, pluginCfg.getString(dsKey));
@@ -893,7 +894,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     dsDescriptpr = pluginDesc.get();
 
 
-    PluginItems items = new PluginItems(new DftPluginContext(pluginType), pluginMeta);
+    PluginItems items = new PluginItems(new DftPluginContext(pluginType), context, pluginMeta);
     JSONArray itemsArray = new JSONArray();
     JSONObject item = new JSONObject();
     JSONObject vals = new JSONObject();

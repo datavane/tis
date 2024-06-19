@@ -18,16 +18,30 @@ package com.qlangtech.tis.datax;
  * limitations under the License.
  */
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-02-23 10:35
  **/
 public interface IDataXNameAware {
+    /**
+     * 是否在索引
+     *
+     * @return
+     */
+    default boolean isCollectionAware() {
+        return StringUtils.isNotEmpty(getCollectionName());
+    }
+
+    String getCollectionName();
 
     /**
      * 取得DataX名称
      *
      * @return
      */
-    public String getTISDataXName();
+    public default String getTISDataXName() {
+        return this.getCollectionName();
+    }
 }

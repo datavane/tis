@@ -21,20 +21,16 @@ package com.qlangtech.tis.plugin.datax.transformer.impl;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.plugin.ValidatorCommons;
-import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformer;
 import com.qlangtech.tis.plugin.datax.transformer.UDFDefinition;
-import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.CMeta.ParsePostMCols;
-import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
 import com.qlangtech.tis.plugin.ds.ViewContent;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.util.AttrValMap;
 
@@ -74,7 +70,7 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
 
     @Override
     public ParsePostMCols<RecordTransformer> parsePostMCols(IPropertyType propertyType,
-                                                            IFieldErrorHandler msgHandler, Context context, String _keyColsMeta, JSONArray targetCols) {
+                                                            IControlMsgHandler msgHandler, Context context, String _keyColsMeta, JSONArray targetCols) {
         final String keyColsMeta = "rules";
         final String keyTarget = "target";
         final String keyUdf = "udf";
@@ -141,10 +137,10 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
 
 
             valsMap = AttrValMap.parseDescribableMap(Optional.empty(), udfObj);
-            ParseDescribable describable = valsMap.createDescribable(null);
+            ParseDescribable describable = valsMap.createDescribable(msgHandler, context);
             udf = (UDFDefinition) describable.getInstance();
             transformerRule.setUdf(udf);
-           // transformerRule.setType(dataType);
+            // transformerRule.setType(dataType);
             //  transformerRule.setTarget(targetColName);
             postMCols.writerCols.add(transformerRule);
         }

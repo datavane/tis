@@ -32,10 +32,14 @@ import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
 import com.qlangtech.tis.plugin.ds.IdlistElementCreatorFactory;
 import com.qlangtech.tis.plugin.ds.ViewContent;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.BeanUtilsBean2;
+import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.lang.StringUtils;
 
+import java.beans.PropertyDescriptor;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -112,7 +116,14 @@ public class MultiItemsViewType implements IMultiItemsView {
     public List<String> getElementPropertyKeys() {
         if (elementPropertyKeys == null) {
             try {
-                elementPropertyKeys = Lists.newArrayList(BeanUtilsBean2.getInstance().describe(tupleFactory.createDefault()).keySet());
+//                BeanUtilsBean.getInstance().getPropertyUtils()
+//                PropertyUtilsBean
+                PropertyDescriptor[] propertyDescs = BeanUtilsBean2.getInstance().getPropertyUtils().getPropertyDescriptors(tupleFactory.createDefault());
+                elementPropertyKeys = Lists.newArrayList();
+                for (PropertyDescriptor desc : propertyDescs) {
+                    elementPropertyKeys.add(desc.getName());
+                }
+                elementPropertyKeys = Collections.unmodifiableList(this.elementPropertyKeys);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -193,7 +204,7 @@ public class MultiItemsViewType implements IMultiItemsView {
 
             // String keyColsMeta = StringUtils.EMPTY;
             JSONArray mcols = eprops.getJSONObject(Descriptor.KEY_ENUM_PROP).getJSONArray("_mcols");
-            CMeta.ParsePostMCols<?> parsePostMCols = elementCreator.parsePostMCols(attrDesc,msgHandler, context, attrDesc.f.getName(), mcols);
+            CMeta.ParsePostMCols<?> parsePostMCols = elementCreator.parsePostMCols(attrDesc, msgHandler, context, attrDesc.f.getName(), mcols);
             if (parsePostMCols.validateFaild) {
                 return Collections.emptyList();
             }

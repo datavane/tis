@@ -67,6 +67,7 @@ public class PluginItems {
   private final IPluginEnum heteroEnum;
   private final UploadPluginMeta pluginMeta;
   private final IPluginContext pluginContext;
+  private final Context context;
 
   public List<AttrValMap> items;
 
@@ -78,7 +79,7 @@ public class PluginItems {
     observable.addObserver(obsv);
   }
 
-  public PluginItems(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+  public PluginItems(IPluginContext pluginContext, Context context, UploadPluginMeta pluginMeta) {
     this.heteroEnum = pluginMeta.getHeteroEnum();
     this.pluginMeta = pluginMeta;
     this.pluginContext = pluginMeta.isDisableBizSet() ? new AdapterPluginContext(pluginContext) {
@@ -87,6 +88,7 @@ public class PluginItems {
         //super.setBizResult(context, result);
       }
     } : pluginContext;
+    this.context = context;
   }
 
 
@@ -383,7 +385,7 @@ public class PluginItems {
       /**====================================================
        * 将客户端POST数据包装
        ======================================================*/
-      describable = attrValMap.createDescribable(pluginContext);
+      describable = attrValMap.createDescribable((IControlMsgHandler) pluginContext, this.context);
       dlist.add(describable);
       if (!describable.subFormFields) {
         describableList.add((Describable) describable.getInstance());

@@ -127,12 +127,12 @@ public class AttrValMap {
             throw new IllegalStateException("desc:" + this.descriptor.getClass().getName() + " must be instance of " + INotebookable.class.getSimpleName());
         }
         INotebookable notebook = (INotebookable) this.descriptor;
-        return notebook.createOrGetNotebook((new Descriptor.PostFormVals(this.descriptor, msgHandler,
+        return notebook.createOrGetNotebook((new Descriptor.PostFormVals(this.descriptor, msgHandler, context,
                 this.attrValMap)).newInstance());
     }
 
-    public Descriptor.ParseDescribable createDescribable(IPluginContext pluginContext) {
-        return this.createDescribable(pluginContext, Optional.empty());
+    public Descriptor.ParseDescribable createDescribable(IControlMsgHandler pluginContext, Context context) {
+        return this.createDescribable(pluginContext, context, Optional.empty());
     }
 
     /**
@@ -140,8 +140,8 @@ public class AttrValMap {
      *
      * @return
      */
-    public Descriptor.ParseDescribable createDescribable(IPluginContext pluginContext, Optional<PluginFormProperties> formProperties) {
-        return this.descriptor.parseDescribable(pluginContext, this.attrValMap, (formProperties), this.subFormFilter);
+    public Descriptor.ParseDescribable createDescribable(IControlMsgHandler pluginContext, Context context, Optional<PluginFormProperties> formProperties) {
+        return this.descriptor.parseDescribable(pluginContext, context, this.attrValMap, (formProperties), this.subFormFilter);
     }
 
     public int size() {

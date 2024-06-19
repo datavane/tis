@@ -24,23 +24,24 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
+import com.qlangtech.tis.extension.Descriptor.PluginValidateResult;
 import com.qlangtech.tis.extension.IPropertyType;
-import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.transformer.TargetColumn;
-import com.qlangtech.tis.plugin.datax.transformer.UDFDefinition;
 import com.qlangtech.tis.plugin.datax.transformer.impl.VirtualTargetColumn;
+import com.qlangtech.tis.plugin.datax.transformer.impl.VirtualTargetColumn.VirtualTargetColumnDesc;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.CMeta.ParsePostMCols;
 import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
-import com.qlangtech.tis.plugin.ds.TypeBase;
 import com.qlangtech.tis.plugin.ds.ViewContent;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import com.qlangtech.tis.runtime.module.misc.impl.BasicDelegateMsgHandler;
 import com.qlangtech.tis.util.AttrValMap;
-import org.apache.commons.lang3.StringUtils;
+import com.qlangtech.tis.util.DescriptorsJSON;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -53,7 +54,7 @@ import java.util.function.BiConsumer;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-10 09:20
  **/
-public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<TypeBase> {
+public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<TargetColType> {
 
     private static final String KEY_TARGET_COL = "name";
 
@@ -65,6 +66,9 @@ public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<
     @Override
     public void appendExternalJsonProp(IPropertyType propertyType, JSONObject biz) {
         biz.put("isList", propertyType.isCollectionType());
+        if (propertyType.isCollectionType()) {
+            setPropertyInCollectionFieldType(biz);
+        }
         List<CMeta> colsCandidate = SelectedTab.getColsCandidate();
         biz.put("sourceTabCols", colsCandidate);
         biz.put("dftStrType", DataType.createVarChar(32));
@@ -72,41 +76,94 @@ public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<
         // ElementCreatorFactory.super.appendExternalJsonProp(propertyType, biz);
     }
 
+    protected void setPropertyInCollectionFieldType(JSONObject biz) {
+        biz.put("dftListElementDesc", DescriptorsJSON.desc(new VirtualTargetColumnDesc()));
+    }
+
 
     @Override
-    public ParsePostMCols<TypeBase> parsePostMCols(IPropertyType propertyType,
-                                                   IFieldErrorHandler msgHandler, Context context, String keyColsMeta, JSONArray targetCols) {
+    public ParsePostMCols<TargetColType> parsePostMCols(IPropertyType propertyType,
+                                                        IControlMsgHandler msgHandler, Context context, String keyColsMeta, JSONArray targetCols) {
         boolean isCollection = propertyType.isCollectionType();
 
-        ParsePostMCols<TypeBase> result = new ParsePostMCols<>();
+        ParsePostMCols<TargetColType> result = new ParsePostMCols<>();
         if (isCollection) {
             final int[] index = new int[1];
             Map<String, Collection<Integer>> duplicateCols = Maps.newHashMap();
             for (Object e : targetCols) {
                 try {
                     JSONObject element = (JSONObject) e;
-                    String target = element.getString(KEY_TARGET_COL);
-                    if (StringUtils.isEmpty(target)) {
-                        msgHandler.addFieldError(context //
-                                , IFieldErrorHandler.joinField(keyColsMeta, Collections.singletonList(index[0]), KEY_TARGET_COL) //
-                                , ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
-                        result.validateFaild = true;
+                    Object targetCol = element.get(KEY_TARGET_COL);
+
+                    /**
+                     * 这里处理分为两种场景 1，2
+                     */
+                    VirtualTargetColumn vcol = null;
+                    if (targetCol instanceof String) {
+                        throw new UnsupportedOperationException();
+//                        /***************************************
+//                         *  1：JSONSplitterUDF 表单提交
+//                         **************************************/
+//                        final String target = (String) targetCol;
+//
+//                        if (StringUtils.isEmpty(target)) {
+//                            msgHandler.addFieldError(context //
+//                                    , IFieldErrorHandler.joinField(keyColsMeta, Collections.singletonList(index[0]), KEY_TARGET_COL) //
+//                                    , ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
+//                            result.validateFaild = true;
+//                        }
+//
+//                        Collection<Integer> sameKeys = duplicateCols.get(target);
+//                        if (sameKeys == null) {
+//                            sameKeys = Lists.newArrayList();
+//                            duplicateCols.put(target, sameKeys);
+//                        }
+//                        sameKeys.add(index[0]);
+//
+//                        vcol = new VirtualTargetColumn();
+//                        vcol.name = target;
+                    } else if (targetCol instanceof JSONObject) {
+                        /***************************************
+                         *  2：RecordTransformerRules 表单提交
+                         **************************************/
+                        AttrValMap attrVals = AttrValMap.parseDescribableMap(Optional.empty(), (JSONObject) targetCol);
+
+                        BasicDelegateMsgHandler msgHandle = new BasicDelegateMsgHandler(msgHandler) {
+                            @Override
+                            public void addFieldError(Context context, String fieldName, String msg, Object... params) {
+                                super.addFieldError(context
+                                        , IFieldErrorHandler.joinField(keyColsMeta, Collections.singletonList(index[0]), fieldName)
+                                        , msg, params);
+                            }
+                        };
+
+                        PluginValidateResult targetColValidate = attrVals.validate(msgHandle, context, false);
+                        if (targetColValidate.isValid()) {
+                            vcol = targetColValidate.newInstance();
+                            Collection<Integer> sameKeys = duplicateCols.get(vcol.getName());
+                            if (sameKeys == null) {
+                                sameKeys = Lists.newArrayList();
+                                duplicateCols.put(vcol.getName(), sameKeys);
+                            }
+                            sameKeys.add(index[0]);
+                        } else {
+                            result.validateFaild = true;
+                        }
+
+
+                    } else {
+                        throw new IllegalStateException("unsupported type:" + (targetCol == null ? "null" : targetCol.getClass().getSimpleName()));
                     }
 
-                    Collection<Integer> sameKeys = duplicateCols.get(target);
-                    if (sameKeys == null) {
-                        sameKeys = Lists.newArrayList();
-                        duplicateCols.put(target, sameKeys);
-                    }
-                    sameKeys.add(index[0]);
+
                     DataType type = CMeta.parseType(element, (propKey, errMsg) -> {
                         msgHandler.addFieldError(context
                                 , IFieldErrorHandler.joinField(keyColsMeta, Collections.singletonList(index[0]), propKey)
                                 , errMsg);
                         result.validateFaild = true;
                     });
-                    TargetColType targetColType = new TargetColType();
-                    PainTargetColumn vcol = new PainTargetColumn(target);
+                    TargetColType targetColType = createDefault();
+
                     targetColType.setTarget(vcol);
                     targetColType.setType(type);
                     result.writerCols.add(targetColType);
@@ -126,18 +183,23 @@ public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<
                 }
             }
         } else {
-            this.parseSinglePojo(targetCols, result);
+            this.parseSinglePojo(msgHandler, context, keyColsMeta, targetCols, result);
         }
 
         return result;
     }
 
-    private void parseSinglePojo(JSONArray targetCols, ParsePostMCols<TypeBase> result) {
+    private void parseSinglePojo(IControlMsgHandler pluginContext
+            , Context context, String keyColsMeta, JSONArray targetCols, ParsePostMCols<TargetColType> result) {
         for (Object e : targetCols) {
             JSONObject element = (JSONObject) e;
             //  JSONObject type = element.getJSONObject("type");
             JSONObject target = element.getJSONObject(KEY_TARGET_COL);
-
+            if (target == null) {
+                pluginContext.addFieldError(context, keyColsMeta, ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
+                result.validateFaild = true;
+                break;
+            }
             DataType type = CMeta.parseType(element, (propKey, errMsg) -> {
 //                    msgHandler.addFieldError(context
 //                            , IFieldErrorHandler.joinField(keyColsMeta, Collections.singletonList(index), propKey)
@@ -146,9 +208,10 @@ public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<
             });
 
             AttrValMap valsMap = AttrValMap.parseDescribableMap(Optional.empty(), target);
-            ParseDescribable describable = valsMap.createDescribable(null);
+
+            ParseDescribable describable = valsMap.createDescribable(pluginContext, context);
             TargetColumn targetCol = (TargetColumn) describable.getInstance();
-            TargetColType targetColType = new TargetColType();
+            TargetColType targetColType = this.createDefault();
             targetColType.setTarget(targetCol);
             targetColType.setType(type);
             result.writerCols.add(targetColType);
@@ -161,15 +224,14 @@ public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<
      *
      * @return
      * @see com.qlangtech.tis.plugin.datax.transformer.jdbcprop.TargetColType
-     * @see com.qlangtech.tis.plugin.datax.transformer.jdbcprop.VirtualColType
      */
     @Override
-    public TypeBase createDefault() {
-        return null;
+    public TargetColType createDefault() {
+        return new TargetColType();
     }
 
     @Override
-    public TypeBase create(JSONObject targetCol, BiConsumer<String, String> errorProcess) {
+    public TargetColType create(JSONObject targetCol, BiConsumer<String, String> errorProcess) {
         return null;
     }
 }

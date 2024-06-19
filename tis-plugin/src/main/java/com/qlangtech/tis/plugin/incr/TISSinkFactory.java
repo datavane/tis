@@ -20,8 +20,10 @@ package com.qlangtech.tis.plugin.incr;
 
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
+import com.qlangtech.tis.async.message.client.consumer.IFlinkColCreator;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.compiler.incr.ICompileAndPackage;
+import com.qlangtech.tis.datax.IDataXNameAware;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.TableAlias;
@@ -36,6 +38,7 @@ import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.Selectable;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +55,7 @@ import java.util.function.Function;
  * @see MQListenerFactory
  **/
 @Public
-public abstract class TISSinkFactory implements Describable<TISSinkFactory>, KeyedPluginStore.IPluginKeyAware {
+public abstract class TISSinkFactory implements Describable<TISSinkFactory>, KeyedPluginStore.IPluginKeyAware, IDataXNameAware {
     // public static final String KEY_FLINK_STREAM_APP_NAME_PREFIX = "flink_stream_";
     public static final String KEY_PLUGIN_TPI_CHILD_PATH = "flink/";
     private static final Logger logger = LoggerFactory.getLogger(TISSinkFactory.class);
@@ -83,7 +86,7 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
     }
 
     @TISExtension
-    public static final HeteroEnum<TISSinkFactory> sinkFactory = new HeteroEnum<TISSinkFactory>(//
+    public static final HeteroEnum<TISSinkFactory> sinkFactory = new HeteroEnum<>(//
             TISSinkFactory.class, //
             "sinkFactory", //
             "Incr Sink Factory", //
@@ -116,6 +119,14 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
 
     public transient String dataXName;
 
+    @Override
+    public final String getCollectionName() {
+        if (StringUtils.isEmpty(this.dataXName)) {
+            throw new IllegalStateException("param dataXName can not be empty");
+        }
+        return this.dataXName;
+    }
+
     /**
      * 取得增量执行单元，脚本编译器
      *
@@ -134,7 +145,8 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
      * @param dataxProcessor
      * @return
      */
-    public abstract <SinkFunc> Map<TableAlias, SinkFunc> createSinkFunction(IDataxProcessor dataxProcessor);
+    public abstract <SinkFunc> Map<TableAlias, SinkFunc> createSinkFunction(
+            IDataxProcessor dataxProcessor, IFlinkColCreator<?> flinkColCreator);
 
 
     @Override
@@ -157,7 +169,7 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
         public Map<String, Object> getExtractProps() {
             Map<String, Object> vals = super.getExtractProps();
             EndType targetType = this.getTargetType();
-           // this.getEndType().appendProps(vals);
+            // this.getEndType().appendProps(vals);
             vals.put(IDataXPluginMeta.END_TARGET_TYPE, targetType.getVal());
             vals.put(ISelectedTabExtendFactory.KEY_EXTEND_SELECTED_TAB_PROP
                     , (this instanceof ISelectedTabExtendFactory)

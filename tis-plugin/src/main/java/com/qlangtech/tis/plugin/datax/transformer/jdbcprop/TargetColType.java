@@ -23,20 +23,32 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.plugin.datax.transformer.PluginLiteria;
 import com.qlangtech.tis.plugin.datax.transformer.TargetColumn;
 import com.qlangtech.tis.plugin.datax.transformer.UDFDesc;
+import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.TypeBase;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * https://github.com/alibaba/fastjson/wiki/JSONType_serializer
  *
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-10 10:10
+ * @see JdbcPropertyElementCreatorFactory
  **/
 @JSONType(serializer = TargetColTypeSerializer.class)
-public class TargetColType extends TypeBase implements PluginLiteria {
+public final class TargetColType extends TypeBase implements PluginLiteria, IColMetaGetter {
 
     TargetColumn target;
+
+    public boolean isVirtual() {
+        return Objects.requireNonNull(target, "prop target can not be null").isVirtual();
+    }
+
+    @Override
+    public boolean isPk() {
+        return false;
+    }
 
     @Override
     public List<UDFDesc> getLiteria() {

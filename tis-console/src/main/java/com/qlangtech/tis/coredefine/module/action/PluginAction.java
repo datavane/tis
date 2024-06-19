@@ -604,7 +604,7 @@ public class PluginAction extends BasicModule {
             } catch (InterruptedException e) {
             }
             // 为了让Assemble等节点的uberClassLoader重新加载一次，需要主动向Assemble等节点发送一个指令
-         //   notifyPluginUpdate2AssembleNode(TIS.KEY_ACTION_CLEAN_TIS + "=true", "TIS");
+            //   notifyPluginUpdate2AssembleNode(TIS.KEY_ACTION_CLEAN_TIS + "=true", "TIS");
             InstallUtil.proceedToNextStateFrom(InstallState.INITIAL_PLUGINS_INSTALLING);
           }
         }
@@ -948,7 +948,7 @@ public class PluginAction extends BasicModule {
     Optional<SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
 
     IPluginEnum hEnum = pluginMeta.getHeteroEnum();
-    PluginItems pluginItems = new PluginItems(module, pluginMeta);
+    PluginItems pluginItems = new PluginItems(module, context, pluginMeta);
     List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(itemsArray, subFormFilter);
     if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
       module.addErrorMessage(context, "请设置'" + hEnum.getCaption() + "'表单内容");
@@ -977,7 +977,7 @@ public class PluginAction extends BasicModule {
         for (IdentityName p : plugins) {
           desc = ((Describable) p).getDescriptor();
           Descriptor.PluginValidateResult r = new Descriptor.PluginValidateResult(new Descriptor.PostFormVals(desc,
-            module, AttrValMap.IAttrVals.rootForm(Collections.emptyMap())), pluginIndex, newAddItemsCount++);
+            module, context, AttrValMap.IAttrVals.rootForm(Collections.emptyMap())), pluginIndex, newAddItemsCount++);
           r.setDescriptor(desc);
           identityUniqueMap.put(p.identityValue(), r);
         }

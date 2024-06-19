@@ -23,7 +23,7 @@ import com.qlangtech.tis.plugin.JDBCColumnProp;
 /**
  * 有Jdbc类型相关的类型
  */
-public abstract class TypeBase implements JDBCColumnProp {
+public abstract class TypeBase implements JDBCColumnProp, IMultiElement {
     private DataType type;
 
     public final DataType getType() {

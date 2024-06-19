@@ -23,6 +23,7 @@ import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.PropertyType.PropVal;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.plugin.ds.IMultiElement;
 import com.qlangtech.tis.plugin.ds.TypeBase;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import org.apache.commons.lang.StringUtils;
@@ -202,7 +203,7 @@ public enum FormFieldType {
         // 是否选中了
         private boolean checked;
 
-        private TypeBase cmeta;
+        private IMultiElement cmeta;
 
         public SelectedItem(String name, String value, boolean checked) {
             super(name, value);
@@ -210,13 +211,13 @@ public enum FormFieldType {
             this.checked = checked;
         }
 
-        public SelectedItem(TypeBase cmeta) {
+        public SelectedItem(IMultiElement cmeta) {
             this(cmeta.getName(), cmeta.getName(), true // !cmeta.isDisable()
             );
             this.cmeta = cmeta;
         }
 
-        public TypeBase getCmeta() {
+        public IMultiElement getCmeta() {
             return cmeta;
         }
 

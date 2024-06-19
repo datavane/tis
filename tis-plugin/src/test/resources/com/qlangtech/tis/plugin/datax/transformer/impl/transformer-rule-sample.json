@@ -10,162 +10,110 @@
         "disabled": false,
         "key": "from",
         "pk": false,
-        "_eprops": {
-          "enum": [{
-            "val": "id",
-            "label": "id"
-          }, {
-            "val": "emp_id",
-            "label": "emp_id"
-          }, {
-            "val": "photo_sn",
-            "label": "photo_sn"
-          }, {
-            "val": "photo_file",
-            "label": "photo_file"
-          }, {
-            "val": "photo_url",
-            "label": "photo_url"
-          }, {
-            "val": "photo_data",
-            "label": "photo_data"
-          }, {
-            "val": "photo_sign",
-            "label": "photo_sign"
-          }, {
-            "val": "is_analyse",
-            "label": "is_analyse"
-          }, {
-            "val": "photo_time",
-            "label": "photo_time"
-          }, {
-            "val": "is_active",
-            "label": "is_active"
-          }, {
-            "val": "quality_score",
-            "label": "quality_score"
-          }, {
-            "val": "create_by",
-            "label": "create_by"
-          }, {
-            "val": "create_time",
-            "label": "create_time"
-          }, {
-            "val": "modify_by",
-            "label": "modify_by"
-          }, {
-            "val": "modify_time",
-            "label": "modify_time"
-          }, {
-            "val": "use_scene",
-            "label": "use_scene"
-          }, {
-            "val": "is_deleted",
-            "label": "is_deleted"
-          }, {
-            "val": "delete_time",
-            "label": "delete_time"
-          }, {
-            "val": "sort_num",
-            "label": "sort_num"
-          }, {
-            "val": "time_stamp",
-            "label": "time_stamp"
-          }]
-        },
         "placeholder": "",
         "dateTimeFormat": "yyyy-MM-dd HH:mm:ss",
         "required": true,
         "type": 5
+      },
+      "to": {
+        "updateModel": true,
+        "has_set_primaryVal": false,
+        "disabled": false,
+        "key": "to",
+        "pk": false,
+        "_eprops": {
+          "viewtype": "tuplelist",
+          "elementCreator": "com.qlangtech.tis.plugin.datax.transformer.jdbcprop.JdbcPropertyElementCreatorFactory",
+          "enum": {
+            "_mcols": [{
+              "error_name": {
+                "impl": "com.qlangtech.tis.plugin.datax.transformer.impl.VirtualTargetColumn",
+                "literia": [{
+                  "pairs": [{
+                    "name": "virtual col",
+                    "value": "test"
+                  }]
+                }],
+                "name": "test"
+              },
+
+              "name": {
+                "updateModel": false,
+                "impl": "com.qlangtech.tis.plugin.datax.transformer.impl.VirtualTargetColumn",
+                "vals": {
+                  "name": {
+                    "updateModel": true,
+                    "_primaryVal": "new_add_field",
+                    "has_set_primaryVal": false,
+                    "disabled": false,
+                    "key": "name",
+                    "pk": true,
+                    "_eprops": {},
+                    "placeholder": "",
+                    "dateTimeFormat": "yyyy-MM-dd HH:mm:ss",
+                    "required": true,
+                    "type": 1
+                  }
+                },
+                "displayName": "",
+                "showAllField": false,
+                "dspt": {
+                  "impl": "com.qlangtech.tis.plugin.datax.transformer.impl.VirtualTargetColumn",
+                  "pkField": "name",
+                  "implUrl": "http://tis.pub/docs/plugin/plugins/#comqlangtechtisplugindataxtransformerimplvirtualtargetcolumn",
+                  "displayName": "Virtual Column",
+                  "extendPoint": "com.qlangtech.tis.plugin.datax.transformer.TargetColumn",
+                  "containAdvance": false,
+                  "veriflable": false,
+                  "extractProps": {
+                    "notebook": {
+                      "activate": false,
+                      "ability": false
+                    }
+                  },
+                  "attrs": [{
+                    "ord": 1,
+                    "describable": false,
+                    "pk": true,
+                    "type": 1,
+                    "key": "name",
+                    "required": true
+                  }]
+                }
+              },
+              "type": {
+                "columnSize": 32,
+                "decimalDigits": -1,
+                "type": 12,
+                "typeDesc": "varchar(32)",
+                "typeName": "VARCHAR"
+              },
+              "ip": {
+                "updateModel": false,
+                "has_set_primaryVal": false,
+                "disabled": false
+              }
+            }],
+            "isCollection": false,
+            "_typeMetas": [],
+            "tabColsMapper": {},
+            "dftType": {
+              "columnSize": 32,
+              "decimalDigits": -1,
+              "type": 12,
+              "typeDesc": "varchar(32)",
+              "typeName": "VARCHAR"
+            }
+          }
+        },
+        "placeholder": "",
+        "dateTimeFormat": "yyyy-MM-dd HH:mm:ss",
+        "required": true,
+        "type": 8,
+        "_tupleViewType": "jdbcTypeProps"
       }
     },
     "displayName": "CopyVal",
-    "showAllField": false,
-    "dspt": {
-      "impl": "com.qlangtech.tis.plugin.datax.transformer.impl.CopyValUDF",
-      "implUrl": "http://tis.pub/docs/plugin/plugins/#comqlangtechtisplugindataxtransformerimplcopyvaludf",
-      "displayName": "CopyVal",
-      "extendPoint": "com.qlangtech.tis.plugin.datax.transformer.UDFDefinition",
-      "containAdvance": false,
-      "veriflable": false,
-      "extractProps": {
-        "notebook": {
-          "activate": false,
-          "ability": false
-        }
-      },
-      "attrs": [{
-        "ord": 200,
-        "eprops": {
-          "enum": [{
-            "val": "id",
-            "label": "id"
-          }, {
-            "val": "emp_id",
-            "label": "emp_id"
-          }, {
-            "val": "photo_sn",
-            "label": "photo_sn"
-          }, {
-            "val": "photo_file",
-            "label": "photo_file"
-          }, {
-            "val": "photo_url",
-            "label": "photo_url"
-          }, {
-            "val": "photo_data",
-            "label": "photo_data"
-          }, {
-            "val": "photo_sign",
-            "label": "photo_sign"
-          }, {
-            "val": "is_analyse",
-            "label": "is_analyse"
-          }, {
-            "val": "photo_time",
-            "label": "photo_time"
-          }, {
-            "val": "is_active",
-            "label": "is_active"
-          }, {
-            "val": "quality_score",
-            "label": "quality_score"
-          }, {
-            "val": "create_by",
-            "label": "create_by"
-          }, {
-            "val": "create_time",
-            "label": "create_time"
-          }, {
-            "val": "modify_by",
-            "label": "modify_by"
-          }, {
-            "val": "modify_time",
-            "label": "modify_time"
-          }, {
-            "val": "use_scene",
-            "label": "use_scene"
-          }, {
-            "val": "is_deleted",
-            "label": "is_deleted"
-          }, {
-            "val": "delete_time",
-            "label": "delete_time"
-          }, {
-            "val": "sort_num",
-            "label": "sort_num"
-          }, {
-            "val": "time_stamp",
-            "label": "time_stamp"
-          }]
-        },
-        "describable": false,
-        "pk": false,
-        "type": 5,
-        "key": "from",
-        "required": true
-      }]
-    },
-    "implUrl": "http://tis.pub/docs/plugin/plugins/#comqlangtechtisplugindataxtransformerimplcopyvaludf"
+    "showAllField": false
   }
 }]

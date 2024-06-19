@@ -1,5 +1,0 @@
-{
-  "from": {
-    "enum": "com.qlangtech.tis.plugin.datax.transformer.impl.AbstractFromColumnUDFDefinition.colsCandidate():uncache_true"
-  }
-}

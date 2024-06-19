@@ -1434,7 +1434,7 @@ public class DataxAction extends BasicModule {
             return false;
           }
 
-          CMeta.ParsePostMCols postMCols = (new IdlistElementCreatorFactory()).parsePostMCols(null, msgHandler,
+          CMeta.ParsePostMCols postMCols = (new IdlistElementCreatorFactory()).parsePostMCols(null, (IControlMsgHandler) msgHandler,
             context, fieldKey /*MultiItemsViewType.keyColsMeta*/, targetCols);
 
           //          Map<String, Integer> existCols = Maps.newHashMap();

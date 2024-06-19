@@ -39,6 +39,11 @@ public class VirtualTargetColumn extends TargetColumn {
     public String name;
 
     @Override
+    public boolean isVirtual() {
+        return true;
+    }
+
+    @Override
     public String getName() {
         return this.name;
     }
@@ -50,12 +55,12 @@ public class VirtualTargetColumn extends TargetColumn {
 
     @Override
     public List<UDFDesc> getLiteria() {
-        return Collections.singletonList(new UDFDesc("virtual col", this.name));
+        return Collections.singletonList(new UDFDesc("col", this.name));
     }
 
     @TISExtension
-    public static class DefaultDesc extends Descriptor<TargetColumn> {
-        public DefaultDesc() {
+    public static class VirtualTargetColumnDesc extends Descriptor<TargetColumn> {
+        public VirtualTargetColumnDesc() {
             super();
         }
 

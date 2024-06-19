@@ -16,30 +16,19 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.plugin.datax.transformer;
+package com.qlangtech.tis.realtime.transfer;
 
-import com.qlangtech.tis.plugin.ds.IMultiElement;
+import junit.framework.TestCase;
+import org.junit.Assert;
 
 /**
- * 定义一条 记录处理规则
- */
-public class RecordTransformer implements IMultiElement {
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2024-06-18 10:18
+ **/
+public class TestUnderlineUtils extends TestCase {
 
-    @Override
-    public String getName() {
-        return "transformer-rule";
-    }
-
-    /**
-     * 自定义规则
-     */
-    private UDFDefinition udf;
-
-    public UDFDefinition getUdf() {
-        return udf;
-    }
-
-    public void setUdf(UDFDefinition udf) {
-        this.udf = udf;
+    public void testAddUnderline() {
+        StringBuffer copyValUDF = UnderlineUtils.addUnderline("CopyValUDF");
+        Assert.assertEquals("copy_val_udf", copyValUDF.toString());
     }
 }

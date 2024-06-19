@@ -16,24 +16,13 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.plugin.datax.transformer.jdbcprop;
-
-import com.qlangtech.tis.plugin.ds.TypeBase;
+package com.qlangtech.tis.plugin.ds;
 
 /**
+ *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-06-10 10:14
+ * @create: 2024-06-16 08:44
  **/
-public class VirtualColType extends TypeBase {
-
-    private String name;
-
-    @Override
-    public String getName() {
-        return this.name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+public interface IMultiElement {
+    String getName();
 }

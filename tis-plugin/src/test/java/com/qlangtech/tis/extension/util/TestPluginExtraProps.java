@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.CMeta.ParsePostMCols;
 import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
@@ -44,7 +45,7 @@ public class TestPluginExtraProps extends TestCase {
     public void testParsePostMCols() {
 
         ElementCreatorFactory elementCreator = new TestElementCreatorFactory();
-        IFieldErrorHandler msgHandler = null;
+        IControlMsgHandler msgHandler = null;
         Context context = null;
         String keyColsMeta = null;
         JSONArray targetCols = null;
@@ -64,7 +65,7 @@ public class TestPluginExtraProps extends TestCase {
         }
 
         @Override
-        public ParsePostMCols<CMeta> parsePostMCols(IPropertyType propertyType,IFieldErrorHandler msgHandler, Context context, String keyColsMeta, JSONArray targetCols) {
+        public ParsePostMCols<CMeta> parsePostMCols(IPropertyType propertyType, IControlMsgHandler msgHandler, Context context, String keyColsMeta, JSONArray targetCols) {
             throw new UnsupportedOperationException();
         }
 //        @Override

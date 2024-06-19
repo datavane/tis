@@ -18,6 +18,7 @@
 package com.qlangtech.tis.util;
 
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.datax.IDataXNameAware;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.SuFormProperties.SuFormGetterContext;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -29,7 +30,7 @@ import org.apache.commons.lang.StringUtils;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public interface IPluginContext extends IMessageHandler {
+public interface IPluginContext extends IMessageHandler, IDataXNameAware {
 
 
 
@@ -94,13 +95,10 @@ public interface IPluginContext extends IMessageHandler {
      */
     String getExecId();
 
-    /**
-     * 是否在索引
-     *
-     * @return
-     */
-    boolean isCollectionAware();
-    String getCollectionName();
+
+
+
+
     /**
      * 是否和数据源相关
      *

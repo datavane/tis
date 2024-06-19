@@ -18,19 +18,74 @@
 
 package com.qlangtech.tis.plugin.datax.transformer.impl;
 
-import com.qlangtech.tis.extension.util.impl.DefaultGroovyShellFactory;
-import com.qlangtech.tis.plugin.datax.transformer.TestRecordTransformerRules;
-import junit.framework.TestCase;
+import com.alibaba.datax.common.element.ColumnAwareRecord;
+import com.alibaba.datax.common.element.Record;
+import com.google.common.collect.Lists;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.annotation.FormField;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.plugin.datax.transformer.UDFDefinition;
+import com.qlangtech.tis.plugin.datax.transformer.UDFDesc;
+import com.qlangtech.tis.plugin.datax.transformer.jdbcprop.TargetColType;
+import com.qlangtech.tis.plugin.ds.CMeta;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- *
- * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-06-10 11:38
- **/
-public class TestCopyValUDF extends TestCase {
+ * 用于使用虚拟列
+ */
+public class TestCopyValUDF extends UDFDefinition {
 
-    public void testDescJsonGen() {
-        DefaultGroovyShellFactory.setInConsoleModule();
-        TestRecordTransformerRules.assertDesc(CopyValUDF.class,"record-transformer-rules-descriptor.json");
+    @FormField(ordinal = 1, type = FormFieldType.ENUM, validate = {Validator.require})
+    public String from;
+
+    @Override
+    public List<UDFDesc> getLiteria() {
+        List<UDFDesc> literia = Lists.newArrayList(new UDFDesc("from", this.from));
+        literia.add(new UDFDesc("to", to.getLiteria()));
+        return literia;
+    }
+
+
+    public static List<IdentityName> colsCandidate() {
+        List<CMeta> colsCandidate = SelectedTab.getColsCandidate();
+        return colsCandidate.stream().collect(Collectors.toList());
+    }
+
+    @FormField(ordinal = 2, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
+    public TargetColType to;
+
+    public static List<TargetColType> getCols() {
+        return Lists.newArrayList();
+    }
+
+    @Override
+    public List<TargetColType> outParameters() {
+        return Collections.singletonList(this.to);
+    }
+
+    @Override
+    public void evaluate(ColumnAwareRecord record) {
+
+        record.setColumn(this.to.getName(), record.getColumn(this.from));
+    }
+
+
+    @TISExtension
+    public static final class DefaultDescriptor extends Descriptor<UDFDefinition> {
+        public DefaultDescriptor() {
+            super();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "TestCopyVal";
+        }
     }
 }

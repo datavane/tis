@@ -1,0 +1,18 @@
+{
+  "job": {
+    "content": [
+      {
+        "transformer": {
+          "cols": [
+            "new_base_id"
+          ],
+          "name": "base"
+        },
+        "reader": {
+        },
+        "writer": {
+        }
+      }
+    ]
+  }
+}

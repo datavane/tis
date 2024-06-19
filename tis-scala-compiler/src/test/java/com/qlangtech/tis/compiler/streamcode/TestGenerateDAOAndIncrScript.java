@@ -126,5 +126,9 @@ public class TestGenerateDAOAndIncrScript extends TestCase {
         public void addErrorMessage(Context context, String msg) {
         }
 
+        @Override
+        public String getCollectionName() {
+           throw new UnsupportedOperationException();
+        }
     }
 }

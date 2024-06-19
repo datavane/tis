@@ -41,11 +41,11 @@ public class DescriptorsJSONResult {
         return (T) Objects.requireNonNull(rootDescriptorLocal.get(), "rootDescriptorLocal element can not be null");
     }
 
-     Map<String, Pair<JSONObject, Object>> descs = Maps.newHashMap();
+    Map<String, Pair<JSONObject, Object>> descs = Maps.newHashMap();
     /**
      * 由于describe 可以嵌套，此标志位可以判断 是否是根元素
      */
-     final boolean rootDesc;
+    final boolean rootDesc;
 
     public DescriptorsJSONResult(boolean rootDesc) {
         this.rootDesc = rootDesc;
@@ -56,9 +56,9 @@ public class DescriptorsJSONResult {
     }
 
 
-
     public JSONObject getJSONObject(String descId) {
         return Objects.requireNonNull(descs.get(descId)
                 , "descId:" + descId + " relevant desc can not be null").getLeft();
     }
+
 }

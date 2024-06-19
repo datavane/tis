@@ -18,9 +18,11 @@
 
 package com.qlangtech.tis.plugin.datax.transformer.jdbcprop;
 
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.util.DescribableJSON;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -30,6 +32,7 @@ import java.util.Objects;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-12 11:43
+ * @see TargetColType
  **/
 public class TargetColTypeSerializer implements ObjectSerializer {
     @Override
@@ -38,10 +41,18 @@ public class TargetColTypeSerializer implements ObjectSerializer {
     }
 
 
-    private  Map<String, Object> serialize(TargetColType colType) {
-        Map<String, Object> result = Maps.newHashMap();
-        result.put("name", Objects.requireNonNull(colType.target, "target can not be null"));
-        result.put("type", colType.getType());
-        return result;
+    private Map<String, Object> serialize(TargetColType colType) {
+        try {
+            Map<String, Object> result = Maps.newHashMap();
+            DescribableJSON target = new DescribableJSON(Objects.requireNonNull(colType.target, "target can not be null"));
+            JSONObject itemJson = target.getItemJson();
+            itemJson.put("literia", colType.target.getLiteria());
+
+            result.put("name", itemJson);
+            result.put("type", colType.getType());
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

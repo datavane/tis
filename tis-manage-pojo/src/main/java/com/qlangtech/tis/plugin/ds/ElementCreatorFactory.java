@@ -22,11 +22,11 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.IPropertyType;
-import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 
 import java.util.function.BiConsumer;
 
-public interface ElementCreatorFactory<T extends TypeBase> {
+public interface ElementCreatorFactory<T extends IMultiElement> {
 
 
     /**
@@ -39,8 +39,8 @@ public interface ElementCreatorFactory<T extends TypeBase> {
      * @return
      */
     public   CMeta.ParsePostMCols<T> parsePostMCols(IPropertyType propertyType,
-                                                                       IFieldErrorHandler msgHandler, Context context, String keyColsMeta,
-                                                                       JSONArray targetCols);
+                                                    IControlMsgHandler msgHandler, Context context, String keyColsMeta,
+                                                    JSONArray targetCols);
 
     default ViewContent getViewContentType() {
         return ViewContent.MongoCols;

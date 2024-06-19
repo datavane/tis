@@ -16,39 +16,15 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.plugin.datax.transformer.jdbcprop;
-
-import com.alibaba.fastjson.annotation.JSONType;
-import com.google.common.collect.Lists;
-import com.qlangtech.tis.plugin.datax.transformer.TargetColumn;
-import com.qlangtech.tis.plugin.datax.transformer.UDFDesc;
+package com.alibaba.datax.core.job;
 
 import java.util.List;
 
 /**
+ *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-06-12 16:56
+ * @create: 2024-06-15 12:34
  **/
-@JSONType(serializer = PainTargetColumnSerializer.class)
-public class PainTargetColumn extends TargetColumn {
-    private final String colName;
-
-    public PainTargetColumn(String colName) {
-        this.colName = colName;
-    }
-
-    @Override
-    public String getName() {
-        return this.colName;
-    }
-
-    @Override
-    public String identityValue() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<UDFDesc> getLiteria() {
-        return Lists.newArrayList(new UDFDesc("column", this.colName));
-    }
+public interface ITransformerBuildInfo {
+    List<String> relevantOutterColKeys();
 }

@@ -1,7 +1,0 @@
-{
-  "to": {
-    "elementCreator": "com.qlangtech.tis.plugin.datax.transformer.jdbcprop.JdbcPropertyElementCreatorFactory",
-    "enum": "com.qlangtech.tis.plugin.datax.transformer.impl.JSONSplitterUDF.getCols():uncache_true",
-    "viewtype": "tuplelist"
-  }
-}

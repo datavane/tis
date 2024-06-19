@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.async.message.client.consumer.IFlinkColCreator;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.config.flink.IFlinkCluster;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
@@ -38,6 +39,7 @@ import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
+import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.HeteroEnum;
@@ -306,7 +308,12 @@ public class PluginAndCfgsSnapshot {
                     // 先收集plugmeta，特别是通过dataXWriter的dataSource关联的元数据
                     IDataxProcessor processor = DataxProcessor.load(null, resourceType, collection.getName());
                     TISSinkFactory incrSinKFactory = TISSinkFactory.getIncrSinKFactory(collection.getName());
-                    incrSinKFactory.createSinkFunction(processor);
+                    incrSinKFactory.createSinkFunction(processor, new IFlinkColCreator(){
+                        @Override
+                        public Object build(IColMetaGetter meta, int colIndex) {
+                            return null;
+                        }
+                    });
                 });
         return createFlinkIncrJobManifestCfgAttrs(resourceType, collection, timestamp, pluginMetas);
     }
