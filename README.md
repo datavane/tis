@@ -12,9 +12,11 @@ TIS平台是一套为企业级用户提供大数据多维、实时、查询的�
 > 视频： [>>TIS介绍](https://www.bilibili.com/video/BV11y4y1B7Mk) [>>操作实例](https://www.bilibili.com/video/BV1Uv41167SH/)
  -->
 
-## v4.0.0-rc1 发布（2024/5/8）：
+## v4.0.0 发布（2024/6/2）：
 
-https://github.com/datavane/tis/releases/tag/v4.0.0-rc1
+https://github.com/datavane/tis/releases/tag/v4.0.0
+
+<a href="https://www.bilibili.com/video/BV1eD421V78u"> <img src="https://github.com/datavane/tis/assets/21274618/2fe921d0-136b-4409-b91e-ceaa6e30cbee" /> </a>
  
 ## 安装说明
 
