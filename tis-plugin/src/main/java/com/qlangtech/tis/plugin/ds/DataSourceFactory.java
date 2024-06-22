@@ -60,7 +60,7 @@ import java.util.concurrent.atomic.AtomicReference;
  **/
 @Public
 public abstract class DataSourceFactory implements Describable<DataSourceFactory>, Serializable, DBIdentity, DataSourceMeta, Wrapper {
-    public static final ZoneId DEFAULT_SERVER_TIME_ZONE = ZoneId.of("Asia/Shanghai");
+    public static final ZoneId DEFAULT_SERVER_TIME_ZONE = ZoneId.systemDefault();// ZoneId.of("Asia/Shanghai");
     public static final String DS_TYPE_MYSQL = "MySQL";
     public static final String DS_TYPE_MYSQL_V8 = DS_TYPE_MYSQL + "-V8";
 

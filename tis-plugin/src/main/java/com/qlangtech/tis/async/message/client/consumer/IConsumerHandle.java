@@ -31,6 +31,5 @@ public interface IConsumerHandle<SOURCE, FLINK_RESULT> {
      *
      * @param asyncMsg
      */
-    <FlinkColType> FLINK_RESULT consume(TargetResName dataxName, AsyncMsg<SOURCE> asyncMsg
-            , IDataxProcessor dataXProcessor, IFlinkColCreator<FlinkColType> flinkColCreator) throws Exception;
+    FLINK_RESULT consume(TargetResName dataxName, AsyncMsg<SOURCE> asyncMsg, IDataxProcessor dataXProcessor) throws Exception;
 }

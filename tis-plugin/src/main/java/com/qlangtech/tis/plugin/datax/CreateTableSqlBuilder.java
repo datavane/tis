@@ -19,12 +19,15 @@
 package com.qlangtech.tis.plugin.datax;
 
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
+import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.sql.parser.visitor.BlockScriptBuffer;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -35,8 +38,9 @@ public abstract class CreateTableSqlBuilder extends AbstractCreateTableSqlBuilde
 
     public BlockScriptBuffer script;
 
-    public CreateTableSqlBuilder(IDataxProcessor.TableMap tableMapper, DataSourceMeta dsMeta) {
-        super(tableMapper, dsMeta);
+    public CreateTableSqlBuilder(IDataxProcessor.TableMap tableMapper
+            , DataSourceMeta dsMeta, Optional<RecordTransformerRules> transformers) {
+        super(tableMapper, dsMeta, transformers);
         this.script = new BlockScriptBuffer();
     }
 
@@ -91,14 +95,14 @@ public abstract class CreateTableSqlBuilder extends AbstractCreateTableSqlBuilde
      * @param cols
      * @return
      */
-    protected List<ColWrapper> preProcessCols(List<String> pks, List<CMeta> cols) {
+    protected List<ColWrapper> preProcessCols(List<String> pks, List<IColMetaGetter> cols) {
         return cols.stream().map((c) -> createColWrapper(c)).collect(Collectors.toList());
     }
 
     public static abstract class ColWrapper {
-        protected final CMeta meta;
+        protected final IColMetaGetter meta;
 
-        public ColWrapper(CMeta meta) {
+        public ColWrapper(IColMetaGetter meta) {
             this.meta = meta;
         }
 
@@ -107,16 +111,10 @@ public abstract class CreateTableSqlBuilder extends AbstractCreateTableSqlBuilde
         protected void appendExtraConstraint(BlockScriptBuffer ddlScript) {
 
         }
-
         public String getName() {
             return this.meta.getName();
         }
     }
-
-
-//    protected char colEscapeChar() {
-//        return '`';
-//    }
 
 
     public static class CreateTableName {

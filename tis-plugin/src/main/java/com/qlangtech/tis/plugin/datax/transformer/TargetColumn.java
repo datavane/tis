@@ -26,6 +26,7 @@ import com.qlangtech.tis.plugin.IPluginStore.AfterPluginSaved;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.util.IPluginContext;
 
+import java.io.Serializable;
 import java.util.Optional;
 
 /**
@@ -33,7 +34,7 @@ import java.util.Optional;
  * @create: 2024-06-09 13:43
  **/
 
-public abstract class TargetColumn implements Describable<TargetColumn>, AfterPluginSaved, PluginLiteriaDesc, IdentityName {
+public abstract class TargetColumn implements Describable<TargetColumn>, AfterPluginSaved, PluginLiteriaDesc, IdentityName, Serializable {
 
     /**
      * 是否是虚拟列（通过原表记录值计算之后新增加的列）

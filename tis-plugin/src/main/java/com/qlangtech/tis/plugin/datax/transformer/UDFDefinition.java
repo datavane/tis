@@ -55,7 +55,7 @@ public abstract class UDFDefinition implements Describable<UDFDefinition>, After
      *
      * @return
      */
-    public abstract List<TargetColType> outParameters();
+    public abstract List<OutputParameter> outParameters();
 
     /**
      * 对记录进行处理

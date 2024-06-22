@@ -19,11 +19,15 @@
 package com.qlangtech.tis.plugin.datax;
 
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
+import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -33,23 +37,32 @@ import java.util.stream.Collectors;
  **/
 public abstract class AbstractCreateTableSqlBuilder {
 
-    protected final IDataxProcessor.TableMap tableMapper;
 
+    protected final String targetTableName;
+    protected final List<IColMetaGetter> cols;
     protected final List<String> pks;
     public int maxColNameLength;
     protected final DataSourceMeta dsMeta;
+    private final Optional<RecordTransformerRules> transformers;
 
-    public AbstractCreateTableSqlBuilder(IDataxProcessor.TableMap tableMapper, DataSourceMeta dsMeta) {
-        this.tableMapper = tableMapper;
+    public AbstractCreateTableSqlBuilder(
+            IDataxProcessor.TableMap tableMapper, DataSourceMeta dsMeta, Optional<RecordTransformerRules> transformers) {
+        this.targetTableName = tableMapper.getTo();
+        this.transformers = Objects.requireNonNull(transformers, "param transformers can not be null");
 
         this.pks = tableMapper.getSourceTab().getPrimaryKeys();
-        //                this.getCols().stream()
-        //                .filter((c) -> c.isPk())
-        //                .map((c) -> createColWrapper(c))
-        //                .collect(Collectors.toList());
+
+        List<IColMetaGetter> sourceCols = tableMapper.getSourceCols().stream().map((c) -> c).collect(Collectors.toList());
+
+        if (transformers.isPresent()) {
+            RecordTransformerRules transformerRules = transformers.get();
+            sourceCols = transformerRules.overwriteCols(sourceCols);
+        }
+
+        this.cols = Collections.unmodifiableList(sourceCols);
 
         maxColNameLength = 0;
-        for (CMeta col : this.getCols()) {
+        for (IColMetaGetter col : this.getCols()) {
             int m = StringUtils.length(col.getName());
             if (m > maxColNameLength) {
                 maxColNameLength = m;
@@ -72,7 +85,7 @@ public abstract class AbstractCreateTableSqlBuilder {
 
 
     protected CreateTableSqlBuilder.CreateTableName getCreateTableName() {
-        return new CreateTableSqlBuilder.CreateTableName(tableMapper.getTo(), this);
+        return new CreateTableSqlBuilder.CreateTableName(targetTableName, this);
     }
 
     protected String wrapWithEscape(String val) {
@@ -83,11 +96,18 @@ public abstract class AbstractCreateTableSqlBuilder {
 //        return true;
 //    }
 
-    protected List<CMeta> getCols() {
-        return this.tableMapper.getSourceCols();
+    /**
+     * @return
+     * @see CMeta default implement class
+     */
+    public List<IColMetaGetter> getCols() {
+        return this.cols;
     }
+//    {
+//        return this.tableMapper.getSourceCols();
+//    }
 
-    protected abstract CreateTableSqlBuilder.ColWrapper createColWrapper(CMeta c);//{
+    protected abstract CreateTableSqlBuilder.ColWrapper createColWrapper(IColMetaGetter c);//{
 
 
     public static class CreateDDL {

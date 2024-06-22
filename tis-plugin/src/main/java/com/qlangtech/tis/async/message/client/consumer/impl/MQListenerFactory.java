@@ -20,6 +20,7 @@ package com.qlangtech.tis.async.message.client.consumer.impl;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.async.message.client.consumer.IConsumerHandle;
+import com.qlangtech.tis.async.message.client.consumer.IFlinkColCreator;
 import com.qlangtech.tis.async.message.client.consumer.IMQConsumerStatusFactory;
 import com.qlangtech.tis.async.message.client.consumer.IMQListenerFactory;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
@@ -45,6 +46,16 @@ import java.util.Optional;
 @Public
 public abstract class MQListenerFactory
         implements IMQListenerFactory, IMQConsumerStatusFactory, Describable<MQListenerFactory> {
+
+    /**
+     * 根据Source端 Col 对应的DataType 生成对应的FlinkCol类型用于数值转化
+     *
+     * @param <FlinkColType>
+     * @return
+     * @see com.qlangtech.tis.plugin.ds.DataType
+     */
+    public abstract <FlinkColType> IFlinkColCreator<FlinkColType> createFlinkColCreator();
+
 
     public static Optional<Descriptor<SelectedTabExtend>> getIncrSourceSelectedTabExtendDescriptor(String dataXName) {
         MQListenerFactory incrSourceFactory = HeteroEnum.getIncrSourceListenerFactory(dataXName);

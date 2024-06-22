@@ -372,7 +372,10 @@ public class DataXCfgGenerator implements IDataXNameAware {
             String sqlFileName = mapper.getTo() + DataXCfgFile.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
             if (!createDDLFiles.contains(sqlFileName)) {
 
-                CreateTableSqlBuilder.CreateDDL createDDL = Objects.requireNonNull(writer.generateCreateDDL(mapper),
+                Optional<RecordTransformerRules> transformers
+                        = Optional.ofNullable(RecordTransformerRules.loadTransformerRules(pluginCtx, mapper.getFrom()));
+
+                CreateTableSqlBuilder.CreateDDL createDDL = Objects.requireNonNull(writer.generateCreateDDL(mapper, transformers),
                         "createDDL can not be null");
 
                 createDDLFiles.add(sqlFileName);

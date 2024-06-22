@@ -19,6 +19,7 @@
 package com.qlangtech.tis.plugin.datax.transformer;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.datax.IDataXNameAware;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -28,12 +29,15 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.transformer.jdbcprop.TargetColType;
+import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -92,7 +96,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
         return this.rules.stream().flatMap((r) -> r.getUdf().outParameters().stream().map((tcol) -> tcol.getName())).collect(Collectors.toList());
     }
 
-    public final List<TargetColType> relevantTypedColKeys() {
+    public final List<OutputParameter> relevantTypedColKeys() {
         return this.rules.stream().flatMap((r) -> r.getUdf().outParameters().stream()).collect(Collectors.toList());
     }
 
@@ -105,6 +109,55 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 ////        cpUdf.from = "name";
 //        t.setUdf(null);
         return Lists.newArrayList();
+    }
+
+    /**
+     * 将原未经Transformer处理的cols，变化成经过Transformer装饰过的cols（添加了新的虚拟列），或者其他
+     *
+     * @param sourceCols
+     * @return
+     */
+    public List<IColMetaGetter> overwriteCols(List<IColMetaGetter> sourceCols) {
+        List<IColMetaGetter> rewriterResult = Lists.newArrayList();
+        Map<String, Integer> col2IdxBuilder = Maps.newHashMap();
+        int idx = 0;
+        for (IColMetaGetter col : sourceCols) {
+            rewriterResult.add(col);
+            col2IdxBuilder.put(col.getName(), (idx++));
+        }
+
+        for (OutputParameter colType : this.relevantTypedColKeys()) {
+            if (colType.isVirtual()) {
+                getExistColIdx(true, colType, col2IdxBuilder);
+                // 新增虚拟列
+                col2IdxBuilder.put(colType.getName(), (idx++));
+                rewriterResult.add(colType);
+            } else {
+                // 替换已有列
+                Integer existIdx = getExistColIdx(false, colType, col2IdxBuilder);
+                rewriterResult.set(existIdx, colType);
+            }
+        }
+
+        return rewriterResult;
+    }
+
+    private static Integer getExistColIdx(boolean mustBeNull, OutputParameter colType, Map<String, Integer> col2IdxBuilder) {
+        Integer existIdx = col2IdxBuilder.get(colType.getName());
+
+        if (mustBeNull) {
+            // 必须为空
+            if (existIdx != null) {
+                throw new IllegalStateException("colName:" + colType.getName() + " relevant table col conf must be null");
+            }
+        } else {
+            // 不能为空
+            if (existIdx == null) {
+                throw new IllegalStateException("colName:" + colType.getName() + " relevant table col conf can not be null");
+            }
+        }
+
+        return existIdx;
     }
 
 

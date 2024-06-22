@@ -21,6 +21,7 @@ import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.fullbuild.indexbuild.IPartionableWarehouse;
 import com.qlangtech.tis.plugin.IRepositoryResourceScannable;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 
 import java.util.Optional;
 
@@ -76,7 +77,7 @@ public interface IDataxWriter extends IDataXPluginMeta, IRepositoryResourceScann
     /**
      * 生成创建table的脚本
      */
-    default CreateTableSqlBuilder.CreateDDL generateCreateDDL(IDataxProcessor.TableMap tableMapper) {
+    default CreateTableSqlBuilder.CreateDDL generateCreateDDL(IDataxProcessor.TableMap tableMapper, Optional<RecordTransformerRules> transformers) {
         throw new UnsupportedOperationException();
     }
 }

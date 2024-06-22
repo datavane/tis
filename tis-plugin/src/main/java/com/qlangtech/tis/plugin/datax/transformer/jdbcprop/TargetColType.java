@@ -26,6 +26,7 @@ import com.qlangtech.tis.plugin.datax.transformer.UDFDesc;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.TypeBase;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
@@ -37,17 +38,12 @@ import java.util.Objects;
  * @see JdbcPropertyElementCreatorFactory
  **/
 @JSONType(serializer = TargetColTypeSerializer.class)
-public final class TargetColType extends TypeBase implements PluginLiteria, IColMetaGetter {
+public final class TargetColType extends TypeBase implements PluginLiteria, Serializable {
 
     TargetColumn target;
 
     public boolean isVirtual() {
         return Objects.requireNonNull(target, "prop target can not be null").isVirtual();
-    }
-
-    @Override
-    public boolean isPk() {
-        return false;
     }
 
     @Override

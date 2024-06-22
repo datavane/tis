@@ -17,8 +17,6 @@
  */
 package com.qlangtech.tis.async.message.client.consumer;
 
-import com.qlangtech.tis.extension.Describable;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
