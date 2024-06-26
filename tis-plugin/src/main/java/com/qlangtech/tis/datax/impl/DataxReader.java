@@ -53,6 +53,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -194,7 +195,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         final TIS.DataXReaderAppKey key = new TIS.DataXReaderAppKey(pluginContext, db, appname,
                 new PluginStore.IPluginProcessCallback<DataxReader>() {
                     @Override
-                    public void afterDeserialize(PluginStore<DataxReader> ps,final DataxReader reader) {
+                    public void afterDeserialize(PluginStore<DataxReader> ps, final DataxReader reader) {
 
                         List<PluginFormProperties> subFieldFormPropertyTypes =
                                 reader.getDescriptor().getSubPluginFormPropertyTypes();
@@ -207,22 +208,11 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                                         SubFieldFormAppKey<? extends Describable> subFieldKey =
                                                 new SubFieldFormAppKey<>(pluginContext, db, appname, props, DataxReader.class);
 
-                                        KeyedPluginStore<? extends Describable> subFieldStore =
-                                                KeyedPluginStore.getPluginStore(subFieldKey);
+                                        KeyedPluginStore<? extends Describable> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
 
                                         UploadPluginMeta extMeta = UploadPluginMeta.parse(pluginContext,
                                                 "name:" + DataxUtils.DATAX_NAME + "_" + appname, true);
-                                        Map<String, SelectedTab> tabsExtend = SelectedTabExtend.getTabExtend(extMeta
-//                                                ,  new PluginStore.PluginsUpdateListener(DataxUtils.DATAX_NAME + "_" + appname,
-//                                                        reader) {
-//                                                    @Override
-//                                                    public void accept(PluginStore<Describable> store) {
-//                                                        // logger.info("execute setReaderSubFormProp1,subitem count:" + subFieldStore.getPlugins().size() + ",extendCount:" + SelectedTabExtend.getTabExtend(extMeta).size());
-//                                                        setReaderSubFormProp(props, subFieldStore.getPlugins(),
-//                                                                SelectedTabExtend.getTabExtend(extMeta));
-//                                                    }
-//                                                }
-                                                );
+                                        Map<String, SelectedTab> tabsExtend = SelectedTabExtend.getTabExtend(extMeta);
                                         // 子表单中的内容更新了之后，要同步父表单中的状态
                                         subFieldStore.addPluginsUpdateListener(new PluginStore.PluginsUpdateListener(subFieldKey.getSerializeFileName(), reader) {
                                             @Override
@@ -316,6 +306,13 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
     public static class SubFieldFormAppKey<TT extends Describable> extends KeyedPluginStore.AppKey<TT> {
         public final BaseSubFormProperties subfieldForm;
 
+        /**
+         * @param pluginContext
+         * @param isDB
+         * @param appname
+         * @param subfieldForm
+         * @param clazz
+         */
         public SubFieldFormAppKey(IPluginContext pluginContext, boolean isDB, String appname,
                                   BaseSubFormProperties subfieldForm, Class<TT> clazz) {
             super(pluginContext, StoreResourceType.parse(isDB), Objects.requireNonNull(appname,
@@ -325,6 +322,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
 
         @Override
         public String getSerializeFileName() {
+            //  return this.getSubDirPath() + File.separator + this.subfieldForm.getSubFormFieldName() + File.separator + subformDetailId;
             return super.getSerializeFileName() + "." + this.subfieldForm.getSubFormFieldName();
         }
     }
@@ -393,7 +391,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
             eprops.put(KEY_SUPPORT_INCR, this.isSupportIncr());
             eprops.put(KEY_SUPPORT_BATCH, this.isSupportBatch());
 
-           // this.getEndType().appendProps(eprops);
+            // this.getEndType().appendProps(eprops);
 //            eprops.put(KEY_END_TYPE, this.getEndType().getVal());
 //            eprops.put(KEY_SUPPORT_ICON, this.getEndType().getIcon() != null);
             return eprops;

@@ -30,6 +30,7 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.transformer.TargetColumn;
+import com.qlangtech.tis.plugin.datax.transformer.impl.TransformerRuleElementCreatorFactory;
 import com.qlangtech.tis.plugin.datax.transformer.impl.VirtualTargetColumn;
 import com.qlangtech.tis.plugin.datax.transformer.impl.VirtualTargetColumn.VirtualTargetColumnDesc;
 import com.qlangtech.tis.plugin.ds.CMeta;
@@ -65,11 +66,12 @@ public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<
 
     @Override
     public void appendExternalJsonProp(IPropertyType propertyType, JSONObject biz) {
+        TransformerRuleElementCreatorFactory.setSelectedTab(biz);
         biz.put("isList", propertyType.isCollectionType());
         if (propertyType.isCollectionType()) {
             setPropertyInCollectionFieldType(biz);
         }
-        List<CMeta> colsCandidate = SelectedTab.getColsCandidate();
+        List<CMeta> colsCandidate = SelectedTab.getSelectedCols();
         biz.put("sourceTabCols", colsCandidate);
         biz.put("dftStrType", DataType.createVarChar(32));
         // biz.put();

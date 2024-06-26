@@ -288,18 +288,28 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
     public static class KeyVal {
         private final String val;
         protected final String suffix;
-
+        protected final Optional<String> subPath;
 
         public KeyVal(String val, String suffix) {
+            this(val, suffix, Optional.empty());
+        }
+
+
+        public KeyVal(String val, String suffix, Optional<String> subPath) {
             if (StringUtils.isEmpty(val)) {
                 throw new IllegalArgumentException("param 'key' can not be null");
             }
             this.val = val;
             this.suffix = suffix;
+            this.subPath = subPath;
         }
 
         public KeyVal(String val) {
-            this(val, StringUtils.EMPTY);
+            this(val, Optional.empty());
+        }
+
+        public KeyVal(String val, Optional<String> subPath) {
+            this(val, StringUtils.EMPTY, subPath);
         }
 
         @Override
@@ -308,7 +318,11 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         public String getKeyVal() {
-            return StringUtils.isBlank(this.suffix) ? getVal() : TMP_DIR_NAME + (getVal() + "-" + this.suffix);
+            StringBuffer keyVal = new StringBuffer(StringUtils.isBlank(this.suffix) ? getVal() : TMP_DIR_NAME + (getVal() + "-" + this.suffix));
+            subPath.ifPresent((sub) -> {
+                keyVal.append(File.separator).append(sub);
+            });
+            return keyVal.toString();
         }
 
 
@@ -340,6 +354,10 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         public static KeyVal calAppName(IPluginContext pluginContext, String appname) {
+            return calAppName(pluginContext, appname, Optional.empty());
+        }
+
+        public static KeyVal calAppName(IPluginContext pluginContext, String appname, Optional<String> subPath) {
             if (pluginContext == null) {
                 return new KeyVal(appname);
             }
@@ -349,8 +367,8 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             if (inUpdateProcess && !pluginContext.isCollectionAware()) {
                 throw new IllegalStateException("pluginContext.isCollectionAware() must be true");
             }
-            return (pluginContext != null && inUpdateProcess) ? new KeyVal(appname, pluginContext.getExecId()) :
-                    new KeyVal(appname);
+            return (pluginContext != null && inUpdateProcess) ? new KeyVal(appname, pluginContext.getExecId(), subPath) :
+                    new KeyVal(appname, subPath);
         }
 
         @Override

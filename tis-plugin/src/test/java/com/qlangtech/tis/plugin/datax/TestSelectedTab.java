@@ -20,6 +20,8 @@ package com.qlangtech.tis.plugin.datax;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.datax.IGroupChildTaskIterator;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.manage.common.Option;
@@ -28,7 +30,9 @@ import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import junit.framework.TestCase;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -45,30 +49,68 @@ public class TestSelectedTab extends TestCase {
 
         SuFormProperties.setSuFormGetterContext(sourceMetaPlugin, pluginMeta, tabName);
 
-        List<CMeta> result = SelectedTab.getContextTableCols((cols) -> {
-            return cols.stream();
-        });
-        Assert.assertEquals(2, result.size());
+        List<CMeta> selectableCols = SelectedTab.getColsCandidate();
+        Assert.assertEquals(2, selectableCols.size());
+
+        List<CMeta> selectedCols = SelectedTab.getSelectedCols();
+        Assert.assertEquals(1, selectedCols.size());
     }
 
 
     public static class DataSourceMetaPlugin
-            implements Describable<DataSourceMetaPlugin>, DataSourceMeta {
-        public List<ColumnMetaData> getTableMetadata(EntityName table) throws TableNotFoundException {
-            Assert.assertEquals(tabName, table.getTableName());
-            List<ColumnMetaData> cols = Lists.newArrayList();
-            //  int index, String key, DataType type, boolean pk
-            ColumnMetaData col = new ColumnMetaData(0, "order_id", DataType.createVarChar(10), true);
-            cols.add(col);
+            implements Describable<DataSourceMetaPlugin>, IDataxReader {
 
-            col = new ColumnMetaData(1, "name", DataType.createVarChar(10), false);
+        static List<ColumnMetaData> cols = Lists.newArrayList();
+        static final ColumnMetaData orderId;
+
+        static {
+            orderId = new ColumnMetaData(0, "order_id", DataType.createVarChar(10), true);
+            cols.add(orderId);
+
+            ColumnMetaData col = new ColumnMetaData(1, "name", DataType.createVarChar(10), false);
             cols.add(col);
+        }
+
+        @Override
+        public List<ColumnMetaData> getTableMetadata(boolean inSink, EntityName table) throws TableNotFoundException {
+            Assert.assertEquals(tabName, table.getTableName());
+            //  List<ColumnMetaData> cols = Lists.newArrayList();
+            //  int index, String key, DataType type, boolean pk
             return cols;
         }
 
         @Override
-        public void refresh() {
+        public List<SelectedTab> getSelectedTabs() {
 
+            SelectedTab tab = new SelectedTab();
+            tab.name = tabName;
+            tab.cols = Lists.newArrayList(ColumnMetaData.convert(orderId));
+            return Collections.singletonList(tab);
+        }
+
+        @Override
+        public IGroupChildTaskIterator getSubTasks(Predicate<ISelectedTab> filter) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getTemplate() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public IStreamTableMeta getStreamTableMeta(String tableName) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void startScanDependency() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void refresh() {
+            throw new UnsupportedOperationException();
         }
     }
 }

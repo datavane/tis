@@ -56,11 +56,11 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
     /**
      * 加载基于数据通道的表转换（Transformer）规则
      *
-     * @param collectionName
+     * @param pluginCtx
      * @param tableName
      * @return
      */
-    public static RecordTransformerRules loadTransformerRules(IDataXNameAware collectionName, String tableName) {
+    public static RecordTransformerRules loadTransformerRules(IPluginContext pluginCtx, String tableName) {
 
         if (StringUtils.isEmpty(tableName)) {
             throw new IllegalArgumentException("param tableName can not be empty");
@@ -75,8 +75,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 
 
         for (RecordTransformerRules trule
-                : HeteroEnum.TRANSFORMER_RULES.getPlugins(
-                IPluginContext.namedContext(Objects.requireNonNull(collectionName, "collectionName can not be null").getTISDataXName())
+                : HeteroEnum.TRANSFORMER_RULES.getPlugins(pluginCtx
                 , UploadPluginMeta.parse(rawContent))) {
             return trule;
         }
@@ -84,7 +83,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
         return null;
     }
 
-    @FormField(ordinal = 1, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
+    @FormField(ordinal = 1, type = FormFieldType.MULTI_SELECTABLE, validate = {})
     public List<RecordTransformer> rules = Lists.newArrayList();
 
     /**
@@ -117,7 +116,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
      * @param sourceCols
      * @return
      */
-    public List<IColMetaGetter> overwriteCols(List<IColMetaGetter> sourceCols) {
+    public <T extends IColMetaGetter> List<IColMetaGetter> overwriteCols(List<T> sourceCols) {
         List<IColMetaGetter> rewriterResult = Lists.newArrayList();
         Map<String, Integer> col2IdxBuilder = Maps.newHashMap();
         int idx = 0;

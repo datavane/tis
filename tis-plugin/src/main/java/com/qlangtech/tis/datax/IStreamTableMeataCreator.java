@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 
@@ -51,6 +52,16 @@ public interface IStreamTableMeataCreator //extends IStreamIncrGenerateStrategy
 
 
     interface ISourceStreamMetaCreator extends IStreamTableMeataCreator {
+        /**
+         * 将没有类型的表列填充上类型
+         *
+         * @param tabs
+         * @return
+         */
+        public default List<SelectedTab> fillSelectedTabMeta(List<SelectedTab> tabs) {
+            return tabs;
+        }
+
         public ISelectedTab getSelectedTab(String tableName);
     }
 

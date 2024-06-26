@@ -1,5 +1,5 @@
 {
   "name": {
-    "enum": "com.qlangtech.tis.plugin.datax.transformer.impl.AbstractFromColumnUDFDefinition.colsCandidate():uncache_true"
+    "enum": "com.qlangtech.tis.plugin.datax.transformer.UDFDefinition.colsCandidate():uncache_true"
   }
 }

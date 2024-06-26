@@ -159,20 +159,12 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     }
 
     public static DataXJobWorker getJobWorker(TargetResName resName) {
-
-        //ServerLaunchToken.createFlinkClusterToken()
         Optional<ServerLaunchToken> token = getLaunchToken(resName);
         Optional<K8SWorkerCptType> powerjobCptType = token.map((t) -> t.workerCptType);
         if (!powerjobCptType.isPresent()) {
             throw new IllegalStateException("resName:" + resName.getName() + " relevant powerjobCptType can not be empty");
         }
-        // if (resName.equalWithName(K8S_DATAX_INSTANCE_NAME.getName())) {
         return getJobWorker(resName, powerjobCptType);
-//        } else if (resName.equalWithName(K8S_FLINK_CLUSTER_NAME.getName())) {
-//            return getJobWorker(K8S_FLINK_CLUSTER_NAME, powerjobCptType);
-//        }
-
-        // throw new IllegalStateException("illegal resName:" + resName);
     }
 
     public static DataXJobWorker getJobWorker(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType) {
@@ -182,12 +174,6 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
         }
 
         IPluginStore<DataXJobWorker> dataxJobWorkerStore = getJobWorkerStore(resName, powerjobCptType);
-//        Optional<DataXJobWorker> firstWorker
-//                = dataxJobWorkerStore.getPlugins().stream().filter((p) -> isJobWorkerMatch(resName, p.getDescriptor())).findFirst();
-//        if (firstWorker.isPresent()) {
-//            return firstWorker.get();
-//        }
-//        return null;
         return dataxJobWorkerStore.getPlugin();
     }
 

@@ -24,10 +24,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.SubFormFilter;
+import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformer;
 import com.qlangtech.tis.plugin.datax.transformer.UDFDefinition;
 import com.qlangtech.tis.plugin.ds.CMeta.ParsePostMCols;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
 import com.qlangtech.tis.plugin.ds.ViewContent;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
@@ -57,9 +60,15 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
 
     @Override
     public void appendExternalJsonProp(IPropertyType propertyType, JSONObject biz) {
-        // 源表可选的列
-//        List<CMeta> colsCandidate = SelectedTab.getColsCandidate();
-//        biz.put("sourceTabCols", colsCandidate);
+        this.setSelectedTab(biz);
+    }
+
+    public static void setSelectedTab(JSONObject biz) {
+        SuFormProperties.SuFormGetterContext context = SuFormProperties.subFormGetterProcessThreadLocal.get();
+        if (context == null || context.plugin == null) {
+            throw new IllegalStateException(" can not get threadLocal bind instance subFormGetterProcessThreadLocal");
+        }
+        biz.put(SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE, context.getSubFormIdentityField());
     }
 
     @Override

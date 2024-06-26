@@ -33,7 +33,6 @@ import org.apache.commons.lang.StringUtils;
 public interface IPluginContext extends IMessageHandler, IDataXNameAware {
 
 
-
     public static IPluginContext namedContext(String collectionName) {
         if (StringUtils.isEmpty(collectionName)) {
             throw new IllegalArgumentException("param collectionName can not be empty");
@@ -58,7 +57,11 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware {
             @Override
             public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context,
                               boolean shallUpdateDB) {
+            }
 
+            @Override
+            public String getRequestHeader(String key) {
+                return null;
             }
 
             @Override
@@ -94,9 +97,6 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware {
      * @return
      */
     String getExecId();
-
-
-
 
 
     /**

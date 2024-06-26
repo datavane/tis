@@ -33,6 +33,7 @@ import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IPluginStore.AfterPluginVerified;
 import com.qlangtech.tis.plugin.IPluginStoreSave;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
@@ -338,6 +339,16 @@ public class PluginItems {
 
       this.appendHistorical = getPlugins(describableList);
       this.store = getStore(appendHistorical);
+    }
+
+    public void afterVerified() {
+      for (Descriptor.ParseDescribable d : this.appendHistorical) {
+        d.getSubFormInstances().forEach((plugin) -> {
+          if (plugin instanceof IPluginStore.AfterPluginVerified) {
+            ((IPluginStore.AfterPluginVerified) plugin).afterVerified(this.store);
+          }
+        });
+      }
     }
   }
 

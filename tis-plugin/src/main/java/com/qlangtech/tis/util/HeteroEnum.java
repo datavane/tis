@@ -41,6 +41,7 @@ import com.qlangtech.tis.offline.FileSystemFactory;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.KeyedPluginStore.AppKey;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
 import com.qlangtech.tis.plugin.KeyedPluginStore.KeyVal;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
@@ -89,17 +90,44 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
 
-           // IControlMsgHandler msgHandler = (IControlMsgHandler) pluginContext;
-            String tableName = pluginMeta.getExtraParam(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID);
+            // IControlMsgHandler msgHandler = (IControlMsgHandler) pluginContext;
+            final String tableName = pluginMeta.getExtraParam(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID);
 
             if (StringUtils.isEmpty(tableName)) {
                 throw new IllegalStateException("extra param " + SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID + " can not be empty");
             }
-            KeyVal keyVal = new KeyVal(pluginContext.getCollectionName() + File.separator + "transformer" + File.separator + tableName);
-            Key key = new Key(IFullBuildContext.NAME_APP_DIR, keyVal, this.extensionPoint);
+
+//            KeyVal keyVal = AppKey.calAppName(pluginContext, pluginContext.getCollectionName(), Optional.of("transformer"));
+//            // KeyVal keyVal = new KeyVal(pluginContext.getCollectionName() + File.separator + "transformer" + File.separator + tableName);
+//            Key key = new Key(IFullBuildContext.NAME_APP_DIR, keyVal, this.extensionPoint) {
+//                @Override
+//                public String getSerializeFileName() {
+//                    return this.getSubDirPath() + File.separator + tableName;
+//                }
+//            };
+            Key key = new TransformerRuleKey(pluginContext, tableName, this.extensionPoint);
             return TIS.getPluginStore(key);
         }
     };
+
+    private static class TransformerRuleKey extends Key {
+        private final String tableName;
+
+        public TransformerRuleKey(IPluginContext pluginContext, String tableName, Class pluginClass) {
+            super(IFullBuildContext.NAME_APP_DIR, AppKey.calAppName(pluginContext, pluginContext.getCollectionName(), Optional.of("transformer")), pluginClass);
+            this.tableName = tableName;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(keyVal.getKeyVal(), pluginClass.hashCode(), tableName);
+        }
+
+        @Override
+        public String getSerializeFileName() {
+            return this.getSubDirPath() + File.separator + tableName;
+        }
+    }
 
     @TISExtension
     public static final HeteroEnum<UDFDefinition> TRANSFORMER_UDF //
@@ -420,20 +448,12 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         if (subFormFilter.isPresent()) {
             SubFormFilter filter = subFormFilter.get();
             Descriptor targetDescriptor = filter.getTargetDescriptor();
+
             final Class<Describable> clazz = targetDescriptor.getT();
-            //            Optional<Descriptor> firstDesc = heteroEnum.descriptors().stream()
-            //                    .filter((des) -> filter.match((Descriptor) des)).map((des) -> (Descriptor) des)
-            //                    .findFirst();
-            //            if (!firstDesc.isPresent()) {
-            //                throw new IllegalStateException("can not find relevant descriptor:" + filter
-            //                .uploadPluginMeta.toString());
-            //            }
 
             PluginFormProperties pluginProps = targetDescriptor.getPluginFormPropertyTypes(subFormFilter);
 
             store = pluginProps.accept(new PluginFormProperties.IVisitor() {
-
-
                 @Override
                 public IPluginStore<?> visit(BaseSubFormProperties props) {
                     // 为了在更新插件时候不把plugin上的@SubForm标记的属性覆盖掉，需要先将老的plugin上的值覆盖到新http post过来的反序列化之后的plugin上
@@ -445,7 +465,6 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                                 public IPluginStore dbRelevant(IPluginContext pluginContext, String saveDbName) {
                                     DataxReader.SubFieldFormAppKey key = new DataxReader.SubFieldFormAppKey<>(pluginContext,
                                             true, saveDbName, props, clazz);
-
                                     return KeyedPluginStore.getPluginStore(key);
                                 }
 

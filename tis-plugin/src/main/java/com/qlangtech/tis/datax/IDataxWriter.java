@@ -55,7 +55,7 @@ public interface IDataxWriter extends IDataXPluginMeta, IRepositoryResourceScann
      * @return
      */
     default IDataxContext getSubTask() {
-        return getSubTask(Optional.empty());
+        return getSubTask(Optional.empty(), Optional.empty());
     }
 
     /**
@@ -63,7 +63,7 @@ public interface IDataxWriter extends IDataXPluginMeta, IRepositoryResourceScann
      *
      * @return
      */
-    IDataxContext getSubTask(Optional<IDataxProcessor.TableMap> tableMap);
+    IDataxContext getSubTask(Optional<IDataxProcessor.TableMap> tableMap, Optional<RecordTransformerRules> transformerRules);
 
     /**
      * 用户已经把自动生成ddl 脚本的开关给关闭了

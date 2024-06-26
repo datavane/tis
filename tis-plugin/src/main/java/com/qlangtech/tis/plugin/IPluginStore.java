@@ -78,7 +78,7 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
                             throw new IllegalStateException("instance of " + p.getClass().getName()
                                     + " must be type of " + AfterPluginSaved.class.getSimpleName());
                         }
-                        ((AfterPluginSaved) p).afterSaved( pluginContext,  context);
+                        ((AfterPluginSaved) p).afterSaved(pluginContext, context);
                     });
                 });
 
@@ -134,5 +134,12 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
          * Plugin 保存执行回调执行
          */
         void afterSaved(IPluginContext pluginContext, Optional<Context> context);
+    }
+
+    interface AfterPluginVerified {
+        /**
+         * Plugin 验证成功执行回调执行
+         */
+        void afterVerified(IPluginStoreSave pluginStore);
     }
 }

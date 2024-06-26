@@ -19,6 +19,8 @@ package com.qlangtech.tis.extension.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.SubFormFilter;
@@ -34,6 +36,7 @@ import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.util.*;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -54,12 +57,23 @@ public class SuFormProperties extends BaseSubFormProperties {
 
     public static SuFormGetterContext setSuFormGetterContext(Describable plugin, UploadPluginMeta pluginMeta,
                                                              String subFormDetailId) {
+        return setSuFormGetterContext(plugin, null, pluginMeta, subFormDetailId);
+    }
+
+    public static SuFormGetterContext setSuFormGetterContext(Describable plugin, IPluginStore<DataxReader> store, UploadPluginMeta pluginMeta,
+                                                             String subFormDetailId) {
         if (StringUtils.isEmpty(subFormDetailId)) {
             throw new IllegalArgumentException("param subFormDetailId can not be empty");
         }
         SuFormProperties.SuFormGetterContext subFormContext = subFormGetterProcessThreadLocal.get();
-        subFormContext.plugin = plugin;
+
+        if (plugin instanceof IDataxReader) {
+            subFormContext.plugin = (IDataxReader) plugin;
+        } else {
+            throw new IllegalStateException("plugin must be type of " + IDataxReader.class);
+        }
         pluginMeta.putExtraParams(SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE, subFormDetailId);
+        subFormContext.store = store;
         subFormContext.param = pluginMeta;
         return subFormContext;
     }
@@ -315,8 +329,9 @@ public class SuFormProperties extends BaseSubFormProperties {
      */
     public static class SuFormGetterContext {
         public static final String FIELD_SUBFORM_ID = "id";
-        public Describable plugin;
+        public IDataxReader plugin;
         public UploadPluginMeta param;
+        public IPluginStore<DataxReader> store;
 
         private ConcurrentHashMap<String, Object> props = new ConcurrentHashMap<>();
 

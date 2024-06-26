@@ -75,7 +75,8 @@ public class MultiItemsViewType implements IMultiItemsView {
                 if (formatType == ViewFormatType.IdList) {
                     elementCreator = new IdlistElementCreatorFactory();
                 } else {
-                    throw new IllegalStateException("param " + CMeta.KEY_ELEMENT_CREATOR_FACTORY + " can not be empty,formatType:" + formatType);
+                    throw new IllegalStateException("param " + CMeta.KEY_ELEMENT_CREATOR_FACTORY
+                            + " can not be empty,formatType:" + formatType+",property:"+ propertyType.f);
                 }
             } else {
                 elementCreator = ((ElementCreatorFactory) //

@@ -307,6 +307,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return getConfigFile(this.getId());
     }
 
+
+
     public static String getPluginFileName(String pluginId) {
         return pluginId + ".xml";
     }

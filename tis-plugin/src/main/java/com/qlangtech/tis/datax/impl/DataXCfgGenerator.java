@@ -113,7 +113,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
         this.pluginCtx = pluginCtx;
     }
 
-    protected String getTemplateContent(IDataxReaderContext readerContext, IDataxReader reader, IDataxWriter writer) {
+    protected String getTemplateContent(IDataxReaderContext readerContext, IDataxReader reader, IDataxWriter writer, RecordTransformerRules transformerRules) {
         final String tpl = globalCfg.getTemplate();
 
         // List<IDataxReader> readers = dataxProcessor.getReaders(pluginCtx);
@@ -130,8 +130,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
             throw new IllegalStateException("writerTpl of '" + writer.getDataxMeta().getName() + "' can not be null");
         }
 
-        RecordTransformerRules transformerRules
-                = RecordTransformerRules.loadTransformerRules(this, readerContext.getSourceEntityName());
+
         if (transformerRules != null) {
             readerTpl.append(",\n\t\"")
                     .append(TransformerConstant.JOB_TRANSFORMER).append("\":\t\t\n {\"").append(TransformerConstant.JOB_TRANSFORMER_NAME)
@@ -565,14 +564,15 @@ public class DataXCfgGenerator implements IDataXNameAware {
             Optional<IDataxProcessor.TableMap> tableMap) throws IOException {
         Objects.requireNonNull(writer, "writer can not be null");
         StringWriter writerContent = null;
+        RecordTransformerRules transformerRules
+                = RecordTransformerRules.loadTransformerRules(this.pluginCtx, readerContext.getSourceEntityName());
 
-
-        final String tpl = getTemplateContent(readerContext, reader, writer);
+        final String tpl = getTemplateContent(readerContext, reader, writer, transformerRules);
         if (StringUtils.isEmpty(tpl)) {
             throw new IllegalStateException("velocity template content can not be null");
         }
         try {
-            VelocityContext mergeData = createContext(readerContext, writer.getSubTask(tableMap));
+            VelocityContext mergeData = createContext(readerContext, writer.getSubTask(tableMap, Optional.ofNullable(transformerRules)));
             writerContent = new StringWriter();
             velocityEngine.evaluate(mergeData, writerContent, "tablex-writer.vm", tpl);
         } catch (Exception e) {

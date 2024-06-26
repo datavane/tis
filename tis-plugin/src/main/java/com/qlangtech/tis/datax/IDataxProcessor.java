@@ -29,6 +29,7 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceTypeGetter;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.IDBReservedKeys;
@@ -325,13 +326,24 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
         private final List<String> cols;
         private final IDBReservedKeys dbReservedKeys;
 
-        public static TabCols create(IDBReservedKeys dbReservedKeys, TableMap tm) {
-            return new TabCols(dbReservedKeys, tm.getSourceCols().stream().map((c) -> c.getName()).collect(Collectors.toList()));
+        public static TabCols create(IDBReservedKeys dbReservedKeys, TableMap tm, Optional<RecordTransformerRules> transformerRules) {
+
+            List<IColMetaGetter> cols = transformerRules.map((rule) -> {
+                return rule.overwriteCols(tm.getSourceCols());
+            }).orElseGet(() -> {
+                return tm.getSourceCols().stream().map((c) -> c).collect(Collectors.toList());
+            });
+
+            return new TabCols(dbReservedKeys, cols.stream().map((c) -> c.getName()).collect(Collectors.toList()));
         }
 
         private TabCols(IDBReservedKeys dbReservedKeys, List<String> cols) {
             this.cols = cols;
             this.dbReservedKeys = dbReservedKeys;
+        }
+
+        public List<String> getRawCols() {
+            return this.cols;
         }
 
         public String getColsQuotes() {

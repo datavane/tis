@@ -51,6 +51,7 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -65,6 +66,7 @@ import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.HeteroList;
 import com.qlangtech.tis.util.ItemsSaveResult;
 import com.qlangtech.tis.util.PluginItems;
+import com.qlangtech.tis.util.PluginItems.PluginWithStore;
 import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
@@ -791,18 +793,18 @@ public class PluginAction extends BasicModule {
   public void doSubformDetailedClick(Context context) throws Exception {
 
     List<UploadPluginMeta> pluginsMeta = getPluginMeta();
-    List<DataxReader> plugins = null;
+    Pair<List<DataxReader>, IPluginStore<DataxReader>> plugins = null;
 
-    IPluginEnum heteroEnum = null;
+    // IPluginEnum heteroEnum = null;
     HeteroList<?> hList = null;
 
     for (UploadPluginMeta meta : pluginsMeta) {
 
       // heteroEnum = meta.getHeteroEnum();
       plugins = meta.getDataxReaders(this);// heteroEnum.getPlugins(this, meta);
-      for (Describable plugin : plugins) {
+      for (DataxReader plugin : plugins.getKey()) {
 
-        SuFormProperties.setSuFormGetterContext(plugin, meta,
+        SuFormProperties.setSuFormGetterContext(plugin, plugins.getRight(), meta,
           this.getString(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID));
 
         hList = meta.getHeteroList(this);
@@ -885,6 +887,14 @@ public class PluginAction extends BasicModule {
       }
       categoryPlugins.add(pluginItemsParser.pluginItems);
     }
+
+    if (verify && !this.hasErrors(context)) {
+      for (PluginItems pi : categoryPlugins) {
+        PluginWithStore storePlugins = pi.getStorePlugins();
+        storePlugins.afterVerified();
+      }
+    }
+
     if (this.hasErrors(context) || (verify && !processNotebook)) {
       return;
     }

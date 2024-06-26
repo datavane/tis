@@ -99,7 +99,7 @@ public class TestDataXCfgGenerator extends TestCase {
         IDataxReader reader = EasyMock.createMock("reader", IDataxReader.class);
         EasyMock.expect(reader.getTemplate()).andReturn("{}").times(2);
         EasyMock.expect(writer.getTemplate()).andReturn("{}");
-        EasyMock.expect(writer.getSubTask(Optional.empty())).andReturn(new IDataxContext() {
+        EasyMock.expect(writer.getSubTask(Optional.empty(), Optional.empty())).andReturn(new IDataxContext() {
         });
         DataXMeta writeDataXMeta = new DataXMeta();
         EasyMock.expect(writer.getDataxMeta()).andReturn(writeDataXMeta);

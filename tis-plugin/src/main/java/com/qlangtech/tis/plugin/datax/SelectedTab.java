@@ -21,6 +21,8 @@ package com.qlangtech.tis.plugin.datax;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.ESTableAlias;
 import com.qlangtech.tis.extension.Describable;
@@ -32,7 +34,12 @@ import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.EnumFieldMode;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IPluginStore.AfterPluginVerified;
+import com.qlangtech.tis.plugin.IPluginStoreSave;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -52,6 +59,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +77,7 @@ import static com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler.joinField
  * @author: baisui 百岁
  * @create: 2021-04-08 13:29
  **/
-public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, IdentityName {
+public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, IdentityName, AfterPluginVerified {
     private static final String KEY_TABLE_COLS = "tableRelevantCols";
     public static final String KEY_SOURCE_PROPS = "sourceProps";
     public static final String KEY_FIELD_COLS = "cols";
@@ -108,8 +117,25 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         return this.cols.stream().filter((c) -> !c.isDisable()).map((c) -> c.getName()).collect(Collectors.toList());
     }
 
+    /**
+     * 获得表的可选字段
+     *
+     * @return
+     */
     public static List<CMeta> getColsCandidate() {
-        return getContextTableCols((cols) -> cols.stream());
+        List<CMeta> selectableCols = getContextTableCols((cols) -> {
+            return cols.stream();
+        });
+        return selectableCols;
+    }
+
+    /**
+     * 获得表的已选字段
+     *
+     * @return
+     */
+    public static List<CMeta> getSelectedCols() {
+        return getContextTableColsStream().getSelectedCols();
     }
 
     // private transient List<CMeta> shadowCols = null;
@@ -239,35 +265,45 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     }
 
     public static List<Option> getContextOpts(Function<List<ColumnMetaData>, Stream<ColumnMetaData>> func) {
-        return getContextTableColsStream(func).collect(Collectors.toList());
+        return getContextTableColsStream().getStreamedSelectableCols(func).collect(Collectors.toList());
     }
 
     public static List<CMeta> getContextTableCols(Function<List<ColumnMetaData>, Stream<ColumnMetaData>> func) {
-        return getContextTableColsStream(func).map(ColumnMetaData::convert).collect(Collectors.toList());
+        return getContextTableColsStream().getStreamedSelectableCols(func).map(ColumnMetaData::convert).collect(Collectors.toList());
     }
 
 
-    private static Stream<ColumnMetaData> getContextTableColsStream(Function<List<ColumnMetaData>,
-            Stream<ColumnMetaData>> func) {
+    private static ThreadCacheTableCols getContextTableColsStream( //
+                                                                   //                                                               Function<List<ColumnMetaData>, Stream<ColumnMetaData>> func
+    ) {
         SuFormProperties.SuFormGetterContext context = SuFormProperties.subFormGetterProcessThreadLocal.get();
         if (context == null || context.plugin == null) {
             List<ColumnMetaData> empt = Collections.emptyList();
-            return empt.stream();
+            return new ThreadCacheTableCols(() -> Collections.emptyList(), empt);// empt.stream();
         }
-        Describable plugin = Objects.requireNonNull(context.plugin, "context.plugin can not be null");
-        if (!(plugin instanceof DataSourceMeta)) {
-            throw new IllegalStateException("plugin must be type of " + DataSourceMeta.class.getName() + ", now type "
-                    + "of " + plugin.getClass().getName());
-        }
-        DataSourceMeta dsMeta = (DataSourceMeta) plugin;
-        List<ColumnMetaData> cols = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
+        IDataxReader plugin = Objects.requireNonNull(context.plugin, "context.plugin can not be null");
+//        if (!(plugin instanceof DataSourceMeta)) {
+//            throw new IllegalStateException("plugin must be type of " + DataSourceMeta.class.getName() + ", now type "
+//                    + "of " + plugin.getClass().getName());
+//        }
+        DataSourceMeta dsMeta = plugin;
+        ThreadCacheTableCols cols = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
             try {
-                return dsMeta.getTableMetadata(false, EntityName.parse(context.getSubFormIdentityField()));
+                return new ThreadCacheTableCols(() -> {
+                    //plugin.getSelectedTab()
+                    // 从临时文件中将已经选中的列取出来
+                    SelectedTab selectedTab = SelectedTab.loadFromTmp(Objects.requireNonNull(context.store, "store can not be null"), context.getSubFormIdentityField());
+                    List<SelectedTab> filledSelectedTab = plugin.fillSelectedTabMeta(Collections.singletonList(selectedTab));
+                    for (SelectedTab tab : filledSelectedTab) {
+                        return tab.getCols();
+                    }
+                    throw new IllegalStateException("can not arrive here");
+                }, dsMeta.getTableMetadata(false, EntityName.parse(context.getSubFormIdentityField())));
             } catch (TableNotFoundException e) {
                 throw new RuntimeException(e);
             }
         });
-        return func.apply(cols);
+        return cols;// func.apply(cols);
     }
 
 
@@ -402,5 +438,34 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         }
     }
 
+    private static SelectedTab loadFromTmp(IPluginStore store, String tabName) {
+        try {
+            XmlFile xml = getTmpTableStoreFile(Objects.requireNonNull(store, "param store can not be null"), tabName);
+            SelectedTab tab = new SelectedTab();
+            xml.unmarshal(tab);
+            return tab;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
+    @Override
+    public void afterVerified(IPluginStoreSave pluginStore) {
+        try {
+            // 在verify阶段将实例写入到临时文件中，可在后续
+            XmlFile xml = getTmpTableStoreFile(pluginStore, this.identityValue());
+            xml.write(this, Collections.emptySet());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static XmlFile getTmpTableStoreFile(IPluginStoreSave pluginStore, String tabName) {
+        XmlFile targetFile = pluginStore.getTargetFile();
+        String pluginFileName = Descriptor.getPluginFileName(tabName);
+        File tabTmp = new File(targetFile.getFile().getParent()
+                , ".tmp" + File.separator + "tabs" + File.separator + pluginFileName);
+        XmlFile xml = new XmlFile(tabTmp, pluginFileName);
+        return xml;
+    }
 }

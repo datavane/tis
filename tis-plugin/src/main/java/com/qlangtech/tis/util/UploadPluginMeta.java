@@ -34,6 +34,7 @@ import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -86,7 +87,6 @@ public class UploadPluginMeta {
     // 除去 required 之外的其他参数
     private Map<String, String> extraParams = new HashMap<>();
     private final IPluginContext context;
-
 
 
     public boolean isUpdate() {
@@ -210,13 +210,13 @@ public class UploadPluginMeta {
         }
     }
 
-    public List<DataxReader> getDataxReaders(IPluginContext pluginContext) {
+    public Pair<List<DataxReader>, IPluginStore<DataxReader>> getDataxReaders(IPluginContext pluginContext) {
 //        return HeteroEnum.DATAX_READER.getPlugins(pluginContext, UploadPluginMeta.parse(pluginContext,
 //                this.name + ":" + DataxUtils.DATAX_NAME + "_" + this.getDataXName(),
 //                useCache));
         IPluginStore<DataxReader> store = (IPluginStore<DataxReader>) HeteroEnum.getDataXReaderAndWriterRelevantPluginStore(
                 pluginContext, true, this);
-        return store.getPlugins();
+        return Pair.of(store.getPlugins(), store);
 
     }
 
@@ -250,7 +250,7 @@ public class UploadPluginMeta {
                         }
 
                         //  throw new IllegalStateException("subFilter.subformDetailView shall be true");
-                        return pluginMeta.getDataxReaders(pluginContext);
+                        return pluginMeta.getDataxReaders(pluginContext).getKey();
                     }
 
 //                    private List<DataxReader> getDataxReaders(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {

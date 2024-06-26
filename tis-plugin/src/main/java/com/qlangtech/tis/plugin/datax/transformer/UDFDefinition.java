@@ -20,17 +20,19 @@ package com.qlangtech.tis.plugin.datax.transformer;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.datax.common.element.ColumnAwareRecord;
-import com.alibaba.datax.common.element.Record;
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IPluginStore.AfterPluginSaved;
-import com.qlangtech.tis.plugin.datax.transformer.jdbcprop.TargetColType;
+import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.util.IPluginContext;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * DataX 的UDF 定义 <br/>
@@ -64,6 +66,11 @@ public abstract class UDFDefinition implements Describable<UDFDefinition>, After
      */
     public abstract void evaluate(ColumnAwareRecord record);
 
+
+    public static List<IdentityName> colsCandidate() {
+        List<CMeta> colsCandidate = SelectedTab.getSelectedCols();
+        return colsCandidate.stream().collect(Collectors.toList());
+    }
 
     @Override
     public final void afterSaved(IPluginContext pluginContext, Optional<Context> context) {
