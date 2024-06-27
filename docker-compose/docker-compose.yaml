@@ -1,7 +1,7 @@
 version: "1"
 services:
   flink:
-    image: registry.cn-hangzhou.aliyuncs.com/tis/flink:4.0.0
+    image: registry.cn-hangzhou.aliyuncs.com/tis/flink:4.0.1
     hostname: flink
     mem_limit: 2048m
     cpus: '1.0'
@@ -13,7 +13,7 @@ services:
     depends_on:
       - tis-console
   tis-console:
-    image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:4.0.0
+    image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:4.0.1
     hostname: tis-console
     mem_limit: "1.5G"
     cpus: '2.5'
