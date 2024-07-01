@@ -18,43 +18,19 @@
 
 package com.qlangtech.tis.datax;
 
-import com.qlangtech.tis.plugin.datax.SelectedTab;
-import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 
 import java.util.List;
 
 /**
- * 针对类似Hudi 这样的数据类型，增量写入需要是Flink SQL写入方式，
- *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-02-19 13:02
+ * @create: 2024-07-01 15:40
  **/
-public interface IStreamTableMeataCreator //extends IStreamIncrGenerateStrategy
-{
-
+public interface IStreamTableMeta {
     /**
-     * 比表写入相关的元数据信息
+     * 表相关的列信息
      *
-     * @param tableName
      * @return
      */
-    public IStreamTableMeta getStreamTableMeta(String tableName);
-
-
-    interface ISourceStreamMetaCreator extends IStreamTableMeataCreator {
-        /**
-         * 将没有类型的表列填充上类型
-         *
-         * @param tabs
-         * @return
-         */
-        public default List<SelectedTab> fillSelectedTabMeta(List<SelectedTab> tabs) {
-            return tabs;
-        }
-
-        public ISelectedTab getSelectedTab(String tableName);
-    }
-
-    interface ISinkStreamMetaCreator extends IStreamTableMeataCreator {
-    }
+    List<IColMetaGetter> getColsMeta();
 }

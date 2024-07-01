@@ -559,7 +559,7 @@ public class CoreAction extends BasicModule {
    * @throws Exception
    */
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_CONFIG_EDIT)
-  public void doCompileAndPackage(Context context)  {
+  public void doCompileAndPackage(Context context) {
 
     // IBasicAppSource appSource = IAppSource.load(null, this.getCollectionName());
 
@@ -665,7 +665,7 @@ public class CoreAction extends BasicModule {
 //      }
 //    };
 
-   final  String subJobName = "Incr " + getCollectionName() + " Compile And Package";
+    final String subJobName = "Incr " + getCollectionName() + " Compile And Package";
     final SubJobResName<FlinkJobDeployDTO> compileAndPackage =
       JobResName.createSubJob(subJobName, (dto) -> {
         final SSERunnable sse = SSERunnable.getLocal();
@@ -683,7 +683,7 @@ public class CoreAction extends BasicModule {
 //          for(){
 //
 //          }
-          throw new JobOrchestrateException(subJobName +" faild");
+          throw new JobOrchestrateException(subJobName + " faild");
           //return;
         }
         dto.appendLog("\n compile and package consume:" + (System.currentTimeMillis() - start) + "ms ");
@@ -796,7 +796,7 @@ public class CoreAction extends BasicModule {
       .collect(Collectors.toMap(DatasourceDb::getId, (r) -> ManageUtils.formatNowYyyyMMddHHmmss(r.getOpTime())));
   }
 
-  private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(BasicModule module)  {
+  private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(BasicModule module) {
 
     IBasicAppSource appSource = IAppSource.load(null, module.getCollectionName());
 
@@ -804,6 +804,7 @@ public class CoreAction extends BasicModule {
       @Override
       public Date visit(DataxProcessor app) {
         Application application = module.getApplicationDAO().selectByName(app.identityValue());
+        Objects.requireNonNull(application, "app:" + app.identityValue() + " relevant app instance can not be null");
         return application.getUpdateTime();
       }
 
@@ -1168,7 +1169,7 @@ public class CoreAction extends BasicModule {
       // 删除增量实例
       k8sDelegate.removeIncrProcess();
     } catch (Exception e) {
-      logger.warn(e.getMessage(),e);
+      logger.warn(e.getMessage(), e);
     }
   }
 
