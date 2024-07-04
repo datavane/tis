@@ -21,16 +21,51 @@ package com.qlangtech.tis.util;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+
+import java.io.PrintWriter;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-07-11 08:03
  **/
-public abstract class AdapterPluginContext implements IPluginContext {
+public abstract class AdapterPluginContext implements IPluginContext, IControlMsgHandler {
     private final IPluginContext pluginContext;
+    private final IControlMsgHandler msgHandler;
 
     public AdapterPluginContext(IPluginContext pluginContext) {
         this.pluginContext = pluginContext;
+        this.msgHandler = (IControlMsgHandler) pluginContext;
+    }
+
+    @Override
+    public PrintWriter getEventStreamWriter() {
+        return msgHandler.getEventStreamWriter();
+    }
+
+    @Override
+    public String getString(String key) {
+        return msgHandler.getString(key);
+    }
+
+    @Override
+    public String getString(String key, String dftVal) {
+        return msgHandler.getString(key, dftVal);
+    }
+
+    @Override
+    public boolean getBoolean(String key) {
+        return msgHandler.getBoolean(key);
+    }
+
+    @Override
+    public void addFieldError(Context context, String fieldName, String msg, Object... params) {
+        msgHandler.addFieldError(context, fieldName, msg, params);
+    }
+
+    @Override
+    public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
+        return msgHandler.validateBizLogic(logicType, context, fieldName, value);
     }
 
     @Override

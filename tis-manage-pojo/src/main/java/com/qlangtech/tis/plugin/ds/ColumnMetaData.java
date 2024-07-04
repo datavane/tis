@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class ColumnMetaData extends Option {
+public class ColumnMetaData extends Option implements IColMetaGetter {
 
     public static final String KEY_COLS_METADATA = "cols-metadata";
 
@@ -158,10 +158,12 @@ public class ColumnMetaData extends Option {
         return key;
     }
 
+    @Override
     public DataType getType() {
         return type;
     }
 
+    @Override
     public boolean isPk() {
         return this.pk;
     }

@@ -18,6 +18,8 @@
 
 package com.alibaba.datax.core.job;
 
+import com.qlangtech.tis.plugin.ds.IColMetaGetter;
+
 import java.util.List;
 
 /**
@@ -26,5 +28,6 @@ import java.util.List;
  * @create: 2024-06-15 12:34
  **/
 public interface ITransformerBuildInfo {
-    List<String> relevantOutterColKeys();
+   // List<String> relevantOutterColKeys();
+   public <T extends IColMetaGetter> List<IColMetaGetter> overwriteCols(List<T> sourceCols);
 }

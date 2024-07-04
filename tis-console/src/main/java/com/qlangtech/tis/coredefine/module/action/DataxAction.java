@@ -1145,7 +1145,6 @@ public class DataxAction extends BasicModule {
 
     // DataxProcessor old = DataxProcessor.load(null, dataxName);
     IDataxProcessor editting = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataxName);
-    ;
     File oldWorkDir = old.getDataXWorkDir((IPluginContext) null);
     File edittingDir = editting.getDataXWorkDir((IPluginContext) this);
 

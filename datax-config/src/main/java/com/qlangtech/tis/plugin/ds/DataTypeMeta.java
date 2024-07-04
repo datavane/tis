@@ -193,8 +193,8 @@ public class DataTypeMeta {
                     , new DataTypeMeta(new DataType(JDBCTypes.TIME)), //
                     new DataTypeMeta(new DataType(JDBCTypes.TIMESTAMP)) //
                     , new DataTypeMeta(new DataType(JDBCTypes.BIT)) //
-                    , new DataTypeMeta(new DataType(JDBCTypes.LONGVARCHAR)) //
-                    , new DataTypeMeta(new DataType(JDBCTypes.LONGNVARCHAR)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.LONGVARCHAR, Integer.MAX_VALUE)) //
+                    , new DataTypeMeta(new DataType(JDBCTypes.LONGNVARCHAR, Integer.MAX_VALUE)) //
                     , new DataTypeMeta(new DataType(JDBCTypes.BOOLEAN)) //
                     //    , new DataTypeMeta(new DataType(Types.T, "BOOLEAN")) //
                     , new DataTypeMeta(new DataType(JDBCTypes.BLOB, 1000), new ColSizeRange(1, 2000))//

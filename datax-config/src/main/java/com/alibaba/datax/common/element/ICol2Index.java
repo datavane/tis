@@ -21,31 +21,7 @@ package com.alibaba.datax.common.element;
 /**
  *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-06-18 17:40
+ * @create: 2024-07-03 13:42
  **/
-public interface ColumnAwareRecord<ColValType> {
-
-    /**
-     * 设置列名称到列所在index的位置
-     *
-     * @param mapper
-     */
-    public void setCol2Index(ICol2Index mapper);
-
-    /**
-     * @param field  字段名称
-     * @param colVal
-     */
-    public void setColumn(String field, final ColValType colVal);
-
-
-    public void setString(String field, final String val);
-
-    /**
-     * @param field 字段名称
-     * @return
-     */
-    public ColValType getColumn(String field);
-
-    public String getString(String field);
+public interface ICol2Index {
 }

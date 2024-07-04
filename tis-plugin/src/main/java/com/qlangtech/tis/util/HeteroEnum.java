@@ -105,10 +105,17 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 //                    return this.getSubDirPath() + File.separator + tableName;
 //                }
 //            };
-            Key key = new TransformerRuleKey(pluginContext, tableName, this.extensionPoint);
+            Key key = getTransformerRuleKey(pluginContext, tableName);
             return TIS.getPluginStore(key);
         }
+
+
     };
+
+    public static Key getTransformerRuleKey(IPluginContext pluginContext, String tableName) {
+        Key key = new TransformerRuleKey(pluginContext, tableName, TRANSFORMER_RULES.extensionPoint);
+        return key;
+    }
 
     private static class TransformerRuleKey extends Key {
         private final String tableName;

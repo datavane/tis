@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.DBDataXChildTask;
+import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,7 +47,8 @@ public class TestGenerateCfgs {
     @Test
     public void testReadFromGen() throws Exception {
         File dataxCfgDir = folder.newFolder();
-        DataXCfgGenerator.GenerateCfgs genCfgs = new DataXCfgGenerator.GenerateCfgs(dataxCfgDir);
+        IPluginContext pluginContext = IPluginContext.namedContext("test");
+        DataXCfgGenerator.GenerateCfgs genCfgs = new DataXCfgGenerator.GenerateCfgs(pluginContext, dataxCfgDir);
         long timestamp = System.currentTimeMillis();
         genCfgs.setGenTime(timestamp);
         Map<String, List<DBDataXChildTask>> groupedChildTask = Maps.newHashMap();
@@ -61,7 +63,7 @@ public class TestGenerateCfgs {
 
         genCfgs.write2GenFile(dataxCfgDir);
 
-        DataXCfgGenerator.GenerateCfgs generateCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(dataxCfgDir, Optional.empty());
+        DataXCfgGenerator.GenerateCfgs generateCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(pluginContext, dataxCfgDir, Optional.empty());
 
         Assert.assertEquals(timestamp, generateCfgs.getGenTime());
 

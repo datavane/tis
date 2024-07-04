@@ -39,8 +39,11 @@ import com.qlangtech.tis.datax.IDataxReaderContext;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.datax.IGroupChildTaskIterator;
 import com.qlangtech.tis.datax.TableAliasMapper;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
+import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
@@ -48,10 +51,14 @@ import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
 import com.qlangtech.tis.datax.IDataXGenerateCfgs;
 import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections.Transformer;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FalseFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -59,7 +66,9 @@ import org.apache.velocity.app.VelocityEngine;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -157,7 +166,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
      */
     public GenerateCfgs getExistCfg(File parentDir) throws Exception {
         File dataxCfgDir = dataxProcessor.getDataxCfgDir(this.pluginCtx);
-        GenerateCfgs generateCfgs = new GenerateCfgs(dataxCfgDir);
+        GenerateCfgs generateCfgs = new GenerateCfgs(this.pluginCtx, dataxCfgDir);
 
         File genFile = new File(parentDir, FILE_GEN);
         if (!genFile.exists()) {
@@ -167,7 +176,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
 
         generateCfgs.createDDLFiles = getExistDDLFiles();
 
-        GenerateCfgs cfgs = GenerateCfgs.readFromGen(dataxCfgDir, Optional.empty());
+        GenerateCfgs cfgs = GenerateCfgs.readFromGen(this.pluginCtx, dataxCfgDir, Optional.empty());
         generateCfgs.setGenTime(cfgs.getGenTime());
         generateCfgs.setGroupedChildTask(cfgs.getGroupedChildTask());
         return generateCfgs;
@@ -218,7 +227,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
         Set<String> createDDLFiles = Sets.newHashSet();
         List<String> existDDLFiles = getExistDDLFiles();
 
-        GenerateCfgs cfgs = new GenerateCfgs(this.dataxProcessor.getDataxCfgDir(this.pluginCtx));
+        GenerateCfgs cfgs = new GenerateCfgs(this.pluginCtx, this.dataxProcessor.getDataxCfgDir(this.pluginCtx));
         List<IDataxReader> readers = dataxProcessor.getReaders(this.pluginCtx);
         if (CollectionUtils.isEmpty(readers)) {
             throw new IllegalStateException(dataxName + " relevant readers can not be empty");
@@ -391,9 +400,11 @@ public class DataXCfgGenerator implements IDataXNameAware {
         private long genTime;
 
         private final File dataxCfgDir;
+        private final IPluginContext pluginCtx;
 
-        public GenerateCfgs(File dataxCfgDir) {
+        public GenerateCfgs(IPluginContext pluginCtx, File dataxCfgDir) {
             this.dataxCfgDir = dataxCfgDir;
+            this.pluginCtx = pluginCtx;// Objects.requireNonNull(, "pluginCtx can not be null");
         }
 
         public List<DataXCfgFile> getDataxFiles() {
@@ -421,6 +432,27 @@ public class DataXCfgGenerator implements IDataXNameAware {
 
         public final Set<String> getTargetTabs() {
             return this.getGroupedChildTask().keySet();
+        }
+
+        public final Set<TransformerInfo> getTransformerInfo() {
+            Set<TransformerInfo> tinfos = new HashSet<>();
+            Key transformerRuleKey = HeteroEnum.getTransformerRuleKey(pluginCtx, "dump");
+            XmlFile sotre = transformerRuleKey.getSotreFile();
+            File parent = sotre.getFile().getParentFile();
+            if (!parent.exists()) {
+                return Collections.emptySet();
+            }
+            // Collection<File> files = FileUtils.listFiles(parent, new String[]{"xml"}, false);
+            String xmlExtend = Descriptor.getPluginFileName(StringUtils.EMPTY);
+            SuffixFileFilter filter = new SuffixFileFilter(xmlExtend);
+            Collection<File> matched = FileUtils.listFiles(parent, filter, FalseFileFilter.INSTANCE);
+            for (File tfile : matched) {
+                String tabName = StringUtils.substringBefore(tfile.getName(), xmlExtend);
+                RecordTransformerRules transformerRules = RecordTransformerRules.loadTransformerRules(pluginCtx, tabName);
+
+                tinfos.add(new TransformerInfo(tabName, transformerRules.rules.size()));
+            }
+            return tinfos;
         }
 
         /**
@@ -490,9 +522,9 @@ public class DataXCfgGenerator implements IDataXNameAware {
          * @param dataxCfgDir
          * @return
          */
-        public static GenerateCfgs readFromGen(File dataxCfgDir, Optional<JobTrigger> partialTrigger) {
+        public static GenerateCfgs readFromGen(IPluginContext pluginCtx, File dataxCfgDir, Optional<JobTrigger> partialTrigger) {
             try {
-                GenerateCfgs cfgs = new GenerateCfgs(dataxCfgDir);
+                GenerateCfgs cfgs = new GenerateCfgs(pluginCtx, dataxCfgDir);
                 JSONObject o = JSON.parseObject(FileUtils.readFileToString(new File(dataxCfgDir,
                         DataXCfgGenerator.FILE_GEN), TisUTF8.get()));
 

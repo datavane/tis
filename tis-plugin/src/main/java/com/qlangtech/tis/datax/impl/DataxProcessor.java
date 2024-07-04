@@ -416,7 +416,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         if (dataxCfgDir.list().length < 1) {
             throw new IllegalStateException("dataxCfgDir is empty can not find any files:" + dataxCfgDir.getAbsolutePath());
         }
-        DataXCfgGenerator.GenerateCfgs genCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(dataxCfgDir, partialTrigger);
+        DataXCfgGenerator.GenerateCfgs genCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(pluginContext, dataxCfgDir, partialTrigger);
         return genCfgs;
     }
 

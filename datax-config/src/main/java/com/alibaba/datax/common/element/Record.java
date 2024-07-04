@@ -18,13 +18,10 @@
 
 package com.alibaba.datax.common.element;
 
-import java.util.Map;
-
 /**
  * Created by jingxing on 14-8-24.
  */
-
-public interface Record extends ColumnAwareRecord<Column> {
+public interface Record extends ColumnAwareRecord<Object> {
 
 
     public void addColumn(Column column);
@@ -36,8 +33,8 @@ public interface Record extends ColumnAwareRecord<Column> {
 
     @Override
     default String getString(String field) {
-        Column colVal = getColumn(field);
-        return colVal != null ? colVal.asString() : null;
+        Object colVal = this.getColumn(field);
+        return colVal != null ? String.valueOf(colVal) : null;
     }
 
     public String toString();

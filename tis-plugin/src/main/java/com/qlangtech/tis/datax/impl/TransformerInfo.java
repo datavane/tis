@@ -16,36 +16,29 @@
  * limitations under the License.
  */
 
-package com.alibaba.datax.common.element;
+package com.qlangtech.tis.datax.impl;
 
 /**
- *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-06-18 17:40
+ * @create: 2024-07-04 12:35
  **/
-public interface ColumnAwareRecord<ColValType> {
-
+public class TransformerInfo {
+    private final String tableName;
     /**
-     * 设置列名称到列所在index的位置
-     *
-     * @param mapper
+     * 有多少条转换规则
      */
-    public void setCol2Index(ICol2Index mapper);
+    private final int ruleCount;
 
-    /**
-     * @param field  字段名称
-     * @param colVal
-     */
-    public void setColumn(String field, final ColValType colVal);
+    public TransformerInfo(String tableName, int ruleCount) {
+        this.tableName = tableName;
+        this.ruleCount = ruleCount;
+    }
 
+    public String getTableName() {
+        return tableName;
+    }
 
-    public void setString(String field, final String val);
-
-    /**
-     * @param field 字段名称
-     * @return
-     */
-    public ColValType getColumn(String field);
-
-    public String getString(String field);
+    public int getRuleCount() {
+        return ruleCount;
+    }
 }

@@ -454,7 +454,10 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         try {
             // 在verify阶段将实例写入到临时文件中，可在后续
             XmlFile xml = getTmpTableStoreFile(pluginStore, this.identityValue());
-            xml.write(this, Collections.emptySet());
+            SelectedTab tab = new SelectedTab();
+            tab.name = this.name;
+            tab.cols = this.cols;
+            xml.write(tab, Collections.emptySet());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
