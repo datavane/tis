@@ -317,7 +317,7 @@ public class PluginMeta {
      * 将远端插件拷贝到本地
      */
     public boolean copyFromRemote(List<File> pluginFileCollector, boolean ignoreDependencies, boolean directDownload) {
-        final URL url = CenterResource.getPathURL(Config.SUB_DIR_LIBS + "/" + TIS.KEY_TIS_PLUGIN_ROOT + "/" + this.getPluginPackageName());
+        final URL url = CenterResource.getPathURL(Config.SUB_DIR_LIBS + "/" + Config.KEY_TIS_PLUGIN_ROOT + "/" + this.getPluginPackageName());
         final File local = getPluginPackageFile();
         boolean updated = CenterResource.copyFromRemote2Local(url, local, directDownload);
         if (!ignoreDependencies && updated) {

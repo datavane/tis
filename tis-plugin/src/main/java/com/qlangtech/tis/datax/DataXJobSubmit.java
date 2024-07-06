@@ -33,9 +33,11 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
+import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.util.RobustReflectionConverter2;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.workflow.pojo.IWorkflow;
@@ -47,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
@@ -370,6 +373,10 @@ public abstract class DataXJobSubmit {
                     return tabName;
                 }
 
+                @Override
+                public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx) {
+                  throw new UnsupportedOperationException();
+                }
 
                 @Override
                 public List<CMeta> getCols() {

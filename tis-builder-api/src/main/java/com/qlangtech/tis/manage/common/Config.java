@@ -51,8 +51,10 @@ public class Config extends BasicConfig {
     public static final String SYSTEM_KEY_LOGBACK_PATH_VALUE = "logback-datax.xml";
     public static final String SYSTEM_KEY__LOGBACK_HUDI = "logback-hudi.xml";
     public static final String KEY_TIS_PLUGIN_CONFIG = "tis_plugin_config";
+    public static final String KEY_TIS_PLUGIN_ROOT = "plugins";
     private static final Logger logger = LoggerFactory.getLogger(Config.class);
-    public static final String LIB_PLUGINS_PATH = "libs/plugins";
+    public static final String SUB_DIR_LIBS = "libs";
+    public static final String LIB_PLUGINS_PATH = SUB_DIR_LIBS + "/" + KEY_TIS_PLUGIN_ROOT;
 
     public static final String PLUGIN_LIB_DIR = "WEB-INF/lib";
 
@@ -98,8 +100,6 @@ public class Config extends BasicConfig {
 
     public static final String KEY_JAVA_RUNTIME_PROP_ENV_PROPS = "env_props";
 
-
-    public static final String SUB_DIR_LIBS = "libs";
 
     public static final String SUB_DIR_CFG_REPO = "cfg_repo";
 

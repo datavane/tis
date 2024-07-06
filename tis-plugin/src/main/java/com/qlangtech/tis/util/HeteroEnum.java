@@ -29,6 +29,7 @@ import com.qlangtech.tis.datax.job.DataXJobWorker.K8SWorkerCptType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.ExtensionList;
+import com.qlangtech.tis.extension.NoStorePlaceholderPlugin;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.TISExtension;
@@ -56,6 +57,7 @@ import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
 import com.qlangtech.tis.plugin.k8s.K8sImage.ImageCategory;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
+import com.qlangtech.tis.plugin.utils.UploadCustomizedTPI;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -111,6 +113,16 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
 
     };
+    @TISExtension
+    public static final HeteroEnum<UploadCustomizedTPI> uploadCustomizedTPI //
+            = new HeteroEnum<UploadCustomizedTPI>(//
+            UploadCustomizedTPI.class, //
+            "uploadCustomizedTPI", "upload customized TPI", Selectable.Multi, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            return IPluginStore.noSaveStore();
+        }
+    };
 
     public static Key getTransformerRuleKey(IPluginContext pluginContext, String tableName) {
         Key key = new TransformerRuleKey(pluginContext, tableName, TRANSFORMER_RULES.extensionPoint);
@@ -135,6 +147,18 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             return this.getSubDirPath() + File.separator + tableName;
         }
     }
+
+    @TISExtension
+    public static final HeteroEnum<NoStorePlaceholderPlugin> noStore //
+            = new HeteroEnum<NoStorePlaceholderPlugin>(//
+            NoStorePlaceholderPlugin.class, //
+            "noStore", "noStore", Selectable.Multi, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            return IPluginStore.noSaveStore();
+        }
+    };
+
 
     @TISExtension
     public static final HeteroEnum<UDFDefinition> TRANSFORMER_UDF //
@@ -386,17 +410,17 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         }
     };
 
-    @TISExtension
-    public static final HeteroEnum<JobTrigger> JOB_TRIGGER = new HeteroEnum<JobTrigger>(//
-            JobTrigger.class, //
-            "jobTrigger", //
-            "Job Trigger", //
-            Selectable.Single, true) {
-        @Override
-        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            return IPluginStore.noSaveStore();
-        }
-    };
+//    @TISExtension
+//    public static final HeteroEnum<JobTrigger> JOB_TRIGGER = new HeteroEnum<JobTrigger>(//
+//            JobTrigger.class, //
+//            "jobTrigger", //
+//            "Job Trigger", //
+//            Selectable.Single, true) {
+//        @Override
+//        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+//            return IPluginStore.noSaveStore();
+//        }
+//    };
 
     public final String caption;
 

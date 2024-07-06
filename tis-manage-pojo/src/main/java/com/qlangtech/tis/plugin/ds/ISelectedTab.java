@@ -17,6 +17,8 @@
  */
 package com.qlangtech.tis.plugin.ds;
 
+import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -43,6 +45,16 @@ public interface ISelectedTab {
     }
 
     List<CMeta> getCols();
+
+    /**
+     * 通过 transoformer 改写来源列
+     *
+     * @param pluginCtx
+     * @return
+     */
+    default List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx) {
+        throw new UnsupportedOperationException();
+    }
 
     default Set<String> acceptedCols() {
         final Set<String> acceptKeys = this.getCols().stream().filter((c) -> !c.isDisable()).map((c) -> c.getName()).collect(Collectors.toSet());

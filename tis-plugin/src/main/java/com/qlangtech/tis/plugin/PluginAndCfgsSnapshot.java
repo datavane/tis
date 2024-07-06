@@ -804,7 +804,7 @@ public class PluginAndCfgsSnapshot {
     }
 
     public static File getPluginRootDir() {
-        return new File(Config.getLibDir(), TIS.KEY_TIS_PLUGIN_ROOT);
+        return new File(Config.getLibDir(), Config.KEY_TIS_PLUGIN_ROOT);
     }
 
     /**

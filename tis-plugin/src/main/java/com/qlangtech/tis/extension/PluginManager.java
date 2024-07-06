@@ -160,22 +160,12 @@ public class PluginManager {
      */
     public void dynamicLoad(File arc, boolean removeExisting
             , PluginAndCfgsSnapshot.PluginWrapperList batch) throws IOException, InterruptedException, RestartRequiredException {
-        // try (ACLContext context = ACL.as2(ACL.SYSTEM2)) {
         LOGGER.info("Attempting to dynamic load {}", arc);
         PluginManifest manifest = PluginManifest.create(arc);
         if (manifest == null) {
             LOGGER.warn("can not find tpi:" + arc.getAbsolutePath());
             return;
         }
-//        PluginWrapper p = null;
-//        String sn;
-//        try {
-//            sn = strategy.getShortName(arc);
-//        } catch (AbstractMethodError x) {
-//            LOGGER.info("JENKINS-12753 fix not active: {}", x.getMessage());
-//            p = strategy.createPluginWrapper(arc);
-//            sn = p.getShortName();
-//        }
         ITPIArtifactMatch install = ITPIArtifact.create(
                 manifest.computeShortName(StringUtils.EMPTY), manifest.parseClassifier());
         this.dynamicLoad(install, arc, removeExisting, batch);

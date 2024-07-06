@@ -20,25 +20,21 @@ package com.qlangtech.tis.plugin.datax.transformer;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.datax.IDataXNameAware;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.datax.transformer.jdbcprop.TargetColType;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -52,6 +48,17 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 
 
     public static Function<String, RecordTransformerRules> transformerRulesLoader4Test;
+
+//    public static List<IColMetaGetter> overwriteCols(IPluginContext pluginCtx, ISelectedTab tab) {
+//        RecordTransformerRules transformerRules = loadTransformerRules(pluginCtx, tab.getName());
+//        List<IColMetaGetter> cols = null;
+//        if (transformerRules != null) {
+//            cols = transformerRules.overwriteCols(tab.getCols());
+//        } else {
+//            cols = tab.getCols().stream().collect(Collectors.toList());
+//        }
+//        return cols;
+//    }
 
     /**
      * 加载基于数据通道的表转换（Transformer）规则

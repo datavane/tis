@@ -121,7 +121,8 @@ public class SchemaAction extends BasicModule {
       Optional<TableAlias> f = dataxProcessor.getTabAlias(this).findFirst();
       if (f.isPresent()) {
         TableAlias tabMapper = f.get();
-        if (StringUtils.equals(tabMapper.getFrom(), esTab.getName())) {
+        if (StringUtils.equals(tabMapper.getFrom(), esTab.getName())
+          && !typeTransfer.hasDifferWithSource(this, esTab, tabMapper)) {
           writerStructFields(context, esTab, tabMapper, typeTransfer);
           return;
         } else {
@@ -132,18 +133,15 @@ public class SchemaAction extends BasicModule {
       }
 
     } else {
-//      for (ISelectedTab tab : dataxReader.getSelectedTabs()) {
-      // ESSchema parseResult = new ESSchema();
       writeStructFields(context, typeTransfer, esTab);
       return;
-      //}
     }
 
     throw new IllegalStateException("have not find any tab in DataXReader");
   }
 
   private void writeStructFields(Context context, ISearchEngineTypeTransfer typeTransfer, ISelectedTab esTab) {
-    SchemaMetaContent tplSchema = typeTransfer.initSchemaMetaContent(esTab);
+    SchemaMetaContent tplSchema = typeTransfer.initSchemaMetaContent(this, esTab);
     this.setBizResult(context, tplSchema.toJSON());
   }
 
@@ -450,7 +448,7 @@ public class SchemaAction extends BasicModule {
   private void writerStructFields(Context context, ISelectedTab esTab, TableAlias tableAlias, ISearchEngineTypeTransfer typeTransfer) {
 
     SchemaMetaContent schemaContent = new SchemaMetaContent();
-    schemaContent.parseResult = typeTransfer.projectionFromExpertModel(esTab, tableAlias, (content) -> {
+    schemaContent.parseResult = typeTransfer.projectionFromExpertModel(this, esTab, tableAlias, (content) -> {
       schemaContent.content = content;
     });
     this.setBizResult(context, schemaContent.toJSON());

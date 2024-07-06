@@ -1,5 +1,7 @@
 package com.qlangtech.tis.plugin.ds;
 
+import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -36,6 +38,11 @@ public final class DefaultTab implements ISelectedTab {
 
     @Override
     public List<String> getPrimaryKeys() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx) {
         throw new UnsupportedOperationException();
     }
 

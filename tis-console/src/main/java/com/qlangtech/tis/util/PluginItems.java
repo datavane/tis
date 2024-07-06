@@ -280,8 +280,11 @@ public class PluginItems {
       };
     } else if (heteroEnum == HeteroEnum.DATAX_WRITER || heteroEnum == HeteroEnum.DATAX_READER) {
 
-      store = HeteroEnum.getDataXReaderAndWriterStore(this.pluginContext, this.heteroEnum == HeteroEnum.DATAX_READER, this.pluginMeta, pluginMeta.getSubFormFilter());
+      store = HeteroEnum.getDataXReaderAndWriterStore(this.pluginContext
+        , this.heteroEnum == HeteroEnum.DATAX_READER, this.pluginMeta, pluginMeta.getSubFormFilter());
 
+    } else if (heteroEnum == HeteroEnum.uploadCustomizedTPI) {
+      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.PARAMS_CONFIG) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.K8S_DEFAULT_IMAGES) {

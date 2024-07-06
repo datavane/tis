@@ -64,9 +64,25 @@ public interface ISearchEngineTypeTransfer {
      * @param tab
      * @return
      */
-    public SchemaMetaContent initSchemaMetaContent(ISelectedTab tab);
+    public SchemaMetaContent initSchemaMetaContent(IPluginContext pluginCtx, ISelectedTab tab);
 
-    public ISchema projectionFromExpertModel(ISelectedTab esTab, TableAlias tableAlias, Consumer<byte[]> schemaContentConsumer);
+    /**
+     * es schema 是否与Source存在不一致
+     *
+     * @param pluginCtx
+     * @param esTab
+     * @param tableAlias
+     * @return
+     */
+    public boolean hasDifferWithSource(IPluginContext pluginCtx, ISelectedTab esTab, TableAlias tableAlias);
+
+    /**
+     * @param esTab
+     * @param tableAlias
+     * @param schemaContentConsumer
+     * @return
+     */
+    public ISchema projectionFromExpertModel(IPluginContext pluginCtx, ISelectedTab esTab, TableAlias tableAlias, Consumer<byte[]> schemaContentConsumer);
 
     public default ISchema projectionFromExpertModel(JSONObject body) {
         return projectionFromExpertModel(body, (field) -> true);

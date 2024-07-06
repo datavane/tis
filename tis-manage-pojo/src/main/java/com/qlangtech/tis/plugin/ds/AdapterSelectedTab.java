@@ -18,19 +18,26 @@
 
 package com.qlangtech.tis.plugin.ds;
 
+import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 /**
- *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/12/2
  */
-public class AdapterSelectedTab implements ISelectedTab{
-    private final  ISelectedTab target;
+public class AdapterSelectedTab implements ISelectedTab {
+    private final ISelectedTab target;
 
     public AdapterSelectedTab(ISelectedTab target) {
         this.target = target;
+    }
+
+    @Override
+    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx) {
+        return target.overwriteCols(pluginCtx);
     }
 
     @Override

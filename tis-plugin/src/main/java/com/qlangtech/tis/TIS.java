@@ -103,8 +103,7 @@ public class TIS {
     public static final String DB_GROUP_NAME = "db";
 
     public static final String KEY_ALT_SYSTEM_PROP_TIS_PLUGIN_ROOT = "plugin_dir_root";
-    public static final String KEY_TIS_PLUGIN_ROOT = "plugins";
-  //  public static final String KEY_ACTION_CLEAN_TIS = "cleanTis";
+    //  public static final String KEY_ACTION_CLEAN_TIS = "cleanTis";
 
     // public static final String KEY_TIS_INCR_COMPONENT_CONFIG_FILE = "incr_config.xml";
     public static final String KEY_TIE_GLOBAL_COMPONENT_CONFIG_FILE = "global_config.xml";
@@ -422,7 +421,7 @@ public class TIS {
     static {
         String pluginRootDir = System.getProperty(KEY_ALT_SYSTEM_PROP_TIS_PLUGIN_ROOT);
         pluginDirRoot = StringUtils.isEmpty(pluginRootDir)
-                ? new File(Config.getLibDir(), KEY_TIS_PLUGIN_ROOT)
+                ? new File(Config.getLibDir(), Config.KEY_TIS_PLUGIN_ROOT)
                 : new File(pluginRootDir);
     }
 

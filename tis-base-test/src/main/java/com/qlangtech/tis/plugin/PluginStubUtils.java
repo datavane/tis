@@ -105,7 +105,7 @@ public class PluginStubUtils {
         setFinalStatic(pluginCfgRootField, new File(Config.getMetaCfgDir(), Config.KEY_TIS_PLUGIN_CONFIG));
 
         Field pluginDirRootField = TIS.class.getDeclaredField("pluginDirRoot");
-        setFinalStatic(pluginDirRootField, new File(Config.getLibDir(), TIS.KEY_TIS_PLUGIN_ROOT));
+        setFinalStatic(pluginDirRootField, new File(Config.getLibDir(), Config.KEY_TIS_PLUGIN_ROOT));
 
         Field finders = ClassicPluginStrategy.class.getField("finders");
         setFinalStatic(finders, Collections.singletonList(new ExtensionFinder.Sezpoz()));

@@ -45,14 +45,18 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
+import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.impl.AttrVals;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -100,6 +104,17 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     @FormField(ordinal = 100, type = FormFieldType.INPUTTEXT)
     public String where;
 
+    @Override
+    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx) {
+        RecordTransformerRules transformerRules = RecordTransformerRules.loadTransformerRules((IPluginContext)pluginCtx, this.getName());
+        List<IColMetaGetter> cols = null;
+        if (transformerRules != null) {
+            cols = transformerRules.overwriteCols(this.getCols());
+        } else {
+            cols = this.getCols().stream().collect(Collectors.toList());
+        }
+        return cols;
+    }
 
     @Override
     public List<String> getPrimaryKeys() {

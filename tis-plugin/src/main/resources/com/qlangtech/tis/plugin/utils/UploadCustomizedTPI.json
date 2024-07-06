@@ -1,0 +1,21 @@
+{
+  "file": {
+    "label": "TPI文件",
+    "help": "选择用户自定义插件包，后缀为'.tpi'"
+  },
+  "forceReplace": {
+    "label": "强制替换",
+    "help": "如上传插件包与已有插件包重名，是否将已有插件包强制替换",
+    "dftVal": false,
+    "enum": [
+      {
+        "label": "是",
+        "val": true
+      },
+      {
+        "label": "否",
+        "val": false
+      }
+    ]
+  }
+}
