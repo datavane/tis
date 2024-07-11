@@ -16,21 +16,35 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.extension;
+package com.qlangtech.tis.runtime.module.misc;
 
 import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.plugin.IPluginStore.AfterPluginSaved;
-import com.qlangtech.tis.util.IPluginContext;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.extension.impl.PropValRewrite;
+import com.qlangtech.tis.util.IPluginItemsProcessor;
+import com.qlangtech.tis.util.IUploadPluginMeta;
+import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.Optional;
+import java.util.List;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-07-04 23:19
+ * @create: 2024-07-09 21:45
  **/
-public class NoStorePlaceholderPlugin implements Describable<NoStorePlaceholderPlugin>, AfterPluginSaved {
-    @Override
-    public void afterSaved(IPluginContext pluginContext, Optional<Context> context) {
+public interface IPostContent {
+    public List<IUploadPluginMeta> parsePluginMeta(String[] plugins, boolean useCache);
+
+    public default Pair<Boolean, IPluginItemsProcessor>
+    getPluginItems(IUploadPluginMeta pluginMeta, Context context,
+                   int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
         throw new UnsupportedOperationException();
     }
+
+    /**
+     * 取得客户端提交的报问内容
+     *
+     * @return
+     */
+    public JSONObject getJSONPostContent();
 }

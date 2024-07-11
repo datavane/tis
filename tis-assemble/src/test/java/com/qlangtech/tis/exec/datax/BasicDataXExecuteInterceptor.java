@@ -37,6 +37,7 @@ import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.test.TISTestCase;
+import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;
 import org.easymock.EasyMock;
 
@@ -112,7 +113,7 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
     }
 
     protected DataXCfgGenerator.GenerateCfgs mockGenerateCfgs(File dataxCfgDir) throws IOException {
-        DataXCfgGenerator.GenerateCfgs genCfg = new DataXCfgGenerator.GenerateCfgs(dataxCfgDir);
+        DataXCfgGenerator.GenerateCfgs genCfg = new DataXCfgGenerator.GenerateCfgs(IPluginContext.namedContext(AP_NAME), dataxCfgDir);
         genCfg.setGenTime(System.currentTimeMillis());
         Map<String, List<DBDataXChildTask>> groupedChildTask = Maps.newHashMap();
         groupedChildTask.put(tableName, Lists.newArrayList(
@@ -140,7 +141,7 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
 
         @Override
         public StoreResourceType getResType() {
-           // throw new UnsupportedOperationException();
+            // throw new UnsupportedOperationException();
             return StoreResourceType.DataApp;
         }
 

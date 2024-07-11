@@ -16,34 +16,13 @@
  *   limitations under the License.
  */
 
-package com.qlangtech.tis.config.flink;
-
-import org.apache.commons.lang.StringUtils;
+package com.qlangtech.tis.util;
 
 /**
+ *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-10-23 12:23
+ * @create: 2024-07-10 09:34
  **/
-public class JobManagerAddress {
-    public final String host;
-    public final int port;
-
-    public static JobManagerAddress parse(String value) {
-        String[] address = StringUtils.split(value, ":");
-        if (address.length != 2) {
-            throw new IllegalArgumentException("illegal jobManagerAddress:" + address);
-        }
-        return new JobManagerAddress(address[0], Integer.parseInt(address[1]));
-    }
-
-    public JobManagerAddress(String host, int port) {
-        this.host = host;
-        this.port = port;
-    }
-
-    public String getUrl() {
-        return "http://" + this.host + ":" + this.port;
-    }
-
-
+public interface IUploadPluginMeta {
+    public void putExtraParams(String key, String val);
 }

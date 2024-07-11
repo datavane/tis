@@ -31,17 +31,13 @@ import java.util.Optional;
  */
 public class PostedDSProp {
 
-    public static final String KEY_DB_NAME = "dsname";
-    public static final String KEY_TYPE = "type";
-    public static final String KEY_UPDATE = "update";
-
     private Optional<DBIdentity> dbname;
     private final DbScope dbType;
     private final Boolean update;
 
     public static PostedDSProp parse(UploadPluginMeta pluginMeta) {
-        return new PostedDSProp(DBIdentity.parse(pluginMeta.getExtraParam(KEY_DB_NAME))
-                , DbScope.parse(pluginMeta.getExtraParam(KEY_TYPE))
+        return new PostedDSProp(DBIdentity.parse(pluginMeta.getExtraParam(DBIdentity.KEY_DB_NAME))
+                , DbScope.parse(pluginMeta.getExtraParam(DBIdentity.KEY_TYPE))
                 , pluginMeta.isUpdate());
     }
 

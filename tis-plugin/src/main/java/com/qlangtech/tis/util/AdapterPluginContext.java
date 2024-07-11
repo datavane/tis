@@ -19,11 +19,17 @@
 package com.qlangtech.tis.util;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.PrintWriter;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -36,6 +42,26 @@ public abstract class AdapterPluginContext implements IPluginContext, IControlMs
     public AdapterPluginContext(IPluginContext pluginContext) {
         this.pluginContext = pluginContext;
         this.msgHandler = (IControlMsgHandler) pluginContext;
+    }
+
+    @Override
+    public void executeBizLogic(BizLogic logicType, Context context, Object param) throws Exception {
+        pluginContext.executeBizLogic(logicType, context, param);
+    }
+
+    @Override
+    public Pair<Boolean, IPluginItemsProcessor> getPluginItems(IUploadPluginMeta pluginMeta, Context context, int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
+        return pluginContext.getPluginItems(pluginMeta, context, pluginIndex, itemsArray, verify, propValRewrite);
+    }
+
+    @Override
+    public List<IUploadPluginMeta> parsePluginMeta(String[] plugins, boolean useCache) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public JSONObject getJSONPostContent() {
+        return pluginContext.getJSONPostContent();
     }
 
     @Override

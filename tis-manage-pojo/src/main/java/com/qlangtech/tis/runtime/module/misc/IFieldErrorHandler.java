@@ -51,7 +51,10 @@ public interface IFieldErrorHandler {
     void addFieldError(final Context context, String fieldName, String msg, Object... params);
 
     enum BizLogic {
-        APP_NAME_DUPLICATE, WORKFLOW_NAME_DUPLICATE
+        VALIDATE_APP_NAME_DUPLICATE
+        , VALIDATE_WORKFLOW_NAME_DUPLICATE
+        // 创建新的数据管道
+        , CREATE_DATA_PIPELINE
     }
 
     /**

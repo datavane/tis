@@ -26,6 +26,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.INotebookable;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
+import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.impl.AttrVals;
 
@@ -63,15 +64,21 @@ public class AttrValMap {
 
     //private IControlMsgHandler msgHandler;
     private final Optional<SubFormFilter> subFormFilter;
+    private final PropValRewrite propValRewrite;
 
     public static List<AttrValMap> describableAttrValMapList(JSONArray itemsArray,
                                                              Optional<SubFormFilter> subFormFilter) {
+        return describableAttrValMapList(itemsArray, subFormFilter, ((propType, val) -> val));
+    }
+
+    public static List<AttrValMap> describableAttrValMapList(JSONArray itemsArray,
+                                                             Optional<SubFormFilter> subFormFilter, PropValRewrite propValRewrite) {
         List<AttrValMap> describableAttrValMapList = Lists.newArrayList();
         AttrValMap describableAttrValMap = null;
         JSONObject itemObj = null;
         for (int i = 0; i < itemsArray.size(); i++) {
             itemObj = itemsArray.getJSONObject(i);
-            describableAttrValMap = parseDescribableMap(subFormFilter, itemObj);
+            describableAttrValMap = parseDescribableMap(subFormFilter, itemObj, propValRewrite);
             describableAttrValMapList.add(describableAttrValMap);
         }
         return describableAttrValMapList;
@@ -79,6 +86,12 @@ public class AttrValMap {
 
     public static AttrValMap parseDescribableMap(Optional<SubFormFilter> subFormFilter,
                                                  com.alibaba.fastjson.JSONObject jsonObject) {
+        return parseDescribableMap(subFormFilter, jsonObject, ((propType, val) -> val));
+    }
+
+
+    public static AttrValMap parseDescribableMap(Optional<SubFormFilter> subFormFilter,
+                                                 com.alibaba.fastjson.JSONObject jsonObject, PropValRewrite propValRewrite) {
         String impl = null;
         Descriptor descriptor;
         impl = jsonObject.getString(PLUGIN_EXTENSION_IMPL);
@@ -88,15 +101,16 @@ public class AttrValMap {
         }
         Object vals = jsonObject.get(PLUGIN_EXTENSION_VALS);
         AttrVals attrValMap = Descriptor.parseAttrValMap(vals);
-        return new AttrValMap(attrValMap, subFormFilter, descriptor);
+        return new AttrValMap(attrValMap, subFormFilter, descriptor, propValRewrite);
     }
 
     public AttrValMap(//IControlMsgHandler msgHandler,
-                      AttrVals attrValMap, Optional<SubFormFilter> subFormFilter, Descriptor descriptor) {
+                      AttrVals attrValMap, Optional<SubFormFilter> subFormFilter, Descriptor descriptor, PropValRewrite propValRewrite) {
         this.attrValMap = attrValMap;
         this.descriptor = descriptor;
         //  this.msgHandler = msgHandler;
         this.subFormFilter = subFormFilter;
+        this.propValRewrite = propValRewrite;
     }
 
 
@@ -112,9 +126,10 @@ public class AttrValMap {
      * @param verify  是否进行业务逻辑校验
      * @return true：校验没有错误 false：校验有错误
      */
-    public Descriptor.PluginValidateResult validate(IControlMsgHandler msgHandler, Context context, Optional<PluginFormProperties> propertyTypes, boolean verify) {
+    public Descriptor.PluginValidateResult validate(
+            IControlMsgHandler msgHandler, Context context, Optional<PluginFormProperties> propertyTypes, boolean verify) {
         // if (this.descriptor == propertyTypes.getDescriptor()) {
-        return this.descriptor.verify(msgHandler, context, verify, attrValMap, propertyTypes, subFormFilter);
+        return this.descriptor.verify(msgHandler, context, verify, attrValMap, propertyTypes, subFormFilter, this.propValRewrite);
 //        } else {
 //            return this.descriptor.verify(msgHandler, context, verify, attrValMap, subFormFilter);
 //        }
@@ -141,7 +156,7 @@ public class AttrValMap {
      * @return
      */
     public Descriptor.ParseDescribable createDescribable(IControlMsgHandler pluginContext, Context context, Optional<PluginFormProperties> formProperties) {
-        return this.descriptor.parseDescribable(pluginContext, context, this.attrValMap, (formProperties), this.subFormFilter);
+        return this.descriptor.parseDescribable(pluginContext, context, this.attrValMap, (formProperties), this.subFormFilter, this.propValRewrite);
     }
 
     public int size() {

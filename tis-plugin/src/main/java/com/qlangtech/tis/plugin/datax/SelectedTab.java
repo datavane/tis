@@ -106,7 +106,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
     @Override
     public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx) {
-        RecordTransformerRules transformerRules = RecordTransformerRules.loadTransformerRules((IPluginContext)pluginCtx, this.getName());
+        RecordTransformerRules transformerRules = RecordTransformerRules.loadTransformerRules((IPluginContext) pluginCtx, this.getName());
         List<IColMetaGetter> cols = null;
         if (transformerRules != null) {
             cols = transformerRules.overwriteCols(this.getCols());
@@ -310,6 +310,11 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
                     SelectedTab selectedTab = SelectedTab.loadFromTmp(Objects.requireNonNull(context.store, "store can not be null"), context.getSubFormIdentityField());
                     List<SelectedTab> filledSelectedTab = plugin.fillSelectedTabMeta(Collections.singletonList(selectedTab));
                     for (SelectedTab tab : filledSelectedTab) {
+                        for (CMeta cmeta : tab.getCols()) {
+                            if (cmeta.getType() == null) {
+                                throw new IllegalStateException("table:" + context.getSubFormIdentityField() + ",col:" + cmeta.getName() + " relevant type can not be null");
+                            }
+                        }
                         return tab.getCols();
                     }
                     throw new IllegalStateException("can not arrive here");

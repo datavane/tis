@@ -16,32 +16,33 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.util;
+package com.qlangtech.tis.plugin.ds;
 
 import com.qlangtech.tis.extension.Describable;
-import com.qlangtech.tis.plugin.IdentityName;
-import com.qlangtech.tis.plugin.SetPluginsResult;
-
-import java.util.List;
-import java.util.stream.Stream;
+import com.qlangtech.tis.extension.Descriptor;
 
 /**
+ * 对数据源进行操作，例如克隆等操作
+ *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-03-26 14:11
+ * @create: 2024-07-09 18:23
+ * @see com.qlangtech.tis.plugin.ds.DataSourceFactory
  **/
-public class ItemsSaveResult implements IItemsSaveResult {
+public class DataSourceFactoryManipulate implements Describable<DataSourceFactoryManipulate> {
 
-  public static String KEY_ITEMS_SAVE_RESULT = "items_save_result";
-  public final List<Describable> describableList;
-  public final SetPluginsResult cfgSaveResult;
+    @Override
+    public final Descriptor<DataSourceFactoryManipulate> getDescriptor() {
+        Descriptor<DataSourceFactoryManipulate> desc = Describable.super.getDescriptor();
+        if (!(desc instanceof BasicDesc)) {
+            throw new IllegalStateException("descriptor:"
+                    + desc.getClass().getName() + " must extend from " + BasicDesc.class.getSimpleName());
+        }
+        return desc;
+    }
 
-  public ItemsSaveResult(List<Describable> describableList, SetPluginsResult cfgSaveResult) {
-    this.describableList = describableList;
-    this.cfgSaveResult = cfgSaveResult;
-  }
-
-  @Override
-  public Stream<IdentityName> getIdentityStream() {
-    return describableList.stream().filter((d) -> d instanceof IdentityName).map((d) -> (IdentityName) d);
-  }
+    protected static class BasicDesc extends Descriptor<DataSourceFactoryManipulate> {
+        public BasicDesc() {
+            super();
+        }
+    }
 }

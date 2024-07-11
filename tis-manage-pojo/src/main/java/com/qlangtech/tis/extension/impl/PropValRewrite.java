@@ -16,32 +16,14 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.util;
+package com.qlangtech.tis.extension.impl;
 
-import com.qlangtech.tis.extension.Describable;
-import com.qlangtech.tis.plugin.IdentityName;
-import com.qlangtech.tis.plugin.SetPluginsResult;
-
-import java.util.List;
-import java.util.stream.Stream;
+import com.qlangtech.tis.extension.IPropertyType;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-03-26 14:11
+ * @create: 2024-07-10 16:31
  **/
-public class ItemsSaveResult implements IItemsSaveResult {
-
-  public static String KEY_ITEMS_SAVE_RESULT = "items_save_result";
-  public final List<Describable> describableList;
-  public final SetPluginsResult cfgSaveResult;
-
-  public ItemsSaveResult(List<Describable> describableList, SetPluginsResult cfgSaveResult) {
-    this.describableList = describableList;
-    this.cfgSaveResult = cfgSaveResult;
-  }
-
-  @Override
-  public Stream<IdentityName> getIdentityStream() {
-    return describableList.stream().filter((d) -> d instanceof IdentityName).map((d) -> (IdentityName) d);
-  }
+public interface PropValRewrite {
+    Object rewrite(IPropertyType propType, Object val);
 }

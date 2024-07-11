@@ -18,11 +18,13 @@
 
 package com.qlangtech.tis.plugin.datax.transformer;
 
+import com.alibaba.fastjson.annotation.JSONType;
 import com.qlangtech.tis.plugin.ds.IMultiElement;
 
 /**
  * 定义一条 记录处理规则
  */
+@JSONType(serializer = RecordTransformerJSONSerializer.class)
 public class RecordTransformer implements IMultiElement {
 
     @Override

@@ -116,7 +116,17 @@ public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGe
     }
 
     /**
+     * 拷贝一份新的实例
+     *
+     * @param newIdentityVal
+     */
+    default void copy(String newIdentityVal) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * DefaultDataXProcessor中需要调用PluginStore 的writeLastModifyTimeStamp()，在客户主动更新了create table DDL之后,所以需要事先将pluginStore实例注入
+     *
      * @param pluginStore
      */
     void setPluginStore(PluginStore<IAppSource> pluginStore);

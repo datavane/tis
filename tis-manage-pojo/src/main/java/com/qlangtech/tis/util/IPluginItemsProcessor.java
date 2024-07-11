@@ -16,34 +16,21 @@
  *   limitations under the License.
  */
 
-package com.qlangtech.tis.config.flink;
+package com.qlangtech.tis.util;
 
-import org.apache.commons.lang.StringUtils;
+import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 
 /**
+ *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2021-10-23 12:23
+ * @create: 2024-07-10 08:32
+ * // @see PluginItems
  **/
-public class JobManagerAddress {
-    public final String host;
-    public final int port;
+public interface IPluginItemsProcessor {
+  IPluginWithStore getStorePlugins();
 
-    public static JobManagerAddress parse(String value) {
-        String[] address = StringUtils.split(value, ":");
-        if (address.length != 2) {
-            throw new IllegalArgumentException("illegal jobManagerAddress:" + address);
-        }
-        return new JobManagerAddress(address[0], Integer.parseInt(address[1]));
-    }
+  String cerateOrGetNotebook(IControlMsgHandler pluginContext, Context context) throws Exception;
 
-    public JobManagerAddress(String host, int port) {
-        this.host = host;
-        this.port = port;
-    }
-
-    public String getUrl() {
-        return "http://" + this.host + ":" + this.port;
-    }
-
-
+  IItemsSaveResult save(Context context);
 }

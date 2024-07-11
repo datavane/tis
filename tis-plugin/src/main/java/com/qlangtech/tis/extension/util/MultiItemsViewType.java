@@ -29,6 +29,7 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta.IMultiItemsView;
 import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
+import com.qlangtech.tis.plugin.ds.IMultiElement;
 import com.qlangtech.tis.plugin.ds.IdlistElementCreatorFactory;
 import com.qlangtech.tis.plugin.ds.ViewContent;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
@@ -214,7 +215,7 @@ public class MultiItemsViewType implements IMultiItemsView {
                     .map((cmeta) -> new FormFieldType.SelectedItem(cmeta)).collect(Collectors.toList());
         } // start bizSerializeFrontend
                 , (obj) -> {
-            return (List<CMeta>) obj;
+            return (List<IMultiElement>) obj;
         });
 
         private final String token;

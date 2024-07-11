@@ -25,6 +25,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.coredefine.module.action.PluginAction;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.IAppSource;
@@ -33,7 +34,6 @@ import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.IPluginStore.AfterPluginVerified;
 import com.qlangtech.tis.plugin.IPluginStoreSave;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
@@ -64,11 +64,12 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020-02-10 12:24
  */
-public class PluginItems {
+public class PluginItems implements IPluginItemsProcessor {
   private final IPluginEnum heteroEnum;
   private final UploadPluginMeta pluginMeta;
   private final IPluginContext pluginContext;
   private final Context context;
+  // private PropValRewrite propValRewrite;
 
   public List<AttrValMap> items;
 
@@ -79,6 +80,7 @@ public class PluginItems {
   public static void addPluginItemsSaveObserver(PluginItemsSaveObserver obsv) {
     observable.addObserver(obsv);
   }
+
 
   public PluginItems(IPluginContext pluginContext, Context context, UploadPluginMeta pluginMeta) {
     this.heteroEnum = pluginMeta.getHeteroEnum();
@@ -236,7 +238,7 @@ public class PluginItems {
 
       Objects.requireNonNull(store, "plugin type:" + heteroEnum.getIdentity() + " can not find relevant Store");
 
-    } else if (this.pluginContext.isDataSourceAware()) {
+    } else if (heteroEnum == HeteroEnum.DATASOURCE || this.pluginContext.isDataSourceAware()) {
 
       store = new IPluginStoreSave<DataSourceFactory>() {
 
@@ -250,13 +252,13 @@ public class PluginItems {
 
         private PostedDSProp createPostedDSProp(UploadPluginMeta pluginMeta) {
           for (Descriptor.ParseDescribable<?> plugin : dlist) {
-            if (StringUtils.isEmpty(pluginMeta.getExtraParam(PostedDSProp.KEY_DB_NAME))) {
-              pluginMeta.putExtraParams(PostedDSProp.KEY_DB_NAME, ((IdentityName) plugin.getInstance()).identityValue());
+            if (StringUtils.isEmpty(pluginMeta.getExtraParam(com.qlangtech.tis.plugin.ds.DBIdentity.KEY_DB_NAME))) {
+              pluginMeta.putExtraParams(com.qlangtech.tis.plugin.ds.DBIdentity.KEY_DB_NAME, ((IdentityName) plugin.getInstance()).identityValue());
             }
             return PostedDSProp.parse(pluginMeta);
           }
 
-          throw new IllegalStateException("has not set：" + PostedDSProp.KEY_DB_NAME);
+          throw new IllegalStateException("has not set：" + com.qlangtech.tis.plugin.ds.DBIdentity.KEY_DB_NAME);
         }
 
         @Override
@@ -308,6 +310,8 @@ public class PluginItems {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.appJobWorkerTplReWriter) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
+    } else if (heteroEnum == HeteroEnum.noStore) {
+      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else {
       if (heteroEnum.isAppNameAware()) {
         if (!this.pluginContext.isCollectionAware()) {
@@ -326,16 +330,23 @@ public class PluginItems {
   }
 
 
-  public class PluginWithStore {
+  public class PluginWithStore implements IPluginWithStore {
     final List<Describable> describableList = Lists.newArrayList();
     final IPluginStoreSave<?> store;
     private final List<Descriptor.ParseDescribable<?>> appendHistorical;
 
     SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context) {
-
       return store.setPlugins(pluginContext, context, convert(this.appendHistorical));
+    }
 
-//      return this.setPlugins(pluginContext, context, dlist, false);
+    /**
+     * 列表所有的 describle 实例
+     *
+     * @return
+     */
+    public <T> List<T> listPlugins() {
+      return convert(this.appendHistorical).stream()
+        .flatMap((d) -> d.getSubFormInstances().stream()).map((d) -> (T) d).collect(Collectors.toList());
     }
 
     public PluginWithStore() {
@@ -344,6 +355,7 @@ public class PluginItems {
       this.store = getStore(appendHistorical);
     }
 
+    @Override
     public void afterVerified() {
       for (Descriptor.ParseDescribable d : this.appendHistorical) {
         d.getSubFormInstances().forEach((plugin) -> {
@@ -364,7 +376,7 @@ public class PluginItems {
 
     PluginWithStore store = getStorePlugins();
 
-    // store.
+    // store
     //dlist
     SetPluginsResult result = store.setPlugins(pluginContext, Optional.of(context));
     if (!result.success) {
@@ -399,6 +411,7 @@ public class PluginItems {
       /**====================================================
        * 将客户端POST数据包装
        ======================================================*/
+
       describable = attrValMap.createDescribable((IControlMsgHandler) pluginContext, this.context);
       dlist.add(describable);
       if (!describable.subFormFields) {
@@ -412,6 +425,7 @@ public class PluginItems {
     return dlist.stream().map((r) -> (Descriptor.ParseDescribable<T>) r).collect(Collectors.toList());
   }
 
+  @Override
   public String cerateOrGetNotebook(IControlMsgHandler msgHandler, Context context) throws Exception {
 
     for (AttrValMap vals : this.items) {

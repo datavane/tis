@@ -98,29 +98,9 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
             final int index = i;
             JSONObject targetCol = targetCols.getJSONObject(index);
             udfObj = targetCol.getJSONObject(keyUdf);
-            // targetColName = targetCol.getString(keyTarget);
-
-
-//            if (!Validator.require.validate(msgHandler, context
-//                    , IFieldErrorHandler.joinField(keyColsMeta, Collections.singletonList(index), keyTarget), targetColName)) {
-//                postMCols.validateFaild = true;
-//            } else {
-//                List<Integer> cols = duplicateCols.get(targetColName);
-//                if (cols == null) {
-//                    cols = Lists.newArrayList();
-//                    duplicateCols.put(targetColName, cols);
-//                }
-//                cols.add(index);
-//            }
 
             transformerRule = new RecordTransformer();
 
-//            dataType = CMeta.parseType(targetCol, (propKey, errMsg) -> {
-//                msgHandler.addFieldError(context
-//                        , IFieldErrorHandler.joinField(keyColsMeta, Collections.singletonList(index), propKey)
-//                        , errMsg);
-//                postMCols.validateFaild = true;
-//            });
 
             if (udfObj == null) {
                 msgHandler.addFieldError(context

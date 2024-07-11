@@ -37,6 +37,7 @@ import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.extension.SubFormFilter;
+import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
@@ -64,6 +65,10 @@ import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.HeteroList;
+import com.qlangtech.tis.util.IItemsSaveResult;
+import com.qlangtech.tis.util.IPluginItemsProcessor;
+import com.qlangtech.tis.util.IPluginWithStore;
+import com.qlangtech.tis.util.IUploadPluginMeta;
 import com.qlangtech.tis.util.ItemsSaveResult;
 import com.qlangtech.tis.util.PluginItems;
 import com.qlangtech.tis.util.PluginItems.PluginWithStore;
@@ -872,25 +877,26 @@ public class PluginAction extends BasicModule {
     UploadPluginMeta pluginMeta = null;
 
     boolean faild = false;
-    List<PluginItems> categoryPlugins = Lists.newArrayList();
+    List<IPluginItemsProcessor> categoryPlugins = Lists.newArrayList();
     final boolean processNotebook = this.getBoolean("getNotebook");
     // 是否进行业务逻辑校验？当正式提交表单时候不进行业务逻辑校验，用户可能先添加一个不存在的数据库配置
     final boolean verify = processNotebook || this.getBoolean("verify");
-    PluginItemsParser pluginItemsParser = null;
+    Pair<Boolean, IPluginItemsProcessor> pluginItemsParser = null;
     for (int pluginIndex = 0; pluginIndex < plugins.size(); pluginIndex++) {
 
       pluginMeta = plugins.get(pluginIndex);
       JSONArray itemsArray = pluginArray.getJSONArray(pluginIndex);
-      pluginItemsParser = parsePluginItems(this, pluginMeta, context, pluginIndex, itemsArray, verify);
-      if (pluginItemsParser.faild) {
+
+      pluginItemsParser = getPluginItems(pluginMeta, context, pluginIndex, itemsArray, verify, ((propType, val) -> val));
+      if (pluginItemsParser.getKey()) {
         faild = true;
       }
-      categoryPlugins.add(pluginItemsParser.pluginItems);
+      categoryPlugins.add(pluginItemsParser.getValue());
     }
 
     if (verify && !this.hasErrors(context)) {
-      for (PluginItems pi : categoryPlugins) {
-        PluginWithStore storePlugins = pi.getStorePlugins();
+      for (IPluginItemsProcessor pi : categoryPlugins) {
+        IPluginWithStore storePlugins = pi.getStorePlugins();
         storePlugins.afterVerified();
       }
     }
@@ -905,15 +911,15 @@ public class PluginAction extends BasicModule {
     }
 
     if (processNotebook) {
-      for (PluginItems pi : categoryPlugins) {
+      for (IPluginItemsProcessor pi : categoryPlugins) {
         this.setBizResult(context, pi.cerateOrGetNotebook(this, context));
         return;
       }
     }
 
-    List<ItemsSaveResult> describables = Lists.newArrayList();
+    List<IItemsSaveResult> describables = Lists.newArrayList();
 
-    for (PluginItems pi : categoryPlugins) {
+    for (IPluginItemsProcessor pi : categoryPlugins) {
       describables.add(pi.save(context));
     }
 
@@ -929,8 +935,8 @@ public class PluginAction extends BasicModule {
     // 成功保存的主键信息返回给客户端
     if (context.get(IMessageHandler.ACTION_BIZ_RESULT) == null) {
       this.setBizResult(context,
-        describables.stream().flatMap((itemSaveResult) -> itemSaveResult.describableList.stream())
-          .filter((d) -> d instanceof IdentityName).map((d) -> ((IdentityName) d).identityValue()).collect(Collectors.toList()));
+        describables.stream()
+          .flatMap((itemSaveResult) -> itemSaveResult.getIdentityStream()).map((d) -> (d).identityValue()).collect(Collectors.toList()));
     }
   }
 
@@ -950,16 +956,34 @@ public class PluginAction extends BasicModule {
     return forwardParams;
   }
 
+  /**
+   * @param pluginMeta
+   * @param context
+   * @param pluginIndex
+   * @param itemsArray
+   * @param verify
+   * @return Boolean: is faild?, IPluginItemsProcessor
+   * @see com.qlangtech.tis.runtime.module.misc.IPostContent impl of
+   */
+  @Override
+  public final Pair<Boolean, IPluginItemsProcessor> getPluginItems(IUploadPluginMeta pluginMeta, Context context,
+                                                                   int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
+    PluginItemsParser pluginItemsParser
+      = parsePluginItems(this, (UploadPluginMeta) pluginMeta, context, pluginIndex, itemsArray, verify, propValRewrite);
+    return Pair.of(pluginItemsParser.faild, pluginItemsParser.pluginItems);
+
+  }
+
 
   public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta, Context context,
-                                                   int pluginIndex, JSONArray itemsArray, boolean verify) {
+                                                   int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
     context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
     // List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
     Optional<SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
 
     IPluginEnum hEnum = pluginMeta.getHeteroEnum();
     PluginItems pluginItems = new PluginItems(module, context, pluginMeta);
-    List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(itemsArray, subFormFilter);
+    List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(itemsArray, subFormFilter, propValRewrite);
     if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
       module.addErrorMessage(context, "请设置'" + hEnum.getCaption() + "'表单内容");
     }
@@ -1038,6 +1062,9 @@ public class PluginAction extends BasicModule {
 
   public static DatasourceDb createDatabase(BasicModule module, Descriptor.ParseDescribable<DataSourceFactory> dbDesc
     , String dbName, Context context, boolean shallUpdateDB, OfflineManager offlineManager) {
+    if (StringUtils.isEmpty(dbName)) {
+      throw new IllegalArgumentException("param dbName can not be empty");
+    }
     DatasourceDb datasourceDb = null;
     if (shallUpdateDB) {
       datasourceDb = new DatasourceDb();

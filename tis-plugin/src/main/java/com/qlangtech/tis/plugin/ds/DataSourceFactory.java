@@ -25,6 +25,7 @@ import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IDescribableManipulate;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.annotation.FormField;
@@ -388,12 +389,18 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         void vist(JDBCConnection conn) throws SQLException, TableNotFoundException;
     }
 
-    public abstract static class BaseDataSourceFactoryDescriptor<T extends DataSourceFactory> extends Descriptor<T> implements IEndTypeGetter {
+    public abstract static class BaseDataSourceFactoryDescriptor<T extends DataSourceFactory> extends Descriptor<T>
+            implements IEndTypeGetter, IDescribableManipulate<DataSourceFactoryManipulate> {
         private static final Logger logger = LoggerFactory.getLogger(BaseDataSourceFactoryDescriptor.class);
 
         @Override
         public final String getDisplayName() {
             return this.getDataSourceName();
+        }
+
+        @Override
+        public Class<DataSourceFactoryManipulate> getManipulateExtendPoint() {
+            return DataSourceFactoryManipulate.class;
         }
 
         /**
@@ -481,18 +488,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 msgHandler.addErrorMessage(context, "请确认连接参数是否正确:" + faild[0].getMessage());
                 return false;
             }
-
             return true;
-
-//            try {
-//                TableInDB tables = dsFactory.getTablesInDB();
-//                // msgHandler.addActionMessage(context, "find " + tables.size() + " table in db");
-//            } catch (Exception e) {
-//                logger.warn(e.getMessage(), e);
-//                msgHandler.addErrorMessage(context, TisException.getErrMsg(e).getMessage());
-//                return false;
-//            }
-//            return true;
         }
 
     }

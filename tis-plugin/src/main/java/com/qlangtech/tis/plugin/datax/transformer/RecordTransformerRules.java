@@ -49,17 +49,6 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 
     public static Function<String, RecordTransformerRules> transformerRulesLoader4Test;
 
-//    public static List<IColMetaGetter> overwriteCols(IPluginContext pluginCtx, ISelectedTab tab) {
-//        RecordTransformerRules transformerRules = loadTransformerRules(pluginCtx, tab.getName());
-//        List<IColMetaGetter> cols = null;
-//        if (transformerRules != null) {
-//            cols = transformerRules.overwriteCols(tab.getCols());
-//        } else {
-//            cols = tab.getCols().stream().collect(Collectors.toList());
-//        }
-//        return cols;
-//    }
-
     /**
      * 加载基于数据通道的表转换（Transformer）规则
      *

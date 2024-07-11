@@ -72,6 +72,7 @@ public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<
             setPropertyInCollectionFieldType(biz);
         }
         List<CMeta> colsCandidate = SelectedTab.getSelectedCols();
+
         biz.put("sourceTabCols", colsCandidate);
         biz.put("dftStrType", DataType.createVarChar(32));
         // biz.put();

@@ -18,19 +18,28 @@
 package com.qlangtech.tis.util;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.datax.IDataXNameAware;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.SuFormProperties.SuFormGetterContext;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler.BizLogic;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+import com.qlangtech.tis.runtime.module.misc.IPostContent;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.Collections;
+import java.util.List;
 
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public interface IPluginContext extends IMessageHandler, IDataXNameAware {
+public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostContent {
 
 
     public static IPluginContext namedContext(String collectionName) {
@@ -38,6 +47,26 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware {
             throw new IllegalArgumentException("param collectionName can not be empty");
         }
         return new IPluginContext() {
+            @Override
+            public JSONObject getJSONPostContent() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void executeBizLogic(BizLogic logicType, Context context, Object param) throws Exception {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public List<IUploadPluginMeta> parsePluginMeta(String[] plugins, boolean useCache) {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public Pair<Boolean, IPluginItemsProcessor> getPluginItems(
+                    IUploadPluginMeta pluginMeta, Context context, int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
+                throw new UnsupportedOperationException();
+            }
 
             @Override
             public String getExecId() {
@@ -98,6 +127,8 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware {
      */
     String getExecId();
 
+
+    public void executeBizLogic(BizLogic logicType, Context context, Object param) throws Exception;
 
     /**
      * 是否和数据源相关

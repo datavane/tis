@@ -18,12 +18,16 @@
 package com.qlangtech.tis.runtime.module.action;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSONArray;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.dao.IClusterSnapshotDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshot;
 import com.qlangtech.tis.manage.biz.dal.pojo.ClusterSnapshotQuery;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.util.IPluginItemsProcessor;
+import com.qlangtech.tis.util.IUploadPluginMeta;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -172,7 +176,9 @@ public class ClusterStateCollectAction extends BasicModule {
         };
     }
 
-    public interface StatusCollectStrategy {
+
+
+  public interface StatusCollectStrategy {
 
         List<ClusterSnapshot> getSnapshots();
 

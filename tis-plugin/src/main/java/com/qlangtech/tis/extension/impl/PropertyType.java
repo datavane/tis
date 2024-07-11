@@ -121,7 +121,7 @@ public class PropertyType implements IPropertyType {
 
     @Override
     public boolean isCollectionType() {
-     //   PropertyType pt = (PropertyType) propertyType;
+        //   PropertyType pt = (PropertyType) propertyType;
         return List.class.isAssignableFrom(this.clazz);
     }
 
@@ -444,14 +444,12 @@ public class PropertyType implements IPropertyType {
         try {
             Object val = this.f.get(instance);
             if (this.formField.type() == FormFieldType.MULTI_SELECTABLE) {
-
-                return this.getMultiItemsViewType().serialize2Frontend(val);
-                //  return this.extraProp.multiItemsViewType(this.getParentHostClass()).serialize2Frontend(val);
+                return this.getMultiItemsViewType().serialize2Frontend(this.isCollectionType() ? val : Collections.singletonList(val));
             }
 
             return this.formField.type().valProcessor.serialize2Output(this, val);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("property:" + this.f.getName(), e);
         }
     }
 

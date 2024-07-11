@@ -32,7 +32,7 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
-import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.plugin.ds.DBIdentity;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-07-20 11:00
  */
-public class UploadPluginMeta {
+public class UploadPluginMeta implements IUploadPluginMeta {
 
     public static final String KEY_PLUGIN_META = UploadPluginMeta.class.getName();
 
@@ -90,13 +90,14 @@ public class UploadPluginMeta {
 
 
     public boolean isUpdate() {
-        return this.getBoolean(PostedDSProp.KEY_UPDATE);
+        return this.getBoolean(DBIdentity.KEY_UPDATE);
     }
 
     public boolean isUseCache() {
         return this.useCache;
     }
 
+    @Override
     public void putExtraParams(String key, String val) {
         if (StringUtils.isEmpty(val)) {
             throw new IllegalArgumentException("key:" + key + " relevant val can not be null");
@@ -137,18 +138,18 @@ public class UploadPluginMeta {
     }
 
     public static List<UploadPluginMeta> parse(IPluginContext context, String[] plugins) {
-        return parse(context, plugins, true);
+        return parse(context, plugins, true).stream().map((meta) -> (UploadPluginMeta) meta).collect(Collectors.toList());
     }
 
-    public static List<UploadPluginMeta> parse(String[] plugins, boolean useCache) {
+    public static List<IUploadPluginMeta> parse(String[] plugins, boolean useCache) {
         return parse(null, plugins, useCache);
     }
 
-    public static List<UploadPluginMeta> parse(IPluginContext context, String[] plugins, boolean useCache) {
+    public static List<IUploadPluginMeta> parse(IPluginContext context, String[] plugins, boolean useCache) {
         if (plugins == null || plugins.length < 1) {
             throw new IllegalArgumentException("plugin size:" + plugins.length + " length can not small than 1");
         }
-        List<UploadPluginMeta> metas = Lists.newArrayList();
+        List<IUploadPluginMeta> metas = Lists.newArrayList();
         for (String plugin : plugins) {
             metas.add(parse(context, plugin, useCache));
         }

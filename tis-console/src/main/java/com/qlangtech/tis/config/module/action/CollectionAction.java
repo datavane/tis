@@ -976,6 +976,11 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
     private final HeteroEnum pluginType;
 
+    @Override
+    public void executeBizLogic(BizLogic logicType, Context context, Object param) throws Exception {
+      throw new UnsupportedOperationException();
+    }
+
     public DftPluginContext(HeteroEnum pluginType) {
       this.pluginType = pluginType;
     }
@@ -993,6 +998,16 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     @Override
     public boolean isDataSourceAware() {
       return pluginType == HeteroEnum.DATASOURCE;
+    }
+
+    @Override
+    public JSONObject getJSONPostContent() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<IUploadPluginMeta> parsePluginMeta(String[] plugins, boolean useCache) {
+      throw new UnsupportedOperationException();
     }
 
     @Override

@@ -32,6 +32,10 @@ import java.util.Optional;
  **/
 public interface DBIdentity extends IdentityName {
 
+    String KEY_DB_NAME = "dsname";
+    String KEY_TYPE = "type";
+    String KEY_UPDATE = "update";
+
     public static DBIdentity parseId(final String idVal) {
         Optional<DBIdentity> id = parse(idVal);
         if (!id.isPresent()) {

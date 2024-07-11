@@ -1100,16 +1100,7 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doCreateDatax(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(null, StoreResourceType.DataApp, dataxName);
-    Application app = dataxProcessor.buildApp();
-
-    SchemaAction.CreateAppResult createAppResult
-      = this.createNewApp(context, app, dataxProcessor, false, (newAppId) -> {
-      SchemaAction.CreateAppResult appResult = new SchemaAction.CreateAppResult();
-      appResult.setSuccess(true);
-      appResult.setNewAppId(newAppId);
-      return appResult;
-    });
+    this.createPipeline(context, dataxName);
   }
 
   private static final Pattern PatternEdittingDirSuffix =

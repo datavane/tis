@@ -44,7 +44,6 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore.AppKey;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
-import com.qlangtech.tis.plugin.KeyedPluginStore.KeyVal;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
@@ -56,7 +55,6 @@ import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
 import com.qlangtech.tis.plugin.k8s.K8sImage.ImageCategory;
-import com.qlangtech.tis.plugin.trigger.JobTrigger;
 import com.qlangtech.tis.plugin.utils.UploadCustomizedTPI;
 import org.apache.commons.lang.StringUtils;
 
@@ -152,7 +150,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     public static final HeteroEnum<NoStorePlaceholderPlugin> noStore //
             = new HeteroEnum<NoStorePlaceholderPlugin>(//
             NoStorePlaceholderPlugin.class, //
-            "noStore", "noStore", Selectable.Multi, true) {
+            "noStore", "noStore", Selectable.Multi, false) {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
             return IPluginStore.noSaveStore();

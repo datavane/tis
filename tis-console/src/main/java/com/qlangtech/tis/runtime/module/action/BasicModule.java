@@ -80,6 +80,7 @@ import com.qlangtech.tis.manage.common.apps.AppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -92,6 +93,7 @@ import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IERRulesGetter;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.IUploadPluginMeta;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
@@ -126,6 +128,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 /**
@@ -152,7 +155,14 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   protected List<UploadPluginMeta> getPluginMeta() {
     final boolean useCache = Boolean.parseBoolean(this.getString("use_cache", "true"));
-    return UploadPluginMeta.parse(this, this.getStringArray("plugin"), useCache);
+    // return UploadPluginMeta.parse(this, this.getStringArray("plugin"), useCache);
+    return parsePluginMeta(this.getStringArray("plugin"), useCache)
+      .stream().map((meta) -> (UploadPluginMeta) meta).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<IUploadPluginMeta> parsePluginMeta(String[] plugins, boolean useCache) {
+    return UploadPluginMeta.parse(this, plugins, useCache);
   }
 
 //  protected static WorkFlow getAppBindedWorkFlow(BasicModule module) {
@@ -253,12 +263,26 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   @Override
+  public final void executeBizLogic(BizLogic logicType, Context context, Object param) throws Exception {
+    switch (logicType) {
+      case CREATE_DATA_PIPELINE:
+        String dataxName = (String) param;
+        if (StringUtils.isEmpty(dataxName)) {
+          throw new IllegalArgumentException("param dataXName can not be null");
+        }
+        this.createPipeline(context, dataxName);
+      default:
+        throw new IllegalStateException("illegal logicType:" + logicType);
+    }
+  }
+
+  @Override
   public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
     switch (logicType) {
-      case APP_NAME_DUPLICATE:
+      case VALIDATE_APP_NAME_DUPLICATE:
         AppNameDuplicateValidator nameDuplicateValidator = new AppNameDuplicateValidator(this.getApplicationDAO());
         return nameDuplicateValidator.validate(this, context, fieldName, value);
-      case WORKFLOW_NAME_DUPLICATE:
+      case VALIDATE_WORKFLOW_NAME_DUPLICATE:
 
         DataFlowDuplicateValidator wfValidator = new DataFlowDuplicateValidator(this.wfDAOFacade.getWorkFlowDAO());
         return wfValidator.validate(this, context, fieldName, value);
@@ -321,7 +345,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   protected String getReturnCode() {
 
-   // ActionContext actionCtx = ActionContext.getContext();
+    // ActionContext actionCtx = ActionContext.getContext();
     //ActionProxy proxy = actionCtx.getActionInvocation().getProxy();
     // 并且只有screen中的 模块可以设置forward
     if (this.getRequest().getAttribute(TERMINATOR_FORWARD) != null) {
@@ -458,14 +482,25 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     this.wfDAOFacade = facade;
   }
 
+  protected void createPipeline(Context context, String dataxName) throws Exception {
+    DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(null, StoreResourceType.DataApp, dataxName);
+    Application app = dataxProcessor.buildApp();
+
+    SchemaAction.CreateAppResult createAppResult
+      = this.createNewApp(context, app, dataxProcessor, false, (newAppId) -> {
+      SchemaAction.CreateAppResult appResult = new SchemaAction.CreateAppResult();
+      appResult.setSuccess(true);
+      appResult.setNewAppId(newAppId);
+      return appResult;
+    });
+  }
+
   public static class DataFlowDuplicateValidator implements Validator.IFieldValidator {
     private final IWorkFlowDAO workFlowDAO;
 
     public DataFlowDuplicateValidator(IWorkFlowDAO workFlowDAO) {
       this.workFlowDAO = workFlowDAO;
     }
-
-
 
 
     @Override
@@ -1176,6 +1211,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public JSONObject getJSONPostContent() {
+    return this.parseJsonPost();
   }
 
   protected JSONObject parseJsonPost() {
