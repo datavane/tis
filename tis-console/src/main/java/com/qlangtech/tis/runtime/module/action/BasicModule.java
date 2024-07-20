@@ -265,12 +265,14 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   @Override
   public final void executeBizLogic(BizLogic logicType, Context context, Object param) throws Exception {
     switch (logicType) {
-      case CREATE_DATA_PIPELINE:
+      case CREATE_DATA_PIPELINE: {
         String dataxName = (String) param;
         if (StringUtils.isEmpty(dataxName)) {
           throw new IllegalArgumentException("param dataXName can not be null");
         }
         this.createPipeline(context, dataxName);
+        return;
+      }
       default:
         throw new IllegalStateException("illegal logicType:" + logicType);
     }

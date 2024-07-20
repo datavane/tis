@@ -21,8 +21,6 @@ package com.qlangtech.tis.coredefine.module.action;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.opensymphony.xwork2.ActionProxy;
-import com.qlangtech.tis.BasicActionTestCase;
-import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 
@@ -30,7 +28,7 @@ import com.qlangtech.tis.trigger.util.JsonUtil;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-05-15 12:13
  **/
-public class TestPluginAction extends BasicActionTestCase {
+public class TestPluginAction extends BasicPluginAction {
 
   /**
    * 在DataX实例创建时，使用Mysql类型的Reader时 需要选择导入表的的步骤中需要使用到
@@ -44,11 +42,7 @@ public class TestPluginAction extends BasicActionTestCase {
 //    plugin: dataxReader:require,targetDescriptorName_MySQL,subFormFieldName_selectedTabs,dataxName_baisuitest
 
     //doGetPluginConfigInfo
-    String dataXName = "baisuitestTestcase";
-    request.addHeader(DataxReader.HEAD_KEY_REFERER, "/x/" + dataXName + "/config");
-    request.setParameter("event_submit_do_get_plugin_config_info", "y");
-    request.setParameter("action", "plugin_action");
-    request.setParameter("plugin", "dataxReader:require,targetDescriptorName_MySQL,subFormFieldName_selectedTabs,dataxName_" + dataXName);
+    this.initializeRequest();
     //JSONObject content = new JSONObject();
 
     //content.put(CollectionAction.KEY_INDEX_NAME, TEST_TABLE_EMPLOYEES_NAME);
@@ -89,11 +83,7 @@ public class TestPluginAction extends BasicActionTestCase {
 
   }
 
-  private ActionProxy getActionProxy() {
-    ActionProxy proxy = getActionProxy("/coredefine/corenodemanage.ajax");
-    assertNotNull(proxy);
-    PluginAction pluginAction = (PluginAction) proxy.getAction();
-    assertNotNull(pluginAction);
-    return proxy;
-  }
+
+
+
 }

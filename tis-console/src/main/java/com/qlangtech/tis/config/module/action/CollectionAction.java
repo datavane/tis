@@ -829,7 +829,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       throw new IllegalStateException("incr plugin item size can not small than 1");
     }
 
-    PluginAction.PluginItemsParser validate = incrPluginItems.validate(this, context, 0, false);
+    PluginItemsParser validate = incrPluginItems.validate(this, context, 0, false);
     if (validate.faild) {
       return false;
     }

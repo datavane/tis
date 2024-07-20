@@ -56,6 +56,7 @@ public interface IEndTypeGetter {
      */
     enum EndType implements IEndType {
         Greenplum("greenplum"), MySQL("mysql", true) //
+        , MariaDB("mariaDB", true) //
         , Postgres("pg", true), Oracle("oracle", true) //
         , ElasticSearch("es", true), MongoDB("mongoDB", true) //
         , StarRocks("starRocks", true), Doris("doris", true) //

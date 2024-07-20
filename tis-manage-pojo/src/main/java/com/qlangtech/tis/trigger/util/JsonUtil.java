@@ -19,9 +19,6 @@ package com.qlangtech.tis.trigger.util;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.serializer.JSONSerializer;
-import com.alibaba.fastjson.serializer.ObjectSerializer;
-import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.impl.IOUtils;
@@ -31,15 +28,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import java.io.IOException;
 import java.lang.reflect.Array;
-import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -137,7 +131,7 @@ public class JsonUtil {
 //        };
 
         //  com.alibaba.fastjson2.JSON.register(DescriptorsJSONResult.class, descSerializer);
-       // SerializeConfig.global.put(UnCacheString.class, serializer);
+        // SerializeConfig.global.put(UnCacheString.class, serializer);
         // SerializeConfig.global.put(JsonSerializer.class, jsonSerializer);
         //  SerializeConfig.global.put(DescriptorsJSONResult.class, descSerializer);
     }
@@ -221,7 +215,7 @@ public class JsonUtil {
     }
 
     public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, DescriptorsJSONResult actual, IAssert azzert) {
-        assertJSONEqual(invokeClass, assertFileName, JsonUtil.toString(actual,true), azzert);
+        assertJSONEqual(invokeClass, assertFileName, JsonUtil.toString(actual, true), azzert);
     }
 
     public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, String actual, IAssert azzert) {
@@ -238,9 +232,19 @@ public class JsonUtil {
         assertJSONEqual(invokeClass, assertFileName, JSON.parseObject(actual), azzert);
     }
 
+    /**
+     * 从classpath中加载JSON资源对象
+     * @param invokeClass
+     * @param fileName
+     * @return
+     */
+    public static com.alibaba.fastjson.JSONObject loadJSON(Class<?> invokeClass, String fileName) {
+        return JSON.parseObject(IOUtils.loadResourceFromClasspath(invokeClass, fileName));
+    }
+
     public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, com.alibaba.fastjson.JSONObject actual, IAssert azzert) {
         String expectJson = com.alibaba.fastjson.JSON.toJSONString(
-                JSON.parseObject(IOUtils.loadResourceFromClasspath(invokeClass, assertFileName))
+                loadJSON(invokeClass, assertFileName)
                 , SerializerFeature.DisableCircularReferenceDetect, SerializerFeature.PrettyFormat, SerializerFeature.MapSortField);
         System.out.println(assertFileName + "\n" + expectJson);
         String actualJson = com.alibaba.fastjson.JSON.toJSONString(actual

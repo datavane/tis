@@ -22,10 +22,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.coredefine.module.action.PluginAction;
+import com.qlangtech.tis.coredefine.module.action.PluginItemsParser;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.IAppSource;
@@ -42,7 +41,6 @@ import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
-import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.utils.DBsGetter;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
@@ -104,9 +102,9 @@ public class PluginItems implements IPluginItemsProcessor {
    * @param verify
    * @return
    */
-  public PluginAction.PluginItemsParser validate(BasicModule module, Context context, int pluginIndex, boolean verify) {
+  public PluginItemsParser validate(IPluginContext module, Context context, int pluginIndex, boolean verify) {
     List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
-    PluginAction.PluginItemsParser parseResult = new PluginAction.PluginItemsParser(items);
+    PluginItemsParser parseResult = new PluginItemsParser(items);
     parseResult.pluginItems = this;
     Descriptor.PluginValidateResult validateResult = null;
 
@@ -119,7 +117,7 @@ public class PluginItems implements IPluginItemsProcessor {
         try {
           AttrValMap.setCurrentRootPluginValidator(attrValMap.descriptor);
           Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
-          if (!(validateResult = attrValMap.validate(module, context, verify)).isValid()) {
+          if (!(validateResult = attrValMap.validate((IControlMsgHandler) module, context, verify)).isValid()) {
             parseResult.faild = true;
           } else {
             validateResult.setDescriptor(attrValMap.descriptor);

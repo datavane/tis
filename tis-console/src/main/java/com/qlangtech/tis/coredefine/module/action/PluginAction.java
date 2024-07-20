@@ -31,12 +31,10 @@ import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.Descriptor.PluginValidateResult;
 import com.qlangtech.tis.extension.INotebookable;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
-import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
@@ -54,14 +52,12 @@ import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginTaggable;
-import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.BasicRundata;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.HeteroList;
@@ -71,8 +67,6 @@ import com.qlangtech.tis.util.IPluginWithStore;
 import com.qlangtech.tis.util.IUploadPluginMeta;
 import com.qlangtech.tis.util.ItemsSaveResult;
 import com.qlangtech.tis.util.PluginItems;
-import com.qlangtech.tis.util.PluginItems.PluginWithStore;
-import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
@@ -969,73 +963,9 @@ public class PluginAction extends BasicModule {
   public final Pair<Boolean, IPluginItemsProcessor> getPluginItems(IUploadPluginMeta pluginMeta, Context context,
                                                                    int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
     PluginItemsParser pluginItemsParser
-      = parsePluginItems(this, (UploadPluginMeta) pluginMeta, context, pluginIndex, itemsArray, verify, propValRewrite);
+      = PluginItemsParser.parsePluginItems(this, (UploadPluginMeta) pluginMeta, context, pluginIndex, itemsArray, verify, propValRewrite);
     return Pair.of(pluginItemsParser.faild, pluginItemsParser.pluginItems);
 
-  }
-
-
-  public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta, Context context,
-                                                   int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
-    context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
-    // List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
-    Optional<SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
-
-    IPluginEnum hEnum = pluginMeta.getHeteroEnum();
-    PluginItems pluginItems = new PluginItems(module, context, pluginMeta);
-    List<AttrValMap> describableAttrValMapList = AttrValMap.describableAttrValMapList(itemsArray, subFormFilter, propValRewrite);
-    if (pluginMeta.isRequired() && describableAttrValMapList.size() < 1) {
-      module.addErrorMessage(context, "请设置'" + hEnum.getCaption() + "'表单内容");
-    }
-
-    pluginItems.items = describableAttrValMapList;
-
-    PluginItemsParser parseResult = pluginItems.validate(module, context, pluginIndex, verify);
-
-    int newAddItemsCount = parseResult.items.size();
-    /**===============================================
-     * 校验Item字段的identity字段不能重复，不然就报错
-     ===============================================*/
-    Map<String, Descriptor.PluginValidateResult> identityUniqueMap = Maps.newHashMap();
-
-    Descriptor.PluginValidateResult previous = null;
-    if (!parseResult.faild
-      && hEnum.isIdentityUnique()
-      && hEnum.getSelectable() == Selectable.Multi
-      && (parseResult.items.size() > 1 || pluginMeta.isAppend())) {
-
-      Descriptor desc = null;
-      if (pluginMeta.isAppend()) {
-        // 已经存在的添加到identityUniqueMap
-        List<IdentityName> plugins = hEnum.getPlugins(module, pluginMeta);
-        for (IdentityName p : plugins) {
-          desc = ((Describable) p).getDescriptor();
-          Descriptor.PluginValidateResult r = new Descriptor.PluginValidateResult(new Descriptor.PostFormVals(desc,
-            module, context, AttrValMap.IAttrVals.rootForm(Collections.emptyMap())), pluginIndex, newAddItemsCount++);
-          r.setDescriptor(desc);
-          identityUniqueMap.put(p.identityValue(), r);
-        }
-      }
-
-      for (Descriptor.PluginValidateResult i : parseResult.items) {
-        if ((previous = identityUniqueMap.put(i.getIdentityFieldValue(), i)) != null) {
-          previous.addIdentityFieldValueDuplicateError(module, context);
-          i.addIdentityFieldValueDuplicateError(module, context);
-          return parseResult;
-        }
-      }
-    }
-    return parseResult;
-  }
-
-  public static class PluginItemsParser {
-    public boolean faild = false;
-    public PluginItems pluginItems;
-    public final List<Descriptor.PluginValidateResult> items;
-
-    public PluginItemsParser(List<PluginValidateResult> items) {
-      this.items = items;
-    }
   }
 
 
