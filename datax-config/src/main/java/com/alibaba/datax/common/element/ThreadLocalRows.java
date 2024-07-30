@@ -18,35 +18,40 @@
 
 package com.alibaba.datax.common.element;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-06-18 17:40
+ * @create: 2024-07-22 16:56
  **/
-public interface ColumnAwareRecord<ColValType> {
+public class ThreadLocalRows {
+    private final List<Record> rows = new ArrayList<>();
 
-    /**
-     * 设置列名称到列所在index的位置
-     *
-     * @param mapper
-     */
-    public void setCol2Index(ICol2Index mapper);
+    private QueryCriteria query;
+    private DataXResultPreviewOrderByCols orderByCols;
 
-    public ICol2Index getCol2Index();
+    public DataXResultPreviewOrderByCols getPagerOffsetPointCols() {
+        return this.orderByCols;
+    }
 
-    /**
-     * @param field  字段名称
-     * @param colVal
-     */
-    public void setColumn(String field, final ColValType colVal);
+    public void setPagerOffsetPointCols(DataXResultPreviewOrderByCols pagerOffsetPointCols) {
+        this.orderByCols = pagerOffsetPointCols;
+    }
 
+    public QueryCriteria getQuery() {
+        return query;
+    }
 
-    public void setString(String field, final String val);
+    public void setQuery(QueryCriteria query) {
+        this.query = query;
+    }
 
-    /**
-     * @param field 字段名称
-     * @return
-     */
-    public ColValType getColumn(String field);
+    public void addRecord(Record record) {
+        this.rows.add(record);
+    }
 
-    public String getString(String field);
+    public List<Record> getRows() {
+        return this.rows;
+    }
 }

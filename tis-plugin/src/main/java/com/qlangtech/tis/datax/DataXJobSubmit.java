@@ -19,12 +19,15 @@
 package com.qlangtech.tis.datax;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.datax.common.element.QueryCriteria;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.build.task.IBuildHistory;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
+import com.qlangtech.tis.datax.preview.IPreviewRowsDataService;
+import com.qlangtech.tis.datax.preview.PreviewRowsData;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.TISExtensible;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
@@ -49,7 +52,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
@@ -64,7 +66,7 @@ import java.util.function.Function;
  **/
 @TISExtensible
 @Public
-public abstract class DataXJobSubmit {
+public abstract class DataXJobSubmit implements IPreviewRowsDataService {
     private static final Logger logger = LoggerFactory.getLogger(DataXJobSubmit.class);
     public static final String KEY_DATAX_READERS = "dataX_readers";
     public static final int MAX_TABS_NUM_IN_PER_JOB = 40;
@@ -165,9 +167,9 @@ public abstract class DataXJobSubmit {
             @Override
             public boolean validate(IControlMsgHandler controlMsgHandler, Context context,
                                     List<DataXCfgFile> cfgFileNames) {
-                DataXJobSubmitParams submitParams  = DataXJobSubmitParams.getDftIfEmpty();
+                DataXJobSubmitParams submitParams = DataXJobSubmitParams.getDftIfEmpty();
                 if (cfgFileNames.size() > submitParams.maxJobs) {
-                    controlMsgHandler.addErrorMessage(context, "单机版，单次表导入不能超过" +  submitParams.maxJobs +
+                    controlMsgHandler.addErrorMessage(context, "单机版，单次表导入不能超过" + submitParams.maxJobs +
                             "张，如需要导入更多表，请使用分布式K8S DataX执行期");
                     return false;
                 }
@@ -193,6 +195,17 @@ public abstract class DataXJobSubmit {
                                          List<DataXCfgFile> cfgFileNames);
     }
 
+    /**
+     *  预览数据，每次查看只能向前翻页或者向后翻页，不能随机翻页
+     * @param dataXName
+     * @param tableName
+     * @param queryCriteria
+     * @return
+     */
+    @Override
+    public PreviewRowsData previewRowsData(String dataXName, String tableName, QueryCriteria queryCriteria) {
+        throw new UnsupportedOperationException();
+    }
 
     public abstract InstanceType getType();
 
@@ -375,7 +388,7 @@ public abstract class DataXJobSubmit {
 
                 @Override
                 public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx) {
-                  throw new UnsupportedOperationException();
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
@@ -425,6 +438,16 @@ public abstract class DataXJobSubmit {
                 @Override
                 public IJoinTaskContext getTaskContext() {
                     return parentContext;
+                }
+
+                @Override
+                public <T> void setAttr(Class<T> key, Object val) {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public <T> T getAttr(Class<T> key) {
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override

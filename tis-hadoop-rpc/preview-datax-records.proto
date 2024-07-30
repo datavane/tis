@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+option java_multiple_files = true;
+option java_package = "com.qlangtech.tis.rpc.grpc.datax.preview";
+option java_outer_classname = "DataXRecordsPreviewService";
+option objc_class_prefix = "HLWS";
+package stream;
+
+service DataXRecordsPreview {
+
+    // 同虚拟机下主进程查询执行进程执行结果通过此方法
+    rpc previewRowsData (PreviewRowsDataCriteria) returns (PreviewRowsDataResponse) {
+    }
+}
+
+
+message PreviewRowsDataCriteria {
+    string dataXName = 1;
+    string tableName = 2;
+    bool next = 3;
+    // 主键值，如果是首次查询，可以不设置该值
+    map<string, string> orderByCols = 4;
+    uint32 pageSize = 5;
+}
+
+//message PreviewOrderByCols {
+// repeated OffsetColValGrpc offsetCols = 1;
+//}
+
+//message OffsetColValGrpc {
+// string colKey = 1;
+// string val = 2;
+// bool isNumericJdbcType = 3;
+//}
+
+message PreviewRowsDataResponse {
+   map<string, uint32> columnHeader = 1;
+   repeated Record records = 2;
+}
+
+  //message StringValue {
+  // The string value.
+  //  string value = 1;
+  //}
+
+// 由于record 中colVals中的元素可以为空，单grpc规定repeated传输的原属不能为空，所以需要一个StringValue对象来作占位用
+message Record {
+ repeated .google.protobuf.StringValue colVals = 1;
+}
+
+
+
+

@@ -128,34 +128,6 @@ public class StatusRpcClientFactory {
         connect2RemoteIncrStatusServer(incrStateCollectAddress, rpcCallback);
     }
 
-//    public static AssembleSvcCompsite connect2RemoteIncrStatusServer(String incrStateCollectAddress) {
-//
-//
-//        if (instance == null) {
-//            synchronized (StatusRpcClient.class) {
-//                if (instance == null) {
-//                    return instance.connect2RemoteIncrStatusServer(incrStateCollectAddress, new AssembleSvcCompsiteCallback() {
-//
-//                        @Override
-//                        public AssembleSvcCompsite process(AssembleSvcCompsite oldrpc, AssembleSvcCompsite newrpc) {
-//                            return newrpc;
-//                        }
-//
-//                        @Override
-//                        public AssembleSvcCompsite getOld() {
-//                            return null;
-//                        }
-//
-//                        @Override
-//                        public void errorOccur(AssembleSvcCompsite oldrpc, Exception e) {
-//                        }
-//                    });
-//                }
-//            }
-//        }
-//
-//    }
-
     private AssembleSvcCompsite connect2RemoteIncrStatusServer(String incrStateCollectAddress, AssembleSvcCompsiteCallback rpcCallback) {
         InetSocketAddress address;
         Matcher matcher = ADDRESS_PATTERN.matcher(incrStateCollectAddress);

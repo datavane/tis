@@ -18,6 +18,8 @@
 package com.qlangtech.tis.coredefine.module.action;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.datax.common.element.DataXResultPreviewOrderByCols;
+import com.alibaba.datax.common.element.QueryCriteria;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -29,12 +31,14 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.coredefine.module.action.IncrUtils.IncrSpecResult;
 import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.DataXJobSubmit.InstanceType;
 import com.qlangtech.tis.datax.IDataXPowerJobSubmit;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxReaderContext;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
+import com.qlangtech.tis.datax.preview.PreviewRowsData;
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.datax.TableAliasMapper;
 import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
@@ -1247,6 +1251,51 @@ public class DataxAction extends BasicModule {
     DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(this, dataxName);
     dataxProcessor.setTableMaps(tableMaps);
     IAppSource.save(pluginContext, dataxName, dataxProcessor);
+  }
+
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
+  public void doPreviewTableRows(Context context) {
+    String targetTab = this.getString("table");
+    JSONObject jsonPostContent = this.getJSONPostContent();
+    if (StringUtils.isEmpty(targetTab)) {
+      throw new IllegalArgumentException("param table can not be null");
+    }
+    String dataXName = this.getCollectionName();
+    Optional<DataXJobSubmit> jobSubmit = DataXJobSubmit.getDataXJobSubmit(false, InstanceType.LOCAL);
+    DataXJobSubmit submit = jobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must be present"));
+
+    QueryCriteria queryCriteria = new QueryCriteria();
+    queryCriteria.setNextPakge(true);
+    queryCriteria.setPageSize(this.getInt("pageSize"));
+    if (queryCriteria.getPageSize() < 1) {
+      throw new IllegalStateException("page size can not small than 1");
+    }
+
+    JSONObject offsetPointer = null;
+    if (jsonPostContent != null) {
+      queryCriteria.setNextPakge(jsonPostContent.getBooleanValue("nextPage"));
+      offsetPointer = jsonPostContent.getJSONObject("offsetPointer");
+    }
+
+    if (offsetPointer != null) {
+      Map<String, String> pagerOffsetPointColVals = Maps.newHashMap();
+      for (Map.Entry<String, Object> entry : offsetPointer.entrySet()) {
+        pagerOffsetPointColVals.put(entry.getKey(), (String) entry.getValue());
+      }
+      queryCriteria.setPagerOffsetPointCols(pagerOffsetPointColVals);
+    }
+
+
+    Map<String, Object> preview = Maps.newHashMap();
+    boolean needHeader = true;
+    PreviewRowsData records = submit.previewRowsData(dataXName, targetTab, queryCriteria);
+
+    if (needHeader) {
+      preview.put("header", records.getHeader());
+    }
+    preview.put("rows", records.getRows());
+
+    this.setBizResult(context, preview);
   }
 
   /**

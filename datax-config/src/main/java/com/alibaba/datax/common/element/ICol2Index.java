@@ -18,10 +18,15 @@
 
 package com.alibaba.datax.common.element;
 
+import java.util.Map;
+
 /**
- *
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-07-03 13:42
  **/
 public interface ICol2Index {
+    /**
+     * @return key: 列名 ，val：列所在位置
+     */
+    public Map<String, Integer> getCol2Index();
 }

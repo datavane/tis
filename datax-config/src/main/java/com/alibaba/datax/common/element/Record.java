@@ -23,6 +23,16 @@ package com.alibaba.datax.common.element;
  */
 public interface Record extends ColumnAwareRecord<Object> {
 
+//    /**
+//     * 用于data rows preview
+//     */
+//    ThreadLocal<List<Record>> threadLocalRows
+//            = new ThreadLocal<List<Record>>() {
+//        @Override
+//        protected List<Record> initialValue() {
+//            return new ArrayList<>();
+//        }
+//    };
 
     public void addColumn(Column column);
 

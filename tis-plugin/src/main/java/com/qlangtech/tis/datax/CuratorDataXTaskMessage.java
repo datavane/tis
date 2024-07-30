@@ -42,6 +42,16 @@ public class CuratorDataXTaskMessage implements IDataXTaskRelevant {
 
     private int taskSerializeNum;
 
+    @Override
+    public <T> void setAttr(Class<T> key, Object val) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> T getAttr(Class<T> key) {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * 资源类型
      */

@@ -73,7 +73,9 @@ public interface IEndTypeGetter {
         Flink("flink", true), Docker("docker", true), K8S("k8s", true),
         BliBli("blibli", true),
         StreamComputing("stream-computing", true),
-        BatchComputing("batch-computing", true);
+        BatchComputing("batch-computing", true)
+        // 预览按钮
+        , Preview("preview", true);
 
         private final String val;
         private final boolean containICON;
