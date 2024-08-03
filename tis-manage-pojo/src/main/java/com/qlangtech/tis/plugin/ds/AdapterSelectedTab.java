@@ -20,8 +20,8 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -36,8 +36,8 @@ public class AdapterSelectedTab implements ISelectedTab {
     }
 
     @Override
-    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx) {
-        return target.overwriteCols(pluginCtx);
+    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, Optional<IReaderSource> readerSource) {
+        return target.overwriteCols(pluginCtx, readerSource);
     }
 
     @Override

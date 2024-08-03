@@ -60,6 +60,13 @@ public abstract class UDFDefinition implements Describable<UDFDefinition>, After
     public abstract List<OutputParameter> outParameters();
 
     /**
+     * 函数的入参数
+     *
+     * @return
+     */
+    public abstract List<InParamer> inParameters();
+
+    /**
      * 对记录进行处理
      *
      * @param record

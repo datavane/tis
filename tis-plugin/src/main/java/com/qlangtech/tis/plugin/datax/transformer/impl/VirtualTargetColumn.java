@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.plugin.datax.transformer.impl;
 
+import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.annotation.FormField;
@@ -25,6 +26,9 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.transformer.TargetColumn;
 import com.qlangtech.tis.plugin.datax.transformer.UDFDesc;
+import com.qlangtech.tis.plugin.ds.ContextParamConfig;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +39,8 @@ import java.util.List;
  **/
 public class VirtualTargetColumn extends TargetColumn {
 
-    @FormField(ordinal = 1, identity = true, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.db_col_name})
+    @FormField(ordinal = 1, identity = true, type = FormFieldType.INPUTTEXT, validate = {Validator.require //, Validator.db_col_name
+    })
     public String name;
 
     @Override
@@ -62,6 +67,15 @@ public class VirtualTargetColumn extends TargetColumn {
     public static class VirtualTargetColumnDesc extends Descriptor<TargetColumn> {
         public VirtualTargetColumnDesc() {
             super();
+        }
+
+        public boolean validateName(IFieldErrorHandler msgHandler, Context context, String fieldName, String value) {
+
+            if (StringUtils.startsWith(value, ContextParamConfig.CONTEXT_BINDED_KEY_PREFIX)) {
+                value = StringUtils.substring(value, 1);
+            }
+
+            return Validator.db_col_name.getFieldValidator().validate(msgHandler, context, fieldName, value);
         }
 
         @Override

@@ -89,11 +89,21 @@ public class CMeta extends TypeBase implements Serializable, IColMetaGetter, Ide
     }
 
     public static CMeta create(Optional<ElementCreatorFactory<CMeta>> elementCreator, String colName, JDBCTypes type) {
+//        CMeta cmeta = elementCreator.map((factory) -> {
+//            return factory.createDefault();
+//        }).orElse(new CMeta());// new CMeta();
+//        cmeta.setName(colName);
+//        cmeta.setType(DataTypeMeta.getDataTypeMeta(type).getType());
+//        return cmeta;
+        return create(elementCreator, colName, DataTypeMeta.getDataTypeMeta(type).getType());
+    }
+
+    public static CMeta create(Optional<ElementCreatorFactory<CMeta>> elementCreator, String colName, DataType type) {
         CMeta cmeta = elementCreator.map((factory) -> {
             return factory.createDefault();
-        }).orElse(new CMeta());// new CMeta();
+        }).orElseGet(() -> new CMeta());// new CMeta();
         cmeta.setName(colName);
-        cmeta.setType(DataTypeMeta.getDataTypeMeta(type).getType());
+        cmeta.setType(type);
         return cmeta;
     }
 

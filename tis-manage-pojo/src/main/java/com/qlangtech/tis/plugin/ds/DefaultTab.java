@@ -4,6 +4,7 @@ import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -42,7 +43,7 @@ public final class DefaultTab implements ISelectedTab {
     }
 
     @Override
-    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx) {
+    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, Optional<IReaderSource> readerSource) {
         throw new UnsupportedOperationException();
     }
 

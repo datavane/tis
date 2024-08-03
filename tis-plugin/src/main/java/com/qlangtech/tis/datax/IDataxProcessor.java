@@ -31,6 +31,7 @@ import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceTypeGetter;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.IDBReservedKeys;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
@@ -258,7 +259,6 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
                 }
 
 
-
                 @Override
                 public List<String> getPrimaryKeys() {
                     return Collections.emptyList();
@@ -329,10 +329,11 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
         private final List<String> cols;
         private final IDBReservedKeys dbReservedKeys;
 
-        public static TabCols create(IDBReservedKeys dbReservedKeys, TableMap tm, Optional<RecordTransformerRules> transformerRules) {
+        public static TabCols create(
+                IDBReservedKeys dbReservedKeys, TableMap tm, Optional<RecordTransformerRules> transformerRules) {
 
             List<IColMetaGetter> cols = transformerRules.map((rule) -> {
-                return rule.overwriteCols(tm.getSourceCols());
+                return rule.overwriteCols(tm.getSourceCols()).getCols();
             }).orElseGet(() -> {
                 return tm.getSourceCols().stream().map((c) -> c).collect(Collectors.toList());
             });

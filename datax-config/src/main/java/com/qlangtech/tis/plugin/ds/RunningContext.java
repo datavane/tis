@@ -16,39 +16,13 @@
  * limitations under the License.
  */
 
-package com.alibaba.datax.core.job;
-
-import com.qlangtech.tis.plugin.ds.IColMetaGetter;
-import com.qlangtech.tis.plugin.ds.RunningContext;
-
-import java.util.List;
-import java.util.Map;
+package com.qlangtech.tis.plugin.ds;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-06-15 12:34
+ * @create: 2024-08-02 12:46
  **/
-public interface ITransformerBuildInfo {
-    /**
-     * 是否有当前上下文绑定参数
-     *
-     * @return
-     */
-    boolean containContextParams();
+public
+interface RunningContext {
 
-    /**
-     * 取得上下文
-     * @param runningContext
-     * @return
-     */
-    Map<String, Object> contextParamVals(RunningContext runningContext);
-    /**
-     * 取得执行当前上线文绑定的参数，例如，当前数据库的名称等
-     *
-     * @return
-     */
-   // List<ContextParamConfig> getContextParms();
-
-    // List<String> relevantOutterColKeys();
-    public <T extends IColMetaGetter> List<IColMetaGetter> overwriteCols(List<T> sourceCols);
 }

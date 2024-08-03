@@ -37,6 +37,7 @@ import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
+import com.qlangtech.tis.plugin.ds.IReaderSource;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
@@ -196,7 +197,8 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
     }
 
     /**
-     *  预览数据，每次查看只能向前翻页或者向后翻页，不能随机翻页
+     * 预览数据，每次查看只能向前翻页或者向后翻页，不能随机翻页
+     *
      * @param dataXName
      * @param tableName
      * @param queryCriteria
@@ -387,7 +389,7 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
                 }
 
                 @Override
-                public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx) {
+                public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, Optional<IReaderSource> readerSource) {
                     throw new UnsupportedOperationException();
                 }
 

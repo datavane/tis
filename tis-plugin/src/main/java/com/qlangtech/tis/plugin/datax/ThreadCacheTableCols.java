@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.plugin.datax;
 
+import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 
@@ -29,16 +30,23 @@ import java.util.stream.Stream;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-25 10:08
+ * @see com.qlangtech.tis.plugin.datax.SelectedTab
  **/
-class ThreadCacheTableCols {
+public class ThreadCacheTableCols {
     private final Supplier<List<CMeta>> selectedColsSupplier;
     private List<CMeta> selectedCols;
     private final List<ColumnMetaData> selectableCols;
+    public IDataxReader plugin;
     // private final Function<List<ColumnMetaData>, Stream<ColumnMetaData>> selectableColsStreamFunc;
 
-    public ThreadCacheTableCols(Supplier<List<CMeta>> selectedCols, List<ColumnMetaData> selectableCols) {
+    /**
+     * @param selectedCols   已经选中的列
+     * @param selectableCols
+     */
+    public ThreadCacheTableCols(IDataxReader plugin, Supplier<List<CMeta>> selectedCols, List<ColumnMetaData> selectableCols) {
         this.selectedColsSupplier = selectedCols;
         this.selectableCols = selectableCols;
+        this.plugin = plugin;
     }
 
     public List<CMeta> getSelectedCols() {

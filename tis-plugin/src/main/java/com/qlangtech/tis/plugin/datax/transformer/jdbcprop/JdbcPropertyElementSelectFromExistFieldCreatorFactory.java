@@ -19,6 +19,17 @@
 package com.qlangtech.tis.plugin.datax.transformer.jdbcprop;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
+import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.plugin.datax.ThreadCacheTableCols;
+import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.ContextParamConfig;
+import org.apache.commons.collections.MapUtils;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * 从已有的数据表中选择一个已有的数据列
@@ -31,5 +42,21 @@ public class JdbcPropertyElementSelectFromExistFieldCreatorFactory extends JdbcP
     protected void setPropertyInCollectionFieldType(JSONObject biz) {
         super.setPropertyInCollectionFieldType(biz);
         biz.put("selectFromExistField", true);
+    }
+
+    @Override
+    protected List<CMeta> getColsCandidate() {
+        List<CMeta> colsCandidate = super.getColsCandidate();
+        ThreadCacheTableCols threadCacheTabCols = SelectedTab.getContextTableColsStream();
+        IDataxReader reader = threadCacheTabCols.plugin;
+        Map<String, ContextParamConfig> dbContextParams = reader.getDBContextParams();
+        if (MapUtils.isNotEmpty(dbContextParams)) {
+            colsCandidate = Lists.newArrayList(colsCandidate);
+            for (Map.Entry<String, ContextParamConfig> entry : dbContextParams.entrySet()) {
+                colsCandidate.add(CMeta.create(Optional.empty(),entry.getKey(), entry.getValue().getDataType()));
+            }
+        }
+
+        return colsCandidate;
     }
 }

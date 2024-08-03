@@ -18,6 +18,7 @@
 package com.qlangtech.tis.plugin.ds;
 
 
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
@@ -26,6 +27,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 数据源meta信息获取
@@ -35,6 +37,14 @@ import java.util.List;
  */
 public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKeys {
 
+    /**
+     * 可以在Transformer中使用的数据上下文绑定的参数，例如有这样的需求，用户数据源表是分库的分表的，设计表的主键为自增，导入到目标端doris中会合并成一个表，为了保证多个表的主键没有重复冲突,需要将将主键变换成‘dbName’+‘_’+ pk 的方式免除主键冲突 <br/>
+     *
+     * @return Map<String, Object> key: 添加的可以使用key名称 $dbName， $tableName， $userName 等。
+     */
+    default Map<String, ContextParamConfig> getDBContextParams() {
+        return Maps.newHashMap();
+    }
 
     /**
      * Get all the tables in dataBase
@@ -77,6 +87,19 @@ public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKey
         public JDBCConnection(Connection conn, String url) {
             this.conn = conn;
             this.url = url;
+        }
+
+        /**
+         * 取得dbName
+         *
+         * @return
+         */
+        public String getCatalog() {
+            try {
+                return conn.getCatalog();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         public Statement createStatement() throws SQLException {

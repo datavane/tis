@@ -71,12 +71,17 @@ public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<
         if (propertyType.isCollectionType()) {
             setPropertyInCollectionFieldType(biz);
         }
-        List<CMeta> colsCandidate = SelectedTab.getSelectedCols();
+        List<CMeta> colsCandidate = getColsCandidate();
 
         biz.put("sourceTabCols", colsCandidate);
         biz.put("dftStrType", DataType.createVarChar(32));
         // biz.put();
         // ElementCreatorFactory.super.appendExternalJsonProp(propertyType, biz);
+    }
+
+    protected List<CMeta> getColsCandidate() {
+        List<CMeta> colsCandidate = SelectedTab.getSelectedCols();
+        return colsCandidate;
     }
 
     protected void setPropertyInCollectionFieldType(JSONObject biz) {

@@ -29,9 +29,8 @@ import java.util.List;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-02-19 13:02
  **/
-public interface IStreamTableMeataCreator //extends IStreamIncrGenerateStrategy
+public interface IStreamTableMeataCreator
 {
-
     /**
      * 比表写入相关的元数据信息
      *

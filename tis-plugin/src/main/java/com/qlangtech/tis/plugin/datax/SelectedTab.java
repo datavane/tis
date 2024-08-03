@@ -46,10 +46,12 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules.OverwriteCols;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
+import com.qlangtech.tis.plugin.ds.IReaderSource;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
@@ -105,11 +107,14 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     public String where;
 
     @Override
-    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx) {
+    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, Optional<IReaderSource> readerSource) {
         RecordTransformerRules transformerRules = RecordTransformerRules.loadTransformerRules((IPluginContext) pluginCtx, this.getName());
         List<IColMetaGetter> cols = null;
         if (transformerRules != null) {
-            cols = transformerRules.overwriteCols(this.getCols());
+            OverwriteCols overwriteCols = transformerRules.overwriteCols(this.getCols());
+            if (readerSource.isPresent()) {
+                cols = overwriteCols.appendSourceContextParams((DataSourceMeta) readerSource.get()).getCols();
+            }
         } else {
             cols = this.getCols().stream().collect(Collectors.toList());
         }
@@ -288,13 +293,13 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     }
 
 
-    private static ThreadCacheTableCols getContextTableColsStream( //
-                                                                   //                                                               Function<List<ColumnMetaData>, Stream<ColumnMetaData>> func
+    public static ThreadCacheTableCols getContextTableColsStream( //
+                                                                  //                                                               Function<List<ColumnMetaData>, Stream<ColumnMetaData>> func
     ) {
         SuFormProperties.SuFormGetterContext context = SuFormProperties.subFormGetterProcessThreadLocal.get();
         if (context == null || context.plugin == null) {
             List<ColumnMetaData> empt = Collections.emptyList();
-            return new ThreadCacheTableCols(() -> Collections.emptyList(), empt);// empt.stream();
+            return new ThreadCacheTableCols(null, () -> Collections.emptyList(), empt);// empt.stream();
         }
         IDataxReader plugin = Objects.requireNonNull(context.plugin, "context.plugin can not be null");
 //        if (!(plugin instanceof DataSourceMeta)) {
@@ -304,7 +309,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         DataSourceMeta dsMeta = plugin;
         ThreadCacheTableCols cols = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
             try {
-                return new ThreadCacheTableCols(() -> {
+                return new ThreadCacheTableCols(plugin, () -> {
                     //plugin.getSelectedTab()
                     // 从临时文件中将已经选中的列取出来
                     SelectedTab selectedTab = SelectedTab.loadFromTmp(Objects.requireNonNull(context.store, "store can not be null"), context.getSubFormIdentityField());

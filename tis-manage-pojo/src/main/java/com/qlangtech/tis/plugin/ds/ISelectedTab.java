@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.ds;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -48,11 +49,11 @@ public interface ISelectedTab {
 
     /**
      * 通过 transoformer 改写来源列
-     *
      * @param pluginCtx
+     * @param readerSource 用于生成基于reader的环境绑定参数用，当用于reader端需要有值，用于writer端应该为Optional.empty()
      * @return
      */
-    default List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx) {
+    default List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, Optional<IReaderSource> readerSource) {
         throw new UnsupportedOperationException();
     }
 

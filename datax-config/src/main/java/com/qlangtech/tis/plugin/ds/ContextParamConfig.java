@@ -16,39 +16,43 @@
  * limitations under the License.
  */
 
-package com.alibaba.datax.core.job;
+package com.qlangtech.tis.plugin.ds;
 
-import com.qlangtech.tis.plugin.ds.IColMetaGetter;
-import com.qlangtech.tis.plugin.ds.RunningContext;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.List;
-import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-06-15 12:34
+ * @create: 2024-08-02 12:46
  **/
-public interface ITransformerBuildInfo {
-    /**
-     * 是否有当前上下文绑定参数
-     *
-     * @return
-     */
-    boolean containContextParams();
+public abstract class ContextParamConfig {
+    public static final String CONTEXT_BINDED_KEY_PREFIX = "$";
 
-    /**
-     * 取得上下文
-     * @param runningContext
-     * @return
-     */
-    Map<String, Object> contextParamVals(RunningContext runningContext);
+    private final String keyName;
+
+    public ContextParamConfig(String keyName) {
+        if (StringUtils.startsWith(keyName, CONTEXT_BINDED_KEY_PREFIX)) {
+            throw new IllegalArgumentException("param keyName:" + keyName + " can not start with:" + CONTEXT_BINDED_KEY_PREFIX);
+        }
+        this.keyName = CONTEXT_BINDED_KEY_PREFIX + keyName;
+    }
+
+    //public abstract JDBCTypes getJdbcType();
+
+    public String getKeyName() {
+        return this.keyName;
+    }
+
     /**
      * 取得执行当前上线文绑定的参数，例如，当前数据库的名称等
      *
+     * @param <CONTEXT>
      * @return
      */
-   // List<ContextParamConfig> getContextParms();
+    public abstract <CONTEXT extends RunningContext> Function<CONTEXT, Object> valGetter();
 
-    // List<String> relevantOutterColKeys();
-    public <T extends IColMetaGetter> List<IColMetaGetter> overwriteCols(List<T> sourceCols);
+    public abstract DataType getDataType();
+
 }

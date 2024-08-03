@@ -16,39 +16,33 @@
  * limitations under the License.
  */
 
-package com.alibaba.datax.core.job;
+package com.qlangtech.tis.plugin.ds;
 
-import com.qlangtech.tis.plugin.ds.IColMetaGetter;
-import com.qlangtech.tis.plugin.ds.RunningContext;
 
-import java.util.List;
-import java.util.Map;
+import com.qlangtech.tis.plugin.ds.DataSourceMeta.JDBCConnection;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-06-15 12:34
+ * @create: 2024-08-02 10:15
  **/
-public interface ITransformerBuildInfo {
-    /**
-     * 是否有当前上下文绑定参数
-     *
-     * @return
-     */
-    boolean containContextParams();
+public class RdbmsRunningContext implements RunningContext {
+    private final JDBCConnection conn;
+    private final String table;
 
-    /**
-     * 取得上下文
-     * @param runningContext
-     * @return
-     */
-    Map<String, Object> contextParamVals(RunningContext runningContext);
-    /**
-     * 取得执行当前上线文绑定的参数，例如，当前数据库的名称等
-     *
-     * @return
-     */
-   // List<ContextParamConfig> getContextParms();
+    public RdbmsRunningContext(JDBCConnection conn, String table) {
+        this.conn = conn;
+        if (StringUtils.isEmpty(table)) {
+            throw new IllegalArgumentException("param table can not be empty");
+        }
+        this.table = table;
+    }
 
-    // List<String> relevantOutterColKeys();
-    public <T extends IColMetaGetter> List<IColMetaGetter> overwriteCols(List<T> sourceCols);
+    public String getDbName() {
+        return conn.getCatalog();
+    }
+
+    public String getTable() {
+        return this.table;
+    }
 }

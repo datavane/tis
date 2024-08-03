@@ -26,17 +26,23 @@ import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.ds.DataSourceMeta;
+import com.qlangtech.tis.plugin.ds.ContextParamConfig;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
-import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 为一条记录Record定义的 Transformer 转化规则
@@ -83,16 +89,30 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
     public List<RecordTransformer> rules = Lists.newArrayList();
 
     /**
-     * udf集合相关的列
+     * udf集合相关出参的列
      *
      * @return
      */
     public final List<String> relevantColKeys() {
-        return this.rules.stream().flatMap((r) -> r.getUdf().outParameters().stream().map((tcol) -> tcol.getName())).collect(Collectors.toList());
+        return relevantTypedOutterParamStream().map((tcol) -> tcol.getName()).collect(Collectors.toList());
+        //  return this.rules.stream().flatMap((r) -> r.getUdf().outParameters().stream().map((tcol) -> tcol.getName())).collect(Collectors.toList());
     }
 
-    public final List<OutputParameter> relevantTypedColKeys() {
-        return this.rules.stream().flatMap((r) -> r.getUdf().outParameters().stream()).collect(Collectors.toList());
+    /**
+     * 取得对应表所有出参集合
+     *
+     * @return
+     */
+    public final List<OutputParameter> relevantTypedOutterColKeys() {
+        return relevantTypedOutterParamStream().collect(Collectors.toList());
+    }
+
+    public final Set<InParamer> relevantInColKeys() {
+        return this.rules.stream().flatMap((r) -> r.getUdf().inParameters().stream()).collect(Collectors.toSet());
+    }
+
+    private Stream<OutputParameter> relevantTypedOutterParamStream() {
+        return this.rules.stream().flatMap((r) -> r.getUdf().outParameters().stream());
     }
 
     public static List<RecordTransformer> getRules() {
@@ -106,14 +126,69 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
         return Lists.newArrayList();
     }
 
+//    public <T extends IColMetaGetter> List<IColMetaGetter> overwriteCols(List<T> sourceCols) {
+//        return overwriteCols(sourceCols, null);
+//    }
+
+    public class OverwriteCols extends ArrayList<IColMetaGetter> {
+        //  private final List<IColMetaGetter> cols;
+
+        public OverwriteCols() {
+            //  this.cols = cols;
+            this(Collections.emptyList());
+        }
+
+        public OverwriteCols(List<IColMetaGetter> cols) {
+            //  this.cols = cols;
+            super(cols);
+        }
+
+        public List<IColMetaGetter> getCols() {
+            return this;
+        }
+
+        public OverwriteColsWithContextParams appendSourceContextParams(DataSourceMeta dsMeta) {
+            if (dsMeta == null) {
+                throw new IllegalArgumentException("param dsMeta can not be null");
+            }
+            List<IColMetaGetter> rewriterResult = Lists.newArrayList(this);
+            // 查看绑定入参
+            Map<String, ContextParamConfig> dbContextParams = dsMeta.getDBContextParams();
+            List<ContextParamConfig> contextParams = Lists.newArrayList();
+            ContextParamConfig contextParam = null;
+            for (InParamer inParamer : relevantInColKeys()) {
+                if (inParamer.isContextParams()) {
+                    contextParam = Objects.requireNonNull(dbContextParams.get(inParamer.getKey())
+                            , "inParamer:" + inParamer.getKey() + " relevant ContextParam can not be null");
+                    contextParams.add(contextParam);
+                    rewriterResult.add(IColMetaGetter.create(inParamer.getKey(), contextParam.getDataType()));
+                }
+            }
+            return new OverwriteColsWithContextParams(rewriterResult, contextParams);
+        }
+    }
+
+    public class OverwriteColsWithContextParams extends OverwriteCols {
+        private final List<ContextParamConfig> contextParams;
+
+        public OverwriteColsWithContextParams(List<IColMetaGetter> cols, List<ContextParamConfig> contextParams) {
+            super(cols);
+            this.contextParams = contextParams;
+        }
+
+        public List<ContextParamConfig> getContextParams() {
+            return this.contextParams;
+        }
+    }
+
     /**
      * 将原未经Transformer处理的cols，变化成经过Transformer装饰过的cols（添加了新的虚拟列），或者其他
      *
      * @param sourceCols
      * @return
      */
-    public <T extends IColMetaGetter> List<IColMetaGetter> overwriteCols(List<T> sourceCols) {
-        List<IColMetaGetter> rewriterResult = Lists.newArrayList();
+    public <T extends IColMetaGetter> OverwriteCols overwriteCols(List<T> sourceCols) {
+        OverwriteCols rewriterResult = new OverwriteCols();
         Map<String, Integer> col2IdxBuilder = Maps.newHashMap();
         int idx = 0;
         for (IColMetaGetter col : sourceCols) {
@@ -121,7 +196,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
             col2IdxBuilder.put(col.getName(), (idx++));
         }
 
-        for (OutputParameter colType : this.relevantTypedColKeys()) {
+        for (OutputParameter colType : this.relevantTypedOutterColKeys()) {
             if (colType.isVirtual()) {
                 getExistColIdx(true, colType, col2IdxBuilder);
                 // 新增虚拟列
@@ -134,6 +209,16 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
             }
         }
 
+//        if (dsMeta != null) {
+//            // 查看绑定入参
+//            Map<String, ContextParam> dbContextParams = dsMeta.getDBContextParams();
+//            for (InParamer inParamer : this.relevantInColKeys()) {
+//                if (inParamer.isContextParams()) {
+//                    rewriterResult.add(IColMetaGetter.create(inParamer.getKey(), Objects.requireNonNull(dbContextParams.get(inParamer.getKey())
+//                            , "inParamer:" + inParamer.getKey() + " relevant ContextParam can not be null").getDataType()));
+//                }
+//            }
+//        }
         return rewriterResult;
     }
 

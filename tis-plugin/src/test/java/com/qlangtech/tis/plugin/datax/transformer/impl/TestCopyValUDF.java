@@ -28,6 +28,7 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.plugin.datax.transformer.InParamer;
 import com.qlangtech.tis.plugin.datax.transformer.OutputParameter;
 import com.qlangtech.tis.plugin.datax.transformer.UDFDefinition;
 import com.qlangtech.tis.plugin.datax.transformer.UDFDesc;
@@ -53,6 +54,10 @@ public class TestCopyValUDF extends UDFDefinition {
         return literia;
     }
 
+    @Override
+    public List<InParamer> inParameters() {
+        return Collections.singletonList(InParamer.create(this.from));
+    }
 
     public static List<IdentityName> colsCandidate() {
         List<CMeta> colsCandidate = SelectedTab.getColsCandidate();

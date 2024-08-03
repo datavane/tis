@@ -56,7 +56,7 @@ public abstract class AbstractCreateTableSqlBuilder {
 
         if (transformers.isPresent()) {
             RecordTransformerRules transformerRules = transformers.get();
-            sourceCols = transformerRules.overwriteCols(sourceCols);
+            sourceCols = transformerRules.overwriteCols(sourceCols).getCols();
         }
 
         this.cols = Collections.unmodifiableList(sourceCols);
@@ -70,15 +70,6 @@ public abstract class AbstractCreateTableSqlBuilder {
         }
         maxColNameLength += 4;
         this.dsMeta = dsMeta;
-//        if (supportColEscapeChar()) {
-//            Optional<String> escape = dsMeta.getEscapeChar();
-//            if (!escape.isPresent()) {
-//                throw new IllegalArgumentException("must contain escapeChar for DB entity");
-//            }
-//            this.escapeChar = escape.get();
-//        } else {
-//            this.escapeChar = StringUtils.EMPTY;
-//        }
     }
 
     public abstract CreateTableSqlBuilder.CreateDDL build();
