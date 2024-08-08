@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "google/protobuf/wrappers.proto";
+//import "google/protobuf/wrappers.proto";
 option java_multiple_files = true;
 option java_package = "com.qlangtech.tis.rpc.grpc.datax.preview";
 option java_outer_classname = "DataXRecordsPreviewService";
@@ -20,33 +20,41 @@ message PreviewRowsDataCriteria {
     string tableName = 2;
     bool next = 3;
     // 主键值，如果是首次查询，可以不设置该值
-    map<string, string> orderByCols = 4;
+    repeated OffsetColValGrpc orderByCols = 4;
     uint32 pageSize = 5;
 }
 
-//message PreviewOrderByCols {
-// repeated OffsetColValGrpc offsetCols = 1;
-//}
 
-//message OffsetColValGrpc {
-// string colKey = 1;
-// string val = 2;
-// bool isNumericJdbcType = 3;
-//}
 
 message PreviewRowsDataResponse {
-   map<string, uint32> columnHeader = 1;
+   map<string, HeaderColGrpc> columnHeader = 1;
    repeated Record records = 2;
+   repeated OffsetColValGrpc headerCursor = 3;
+   repeated OffsetColValGrpc tailerCursor = 4;
 }
 
-  //message StringValue {
-  // The string value.
-  //  string value = 1;
-  //}
+message HeaderColGrpc {
+ uint32 index = 1;
+ bool blob = 2;
+}
 
 // 由于record 中colVals中的元素可以为空，单grpc规定repeated传输的原属不能为空，所以需要一个StringValue对象来作占位用
 message Record {
- repeated .google.protobuf.StringValue colVals = 1;
+ // repeated .google.protobuf.StringValue colVals = 1;
+
+ repeated StringValue colVals = 1;
+}
+
+message StringValue {
+ string val = 1;
+ bool nil = 2;
+}
+
+// 用于卡定DataX数据预览，翻页的偏移指针
+message OffsetColValGrpc {
+ string colKey = 1;
+ string val = 2;
+ bool numericJdbcType = 3;
 }
 
 

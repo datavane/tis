@@ -20,11 +20,6 @@ public final class DataXRecordsPreviewService {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_stream_PreviewRowsDataCriteria_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_stream_PreviewRowsDataCriteria_OrderByColsEntry_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_stream_PreviewRowsDataCriteria_OrderByColsEntry_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_stream_PreviewRowsDataResponse_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -35,10 +30,25 @@ public final class DataXRecordsPreviewService {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_stream_PreviewRowsDataResponse_ColumnHeaderEntry_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_stream_HeaderColGrpc_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_stream_HeaderColGrpc_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_stream_Record_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_stream_Record_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_stream_StringValue_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_stream_StringValue_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_stream_OffsetColValGrpc_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_stream_OffsetColValGrpc_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -48,25 +58,29 @@ public final class DataXRecordsPreviewService {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\033preview-datax-records.proto\022\006stream\032\036g" +
-      "oogle/protobuf/wrappers.proto\"\332\001\n\027Previe" +
-      "wRowsDataCriteria\022\021\n\tdataXName\030\001 \001(\t\022\021\n\t" +
-      "tableName\030\002 \001(\t\022\014\n\004next\030\003 \001(\010\022E\n\013orderBy" +
-      "Cols\030\004 \003(\01320.stream.PreviewRowsDataCrite" +
-      "ria.OrderByColsEntry\022\020\n\010pageSize\030\005 \001(\r\0322" +
-      "\n\020OrderByColsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value" +
-      "\030\002 \001(\t:\0028\001\"\270\001\n\027PreviewRowsDataResponse\022G" +
-      "\n\014columnHeader\030\001 \003(\01321.stream.PreviewRow" +
-      "sDataResponse.ColumnHeaderEntry\022\037\n\007recor" +
-      "ds\030\002 \003(\0132\016.stream.Record\0323\n\021ColumnHeader" +
-      "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\r:\0028\001\"7\n" +
-      "\006Record\022-\n\007colVals\030\001 \003(\0132\034.google.protob" +
-      "uf.StringValue2l\n\023DataXRecordsPreview\022U\n" +
-      "\017previewRowsData\022\037.stream.PreviewRowsDat" +
-      "aCriteria\032\037.stream.PreviewRowsDataRespon" +
-      "se\"\000BO\n(com.qlangtech.tis.rpc.grpc.datax" +
-      ".previewB\032DataXRecordsPreviewServiceP\001\242\002" +
-      "\004HLWSb\006proto3"
+      "\n\033preview-datax-records.proto\022\006stream\"\216\001" +
+      "\n\027PreviewRowsDataCriteria\022\021\n\tdataXName\030\001" +
+      " \001(\t\022\021\n\ttableName\030\002 \001(\t\022\014\n\004next\030\003 \001(\010\022-\n" +
+      "\013orderByCols\030\004 \003(\0132\030.stream.OffsetColVal" +
+      "Grpc\022\020\n\010pageSize\030\005 \001(\r\"\257\002\n\027PreviewRowsDa" +
+      "taResponse\022G\n\014columnHeader\030\001 \003(\01321.strea" +
+      "m.PreviewRowsDataResponse.ColumnHeaderEn" +
+      "try\022\037\n\007records\030\002 \003(\0132\016.stream.Record\022.\n\014" +
+      "headerCursor\030\003 \003(\0132\030.stream.OffsetColVal" +
+      "Grpc\022.\n\014tailerCursor\030\004 \003(\0132\030.stream.Offs" +
+      "etColValGrpc\032J\n\021ColumnHeaderEntry\022\013\n\003key" +
+      "\030\001 \001(\t\022$\n\005value\030\002 \001(\0132\025.stream.HeaderCol" +
+      "Grpc:\0028\001\",\n\rHeaderColGrpc\022\r\n\005index\030\001 \001(\r" +
+      "\022\014\n\004blob\030\002 \001(\010\".\n\006Record\022$\n\007colVals\030\001 \003(" +
+      "\0132\023.stream.StringValue\"\'\n\013StringValue\022\013\n" +
+      "\003val\030\001 \001(\t\022\013\n\003nil\030\002 \001(\010\"H\n\020OffsetColValG" +
+      "rpc\022\016\n\006colKey\030\001 \001(\t\022\013\n\003val\030\002 \001(\t\022\027\n\017nume" +
+      "ricJdbcType\030\003 \001(\0102l\n\023DataXRecordsPreview" +
+      "\022U\n\017previewRowsData\022\037.stream.PreviewRows" +
+      "DataCriteria\032\037.stream.PreviewRowsDataRes" +
+      "ponse\"\000BO\n(com.qlangtech.tis.rpc.grpc.da" +
+      "tax.previewB\032DataXRecordsPreviewServiceP" +
+      "\001\242\002\004HLWSb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -79,7 +93,6 @@ public final class DataXRecordsPreviewService {
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          com.google.protobuf.WrappersProto.getDescriptor(),
         }, assigner);
     internal_static_stream_PreviewRowsDataCriteria_descriptor =
       getDescriptor().getMessageTypes().get(0);
@@ -87,31 +100,42 @@ public final class DataXRecordsPreviewService {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_stream_PreviewRowsDataCriteria_descriptor,
         new java.lang.String[] { "DataXName", "TableName", "Next", "OrderByCols", "PageSize", });
-    internal_static_stream_PreviewRowsDataCriteria_OrderByColsEntry_descriptor =
-      internal_static_stream_PreviewRowsDataCriteria_descriptor.getNestedTypes().get(0);
-    internal_static_stream_PreviewRowsDataCriteria_OrderByColsEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_stream_PreviewRowsDataCriteria_OrderByColsEntry_descriptor,
-        new java.lang.String[] { "Key", "Value", });
     internal_static_stream_PreviewRowsDataResponse_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_stream_PreviewRowsDataResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_stream_PreviewRowsDataResponse_descriptor,
-        new java.lang.String[] { "ColumnHeader", "Records", });
+        new java.lang.String[] { "ColumnHeader", "Records", "HeaderCursor", "TailerCursor", });
     internal_static_stream_PreviewRowsDataResponse_ColumnHeaderEntry_descriptor =
       internal_static_stream_PreviewRowsDataResponse_descriptor.getNestedTypes().get(0);
     internal_static_stream_PreviewRowsDataResponse_ColumnHeaderEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_stream_PreviewRowsDataResponse_ColumnHeaderEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_stream_Record_descriptor =
+    internal_static_stream_HeaderColGrpc_descriptor =
       getDescriptor().getMessageTypes().get(2);
+    internal_static_stream_HeaderColGrpc_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_stream_HeaderColGrpc_descriptor,
+        new java.lang.String[] { "Index", "Blob", });
+    internal_static_stream_Record_descriptor =
+      getDescriptor().getMessageTypes().get(3);
     internal_static_stream_Record_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_stream_Record_descriptor,
         new java.lang.String[] { "ColVals", });
-    com.google.protobuf.WrappersProto.getDescriptor();
+    internal_static_stream_StringValue_descriptor =
+      getDescriptor().getMessageTypes().get(4);
+    internal_static_stream_StringValue_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_stream_StringValue_descriptor,
+        new java.lang.String[] { "Val", "Nil", });
+    internal_static_stream_OffsetColValGrpc_descriptor =
+      getDescriptor().getMessageTypes().get(5);
+    internal_static_stream_OffsetColValGrpc_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_stream_OffsetColValGrpc_descriptor,
+        new java.lang.String[] { "ColKey", "Val", "NumericJdbcType", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

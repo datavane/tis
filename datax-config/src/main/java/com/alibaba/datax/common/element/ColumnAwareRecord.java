@@ -48,5 +48,14 @@ public interface ColumnAwareRecord<ColValType> {
      */
     public ColValType getColumn(String field);
 
-    public String getString(String field);
+    public default String getString(String field) {
+        return getString(field, false);
+    }
+
+    /**
+     * @param field
+     * @param origin 取被替换前的值
+     * @return
+     */
+    public String getString(String field, boolean origin);
 }

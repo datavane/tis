@@ -18,46 +18,41 @@
 
 package com.alibaba.datax.common.element;
 
+import com.alibaba.datax.common.element.DataXResultPreviewOrderByCols.OffsetColVal;
 import com.qlangtech.tis.plugin.ds.DataType;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-07-03 13:42
+ * @create: 2024-08-06 16:55
  **/
-public interface ICol2Index {
-    /**
-     * @return key: 列名 ，val：列所在位置
-     */
-    public Map<String, Col> getCol2Index();
+public class PreviewRecords {
 
-    /**
-     * 统计有多少个上下文绑定参数参与数据同步执行
-     *
-     * @return
-     */
-    int contextParamValsCount();
+    private final List<Record> pageRows;
+    private final List<OffsetColVal> headerCursor;
+    private final List<OffsetColVal> tailerCursor;
 
-    /**
-     * @author: 百岁（baisui@qlangtech.com）
-     * @create: 2024-08-08 12:56
-     **/
-    class Col {
-        private final int index;
-        private final DataType type;
 
-        public Col(int index, DataType type) {
-            this.index = index;
-            this.type = type;
-        }
 
-        public int getIndex() {
-            return index;
-        }
 
-        public DataType getType() {
-            return type;
-        }
+    PreviewRecords(List<Record> pageRows, List<OffsetColVal> headerCursor, List<OffsetColVal> tailerCursor) {
+        this.pageRows = pageRows;
+        this.headerCursor = headerCursor;
+        this.tailerCursor = tailerCursor;
+    }
+
+    public List<Record> getPageRows() {
+        return pageRows;
+    }
+
+    public List<OffsetColVal> getHeaderCursor() {
+        return headerCursor;
+    }
+
+    public List<OffsetColVal> getTailerCursor() {
+        return tailerCursor;
     }
 }

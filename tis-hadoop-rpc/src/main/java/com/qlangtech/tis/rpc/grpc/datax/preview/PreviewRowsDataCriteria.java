@@ -18,6 +18,7 @@ private static final long serialVersionUID = 0L;
   private PreviewRowsDataCriteria() {
     dataXName_ = "";
     tableName_ = "";
+    orderByCols_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -63,15 +64,11 @@ private static final long serialVersionUID = 0L;
           }
           case 34: {
             if (!((mutable_bitField0_ & 0x00000008) != 0)) {
-              orderByCols_ = com.google.protobuf.MapField.newMapField(
-                  OrderByColsDefaultEntryHolder.defaultEntry);
+              orderByCols_ = new java.util.ArrayList<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc>();
               mutable_bitField0_ |= 0x00000008;
             }
-            com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-            orderByCols__ = input.readMessage(
-                OrderByColsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            orderByCols_.getMutableMap().put(
-                orderByCols__.getKey(), orderByCols__.getValue());
+            orderByCols_.add(
+                input.readMessage(com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.parser(), extensionRegistry));
             break;
           }
           case 40: {
@@ -94,6 +91,9 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
+      if (((mutable_bitField0_ & 0x00000008) != 0)) {
+        orderByCols_ = java.util.Collections.unmodifiableList(orderByCols_);
+      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
@@ -103,18 +103,6 @@ private static final long serialVersionUID = 0L;
     return com.qlangtech.tis.rpc.grpc.datax.preview.DataXRecordsPreviewService.internal_static_stream_PreviewRowsDataCriteria_descriptor;
   }
 
-  @SuppressWarnings({"rawtypes"})
-  @java.lang.Override
-  protected com.google.protobuf.MapField internalGetMapField(
-      int number) {
-    switch (number) {
-      case 4:
-        return internalGetOrderByCols();
-      default:
-        throw new RuntimeException(
-            "Invalid map field number: " + number);
-    }
-  }
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
@@ -202,95 +190,58 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int ORDERBYCOLS_FIELD_NUMBER = 4;
-  private static final class OrderByColsDefaultEntryHolder {
-    static final com.google.protobuf.MapEntry<
-        java.lang.String, java.lang.String> defaultEntry =
-            com.google.protobuf.MapEntry
-            .<java.lang.String, java.lang.String>newDefaultInstance(
-                com.qlangtech.tis.rpc.grpc.datax.preview.DataXRecordsPreviewService.internal_static_stream_PreviewRowsDataCriteria_OrderByColsEntry_descriptor, 
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "",
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "");
-  }
-  private com.google.protobuf.MapField<
-      java.lang.String, java.lang.String> orderByCols_;
-  private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-  internalGetOrderByCols() {
-    if (orderByCols_ == null) {
-      return com.google.protobuf.MapField.emptyMapField(
-          OrderByColsDefaultEntryHolder.defaultEntry);
-    }
+  private java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> orderByCols_;
+  /**
+   * <pre>
+   * 主键值，如果是首次查询，可以不设置该值
+   * </pre>
+   *
+   * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+   */
+  public java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> getOrderByColsList() {
     return orderByCols_;
   }
-
+  /**
+   * <pre>
+   * 主键值，如果是首次查询，可以不设置该值
+   * </pre>
+   *
+   * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+   */
+  public java.util.List<? extends com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder> 
+      getOrderByColsOrBuilderList() {
+    return orderByCols_;
+  }
+  /**
+   * <pre>
+   * 主键值，如果是首次查询，可以不设置该值
+   * </pre>
+   *
+   * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+   */
   public int getOrderByColsCount() {
-    return internalGetOrderByCols().getMap().size();
+    return orderByCols_.size();
   }
   /**
    * <pre>
    * 主键值，如果是首次查询，可以不设置该值
    * </pre>
    *
-   * <code>map&lt;string, string&gt; orderByCols = 4;</code>
+   * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
    */
-
-  public boolean containsOrderByCols(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetOrderByCols().getMap().containsKey(key);
-  }
-  /**
-   * Use {@link #getOrderByColsMap()} instead.
-   */
-  @java.lang.Deprecated
-  public java.util.Map<java.lang.String, java.lang.String> getOrderByCols() {
-    return getOrderByColsMap();
+  public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc getOrderByCols(int index) {
+    return orderByCols_.get(index);
   }
   /**
    * <pre>
    * 主键值，如果是首次查询，可以不设置该值
    * </pre>
    *
-   * <code>map&lt;string, string&gt; orderByCols = 4;</code>
+   * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
    */
-
-  public java.util.Map<java.lang.String, java.lang.String> getOrderByColsMap() {
-    return internalGetOrderByCols().getMap();
-  }
-  /**
-   * <pre>
-   * 主键值，如果是首次查询，可以不设置该值
-   * </pre>
-   *
-   * <code>map&lt;string, string&gt; orderByCols = 4;</code>
-   */
-
-  public java.lang.String getOrderByColsOrDefault(
-      java.lang.String key,
-      java.lang.String defaultValue) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, java.lang.String> map =
-        internalGetOrderByCols().getMap();
-    return map.containsKey(key) ? map.get(key) : defaultValue;
-  }
-  /**
-   * <pre>
-   * 主键值，如果是首次查询，可以不设置该值
-   * </pre>
-   *
-   * <code>map&lt;string, string&gt; orderByCols = 4;</code>
-   */
-
-  public java.lang.String getOrderByColsOrThrow(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, java.lang.String> map =
-        internalGetOrderByCols().getMap();
-    if (!map.containsKey(key)) {
-      throw new java.lang.IllegalArgumentException();
-    }
-    return map.get(key);
+  public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder getOrderByColsOrBuilder(
+      int index) {
+    return orderByCols_.get(index);
   }
 
   public static final int PAGESIZE_FIELD_NUMBER = 5;
@@ -325,12 +276,9 @@ private static final long serialVersionUID = 0L;
     if (next_ != false) {
       output.writeBool(3, next_);
     }
-    com.google.protobuf.GeneratedMessageV3
-      .serializeStringMapTo(
-        output,
-        internalGetOrderByCols(),
-        OrderByColsDefaultEntryHolder.defaultEntry,
-        4);
+    for (int i = 0; i < orderByCols_.size(); i++) {
+      output.writeMessage(4, orderByCols_.get(i));
+    }
     if (pageSize_ != 0) {
       output.writeUInt32(5, pageSize_);
     }
@@ -353,15 +301,9 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(3, next_);
     }
-    for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
-         : internalGetOrderByCols().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-      orderByCols__ = OrderByColsDefaultEntryHolder.defaultEntry.newBuilderForType()
-          .setKey(entry.getKey())
-          .setValue(entry.getValue())
-          .build();
+    for (int i = 0; i < orderByCols_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, orderByCols__);
+        .computeMessageSize(4, orderByCols_.get(i));
     }
     if (pageSize_ != 0) {
       size += com.google.protobuf.CodedOutputStream
@@ -388,8 +330,8 @@ private static final long serialVersionUID = 0L;
         .equals(other.getTableName())) return false;
     if (getNext()
         != other.getNext()) return false;
-    if (!internalGetOrderByCols().equals(
-        other.internalGetOrderByCols())) return false;
+    if (!getOrderByColsList()
+        .equals(other.getOrderByColsList())) return false;
     if (getPageSize()
         != other.getPageSize()) return false;
     if (!unknownFields.equals(other.unknownFields)) return false;
@@ -410,9 +352,9 @@ private static final long serialVersionUID = 0L;
     hash = (37 * hash) + NEXT_FIELD_NUMBER;
     hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
         getNext());
-    if (!internalGetOrderByCols().getMap().isEmpty()) {
+    if (getOrderByColsCount() > 0) {
       hash = (37 * hash) + ORDERBYCOLS_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetOrderByCols().hashCode();
+      hash = (53 * hash) + getOrderByColsList().hashCode();
     }
     hash = (37 * hash) + PAGESIZE_FIELD_NUMBER;
     hash = (53 * hash) + getPageSize();
@@ -523,28 +465,6 @@ private static final long serialVersionUID = 0L;
       return com.qlangtech.tis.rpc.grpc.datax.preview.DataXRecordsPreviewService.internal_static_stream_PreviewRowsDataCriteria_descriptor;
     }
 
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMapField(
-        int number) {
-      switch (number) {
-        case 4:
-          return internalGetOrderByCols();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMutableMapField(
-        int number) {
-      switch (number) {
-        case 4:
-          return internalGetMutableOrderByCols();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
@@ -566,6 +486,7 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
+        getOrderByColsFieldBuilder();
       }
     }
     @java.lang.Override
@@ -577,7 +498,12 @@ private static final long serialVersionUID = 0L;
 
       next_ = false;
 
-      internalGetMutableOrderByCols().clear();
+      if (orderByColsBuilder_ == null) {
+        orderByCols_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);
+      } else {
+        orderByColsBuilder_.clear();
+      }
       pageSize_ = 0;
 
       return this;
@@ -611,8 +537,15 @@ private static final long serialVersionUID = 0L;
       result.dataXName_ = dataXName_;
       result.tableName_ = tableName_;
       result.next_ = next_;
-      result.orderByCols_ = internalGetOrderByCols();
-      result.orderByCols_.makeImmutable();
+      if (orderByColsBuilder_ == null) {
+        if (((bitField0_ & 0x00000008) != 0)) {
+          orderByCols_ = java.util.Collections.unmodifiableList(orderByCols_);
+          bitField0_ = (bitField0_ & ~0x00000008);
+        }
+        result.orderByCols_ = orderByCols_;
+      } else {
+        result.orderByCols_ = orderByColsBuilder_.build();
+      }
       result.pageSize_ = pageSize_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
@@ -674,8 +607,32 @@ private static final long serialVersionUID = 0L;
       if (other.getNext() != false) {
         setNext(other.getNext());
       }
-      internalGetMutableOrderByCols().mergeFrom(
-          other.internalGetOrderByCols());
+      if (orderByColsBuilder_ == null) {
+        if (!other.orderByCols_.isEmpty()) {
+          if (orderByCols_.isEmpty()) {
+            orderByCols_ = other.orderByCols_;
+            bitField0_ = (bitField0_ & ~0x00000008);
+          } else {
+            ensureOrderByColsIsMutable();
+            orderByCols_.addAll(other.orderByCols_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.orderByCols_.isEmpty()) {
+          if (orderByColsBuilder_.isEmpty()) {
+            orderByColsBuilder_.dispose();
+            orderByColsBuilder_ = null;
+            orderByCols_ = other.orderByCols_;
+            bitField0_ = (bitField0_ & ~0x00000008);
+            orderByColsBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getOrderByColsFieldBuilder() : null;
+          } else {
+            orderByColsBuilder_.addAllMessages(other.orderByCols_);
+          }
+        }
+      }
       if (other.getPageSize() != 0) {
         setPageSize(other.getPageSize());
       }
@@ -873,101 +830,210 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> orderByCols_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetOrderByCols() {
-      if (orderByCols_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            OrderByColsDefaultEntryHolder.defaultEntry);
-      }
-      return orderByCols_;
-    }
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetMutableOrderByCols() {
-      onChanged();;
-      if (orderByCols_ == null) {
-        orderByCols_ = com.google.protobuf.MapField.newMapField(
-            OrderByColsDefaultEntryHolder.defaultEntry);
-      }
-      if (!orderByCols_.isMutable()) {
-        orderByCols_ = orderByCols_.copy();
-      }
-      return orderByCols_;
+    private java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> orderByCols_ =
+      java.util.Collections.emptyList();
+    private void ensureOrderByColsIsMutable() {
+      if (!((bitField0_ & 0x00000008) != 0)) {
+        orderByCols_ = new java.util.ArrayList<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc>(orderByCols_);
+        bitField0_ |= 0x00000008;
+       }
     }
 
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder> orderByColsBuilder_;
+
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
+    public java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> getOrderByColsList() {
+      if (orderByColsBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(orderByCols_);
+      } else {
+        return orderByColsBuilder_.getMessageList();
+      }
+    }
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
     public int getOrderByColsCount() {
-      return internalGetOrderByCols().getMap().size();
-    }
-    /**
-     * <pre>
-     * 主键值，如果是首次查询，可以不设置该值
-     * </pre>
-     *
-     * <code>map&lt;string, string&gt; orderByCols = 4;</code>
-     */
-
-    public boolean containsOrderByCols(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetOrderByCols().getMap().containsKey(key);
-    }
-    /**
-     * Use {@link #getOrderByColsMap()} instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getOrderByCols() {
-      return getOrderByColsMap();
-    }
-    /**
-     * <pre>
-     * 主键值，如果是首次查询，可以不设置该值
-     * </pre>
-     *
-     * <code>map&lt;string, string&gt; orderByCols = 4;</code>
-     */
-
-    public java.util.Map<java.lang.String, java.lang.String> getOrderByColsMap() {
-      return internalGetOrderByCols().getMap();
-    }
-    /**
-     * <pre>
-     * 主键值，如果是首次查询，可以不设置该值
-     * </pre>
-     *
-     * <code>map&lt;string, string&gt; orderByCols = 4;</code>
-     */
-
-    public java.lang.String getOrderByColsOrDefault(
-        java.lang.String key,
-        java.lang.String defaultValue) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetOrderByCols().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
-    }
-    /**
-     * <pre>
-     * 主键值，如果是首次查询，可以不设置该值
-     * </pre>
-     *
-     * <code>map&lt;string, string&gt; orderByCols = 4;</code>
-     */
-
-    public java.lang.String getOrderByColsOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetOrderByCols().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
+      if (orderByColsBuilder_ == null) {
+        return orderByCols_.size();
+      } else {
+        return orderByColsBuilder_.getCount();
       }
-      return map.get(key);
     }
-
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc getOrderByCols(int index) {
+      if (orderByColsBuilder_ == null) {
+        return orderByCols_.get(index);
+      } else {
+        return orderByColsBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
+    public Builder setOrderByCols(
+        int index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc value) {
+      if (orderByColsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureOrderByColsIsMutable();
+        orderByCols_.set(index, value);
+        onChanged();
+      } else {
+        orderByColsBuilder_.setMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
+    public Builder setOrderByCols(
+        int index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder builderForValue) {
+      if (orderByColsBuilder_ == null) {
+        ensureOrderByColsIsMutable();
+        orderByCols_.set(index, builderForValue.build());
+        onChanged();
+      } else {
+        orderByColsBuilder_.setMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
+    public Builder addOrderByCols(com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc value) {
+      if (orderByColsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureOrderByColsIsMutable();
+        orderByCols_.add(value);
+        onChanged();
+      } else {
+        orderByColsBuilder_.addMessage(value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
+    public Builder addOrderByCols(
+        int index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc value) {
+      if (orderByColsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureOrderByColsIsMutable();
+        orderByCols_.add(index, value);
+        onChanged();
+      } else {
+        orderByColsBuilder_.addMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
+    public Builder addOrderByCols(
+        com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder builderForValue) {
+      if (orderByColsBuilder_ == null) {
+        ensureOrderByColsIsMutable();
+        orderByCols_.add(builderForValue.build());
+        onChanged();
+      } else {
+        orderByColsBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
+    public Builder addOrderByCols(
+        int index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder builderForValue) {
+      if (orderByColsBuilder_ == null) {
+        ensureOrderByColsIsMutable();
+        orderByCols_.add(index, builderForValue.build());
+        onChanged();
+      } else {
+        orderByColsBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
+    public Builder addAllOrderByCols(
+        java.lang.Iterable<? extends com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> values) {
+      if (orderByColsBuilder_ == null) {
+        ensureOrderByColsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, orderByCols_);
+        onChanged();
+      } else {
+        orderByColsBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
     public Builder clearOrderByCols() {
-      internalGetMutableOrderByCols().getMutableMap()
-          .clear();
+      if (orderByColsBuilder_ == null) {
+        orderByCols_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+      } else {
+        orderByColsBuilder_.clear();
+      }
       return this;
     }
     /**
@@ -975,38 +1041,16 @@ private static final long serialVersionUID = 0L;
      * 主键值，如果是首次查询，可以不设置该值
      * </pre>
      *
-     * <code>map&lt;string, string&gt; orderByCols = 4;</code>
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
      */
-
-    public Builder removeOrderByCols(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableOrderByCols().getMutableMap()
-          .remove(key);
-      return this;
-    }
-    /**
-     * Use alternate mutation accessors instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String>
-    getMutableOrderByCols() {
-      return internalGetMutableOrderByCols().getMutableMap();
-    }
-    /**
-     * <pre>
-     * 主键值，如果是首次查询，可以不设置该值
-     * </pre>
-     *
-     * <code>map&lt;string, string&gt; orderByCols = 4;</code>
-     */
-    public Builder putOrderByCols(
-        java.lang.String key,
-        java.lang.String value) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableOrderByCols().getMutableMap()
-          .put(key, value);
+    public Builder removeOrderByCols(int index) {
+      if (orderByColsBuilder_ == null) {
+        ensureOrderByColsIsMutable();
+        orderByCols_.remove(index);
+        onChanged();
+      } else {
+        orderByColsBuilder_.remove(index);
+      }
       return this;
     }
     /**
@@ -1014,14 +1058,88 @@ private static final long serialVersionUID = 0L;
      * 主键值，如果是首次查询，可以不设置该值
      * </pre>
      *
-     * <code>map&lt;string, string&gt; orderByCols = 4;</code>
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
      */
-
-    public Builder putAllOrderByCols(
-        java.util.Map<java.lang.String, java.lang.String> values) {
-      internalGetMutableOrderByCols().getMutableMap()
-          .putAll(values);
-      return this;
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder getOrderByColsBuilder(
+        int index) {
+      return getOrderByColsFieldBuilder().getBuilder(index);
+    }
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder getOrderByColsOrBuilder(
+        int index) {
+      if (orderByColsBuilder_ == null) {
+        return orderByCols_.get(index);  } else {
+        return orderByColsBuilder_.getMessageOrBuilder(index);
+      }
+    }
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
+    public java.util.List<? extends com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder> 
+         getOrderByColsOrBuilderList() {
+      if (orderByColsBuilder_ != null) {
+        return orderByColsBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(orderByCols_);
+      }
+    }
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder addOrderByColsBuilder() {
+      return getOrderByColsFieldBuilder().addBuilder(
+          com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.getDefaultInstance());
+    }
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder addOrderByColsBuilder(
+        int index) {
+      return getOrderByColsFieldBuilder().addBuilder(
+          index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.getDefaultInstance());
+    }
+    /**
+     * <pre>
+     * 主键值，如果是首次查询，可以不设置该值
+     * </pre>
+     *
+     * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+     */
+    public java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder> 
+         getOrderByColsBuilderList() {
+      return getOrderByColsFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder> 
+        getOrderByColsFieldBuilder() {
+      if (orderByColsBuilder_ == null) {
+        orderByColsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder>(
+                orderByCols_,
+                ((bitField0_ & 0x00000008) != 0),
+                getParentForChildren(),
+                isClean());
+        orderByCols_ = null;
+      }
+      return orderByColsBuilder_;
     }
 
     private int pageSize_ ;

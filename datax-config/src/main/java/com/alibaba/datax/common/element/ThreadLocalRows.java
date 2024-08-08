@@ -18,8 +18,15 @@
 
 package com.alibaba.datax.common.element;
 
+import com.alibaba.datax.common.element.DataXResultPreviewOrderByCols.OffsetColVal;
+import com.alibaba.datax.common.util.ISelectedTabMeta;
+import com.qlangtech.tis.plugin.ds.DataType;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -30,6 +37,51 @@ public class ThreadLocalRows {
 
     private QueryCriteria query;
     private DataXResultPreviewOrderByCols orderByCols;
+
+    public PreviewRecords createPreviewRecords(ISelectedTabMeta tab) {
+        final int pageSize = query.getPageSize();
+        List<OffsetColVal> headerCursor = null;
+        List<OffsetColVal> tailerCursor = null;
+        Map<String, DataType> typeMap
+                = tab.getCols().stream().collect(Collectors.toMap((col) -> col.getName(), (col) -> col.getType()));
+        for (Record record : rows) {
+            // 设置header
+            headerCursor = createCursor(tab, typeMap, record);
+            break;
+        }
+
+        for (int index = rows.size() - 1; index >= 0; index--) {
+            // 设置tailer
+            if (index >= pageSize - 1) {
+                Record tailerRecord = rows.get(index);
+                tailerCursor = createCursor(tab, typeMap, tailerRecord);
+            }
+            break;
+        }
+
+        return new PreviewRecords(this.rows, headerCursor, tailerCursor);
+    }
+
+    private List<OffsetColVal> createCursor(ISelectedTabMeta tab, Map<String, DataType> typeMap, Record record) {
+        List<OffsetColVal> cursor = new ArrayList<>();
+        for (String pk : tab.getPrimaryKeys()) {
+            cursor.add(new OffsetColVal(pk, record.getString(pk, true), isNumericJdbcType(typeMap, pk)));
+        }
+        return cursor;
+    }
+
+    private boolean isNumericJdbcType(Map<String, DataType> typeMap, String colKey) {
+        switch (Objects.requireNonNull(typeMap.get(colKey)
+                , "colKey:" + colKey + " relevant dataType can not be null").getCollapse()) {
+            case INT:
+            case Long:
+            case Double:
+            case Boolean:
+                return true;
+            default:
+                return false;
+        }
+    }
 
     public DataXResultPreviewOrderByCols getPagerOffsetPointCols() {
         return this.orderByCols;

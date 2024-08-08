@@ -38,14 +38,7 @@ public interface Record extends ColumnAwareRecord<Object> {
 
     public void setColumn(int i, final Column column);
 
-
     public Column getColumn(int i);
-
-    @Override
-    default String getString(String field) {
-        Object colVal = this.getColumn(field);
-        return colVal != null ? String.valueOf(colVal) : null;
-    }
 
     public String toString();
 

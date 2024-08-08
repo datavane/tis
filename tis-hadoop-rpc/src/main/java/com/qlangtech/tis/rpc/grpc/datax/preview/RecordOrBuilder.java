@@ -8,26 +8,26 @@ public interface RecordOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>repeated .google.protobuf.StringValue colVals = 1;</code>
+   * <code>repeated .stream.StringValue colVals = 1;</code>
    */
-  java.util.List<com.google.protobuf.StringValue> 
+  java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.StringValue> 
       getColValsList();
   /**
-   * <code>repeated .google.protobuf.StringValue colVals = 1;</code>
+   * <code>repeated .stream.StringValue colVals = 1;</code>
    */
-  com.google.protobuf.StringValue getColVals(int index);
+  com.qlangtech.tis.rpc.grpc.datax.preview.StringValue getColVals(int index);
   /**
-   * <code>repeated .google.protobuf.StringValue colVals = 1;</code>
+   * <code>repeated .stream.StringValue colVals = 1;</code>
    */
   int getColValsCount();
   /**
-   * <code>repeated .google.protobuf.StringValue colVals = 1;</code>
+   * <code>repeated .stream.StringValue colVals = 1;</code>
    */
-  java.util.List<? extends com.google.protobuf.StringValueOrBuilder> 
+  java.util.List<? extends com.qlangtech.tis.rpc.grpc.datax.preview.StringValueOrBuilder> 
       getColValsOrBuilderList();
   /**
-   * <code>repeated .google.protobuf.StringValue colVals = 1;</code>
+   * <code>repeated .stream.StringValue colVals = 1;</code>
    */
-  com.google.protobuf.StringValueOrBuilder getColValsOrBuilder(
+  com.qlangtech.tis.rpc.grpc.datax.preview.StringValueOrBuilder getColValsOrBuilder(
       int index);
 }

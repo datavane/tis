@@ -16,48 +16,20 @@
  * limitations under the License.
  */
 
-package com.alibaba.datax.common.element;
+package com.alibaba.datax.common.util;
 
-import com.qlangtech.tis.plugin.ds.DataType;
+import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-07-03 13:42
+ * @create: 2024-08-06 18:01
  **/
-public interface ICol2Index {
-    /**
-     * @return key: 列名 ，val：列所在位置
-     */
-    public Map<String, Col> getCol2Index();
-
-    /**
-     * 统计有多少个上下文绑定参数参与数据同步执行
-     *
-     * @return
-     */
-    int contextParamValsCount();
-
-    /**
-     * @author: 百岁（baisui@qlangtech.com）
-     * @create: 2024-08-08 12:56
-     **/
-    class Col {
-        private final int index;
-        private final DataType type;
-
-        public Col(int index, DataType type) {
-            this.index = index;
-            this.type = type;
-        }
-
-        public int getIndex() {
-            return index;
-        }
-
-        public DataType getType() {
-            return type;
-        }
+public interface ISelectedTabMeta {
+    public default List<String> getPrimaryKeys() {
+        throw new UnsupportedOperationException();
     }
+
+    <T extends IColMetaGetter> List<T> getCols();
 }

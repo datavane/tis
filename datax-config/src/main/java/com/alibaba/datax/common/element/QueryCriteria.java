@@ -18,26 +18,28 @@
 
 package com.alibaba.datax.common.element;
 
-import java.util.Map;
+import com.alibaba.datax.common.element.DataXResultPreviewOrderByCols.OffsetColVal;
+
+import java.util.List;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-07-28 22:39
  **/
 public class QueryCriteria {
-    private Map<String,String> pagerOffsetPointCols;
+    private List<OffsetColVal> pagerOffsetCursor;
 
 //    public String createWhereAndOrderByStatment() {
 //        return Objects.requireNonNull(pagerOffsetPointCols, "pagerOffsetPointCols can not be null")
 //                .createWhereAndOrderByStatment(this.nextPakge);
 //    }
 
-    public Map<String, String> getPagerOffsetPointCols() {
-        return this.pagerOffsetPointCols;
+    public List<OffsetColVal> getPagerOffsetCursor() {
+        return this.pagerOffsetCursor;
     }
 
-    public void setPagerOffsetPointCols(Map<String, String> pagerOffsetPointCols) {
-        this.pagerOffsetPointCols = pagerOffsetPointCols;
+    public void setPagerOffsetCursor(List<OffsetColVal> pagerOffsetCursor) {
+        this.pagerOffsetCursor = pagerOffsetCursor;
     }
 
     /**

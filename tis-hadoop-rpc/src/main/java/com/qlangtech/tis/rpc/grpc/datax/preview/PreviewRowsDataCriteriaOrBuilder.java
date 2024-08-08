@@ -37,7 +37,24 @@ public interface PreviewRowsDataCriteriaOrBuilder extends
    * 主键值，如果是首次查询，可以不设置该值
    * </pre>
    *
-   * <code>map&lt;string, string&gt; orderByCols = 4;</code>
+   * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+   */
+  java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> 
+      getOrderByColsList();
+  /**
+   * <pre>
+   * 主键值，如果是首次查询，可以不设置该值
+   * </pre>
+   *
+   * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
+   */
+  com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc getOrderByCols(int index);
+  /**
+   * <pre>
+   * 主键值，如果是首次查询，可以不设置该值
+   * </pre>
+   *
+   * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
    */
   int getOrderByColsCount();
   /**
@@ -45,46 +62,19 @@ public interface PreviewRowsDataCriteriaOrBuilder extends
    * 主键值，如果是首次查询，可以不设置该值
    * </pre>
    *
-   * <code>map&lt;string, string&gt; orderByCols = 4;</code>
+   * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
    */
-  boolean containsOrderByCols(
-      java.lang.String key);
-  /**
-   * Use {@link #getOrderByColsMap()} instead.
-   */
-  @java.lang.Deprecated
-  java.util.Map<java.lang.String, java.lang.String>
-  getOrderByCols();
+  java.util.List<? extends com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder> 
+      getOrderByColsOrBuilderList();
   /**
    * <pre>
    * 主键值，如果是首次查询，可以不设置该值
    * </pre>
    *
-   * <code>map&lt;string, string&gt; orderByCols = 4;</code>
+   * <code>repeated .stream.OffsetColValGrpc orderByCols = 4;</code>
    */
-  java.util.Map<java.lang.String, java.lang.String>
-  getOrderByColsMap();
-  /**
-   * <pre>
-   * 主键值，如果是首次查询，可以不设置该值
-   * </pre>
-   *
-   * <code>map&lt;string, string&gt; orderByCols = 4;</code>
-   */
-
-  java.lang.String getOrderByColsOrDefault(
-      java.lang.String key,
-      java.lang.String defaultValue);
-  /**
-   * <pre>
-   * 主键值，如果是首次查询，可以不设置该值
-   * </pre>
-   *
-   * <code>map&lt;string, string&gt; orderByCols = 4;</code>
-   */
-
-  java.lang.String getOrderByColsOrThrow(
-      java.lang.String key);
+  com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder getOrderByColsOrBuilder(
+      int index);
 
   /**
    * <code>uint32 pageSize = 5;</code>

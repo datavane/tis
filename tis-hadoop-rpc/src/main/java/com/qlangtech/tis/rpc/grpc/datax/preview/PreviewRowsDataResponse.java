@@ -17,6 +17,8 @@ private static final long serialVersionUID = 0L;
   }
   private PreviewRowsDataResponse() {
     records_ = java.util.Collections.emptyList();
+    headerCursor_ = java.util.Collections.emptyList();
+    tailerCursor_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -49,7 +51,7 @@ private static final long serialVersionUID = 0L;
                   ColumnHeaderDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000001;
             }
-            com.google.protobuf.MapEntry<java.lang.String, java.lang.Integer>
+            com.google.protobuf.MapEntry<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc>
             columnHeader__ = input.readMessage(
                 ColumnHeaderDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
             columnHeader_.getMutableMap().put(
@@ -63,6 +65,24 @@ private static final long serialVersionUID = 0L;
             }
             records_.add(
                 input.readMessage(com.qlangtech.tis.rpc.grpc.datax.preview.Record.parser(), extensionRegistry));
+            break;
+          }
+          case 26: {
+            if (!((mutable_bitField0_ & 0x00000004) != 0)) {
+              headerCursor_ = new java.util.ArrayList<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc>();
+              mutable_bitField0_ |= 0x00000004;
+            }
+            headerCursor_.add(
+                input.readMessage(com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.parser(), extensionRegistry));
+            break;
+          }
+          case 34: {
+            if (!((mutable_bitField0_ & 0x00000008) != 0)) {
+              tailerCursor_ = new java.util.ArrayList<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc>();
+              mutable_bitField0_ |= 0x00000008;
+            }
+            tailerCursor_.add(
+                input.readMessage(com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.parser(), extensionRegistry));
             break;
           }
           default: {
@@ -82,6 +102,12 @@ private static final long serialVersionUID = 0L;
     } finally {
       if (((mutable_bitField0_ & 0x00000002) != 0)) {
         records_ = java.util.Collections.unmodifiableList(records_);
+      }
+      if (((mutable_bitField0_ & 0x00000004) != 0)) {
+        headerCursor_ = java.util.Collections.unmodifiableList(headerCursor_);
+      }
+      if (((mutable_bitField0_ & 0x00000008) != 0)) {
+        tailerCursor_ = java.util.Collections.unmodifiableList(tailerCursor_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -115,18 +141,18 @@ private static final long serialVersionUID = 0L;
   public static final int COLUMNHEADER_FIELD_NUMBER = 1;
   private static final class ColumnHeaderDefaultEntryHolder {
     static final com.google.protobuf.MapEntry<
-        java.lang.String, java.lang.Integer> defaultEntry =
+        java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc> defaultEntry =
             com.google.protobuf.MapEntry
-            .<java.lang.String, java.lang.Integer>newDefaultInstance(
+            .<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc>newDefaultInstance(
                 com.qlangtech.tis.rpc.grpc.datax.preview.DataXRecordsPreviewService.internal_static_stream_PreviewRowsDataResponse_ColumnHeaderEntry_descriptor, 
                 com.google.protobuf.WireFormat.FieldType.STRING,
                 "",
-                com.google.protobuf.WireFormat.FieldType.UINT32,
-                0);
+                com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc.getDefaultInstance());
   }
   private com.google.protobuf.MapField<
-      java.lang.String, java.lang.Integer> columnHeader_;
-  private com.google.protobuf.MapField<java.lang.String, java.lang.Integer>
+      java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc> columnHeader_;
+  private com.google.protobuf.MapField<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc>
   internalGetColumnHeader() {
     if (columnHeader_ == null) {
       return com.google.protobuf.MapField.emptyMapField(
@@ -139,7 +165,7 @@ private static final long serialVersionUID = 0L;
     return internalGetColumnHeader().getMap().size();
   }
   /**
-   * <code>map&lt;string, uint32&gt; columnHeader = 1;</code>
+   * <code>map&lt;string, .stream.HeaderColGrpc&gt; columnHeader = 1;</code>
    */
 
   public boolean containsColumnHeader(
@@ -151,36 +177,36 @@ private static final long serialVersionUID = 0L;
    * Use {@link #getColumnHeaderMap()} instead.
    */
   @java.lang.Deprecated
-  public java.util.Map<java.lang.String, java.lang.Integer> getColumnHeader() {
+  public java.util.Map<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc> getColumnHeader() {
     return getColumnHeaderMap();
   }
   /**
-   * <code>map&lt;string, uint32&gt; columnHeader = 1;</code>
+   * <code>map&lt;string, .stream.HeaderColGrpc&gt; columnHeader = 1;</code>
    */
 
-  public java.util.Map<java.lang.String, java.lang.Integer> getColumnHeaderMap() {
+  public java.util.Map<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc> getColumnHeaderMap() {
     return internalGetColumnHeader().getMap();
   }
   /**
-   * <code>map&lt;string, uint32&gt; columnHeader = 1;</code>
+   * <code>map&lt;string, .stream.HeaderColGrpc&gt; columnHeader = 1;</code>
    */
 
-  public int getColumnHeaderOrDefault(
+  public com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc getColumnHeaderOrDefault(
       java.lang.String key,
-      int defaultValue) {
+      com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc defaultValue) {
     if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, java.lang.Integer> map =
+    java.util.Map<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc> map =
         internalGetColumnHeader().getMap();
     return map.containsKey(key) ? map.get(key) : defaultValue;
   }
   /**
-   * <code>map&lt;string, uint32&gt; columnHeader = 1;</code>
+   * <code>map&lt;string, .stream.HeaderColGrpc&gt; columnHeader = 1;</code>
    */
 
-  public int getColumnHeaderOrThrow(
+  public com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc getColumnHeaderOrThrow(
       java.lang.String key) {
     if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, java.lang.Integer> map =
+    java.util.Map<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc> map =
         internalGetColumnHeader().getMap();
     if (!map.containsKey(key)) {
       throw new java.lang.IllegalArgumentException();
@@ -223,6 +249,76 @@ private static final long serialVersionUID = 0L;
     return records_.get(index);
   }
 
+  public static final int HEADERCURSOR_FIELD_NUMBER = 3;
+  private java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> headerCursor_;
+  /**
+   * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+   */
+  public java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> getHeaderCursorList() {
+    return headerCursor_;
+  }
+  /**
+   * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+   */
+  public java.util.List<? extends com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder> 
+      getHeaderCursorOrBuilderList() {
+    return headerCursor_;
+  }
+  /**
+   * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+   */
+  public int getHeaderCursorCount() {
+    return headerCursor_.size();
+  }
+  /**
+   * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+   */
+  public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc getHeaderCursor(int index) {
+    return headerCursor_.get(index);
+  }
+  /**
+   * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+   */
+  public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder getHeaderCursorOrBuilder(
+      int index) {
+    return headerCursor_.get(index);
+  }
+
+  public static final int TAILERCURSOR_FIELD_NUMBER = 4;
+  private java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> tailerCursor_;
+  /**
+   * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+   */
+  public java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> getTailerCursorList() {
+    return tailerCursor_;
+  }
+  /**
+   * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+   */
+  public java.util.List<? extends com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder> 
+      getTailerCursorOrBuilderList() {
+    return tailerCursor_;
+  }
+  /**
+   * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+   */
+  public int getTailerCursorCount() {
+    return tailerCursor_.size();
+  }
+  /**
+   * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+   */
+  public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc getTailerCursor(int index) {
+    return tailerCursor_.get(index);
+  }
+  /**
+   * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+   */
+  public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder getTailerCursorOrBuilder(
+      int index) {
+    return tailerCursor_.get(index);
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -246,6 +342,12 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < records_.size(); i++) {
       output.writeMessage(2, records_.get(i));
     }
+    for (int i = 0; i < headerCursor_.size(); i++) {
+      output.writeMessage(3, headerCursor_.get(i));
+    }
+    for (int i = 0; i < tailerCursor_.size(); i++) {
+      output.writeMessage(4, tailerCursor_.get(i));
+    }
     unknownFields.writeTo(output);
   }
 
@@ -255,9 +357,9 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    for (java.util.Map.Entry<java.lang.String, java.lang.Integer> entry
+    for (java.util.Map.Entry<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc> entry
          : internalGetColumnHeader().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, java.lang.Integer>
+      com.google.protobuf.MapEntry<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc>
       columnHeader__ = ColumnHeaderDefaultEntryHolder.defaultEntry.newBuilderForType()
           .setKey(entry.getKey())
           .setValue(entry.getValue())
@@ -268,6 +370,14 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < records_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(2, records_.get(i));
+    }
+    for (int i = 0; i < headerCursor_.size(); i++) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(3, headerCursor_.get(i));
+    }
+    for (int i = 0; i < tailerCursor_.size(); i++) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(4, tailerCursor_.get(i));
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -288,6 +398,10 @@ private static final long serialVersionUID = 0L;
         other.internalGetColumnHeader())) return false;
     if (!getRecordsList()
         .equals(other.getRecordsList())) return false;
+    if (!getHeaderCursorList()
+        .equals(other.getHeaderCursorList())) return false;
+    if (!getTailerCursorList()
+        .equals(other.getTailerCursorList())) return false;
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -306,6 +420,14 @@ private static final long serialVersionUID = 0L;
     if (getRecordsCount() > 0) {
       hash = (37 * hash) + RECORDS_FIELD_NUMBER;
       hash = (53 * hash) + getRecordsList().hashCode();
+    }
+    if (getHeaderCursorCount() > 0) {
+      hash = (37 * hash) + HEADERCURSOR_FIELD_NUMBER;
+      hash = (53 * hash) + getHeaderCursorList().hashCode();
+    }
+    if (getTailerCursorCount() > 0) {
+      hash = (37 * hash) + TAILERCURSOR_FIELD_NUMBER;
+      hash = (53 * hash) + getTailerCursorList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -458,6 +580,8 @@ private static final long serialVersionUID = 0L;
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
         getRecordsFieldBuilder();
+        getHeaderCursorFieldBuilder();
+        getTailerCursorFieldBuilder();
       }
     }
     @java.lang.Override
@@ -469,6 +593,18 @@ private static final long serialVersionUID = 0L;
         bitField0_ = (bitField0_ & ~0x00000002);
       } else {
         recordsBuilder_.clear();
+      }
+      if (headerCursorBuilder_ == null) {
+        headerCursor_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
+      } else {
+        headerCursorBuilder_.clear();
+      }
+      if (tailerCursorBuilder_ == null) {
+        tailerCursor_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);
+      } else {
+        tailerCursorBuilder_.clear();
       }
       return this;
     }
@@ -507,6 +643,24 @@ private static final long serialVersionUID = 0L;
         result.records_ = records_;
       } else {
         result.records_ = recordsBuilder_.build();
+      }
+      if (headerCursorBuilder_ == null) {
+        if (((bitField0_ & 0x00000004) != 0)) {
+          headerCursor_ = java.util.Collections.unmodifiableList(headerCursor_);
+          bitField0_ = (bitField0_ & ~0x00000004);
+        }
+        result.headerCursor_ = headerCursor_;
+      } else {
+        result.headerCursor_ = headerCursorBuilder_.build();
+      }
+      if (tailerCursorBuilder_ == null) {
+        if (((bitField0_ & 0x00000008) != 0)) {
+          tailerCursor_ = java.util.Collections.unmodifiableList(tailerCursor_);
+          bitField0_ = (bitField0_ & ~0x00000008);
+        }
+        result.tailerCursor_ = tailerCursor_;
+      } else {
+        result.tailerCursor_ = tailerCursorBuilder_.build();
       }
       onBuilt();
       return result;
@@ -584,6 +738,58 @@ private static final long serialVersionUID = 0L;
           }
         }
       }
+      if (headerCursorBuilder_ == null) {
+        if (!other.headerCursor_.isEmpty()) {
+          if (headerCursor_.isEmpty()) {
+            headerCursor_ = other.headerCursor_;
+            bitField0_ = (bitField0_ & ~0x00000004);
+          } else {
+            ensureHeaderCursorIsMutable();
+            headerCursor_.addAll(other.headerCursor_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.headerCursor_.isEmpty()) {
+          if (headerCursorBuilder_.isEmpty()) {
+            headerCursorBuilder_.dispose();
+            headerCursorBuilder_ = null;
+            headerCursor_ = other.headerCursor_;
+            bitField0_ = (bitField0_ & ~0x00000004);
+            headerCursorBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getHeaderCursorFieldBuilder() : null;
+          } else {
+            headerCursorBuilder_.addAllMessages(other.headerCursor_);
+          }
+        }
+      }
+      if (tailerCursorBuilder_ == null) {
+        if (!other.tailerCursor_.isEmpty()) {
+          if (tailerCursor_.isEmpty()) {
+            tailerCursor_ = other.tailerCursor_;
+            bitField0_ = (bitField0_ & ~0x00000008);
+          } else {
+            ensureTailerCursorIsMutable();
+            tailerCursor_.addAll(other.tailerCursor_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.tailerCursor_.isEmpty()) {
+          if (tailerCursorBuilder_.isEmpty()) {
+            tailerCursorBuilder_.dispose();
+            tailerCursorBuilder_ = null;
+            tailerCursor_ = other.tailerCursor_;
+            bitField0_ = (bitField0_ & ~0x00000008);
+            tailerCursorBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getTailerCursorFieldBuilder() : null;
+          } else {
+            tailerCursorBuilder_.addAllMessages(other.tailerCursor_);
+          }
+        }
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -615,8 +821,8 @@ private static final long serialVersionUID = 0L;
     private int bitField0_;
 
     private com.google.protobuf.MapField<
-        java.lang.String, java.lang.Integer> columnHeader_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.Integer>
+        java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc> columnHeader_;
+    private com.google.protobuf.MapField<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc>
     internalGetColumnHeader() {
       if (columnHeader_ == null) {
         return com.google.protobuf.MapField.emptyMapField(
@@ -624,7 +830,7 @@ private static final long serialVersionUID = 0L;
       }
       return columnHeader_;
     }
-    private com.google.protobuf.MapField<java.lang.String, java.lang.Integer>
+    private com.google.protobuf.MapField<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc>
     internalGetMutableColumnHeader() {
       onChanged();;
       if (columnHeader_ == null) {
@@ -641,7 +847,7 @@ private static final long serialVersionUID = 0L;
       return internalGetColumnHeader().getMap().size();
     }
     /**
-     * <code>map&lt;string, uint32&gt; columnHeader = 1;</code>
+     * <code>map&lt;string, .stream.HeaderColGrpc&gt; columnHeader = 1;</code>
      */
 
     public boolean containsColumnHeader(
@@ -653,36 +859,36 @@ private static final long serialVersionUID = 0L;
      * Use {@link #getColumnHeaderMap()} instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.Integer> getColumnHeader() {
+    public java.util.Map<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc> getColumnHeader() {
       return getColumnHeaderMap();
     }
     /**
-     * <code>map&lt;string, uint32&gt; columnHeader = 1;</code>
+     * <code>map&lt;string, .stream.HeaderColGrpc&gt; columnHeader = 1;</code>
      */
 
-    public java.util.Map<java.lang.String, java.lang.Integer> getColumnHeaderMap() {
+    public java.util.Map<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc> getColumnHeaderMap() {
       return internalGetColumnHeader().getMap();
     }
     /**
-     * <code>map&lt;string, uint32&gt; columnHeader = 1;</code>
+     * <code>map&lt;string, .stream.HeaderColGrpc&gt; columnHeader = 1;</code>
      */
 
-    public int getColumnHeaderOrDefault(
+    public com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc getColumnHeaderOrDefault(
         java.lang.String key,
-        int defaultValue) {
+        com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc defaultValue) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.Integer> map =
+      java.util.Map<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc> map =
           internalGetColumnHeader().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, uint32&gt; columnHeader = 1;</code>
+     * <code>map&lt;string, .stream.HeaderColGrpc&gt; columnHeader = 1;</code>
      */
 
-    public int getColumnHeaderOrThrow(
+    public com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc getColumnHeaderOrThrow(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.Integer> map =
+      java.util.Map<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc> map =
           internalGetColumnHeader().getMap();
       if (!map.containsKey(key)) {
         throw new java.lang.IllegalArgumentException();
@@ -696,7 +902,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>map&lt;string, uint32&gt; columnHeader = 1;</code>
+     * <code>map&lt;string, .stream.HeaderColGrpc&gt; columnHeader = 1;</code>
      */
 
     public Builder removeColumnHeader(
@@ -710,28 +916,28 @@ private static final long serialVersionUID = 0L;
      * Use alternate mutation accessors instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.Integer>
+    public java.util.Map<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc>
     getMutableColumnHeader() {
       return internalGetMutableColumnHeader().getMutableMap();
     }
     /**
-     * <code>map&lt;string, uint32&gt; columnHeader = 1;</code>
+     * <code>map&lt;string, .stream.HeaderColGrpc&gt; columnHeader = 1;</code>
      */
     public Builder putColumnHeader(
         java.lang.String key,
-        int value) {
+        com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc value) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      
+      if (value == null) { throw new java.lang.NullPointerException(); }
       internalGetMutableColumnHeader().getMutableMap()
           .put(key, value);
       return this;
     }
     /**
-     * <code>map&lt;string, uint32&gt; columnHeader = 1;</code>
+     * <code>map&lt;string, .stream.HeaderColGrpc&gt; columnHeader = 1;</code>
      */
 
     public Builder putAllColumnHeader(
-        java.util.Map<java.lang.String, java.lang.Integer> values) {
+        java.util.Map<java.lang.String, com.qlangtech.tis.rpc.grpc.datax.preview.HeaderColGrpc> values) {
       internalGetMutableColumnHeader().getMutableMap()
           .putAll(values);
       return this;
@@ -975,6 +1181,486 @@ private static final long serialVersionUID = 0L;
         records_ = null;
       }
       return recordsBuilder_;
+    }
+
+    private java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> headerCursor_ =
+      java.util.Collections.emptyList();
+    private void ensureHeaderCursorIsMutable() {
+      if (!((bitField0_ & 0x00000004) != 0)) {
+        headerCursor_ = new java.util.ArrayList<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc>(headerCursor_);
+        bitField0_ |= 0x00000004;
+       }
+    }
+
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder> headerCursorBuilder_;
+
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> getHeaderCursorList() {
+      if (headerCursorBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(headerCursor_);
+      } else {
+        return headerCursorBuilder_.getMessageList();
+      }
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public int getHeaderCursorCount() {
+      if (headerCursorBuilder_ == null) {
+        return headerCursor_.size();
+      } else {
+        return headerCursorBuilder_.getCount();
+      }
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc getHeaderCursor(int index) {
+      if (headerCursorBuilder_ == null) {
+        return headerCursor_.get(index);
+      } else {
+        return headerCursorBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public Builder setHeaderCursor(
+        int index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc value) {
+      if (headerCursorBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureHeaderCursorIsMutable();
+        headerCursor_.set(index, value);
+        onChanged();
+      } else {
+        headerCursorBuilder_.setMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public Builder setHeaderCursor(
+        int index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder builderForValue) {
+      if (headerCursorBuilder_ == null) {
+        ensureHeaderCursorIsMutable();
+        headerCursor_.set(index, builderForValue.build());
+        onChanged();
+      } else {
+        headerCursorBuilder_.setMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public Builder addHeaderCursor(com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc value) {
+      if (headerCursorBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureHeaderCursorIsMutable();
+        headerCursor_.add(value);
+        onChanged();
+      } else {
+        headerCursorBuilder_.addMessage(value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public Builder addHeaderCursor(
+        int index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc value) {
+      if (headerCursorBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureHeaderCursorIsMutable();
+        headerCursor_.add(index, value);
+        onChanged();
+      } else {
+        headerCursorBuilder_.addMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public Builder addHeaderCursor(
+        com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder builderForValue) {
+      if (headerCursorBuilder_ == null) {
+        ensureHeaderCursorIsMutable();
+        headerCursor_.add(builderForValue.build());
+        onChanged();
+      } else {
+        headerCursorBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public Builder addHeaderCursor(
+        int index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder builderForValue) {
+      if (headerCursorBuilder_ == null) {
+        ensureHeaderCursorIsMutable();
+        headerCursor_.add(index, builderForValue.build());
+        onChanged();
+      } else {
+        headerCursorBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public Builder addAllHeaderCursor(
+        java.lang.Iterable<? extends com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> values) {
+      if (headerCursorBuilder_ == null) {
+        ensureHeaderCursorIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, headerCursor_);
+        onChanged();
+      } else {
+        headerCursorBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public Builder clearHeaderCursor() {
+      if (headerCursorBuilder_ == null) {
+        headerCursor_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+      } else {
+        headerCursorBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public Builder removeHeaderCursor(int index) {
+      if (headerCursorBuilder_ == null) {
+        ensureHeaderCursorIsMutable();
+        headerCursor_.remove(index);
+        onChanged();
+      } else {
+        headerCursorBuilder_.remove(index);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder getHeaderCursorBuilder(
+        int index) {
+      return getHeaderCursorFieldBuilder().getBuilder(index);
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder getHeaderCursorOrBuilder(
+        int index) {
+      if (headerCursorBuilder_ == null) {
+        return headerCursor_.get(index);  } else {
+        return headerCursorBuilder_.getMessageOrBuilder(index);
+      }
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public java.util.List<? extends com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder> 
+         getHeaderCursorOrBuilderList() {
+      if (headerCursorBuilder_ != null) {
+        return headerCursorBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(headerCursor_);
+      }
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder addHeaderCursorBuilder() {
+      return getHeaderCursorFieldBuilder().addBuilder(
+          com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder addHeaderCursorBuilder(
+        int index) {
+      return getHeaderCursorFieldBuilder().addBuilder(
+          index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc headerCursor = 3;</code>
+     */
+    public java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder> 
+         getHeaderCursorBuilderList() {
+      return getHeaderCursorFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder> 
+        getHeaderCursorFieldBuilder() {
+      if (headerCursorBuilder_ == null) {
+        headerCursorBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder>(
+                headerCursor_,
+                ((bitField0_ & 0x00000004) != 0),
+                getParentForChildren(),
+                isClean());
+        headerCursor_ = null;
+      }
+      return headerCursorBuilder_;
+    }
+
+    private java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> tailerCursor_ =
+      java.util.Collections.emptyList();
+    private void ensureTailerCursorIsMutable() {
+      if (!((bitField0_ & 0x00000008) != 0)) {
+        tailerCursor_ = new java.util.ArrayList<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc>(tailerCursor_);
+        bitField0_ |= 0x00000008;
+       }
+    }
+
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder> tailerCursorBuilder_;
+
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> getTailerCursorList() {
+      if (tailerCursorBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(tailerCursor_);
+      } else {
+        return tailerCursorBuilder_.getMessageList();
+      }
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public int getTailerCursorCount() {
+      if (tailerCursorBuilder_ == null) {
+        return tailerCursor_.size();
+      } else {
+        return tailerCursorBuilder_.getCount();
+      }
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc getTailerCursor(int index) {
+      if (tailerCursorBuilder_ == null) {
+        return tailerCursor_.get(index);
+      } else {
+        return tailerCursorBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public Builder setTailerCursor(
+        int index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc value) {
+      if (tailerCursorBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureTailerCursorIsMutable();
+        tailerCursor_.set(index, value);
+        onChanged();
+      } else {
+        tailerCursorBuilder_.setMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public Builder setTailerCursor(
+        int index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder builderForValue) {
+      if (tailerCursorBuilder_ == null) {
+        ensureTailerCursorIsMutable();
+        tailerCursor_.set(index, builderForValue.build());
+        onChanged();
+      } else {
+        tailerCursorBuilder_.setMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public Builder addTailerCursor(com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc value) {
+      if (tailerCursorBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureTailerCursorIsMutable();
+        tailerCursor_.add(value);
+        onChanged();
+      } else {
+        tailerCursorBuilder_.addMessage(value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public Builder addTailerCursor(
+        int index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc value) {
+      if (tailerCursorBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureTailerCursorIsMutable();
+        tailerCursor_.add(index, value);
+        onChanged();
+      } else {
+        tailerCursorBuilder_.addMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public Builder addTailerCursor(
+        com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder builderForValue) {
+      if (tailerCursorBuilder_ == null) {
+        ensureTailerCursorIsMutable();
+        tailerCursor_.add(builderForValue.build());
+        onChanged();
+      } else {
+        tailerCursorBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public Builder addTailerCursor(
+        int index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder builderForValue) {
+      if (tailerCursorBuilder_ == null) {
+        ensureTailerCursorIsMutable();
+        tailerCursor_.add(index, builderForValue.build());
+        onChanged();
+      } else {
+        tailerCursorBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public Builder addAllTailerCursor(
+        java.lang.Iterable<? extends com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc> values) {
+      if (tailerCursorBuilder_ == null) {
+        ensureTailerCursorIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, tailerCursor_);
+        onChanged();
+      } else {
+        tailerCursorBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public Builder clearTailerCursor() {
+      if (tailerCursorBuilder_ == null) {
+        tailerCursor_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+      } else {
+        tailerCursorBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public Builder removeTailerCursor(int index) {
+      if (tailerCursorBuilder_ == null) {
+        ensureTailerCursorIsMutable();
+        tailerCursor_.remove(index);
+        onChanged();
+      } else {
+        tailerCursorBuilder_.remove(index);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder getTailerCursorBuilder(
+        int index) {
+      return getTailerCursorFieldBuilder().getBuilder(index);
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder getTailerCursorOrBuilder(
+        int index) {
+      if (tailerCursorBuilder_ == null) {
+        return tailerCursor_.get(index);  } else {
+        return tailerCursorBuilder_.getMessageOrBuilder(index);
+      }
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public java.util.List<? extends com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder> 
+         getTailerCursorOrBuilderList() {
+      if (tailerCursorBuilder_ != null) {
+        return tailerCursorBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(tailerCursor_);
+      }
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder addTailerCursorBuilder() {
+      return getTailerCursorFieldBuilder().addBuilder(
+          com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder addTailerCursorBuilder(
+        int index) {
+      return getTailerCursorFieldBuilder().addBuilder(
+          index, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .stream.OffsetColValGrpc tailerCursor = 4;</code>
+     */
+    public java.util.List<com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder> 
+         getTailerCursorBuilderList() {
+      return getTailerCursorFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder> 
+        getTailerCursorFieldBuilder() {
+      if (tailerCursorBuilder_ == null) {
+        tailerCursorBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpc.Builder, com.qlangtech.tis.rpc.grpc.datax.preview.OffsetColValGrpcOrBuilder>(
+                tailerCursor_,
+                ((bitField0_ & 0x00000008) != 0),
+                getParentForChildren(),
+                isClean());
+        tailerCursor_ = null;
+      }
+      return tailerCursorBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

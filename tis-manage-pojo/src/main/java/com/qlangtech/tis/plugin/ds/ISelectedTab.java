@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.plugin.ds;
 
+import com.alibaba.datax.common.util.ISelectedTabMeta;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 
 import java.util.List;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-18 10:16
  */
-public interface ISelectedTab {
+public interface ISelectedTab extends ISelectedTabMeta {
 
 
     default String getName() {
@@ -45,6 +46,7 @@ public interface ISelectedTab {
         return true;
     }
 
+    @Override
     List<CMeta> getCols();
 
     /**
@@ -60,10 +62,6 @@ public interface ISelectedTab {
     default Set<String> acceptedCols() {
         final Set<String> acceptKeys = this.getCols().stream().filter((c) -> !c.isDisable()).map((c) -> c.getName()).collect(Collectors.toSet());
         return acceptKeys;
-    }
-
-    public default List<String> getPrimaryKeys() {
-        throw new UnsupportedOperationException();
     }
 
 }

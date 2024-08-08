@@ -18,7 +18,7 @@
 package com.qlangtech.tis.coredefine.module.action;
 
 import com.alibaba.citrus.turbine.Context;
-import com.alibaba.datax.common.element.DataXResultPreviewOrderByCols;
+import com.alibaba.datax.common.element.DataXResultPreviewOrderByCols.OffsetColVal;
 import com.alibaba.datax.common.element.QueryCriteria;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -38,6 +38,7 @@ import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxReaderContext;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
+import com.qlangtech.tis.datax.preview.PreviewHeaderCol;
 import com.qlangtech.tis.datax.preview.PreviewRowsData;
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.datax.TableAliasMapper;
@@ -109,6 +110,7 @@ import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
@@ -1271,18 +1273,15 @@ public class DataxAction extends BasicModule {
       throw new IllegalStateException("page size can not small than 1");
     }
 
-    JSONObject offsetPointer = null;
+    JSONArray offsetPointer = null;
     if (jsonPostContent != null) {
       queryCriteria.setNextPakge(jsonPostContent.getBooleanValue("nextPage"));
-      offsetPointer = jsonPostContent.getJSONObject("offsetPointer");
+      offsetPointer = jsonPostContent.getJSONArray("offsetPointer");
     }
 
     if (offsetPointer != null) {
-      Map<String, String> pagerOffsetPointColVals = Maps.newHashMap();
-      for (Map.Entry<String, Object> entry : offsetPointer.entrySet()) {
-        pagerOffsetPointColVals.put(entry.getKey(), (String) entry.getValue());
-      }
-      queryCriteria.setPagerOffsetPointCols(pagerOffsetPointColVals);
+      List<OffsetColVal> pagerOffsetCursor = OffsetColVal.deserializePreviewCursor(offsetPointer);
+      queryCriteria.setPagerOffsetCursor(pagerOffsetCursor);
     }
 
 
@@ -1290,8 +1289,26 @@ public class DataxAction extends BasicModule {
     boolean needHeader = true;
     PreviewRowsData records = submit.previewRowsData(dataXName, targetTab, queryCriteria);
 
+    List<OffsetColVal> headerCursor = records.getHeaderCursor();
+    List<OffsetColVal> tailerCursor = records.getTailerCursor();
+    if (CollectionUtils.isNotEmpty(headerCursor)) {
+      preview.put("headerCursor", OffsetColVal.getPreviewCursor(headerCursor));
+    }
+
+    if (CollectionUtils.isNotEmpty(tailerCursor)) {
+      preview.put("tailerCursor", OffsetColVal.getPreviewCursor(tailerCursor));
+    }
+
     if (needHeader) {
-      preview.put("header", records.getHeader());
+      JSONArray headerCols = new JSONArray();
+      JSONObject col =  null;
+      for (PreviewHeaderCol headerCol : records.getHeader()) {
+        col = new JSONObject();
+        col.put("key",headerCol.getKey());
+        col.put("blob",headerCol.isBlob());
+        headerCols.add(col);
+      }
+      preview.put("header", headerCols);
     }
     preview.put("rows", records.getRows());
 

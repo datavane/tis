@@ -19,6 +19,9 @@
 package com.alibaba.datax.common.element;
 
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,7 +96,35 @@ public class DataXResultPreviewOrderByCols {
         private final String val;
         private final Boolean isNumericJdbcType;
 
+        private static final String KEY = "key";
+        private static final String VAL = "val";
+        private static final String NUMERIC = "numeric";
+
+        public static JSONArray getPreviewCursor(List<OffsetColVal> cursorVals) {
+            JSONArray vals = new JSONArray();
+            JSONObject val = null;
+            for (OffsetColVal colVal : cursorVals) {
+                val = new JSONObject();
+                val.put(KEY, colVal.getColKey());
+                val.put(VAL, colVal.getVal());
+                val.put(NUMERIC, colVal.isNumericJdbcType());
+                vals.add(val);
+            }
+            return vals;
+        }
+
+        public static List<OffsetColVal> deserializePreviewCursor(JSONArray cursorVals) {
+            List<OffsetColVal> vals = new ArrayList<>();
+            JSONObject j = null;
+            for (Object o : cursorVals) {
+                j = (JSONObject) o;
+                vals.add(new OffsetColVal(j.getString(KEY), j.getString(VAL), j.getBoolean(NUMERIC)));
+            }
+            return vals;
+        }
+
         private String getLiteriaVal() {
+
             if (this.isNumericJdbcType == null) {
                 throw new IllegalStateException("property isNumericJdbcType can not be null");
             }

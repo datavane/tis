@@ -16,48 +16,32 @@
  * limitations under the License.
  */
 
-package com.alibaba.datax.common.element;
-
-import com.qlangtech.tis.plugin.ds.DataType;
-
-import java.util.Map;
+package com.qlangtech.tis.datax.preview;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-07-03 13:42
+ * @create: 2024-08-08 10:56
  **/
-public interface ICol2Index {
+public class PreviewHeaderCol {
+    private final String key;
     /**
-     * @return key: 列名 ，val：列所在位置
+     * 是否是二进制内容
      */
-    public Map<String, Col> getCol2Index();
+    private boolean blob;
 
-    /**
-     * 统计有多少个上下文绑定参数参与数据同步执行
-     *
-     * @return
-     */
-    int contextParamValsCount();
+    public boolean isBlob() {
+        return blob;
+    }
 
-    /**
-     * @author: 百岁（baisui@qlangtech.com）
-     * @create: 2024-08-08 12:56
-     **/
-    class Col {
-        private final int index;
-        private final DataType type;
+    public void setBlob(boolean blob) {
+        this.blob = blob;
+    }
 
-        public Col(int index, DataType type) {
-            this.index = index;
-            this.type = type;
-        }
+    public PreviewHeaderCol(String key) {
+        this.key = key;
+    }
 
-        public int getIndex() {
-            return index;
-        }
-
-        public DataType getType() {
-            return type;
-        }
+    public String getKey() {
+        return this.key;
     }
 }
