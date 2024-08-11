@@ -23,10 +23,12 @@ import com.qlangtech.tis.plugin.ds.RunningContext;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-15 12:34
+ * // @see com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules
  **/
 public interface ITransformerBuildInfo {
     /**
@@ -38,17 +40,33 @@ public interface ITransformerBuildInfo {
 
     /**
      * 取得上下文
+     *
      * @param runningContext
      * @return
      */
     Map<String, Object> contextParamVals(RunningContext runningContext);
+
+    /**
+     * 取得上下文参数取得器，用于在增量实时通道中提取增量
+     *
+     * @param <CONTEXT>
+     * @return
+     */
+    <CONTEXT extends RunningContext> Map<String, Function<CONTEXT, Object>> contextParamValsGetter();
+
+    /**
+     * 取得source端对应字段的meta（未经transformer处理，通过T之后字段类型可能已经变化），该方法在增量处理中使用
+     * @return
+     */
+    public List<IColMetaGetter> originColsWithContextParams();
+
     /**
      * 取得执行当前上线文绑定的参数，例如，当前数据库的名称等
      *
      * @return
      */
-   // List<ContextParamConfig> getContextParms();
+    // List<ContextParamConfig> getContextParms();
 
     // List<String> relevantOutterColKeys();
-    public <T extends IColMetaGetter> List<IColMetaGetter> overwriteCols(List<T> sourceCols);
+    public <T extends IColMetaGetter> List<IColMetaGetter> overwriteColsWithContextParams(List<T> sourceCols);
 }

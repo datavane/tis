@@ -18,8 +18,10 @@
 
 package com.qlangtech.tis.plugin.datax.transformer;
 
+import com.alibaba.datax.core.job.ITransformerBuildInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
@@ -29,9 +31,12 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.ContextParamConfig;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.ds.RunningContext;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -40,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,6 +60,91 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 
 
     public static Function<String, RecordTransformerRules> transformerRulesLoader4Test;
+
+    public ITransformerBuildInfo createTransformerBuildInfo(IPluginContext pluginContext) {
+        DataxReader dataxReader = Objects.requireNonNull(DataxReader.load(pluginContext, pluginContext.getCollectionName())
+                , "dataX:" + pluginContext.getCollectionName() + " relevant DataXReader can not be null");
+        return createTransformerBuildInfo(dataxReader);
+    }
+
+    /**
+     * @param pluginContext
+     * @param dataxReader
+     * @param tabs
+     * @return Map<String, Map < String, Function < RunningContext, Object>>>
+     */
+    public static Map<String /*tableName*/, Map<String /*contextParamName*/, Function<RunningContext, Object>>> contextParamValsGetterMapper(
+            IPluginContext pluginContext, DataxReader dataxReader, List<ISelectedTab> tabs) {
+        Map<String, Map<String, Function<RunningContext, Object>>> contextParamValsGetterMapper = Maps.newHashMap();
+        for (ISelectedTab tab : tabs) {
+            RecordTransformerRules transformerRules = RecordTransformerRules.loadTransformerRules(pluginContext, tab.getName());
+            ITransformerBuildInfo transformerBuildInfo
+                    = transformerRules.createTransformerBuildInfo(Objects.requireNonNull(dataxReader, "dataxReader can not be null"));
+            transformerBuildInfo.overwriteColsWithContextParams(tab.getCols());
+            if (transformerBuildInfo.containContextParams()) {
+                contextParamValsGetterMapper.put(tab.getName(), transformerBuildInfo.contextParamValsGetter());
+            }
+        }
+        return contextParamValsGetterMapper;
+    }
+
+
+    private ITransformerBuildInfo createTransformerBuildInfo(DataxReader dataxReader) {
+        if (dataxReader == null) {
+            throw new IllegalArgumentException("param dataXReader can not be null");
+        }
+        final RecordTransformerRules transformers = this;
+        if (CollectionUtils.isEmpty(transformers.rules)) {
+            throw new IllegalStateException("transformer" + " can not be empty");
+        }
+
+        return new ITransformerBuildInfo() {
+            OverwriteColsWithContextParams overwriteColsWithContextParams;
+            OverwriteCols transformerWithoutContextParams;
+
+            @Override
+            public boolean containContextParams() {
+                return this.overwriteColsWithContextParams != null
+                        && CollectionUtils.isNotEmpty(overwriteColsWithContextParams.getContextParams());
+            }
+
+            @Override
+            public Map<String, Object> contextParamVals(RunningContext runningContext) {
+                Map<String, Function<RunningContext, Object>> valsGetter = contextParamValsGetter();
+                Map<String, Object> contextParamVals = Maps.newHashMap();
+                valsGetter.forEach((key, getter) -> {
+                    contextParamVals.put(key, getter.apply(runningContext));
+                });
+                return contextParamVals;
+            }
+
+            @Override
+            public <CONTEXT extends RunningContext> Map<String, Function<CONTEXT, Object>> contextParamValsGetter() {
+                if (!containContextParams()) {
+                    throw new IllegalStateException("must containContextParams");
+                }
+                Map<String, Function<CONTEXT, Object>> contextParamVals = Maps.newHashMap();
+                List<ContextParamConfig> contextParms = overwriteColsWithContextParams.getContextParams();
+                for (ContextParamConfig contextParam : contextParms) {
+                    Function<CONTEXT, Object> valGetter = contextParam.valGetter();
+                    contextParamVals.put(contextParam.getKeyName(), valGetter);
+                }
+                return contextParamVals;
+            }
+
+            @Override
+            public List<IColMetaGetter> originColsWithContextParams() {
+                return transformerWithoutContextParams.appendSourceContextParams(dataxReader, true).originCols();
+            }
+
+            @Override
+            public <T extends IColMetaGetter> List<IColMetaGetter> overwriteColsWithContextParams(List<T> sourceCols) {
+                this.transformerWithoutContextParams = transformers.overwriteCols(sourceCols);
+                this.overwriteColsWithContextParams = transformerWithoutContextParams.appendSourceContextParams(dataxReader);
+                return overwriteColsWithContextParams.getCols();
+            }
+        };
+    }
 
     /**
      * 加载基于数据通道的表转换（Transformer）规则
@@ -132,6 +223,10 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 
     public class OverwriteCols extends ArrayList<IColMetaGetter> {
         //  private final List<IColMetaGetter> cols;
+        /**
+         * 保存被替换的原有值类型
+         */
+        private ConcurrentMap<Integer, IColMetaGetter> previous;
 
         public OverwriteCols() {
             //  this.cols = cols;
@@ -147,11 +242,55 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
             return this;
         }
 
+        private ConcurrentMap<Integer, IColMetaGetter> getPrevious() {
+            if (this.previous == null) {
+                this.previous = Maps.newConcurrentMap();
+            }
+            return this.previous;
+        }
+
+        public List<IColMetaGetter> originCols() {
+            List<IColMetaGetter> originCols = Lists.newArrayList();
+            IColMetaGetter metaGetter = null;
+            for (int idx = 0; idx < this.size(); idx++) {
+                metaGetter = this.getOrigin(idx);
+                if (metaGetter != null) {
+                    originCols.add(metaGetter);
+                } else {
+                    originCols.add(this.get(idx));
+                }
+            }
+            return originCols;
+        }
+
+
+        private IColMetaGetter getOrigin(Integer idx) {
+            return this.getPrevious().get(idx);
+        }
+
+        @Override
+        public IColMetaGetter set(int index, IColMetaGetter element) {
+            IColMetaGetter previous = super.set(index, element);
+            if (previous != null) {
+                this.getPrevious().putIfAbsent(index, previous);
+            }
+            return previous;
+        }
+
         public OverwriteColsWithContextParams appendSourceContextParams(DataSourceMeta dsMeta) {
+            return this.appendSourceContextParams(dsMeta, false);
+        }
+
+        /**
+         * @param dsMeta
+         * @param origin 取得最原始的字段类型
+         * @return
+         */
+        public OverwriteColsWithContextParams appendSourceContextParams(DataSourceMeta dsMeta, boolean origin) {
             if (dsMeta == null) {
                 throw new IllegalArgumentException("param dsMeta can not be null");
             }
-            List<IColMetaGetter> rewriterResult = Lists.newArrayList(this);
+            List<IColMetaGetter> rewriterResult = Lists.newArrayList(origin ? this.originCols() : (this));
             // 查看绑定入参
             Map<String, ContextParamConfig> dbContextParams = dsMeta.getDBContextParams();
             List<ContextParamConfig> contextParams = Lists.newArrayList();
@@ -208,17 +347,6 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
                 rewriterResult.set(existIdx, colType);
             }
         }
-
-//        if (dsMeta != null) {
-//            // 查看绑定入参
-//            Map<String, ContextParam> dbContextParams = dsMeta.getDBContextParams();
-//            for (InParamer inParamer : this.relevantInColKeys()) {
-//                if (inParamer.isContextParams()) {
-//                    rewriterResult.add(IColMetaGetter.create(inParamer.getKey(), Objects.requireNonNull(dbContextParams.get(inParamer.getKey())
-//                            , "inParamer:" + inParamer.getKey() + " relevant ContextParam can not be null").getDataType()));
-//                }
-//            }
-//        }
         return rewriterResult;
     }
 

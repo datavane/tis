@@ -38,8 +38,17 @@ public class DTO {
     private String dbName;
 
     private String tableName;
+    private String physicsTabName;
 
     private EventType eventType;
+
+    public String getPhysicsTabName() {
+        return this.physicsTabName;
+    }
+
+    public void setPhysicsTabName(String physicsTabName) {
+        this.physicsTabName = physicsTabName;
+    }
 
     public Map<String, Object> getAfter() {
         return after;
@@ -122,14 +131,6 @@ public class DTO {
                     return e;
                 }
             }
-
-//            if (UPDATE.type.equalsIgnoreCase(eventType)) {
-//                return UPDATE;
-//            } else if (ADD.type.equalsIgnoreCase(eventType)) {
-//                return ADD;
-//            } else if (DELETE.type.equalsIgnoreCase(eventType)) {
-//                return DELETE;
-//            }
             throw new IllegalStateException("eventType:" + eventType + " is illegal");
         }
 
@@ -154,11 +155,5 @@ public class DTO {
         buffer.append(", tableName='" + tableName + '\'');
         buffer.append('}');
         return buffer.toString();
-//        return "{" +
-//                "after=" + after.entrySet().stream().map((e) -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(",")) +
-//                ", execType='" + String.valueOf(eventType) + '\'' +
-//                ", dbName='" + dbName + '\'' +
-//                ", tableName='" + tableName + '\'' +
-//                '}';
     }
 }

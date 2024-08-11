@@ -20,6 +20,7 @@ package com.alibaba.datax.common.element;
 
 import com.qlangtech.tis.plugin.ds.DataType;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -43,7 +44,7 @@ public interface ICol2Index {
      * @author: 百岁（baisui@qlangtech.com）
      * @create: 2024-08-08 12:56
      **/
-    class Col {
+    class Col implements Serializable {
         private final int index;
         private final DataType type;
 
@@ -58,6 +59,12 @@ public interface ICol2Index {
 
         public DataType getType() {
             return type;
+        }
+
+        @Override
+        public String toString() {
+            return "index=" + index +
+                    ", type=" + type;
         }
     }
 }

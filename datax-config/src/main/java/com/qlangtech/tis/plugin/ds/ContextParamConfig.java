@@ -21,6 +21,7 @@ package com.qlangtech.tis.plugin.ds;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.io.Serializable;
 import java.util.function.Function;
 
 /**
@@ -48,11 +49,15 @@ public abstract class ContextParamConfig {
     /**
      * 取得执行当前上线文绑定的参数，例如，当前数据库的名称等
      *
-     * @param <CONTEXT>
+     * @param
      * @return
      */
-    public abstract <CONTEXT extends RunningContext> Function<CONTEXT, Object> valGetter();
+    public abstract ContextParamValGetter valGetter();
 
     public abstract DataType getDataType();
 
+
+    public interface ContextParamValGetter<CONTEXT extends RunningContext> extends Function<CONTEXT, Object>, Serializable {
+
+    }
 }
