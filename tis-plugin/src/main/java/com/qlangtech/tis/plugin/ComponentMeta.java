@@ -31,6 +31,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -65,7 +66,7 @@ public class ComponentMeta {
 
 
     public ComponentMeta(List<IRepositoryResource> resources) {
-        this.resources = Sets.newHashSet(resources);
+        this.resources = resources.stream().filter((res) -> res.getTargetFile() != null).collect(Collectors.toSet());
     }
 
     public ComponentMeta(IRepositoryResource resource) {
@@ -94,8 +95,14 @@ public class ComponentMeta {
 
         return loadPluginMeta(() -> {
             List<File> cfgs = Lists.newArrayList();
+            XmlFile xmlFile = null;
+
             for (IRepositoryResource res : this.resources) {
-                File targetFile = res.getTargetFile().getFile();
+                xmlFile = res.getTargetFile();
+                if (xmlFile == null) {
+                    continue;
+                }
+                File targetFile = xmlFile.getFile();
                 if (!targetFile.exists()) {
                     continue;
                 }

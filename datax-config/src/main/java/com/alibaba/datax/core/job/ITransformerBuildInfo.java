@@ -56,17 +56,15 @@ public interface ITransformerBuildInfo {
 
     /**
      * 取得source端对应字段的meta（未经transformer处理，通过T之后字段类型可能已经变化），该方法在增量处理中使用
+     *
      * @return
      */
-    public List<IColMetaGetter> originColsWithContextParams();
+    List<IColMetaGetter> originColsWithContextParams();
 
     /**
      * 取得执行当前上线文绑定的参数，例如，当前数据库的名称等
      *
      * @return
      */
-    // List<ContextParamConfig> getContextParms();
-
-    // List<String> relevantOutterColKeys();
-    public <T extends IColMetaGetter> List<IColMetaGetter> overwriteColsWithContextParams(List<T> sourceCols);
+    <T extends IColMetaGetter> List<IColMetaGetter> overwriteColsWithContextParams(List<T> sourceCols);
 }
