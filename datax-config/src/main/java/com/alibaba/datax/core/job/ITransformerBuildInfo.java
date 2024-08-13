@@ -60,7 +60,7 @@ public interface ITransformerBuildInfo {
      * @return
      */
     List<IColMetaGetter> originColsWithContextParams();
-
+    List<IColMetaGetter> tranformerColsWithoutContextParams();
     /**
      * 取得执行当前上线文绑定的参数，例如，当前数据库的名称等
      *

@@ -134,7 +134,13 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 
             @Override
             public List<IColMetaGetter> originColsWithContextParams() {
-                return transformerWithoutContextParams.appendSourceContextParams(dataxReader, true).originCols();
+                return Objects.requireNonNull(transformerWithoutContextParams, "please execute method overwriteColsWithContextParams first")
+                        .appendSourceContextParams(dataxReader, true).originCols();
+            }
+
+            @Override
+            public List<IColMetaGetter> tranformerColsWithoutContextParams() {
+                return Objects.requireNonNull(this.transformerWithoutContextParams, "please execute method overwriteColsWithContextParams first");
             }
 
             @Override
