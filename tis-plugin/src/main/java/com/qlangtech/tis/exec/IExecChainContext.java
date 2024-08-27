@@ -25,6 +25,7 @@ import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.PowerjobTriggerBuildResult;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
+import com.qlangtech.tis.datax.DataXJobSubmit.InstanceType;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.fs.ITISFileSystem;
@@ -222,22 +223,24 @@ public interface IExecChainContext extends IJoinTaskContext {
         private final Long powerJobWorkflowInstanceId;
         private final String appname;
         private final boolean tisDataflowType;
-
+        private final InstanceType instanceTriggerType;
 
         /**
          * @param powerJobWorkflowInstanceId
          * @param appname                    可能是dataX pipeline 名称，也可能是 tis DataFlow名称
          * @param tisDataflowType            是否是DataXFlow名称
          */
-        public TriggerNewTaskParam(Long powerJobWorkflowInstanceId, String appname, boolean tisDataflowType) {
+        public TriggerNewTaskParam(Long powerJobWorkflowInstanceId, InstanceType instanceTriggerType, String appname, boolean tisDataflowType) {
             this.powerJobWorkflowInstanceId = Objects.requireNonNull(powerJobWorkflowInstanceId);
+            this.instanceTriggerType = Objects.requireNonNull(instanceTriggerType, "param instanceTriggerType can not be null");
             this.appname = Objects.requireNonNull(appname, "appname can not be null");
             this.tisDataflowType = tisDataflowType;
         }
 
         public List<HttpUtils.PostParam> params() {
             return Lists.newArrayList(
-                    new HttpUtils.PostParam(DataxUtils.TIS_WORK_FLOW_CHANNEL, tisDataflowType)
+                    new HttpUtils.PostParam(InstanceType.KEY_TYPE, this.instanceTriggerType.literia)
+                    , new HttpUtils.PostParam(DataxUtils.TIS_WORK_FLOW_CHANNEL, tisDataflowType)
                     , new HttpUtils.PostParam(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, powerJobWorkflowInstanceId)
                     , new HttpUtils.PostParam(TriggerBuildResult.KEY_APPNAME, appname)
             );

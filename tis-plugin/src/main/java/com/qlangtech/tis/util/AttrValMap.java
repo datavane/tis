@@ -43,6 +43,7 @@ public class AttrValMap {
 
     public static final String PLUGIN_EXTENSION_IMPL = "impl";
     public static final String PLUGIN_EXTENSION_VALS = "vals";
+
     private static final ThreadLocal<Descriptor> currentRootPluginValidator = new ThreadLocal<>();
 
     public static void setCurrentRootPluginValidator(Descriptor descriptor) {

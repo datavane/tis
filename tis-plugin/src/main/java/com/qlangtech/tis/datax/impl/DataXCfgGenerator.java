@@ -42,6 +42,8 @@ import com.qlangtech.tis.datax.IGroupChildTaskIterator;
 import com.qlangtech.tis.datax.TableAliasMapper;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.manage.common.AppAndRuntime;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
@@ -462,6 +464,23 @@ public class DataXCfgGenerator implements IDataXNameAware {
 
         public List<DataXCfgFile> getDataxFiles() {
             return getDataXCfgFiles().stream().map((file) -> file).collect(Collectors.toList());
+        }
+
+        /**
+         * 取得当前运行时可选表
+         *
+         * @return
+         */
+        public static List<Option> getTabsCandidate() {
+            AppAndRuntime appAndRuntime = AppAndRuntime.getAppAndRuntime();
+            if (appAndRuntime == null) {
+                return Collections.emptyList();
+            }
+
+            IDataxProcessor dataxProcessor = DataxProcessor.load(null, appAndRuntime.getAppName());
+            GenerateCfgs dataxCfgFileNames = dataxProcessor.getDataxCfgFileNames(null, Optional.empty());
+
+            return (dataxCfgFileNames.getTargetTabs().stream().map((tab) -> new Option(tab)).collect(Collectors.toList()));
         }
 
         @JSONField(serialize = false)

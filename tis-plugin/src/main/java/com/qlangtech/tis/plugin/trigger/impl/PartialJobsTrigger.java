@@ -54,15 +54,17 @@ public class PartialJobsTrigger extends JobTrigger implements AfterPluginSaved {
     }
 
     public static List<Option> getTabsCandidate() {
-        AppAndRuntime appAndRuntime = AppAndRuntime.getAppAndRuntime();
-        if (appAndRuntime == null) {
-            return Collections.emptyList();
-        }
+        return GenerateCfgs.getTabsCandidate();
+//        AppAndRuntime appAndRuntime = AppAndRuntime.getAppAndRuntime();
+//        if (appAndRuntime == null) {
+//            return Collections.emptyList();
+//        }
+//
+//        IDataxProcessor dataxProcessor = DataxProcessor.load(null, appAndRuntime.getAppName());
+//        GenerateCfgs dataxCfgFileNames = dataxProcessor.getDataxCfgFileNames(null, Optional.empty());
+//
+//        return (dataxCfgFileNames.getTargetTabs().stream().map((tab) -> new Option(tab)).collect(Collectors.toList()));
 
-        IDataxProcessor dataxProcessor = DataxProcessor.load(null, appAndRuntime.getAppName());
-        GenerateCfgs dataxCfgFileNames = dataxProcessor.getDataxCfgFileNames(null, Optional.empty());
-
-        return (dataxCfgFileNames.getTargetTabs().stream().map((tab) -> new Option(tab)).collect(Collectors.toList()));
 
     }
 

@@ -86,7 +86,7 @@ public class DescribableJSON<T extends Describable<T>> {
 
         item.put(AttrValMap.PLUGIN_EXTENSION_VALS, vals);
         if (instance instanceof IdentityName) {
-            item.put("identityName", ((IdentityName) instance).identityValue());
+            item.put(IdentityName.PLUGIN_IDENTITY_NAME, ((IdentityName) instance).identityValue());
         }
 
         return item;

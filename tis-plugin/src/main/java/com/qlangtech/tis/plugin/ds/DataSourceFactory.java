@@ -28,6 +28,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IDescribableManipulate;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -401,6 +402,11 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         @Override
         public Class<DataSourceFactoryManipulate> getManipulateExtendPoint() {
             return DataSourceFactoryManipulate.class;
+        }
+
+        @Override
+        public final Optional<IPluginStore<DataSourceFactoryManipulate>> getManipulateStore() {
+            return Optional.empty();
         }
 
         /**

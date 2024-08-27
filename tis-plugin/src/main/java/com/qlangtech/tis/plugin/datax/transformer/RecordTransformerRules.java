@@ -21,28 +21,37 @@ package com.qlangtech.tis.plugin.datax.transformer;
 import com.alibaba.datax.core.job.ITransformerBuildInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.ContextParamConfig;
+import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.RunningContext;
 import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.HeteroEnum.TransformerRuleKey;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -58,6 +67,53 @@ import java.util.stream.Stream;
  **/
 public class RecordTransformerRules implements Describable<RecordTransformerRules> {
 
+    public static void main(String[] args) {
+        Map<String, Integer> test = new HashMap<>();
+        test.put("test1", 1);
+        test.put("test2", 2);
+        Iterator<Entry<String, Integer>> it = test.entrySet().iterator();
+        while (it.hasNext()) {
+            Entry<String, Integer> next = it.next();
+            if ("test1".equals(next.getKey())) {
+                it.remove();
+            }
+        }
+
+
+        System.out.println(String.join(",", test.keySet()));
+    }
+
+    public static void cleanPluginStoreCache(IPluginContext context, String appName) {
+        // TIS.appSourcePluginStore.clear(createAppSourceKey(context, appName));
+
+//        TIS.visitCollectionPluginStoreEntities((entry) -> {
+//            HeteroEnum.TransformerRuleKey ruleKey = null;
+//            if (entry.getKey() instanceof HeteroEnum.TransformerRuleKey) {
+//                ruleKey = (HeteroEnum.TransformerRuleKey) entry.getKey();
+//
+//                if (StringUtils.equals(ruleKey.keyVal.getVal(), appName)) {
+//                    entry.getValue().cleanPlugins();
+//                }
+//            }
+//        });
+
+        if (context == null) {
+            return;
+        }
+
+        Iterator<Entry<Key, KeyedPluginStore>> storeIt = TIS.collectionPluginStore.getEntries().iterator();
+        Entry<Key, KeyedPluginStore> entry = null;
+        HeteroEnum.TransformerRuleKey ruleKey = null;
+        while (storeIt.hasNext()) {
+            entry = storeIt.next();
+            if (entry.getKey() instanceof HeteroEnum.TransformerRuleKey) {
+                ruleKey = (HeteroEnum.TransformerRuleKey) entry.getKey();
+                if (StringUtils.equals(ruleKey.keyVal.getVal(), appName)) {
+                    storeIt.remove();
+                }
+            }
+        }
+    }
 
     public static Function<String, RecordTransformerRules> transformerRulesLoader4Test;
 
@@ -169,17 +225,22 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
             return transformerRulesLoader4Test.apply(tableName);
         }
 
-        String rawContent = HeteroEnum.TRANSFORMER_RULES.identity + ":require,"
-                + SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID + "_" + tableName;
+//        String rawContent = HeteroEnum.TRANSFORMER_RULES.identity + ":require,"
+//                + SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID + "_" + tableName;
 
 
         for (RecordTransformerRules trule
-                : HeteroEnum.TRANSFORMER_RULES.getPlugins(pluginCtx
-                , UploadPluginMeta.parse(rawContent))) {
+                : getPluginsAndStore(pluginCtx, tableName).getLeft()) {
             return trule;
         }
 
         return null;
+    }
+
+    private static Pair<List<RecordTransformerRules>, IPluginStore> getPluginsAndStore(IPluginContext pluginCtx, String tableName) {
+        String rawContent = HeteroEnum.TRANSFORMER_RULES.identity + ":require,"
+                + SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID + "_" + tableName;
+        return HeteroEnum.TRANSFORMER_RULES.getPluginsAndStore(pluginCtx, UploadPluginMeta.parse(rawContent));
     }
 
     @FormField(ordinal = 1, type = FormFieldType.MULTI_SELECTABLE, validate = {})

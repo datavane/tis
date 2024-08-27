@@ -74,11 +74,11 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
 
                 dlist.stream().forEach((plugin) -> {
                     plugin.getSubFormInstances().forEach((p) -> {
-                        if (!(p instanceof AfterPluginSaved)) {
+                        if (!(p instanceof ManipuldateProcessor)) {
                             throw new IllegalStateException("instance of " + p.getClass().getName()
-                                    + " must be type of " + AfterPluginSaved.class.getSimpleName());
+                                    + " must be type of " + ManipuldateProcessor.class.getSimpleName());
                         }
-                        ((AfterPluginSaved) p).afterSaved(pluginContext, context);
+                        ((ManipuldateProcessor) p).manipuldateProcess(pluginContext, context);
                     });
                 });
 
@@ -134,6 +134,16 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
          * Plugin 保存执行回调执行
          */
         void afterSaved(IPluginContext pluginContext, Optional<Context> context);
+    }
+
+    /**
+     * 不需要持久化的plugin进行提交处理
+     */
+    interface ManipuldateProcessor {
+        /**
+         * 执行处理
+         */
+        void manipuldateProcess(IPluginContext pluginContext, Optional<Context> context);
     }
 
     interface AfterPluginVerified {

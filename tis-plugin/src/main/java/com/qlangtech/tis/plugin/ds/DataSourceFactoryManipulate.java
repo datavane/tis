@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.plugin.IPluginStore.ManipuldateProcessor;
 
 /**
  * 对数据源进行操作，例如克隆等操作
@@ -28,7 +29,7 @@ import com.qlangtech.tis.extension.Descriptor;
  * @create: 2024-07-09 18:23
  * @see com.qlangtech.tis.plugin.ds.DataSourceFactory
  **/
-public class DataSourceFactoryManipulate implements Describable<DataSourceFactoryManipulate> {
+public abstract class DataSourceFactoryManipulate implements Describable<DataSourceFactoryManipulate>, ManipuldateProcessor {
 
     @Override
     public final Descriptor<DataSourceFactoryManipulate> getDescriptor() {

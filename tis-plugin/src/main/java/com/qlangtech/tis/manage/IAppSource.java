@@ -28,6 +28,7 @@ import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.StoreResourceTypeGetter;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.util.IPluginContext;
 
 import java.util.Collections;
@@ -67,6 +68,7 @@ public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGe
         IAppSource.cleanPluginStoreCache(context, appName);
         DataxReader.cleanPluginStoreCache(context, false, appName);
         DataxWriter.cleanPluginStoreCache(context, appName);
+        RecordTransformerRules.cleanPluginStoreCache(context, appName);
     }
 
     static <T extends IAppSource> Optional<T> loadNullable(IPluginContext context, String appName) {

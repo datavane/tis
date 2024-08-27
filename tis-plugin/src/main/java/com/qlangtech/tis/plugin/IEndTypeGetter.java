@@ -74,6 +74,7 @@ public interface IEndTypeGetter {
         BliBli("blibli", true),
         StreamComputing("stream-computing", true),
         BatchComputing("batch-computing", true)
+        , Dolphinscheduler("ds", true)
         // 预览按钮
         , Preview("preview", true);
 

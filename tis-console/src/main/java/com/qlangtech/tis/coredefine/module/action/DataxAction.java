@@ -178,7 +178,11 @@ public class DataxAction extends BasicModule {
     Optional<Long> powerJobWorkflowInstanceId
       = Optional.ofNullable(this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, null));
 
-    DataXJobSubmit.InstanceType triggerType = DataXJobSubmit.getDataXTriggerType();
+    DataXJobSubmit.InstanceType triggerType
+      = Optional.ofNullable(this.getString(InstanceType.KEY_TYPE))
+      .map((type) -> InstanceType.parse(type))
+      .orElseGet(() -> DataXJobSubmit.getDataXTriggerType());
+
     IDataxProcessor dataXProcessor = DataxProcessor.load(null, this.getCollectionName());
 
     if (!dataXProcessor.isSupportBatch(this)) {
@@ -187,7 +191,7 @@ public class DataxAction extends BasicModule {
     }
 
 
-    Optional<JobTrigger> partialTrigger = JobTrigger.getPartialTriggerFromContext(context); // Optional.ofNullable((JobTrigger) context.get(JobTrigger.class.getName()));
+    Optional<JobTrigger> partialTrigger = JobTrigger.getPartialTriggerFromContext(context);
     DataXCfgGenerator.GenerateCfgs cfgFileNames = dataXProcessor.getDataxCfgFileNames(null, partialTrigger);
     if (!triggerType.validate(this, context, cfgFileNames.getDataXCfgFiles())) {
       return;
@@ -1301,11 +1305,11 @@ public class DataxAction extends BasicModule {
 
     if (needHeader) {
       JSONArray headerCols = new JSONArray();
-      JSONObject col =  null;
+      JSONObject col = null;
       for (PreviewHeaderCol headerCol : records.getHeader()) {
         col = new JSONObject();
-        col.put("key",headerCol.getKey());
-        col.put("blob",headerCol.isBlob());
+        col.put("key", headerCol.getKey());
+        col.put("blob", headerCol.isBlob());
         headerCols.add(col);
       }
       preview.put("header", headerCols);

@@ -47,6 +47,7 @@ public class JdbcPropertyElementSelectFromExistFieldCreatorFactory extends JdbcP
     @Override
     protected List<CMeta> getColsCandidate() {
         List<CMeta> colsCandidate = super.getColsCandidate();
+
         ThreadCacheTableCols threadCacheTabCols = SelectedTab.getContextTableColsStream();
         IDataxReader reader = threadCacheTabCols.plugin;
         Map<String, ContextParamConfig> dbContextParams = reader.getDBContextParams();

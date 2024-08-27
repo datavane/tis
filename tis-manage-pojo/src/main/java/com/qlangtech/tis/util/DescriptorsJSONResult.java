@@ -51,6 +51,12 @@ public class DescriptorsJSONResult {
         this.rootDesc = rootDesc;
     }
 
+    /**
+     *
+     * @param id 插件的实现类className值
+     * @param descJson
+     * @param desc
+     */
     public void addDesc(String id, JSONObject descJson, Object desc) {
         descs.put(id, Pair.of(descJson, desc));
     }

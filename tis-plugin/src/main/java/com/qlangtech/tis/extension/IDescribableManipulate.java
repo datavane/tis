@@ -18,6 +18,10 @@
 
 package com.qlangtech.tis.extension;
 
+import com.qlangtech.tis.plugin.IPluginStore;
+
+import java.util.Optional;
+
 /**
  * 支持插件操作，例如数据管道、数据源头克隆
  *
@@ -26,4 +30,11 @@ package com.qlangtech.tis.extension;
  **/
 public interface IDescribableManipulate<T extends Describable<T>> {
     Class<T> getManipulateExtendPoint();
+
+    /**
+     * 支持操作行为的持久化
+     *
+     * @return
+     */
+    Optional<IPluginStore<T>> getManipulateStore();
 }

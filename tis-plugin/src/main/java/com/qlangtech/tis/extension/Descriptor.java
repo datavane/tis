@@ -43,6 +43,7 @@ import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter.EndType;
 import com.qlangtech.tis.plugin.IEndTypeGetter.IEndType;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -56,12 +57,15 @@ import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
+import com.qlangtech.tis.util.DescribableJSON;
+import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.ISelectOptionsGetter;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.impl.AttrVals;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.jvnet.tiger_types.Types;
 
 import java.io.File;
@@ -212,9 +216,40 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             appendProps(((IEndTypeGetter) this).getEndType(), (props));
         }
         if (this instanceof IDescribableManipulate) {
+            IDescribableManipulate descManipuldate = ((IDescribableManipulate) this);
             Map<String, Object> manipulate = new HashMap<>();
             manipulate.put("extendPoint"
-                    , Objects.requireNonNull(((IDescribableManipulate) this).getManipulateExtendPoint()).getName());
+                    , Objects.requireNonNull(descManipuldate.getManipulateExtendPoint()).getName());
+
+            Optional<IPluginStore> manipulateStore = descManipuldate.getManipulateStore();
+            manipulateStore.ifPresent((man) -> {
+                List<Describable> plugins = man.getPlugins();
+                IdentityName id = null;
+                Descriptor desc = null;
+                JSONArray storeManipuldate = new JSONArray();
+                Map<String, Object> eprops = null;
+                try {
+                    for (Describable plugin : plugins) {
+                        if (!(plugin instanceof IdentityName)) {
+                            throw new IllegalStateException("plugin must be a IdentityName:" + ToStringBuilder.reflectionToString(plugin));
+                        }
+                        desc = plugin.getDescriptor();
+                        eprops = Maps.newHashMap();
+                        id = (IdentityName) plugin;
+                        eprops.put(IdentityName.PLUGIN_IDENTITY_NAME, id.identityValue());
+                        eprops.put("descMeta", DescriptorsJSON.createPluginFormPropertyTypes(desc, Optional.empty()).getLeft());
+
+//                        if (desc instanceof IEndTypeGetter) {
+//                            appendProps(((IEndTypeGetter) desc).getEndType(), (eprops));
+//                        }
+//                        DescriptorsJSON.setDescInfo(desc,eprops);
+                        storeManipuldate.add(eprops);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                manipulate.put("stored", storeManipuldate);
+            });
             props.put("manipulate", manipulate);
         }
 

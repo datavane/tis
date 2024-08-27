@@ -31,6 +31,7 @@ import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IDescribableManipulate;
 import com.qlangtech.tis.extension.INotebookable;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.PluginManager;
@@ -52,12 +53,14 @@ import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginTaggable;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.BasicRundata;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.HeteroList;
@@ -204,6 +207,46 @@ public class PluginAction extends BasicModule {
     String verToken = this.getString("vertoken");
 
     this.setBizResult(context, iconsDefsWithCheckSum.getIcons(verToken));
+  }
+
+  /**
+   * 取得 plugin的manipuldate plugin item
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doGetManipuldatePlugin(Context context) throws Exception {
+
+    String id = this.getString(IdentityName.PLUGIN_IDENTITY_NAME);
+    String pluginImpl = this.getString(DescriptorsJSON.KEY_IMPL);
+    Descriptor targetPlugin = Objects.requireNonNull(
+      TIS.get().getDescriptor(pluginImpl), "pluginImpl:" + pluginImpl + " relevant descriptor can not be null");
+    if (!(targetPlugin instanceof IDescribableManipulate)) {
+      throw new IllegalStateException("targetPlugin:" + targetPlugin.getClass().getName() + " is not type of " + IDescribableManipulate.class.getSimpleName());
+    }
+    IDescribableManipulate describableManipulate = ((IDescribableManipulate) targetPlugin);
+    Optional<IPluginStore> manipulateStore = describableManipulate.getManipulateStore();
+    if (!manipulateStore.isPresent()) {
+      throw new IllegalStateException("manipulateStore must be present");
+    }
+    IPluginStore pluginStore = manipulateStore.get();
+    List<Describable> plugins = pluginStore.getPlugins();
+    for (Describable man : plugins) {
+      if (!(man instanceof IdentityName)) {
+        continue;
+      }
+      DescribableJSON pluginJSON = null;
+      if (StringUtils.equals(id, ((IdentityName) man).identityValue())) {
+        pluginJSON = new DescribableJSON(man);
+        Map<String, Object> manipuldateItem = Maps.newHashMap();
+        manipuldateItem.put("item", pluginJSON.getItemJson());
+        manipuldateItem.put("desc", (new DescriptorsJSON<>(pluginJSON.descriptor)).getDescriptorsJSON());
+        this.setBizResult(context, manipuldateItem);
+        return;
+      }
+    }
+    throw new IllegalStateException("target " + IdentityName.PLUGIN_IDENTITY_NAME + ":" + id + " relevant item can not be found");
+
   }
 
   /**

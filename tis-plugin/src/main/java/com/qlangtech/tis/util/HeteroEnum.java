@@ -56,7 +56,9 @@ import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
 import com.qlangtech.tis.plugin.k8s.K8sImage.ImageCategory;
 import com.qlangtech.tis.plugin.utils.UploadCustomizedTPI;
+
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
 import java.util.Arrays;
@@ -83,6 +85,17 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "fs", "存储");
 
     @TISExtension
+    public static final HeteroEnum<UploadCustomizedTPI> uploadCustomizedTPI //
+            = new HeteroEnum<UploadCustomizedTPI>(//
+            UploadCustomizedTPI.class, //
+            "uploadCustomizedTPI", "upload customized TPI", Selectable.Multi, true) {
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            return IPluginStore.noSaveStore();
+        }
+    };
+
+    @TISExtension
     public static final HeteroEnum<RecordTransformerRules> TRANSFORMER_RULES //
             = new HeteroEnum<RecordTransformerRules>(//
             RecordTransformerRules.class, //
@@ -96,38 +109,20 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             if (StringUtils.isEmpty(tableName)) {
                 throw new IllegalStateException("extra param " + SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID + " can not be empty");
             }
-
-//            KeyVal keyVal = AppKey.calAppName(pluginContext, pluginContext.getCollectionName(), Optional.of("transformer"));
-//            // KeyVal keyVal = new KeyVal(pluginContext.getCollectionName() + File.separator + "transformer" + File.separator + tableName);
-//            Key key = new Key(IFullBuildContext.NAME_APP_DIR, keyVal, this.extensionPoint) {
-//                @Override
-//                public String getSerializeFileName() {
-//                    return this.getSubDirPath() + File.separator + tableName;
-//                }
-//            };
             Key key = getTransformerRuleKey(pluginContext, tableName);
             return TIS.getPluginStore(key);
         }
 
 
     };
-    @TISExtension
-    public static final HeteroEnum<UploadCustomizedTPI> uploadCustomizedTPI //
-            = new HeteroEnum<UploadCustomizedTPI>(//
-            UploadCustomizedTPI.class, //
-            "uploadCustomizedTPI", "upload customized TPI", Selectable.Multi, true) {
-        @Override
-        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            return IPluginStore.noSaveStore();
-        }
-    };
+
 
     public static Key getTransformerRuleKey(IPluginContext pluginContext, String tableName) {
         Key key = new TransformerRuleKey(pluginContext, tableName, TRANSFORMER_RULES.extensionPoint);
         return key;
     }
 
-    private static class TransformerRuleKey extends Key {
+    public static class TransformerRuleKey extends Key {
         private final String tableName;
 
         public TransformerRuleKey(IPluginContext pluginContext, String tableName, Class pluginClass) {
@@ -601,6 +596,21 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         return (T) store.getPlugin();
     }
 
+    public Pair<List<T>, IPluginStore> getPluginsAndStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+        IPluginStore store = getPluginStore(pluginContext, pluginMeta);
+        if (store == null) {
+            return Pair.of(Collections.emptyList(), null);
+        }
+        List<T> plugins = store.getPlugins();
+        UploadPluginMeta.TargetDesc targetDesc = null;
+        if (pluginMeta != null && (targetDesc = pluginMeta.getTargetDesc()).shallMatchTargetDesc()) {
+            final UploadPluginMeta.TargetDesc finalDesc = targetDesc;
+            return Pair.of(plugins.stream().filter((p) -> finalDesc.isNameMatch(p.getDescriptor().getDisplayName())).collect(Collectors.toList()), store);
+        }
+
+        return Pair.of(plugins, store);
+    }
+
     /**
      * ref: PluginItems.save()
      *
@@ -610,18 +620,19 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
      * @return
      */
     public List<T> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-        IPluginStore store = getPluginStore(pluginContext, pluginMeta);
-        if (store == null) {
-            return Collections.emptyList();
-        }
-        List<T> plugins = store.getPlugins();
-        UploadPluginMeta.TargetDesc targetDesc = null;
-        if (pluginMeta != null && (targetDesc = pluginMeta.getTargetDesc()).shallMatchTargetDesc()) {
-            final UploadPluginMeta.TargetDesc finalDesc = targetDesc;
-            return plugins.stream().filter((p) -> finalDesc.isNameMatch(p.getDescriptor().getDisplayName())).collect(Collectors.toList());
-        }
-
-        return plugins;
+        return getPluginsAndStore(pluginContext, pluginMeta).getLeft();
+//        IPluginStore store = getPluginStore(pluginContext, pluginMeta);
+//        if (store == null) {
+//            return Collections.emptyList();
+//        }
+//        List<T> plugins = store.getPlugins();
+//        UploadPluginMeta.TargetDesc targetDesc = null;
+//        if (pluginMeta != null && (targetDesc = pluginMeta.getTargetDesc()).shallMatchTargetDesc()) {
+//            final UploadPluginMeta.TargetDesc finalDesc = targetDesc;
+//            return plugins.stream().filter((p) -> finalDesc.isNameMatch(p.getDescriptor().getDisplayName())).collect(Collectors.toList());
+//        }
+//
+//        return plugins;
     }
 
     @Override

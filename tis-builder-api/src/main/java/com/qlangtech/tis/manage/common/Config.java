@@ -340,6 +340,11 @@ public class Config extends BasicConfig {
         }
 
         @Override
+        public String getTISHost() {
+            return Config.getInstance().tisHost;
+        }
+
+        @Override
         public Map<String, String> getAllKV() {
             return Config.getInstance().getAllKV();
         }
@@ -348,6 +353,11 @@ public class Config extends BasicConfig {
     @Override
     protected String getAsbHost() {
         return this.assembleHost;
+    }
+
+    @Override
+    public String getTISHost() {
+        return this.tisHost;
     }
 
     public String getRuntime() {
@@ -363,16 +373,13 @@ public class Config extends BasicConfig {
     public static String getConfigRepositoryHost() {
         String tisHost = null;
         if ((tisHost = threadContext.get()) == null) {
-            tisHost = getInstance().tisHost;
+            tisHost = getBaseConfig().getTISHost();
         } else {
             threadContext.remove();
         }
         return "http://" + tisHost + ":" + (TisSubModule.TIS_CONSOLE.getLaunchPort()) + TisSubModule.TIS_CONSOLE.servletContext;
     }
 
-    public static String getTisHost() {
-        return getInstance().tisHost;
-    }
 
 //    public static String getAssembleHost() {
 //        return getInstance().assembleHost;

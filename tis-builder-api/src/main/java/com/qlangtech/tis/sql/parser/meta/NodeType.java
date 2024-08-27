@@ -24,8 +24,19 @@ package com.qlangtech.tis.sql.parser.meta;
  * @date 2019年4月30日
  */
 public enum NodeType {
-
-    JOINER_SQL("join"), DUMP("table"), UNION_SQL("union");
+    /**
+     * ETL处理器的开始节点
+     */
+    START("start")
+    /**
+     *ETL的数据处理节点（T）
+     */
+    , JOINER_SQL("join")
+    /**
+     * ETL的数据抽取节点（E）
+     */
+    , DUMP("table") //
+    , UNION_SQL("union");
 
     private final String type;
 
@@ -37,20 +48,10 @@ public enum NodeType {
 
 
         for (NodeType t : NodeType.values()) {
-            if (t.type.equals(type)) {
+            if (t.type.equalsIgnoreCase(type)) {
                 return t;
             }
         }
-
-//        if (JOINER_SQL.type.equals(type)) {
-//            return NodeType.JOINER_SQL;
-//        }
-//        if (UNION_SQL.type.equals(type)) {
-//            return UNION_SQL;
-//        }
-//        if (DUMP.type.equals(type)) {
-//            return DUMP;
-//        }
         throw new NodeTypeParseException("illegal type:'" + type + "'");
     }
 

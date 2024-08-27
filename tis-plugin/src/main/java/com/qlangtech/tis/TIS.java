@@ -129,13 +129,16 @@ public class TIS {
         }
     };
 
-    private static final transient Memoizer<KeyedPluginStore.Key, KeyedPluginStore> collectionPluginStore
+    public static final transient Memoizer<KeyedPluginStore.Key, KeyedPluginStore> collectionPluginStore
             = new Memoizer<KeyedPluginStore.Key, KeyedPluginStore>() {
         public KeyedPluginStore compute(KeyedPluginStore.Key key) {
             return new KeyedPluginStore(key);
         }
     };
 
+//    public static void visitCollectionPluginStoreEntities(Consumer<Map.Entry<KeyedPluginStore.Key, KeyedPluginStore>> entryConsumer) {
+//        collectionPluginStore.getEntries().forEach((entry) -> entryConsumer.accept(entry));
+//    }
 
     public static final transient Memoizer<KeyedPluginStore.AppKey, KeyedPluginStore<IAppSource>> appSourcePluginStore
             = new Memoizer<KeyedPluginStore.AppKey, KeyedPluginStore<IAppSource>>() {

@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -64,7 +65,8 @@ public abstract class JobTrigger implements Describable<JobTrigger> {
     public abstract List<IdentityName> selectedTabs();
 
     public static Optional<JobTrigger> getTriggerFromHttpParam(IParamContext params) {
-        final String partialTabs = params.getString(IFullBuildContext.KEY_PARTIAL_TABS_JOB_TRIGGER);
+        final String partialTabs = Objects.requireNonNull(params, "param params can not be null")
+                .getString(IFullBuildContext.KEY_PARTIAL_TABS_JOB_TRIGGER);
         if (StringUtils.isBlank(partialTabs)) {
             return Optional.empty();
         }

@@ -35,6 +35,7 @@ import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -111,6 +112,57 @@ public class DescriptorsJSON<T extends Describable<T>> {
     }
 
 
+    /**
+     * @param descriptor
+     * @param subFormFilter
+     * @return
+     */
+    public static Pair<JSONObject, Descriptor> createPluginFormPropertyTypes(
+            Descriptor<?> descriptor, Optional<SubFormFilter> subFormFilter) {
+        PluginFormProperties pluginFormPropertyTypes = descriptor.getPluginFormPropertyTypes(subFormFilter);
+
+        JSONObject desJson = new JSONObject();
+        // des.put("formLevel", formLevel);
+        final Descriptor desc = pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
+            @Override
+            public Descriptor visit(RootFormProperties props) {
+                return descriptor;
+            }
+
+            @Override
+            public Descriptor visit(BaseSubFormProperties props) {
+                JSONObject subForm = new JSONObject();
+                subForm.put("fieldName", props.getSubFormFieldName());
+                if (subFormFilter.isPresent()) {
+
+                    SubFormFilter filter = subFormFilter.get();
+                    if (!filter.subformDetailView) {
+                        desJson.put("subForm", true);
+                        subForm.put("idList", props.getSubFormIdListGetter(filter).build(filter));
+                    }
+                }
+                desJson.put("subFormMeta", subForm);
+                return props.subFormFieldsDescriptor;
+            }
+        });
+
+        desJson.put(KEY_EXTEND_POINT, desc.getT().getName());
+
+        setDescInfo(desc, desJson);
+
+        desJson.put("veriflable", desc.overWriteValidateMethod);
+        if (IdentityName.class.isAssignableFrom(desc.clazz)) {
+            desJson.put("pkField", desc.getIdentityField().displayName);
+        }
+
+        Map<String, Object> extractProps = desc.getExtractProps();
+        if (!extractProps.isEmpty()) {
+            desJson.put("extractProps", extractProps);
+        }
+        return Pair.of(desJson, desc);
+    }
+
+
     public DescriptorsJSONResult getDescriptorsJSON(Optional<SubFormFilter> subFormFilter) {
         JSONArray attrs;
         String key;
@@ -121,7 +173,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
         DescriptorsJSONResult descriptors = new DescriptorsJSONResult(this.rootDesc);
         Map<String, Object> extractProps;
         // IPropertyType.SubFormFilter subFilter = null;
-        PluginFormProperties pluginFormPropertyTypes;
+
 
         List<Descriptor<?>> acceptDescs = getAcceptDescs(subFormFilter);
 
@@ -129,45 +181,48 @@ public class DescriptorsJSON<T extends Describable<T>> {
         for (Descriptor<?> dd : acceptDescs) {
             try {
 
-                pluginFormPropertyTypes = dd.getPluginFormPropertyTypes(subFormFilter);
+                PluginFormProperties pluginFormPropertyTypes = dd.getPluginFormPropertyTypes(subFormFilter);
 
-                JSONObject desJson = new JSONObject();
+                Pair<JSONObject, Descriptor> pair = createPluginFormPropertyTypes(dd, subFormFilter);
+
+                final JSONObject desJson = pair.getKey();
+                Descriptor desc = pair.getValue();//new JSONObject();
                 // des.put("formLevel", formLevel);
-                Descriptor desc = pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
-                    @Override
-                    public Descriptor visit(RootFormProperties props) {
-                        return dd;
-                    }
-
-                    @Override
-                    public Descriptor visit(BaseSubFormProperties props) {
-                        JSONObject subForm = new JSONObject();
-                        subForm.put("fieldName", props.getSubFormFieldName());
-                        if (subFormFilter.isPresent()) {
-
-                            SubFormFilter filter = subFormFilter.get();
-                            if (!filter.subformDetailView) {
-                                desJson.put("subForm", true);
-                                subForm.put("idList", props.getSubFormIdListGetter(filter).build(filter));
-                            }
-                        }
-                        desJson.put("subFormMeta", subForm);
-                        return props.subFormFieldsDescriptor;
-                    }
-                });
-
-                desJson.put(KEY_EXTEND_POINT, desc.getT().getName());
-
-                this.setDescInfo(desc, desJson);
-
-                desJson.put("veriflable", desc.overWriteValidateMethod);
-                if (IdentityName.class.isAssignableFrom(desc.clazz)) {
-                    desJson.put("pkField", desc.getIdentityField().displayName);
-                }
-                extractProps = desc.getExtractProps();
-                if (!extractProps.isEmpty()) {
-                    desJson.put("extractProps", extractProps);
-                }
+//                Descriptor desc = pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
+//                    @Override
+//                    public Descriptor visit(RootFormProperties props) {
+//                        return dd;
+//                    }
+//
+//                    @Override
+//                    public Descriptor visit(BaseSubFormProperties props) {
+//                        JSONObject subForm = new JSONObject();
+//                        subForm.put("fieldName", props.getSubFormFieldName());
+//                        if (subFormFilter.isPresent()) {
+//
+//                            SubFormFilter filter = subFormFilter.get();
+//                            if (!filter.subformDetailView) {
+//                                desJson.put("subForm", true);
+//                                subForm.put("idList", props.getSubFormIdListGetter(filter).build(filter));
+//                            }
+//                        }
+//                        desJson.put("subFormMeta", subForm);
+//                        return props.subFormFieldsDescriptor;
+//                    }
+//                });
+//
+//                desJson.put(KEY_EXTEND_POINT, desc.getT().getName());
+//
+//                setDescInfo(desc, desJson);
+//
+//                desJson.put("veriflable", desc.overWriteValidateMethod);
+//                if (IdentityName.class.isAssignableFrom(desc.clazz)) {
+//                    desJson.put("pkField", desc.getIdentityField().displayName);
+//                }
+//                extractProps = desc.getExtractProps();
+//                if (!extractProps.isEmpty()) {
+//                    desJson.put("extractProps", extractProps);
+//                }
 
                 attrs = new JSONArray();
                 ArrayList<Map.Entry<String, PropertyType>> entries =
@@ -255,9 +310,8 @@ public class DescriptorsJSON<T extends Describable<T>> {
         return acceptDescs;
     }
 
-    public static void setDescInfo(Descriptor d, JSONObject des) {
+    public static void setDescInfo(Descriptor d, Map<String, Object> des) {
         des.put(KEY_DISPLAY_NAME, d.getDisplayName());
-
         des.put(KEY_IMPL, d.getId());
         des.put(KEY_IMPL_URL,
                 Config.TIS_PUB_PLUGINS_DOC_URL + StringUtils.remove(StringUtils.lowerCase(d.clazz.getName()), "."));

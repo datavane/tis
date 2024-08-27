@@ -182,7 +182,14 @@ public class ConfigFileContext {
         return conn;
     }
 
-    public abstract static class StreamProcess<T> {
+    public static class StreamErrorProcess {
+        public void error(int status, InputStream errstream, IOException e) throws Exception {
+            logger.error("error code:" + status + "\n" + ((errstream != null) ? IOUtils.toString(errstream, TisUTF8.get()) : "errstream is null"));
+            throw new Exception(e);
+        }
+    }
+
+    public abstract static class StreamProcess<T> extends StreamErrorProcess {
 
         public static String HEADER_KEY_GET_FILE_META = "get_file_meta";
 
@@ -229,10 +236,6 @@ public class ConfigFileContext {
          */
         public abstract T p(int status, InputStream stream, Map<String, List<String>> headerFields) throws IOException;
 
-        public void error(int status, InputStream errstream, IOException e) throws Exception {
-            logger.error("error code:" + status + "\n" + IOUtils.toString(errstream, TisUTF8.get()));
-            throw new Exception(e);
-        }
 
         public List<Header> getHeaders() {
             return HEADER_TEXT_HTML;

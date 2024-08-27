@@ -30,6 +30,7 @@ import com.qlangtech.tis.datax.preview.IPreviewRowsDataService;
 import com.qlangtech.tis.datax.preview.PreviewRowsData;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.TISExtensible;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
@@ -150,6 +151,16 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
 
 
     public enum InstanceType {
+        DS("dolphinscheduler") {
+            /**
+             * 支持将TIS中的数据同步通道任务，或者ETL任务同步到dolphinscheduler系统中，后由DS端发起任务触发任务
+             */
+            @Override
+            public boolean validate(IControlMsgHandler controlMsgHandler, Context context,
+                                    List<DataXCfgFile> cfgFileNames) {
+                return true;
+            }
+        },
         DISTRIBUTE("distribute") {
             @Override
             public boolean validate(IControlMsgHandler controlMsgHandler, Context context,
@@ -178,6 +189,7 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
             }
         };
         public final String literia;
+        public static final String KEY_TYPE = IFullBuildContext.KEY_TRIGGER_TYPE;
 
         public static InstanceType parse(String val) {
             for (InstanceType t : InstanceType.values()) {
