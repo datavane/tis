@@ -39,10 +39,12 @@ import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.RobustReflectionConverter2;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -257,6 +259,8 @@ public class PluginAndCfgsSnapshot {
                     dataxProcessor.getReaders(null).forEach((reader) -> {
                         //  reader.getSelectedTabs().forEach((tab) -> tab.getCols());
                         reader.startScanDependency();
+
+                        RecordTransformerRules.contextParamValsGetterMapper(IPluginContext.namedContext(processor.identityValue()), reader, reader.getSelectedTabs());
                     });
                     dataxProcessor.getWriter(null).startScanDependency();
                 });
@@ -308,7 +312,7 @@ public class PluginAndCfgsSnapshot {
                     // 先收集plugmeta，特别是通过dataXWriter的dataSource关联的元数据
                     IDataxProcessor processor = DataxProcessor.load(null, resourceType, collection.getName());
                     TISSinkFactory incrSinKFactory = TISSinkFactory.getIncrSinKFactory(collection.getName());
-                    incrSinKFactory.createSinkFunction(processor, new IFlinkColCreator(){
+                    incrSinKFactory.createSinkFunction(processor, new IFlinkColCreator() {
                         @Override
                         public Object build(IColMetaGetter meta, int colIndex) {
                             return null;
@@ -954,7 +958,9 @@ public class PluginAndCfgsSnapshot {
             jarray.add(meta.toString());
         });
         // KeyedPluginStore.PluginMetas.KEY_PLUGIN_META
-        pmetas.put(new Attributes.Name(Config.KEY_PLUGIN_METAS), jarray.toJSONString());
+        final String pluginMetas = jarray.toJSONString();
+        logger.info("collected " + Config.KEY_PLUGIN_METAS + ":" + pluginMetas);
+        pmetas.put(new Attributes.Name(Config.KEY_PLUGIN_METAS), pluginMetas);
 
         pmetas.put(new Attributes.Name(KeyedPluginStore.PluginMetas.KEY_APP_LAST_MODIFY_TIMESTAMP),
                 String.valueOf(this.appLastModifyTimestamp));

@@ -49,7 +49,8 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
     }
 
     public void testCreateDataBatchJobManifestCfgAttrs() throws Exception {
-        String appName = "mysql_hudi";
+        String appName = "mysql";
+       // String appName = "mysql_hudi";
         // String appName = "mysql_doris3";
         Manifest manifest = PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs( //
                 new TargetResName(appName));

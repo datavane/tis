@@ -113,6 +113,7 @@ TIS基于数据库元数据信息自动生成Flink-SQL脚本,您没看错全部�
 - TIS 插件元数据生成工具 [https://github.com/qlangtech/update-center2](https://github.com/qlangtech/update-center2)
 - DataX [https://github.com/qlangtech/DataX](https://github.com/qlangtech/DataX)
 - Flink Extend [https://github.com/qlangtech/flink](https://github.com/qlangtech/flink)
+- Dolphinscheduler [https://github.com/qlangtech/dolphinscheduler](https://github.com/qlangtech/dolphinscheduler)
 - TIS 插件功能脚手架 [https://github.com/qlangtech/tis-archetype-plugin](https://github.com/qlangtech/tis-archetype-plugin)
 - Chunjun [https://github.com/qlangtech/chunjun](https://github.com/qlangtech/chunjun)
 - Zeppelin [https://github.com/qlangtech/zeppelin](https://github.com/qlangtech/zeppelin)

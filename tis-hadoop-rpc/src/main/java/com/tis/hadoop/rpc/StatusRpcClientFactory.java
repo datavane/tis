@@ -185,26 +185,16 @@ public class StatusRpcClientFactory {
      * @param
      * @throws Exception
      */
-    private RpcServiceReference connect2RemoteIncrStatusServer(ITISCoordinator zookeeper, AdapterAssembleSvcCompsiteCallback... callbacks) throws Exception {
-
-        //  final ReentrantLock tryConnectServerLock = new ReentrantLock();
+    private RpcServiceReference connect2RemoteIncrStatusServer(
+            ITISCoordinator zookeeper, AdapterAssembleSvcCompsiteCallback... callbacks) throws Exception {
         RpcServiceReference svcRef = getMockStub();
-//        ref.set(AssembleSvcCompsite.MOCK_PRC);
         if (!zookeeper.shallConnect2RemoteIncrStatusServer()) {
-//            return new RpcServiceReference(ref, () -> {
-//            });
-
+            logger.warn("shallConnect2RemoteIncrStatusServer= false");
             return svcRef;
         }
-        // AtomicBoolean successConnected = new AtomicBoolean(false);
-
-
         TryConnection connect = new TryConnection(zookeeper, svcRef.getRef(), callbacks);
-
         connect.run();
-
         startConnect2RPC(connect);
-
         return new RpcServiceReference(svcRef.getRef(), connect);
     }
 

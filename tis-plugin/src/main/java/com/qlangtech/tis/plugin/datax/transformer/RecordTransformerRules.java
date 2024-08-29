@@ -22,6 +22,7 @@ import com.alibaba.datax.core.job.ITransformerBuildInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -130,7 +131,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
      * @return Map<String, Map < String, Function < RunningContext, Object>>>
      */
     public static Map<String /*tableName*/, Map<String /*contextParamName*/, Function<RunningContext, Object>>> contextParamValsGetterMapper(
-            IPluginContext pluginContext, DataxReader dataxReader, List<ISelectedTab> tabs) {
+            IPluginContext pluginContext, IDataxReader dataxReader, List<ISelectedTab> tabs) {
         Map<String, Map<String, Function<RunningContext, Object>>> contextParamValsGetterMapper = Maps.newHashMap();
         for (ISelectedTab tab : tabs) {
             RecordTransformerRules transformerRules = RecordTransformerRules.loadTransformerRules(pluginContext, tab.getName());
@@ -145,7 +146,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
     }
 
 
-    private ITransformerBuildInfo createTransformerBuildInfo(DataxReader dataxReader) {
+    private ITransformerBuildInfo createTransformerBuildInfo(IDataxReader dataxReader) {
         if (dataxReader == null) {
             throw new IllegalArgumentException("param dataXReader can not be null");
         }
