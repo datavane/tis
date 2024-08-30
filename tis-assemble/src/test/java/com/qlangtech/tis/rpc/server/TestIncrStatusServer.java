@@ -32,6 +32,7 @@ import com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState;
 import com.qlangtech.tis.rpc.grpc.log.stream.PMonotorTarget;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.trigger.socket.LogType;
+import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClientFactory;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -81,7 +82,7 @@ public class TestIncrStatusServer extends BaseTestCase {
      * 测试assemble节点发送暂停命令，服务端正常响应
      */
     public void testHasReceiveIncrPausedCommand() {
-        StatusRpcClientFactory.AssembleSvcCompsite svc = getRpcClient();
+        RpcServiceReference svc = getRpcClient();
 
 
         final AtomicBoolean hasReceiveIncrPausedCommand = new AtomicBoolean(false);
@@ -149,7 +150,7 @@ public class TestIncrStatusServer extends BaseTestCase {
      * 测试增量执行过程中向服务端发送各tag累计数
      */
     public void testReportStatus() {
-        StatusRpcClientFactory.AssembleSvcCompsite svc = getRpcClient();
+        RpcServiceReference svc = getRpcClient();
         try {
             // String uuid = UUID.randomUUID().toString();
             UpdateCounterMap updateCt = createUpdateCounterMap(uuid, false);
@@ -192,7 +193,7 @@ public class TestIncrStatusServer extends BaseTestCase {
      * 增量节点启动向assemble节点汇报监听的内容
      */
     public void testNodeLaunchReport() {
-        StatusRpcClientFactory.AssembleSvcCompsite svc = getRpcClient();
+        RpcServiceReference svc = getRpcClient();
         try {
             /**
              * key:collection
@@ -275,7 +276,7 @@ public class TestIncrStatusServer extends BaseTestCase {
         Thread tt = new Thread(writeLog);
         tt.setDaemon(true);
         tt.start();
-        StatusRpcClientFactory.AssembleSvcCompsite svc = getRpcClient();
+        RpcServiceReference svc = getRpcClient();
         try {
             CountDownLatch countdown = new CountDownLatch(1);
 
@@ -342,9 +343,9 @@ public class TestIncrStatusServer extends BaseTestCase {
         }
     }
 
-    private StatusRpcClientFactory.AssembleSvcCompsite getRpcClient() {
+    private RpcServiceReference getRpcClient() {
         try {
-            return StatusRpcClientFactory.getService(ITISCoordinator.create()).get();
+            return StatusRpcClientFactory.getService(ITISCoordinator.create());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -20,8 +20,12 @@ package com.tis.hadoop.rpc;
 
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
+import com.qlangtech.tis.realtime.yarn.rpc.PingResult;
 import com.tis.hadoop.rpc.StatusRpcClientFactory.AssembleSvcCompsite;
+import io.grpc.StatusRuntimeException;
 import junit.framework.TestCase;
+
+import static com.tis.hadoop.rpc.StatusRpcClientFactory.AssembleSvcCompsite.MOCK_PRC;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -30,8 +34,27 @@ import junit.framework.TestCase;
 public class TestStatusRpcClientFactory extends TestCase {
     public void testLoadPhaseStatusFromLatest() throws Exception {
         RpcServiceReference ref = StatusRpcClientFactory.getService(ITISCoordinator.create());
-        AssembleSvcCompsite svc = ref.get();
-        PhaseStatusCollection statusCollection = svc.statReceiveSvc.loadPhaseStatusFromLatest(18);
+
+
+        // PhaseStatusCollection statusCollection = svc.statReceiveSvc.loadPhaseStatusFromLatest(18);
         // Assert.assertNotNull("statusCollection can not be null", statusCollection);
+        while (true) {
+            try {
+                //  AssembleSvcCompsite svc = ref.get();
+                PingResult ping = ref.ping();
+
+//                if (MOCK_PRC == svc) {
+//                    System.out.println(" mock ping");
+//                } else {
+                System.out.println("success ping:" + ping.getValue());
+                //}
+            } catch (StatusRuntimeException e) {
+                System.out.println("faild ping:" + e.getMessage());
+                ref.reConnect();
+            }
+
+            Thread.sleep(2000);
+        }
+        //  Thread.sleep(999999);
     }
 }

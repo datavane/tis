@@ -330,7 +330,7 @@ public class LogCollectorClient implements ILogReporter {
 
     @Override
     public java.util.Iterator<com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> buildPhraseStatus(// , final IPhaseStatusCollectionListener slistener
-                                                                                                              Integer taskid) throws Exception {
+                                                                                                              Integer taskid)  {
         PBuildPhaseStatusParam statusParam = PBuildPhaseStatusParam.newBuilder().setTaskid(taskid).build();
         return blockStub.buildPhraseStatus(statusParam);
         // responseObserver.onCompleted();

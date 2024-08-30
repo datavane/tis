@@ -18,7 +18,7 @@
 
 package com.qlangtech.tis.rpc.grpc.log;
 
-import com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent;
+import java.util.Map;
 
 /**
  * @author 百岁 (baisui@qlangtech.com)
@@ -29,9 +29,14 @@ public interface ILoggerAppenderClient {
     public static ILoggerAppenderClient createMock() {
         return new ILoggerAppenderClient() {
             @Override
-            public void append(LoggingEvent event) {
+            public void append(Map<String, String> headers, LogLevel level, String body) {
 
             }
+
+//            @Override
+//            public void append(LoggingEvent event) {
+//
+//            }
         };
 //        final String target = ZkUtils.getFirstChildValue(ITISCoordinator.create(), ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH
 //                , true);
@@ -48,5 +53,17 @@ public interface ILoggerAppenderClient {
 //        };
     }
 
-    public void append(LoggingEvent event);
+    //    map<string /* key */, string> headers = 1;
+//    string body = 2;
+//    Level level = 3;
+//    INFO = 0;
+//    WARNING = 1;
+//    ERROR = 2;
+    void append(Map<String, String> headers, LogLevel level, String body);
+
+    public enum LogLevel {
+        INFO, WARNING, ERROR
+    }
+
+    //public void append(LoggingEvent event);
 }

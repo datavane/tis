@@ -31,5 +31,5 @@ public interface ILogReporter {
 
     StreamObserver<PMonotorTarget> registerMonitorEvent(ILogListener logListener);
 
-    java.util.Iterator<com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> buildPhraseStatus(Integer taskid) throws Exception;
+    java.util.Iterator<com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> buildPhraseStatus(Integer taskid) ;
 }

@@ -35,6 +35,7 @@ import com.qlangtech.tis.realtime.yarn.rpc.UpdateCounterMap;
 import com.qlangtech.tis.rpc.grpc.log.DefaultLoggerAppenderClient;
 import com.qlangtech.tis.rpc.grpc.log.ILogReporter;
 import com.qlangtech.tis.rpc.grpc.log.ILoggerAppenderClient;
+import com.qlangtech.tis.rpc.grpc.log.ILoggerAppenderClient.LogLevel;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
 import com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent;
 import com.qlangtech.tis.rpc.grpc.log.stream.PMonotorTarget;
@@ -44,6 +45,7 @@ import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -51,6 +53,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
@@ -62,6 +68,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -85,7 +93,7 @@ public class StatusRpcClientFactory {
                     return;
                 }
                 try {
-                    ITISRpcService rpcService = instance.get();
+                    ITISRpcService rpcService = instance.getRef().get();
                     if (rpcService != null) {
                         rpcService.close();
                     }
@@ -128,7 +136,7 @@ public class StatusRpcClientFactory {
         connect2RemoteIncrStatusServer(incrStateCollectAddress, rpcCallback);
     }
 
-    private AssembleSvcCompsite connect2RemoteIncrStatusServer(String incrStateCollectAddress, AssembleSvcCompsiteCallback rpcCallback) {
+    private ITISRpcService connect2RemoteIncrStatusServer(String incrStateCollectAddress, AssembleSvcCompsiteCallback rpcCallback) {
         InetSocketAddress address;
         Matcher matcher = ADDRESS_PATTERN.matcher(incrStateCollectAddress);
         if (matcher.matches()) {
@@ -138,7 +146,7 @@ public class StatusRpcClientFactory {
             throw new IllegalStateException("incrStatusRpcServer:" + incrStateCollectAddress + " is not match the pattern:" + ADDRESS_PATTERN);
         }
         info("status server address:" + address);
-        AssembleSvcCompsite oldRpc = rpcCallback.getOld();
+        ITISRpcService oldRpc = rpcCallback.getOld();
         try {
             if (oldRpc != null) {
                 // RPC.stopProxy(oldRpc);
@@ -175,7 +183,7 @@ public class StatusRpcClientFactory {
     public static RpcServiceReference getMockStub() {
         final AtomicReference<ITISRpcService> ref = new AtomicReference<>();
         ref.set(AssembleSvcCompsite.MOCK_PRC);
-        return new RpcServiceReference(ref, () -> {
+        return new RpcServiceReference(ref, AssembleSvcCompsite.MOCK_PRC, () -> {
         });
     }
 
@@ -195,7 +203,7 @@ public class StatusRpcClientFactory {
         TryConnection connect = new TryConnection(zookeeper, svcRef.getRef(), callbacks);
         connect.run();
         startConnect2RPC(connect);
-        return new RpcServiceReference(svcRef.getRef(), connect);
+        return new RpcServiceReference(svcRef.getRef(), AssembleSvcCompsite.MOCK_PRC, connect);
     }
 
     public static class TryConnection implements Runnable {
@@ -216,30 +224,52 @@ public class StatusRpcClientFactory {
         public void run() {
 
             if (tryConnectLock.tryLock()) {
-                StatusRpcClientFactory statusRpcClient = new StatusRpcClientFactory();
-                statusRpcClient.connect2RemoteIncrStatusServer(zookeeper, true, /* reConnect */
-                        new AssembleSvcCompsiteCallback() {
-                            @Override
-                            public AssembleSvcCompsite process(AssembleSvcCompsite oldrpc, AssembleSvcCompsite newrpc) {
-                                ref.compareAndSet(oldrpc, newrpc);
-                                successConnected.set(true);
-                                for (AdapterAssembleSvcCompsiteCallback c : callbacks) {
-                                    c.process(oldrpc, newrpc);
+                try {
+                    StatusRpcClientFactory statusRpcClient = new StatusRpcClientFactory();
+                    statusRpcClient.connect2RemoteIncrStatusServer(zookeeper, true, /* reConnect */
+                            new AssembleSvcCompsiteCallback() {
+                                @Override
+                                public ITISRpcService process(ITISRpcService oldrpc, final ITISRpcService newrpc) {
+//                                    final ITISRpcService wrapperService = (ITISRpcService) Proxy.newProxyInstance(
+//                                            this.getClass().getClassLoader(), new Class[]{ITISRpcService.class}
+//                                            , new InvocationHandler() {
+//                                                @Override
+//                                                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+//
+//                                                    try {
+//                                                        Object result = method.invoke(newrpc, args);
+//                                                        return result;
+//                                                    } catch (StatusRuntimeException e) {
+//                                                        synchronized (TryConnection.this) {
+//                                                            TryConnection.this.notifyAll();
+//                                                        }
+//                                                    }
+//
+//                                                }
+//                                            });
+
+                                    ref.compareAndSet(oldrpc, newrpc);
+                                    successConnected.set(true);
+                                    for (AdapterAssembleSvcCompsiteCallback c : callbacks) {
+                                        c.process(oldrpc, newrpc);
+                                    }
+                                    return newrpc;
                                 }
-                                return newrpc;
-                            }
 
-                            @Override
-                            public AssembleSvcCompsite getOld() {
-                                return ref.get().unwrap();
-                            }
+                                @Override
+                                public ITISRpcService getOld() {
+                                    return ref.get().unwrap();
+                                }
 
-                            @Override
-                            public void errorOccur(AssembleSvcCompsite oldrpc, Exception e) {
-                                ref.compareAndSet(oldrpc, AssembleSvcCompsite.MOCK_PRC);
-                                successConnected.set(false);
-                            }
-                        });
+                                @Override
+                                public void errorOccur(ITISRpcService oldrpc, Exception e) {
+                                    ref.compareAndSet(oldrpc, AssembleSvcCompsite.MOCK_PRC);
+                                    successConnected.set(false);
+                                }
+                            });
+                } finally {
+                    tryConnectLock.unlock();
+                }
             }
         }
     }
@@ -251,10 +281,10 @@ public class StatusRpcClientFactory {
 
             while (true) {
                 logger.info("start reconnect rpc server,tryCount:" + tryCount.incrementAndGet());
-                connect.tryConnectLock.tryLock();
+                //  connect.tryConnectLock.tryLock();
                 synchronized (connect) {
                     if (connect.successConnected.get()) {
-                        connect.tryConnectLock.unlock();
+                        //        connect.tryConnectLock.unlock();
                         connect.wait();
                         logger.info("reconnect process was notify,tryCount:" + tryCount.incrementAndGet());
                     }
@@ -286,12 +316,12 @@ public class StatusRpcClientFactory {
 
     public interface AssembleSvcCompsiteCallback {
 
-        public AssembleSvcCompsite process(AssembleSvcCompsite oldrpc, AssembleSvcCompsite newrpc);
+        public ITISRpcService process(ITISRpcService oldrpc, ITISRpcService newrpc);
 
-        public AssembleSvcCompsite getOld();
+        public ITISRpcService getOld();
 
         // 当错误发生
-        public void errorOccur(AssembleSvcCompsite oldrpc, Exception e);
+        public void errorOccur(ITISRpcService oldrpc, Exception e);
     }
 
     /**
@@ -301,18 +331,25 @@ public class StatusRpcClientFactory {
 
         public static RpcServiceReference statusRpc;// = new AtomicReference<>();
 
+
+        private final IncrStatusUmbilicalProtocol statReceiveSvc;
+        private final ILoggerAppenderClient loggerAppenderClient;
+
+        // 汇总状态之后供，console节点来访问用
+        private final ILogReporter statReportSvc;
+
         static {
             AtomicReference<ITISRpcService> ref = new AtomicReference<>();
             ref.set(StatusRpcClientFactory.AssembleSvcCompsite.MOCK_PRC);
-            statusRpc = new RpcServiceReference(ref, () -> {
+            statusRpc = new RpcServiceReference(ref, StatusRpcClientFactory.AssembleSvcCompsite.MOCK_PRC, () -> {
             });
         }
 
         public static final AssembleSvcCompsite MOCK_PRC
                 = new AssembleSvcCompsite(new MockIncrStatusUmbilicalProtocol(), new MockLogReporter(), new ILoggerAppenderClient() {
             @Override
-            public void append(LoggingEvent event) {
-                Map<String, String> headers = event.getHeadersMap();
+            public void append(Map<String, String> headers, LogLevel level, String body) {
+                // Map<String, String> headers = event.getHeadersMap();
                 logger.warn("rpc msg write to mock instance,taskId:" + headers.get(JobParams.KEY_TASK_ID));
             }
         }) {
@@ -326,54 +363,6 @@ public class StatusRpcClientFactory {
             }
         };
 
-        @Override
-        public AssembleSvcCompsite unwrap() {
-            return this;
-        }
-
-        // 各个子节点汇报状态用
-        public final IncrStatusUmbilicalProtocol statReceiveSvc;
-        private final ILoggerAppenderClient loggerAppenderClient;
-
-        // 汇总状态之后供，console节点来访问用
-        public final ILogReporter statReportSvc;
-
-        public abstract void close();
-
-        public void reportDumpJobStatus(
-                boolean faild, boolean complete, boolean waiting
-                , Integer taskId, String jobName, int readRows, int allRows) {
-            StatusRpcClientFactory.AssembleSvcCompsite svc = this;
-            DumpPhaseStatus.TableDumpStatus dumpStatus = new DumpPhaseStatus.TableDumpStatus(jobName, taskId);
-            dumpStatus.setFaild(faild);
-            dumpStatus.setComplete(complete);
-            dumpStatus.setWaiting(waiting);
-            dumpStatus.setReadRows(readRows);
-            dumpStatus.setAllRows(allRows);
-            svc.reportDumpTableStatus(dumpStatus);
-        }
-
-        /**
-         * 分布式写日志
-         *
-         * @param event
-         */
-        public final void append(LoggingEvent event) {
-            loggerAppenderClient.append(event);
-        }
-
-        public final void appendLog(LoggingEvent.Level level, Integer taskId, Optional<String> appName, String message) {
-            LoggingEvent.Builder evtBuilder = LoggingEvent.newBuilder();
-            evtBuilder.setLevel(level);
-            evtBuilder.setBody(message);
-            Map<String, String> headers = Maps.newHashMap();
-            headers.put(JobParams.KEY_TASK_ID, String.valueOf(taskId));
-            headers.put(JobParams.KEY_COLLECTION, appName.orElse("unknow"));
-            headers.put("logtype", "fullbuild");
-            evtBuilder.putAllHeaders(headers);
-            this.append(evtBuilder.build());
-        }
-
         public AssembleSvcCompsite(IncrStatusUmbilicalProtocol statReceiveSvc, ILogReporter statReportSvc, ILoggerAppenderClient loggerAppenderClient) {
             Objects.requireNonNull(statReceiveSvc, "param statReceiveSvc can not be null");
             Objects.requireNonNull(statReportSvc, "param statReportSvc can not be null");
@@ -383,40 +372,124 @@ public class StatusRpcClientFactory {
             this.loggerAppenderClient = loggerAppenderClient;
         }
 
-        public StreamObserver<PMonotorTarget> registerMonitorEvent(ILogListener logListener) {
-            return statReportSvc.registerMonitorEvent(logListener);
+        @Override
+        public AssembleSvcCompsite unwrap() {
+            return this;
         }
 
-        public java.util.Iterator<com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> buildPhraseStatus(Integer taskid) throws Exception {
-            return statReportSvc.buildPhraseStatus(taskid);
+        // 各个子节点汇报状态用
+
+
+        public abstract void close();
+
+
+        @Override
+        public PhaseStatusCollection loadPhaseStatusFromLatest(Integer taskId) {
+            return invokeGrpc(() -> {
+                return statReceiveSvc.loadPhaseStatusFromLatest(taskId);
+            });
+        }
+
+        /**
+         * 重新抛出GrpcConnectionException，在RpcServiceReference中接收到之后，可以尝试重连
+         *
+         * @param supplier
+         * @param <T>
+         * @return
+         */
+        private <T> T invokeGrpc(Supplier<T> supplier) {
+            try {
+                return supplier.get();
+            } catch (StatusRuntimeException e) {
+                throw new GrpcConnectionException(e);
+            }
+        }
+
+        /**
+         * 分布式写日志
+         */
+        @Override
+        public void append(Map<String, String> headers, LogLevel level, String body) {
+            invokeGrpc(() -> {
+                loggerAppenderClient.append(headers, level, body);
+                return null;
+            });
+        }
+
+        @Override
+        public final void appendLog(LogLevel level, Integer taskId, Optional<String> appName, String message) {
+            // LoggingEvent.Builder evtBuilder = LoggingEvent.newBuilder();
+//            evtBuilder.setLevel(level);
+//            evtBuilder.setBody(message);
+            Map<String, String> headers = Maps.newHashMap();
+            headers.put(JobParams.KEY_TASK_ID, String.valueOf(taskId));
+            headers.put(JobParams.KEY_COLLECTION, appName.orElse("unknow"));
+            headers.put("logtype", "fullbuild");
+            // evtBuilder.putAllHeaders(headers);
+            this.append(headers, level, message);
+        }
+
+        @Override
+        public StreamObserver<PMonotorTarget> registerMonitorEvent(ILogListener logListener) {
+            return invokeGrpc(() -> {
+                return statReportSvc.registerMonitorEvent(logListener);
+            });
+
+        }
+
+        @Override
+        public java.util.Iterator<com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection>
+        buildPhraseStatus(Integer taskid) {
+            return invokeGrpc(() -> {
+                return statReportSvc.buildPhraseStatus(taskid);
+            });
         }
 
         public PingResult ping() {
-            return statReceiveSvc.ping();
+            return invokeGrpc(() -> {
+                return statReceiveSvc.ping();
+            });
         }
 
         public MasterJob reportStatus(UpdateCounterMap upateCounter) {
-            return statReceiveSvc.reportStatus(upateCounter);
+            return invokeGrpc(() -> {
+                return statReceiveSvc.reportStatus(upateCounter);
+            });
         }
 
         public void reportJoinStatus(Integer taskId, JoinPhaseStatus.JoinTaskStatus joinStatus) {
-            this.statReceiveSvc.reportJoinStatus(taskId, joinStatus);
+            invokeGrpc(() -> {
+                this.statReceiveSvc.reportJoinStatus(taskId, joinStatus);
+                return null;
+            });
         }
 
         public void nodeLaunchReport(LaunchReportInfo launchReportInfo) {
-            statReceiveSvc.nodeLaunchReport(launchReportInfo);
+            invokeGrpc(() -> {
+                statReceiveSvc.nodeLaunchReport(launchReportInfo);
+                return null;
+            });
         }
 
         public void reportDumpTableStatus(TableDumpStatus tableDumpStatus) {
-            statReceiveSvc.reportDumpTableStatus(tableDumpStatus);
+            invokeGrpc(() -> {
+                statReceiveSvc.reportDumpTableStatus(tableDumpStatus);
+                return null;
+            });
         }
 
         public void reportBuildIndexStatus(BuildSharedPhaseStatus buildStatus) {
-            statReceiveSvc.reportBuildIndexStatus(buildStatus);
+            invokeGrpc(() -> {
+                statReceiveSvc.reportBuildIndexStatus(buildStatus);
+                return null;
+            });
         }
 
         public void initSynJob(PhaseStatusCollection buildStatus) {
-            statReceiveSvc.initSynJob(buildStatus);
+            invokeGrpc(() -> {
+                statReceiveSvc.initSynJob(buildStatus);
+                return null;
+            });
         }
     }
 
@@ -454,7 +527,7 @@ public class StatusRpcClientFactory {
         }
 
         @Override
-        public java.util.Iterator<PPhaseStatusCollection> buildPhraseStatus(Integer taskid) throws Exception {
+        public java.util.Iterator<PPhaseStatusCollection> buildPhraseStatus(Integer taskid) {
             return Iterators.forArray();
         }
     }
@@ -486,7 +559,9 @@ public class StatusRpcClientFactory {
 
         @Override
         public PingResult ping() {
-            return null;
+            PingResult pingResult = new PingResult();
+            pingResult.setValue(pingResult.getValue() + " from mock");
+            return pingResult;
         }
 
         @Override

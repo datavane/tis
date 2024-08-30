@@ -20,8 +20,10 @@ package com.qlangtech.tis.rpc.grpc.log;
 
 import com.qlangtech.tis.rpc.grpc.log.appender.LogAppenderGrpc;
 import com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent;
+import com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent.Level;
 import io.grpc.ManagedChannel;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -36,7 +38,34 @@ public class DefaultLoggerAppenderClient implements ILoggerAppenderClient {
     }
 
     @Override
-    public void append(LoggingEvent event) {
-        this.logAppenderBlockingStub.append(Objects.requireNonNull(event, "param event can not be null"));
+    public void append(Map<String, String> headers, LogLevel level, String message) {
+
+        LoggingEvent.Builder evtBuilder = LoggingEvent.newBuilder();
+        switch (level) {
+            case INFO: {
+                evtBuilder.setLevel(Level.INFO);
+                break;
+            }
+            case ERROR: {
+                evtBuilder.setLevel(Level.ERROR);
+                break;
+            }
+            case WARNING: {
+                evtBuilder.setLevel(Level.WARNING);
+                break;
+            }
+            default:
+                throw new IllegalStateException("illegal level type:" + level);
+        }
+
+
+        evtBuilder.setBody(message);
+        evtBuilder.putAllHeaders(headers);
+        this.logAppenderBlockingStub.append(Objects.requireNonNull(evtBuilder.build(), "param event can not be null"));
     }
+
+//    @Override
+//    public void append(LoggingEvent event) {
+//        this.logAppenderBlockingStub.append(Objects.requireNonNull(event, "param event can not be null"));
+//    }
 }

@@ -17,46 +17,20 @@
  */
 package com.tis.hadoop.rpc;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
- * @date 2021-03-03 11:16
+ * @date 2021-03-03 10:52
  */
-public class RpcServiceReference {
-    private final AtomicReference<ITISRpcService> ref;
-    private final Runnable connect;
-
-
-
-    public RpcServiceReference(AtomicReference<ITISRpcService> ref, Runnable connect) {
-        this.ref = ref;
-        this.connect = connect;
-    }
-
-    public AtomicReference<ITISRpcService> getRef() {
-        return ref;
-    }
-
+public interface ITISRpcService extends IPartialGrpcServiceFacade {
     /**
-     * when throw an error of  io.grpc.StatusRuntimeException,then shall execute reConnect()
-     */
-    public void reConnect() {
-        synchronized (connect) {
-            this.connect.run();
-            // 唤醒 Runnable，连接继续
-            this.connect.notifyAll();
-        }
-    }
-
-    /**
-     * default instance is type of AssembleSvcCompsite
+     * 接口适配
+     * default is AssembleSvcCompsite
      *
      * @param <T>
      * @return
      */
-    public <T extends ITISRpcService> T get() {
-        T t = (T) ref.get();
-        return t;
-    }
+    //
+    <T> T unwrap();
+
+    void close();
 }

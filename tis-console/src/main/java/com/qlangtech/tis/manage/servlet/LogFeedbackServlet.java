@@ -193,9 +193,9 @@ public class LogFeedbackServlet extends WebSocketServlet {
 
     private StreamObserver<PMonotorTarget> getMonitorSet() {
       if (pMonotorObserver == null) {
-        StatusRpcClientFactory.AssembleSvcCompsite feedback = getStatusRpc().get();
+      //  StatusRpcClientFactory.AssembleSvcCompsite feedback = getStatusRpc().get();
 
-        pMonotorObserver = feedback.registerMonitorEvent(this);
+        pMonotorObserver = getStatusRpc().registerMonitorEvent(this);
       }
       return pMonotorObserver;
     }
@@ -301,8 +301,8 @@ public class LogFeedbackServlet extends WebSocketServlet {
       } else if (monitorTarget.testLogType(LogType.BuildPhraseMetrics)) {
         executorService.execute(() -> {
           try {
-            StatusRpcClientFactory.AssembleSvcCompsite feedback = getStatusRpc().get();
-            final Iterator<PPhaseStatusCollection> statIt = feedback.buildPhraseStatus(taskid);
+           // StatusRpcClientFactory.AssembleSvcCompsite feedback = getStatusRpc().get();
+            final Iterator<PPhaseStatusCollection> statIt = getStatusRpc().buildPhraseStatus(taskid);
             boolean serverSideBreak = true;
             while (isConnected() && statIt.hasNext()) {
               if (!process(statIt.next())) {

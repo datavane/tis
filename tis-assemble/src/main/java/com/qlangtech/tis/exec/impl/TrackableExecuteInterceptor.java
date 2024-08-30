@@ -30,6 +30,7 @@ import com.qlangtech.tis.realtime.yarn.rpc.impl.AdapterStatusUmbilicalProtocol;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import com.tis.hadoop.rpc.ITISRpcService;
 import com.tis.hadoop.rpc.RpcServiceReference;
+import com.tis.hadoop.rpc.StatusRpcClientFactory.AssembleSvcCompsite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +83,7 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
         };
         AtomicReference<ITISRpcService> ref = new AtomicReference<>();
         ref.set(new DataXAssembleSvcCompsite(statReceiveSvc));
-        return new RpcServiceReference(ref, () -> {
+        return new RpcServiceReference(ref, AssembleSvcCompsite.MOCK_PRC ,() -> {
         });
     }
 

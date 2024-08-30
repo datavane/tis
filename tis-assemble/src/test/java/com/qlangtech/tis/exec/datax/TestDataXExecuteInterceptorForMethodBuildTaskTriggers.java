@@ -87,7 +87,7 @@ public class TestDataXExecuteInterceptorForMethodBuildTaskTriggers extends Basic
         DataXJobSubmit submit = new TestIndexSwapTaskflowLauncherWithDataXTrigger.MockDataXJobSubmit(dumpTrigger);
         AtomicReference<ITISRpcService> ref = new AtomicReference<>();
         ref.set(StatusRpcClientFactory.AssembleSvcCompsite.MOCK_PRC);
-        RpcServiceReference statusRpc = new RpcServiceReference(ref, () -> {
+        RpcServiceReference statusRpc = new RpcServiceReference(ref, StatusRpcClientFactory.AssembleSvcCompsite.MOCK_PRC, () -> {
         });
 
 

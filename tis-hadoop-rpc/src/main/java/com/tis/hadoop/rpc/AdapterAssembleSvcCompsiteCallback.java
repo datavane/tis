@@ -29,7 +29,12 @@ public abstract class AdapterAssembleSvcCompsiteCallback implements StatusRpcCli
     }
 
     @Override
-    public final void errorOccur(StatusRpcClientFactory.AssembleSvcCompsite oldrpc, Exception e) {
+    public void errorOccur(ITISRpcService oldrpc, Exception e) {
         throw new UnsupportedOperationException();
     }
+
+//    @Override
+//    public final void errorOccur(StatusRpcClientFactory.AssembleSvcCompsite oldrpc, Exception e) {
+//        throw new UnsupportedOperationException();
+//    }
 }

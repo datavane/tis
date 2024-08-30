@@ -15,22 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.tis.hadoop.rpc;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2021-03-03 10:52
- */
-public interface ITISRpcService {
-    /**
-     * 接口适配
-     * default is AssembleSvcCompsite
-     *
-     * @param <T>
-     * @return
-     */
-    //
-    <T> T unwrap();
-
-    void close();
+ * 表明Grpc连接失败需要执行重连
+ *
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2024-08-30 11:30
+ **/
+public class GrpcConnectionException extends RuntimeException {
+    public GrpcConnectionException(Throwable cause) {
+        super(cause);
+    }
 }

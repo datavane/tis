@@ -21,6 +21,7 @@ package com.qlangtech.tis.rpc.grpc.log;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.job.common.JobParams;
+import com.qlangtech.tis.rpc.grpc.log.ILoggerAppenderClient.LogLevel;
 import com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClientFactory;
@@ -37,22 +38,22 @@ public class TestLoggerAppenderClient extends TestCase {
     public void testAppendEvent() throws Exception {
         RpcServiceReference rpc = StatusRpcClientFactory.getService(ITISCoordinator.create());
 
-        StatusRpcClientFactory.AssembleSvcCompsite svc = rpc.get();
+        // StatusRpcClientFactory.AssembleSvcCompsite svc = rpc.get();
 
 
-        for (int i = 0; i < 100; i++) {
-            LoggingEvent.Builder evtBuilder = LoggingEvent.newBuilder();
-            evtBuilder.setLevel(LoggingEvent.Level.INFO);
-            evtBuilder.setBody("hello log event index:" + i);
-            Map<String, String> headers = Maps.newHashMap();
-            headers.put(JobParams.KEY_TASK_ID, "123");
-            headers.put(JobParams.KEY_COLLECTION, "unknow");
-            headers.put("logtype", "fullbuild");
-            evtBuilder.putAllHeaders(headers);
-            svc.append(evtBuilder.build());
-            System.out.println("send index:" + i);
-            Thread.sleep(1000);
-        }
+//        for (int i = 0; i < 100; i++) {
+//           // LoggingEvent.Builder evtBuilder = LoggingEvent.newBuilder();
+////            evtBuilder.setLevel(LoggingEvent.Level.INFO);
+////            evtBuilder.setBody();
+//            Map<String, String> headers = Maps.newHashMap();
+//            headers.put(JobParams.KEY_TASK_ID, "123");
+//            headers.put(JobParams.KEY_COLLECTION, "unknow");
+//            headers.put("logtype", "fullbuild");
+//          //  evtBuilder.putAllHeaders(headers);
+//            rpc.appendLog(headers , LogLevel.INFO,"hello log event index:" + i);
+//            System.out.println("send index:" + i);
+//            Thread.sleep(1000);
+//        }
 
     }
 }

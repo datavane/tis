@@ -80,7 +80,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
         }
 
         DataXJobSubmit submit = jobSubmit.get();
-        final DataXAssembleSvcCompsite svcCompsite = dataXExecReporter.get();
+       // final DataXAssembleSvcCompsite svcCompsite = dataXExecReporter.get();
 
         final DataXCfgGenerator.GenerateCfgs cfgFileNames
                 = dataxProc.getDataxCfgFileNames(null, Optional.empty());
@@ -107,7 +107,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
 
                         TISReactor.TaskImpl tsk = (TISReactor.TaskImpl) task;
                         DumpPhaseStatus.TableDumpStatus dumpStatus = dumpPhase.getTable(tsk.getIdentityName());
-                        svcCompsite.reportDumpJobStatus(true, true
+                        dataXExecReporter.reportDumpJobStatus(true, true
                                 , false, dumpPhase.getTaskId(), tsk.getDisplayName(), dumpStatus.getReadRows(), dumpStatus.getAllRows());
                     }
                 }, this
