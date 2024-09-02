@@ -46,12 +46,18 @@ import java.util.function.Consumer;
  * @date 2020/04/13
  */
 public class Config extends BasicConfig {
+    public static final String KEY_TIS_ADDRESS = "tisAddress";
+    public static final String KEY_TIS_HTTP_Host = "tisHTTPHost";
     public static final String KEY_ENV_TIS_HOME = "TIS_HOME";
     public static final String SYSTEM_KEY_LOGBACK_PATH_KEY = "logback.configurationFile";
     public static final String SYSTEM_KEY_LOGBACK_PATH_VALUE = "logback-datax.xml";
     public static final String SYSTEM_KEY__LOGBACK_HUDI = "logback-hudi.xml";
     public static final String KEY_TIS_PLUGIN_CONFIG = "tis_plugin_config";
     public static final String KEY_TIS_PLUGIN_ROOT = "plugins";
+    /**
+     * 用于运行时指定logback本地日志Appender 输出文件路径
+     */
+    public static final String EXEC_LOCAL_LOGGER_FILE_PATH = "localLoggerFilePath";
     private static final Logger logger = LoggerFactory.getLogger(Config.class);
     public static final String SUB_DIR_LIBS = "libs";
     public static final String LIB_PLUGINS_PATH = SUB_DIR_LIBS + "/" + KEY_TIS_PLUGIN_ROOT;
@@ -365,29 +371,49 @@ public class Config extends BasicConfig {
     }
 
     private static final ThreadLocal<String> threadContext = new ThreadLocal<>();
+    /**
+     * 这样的格式可以让用户手动设置， http://192.168.28.201:8080
+     */
+    public static String tisHttpHost;
 
     public static void setThreadContextTisHost(String tishost) {
         threadContext.set(tishost);
     }
 
     public static String getConfigRepositoryHost() {
+
+        String consoleHttpHost = StringUtils.defaultIfEmpty(tisHttpHost, getTISConsoleHttpHost());
+        return consoleHttpHost + TisSubModule.TIS_CONSOLE.servletContext;
+//        String tisHost = null;
+//        if ((tisHost = threadContext.get()) == null) {
+//            tisHost = getBaseConfig().getTISHost();
+//        } else {
+//            threadContext.remove();
+//        }
+//        return "http://" + tisHost + ":" + (TisSubModule.TIS_CONSOLE.getLaunchPort()) + TisSubModule.TIS_CONSOLE.servletContext;
+    }
+
+    public static String getTISConsoleHttpHost() {
         String tisHost = null;
         if ((tisHost = threadContext.get()) == null) {
             tisHost = getBaseConfig().getTISHost();
         } else {
             threadContext.remove();
         }
-        return "http://" + tisHost + ":" + (TisSubModule.TIS_CONSOLE.getLaunchPort()) + TisSubModule.TIS_CONSOLE.servletContext;
+        return "http://" + tisHost + ":" + (TisSubModule.TIS_CONSOLE.getLaunchPort());
     }
 
+    private static String getTISAssembleHttpHost() {
+        return "http://" + getAssembleHost()
+                + ":" + (TisSubModule.TIS_ASSEMBLE.getLaunchPort());
+    }
 
 //    public static String getAssembleHost() {
 //        return getInstance().assembleHost;
 //    }
 
     public static String getAssembleHttpHost() {
-        return "http://" + getAssembleHost()
-                + ":" + (TisSubModule.TIS_ASSEMBLE.getLaunchPort()) + TisSubModule.TIS_ASSEMBLE.servletContext;
+        return StringUtils.defaultIfEmpty(tisHttpHost, getTISAssembleHttpHost()) + TisSubModule.TIS_ASSEMBLE.servletContext;
     }
 
     public static TisDbConfig getDbCfg() {

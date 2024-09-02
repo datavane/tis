@@ -28,6 +28,7 @@ import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.datax.preview.IPreviewRowsDataService;
 import com.qlangtech.tis.datax.preview.PreviewRowsData;
+import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.TISExtensible;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
@@ -53,6 +54,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.List;
@@ -242,6 +244,10 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
         msg.setJobName(dataXJobInfo.serialize());
         msg.setExecTimeStamp(taskContext.getPartitionTimestampWithMillis());
         msg.setResType(processor.getResType());
+
+        if (jobContext.getSpecifiedLocalLoggerPath() != null) {
+            msg.setLocalLoggerPath(jobContext.getSpecifiedLocalLoggerPath().getAbsolutePath());
+        }
 
         PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest();
         logger.info("preTaskStatus is{} null", preTaskStatus != null ? " not" : StringUtils.EMPTY);
@@ -441,17 +447,22 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
         }
     }
 
-    public abstract IDataXJobContext createJobContext(IJoinTaskContext parentContext);
+    public abstract IDataXJobContext createJobContext(IExecChainContext parentContext);
 
 
     public interface IDataXJobContext extends IDataXTaskRelevant {
         // public <T> T getContextInstance();
 
-        public static IDataXJobContext create(IJoinTaskContext parentContext) {
+        public static IDataXJobContext create(IExecChainContext parentContext) {
             return new DataXJobSubmit.IDataXJobContext() {
                 @Override
                 public IJoinTaskContext getTaskContext() {
                     return parentContext;
+                }
+
+                @Override
+                public File getSpecifiedLocalLoggerPath() {
+                    return parentContext.getSpecifiedLocalLoggerPath();
                 }
 
                 @Override

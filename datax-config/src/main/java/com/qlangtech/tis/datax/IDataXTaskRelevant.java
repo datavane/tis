@@ -22,7 +22,7 @@ package com.qlangtech.tis.datax;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-02-23 09:59
  **/
-public interface IDataXTaskRelevant {
+public interface IDataXTaskRelevant extends ISpecifiedLocalLogger {
 
 
     public Integer getTaskId();

@@ -22,7 +22,11 @@ import ch.qos.logback.core.FileAppender;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 全量构建过程中通过的

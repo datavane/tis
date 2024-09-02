@@ -43,6 +43,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -66,6 +67,8 @@ public class DefaultExecContext implements IExecChainContext, IdentityName {
     private ITISCoordinator coordinator;
     private PhaseStatusCollection latestPhaseStatusCollection;
     private StoreResourceType resType;
+    private File specifiedLocalLoggerPath;
+
     /**
      * java 启动内存参数ms mx
      */
@@ -213,6 +216,15 @@ public class DefaultExecContext implements IExecChainContext, IdentityName {
             default:
                 throw new IllegalStateException("illegal resType:" + resType);
         }
+    }
+
+    @Override
+    public File getSpecifiedLocalLoggerPath() {
+        return this.specifiedLocalLoggerPath;
+    }
+
+    public void setSpecifiedLocalLoggerPath(File specifiedLocalLoggerPath) {
+        this.specifiedLocalLoggerPath = specifiedLocalLoggerPath;
     }
 
     @Override

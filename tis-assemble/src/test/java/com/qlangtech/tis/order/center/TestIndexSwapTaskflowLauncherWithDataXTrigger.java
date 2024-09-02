@@ -154,7 +154,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
         }
 
         @Override
-        public IDataXJobContext createJobContext(final IJoinTaskContext parentContext) {
+        public IDataXJobContext createJobContext(final IExecChainContext parentContext) {
             return IDataXJobContext.create(parentContext);
 //                    new IDataXJobContext() {
 ////                @Override

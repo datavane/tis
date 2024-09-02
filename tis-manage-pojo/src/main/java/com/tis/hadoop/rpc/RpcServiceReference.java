@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -113,7 +114,8 @@ public class RpcServiceReference implements IPartialGrpcServiceFacade {
 
     private <T> T invokeRpc(Function<ITISRpcService, T> func) {
         try {
-            return func.apply(this.get());//  this.get().registerMonitorEvent(logListener);
+            return func.apply(Objects.requireNonNull(this.get()
+                    , "instance of " + ITISRpcService.class.getSimpleName() + " can not be null"));
         } catch (GrpcConnectionException e) {
             logger.warn(e.getMessage(), e);
             this.reConnect();

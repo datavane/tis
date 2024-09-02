@@ -16,15 +16,24 @@
  *   limitations under the License.
  */
 
-package com.qlangtech.tis.util;
+package com.qlangtech.tis.datax;
+
+import java.io.File;
 
 /**
+ * DataX 执行器取得指定的本地执行输出日志的路径
  *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-07-10 09:34
+ * @create: 2024-09-02 11:28
  **/
-public interface IUploadPluginMeta {
-    String KEY_JSON_MANIPULATE_TARGET = "manipulateTarget";
-    String KEY_JSON_MANIPULATE_BOOL_UPDATE_PROCESS = "updateProcess";
-    public void putExtraParams(String key, String val);
+public interface ISpecifiedLocalLogger {
+    /**
+     * 取得指定的本地执行输出日志的路径
+     *
+     * @return
+     * // @see com.qlangtech.tis.manage.common.Config# EXEC_LOCAL_LOGGER_FILE_PATH
+     */
+    public default File getSpecifiedLocalLoggerPath() {
+        return null;
+    }
 }

@@ -338,13 +338,6 @@ public class StatusRpcClientFactory {
         // 汇总状态之后供，console节点来访问用
         private final ILogReporter statReportSvc;
 
-        static {
-            AtomicReference<ITISRpcService> ref = new AtomicReference<>();
-            ref.set(StatusRpcClientFactory.AssembleSvcCompsite.MOCK_PRC);
-            statusRpc = new RpcServiceReference(ref, StatusRpcClientFactory.AssembleSvcCompsite.MOCK_PRC, () -> {
-            });
-        }
-
         public static final AssembleSvcCompsite MOCK_PRC
                 = new AssembleSvcCompsite(new MockIncrStatusUmbilicalProtocol(), new MockLogReporter(), new ILoggerAppenderClient() {
             @Override
@@ -362,7 +355,12 @@ public class StatusRpcClientFactory {
                 return this;
             }
         };
-
+        static {
+            AtomicReference<ITISRpcService> ref = new AtomicReference<>();
+            ref.set(StatusRpcClientFactory.AssembleSvcCompsite.MOCK_PRC);
+            statusRpc = new RpcServiceReference(ref, StatusRpcClientFactory.AssembleSvcCompsite.MOCK_PRC, () -> {
+            });
+        }
         public AssembleSvcCompsite(IncrStatusUmbilicalProtocol statReceiveSvc, ILogReporter statReportSvc, ILoggerAppenderClient loggerAppenderClient) {
             Objects.requireNonNull(statReceiveSvc, "param statReceiveSvc can not be null");
             Objects.requireNonNull(statReportSvc, "param statReportSvc can not be null");

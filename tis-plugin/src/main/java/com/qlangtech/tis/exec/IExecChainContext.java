@@ -27,6 +27,7 @@ import com.qlangtech.tis.coredefine.module.action.PowerjobTriggerBuildResult;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.DataXJobSubmit.InstanceType;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.ISpecifiedLocalLogger;
 import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
@@ -48,7 +49,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.text.MessageFormat;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -58,7 +58,7 @@ import java.util.function.Consumer;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2015年12月15日 上午11:48:16
  */
-public interface IExecChainContext extends IJoinTaskContext {
+public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogger {
 
     Logger logger = LoggerFactory.getLogger(IExecChainContext.class);
     MessageFormat WORKFLOW_CONFIG_URL_POST_FORMAT

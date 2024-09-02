@@ -19,7 +19,11 @@
 package com.qlangtech.tis.datax;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.plugin.StoreResourceType;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.File;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -40,6 +44,25 @@ public class CuratorDataXTaskMessage implements IDataXTaskRelevant {
      */
     private String dataXName;
 
+    @JSONField(serialize = false)
+    @Override
+    public File getSpecifiedLocalLoggerPath() {
+
+        if (StringUtils.isNotEmpty(this.localLoggerPath)) {
+            return new File(this.localLoggerPath);
+        }
+        return null;
+    }
+
+    public String getLocalLoggerPath() {
+        return localLoggerPath;
+    }
+
+    public void setLocalLoggerPath(String localLoggerPath) {
+        this.localLoggerPath = localLoggerPath;
+    }
+
+    private String localLoggerPath;
     private int taskSerializeNum;
 
     @Override
