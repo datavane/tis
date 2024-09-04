@@ -26,6 +26,7 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.install.InstallUtil;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
+import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
@@ -39,6 +40,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.tools.tar.TarEntry;
+import org.apache.tools.tar.TarInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +59,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.GZIPInputStream;
 
 //import edu.umd.cs.findbugs.annotations.CheckForNull;
 //import edu.umd.cs.findbugs.annotations.NonNull;
@@ -66,7 +70,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  **/
 public class UpdateCenter implements Saveable {
     public static final String PLUGIN_CATEGORIES_FILENAME = "plugin-categories.json";
-
+    private static final Logger logger = LoggerFactory.getLogger(UpdateCenter.class);
 
     public static final String ID_UPLOAD = "_upload";
     /**
@@ -145,6 +149,74 @@ public class UpdateCenter implements Saveable {
 
     public UpdateCenter() {
         this.configure(new UpdateCenterConfiguration());
+    }
+
+
+    public static void copyDataTarToLocal(File tmpDataDir, Optional<File> dataDirOpt) throws IOException {
+        final String dataPkgName = "tis-data.tar.gz";
+        copyTarToLocal(dataPkgName, tmpDataDir, dataDirOpt);
+    }
+
+    /**
+     * 仓库中的文件拷贝到本地 tis-data.tar.gz
+     *
+     * @param tmpDataDir 拷贝到本地一级目录
+     * @param dataDirOpt 拷贝到本地二级目录
+     * @throws IOException
+     */
+    public static void copyTarToLocal(final String dataPkgName, File tmpDataDir, Optional<File> dataDirOpt) throws IOException {
+
+        URL dataPkg = UpdateCenterResource.getTISTarPkg(dataPkgName);
+
+        HttpUtils.get(dataPkg, new StreamProcess<Void>() {
+                    @Override
+                    public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) throws IOException {
+                        try (GZIPInputStream gis = new GZIPInputStream(stream);
+                             TarInputStream tis = new TarInputStream(gis)) {
+                            TarEntry entry = null;
+                            while ((entry = tis.getNextEntry()) != null) {
+                                if (entry.isDirectory()) {
+                                    File dir = new File(tmpDataDir, entry.getName());
+                                    if (!dir.exists()) {
+                                        if (!dir.mkdirs()) {
+                                            throw new IOException("Failed to create directory: " + dir.getAbsolutePath());
+                                        }
+                                    }
+                                } else {
+                                    File file = new File(tmpDataDir, entry.getName());
+                                    FileUtils.copyToFile(tis, file);
+                                    logger.info("write file:{}", file.getAbsolutePath());
+                                }
+                            }
+                            return null;
+                        }
+                    }
+                }
+        );
+
+        if (dataDirOpt.isPresent()) {
+            File dataDir = dataDirOpt.get();
+            File tmp = new File(tmpDataDir, "data");
+
+            logger.info("move to:{} from:{}", dataDir.getAbsolutePath(), tmp);
+            //FileUtils.deleteDirectory(dataDir);
+
+            for (String c : tmp.list()) {
+                File child = new File(tmp, c);
+                File dest = new File(dataDir, c);
+                if (dest.exists()) {
+                    logger.info("dest :{} is already exist ,skip it", dest.getAbsolutePath());
+                    continue;
+                }
+                if (child.isFile()) {
+                    FileUtils.moveFile(child, dest);
+                } else {
+                    FileUtils.moveDirectory(child, dest);
+                }
+                logger.info("successful move {} to dest :{}", child.getAbsolutePath(), dest.getAbsolutePath());
+            }
+        }
+
     }
 
     public PersistedList<UpdateSite> getSites() {

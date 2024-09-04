@@ -19,7 +19,7 @@ package com.qlangtech.tis.runtime.module.action;
 
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.extension.model.UpdateCenterResource;
+import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.Department;
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria;
@@ -28,9 +28,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.SnapshotCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Config.SysDBType;
-import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.ConfigFileReader;
-import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.spring.TISDataSourceFactory;
@@ -41,8 +39,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
-import org.apache.tools.tar.TarEntry;
-import org.apache.tools.tar.TarInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -52,17 +48,15 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
 
 /**
  * 系统初始化
@@ -312,56 +306,10 @@ public class SysInitializeAction extends BasicModule {
     return batchs;
   }
 
-
   void copyDataTarToLocal() throws IOException {
-    final String dataPkgName = "tis-data.tar.gz";
-    URL dataPkg = UpdateCenterResource.getTISTarPkg(dataPkgName);
     File tmpDataDir = FileUtils.getTempDirectory();//  Config.getDataDir();
-    HttpUtils.get(dataPkg, new StreamProcess<Void>() {
-        @Override
-        public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) throws IOException {
-          try (GZIPInputStream gis = new GZIPInputStream(stream);
-               TarInputStream tis = new TarInputStream(gis)) {
-            TarEntry entry = null;
-            while ((entry = tis.getNextEntry()) != null) {
-              if (entry.isDirectory()) {
-                File dir = new File(tmpDataDir, entry.getName());
-                if (!dir.exists()) {
-                  if (!dir.mkdirs()) {
-                    throw new IOException("Failed to create directory: " + dir.getAbsolutePath());
-                  }
-                }
-              } else {
-                File file = new File(tmpDataDir, entry.getName());
-                FileUtils.copyToFile(tis, file);
-                logger.info("write file:{}", file.getAbsolutePath());
-              }
-            }
-            return null;
-          }
-        }
-      }
-    );
-    File tmp = new File(tmpDataDir, "data");
     final File dataDir = Config.getDataDir();
-    logger.info("move to:{} from:{}", dataDir.getAbsolutePath(), tmp);
-    //FileUtils.deleteDirectory(dataDir);
-
-    for (String c : tmp.list()) {
-      File child = new File(tmp, c);
-      File dest = new File(dataDir, c);
-      if (dest.exists()) {
-        logger.info("dest :{} is already exist ,skip it", dest.getAbsolutePath());
-        continue;
-      }
-      if (child.isFile()) {
-        FileUtils.moveFile(child, dest);
-      } else {
-        FileUtils.moveDirectory(child, dest);
-      }
-      logger.info("successful move {} to dest :{}", child.getAbsolutePath(), dest.getAbsolutePath());
-    }
-
+    UpdateCenter.copyDataTarToLocal(tmpDataDir, Optional.of(dataDir));
   }
 
 

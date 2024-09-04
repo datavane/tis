@@ -248,6 +248,7 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
         if (jobContext.getSpecifiedLocalLoggerPath() != null) {
             msg.setLocalLoggerPath(jobContext.getSpecifiedLocalLoggerPath().getAbsolutePath());
         }
+        msg.setDisableGrpcRemoteServerConnect(jobContext.isDisableGrpcRemoteServerConnect());
 
         PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest();
         logger.info("preTaskStatus is{} null", preTaskStatus != null ? " not" : StringUtils.EMPTY);
@@ -454,10 +455,18 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
         // public <T> T getContextInstance();
 
         public static IDataXJobContext create(IExecChainContext parentContext) {
+            if (parentContext == null) {
+                throw new IllegalArgumentException("param parentContext can not be null");
+            }
             return new DataXJobSubmit.IDataXJobContext() {
                 @Override
                 public IJoinTaskContext getTaskContext() {
                     return parentContext;
+                }
+
+                @Override
+                public boolean isDisableGrpcRemoteServerConnect() {
+                    return parentContext.isDisableGrpcRemoteServerConnect();
                 }
 
                 @Override

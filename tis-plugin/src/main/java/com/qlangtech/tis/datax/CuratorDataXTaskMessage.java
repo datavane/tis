@@ -63,6 +63,7 @@ public class CuratorDataXTaskMessage implements IDataXTaskRelevant {
     }
 
     private String localLoggerPath;
+    private boolean disableGrpcRemoteServerConnect;
     private int taskSerializeNum;
 
     @Override
@@ -87,6 +88,15 @@ public class CuratorDataXTaskMessage implements IDataXTaskRelevant {
     private Integer allRowsApproximately;
 
     private long execEpochMilli;
+
+    @Override
+    public boolean isDisableGrpcRemoteServerConnect() {
+        return this.disableGrpcRemoteServerConnect;
+    }
+
+    public void setDisableGrpcRemoteServerConnect(boolean disableGrpcRemoteServerConnect) {
+        this.disableGrpcRemoteServerConnect = disableGrpcRemoteServerConnect;
+    }
 
     public long getExecEpochMilli() {
         return this.execEpochMilli;

@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * ZK的抽象
@@ -38,6 +39,19 @@ import java.util.Optional;
  */
 public interface ITISCoordinator extends ICoordinator {
     static Logger logger = LoggerFactory.getLogger(ITISCoordinator.class);
+
+    AtomicBoolean _shallConnect2RemoteIncrStatusServer = new AtomicBoolean(true);
+
+    /**
+     * 关闭远程GRPC服务端连接
+     */
+    static void disableRemoteServer() {
+        _shallConnect2RemoteIncrStatusServer.set(false);
+    }
+
+    public static void main(String[] args) {
+        ITISCoordinator._shallConnect2RemoteIncrStatusServer.set(false);
+    }
 
     static ITISCoordinator create() {
         return create(Optional.empty());
@@ -49,10 +63,10 @@ public interface ITISCoordinator extends ICoordinator {
         return new ITISCoordinator() {
             private final String DEFAULT_CHILD1_PATH = "child001";
 
-            @Override
-            public boolean shallConnect2RemoteIncrStatusServer() {
-                return true;
-            }
+//            @Override
+//            public boolean shallConnect2RemoteIncrStatusServer() {
+//                return _shallConnect2RemoteIncrStatusServer.get();
+//            }
 
             @Override
             public List<String> getChildren(String zkPath //, Watcher watcher
@@ -106,7 +120,9 @@ public interface ITISCoordinator extends ICoordinator {
      *
      * @return
      */
-    boolean shallConnect2RemoteIncrStatusServer();
+    default boolean shallConnect2RemoteIncrStatusServer() {
+        return _shallConnect2RemoteIncrStatusServer.get();
+    }
 
     List<String> getChildren(String zkPath //, Watcher watcher
             , boolean b);

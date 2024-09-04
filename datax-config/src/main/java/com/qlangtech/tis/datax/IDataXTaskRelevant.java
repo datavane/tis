@@ -18,12 +18,25 @@ package com.qlangtech.tis.datax;
  * limitations under the License.
  */
 
+import java.io.File;
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-02-23 09:59
  **/
 public interface IDataXTaskRelevant extends ISpecifiedLocalLogger {
 
+    String KEY_TIS_DATAX_EXECUTOR = "tis-datax-executor";
+    AtomicReference<File> dataXExecutorDir = new AtomicReference<>(new File("/opt/tis/" + KEY_TIS_DATAX_EXECUTOR));
+
+    public static File getDataXExecutorDir() {
+        File workDir = dataXExecutorDir.get();
+        if (!workDir.exists()) {
+            throw new IllegalStateException("workDir is not exist:" + workDir.getAbsolutePath());
+        }
+        return workDir;
+    }
 
     public Integer getTaskId();
 

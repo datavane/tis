@@ -20,6 +20,7 @@ package com.qlangtech.tis.offline;
 import com.qlangtech.tis.datax.TimeFormat;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -27,8 +28,13 @@ import java.util.function.Supplier;
  * @date 2021-04-12 12:21
  */
 public class DataxUtils {
+    /**
+     * // @see DataXJobSingleProcessorExecutor 中进行消费dataX执行command，测试中使用
+     */
+    public static Consumer<String> localDataXCommandConsumer;
     public static final String DATAX_NAME = "dataxName";
     public static final String POWERJOB_WORKFLOW_INSTANCE_ID = "powerJobWorkflowInstanceId";
+
     /**
      * 触发执行是否是 TIS workflow 类型的
      */

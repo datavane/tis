@@ -68,6 +68,10 @@ public class DefaultExecContext implements IExecChainContext, IdentityName {
     private PhaseStatusCollection latestPhaseStatusCollection;
     private StoreResourceType resType;
     private File specifiedLocalLoggerPath;
+    /**
+     * 执行DataX 任务时候，是否不需要连接远端GRPC服务
+     */
+    private boolean disableGrpcRemoteServerConnect;
 
     /**
      * java 启动内存参数ms mx
@@ -145,6 +149,15 @@ public class DefaultExecContext implements IExecChainContext, IdentityName {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public boolean isDisableGrpcRemoteServerConnect() {
+        return disableGrpcRemoteServerConnect;
+    }
+
+    public void setDisableGrpcRemoteServerConnect(boolean val) {
+        this.disableGrpcRemoteServerConnect = val;
     }
 
     public void putTablePt(IDumpTable table, ITabPartition pt) {
