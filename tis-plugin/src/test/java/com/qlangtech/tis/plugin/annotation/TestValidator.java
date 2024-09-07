@@ -60,6 +60,42 @@ public class TestValidator extends TestCase {
         EasyMock.verify(msgHandler);
     }
 
+    public void testAbsolutePath() {
+
+        IControlMsgHandler msgHandler = EasyMock.createMock("msgHandler", IControlMsgHandler.class);
+        Context context = new DefaultContext();
+        final String fieldPath = "path";
+        msgHandler.addFieldError(context, fieldPath, ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR);
+        EasyMock.expectLastCall().times(2);
+        EasyMock.replay(msgHandler);
+        assertTrue("shall be valid", Validator.absolute_path
+                .validate(msgHandler, context, fieldPath, "/opt/misc_/apache-dolphinscheduler-3.2.2-bin_"));
+
+        assertTrue("shall be valid", Validator.absolute_path
+                .validate(msgHandler, context, fieldPath, "/opt/misc_/apache-dolphinscheduler-3.2.2-bin_*"));
+
+        assertFalse("shall be invalid", Validator.absolute_path
+                .validate(msgHandler, context, fieldPath, "opt/misc_/apache-dolphinscheduler-3.2.2-bin_*"));
+
+        assertFalse("shall be invalid", Validator.absolute_path
+                .validate(msgHandler, context, fieldPath, "/opt/misc&/apache-dolphinscheduler-3.2.2-bin_*"));
+        EasyMock.verify(msgHandler);
+    }
+
+    /**
+     * 非数字开头
+     */
+    public void testForbidStartWithNumber() {
+        IControlMsgHandler msgHandler = EasyMock.createMock("msgHandler", IControlMsgHandler.class);
+        Context context = new DefaultContext();
+        final String processName = "processName";
+        msgHandler.addFieldError(context, processName, ValidatorCommons.MSG_FORBID_START_WITH_NUMBER);
+        EasyMock.replay(msgHandler);
+        assertTrue("shall be valid", Validator.forbid_start_with_number.validate(msgHandler, context, processName, "username123"));
+        assertFalse("shall be invalid", Validator.forbid_start_with_number.validate(msgHandler, context, processName, "123dddd"));
+        EasyMock.verify(msgHandler);
+    }
+
 
     public void testHost() {
         final String fieldHost = "host";

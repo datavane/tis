@@ -45,6 +45,16 @@ public class MockContext implements Context {
   }
 
   @Override
+  public <T> T getContext() {
+    return (T) ActionContext.getContext();
+  }
+
+  @Override
+  public <T> void setContext(T actionContext) {
+    ActionContext.setContext((ActionContext) actionContext);
+  }
+
+  @Override
   public Object get(String key) {
     Assert.assertNotNull("ActionContext.getContext() can not be null", ActionContext.getContext());
     return ActionContext.getContext().get(key);

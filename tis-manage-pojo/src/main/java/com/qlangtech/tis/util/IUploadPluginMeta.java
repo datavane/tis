@@ -26,5 +26,9 @@ package com.qlangtech.tis.util;
 public interface IUploadPluginMeta {
     String KEY_JSON_MANIPULATE_TARGET = "manipulateTarget";
     String KEY_JSON_MANIPULATE_BOOL_UPDATE_PROCESS = "updateProcess";
+    /**
+     * 是否执行删除
+     */
+    String KEY_JSON_MANIPULATE_BOOL_DELETE_PROCESS = "deleteProcess";
     public void putExtraParams(String key, String val);
 }

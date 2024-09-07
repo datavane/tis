@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -133,14 +134,18 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
     public static Map<String /*tableName*/, Map<String /*contextParamName*/, Function<RunningContext, Object>>> contextParamValsGetterMapper(
             IPluginContext pluginContext, IDataxReader dataxReader, List<ISelectedTab> tabs) {
         Map<String, Map<String, Function<RunningContext, Object>>> contextParamValsGetterMapper = Maps.newHashMap();
+        Optional<RecordTransformerRules> transformerRules = null;
         for (ISelectedTab tab : tabs) {
-            RecordTransformerRules transformerRules = RecordTransformerRules.loadTransformerRules(pluginContext, tab.getName());
-            ITransformerBuildInfo transformerBuildInfo
-                    = transformerRules.createTransformerBuildInfo(Objects.requireNonNull(dataxReader, "dataxReader can not be null"));
-            transformerBuildInfo.overwriteColsWithContextParams(tab.getCols());
-            if (transformerBuildInfo.containContextParams()) {
-                contextParamValsGetterMapper.put(tab.getName(), transformerBuildInfo.contextParamValsGetter());
+            transformerRules = RecordTransformerRules.loadTransformerRules(pluginContext, tab.getName());
+            if (transformerRules.isPresent()) {
+                ITransformerBuildInfo transformerBuildInfo
+                        = transformerRules.get().createTransformerBuildInfo(Objects.requireNonNull(dataxReader, "dataxReader can not be null"));
+                transformerBuildInfo.overwriteColsWithContextParams(tab.getCols());
+                if (transformerBuildInfo.containContextParams()) {
+                    contextParamValsGetterMapper.put(tab.getName(), transformerBuildInfo.contextParamValsGetter());
+                }
             }
+
         }
         return contextParamValsGetterMapper;
     }
@@ -216,14 +221,14 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
      * @param tableName
      * @return
      */
-    public static RecordTransformerRules loadTransformerRules(IPluginContext pluginCtx, String tableName) {
+    public static Optional<RecordTransformerRules> loadTransformerRules(IPluginContext pluginCtx, String tableName) {
 
         if (StringUtils.isEmpty(tableName)) {
             throw new IllegalArgumentException("param tableName can not be empty");
         }
 
         if (transformerRulesLoader4Test != null) {
-            return transformerRulesLoader4Test.apply(tableName);
+            return Optional.of(transformerRulesLoader4Test.apply(tableName));
         }
 
 //        String rawContent = HeteroEnum.TRANSFORMER_RULES.identity + ":require,"
@@ -232,10 +237,10 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 
         for (RecordTransformerRules trule
                 : getPluginsAndStore(pluginCtx, tableName).getLeft()) {
-            return trule;
+            return Optional.of(trule);
         }
 
-        return null;
+        return Optional.empty();
     }
 
     private static Pair<List<RecordTransformerRules>, IPluginStore> getPluginsAndStore(IPluginContext pluginCtx, String tableName) {

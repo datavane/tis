@@ -25,16 +25,16 @@ import java.util.regex.Pattern;
  * @create: 2020-06-12 14:40
  */
 public interface ValidatorCommons {
-    String _host =   "[-A-Za-z0-9+&@#/%?=~_|!,.;]+[-A-Za-z0-9+&@#/%=~_|]";
+    String _host = "[-A-Za-z0-9+&@#/%?=~_|!,.;]+[-A-Za-z0-9+&@#/%=~_|]";
 
- //   Pattern PATTERN_URL = Pattern.compile("(https?|hdfs)://" + _host + "(:\\d+)?");
+    //   Pattern PATTERN_URL = Pattern.compile("(https?|hdfs)://" + _host + "(:\\d+)?");
 
     Pattern PATTERN_URL = Pattern.compile("^(https?|hdfs):\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$");
 
     Pattern PATTERN_NONE_BLANK = Pattern.compile("([^\\s]+)");
     String MSG_NONE_BLANK_ERROR = "内容不能包含空格";
 
-    Pattern PATTERN_RELATIVE_PATH = Pattern.compile("([\\w\\d\\.]+/)*([\\w\\d\\.\\*]*)");
+    Pattern PATTERN_RELATIVE_PATH = Pattern.compile("([\\w\\d-_\\.]+/)*([\\w\\d-_\\.\\*]*)");
     String MSG_RELATIVE_PATH_ERROR = "不符合相对路径格式要求";
 
     Pattern PATTERN_ABSOLUTE_PATH = Pattern.compile("/" + PATTERN_RELATIVE_PATH.toString());
@@ -67,6 +67,12 @@ public interface ValidatorCommons {
 
     Pattern pattern_user_name = Pattern.compile("[A-Z\\da-z_\\-\\.\\$]+");
     String MSG_USER_NAME_ERROR = "必须由小写字母，大写字母，数字、下划线、点、减号组成";
+
+    /**
+     * 非数字开头
+     */
+    Pattern PATTERN_FORBID_START_WITH_NUMBER = Pattern.compile("^\\D.{0,}");
+    String MSG_FORBID_START_WITH_NUMBER = "不能以数字开头";
 
     public static void main(String[] args) {
         Matcher matcher = pattern_integer.matcher("0");

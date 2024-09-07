@@ -252,7 +252,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             });
             props.put("manipulate", manipulate);
         }
-
+        if (this instanceof IDescribableManipulate.IManipulateStorable) {
+            props.put("manipulateStorable", ((IDescribableManipulate.IManipulateStorable) this).isManipulateStorable());
+        }
         return props;
     }
 

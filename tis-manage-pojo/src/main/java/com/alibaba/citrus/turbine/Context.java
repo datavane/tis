@@ -37,4 +37,12 @@ public interface Context {
     public void remove(String key);
 
     public boolean hasErrors();
+
+    public default <T> T getContext() {
+        throw new UnsupportedOperationException();
+    }
+
+    public default <T> void setContext(T actionContext) {
+        throw new UnsupportedOperationException();
+    }
 }

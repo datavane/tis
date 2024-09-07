@@ -108,10 +108,10 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
     @Override
     public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, Optional<IReaderSource> readerSource) {
-        RecordTransformerRules transformerRules = RecordTransformerRules.loadTransformerRules((IPluginContext) pluginCtx, this.getName());
+        Optional<RecordTransformerRules> transformerRules = RecordTransformerRules.loadTransformerRules((IPluginContext) pluginCtx, this.getName());
         List<IColMetaGetter> cols = null;
-        if (transformerRules != null) {
-            OverwriteCols overwriteCols = transformerRules.overwriteCols(this.getCols());
+        if (transformerRules.isPresent()) {
+            OverwriteCols overwriteCols = transformerRules.get().overwriteCols(this.getCols());
             if (readerSource.isPresent()) {
                 cols = overwriteCols.appendSourceContextParams((DataSourceMeta) readerSource.get()).getCols();
             }

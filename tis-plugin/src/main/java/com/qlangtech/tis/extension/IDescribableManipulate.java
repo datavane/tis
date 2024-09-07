@@ -29,7 +29,7 @@ import java.util.Optional;
  * @create: 2024-07-09 15:23
  **/
 public interface IDescribableManipulate<T extends Describable<T>> {
-    Class<T> getManipulateExtendPoint();
+    public Class<T> getManipulateExtendPoint();
 
     /**
      * 支持操作行为的持久化
@@ -37,4 +37,14 @@ public interface IDescribableManipulate<T extends Describable<T>> {
      * @return
      */
     Optional<IPluginStore<T>> getManipulateStore();
+
+
+    /**
+     * 标识操作插件是可以持久化的，例如：ExportTISPipelineToDolphinscheduler
+     */
+    interface IManipulateStorable {
+        default boolean isManipulateStorable() {
+            return false;
+        }
+    }
 }

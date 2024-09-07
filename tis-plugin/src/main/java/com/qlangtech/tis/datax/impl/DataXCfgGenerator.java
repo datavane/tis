@@ -130,7 +130,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
         this.tableMapCreator = new TableMapCreator();
     }
 
-    protected String getTemplateContent(IDataxReaderContext readerContext, IDataxReader reader, IDataxWriter writer, RecordTransformerRules transformerRules) {
+    protected String getTemplateContent(IDataxReaderContext readerContext, IDataxReader reader, IDataxWriter writer, Optional<RecordTransformerRules> transformerRules) {
         final String tpl = globalCfg.getTemplate();
 
         // List<IDataxReader> readers = dataxProcessor.getReaders(pluginCtx);
@@ -148,12 +148,12 @@ public class DataXCfgGenerator implements IDataXNameAware {
         }
 
 
-        if (transformerRules != null) {
+        if (transformerRules.isPresent()) {
             readerTpl.append(",\n\t\"")
                     .append(TransformerConstant.JOB_TRANSFORMER).append("\":\t\t\n {\"").append(TransformerConstant.JOB_TRANSFORMER_NAME)
                     .append("\":\"").append(readerContext.getSourceEntityName()).append("\",\n\"")
                     .append(TransformerConstant.JOB_TRANSFORMER_RELEVANT_KEYS).append("\":").append("[")
-                    .append(transformerRules.relevantColKeys().stream().map((col) -> "\"" + col + "\"").collect(Collectors.joining(",")))
+                    .append(transformerRules.get().relevantColKeys().stream().map((col) -> "\"" + col + "\"").collect(Collectors.joining(",")))
                     .append("]").append("}");
         }
 
@@ -436,7 +436,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
             if (!createDDLFiles.contains(sqlFileName)) {
 
                 Optional<RecordTransformerRules> transformers
-                        = Optional.ofNullable(RecordTransformerRules.loadTransformerRules(pluginCtx, mapper.getFrom()));
+                        = (RecordTransformerRules.loadTransformerRules(pluginCtx, mapper.getFrom()));
 
                 CreateTableSqlBuilder.CreateDDL createDDL = Objects.requireNonNull(writer.generateCreateDDL(mapper, transformers),
                         "createDDL can not be null");
@@ -514,15 +514,19 @@ public class DataXCfgGenerator implements IDataXNameAware {
             if (!parent.exists()) {
                 return Collections.emptySet();
             }
+            Optional<RecordTransformerRules> transformerRules = null;
             // Collection<File> files = FileUtils.listFiles(parent, new String[]{"xml"}, false);
             String xmlExtend = Descriptor.getPluginFileName(StringUtils.EMPTY);
             SuffixFileFilter filter = new SuffixFileFilter(xmlExtend);
             Collection<File> matched = FileUtils.listFiles(parent, filter, FalseFileFilter.INSTANCE);
             for (File tfile : matched) {
                 String tabName = StringUtils.substringBefore(tfile.getName(), xmlExtend);
-                RecordTransformerRules transformerRules = RecordTransformerRules.loadTransformerRules(pluginCtx, tabName);
+                transformerRules = RecordTransformerRules.loadTransformerRules(pluginCtx, tabName);
 
-                tinfos.add(new TransformerInfo(tabName, transformerRules.rules.size()));
+                if (transformerRules.isPresent()) {
+                    tinfos.add(new TransformerInfo(tabName, transformerRules.get().rules.size()));
+                }
+
             }
             return tinfos;
         }
@@ -659,7 +663,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
 
     public String generateDataxConfig(
             IDataxReaderContext readerContext, IDataxWriter writer, IDataxReader reader, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
-        RecordTransformerRules transformerRules
+        Optional<RecordTransformerRules> transformerRules
                 = RecordTransformerRules.loadTransformerRules(this.pluginCtx, readerContext.getSourceEntityName());
         return generateDataxConfig(readerContext, writer, reader, transformerRules, tableMapper);
     }
@@ -671,7 +675,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
      */
     public String generateDataxConfig(
             IDataxReaderContext readerContext, IDataxWriter writer, IDataxReader reader
-            , RecordTransformerRules transformerRules, Optional<IDataxProcessor.TableMap> tableMap) {
+            , Optional<RecordTransformerRules> transformerRules, Optional<IDataxProcessor.TableMap> tableMap) {
         Objects.requireNonNull(writer, "writer can not be null");
         StringWriter writerContent = null;
 
@@ -681,7 +685,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
             throw new IllegalStateException("velocity template content can not be null");
         }
         try {
-            VelocityContext mergeData = createContext(readerContext, writer.getSubTask(tableMap, Optional.ofNullable(transformerRules)));
+            VelocityContext mergeData = createContext(readerContext, writer.getSubTask(tableMap, (transformerRules)));
             writerContent = new StringWriter();
             velocityEngine.evaluate(mergeData, writerContent, "tablex-writer.vm", tpl);
         } catch (Exception e) {

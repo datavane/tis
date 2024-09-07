@@ -26,7 +26,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * @create: 2023-02-23 09:59
  **/
 public interface IDataXTaskRelevant extends ISpecifiedLocalLogger {
-
+    /**
+     * TIS DataX 工作目录，届时data工作目录，tis-datax-executor目录都可以部署在此目录下
+     */
+    String KEY_TIS_DATAX_WORK_DIR = "tisDataXWorkDir";
     String KEY_TIS_DATAX_EXECUTOR = "tis-datax-executor";
     AtomicReference<File> dataXExecutorDir = new AtomicReference<>(new File("/opt/tis/" + KEY_TIS_DATAX_EXECUTOR));
 

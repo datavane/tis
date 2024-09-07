@@ -72,6 +72,12 @@ public class TisException extends RuntimeException {
      * TIS会有专门的错误提示及异常处理流程
      */
     public enum ErrorCode {
+        /**
+         * @see com.qlangtech.tis.manage.common.ConfigFileContext#processContent 中使用
+         */
+        HTTP_CONNECT_FAILD((rundata) -> {
+           throw new UnsupportedOperationException();
+        }),
         FLINK_INSTANCE_LOSS_OF_CONTACT((rundata) -> {
             // example: coredefine:datax_action:save_datax_worker
             // event_submit_do_incr_delete core_action

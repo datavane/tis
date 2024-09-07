@@ -89,6 +89,14 @@ public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKey
             this.url = url;
         }
 
+        public String getSchema() {
+            try {
+                return conn.getSchema();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         /**
          * 取得dbName
          *

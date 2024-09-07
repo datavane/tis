@@ -18,6 +18,7 @@
 package com.qlangtech.tis.manage.common;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.lang.ErrorValue;
 import com.qlangtech.tis.lang.TisException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -36,6 +37,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static com.qlangtech.tis.lang.TisException.ErrorCode.HTTP_CONNECT_FAILD;
 
 /**
  * 推送 信息到zk上
@@ -130,7 +133,8 @@ public class ConfigFileContext {
                 return process.p(conn, reader);
             } catch (Exception e) {
                 if (++retryCount >= maxRetry) {
-                    throw TisException.create("maxRetry:" + maxRetry + ",url:" + url.toString(), e);
+                    throw TisException.create(ErrorValue.create(HTTP_CONNECT_FAILD, Collections.emptyMap())
+                            , "maxRetry:" + maxRetry + ",url:" + url.toString(), e);
                 } else {
                     try {
                         Thread.sleep(3000);

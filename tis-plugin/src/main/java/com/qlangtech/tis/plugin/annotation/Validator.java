@@ -49,20 +49,19 @@ public enum Validator {
 
         return validatePattern(msgHandler, context, rule(ValidatorCommons.pattern_user_name,
                 ValidatorCommons.MSG_USER_NAME_ERROR), fieldKey, fieldData);
-
-        //        if (StringUtils.isEmpty(fieldData)) {
-        //            return true;
-        //        }
-        //        Matcher matcher = ValidatorCommons.pattern_identity.matcher(fieldData);
-        //        if (!matcher.matches()) {
-        //            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_IDENTITY_ERROR);
-        //            return false;
-        //        }
-        //        return true;
+    }), forbid_start_with_number((msgHandler, context, fieldKey, fieldData) -> {
+        // 禁止以数字开头
+        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_FORBID_START_WITH_NUMBER,
+                ValidatorCommons.MSG_FORBID_START_WITH_NUMBER), fieldKey, fieldData);
     }), identity((msgHandler, context, fieldKey, fieldData) -> {
 
-        return validatePattern(msgHandler, context, rule(ValidatorCommons.pattern_identity,
+        boolean valid = validatePattern(msgHandler, context, rule(ValidatorCommons.pattern_identity,
                 ValidatorCommons.MSG_IDENTITY_ERROR), fieldKey, fieldData);
+        if (valid) {
+            return forbid_start_with_number.validate(msgHandler, context, fieldKey, fieldData);
+        } else {
+            return false;
+        }
     }), //
     integer((msgHandler, context, fieldKey, fieldData) -> {
 
@@ -98,8 +97,7 @@ public enum Validator {
     }), none_blank((msgHandler, context, fieldKey, fieldData) -> {
         return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_NONE_BLANK,
                 ValidatorCommons.MSG_NONE_BLANK_ERROR), fieldKey, fieldData);
-    }),
-    ;
+    });
 
     public static Validator parse(String token) {
         return Objects.requireNonNull(Validator.valueOf(token));

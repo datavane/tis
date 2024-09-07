@@ -473,22 +473,31 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
          * @param conn
          * @throws TisException
          */
-        protected void validateConnection(JDBCConnection conn) throws TisException {
-
+        protected boolean validateConnection(JDBCConnection conn, T dsFactory, IControlMsgHandler msgHandler, Context context) throws TisException {
+            return true;
         }
 
         protected boolean validateDSFactory(IControlMsgHandler msgHandler, Context context, T dsFactory) {
 
             DBConfig dbConfig = Objects.requireNonNull(dsFactory.getDbConfig(), "dbConfig can not be null");
             Exception[] faild = new Exception[1];
+            boolean[] validateResult = new boolean[1];
+            final Object actionContext = context.getContext();
             dbConfig.vistDbURL(false, 5, (dbName, dbHost, jdbcUrl) -> {
                 try (JDBCConnection conn = dsFactory.getConnection(jdbcUrl, true)) {
-                    validateConnection(conn);
+                    // 由于不在同一个线程内需要重新版定线程
+                    context.setContext(actionContext);
+                    validateResult[0] = validateConnection(conn, dsFactory, msgHandler, context);
                 } catch (Exception e) {
                     faild[0] = e;
                     logger.warn(e.getMessage(), e);
                 }
             });
+
+            if (!validateResult[0]) {
+                // 校验出错
+                return false;
+            }
 
             if (faild[0] != null) {
                 msgHandler.addErrorMessage(context, "请确认连接参数是否正确:" + faild[0].getMessage());
