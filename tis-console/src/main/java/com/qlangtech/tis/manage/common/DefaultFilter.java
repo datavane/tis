@@ -128,7 +128,7 @@ public final class DefaultFilter implements Filter {
       final TISHttpServletResponseWrapper wrapperResponse = new TISHttpServletResponseWrapper((HttpServletResponse) response);
       responseLocal.set(response);
       requestLocal.set(wrapperRequest);
-      AppAndRuntime.appAndRuntimeLocal.set(getRuntime(wrapperRequest));
+      AppAndRuntime.setAppAndRuntime(getRuntime(wrapperRequest));
       if (ManageUtils.isDaily()) {
         // com.alibaba.hecla.acl.dataobject.SysUser user = new
         // com.alibaba.hecla.acl.dataobject.SysUser();
