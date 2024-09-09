@@ -23,6 +23,7 @@ import com.alibaba.fastjson2.annotation.JSONField;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IPluginStore.AfterPluginSaved;
+import com.qlangtech.tis.plugin.IPluginStore.ManipuldateProcessor;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.util.IPluginContext;
 
@@ -34,7 +35,7 @@ import java.util.Optional;
  * @create: 2024-06-09 13:43
  **/
 
-public abstract class TargetColumn implements Describable<TargetColumn>, AfterPluginSaved, PluginLiteriaDesc, IdentityName, Serializable {
+public abstract class TargetColumn implements Describable<TargetColumn>, ManipuldateProcessor, PluginLiteriaDesc, IdentityName, Serializable {
 
     /**
      * 是否是虚拟列（通过原表记录值计算之后新增加的列）
@@ -57,7 +58,7 @@ public abstract class TargetColumn implements Describable<TargetColumn>, AfterPl
     }
 
     @Override
-    public final void afterSaved(IPluginContext pluginContext, Optional<Context> context) {
+    public void manipuldateProcess(IPluginContext pluginContext, Optional<Context> context) {
         try {
             // 直接传输到前端UI上
             Context c = context.orElseThrow(() -> new IllegalStateException("context must be present"));

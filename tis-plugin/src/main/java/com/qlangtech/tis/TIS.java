@@ -58,6 +58,7 @@ import com.qlangtech.tis.util.Memoizer;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.RobustReflectionConverter2;
 import com.qlangtech.tis.util.XStream2PluginInfoReader;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.hudson.reactor.Reactor;
 import org.jvnet.hudson.reactor.ReactorException;
@@ -69,6 +70,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -526,12 +530,21 @@ public class TIS {
         final long start = System.currentTimeMillis();
         try {
             this.pluginManager = new PluginManager(pluginDirRoot);
-            final InitStrategy is = InitStrategy.get(Thread.currentThread().getContextClassLoader());
-            executeReactor(// loading and preparing plugins
-                    is, // load jobs
-                    pluginManager.initTasks(is, TIS.this), // forced ordering among key milestones
-                    loadTasks(), InitMilestone.ordering());
-            logger.info("tis plugin have been initialized,consume:{}ms.", System.currentTimeMillis() - start);
+            File initialingToken = new File(pluginDirRoot, "tis_loading");
+            FileUtils.touch(initialingToken);
+            try (RandomAccessFile raf = new RandomAccessFile(initialingToken, "rw")) {
+                FileChannel channel = raf.getChannel();
+                // 确保同机不同进程互斥执行
+                try (FileLock fileLock = channel.lock()) {
+                    final InitStrategy is = InitStrategy.get(Thread.currentThread().getContextClassLoader());
+                    executeReactor(// loading and preparing plugins
+                            is, // load jobs
+                            pluginManager.initTasks(is, TIS.this), // forced ordering among key milestones
+                            loadTasks(), InitMilestone.ordering());
+                    logger.info("tis plugin have been initialized,consume:{}ms.", System.currentTimeMillis() - start);
+                }
+            }
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {

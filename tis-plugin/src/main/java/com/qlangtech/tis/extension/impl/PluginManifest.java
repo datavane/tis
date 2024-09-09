@@ -47,6 +47,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -223,7 +225,9 @@ public class PluginManifest {
 
     public YesNoMaybe supportsDynamicLoad() {
         String v = this.atts.getValue("Support-Dynamic-Loading");
-        if (v == null) { return YesNoMaybe.MAYBE;}
+        if (v == null) {
+            return YesNoMaybe.MAYBE;
+        }
         return Boolean.parseBoolean(v) ? YesNoMaybe.YES : YesNoMaybe.NO;
     }
 
@@ -428,7 +432,8 @@ public class PluginManifest {
         destDir.mkdirs();
         // timestamp check
         File explodeTime = new File(destDir, PluginStrategy.FILE_NAME_timestamp2);
-        if (explodeTime.exists() && explodeTime.lastModified() == archive.lastModified()) {
+        boolean explodeTimeExist = false;
+        if ((explodeTimeExist = explodeTime.exists()) && explodeTime.lastModified() == archive.lastModified()) {
             // no need to expand
             return;
         }
@@ -443,12 +448,14 @@ public class PluginManifest {
             throw new IOException("Failed to expand " + archive, x);
         }
         try {
-            // new FilePath(explodeTime).touch(archive.lastModified());
-            FileUtils.touch(explodeTime);
+            if (!explodeTimeExist) {
+                FileUtils.touch(explodeTime);
+            }
             explodeTime.setLastModified(archive.lastModified());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
     }
 
     /**

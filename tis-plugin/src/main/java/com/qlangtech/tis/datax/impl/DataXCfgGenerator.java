@@ -521,12 +521,13 @@ public class DataXCfgGenerator implements IDataXNameAware {
             Collection<File> matched = FileUtils.listFiles(parent, filter, FalseFileFilter.INSTANCE);
             for (File tfile : matched) {
                 String tabName = StringUtils.substringBefore(tfile.getName(), xmlExtend);
-                transformerRules = RecordTransformerRules.loadTransformerRules(pluginCtx, tabName);
+                if (this.groupedChildTask.containsKey(tabName)) {
+                    transformerRules = RecordTransformerRules.loadTransformerRules(pluginCtx, tabName);
 
-                if (transformerRules.isPresent()) {
-                    tinfos.add(new TransformerInfo(tabName, transformerRules.get().rules.size()));
+                    if (transformerRules.isPresent()) {
+                        tinfos.add(new TransformerInfo(tabName, transformerRules.get().rules.size()));
+                    }
                 }
-
             }
             return tinfos;
         }

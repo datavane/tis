@@ -51,6 +51,7 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IEndTypeGetter.IconReference;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -158,8 +159,9 @@ public class PluginAction extends BasicModule {
 
     public JSONObject getIcons(String verToken) {
       JSONObject result = new JSONObject();
-      result.put("verToken", this.checkToken);
-      result.put("iconsDefs", this.checkToken.equals(verToken) ? new JSONArray() : iconsDefs);
+      String oldCheckToken = this.checkToken;
+      result.put("verToken", oldCheckToken);
+      result.put("iconsDefs", oldCheckToken.equals(verToken) ? new JSONArray() : iconsDefs);
       return result;
     }
 
@@ -197,8 +199,8 @@ public class PluginAction extends BasicModule {
         icon.put("theme", "outline");
         // icon.put("icon", i.outlineType());
         if (i.setRes(icon, false)) {
-          iconsDefs.add(icon);
         }
+        iconsDefs.add(icon);
       }
 
       iconsDefsWithCheckSum = new IconsDefs(iconsDefs);

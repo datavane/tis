@@ -23,7 +23,8 @@ import com.alibaba.datax.common.element.ColumnAwareRecord;
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.plugin.IPluginStore.AfterPluginSaved;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IPluginStore.ManipuldateProcessor;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.CMeta;
@@ -43,7 +44,7 @@ import java.util.stream.Collectors;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-05-07 12:35
  **/
-public abstract class UDFDefinition implements Describable<UDFDefinition>, AfterPluginSaved, PluginLiteriaDesc, Serializable {
+public abstract class UDFDefinition implements Describable<UDFDefinition>, ManipuldateProcessor, PluginLiteriaDesc, Serializable {
 
     protected static final String KEY_FROM = "from";
     protected static final String KEY_TO = "to";
@@ -80,7 +81,8 @@ public abstract class UDFDefinition implements Describable<UDFDefinition>, After
     }
 
     @Override
-    public final void afterSaved(IPluginContext pluginContext, Optional<Context> context) {
+    public void manipuldateProcess(IPluginContext pluginContext, Optional<Context> context) {
+
         try {
             // 直接传输到前端UI上
             Context c = context.orElseThrow(() -> new IllegalStateException("context must be present"));
@@ -99,6 +101,17 @@ public abstract class UDFDefinition implements Describable<UDFDefinition>, After
     @JSONField(serialize = false)
     @Override
     public final Descriptor<UDFDefinition> getDescriptor() {
-        return Describable.super.getDescriptor();
+        Descriptor<UDFDefinition> descriptor = Describable.super.getDescriptor();
+        if (!BasicUDFDesc.class.isAssignableFrom(descriptor.getClass())) {
+            throw new IllegalStateException("desc:" + descriptor.getClass().getSimpleName() + " must extend from " + BasicUDFDesc.class.getName());
+        }
+        return descriptor;
+    }
+
+
+    protected static class BasicUDFDesc extends Descriptor<UDFDefinition> implements IEndTypeGetter {
+        public BasicUDFDesc() {
+            super();
+        }
     }
 }

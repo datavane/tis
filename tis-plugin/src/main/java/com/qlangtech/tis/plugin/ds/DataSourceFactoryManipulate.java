@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore.ManipuldateProcessor;
 
 /**
@@ -41,7 +42,7 @@ public abstract class DataSourceFactoryManipulate implements Describable<DataSou
         return desc;
     }
 
-    protected static class BasicDesc extends Descriptor<DataSourceFactoryManipulate> {
+    protected static class BasicDesc extends Descriptor<DataSourceFactoryManipulate> implements IEndTypeGetter {
         public BasicDesc() {
             super();
         }

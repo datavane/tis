@@ -21,6 +21,7 @@ package com.qlangtech.tis.datax;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginStore.ManipuldateProcessor;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
@@ -70,7 +71,7 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
         return desc;
     }
 
-    protected static class BasicDesc extends Descriptor<DefaultDataXProcessorManipulate> {
+    protected static class BasicDesc extends Descriptor<DefaultDataXProcessorManipulate> implements IEndTypeGetter {
         public BasicDesc() {
             super();
         }

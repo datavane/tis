@@ -27,16 +27,8 @@ public class AppAndRuntime {
 
     private static ThreadLocal<AppAndRuntime> appAndRuntimeLocal = new ThreadLocal<AppAndRuntime>();
     private String appName;
-
     private RunEnvironment runtime;
 
-//    public static void setAppAndRuntimeLocal(AppAndRuntime appAndRuntime) {
-//        appAndRuntimeLocal.set(appAndRuntime);
-//    }
-
-    // public static void setThreadRequest(AdapterHttpRequest request) {
-    // requestLocal.set(request);
-    // }
     public static AppAndRuntime getAppAndRuntime() {
         return appAndRuntimeLocal.get();
     }

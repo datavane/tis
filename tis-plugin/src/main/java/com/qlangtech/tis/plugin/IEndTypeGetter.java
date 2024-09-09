@@ -49,7 +49,9 @@ public interface IEndTypeGetter {
      *
      * @return
      */
-    IDataXEndTypeGetter.EndType getEndType();
+    public default EndType getEndType() {
+        return EndType.Blank;
+    }
 
     /**
      * 端类型
@@ -73,15 +75,20 @@ public interface IEndTypeGetter {
         Flink("flink", true), Docker("docker", true), K8S("k8s", true),
         BliBli("blibli", true),
         StreamComputing("stream-computing", true),
-        BatchComputing("batch-computing", true)
-        , Dolphinscheduler("ds", true)
+        BatchComputing("batch-computing", true), Dolphinscheduler("ds", true)
         // 预览按钮
-        , Preview("preview", true);
+        , Preview("preview", true) //
+        , Clone("clone", true) //
+        , Blank("blank", true) //
+        , Concat("concat", true)//
+        , Mask("mask", true)//
+        , Splitter("splitter", true)//
+        , SubString("substr", true);
 
         private final String val;
         private final boolean containICON;
 
-        private static final DefaultIconReference unknowType = new DefaultIconReference(UnKnowStoreType);
+        private static final DefaultIconReference unknowStorageType = new DefaultIconReference(UnKnowStoreType);
 
         public static String KEY_END_TYPE = "endType";
         public static String KEY_SUPPORT_ICON = "supportIcon";
@@ -119,7 +126,7 @@ public interface IEndTypeGetter {
             if (icon == null) {
 
                 if (!this.containICON) {
-                    return (icon = unknowType);
+                    return (icon = unknowStorageType);
                 }
 
                 icon = new Icon() {
@@ -170,10 +177,13 @@ public interface IEndTypeGetter {
     }
 
     public interface IconReference {
+        public static String KEY_RESOURCE_REFERENCE = "ref";
+
         public EndType endType();
     }
 
     public static class DefaultIconReference implements Icon, IconReference {
+
         private final EndType endType;
 
         public DefaultIconReference(EndType endType) {
@@ -187,7 +197,7 @@ public interface IEndTypeGetter {
 
         @Override
         public boolean setRes(JSONObject icon, boolean fillStyle) {
-            icon.put("ref", endType.getVal());
+            icon.put(KEY_RESOURCE_REFERENCE, endType.getVal());
             return true;
         }
 
