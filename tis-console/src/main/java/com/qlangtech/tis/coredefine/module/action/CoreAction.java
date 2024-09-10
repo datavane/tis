@@ -31,6 +31,7 @@ import com.qlangtech.tis.compiler.streamcode.GenerateDAOAndIncrScript;
 import com.qlangtech.tis.compiler.streamcode.IndexStreamCodeGenerator;
 import com.qlangtech.tis.coredefine.biz.FCoreRequest;
 import com.qlangtech.tis.coredefine.module.action.IDeploymentDetail.IDeploymentDetailVisitor;
+import com.qlangtech.tis.coredefine.module.action.LaunchIncrSyncChannel.FlinkJobDeployDTO;
 import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails;
 import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
@@ -194,7 +195,7 @@ public class CoreAction extends BasicModule {
     this.setBizResult(context, incrStatus);
   }
 
-  private IRCController getRCController() {
+  private IncrStreamFactory getRCController() {
     IPluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
     IncrStreamFactory incrStream = incrStreamStore.getPlugin();
     return incrStream;
@@ -225,30 +226,14 @@ public class CoreAction extends BasicModule {
     this.setBizResult(context, incrStatus);
   }
 
-  /**
-   * 重新启动增量执行进程
-   *
-   * @param context
-   * @throws Exception
-   */
-  @Func(value = PermissionConstant.APP_REBUILD)
-  public void doRelaunchIncrProcess(Context context) throws Exception {
-    String savepointPath = this.getString("savepointPath");
-    if (StringUtils.isEmpty(savepointPath)) {
-      throw new IllegalArgumentException("param savepointPath can not be null");
-    }
-    IRCController incrSync = getRCController();
-    incrSync.relaunch(new TargetResName(this.getCollectionName()), savepointPath);
-    waittingiIntendedStatus(context, IFlinkIncrJobStatus.State.RUNNING);
-  }
 
   @Func(value = PermissionConstant.APP_REBUILD)
   public void doRestoreFromCheckpoint(Context context) throws Exception {
-    Integer checkpointId = this.getInt("checkpointId");
-
-    IRCController incrSync = getRCController();
-    incrSync.restoreFromCheckpoint(new TargetResName(this.getCollectionName()), checkpointId);
-    waittingiIntendedStatus(context, IFlinkIncrJobStatus.State.RUNNING);
+//    Integer checkpointId = this.getInt("checkpointId");
+//
+//    IRCController incrSync = getRCController();
+//    incrSync.restoreFromCheckpoint(new TargetResName(this.getCollectionName()), checkpointId);
+//    waittingiIntendedStatus(context, IFlinkIncrJobStatus.State.RUNNING);
   }
 
   /**
@@ -296,33 +281,38 @@ public class CoreAction extends BasicModule {
   }
 
 
-  private void waittingiIntendedStatus(Context context, IFlinkIncrJobStatus.State targetStatus) throws Exception {
+  private IDeploymentDetail waittingiIntendedStatus(IFlinkIncrJobStatus.State targetStatus) throws JobOrchestrateException {
     int tryCount = 0;
-    while (tryCount++ < 3) {
-      IDeploymentDetail detail = TISK8sDelegate.getK8SDelegate(
-        this.getCollectionName()).getRcConfig(false);
-      AtomicBoolean getTargetStatus = new AtomicBoolean(false);
-      detail.accept(new IDeploymentDetail.IDeploymentDetailVisitor() {
-        @Override
-        public void visit(RcDeployment rcDeployment) {
-          throw new UnsupportedOperationException();
-        }
+    try {
+      while (tryCount++ < 4) {
+        IDeploymentDetail detail = TISK8sDelegate.getK8SDelegate(
+          this.getCollectionName()).getRcConfig(false);
+        AtomicBoolean getTargetStatus = new AtomicBoolean(false);
+        detail.accept(new IDeploymentDetailVisitor() {
+          @Override
+          public void visit(RcDeployment rcDeployment) {
+            throw new UnsupportedOperationException();
+          }
 
-        @Override
-        public void visit(FlinkJobDeploymentDetails details) {
-          // getTargetStatus.set( (targetStatus == IFlinkIncrJobStatus.State.RUNNING ) ?  details.getIncrJobStatus().getState() == targetStatus);
-          getTargetStatus.set(!((targetStatus == IFlinkIncrJobStatus.State.RUNNING) ^ details.isRunning()));
+          @Override
+          public void visit(FlinkJobDeploymentDetails details) {
+            // getTargetStatus.set( (targetStatus == IFlinkIncrJobStatus.State.RUNNING ) ?  details.getIncrJobStatus().getState() == targetStatus);
+            getTargetStatus.set(!((targetStatus == IFlinkIncrJobStatus.State.RUNNING) ^ details.isRunning()));
+          }
+        });
+        if (getTargetStatus.get()) {
+          //IndexIncrStatus incrStatus = getIndexIncrStatus(this, detail);
+          // this.setBizResult(context, incrStatus);
+          return detail;
+        } else {
+          // 执行终止操作之后从服务端应该要能取到已经终止的状态，不然重新尝试等待，尝试3次
+          Thread.sleep(3000);
         }
-      });
-      if (getTargetStatus.get()) {
-        IndexIncrStatus incrStatus = getIndexIncrStatus(this, detail);
-        this.setBizResult(context, incrStatus);
-        return;
-      } else {
-        // 执行终止操作之后从服务端应该要能取到已经终止的状态，不然重新尝试等待，尝试3次
-        Thread.sleep(3000);
       }
+    } catch (InterruptedException e) {
+      throw new JobOrchestrateException(e);
     }
+    return null;
   }
 
   /**
@@ -587,7 +577,88 @@ public class CoreAction extends BasicModule {
     Thread.sleep(4000);
     final ServerLaunchToken incrLaunchToken = streamFactory.getLaunchToken(new TargetResName(this.getCollectionName()));
     incrLaunchToken.deleteLaunchToken();
-    this.launchIncrSyncChannel(context, incrLaunchToken);
+    //  this.launchIncrSyncChannel(context, incrLaunchToken);
+
+    LaunchIncrSyncChannel incrLauncher
+      = new LaunchIncrSyncChannel(this.getCollectionName(), this, context, incrLaunchToken) {
+      @Override
+      protected ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobWorkingOrchestrate(TISK8sDelegate k8sClient) {
+        return CoreAction.this.getFlinkJobWorkingOrchestrate(k8sClient);
+      }
+    };
+
+    incrLauncher.executeLaunch();
+  }
+
+  /**
+   * 重新启动增量执行进程
+   *
+   * @param context
+   * @throws Exception
+   */
+  @Func(value = PermissionConstant.APP_REBUILD)
+  public void doRelaunchIncrProcess(Context context) throws Exception {
+    String savepointPath = this.getString("savepointPath");
+    if (StringUtils.isEmpty(savepointPath)) {
+      throw new IllegalArgumentException("param savepointPath can not be null");
+    }
+    IncrStreamFactory incrSync = getRCController();
+
+    // ======================================================
+    final ServerLaunchToken incrLaunchToken = incrSync.getLaunchToken(new TargetResName(this.getCollectionName()));
+
+    LaunchIncrSyncChannel incrLauncher
+      = new LaunchIncrSyncChannel(this.getCollectionName(), this, context, incrLaunchToken, true) {
+      @Override
+      protected ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobWorkingOrchestrate(TISK8sDelegate k8sClient) {
+        return getFlinkJobRelaunchOrchestrate(incrSync, k8sClient, savepointPath);
+      }
+    };
+
+    incrLauncher.executeLaunch();
+
+    IndexIncrStatus incrStatus = new IndexIncrStatus();
+    this.setBizResult(context, incrStatus);
+  }
+
+  private ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobRelaunchOrchestrate(
+    IncrStreamFactory incrSync, TISK8sDelegate k8sClient, String savepointPath) {
+    if (StringUtils.isEmpty(savepointPath)) {
+      throw new IllegalArgumentException("param savepointPath can not be empty");
+    }
+    if (incrSync == null) {
+      throw new IllegalArgumentException("param incrSync can not be null");
+    }
+    /**
+     * 1 step Check
+     */
+    final SubJobResName<FlinkJobDeployDTO> checkEnvironment =
+      JobResName.createSubJob(getCollectionName() + " check environment", (dto) -> {
+        k8sClient.checkUseable();
+      });
+
+
+    /**
+     * 2 relaunch
+     */
+    final SubJobResName<FlinkJobDeployDTO> relaunch =
+      JobResName.createSubJob(getCollectionName() + " launch", (dto) -> {
+        // IncrStreamFactory incrSync = getRCController();
+        incrSync.relaunch(new TargetResName(this.getCollectionName()), savepointPath);
+      });
+
+    /**
+     * 3 confirm
+     */
+    final String jobName = getCollectionName() + " wait to end";
+    final SubJobResName<FlinkJobDeployDTO> confirm =
+      JobResName.createSubJob(jobName, (dto) -> {
+        if (waittingiIntendedStatus(IFlinkIncrJobStatus.State.RUNNING) == null) {
+          throw new JobOrchestrateException(jobName + " faild");
+        }
+      });
+
+    return ILaunchingOrchestrate.create(checkEnvironment, relaunch, confirm);
   }
 
   /**
@@ -599,72 +670,69 @@ public class CoreAction extends BasicModule {
    */
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doDeployIncrSyncChannal(Context context) throws Exception {
-    IncrStreamFactory streamFactory = IncrStreamFactory.getFactory(this.getCollectionName());
+    IncrStreamFactory streamFactory = getRCController();// IncrStreamFactory.getFactory(this.getCollectionName());
     final ServerLaunchToken incrLaunchToken = streamFactory.getLaunchToken(new TargetResName(this.getCollectionName()));
 
+    LaunchIncrSyncChannel incrLauncher
+      = new LaunchIncrSyncChannel(this.getCollectionName(), this, context, incrLaunchToken) {
+      @Override
+      protected ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobWorkingOrchestrate(TISK8sDelegate k8sClient) {
+        return CoreAction.this.getFlinkJobWorkingOrchestrate(k8sClient);
+      }
+    };
 
-    this.launchIncrSyncChannel(context, incrLaunchToken);
+    incrLauncher.executeLaunch();
 
+    // this.launchIncrSyncChannel(context, incrLaunchToken);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     this.setBizResult(context, incrStatus);
 
   }
 
-  public void launchIncrSyncChannel(Context context, final ServerLaunchToken incrLaunchToken) {
-    TISK8sDelegate k8sClient = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
+//  public void launchIncrSyncChannel(Context context, final ServerLaunchToken incrLaunchToken) {
+//    TISK8sDelegate k8sClient = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
+//
+//    ILaunchingOrchestrate<FlinkJobDeployDTO> orchestrate = getFlinkJobWorkingOrchestrate(k8sClient);
+//    final ExecuteSteps executeSteps = orchestrate.createExecuteSteps(this);
+//    DefaultSSERunnable launchProcess = new DefaultSSERunnable(this, executeSteps, () -> {
+//      try {
+//        Thread.sleep(4000l);
+//      } catch (InterruptedException e) {
+//      }
+//    }) {
+//      @Override
+//      public void afterLaunched() {
+//        addActionMessage(context, "已经成功启动Flink增量实例");
+//      }
+//    };
+//
+//
+//    DefaultSSERunnable.execute(launchProcess, false
+//      , incrLaunchToken, () -> {
+//        incrLaunchToken.writeLaunchToken(() -> {
+//          for (ExecuteStep execStep : executeSteps.getExecuteSteps()) {
+//            execStep.getSubJob().execSubJob(new FlinkJobDeployDTO(context, k8sClient));
+//          }
+//          return Optional.empty();
+//        });
+//        launchProcess.afterLaunched();
+//      });
+//  }
 
-    ILaunchingOrchestrate<FlinkJobDeployDTO> orchestrate = getFlinkJobWorkingOrchestrate(k8sClient);
-    final ExecuteSteps executeSteps = orchestrate.createExecuteSteps(this);
-    DefaultSSERunnable launchProcess = new DefaultSSERunnable(this, executeSteps, () -> {
-      try {
-        Thread.sleep(4000l);
-      } catch (InterruptedException e) {
-      }
-    }) {
-      @Override
-      public void afterLaunched() {
-        addActionMessage(context, "已经成功启动Flink增量实例");
-      }
-    };
-
-
-    DefaultSSERunnable.execute(launchProcess, false
-      , incrLaunchToken, () -> {
-        incrLaunchToken.writeLaunchToken(() -> {
-
-          // return this.launchService(launchProcess);
-
-          for (ExecuteStep execStep : executeSteps.getExecuteSteps()) {
-            execStep.getSubJob().execSubJob(new FlinkJobDeployDTO(context, k8sClient));
-          }
-
-          return Optional.empty();
-        });
-        //  this.writeLaunchToken();
-        launchProcess.afterLaunched();
-      });
-  }
 
   private ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobWorkingOrchestrate(TISK8sDelegate k8sClient) {
 
+    /**
+     * 1 step Check
+     */
     final SubJobResName<FlinkJobDeployDTO> checkEnvironment =
       JobResName.createSubJob(getCollectionName() + " check environment", (dto) -> {
         k8sClient.checkUseable();
       });
 
-//      =
-//    new SubJobResName<FlinkJobDeployDTO, SubJobExec<FlinkJobDeployDTO>>("check-environment", new SubJobExec<FlinkJobDeployDTO>() {
-//      @Override
-//      public void accept(FlinkJobDeployDTO flinkJobDeployDTO) throws Exception {
-//        k8sClient.checkUseable();
-//      }
-//    }) {
-//      @Override
-//      protected String getResourceType() {
-//        return getCollectionName() + " check environment";
-//      }
-//    };
-
+    /**
+     * 2 step compileAndPackage
+     */
     final String subJobName = "Incr " + getCollectionName() + " Compile And Package";
     final SubJobResName<FlinkJobDeployDTO> compileAndPackage =
       JobResName.createSubJob(subJobName, (dto) -> {
@@ -678,18 +746,15 @@ public class CoreAction extends BasicModule {
         this.doCompileAndPackage(dto.context);
         if (dto.hasErrors()) {
 
-//          ActionExecResult r = new ActionExecResult(this.getContext()).invoke();
-//          r.getErrorMsgs();
-//          for(){
-//
-//          }
           throw new JobOrchestrateException(subJobName + " faild");
           //return;
         }
         dto.appendLog("\n compile and package consume:" + (System.currentTimeMillis() - start) + "ms ");
       });
 
-
+    /**
+     * 3 step Deploy
+     */
     final SubJobResName<FlinkJobDeployDTO> deploy
       = SubJobResName.createSubJob("Incr " + getCollectionName() + " Deploy", (dto) -> {
 
@@ -709,6 +774,10 @@ public class CoreAction extends BasicModule {
 
     });
 
+
+    /**
+     * 4 step confirm
+     */
     final SubJobResName<FlinkJobDeployDTO> confirm
       = SubJobResName.createSubJob("Confirm", (dto) -> {
 
@@ -744,44 +813,22 @@ public class CoreAction extends BasicModule {
           }
         }
       }
-
     });
 
-    final SubJobResName[] flinkDeployRes //
-      = new SubJobResName[]{
-      checkEnvironment, compileAndPackage, deploy, confirm
-    };
+    return ILaunchingOrchestrate.create(checkEnvironment, compileAndPackage, deploy, confirm);
 
-    return new ILaunchingOrchestrate() {
-      @Override
-      public List<ExecuteStep<FlinkJobDeployDTO>> getExecuteSteps() {
-        List<ExecuteStep<FlinkJobDeployDTO>> launchSteps = Lists.newArrayList();
-        for (SubJobResName rcRes : flinkDeployRes) {
-          launchSteps.add(new ExecuteStep(rcRes, null));
-        }
-        return launchSteps;
-      }
-    };
+//    return new ILaunchingOrchestrate() {
+//      @Override
+//      public List<ExecuteStep<FlinkJobDeployDTO>> getExecuteSteps() {
+//        List<ExecuteStep<FlinkJobDeployDTO>> launchSteps = Lists.newArrayList();
+//        for (SubJobResName rcRes : flinkDeployRes) {
+//          launchSteps.add(new ExecuteStep(rcRes, null));
+//        }
+//        return launchSteps;
+//      }
+//    };
   }
 
-  private class FlinkJobDeployDTO {
-    private final Context context;
-    private final TISK8sDelegate k8sClient;
-    private final StringBuffer logger = new StringBuffer("flink sync app:" + getCollectionName());
-
-    public FlinkJobDeployDTO(Context context, TISK8sDelegate k8sClient) {
-      this.context = context;
-      this.k8sClient = k8sClient;
-    }
-
-    public boolean hasErrors() {
-      return context.hasErrors();
-    }
-
-    public void appendLog(String loggerMsg) {
-      logger.append(loggerMsg);
-    }
-  }
 
   private static Map<Integer, Long> getDependencyDbsMap(BasicModule module, IndexStreamCodeGenerator indexStreamCodeGenerator) {
     final Map<DBNode, List<String>> dbNameMap = indexStreamCodeGenerator.getDbTables();
@@ -1192,7 +1239,14 @@ public class CoreAction extends BasicModule {
     if (this.hasErrors(context)) {
       return;
     }
-    waittingiIntendedStatus(context, IFlinkIncrJobStatus.State.STOPED);
+    IDeploymentDetail detail = null;
+    if ((detail = waittingiIntendedStatus(IFlinkIncrJobStatus.State.STOPED)) != null) {
+      IndexIncrStatus incrStatus = getIndexIncrStatus(this, detail);
+      this.setBizResult(context, incrStatus);
+    } else {
+      this.addErrorMessage(context, "操作超时");
+      return;
+    }
   }
 
 //  /**

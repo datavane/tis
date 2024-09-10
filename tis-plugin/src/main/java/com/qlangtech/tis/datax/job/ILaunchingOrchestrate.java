@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.datax.job;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
@@ -33,6 +34,20 @@ import java.util.stream.Collectors;
 public interface ILaunchingOrchestrate<T> {
 
     public List<ExecuteStep<T>> getExecuteSteps();
+
+    public static <TT> ILaunchingOrchestrate<TT> create(SubJobResName... flinkDeployRes) {
+        return new ILaunchingOrchestrate() {
+            @Override
+            public List<ExecuteStep<TT>> getExecuteSteps() {
+                List<ExecuteStep<TT>> launchSteps = Lists.newArrayList();
+                for (SubJobResName rcRes : flinkDeployRes) {
+                    launchSteps.add(new ExecuteStep(rcRes, null));
+                }
+                return launchSteps;
+            }
+        };
+    }
+
 
     public default ExecuteSteps createExecuteSteps(Object owner) {
         return new ExecuteSteps(owner, this.getExecuteSteps().stream().collect(Collectors.toList()));

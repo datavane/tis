@@ -405,17 +405,28 @@ public class ServerLaunchToken extends Observable implements Closeable {
                 .add(Objects.requireNonNull(note, "note can not be null"));
     }
 
+    public void writeLaunchToken(Callable<Optional<JSONObject>> bizLogic) {
+        writeLaunchToken(false, bizLogic);
+    }
+
     /**
      * 启动成功之后写入相应的配置信息
+     *
+     * @param isRelaunch 是否重新启动？
+     * @param bizLogic
      */
-    public void writeLaunchToken(Callable<Optional<JSONObject>> bizLogic) {
+    public void writeLaunchToken(boolean isRelaunch, Callable<Optional<JSONObject>> bizLogic) {
         if (writeLaunchTokenLock.compareAndSet(0, 1)) {
 
             try {
                 notepadQueue = new ArrayList<>();
-                if (this.isLaunchTokenExist()) {
-                    throw TisException.create("launch token :" + this.launchedToken.getPath() + " shall not be exist");
+                if (isRelaunch ^ this.isLaunchTokenExist()) {
+                    // 1.如果是重新启动，则luanchToken必须要存在
+                    // 2.如果是新的启动，则luanchToken必须要不存在
+                    throw TisException.create("launch token :" + this.launchedToken.getPath()
+                            + " shall " +  (isRelaunch ? StringUtils.EMPTY : "not") + "  be exist");
                 }
+
                 try {
                     Optional<JSONObject> t = Objects.requireNonNull(bizLogic.call(), "bizLogic can not be null");
                     JSONObject token = t.orElseGet(() -> new JSONObject());

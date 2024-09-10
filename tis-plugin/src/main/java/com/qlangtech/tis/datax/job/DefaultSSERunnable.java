@@ -48,16 +48,6 @@ public class DefaultSSERunnable implements SSERunnable {
     private Optional<ServerLaunchToken> launchToken = Optional.empty();
     private final List<ExecuteStep> executeSteps;
 
-    // boolean inAttach2RunningProcessor = false;
-//  public DefaultSSERunnable(HttpServletResponse response, DataXJobWorker dataxJobWorker, Runnable runnable) {
-//    this(response, dataxJobWorker, dataxJobWorker.getExecuteSteps(), runnable);
-//  }
-
-//  public DefaultSSERunnable(HttpServletResponse response, DataXJobWorker dataxJobWorker, List<ExecuteStep> executeSteps, Runnable runnable) {
-//
-//      this(response.getWriter(),dataxJobWorker);
-//  }
-
     /**
      * @param launchProcess
      * @param inService     是否正在执行启动流程
@@ -197,11 +187,6 @@ public class DefaultSSERunnable implements SSERunnable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-//    //.ifPresent((lt) -> {
-//
-//        lt.close();
-
-//    });
     }
 
     public void setLaunchToken(ServerLaunchToken launchToken) {
@@ -213,19 +198,12 @@ public class DefaultSSERunnable implements SSERunnable {
         public void process(SubJobLog jobLog);
 
         public void process(SubJobMilestone stone);
-
-        // public void process(JSONArray subJobExecStepsJSONArray);
     }
 
     /**
      * @see ServerLaunchToken as Observable
      */
     public class k8SLaunching implements Observer {
-//        private final boolean isLaunchingTokenExist;
-//
-//        private List<SubJobMilestone> milestones;
-//        private SubJobLog[] logs;
-//        private List<ExecuteStep> executeSteps;
 
         private final ServerLaunchLog launchWALLog;
         private final List<ExecuteStep> executeSteps;

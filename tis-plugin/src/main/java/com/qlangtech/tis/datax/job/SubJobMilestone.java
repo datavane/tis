@@ -95,22 +95,6 @@ public class SubJobMilestone {
         return result;
     }
 
-//    public static List<ExecuteStep> readSubJobJSONArray(JSONArray steps, Function<String, SubJobMilestone> executeSubJobFinder) {
-//        List<ExecuteStep> result = Lists.newArrayList();
-//        // ExecuteStep ss = null;
-//        SubJobMilestone stp = null;
-//        SubJobMilestone subJobStone = null;
-//        for (Object s : steps) {
-//            stp = readSubJobMilestoneJson(s.toString());
-//            subJobStone = executeSubJobFinder.apply(stp.getName());
-//            result.add(new ExecuteStep(new TargetResName(stp.getName())
-//                    , stp.getDescribe()
-//                    , (subJobStone == null ? false : subJobStone.complete)
-//                    , (subJobStone == null ? false : subJobStone.isSuccess())));
-//        }
-//        return result;
-//    }
-
     public String getName() {
         return name;
     }
