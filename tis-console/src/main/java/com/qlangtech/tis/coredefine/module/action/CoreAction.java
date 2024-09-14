@@ -229,11 +229,75 @@ public class CoreAction extends BasicModule {
 
   @Func(value = PermissionConstant.APP_REBUILD)
   public void doRestoreFromCheckpoint(Context context) throws Exception {
-//    Integer checkpointId = this.getInt("checkpointId");
-//
-//    IRCController incrSync = getRCController();
-//    incrSync.restoreFromCheckpoint(new TargetResName(this.getCollectionName()), checkpointId);
-//    waittingiIntendedStatus(context, IFlinkIncrJobStatus.State.RUNNING);
+    Integer checkpointId = this.getInt("checkpointId");
+    IncrStreamFactory incrSync = getRCController();
+
+    // waittingiIntendedStatus(context, IFlinkIncrJobStatus.State.RUNNING);
+
+    // ======================================================
+    final ServerLaunchToken incrLaunchToken = incrSync.getLaunchToken(new TargetResName(this.getCollectionName()));
+
+    LaunchIncrSyncChannel incrLauncher
+      = new LaunchIncrSyncChannel(this.getCollectionName(), this, context, incrLaunchToken, true) {
+      @Override
+      protected ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobWorkingOrchestrate(TISK8sDelegate k8sClient) {
+        return getFlinkJobRestoreFromCheckpointOrchestrate(incrSync, k8sClient, checkpointId);
+      }
+    };
+
+    incrLauncher.executeLaunch();
+
+    IndexIncrStatus incrStatus = new IndexIncrStatus();
+    this.setBizResult(context, incrStatus);
+  }
+
+  /**
+   * 从Checkpoint恢复执行任务
+   *
+   * @param incrSync
+   * @param k8sClient
+   * @param checkpointId
+   * @return
+   */
+  private ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobRestoreFromCheckpointOrchestrate(
+    IncrStreamFactory incrSync, TISK8sDelegate k8sClient, Integer checkpointId) {
+    if (checkpointId == null) {
+      throw new IllegalArgumentException("param checkpointId can not be empty");
+    }
+    if (incrSync == null) {
+      throw new IllegalArgumentException("param incrSync can not be null");
+    }
+    /**
+     * 1 step Check
+     */
+    final SubJobResName<FlinkJobDeployDTO> checkEnvironment =
+      JobResName.createSubJob(getCollectionName() + " check environment", (dto) -> {
+        k8sClient.checkUseable();
+      });
+
+
+    /**
+     * 2 relaunch
+     */
+    final SubJobResName<FlinkJobDeployDTO> relaunch =
+      JobResName.createSubJob(getCollectionName() + " launch", (dto) -> {
+        // IncrStreamFactory incrSync = getRCController();
+        //  incrSync.relaunch(new TargetResName(this.getCollectionName()), savepointPath);
+        incrSync.restoreFromCheckpoint(new TargetResName(this.getCollectionName()), checkpointId);
+      });
+
+    /**
+     * 3 confirm
+     */
+    final String jobName = getCollectionName() + " wait to end";
+    final SubJobResName<FlinkJobDeployDTO> confirm =
+      JobResName.createSubJob(jobName, (dto) -> {
+        if (waittingiIntendedStatus(IFlinkIncrJobStatus.State.RUNNING) == null) {
+          throw new JobOrchestrateException(jobName + " faild");
+        }
+      });
+
+    return ILaunchingOrchestrate.create(checkEnvironment, relaunch, confirm);
   }
 
   /**

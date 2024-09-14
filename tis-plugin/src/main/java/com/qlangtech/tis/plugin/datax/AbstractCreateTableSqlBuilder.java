@@ -29,6 +29,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -36,7 +38,7 @@ import java.util.stream.Collectors;
  * @create: 2023-05-07 12:35
  **/
 public abstract class AbstractCreateTableSqlBuilder {
-
+    static final Pattern PatternCreateTable = Pattern.compile("([cC][rR][eE][aA][tT][eE]\\s+[tT][aA][bB][lL][eE])\\s+?(\\S+)\\s*\\(");
 
     protected final String targetTableName;
     protected final List<IColMetaGetter> cols;
@@ -108,6 +110,21 @@ public abstract class AbstractCreateTableSqlBuilder {
         public CreateDDL(StringBuffer script, AbstractCreateTableSqlBuilder builder) {
             this.script = script;
             this.builder = builder;
+        }
+
+        /**
+         * 将create table DDL的table名换掉
+         *
+         * @param createTableDDL
+         * @param newTabName
+         * @return
+         */
+        public static String replaceDDLTableName(String createTableDDL, String newTabName) {
+            Matcher matcher = PatternCreateTable.matcher(createTableDDL);
+            if (matcher.find()) {
+                return matcher.replaceFirst("$1 " + newTabName+" (");
+            }
+            throw new IllegalStateException("createTableDDL is illegal:" + createTableDDL);
         }
 
         public StringBuffer getDDLScript() {

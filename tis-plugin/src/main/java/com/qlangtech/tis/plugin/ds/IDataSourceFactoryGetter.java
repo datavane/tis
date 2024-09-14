@@ -45,6 +45,7 @@ public interface IDataSourceFactoryGetter {
             return DataxWriter.load(null, res.resType, res.getDataXName(), true);
         });
     }
+
     public static IDataSourceFactoryGetter getReaderDataSourceFactoryGetter(Configuration config,
                                                                             IJobContainerContext containerContext) {
         return getDataSourceFactoryGetter(config, containerContext, (res) -> {
@@ -108,6 +109,8 @@ public interface IDataSourceFactoryGetter {
      *
      * @return
      */
-    Integer getRowFetchSize();
+    default Integer getRowFetchSize() {
+        throw new UnsupportedOperationException();
+    }
 
 }

@@ -38,6 +38,7 @@ import com.qlangtech.tis.plugin.TestKeyedPluginStore;
 import com.qlangtech.tis.plugin.TestPluginAndCfgsSnapshot;
 import com.qlangtech.tis.plugin.TestPluginStore;
 import com.qlangtech.tis.plugin.annotation.TestValidator;
+import com.qlangtech.tis.plugin.datax.TestCreateDDL;
 import com.qlangtech.tis.plugin.datax.TestSelectedTab;
 import com.qlangtech.tis.plugin.datax.transformer.impl.TestCopyValUDF;
 import com.qlangtech.tis.plugin.datax.transformer.impl.TestTransformerRuleElementCreatorFactory;
@@ -93,11 +94,11 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestK8sImage.class);
         suite.addTestSuite(TestServerLaunchToken.class);
         suite.addTestSuite(TestTransformerRuleElementCreatorFactory.class);
-       // suite.addTestSuite(TestCopyValUDF.class);
+        // suite.addTestSuite(TestCopyValUDF.class);
         suite.addTestSuite(TestTargetColType.class);
-      //  suite.addTestSuite(TestPainTargetColumn.class);
+        //  suite.addTestSuite(TestPainTargetColumn.class);
         suite.addTestSuite(TestDataXCfgGenerator.class);
-
+        suite.addTestSuite(TestCreateDDL.class);
         return suite;
     }
 }
