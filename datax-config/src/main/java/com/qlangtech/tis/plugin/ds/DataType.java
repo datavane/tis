@@ -252,9 +252,9 @@ public class DataType implements Serializable {
             case BOOLEAN:
                 return visitor.boolType(this);
             case BINARY: {
-                if ("boolean".equalsIgnoreCase(this.typeName)) {
-                    return visitor.boolType(this);
-                }
+//                if ("boolean".equalsIgnoreCase(this.typeName)) {
+//                    return visitor.boolType(this);
+//                }
             }
             case BLOB:
             case LONGVARBINARY:
