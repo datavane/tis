@@ -1,6 +1,7 @@
 {
   "name": {
-    "help": "设置一个有意义的名称作为标识"
+    "help": "设置一个有意义的名称作为标识",
+    "dftVal": "local_submit_params"
   },
   "maxJobs": {
     "help": "单个管道最大DataX同步任务数量，超过该任务数量管道触发执行时会报错",

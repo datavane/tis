@@ -1,12 +1,14 @@
 package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.plugin.ds.DBIdentity;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -31,6 +33,12 @@ import java.util.Optional;
  * @create: 2022-12-24 10:48
  **/
 public class DataXJobInfo {
+
+    public static final AtomicReference<File> dataXExecutorDir
+            = new AtomicReference<>(TisAppLaunch.isTestMock()
+            ? new File("/opt/tis/" + IDataXTaskRelevant.KEY_TIS_DATAX_EXECUTOR)
+            : new File("."));
+
     public static int DATAX_THREAD_PROCESSING_CANCAL_EXITCODE = 943;
     private static final String FILENAME_SPLIT_CHAR = "/";
     private static final String TAB_SPLIT_CHAR = ",";
@@ -71,6 +79,14 @@ public class DataXJobInfo {
         }
         File dataXCfg = new File(dataxCfgDir, dbFactoryId + File.separator + jobFileName);
         return dataXCfg;
+    }
+
+    public static File getDataXExecutorDir() {
+        File workDir = dataXExecutorDir.get();
+        if (!workDir.exists()) {
+            throw new IllegalStateException("workDir is not exist:" + workDir.getAbsolutePath());
+        }
+        return workDir;
     }
 
     public File getJobPath(File dataxCfgDir) {
