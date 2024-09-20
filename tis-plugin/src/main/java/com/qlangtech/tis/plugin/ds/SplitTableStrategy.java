@@ -24,6 +24,9 @@ import com.qlangtech.tis.datax.DataXJobInfo;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.TISExtensible;
+import com.qlangtech.tis.plugin.annotation.FormField;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -43,6 +46,14 @@ import java.util.regex.Pattern;
 @TISExtensible
 public abstract class SplitTableStrategy implements Describable<SplitTableStrategy>, Serializable {
     public static final Pattern PATTERN_PHYSICS_TABLE = Pattern.compile("(\\S+)_(\\d+)");
+
+    /**
+     * 取得节点描述信息
+     *
+     * @return
+     */
+    public abstract String getNodeDesc();
+
 
     public abstract boolean isSplittable();
 

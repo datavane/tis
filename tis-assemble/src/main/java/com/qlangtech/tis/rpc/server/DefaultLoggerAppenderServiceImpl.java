@@ -18,6 +18,8 @@
 
 package com.qlangtech.tis.rpc.server;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.util.ContextSelectorStaticBinder;
 import com.qlangtech.tis.job.common.JobParams;
 import com.qlangtech.tis.rpc.grpc.log.appender.LogAppenderGrpc;
 import com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent;
@@ -30,6 +32,7 @@ import org.slf4j.MDC;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author 百岁 (baisui@qlangtech.com)
@@ -44,12 +47,13 @@ public class DefaultLoggerAppenderServiceImpl extends LogAppenderGrpc.LogAppende
     }
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultLoggerAppenderServiceImpl.class);
-    private static final Map<String, Logger> loggers = new HashMap<String, Logger>();
+    private static final Map<String, Logger> loggers = new HashMap<>();
 
-    public Logger getLogger(String name) {
+    public static Logger getLogger(String name) {
         Logger logger = loggers.get(name);
         if (logger == null) {
-            logger = LoggerFactory.getLogger(name);
+            LoggerContext assemble = ContextSelectorStaticBinder.getSingleton().getContextSelector().getLoggerContext("assemble");
+            logger = Objects.requireNonNull(assemble, "assemble LoggerContext can not be null").getLogger(name);
             loggers.put(name, logger);
         }
         return logger;
@@ -57,8 +61,6 @@ public class DefaultLoggerAppenderServiceImpl extends LogAppenderGrpc.LogAppende
 
     @Override
     public void append(LoggingEvent request, StreamObserver<Empty> responseObserver) {
-        //  super.append(request, responseObserver);
-
         Map<String, String> headers = request.getHeadersMap();
         LoggingEvent.Level level = request.getLevel();
 

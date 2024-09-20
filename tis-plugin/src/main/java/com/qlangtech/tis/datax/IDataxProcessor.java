@@ -261,14 +261,23 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
 
                 @Override
                 public List<String> getPrimaryKeys() {
-                    return Collections.emptyList();
+                    return TableMap.this.getPrimaryKeys();
                 }
 
                 @Override
                 public List<CMeta> getCols() {
-                    return cmetas;
+                    return rewriteCols(cmetas);
                 }
             });
+        }
+
+        protected List<CMeta> rewriteCols(final List<CMeta> cmetas) {
+            return cmetas;
+        }
+
+
+        public List<String> getPrimaryKeys() {
+            return Collections.emptyList();
         }
 
         public static TableMap create(String tableName, List<IColMetaGetter> cols) {

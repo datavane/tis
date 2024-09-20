@@ -70,9 +70,7 @@
         <dependencySet>
             <scope>runtime</scope>
             <excludes>
-                <!--
-                <exclude>*:logback-*</exclude>
-                -->
+
                 <exclude>${groupId}:${artifactId}</exclude>
                 <exclude>org.mortbay.jetty:jetty</exclude>
                 <exclude>org.mortbay.jetty:jetty-util</exclude>
@@ -87,3 +85,4 @@
     </dependencySets>
 
 </assembly>
+

@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * 全量构建过程中通过的
@@ -93,7 +94,7 @@ public class RealtimeLoggerCollectorAppender extends FileAppender<LoggingEvent> 
 
     public static class LoggerCollectorAppenderListenerWrapper {
 
-        private final Map<String, LogTypeListeners> targetAppenderLister = new HashMap<>();
+        private final Map<String, LogTypeListeners> targetAppenderLister =  new WeakHashMap<>();//new HashMap<>();
 
         public LogTypeListeners getLogTypeListeners(String targetAppenderName) {
             return targetAppenderLister.get(targetAppenderName);

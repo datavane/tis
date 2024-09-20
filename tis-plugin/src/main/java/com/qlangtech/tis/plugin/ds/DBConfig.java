@@ -52,13 +52,6 @@ public class DBConfig implements IDbMeta {
     private String name;
 
     private final JdbcUrlBuilder jdbcUrlBuilder;
-
-    // private String userName;
-
-    // private String password;
-
-    // private int port = 3306;
-
     private Map<String, List<String>> /* host|ip */ dbEnum = new HashMap<>();
 
     public void setDbEnum(Map<String, List<String>> dbEnum) {
@@ -182,17 +175,20 @@ public class DBConfig implements IDbMeta {
             int hostCount = 0;
             AtomicReference<String> fjdbcUrl = new AtomicReference<>();
             AtomicReference<Throwable> exceptionCollect = new AtomicReference<Throwable>();
-           // IRepositoryTargetFile tfile = IRepositoryTargetFile.TARGET_FILE_CONTEXT.get();
+            // IRepositoryTargetFile tfile = IRepositoryTargetFile.TARGET_FILE_CONTEXT.get();
             outer:
             for (Map.Entry<String, List<String>> entry : getDbEnum().entrySet()) {
                 for (String dbName : entry.getValue()) {
                     // TODO 访问mysql的方式，将来如果有其他数据库可以再扩展一下
                     // String jdbcUrl = "jdbc:mysql://" + (resolveHostIp ? getHostIpAddress(entry.getKey()) : entry.getKey()) + ":" + this.getPort() + "/" + dbName + "?useUnicode=yes&characterEncoding=utf8";
                     String dbHost = resolveHostIp ? getHostIpAddress(entry.getKey()) : entry.getKey();
-                    String jdbcUrl = this.jdbcUrlBuilder.buidJdbcUrl(this, dbHost, dbName);
+                    final String jdbcUrl = this.jdbcUrlBuilder.buidJdbcUrl(this, dbHost, dbName);
+                    if (StringUtils.isEmpty(jdbcUrl)) {
+                        throw new IllegalStateException("dbHost:" + dbHost + ",dbName:" + dbName + " relevant jdbcUrl can not be empty");
+                    }
                     hostCount++;
                     fixedThreadPool.execute(() -> {
-                      //  IRepositoryTargetFile.TARGET_FILE_CONTEXT.set(tfile);
+                        //  IRepositoryTargetFile.TARGET_FILE_CONTEXT.set(tfile);
                         try {
                             fjdbcUrl.set(jdbcUrl);
                             urlProcess.visit((facade ? name : dbName), dbHost, jdbcUrl);
@@ -200,7 +196,7 @@ public class DBConfig implements IDbMeta {
                             exceptionCollect.set(e);
                         } finally {
                             countDownLatch.countDown();
-                          //  IRepositoryTargetFile.TARGET_FILE_CONTEXT.remove();
+                            //  IRepositoryTargetFile.TARGET_FILE_CONTEXT.remove();
                         }
                     });
                     if (facade) {
