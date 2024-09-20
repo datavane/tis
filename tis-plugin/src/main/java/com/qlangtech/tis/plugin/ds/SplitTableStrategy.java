@@ -107,7 +107,7 @@ public abstract class SplitTableStrategy implements Describable<SplitTableStrate
 
         public SplitableTableInDB(DBIdentity id, Pattern splitTabPattern) {
             super(id);
-            this.splitTabPattern = splitTabPattern;
+            this.splitTabPattern = Objects.requireNonNull(splitTabPattern, "splitTabPattern can not be null");
         }
 
         @Override
@@ -138,7 +138,7 @@ public abstract class SplitTableStrategy implements Describable<SplitTableStrate
          */
         @Override
         public void add(String jdbcUrl, String tab) {
-            Matcher matcher = PATTERN_PHYSICS_TABLE.matcher(tab);
+            Matcher matcher = this.splitTabPattern.matcher(tab);
 
             if (matcher.matches()) {
                 String logicTabName = matcher.group(1);
