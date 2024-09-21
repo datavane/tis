@@ -45,6 +45,7 @@ import com.qlangtech.tis.plugin.datax.transformer.impl.TestTransformerRuleElemen
 //import com.qlangtech.tis.plugin.datax.transformer.jdbcprop.TestPainTargetColumn;
 import com.qlangtech.tis.plugin.datax.transformer.jdbcprop.TestTargetColType;
 import com.qlangtech.tis.plugin.ds.TestDataSourceFactoryPluginStore;
+import com.qlangtech.tis.plugin.ds.TestSplitableTableInDB;
 import com.qlangtech.tis.plugin.ds.TestTableInDB;
 import com.qlangtech.tis.plugin.k8s.TestK8sImage;
 import com.qlangtech.tis.util.TestAttrValMap;
@@ -99,6 +100,7 @@ public class TestAll extends TestCase {
         //  suite.addTestSuite(TestPainTargetColumn.class);
         suite.addTestSuite(TestDataXCfgGenerator.class);
         suite.addTestSuite(TestCreateDDL.class);
+        suite.addTestSuite(TestSplitableTableInDB.class);
         return suite;
     }
 }

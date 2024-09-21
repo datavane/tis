@@ -68,7 +68,7 @@ public abstract class TableInDB {
 
     public abstract boolean isEmpty();
 
-    public abstract DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity);
+    public abstract DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity, boolean shallRewrite2RegexPattern);
 
     public static class DefaultTableNameConvert implements Function<String, String>, Serializable {
         @Override
@@ -91,7 +91,7 @@ public abstract class TableInDB {
 
 
         @Override
-        public DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity) {
+        public DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity, boolean shallRewrite2RegexPattern) {
             return DataXJobInfo.create(tabEntity.getFileName(), tabEntity
                     , this.tabs.contains(tabEntity.getSourceTableName())
                             ? Collections.singletonList(tabEntity.getSourceTableName())

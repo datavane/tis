@@ -352,7 +352,7 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
 
         return getDataXJobInfo(tabDataXEntity, (p) -> {
             TableInDB tabsInDB = p.getLeft();
-            DataXJobInfo jobName = tabsInDB.createDataXJobInfo(tabDataXEntity);
+            DataXJobInfo jobName = tabsInDB.createDataXJobInfo(tabDataXEntity, false);
             return jobName;
         }, readers);
     }
@@ -375,6 +375,7 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
         public static final String TEST_JDBC_URL = "jdbc_url_test";
         public final DBDataXChildTask fileName;
         private final ISelectedTab selectedTab;
+        //  public final boolean prefixWildcardStyle;
 
         @Override
         public String identityValue() {
@@ -383,23 +384,18 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
 
         public static DataXJobSubmit.TableDataXEntity createTableEntity4Test(String dataXCfgFileName, String tabName) {
             return createTableEntity(dataXCfgFileName, TEST_JDBC_URL, tabName);
-            //            ISelectedTab selTab = new ISelectedTab() {
-            //                @Override
-            //                public String getName() {
-            //                    return tabName;
-            //                }
-            //
-            //                @Override
-            //                public List<CMeta> getCols() {
-            //                    throw new UnsupportedOperationException();
-            //                }
-            //            };
-            //            return new DataXJobSubmit.TableDataXEntity(
-            //                    new DataXCfgGenerator.DBDataXChildTask(TEST_JDBC_URL, dataXCfgFileName), selTab);
         }
 
-        public static DataXJobSubmit.TableDataXEntity createTableEntity(String dataXCfgFileName, String dbIdenetity,
-                                                                        String tabName) {
+
+        /**
+         * @param dataXCfgFileName
+         * @param dbIdenetity
+         * @param tabName
+         * @return
+         */
+        public static DataXJobSubmit.TableDataXEntity createTableEntity(
+                String dataXCfgFileName, String dbIdenetity,
+                String tabName) {
 
             ISelectedTab selTab = new ISelectedTab() {
                 @Override

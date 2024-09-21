@@ -43,7 +43,7 @@ public class TestTableInDB extends BasicTestCase {
 
         DataXJobSubmit.TableDataXEntity tableEntity = DataXJobSubmit.TableDataXEntity.createTableEntity(null, jdbcUrl, testTabOrder);
 
-        DataXJobInfo infoJob = tableInDB.createDataXJobInfo(tableEntity);
+        DataXJobInfo infoJob = tableInDB.createDataXJobInfo(tableEntity, false);
 
         Assert.assertNotNull("infoJob can not be null", infoJob);
 

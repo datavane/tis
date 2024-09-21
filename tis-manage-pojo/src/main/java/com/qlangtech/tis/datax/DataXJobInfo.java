@@ -65,8 +65,10 @@ public class DataXJobInfo {
     }
 
     public static DataXJobInfo create(String jobFileName, DBIdentity dbFactoryId, List<String> targetTabs) {
-        return currJobInfo = new DataXJobInfo(jobFileName, dbFactoryId, (targetTabs == null || targetTabs.isEmpty())
-                ? Optional.empty() : Optional.of(targetTabs.toArray(new String[targetTabs.size()])));
+        return currJobInfo = new DataXJobInfo(jobFileName, dbFactoryId
+                , (targetTabs == null || targetTabs.isEmpty())
+                ? Optional.empty()
+                : Optional.of(targetTabs.toArray(new String[targetTabs.size()])));
     }
 
     public static DataXJobInfo getCurrent() {
