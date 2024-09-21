@@ -42,6 +42,7 @@ import java.util.regex.Pattern;
  **/
 public class SplitableTableInDB extends TableInDB {
     private static final Logger logger = LoggerFactory.getLogger(SplitableTableInDB.class);
+    public static final Pattern firstLogicTabNamePattern = Pattern.compile("\\(\\S+?\\)");
     //<key:逻辑表名,List<String> 物理表列表>
     public Map<String, SplitableDB> tabs = new HashMap<>();
 
@@ -127,7 +128,7 @@ public class SplitableTableInDB extends TableInDB {
     public List<String> rewritePhysicsTabs(String logicTabName, List<String> physicsTabs) {
 
         if (this.prefixWildcardStyle) {
-            Pattern firstLogicTabNamePattern = Pattern.compile("\\(\\S+?\\)");
+
             Matcher matcher = firstLogicTabNamePattern.matcher(this.splitTabPattern.pattern());
             if (matcher.find()) {
                 final String newPatternForMatchFlinkBinlog = matcher.replaceFirst(logicTabName);

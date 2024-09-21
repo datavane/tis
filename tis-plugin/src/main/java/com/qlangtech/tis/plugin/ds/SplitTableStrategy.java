@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
  **/
 @TISExtensible
 public abstract class SplitTableStrategy implements Describable<SplitTableStrategy>, Serializable {
-    public static final Pattern PATTERN_PHYSICS_TABLE = Pattern.compile("(\\S+)_(\\d+)");
+    public static final Pattern PATTERN_PHYSICS_TABLE = Pattern.compile("(\\S+)(_\\d+)?");
 
     /**
      * 取得节点描述信息
