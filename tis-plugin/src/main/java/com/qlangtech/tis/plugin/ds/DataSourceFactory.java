@@ -466,7 +466,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 //                    , this.getIdentityField().displayName, instance.identityValue())) {
 //                return false;
 //            }
-            return validateDSFactory(msgHandler, context, instance);
+            boolean valid = validateDSFactory(msgHandler, context, instance);
+            return valid;
         }
 
         /**
@@ -480,7 +481,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         protected boolean validateDSFactory(IControlMsgHandler msgHandler, Context context, T dsFactory) {
 
             DBConfig dbConfig = Objects.requireNonNull(dsFactory.getDbConfig(), "dbConfig can not be null");
-            Exception[] faild = new Exception[1];
+             Exception[] faild = new Exception[1];
             boolean[] validateResult = new boolean[1];
             final Object actionContext = context.getContext();
             dbConfig.vistDbURL(false, 5, (dbName, dbHost, jdbcUrl) -> {
@@ -494,15 +495,17 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 }
             });
 
+            if (faild[0] != null) {
+                msgHandler.addErrorMessage(context, "请确认连接参数是否正确:" + faild[0].getMessage());
+                return false;
+            }
+
             if (!validateResult[0]) {
                 // 校验出错
                 return false;
             }
 
-            if (faild[0] != null) {
-                msgHandler.addErrorMessage(context, "请确认连接参数是否正确:" + faild[0].getMessage());
-                return false;
-            }
+
             return true;
         }
 

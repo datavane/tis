@@ -25,6 +25,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.coredefine.module.action.PluginItemsParser;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.Descriptor.FormVaildateType;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.IAppSource;
@@ -117,7 +118,9 @@ public class PluginItems implements IPluginItemsProcessor {
         try {
           AttrValMap.setCurrentRootPluginValidator(attrValMap.descriptor);
           Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
-          if (!(validateResult = attrValMap.validate((IControlMsgHandler) module, context, verify)).isValid()) {
+
+          if (!(validateResult = attrValMap.validate((IControlMsgHandler) module
+            , context, FormVaildateType.create(verify), Optional.empty())).isValid()) {
             parseResult.faild = true;
           } else {
             validateResult.setDescriptor(attrValMap.descriptor);

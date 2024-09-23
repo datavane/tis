@@ -1139,7 +1139,7 @@ public class DataxAction extends BasicModule {
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doUpdateDatax(Context context) throws Exception {
-    String dataxName = this.getCollectionName();
+    final String dataxName = this.getCollectionName();
 
     ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
     DataxProcessor old = (DataxProcessor) pmodel.loadDataXProcessor(null, dataxName);

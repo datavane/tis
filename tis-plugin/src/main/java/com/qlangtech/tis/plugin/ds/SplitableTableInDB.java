@@ -20,10 +20,12 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.datax.DataXJobInfo;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.plugin.ds.SplitTableStrategy.SplitTablePhysics2LogicNameConverter;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -125,7 +128,7 @@ public class SplitableTableInDB extends TableInDB {
         return this.tabs.isEmpty();
     }
 
-    public List<String> rewritePhysicsTabs(String logicTabName, List<String> physicsTabs) {
+    public Pair<Boolean, List<String>> rewritePhysicsTabs(String logicTabName, List<String> physicsTabs) {
 
         if (this.prefixWildcardStyle) {
 
@@ -134,7 +137,7 @@ public class SplitableTableInDB extends TableInDB {
                 final String newPatternForMatchFlinkBinlog = matcher.replaceFirst(logicTabName);
                 logger.info("logicTabName:{},newPatternForMatchFlinkBinlog:{} with splitTabPattern:{}"
                         , logicTabName, newPatternForMatchFlinkBinlog, this.splitTabPattern.pattern());
-                return Collections.singletonList(newPatternForMatchFlinkBinlog);
+                return Pair.of(true, Collections.singletonList(newPatternForMatchFlinkBinlog));
             } else {
                 throw new IllegalStateException("firstLogicTabNamePattern:"
                         + firstLogicTabNamePattern + " can not find matched part in pattern:" + this.splitTabPattern.pattern());
@@ -142,7 +145,7 @@ public class SplitableTableInDB extends TableInDB {
 
         }
 
-        return physicsTabs;
+        return Pair.of(false, physicsTabs);
     }
 
     public static class SplitableDB {
@@ -179,17 +182,28 @@ public class SplitableTableInDB extends TableInDB {
         public List<String> getTabsInDB(String jdbcUrl, boolean shallRewrite2RegexPattern) {
 
             if (shallRewrite2RegexPattern) {
-                return this.splitableTableInDB.rewritePhysicsTabs(this.logicTabName, this.physicsTabInSplitableDB.get(jdbcUrl));
+                return this.splitableTableInDB.rewritePhysicsTabs(this.logicTabName, this.physicsTabInSplitableDB.get(jdbcUrl)).getRight();
             } else {
                 return this.physicsTabInSplitableDB.get(jdbcUrl);
             }
+        }
 
-//            if (prefixWildcardStyle) {
-//                return Collections.singletonList(logicTabName + "(\\S+)");
-//            } else {
-//                return this.physicsTabInSplitableDB.get(jdbcUrl);
-//            }
-
+        /**
+         * flink-cdc 端从binlog 中读取的是物理表，需要将物理表映射成逻辑表
+         *
+         * @return Pair<Boolean / 是否已经被重写成正则式Pattern样式 /, Set < String>>
+         */
+        public Pair<Boolean, Set<String>> rewrite2RegexPattern() {
+            Set<String> rewriteRegexMatchPatterns = Sets.newHashSet();
+            for (List<String> physicsTabs : this.physicsTabInSplitableDB.values()) {
+                Pair<Boolean, List<String>> oneNodeOf = this.splitableTableInDB.rewritePhysicsTabs(this.logicTabName, physicsTabs);
+                if (!oneNodeOf.getKey()) {
+                    // 没有被重写
+                    return Pair.of(false, Collections.emptySet());
+                }
+                rewriteRegexMatchPatterns.addAll(oneNodeOf.getValue());
+            }
+            return Pair.of(true, rewriteRegexMatchPatterns);
         }
     }
 }

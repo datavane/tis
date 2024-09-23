@@ -24,6 +24,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.extension.Descriptor.FormVaildateType;
 import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
 import com.qlangtech.tis.extension.Descriptor.PluginValidateResult;
 import com.qlangtech.tis.extension.IPropertyType;
@@ -149,7 +150,7 @@ public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<
                             }
                         };
 
-                        PluginValidateResult targetColValidate = attrVals.validate(msgHandle, context, false);
+                        PluginValidateResult targetColValidate = attrVals.validate(msgHandle, context, FormVaildateType.FIRST_VALIDATE, Optional.empty());
                         if (targetColValidate.isValid()) {
                             vcol = targetColValidate.newInstance();
                             Collection<Integer> sameKeys = duplicateCols.get(vcol.getName());

@@ -520,9 +520,12 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @return
      */
     public final PluginValidateResult verify(IControlMsgHandler msgHandler, Context context //
-            , boolean verify //
-            , AttrVals formData, Optional<PluginFormProperties> pTypes, Optional<SubFormFilter> subFormFilter, PropValRewrite propValRewrite) {
-
+            , FormVaildateType verify //
+            , AttrVals formData //
+            , Optional<PluginFormProperties> pTypes, Optional<SubFormFilter> subFormFilter, PropValRewrite propValRewrite, Optional<PostFormVals> parentFormVals) {
+        if (parentFormVals == null) {
+            throw new IllegalArgumentException("param parentFormVals can not be null");
+        }
         if (context == null) {
             throw new IllegalArgumentException("param contenxt can not be null");
         }
@@ -533,9 +536,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             throw new IllegalArgumentException("formData msgHandler can not be null");
         }
         try {
-            // IRepositoryTargetFile.TARGET_FILE_CONTEXT.set(targetFile);
-//            final PluginFormProperties /** * fieldname */
-//                    propertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
 
             PluginFormProperties propertyTypes = getPropertyTypes(pTypes, subFormFilter);
 
@@ -549,30 +549,41 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                             (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX),
                             (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX));
 
-                    boolean valid = validatePostFormVals(postFormVals, Optional.empty());
+                    boolean valid = validatePostFormVals(parentFormVals, postFormVals, Optional.empty());
                     validateResult.valid = valid;
                     validateResult.setDescriptor(Descriptor.this);
                     return validateResult;
                 }
 
-                private boolean validatePostFormVals(PostFormVals postFormVals,
+                private boolean validatePostFormVals(Optional<PostFormVals> parentFormVals, PostFormVals postFormVals,
                                                      Optional<SubFormFilter> subFormFilter) {
-                    boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, postFormVals, propValRewrite);
 
-                    if (valid && verify) {
+                    if (verify == FormVaildateType.SECOND_VALIDATE) {
+                        if (!secondVerify(msgHandler, context, postFormVals, parentFormVals.orElseThrow(() -> new IllegalStateException("parentFormVals must be present")))) {
+                            return false;
+                        }
+                    }
+
+                    boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, postFormVals, propValRewrite, parentFormVals);
+
+                    if (valid && verify == FormVaildateType.VERIFY) {
                         if (!verify(msgHandler, context, postFormVals) //
                                 || !validateSubformByParent(subFormFilter, postFormVals)) {
                             valid = false;
                         }
                     }
-                    if (valid && !verify) {
+                    if (valid && verify == FormVaildateType.FIRST_VALIDATE) {
                         if (!validateAll(msgHandler, context, postFormVals)//
                                 || !validateSubformByParent(subFormFilter, postFormVals)) {
                             valid = false;
                         }
                     }
+                    if (valid && verify == FormVaildateType.VERIFY) {
+                        return isValid(msgHandler, context, FormVaildateType.SECOND_VALIDATE, subFormFilter, propertyTypes, postFormVals, propValRewrite, Optional.of(postFormVals));
+                    }
                     return valid;
                 }
+
 
                 private boolean validateSubformByParent(Optional<SubFormFilter> subFormFilter,
                                                         PostFormVals postFormVals) {
@@ -600,7 +611,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         PostFormVals formVals
                                 = new PostFormVals(Descriptor.this, props, subFormFilter, msgHandler, context, formData);
                         // boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, formVals);
-                        boolean valid = validatePostFormVals(formVals, subFormFilter);
+                        boolean valid = validatePostFormVals(parentFormVals, formVals, subFormFilter);
                         if (!valid) {
                             validateResult = new PluginValidateResult(formVals,
                                     (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX),
@@ -634,7 +645,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                 new SuFormProperties.ISubDetailedProcess<PluginValidateResult>() {
                                     @Override
                                     public PluginValidateResult process(String subFormId, AttrValMap sform) {
-                                        PluginValidateResult vResult = sform.validate(msgHandler, context, Optional.of(props.convertRootFormProps()), verify);
+                                        PluginValidateResult vResult = sform.validate(msgHandler, context, Optional.of(props.convertRootFormProps()), verify, parentFormVals);
                                         // if (!vResult.isValid()) {
 
                                         subDetailedValidateResult.addSubDetailVaildateResult(subFormId, vResult);
@@ -690,10 +701,21 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
     }
 
+    public enum FormVaildateType {
 
-    private boolean isValid(IControlMsgHandler msgHandler, Context context, boolean bizValidate,
+        FIRST_VALIDATE,
+        SECOND_VALIDATE,
+        VERIFY;
+
+        public static FormVaildateType create(boolean verify) {
+            return verify ? VERIFY : FIRST_VALIDATE;
+        }
+    }
+
+
+    private boolean isValid(IControlMsgHandler msgHandler, Context context, FormVaildateType validateType,
                             Optional<SubFormFilter> subFormFilter, PluginFormProperties propertyTypes,
-                            PostFormVals postFormVals, PropValRewrite propValRewrite) {
+                            PostFormVals postFormVals, PropValRewrite propValRewrite, Optional<PostFormVals> parentFormVals) {
 
         Objects.requireNonNull(postFormVals, "postFormVals can not be null");
         Map<String, JSONObject> formData = postFormVals.rawFormData.asRootFormVals();
@@ -727,14 +749,14 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 AttrValMap attrValMap = AttrValMap.parseDescribableMap(Optional.empty(), descVal);
                 pushFieldStack(context, attr, 0);
                 try {
-                    if (!attrValMap.validate(msgHandler, context, bizValidate).isValid()) {
+                    if (!attrValMap.validate(msgHandler, context, validateType, parentFormVals).isValid()) {
                         valid = false;
                         continue;
                     }
                 } finally {
                     popFieldStack(context);
                 }
-            } else {
+            } else if (validateType != FormVaildateType.SECOND_VALIDATE) {
 
                 if (attrDesc.typeIdentity() == FormFieldType.MULTI_SELECTABLE.getIdentity()) {
                     List<FormFieldType.SelectedItem> selectedItems = getSelectedMultiItems(msgHandler, context,
@@ -908,6 +930,19 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @return true 代表没有错误
      */
     protected boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+        return true;
+    }
+
+    /**
+     * 当本 插件内嵌在其他插件内部，会执行。之前之前会保证父插件已经通过校验的
+     *
+     * @param msgHandler
+     * @param context
+     * @param postFormVals
+     * @param parentPostFormVals
+     * @return
+     */
+    public boolean secondVerify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals, PostFormVals parentPostFormVals) {
         return true;
     }
 
@@ -1383,9 +1418,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
                 ParseDescribable<Describable> plugin = desc.parseDescribable(
                         msgHandler, this.context, this.rawFormData, Optional.of(this.formProperties), subFormFilter, ((propType, val) -> val));
-
-//                ParseDescribable<Describable> plugin = desc.newInstance((IPluginContext) msgHandler, this.rawFormData
-//                        , Optional.empty());
                 instance = plugin.getInstance();
             }
             return (T) instance;

@@ -19,15 +19,23 @@
 package com.qlangtech.tis.plugin.ds;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.TISExtensible;
 import com.qlangtech.tis.plugin.ds.SplitableTableInDB.SplitableDB;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import org.apache.commons.lang3.tuple.Pair;
+import org.codehaus.groovy.runtime.metaclass.ConcurrentReaderHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -37,7 +45,7 @@ import java.util.regex.Pattern;
  **/
 @TISExtensible
 public abstract class SplitTableStrategy implements Describable<SplitTableStrategy>, Serializable {
-    public static final Pattern PATTERN_PHYSICS_TABLE = Pattern.compile("(\\S+)(_\\d+)?");
+    public static final Pattern PATTERN_PHYSICS_TABLE = Pattern.compile("(\\S+?)(_\\d+)?");
 
     /**
      * 取得节点描述信息
@@ -91,15 +99,59 @@ public abstract class SplitTableStrategy implements Describable<SplitTableStrate
         }
     }
 
+    public static class UnrecognizedPhysicsTabs2LogicName implements Serializable {
+        private final String logicTabName;
+        private final Pattern[] testPattern;
+
+        private static UnrecognizedPhysicsTabs2LogicName create(String logicTabName, Set<String> regexPattern) {
+            return new UnrecognizedPhysicsTabs2LogicName(logicTabName, regexPattern.stream().map((regex) -> Pattern.compile(regex)).toArray(Pattern[]::new));
+        }
+
+        public UnrecognizedPhysicsTabs2LogicName(String logicTabName, Pattern[] testPattern) {
+            this.logicTabName = logicTabName;
+            this.testPattern = Objects.requireNonNull(testPattern, "testPattern can not be null");
+            if (testPattern.length < 1) {
+                throw new IllegalArgumentException("testPattern array length can not small than 1");
+            }
+        }
+
+        /**
+         * 测试是否匹配
+         *
+         * @param physicsTabName
+         * @return
+         */
+        public boolean test(String physicsTabName) {
+            for (Pattern p : testPattern) {
+                if (p.matcher(physicsTabName).matches()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
     /**
      * 物理表映射逻辑表
      */
     public static class SplitTablePhysics2LogicNameConverter implements Function<String, String>, Serializable {
-        private final Map<String, String> physics2LogicTabNameConverter;
+        private static final Logger logger = LoggerFactory.getLogger(SplitTablePhysics2LogicNameConverter.class);
+        private final ConcurrentMap<String, String> physics2LogicTabNameConverter;
+        /**
+         * 用于当使用正则识别新进入的表，该表在增量任务启动之后创建的需要重新识别
+         */
+        private final Set<UnrecognizedPhysicsTabs2LogicName> unrecognizedPhysicsTabs2LogicName;
 
         public SplitTablePhysics2LogicNameConverter(SplitableTableInDB splitTabInDB) {
-            this.physics2LogicTabNameConverter = Maps.newHashMap();
-            for (Map.Entry<String, SplitableDB> dbEntry : splitTabInDB.tabs.entrySet()) {
+            this.physics2LogicTabNameConverter = Maps.newConcurrentMap();
+            this.unrecognizedPhysicsTabs2LogicName = Sets.newHashSet();
+            Pair<Boolean, Set<String>> regexPattern = null;
+            for (Map.Entry<String /**逻辑表名*/, SplitableDB> dbEntry : splitTabInDB.tabs.entrySet()) {
+                regexPattern = dbEntry.getValue().rewrite2RegexPattern();
+                if (regexPattern.getKey()) {
+                    unrecognizedPhysicsTabs2LogicName.add(UnrecognizedPhysicsTabs2LogicName.create(dbEntry.getKey(), regexPattern.getRight()));//   regexPattern.getRight();
+                }
+
                 for (Map.Entry<String, List<String>> logicEntry : dbEntry.getValue().physicsTabInSplitableDB.entrySet()) {
                     for (String physicsTabName : logicEntry.getValue()) {
                         this.physics2LogicTabNameConverter.put(physicsTabName, dbEntry.getKey());
@@ -109,11 +161,21 @@ public abstract class SplitTableStrategy implements Describable<SplitTableStrate
         }
 
         @Override
-        public String apply(String physicsName) {
+        public String apply(final String physicsName) {
             String logicalTabName = this.physics2LogicTabNameConverter.get(physicsName);
             if (logicalTabName == null) {
+
+                for (UnrecognizedPhysicsTabs2LogicName recognize : unrecognizedPhysicsTabs2LogicName) {
+                    if (recognize.test(physicsName)) {
+                        logger.info("physicsName:" + physicsName + " has been regonized by unrecognized PhysicsTabs2LogicName to logicName:" + recognize.logicTabName);
+                        this.physics2LogicTabNameConverter.putIfAbsent(physicsName, recognize.logicTabName);
+                        return recognize.logicTabName;
+                    }
+                }
+
                 throw new IllegalStateException("physics tabName:" + physicsName
-                        + " can not find relevant logicalTabName,repo size:" + this.physics2LogicTabNameConverter.size());
+                        + " can not find relevant logicalTabName,repo size:" + this.physics2LogicTabNameConverter.size()
+                        + ",unrecognizedPhysicsTabs2LogicName size:" + unrecognizedPhysicsTabs2LogicName.size());
             }
             return logicalTabName;
         }

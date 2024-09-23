@@ -42,27 +42,6 @@ public abstract class PluginFormProperties {
 
     public abstract <T> T accept(IVisitor visitor);
 
-//    public static class InstancePropsJson {
-//        public final JSON jsonContent;
-//        /**
-//         * jsonContent 对应的plugin实例对象，如果jsonContent为多个字表实例，则relevant Plugin 为empty
-//         */
-//        public final Optional<Describable> relevantPlugin;
-//
-//        public InstancePropsJson(JSON jsonContent) {
-//            this(jsonContent, Optional.empty());
-//        }
-//
-//        public InstancePropsJson(JSON jsonContent, Describable relevantPlugin) {
-//            this(jsonContent, Optional.of(relevantPlugin));
-//        }
-//
-//        private InstancePropsJson(JSON jsonContent, Optional<Describable> relevantPlugin) {
-//            this.jsonContent = jsonContent;
-//            this.relevantPlugin = relevantPlugin;
-//        }
-//    }
-
     public interface IVisitor {
         default <T> T visit(RootFormProperties props) {
             //throw new UnsupportedOperationException("process RootFormProperties");

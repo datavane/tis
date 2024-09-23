@@ -22,7 +22,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.Descriptor.FormVaildateType;
+import com.qlangtech.tis.extension.Descriptor.PostFormVals;
 import com.qlangtech.tis.extension.INotebookable;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
@@ -115,9 +118,9 @@ public class AttrValMap {
     }
 
 
-    public Descriptor.PluginValidateResult validate(IControlMsgHandler msgHandler, Context context, boolean verify) {
+    public Descriptor.PluginValidateResult validate(IControlMsgHandler msgHandler, Context context, FormVaildateType verify, Optional<PostFormVals> parentFormVals) {
         // return this.descriptor.verify(msgHandler, context, verify, attrValMap, subFormFilter);
-        return this.validate(msgHandler, context, Optional.empty(), verify);
+        return this.validate(msgHandler, context, Optional.empty(), verify, parentFormVals);
     }
 
     /**
@@ -128,14 +131,21 @@ public class AttrValMap {
      * @return true：校验没有错误 false：校验有错误
      */
     public Descriptor.PluginValidateResult validate(
-            IControlMsgHandler msgHandler, Context context, Optional<PluginFormProperties> propertyTypes, boolean verify) {
-        // if (this.descriptor == propertyTypes.getDescriptor()) {
-        return this.descriptor.verify(msgHandler, context, verify, attrValMap, propertyTypes, subFormFilter, this.propValRewrite);
-//        } else {
-//            return this.descriptor.verify(msgHandler, context, verify, attrValMap, subFormFilter);
-//        }
-
+            IControlMsgHandler msgHandler, Context context, Optional<PluginFormProperties> propertyTypes, FormVaildateType verify, Optional<PostFormVals> parentFormVals) {
+        return this.descriptor.verify(msgHandler, context, verify, attrValMap, propertyTypes, subFormFilter, this.propValRewrite, parentFormVals);
     }
+
+//    /**
+//     * 二次校验，如果Describle插件内部有Describle类型的属性，当父插件校验通过之后，再继续对内部的Describle子插件进行校验
+//     * @param msgHandler
+//     * @param context
+//     * @param postFormVals
+//     * @param verify
+//     * @return
+//     */
+//    public Descriptor.PluginValidateResult secondValidate(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals, PostFormVals parentPostFormVals) {
+//        return this.descriptor.secondVerify(msgHandler,context, null ,parentPostFormVals);
+//    }
 
     public String createOrGetNotebook(IControlMsgHandler msgHandler, Context context) throws Exception {
 

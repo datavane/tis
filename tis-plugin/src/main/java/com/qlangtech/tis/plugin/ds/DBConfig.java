@@ -20,6 +20,8 @@ package com.qlangtech.tis.plugin.ds;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.plugin.IRepositoryTargetFile;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.AdapterMessageHandler;
@@ -30,14 +32,20 @@ import org.slf4j.LoggerFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -152,6 +160,106 @@ public class DBConfig implements IDbMeta {
     public boolean vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess, boolean facade, IMessageHandler msgHandler, Context context) {
 
         return vistDbURL(resolveHostIp, urlProcess, facade, msgHandler, context, expireSec);
+    }
+
+    /**
+     * @return Map<String / host /, HostDBs>
+     * @throws Exception
+     */
+    public Map<String, HostDBs> getHostDBsMapper() throws Exception {
+        Map<String, HostDBs> ip2dbs = Maps.newHashMap();
+        this.vistDbName((config, jdbcUrl, ip, dbName) -> {
+            HostDBs dbs = ip2dbs.get(ip);
+            if (dbs == null) {
+                dbs = new HostDBs(ip);
+                ip2dbs.put(ip, dbs);
+            }
+            dbs.addDB(jdbcUrl, dbName);
+            return false;
+        });
+        return ip2dbs;
+    }
+
+    public static class HostDB {
+        final String jdbcUrl;
+        final String dbName;
+
+        public HostDB(String jdbcUrl, String dbName) {
+            this.jdbcUrl = Objects.requireNonNull(jdbcUrl, "jdbcUrl");
+            this.dbName = Objects.requireNonNull(dbName, "dbName");
+        }
+    }
+
+    public static class HostDBs {
+        final List<HostDB> dbs;
+        // final String jdbcUrl;
+        private final String host;
+
+        public HostDBs(String host) {
+            this.host = host;
+//            if (StringUtils.isEmpty(jdbcUrl)) {
+//                throw new IllegalArgumentException("param jdbcUrl can not be null");
+//            }
+            this.dbs = Lists.newArrayList();
+            //   this.jdbcUrl = jdbcUrl;
+        }
+
+        public Stream<String> getDbStream() {
+            return this.dbs.stream().map((db) -> db.dbName);
+        }
+
+        public String[] getDataBases() {
+            return getDbStream().toArray(String[]::new);//.toArray(new String[this.dbs.size()]);
+        }
+
+        public String joinDataBases(String delimiter) {
+            return this.getDbStream().collect(Collectors.joining(delimiter));
+        }
+
+        public void addDB(String jdbcUrl, String dbName) {
+            this.dbs.add(new HostDB(jdbcUrl, dbName));
+        }
+
+        public Set<String> mapPhysicsTabs(Map<String, List<ISelectedTab>> db2tabs
+                , Function<DBTable, Stream<String>> tabnameCreator) {
+            return mapPhysicsTabs(db2tabs, tabnameCreator, true);
+        }
+
+        public Set<String> mapPhysicsTabs(Map<String, List<ISelectedTab>> db2tabs
+                , Function<DBTable, Stream<String>> tabnameCreator, boolean validateRelevantTabsNull) {
+            Set<String> tbs = this.dbs.stream().flatMap(
+                    (db) -> {
+                        List<ISelectedTab> tabs = db2tabs.get(db.dbName);
+                        if (tabs == null) {
+                            if (validateRelevantTabsNull) {
+                                throw new IllegalStateException("dbName:" + db.dbName + " relevant tabs can not be null");
+                            } else {
+                                tabs = Collections.emptyList();
+                            }
+                        }
+                        return tabs
+                                .stream().flatMap((tab) -> {
+                                    return tabnameCreator.apply(new DBTable(db.jdbcUrl, db.dbName, tab));
+                                });
+                    }).collect(Collectors.toSet());
+            return tbs;
+        }
+    }
+
+    public static class DBTable {
+        public final String dbNanme;
+        public final String jdbcUrl;
+        private final ISelectedTab tab;
+
+        public DBTable(String jdbcUrl, String dbNanme, ISelectedTab tab) {
+            this.jdbcUrl = jdbcUrl;
+            this.dbNanme = dbNanme;
+            this.tab = tab;
+        }
+
+        public String getTabName() {
+            return tab.getName();
+        }
     }
 
     /**

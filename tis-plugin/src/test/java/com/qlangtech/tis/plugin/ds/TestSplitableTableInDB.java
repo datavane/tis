@@ -21,6 +21,7 @@ package com.qlangtech.tis.plugin.ds;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.common.utils.Assert;
 import junit.framework.TestCase;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
@@ -37,9 +38,10 @@ public class TestSplitableTableInDB extends TestCase {
         SplitableTableInDB splitableTableInDB = new SplitableTableInDB(order2, SplitTableStrategy.PATTERN_PHYSICS_TABLE, prefixWildcardStyle);
         String logicTab = "orderdetail";
         List<String> physicsTabs = Lists.newArrayList(logicTab + "_01", logicTab + "_02");
-        List<String> flinkCDCMatchTabs
+        Pair<Boolean, List<String>> flinkCDCMatchTabs
                 = splitableTableInDB.rewritePhysicsTabs(logicTab, physicsTabs);
         Assert.assertNotNull(flinkCDCMatchTabs);
-        Assert.assertEquals(logicTab + "_(\\d+)", String.join(",", flinkCDCMatchTabs));
+        Assert.assertTrue("shall have been rewrite", flinkCDCMatchTabs.getKey());
+        Assert.assertEquals(logicTab + "_(\\d+)", String.join(",", flinkCDCMatchTabs.getValue()));
     }
 }
