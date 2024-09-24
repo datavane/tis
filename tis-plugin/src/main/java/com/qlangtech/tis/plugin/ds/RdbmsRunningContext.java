@@ -19,7 +19,6 @@
 package com.qlangtech.tis.plugin.ds;
 
 
-import com.qlangtech.tis.plugin.ds.ContextParamConfig.ContextParamValGetter;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta.JDBCConnection;
 import org.apache.commons.lang.StringUtils;
 
@@ -39,7 +38,7 @@ public class RdbmsRunningContext implements RunningContext {
     }
 
     public RdbmsRunningContext(String dbName, String table) {
-        this.dbName = Objects.requireNonNull(dbName, "param conn can not be null");
+        this.dbName = Objects.requireNonNull(dbName, "param dbName can not be null");
         if (StringUtils.isEmpty(table)) {
             throw new IllegalArgumentException("param table can not be empty");
         }

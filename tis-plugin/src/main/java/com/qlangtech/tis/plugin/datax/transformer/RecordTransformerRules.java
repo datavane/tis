@@ -231,22 +231,28 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
             return Optional.of(transformerRulesLoader4Test.apply(tableName));
         }
 
-//        String rawContent = HeteroEnum.TRANSFORMER_RULES.identity + ":require,"
-//                + SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID + "_" + tableName;
-
-
         for (RecordTransformerRules trule
                 : getPluginsAndStore(pluginCtx, tableName).getLeft()) {
-            return Optional.of(trule);
+            return CollectionUtils.isEmpty(trule.rules) ? Optional.empty() : Optional.of(trule);
         }
 
         return Optional.empty();
     }
 
     private static Pair<List<RecordTransformerRules>, IPluginStore> getPluginsAndStore(IPluginContext pluginCtx, String tableName) {
-        String rawContent = HeteroEnum.TRANSFORMER_RULES.identity + ":require,"
-                + SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID + "_" + tableName;
-        return HeteroEnum.TRANSFORMER_RULES.getPluginsAndStore(pluginCtx, UploadPluginMeta.parse(rawContent));
+
+        if (StringUtils.isEmpty(tableName)) {
+            throw new IllegalArgumentException("param tableName:" + tableName + " can not be empty");
+        }
+
+        try {
+            String rawContent = HeteroEnum.TRANSFORMER_RULES.identity + ":require,"
+                    + SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID + "_" + tableName;
+            return HeteroEnum.TRANSFORMER_RULES.getPluginsAndStore(pluginCtx, UploadPluginMeta.parse(rawContent));
+        } catch (Throwable e) {
+            throw new RuntimeException("tableName:" + tableName, e);
+        }
+
     }
 
     @FormField(ordinal = 1, type = FormFieldType.MULTI_SELECTABLE, validate = {})

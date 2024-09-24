@@ -30,6 +30,26 @@ import java.util.Optional;
  */
 public class ReplicasSpec {
 
+    public static ReplicasSpec createDftReplicasSpec() {
+        ReplicasSpec mysqlRcSpec = new ReplicasSpec();
+        mysqlRcSpec.setReplicaCount(1);
+        mysqlRcSpec.setMemoryLimit(Specification.parse("800M"));
+        mysqlRcSpec.setMemoryRequest(Specification.parse("800M"));
+        mysqlRcSpec.setCpuRequest(Specification.parse("250m"));
+        mysqlRcSpec.setCpuLimit(Specification.parse("250m"));
+        return mysqlRcSpec;
+    }
+
+    public static ReplicasSpec createDftPowerjobServerReplicasSpec() {
+        ReplicasSpec mysqlRcSpec = new ReplicasSpec();
+        mysqlRcSpec.setReplicaCount(1);
+        mysqlRcSpec.setMemoryLimit(Specification.parse("1200M"));
+        mysqlRcSpec.setMemoryRequest(Specification.parse("1000M"));
+        mysqlRcSpec.setCpuRequest(Specification.parse("350m"));
+        mysqlRcSpec.setCpuLimit(Specification.parse("500m"));
+        return mysqlRcSpec;
+    }
+
     public static final int maxCpuCoresLimit = 8;
     public static final int maxCpuCoresRequest = 4;
 

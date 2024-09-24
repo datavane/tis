@@ -33,7 +33,7 @@ public class SPIWrokerMemorySpec {
      * @return
      */
     public static int residentMemoryProportion() {
-        return 45;
+        return 40;
     }
 
     public static int dataXExecutorMemoryProportion() {

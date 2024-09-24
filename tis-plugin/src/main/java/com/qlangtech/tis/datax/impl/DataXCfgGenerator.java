@@ -665,7 +665,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
     public String generateDataxConfig(
             IDataxReaderContext readerContext, IDataxWriter writer, IDataxReader reader, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
         Optional<RecordTransformerRules> transformerRules
-                = RecordTransformerRules.loadTransformerRules(this.pluginCtx, readerContext.getSourceEntityName());
+                = RecordTransformerRules.loadTransformerRules(this.pluginCtx, readerContext.getSourceTableName());
         return generateDataxConfig(readerContext, writer, reader, transformerRules, tableMapper);
     }
 

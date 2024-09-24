@@ -1270,23 +1270,24 @@ public class DataxAction extends BasicModule {
     Optional<DataXJobSubmit> jobSubmit = DataXJobSubmit.getDataXJobSubmit(false, InstanceType.LOCAL);
     DataXJobSubmit submit = jobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must be present"));
 
-    QueryCriteria queryCriteria = new QueryCriteria();
-    queryCriteria.setNextPakge(true);
-    queryCriteria.setPageSize(this.getInt("pageSize"));
-    if (queryCriteria.getPageSize() < 1) {
-      throw new IllegalStateException("page size can not small than 1");
-    }
 
-    JSONArray offsetPointer = null;
-    if (jsonPostContent != null) {
-      queryCriteria.setNextPakge(jsonPostContent.getBooleanValue("nextPage"));
-      offsetPointer = jsonPostContent.getJSONArray("offsetPointer");
-    }
-
-    if (offsetPointer != null) {
-      List<OffsetColVal> pagerOffsetCursor = OffsetColVal.deserializePreviewCursor(offsetPointer);
-      queryCriteria.setPagerOffsetCursor(pagerOffsetCursor);
-    }
+    QueryCriteria queryCriteria = QueryCriteria.createCriteria(this.getInt("pageSize"), jsonPostContent);
+//    queryCriteria.setNextPakge(true);
+//    queryCriteria.setPageSize(this.getInt("pageSize"));
+//    if (queryCriteria.getPageSize() < 1) {
+//      throw new IllegalStateException("page size can not small than 1");
+//    }
+//
+//    JSONArray offsetPointer = null;
+//    if (jsonPostContent != null) {
+//      queryCriteria.setNextPakge(jsonPostContent.getBooleanValue("nextPage"));
+//      offsetPointer = jsonPostContent.getJSONArray("offsetPointer");
+//    }
+//
+//    if (offsetPointer != null) {
+//      List<OffsetColVal> pagerOffsetCursor = OffsetColVal.deserializePreviewCursor(offsetPointer);
+//      queryCriteria.setPagerOffsetCursor(pagerOffsetCursor);
+//    }
 
 
     Map<String, Object> preview = Maps.newHashMap();

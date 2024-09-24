@@ -21,6 +21,7 @@ package com.alibaba.datax.common.element;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.plugin.ds.IDBReservedKeys;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,7 @@ public class DataXResultPreviewOrderByCols {
      * @param nextPakge
      * @return
      */
-    public String createWhereAndOrderByStatment(boolean nextPakge) {
+    public String createWhereAndOrderByStatment(boolean nextPakge, IDBReservedKeys dbReservedKeys) {
 
         if (offsetCols.size() < 1) {
             throw new IllegalStateException("offsetCols size can not small than 1");
@@ -68,7 +69,7 @@ public class DataXResultPreviewOrderByCols {
                 if (firstProcessed) {
                     buffer.append(" AND ");
                 }
-                buffer.append(colVal.colKey).append(nextPakge ? ">" : "<").append(colVal.getLiteriaVal());
+                buffer.append(dbReservedKeys.getEscapedEntity(colVal.colKey)).append(nextPakge ? ">" : "<").append(colVal.getLiteriaVal());
 
                 firstProcessed = true;
             }
@@ -81,7 +82,7 @@ public class DataXResultPreviewOrderByCols {
             if (firstProcessed) {
                 buffer.append(",");
             }
-            buffer.append(colVal.colKey).append(" ").append(nextPakge ? "ASC" : "DESC");
+            buffer.append(dbReservedKeys.getEscapedEntity(colVal.colKey)).append(" ").append(nextPakge ? "ASC" : "DESC");
         }
 
         return buffer.toString();

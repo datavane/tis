@@ -21,6 +21,7 @@ package com.qlangtech.tis.plugin.ds;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -104,7 +105,14 @@ public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKey
          */
         public String getCatalog() {
             try {
-                return conn.getCatalog();
+                String catalog = conn.getCatalog();
+                String result = StringUtils.defaultString(catalog, this.getSchema());
+                if (StringUtils.isEmpty(result)) {
+                    throw new IllegalStateException("connUrl:" + this.url
+                            + " relevant catalog can not be empty,catalog:"
+                            + catalog + ",schema:" + this.getSchema());
+                }
+                return result;
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }

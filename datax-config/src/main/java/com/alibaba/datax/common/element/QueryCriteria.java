@@ -19,6 +19,8 @@
 package com.alibaba.datax.common.element;
 
 import com.alibaba.datax.common.element.DataXResultPreviewOrderByCols.OffsetColVal;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 import java.util.List;
 
@@ -34,7 +36,40 @@ public class QueryCriteria {
 //                .createWhereAndOrderByStatment(this.nextPakge);
 //    }
 
+    /**
+     * example:
+     * <pre>
+     * {"nextPage":true
+     *  ,"offsetPointer":[{"val":"000012184fb5165f014fb51722460038","numeric":false,"key":"pay_id"}]}
+     * </pre>
+     *
+     * @param jsonPostContent
+     * @return
+     */
+    public static QueryCriteria createCriteria(int pageSize, JSONObject jsonPostContent) {
+        QueryCriteria queryCriteria = new QueryCriteria();
+        queryCriteria.setNextPakge(true);
+        queryCriteria.setPageSize(pageSize);
+        if (queryCriteria.getPageSize() < 1) {
+            throw new IllegalStateException("page size can not small than 1");
+        }
+
+        JSONArray offsetPointer = null;
+        if (jsonPostContent != null) {
+            queryCriteria.setNextPakge(jsonPostContent.getBooleanValue("nextPage"));
+            offsetPointer = jsonPostContent.getJSONArray("offsetPointer");
+        }
+
+        if (offsetPointer != null) {
+            List<OffsetColVal> pagerOffsetCursor = OffsetColVal.deserializePreviewCursor(offsetPointer);
+            queryCriteria.setPagerOffsetCursor(pagerOffsetCursor);
+        }
+        return queryCriteria;
+    }
+
     public List<OffsetColVal> getPagerOffsetCursor() {
+
+
         return this.pagerOffsetCursor;
     }
 
