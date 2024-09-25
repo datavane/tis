@@ -19,6 +19,7 @@
 package com.qlangtech.tis.plugin.datax;
 
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder.ColWrapper;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-05-07 12:35
  **/
-public abstract class AbstractCreateTableSqlBuilder {
+public abstract class AbstractCreateTableSqlBuilder<T extends ColWrapper> {
     static final Pattern PatternCreateTable = Pattern.compile("([cC][rR][eE][aA][tT][eE]\\s+[tT][aA][bB][lL][eE])\\s+?(\\S+)\\s*\\(");
 
     protected final String targetTableName;
@@ -85,10 +86,6 @@ public abstract class AbstractCreateTableSqlBuilder {
         return dsMeta.getEscapedEntity(val);
     }
 
-//    protected boolean supportColEscapeChar() {
-//        return true;
-//    }
-
     /**
      * @return
      * @see CMeta default implement class
@@ -96,11 +93,8 @@ public abstract class AbstractCreateTableSqlBuilder {
     public List<IColMetaGetter> getCols() {
         return this.cols;
     }
-//    {
-//        return this.tableMapper.getSourceCols();
-//    }
 
-    protected abstract CreateTableSqlBuilder.ColWrapper createColWrapper(IColMetaGetter c);//{
+    protected abstract T createColWrapper(IColMetaGetter c);//{
 
 
     public static class CreateDDL {
@@ -122,7 +116,7 @@ public abstract class AbstractCreateTableSqlBuilder {
         public static String replaceDDLTableName(String createTableDDL, String newTabName) {
             Matcher matcher = PatternCreateTable.matcher(createTableDDL);
             if (matcher.find()) {
-                return matcher.replaceFirst("$1 " + newTabName+" (");
+                return matcher.replaceFirst("$1 " + newTabName + " (");
             }
             throw new IllegalStateException("createTableDDL is illegal:" + createTableDDL);
         }
@@ -132,7 +126,9 @@ public abstract class AbstractCreateTableSqlBuilder {
         }
 
         public String getSelectAllScript() {
-            return "SELECT " + builder.getCols().stream().map((c) -> builder.wrapWithEscape(c.getName())).collect(Collectors.joining(",")) + " FROM " + (builder.getCreateTableName().getEntityName());
+            List<IColMetaGetter> cols = builder.getCols();
+            return "SELECT " + cols.stream().map((c) -> builder.wrapWithEscape(c.getName()))
+                    .collect(Collectors.joining(",")) + " FROM " + (builder.getCreateTableName().getEntityName());
         }
     }
 

@@ -19,8 +19,8 @@
 package com.qlangtech.tis.plugin.datax;
 
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder.ColWrapper;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
-import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.sql.parser.visitor.BlockScriptBuffer;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-08-07 13:45
  **/
-public abstract class CreateTableSqlBuilder extends AbstractCreateTableSqlBuilder {
+public abstract class CreateTableSqlBuilder<T extends ColWrapper> extends AbstractCreateTableSqlBuilder<T> {
 
     public BlockScriptBuffer script;
 
@@ -95,12 +95,12 @@ public abstract class CreateTableSqlBuilder extends AbstractCreateTableSqlBuilde
      * @param cols
      * @return
      */
-    protected List<ColWrapper> preProcessCols(List<String> pks, List<IColMetaGetter> cols) {
+    protected List<T> preProcessCols(List<String> pks, List<IColMetaGetter> cols) {
         return cols.stream().map((c) -> createColWrapper(c)).collect(Collectors.toList());
     }
 
     public static abstract class ColWrapper {
-        protected final IColMetaGetter meta;
+        public final IColMetaGetter meta;
 
         public ColWrapper(IColMetaGetter meta) {
             this.meta = meta;
@@ -111,6 +111,7 @@ public abstract class CreateTableSqlBuilder extends AbstractCreateTableSqlBuilde
         protected void appendExtraConstraint(BlockScriptBuffer ddlScript) {
 
         }
+
         public String getName() {
             return this.meta.getName();
         }
