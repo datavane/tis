@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.manage.common;
 
@@ -29,8 +29,8 @@ import com.opensymphony.xwork2.util.AnnotationUtils;
 import com.opensymphony.xwork2.util.finder.ClassFinder;
 import com.opensymphony.xwork2.util.finder.ClassFinder.ClassInfo;
 import com.opensymphony.xwork2.util.finder.Test;
-import com.opensymphony.xwork2.util.logging.Logger;
-import com.opensymphony.xwork2.util.logging.LoggerFactory;
+//import com.opensymphony.xwork2.util.logging.Logger;
+//import com.opensymphony.xwork2.util.logging.LoggerFactory;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import junit.framework.Assert;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +38,8 @@ import org.apache.struts2.convention.ConventionConstants;
 import org.apache.struts2.convention.PackageBasedActionConfigBuilder;
 import org.apache.struts2.convention.annotation.Action;
 import org.apache.struts2.convention.annotation.DefaultInterceptorRef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
@@ -68,12 +70,39 @@ public class TisPackageBasedActionConfigBuilder extends PackageBasedActionConfig
   }
 
   @Inject
-  public TisPackageBasedActionConfigBuilder(Configuration configuration, Container container, ObjectFactory objectFactory, @Inject("struts.convention.redirect.to.slash") String redirectToSlash, @Inject("struts.convention.default.parent.package") String defaultParentPackage) {
-    super(configuration, container, objectFactory, redirectToSlash, defaultParentPackage);
+  public TisPackageBasedActionConfigBuilder(Configuration configuration, Container container, ObjectFactory objectFactory
+    , @Inject("struts.convention.redirect.to.slash") String redirectToSlash
+    , @Inject("struts.convention.default.parent.package") String defaultParentPackage
+    , @Inject("struts.convention.enable.smi.inheritance") String enableSmiInheritance) {
+    super(configuration, container, objectFactory, redirectToSlash, defaultParentPackage, enableSmiInheritance);
     this.parentPkgConfig = configuration.getPackageConfig("default");
     Assert.assertNotNull(this.parentPkgConfig);
+
+
   }
 
+//  /**
+//   * Configuration configuration
+//   * , Container container
+//   * , ObjectFactory objectFactory
+//   * , @Inject("struts.convention.redirect.to.slash") String redirectToSlash
+//   * , @Inject("struts.convention.default.parent.package") String defaultParentPackage, @Inject("struts.convention.enable.smi.inheritance") String enableSmiInheritance
+//   *
+//   * @param configuration
+//   * @param container
+//   * @param objectFactory
+//   * @param redirectToSlash
+//   * @param defaultParentPackage
+//   */
+//  @Inject
+//  public TisPackageBasedActionConfigBuilder(Configuration configuration, Container container
+//    , ObjectFactory objectFactory
+//    , @Inject("struts.convention.redirect.to.slash") String redirectToSlash
+//    , @Inject("struts.convention.default.parent.package") String defaultParentPackage) {
+//    super(configuration, container, objectFactory, redirectToSlash, defaultParentPackage);
+//    this.parentPkgConfig = configuration.getPackageConfig("default");
+//    Assert.assertNotNull(this.parentPkgConfig);
+//  }
   @Override
   protected Test<ClassInfo> getActionClassTest() {
     return super.getActionClassTest();

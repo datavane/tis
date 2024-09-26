@@ -32,7 +32,8 @@
   <packaging>jar</packaging>
 
   <properties>
-    <struts2.version>2.5.17</struts2.version>
+<!--    <struts2.version>2.5.17</struts2.version>-->
+    <struts2.version>6.6.0</struts2.version>
   </properties>
 
   <profiles>
@@ -142,17 +143,19 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>org.ow2.asm</groupId>
-      <artifactId>asm</artifactId>
-      <version>5.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.ow2.asm</groupId>
-      <artifactId>asm-commons</artifactId>
-      <version>5.1</version>
-    </dependency>
+<!--struts2 has use  asm:9.7,https://github.com/apache/struts/blob/48c4e3b6a0b8b5b410263f119bc2e35cbccb8e17/pom.xml#L112-->
+<!--    <dependency>-->
+<!--      <groupId>org.ow2.asm</groupId>-->
+<!--      <artifactId>asm</artifactId>-->
+<!--&lt;!&ndash;      <version>9.3</version>&ndash;&gt;-->
+<!--      <version>5.1</version>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.ow2.asm</groupId>-->
+<!--      <artifactId>asm-commons</artifactId>-->
+<!--&lt;!&ndash;      <version>9.3</version>&ndash;&gt;-->
+<!--      <version>5.1</version>-->
+<!--    </dependency>-->
 
     <!--    <dependency>-->
     <!--      <groupId>jaxen</groupId>-->
@@ -300,6 +303,12 @@
       <artifactId>struts2-junit-plugin</artifactId>
       <version>${struts2.version}</version>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.struts</groupId>
+      <artifactId>struts2-velocity-plugin</artifactId>
+      <version>${struts2.version}</version>
     </dependency>
 
 

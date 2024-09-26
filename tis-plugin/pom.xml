@@ -47,11 +47,11 @@
         </dependency>
 
 
-<!--        <dependency>-->
-<!--            <groupId>org.apache.velocity</groupId>-->
-<!--            <artifactId>velocity</artifactId>-->
-<!--            <version>1.6.4</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.velocity</groupId>-->
+        <!--            <artifactId>velocity</artifactId>-->
+        <!--            <version>1.6.4</version>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>org.apache.velocity</groupId>
@@ -212,16 +212,28 @@
             <scope>test</scope>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.github.spotbugs</groupId>-->
-<!--            <artifactId>spotbugs-annotations</artifactId>-->
-<!--            <version>4.5.2</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.github.spotbugs</groupId>-->
+        <!--            <artifactId>spotbugs-annotations</artifactId>-->
+        <!--            <version>4.5.2</version>-->
+        <!--        </dependency>-->
 
     </dependencies>
 
     <build>
-        <plugins></plugins>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <compilerArgs combine.children="append">
+                        <arg>--add-exports=java.security.jgss/sun.security.krb5=ALL-UNNAMED</arg>
+                    </compilerArgs>
+                </configuration>
+
+            </plugin>
+
+        </plugins>
     </build>
 
     <repositories>

@@ -51,7 +51,7 @@ public class MockContext implements Context {
 
   @Override
   public <T> void setContext(T actionContext) {
-    ActionContext.setContext((ActionContext) actionContext);
+    ActionContext.bind((ActionContext) actionContext);
   }
 
   @Override

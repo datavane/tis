@@ -24,7 +24,7 @@ import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.spring.EnvironmentBindService;
 import com.qlangtech.tis.test.TISEasyMock;
 import org.apache.commons.io.IOUtils;
-import org.apache.struts2.StrutsSpringTestCase;
+import org.apache.struts2.junit.StrutsSpringTestCase;
 
 import java.io.IOException;
 import java.io.InputStream;

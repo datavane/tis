@@ -25,7 +25,7 @@
     <parent>
         <groupId>com.qlangtech.tis</groupId>
         <artifactId>tis-parent</artifactId>
-        <version>2.0.5</version>
+        <version>2.0.6</version>
     </parent>
 
     <groupId>com.qlangtech.tis</groupId>
@@ -43,7 +43,7 @@
         <tisasm.oss.put.skip>true</tisasm.oss.put.skip>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy/MM/dd HH:mm:ss</maven.build.timestamp.format>
-        <java.version>1.8</java.version>
+<!--        <java.version>1.8</java.version>-->
         <spring-version>3.0.6.RELEASE</spring-version>
         <solr.version>8.7.0</solr.version>
         <curator.version>2.13.0</curator.version>
@@ -54,7 +54,7 @@
         <log4j-to-slf4j.version>2.13.3</log4j-to-slf4j.version>
         <!--        <scala.version>2.11.12</scala.version>-->
 
-        <tisasm-maven-plugin.version>1.0.6</tisasm-maven-plugin.version>
+<!--        <tisasm-maven-plugin.version>1.0.6</tisasm-maven-plugin.version>-->
         <tis.release.repository.host>http://tis-release.oss-cn-beijing.aliyuncs.com</tis.release.repository.host>
         <avro.version>1.11.0</avro.version>
 
@@ -139,7 +139,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.7</version>
+                <version>3.17.0</version>
             </dependency>
 
             <dependency>
