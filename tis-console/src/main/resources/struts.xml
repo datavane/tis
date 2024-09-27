@@ -56,7 +56,7 @@
   <constant name="struts.mapper.class" value="tis"/>
 
   <bean type="org.apache.struts2.dispatcher.mapper.ActionMapper"
-        name="default_terminator" class="org.apache.struts2.dispatcher.mapper.DefaultActionMapper"/>
+        name="default_terminator" class="com.qlangtech.tis.manage.common.TerminatorDefaultActionMapper"/>
 
   <bean type="org.apache.struts2.convention.ActionNameBuilder" name="tis"
         class="com.qlangtech.tis.manage.common.TisActionNameBuilder"/>

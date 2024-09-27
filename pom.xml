@@ -168,8 +168,8 @@
 
             <dependency>
                 <groupId>org.codehaus.groovy</groupId>
-                <artifactId>groovy-all</artifactId>
-                <version>2.3.2</version>
+                <artifactId>groovy</artifactId>
+                <version>3.0.22</version>
             </dependency>
 
             <dependency>

@@ -1,28 +1,30 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.manage.common;
 
 import com.opensymphony.xwork2.ActionChainResult;
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.inject.Container;
+import com.opensymphony.xwork2.inject.Inject;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
+import org.apache.struts2.StrutsConstants;
 import org.apache.struts2.dispatcher.Dispatcher;
 import org.apache.struts2.dispatcher.mapper.ActionMapper;
 import org.apache.struts2.dispatcher.mapper.ActionMapping;
@@ -51,10 +53,11 @@ public class TerminatorForwardResult extends StrutsResultSupport {
     // this.velocityResult = new TerminatorVelocityResult();
     this.chainResult = new ActionChainResult();
     Container container = Dispatcher.getInstance().getContainer();
-//        container.inject(this.velocityResult);
+    //   container.inject(this.velocityResult);
     container.inject(this.chainResult);
     this.defaultActionMapper = (DefaultActionMapper) container.getInstance(ActionMapper.class, "default_terminator");
-    this.defaultActionMapper.setAlwaysSelectFullNamespace("true");
+//    this.defaultActionMapper.setAlwaysSelectFullNamespace("true");
+//    this.defaultActionMapper.setAllowDynamicMethodCalls(Boolean.TRUE.toString());
   }
 
   //private static final Pattern COMPONENT_PATTERN = Pattern.compile("(/(runtime|trigger|coredefine|config|engineplugins)).*");
@@ -68,25 +71,10 @@ public class TerminatorForwardResult extends StrutsResultSupport {
     request.removeAttribute(BasicModule.TERMINATOR_FORWARD);
 
     if (forward == null) {
-      // throw new IllegalStateException("forward can not be null");
-//      ActionMapping forwardMapping = defaultActionMapper.getMapping(request, null);
-//      forwardAction(invocation, forwardMapping);
       return;
     }
     if (StringUtils.endsWith(forward.getAction(), ".vm")) {
       throw new UnsupportedOperationException(forward.getAction());
-//                Matcher matcher = COMPONENT_PATTERN.matcher(namespace);
-//                String lastFinalLocation = null;
-//                if (matcher.matches()) {
-//                    lastFinalLocation = (StringUtils.isEmpty(forward.getNamespace()) ? matcher.group(1) : forward.getNamespace()) + "/templates/screen/" + forward.getAction();
-//                } else {
-//                    throw new IllegalStateException("mapping.getNamespace()" + namespace + " is not pattern" + COMPONENT_PATTERN);
-//                }
-      // request
-      // .setAttribute(BasicModule.Layout_template,
-      // );
-//                velocityResult.setPlaceholder(invocation, lastFinalLocation);
-//                velocityResult.expressLayout(invocation);
     } else {
       request.setAttribute(BasicModule.KEY_MEHTO, forward.method);
       // 直接forward到另外一個action上去
