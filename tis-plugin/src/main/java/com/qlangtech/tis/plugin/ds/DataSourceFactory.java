@@ -123,10 +123,10 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return (Class<C>) BaseDataSourceFactoryDescriptor.class;
     }
 
-    protected void validateConnection(String jdbcUrl, IConnProcessor p) throws TableNotFoundException {
+    protected void validateConnection(JDBCConnectionFactory connectionFactory, String jdbcUrl, IConnProcessor p) throws TableNotFoundException {
         JDBCConnection conn = null;
         try {
-            conn = getConnection(jdbcUrl, true);
+            conn = Objects.requireNonNull(connectionFactory, "connectionFactory").createConnection(jdbcUrl, true); // getConnection(jdbcUrl, true);
             p.vist(conn);
         } catch (TableNotFoundException e) {
             throw e;
@@ -342,8 +342,9 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
     protected List<ColumnMetaData> parseTableColMeta(boolean inSink, EntityName table, String jdbcUrl) throws TableNotFoundException {
 
+        JDBCConnectionFactory connectionFactory = (url, verify) -> DataSourceFactory.this.getConnection(url, verify);
         AtomicReference<List<ColumnMetaData>> ref = new AtomicReference<>();
-        validateConnection(jdbcUrl, (conn) -> {
+        validateConnection(connectionFactory, jdbcUrl, (conn) -> {
             List<ColumnMetaData> columnMetaData = parseTableColMeta(inSink, jdbcUrl, conn, table);
             ref.set(columnMetaData);
         });
@@ -481,7 +482,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         protected boolean validateDSFactory(IControlMsgHandler msgHandler, Context context, T dsFactory) {
 
             DBConfig dbConfig = Objects.requireNonNull(dsFactory.getDbConfig(), "dbConfig can not be null");
-             Exception[] faild = new Exception[1];
+            Exception[] faild = new Exception[1];
             boolean[] validateResult = new boolean[1];
             final Object actionContext = context.getContext();
             dbConfig.vistDbURL(false, 5, (dbName, dbHost, jdbcUrl) -> {

@@ -74,13 +74,28 @@
     </build>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-commons</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-common</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-common-dao</artifactId>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>
@@ -197,6 +212,7 @@
             <artifactId>tis-dag</artifactId>
             <version>${project.version}</version>
         </dependency>
+
 
     </dependencies>
 

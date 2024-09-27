@@ -50,6 +50,8 @@
         <!--        <jetty.version>9.4.27.v20200227</jetty.version>-->
         <jetty.version>9.4.31.v20200723</jetty.version>
 
+<!--        <jetty.version>12.0.13</jetty.version>-->
+
 
         <log4j-to-slf4j.version>2.13.3</log4j-to-slf4j.version>
         <!--        <scala.version>2.11.12</scala.version>-->
@@ -125,9 +127,22 @@
         <dependencies>
 
             <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>9.7</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-commons</artifactId>
+                <version>9.7</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
                 <groupId>com.qlangtech.tis</groupId>
                 <artifactId>tis-common-dao</artifactId>
                 <version>${project.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>
@@ -272,7 +287,7 @@
             <dependency>
                 <groupId>com.qlangtech.tis</groupId>
                 <artifactId>tis-ibatis</artifactId>
-                <version>3.0</version>
+                <version>4.0</version>
             </dependency>
 
 
@@ -286,6 +301,7 @@
                 <groupId>com.qlangtech.tis</groupId>
                 <artifactId>tis-common</artifactId>
                 <version>${project.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>

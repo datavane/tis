@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +81,12 @@ public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKey
     default List<ColumnMetaData> getTableMetadata(JDBCConnection conn, boolean inSink, EntityName table) throws TableNotFoundException {
         throw new UnsupportedOperationException();
     }
+
+    public interface JDBCConnectionFactory {
+
+        public JDBCConnection createConnection(String jdbcUrl, boolean verify) throws SQLException;
+    }
+
 
     public class JDBCConnection implements AutoCloseable {
         private final Connection conn;

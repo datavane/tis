@@ -33,7 +33,7 @@
 
   <properties>
     <struts2.version>6.6.0</struts2.version>
-<!--  <struts2.version>2.5.17</struts2.version>  >-->
+    <!--  <struts2.version>2.5.17</struts2.version>  >-->
   </properties>
 
   <profiles>
@@ -143,39 +143,15 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
     </dependency>
-<!--struts2 has use  asm:9.7,https://github.com/apache/struts/blob/48c4e3b6a0b8b5b410263f119bc2e35cbccb8e17/pom.xml#L112-->
-<!--    <dependency>-->
-<!--      <groupId>org.ow2.asm</groupId>-->
-<!--      <artifactId>asm</artifactId>-->
-<!--&lt;!&ndash;      <version>9.3</version>&ndash;&gt;-->
-<!--      <version>5.1</version>-->
-<!--    </dependency>-->
-<!--    <dependency>-->
-<!--      <groupId>org.ow2.asm</groupId>-->
-<!--      <artifactId>asm-commons</artifactId>-->
-<!--&lt;!&ndash;      <version>9.3</version>&ndash;&gt;-->
-<!--      <version>5.1</version>-->
-<!--    </dependency>-->
-
-    <!--    <dependency>-->
-    <!--      <groupId>jaxen</groupId>-->
-    <!--      <artifactId>jaxen</artifactId>-->
-    <!--      <version>1.1.1</version>-->
-    <!--      <exclusions>-->
-    <!--        <exclusion>-->
-    <!--          <groupId>com.ibm.icu</groupId>-->
-    <!--          <artifactId>icu4j</artifactId>-->
-    <!--        </exclusion>-->
-    <!--        <exclusion>-->
-    <!--          <groupId>xml-apis</groupId>-->
-    <!--          <artifactId>xml-apis</artifactId>-->
-    <!--        </exclusion>-->
-    <!--        <exclusion>-->
-    <!--          <groupId>xerces</groupId>-->
-    <!--          <artifactId>xmlParserAPIs</artifactId>-->
-    <!--        </exclusion>-->
-    <!--      </exclusions>-->
-    <!--    </dependency>-->
+    <!--struts2 has use  asm:9.7,https://github.com/apache/struts/blob/48c4e3b6a0b8b5b410263f119bc2e35cbccb8e17/pom.xml#L112-->
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-commons</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.qlangtech.tis</groupId>
@@ -200,11 +176,11 @@
       <version>4.13.1</version>
     </dependency>
 
-    <dependency>
-      <groupId>org.quartz-scheduler</groupId>
-      <version>2.1.5</version>
-      <artifactId>quartz</artifactId>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.quartz-scheduler</groupId>-->
+<!--      <version>2.1.5</version>-->
+<!--      <artifactId>quartz</artifactId>-->
+<!--    </dependency>-->
 
     <dependency>
       <groupId>com.qlangtech.tis</groupId>
