@@ -28,13 +28,13 @@
 		<env-entry-value>assemble</env-entry-value>
 	</env-entry>
 
-	<context-param>
-		<param-name>contextConfigLocation</param-name>
-		<param-value>classpath:application.context.xml</param-value>
-	</context-param>
-	<listener>
-		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
-	</listener>
+<!--	<context-param>-->
+<!--		<param-name>contextConfigLocation</param-name>-->
+<!--		<param-value>classpath:application.context.xml</param-value>-->
+<!--	</context-param>-->
+<!--	<listener>-->
+<!--		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>-->
+<!--	</listener>-->
 
 	<listener>
 		<listener-class>com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher</listener-class>
