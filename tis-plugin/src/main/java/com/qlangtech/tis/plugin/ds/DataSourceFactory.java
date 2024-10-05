@@ -176,7 +176,32 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      * @param jdbcUrl
      * @return
      */
-    public JDBCConnection getConnection(String jdbcUrl, boolean verify) throws SQLException {
+    public final JDBCConnection getConnection(String jdbcUrl, boolean verify) throws SQLException {
+
+        JDBCConnectionPool connectionPool = JDBCConnection.connectionPool.get();
+        JDBCConnection conn = null;
+        if (connectionPool != null) {
+            conn = connectionPool.getConnection(jdbcUrl, verify);
+            if (conn == null) {
+                conn = createConnection(jdbcUrl, verify);
+                return connectionPool.setConnection(jdbcUrl, verify, conn);
+            } else {
+                return conn;
+            }
+        } else {
+            return createConnection(jdbcUrl, verify);
+        }
+    }
+
+    /**
+     * 创建jdbc连接器
+     *
+     * @param jdbcUrl
+     * @param verify
+     * @return
+     * @throws SQLException
+     */
+    public JDBCConnection createConnection(String jdbcUrl, boolean verify) throws SQLException {
         throw new UnsupportedOperationException("class:" + this.getClass().getName() + ",jdbcUrl:" + jdbcUrl);
     }
 

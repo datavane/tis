@@ -18,37 +18,12 @@
 
 package com.qlangtech.tis.plugin.ds;
 
-
-import org.apache.commons.lang.StringUtils;
-
-import java.util.Objects;
-
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-08-02 10:15
+ * @create: 2024-10-05 19:40
  **/
-public class RdbmsRunningContext implements RunningContext {
-    private final String dbName;
-    private final String table;
+public abstract class JDBCConnectionPool {
+    public abstract JDBCConnection getConnection(String jdbcUrl, boolean verify);
 
-    
-    public static RdbmsRunningContext create(JDBCConnection conn, String table) {
-        return new RdbmsRunningContext(Objects.requireNonNull(conn, "param conn can not be null").getCatalog(), table);
-    }
-
-    public RdbmsRunningContext(String dbName, String table) {
-        this.dbName = Objects.requireNonNull(dbName, "param dbName can not be null");
-        if (StringUtils.isEmpty(table)) {
-            throw new IllegalArgumentException("param table can not be empty");
-        }
-        this.table = table;
-    }
-
-    public String getDbName() {
-        return this.dbName;
-    }
-
-    public String getTable() {
-        return this.table;
-    }
+    public abstract JDBCConnection setConnection(String jdbcUrl, boolean verify, JDBCConnection conn);
 }

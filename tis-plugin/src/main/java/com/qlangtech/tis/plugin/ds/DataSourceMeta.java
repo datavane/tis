@@ -21,13 +21,9 @@ package com.qlangtech.tis.plugin.ds;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import org.apache.commons.lang3.StringUtils;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
-import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
@@ -87,95 +83,6 @@ public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKey
         public JDBCConnection createConnection(String jdbcUrl, boolean verify) throws SQLException;
     }
 
-
-    public class JDBCConnection implements AutoCloseable {
-        private final Connection conn;
-        private final String url;
-
-        public JDBCConnection(Connection conn, String url) {
-            this.conn = conn;
-            this.url = url;
-        }
-
-        public String getSchema() {
-            try {
-                return conn.getSchema();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        /**
-         * 取得dbName
-         *
-         * @return
-         */
-        public String getCatalog() {
-            try {
-                String catalog = conn.getCatalog();
-                String result = StringUtils.defaultString(catalog, this.getSchema());
-                if (StringUtils.isEmpty(result)) {
-                    throw new IllegalStateException("connUrl:" + this.url
-                            + " relevant catalog can not be empty,catalog:"
-                            + catalog + ",schema:" + this.getSchema());
-                }
-                return result;
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        public Statement createStatement() throws SQLException {
-            return this.conn.createStatement();
-        }
-
-        public Connection getConnection() {
-            return this.conn;
-        }
-
-        public String getUrl() {
-            return this.url;
-        }
-
-        @Override
-        public void close() throws SQLException {
-            this.conn.close();
-        }
-
-        /**
-         * 执行一个查询语句
-         *
-         * @param sql
-         * @param resultProcess
-         * @throws Exception
-         */
-        public void query(String sql, ResultProcess resultProcess) throws Exception {
-            synchronized (JDBCConnection.class) {
-                try (Statement stmt = conn.createStatement()) {
-                    try {
-                        try (ResultSet result = stmt.executeQuery(sql)) {
-                            while (result.next()) {
-                                if (!resultProcess.callback(result)) {
-                                    return;
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        throw new RuntimeException(sql, e);
-                    }
-                }
-            }
-        }
-
-        public boolean execute(String sql) throws Exception {
-            synchronized (JDBCConnection.class) {
-                try (Statement stmt = conn.createStatement()) {
-                    return stmt.execute(sql);
-                }
-            }
-        }
-
-    }
 
     public interface ResultProcess {
 

@@ -275,6 +275,7 @@ public class DBConfig implements IDbMeta {
             return t;
         });
         try {
+            final JDBCConnectionPool connectionPool = JDBCConnection.connectionPool.get();
             int dbCount = 0;
             for (Map.Entry<String, List<String>> entry : this.getDbEnum().entrySet()) {
                 dbCount += entry.getValue().size();
@@ -296,7 +297,9 @@ public class DBConfig implements IDbMeta {
                     }
                     hostCount++;
                     fixedThreadPool.execute(() -> {
-                        //  IRepositoryTargetFile.TARGET_FILE_CONTEXT.set(tfile);
+                        if (connectionPool != null) {
+                            JDBCConnection.connectionPool.set(connectionPool);
+                        }
                         try {
                             fjdbcUrl.set(jdbcUrl);
                             urlProcess.visit((facade ? name : dbName), dbHost, jdbcUrl);
