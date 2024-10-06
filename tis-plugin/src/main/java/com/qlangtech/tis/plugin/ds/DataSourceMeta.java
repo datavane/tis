@@ -78,10 +78,10 @@ public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKey
         throw new UnsupportedOperationException();
     }
 
-    public interface JDBCConnectionFactory {
-
-        public JDBCConnection createConnection(String jdbcUrl, boolean verify) throws SQLException;
-    }
+//    public interface JDBCConnectionFactory {
+//
+//        public JDBCConnection createConnection(String jdbcUrl, boolean verify) throws SQLException;
+//    }
 
 
     public interface ResultProcess {

@@ -123,10 +123,10 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return (Class<C>) BaseDataSourceFactoryDescriptor.class;
     }
 
-    protected void validateConnection(JDBCConnectionFactory connectionFactory, String jdbcUrl, IConnProcessor p) throws TableNotFoundException {
+    protected void validateConnection(String jdbcUrl, IConnProcessor p) throws TableNotFoundException {
         JDBCConnection conn = null;
         try {
-            conn = Objects.requireNonNull(connectionFactory, "connectionFactory").createConnection(jdbcUrl, true); // getConnection(jdbcUrl, true);
+            conn = this.createConnection(jdbcUrl, true); // getConnection(jdbcUrl, true);
             p.vist(conn);
         } catch (TableNotFoundException e) {
             throw e;
@@ -205,7 +205,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         throw new UnsupportedOperationException("class:" + this.getClass().getName() + ",jdbcUrl:" + jdbcUrl);
     }
 
-    public JDBCConnection getConnection(String jdbcUrl, boolean usingPool, boolean verify) throws SQLException {
+    public JDBCConnection getConnection(String  jdbcUrl, boolean usingPool, boolean verify) throws SQLException {
         return this.getConnection(jdbcUrl, verify);
     }
 
@@ -367,9 +367,8 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
     protected List<ColumnMetaData> parseTableColMeta(boolean inSink, EntityName table, String jdbcUrl) throws TableNotFoundException {
 
-        JDBCConnectionFactory connectionFactory = (url, verify) -> DataSourceFactory.this.getConnection(url, verify);
         AtomicReference<List<ColumnMetaData>> ref = new AtomicReference<>();
-        validateConnection(connectionFactory, jdbcUrl, (conn) -> {
+        validateConnection(jdbcUrl, (conn) -> {
             List<ColumnMetaData> columnMetaData = parseTableColMeta(inSink, jdbcUrl, conn, table);
             ref.set(columnMetaData);
         });

@@ -128,7 +128,7 @@ public class DBConfig implements IDbMeta {
         for (Map.Entry<String, List<String>> entry : dbEnum.entrySet()) {
             for (String dbname : entry.getValue()) {
                 jdbcUrl = this.jdbcUrlBuilder.buidJdbcUrl(this, entry.getKey(), dbname);
-                if (p.visit(this, jdbcUrl, entry.getKey(), dbname)) {
+                if (p.visit(this, (jdbcUrl), entry.getKey(), dbname)) {
                     return;
                 }
             }
@@ -297,16 +297,20 @@ public class DBConfig implements IDbMeta {
                     }
                     hostCount++;
                     fixedThreadPool.execute(() -> {
-                        if (connectionPool != null) {
-                            JDBCConnection.connectionPool.set(connectionPool);
-                        }
+
                         try {
+                            if (connectionPool != null) {
+                                JDBCConnection.connectionPool.set(connectionPool);
+                            }
                             fjdbcUrl.set(jdbcUrl);
-                            urlProcess.visit((facade ? name : dbName), dbHost, jdbcUrl);
+                            urlProcess.visit((facade ? name : dbName), dbHost, (jdbcUrl));
                         } catch (Throwable e) {
                             exceptionCollect.set(e);
                         } finally {
                             countDownLatch.countDown();
+                            if (connectionPool != null) {
+                                JDBCConnection.connectionPool.remove();
+                            }
                             //  IRepositoryTargetFile.TARGET_FILE_CONTEXT.remove();
                         }
                     });
@@ -418,7 +422,7 @@ public class DBConfig implements IDbMeta {
          * @param dbName
          * @return
          */
-        boolean visit(DBConfig config, String jdbcUrl, String ip, String dbName) throws Exception;
+        boolean visit(DBConfig config, String  jdbcUrl, String ip, String dbName) throws Exception;
     }
 
     public interface IDbUrlProcess {
@@ -431,6 +435,32 @@ public class DBConfig implements IDbMeta {
          */
         void visit(String dbName, String dbHost, String jdbcUrl) throws Exception;
     }
+
+//    public static class JDBCUrl {
+//        private final String jdbcUrl;
+//        private final String dbIdentity;
+//
+//        public JDBCUrl(String jdbcUrl, String dbIdentity) {
+//            this.jdbcUrl = jdbcUrl;
+//            this.dbIdentity = dbIdentity;
+//        }
+//
+//        public String getJdbcUrl() {
+//            return jdbcUrl;
+//        }
+//
+//        public String getDbIdentity() {
+//            return dbIdentity;
+//        }
+//
+//        @Override
+//        public String toString() {
+//            return "{" +
+//                    "jdbcUrl='" + jdbcUrl + '\'' +
+//                    ", id='" + dbIdentity + '\'' +
+//                    '}';
+//        }
+//    }
 
 //    @Override
 //    public String toString() {
