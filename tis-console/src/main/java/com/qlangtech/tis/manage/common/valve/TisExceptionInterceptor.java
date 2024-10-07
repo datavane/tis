@@ -29,6 +29,8 @@ import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.TisActionMapper;
 import com.qlangtech.tis.manage.spring.aop.AuthorityCheckAdvice;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.plugin.ds.JDBCConnection;
+import com.qlangtech.tis.plugin.ds.JDBCConnectionPool;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.slf4j.Logger;
@@ -80,8 +82,8 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
     }
     ActionProxy proxy = invocation.getProxy();
     AjaxValve.ActionExecResult execResult = null;
-    try {
-
+    try (JDBCConnectionPool jdbcConnectionPool = JDBCConnectionPool.create()) {
+      JDBCConnection.connectionPool.set(jdbcConnectionPool);
       if (disableTransaction) {
         return invocation.invoke();
       } else {
@@ -118,6 +120,7 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
         throw e;
       }
     } finally {
+      JDBCConnection.connectionPool.remove();
       SuFormProperties.subFormGetterProcessThreadLocal.remove();
       GroovyShellUtil.pluginThreadLocal.remove();
       UpdateSite.pluginArts.remove();
