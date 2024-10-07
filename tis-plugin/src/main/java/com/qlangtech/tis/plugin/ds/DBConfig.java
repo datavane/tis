@@ -25,6 +25,9 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.plugin.IRepositoryTargetFile;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.AdapterMessageHandler;
+import com.qlangtech.tis.util.RobustReflectionConverter2;
+import com.qlangtech.tis.util.RobustReflectionConverter2.PluginMetas;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,7 +138,7 @@ public class DBConfig implements IDbMeta {
         }
     }
 
-    public static final int expireSec = 15;
+    public static final int expireSec = TisAppLaunch.isTestMock() ? 200 : 15;
 
     public void vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess) {
         vistDbURL(resolveHostIp, expireSec, urlProcess);
@@ -276,6 +279,7 @@ public class DBConfig implements IDbMeta {
         });
         try {
             final JDBCConnectionPool connectionPool = JDBCConnection.connectionPool.get();
+            final PluginMetas pluginMetas = RobustReflectionConverter2.usedPluginInfo.get();
             int dbCount = 0;
             for (Map.Entry<String, List<String>> entry : this.getDbEnum().entrySet()) {
                 dbCount += entry.getValue().size();
@@ -302,6 +306,8 @@ public class DBConfig implements IDbMeta {
                             if (connectionPool != null) {
                                 JDBCConnection.connectionPool.set(connectionPool);
                             }
+                            RobustReflectionConverter2.usedPluginInfo.set(pluginMetas);
+
                             fjdbcUrl.set(jdbcUrl);
                             urlProcess.visit((facade ? name : dbName), dbHost, (jdbcUrl));
                         } catch (Throwable e) {
@@ -311,7 +317,7 @@ public class DBConfig implements IDbMeta {
                             if (connectionPool != null) {
                                 JDBCConnection.connectionPool.remove();
                             }
-                            //  IRepositoryTargetFile.TARGET_FILE_CONTEXT.remove();
+                            RobustReflectionConverter2.usedPluginInfo.remove();
                         }
                     });
                     if (facade) {
@@ -422,7 +428,7 @@ public class DBConfig implements IDbMeta {
          * @param dbName
          * @return
          */
-        boolean visit(DBConfig config, String  jdbcUrl, String ip, String dbName) throws Exception;
+        boolean visit(DBConfig config, String jdbcUrl, String ip, String dbName) throws Exception;
     }
 
     public interface IDbUrlProcess {

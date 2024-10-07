@@ -18,6 +18,8 @@
 
 package com.qlangtech.tis.plugin.ds;
 
+import java.util.function.Function;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-10-05 19:40
@@ -25,5 +27,6 @@ package com.qlangtech.tis.plugin.ds;
 public abstract class JDBCConnectionPool {
     public abstract JDBCConnection getConnection(String jdbcUrl, boolean verify);
 
-    public abstract JDBCConnection setConnection(String jdbcUrl, boolean verify, JDBCConnection conn);
+    public abstract JDBCConnection getConnection(String jdbcUrl, boolean verify, Function<String, JDBCConnection> mappingFunction);
+    //public abstract JDBCConnection setConnection(String jdbcUrl, boolean verify, JDBCConnection conn);
 }

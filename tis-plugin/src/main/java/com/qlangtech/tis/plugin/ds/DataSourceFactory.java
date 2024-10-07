@@ -126,7 +126,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     protected void validateConnection(String jdbcUrl, IConnProcessor p) throws TableNotFoundException {
         JDBCConnection conn = null;
         try {
-            conn = this.createConnection(jdbcUrl, true); // getConnection(jdbcUrl, true);
+            conn = this.getConnection(jdbcUrl, true); // getConnection(jdbcUrl, true);
             p.vist(conn);
         } catch (TableNotFoundException e) {
             throw e;
@@ -183,8 +183,13 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         if (connectionPool != null) {
             conn = connectionPool.getConnection(jdbcUrl, verify);
             if (conn == null) {
-                conn = createConnection(jdbcUrl, verify);
-                return connectionPool.setConnection(jdbcUrl, verify, conn);
+                return connectionPool.getConnection(jdbcUrl, verify, (url) -> {
+                    try {
+                        return createConnection(jdbcUrl, verify);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
             } else {
                 return conn;
             }
@@ -201,11 +206,11 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      * @return
      * @throws SQLException
      */
-    public JDBCConnection createConnection(String jdbcUrl, boolean verify) throws SQLException {
+    protected JDBCConnection createConnection(String jdbcUrl, boolean verify) throws SQLException {
         throw new UnsupportedOperationException("class:" + this.getClass().getName() + ",jdbcUrl:" + jdbcUrl);
     }
 
-    public JDBCConnection getConnection(String  jdbcUrl, boolean usingPool, boolean verify) throws SQLException {
+    public JDBCConnection getConnection(String jdbcUrl, boolean usingPool, boolean verify) throws SQLException {
         return this.getConnection(jdbcUrl, verify);
     }
 
