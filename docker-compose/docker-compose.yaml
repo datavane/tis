@@ -24,6 +24,5 @@ services:
       - "8080:8080"
       - "56432:56432"
     volumes:
-      - ${PWD}/config/config.properties:/opt/app/tis-uber/tjs/conf/tis-web-config/config.properties
-      - ${PWD}/config/config.properties:/opt/app/tis-uber/tis-assemble/conf/tis-web-config/config.properties
+      - ${PWD}/config/config.properties:/opt/app/tis-uber/web-start/conf/tis-web-config/config.properties
       - ${PWD}/data:/opt/data
