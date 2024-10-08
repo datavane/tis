@@ -30,7 +30,7 @@ public interface IBuildHistory {
 
     /**
      * @return
-     * @see ExecResult.parse()
+     * // @see ExecResult#parse()
      */
     public Byte getState();
 

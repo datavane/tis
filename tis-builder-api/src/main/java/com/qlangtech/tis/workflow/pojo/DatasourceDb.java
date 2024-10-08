@@ -17,8 +17,6 @@
  */
 package com.qlangtech.tis.workflow.pojo;
 
-import com.qlangtech.tis.plugin.IdentityName;
-
 import java.io.Serializable;
 import java.util.Date;
 

@@ -144,7 +144,7 @@ data:
 ---
 # how to use aliyun pv: https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/mount-a-statically-provisioned-oss-volume?spm=a2c4g.11186623.0.0.39145057wGt7rB
 # 使用 云盘：https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/use-a-statically-provisioned-disk-volume?spm=a2c4g.11186623.0.i5
-apiVersion: v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tis-console
@@ -152,7 +152,8 @@ spec:
   progressDeadlineSeconds: 600
   replicas: 1
   selector:
-    app: tis-console
+    matchLabels:
+      app: tis-console
   template:
     metadata:
       labels:
@@ -162,9 +163,7 @@ spec:
         - name: tis-console
           volumeMounts:
             - name: tis-config-volume
-              mountPath: /opt/app/tis-uber/tjs/conf/tis-web-config/
-            - name: tis-config-volume
-              mountPath: /opt/app/tis-uber/tis-assemble/conf/tis-web-config/
+              mountPath: /opt/app/tis-uber/web-start/conf/tis-web-config/
             - name: tis-console-pvc
               mountPath: "/opt/data"
           image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:4.0.1
