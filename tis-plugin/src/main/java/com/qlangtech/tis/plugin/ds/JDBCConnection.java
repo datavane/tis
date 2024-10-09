@@ -25,6 +25,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -36,6 +38,29 @@ public class JDBCConnection implements AutoCloseable {
 
     private final Connection conn;
     private final String url;
+
+    /**
+     * 增量实例启动时，为了防止重复初始化目标库的表对已经初始化过的表进行标记
+     */
+    private final ConcurrentHashMap<String, String> initializedTabs = new ConcurrentHashMap<>();
+
+
+    /**
+     * 初始化表
+     *
+     * @param tabName
+     * @param initProcessor
+     * @return 进行了表初始化流程
+     */
+    public final boolean initializeSinkTab(String tabName, Runnable initProcessor) {
+        final boolean[] initialized = new boolean[1];
+        initializedTabs.computeIfAbsent(tabName, (t) -> {
+            initProcessor.run();
+            initialized[0] = true;
+            return t;
+        });
+        return initialized[0];
+    }
 
     public JDBCConnection(Connection conn, String url) {
         this.conn = conn;
