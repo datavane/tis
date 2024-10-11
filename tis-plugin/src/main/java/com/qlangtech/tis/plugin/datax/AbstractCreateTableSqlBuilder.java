@@ -42,7 +42,7 @@ public abstract class AbstractCreateTableSqlBuilder<T extends ColWrapper> {
     static final Pattern PatternCreateTable = Pattern.compile("([cC][rR][eE][aA][tT][eE]\\s+[tT][aA][bB][lL][eE])\\s+?(\\S+)\\s*\\(");
 
     protected final String targetTableName;
-    protected final List<IColMetaGetter> cols;
+    protected final List<T> cols;
     protected final List<String> pks;
     public int maxColNameLength;
     protected final DataSourceMeta dsMeta;
@@ -62,10 +62,10 @@ public abstract class AbstractCreateTableSqlBuilder<T extends ColWrapper> {
             sourceCols = transformerRules.overwriteCols(sourceCols).getCols();
         }
 
-        this.cols = Collections.unmodifiableList(sourceCols);
+        this.cols = Collections.unmodifiableList(sourceCols.stream().map((c) -> createColWrapper(c)).collect(Collectors.toList()));
 
         maxColNameLength = 0;
-        for (IColMetaGetter col : this.getCols()) {
+        for (T col : this.getCols()) {
             int m = StringUtils.length(col.getName());
             if (m > maxColNameLength) {
                 maxColNameLength = m;
@@ -74,6 +74,8 @@ public abstract class AbstractCreateTableSqlBuilder<T extends ColWrapper> {
         maxColNameLength += 4;
         this.dsMeta = dsMeta;
     }
+
+    protected abstract T createColWrapper(IColMetaGetter c);
 
     public abstract CreateTableSqlBuilder.CreateDDL build();
 
@@ -90,11 +92,11 @@ public abstract class AbstractCreateTableSqlBuilder<T extends ColWrapper> {
      * @return
      * @see CMeta default implement class
      */
-    public List<IColMetaGetter> getCols() {
+    public List<T> getCols() {
         return this.cols;
     }
 
-    protected abstract T createColWrapper(IColMetaGetter c);//{
+    //{
 
 
     public static class CreateDDL {
@@ -123,6 +125,11 @@ public abstract class AbstractCreateTableSqlBuilder<T extends ColWrapper> {
 
         public StringBuffer getDDLScript() {
             return this.script;
+        }
+
+        @Override
+        public String toString() {
+            return getDDLScript().toString();
         }
 
         public String getSelectAllScript() {

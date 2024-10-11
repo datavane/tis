@@ -43,7 +43,7 @@ public final class DefaultTab implements ISelectedTab {
     }
 
     @Override
-    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, Optional<IReaderSource> readerSource) {
+    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx,boolean includeContextParams) {
         throw new UnsupportedOperationException();
     }
 

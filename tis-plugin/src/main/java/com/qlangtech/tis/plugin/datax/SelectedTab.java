@@ -19,9 +19,9 @@
 package com.qlangtech.tis.plugin.datax;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.datax.core.job.ITransformerBuildInfo;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.ESTableAlias;
@@ -35,7 +35,6 @@ import com.qlangtech.tis.extension.impl.EnumFieldMode;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.extension.impl.XmlFile;
-import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginStore.AfterPluginVerified;
@@ -46,12 +45,10 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
-import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules.OverwriteCols;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
-import com.qlangtech.tis.plugin.ds.IReaderSource;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
@@ -107,14 +104,20 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     public String where;
 
     @Override
-    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, Optional<IReaderSource> readerSource) {
-        Optional<RecordTransformerRules> transformerRules = RecordTransformerRules.loadTransformerRules((IPluginContext) pluginCtx, this.getName());
+    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, boolean includeContextParams) {
+        Optional<RecordTransformerRules> transformerRules
+                = RecordTransformerRules.loadTransformerRules((IPluginContext) pluginCtx, this.getName());
         List<IColMetaGetter> cols = null;
         if (transformerRules.isPresent()) {
-            OverwriteCols overwriteCols = transformerRules.get().overwriteCols(this.getCols());
-            if (readerSource.isPresent()) {
-                cols = overwriteCols.appendSourceContextParams((DataSourceMeta) readerSource.get()).getCols();
-            }
+            ITransformerBuildInfo transformerBuilder = transformerRules.get().createTransformerBuildInfo((IPluginContext) pluginCtx);
+            cols = transformerBuilder
+                    .overwriteColsWithContextParams(this.getCols());
+            return includeContextParams ? cols : transformerBuilder.tranformerColsWithoutContextParams();
+
+//            OverwriteCols overwriteCols = transformerRules.get().overwriteCols(this.getCols());
+//            if (readerSource.isPresent()) {
+//                cols = overwriteCols.appendSourceContextParams((DataSourceMeta) readerSource.get()).getCols();
+//            }
         } else {
             cols = this.getCols().stream().collect(Collectors.toList());
         }

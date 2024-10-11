@@ -36,8 +36,10 @@ public class AdapterSelectedTab implements ISelectedTab {
     }
 
     @Override
-    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, Optional<IReaderSource> readerSource) {
-        return target.overwriteCols(pluginCtx, readerSource);
+    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx , boolean includeContextParams
+    ) {
+        return target.overwriteCols(pluginCtx , includeContextParams
+        );
     }
 
     @Override

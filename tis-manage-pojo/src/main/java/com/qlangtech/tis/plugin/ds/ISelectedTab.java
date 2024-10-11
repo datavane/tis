@@ -51,11 +51,13 @@ public interface ISelectedTab extends ISelectedTabMeta {
 
     /**
      * 通过 transoformer 改写来源列
+     *
      * @param pluginCtx
-     * @param readerSource 用于生成基于reader的环境绑定参数用，当用于reader端需要有值，用于writer端应该为Optional.empty()
+     * @param includeContextParams  是否需要包含 //用于生成基于reader的环境绑定参数用，当用于reader端需要有值，用于writer端应该为Optional.empty()
      * @return
      */
-    default List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, Optional<IReaderSource> readerSource) {
+    default List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, boolean includeContextParams
+    ) {
         throw new UnsupportedOperationException();
     }
 

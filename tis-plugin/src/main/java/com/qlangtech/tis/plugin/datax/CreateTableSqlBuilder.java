@@ -22,13 +22,14 @@ import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder.ColWrapper;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
+import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.sql.parser.visitor.BlockScriptBuffer;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -95,15 +96,26 @@ public abstract class CreateTableSqlBuilder<T extends ColWrapper> extends Abstra
      * @param cols
      * @return
      */
-    protected List<T> preProcessCols(List<String> pks, List<IColMetaGetter> cols) {
-        return cols.stream().map((c) -> createColWrapper(c)).collect(Collectors.toList());
+    protected List<T> preProcessCols(List<String> pks, List<T> cols) {
+        // return cols.stream().map((c) -> createColWrapper(c)).collect(Collectors.toList());
+        return cols;
     }
 
     public static abstract class ColWrapper {
-        public final IColMetaGetter meta;
+        private final IColMetaGetter meta;
+        private final List<String> pks;
 
-        public ColWrapper(IColMetaGetter meta) {
+        public ColWrapper(IColMetaGetter meta, List<String> pks) {
             this.meta = meta;
+            this.pks = Objects.requireNonNull(pks, "param pks can not be null");
+        }
+
+        public boolean isPk() {
+            return pks.contains(meta.getName());
+        }
+
+        public DataType getType() {
+            return this.meta.getType();
         }
 
         public abstract String getMapperType();

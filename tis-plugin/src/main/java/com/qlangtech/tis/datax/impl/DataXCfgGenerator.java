@@ -478,8 +478,11 @@ public class DataXCfgGenerator implements IDataXNameAware {
             }
 
             IDataxProcessor dataxProcessor = DataxProcessor.load(null, appAndRuntime.getAppName());
+            File dataxCfgDir = dataxProcessor.getDataxCfgDir(null);
+            if (!dataxCfgDir.exists()) {
+              return Collections.emptyList();
+            }
             GenerateCfgs dataxCfgFileNames = dataxProcessor.getDataxCfgFileNames(null, Optional.empty());
-
             return (dataxCfgFileNames.getTargetTabs().stream().map((tab) -> new Option(tab)).collect(Collectors.toList()));
         }
 
