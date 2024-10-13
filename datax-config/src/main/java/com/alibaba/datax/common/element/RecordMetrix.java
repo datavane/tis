@@ -19,18 +19,12 @@
 package com.alibaba.datax.common.element;
 
 /**
- * Created by jingxing on 14-8-24.
- */
-public interface Record extends ColumnAwareRecord<Object>, RecordMetrix {
+ *
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2024-10-13 08:55
+ **/
+public interface RecordMetrix {
+    public int getByteSize();
 
-    public void addColumn(Column column);
-
-    public void setColumn(int i, final Column column);
-
-    public Column getColumn(int i);
-
-    public String toString();
-
-    public int getColumnNumber();
-
+    public int getMemorySize();
 }

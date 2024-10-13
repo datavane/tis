@@ -83,6 +83,7 @@ public class DataXResultPreviewOrderByCols {
                 buffer.append(",");
             }
             buffer.append(dbReservedKeys.getEscapedEntity(colVal.colKey)).append(" ").append(nextPakge ? "ASC" : "DESC");
+            firstProcessed = true;
         }
 
         return buffer.toString();

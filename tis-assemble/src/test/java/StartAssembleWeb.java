@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import com.alibaba.datax.common.statistics.PerfTrace;
 import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
@@ -42,8 +43,8 @@ public class StartAssembleWeb extends TestCase {
 
     public void testStart() throws Exception {
 
-       System.out.println(this.getClass().getClassLoader().loadClass("com.alibaba.datax.common.statistics.PerfTrace"));
-
+        System.out.println(this.getClass().getClassLoader().loadClass("com.alibaba.datax.common.statistics.PerfTrace"));
+        PerfTrace.getInstance(false, -1111, -1111, 0, false);
         // System.setProperty(com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger.KEY_DELTA_STREM_DEBUG, "true");
         System.setProperty(DataxUtils.EXEC_TIMESTAMP, String.valueOf(TimeFormat.getCurrentTimeStamp()));
         String[] args = new String[]{};
