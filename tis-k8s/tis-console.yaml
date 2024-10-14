@@ -162,9 +162,7 @@ spec:
         - name: tis-console
           volumeMounts:
             - name: tis-config-volume
-              mountPath: /opt/app/tis-uber/tjs/conf/tis-web-config/
-            - name: tis-config-volume
-              mountPath: /opt/app/tis-uber/tis-assemble/conf/tis-web-config/
+              mountPath: /opt/app/tis-uber/web-start/conf/tis-web-config/
             - name: tis-console-pvc
               mountPath: "/opt/data"
           image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:4.0.1
