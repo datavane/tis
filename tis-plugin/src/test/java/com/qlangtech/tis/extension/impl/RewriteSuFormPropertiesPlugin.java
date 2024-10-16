@@ -63,12 +63,12 @@ public class RewriteSuFormPropertiesPlugin implements Describable<RewriteSuFormP
             return subFormDescriptor;
         }
 
-        @Override
-        public SuFormProperties overwriteSubPluginFormPropertyTypes(SuFormProperties subformProps) throws Exception {
-            Descriptor subFormDescriptor = getRewriterSelectTabDescriptor();
-            return SuFormProperties.copy(PropertyType.filterFieldProp(PropertyType.buildPropertyTypes(
-                    ElementPluginDesc.create(subFormDescriptor), clazz)), clazz, subFormDescriptor, subformProps);
-        }
+//        @Override
+//        public SuFormProperties overwriteSubPluginFormPropertyTypes(SuFormProperties subformProps) throws Exception {
+//            Descriptor subFormDescriptor = getRewriterSelectTabDescriptor();
+//            return SuFormProperties.copy(PropertyType.filterFieldProp(PropertyType.buildPropertyTypes(
+//                    ElementPluginDesc.create(subFormDescriptor), clazz)), clazz, subFormDescriptor, subformProps);
+//        }
 
 //        @Override
 //        public SuFormProperties.SuFormPropertiesBehaviorMeta overwriteBehaviorMeta(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta) throws Exception {

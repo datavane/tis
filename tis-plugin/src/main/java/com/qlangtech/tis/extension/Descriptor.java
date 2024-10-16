@@ -426,7 +426,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     if (writerDescriptor != null && writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
                         subPluginFormPropertyTypes =
                                 Objects.requireNonNull(((DataxWriter.IRewriteSuFormProperties) writerDescriptor) //
-                                                .overwriteSubPluginFormPropertyTypes(subPluginFormPropertyTypes) //
+                                                .overwriteSubPluginFormPropertyType(subPluginFormPropertyTypes) //
                                         , "result can not be null " + PluginFormProperties.class.getSimpleName());
                     }
 

@@ -77,7 +77,7 @@ public class MultiItemsViewType implements IMultiItemsView {
                     elementCreator = new IdlistElementCreatorFactory();
                 } else {
                     throw new IllegalStateException("param " + CMeta.KEY_ELEMENT_CREATOR_FACTORY
-                            + " can not be empty,formatType:" + formatType+",property:"+ propertyType.f);
+                            + " can not be empty,formatType:" + formatType + ",property:" + propertyType.f);
                 }
             } else {
                 elementCreator = ((ElementCreatorFactory) //
@@ -205,7 +205,7 @@ public class MultiItemsViewType implements IMultiItemsView {
             ElementCreatorFactory elementCreator = attrDesc.getCMetaCreator();
 
             // String keyColsMeta = StringUtils.EMPTY;
-            JSONArray mcols = eprops.getJSONObject(Descriptor.KEY_ENUM_PROP).getJSONArray("_mcols");
+            JSONArray mcols = Objects.requireNonNull(eprops, "eprops can not be null").getJSONObject(Descriptor.KEY_ENUM_PROP).getJSONArray("_mcols");
             CMeta.ParsePostMCols<?> parsePostMCols = elementCreator.parsePostMCols(attrDesc, msgHandler, context, attrDesc.f.getName(), mcols);
             if (parsePostMCols.validateFaild) {
                 return Collections.emptyList();

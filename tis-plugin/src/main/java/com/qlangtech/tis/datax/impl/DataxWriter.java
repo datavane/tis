@@ -25,6 +25,8 @@ import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.ElementPluginDesc;
+import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
@@ -40,6 +42,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -198,7 +201,23 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
     public interface IRewriteSuFormProperties {
         public <TAB extends SelectedTab> Descriptor<TAB> getRewriterSelectTabDescriptor();
 
-        SuFormProperties overwriteSubPluginFormPropertyTypes(SuFormProperties subformProps) throws Exception;
+        ConcurrentHashMap<Class, SuFormProperties> rewriteSubFormProperties = new ConcurrentHashMap<>();
+
+        default SuFormProperties overwriteSubPluginFormPropertyType(SuFormProperties subformProps) throws Exception {
+            final Descriptor<SelectedTab> newSubDescriptor = getRewriterSelectTabDescriptor();
+            if (newSubDescriptor == null) {
+                return null;
+            }
+            return rewriteSubFormProperties.computeIfAbsent(subformProps.parentClazz, (clazz) -> {
+
+                SuFormProperties rewriteSubFormProperties = SuFormProperties.copy(
+                        PropertyType.filterFieldProp(PropertyType.buildPropertyTypes(ElementPluginDesc.create(newSubDescriptor), newSubDescriptor.clazz))
+                        , newSubDescriptor.clazz
+                        , newSubDescriptor
+                        , subformProps);
+                return rewriteSubFormProperties;
+            });
+        }
 
         //   SuFormProperties.SuFormPropertiesBehaviorMeta overwriteBehaviorMeta(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta) throws Exception;
     }
@@ -219,7 +238,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
             eprops.put("createDDL", this.isSupportTabCreate());
             eprops.put(KEY_SUPPORT_INCR, this.isSupportIncr());
             eprops.put(KEY_SUPPORT_BATCH, this.isSupportBatch());
-           // this.getEndType().appendProps(eprops);
+            // this.getEndType().appendProps(eprops);
 //            eprops.put(KEY_END_TYPE, this.getEndType().getVal());
 //            eprops.put(KEY_SUPPORT_ICON, this.getEndType().getIcon() != null);
             return eprops;
