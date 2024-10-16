@@ -34,6 +34,7 @@ import com.qlangtech.tis.util.InitializerFinder;
 import com.qlangtech.tis.util.Util;
 import com.qlangtech.tis.util.YesNoMaybe;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -58,6 +59,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -72,6 +74,12 @@ import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_STARTED;
  * @date 2020/04/13
  */
 public class PluginManager {
+
+    /**
+     * 目标classifier过滤器，在updateCenter生成插件default.json meta文件时，文件系统中已经有多个classifier的插件 共存的情况，执行启动时确定加载哪个版本的classifier
+     * 此属性设置就是用来锅略特定插件用的
+     */
+    public static PluginClassifier targetClassifierFilter;
 
     public static final String PACAKGE_CLASSIFIER = "classifier";
     public static final String PACAKGE_TPI_EXTENSION = "." + PluginClassifier.PACAKGE_TPI_EXTENSION_NAME;
@@ -370,7 +378,6 @@ public class PluginManager {
                                     public void run(Reactor session1) throws Exception {
                                         try {
                                             PluginWrapper p = strategy.createPluginWrapper(arc);
-
                                             if (isDuplicate(p)) {
                                                 return;
                                             }
@@ -393,6 +400,12 @@ public class PluginManager {
                                             return true;
                                         }
                                         inspectedShortNames.put(shortName, arc);
+
+                                        Optional<PluginClassifier> classifier = p.getClassifier();
+                                        if (targetClassifierFilter != null && classifier.isPresent()) {
+                                            return targetClassifierFilter.match(p.getShortName(), classifier.get());
+                                        }
+
                                         return false;
                                     }
                                 });
