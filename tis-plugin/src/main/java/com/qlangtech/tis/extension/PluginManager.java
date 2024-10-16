@@ -401,7 +401,7 @@ public class PluginManager {
                                         }
                                         inspectedShortNames.put(shortName, arc);
 
-                                        Optional<PluginClassifier> classifier = p.getClassifier();
+                                         Optional<PluginClassifier> classifier = p.getClassifier();
                                         if (targetClassifierFilter != null && classifier.isPresent()) {
                                             return targetClassifierFilter.match(p.getShortName(), classifier.get());
                                         }
