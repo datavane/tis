@@ -403,7 +403,7 @@ public class PluginManager {
 
                                          Optional<PluginClassifier> classifier = p.getClassifier();
                                         if (targetClassifierFilter != null && classifier.isPresent()) {
-                                            return targetClassifierFilter.match(p.getShortName(), classifier.get());
+                                            return !targetClassifierFilter.match(p.getShortName(), classifier.get());
                                         }
 
                                         return false;
