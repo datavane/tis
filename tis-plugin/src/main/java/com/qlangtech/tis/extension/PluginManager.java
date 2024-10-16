@@ -399,14 +399,19 @@ public class PluginManager {
                                             LOGGER.info("Ignoring " + arc + " because " + inspectedShortNames.get(shortName) + " is already loaded");
                                             return true;
                                         }
-                                        inspectedShortNames.put(shortName, arc);
 
-                                         Optional<PluginClassifier> classifier = p.getClassifier();
+                                        boolean duplicated = false;
+
+                                        Optional<PluginClassifier> classifier = p.getClassifier();
                                         if (targetClassifierFilter != null && classifier.isPresent()) {
-                                            return !targetClassifierFilter.match(p.getShortName(), classifier.get());
+                                            duplicated = !targetClassifierFilter.match(p.getShortName(), classifier.get());
                                         }
 
-                                        return false;
+                                        if (!duplicated) {
+                                            inspectedShortNames.put(shortName, arc);
+                                        }
+
+                                        return duplicated;
                                     }
                                 });
                             }
