@@ -5,18 +5,17 @@
 
 ## TIS介绍
 
-TIS快速为您提供企业级数据集成产品，**基于批(DataX)，流(Flink-CDC、Chunjun)一体，提供简单易用的操作界面，降低用户实施各端（MySQL、PostgreSQL、Oracle、ElasticSearch、ClickHouse、Doris等）
-之间数据同步的实施门槛，缩短任务配置时间，避免配置过程中出错，使数据同步变得简单、有趣且容易上手** [详细介绍](https://tis.pub/docs/) 
-<!--
-TIS平台是一套为企业级用户提供大数据多维、实时、查询的搜索中台产品。用户可以在TIS上自助快速构建搜索服务，它大大降低了搜索技术的门槛 [详细说明](http://tis.pub/docs/) 
-> 视频： [>>TIS介绍](https://www.bilibili.com/video/BV11y4y1B7Mk) [>>操作实例](https://www.bilibili.com/video/BV1Uv41167SH/)
- -->
+TIS为您提供企业级数据集成服务，**基于批(DataX)，流(Flink-CDC、Chunjun)一体，提供简单易用的操作界面，降低用户实施端到端数据同步的实施门槛，缩短任务配置时间，避免配置过程中出错，使数据同步变得简单、有趣且容易上手** [详细介绍](https://tis.pub/docs/) 
 
-## v4.0.0 发布（2024/6/2）：
+如果您已经觉得利用DataX、Flink-CDC、SeaTunnel编写脚本来驱动执行端到端数据同步程序执行，是非常烦冗且容易出错的事儿。并因此感到些许厌倦，您可以尝试一下TIS，相信会给您带来不小的惊喜。
 
-https://github.com/datavane/tis/releases/tag/v4.0.0
+![tis](docs/execute_model_batch_incr.jpg)
 
-<a href="https://www.bilibili.com/video/BV1eD421V78u"> <img src="https://github.com/datavane/tis/assets/21274618/2fe921d0-136b-4409-b91e-ceaa6e30cbee" /> </a>
+## v4.0.1 发布（2024/10/19）：
+
+https://github.com/datavane/tis/releases/tag/v4.0.1
+
+<a href="https://www.bilibili.com/video/BV1rXC1YjECW"> <img src="https://github.com/user-attachments/assets/d96dfc72-d4b1-4dd2-a15f-d8b3a12320d0" /> </a>
  
 ## 安装说明
 
@@ -32,32 +31,35 @@ https://github.com/datavane/tis/releases/tag/v4.0.0
 
 ## 核心特性
 
-* 简单易用
+* 安装简单
   
-  TIS的安装还是和传统软件安装一样，只需要三个步骤，一、下载tar包，二、解压tar包，三、启动TIS。是的，就这么简单。
+  TIS的安装还是和传统软件安装一样，只需要三个步骤：一、下载tar包，二、解压tar包，三、启动TIS。是的，就这么简单。另外还支持多种部署模式（Docker、Docker-Compose、Kubernetes）。
   
 * 扩展性强
   
   TIS 继承了Jenkin 的设计思想，使用微前端技术，重新构建了一套前端框架，前端页面可以自动渲染。
   
   TIS 提供了良好的扩展性和SPI机制，开发者可以很轻松地开发新的插件。
-  
-* 基于白屏化操作
-  
-  将传统的 ETL 工具执行以黑屏化工具包的方式（json+命令行执行）升级到白屏化 2.0的产品化方式，可以大大提高工作效率。
- 
+
+* 支持各种Transformer算子功能
+
+  通过在TIS流程中设置Transformer功能逻辑，可实现在ETL数仓功能中，在E（数据抽取）阶段即可高效实现各种字段值转换功能，如：字段脱敏，字段拼接，取子字符串等功能。
+
+* 易与大数据生态整合
+
+  支持与DolphinScheduler整合，用户只需在TIS中配置数据管道，验证无误后，一键推送同步表任务到DolphinScheduler平台，即可在其上完成数据同步任务调度。为以DolphinScheduler构建ETL数仓方案如虎添翼。
 
 * 基于 DataOps 理念
 
   借鉴了 DataOps、DataPipeline 理念，对各各执行流程建模。不需要了解底层模块的实现原理，基本实现傻瓜化方式操作。
 
 
-## 支持的读写组件
+## 支持的读写组件 [详细](https://tis.pub/docs/plugin/source-sink/)
 |Reader|Writer|
 |--|--|
 |<img src="docs/logo/cassandra.svg" width="40" /><img src="docs/logo/ftp.svg" width="40" />  <img src="docs/logo/hdfs.svg" width="40" /> <img src="docs/logo/mongodb.svg" width="40" />  <img src="docs/logo/mysql.svg" width="40" /> <img src="docs/logo/oracle.svg" width="40" />  <img src="docs/logo/oss.svg" width="40" />  <img src="docs/logo/postgresql.svg" width="40" /> <img src="docs/logo/sqlserver.svg" width="40" /> <img src="docs/logo/tidb.svg" width="40" /> | <img src="docs/logo/mysql.svg" width="40" /> <img src="docs/logo/doris.svg" width="40" /> <img src="docs/logo/spark.svg" width="40" /><img src="docs/logo/starrocks.svg" width="40" /><img src="docs/logo/cassandra.svg" width="40" /> <img src="docs/logo/postgresql.svg" width="40" /><img src="docs/logo/hive.svg" width="40" /><img src="docs/logo/clickhouse.svg" width="40" /><img src="docs/logo/ftp.svg" width="40" /><img src="docs/logo/oracle.svg" width="40" /> <img src="docs/logo/hdfs.svg" width="40" /><img src="docs/logo/es.svg" width="40" /> |
 
-[详细](https://tis.pub/docs/plugin/source-sink/)
+
 
 ## 功能一瞥 
 - 示例                                                 
@@ -72,7 +74,7 @@ https://github.com/datavane/tis/releases/tag/v4.0.0
     * [MySQL导入Hive](https://www.bilibili.com/video/BV1Vb4y1z7DN?share_source=copy_web)
     * [MySQL导入Clickhouse](https://www.bilibili.com/video/BV1x64y1B7V8/)
     * [MySQL同步StarRocks](https://www.bilibili.com/video/BV19o4y1M7eq/)
-
+    * MySQL同步Doris [>批量同步](https://www.bilibili.com/video/BV1eh4y1o7yQ) [>实时同步](https://www.bilibili.com/video/BV1nX4y1h7SW)
 ### 批量导入流程设置 
 
 选择Reader/Writer插件类型
