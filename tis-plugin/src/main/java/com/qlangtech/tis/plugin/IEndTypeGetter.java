@@ -67,7 +67,7 @@ public interface IEndTypeGetter {
         , Cassandra("cassandra") //, HDFS("hdfs")
         , SqlServer("sqlServer", true), TiDB("TiDB", true) //
         , RocketMQ("rocketMq", true), Kafka("kafka", true), DataFlow("dataflow") //
-        , DaMeng("daMeng", true), AliyunODPS("aliyunOdps"), HiveMetaStore("hms", true) //
+        , DaMeng("daMeng", true), AliyunODPS("aliyunOdps",true), HiveMetaStore("hms", true) //
         , Spark("spark", true) //
         , RabbitMQ("rabbitmq", true), UnKnowStoreType("unknowStoreType", true),
 
