@@ -126,6 +126,13 @@
     <dependencyManagement>
         <dependencies>
 
+            <!-- 高版本 JDK 移除了 JavaEE 的包，需要手动引入 -->
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>2.3.1</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
