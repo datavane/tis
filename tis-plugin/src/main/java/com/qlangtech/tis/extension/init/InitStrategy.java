@@ -64,6 +64,7 @@ public class InitStrategy {
         // listPluginFiles(pm, ".hpl", r);
         // plugin jar file
         listPluginFiles(pm, PluginManager.PACAKGE_TPI_EXTENSION, r);
+        listPluginFiles(pm, ".hpl", r);
         // plugin jar file (for backward compatibility)
         //listPluginFiles(pm, ".tpi", r);
         return r;

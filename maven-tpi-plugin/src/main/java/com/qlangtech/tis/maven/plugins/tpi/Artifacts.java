@@ -17,10 +17,16 @@
  */
 package com.qlangtech.tis.maven.plugins.tpi;
 
-import com.google.common.base.Predicate;
+
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Collection filter operations on a set of {@link Artifact}s.
@@ -52,7 +58,7 @@ public class Artifacts extends ArrayList<Artifact> {
 
     public Artifacts retainAll(Predicate<Artifact> filter) {
         for (Iterator<Artifact> itr = iterator(); itr.hasNext(); ) {
-            if (!filter.apply(itr.next()))
+            if (!filter.test(itr.next()))
                 itr.remove();
         }
         return this;
@@ -60,7 +66,7 @@ public class Artifacts extends ArrayList<Artifact> {
 
     public Artifacts removeAll(Predicate<Artifact> filter) {
         for (Iterator<Artifact> itr = iterator(); itr.hasNext(); ) {
-            if (filter.apply(itr.next()))
+            if (filter.test(itr.next()))
                 itr.remove();
         }
         return this;
@@ -70,7 +76,7 @@ public class Artifacts extends ArrayList<Artifact> {
         final List<String> s = Arrays.asList(scopes);
         return retainAll(new Predicate<Artifact>() {
 
-            public boolean apply(Artifact a) {
+            public boolean test(Artifact a) {
                 return s.contains(a.getScope());
             }
         });
@@ -80,7 +86,7 @@ public class Artifacts extends ArrayList<Artifact> {
         final List<String> s = Arrays.asList(scopes);
         return removeAll(new Predicate<Artifact>() {
 
-            public boolean apply(Artifact a) {
+            public boolean test(Artifact a) {
                 return s.contains(a.getScope());
             }
         });
@@ -90,7 +96,7 @@ public class Artifacts extends ArrayList<Artifact> {
         final List<String> s = Arrays.asList(type);
         return retainAll(new Predicate<Artifact>() {
 
-            public boolean apply(Artifact a) {
+            public boolean test(Artifact a) {
                 return s.contains(a.getType());
             }
         });
@@ -100,7 +106,7 @@ public class Artifacts extends ArrayList<Artifact> {
         final List<String> s = Arrays.asList(type);
         return removeAll(new Predicate<Artifact>() {
 
-            public boolean apply(Artifact a) {
+            public boolean test(Artifact a) {
                 return s.contains(a.getType());
             }
         });
@@ -110,7 +116,7 @@ public class Artifacts extends ArrayList<Artifact> {
         final List<String> s = Arrays.asList(groupId);
         return retainAll(new Predicate<Artifact>() {
 
-            public boolean apply(Artifact a) {
+            public boolean test(Artifact a) {
                 return s.contains(a.getType());
             }
         });
@@ -120,7 +126,7 @@ public class Artifacts extends ArrayList<Artifact> {
         final List<String> s = Arrays.asList(groupId);
         return removeAll(new Predicate<Artifact>() {
 
-            public boolean apply(Artifact a) {
+            public boolean test(Artifact a) {
                 return s.contains(a.getType());
             }
         });
@@ -130,7 +136,7 @@ public class Artifacts extends ArrayList<Artifact> {
         final List<String> s = Arrays.asList(artifactId);
         return retainAll(new Predicate<Artifact>() {
 
-            public boolean apply(Artifact a) {
+            public boolean test(Artifact a) {
                 return s.contains(a.getType());
             }
         });
@@ -140,7 +146,7 @@ public class Artifacts extends ArrayList<Artifact> {
         final List<String> s = Arrays.asList(artifactId);
         return removeAll(new Predicate<Artifact>() {
 
-            public boolean apply(Artifact a) {
+            public boolean test(Artifact a) {
                 return s.contains(a.getType());
             }
         });

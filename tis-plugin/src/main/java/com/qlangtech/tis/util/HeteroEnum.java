@@ -69,8 +69,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-//import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
-
 /**
  * 表明一种插件的类型
  *
@@ -650,6 +648,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         Objects.requireNonNull(store, "plugin store can not be null");
         return store;
     }
+
 
     public <T extends Describable<T>> List<Descriptor<T>> descriptors() {
         IPluginStore pluginStore = TIS.getPluginStore(this.extensionPoint);

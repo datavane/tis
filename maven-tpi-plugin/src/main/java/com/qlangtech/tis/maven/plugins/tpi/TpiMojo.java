@@ -167,7 +167,7 @@ public class TpiMojo extends AbstractTISManifestMojo {
             archiver.setOutputFile(jarFile);
             jarArchiver.addConfiguredManifest(manifest);
             jarArchiver.addDirectory(getClassesDirectory());
-            archiver.createArchive(project, archive);
+            archiver.createArchive(this.session, project, archive);
         }
         // HACK Alert... due to how this plugin hacks the maven dependency model (by using a dependency on the
         // jar file and then rewriting them for hpi projects) we need to add the jar as an attached artifact
@@ -191,7 +191,7 @@ public class TpiMojo extends AbstractTISManifestMojo {
 //        FileUtils.write(testFile, "echo 'hello'", "utf8", false);
 //        hpiArchiver.addFile(testFile, "test.sh", UnixStat.FILE_FLAG | UnixStat.PERM_MASK);
         // create archive
-        archiver.createArchive(project, archive);
+        archiver.createArchive(this.session, project, archive);
         project.getArtifact().setFile(tpiFile);
     }
 }

@@ -95,52 +95,6 @@ public class ClassicPluginStrategy implements PluginStrategy {
 
         PluginManifest manifest = PluginManifest.create(pluginManager.getWorkDir(), archive);
 
-//       // final Manifest manifest;
-//        URL baseResourceURL = null;
-//        File expandDir = null;
-//        // if .hpi, this is the directory where war is expanded
-//        boolean isLinked = isLinked(archive);
-//        if (isLinked) {
-//            manifest = loadLinkedManifest(archive);
-//        } else {
-//            if (archive.isDirectory()) {
-//                // already expanded
-//                expandDir = archive;
-//            } else {
-//                File f = pluginManager.getWorkDir();
-//                expandDir = new File(f == null ? archive.getParentFile() : f, getBaseName(archive.getName()));
-//                explode(archive, expandDir);
-//            }
-//            File manifestFile = new File(expandDir, PluginWrapper.MANIFEST_FILENAME);
-//            if (!manifestFile.exists()) {
-//                throw new IOException("Plugin installation failed. No manifest at " + manifestFile);
-//            }
-//            FileInputStream fin = new FileInputStream(manifestFile);
-//            try {
-//                manifest = new Manifest(fin);
-//            } finally {
-//                fin.close();
-//            }
-//        }
-//        final Attributes atts = manifest.getMainAttributes();
-//        // TODO: define a mechanism to hide classes
-//        // String export = manifest.getMainAttributes().getValue("Export");
-//        List<File> paths = new ArrayList<File>();
-//        if (isLinked) {
-//            parseClassPath(manifest, archive, paths, "Libraries", ",");
-//            // backward compatibility
-//            parseClassPath(manifest, archive, paths, "Class-Path", " +");
-//            baseResourceURL = resolve(archive, atts.getValue("Resource-Path")).toURI().toURL();
-//        } else {
-//            File classes = new File(expandDir, "WEB-INF/classes");
-//            if (classes.exists())
-//                paths.add(classes);
-//            File lib = new File(expandDir, "WEB-INF/lib");
-//            File[] libs = lib.listFiles(JAR_FILTER);
-//            if (libs != null)
-//                paths.addAll(Arrays.asList(libs));
-//            baseResourceURL = expandDir.toPath().toUri().toURL();
-//        }
         File disableFile = new File(archive.getPath() + ".disabled");
         if (disableFile.exists()) {
             LOGGER.info("Plugin " + archive.getName() + " is disabled");

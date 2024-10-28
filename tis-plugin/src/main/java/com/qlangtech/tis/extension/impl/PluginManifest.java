@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.extension.impl;
 
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginStrategy;
 import com.qlangtech.tis.extension.PluginWrapper;
@@ -56,6 +57,7 @@ import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
@@ -63,14 +65,14 @@ import static org.apache.commons.io.FilenameUtils.getBaseName;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-06-25 17:02
  **/
-public class PluginManifest {
+public abstract class PluginManifest {
 
     public static final String META_PATH_EXTENDPOINTS = "META-INF/annotations/extendpoints.txt";
     private static final Logger LOGGER = LoggerFactory.getLogger(PluginManifest.class);
-
+    static final Pattern fromJpl = Pattern.compile("^file:.+/(.+?)/target/.+?$");
     public final URL baseResourceURL;
-    private final Attributes atts;
-    private final List<File> libs;
+    protected final Attributes atts;
+    protected final List<File> libs;
 
     /**
      * 获得运行时已经解压的PluginMetaData信息
@@ -78,17 +80,17 @@ public class PluginManifest {
      * @param classInPlugin
      * @return
      */
-    public static ExplodePluginManifest create(Class<?> classInPlugin) {
+    public static PluginManifest create(Class<?> classInPlugin) {
         if (classInPlugin == null) {
             throw new IllegalArgumentException("classInPlugin can not be null");
         }
         String clazz = classInPlugin.getName();
 
         URL location = classInPlugin.getResource("/" + StringUtils.replace(clazz, ".", "/") + ".class");
-
+        Matcher m = null;
         if (location != null) {
             final Pattern p = Pattern.compile("^.*file:(.+?)/" + Config.PLUGIN_LIB_DIR + ".+?!.*$");
-            Matcher m = p.matcher(location.toString());
+            m = p.matcher(location.toString());
             if (m.find()) {
                 //   return URLDecoder.decode(, "UTF-8");
                 File pluginDir = new File(m.group(1));
@@ -107,7 +109,27 @@ public class PluginManifest {
                     throw new RuntimeException(manifest.getAbsolutePath(), e);
                 }
             } else {
-                throw new IllegalStateException("location is illegal:" + location);
+// file:/opt/misc/tis-sqlserver-plugin/tis-flink-chunjun-sqlserver-plugin/target/classes/com/qlangtech/tis/plugins/incr/flink/connector/sink/SqlServerSinkFactory.class
+
+                m = fromJpl.matcher(location.toString());
+                if (m.matches()) {
+                    try {
+                        String pluginName = m.group(1);
+                        File archive = new File(TIS.pluginDirRoot, pluginName + ".hpl");
+
+                        PluginManifest hplManifest = PluginManifest.create(null, archive);
+                        // 针对JPL文件类型
+                        if (!(hplManifest instanceof JPLPluginManifest)) {
+                            throw new IllegalStateException("hplManifest must be type of " + JPLPluginManifest.class.getSimpleName());
+                        }
+                        return hplManifest;
+                        // return new JPLPluginManifest(m.group(1));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    throw new IllegalStateException("location is illegal:" + location);
+                }
             }
             //   throw new ClassNotFoundException("Cannot parse location of '" + location + "'.  Probably not loaded from a Jar");
         }
@@ -118,12 +140,50 @@ public class PluginManifest {
         private final File pluginDir;
 
         public ExplodePluginManifest(Attributes atts, File pluginDir) {
-            super(atts, null, Collections.emptyList());
+//            super(atts, null, Collections.emptyList());
+//            this.pluginDir = pluginDir;
+
+            this(atts, null, Collections.emptyList(), pluginDir);
+        }
+
+        public ExplodePluginManifest(Attributes atts, URL baseResourceURL, List<File> libs, File pluginDir) {
+            super(atts, baseResourceURL, libs);
             this.pluginDir = pluginDir;
+        }
+
+        @Override
+        public List<String> getClasspath() {
+            return List.of(this.getPluginLibDir().getAbsolutePath() + "/*");
         }
 
         public File getPluginLibDir() {
             return new File(this.pluginDir, Config.PLUGIN_LIB_DIR);
+        }
+    }
+
+    public static class JPLPluginManifest extends PluginManifest {
+        private final String pluginName;
+
+//        public JPLPluginManifest(String pluginName) {
+//            this(new Attributes(), null, Collections.emptyList(), pluginName);
+//        }
+
+        public JPLPluginManifest(final Attributes atts, URL baseResourceURL, List<File> libs, String pluginName) {
+            super(atts, baseResourceURL, libs);
+            this.pluginName = pluginName;
+        }
+
+        @Override
+        public String computeShortName(String fileName) {
+            return this.pluginName;
+        }
+
+        @Override
+        public List<String> getClasspath() {
+//            this.getDependencyMeta();
+//            throw new RuntimeException();
+            //  return List.of();
+            return this.libs.stream().map((lib) -> String.valueOf(lib.toPath().normalize())).collect(Collectors.toList());
         }
     }
 
@@ -152,7 +212,7 @@ public class PluginManifest {
     }
 
     private static PluginManifest createPluginManifest(Manifest mfst) {
-        return new PluginManifest(mfst.getMainAttributes(), null, Collections.emptyList()) {
+        return new ExplodePluginManifest(mfst.getMainAttributes(), null) {
             @Override
             public List<File> getLibs() {
                 // return super.getLibs();
@@ -199,22 +259,26 @@ public class PluginManifest {
         if (isLinked) {
             parseClassPath(manifest, archive, paths, "Libraries", ",");
             // backward compatibility
-            parseClassPath(manifest, archive, paths, "Class-Path", " +");
+            //  parseClassPath(manifest, archive, paths, "Class-Path", " +");
             baseResourceURL = resolve(archive, atts.getValue("Resource-Path")).toURI().toURL();
+            return new JPLPluginManifest(atts, baseResourceURL, paths, PluginManifest.parseShortName(atts, PluginStrategy.KEY_MANIFEST_SHORTNAME));
         } else {
             File classes = new File(expandDir, "WEB-INF/classes");
             if (classes.exists())
                 paths.add(classes);
-            File lib = new File(expandDir, "WEB-INF/lib");
+            File lib = new File(expandDir, Config.PLUGIN_LIB_DIR);
             File[] libs = lib.listFiles(JAR_FILTER);
             if (libs != null) {
                 paths.addAll(Arrays.asList(libs));
             }
             baseResourceURL = expandDir.toPath().toUri().toURL();
+            return new ExplodePluginManifest(atts, baseResourceURL, paths, expandDir);
         }
 
-        return new PluginManifest(atts, baseResourceURL, paths);
+
     }
+
+    public abstract List<String> getClasspath();
 
 
     public PluginManifest(final Attributes atts, URL baseResourceURL, List<File> libs) {

@@ -18,17 +18,30 @@
 package com.qlangtech.tis.maven.plugins.tpi;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.maven.RepositoryUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.OverConstrainedVersionException;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.building.ModelBuildingRequest;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.DefaultProjectBuildingRequest;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectBuilder;
+import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
+import org.apache.maven.project.ProjectBuildingRequest;
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.ArtifactDescriptorException;
+import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
+import org.eclipse.aether.resolution.ArtifactDescriptorResult;
+import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +63,7 @@ public class MavenArtifact implements Comparable<MavenArtifact> {
 
     public final ArtifactFactory artifactFactory;
 
-    public final MavenProjectBuilder builder;
+    public final ProjectBuilder builder;
 
     public final List<ArtifactRepository> remoteRepositories;
 
@@ -58,10 +71,14 @@ public class MavenArtifact implements Comparable<MavenArtifact> {
 
     public final Artifact artifact;
 
-    public final ArtifactResolver resolver;
+    public final RepositorySystem resolver;
 
-    public MavenArtifact(Artifact artifact, ArtifactResolver resolver
-            , ArtifactFactory artifactFactory, MavenProjectBuilder builder, List<ArtifactRepository> remoteRepositories, ArtifactRepository localRepository) {
+    final MavenSession session;
+    final MavenProject project;
+
+    public MavenArtifact(Artifact artifact, RepositorySystem resolver
+            , ArtifactFactory artifactFactory, ProjectBuilder builder, List<ArtifactRepository> remoteRepositories, ArtifactRepository localRepository, MavenSession session,
+                         MavenProject project) {
         this.artifact = artifact;
         this.resolver = resolver;
         this.artifactFactory = artifactFactory;
@@ -70,10 +87,18 @@ public class MavenArtifact implements Comparable<MavenArtifact> {
         // null check
         remoteRepositories.size();
         this.localRepository = localRepository;
+        this.session = session;
+        this.project = project;
     }
 
     public MavenProject resolvePom() throws ProjectBuildingException {
-        return builder.buildFromRepository(artifact, remoteRepositories, localRepository);
+         //  return builder.buildFromRepository(artifact, remoteRepositories, localRepository);
+        ProjectBuildingRequest buildingRequest = new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
+        buildingRequest.setProcessPlugins(false); // improve performance
+        buildingRequest.setRemoteRepositories(project.getRemoteArtifactRepositories());
+        buildingRequest.setLocalRepository(localRepository);
+        buildingRequest.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
+        return builder.build(artifact, true ,buildingRequest).getProject();
     }
 
     /**
@@ -129,14 +154,70 @@ public class MavenArtifact implements Comparable<MavenArtifact> {
     /**
      * Resolves to the jar file that contains the code of the plugin.
      */
-    public File getFile() {
-        if (artifact.getFile() == null)
-            try {
-                resolver.resolve(artifact, remoteRepositories, localRepository);
-            } catch (AbstractArtifactResolutionException e) {
-                throw new RuntimeException("Failed to resolve " + getId(), e);
-            }
+    public File getFile() throws MojoExecutionException {
+        if (artifact.getFile() == null) {
+            return resolveArtifact(artifact, project, session, resolver).getFile();
+        }
+//            try {
+//                resolver.resolve(artifact, remoteRepositories, localRepository);
+//            } catch (AbstractArtifactResolutionException e) {
+//                throw new RuntimeException("Failed to resolve " + getId(), e);
+//            }
         return artifact.getFile();
+    }
+
+    static Artifact resolveArtifact(
+            Artifact artifact, MavenProject project, MavenSession session, RepositorySystem repositorySystem)
+            throws MojoExecutionException {
+        ProjectBuildingRequest buildingRequest = new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
+        buildingRequest.setRemoteRepositories(project.getRemoteArtifactRepositories());
+        List<RemoteRepository> remoteRepositories = RepositoryUtils.toRepos(buildingRequest.getRemoteRepositories());
+        RepositorySystemSession repositorySession = buildingRequest.getRepositorySession();
+
+        // use descriptor to respect relocation
+        ArtifactDescriptorRequest descriptorRequest =
+                new ArtifactDescriptorRequest(RepositoryUtils.toArtifact(artifact), remoteRepositories, null);
+
+        ArtifactDescriptorResult descriptorResult;
+        try {
+            descriptorResult = repositorySystem.readArtifactDescriptor(repositorySession, descriptorRequest);
+        } catch (ArtifactDescriptorException e) {
+            throw new MojoExecutionException("Failed to read artifact descriptor: " + artifact, e);
+        }
+
+        ArtifactRequest request = new ArtifactRequest(descriptorResult.getArtifact(), remoteRepositories, null);
+        Artifact resolved;
+        try {
+            resolved = RepositoryUtils.toArtifact(
+                    repositorySystem.resolveArtifact(repositorySession, request).getArtifact());
+        } catch (ArtifactResolutionException e) {
+            throw new MojoExecutionException("Failed to resolve artifact: " + artifact, e);
+        }
+
+        /*
+         * If the result is a directory rather than a file, we must be in a multi-module project
+         * where one plugin depends on another plugin in the same multi-module project. Try again
+         * without the workspace reader to force Maven to look for released artifacts rather than in
+         * the target/ directory of another module.
+         */
+        if (resolved.getFile().isDirectory()
+                && buildingRequest.getRepositorySession() instanceof DefaultRepositorySystemSession) {
+            DefaultRepositorySystemSession oldRepositorySession =
+                    (DefaultRepositorySystemSession) buildingRequest.getRepositorySession();
+            DefaultRepositorySystemSession newRepositorySession =
+                    new DefaultRepositorySystemSession(oldRepositorySession);
+            newRepositorySession.setWorkspaceReader(null);
+            newRepositorySession.setReadOnly();
+            try {
+                resolved = RepositoryUtils.toArtifact(repositorySystem
+                        .resolveArtifact(newRepositorySession, request)
+                        .getArtifact());
+            } catch (ArtifactResolutionException e) {
+                throw new MojoExecutionException("Failed to resolve artifact: " + artifact, e);
+            }
+        }
+
+        return resolved;
     }
 
     /**
@@ -144,7 +225,7 @@ public class MavenArtifact implements Comparable<MavenArtifact> {
      */
     public MavenArtifact getHpi() throws IOException {
         Artifact a = artifactFactory.createArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(), SCOPE_COMPILE, getResolvedType());
-        return new MavenArtifact(a, resolver, artifactFactory, builder, remoteRepositories, localRepository);
+        return new MavenArtifact(a, resolver, artifactFactory, builder, remoteRepositories, localRepository, session, project);
     }
 
     public List<String> getDependencyTrail() {
@@ -193,7 +274,7 @@ public class MavenArtifact implements Comparable<MavenArtifact> {
     /**
      * For a plugin artifact, unlike {@link #getArtifactId} this parses the plugin manifest.
      */
-    public String getActualArtifactId() throws IOException {
+    public String getActualArtifactId() throws IOException, MojoExecutionException {
         File file = getFile();
         if (file != null && file.isFile()) {
             try (JarFile jf = new JarFile(file)) {
@@ -207,7 +288,7 @@ public class MavenArtifact implements Comparable<MavenArtifact> {
     /**
      * For a plugin artifact, unlike {@link #getVersion} this parses the plugin manifest.
      */
-    public String getActualVersion() throws IOException {
+    public String getActualVersion() throws IOException, MojoExecutionException {
         File file = getFile();
         if (file != null && file.isFile()) {
             try (JarFile jf = new JarFile(file)) {

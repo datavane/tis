@@ -1,23 +1,25 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.maven.plugins.tpi;
 
-import com.google.common.collect.Sets;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.SetUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
@@ -32,9 +34,33 @@ import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.archiver.manager.ArchiverManager;
 import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
-import org.codehaus.plexus.util.*;
-import java.io.*;
-import java.util.*;
+import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.plexus.util.InterpolationFilterReader;
+import org.codehaus.plexus.util.StringUtils;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -50,7 +76,7 @@ public abstract class AbstractHpiMojo extends AbstractJenkinsMojo {
     @Parameter(defaultValue = "${project.build.directory}")
     protected String outputDirectory;
 
-//    /**
+    //    /**
 //     * Single directory for extra files to include in the WAR.
 //     */
     @Parameter(defaultValue = "${basedir}/tpis")
@@ -68,7 +94,7 @@ public abstract class AbstractHpiMojo extends AbstractJenkinsMojo {
      */
     @Parameter(defaultValue = "${project.name}", readonly = true)
     protected String // TODO why is this read-only, surely I should be able to override
-    pluginName;
+            pluginName;
 
     /**
      * Additional information that accompanies the version number of the plugin.
@@ -156,7 +182,7 @@ public abstract class AbstractHpiMojo extends AbstractJenkinsMojo {
 
     private static final String META_INF = "META-INF";
 
-    private static final String[] DEFAULT_INCLUDES = { "**/**" };
+    private static final String[] DEFAULT_INCLUDES = {"**/**"};
 
     /**
      * The comma separated list of tokens to include in the WAR.
@@ -464,7 +490,10 @@ public abstract class AbstractHpiMojo extends AbstractJenkinsMojo {
         // List up IDs of Jenkins plugin dependencies
         Set<String> tisPlugins = new HashSet<>();
         Set<String> excludedArtifacts = new HashSet<>();
-        for (MavenArtifact artifact : Sets.union(artifacts, dependencyArtifacts)) {
+        Set<MavenArtifact> unionArtifact = new HashSet<>();
+        unionArtifact.addAll(artifacts);
+        unionArtifact.addAll(dependencyArtifacts);
+        for (MavenArtifact artifact : unionArtifact) {
             if (artifact.isPluginBestEffort(getLog()))
                 tisPlugins.add(artifact.getId());
             // Most likely a plugin transitive dependency but the trail through (test,provided) dep is shorter
@@ -472,7 +501,8 @@ public abstract class AbstractHpiMojo extends AbstractJenkinsMojo {
                 excludedArtifacts.add(artifact.getId());
             }
         }
-        OUTER: for (MavenArtifact artifact : artifacts) {
+        OUTER:
+        for (MavenArtifact artifact : artifacts) {
             // baisui add for specific
             if (dependencyFilter != null && dependencyFilter.include(artifact.artifact)) {
                 this.getLog().info("dependency artifact:" + artifact.artifact + " skip");
@@ -605,8 +635,8 @@ public abstract class AbstractHpiMojo extends AbstractJenkinsMojo {
             unArchiver.setSourceFile(file);
             unArchiver.setDestDirectory(location);
             unArchiver.extract();
-        } catch (IOException e) {
-            throw new MojoExecutionException("Error unpacking file: " + file + "to: " + location, e);
+//        } catch (IOException e) {
+//            throw new MojoExecutionException("Error unpacking file: " + file + "to: " + location, e);
         } catch (ArchiverException e) {
             throw new MojoExecutionException("Error unpacking file: " + file + "to: " + location, e);
         }
@@ -707,19 +737,19 @@ public abstract class AbstractHpiMojo extends AbstractJenkinsMojo {
     }
 
     private FilterWrapper[] getFilterWrappers() {
-        return new FilterWrapper[] { // support ${token}
-        new FilterWrapper() {
+        return new FilterWrapper[]{ // support ${token}
+                new FilterWrapper() {
 
-            public Reader getReader(Reader fileReader, Properties filterProperties) {
-                return new InterpolationFilterReader(fileReader, filterProperties, "${", "}");
-            }
-        }, // support @token@
-        new FilterWrapper() {
+                    public Reader getReader(Reader fileReader, Properties filterProperties) {
+                        return new InterpolationFilterReader(fileReader, filterProperties, "${", "}");
+                    }
+                }, // support @token@
+                new FilterWrapper() {
 
-            public Reader getReader(Reader fileReader, Properties filterProperties) {
-                return new InterpolationFilterReader(fileReader, filterProperties, "@", "@");
-            }
-        } };
+                    public Reader getReader(Reader fileReader, Properties filterProperties) {
+                        return new InterpolationFilterReader(fileReader, filterProperties, "@", "@");
+                    }
+                }};
     }
 
     /**
