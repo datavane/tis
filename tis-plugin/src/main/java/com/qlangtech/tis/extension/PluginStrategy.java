@@ -35,7 +35,7 @@ public interface PluginStrategy {
     String KEY_MANIFEST_PLUGIN_FIRST_CLASSLOADER = "PluginFirstClassLoader";
     String KEY_LAST_MODIFY_TIME = "Last-Modify-Time";
 
-    String KEY_MANIFEST_PLUGIN_VERSION = "Plugin-Version";
+    String KEY_MANIFEST_PLUGIN_VERSION = "tis-Version";
 
     <T> List<ExtensionComponent<T>> findComponents(Class<T> extensionType, TIS tis);
 

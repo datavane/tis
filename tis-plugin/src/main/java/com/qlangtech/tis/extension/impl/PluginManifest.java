@@ -297,8 +297,9 @@ public abstract class PluginManifest {
 
     public String getVersionOf() {
         String v = this.atts.getValue(PluginStrategy.KEY_MANIFEST_PLUGIN_VERSION);
-        if (v != null)
+        if (v != null){
             return v;
+        }
         // plugins generated before maven-hpi-plugin 1.3 should still have this attribute
         v = this.atts.getValue("Implementation-Version");
         if (v != null)
