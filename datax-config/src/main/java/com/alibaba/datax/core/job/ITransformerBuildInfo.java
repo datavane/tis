@@ -18,6 +18,7 @@
 
 package com.alibaba.datax.core.job;
 
+import com.qlangtech.tis.plugin.datax.transformer.OutputParameter;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.RunningContext;
 
@@ -60,11 +61,11 @@ public interface ITransformerBuildInfo {
      * @return
      */
     List<IColMetaGetter> originColsWithContextParams();
-    List<IColMetaGetter> tranformerColsWithoutContextParams();
+    List<OutputParameter> tranformerColsWithoutContextParams();
     /**
      * 取得执行当前上线文绑定的参数，例如，当前数据库的名称等
      *
      * @return
      */
-    <T extends IColMetaGetter> List<IColMetaGetter> overwriteColsWithContextParams(List<T> sourceCols);
+    <T extends IColMetaGetter> List<OutputParameter> overwriteColsWithContextParams(List<T> sourceCols);
 }

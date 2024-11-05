@@ -29,7 +29,9 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceTypeGetter;
+import com.qlangtech.tis.plugin.datax.transformer.OutputParameter;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules.TransformerOverwriteCols;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
@@ -342,7 +344,8 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
                 IDBReservedKeys dbReservedKeys, TableMap tm, Optional<RecordTransformerRules> transformerRules) {
 
             List<IColMetaGetter> cols = transformerRules.map((rule) -> {
-                return rule.overwriteCols(tm.getSourceCols()).getCols();
+                TransformerOverwriteCols<OutputParameter> outputParameters = rule.overwriteCols(tm.getSourceCols());
+                return outputParameters.getCols().stream().map((c) -> (IColMetaGetter) c).collect(Collectors.toList());
             }).orElseGet(() -> {
                 return tm.getSourceCols().stream().map((c) -> c).collect(Collectors.toList());
             });

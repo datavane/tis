@@ -19,7 +19,6 @@
 package com.qlangtech.tis.plugin.datax.transformer.impl;
 
 import com.alibaba.datax.common.element.ColumnAwareRecord;
-import com.alibaba.datax.common.element.Record;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
@@ -73,7 +72,7 @@ public class TestCopyValUDF extends UDFDefinition {
 
     @Override
     public List<OutputParameter> outParameters() {
-        return Collections.singletonList(OutputParameter.create(this.to));
+        return Collections.singletonList(TargetColType.create(this.to));
     }
 
     @Override

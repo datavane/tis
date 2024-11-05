@@ -18,8 +18,6 @@
 package com.qlangtech.tis.maven.plugins.tpi;
 
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.SetUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
@@ -54,7 +52,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -210,7 +207,7 @@ public abstract class AbstractHpiMojo extends AbstractJenkinsMojo {
     @Parameter
     private String dependentWarExcludes;
 
-    @Parameter
+    @Parameter(defaultValue = "${maven-tpi-plugin.classpathDependentExcludes}")
     private String classpathDependentExcludes;
 
     /**
@@ -477,8 +474,7 @@ public abstract class AbstractHpiMojo extends AbstractJenkinsMojo {
         // baisui add for specific dependency filter
         ArtifactFilter dependencyFilter = null;
         if (this.classpathDependentExcludes != null) {
-            List<String> excludedDependencies = Arrays.asList(StringUtils.split(this.classpathDependentExcludes, ","));
-            dependencyFilter = new PatternIncludesArtifactFilter(excludedDependencies);
+            dependencyFilter = createClasspathDependencyExcludesFilter();
         }
         File libDirectory = new File(webappDirectory, WEB_INF + "/lib");
         File tldDirectory = new File(webappDirectory, WEB_INF + "/tld");
@@ -571,6 +567,14 @@ public abstract class AbstractHpiMojo extends AbstractJenkinsMojo {
                 copyDependentWarContents((File) iter.next(), webappDirectory);
             }
         }
+    }
+
+    protected ArtifactFilter createClasspathDependencyExcludesFilter() {
+        if (StringUtils.isEmpty(this.classpathDependentExcludes)) {
+            throw new IllegalStateException("property classpathDependentExcludes can not be null");
+        }
+        List<String> excludedDependencies = Arrays.asList(StringUtils.split(this.classpathDependentExcludes, ","));
+        return new PatternIncludesArtifactFilter(excludedDependencies);
     }
 
     /**

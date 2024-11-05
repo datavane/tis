@@ -20,6 +20,7 @@ package com.qlangtech.tis.maven.plugins.tpi;
 
 import com.qlangtech.tis.manage.common.Config;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -133,7 +134,8 @@ public class HplMojo extends AbstractTISManifestMojo {
      */
     private void buildLibraries(List<String> paths) throws IOException, MojoExecutionException {
         Set<MavenArtifact> artifacts = getProjectArtfacts();
-
+        final ArtifactFilter classpathDependencyExcludesFilter = createClasspathDependencyExcludesFilter();
+        ScopeArtifactFilter filter = new ScopeArtifactFilter(Artifact.SCOPE_RUNTIME);
         // List up IDs of Jenkins plugin dependencies
         Set<String> jenkinsPlugins = new HashSet<>();
         for (MavenArtifact artifact : artifacts) {
@@ -162,8 +164,10 @@ public class HplMojo extends AbstractTISManifestMojo {
                 }
             }
 
-            ScopeArtifactFilter filter = new ScopeArtifactFilter(Artifact.SCOPE_RUNTIME);
-            if (!artifact.isOptional() && filter.include(artifact.artifact)) {
+
+            if (!artifact.isOptional()
+                    && filter.include(artifact.artifact)
+                    && !classpathDependencyExcludesFilter.include(artifact.artifact)) {
                 paths.add(artifact.getFile().getPath());
             }
         }

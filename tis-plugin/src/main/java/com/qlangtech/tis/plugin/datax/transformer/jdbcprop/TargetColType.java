@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.datax.transformer.jdbcprop;
 
 import com.alibaba.fastjson.annotation.JSONType;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.plugin.datax.transformer.OutputParameter;
 import com.qlangtech.tis.plugin.datax.transformer.PluginLiteria;
 import com.qlangtech.tis.plugin.datax.transformer.TargetColumn;
 import com.qlangtech.tis.plugin.datax.transformer.UDFDesc;
@@ -41,6 +42,14 @@ import java.util.Objects;
 public final class TargetColType extends TypeBase implements PluginLiteria, Serializable {
 
     TargetColumn target;
+
+    public static OutputParameter create(TargetColType colType) {
+        return create(colType.getName(), colType);
+    }
+
+    public static OutputParameter create(String rename, TargetColType colType) {
+        return OutputParameter.create(rename, colType.isVirtual(), colType.getType());
+    }
 
     public boolean isVirtual() {
         return Objects.requireNonNull(target, "prop target can not be null").isVirtual();

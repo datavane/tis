@@ -101,7 +101,7 @@ public abstract class CreateTableSqlBuilder<T extends ColWrapper> extends Abstra
         return cols;
     }
 
-    public static abstract class ColWrapper {
+    public static abstract class ColWrapper implements IColMetaGetter {
         private final IColMetaGetter meta;
         private final List<String> pks;
 
@@ -110,10 +110,12 @@ public abstract class CreateTableSqlBuilder<T extends ColWrapper> extends Abstra
             this.pks = Objects.requireNonNull(pks, "param pks can not be null");
         }
 
+        @Override
         public boolean isPk() {
             return pks.contains(meta.getName());
         }
 
+        @Override
         public DataType getType() {
             return this.meta.getType();
         }
@@ -124,6 +126,7 @@ public abstract class CreateTableSqlBuilder<T extends ColWrapper> extends Abstra
 
         }
 
+        @Override
         public String getName() {
             return this.meta.getName();
         }

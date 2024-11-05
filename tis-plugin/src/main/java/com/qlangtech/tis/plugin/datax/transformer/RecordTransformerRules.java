@@ -39,7 +39,6 @@ import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.RunningContext;
 import com.qlangtech.tis.util.HeteroEnum;
-import com.qlangtech.tis.util.HeteroEnum.TransformerRuleKey;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
@@ -162,7 +161,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 
         return new ITransformerBuildInfo() {
             OverwriteColsWithContextParams overwriteColsWithContextParams;
-            OverwriteCols transformerWithoutContextParams;
+            TransformerOverwriteCols<OutputParameter> transformerWithoutContextParams;
 
             @Override
             public boolean containContextParams() {
@@ -201,12 +200,12 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
             }
 
             @Override
-            public List<IColMetaGetter> tranformerColsWithoutContextParams() {
+            public List<OutputParameter> tranformerColsWithoutContextParams() {
                 return Objects.requireNonNull(this.transformerWithoutContextParams, "please execute method overwriteColsWithContextParams first");
             }
 
             @Override
-            public <T extends IColMetaGetter> List<IColMetaGetter> overwriteColsWithContextParams(List<T> sourceCols) {
+            public <T extends IColMetaGetter> List<OutputParameter> overwriteColsWithContextParams(List<T> sourceCols) {
                 this.transformerWithoutContextParams = transformers.overwriteCols(sourceCols);
                 this.overwriteColsWithContextParams = transformerWithoutContextParams.appendSourceContextParams(dataxReader);
                 return overwriteColsWithContextParams.getCols();
@@ -300,28 +299,32 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 //        return overwriteCols(sourceCols, null);
 //    }
 
-    public class OverwriteCols extends ArrayList<IColMetaGetter> {
+    public class TransformerOverwriteCols<T extends IColMetaGetter> extends ArrayList<T> {
         //  private final List<IColMetaGetter> cols;
         /**
          * 保存被替换的原有值类型
          */
-        private ConcurrentMap<Integer, IColMetaGetter> previous;
+        private ConcurrentMap<Integer, T> previous;
 
-        public OverwriteCols() {
+        public TransformerOverwriteCols() {
             //  this.cols = cols;
             this(Collections.emptyList());
         }
 
-        public OverwriteCols(List<IColMetaGetter> cols) {
+        public TransformerOverwriteCols(List<T> cols) {
             //  this.cols = cols;
             super(cols);
         }
 
-        public List<IColMetaGetter> getCols() {
+        public List<T> getCols() {
             return this;
         }
 
-        private ConcurrentMap<Integer, IColMetaGetter> getPrevious() {
+        public List<IColMetaGetter> getColsWithoutVirtualInfo() {
+            return this.stream().map((c) -> c).collect(Collectors.toList());
+        }
+
+        private ConcurrentMap<Integer, T> getPrevious() {
             if (this.previous == null) {
                 this.previous = Maps.newConcurrentMap();
             }
@@ -343,13 +346,13 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
         }
 
 
-        private IColMetaGetter getOrigin(Integer idx) {
+        private T getOrigin(Integer idx) {
             return this.getPrevious().get(idx);
         }
 
         @Override
-        public IColMetaGetter set(int index, IColMetaGetter element) {
-            IColMetaGetter previous = super.set(index, element);
+        public T set(int index, T element) {
+            T previous = super.set(index, element);
             if (previous != null) {
                 this.getPrevious().putIfAbsent(index, previous);
             }
@@ -386,7 +389,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
         }
     }
 
-    public class OverwriteColsWithContextParams extends OverwriteCols {
+    public class OverwriteColsWithContextParams extends TransformerOverwriteCols {
         private final List<ContextParamConfig> contextParams;
 
         public OverwriteColsWithContextParams(List<IColMetaGetter> cols, List<ContextParamConfig> contextParams) {
@@ -405,12 +408,12 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
      * @param sourceCols
      * @return
      */
-    public <T extends IColMetaGetter> OverwriteCols overwriteCols(List<T> sourceCols) {
-        OverwriteCols rewriterResult = new OverwriteCols();
+    public <T extends IColMetaGetter> TransformerOverwriteCols<OutputParameter> overwriteCols(List<T> sourceCols) {
+        TransformerOverwriteCols<OutputParameter> rewriterResult = new TransformerOverwriteCols<OutputParameter>();
         Map<String, Integer> col2IdxBuilder = Maps.newHashMap();
         int idx = 0;
         for (IColMetaGetter col : sourceCols) {
-            rewriterResult.add(col);
+            rewriterResult.add(OutputParameter.create(col.getName(), false, col.getType()));
             col2IdxBuilder.put(col.getName(), (idx++));
         }
 

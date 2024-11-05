@@ -59,7 +59,7 @@ public abstract class AbstractCreateTableSqlBuilder<T extends ColWrapper> {
 
         if (transformers.isPresent()) {
             RecordTransformerRules transformerRules = transformers.get();
-            sourceCols = transformerRules.overwriteCols(sourceCols).getCols();
+            sourceCols = transformerRules.overwriteCols(sourceCols).getColsWithoutVirtualInfo();
         }
 
         this.cols = Collections.unmodifiableList(sourceCols.stream().map((c) -> createColWrapper(c)).collect(Collectors.toList()));
@@ -136,6 +136,11 @@ public abstract class AbstractCreateTableSqlBuilder<T extends ColWrapper> {
             List<IColMetaGetter> cols = builder.getCols();
             return "SELECT " + cols.stream().map((c) -> builder.wrapWithEscape(c.getName()))
                     .collect(Collectors.joining(",")) + " FROM " + (builder.getCreateTableName().getEntityName());
+        }
+
+        public String getCountSelectScript(Optional<String> whereCriteria) {
+            return "SELECT count(1) FROM " + (builder.getCreateTableName().getEntityName())
+                    + whereCriteria.map((where) -> " WHERE " + where).orElse(StringUtils.EMPTY);
         }
     }
 

@@ -44,6 +44,7 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.datax.transformer.OutputParameter;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
@@ -110,9 +111,11 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         List<IColMetaGetter> cols = null;
         if (transformerRules.isPresent()) {
             ITransformerBuildInfo transformerBuilder = transformerRules.get().createTransformerBuildInfo((IPluginContext) pluginCtx);
-            cols = transformerBuilder
-                    .overwriteColsWithContextParams(this.getCols());
-            return includeContextParams ? cols : transformerBuilder.tranformerColsWithoutContextParams();
+
+            List<OutputParameter> outParams = includeContextParams
+                    ? transformerBuilder.overwriteColsWithContextParams(this.getCols())
+                    : transformerBuilder.tranformerColsWithoutContextParams();
+            return outParams.stream().map((param) -> param).collect(Collectors.toList());
 
 //            OverwriteCols overwriteCols = transformerRules.get().overwriteCols(this.getCols());
 //            if (readerSource.isPresent()) {

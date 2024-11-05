@@ -403,9 +403,6 @@ public class DataXCfgGenerator implements IDataXNameAware {
         if (StringUtils.isEmpty(readerContext.getTaskName())) {
             throw new IllegalStateException("readerContext.getTaskName() must be present");
         }
-        //        File configFile = new File(dataXCfgDir
-        //                , readerContext.getReaderContextId() + File.separator + readerContext.getTaskName() +
-        //                IDataxProcessor.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
         File configFile = DataXJobInfo.getJobPath(dataXCfgDir, readerContext.getReaderContextId(),
                 readerContext.getTaskName() + DataXCfgFile.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
         FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, tableMapper
