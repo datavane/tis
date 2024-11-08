@@ -119,6 +119,27 @@ public class PropertyType implements IPropertyType {
         this.formField = formField;
     }
 
+    /**
+     * 设置默认值
+     *
+     * @param dftVal
+     * @param props
+     */
+    public static void setDefaultVal(Object dftVal, JSONObject props) {
+        if (dftVal != null) {
+            final Class dftValClazz = dftVal.getClass();
+
+            if (!(dftValClazz == String.class
+                    || dftValClazz == UnCacheString.class
+                    || Number.class.isAssignableFrom(dftValClazz)
+                    || dftValClazz == Boolean.class
+                    || dftValClazz.isEnum())) {
+                throw new IllegalStateException("default value must be type of String or primitive,but now is type:" + dftVal.getClass());
+            }
+            props.put(PluginExtraProps.KEY_DFTVAL_PROP, dftVal);
+        }
+    }
+
     @Override
     public boolean isCollectionType() {
         //   PropertyType pt = (PropertyType) propertyType;
@@ -219,8 +240,9 @@ public class PropertyType implements IPropertyType {
                                                 pt.getEnumFieldMode().createDefaultValProcess(targetClass, f) :
                                                 Function.identity();
 
-                                        props.put(PluginExtraProps.KEY_DFTVAL_PROP,
-                                                GroovyShellEvaluate.scriptEval(String.valueOf(dftVal), process));
+                                        setDefaultVal(GroovyShellEvaluate.scriptEval(String.valueOf(dftVal), process), props);
+//                                        props.put(PluginExtraProps.KEY_DFTVAL_PROP,
+//                                                GroovyShellEvaluate.scriptEval(String.valueOf(dftVal), process));
                                     }
 
                                     if (placeholder != null && StringUtils.startsWith(placeholder,
@@ -594,6 +616,6 @@ public class PropertyType implements IPropertyType {
     }
 
     public ElementCreatorFactory getCMetaCreator() {
-        return this.multiItemsViewType.tupleFactory;
+        return Objects.requireNonNull(this.multiItemsViewType, "multiItemsViewType can not be null").tupleFactory;
     }
 }

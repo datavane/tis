@@ -318,12 +318,14 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
                 return new ThreadCacheTableCols(plugin, () -> {
                     //plugin.getSelectedTab()
                     // 从临时文件中将已经选中的列取出来
-                    SelectedTab selectedTab = SelectedTab.loadFromTmp(Objects.requireNonNull(context.store, "store can not be null"), context.getSubFormIdentityField());
+                    SelectedTab selectedTab = SelectedTab.loadFromTmp(
+                            Objects.requireNonNull(context.store, "store can not be null"), context.getSubFormIdentityField());
                     List<SelectedTab> filledSelectedTab = plugin.fillSelectedTabMeta(Collections.singletonList(selectedTab));
                     for (SelectedTab tab : filledSelectedTab) {
                         for (CMeta cmeta : tab.getCols()) {
                             if (cmeta.getType() == null) {
-                                throw new IllegalStateException("table:" + context.getSubFormIdentityField() + ",col:" + cmeta.getName() + " relevant type can not be null");
+                                throw new IllegalStateException("table:" + context.getSubFormIdentityField()
+                                        + ",col:" + cmeta.getName() + " relevant type can not be null");
                             }
                         }
                         return tab.getCols();

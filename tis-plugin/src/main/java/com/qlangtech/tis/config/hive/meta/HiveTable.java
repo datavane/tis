@@ -45,13 +45,33 @@ public abstract class HiveTable {
 
     public abstract List<String> getPartitionKeys();
 
+    public abstract List<HiveTabColType> getCols();
+
+    public static class HiveTabColType {
+        private final String colName;
+        private final String type;
+
+        public HiveTabColType(String colName, String type) {
+            this.colName = colName;
+            this.type = type;
+        }
+
+        public String getColName() {
+            return colName;
+        }
+
+        public String getType() {
+            return type;
+        }
+    }
+
     /**
      * @param filter the filter string,
      *               for example "part1 = \"p1_abc\" and part2 <= "\p2_test\"". Filtering can
      *               be done only on string partition keys.
-     * @return
+     * @return 返回最终的存储数据的path列表集合
      */
-    public abstract List<String> listPartitions(Optional<String> filter);
+    public abstract List<String> listPaths(PartitionFilter filter);
 
     public String getTableName() {
         return this.name;

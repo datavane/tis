@@ -34,7 +34,14 @@
     <version>${revision}</version>
     <packaging>pom</packaging>
     <name>tis</name>
-    <url>http://maven.apache.org</url>
+
+    <scm>
+        <connection>scm:git:git://github.com/datavane/tis.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/datavane/tis.git</developerConnection>
+        <url>https://github.com/datavane/tis</url>
+        <tag>HEAD</tag>
+    </scm>
+
     <properties>
         <revision>4.1.0-SNAPSHOT</revision>
         <testcontainers.version>1.15.3</testcontainers.version>

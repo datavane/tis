@@ -62,6 +62,8 @@ public class DescriptorsJSONResultSerializer implements ObjectSerializer {
                 if (++fieldIndex < fieldSize) {
                     json.append(",");
                 }
+            } catch (Exception e) {
+                throw new IllegalStateException(entry.getKey() + " " + entry.getValue().getValue().getClass(), e);
             } finally {
                 if (value.rootDesc) {
                     DescriptorsJSONResult.rootDescriptorLocal.remove();

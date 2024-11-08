@@ -57,7 +57,6 @@ import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
-import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.ISelectOptionsGetter;
 import com.qlangtech.tis.util.PluginMeta;
@@ -1456,7 +1455,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String helperContent,
                                                      Optional<List<Option>> enums) {
         JSONObject c = new JSONObject();
-        c.put(PluginExtraProps.KEY_DFTVAL_PROP, dftVal);
+        PropertyType.setDefaultVal(dftVal, c);
         PluginExtraProps.Props props = new PluginExtraProps.Props(c);
         if (StringUtils.isNotEmpty(helperContent)) {
             props.tagAsynHelp(new StringBuffer(helperContent));
