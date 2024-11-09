@@ -34,7 +34,7 @@ import java.time.format.DateTimeFormatter;
  **/
 public enum TimeFormat {
     yyyyMMddHHmmss(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")), yyyyMMdd(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
+    public static final String DATA_FORMAT = "yyyy-MM-dd";
     public static final ZoneId sysZoneId = ZoneOffset.systemDefault();
     public final DateTimeFormatter timeFormatter;
     public static Long timestampForTest;
