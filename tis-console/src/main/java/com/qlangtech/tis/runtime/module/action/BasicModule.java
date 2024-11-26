@@ -138,6 +138,7 @@ import java.util.stream.Collectors;
 public abstract class BasicModule extends ActionSupport implements RunContext, IControlMsgHandler, IPluginContext, IERRulesGetter {
 
   public static final long serialVersionUID = 1L;
+  public static final String KEY_PLUGIN = "plugin";
 
   private static final Logger logger = LoggerFactory.getLogger("executeaction");
 
@@ -156,7 +157,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   protected List<UploadPluginMeta> getPluginMeta() {
     final boolean useCache = Boolean.parseBoolean(this.getString("use_cache", "true"));
     // return UploadPluginMeta.parse(this, this.getStringArray("plugin"), useCache);
-    return parsePluginMeta(this.getStringArray("plugin"), useCache)
+    return parsePluginMeta(this.getStringArray(KEY_PLUGIN), useCache)
       .stream().map((meta) -> (UploadPluginMeta) meta).collect(Collectors.toList());
   }
 

@@ -73,7 +73,11 @@ public class KerberosCfg extends ParamsConfig implements IKerberos {
 
 
     @TISExtension
-    public static class DefaultDescriptor extends Descriptor<ParamsConfig> {
+    public static class DefaultDescriptor extends BasicParamsConfigDescriptor {
+        public DefaultDescriptor() {
+            super("test-" + IKerberos.IDENTITY);
+        }
+
         @Override
         public String getDisplayName() {
             return "test-" + IKerberos.IDENTITY;

@@ -27,12 +27,10 @@ import com.koubei.web.tag.pager.Pager;
 import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IDescribableManipulate;
-import com.qlangtech.tis.extension.INotebookable;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
@@ -46,14 +44,14 @@ import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.extension.util.TextFile;
 import com.qlangtech.tis.install.InstallState;
 import com.qlangtech.tis.install.InstallUtil;
-import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.maven.plugins.tpi.ICoord;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
-import com.qlangtech.tis.plugin.IEndTypeGetter.IconReference;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginTaggable;
+import com.qlangtech.tis.plugin.IdentityDesc;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -93,7 +91,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -257,43 +254,43 @@ public class PluginAction extends BasicModule {
    * @param context
    * @throws Exception
    */
-  public void doGetOrCreateNotebook(Context context) throws Exception {
-    DataxProcessor dataxProcessor = IAppSource.load(this, this.getAppDomain().getAppName());
-    String pluginIdVal = this.getString("pluginIdVal");
-    if (StringUtils.isEmpty(pluginIdVal)) {
-      throw new IllegalArgumentException("param pluginIdVal can not be null");
-    }
-    Map<String, INotebookable.NotebookEntry> notebooks = dataxProcessor.scanNotebook();
-    INotebookable.NotebookEntry notebookEntry = notebooks.get(pluginIdVal);
-    Objects.requireNonNull(notebookEntry, "pluginId:" + pluginIdVal + " relevant notebookEntry can not be null");
-    this.setBizResult(context, notebookEntry.createOrGetNotebook());
-  }
+//  public void doGetOrCreateNotebook(Context context) throws Exception {
+//    DataxProcessor dataxProcessor = IAppSource.load(this, this.getAppDomain().getAppName());
+//    String pluginIdVal = this.getString("pluginIdVal");
+//    if (StringUtils.isEmpty(pluginIdVal)) {
+//      throw new IllegalArgumentException("param pluginIdVal can not be null");
+//    }
+//    Map<String, INotebookable.NotebookEntry> notebooks = dataxProcessor.scanNotebook();
+//    INotebookable.NotebookEntry notebookEntry = notebooks.get(pluginIdVal);
+//    Objects.requireNonNull(notebookEntry, "pluginId:" + pluginIdVal + " relevant notebookEntry can not be null");
+//    this.setBizResult(context, notebookEntry.createOrGetNotebook());
+//  }
 
   /**
    * @param context
    */
-  public void doScanNotebooks(Context context) throws Exception {
-    String dataxName = this.getAppDomain().getAppName();
-
-    DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
-    Map<String, INotebookable.NotebookEntry> notebooks = dataxProcessor.scanNotebook();
-    String pluginIdVal = null;
-    DescriptorsJSON descJson = null;
-    List<Descriptor> descs = Lists.newArrayList();
-    INotebookable.NotebookEntry note = null;
-    List<Map<String, Object>> notebookProps = Lists.newArrayList();
-    Map<String, Object> props = null;
-    for (Map.Entry<String, INotebookable.NotebookEntry> entry : notebooks.entrySet()) {
-      pluginIdVal = entry.getKey();
-      note = entry.getValue();
-
-      props = new HashMap<>(note.getDescriptor().getExtractProps());
-      props.put("pluginId", pluginIdVal);
-      props.put("displayName", note.getDescriptor().getDisplayName());
-      notebookProps.add(props);
-    }
-    this.setBizResult(context, notebookProps);
-  }
+//  public void doScanNotebooks(Context context) throws Exception {
+//    String dataxName = this.getAppDomain().getAppName();
+//
+//    DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
+//    Map<String, INotebookable.NotebookEntry> notebooks = dataxProcessor.scanNotebook();
+//    String pluginIdVal = null;
+//    DescriptorsJSON descJson = null;
+//    List<Descriptor> descs = Lists.newArrayList();
+//    INotebookable.NotebookEntry note = null;
+//    List<Map<String, Object>> notebookProps = Lists.newArrayList();
+//    Map<String, Object> props = null;
+//    for (Map.Entry<String, INotebookable.NotebookEntry> entry : notebooks.entrySet()) {
+//      pluginIdVal = entry.getKey();
+//      note = entry.getValue();
+//
+//      props = new HashMap<>(note.getDescriptor().getExtractProps());
+//      props.put("pluginId", pluginIdVal);
+//      props.put("displayName", note.getDescriptor().getDisplayName());
+//      notebookProps.add(props);
+//    }
+//    this.setBizResult(context, notebookProps);
+//  }
 
 
   /**
@@ -463,6 +460,7 @@ public class PluginAction extends BasicModule {
       // pluginInfo.put("bundled", plugin.isBundled);
       pluginInfo.put("deleted", plugin.isDeleted());
       pluginInfo.put("downgradable", plugin.isDowngradable());
+      pluginInfo.put(ICoord.KEY_PLUGIN_VIP, plugin.manifest.isCommunityVIP());
 
       pluginInfo.put("website", plugin.getUrl());
       List<PluginWrapper.Dependency> dependencies = plugin.getDependencies();
@@ -768,7 +766,20 @@ public class PluginAction extends BasicModule {
       throw new IllegalArgumentException("request param 'impl' can not be null");
     }
     IPluginEnum hetero = HeteroEnum.of(this.getString("hetero"));
-    List<Descriptor<Describable>> descriptors = hetero.descriptors();
+    List<Descriptor<Describable>> descriptors = null;
+
+    String[] plugins = this.getStringArray(KEY_PLUGIN);
+    if (plugins != null && plugins.length > 0) {
+      List<UploadPluginMeta> pluginMetas = this.getPluginMeta();
+      for (UploadPluginMeta meta : pluginMetas) {
+        IPluginStore pluginStore = hetero.getPluginStore(this, meta);
+        descriptors = pluginStore.allDescriptor();
+        break;
+      }
+    } else {
+      descriptors = hetero.descriptors();
+    }
+
     for (Descriptor desc : descriptors) {
       if (StringUtils.equals(desc.getDisplayName(), displayName)) {
         this.setBizResult(context, new DescriptorsJSON(desc).getDescriptorsJSON());
@@ -917,9 +928,9 @@ public class PluginAction extends BasicModule {
 
     boolean faild = false;
     List<IPluginItemsProcessor> categoryPlugins = Lists.newArrayList();
-    final boolean processNotebook = this.getBoolean("getNotebook");
+   // final boolean processNotebook = this.getBoolean("getNotebook");
     // 是否进行业务逻辑校验？当正式提交表单时候不进行业务逻辑校验，用户可能先添加一个不存在的数据库配置
-    final boolean verify = processNotebook || this.getBoolean("verify");
+    final boolean verify =  this.getBoolean("verify");
     Pair<Boolean, IPluginItemsProcessor> pluginItemsParser = null;
     for (int pluginIndex = 0; pluginIndex < plugins.size(); pluginIndex++) {
 
@@ -940,7 +951,7 @@ public class PluginAction extends BasicModule {
       }
     }
 
-    if (this.hasErrors(context) || (verify && !processNotebook)) {
+    if (this.hasErrors(context) || (verify )) {
       return;
     }
     if (faild) {
@@ -949,12 +960,12 @@ public class PluginAction extends BasicModule {
       return;
     }
 
-    if (processNotebook) {
-      for (IPluginItemsProcessor pi : categoryPlugins) {
-        this.setBizResult(context, pi.cerateOrGetNotebook(this, context));
-        return;
-      }
-    }
+//    if (processNotebook) {
+//      for (IPluginItemsProcessor pi : categoryPlugins) {
+//        this.setBizResult(context, pi.cerateOrGetNotebook(this, context));
+//        return;
+//      }
+//    }
 
     List<IItemsSaveResult> describables = Lists.newArrayList();
 
@@ -975,7 +986,13 @@ public class PluginAction extends BasicModule {
     if (context.get(IMessageHandler.ACTION_BIZ_RESULT) == null) {
       this.setBizResult(context,
         describables.stream()
-          .flatMap((itemSaveResult) -> itemSaveResult.getIdentityStream()).map((d) -> (d).identityValue()).collect(Collectors.toList()));
+          .flatMap((itemSaveResult) -> itemSaveResult.getIdentityStream()).map((d) -> {
+            if (d instanceof IdentityDesc) {
+              return ((IdentityDesc) d).describePlugin();
+            } else {
+              return (d).identityValue();
+            }
+          }).collect(Collectors.toList()));
     }
   }
 

@@ -83,6 +83,17 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
     public abstract <INSTANCE> INSTANCE createConfigInstance();
 
     public static <T extends ParamsConfig> T getItem(String identityName, String targetPluginDesc) {
+        return getItem(identityName, targetPluginDesc, true);
+    }
+
+    /**
+     * @param identityName
+     * @param targetPluginDesc
+     * @param valiateNull      是否校验为空
+     * @param <T>
+     * @return
+     */
+    public static <T extends ParamsConfig> T getItem(String identityName, String targetPluginDesc, boolean valiateNull) {
         if (StringUtils.isEmpty(identityName)) {
             throw new IllegalArgumentException("param identityName can not be empty");
         }
@@ -92,15 +103,23 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
                 return i;
             }
         }
-        throw new IllegalStateException("Name:" + identityName + ",type:" + targetPluginDesc + " can not find relevant config in["
-                + items.stream().map((r) -> r.identityValue()).collect(Collectors.joining(",")) + "]");
+        if (valiateNull) {
+            throw new IllegalStateException("Name:" + identityName + ",type:" + targetPluginDesc + " can not find relevant config in["
+                    + items.stream().map((r) -> r.identityValue()).collect(Collectors.joining(",")) + "]");
+        } else {
+            return null;
+        }
     }
 
 
     @Override
     @JSONField(serialize = false)
     public final Descriptor<ParamsConfig> getDescriptor() {
-        return TIS.get().getDescriptor(this.getClass());
+        Descriptor<ParamsConfig> desc = TIS.get().getDescriptor(this.getClass());
+        if (!BasicParamsConfigDescriptor.class.isAssignableFrom(desc.getClass())) {
+            throw new IllegalStateException(desc.getClass().getSimpleName() + " must be child of " + BasicParamsConfigDescriptor.class.getName());
+        }
+        return desc;
     }
 
     // public static DescriptorExtensionList<ParamsConfig, Descriptor<ParamsConfig>> all() {
@@ -111,5 +130,19 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
     public static List<Descriptor<ParamsConfig>> all(Class<?> type) {
         List<Descriptor<ParamsConfig>> desc = HeteroEnum.PARAMS_CONFIG.descriptors();
         return desc.stream().filter((r) -> type.isAssignableFrom(r.getT())).collect(Collectors.toList());
+    }
+
+
+    public static abstract class BasicParamsConfigDescriptor extends Descriptor<ParamsConfig> {
+        private final String paramsConfigType;
+
+        public BasicParamsConfigDescriptor(String paramsConfigType) {
+            super();
+            this.paramsConfigType = paramsConfigType;
+        }
+
+        public final String paramsConfigType() {
+            return this.paramsConfigType;
+        }
     }
 }

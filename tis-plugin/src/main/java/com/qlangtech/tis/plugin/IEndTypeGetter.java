@@ -67,7 +67,7 @@ public interface IEndTypeGetter {
         , Cassandra("cassandra") //, HDFS("hdfs")
         , SqlServer("sqlServer", true), TiDB("TiDB", true) //
         , RocketMQ("rocketMq", true), Kafka("kafka", true), DataFlow("dataflow") //
-        , DaMeng("daMeng", true), AliyunODPS("aliyunOdps",true), HiveMetaStore("hms", true) //
+        , DaMeng("daMeng", true), AliyunODPS("aliyunOdps", true), HiveMetaStore("hms", true) //
         , Spark("spark", true) //
         , RabbitMQ("rabbitmq", true), UnKnowStoreType("unknowStoreType", true),
 
@@ -83,7 +83,8 @@ public interface IEndTypeGetter {
         , Concat("concat", true)//
         , Mask("mask", true)//
         , Splitter("splitter", true)//
-        , SubString("substr", true);
+        , SubString("substr", true) //
+        , License("license", true);
 
         private final String val;
         private final boolean containICON;

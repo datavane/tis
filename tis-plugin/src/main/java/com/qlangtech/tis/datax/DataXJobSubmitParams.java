@@ -177,7 +177,11 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
     }
 
     // @TISExtension
-    public abstract static class DefaultDesc extends Descriptor<ParamsConfig> {
+    public abstract static class DefaultDesc extends BasicParamsConfigDescriptor {
+        public DefaultDesc() {
+            super(LOCAL_DATAX_SUBMIT_PARAMS);
+        }
+
         @Override
         public String getDisplayName() {
             return LOCAL_DATAX_SUBMIT_PARAMS;
@@ -188,18 +192,6 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
             return this.verify(msgHandler, context, postFormVals);
         }
 
-        //        public boolean validateMemoryRequest(
-//                IFieldErrorHandler msgHandler, Context context, String fieldName, String val) {
-//if(Integer.parseInt()){
-//
-//}
-//            return true;
-//        }
-//
-//        public boolean validateMemoryLimit(
-//                IFieldErrorHandler msgHandler, Context context, String fieldName, String val) {
-//            return true;
-//        }
         private static final String FIELD_MEMORY_LIMIT = "memoryLimit";
         private static final String FIELD_MEMORY_REQUEST = "memoryRequest";
         private static final String FIELD_PIPELINE_PARALLELISM = "pipelineParallelism";

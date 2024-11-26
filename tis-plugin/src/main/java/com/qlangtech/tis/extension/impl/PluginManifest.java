@@ -23,6 +23,7 @@ import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginStrategy;
 import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.maven.plugins.tpi.ICoord;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.Util;
@@ -297,7 +298,7 @@ public abstract class PluginManifest {
 
     public String getVersionOf() {
         String v = this.atts.getValue(PluginStrategy.KEY_MANIFEST_PLUGIN_VERSION);
-        if (v != null){
+        if (v != null) {
             return v;
         }
         // plugins generated before maven-hpi-plugin 1.3 should still have this attribute
@@ -326,6 +327,10 @@ public abstract class PluginManifest {
     public String getLongName() {
         String name = this.atts.getValue("Long-Name");
         return name;
+    }
+
+    public boolean isCommunityVIP() {
+        return Boolean.parseBoolean(this.atts.getValue(ICoord.KEY_PLUGIN_VIP));
     }
 
     public PluginMeta getPluginMeta() {

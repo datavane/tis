@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -96,7 +97,7 @@ public class ZkUtils {
      * @throws
      * @throws InterruptedException
      */
-    public static String registerAddress2ZK(final ITISCoordinator zookeeper, final String zkPath, final int port) throws  InterruptedException {
+    public static String registerAddress2ZK(final ITISCoordinator zookeeper, final String zkPath, final int port) throws InterruptedException {
 
         String ip = NetUtils.getHost();
         registerMyIp(zkPath, ip, port, zookeeper);
@@ -118,7 +119,7 @@ public class ZkUtils {
      * @throws
      * @throws InterruptedException
      */
-    public static void registerTemporaryContent(final ITISCoordinator zookeeper, final String zkPath, final String content) throws  InterruptedException {
+    public static void registerTemporaryContent(final ITISCoordinator zookeeper, final String zkPath, final String content) throws InterruptedException {
         registerContent(zkPath, content, zookeeper);
         zookeeper.addOnReconnect(() -> {
             registerContent(zkPath, content, zookeeper);
@@ -142,6 +143,12 @@ public class ZkUtils {
         }
     }
 
+    public static Consumer<String> localhostValidator = (ip) -> {
+        if (NetUtils.LOCAL_HOST_VALUE.equals(ip)) {
+            throw new IllegalStateException("ip can not be 127.0.0.1");
+        }
+    };
+
     /**
      * @param zookeeper
      * @throws
@@ -149,9 +156,10 @@ public class ZkUtils {
      */
     private static String registerMyIp(final String parentNodepath, String ip, int port, ITISCoordinator zookeeper) {
         try {
-            if (NetUtils.LOCAL_HOST_VALUE.equals(ip)) {
-                throw new IllegalStateException("ip can not be 127.0.0.1");
-            }
+//            if (NetUtils.LOCAL_HOST_VALUE.equals(ip)) {
+//                throw new IllegalStateException("ip can not be 127.0.0.1");
+//            }
+            localhostValidator.accept(ip);
             if (port > 0) {
                 ip = ip + ":" + port;
             }

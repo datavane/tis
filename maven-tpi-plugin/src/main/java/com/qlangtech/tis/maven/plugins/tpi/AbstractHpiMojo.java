@@ -251,6 +251,12 @@ public abstract class AbstractHpiMojo extends AbstractJenkinsMojo {
     protected boolean pluginFirstClassLoader = false;
 
     /**
+     * 社区协力版本，需要证书验证
+     */
+    @Parameter
+    protected boolean communityVIP = false;
+
+    /**
      * If true, test scope dependencies count as if they are normal dependencies.
      * This is only useful during hpi:run, so not exposing it as a configurable parameter.
      */

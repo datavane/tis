@@ -30,7 +30,7 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 public interface IPluginItemsProcessor {
   IPluginWithStore getStorePlugins();
 
-  String cerateOrGetNotebook(IControlMsgHandler pluginContext, Context context) throws Exception;
+ // String cerateOrGetNotebook(IControlMsgHandler pluginContext, Context context) throws Exception;
 
   IItemsSaveResult save(Context context);
 }

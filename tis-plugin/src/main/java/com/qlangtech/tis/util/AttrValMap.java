@@ -22,11 +22,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.Descriptor.FormVaildateType;
 import com.qlangtech.tis.extension.Descriptor.PostFormVals;
-import com.qlangtech.tis.extension.INotebookable;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
@@ -147,15 +145,15 @@ public class AttrValMap {
 //        return this.descriptor.secondVerify(msgHandler,context, null ,parentPostFormVals);
 //    }
 
-    public String createOrGetNotebook(IControlMsgHandler msgHandler, Context context) throws Exception {
-
-        if (!(this.descriptor instanceof INotebookable)) {
-            throw new IllegalStateException("desc:" + this.descriptor.getClass().getName() + " must be instance of " + INotebookable.class.getSimpleName());
-        }
-        INotebookable notebook = (INotebookable) this.descriptor;
-        return notebook.createOrGetNotebook((new Descriptor.PostFormVals(this.descriptor, msgHandler, context,
-                this.attrValMap)).newInstance());
-    }
+//    public String createOrGetNotebook(IControlMsgHandler msgHandler, Context context) throws Exception {
+//
+//        if (!(this.descriptor instanceof INotebookable)) {
+//            throw new IllegalStateException("desc:" + this.descriptor.getClass().getName() + " must be instance of " + INotebookable.class.getSimpleName());
+//        }
+//        INotebookable notebook = (INotebookable) this.descriptor;
+//        return notebook.createOrGetNotebook((new Descriptor.PostFormVals(this.descriptor, msgHandler, context,
+//                this.attrValMap)).newInstance());
+//    }
 
     public Descriptor.ParseDescribable createDescribable(IControlMsgHandler pluginContext, Context context) {
         return this.createDescribable(pluginContext, context, Optional.empty());

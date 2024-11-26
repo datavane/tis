@@ -32,9 +32,12 @@ import java.time.format.DateTimeFormatter;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-02-23 13:31
  **/
-public enum TimeFormat {
-    yyyyMMddHHmmss(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")), yyyyMMdd(DateTimeFormatter.ofPattern("yyyyMMdd"));
-    public static final String DATA_FORMAT = "yyyy-MM-dd";
+public enum TimeFormat implements ITimeFormat {
+
+    yyyyMMddHHmmss(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) //
+    , yyyyMMdd(DateTimeFormatter.ofPattern("yyyyMMdd")) //
+    , yyyy_MM_dd(DateTimeFormatter.ofPattern(DATA_FORMAT));
+   // public static final String DATA_FORMAT = yyyy_MM_dd.timeFormatter.p;
     public static final ZoneId sysZoneId = ZoneOffset.systemDefault();
     public final DateTimeFormatter timeFormatter;
     public static Long timestampForTest;
@@ -53,8 +56,11 @@ public enum TimeFormat {
     }
 
     public String format(long epochMilli) {
-        return LocalDateTime.ofInstant(
-                Instant.ofEpochMilli(epochMilli), sysZoneId).format(this.timeFormatter);
+        return this.ofInstant(epochMilli).format(this.timeFormatter);
+    }
+
+    public LocalDateTime ofInstant(long epochMilli) {
+        return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMilli), sysZoneId);
     }
 
     public static TimeFormat parse(String token) {
@@ -68,6 +74,6 @@ public enum TimeFormat {
     }
 
     public static void main(String[] args) {
-        System.out.println( TimeFormat.yyyyMMddHHmmss.format(1709001500699l));
+        System.out.println(TimeFormat.yyyyMMddHHmmss.format(1709001500699l));
     }
 }

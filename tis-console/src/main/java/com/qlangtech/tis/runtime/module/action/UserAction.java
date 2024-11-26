@@ -32,6 +32,8 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.UserUtils;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.plugin.license.TISLicense;
+import com.qlangtech.tis.plugin.license.TISLicense.HasExpire;
 import junit.framework.Assert;
 import org.apache.commons.lang.StringUtils;
 
@@ -67,11 +69,20 @@ public class UserAction extends BasicModule {
   }
 
   public static Map<String, Object> createSysInfo(IUser user) {
-    Map<String, Object> sysInfo = Maps.newHashMap();
-    sysInfo.put("usr", Objects.requireNonNull(user, "user can not be null"));
-    sysInfo.put("sysInitialized", SysInitializeAction.isSysInitialized());
-    sysInfo.put("tisMeta", Config.getMetaProps().tisMetaProps);
-    return sysInfo;
+    try {
+      Map<String, Object> sysInfo = Maps.newHashMap();
+      sysInfo.put("usr", Objects.requireNonNull(user, "user can not be null"));
+      sysInfo.put("sysInitialized", SysInitializeAction.isSysInitialized());
+      sysInfo.put("tisMeta", Config.getMetaProps().tisMetaProps);
+      TISLicense tisLicense = TISLicense.load(false);
+
+      if (tisLicense != null) {
+        sysInfo.put("license", tisLicense.hasExpire());
+      }
+      return sysInfo;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**

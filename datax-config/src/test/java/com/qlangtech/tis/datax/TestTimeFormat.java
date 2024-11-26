@@ -16,29 +16,19 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.maven.plugins.tpi;
+package com.qlangtech.tis.datax;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-06-27 11:57
+ * @create: 2024-11-15 12:18
  **/
-public interface ICoord {
-    /**
-     * 是否是VIP插件
-     */
-    String KEY_PLUGIN_VIP = "communityVIP";
+public class TestTimeFormat {
 
-    public URL getDownloadUrl() throws MalformedURLException;
-
-    public String getSha1() throws IOException;
-
-    public String getSha256() throws IOException;
-
-    public long getSize() throws IOException;
-
-    public String getGav();
+    @Test
+    public void testDATA_FORMAT() {
+        Assert.assertEquals("yyyy-MM-dd", TimeFormat.DATA_FORMAT);
+    }
 }

@@ -76,7 +76,11 @@ public class TisException extends RuntimeException {
          * @see com.qlangtech.tis.manage.common.ConfigFileContext#processContent 中使用
          */
         HTTP_CONNECT_FAILD((rundata) -> {
-           throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException();
+        }),
+        // 证书失效
+        LICENSE_INVALID((rundata) -> {
+            return null;
         }),
         FLINK_INSTANCE_LOSS_OF_CONTACT((rundata) -> {
             // example: coredefine:datax_action:save_datax_worker

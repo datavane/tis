@@ -32,17 +32,4 @@ public class ConfigConstant {
     public static final String FILE_SOLR = "solrconfig.xml";
 
     // public static final String FILE_JAR = "dump.jar";
-
-    // public static final String FILE_CORE_PROPERTIES = "core.properties";
-    // public static String getRunEnvir(int runEnvironment) {
-    // switch (runEnvironment) {
-    // case 0:
-    // return "日常环境";
-    // case 1:
-    // return "DAILY";
-    // default:
-    // throw new IllegalStateException("runEnvironment:" + runEnvironment
-    // + "  is not valid");
-    // }
-    // }
 }

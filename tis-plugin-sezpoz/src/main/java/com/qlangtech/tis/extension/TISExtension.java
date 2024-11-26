@@ -27,7 +27,7 @@ import java.lang.annotation.*;
  * @date 2020/04/13
  */
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.CLASS)
 @Documented
 @Indexable()
 public @interface TISExtension {

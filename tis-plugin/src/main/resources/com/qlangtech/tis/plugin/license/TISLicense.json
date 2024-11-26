@@ -1,0 +1,16 @@
+{
+  "expireDate": {
+    "label": "有效截止日",
+    "readonly": true
+  },
+  "activationCode": {
+    "label": "激活码",
+    "rows": 15
+  },
+  "email": {
+    "readonly": true
+  },
+  "mobile": {
+    "readonly": true
+  }
+}

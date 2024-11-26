@@ -426,15 +426,15 @@ public class PluginItems implements IPluginItemsProcessor {
     return dlist.stream().map((r) -> (Descriptor.ParseDescribable<T>) r).collect(Collectors.toList());
   }
 
-  @Override
-  public String cerateOrGetNotebook(IControlMsgHandler msgHandler, Context context) throws Exception {
-
-    for (AttrValMap vals : this.items) {
-      return vals.createOrGetNotebook(msgHandler, context);
-    }
-
-    throw new IllegalStateException("items size:" + this.items.size());
-  }
+//  @Override
+//  public String cerateOrGetNotebook(IControlMsgHandler msgHandler, Context context) throws Exception {
+//
+//    for (AttrValMap vals : this.items) {
+//      return vals.createOrGetNotebook(msgHandler, context);
+//    }
+//
+//    throw new IllegalStateException("items size:" + this.items.size());
+//  }
 
   public static class PluginItemsSaveObservable extends Observable {
 

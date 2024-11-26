@@ -35,6 +35,7 @@ import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.maven.plugins.tpi.ICoord;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginTaggable;
@@ -394,6 +395,9 @@ public class UpdateSite {
          * Optional URL to the Wiki page that discusses this plugin.
          */
         public final String wiki;
+
+        @JSONField(name = ICoord.KEY_PLUGIN_VIP)
+        public final boolean communityVIP;
         /**
          * Human readable title of the plugin, taken from Wiki page.
          * Can be null.
@@ -484,7 +488,7 @@ public class UpdateSite {
 
         public Plugin(String sourceId, JSONObject o) {
             super(sourceId, o, UpdateSite.this.url);
-
+            this.communityVIP = o.getBooleanValue(ICoord.KEY_PLUGIN_VIP);// get(, "wiki");
             this.wiki = get(o, "wiki");
             this.title = get(o, "title");
             this.excerpt = StringUtils.trimToNull(get(o, "excerpt"));

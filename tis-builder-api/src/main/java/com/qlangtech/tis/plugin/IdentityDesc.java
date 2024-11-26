@@ -16,29 +16,15 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.maven.plugins.tpi;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+package com.qlangtech.tis.plugin;
 
 /**
+ * 在pluginAction中保存plguin内容之后，默认向页面返回identity值，在某些场景下需要向页面中返回特定的Bean内容信息，例如TISLicense 保存后需要向页面返回validate结果：HasExpire
+ *
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-06-27 11:57
+ * @create: 2024-11-18 18:17
+ * //@see TISLicense
  **/
-public interface ICoord {
-    /**
-     * 是否是VIP插件
-     */
-    String KEY_PLUGIN_VIP = "communityVIP";
-
-    public URL getDownloadUrl() throws MalformedURLException;
-
-    public String getSha1() throws IOException;
-
-    public String getSha256() throws IOException;
-
-    public long getSize() throws IOException;
-
-    public String getGav();
+public interface IdentityDesc<T> {
+    public T describePlugin();
 }

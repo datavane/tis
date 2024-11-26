@@ -293,6 +293,15 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
 
 
             this.plugins = collect;
+
+            if (this.plugins != null) {
+                this.plugins.forEach((plugin) -> {
+                    if (plugin instanceof BeforePluginSaved) {
+                        ((BeforePluginSaved) plugin).beforeSaved(pluginContext, context);
+                    }
+                });
+            }
+
             boolean changed = this.file.write(this, pluginsMeta);
             this.loaded = true;
             long lastModifyTimestamp = -1;

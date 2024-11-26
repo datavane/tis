@@ -196,6 +196,11 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
             return new ParamsConfigPluginStore(pluginMeta);
         }
+
+//        @Override
+//        public <T extends Describable<T>> List<Descriptor<T>> descriptors() {
+//            return super.descriptors();
+//        }
     };
     // ////////////////////////////////////////////////////////
     private static final String KEY_K8S_IMAGES = "k8s-images";

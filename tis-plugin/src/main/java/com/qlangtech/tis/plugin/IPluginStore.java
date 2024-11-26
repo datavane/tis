@@ -136,6 +136,13 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
         void afterSaved(IPluginContext pluginContext, Optional<Context> context);
     }
 
+    interface BeforePluginSaved {
+        /**
+         * Plugin 保存执行千回调执行
+         */
+        void beforeSaved(IPluginContext pluginContext, Optional<Context> context);
+    }
+
     /**
      * 不需要持久化的plugin进行提交处理
      */

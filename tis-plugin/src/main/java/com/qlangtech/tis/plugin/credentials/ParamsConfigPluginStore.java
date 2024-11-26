@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.ParamsConfig;
+import com.qlangtech.tis.config.ParamsConfig.BasicParamsConfigDescriptor;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.impl.XmlFile;
@@ -143,11 +144,22 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
 
     @Override
     public List<Descriptor<ParamsConfig>> allDescriptor() {
+
+        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetDesc());
+        List<Descriptor<ParamsConfig>> descriptors = childPluginStore.allDescriptor();
+
         List<Descriptor<ParamsConfig>> descs = Lists.newArrayList();
-        visitAllPluginStore((ps) -> {
-            descs.addAll(ps.getRight().allDescriptor());
-            return null;
-        });
+        for (Descriptor<ParamsConfig> desc : descriptors) {
+            if (StringUtils.equals(((BasicParamsConfigDescriptor) desc).paramsConfigType(), pluginMeta.getTargetDesc().matchTargetPluginDescName)) {
+                descs.add(desc);
+            }
+        }
+
+//        List<Descriptor<ParamsConfig>> descs = Lists.newArrayList();
+//        visitAllPluginStore((ps) -> {
+//            descs.addAll(ps.getRight().allDescriptor());
+//            return null;
+//        });
         return descs;
     }
 
@@ -191,14 +203,14 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
 
     @Override
     public void copyConfigFromRemote() {
-       // UploadPluginMeta.TargetDesc desc = getTargetDesc();
+        // UploadPluginMeta.TargetDesc desc = getTargetDesc();
         IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetDesc());
         childPluginStore.copyConfigFromRemote();
     }
 
     @Override
     public XmlFile getTargetFile() {
-       // UploadPluginMeta.TargetDesc desc = getTargetDesc();
+        // UploadPluginMeta.TargetDesc desc = getTargetDesc();
         IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetDesc());
         return childPluginStore.getTargetFile();
     }
@@ -213,7 +225,7 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
 
     @Override
     public long getWriteLastModifyTimeStamp() {
-       // UploadPluginMeta.TargetDesc desc = getTargetDesc();
+        // UploadPluginMeta.TargetDesc desc = getTargetDesc();
         IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(pluginMeta.getTargetDesc());
         return childPluginStore.getWriteLastModifyTimeStamp();
     }

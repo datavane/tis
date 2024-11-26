@@ -76,6 +76,13 @@ public class TestParamsConfigPluginStore extends TestCase {
         assertEquals(1, plugins.size());
         assertEquals(cfg1.name, plugins.get(0).identityValue());
 
+        List<Descriptor<ParamsConfig>> descriptors = paramsCfgPluginStore.allDescriptor();
+        descriptors.forEach((desc) -> {
+            System.out.println("--------"+desc.clazz.getName());
+        });
+
+        //============================================================================
+
         paramsCfgPluginStore = new ParamsConfigPluginStore(UploadPluginMeta.parse(ParamsConfig.CONTEXT_PARAMS_CFG));
         plugins = paramsCfgPluginStore.getPlugins();
         assertNotNull("plugins can not be null", plugins);
@@ -108,7 +115,11 @@ public class TestParamsConfigPluginStore extends TestCase {
         }
 
         @TISExtension()
-        public static class DefaultDescriptor extends Descriptor<ParamsConfig> {
+        public static class DefaultDescriptor extends BasicParamsConfigDescriptor {
+            public DefaultDescriptor() {
+                super(keyTest1);
+            }
+
             @Override
             public String getDisplayName() {
                 return keyTest1;
@@ -131,7 +142,11 @@ public class TestParamsConfigPluginStore extends TestCase {
         }
 
         @TISExtension()
-        public static class DefaultDescriptor extends Descriptor<ParamsConfig> {
+        public static class DefaultDescriptor extends BasicParamsConfigDescriptor {
+            public DefaultDescriptor() {
+                super("test2");
+            }
+
             @Override
             public String getDisplayName() {
                 return "test2";
