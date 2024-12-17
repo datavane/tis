@@ -26,6 +26,7 @@ import com.qlangtech.tis.async.message.client.consumer.IMQListenerFactory;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginVenderGetter;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
@@ -33,6 +34,9 @@ import com.qlangtech.tis.plugin.incr.ISelectedTabExtendFactory;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.util.HeteroEnum;
 
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -46,6 +50,19 @@ import java.util.Optional;
 @Public
 public abstract class MQListenerFactory
         implements IMQListenerFactory, IMQConsumerStatusFactory, Describable<MQListenerFactory> {
+    public static final ZoneId DEFAULT_SERVER_TIME_ZONE = ZoneId.systemDefault();
+
+    public static String dftZoneId() {
+        return DEFAULT_SERVER_TIME_ZONE.getId();
+    }
+
+    public static List<Option> availableZoneIds() {
+        List<Option> opts = new ArrayList<>();
+        ZoneId.SHORT_IDS.forEach((key, val) -> {
+            opts.add(new Option(val, val));
+        });
+        return opts;
+    }
 
     /**
      * 根据Source端 Col 对应的DataType 生成对应的FlinkCol类型用于数值转化

@@ -57,7 +57,7 @@ public class SysInitializeArrangeJars {
   private static final List<SubProj> subDirs
     = Lists.newArrayList( //
     new SubProj(TisSubModule.TIS_ASSEMBLE, commons_) //
-    , new SubProj(TisSubModule.ZEPPELIN, commons_)
+   // , new SubProj(TisSubModule.ZEPPELIN, commons_)
     , new SubProj(TisSubModule.TIS_CONSOLE, commons_)
     //  , new SubProj("tis-collect", commons_)
   );

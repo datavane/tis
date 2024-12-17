@@ -156,9 +156,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
         }
 
         Map<String, Object> extractProps = desc.getExtractProps();
-        if (!extractProps.isEmpty()) {
-            desJson.put("extractProps", extractProps);
-        }
+        desJson.put("extractProps", extractProps);
         return Pair.of(desJson, desc);
     }
 

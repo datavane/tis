@@ -307,6 +307,9 @@ public class CenterResource {
     public static URL getPathURL(String filePath) {
         try {
             final RunEnvironment runtime = RunEnvironment.getSysRuntime();
+            /**
+             * relevant server size processor: com.qlangtech.tis.config.module.screen.StreamScriptRepo
+             */
             return new URL(runtime.getInnerRepositoryURL() + "/config/stream_script_repo.action?path=" + URLEncoder.encode(filePath, TisUTF8.getName()));
         } catch (Exception e) {
             throw new RuntimeException("filepath:" + filePath, e);

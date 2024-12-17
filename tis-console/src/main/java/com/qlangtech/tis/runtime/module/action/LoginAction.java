@@ -47,10 +47,10 @@ public class LoginAction extends BasicModule {
    *
    * @param context
    */
-  public void doGetZeppelinStatus(Context context) {
-    boolean zeppelinActivate = TisAppLaunch.get().isZeppelinActivate();
-    this.setBizResult(context, zeppelinActivate);
-  }
+//  public void doGetZeppelinStatus(Context context) {
+//    boolean zeppelinActivate = TisAppLaunch.get().isZeppelinActivate();
+//    this.setBizResult(context, zeppelinActivate);
+//  }
 
   public void doLogin(Context context) throws Exception {
     // Map<String, String> userToken = Config.getUserToken();

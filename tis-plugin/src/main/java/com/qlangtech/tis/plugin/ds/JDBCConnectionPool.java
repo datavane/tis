@@ -19,10 +19,13 @@
 package com.qlangtech.tis.plugin.ds;
 
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.plugin.ds.DataSourceMeta.ResultProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -33,6 +36,14 @@ import java.util.function.Function;
  **/
 public abstract class JDBCConnectionPool implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(DefaultJDBCConnectionPool.class);
+
+    public static <CONN extends JDBCConnection> CONN getJDBCConnectionFromPool(JDBCConnection conn) {
+        if (conn instanceof DelegatePoolJDBCConnection) {
+            return (CONN) ((DelegatePoolJDBCConnection) conn).conn;
+        } else {
+            return (CONN) conn;
+        }
+    }
 
     public abstract JDBCConnection getConnection(String jdbcUrl, boolean verify);
 
@@ -45,21 +56,15 @@ public abstract class JDBCConnectionPool implements AutoCloseable {
     private static class DefaultJDBCConnectionPool extends JDBCConnectionPool {
 
 
-        private final ConcurrentMap<String, JDBCConnection> connectionCache = Maps.newConcurrentMap();
+        private final ConcurrentMap<String, DelegatePoolJDBCConnection> connectionCache = Maps.newConcurrentMap();
 
         public DefaultJDBCConnectionPool() {
         }
 
         @Override
         public JDBCConnection getConnection(String jdbcUrl, boolean verify, Function<String, JDBCConnection> mappingFunction) {
-
             return connectionCache.computeIfAbsent(createCacheKey(jdbcUrl, verify), mappingFunction.andThen((conn) -> {
-                return new JDBCConnection(conn.getConnection(), conn.getUrl()) {
-                    @Override
-                    public void close() throws SQLException {
-
-                    }
-                };
+                return new DelegatePoolJDBCConnection(conn, conn.getUrl());
             }));
         }
 
@@ -75,13 +80,65 @@ public abstract class JDBCConnectionPool implements AutoCloseable {
 
         @Override
         public void close() throws Exception {
-            for (Map.Entry<String, JDBCConnection> entry : connectionCache.entrySet()) {
+            for (Map.Entry<String, DelegatePoolJDBCConnection> entry : connectionCache.entrySet()) {
                 try {
-                    entry.getValue().getConnection().close();
+                    entry.getValue().conn.close();
                 } catch (SQLException e) {
                     logger.warn(e.getMessage(), e);
                 }
             }
         }
     }
+
+
+    /**
+     * 保证在池中的连接器不会被关闭
+     *
+     * @see com.qlangtech.tis.plugin.ds.JDBCConnectionPool.DelegatePoolJDBCConnection#close()
+     */
+    private final static class DelegatePoolJDBCConnection extends JDBCConnection {
+        private final JDBCConnection conn;
+
+        public DelegatePoolJDBCConnection(JDBCConnection conn, String url) {
+            super(null, url);
+            this.conn = conn;
+        }
+
+        @Override
+        public final String getSchema() {
+            return conn.getSchema();
+        }
+
+        @Override
+        public String getCatalog() {
+            return conn.getCatalog();
+        }
+
+        @Override
+        public Statement createStatement() throws SQLException {
+            return conn.createStatement();
+        }
+
+        @Override
+        public Connection getConnection() {
+            return conn.getConnection();
+        }
+
+        @Override
+        public void query(String sql, ResultProcess resultProcess) throws Exception {
+            conn.query(sql, resultProcess);
+        }
+
+        @Override
+        public boolean execute(String sql) throws Exception {
+            return conn.execute(sql);
+        }
+
+        @Override
+        public void close() throws SQLException {
+            // 最主要的不能被关掉
+        }
+
+    }
+
 }

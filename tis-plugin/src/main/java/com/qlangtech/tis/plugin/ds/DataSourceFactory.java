@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
+import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -62,7 +63,7 @@ import java.util.concurrent.atomic.AtomicReference;
  **/
 @Public
 public abstract class DataSourceFactory implements Describable<DataSourceFactory>, Serializable, DBIdentity, DataSourceMeta, Wrapper {
-    public static final ZoneId DEFAULT_SERVER_TIME_ZONE = ZoneId.systemDefault();// ZoneId.of("Asia/Shanghai");
+   // public static final ZoneId DEFAULT_SERVER_TIME_ZONE = MQListenerFactory.DEFAULT_SERVER_TIME_ZONE; // ZoneId.systemDefault();// ZoneId.of("Asia/Shanghai");
     public static final String DS_TYPE_MYSQL = "MySQL";
     public static final String DS_TYPE_MYSQL_V8 = DS_TYPE_MYSQL + "-V8";
 

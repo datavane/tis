@@ -205,11 +205,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @return
      */
     public Map<String, Object> getExtractProps() {
-        Map<String, Object> props = new HashMap<>();
-        Map<String, Boolean> notebook = new HashMap<>();
+        final Map<String, Object> props = new HashMap<>();
+        // Map<String, Boolean> notebook = new HashMap<>();
         //notebook.put("ability", (this instanceof INotebookable));
-        notebook.put("activate", TisAppLaunch.get().isZeppelinActivate());
-        props.put("notebook", notebook);
+//        notebook.put("activate", TisAppLaunch.get().isZeppelinActivate());
+        //  props.put("notebook", notebook);
 
         if (this instanceof IEndTypeGetter) {
             appendProps(((IEndTypeGetter) this).getEndType(), (props));
@@ -1449,13 +1449,21 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public PluginExtraProps fieldExtraDescs = new PluginExtraProps();
 
     public void addFieldDescriptor(String fieldName, Object dftVal, String helperContent) {
-        this.addFieldDescriptor(fieldName, dftVal, helperContent, Optional.empty());
+        this.addFieldDescriptor(fieldName, dftVal, null, helperContent, Optional.empty());
     }
 
     public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String helperContent,
                                                      Optional<List<Option>> enums) {
+        return addFieldDescriptor(fieldName, dftVal, null, helperContent, enums);
+    }
+
+    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String label, String helperContent,
+                                                     Optional<List<Option>> enums) {
         JSONObject c = new JSONObject();
         PropertyType.setDefaultVal(dftVal, c);
+        if (StringUtils.isNotEmpty(label)) {
+            PropertyType.setLabel(label, c);
+        }
         PluginExtraProps.Props props = new PluginExtraProps.Props(c);
         if (StringUtils.isNotEmpty(helperContent)) {
             props.tagAsynHelp(new StringBuffer(helperContent));

@@ -47,6 +47,7 @@ import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.transformer.OutputParameter;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.CMeta.INestCMetaGetter;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
@@ -140,7 +141,25 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
 
     public List<String> getColKeys() {
-        return this.cols.stream().filter((c) -> !c.isDisable()).map((c) -> c.getName()).collect(Collectors.toList());
+        return getCols().stream().map((c) -> c.getName()).collect(Collectors.toUnmodifiableList()); //this.cols.stream().filter((c) -> !c.isDisable()).map((c) -> c.getName()).collect(Collectors.toList());
+    }
+
+    public final List<CMeta> getCols() {
+        List<CMeta> result = Lists.newArrayList();
+        for (CMeta cmeta : this.cols) {
+            if (cmeta instanceof INestCMetaGetter) {
+                for (CMeta meta : ((INestCMetaGetter) cmeta).nestCols()) {
+                    if (!meta.isDisable()) {
+                        result.add(meta);
+                    }
+                }
+            }
+            if (cmeta.isDisable()) {
+                continue;
+            }
+            result.add(cmeta);
+        }
+        return result;// this.cols.stream().filter((c) -> !c.isDisable()).collect(Collectors.toList());
     }
 
     /**
@@ -267,9 +286,6 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         return this.cols.isEmpty();
     }
 
-    public final List<CMeta> getCols() {
-        return this.cols.stream().filter((c) -> !c.isDisable()).collect(Collectors.toList());
-    }
 
     public boolean containCol(String col) {
         if (CollectionUtils.isEmpty(this.cols)) {

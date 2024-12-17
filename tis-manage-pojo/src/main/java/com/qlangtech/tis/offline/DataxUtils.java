@@ -45,6 +45,7 @@ public class DataxUtils {
     public static final String EXEC_TIMESTAMP = "execTimeStamp";
 
     public static final String DATASOURCE_FACTORY_IDENTITY = "dataSourceFactoryId";
+    public static final String DATASOURCE_JDBC_URL = "dataSourceJdbcUrl";
 
     public static long getDumpTimeStamp() {
         return getDumpTimeStamp(true, () -> {

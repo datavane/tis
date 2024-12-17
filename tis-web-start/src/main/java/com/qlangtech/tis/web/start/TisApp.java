@@ -111,7 +111,8 @@ public class TisApp {
         for (String context : root.list()) {
             contextDir = new File(root, context);
             if (contextDir.isDirectory() && !TisSubModule.WEB_START.moduleName.equals(context)) {
-                if (APP_CONSOLE.equals(context) || TisSubModule.ZEPPELIN.moduleName.equals(context)) {
+                if (APP_CONSOLE.equals(context) //|| TisSubModule.ZEPPELIN.moduleName.equals(context)
+                ) {
                     continue;
                 } else {
                     logger.info("load context:{}", context);
@@ -120,7 +121,7 @@ public class TisApp {
             }
         }
 
-        this.addZeppelinContext(new File(root, TisSubModule.ZEPPELIN.moduleName));
+       // this.addZeppelinContext(new File(root, TisSubModule.ZEPPELIN.moduleName));
 
         // '/' root 的handler必须要最后添加
         contextDir = new File(root, APP_CONSOLE);
@@ -133,15 +134,15 @@ public class TisApp {
         }
     }
 
-    public void addZeppelinContext(File contextDir) throws IOException {
-
-        if (TisAppLaunch.get().isZeppelinHomeSetted()) {
-            if (contextDir.exists()) {
-                this.initZeppelinContext(contextDir);
-                TisAppLaunch.get().setZeppelinContextInitialized();
-            }
-        }
-    }
+//    public void addZeppelinContext(File contextDir) throws IOException {
+//
+//        if (TisAppLaunch.get().isZeppelinHomeSetted()) {
+//            if (contextDir.exists()) {
+//                this.initZeppelinContext(contextDir);
+//                TisAppLaunch.get().setZeppelinContextInitialized();
+//            }
+//        }
+//    }
 
     public void addRootContext(File contextDir) throws Exception {
         // root
@@ -157,50 +158,50 @@ public class TisApp {
         this.jetty.addContext("/", contextDir, false, true);
     }
 
-    private void initZeppelinContext(File contextDir) throws IOException {
-
-        File libDir = new File(contextDir, "lib");
-
-        List<URL> jars = new ArrayList<>();
-        addJars(libDir, jars);
-
-        File zeppelinLibDir = new File(TisAppLaunch.get().getZeppelinHome(), "lib");
-        addJars(zeppelinLibDir, jars, (cfile) -> {
-            return !cfile.getName().startsWith("zeppelin-server");
-        });
-        if (jars.isEmpty()) {
-            throw new IllegalStateException("there is any jars in libDir:" + libDir.getAbsolutePath());
-        }
-        URLClassLoader clazzLoader = new URLClassLoader(jars.toArray(new URL[jars.size()]), this.getClass().getClassLoader());
-        final ClassLoader currentLoader = Thread.currentThread().getContextClassLoader();
-        /**
-         * <pre>
-         *     To avoid Error below,Shall set the current classloader:
-         * Caused by: java.lang.ClassNotFoundException: org.apache.commons.configuration2.XMLConfiguration
-         * 	at java.net.URLClassLoader.findClass(URLClassLoader.java:382)
-         * 	at java.lang.ClassLoader.loadClass(ClassLoader.java:424)
-         * 	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:349)
-         * 	at java.lang.ClassLoader.loadClass(ClassLoader.java:357)
-         * 	at java.lang.Class.forName0(Native Method)
-         * 	at java.lang.Class.forName(Class.java:348)
-         * 	at org.apache.commons.lang3.ClassUtils.getClass(ClassUtils.java:993)
-         * 	at org.apache.commons.lang3.ClassUtils.getClass(ClassUtils.java:1059)
-         * 	at org.apache.commons.lang3.ClassUtils.getClass(ClassUtils.java:1042)
-         * 	at org.apache.commons.configuration2.beanutils.BeanHelper.loadClass(BeanHelper.java:508)
-         * 	at org.apache.commons.configuration2.beanutils.BeanHelper.fetchBeanClass(BeanHelper.java:546)
-         * </pre>
-         */
-        try {
-            Thread.currentThread().setContextClassLoader(clazzLoader);
-            ServiceLoader<IWebAppContextCollector>
-                    appContextCollectors = ServiceLoader.load(IWebAppContextCollector.class, clazzLoader);
-            for (IWebAppContextCollector appContext : appContextCollectors) {
-                this.jetty.addContext(appContext);
-            }
-        } finally {
-            Thread.currentThread().setContextClassLoader(currentLoader);
-        }
-    }
+//    private void initZeppelinContext(File contextDir) throws IOException {
+//
+//        File libDir = new File(contextDir, "lib");
+//
+//        List<URL> jars = new ArrayList<>();
+//        addJars(libDir, jars);
+//
+//        File zeppelinLibDir = new File(TisAppLaunch.get().getZeppelinHome(), "lib");
+//        addJars(zeppelinLibDir, jars, (cfile) -> {
+//            return !cfile.getName().startsWith("zeppelin-server");
+//        });
+//        if (jars.isEmpty()) {
+//            throw new IllegalStateException("there is any jars in libDir:" + libDir.getAbsolutePath());
+//        }
+//        URLClassLoader clazzLoader = new URLClassLoader(jars.toArray(new URL[jars.size()]), this.getClass().getClassLoader());
+//        final ClassLoader currentLoader = Thread.currentThread().getContextClassLoader();
+//        /**
+//         * <pre>
+//         *     To avoid Error below,Shall set the current classloader:
+//         * Caused by: java.lang.ClassNotFoundException: org.apache.commons.configuration2.XMLConfiguration
+//         * 	at java.net.URLClassLoader.findClass(URLClassLoader.java:382)
+//         * 	at java.lang.ClassLoader.loadClass(ClassLoader.java:424)
+//         * 	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:349)
+//         * 	at java.lang.ClassLoader.loadClass(ClassLoader.java:357)
+//         * 	at java.lang.Class.forName0(Native Method)
+//         * 	at java.lang.Class.forName(Class.java:348)
+//         * 	at org.apache.commons.lang3.ClassUtils.getClass(ClassUtils.java:993)
+//         * 	at org.apache.commons.lang3.ClassUtils.getClass(ClassUtils.java:1059)
+//         * 	at org.apache.commons.lang3.ClassUtils.getClass(ClassUtils.java:1042)
+//         * 	at org.apache.commons.configuration2.beanutils.BeanHelper.loadClass(BeanHelper.java:508)
+//         * 	at org.apache.commons.configuration2.beanutils.BeanHelper.fetchBeanClass(BeanHelper.java:546)
+//         * </pre>
+//         */
+//        try {
+//            Thread.currentThread().setContextClassLoader(clazzLoader);
+//            ServiceLoader<IWebAppContextCollector>
+//                    appContextCollectors = ServiceLoader.load(IWebAppContextCollector.class, clazzLoader);
+//            for (IWebAppContextCollector appContext : appContextCollectors) {
+//                this.jetty.addContext(appContext);
+//            }
+//        } finally {
+//            Thread.currentThread().setContextClassLoader(currentLoader);
+//        }
+//    }
 
     private void addJars(File libDir, List<URL> jars) throws MalformedURLException {
         addJars(libDir, jars, (f) -> true);

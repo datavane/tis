@@ -39,6 +39,10 @@ import java.util.function.BiConsumer;
 public class CMeta extends TypeBase implements Serializable, IColMetaGetter, IdentityName {
 
 
+    public interface INestCMetaGetter {
+        public <T extends CMeta> List<T> nestCols();
+    }
+
     public static final String FIELD_NAME = "name";
     public static final String KEY_COLUMN_SIZE = "columnSize";
     public static final String KEY_DECIMAL_DIGITS = "decimalDigits";

@@ -84,27 +84,13 @@ public class HdfsColMeta implements Serializable, IColMetaGetter {
             default:
                 throw new IllegalStateException("illegal type:" + dataType.getCollapse());
         }
+    }
 
-
-//        switch (hiveType) {
-//            case DATE:
-//            case CHAR:
-//            case STRING:
-//            case VARCHAR:
-//            case TIMESTAMP:
-//                return CsvType.STRING;
-//            case TINYINT:
-//            case INT:
-//            case FLOAT:
-//            case BIGINT:
-//            case DOUBLE:
-//            case SMALLINT:
-//                return CsvType.NUMBER;
-//            case BOOLEAN:
-//                return CsvType.BOOLEAN;
-//            default:
-//                throw new IllegalStateException(" relevant type:" + hiveType + " is illegal");
-//        }
+    @Override
+    public String toString() {
+        return "col='" + colName + '\'' +
+                ", type=" + type +
+                ", pk=" + pk;
     }
 
     public enum CsvType {

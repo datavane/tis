@@ -46,6 +46,13 @@ public interface ISelectedTab extends ISelectedTabMeta {
         return true;
     }
 
+    /**
+     * 需要去除掉disable的列
+     *
+     * @param
+     * @return
+     * @see CMeta 实际产出的pojo类型
+     */
     @Override
     List<CMeta> getCols();
 
@@ -53,7 +60,7 @@ public interface ISelectedTab extends ISelectedTabMeta {
      * 通过 transoformer 改写来源列
      *
      * @param pluginCtx
-     * @param includeContextParams  是否需要包含 //用于生成基于reader的环境绑定参数用，当用于reader端需要有值，用于writer端应该为Optional.empty()
+     * @param includeContextParams 是否需要包含 //用于生成基于reader的环境绑定参数用，当用于reader端需要有值，用于writer端应该为Optional.empty()
      * @return
      */
     default List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, boolean includeContextParams
@@ -62,7 +69,8 @@ public interface ISelectedTab extends ISelectedTabMeta {
     }
 
     default Set<String> acceptedCols() {
-        final Set<String> acceptKeys = this.getCols().stream().filter((c) -> !c.isDisable()).map((c) -> c.getName()).collect(Collectors.toSet());
+        final Set<String> acceptKeys = this.getCols().stream()//.filter((c) -> !c.isDisable())
+                .map((c) -> c.getName()).collect(Collectors.toSet());
         return acceptKeys;
     }
 

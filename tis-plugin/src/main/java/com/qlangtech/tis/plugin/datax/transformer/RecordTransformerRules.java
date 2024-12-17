@@ -382,7 +382,8 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
                     contextParam = Objects.requireNonNull(dbContextParams.get(inParamer.getKey())
                             , "inParamer:" + inParamer.getKey() + " relevant ContextParam can not be null");
                     contextParams.add(contextParam);
-                    rewriterResult.add(IColMetaGetter.create(inParamer.getKey(), contextParam.getDataType()));
+                    rewriterResult.add(OutputParameter.create(inParamer.getKey(), false, contextParam.getDataType()));
+                   // rewriterResult.add(IColMetaGetter.create(inParamer.getKey(), contextParam.getDataType()));
                 }
             }
             return new OverwriteColsWithContextParams(rewriterResult, contextParams);

@@ -38,6 +38,7 @@ import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxReaderContext;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
+import com.qlangtech.tis.datax.SourceColMetaGetter;
 import com.qlangtech.tis.datax.preview.PreviewHeaderCol;
 import com.qlangtech.tis.datax.preview.PreviewRowsData;
 import com.qlangtech.tis.datax.TableAlias;
@@ -1027,10 +1028,10 @@ public class DataxAction extends BasicModule {
 
     this.setBizResult(context, cfgGenerator.startGenerateCfg(new DataXCfgGenerator.IGenerateScriptFile() {
       @Override
-      public void generateScriptFile(IDataxReader reader, IDataxWriter writer, IDataxReaderContext readerContext,
+      public void generateScriptFile(SourceColMetaGetter colMetaGetter, IDataxReader reader, IDataxWriter writer, IDataxReaderContext readerContext,
                                      Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
 
-        DataXCfgGenerator.generateTabCreateDDL(DataxAction.this, dataxProcessor, writer, readerContext,
+        DataXCfgGenerator.generateTabCreateDDL(DataxAction.this, dataxProcessor, colMetaGetter, writer, readerContext,
           createDDLFiles, tableMapper, true);
       }
     }));

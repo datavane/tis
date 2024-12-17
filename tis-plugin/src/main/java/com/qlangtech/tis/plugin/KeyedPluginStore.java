@@ -23,6 +23,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.TisUTF8;
@@ -48,7 +49,8 @@ import java.util.regex.Pattern;
  * @date 2020/04/13
  */
 public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
-    public static final String TMP_DIR_NAME = ".tmp/";
+    //  public static final String TMP_DIR = ".tmp";
+    public static final String TMP_DIR_NAME = IOUtils.TMP_DIR + "/";
     public static final String KEY_EXEC_ID = "execId";
     // private static final Pattern DATAX_UPDATE_PATH = Pattern.compile("/x/(" + ValidatorCommons.pattern_identity +
     // ")/update");
@@ -89,7 +91,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
     public static PluginMetas getAppAwarePluginMetas(StoreResourceType resourceType, String name, boolean resolveMeta) {
         AppKey appKey = new AppKey(null, resourceType, name, (PluginClassCategory) null);
         File appDir = getSubPathDir(appKey);
-        File lastModify = getLastModifyToken(appKey);// new File(appDir, CenterResource.KEY_LAST_MODIFIED_EXTENDION);
+        File lastModify = getLastModifyToken(appKey);
         long lastModfiyTimeStamp = -1;
         Set<PluginMeta> metas = Collections.emptySet();
 

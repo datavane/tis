@@ -63,7 +63,7 @@ public class DBConfig implements IDbMeta {
     private String name;
 
     private final JdbcUrlBuilder jdbcUrlBuilder;
-    private Map<String, List<String>> /* host|ip */ dbEnum = new HashMap<>();
+    private Map<String/* host|ip */, List<String> /*dbName list*/> dbEnum = new HashMap<>();
 
     public void setDbEnum(Map<String, List<String>> dbEnum) {
         this.dbEnum = dbEnum;
@@ -191,10 +191,14 @@ public class DBConfig implements IDbMeta {
             this.jdbcUrl = Objects.requireNonNull(jdbcUrl, "jdbcUrl");
             this.dbName = Objects.requireNonNull(dbName, "dbName");
         }
+
+        public String getJdbcUrl() {
+            return this.jdbcUrl;
+        }
     }
 
     public static class HostDBs {
-        final List<HostDB> dbs;
+        public final List<HostDB> dbs;
         // final String jdbcUrl;
         private final String host;
 

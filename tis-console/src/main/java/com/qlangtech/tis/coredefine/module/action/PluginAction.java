@@ -601,6 +601,11 @@ public class PluginAction extends BasicModule {
     }
 
     for (Pair<UpdateSite.Plugin, Optional<PluginClassifier>> coord : coords) {
+      /***********
+       * 校验证书是否有效
+       ***********/
+      coord.getLeft().validateLicense();
+
       Future<UpdateCenter.UpdateCenterJob> installJob = coord.getLeft().deploy(dynamicLoad, correlationId,
         coord.getRight(), batch);
       installJobs.add(installJob);
@@ -928,9 +933,9 @@ public class PluginAction extends BasicModule {
 
     boolean faild = false;
     List<IPluginItemsProcessor> categoryPlugins = Lists.newArrayList();
-   // final boolean processNotebook = this.getBoolean("getNotebook");
+    // final boolean processNotebook = this.getBoolean("getNotebook");
     // 是否进行业务逻辑校验？当正式提交表单时候不进行业务逻辑校验，用户可能先添加一个不存在的数据库配置
-    final boolean verify =  this.getBoolean("verify");
+    final boolean verify = this.getBoolean("verify");
     Pair<Boolean, IPluginItemsProcessor> pluginItemsParser = null;
     for (int pluginIndex = 0; pluginIndex < plugins.size(); pluginIndex++) {
 
@@ -951,7 +956,7 @@ public class PluginAction extends BasicModule {
       }
     }
 
-    if (this.hasErrors(context) || (verify )) {
+    if (this.hasErrors(context) || (verify)) {
       return;
     }
     if (faild) {

@@ -18,12 +18,6 @@
 
 package com.qlangtech.tis.web.start;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.function.Supplier;
-
 /**
  * TIS 的运行模式
  *
@@ -32,50 +26,53 @@ import java.util.function.Supplier;
  **/
 public enum TisRunMode {
     // 单节点运行 所有组件都运行在一个VM中
-    Standalone(() -> {
-        // return TisAppLaunch.get().isZeppelinActivate();
-        // 单机版默认已经安装了
-        return TisAppLaunch.get().isZeppelinContextInitialized();
-    })
+    Standalone(
+//            () -> {
+//        // return TisAppLaunch.get().isZeppelinActivate();
+//        // 单机版默认已经安装了
+//        return TisAppLaunch.get().isZeppelinContextInitialized();
+//    }
+    )
     // 本地测试，组件分布在多个VM中且IP端口不同
-    , LocalTest(new Supplier<Boolean>() {
-        boolean zeppelinContextInitialized = false;
-        int tryCount = 0;
-
-        @Override
-        public Boolean get() {
-            if (zeppelinContextInitialized) {
-                return true;
-            }
-            if (tryCount > 100) {
-                // 最多尝试100次
-                return false;
-            }
-            try {
-                URL test = new URL("http://127.0.0.1:" + TisSubModule.ZEPPELIN.getLaunchPort() + TisSubModule.ZEPPELIN.servletContext + "/api/version");
-                HttpURLConnection conn = (HttpURLConnection) test.openConnection();
-                tryCount++;
-                if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                    // throw new IllegalStateException("ERROR_CODE=" + conn.getResponseCode() + "  request faild, revsion center apply url :" + url);
-                    return false;
-                }
-                return zeppelinContextInitialized = true;
-            } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                return false;
-            }
-        }
-    })
+    , LocalTest(
+//            new Supplier<Boolean>() {
+//        boolean zeppelinContextInitialized = false;
+//        int tryCount = 0;
+//
+//        @Override
+//        public Boolean get() {
+//            if (zeppelinContextInitialized) {
+//                return true;
+//            }
+//            if (tryCount > 100) {
+//                // 最多尝试100次
+//                return false;
+//            }
+//            try {
+//                URL test = new URL("http://127.0.0.1:" + TisSubModule.ZEPPELIN.getLaunchPort() + TisSubModule.ZEPPELIN.servletContext + "/api/version");
+//                HttpURLConnection conn = (HttpURLConnection) test.openConnection();
+//                tryCount++;
+//                if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+//                    // throw new IllegalStateException("ERROR_CODE=" + conn.getResponseCode() + "  request faild, revsion center apply url :" + url);
+//                    return false;
+//                }
+//                return zeppelinContextInitialized = true;
+//            } catch (MalformedURLException e) {
+//                throw new RuntimeException(e);
+//            } catch (IOException e) {
+//                return false;
+//            }
+//        }
+//    }
+    )
     // 分不同的节点运行
-    , Distribute(() -> {
-        // return TisAppLaunch.get().isZeppelinActivate();
-        throw new UnsupportedOperationException();
-    });
+    , Distribute(
+//            () -> {
+//        // return TisAppLaunch.get().isZeppelinActivate();
+//        throw new UnsupportedOperationException();
+//    }
+    );
 
-    public final Supplier<Boolean> zeppelinContextInitialized;
+   // public final Supplier<Boolean> zeppelinContextInitialized;
 
-    private TisRunMode(Supplier<Boolean> zeppelinContextInitialized) {
-        this.zeppelinContextInitialized = zeppelinContextInitialized;
-    }
 }

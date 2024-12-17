@@ -330,6 +330,10 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
             return this.tab;
         }
 
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(this.getFrom());
+        }
 //        public void setSourceCols(List<ISelectedTab.ColMeta> sourceCols) {
 //            this.sourceCols = sourceCols;
 //        }

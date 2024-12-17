@@ -22,7 +22,9 @@ import com.qlangtech.tis.fullbuild.indexbuild.IPartionableWarehouse;
 import com.qlangtech.tis.plugin.IRepositoryResourceScannable;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -74,10 +76,17 @@ public interface IDataxWriter extends IDataXPluginMeta, IRepositoryResourceScann
         return true;
     }
 
+
     /**
      * 生成创建table的脚本
+     *
+     * @param SourceColMetaGetter source 端列元数据信息，包含列的注释等信息
+     * @param tableMapper
+     * @param transformers
+     * @return
      */
-    default CreateTableSqlBuilder.CreateDDL generateCreateDDL(IDataxProcessor.TableMap tableMapper, Optional<RecordTransformerRules> transformers) {
+    default CreateTableSqlBuilder.CreateDDL generateCreateDDL(
+            SourceColMetaGetter colMetaGetter , IDataxProcessor.TableMap tableMapper, Optional<RecordTransformerRules> transformers) {
         throw new UnsupportedOperationException();
     }
 }

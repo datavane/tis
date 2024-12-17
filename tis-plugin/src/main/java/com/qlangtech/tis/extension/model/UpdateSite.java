@@ -31,6 +31,9 @@ import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.extension.plugins.DetachedPluginsUtil;
 import com.qlangtech.tis.extension.util.TextFile;
 import com.qlangtech.tis.extension.util.VersionNumber;
+import com.qlangtech.tis.lang.ErrorValue;
+import com.qlangtech.tis.lang.TisException;
+import com.qlangtech.tis.lang.TisException.ErrorCode;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.Option;
@@ -39,6 +42,8 @@ import com.qlangtech.tis.maven.plugins.tpi.ICoord;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginTaggable;
+import com.qlangtech.tis.plugin.license.TISLicense;
+import com.qlangtech.tis.plugin.license.TISLicense.HasExpire;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.Util;
 import com.qlangtech.tis.utils.TisMetaProps;
@@ -392,6 +397,28 @@ public class UpdateSite {
     public abstract class Plugin extends Entry {
 
         /**
+         * 校验证书是否有效
+         */
+        public void validateLicense() {
+            try {
+                TISLicense tisLicense = TISLicense.load(false);
+                if (this.communityVIP) {
+                    if (tisLicense == null) {
+                        throw TisException.create(ErrorValue.create(ErrorCode.LICENSE_INVALID, new HashMap<>())
+                                , "安装依赖的插件：" + this.getDisplayName() + "是社区协作版，需要有效的License");
+                    }
+                    HasExpire hasExpire = tisLicense.hasExpire();
+                    if (!hasExpire.hasNotExpire) {
+                        throw TisException.create(ErrorValue.create(ErrorCode.LICENSE_INVALID, new HashMap<>())
+                                , "License period of validity till:" + hasExpire.expireDate);
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        /**
          * Optional URL to the Wiki page that discusses this plugin.
          */
         public final String wiki;
@@ -612,6 +639,13 @@ public class UpdateSite {
         public Future<UpdateCenter.UpdateCenterJob> deploy(boolean dynamicLoad, UUID correlationId
                 , Optional<PluginClassifier> classifier, List<PluginWrapper> batch) {
 
+            /**
+             * 校验证证书是否有效
+             */
+            for (Plugin dep : getNeededDependencies()) {
+                dep.validateLicense();
+            }
+
             UpdateCenter uc = TIS.get().getUpdateCenter();
             for (Plugin dep : getNeededDependencies()) {
                 UpdateCenter.InstallationJob job = uc.getJob(dep);
@@ -685,37 +719,11 @@ public class UpdateSite {
         public List<Plugin> getNeededDependencies() {
             List<Plugin> deps = new ArrayList<>();
 
-
             for (Pair<Plugin, VersionNumber> depPlugin : getDependencyPlugins()) {
-
-
-//                VersionNumber requiredVersion = e.getValue() != null ? new VersionNumber(e.getValue()) : null;
-//                Plugin depPlugin = TIS.get().getUpdateCenter().getPlugin(e.getKey(), requiredVersion);
-//                if (depPlugin == null) {
-//                    LOGGER.warn("Could not find dependency {} of {}", e.getKey(), name);
-//                    continue;
-//                }
-
-                // Is the plugin installed already? If not, add it.
 
                 if (depPlugin.getLeft().needInstall(depPlugin.getRight())) {
                     deps.add(depPlugin.getLeft());
                 }
-
-//                PluginWrapper current = depPlugin.getInstalled();
-//
-//                if (current == null) {
-//                    deps.add(depPlugin);
-//                }
-//                // If the dependency plugin is installed, is the version we depend on newer than
-//                // what's installed? If so, upgrade.
-//                else if (current.isOlderThan(requiredVersion)) {
-//                    deps.add(depPlugin);
-//                }
-//                // JENKINS-34494 - or if the plugin is disabled, this will allow us to enable it
-//                else if (!current.isEnabled()) {
-//                    deps.add(depPlugin);
-//                }
             }
 
             for (Map.Entry<String, String> e : optionalDependencies.entrySet()) {

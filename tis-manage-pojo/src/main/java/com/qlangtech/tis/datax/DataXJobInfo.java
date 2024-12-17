@@ -112,6 +112,10 @@ public class DataXJobInfo {
         return buffer.toString();
     }
 
+    @Override
+    public String toString() {
+        return this.serialize();
+    }
 
     private DataXJobInfo(String jobFileName, DBIdentity dbFactoryId, Optional<String[]> targetTableName) {
         if (StringUtils.isEmpty(jobFileName)) {

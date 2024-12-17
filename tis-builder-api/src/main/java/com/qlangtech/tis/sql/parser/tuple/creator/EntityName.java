@@ -44,6 +44,7 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
     private boolean dft = false;
 
     private final boolean physics;
+    private final boolean escapeDBName;
 
     public static EntityName createSubQueryTable() {
         return new SubTableQueryEntity();
@@ -63,18 +64,25 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
         return parse(entityName, false);
     }
 
+
+    public static EntityName parse(String entityName, boolean physics) {
+        return parse(entityName, physics, true);
+    }
+
+
     /**
      * @param entityName
-     * @param physics    是否是物理表名（真正在数据库中存在的表）
+     * @param physics      是否是物理表名（真正在数据库中存在的表）
+     * @param escapeDBName
      * @return
      */
-    public static EntityName parse(String entityName, boolean physics) {
+    public static EntityName parse(String entityName, boolean physics, boolean escapeDBName) {
         final String[] entitInfo = StringUtils.split(entityName, ".");
         EntityName entity = null;
         if (entitInfo.length == 1) {
             entity = new EntityName(entitInfo[0], physics);
         } else if (entitInfo.length == 2) {
-            entity = new EntityName(Optional.of(entitInfo[0]), entitInfo[1], physics);
+            entity = new EntityName(Optional.of(entitInfo[0]), entitInfo[1], physics, escapeDBName);
         } else {
             throw new IllegalStateException("line:" + entityName + " is not valid");
         }
@@ -105,7 +113,7 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
 
     public String getFullName(Optional<String> escapeChar) {
         if (this.dbname.isPresent()) {
-            return getEscapedName(escapeChar, dbname.get()) + "." + getTableName(escapeChar);
+            return (this.escapeDBName ? getEscapedName(escapeChar, dbname.get()) : dbname.get()) + "." + getTableName(escapeChar);
         } else {
             return getTableName(escapeChar);
         }
@@ -155,7 +163,7 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
     }
 
     private EntityName(String tabName, boolean physics) {
-        this(Optional.empty(), tabName, physics);
+        this(Optional.empty(), tabName, physics, false);
         this.dft = true;
     }
 
@@ -163,11 +171,12 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
         return this.dft;
     }
 
-    private EntityName(Optional<String> dbname, String tabName, boolean physics) {
+    private EntityName(Optional<String> dbname, String tabName, boolean physics, boolean escapeDBName) {
         super();
         this.dbname = dbname;
         this.tabName = tabName;
         this.physics = physics;
+        this.escapeDBName = escapeDBName;
     }
 
     public boolean isPhysics() {

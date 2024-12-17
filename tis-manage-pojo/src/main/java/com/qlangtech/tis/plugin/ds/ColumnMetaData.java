@@ -57,15 +57,18 @@ public class ColumnMetaData extends Option implements IColMetaGetter {
         if (colsMeta.size() < 1) {
             throw new IllegalStateException("table:" + tab.getName() + " relevant cols meta can not be null");
         }
-        for (CMeta col : tab.getCols()) {
+        List<CMeta> cols = tab.getCols();
+        for (CMeta col : cols) {
             colMeta = colsMeta.get(col.getName());
-            if (colMeta == null) {
-                throw new IllegalStateException("col:" + col.getName() + " can not find relevant 'col' on " + tab.getName() + ",exist Keys:[" + colsMeta.keySet().stream().collect(Collectors.joining(",")) + "]");
+            if (colMeta != null) {
+                col.setPk(colMeta.isPk());
+                col.setType(colMeta.getType());
+                col.setComment(colMeta.getComment());
+                col.setNullable(colMeta.isNullable());
+//                throw new IllegalStateException("col:" + col.getName() + " can not find relevant 'col' on "
+//                        + tab.getName() + ",exist Keys:[" + colsMeta.keySet().stream().collect(Collectors.joining(",")) + "]");
             }
-            col.setPk(colMeta.isPk());
-            col.setType(colMeta.getType());
-            col.setComment(colMeta.getComment());
-            col.setNullable(colMeta.isNullable());
+
         }
     }
 

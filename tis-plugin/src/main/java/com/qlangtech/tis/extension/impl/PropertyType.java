@@ -140,6 +140,14 @@ public class PropertyType implements IPropertyType {
         }
     }
 
+    public static void setLabel(String label, JSONObject props) {
+        if (StringUtils.isEmpty(label)) {
+            throw new IllegalArgumentException("param label can not be null");
+        }
+        Objects.requireNonNull(props, "props can not be null")
+                .put(PluginExtraProps.KEY_LABEL, label);
+    }
+
     @Override
     public boolean isCollectionType() {
         //   PropertyType pt = (PropertyType) propertyType;

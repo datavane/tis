@@ -80,11 +80,11 @@ public abstract class AbstractCreateTableSqlBuilder<T extends ColWrapper> {
     public abstract CreateTableSqlBuilder.CreateDDL build();
 
 
-    protected CreateTableSqlBuilder.CreateTableName getCreateTableName() {
+    public CreateTableSqlBuilder.CreateTableName getCreateTableName() {
         return new CreateTableSqlBuilder.CreateTableName(targetTableName, this);
     }
 
-    protected String wrapWithEscape(String val) {
+    public final String wrapWithEscape(String val) {
         return dsMeta.getEscapedEntity(val);
     }
 

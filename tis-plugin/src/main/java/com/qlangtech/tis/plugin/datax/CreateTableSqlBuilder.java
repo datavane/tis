@@ -50,6 +50,7 @@ public abstract class CreateTableSqlBuilder<T extends ColWrapper> extends Abstra
     }
 
     protected void appendTabMeta(List<String> pks) {
+        script.append(";");
     }
 
     @Override
