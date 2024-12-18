@@ -30,6 +30,7 @@ import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.coredefine.module.action.IncrUtils.IncrSpecResult;
+import com.qlangtech.tis.datax.DataXCfgFile;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.DataXJobSubmit.InstanceType;
 import com.qlangtech.tis.datax.IDataXPowerJobSubmit;
@@ -39,12 +40,9 @@ import com.qlangtech.tis.datax.IDataxReaderContext;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
 import com.qlangtech.tis.datax.SourceColMetaGetter;
-import com.qlangtech.tis.datax.preview.PreviewHeaderCol;
-import com.qlangtech.tis.datax.preview.PreviewRowsData;
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.datax.TableAliasMapper;
 import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
-import com.qlangtech.tis.datax.DataXCfgFile;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -59,6 +57,8 @@ import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteSteps;
 import com.qlangtech.tis.datax.job.ServerLaunchToken;
 import com.qlangtech.tis.datax.job.ServerLaunchToken.FlinkClusterType;
 import com.qlangtech.tis.datax.job.SubJobResName;
+import com.qlangtech.tis.datax.preview.PreviewHeaderCol;
+import com.qlangtech.tis.datax.preview.PreviewRowsData;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.extension.SubFormFilter;
@@ -86,6 +86,7 @@ import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta;
@@ -1179,6 +1180,8 @@ public class DataxAction extends BasicModule {
 
     IAppSource.cleanAppSourcePluginStoreCache(null, dataxName);
     IAppSource.cleanAppSourcePluginStoreCache(this, dataxName);
+    SelectedTabExtend.clearTabExtend(null,dataxName);
+    SelectedTabExtend.clearTabExtend(this,dataxName);
 
     DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
       submit.saveJob(this, context, old);

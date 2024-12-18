@@ -210,9 +210,9 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
 
                                         KeyedPluginStore<? extends Describable> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
 
-                                        UploadPluginMeta extMeta = UploadPluginMeta.parse(pluginContext,
-                                                "name:" + DataxUtils.DATAX_NAME + "_" + appname, true);
-                                        Map<String, SelectedTab> tabsExtend = SelectedTabExtend.getTabExtend(extMeta);
+//                                        UploadPluginMeta extMeta = UploadPluginMeta.parse(pluginContext,
+//                                                "name:" + DataxUtils.DATAX_NAME + "_" + appname, true);
+                                        Map<String, SelectedTab> tabsExtend = SelectedTabExtend.getTabExtend(pluginContext,appname);
                                         // 子表单中的内容更新了之后，要同步父表单中的状态
                                         subFieldStore.addPluginsUpdateListener(new PluginStore.PluginsUpdateListener(subFieldKey.getSerializeFileName(), reader) {
                                             @Override
@@ -242,7 +242,8 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                                         }
                                         subItems.forEach((item) -> {
                                             if (!props.instClazz.isAssignableFrom(item.getClass())) {
-                                                throw new IllegalStateException("appname:" + appname + ",item class[" + item.getClass().getSimpleName() + "] is not type of " + props.instClazz.getName());
+                                                throw new IllegalStateException("appname:" + appname
+                                                        + ",item class[" + item.getClass().getSimpleName() + "] is not type of " + props.instClazz.getName());
                                             }
                                             if (item instanceof SelectedTab) {
                                                 SelectedTab tab = ((SelectedTab) item);

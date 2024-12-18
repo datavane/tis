@@ -88,6 +88,12 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     private Map<String, String> extraParams = new HashMap<>();
     private final IPluginContext context;
 
+    public  static UploadPluginMeta appnameMeta(IPluginContext pluginContext, String appname) {
+        UploadPluginMeta extMeta = parse(pluginContext,
+                "name:" + DataxUtils.DATAX_NAME + "_" + appname, true);
+        return extMeta;
+    }
+
 
     public boolean isUpdate() {
         return this.getBoolean(DBIdentity.KEY_UPDATE);

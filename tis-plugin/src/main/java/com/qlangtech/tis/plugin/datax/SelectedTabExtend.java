@@ -22,21 +22,39 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
-import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.SubFormFilter;
+import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.XmlFile;
-import com.qlangtech.tis.plugin.*;
+import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.SetPluginsResult;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
-import com.qlangtech.tis.util.*;
-import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.Memoizer;
+import com.qlangtech.tis.util.Selectable;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.MapUtils;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 在增量构建流程中针对 SelectedTab 属性进行扩展
@@ -132,9 +150,21 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
         }
     }
 
-
-    public static Map<String, SelectedTab> getTabExtend(UploadPluginMeta uploadPluginMeta,
+    public static Map<String, SelectedTab> getTabExtend(IPluginContext pluginContext, String appname,
                                                         PluginStore.PluginsUpdateListener... updateListener) {
+        UploadPluginMeta extMeta = UploadPluginMeta.appnameMeta(pluginContext, appname);
+        return getTabExtend(extMeta, updateListener);
+    }
+
+    public static void clearTabExtend(IPluginContext pluginContext, String appname) {
+        UploadPluginMeta extMeta = UploadPluginMeta.appnameMeta(pluginContext, appname);
+        getTabExtendPluginStore(extMeta).forEach((pluginStore) -> {
+            pluginStore.cleanPlugins();
+        });
+    }
+
+    private static Stream<PluginStore<SelectedTabExtend>> getTabExtendPluginStore(UploadPluginMeta uploadPluginMeta,
+                                                                                  PluginStore.PluginsUpdateListener... updateListener) {
         PluginStore<SelectedTabExtend> incrExtendStore =
                 (PluginStore<SelectedTabExtend>) INCR_SELECTED_TAB_EXTEND.getPluginStore(uploadPluginMeta.getPluginContext(), uploadPluginMeta);
 
@@ -143,8 +173,26 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
 
         for (PluginStore.PluginsUpdateListener listener : updateListener) {
             incrExtendStore.addPluginsUpdateListener(listener);
-          //  batchExtendStore.addPluginsUpdateListener(listener);
+            //  batchExtendStore.addPluginsUpdateListener(listener);
         }
+
+        Stream<PluginStore<SelectedTabExtend>> stream = Lists.newArrayList(incrExtendStore, batchExtendStore).stream();
+        return stream;
+    }
+
+
+    public static Map<String, SelectedTab> getTabExtend(UploadPluginMeta uploadPluginMeta,
+                                                        PluginStore.PluginsUpdateListener... updateListener) {
+//        PluginStore<SelectedTabExtend> incrExtendStore =
+//                (PluginStore<SelectedTabExtend>) INCR_SELECTED_TAB_EXTEND.getPluginStore(uploadPluginMeta.getPluginContext(), uploadPluginMeta);
+//
+//        PluginStore<SelectedTabExtend> batchExtendStore =
+//                (PluginStore<SelectedTabExtend>) BATCH_SOURCE_SELECTED_TAB_EXTEND.getPluginStore(uploadPluginMeta.getPluginContext(), uploadPluginMeta);
+//
+//        for (PluginStore.PluginsUpdateListener listener : updateListener) {
+//            incrExtendStore.addPluginsUpdateListener(listener);
+//            //  batchExtendStore.addPluginsUpdateListener(listener);
+//        }
         Memoizer<String, SelectedTab> result = new Memoizer<String, SelectedTab>() {
             @Override
             public SelectedTab compute(String key) {
@@ -158,8 +206,11 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
             }
         };
 
-        Lists.newArrayList(incrExtendStore, batchExtendStore) //
-                .stream().flatMap((store) -> store.getPlugins().stream()).forEach((ext) -> {
+        //  getTabExtendPluginStore(uploadPluginMeta,updateListener).flatMap()
+
+        //  Lists.newArrayList(incrExtendStore, batchExtendStore) //
+        getTabExtendPluginStore(uploadPluginMeta, updateListener)
+                .flatMap((store) -> store.getPlugins().stream()).forEach((ext) -> {
                     SelectedTab tab = result.get(ext.tabName);
                     switch (ext.getExtendType()) {
                         case INCR_SINK:
@@ -302,8 +353,8 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
     //        }
     //    };
 
-    private static HeteroEnum<SelectedTabExtend> createTabExtendHetero(BiFunction<IPluginContext, String,
-            IPluginStore> storeCreator) {
+    private static HeteroEnum<SelectedTabExtend> createTabExtendHetero(
+            BiFunction<IPluginContext, String, IPluginStore> storeCreator) {
         return new HeteroEnum<SelectedTabExtend>(//
                 SelectedTabExtend.class, //
                 HETERO_ENUM_IDENTITY, //
