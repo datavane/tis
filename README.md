@@ -13,7 +13,7 @@ TIS为您提供企业级数据集成服务，**基于批(DataX)，流(Flink-CDC�
 
 ## v4.0.1 发布（2024/10/19）：
 
-https://github.com/datavane/tis/releases/tag/v4.0.1
+https://github.com/datavane/tis/releases/tag/V4.0.1
 
 <a href="https://www.bilibili.com/video/BV1rXC1YjECW"> <img src="https://github.com/user-attachments/assets/59a10a10-4a08-45d8-b157-01df5f9dbf5a" /> </a>
 

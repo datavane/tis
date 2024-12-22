@@ -19,17 +19,24 @@
 package com.qlangtech.tis.extension.model;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.*;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.PluginManager;
+import com.qlangtech.tis.extension.PluginWrapper;
+import com.qlangtech.tis.extension.RestartRequiredException;
+import com.qlangtech.tis.extension.Saveable;
 import com.qlangtech.tis.extension.impl.MissingDependencyException;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.install.InstallUtil;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
+import com.qlangtech.tis.manage.common.ConfigFileContext.Header;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
+import com.qlangtech.tis.plugin.license.TISLicense;
 import com.qlangtech.tis.util.PersistedList;
 import com.qlangtech.tis.util.Util;
 import com.qlangtech.tis.util.exec.AtmostOneThreadExecutor;
@@ -49,14 +56,33 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.*;
+import java.net.HttpRetryException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
@@ -610,8 +636,19 @@ public class UpdateCenter implements Saveable {
                 // indicates that this kind of inconsistency can happen. So let's be defensive
                 throw new IllegalStateException("Inconsistent file length: expected " + total);
             }
-
+            TISLicense license = TISLicense.load(false);
             HttpUtils.get(src, new ConfigFileContext.StreamProcess<Void>() {
+                @Override
+                public List<Header> getHeaders() {
+                    List<Header> headers = super.getHeaders();
+                    if (license != null) {
+                        headers = Lists.newArrayList(headers);
+                        headers.add(new Header(TISLicense.KEY_IDENTITY, license.licenseId));
+                        headers.add(new Header(TISLicense.KEY_MOBILE, license.mobile));
+                    }
+                    return headers;
+                }
+
                 @Override
                 public Void p(HttpURLConnection con, InputStream stream) throws IOException {
 

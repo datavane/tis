@@ -61,6 +61,7 @@ public class TISLicense extends ParamsConfig implements BeforePluginSaved, After
     public static final String KEY_EXPIRE_DATE = "expireDatetime";
     public static final String KEY_EMAIL = "email";
     public static final String KEY_MOBILE = "mobile";
+    public static final String KEY_IDENTITY = "licenseId";
     public static final String KEY_FIELD_ACTIVATION_CODE = "activationCode";
     public static final String KEY_DISPLAY_NAME = "License";
 
@@ -88,6 +89,9 @@ public class TISLicense extends ParamsConfig implements BeforePluginSaved, After
     @FormField(type = FormFieldType.TEXTAREA, ordinal = 4, validate = {Validator.require})
     public String activationCode;
 
+    @FormField(type = FormFieldType.INPUTTEXT, advance = true, ordinal = 1, validate = {})
+    public String licenseId;
+
     @FormField(type = FormFieldType.INPUTTEXT, advance = true, ordinal = 2, validate = {})
     public String email;
 
@@ -102,6 +106,7 @@ public class TISLicense extends ParamsConfig implements BeforePluginSaved, After
             this.expireDate = hasExpire.expireDate;
             this.email = hasExpire.getEmail();
             this.mobile = hasExpire.getMobile();
+            this.licenseId = hasExpire.getLicenseId();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -158,6 +163,7 @@ public class TISLicense extends ParamsConfig implements BeforePluginSaved, After
             hasExpire = new HasExpire(LocalDate.now().isBefore(format.ofInstant(epochMilli).toLocalDate()), format.format(epochMilli));
             hasExpire.setEmail(deserialize.get(KEY_EMAIL));
             hasExpire.setMobile(deserialize.get(KEY_MOBILE));
+            hasExpire.setLicenseId(deserialize.get(KEY_IDENTITY));
         }
         return hasExpire;
     }
@@ -166,6 +172,7 @@ public class TISLicense extends ParamsConfig implements BeforePluginSaved, After
     public static class HasExpire {
         public final boolean hasNotExpire;
         public final String expireDate;
+        private String licenseId;
         /**
          * 手机
          */
@@ -178,6 +185,10 @@ public class TISLicense extends ParamsConfig implements BeforePluginSaved, After
         public HasExpire(boolean hasNotExpire, String expireDate) {
             this.hasNotExpire = hasNotExpire;
             this.expireDate = expireDate;
+        }
+
+        public void setLicenseId(String licenseId) {
+            this.licenseId = licenseId;
         }
 
         public String getMobile() {
@@ -202,6 +213,10 @@ public class TISLicense extends ParamsConfig implements BeforePluginSaved, After
 
         public String getExpireDate() {
             return expireDate;
+        }
+
+        public String getLicenseId() {
+            return this.licenseId;
         }
     }
 

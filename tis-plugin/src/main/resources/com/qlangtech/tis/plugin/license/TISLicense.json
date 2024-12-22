@@ -12,5 +12,8 @@
   },
   "mobile": {
     "readonly": true
+  },
+  "licenseId": {
+    "readonly": true
   }
 }

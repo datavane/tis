@@ -26,7 +26,7 @@ import junit.framework.TestCase;
  **/
 public class TestTISExtendsionInterceptor extends TestCase {
     public void testParseExtendPoint() {
-        String rawExtendpoint = "com.qlangtech.tis.plugin.datax.common.AutoCreateTable<com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder.ColWrapper>";
+        final String rawExtendpoint = "com.qlangtech.tis.plugin.datax.common.AutoCreateTable<com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder.ColWrapper>";
         final String expectExtendpoint = "com.qlangtech.tis.plugin.datax.common.AutoCreateTable";
         String actualExtendpoint = TISExtendsionInterceptor.parseExtendPoint(rawExtendpoint);
 
