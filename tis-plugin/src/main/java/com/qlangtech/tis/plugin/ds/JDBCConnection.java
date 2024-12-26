@@ -22,6 +22,7 @@ import com.qlangtech.tis.plugin.ds.DataSourceMeta.ResultProcess;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -109,6 +110,10 @@ public class JDBCConnection implements AutoCloseable {
     @Override
     public void close() throws SQLException {
         this.conn.close();
+    }
+
+    public PreparedStatement preparedStatement(String sql) throws SQLException {
+        return this.conn.prepareStatement(sql);
     }
 
     /**

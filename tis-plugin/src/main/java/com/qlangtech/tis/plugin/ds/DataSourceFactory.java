@@ -63,7 +63,7 @@ import java.util.concurrent.atomic.AtomicReference;
  **/
 @Public
 public abstract class DataSourceFactory implements Describable<DataSourceFactory>, Serializable, DBIdentity, DataSourceMeta, Wrapper {
-   // public static final ZoneId DEFAULT_SERVER_TIME_ZONE = MQListenerFactory.DEFAULT_SERVER_TIME_ZONE; // ZoneId.systemDefault();// ZoneId.of("Asia/Shanghai");
+    // public static final ZoneId DEFAULT_SERVER_TIME_ZONE = MQListenerFactory.DEFAULT_SERVER_TIME_ZONE; // ZoneId.systemDefault();// ZoneId.of("Asia/Shanghai");
     public static final String DS_TYPE_MYSQL = "MySQL";
     public static final String DS_TYPE_MYSQL_V8 = DS_TYPE_MYSQL + "-V8";
 
@@ -258,7 +258,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 pkCols.add(columnName);
             }
 
-            return wrapColsMeta(inSink, table, columns1, pkCols);
+            return wrapColsMeta(inSink, table, columns1, pkCols, conn);
         } finally {
             closeResultSet(columns1);
             closeResultSet(primaryKeys);
@@ -267,8 +267,9 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         //  return columns;
     }
 
-    public List<ColumnMetaData> wrapColsMeta(boolean inSink, EntityName table, ResultSet columns1) throws SQLException, TableNotFoundException {
-        return wrapColsMeta(inSink, table, columns1, Collections.emptySet());
+    public List<ColumnMetaData> wrapColsMeta(
+            boolean inSink, EntityName table, ResultSet columns1, JDBCConnection conn) throws SQLException, TableNotFoundException {
+        return wrapColsMeta(inSink, table, columns1, Collections.emptySet(), conn);
     }
 
     public static final String KEY_COLUMN_NAME = "COLUMN_NAME";
@@ -281,9 +282,13 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     public static final String KEY_DATA_TYPE = "DATA_TYPE";
     public static final String KEY_COLUMN_SIZE = "COLUMN_SIZE";
 
-    public List<ColumnMetaData> wrapColsMeta(
-            boolean inSink, EntityName table, ResultSet columns1, Set<String> pkCols) throws SQLException, TableNotFoundException {
-        return this.wrapColsMeta(inSink, table, columns1, new CreateColumnMeta(pkCols, columns1));
+    public final List<ColumnMetaData> wrapColsMeta(
+            boolean inSink, EntityName table, ResultSet columns1, Set<String> pkCols, JDBCConnection conn) throws SQLException, TableNotFoundException {
+        return this.wrapColsMeta(inSink, table, columns1, createColumnMetaBuilder(table, columns1, pkCols, conn));
+    }
+
+    protected CreateColumnMeta createColumnMetaBuilder(EntityName table, ResultSet columns1, Set<String> pkCols, JDBCConnection conn) {
+        return new CreateColumnMeta(pkCols, columns1);
     }
 
     public List<ColumnMetaData> wrapColsMeta(

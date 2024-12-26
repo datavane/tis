@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.tdfs;
 
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.IDataxProcessor.TableMap;
 import com.qlangtech.tis.datax.IGroupChildTaskIterator;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.plugin.annotation.FormField;
@@ -70,11 +71,12 @@ public abstract class DFSResMatcher implements Describable<DFSResMatcher> {
      * @param processor
      * @return
      */
-    public abstract SourceColsMeta getSourceColsMeta(ITDFSSession hdfsSession, Optional<String> entityName, String path, IDataxProcessor processor);
+    public abstract SourceColsMeta getSourceColsMeta(
+            ITDFSSession hdfsSession, Optional<String> entityName, String path, IDataxProcessor processor);
 
     public abstract List<ISelectedTab> getSelectedTabs(IDFSReader dfsReader);
 
-    public abstract List<ColumnMetaData> getTableMetadata(IDFSReader dfsReader, EntityName table) throws TableNotFoundException;
+    public abstract List<ColumnMetaData> getTableMetadata(IDFSReader dfsReader, TableMap tableMapper) throws TableNotFoundException;
 
     public abstract boolean hasMulitTable(IDFSReader dfsReader);
 

@@ -10,6 +10,12 @@ do
    ln -s $f /opt/data/tis/libs/plugins/${f##*/}
 done ;
 
+cd /opt/misc/tis-plugins-commercial
+sh /opt/misc/tis-plugins-commercial/create-ln.sh
+
+cd /opt/misc/tis-sqlserver-plugin
+sh /opt/misc/tis-sqlserver-plugin/create-ln.sh
+
 #for tis-scala-compiler-dependencies
 #rm -f /opt/data/tis/libs/tis-scala-compiler-dependencies/*
 #cd ./tis-scala-compiler-dependencies

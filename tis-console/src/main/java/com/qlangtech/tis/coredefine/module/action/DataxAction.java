@@ -1180,8 +1180,8 @@ public class DataxAction extends BasicModule {
 
     IAppSource.cleanAppSourcePluginStoreCache(null, dataxName);
     IAppSource.cleanAppSourcePluginStoreCache(this, dataxName);
-    SelectedTabExtend.clearTabExtend(null,dataxName);
-    SelectedTabExtend.clearTabExtend(this,dataxName);
+    SelectedTabExtend.clearTabExtend(null, dataxName);
+    SelectedTabExtend.clearTabExtend(this, dataxName);
 
     DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
       submit.saveJob(this, context, old);
@@ -1348,7 +1348,7 @@ public class DataxAction extends BasicModule {
     }
 
     if (!dataxReader.hasMulitTable()) {
-      throw new IllegalStateException("reader has not set table at least");
+      throw new IllegalStateException("reader (" + dataxReader.getClass().getSimpleName() + ") has not set table at least");
     }
     List<TableAlias> tmapList = Lists.newArrayList();
     for (ISelectedTab selectedTab : dataxReader.getSelectedTabs()) {
@@ -1550,7 +1550,7 @@ public class DataxAction extends BasicModule {
             addErrorMessage(context, "请至少选择一个主键列");
             postMCols.validateFaild = true;
           }
-
+          writerCols.addAll(postMCols.writerCols);
           return !postMCols.validateFaild;
         }
       }))) {

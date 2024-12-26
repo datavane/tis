@@ -24,5 +24,6 @@ package com.qlangtech.tis.plugin.ds;
  **/
 public
 interface RunningContext {
-
+    public String getDbName();
+    public String getTable();
 }

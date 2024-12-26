@@ -19,6 +19,7 @@ package com.qlangtech.tis.plugin.ds;
 
 
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.datax.IDataxProcessor.TableMap;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
@@ -52,6 +53,9 @@ public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKey
         throw new UnsupportedOperationException();
     }
 
+    default List<ColumnMetaData> getTableMetadata(boolean inSink, TableMap tableMapper) throws TableNotFoundException {
+        return getTableMetadata(inSink, EntityName.parse(tableMapper.getFrom()));
+    }
 
     /**
      * Get table column metaData list

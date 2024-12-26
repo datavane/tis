@@ -5,6 +5,7 @@ import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -39,12 +40,14 @@ public final class DefaultTab implements ISelectedTab {
 
     @Override
     public List<String> getPrimaryKeys() {
-        throw new UnsupportedOperationException();
+        return writerCols.stream()
+                .filter((col) -> col.isPk())
+                .map((col) -> col.getName()).collect(Collectors.toList());
     }
 
     @Override
-    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx,boolean includeContextParams) {
-        throw new UnsupportedOperationException();
+    public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, boolean includeContextParams) {
+        return writerCols.stream().collect(Collectors.toList());
     }
 
     public DefaultTab(String tabName) {

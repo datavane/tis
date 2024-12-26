@@ -20,6 +20,7 @@ package com.qlangtech.tis.config.hive.meta;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -83,25 +84,29 @@ public abstract class HiveTable {
         this.name = name;
     }
 
-    public static class StoredAs {
+    public static abstract class StoredAs {
         public final String inputFormat;
         public final String outputFormat;
 
-        private final Object serdeInfo;
+       // private final Object serdeInfo;
 
         /**
          * @param inputFormat
          * @param outputFormat
-         * @param serdeInfo    org.apache.hadoop.hive.metastore.api.SerdeInfo
+         * // @param serdeInfo    org.apache.hadoop.hive.metastore.api.SerdeInfo
          */
-        public StoredAs(String inputFormat, String outputFormat, Object serdeInfo) {
+        public StoredAs(String inputFormat, String outputFormat) {
             this.inputFormat = inputFormat;
             this.outputFormat = outputFormat;
-            this.serdeInfo = serdeInfo;
+          //  this.serdeInfo = serdeInfo;
         }
 
-        public <SerDeInfo> SerDeInfo getSerdeInfo() {
-            return (SerDeInfo) serdeInfo;
-        }
+        public abstract Properties getSerdeProperties(HiveTable table);
+
+        public abstract String getSerializationLib();
+
+//        public <SerDeInfo> SerDeInfo getSerdeInfo() {
+//            return (SerDeInfo) serdeInfo;
+//        }
     }
 }

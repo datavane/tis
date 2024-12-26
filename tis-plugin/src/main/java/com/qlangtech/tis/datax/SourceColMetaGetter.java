@@ -52,7 +52,7 @@ public class SourceColMetaGetter {
 
     private Map<String, ColumnMetaData> getColMetaDataMap(IDataxReader dataXReader, TableMap tableMapper) {
         try {
-            return ColumnMetaData.toMap(dataXReader.getTableMetadata(false, EntityName.parse(tableMapper.getFrom())));
+            return ColumnMetaData.toMap(dataXReader.getTableMetadata(false, tableMapper));
         } catch (TableNotFoundException e) {
             throw new RuntimeException(e);
         }

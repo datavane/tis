@@ -84,6 +84,7 @@ public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<
         // ElementCreatorFactory.super.appendExternalJsonProp(propertyType, biz);
     }
 
+
     protected List<CMeta> getColsCandidate() {
         List<CMeta> colsCandidate = SelectedTab.getSelectedCols();
         return colsCandidate;

@@ -113,8 +113,11 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         if (transformerRules.isPresent()) {
             ITransformerBuildInfo transformerBuilder = transformerRules.get().createTransformerBuildInfo((IPluginContext) pluginCtx);
 
+            List<OutputParameter> overwriteColsWithContextParams
+                    = transformerBuilder.overwriteColsWithContextParams(this.getCols());
+
             List<OutputParameter> outParams = includeContextParams
-                    ? transformerBuilder.overwriteColsWithContextParams(this.getCols())
+                    ? overwriteColsWithContextParams
                     : transformerBuilder.tranformerColsWithoutContextParams();
             return outParams.stream().map((param) -> param).collect(Collectors.toList());
 

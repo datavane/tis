@@ -21,7 +21,16 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.plugin.ds.*;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.DBConfig;
+import com.qlangtech.tis.plugin.ds.DataDumpers;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.plugin.ds.DataType;
+import com.qlangtech.tis.plugin.ds.IDataSourceDumper;
+import com.qlangtech.tis.plugin.ds.JDBCTypes;
+import com.qlangtech.tis.plugin.ds.RunningContext;
+import com.qlangtech.tis.plugin.ds.TISTable;
+import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -31,7 +40,6 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +53,6 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
     protected Connection getConnection(String jdbcUrl, String username, String password) throws SQLException {
         return DriverManager.getConnection(jdbcUrl, StringUtils.trimToNull(username), StringUtils.trimToNull(password));
     }
-
 
     @Override
     public DBConfig getDbConfig() {
@@ -61,15 +68,6 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
     public void refresh() {
 
     }
-//    @Override
-//    public void refectTableInDB(TableInDB tabs, Connection conn) throws SQLException {
-//        throw new UnsupportedOperationException();
-//    }
-
-//    @Override
-//    public String identityValue() {
-//        return "mockDs";
-//    }
 
     /**
      * 模拟Employee表的导入

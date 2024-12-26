@@ -25,6 +25,7 @@ import org.apache.commons.collections.map.CaseInsensitiveMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -48,6 +49,25 @@ public class ColumnMetaData extends Option implements IColMetaGetter {
 
     public static CMeta convert(ColumnMetaData c) {
         return c.convert();
+    }
+
+    public static List<ColumnMetaData> convert(List<CMeta> cs) {
+        int[] index = new int[1];
+        return cs.stream().map((cm) -> {
+            //int index, String key, DataType type, boolean pk, boolean nullable
+            return new ColumnMetaData(index[0]++, cm.getName(), cm.getType(), cm.isPk(), cm.isNullable());
+
+        }).collect(Collectors.toList());
+
+//        ColumnMetaData c = this;
+//        CMeta cmeta = createCmeta();
+//        cmeta.setName(c.getName());
+//        cmeta.setComment(c.getComment());
+//        cmeta.setPk(c.isPk());
+//        cmeta.setType(c.getType());
+//        cmeta.setNullable(c.isNullable());
+//
+//        return c.convert();
     }
 
     public static void fillSelectedTabMeta(ISelectedTab tab,
