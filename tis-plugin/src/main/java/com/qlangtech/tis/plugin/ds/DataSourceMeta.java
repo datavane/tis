@@ -66,7 +66,7 @@ public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKey
      * @throws TableNotFoundException
      */
     default List<ColumnMetaData> getTableMetadata(boolean inSink, EntityName table) throws TableNotFoundException {
-        throw new UnsupportedOperationException("invoke from:" + this.getClass().getName());
+        throw new UnsupportedOperationException("invoke from:" + this.getClass().getName() + ",inSink:" + inSink);
     }
 
 

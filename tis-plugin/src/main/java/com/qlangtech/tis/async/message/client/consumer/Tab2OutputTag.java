@@ -20,10 +20,12 @@ package com.qlangtech.tis.async.message.client.consumer;
 
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.realtime.transfer.DTO;
 
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +48,13 @@ public class Tab2OutputTag<DTOStream> implements Serializable {
 
     public Set<Map.Entry<TableAlias, DTOStream>> entrySet() {
         return this.mapper.entrySet();
+    }
+
+    public <TAG> Map<String, TAG> createTab2OutputTag(Function<DTOStream, TAG> tagCreator) {
+        return this.entrySet().stream()
+                .collect(Collectors.toMap( //
+                        (e) -> e.getKey().getFrom()
+                        , (e) -> tagCreator.apply(e.getValue())));
     }
 
     public Map<String, DTOStream> getSinkMapper() {

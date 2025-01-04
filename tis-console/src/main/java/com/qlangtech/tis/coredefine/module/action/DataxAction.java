@@ -990,10 +990,11 @@ public class DataxAction extends BasicModule {
       DataXCfgGenerator cfgGenerator = new DataXCfgGenerator(pluginContext, dataxName, dataxProcessor);
       File dataxCfgDir = dataxProcessor.getDataxCfgDir(pluginContext);
 
+      FileUtils.forceMkdir(dataxCfgDir);
       if (!getExist) {
-        FileUtils.forceMkdir(dataxCfgDir);
+        //  FileUtils.forceMkdir(dataxCfgDir);
         // 先清空文件
-        FileUtils.cleanDirectory(dataxCfgDir);
+        //FileUtils.cleanDirectory(dataxCfgDir);
       }
 
       DataXCfgGenerator.GenerateCfgs generateCfgs = null;
@@ -1029,7 +1030,8 @@ public class DataxAction extends BasicModule {
 
     this.setBizResult(context, cfgGenerator.startGenerateCfg(new DataXCfgGenerator.IGenerateScriptFile() {
       @Override
-      public void generateScriptFile(SourceColMetaGetter colMetaGetter, IDataxReader reader, IDataxWriter writer, IDataxReaderContext readerContext,
+      public void generateScriptFile(boolean supportDataXBatch, SourceColMetaGetter colMetaGetter
+        , IDataxReader reader, IDataxWriter writer, DataxWriter.BaseDataxWriterDescriptor writerDescriptor, IDataxReaderContext readerContext,
                                      Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
 
         DataXCfgGenerator.generateTabCreateDDL(DataxAction.this, dataxProcessor, colMetaGetter, writer, readerContext,

@@ -69,11 +69,28 @@ public class OverwriteProps {
     public Optional<String> appendHelper = Optional.empty();
     private Object dftVal;
     private Object placeholder;
+    private Boolean disabled;
+
+
     public Optional<List<Option>> opts = Optional.empty();
     public Function<Object, Object> dftValConvert = (val) -> val;
 
     public OverwriteProps setAppendHelper(String appendHelper) {
         this.appendHelper = Optional.of(appendHelper);
+        return this;
+    }
+
+    public boolean getDisabled() {
+        return disabled != null && disabled;
+    }
+
+    public OverwriteProps setEnumOpts(List<Option> optsOp) {
+        this.opts = Optional.of(optsOp);
+        return this;
+    }
+
+    public OverwriteProps setDisabled() {
+        this.disabled = true;
         return this;
     }
 

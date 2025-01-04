@@ -148,6 +148,11 @@ public class PropertyType implements IPropertyType {
                 .put(PluginExtraProps.KEY_LABEL, label);
     }
 
+    public static void setDisabled(JSONObject props) {
+        Objects.requireNonNull(props, "props can not be null")
+                .put(PluginExtraProps.KEY_DISABLE, true);
+    }
+
     @Override
     public boolean isCollectionType() {
         //   PropertyType pt = (PropertyType) propertyType;

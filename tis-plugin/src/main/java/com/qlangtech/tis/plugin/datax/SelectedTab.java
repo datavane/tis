@@ -318,9 +318,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     }
 
 
-    public static ThreadCacheTableCols getContextTableColsStream( //
-                                                                  //                                                               Function<List<ColumnMetaData>, Stream<ColumnMetaData>> func
-    ) {
+    public static ThreadCacheTableCols getContextTableColsStream() {
         SuFormProperties.SuFormGetterContext context = SuFormProperties.subFormGetterProcessThreadLocal.get();
         if (context == null || context.plugin == null) {
             List<ColumnMetaData> empt = Collections.emptyList();

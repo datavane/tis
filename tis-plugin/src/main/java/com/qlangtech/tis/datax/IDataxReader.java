@@ -33,6 +33,10 @@ import java.util.function.Predicate;
 public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta
         , IStreamTableMeataCreator.ISourceStreamMetaCreator, IRepositoryResourceScannable, IReaderSource {
 
+    default SourceColMetaGetter createSourceColMetaGetter() {
+        return new SourceColMetaGetter(this);
+    }
+
     /**
      * 是否支持导入多个子表，当reader如果只支持单个表，那writer如果是MysqlWriter就可以指定表名称和列名
      *

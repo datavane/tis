@@ -260,7 +260,7 @@ public class SuFormProperties extends BaseSubFormProperties {
                                         + "import com.qlangtech.tis.coredefine.module.action.DataxAction; " //
                                         + "import com.qlangtech.tis.util.DescriptorsJSON.IPropGetter; " //
                                         + "import com.qlangtech.tis.extension.IPropertyType; " //
-                                        + "import com.qlangtech.tis.extension.SubFormFilter;"
+                                        + "import com.qlangtech.tis.extension.SubFormFilter;\n"
                                         + "class " + className + " implements IPropGetter {" //
                                         + "	" //
                                         + "@Override" //

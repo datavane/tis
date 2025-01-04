@@ -95,11 +95,12 @@ public class DTO {
         return this.eventType;
     }
 
-    public void setEventType(EventType eventType) {
+    public DTO setEventType(EventType eventType) {
         this.eventType = eventType;
+        return this;
     }
 
-    public DTO colone() {
+    public DTO clone() {
         DTO d = new DTO();
         d.setBefore(Maps.newHashMap(this.getBefore()));
         d.setAfter(Maps.newHashMap(this.getAfter()));

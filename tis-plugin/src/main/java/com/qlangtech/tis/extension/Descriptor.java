@@ -933,7 +933,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     /**
-     * 当本 插件内嵌在其他插件内部，会执行。之前之前会保证父插件已经通过校验的
+     * 当本 插件内嵌在其他插件内部，会执行。之前会保证父插件已经通过校验的
      *
      * @param msgHandler
      * @param context
@@ -1449,20 +1449,35 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public PluginExtraProps fieldExtraDescs = new PluginExtraProps();
 
     public void addFieldDescriptor(String fieldName, Object dftVal, String helperContent) {
-        this.addFieldDescriptor(fieldName, dftVal, null, helperContent, Optional.empty());
+        this.addFieldDescriptor(fieldName, dftVal, null, helperContent, Optional.empty(), false);
     }
 
+    /**
+     * @param fieldName
+     * @param dftVal
+     * @param helperContent
+     * @param enums
+     * @return
+     */
     public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String helperContent,
                                                      Optional<List<Option>> enums) {
-        return addFieldDescriptor(fieldName, dftVal, null, helperContent, enums);
+        return addFieldDescriptor(fieldName, dftVal, null, helperContent, enums, false);
     }
 
     public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String label, String helperContent,
                                                      Optional<List<Option>> enums) {
+        return addFieldDescriptor(fieldName, dftVal, label, helperContent, enums, false);
+    }
+
+    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String label, String helperContent,
+                                                     Optional<List<Option>> enums, boolean disabled) {
         JSONObject c = new JSONObject();
         PropertyType.setDefaultVal(dftVal, c);
         if (StringUtils.isNotEmpty(label)) {
             PropertyType.setLabel(label, c);
+        }
+        if (disabled) {
+            PropertyType.setDisabled(c);
         }
         PluginExtraProps.Props props = new PluginExtraProps.Props(c);
         if (StringUtils.isNotEmpty(helperContent)) {
