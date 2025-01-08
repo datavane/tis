@@ -27,7 +27,7 @@ import java.util.Objects;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-08-02 10:15
  **/
-public class RdbmsRunningContext implements RunningContext {
+public class RdbmsRunningContext implements RunningContext  {
     private final String dbName;
     private final String table;
 

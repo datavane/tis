@@ -33,6 +33,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -41,8 +42,11 @@ import java.util.List;
  */
 public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostContent {
 
-
     public static IPluginContext namedContext(String collectionName) {
+        return namedContext(collectionName, Optional.empty());
+    }
+
+    public static IPluginContext namedContext(String collectionName, Optional<String> execId) {
         if (StringUtils.isEmpty(collectionName)) {
             throw new IllegalArgumentException("param collectionName can not be empty");
         }
@@ -70,7 +74,7 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostC
 
             @Override
             public String getExecId() {
-                return null;
+                return execId.orElse(null);
             }
 
             @Override

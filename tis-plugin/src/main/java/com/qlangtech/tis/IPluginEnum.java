@@ -31,6 +31,7 @@ import java.util.List;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-09-29 14:59
+ * @see com.qlangtech.tis.util.HeteroEnum impl
  **/
 public interface IPluginEnum<T extends Describable<T>> {
 

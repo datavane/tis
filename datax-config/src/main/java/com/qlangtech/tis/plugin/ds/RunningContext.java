@@ -18,12 +18,34 @@
 
 package com.qlangtech.tis.plugin.ds;
 
+import java.io.Serializable;
+import java.util.Map;
+import java.util.function.Function;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-08-02 12:46
  **/
 public
-interface RunningContext {
+interface RunningContext extends Serializable {
+
+    public class RunningContextParamSetter implements Serializable {
+        private final RunningContext runningContext;
+        private final Map<String, Function<RunningContext, Object>> contextParamValsGetterMapper;
+
+        public RunningContextParamSetter(RunningContext runningContext, Map<String, Function<RunningContext, Object>> contextParamValsGetterMapper) {
+            this.runningContext = runningContext;
+            this.contextParamValsGetterMapper = contextParamValsGetterMapper;
+        }
+
+        public void setContextParam(Map<String, Object> vals) {
+            contextParamValsGetterMapper.forEach((contextParamName, getter) -> {
+                vals.put(contextParamName, getter.apply(runningContext));
+            });
+        }
+    }
+
     public String getDbName();
+
     public String getTable();
 }

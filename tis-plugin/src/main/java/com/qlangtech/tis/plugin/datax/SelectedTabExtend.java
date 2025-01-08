@@ -39,12 +39,14 @@ import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.Memoizer;
 import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 
 import java.util.Collections;
@@ -286,6 +288,32 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
                             //  selectedExtendTabs.add(stExt);
                         } else {
                             SelectedTab tab = (SelectedTab) p;
+                            /********************************
+                             * 需要将主键移动到最靠前的位置
+                             ********************************/
+                            if (CollectionUtils.isNotEmpty(tab.primaryKeys)) {
+                                boolean primaryKeyInHeader = false;
+                                for (CMeta col : tab.cols) {
+                                    if (tab.primaryKeys.contains(col.getName())) {
+                                        primaryKeyInHeader = true;
+                                    }
+                                    break;
+                                }
+                                if (!primaryKeyInHeader) {
+                                    List<CMeta> reOrderCols = Lists.newArrayList();
+                                    List<CMeta> notPksCols = Lists.newArrayList();
+                                    for (CMeta col : tab.cols) {
+                                        if (tab.primaryKeys.contains(col.getName())) {
+                                            reOrderCols.add(col);
+                                        }else{
+                                            notPksCols.add(col);
+                                        }
+                                    }
+                                    reOrderCols.addAll(notPksCols);
+                                    tab.cols = reOrderCols;
+                                }
+                            }
+                            // tab.cols;
                             selectedTabs.put(tab.getName(), tab);
                         }
                     }
@@ -303,6 +331,8 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
                 if (MapUtils.isEmpty(selectedTabs)) {
                     throw new IllegalStateException("selectedTabs can not be empty");
                 }
+
+
                 return subFormStore.setPlugins(pluginContext, optional,
                         Collections.singletonList(new Descriptor.ParseDescribable(Lists.newArrayList(selectedTabs.values()))), update);
             }

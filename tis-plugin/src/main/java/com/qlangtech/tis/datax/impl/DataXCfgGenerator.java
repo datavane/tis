@@ -278,12 +278,12 @@ public class DataXCfgGenerator implements IDataXNameAware {
                     scriptFileGenerator.generateScriptFile(
                             supportDataXBatch, colMetaGetter, reader, writer, writerDescriptor, readerContext, createDDLFiles, tableMapper);
                 }
-               // if (supportDataXBatch) {
-                    Map<String, List<DBDataXChildTask>> groupedInfo = subTasks.getGroupedInfo();
-                    if (MapUtils.isEmpty(groupedInfo)) {
-                        throw new IllegalStateException("groupedInfo can not be empty");
-                    }
-                    cfgs.groupedChildTask.putAll(groupedInfo);
+                // if (supportDataXBatch) {
+                Map<String, List<DBDataXChildTask>> groupedInfo = subTasks.getGroupedInfo();
+                if (MapUtils.isEmpty(groupedInfo)) {
+                    throw new IllegalStateException("groupedInfo can not be empty");
+                }
+                cfgs.groupedChildTask.putAll(groupedInfo);
                 //}
             }
             //  IDataxReader reader = dataxProcessor.getReader(this.pluginCtx);
@@ -397,34 +397,13 @@ public class DataXCfgGenerator implements IDataXNameAware {
         }
     }
 
-//    private Optional<TableMap> getTableMap(TableAliasMapper tabAlias, IDataxWriter writer, boolean unStructedReader, Callable<Map<String, ISelectedTab>> selectedTabsCall, IDataxReaderContext readerContext) throws Exception {
-//
-//    }
+
 
 
     public interface IGenerateScriptFile {
         void generateScriptFile(boolean supportDataXBatch, SourceColMetaGetter colMetaGetter, IDataxReader reader, IDataxWriter writer, DataxWriter.BaseDataxWriterDescriptor writerDescriptor, IDataxReaderContext readerContext,
                                 Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException;
     }
-
-
-//    private void generateDataXAndSQLDDLFile(File dataXCfgDir, IDataxReader reader, IDataxWriter writer,
-//                                            IDataxReaderContext readerContext, Set<String> createDDLFiles
-//            , Optional<IDataxProcessor.TableMap> tableMapper, SourceColMetaGetter colMetaGetter
-//    ) throws IOException {
-//
-//        generateTabCreateDDL(this.pluginCtx, dataxProcessor, colMetaGetter, writer, readerContext, createDDLFiles
-//                , tableMapper, false);
-//        if (StringUtils.isEmpty(readerContext.getTaskName())) {
-//            throw new IllegalStateException("readerContext.getTaskName() must be present");
-//        }
-//        File configFile = DataXJobInfo.getJobPath(dataXCfgDir, readerContext.getReaderContextId(),
-//                readerContext.getTaskName() + DataXCfgFile.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
-//        FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, tableMapper
-//        ), TisUTF8.get(), false);
-//
-//    }
-
 
     public static void generateTabCreateDDL(IPluginContext pluginCtx, IDataxProcessor dataxProcessor,
                                             SourceColMetaGetter colMetaGetter, IDataxWriter writer, IDataxReaderContext readerContext,
@@ -446,7 +425,6 @@ public class DataXCfgGenerator implements IDataXNameAware {
                 }
             }
             // 创建ddl
-
             IDataxProcessor.TableMap mapper = tableMapper.get();
             String sqlFileName = mapper.getTo() + DataXCfgFile.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
             if (!createDDLFiles.contains(sqlFileName)) {
@@ -495,6 +473,9 @@ public class DataXCfgGenerator implements IDataXNameAware {
             }
 
             IDataxProcessor dataxProcessor = DataxProcessor.load(null, appAndRuntime.getAppName());
+            if (!dataxProcessor.isSupportBatch(null)) {
+                return Collections.emptyList();
+            }
             File dataxCfgDir = dataxProcessor.getDataxCfgDir(null);
             if (!dataxCfgDir.exists()) {
                 return Collections.emptyList();

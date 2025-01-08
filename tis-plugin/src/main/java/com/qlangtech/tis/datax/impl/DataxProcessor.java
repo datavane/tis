@@ -292,40 +292,6 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
      * @return
      * @throws Exception
      */
-//    public Map<String, INotebookable.NotebookEntry> scanNotebook() throws Exception {
-//
-//        return scanNotebookCache.get(this.identityValue(), () -> {
-//            Map<String, INotebookable.NotebookEntry> notebookable = Maps.newHashMap();
-//
-//            IDataxReader reader = this.getReader(null);
-//            IDataxWriter writer = this.getWriter(null, true);
-//
-//            scanNotebook(notebookable, reader);
-//            scanNotebook(notebookable, writer);
-//            return notebookable;
-//        });
-//    }
-
-//    private void scanNotebook(Map<String, INotebookable.NotebookEntry> notebookable, Object bean)
-//            throws IllegalAccessException, InvocationTargetException {
-//        PropertyUtilsBean propertyUtils = BeanUtilsBean.getInstance().getPropertyUtils();
-//        PropertyDescriptor[] readerProps = propertyUtils.getPropertyDescriptors(bean.getClass());
-//        Class<?> propertyType = null;
-//        Describable plugin = null;
-//        for (PropertyDescriptor prop : readerProps) {
-//            propertyType = prop.getPropertyType();
-//            if (Describable.class.isAssignableFrom(propertyType)) {
-//                plugin = (Describable) prop.getReadMethod().invoke(bean);
-//                if (plugin instanceof IdentityName
-//                        && plugin.getDescriptor() instanceof INotebookable) {
-//                    notebookable.put(((IdentityName) plugin).identityValue(),
-//                            new INotebookable.NotebookEntry((INotebookable) plugin.getDescriptor(), plugin));
-//                    return;
-//                }
-//            }
-//        }
-//    }
-
     public void setTableMaps(List<TableAlias> tableMaps) {
         this.tableMaps = tableMaps;
     }
@@ -365,17 +331,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         return IDataxProcessor.getDataXWorkDir(pluginContext, this.identityValue());
     }
 
-//    /**
-//     * 创建一个临时工作目录
-//     *
-//     * @param execId
-//     * @throws Exception
-//     */
-//    public void makeTempDir(String execId) throws Exception {
-//
-//        File workingDir = getDataXWorkDir((IPluginContext) null);
-//        FileUtils.copyDirectory(workingDir, new File(workingDir.getParentFile(), KeyedPluginStore.TMP_DIR_NAME + workingDir.getName() + "-" + execId));
-//    }
+
 
     /**
      * dataX配置文件列表
@@ -384,15 +340,6 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
      */
     @Override
     public DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginContext, Optional<JobTrigger> partialTrigger) {
-//        File dataxCfgDir = getDataxCfgDir(pluginContext);
-//        if (!dataxCfgDir.exists()) {
-//            throw new IllegalStateException("dataxCfgDir is not exist:" + dataxCfgDir.getAbsolutePath());
-//        }
-//        if (dataxCfgDir.list().length < 1) {
-//            throw new IllegalStateException("dataxCfgDir is empty can not find any files:" + dataxCfgDir.getAbsolutePath());
-//        }
-//        DataXCfgGenerator.GenerateCfgs genCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(dataxCfgDir);
-//        return genCfgs;
         return DataxProcessor.getDataxCfgFileNames(pluginContext, partialTrigger, this);
     }
 

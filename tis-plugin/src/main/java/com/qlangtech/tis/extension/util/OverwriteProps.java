@@ -96,6 +96,7 @@ public class OverwriteProps {
 
     public OverwriteProps setDftVal(Object dftVal) {
         this.dftVal = dftVal;
+        this.dftValConvert = (val) -> dftVal;
         return this;
     }
 

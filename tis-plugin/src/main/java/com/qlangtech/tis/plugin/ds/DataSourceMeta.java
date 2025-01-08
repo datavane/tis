@@ -41,7 +41,7 @@ public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKey
      * @return Map<String, Object> key: 添加的可以使用key名称 $dbName， $tableName， $userName 等。
      */
     default Map<String, ContextParamConfig> getDBContextParams() {
-        return Maps.newHashMap();
+        return ContextParamConfig.defaultContextParams();
     }
 
     /**

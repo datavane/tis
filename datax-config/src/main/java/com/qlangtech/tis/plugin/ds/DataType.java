@@ -22,6 +22,7 @@ package com.qlangtech.tis.plugin.ds;
 import com.alibaba.fastjson.annotation.JSONField;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.xml.crypto.Data;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -31,7 +32,7 @@ import java.util.regex.Pattern;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-02-19 08:50
  **/
-public class DataType implements Serializable {
+public class DataType implements Serializable, Cloneable {
 
     public static final String KEY_UNSIGNED = "UNSIGNED";
 
@@ -49,6 +50,13 @@ public class DataType implements Serializable {
 
     // decimal 的小数位长度
     private Integer decimalDigits = -1;
+
+    @Override
+    public DataType clone() throws CloneNotSupportedException {
+        //JDBCTypes type, String typeName, int columnSize, boolean unsigned
+        DataType result = new DataType(this.type, this.typeName, this.columnSize, this.unsigned);
+        return result;
+    }
 
     public final int getType() {
         return type.getType();

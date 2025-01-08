@@ -207,6 +207,11 @@ public class TIS {
         public boolean isSameAppName(String appname, boolean isDB) {
             return this.appname.equals(appname) && (this.isDB == isDB);
         }
+
+        @Override
+        public String toString() {
+            return keyVal.toString() + ", isDB=" + isDB;
+        }
     }
 
 

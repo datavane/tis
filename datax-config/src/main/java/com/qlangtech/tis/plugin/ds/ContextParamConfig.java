@@ -22,7 +22,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -32,6 +37,85 @@ public abstract class ContextParamConfig {
     public static final String CONTEXT_BINDED_KEY_PREFIX = "$";
 
     private final String keyName;
+    public static final String KEY_DB_CONTEXT_PARAM_NAME = "dbName";
+
+    public static Map<String, ContextParamConfig> defaultContextParams() {
+        return defaultContextParams((param) -> true);
+    }
+
+
+    /**
+     * 系统默认的绑定Transformer 可用的绑定参数
+     *
+     * @return
+     */
+    public static Map<String, ContextParamConfig> defaultContextParams(Predicate<ContextParamConfig> paramPredicate) {
+        ContextParamConfig dbName = new ContextParamConfig(KEY_DB_CONTEXT_PARAM_NAME) {
+            @Override
+            public ContextParamValGetter<RunningContext> valGetter() {
+                return new DbNameContextParamValGetter();
+            }
+
+            @Override
+            public DataType getDataType() {
+                return DataType.createVarChar(50);
+            }
+        };
+
+        ContextParamConfig sysTimestamp = new ContextParamConfig("timestamp") {
+            @Override
+            public ContextParamValGetter<RunningContext> valGetter() {
+                return new SystemTimeStampContextParamValGetter();
+            }
+
+            @Override
+            public DataType getDataType() {
+                return DataType.getType(JDBCTypes.TIMESTAMP);
+            }
+        };
+
+        ContextParamConfig tableName = new ContextParamConfig("tableName") {
+            @Override
+            public ContextParamValGetter<RunningContext> valGetter() {
+                return new TableNameContextParamValGetter();
+            }
+
+            @Override
+            public DataType getDataType() {
+                return DataType.createVarChar(50);
+            }
+        };
+
+        List<ContextParamConfig> contextParams = new ArrayList<>();
+        contextParams.add(dbName);
+        contextParams.add(tableName);
+        contextParams.add(sysTimestamp);
+        return contextParams
+                .stream().filter(paramPredicate).collect(Collectors.toMap((cfg) -> cfg.getKeyName(), (cfg) -> cfg));
+    }
+
+
+    public static class DbNameContextParamValGetter implements ContextParamValGetter<RunningContext> {
+        @Override
+        public Object apply(RunningContext runningContext) {
+            return runningContext.getDbName();
+        }
+    }
+
+    public static class SystemTimeStampContextParamValGetter implements ContextParamValGetter<RunningContext> {
+        @Override
+        public Object apply(RunningContext runningContext) {
+            return System.currentTimeMillis();
+        }
+    }
+
+    public static class TableNameContextParamValGetter implements ContextParamValGetter<RunningContext> {
+        @Override
+        public Object apply(RunningContext runningContext) {
+            return runningContext.getTable();
+        }
+    }
+
 
     public ContextParamConfig(String keyName) {
         if (StringUtils.startsWith(keyName, CONTEXT_BINDED_KEY_PREFIX)) {
