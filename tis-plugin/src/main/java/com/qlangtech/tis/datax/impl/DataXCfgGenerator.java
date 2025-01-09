@@ -210,9 +210,14 @@ public class DataXCfgGenerator implements IDataXNameAware {
     public static final String FILE_GEN = "gen";
 
     public GenerateCfgs startGenerateCfg(final File dataXCfgDir) throws Exception {
+        final boolean supportDataXBatch = this.dataxProcessor.isSupportBatch(this.pluginCtx);
+        if (supportDataXBatch) {
+            // 先清空文件
+            FileUtils.cleanDirectory(dataXCfgDir);
+        }
         return startGenerateCfg(new IGenerateScriptFile() {
             @Override
-            public void generateScriptFile(boolean supportDataXBatch, SourceColMetaGetter colMetaGetter
+            public void generateScriptFile(SourceColMetaGetter colMetaGetter
                     , IDataxReader reader, IDataxWriter writer, DataxWriter.BaseDataxWriterDescriptor writerDescriptor,
                                            IDataxReaderContext readerContext, Set<String> createDDLFiles
                     , Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
@@ -225,8 +230,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
 
                 //  generateDataXAndSQLDDLFile(dataXCfgDir, reader, writer, readerContext, createDDLFiles, tableMapper, colMetaGetter);
                 if (supportDataXBatch) {
-                    // 先清空文件
-                    FileUtils.cleanDirectory(dataXCfgDir);
+
 
                     if (StringUtils.isEmpty(readerContext.getTaskName())) {
                         throw new IllegalStateException("readerContext.getTaskName() must be present");
@@ -265,7 +269,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
         if (CollectionUtils.isEmpty(readers)) {
             throw new IllegalStateException(dataxName + " relevant readers can not be empty");
         }
-        boolean supportDataXBatch = this.dataxProcessor.isSupportBatch(this.pluginCtx);
+
         for (IDataxReader reader : readers) {
 
             colMetaGetter = reader.createSourceColMetaGetter();// new SourceColMetaGetter(reader);
@@ -276,7 +280,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
                     readerContext = subTasks.next();
                     Optional<IDataxProcessor.TableMap> tableMapper = buildTabMapper(reader, readerContext);
                     scriptFileGenerator.generateScriptFile(
-                            supportDataXBatch, colMetaGetter, reader, writer, writerDescriptor, readerContext, createDDLFiles, tableMapper);
+                            colMetaGetter, reader, writer, writerDescriptor, readerContext, createDDLFiles, tableMapper);
                 }
                 // if (supportDataXBatch) {
                 Map<String, List<DBDataXChildTask>> groupedInfo = subTasks.getGroupedInfo();
@@ -398,10 +402,8 @@ public class DataXCfgGenerator implements IDataXNameAware {
     }
 
 
-
-
     public interface IGenerateScriptFile {
-        void generateScriptFile(boolean supportDataXBatch, SourceColMetaGetter colMetaGetter, IDataxReader reader, IDataxWriter writer, DataxWriter.BaseDataxWriterDescriptor writerDescriptor, IDataxReaderContext readerContext,
+        void generateScriptFile(SourceColMetaGetter colMetaGetter, IDataxReader reader, IDataxWriter writer, DataxWriter.BaseDataxWriterDescriptor writerDescriptor, IDataxReaderContext readerContext,
                                 Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException;
     }
 

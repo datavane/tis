@@ -1030,7 +1030,7 @@ public class DataxAction extends BasicModule {
 
     this.setBizResult(context, cfgGenerator.startGenerateCfg(new DataXCfgGenerator.IGenerateScriptFile() {
       @Override
-      public void generateScriptFile(boolean supportDataXBatch, SourceColMetaGetter colMetaGetter
+      public void generateScriptFile(SourceColMetaGetter colMetaGetter
         , IDataxReader reader, IDataxWriter writer, DataxWriter.BaseDataxWriterDescriptor writerDescriptor, IDataxReaderContext readerContext,
                                      Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
 
@@ -1079,8 +1079,9 @@ public class DataxAction extends BasicModule {
       dataXDir = appSource.getTargetFile().getFile().getParentFile();
       dataXDirTrash = new File(dataXDir.getParentFile(),
         StreamContextConstant.KEY_DIR_TRASH_NAME + "/" + appDomain.getAppName());
-      FileUtils.moveDirectory(dataXDir, dataXDirTrash);
-
+      if (dataXDir.exists()) {
+        FileUtils.moveDirectory(dataXDir, dataXDirTrash);
+      }
       WorkFlowBuildHistoryCriteria historyCriteria = new WorkFlowBuildHistoryCriteria();
       historyCriteria.createCriteria().andAppIdEqualTo(appDomain.getAppid());
       this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().deleteByExample(historyCriteria);
