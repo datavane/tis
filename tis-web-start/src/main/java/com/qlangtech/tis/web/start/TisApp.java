@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.web.start;
 
+import ch.qos.logback.classic.ClassicConstants;
 import com.qlangtech.tis.web.start.JettyTISRunner.IWebAppContextSetter;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -40,7 +41,11 @@ import java.util.ServiceLoader;
 public class TisApp {
 
     static {
-        System.setProperty("logback.ContextSelector", "JNDI");
+        setLogbackContextSelector();
+    }
+
+    public static void setLogbackContextSelector() {
+        System.setProperty(ClassicConstants.LOGBACK_CONTEXT_SELECTOR, "JNDI");
     }
 
 
@@ -121,7 +126,7 @@ public class TisApp {
             }
         }
 
-       // this.addZeppelinContext(new File(root, TisSubModule.ZEPPELIN.moduleName));
+        // this.addZeppelinContext(new File(root, TisSubModule.ZEPPELIN.moduleName));
 
         // '/' root 的handler必须要最后添加
         contextDir = new File(root, APP_CONSOLE);

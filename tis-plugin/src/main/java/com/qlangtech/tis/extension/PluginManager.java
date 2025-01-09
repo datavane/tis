@@ -76,7 +76,7 @@ public class PluginManager {
 
     /**
      * 目标classifier过滤器，在updateCenter生成插件default.json meta文件时，文件系统中已经有多个classifier的插件 共存的情况，执行启动时确定加载哪个版本的classifier
-     * 此属性设置就是用来锅略特定插件用的
+     * 此属性设置就是用来过滤特定插件用的
      */
     public static PluginClassifier targetClassifierFilter;
 

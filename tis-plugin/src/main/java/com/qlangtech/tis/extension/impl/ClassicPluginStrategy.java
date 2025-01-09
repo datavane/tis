@@ -23,6 +23,7 @@ import com.qlangtech.tis.extension.*;
 import com.qlangtech.tis.extension.util.AntClassLoader;
 import com.qlangtech.tis.extension.util.ClassLoaderReflectionToolkit;
 import com.qlangtech.tis.extension.util.CyclicGraphDetector;
+import com.qlangtech.tis.util.ClassloaderUtils;
 import com.qlangtech.tis.util.Util;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -222,39 +223,75 @@ public class ClassicPluginStrategy implements PluginStrategy {
     public void load(PluginWrapper wrapper) throws IOException {
         // override the context classloader. This no longer makes sense,
         // but it is left for the backward compatibility
-        ClassLoader old = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(wrapper.classLoader);
+        // ClassLoader old = Thread.currentThread().getContextClassLoader();
+
         try {
-            String className = wrapper.getPluginClass();
-            if (className == null) {
-                // use the default dummy instance
-                wrapper.setPlugin(new Plugin.DummyImpl());
-            } else {
-                try {
-                    Class<?> clazz = wrapper.classLoader.loadClass(className);
-                    Object o = clazz.newInstance();
-                    if (!(o instanceof Plugin)) {
-                        throw new IOException(className + " doesn't extend from hudson.Plugin");
+            ClassloaderUtils.processByResetThreadClassloader(wrapper.getClass(), () -> {
+                String className = wrapper.getPluginClass();
+                if (className == null) {
+                    // use the default dummy instance
+                    wrapper.setPlugin(new Plugin.DummyImpl());
+                } else {
+                    try {
+                        Class<?> clazz = wrapper.classLoader.loadClass(className);
+                        Object o = clazz.newInstance();
+                        if (!(o instanceof Plugin)) {
+                            throw new IOException(className + " doesn't extend from hudson.Plugin");
+                        }
+                        wrapper.setPlugin((Plugin) o);
+                    } catch (LinkageError | ClassNotFoundException e) {
+                        throw new IOException("Unable to load " + className + " from " + wrapper.getShortName(), e);
+                    } catch (IllegalAccessException | InstantiationException e) {
+                        throw new IOException("Unable to create instance of " + className + " from " + wrapper.getShortName(), e);
                     }
-                    wrapper.setPlugin((Plugin) o);
-                } catch (LinkageError | ClassNotFoundException e) {
-                    throw new IOException("Unable to load " + className + " from " + wrapper.getShortName(), e);
-                } catch (IllegalAccessException | InstantiationException e) {
-                    throw new IOException("Unable to create instance of " + className + " from " + wrapper.getShortName(), e);
                 }
-            }
-            // initialize plugin
-            try {
-                Plugin plugin = wrapper.getPlugin();
-                // plugin.setServletContext(pluginManager.context);
-                startPlugin(wrapper);
-            } catch (Throwable t) {
-                // gracefully handle any error in plugin.
-                throw new IOException("Failed to initialize", t);
-            }
-        } finally {
-            Thread.currentThread().setContextClassLoader(old);
+                // initialize plugin
+                try {
+                    Plugin plugin = wrapper.getPlugin();
+                    // plugin.setServletContext(pluginManager.context);
+                    startPlugin(wrapper);
+                } catch (Throwable t) {
+                    // gracefully handle any error in plugin.
+                    throw new IOException("Failed to initialize", t);
+                }
+                return null;
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+
+        // Thread.currentThread().setContextClassLoader(wrapper.classLoader);
+        //   try {
+//            String className = wrapper.getPluginClass();
+//            if (className == null) {
+//                // use the default dummy instance
+//                wrapper.setPlugin(new Plugin.DummyImpl());
+//            } else {
+//                try {
+//                    Class<?> clazz = wrapper.classLoader.loadClass(className);
+//                    Object o = clazz.newInstance();
+//                    if (!(o instanceof Plugin)) {
+//                        throw new IOException(className + " doesn't extend from hudson.Plugin");
+//                    }
+//                    wrapper.setPlugin((Plugin) o);
+//                } catch (LinkageError | ClassNotFoundException e) {
+//                    throw new IOException("Unable to load " + className + " from " + wrapper.getShortName(), e);
+//                } catch (IllegalAccessException | InstantiationException e) {
+//                    throw new IOException("Unable to create instance of " + className + " from " + wrapper.getShortName(), e);
+//                }
+//            }
+//            // initialize plugin
+//            try {
+//                Plugin plugin = wrapper.getPlugin();
+//                // plugin.setServletContext(pluginManager.context);
+//                startPlugin(wrapper);
+//            } catch (Throwable t) {
+//                // gracefully handle any error in plugin.
+//                throw new IOException("Failed to initialize", t);
+//            }
+//        } finally {
+//            Thread.currentThread().setContextClassLoader(old);
+//        }
     }
 
     public void startPlugin(PluginWrapper plugin) throws Exception {
