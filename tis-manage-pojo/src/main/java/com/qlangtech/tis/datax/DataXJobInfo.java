@@ -36,8 +36,8 @@ public class DataXJobInfo {
 
     public static final AtomicReference<File> dataXExecutorDir
             = new AtomicReference<>(TisAppLaunch.isTestMock()
-            ? new File("/opt/tis/" + IDataXTaskRelevant.KEY_TIS_DATAX_EXECUTOR)
-            : new File("."));
+            ? new File(".")
+            : new File("/opt/tis/" + IDataXTaskRelevant.KEY_TIS_DATAX_EXECUTOR));
 
     public static int DATAX_THREAD_PROCESSING_CANCAL_EXITCODE = 943;
     private static final String FILENAME_SPLIT_CHAR = "/";
