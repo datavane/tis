@@ -37,7 +37,7 @@ public class SourceColMetaGetter {
     private final Map<TableMap, Map<String, ColumnMetaData>> tab2ColsMapper = Maps.newHashMap();
 
     public static SourceColMetaGetter getNone() {
-        SourceColMetaGetter colMetaGetter = new SourceColMetaGetter(null) {
+        SourceColMetaGetter colMetaGetter = new SourceColMetaGetter(null, false) {
             @Override
             public ColumnMetaData getColMeta(TableMap tableMapper, String colName) {
                 return null;
@@ -46,8 +46,11 @@ public class SourceColMetaGetter {
         return colMetaGetter;
     }
 
-    public SourceColMetaGetter(IDataxReader dataXReader) {
-        this.dataXReader = Objects.requireNonNull(dataXReader, "dataXReader");
+    public SourceColMetaGetter(IDataxReader dataXReader, boolean validateNull) {
+        if (validateNull) {
+            Objects.requireNonNull(dataXReader, "dataXReader");
+        }
+        this.dataXReader = dataXReader;
     }
 
     protected Map<String, ColumnMetaData> getColMetaDataMap(IDataxReader dataXReader, TableMap tableMapper) {

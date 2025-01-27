@@ -18,6 +18,8 @@
 
 package com.qlangtech.tis.plugin.ds;
 
+import com.qlangtech.tis.plugin.datax.common.AutoCreateTable;
+
 import java.util.List;
 
 /**
@@ -25,8 +27,15 @@ import java.util.List;
  * @create: 2022-09-19 11:51
  **/
 public interface IInitWriterTableExecutor {
+
     /**
+     * 取得自动建表逻辑
      *
+     * @return
+     */
+    AutoCreateTable getAutoCreateTableCanNotBeNull();
+
+    /**
      * @param targetTabName
      * @param jdbcUrls
      * @throws Exception

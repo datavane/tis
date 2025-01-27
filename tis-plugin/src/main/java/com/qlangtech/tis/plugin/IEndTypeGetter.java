@@ -61,7 +61,7 @@ public interface IEndTypeGetter {
         , MariaDB("mariaDB", true) //
         , Postgres("pg", true), Oracle("oracle", true) //
         , ElasticSearch("es", true), MongoDB("mongoDB", true) //
-        , StarRocks("starRocks", true), Doris("doris", true) //
+        , StarRocks("starRocks", true), Doris("doris", true) , KingBase("kingbase", true) //
         , Clickhouse("clickhouse", true), Hudi("hudi", true) //, AliyunOSS("aliyunOSS")
         , TDFS("t-dfs", true) //
         , Cassandra("cassandra") //, HDFS("hdfs")

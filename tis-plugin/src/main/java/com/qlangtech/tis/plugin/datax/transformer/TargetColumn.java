@@ -25,6 +25,8 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IPluginStore.AfterPluginSaved;
 import com.qlangtech.tis.plugin.IPluginStore.ManipuldateProcessor;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.datax.transformer.impl.ExistTargetCoumn;
+import com.qlangtech.tis.plugin.datax.transformer.impl.VirtualTargetColumn;
 import com.qlangtech.tis.util.IPluginContext;
 
 import java.io.Serializable;
@@ -33,9 +35,30 @@ import java.util.Optional;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-09 13:43
+ * @see com.qlangtech.tis.plugin.datax.transformer.impl.VirtualTargetColumn
+ * @see com.qlangtech.tis.plugin.datax.transformer.impl.ExistTargetCoumn
+ * @see
  **/
-
 public abstract class TargetColumn implements Describable<TargetColumn>, ManipuldateProcessor, PluginLiteriaDesc, IdentityName, Serializable {
+
+    /**
+     * 创建目标列
+     *
+     * @param virtual
+     * @param colName
+     * @return
+     */
+    public static TargetColumn create(boolean virtual, String colName) {
+        if (virtual) {
+            VirtualTargetColumn virtualTargetColumn = new VirtualTargetColumn();
+            virtualTargetColumn.name = colName;
+            return virtualTargetColumn;
+        } else {
+            ExistTargetCoumn existTargetCoumn = new ExistTargetCoumn();
+            existTargetCoumn.name = colName;
+            return existTargetCoumn;
+        }
+    }
 
     /**
      * 是否是虚拟列（通过原表记录值计算之后新增加的列）

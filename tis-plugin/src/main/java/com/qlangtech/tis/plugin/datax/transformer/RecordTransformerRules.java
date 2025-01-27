@@ -84,6 +84,25 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
         System.out.println(String.join(",", test.keySet()));
     }
 
+    /**
+     * 目前单元测试中使用
+     *
+     * @param udfs
+     * @return
+     */
+    public static RecordTransformerRules create(UDFDefinition... udfs) {
+        RecordTransformerRules transformerRules = new RecordTransformerRules();
+        List<RecordTransformer> transformers = Lists.newArrayList();
+        RecordTransformer transformer = null;
+        for (UDFDefinition udf : udfs) {
+            transformer = new RecordTransformer();
+            transformer.setUdf(udf);
+            transformers.add(transformer);
+        }
+        transformerRules.rules = transformers;
+        return transformerRules;
+    }
+
     public static void cleanPluginStoreCache(IPluginContext context, String appName) {
         // TIS.appSourcePluginStore.clear(createAppSourceKey(context, appName));
 
@@ -383,7 +402,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
                             , "inParamer:" + inParamer.getKey() + " relevant ContextParam can not be null");
                     contextParams.add(contextParam);
                     rewriterResult.add(OutputParameter.create(inParamer.getKey(), false, contextParam.getDataType()));
-                   // rewriterResult.add(IColMetaGetter.create(inParamer.getKey(), contextParam.getDataType()));
+                    // rewriterResult.add(IColMetaGetter.create(inParamer.getKey(), contextParam.getDataType()));
                 }
             }
             return new OverwriteColsWithContextParams(rewriterResult, contextParams);
@@ -410,6 +429,8 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
      * @return
      */
     public <T extends IColMetaGetter> TransformerOverwriteCols<OutputParameter> overwriteCols(List<T> sourceCols) {
+
+
         TransformerOverwriteCols<OutputParameter> rewriterResult = new TransformerOverwriteCols<OutputParameter>();
         Map<String, Integer> col2IdxBuilder = Maps.newHashMap();
         int idx = 0;

@@ -513,10 +513,10 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         }
     }
 
-    private static XmlFile getTmpTableStoreFile(IPluginStoreSave pluginStore, String tabName) {
-        XmlFile targetFile = pluginStore.getTargetFile();
+    public static XmlFile getTmpTableStoreFile(IPluginStoreSave pluginStore, String tabName) {
+        // XmlFile targetFile = pluginStore.getTargetFile();
         String pluginFileName = Descriptor.getPluginFileName(tabName);
-        File tabTmp = new File(targetFile.getFile().getParent()
+        File tabTmp = new File(pluginStore.getTargetFileParentDir()
                 , ".tmp" + File.separator + "tabs" + File.separator + pluginFileName);
         XmlFile xml = new XmlFile(tabTmp, pluginFileName);
         return xml;

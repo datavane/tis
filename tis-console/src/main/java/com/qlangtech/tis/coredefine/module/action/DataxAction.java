@@ -92,6 +92,7 @@ import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta.IMultiItemsView;
 import com.qlangtech.tis.plugin.ds.DefaultTab;
+import com.qlangtech.tis.plugin.ds.IInitWriterTableExecutor;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.IdlistElementCreatorFactory;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
@@ -1335,6 +1336,7 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetTableMapper(Context context) {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
+    boolean forceInit = this.getBoolean("forceInit");
     KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(this, dataxName);
     DataxReader dataxReader = readerStore.getPlugin();
     Objects.requireNonNull(dataxReader, "dataReader:" + dataxName + " relevant instance can not be null");
@@ -1342,8 +1344,13 @@ public class DataxAction extends BasicModule {
     TableAlias tableAlias;
     Optional<DataxProcessor> dataXAppSource = IAppSource.loadNullable(this, dataxName);
     TableAliasMapper tabMaps = null;//Collections.emptyMap();
+    Optional<String> mapperTabPrefix = Optional.empty();
     if (dataXAppSource.isPresent()) {
       DataxProcessor dataxSource = dataXAppSource.get();
+      IDataxWriter dataXWriter = dataxSource.getWriter(this, true);
+      if (dataXWriter instanceof IInitWriterTableExecutor) {
+        mapperTabPrefix = ((IInitWriterTableExecutor) dataXWriter).getAutoCreateTableCanNotBeNull().getMapperTabPrefix();
+      }
       tabMaps = dataxSource.getTabAlias(this);
     }
     if (tabMaps == null) {
@@ -1356,8 +1363,12 @@ public class DataxAction extends BasicModule {
     List<TableAlias> tmapList = Lists.newArrayList();
     for (ISelectedTab selectedTab : dataxReader.getSelectedTabs()) {
       tableAlias = tabMaps.get(selectedTab);
-      if (tableAlias == null) {
-        tmapList.add(new TableAlias(selectedTab.getName()));
+      if (forceInit || tableAlias == null) {
+        tableAlias = new TableAlias(selectedTab.getName());
+        if (mapperTabPrefix.isPresent()) {
+          tableAlias.setTo(mapperTabPrefix.get() + selectedTab.getName());
+        }
+        tmapList.add(tableAlias);
       } else {
         tmapList.add(tableAlias);
       }

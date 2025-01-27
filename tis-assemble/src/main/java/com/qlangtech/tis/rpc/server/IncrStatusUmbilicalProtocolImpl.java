@@ -153,7 +153,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
             tableMultiDataIndexStatus.setIncrProcessPaused(updateCounterFromClient.getIncrProcessPaused());
             // tableMultiDataIndexStatus.setTis30sAvgRT(updateCounterFromClient.getTis30sAvgRT());
             tableMultiDataIndexStatus.setTis30sAvgRT(updateCounterFromClient.getTis30SAvgRT());
-            for (Map.Entry<String, Long> tabUpdate : entry.getValue().getTableConsumeDataMap().entrySet()) {
+            for (Map.Entry<String, Long> tabUpdate : updateCounterFromClient.getTableConsumeDataMap().entrySet()) {
                 tableMultiDataIndexStatus.put(tabUpdate.getKey(), new ConsumeDataKeeper(tabUpdate.getValue(), updateTime));
             }
         }

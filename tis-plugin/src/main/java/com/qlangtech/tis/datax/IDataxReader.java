@@ -34,7 +34,7 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta
         , IStreamTableMeataCreator.ISourceStreamMetaCreator, IRepositoryResourceScannable, IReaderSource {
 
     default SourceColMetaGetter createSourceColMetaGetter() {
-        return new SourceColMetaGetter(this);
+        return new SourceColMetaGetter(this, true);
     }
 
     /**

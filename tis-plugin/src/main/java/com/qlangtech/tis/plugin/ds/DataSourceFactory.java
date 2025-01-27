@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -127,7 +128,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     protected void validateConnection(String jdbcUrl, IConnProcessor p) throws TableNotFoundException {
         JDBCConnection conn = null;
         try {
-            conn = this.getConnection(jdbcUrl, true); // getConnection(jdbcUrl, true);
+            conn = this.getConnection(jdbcUrl, Optional.empty(), true); // getConnection(jdbcUrl, true);
             p.vist(conn);
         } catch (TableNotFoundException e) {
             throw e;
@@ -177,7 +178,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      * @param jdbcUrl
      * @return
      */
-    public final JDBCConnection getConnection(String jdbcUrl, boolean verify) throws SQLException {
+    public final JDBCConnection getConnection(String jdbcUrl, Optional<Properties> props, boolean verify) throws SQLException {
 
         JDBCConnectionPool connectionPool = JDBCConnection.connectionPool.get();
         JDBCConnection conn = null;
@@ -186,7 +187,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             if (conn == null) {
                 return connectionPool.getConnection(jdbcUrl, verify, (url) -> {
                     try {
-                        return createConnection(jdbcUrl, verify);
+                        return createConnection(jdbcUrl, props, verify);
                     } catch (SQLException e) {
                         throw new RuntimeException(e);
                     }
@@ -195,7 +196,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
                 return conn;
             }
         } else {
-            return createConnection(jdbcUrl, verify);
+            return createConnection(jdbcUrl, props, verify);
         }
     }
 
@@ -207,12 +208,12 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      * @return
      * @throws SQLException
      */
-    protected JDBCConnection createConnection(String jdbcUrl, boolean verify) throws SQLException {
+    protected JDBCConnection createConnection(String jdbcUrl, Optional<Properties> props, boolean verify) throws SQLException {
         throw new UnsupportedOperationException("class:" + this.getClass().getName() + ",jdbcUrl:" + jdbcUrl);
     }
 
-    public JDBCConnection getConnection(String jdbcUrl, boolean usingPool, boolean verify) throws SQLException {
-        return this.getConnection(jdbcUrl, verify);
+    public JDBCConnection getConnection(String jdbcUrl, Optional<Properties> props, boolean usingPool, boolean verify) throws SQLException {
+        return this.getConnection(jdbcUrl, props, verify);
     }
 
 //        // 密码可以为空
@@ -250,7 +251,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             }
 
             primaryKeys = getPrimaryKeys(table, metaData1);
-            columns1 = getColumnsMeta(table, metaData1);
+            columns1 = getColumnsMeta(table, conn, metaData1);
             Set<String> pkCols = createAddedCols(table);
             while (primaryKeys.next()) {
                 // $NON-NLS-1$
@@ -386,7 +387,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         return ref.get();
     }
 
-    protected ResultSet getColumnsMeta(EntityName table, DatabaseMetaData metaData1) throws SQLException {
+    protected ResultSet getColumnsMeta(EntityName table, JDBCConnection conn, DatabaseMetaData metaData1) throws SQLException {
         return metaData1.getColumns(null, getDbSchema(), table.getTableName(), null);
     }
 
@@ -521,7 +522,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             boolean[] validateResult = new boolean[1];
             final Object actionContext = context.getContext();
             dbConfig.vistDbURL(false, 5, (dbName, dbHost, jdbcUrl) -> {
-                try (JDBCConnection conn = dsFactory.getConnection(jdbcUrl, true)) {
+                try (JDBCConnection conn = dsFactory.getConnection(jdbcUrl, Optional.empty(), true)) {
                     // 由于不在同一个线程内需要重新版定线程
                     context.setContext(actionContext);
                     validateResult[0] = validateConnection(conn, dsFactory, msgHandler, context);
@@ -569,11 +570,11 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 
         protected DataType getDataType(String colName) throws SQLException {
             // decimal 的小数位长度
-
             int decimalDigits = columns1.getInt(KEY_DECIMAL_DIGITS);
             //数据如果是INT类型，但如果是UNSIGNED，那实际类型需要转换成Long,INT UNSIGNED
             String typeName = columns1.getString(KEY_TYPE_NAME);
-            DataType colType = createColDataType(colName, typeName, columns1.getInt(KEY_DATA_TYPE), columns1.getInt(KEY_COLUMN_SIZE), decimalDigits);
+            DataType colType = createColDataType(colName, typeName
+                    , columns1.getInt(KEY_DATA_TYPE), columns1.getInt(KEY_COLUMN_SIZE), decimalDigits);
             if (decimalDigits > 0) {
                 colType.setDecimalDigits(decimalDigits);
             }
@@ -585,6 +586,13 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             // 类似oracle驱动内部有一套独立的类型 oracle.jdbc.OracleTypes,有需要可以在具体的实现类里面去实现
             DataType type = DataType.create(dbColType, typeName, colSize);
             type.setDecimalDigits(decimalDigits);
+
+            if ((type.getJdbcType() == JDBCTypes.DECIMAL || type.getJdbcType() == JDBCTypes.NUMERIC)
+                    && decimalDigits == 0) {
+                // 例如：Decimal(19,0) 直接视作为 BigInt
+                return DataType.create((type.getColumnSize() > 10 ? JDBCTypes.BIGINT : JDBCTypes.INTEGER).getType()
+                        , type.typeName, type.getColumnSize());
+            }
             return type;
         }
     }

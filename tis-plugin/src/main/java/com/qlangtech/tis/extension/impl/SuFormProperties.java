@@ -70,7 +70,7 @@ public class SuFormProperties extends BaseSubFormProperties {
         if (plugin instanceof IDataxReader) {
             subFormContext.plugin = (IDataxReader) plugin;
         } else {
-            throw new IllegalStateException("plugin must be type of " + IDataxReader.class);
+            throw new IllegalStateException("plugin" + plugin.getClass().getName() + " must be type of " + IDataxReader.class);
         }
         pluginMeta.putExtraParams(SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE, subFormDetailId);
         subFormContext.store = store;

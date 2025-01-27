@@ -1,0 +1,7 @@
+{
+  "aliasPrefix": {
+    "label": "别名前缀",
+    "placeholder": "ods_",
+    "help": "统一为目标表添加前缀，例如在构建分层数仓用于为ods层目标表统一添加“ods_erp_”前缀"
+  }
+}

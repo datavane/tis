@@ -131,8 +131,8 @@ public abstract class JDBCConnectionPool implements AutoCloseable {
         }
 
         @Override
-        public void query(String sql, ResultProcess resultProcess) throws Exception {
-            conn.query(sql, resultProcess);
+        public boolean query(String sql, ResultProcess resultProcess) throws Exception {
+            return conn.query(sql, resultProcess);
         }
 
         @Override

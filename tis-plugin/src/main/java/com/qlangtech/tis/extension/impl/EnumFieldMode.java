@@ -18,10 +18,13 @@
 
 package com.qlangtech.tis.extension.impl;
 
+import com.qlangtech.tis.plugin.IdentityName;
+
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author 百岁 (baisui@qlangtech.com)
@@ -32,7 +35,7 @@ public enum EnumFieldMode {
         if (!isValOfOptionList(dftVal, fieldDesc)) {
             throw new IllegalStateException(fieldDesc + " val " + dftVal.getClass() + " " + "must be " + "type" + " " + "of " + List.class.getName());
         }
-        return dftVal;
+        return ((List) dftVal).stream().map((val) -> (val instanceof IdentityName) ? ((IdentityName) val).identityValue() : val).collect(Collectors.toList());
     }) //
     , DEFAULT("default", (dftVal, fieldDesc) -> {
         if (isValOfOptionList(dftVal, fieldDesc)) {
@@ -84,10 +87,15 @@ public enum EnumFieldMode {
         Class valClass = val.getClass();
         if (List.class.isAssignableFrom(valClass)) {
             for (Object o : ((List) val)) {
-                if (!(o.getClass() == String.class)) {
+
+                if (!((o.getClass() == String.class) || (IdentityName.class.isAssignableFrom(o.getClass())))) {
                     throw new IllegalStateException(fieldDesc + ",opt" + " " + "element " + o.getClass() + " " +
-                            "must be type of " + String.class);
+                            "must be type of " + String.class.getSimpleName() + " or " + IdentityName.class.getSimpleName());
                 }
+//                if (!(o.getClass() == String.class)) {
+//                    throw new IllegalStateException(fieldDesc + ",opt" + " " + "element " + o.getClass() + " " +
+//                            "must be type of " + String.class);
+//                }
             }
             return true;
         }
@@ -97,7 +105,6 @@ public enum EnumFieldMode {
     private static Object getFirstVal(Object val) {
         for (Object vv : (List<?>) val) {
             return String.valueOf(vv);
-
         }
         return null;
     }

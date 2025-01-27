@@ -20,6 +20,10 @@ package com.qlangtech.tis.plugin;
 
 import com.qlangtech.tis.extension.impl.XmlFile;
 
+
+import java.io.File;
+import java.util.Objects;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-07-13 11:02
@@ -37,4 +41,9 @@ public interface IRepositoryTargetFile {
      * @return
      */
     XmlFile getTargetFile();
+
+    default File getTargetFileParentDir() {
+        XmlFile targetFile = this.getTargetFile();
+        return Objects.requireNonNull(targetFile, "targetFile can not be null").getFile().getParentFile();
+    }
 }

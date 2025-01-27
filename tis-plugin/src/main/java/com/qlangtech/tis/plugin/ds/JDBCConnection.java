@@ -26,6 +26,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -63,7 +64,7 @@ public class JDBCConnection implements AutoCloseable {
     }
 
     public JDBCConnection(Connection conn, String url) {
-        this.conn = conn;
+        this.conn = conn;// Objects.requireNonNull(, "conn can not be null");
         this.url = url;
     }
 
@@ -121,19 +122,23 @@ public class JDBCConnection implements AutoCloseable {
      *
      * @param sql
      * @param resultProcess
+     * @return 是否找到任务记录
      * @throws Exception
      */
-    public void query(String sql, ResultProcess resultProcess) throws Exception {
+    public boolean query(String sql, ResultProcess resultProcess) throws Exception {
         synchronized (JDBCConnection.class) {
             try (Statement stmt = conn.createStatement()) {
                 try {
+                    boolean hasAnyRows = false;
                     try (ResultSet result = stmt.executeQuery(sql)) {
                         while (result.next()) {
+                            hasAnyRows = true;
                             if (!resultProcess.callback(result)) {
-                                return;
+                                return hasAnyRows;
                             }
                         }
                     }
+                    return hasAnyRows;
                 } catch (Exception e) {
                     throw new RuntimeException(sql, e);
                 }

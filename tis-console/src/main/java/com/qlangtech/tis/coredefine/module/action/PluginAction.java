@@ -1076,6 +1076,7 @@ public class PluginAction extends BasicModule {
       criteria.createCriteria().andNameEqualTo(dbName);
       int exist = module.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);
       if (exist > 0) {
+
         module.addErrorMessage(context, "已经有了同名(" + dbName + ")的数据库");
         return null;
       }
