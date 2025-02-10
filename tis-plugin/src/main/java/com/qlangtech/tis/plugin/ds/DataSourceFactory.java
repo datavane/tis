@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
-import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -45,7 +44,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Wrapper;
-import java.time.ZoneId;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -220,7 +218,9 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
 //        return DriverManager.getConnection(jdbcUrl, username, StringUtils.trimToNull(password));
 //    }
 
-    protected List<ColumnMetaData> parseTableColMeta(boolean inSink, String jdbcUrl, JDBCConnection conn, EntityName table) throws SQLException, TableNotFoundException {
+    protected List<ColumnMetaData> parseTableColMeta(
+            boolean inSink, String jdbcUrl
+            , JDBCConnection conn, EntityName table) throws SQLException, TableNotFoundException {
         table = logicTable2PhysicsTable(jdbcUrl, table);
 
 

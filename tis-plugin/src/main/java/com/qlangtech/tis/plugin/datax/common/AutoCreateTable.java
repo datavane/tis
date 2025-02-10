@@ -62,6 +62,10 @@ public abstract class AutoCreateTable<COL_WRAPPER extends ColWrapper> implements
 
     public abstract AutoCreateTableColCommentSwitch getAddComment();
 
+    public static List<BasicDescriptor> descFilter(List<BasicDescriptor> descs, String endType) {
+        return descFilter(descs, endType, null);
+    }
+
     /**
      * 过滤得到目标实例
      *
@@ -69,13 +73,25 @@ public abstract class AutoCreateTable<COL_WRAPPER extends ColWrapper> implements
      * @param endType
      * @return
      */
-    public static List<BasicDescriptor> descFilter(List<BasicDescriptor> descs, String endType) {
+    public static List<BasicDescriptor> descFilter(List<BasicDescriptor> descs, String endType, String compatibleModeEndType) {
         if (CollectionUtils.isEmpty(descs)) {
             return Collections.emptyList();
         }
         EndType targetEndType = EndType.parse(endType);
+        final Optional<EndType> compatibleModeEndTypeFilter = Optional.ofNullable(compatibleModeEndType).map((e) -> EndType.parse(compatibleModeEndType));
+
         return descs.stream().filter((desc) -> {
-            return desc.getEndType() == null || targetEndType == desc.getEndType();
+            boolean dsEndTypeMatch = (desc.getEndType() == null || targetEndType == desc.getEndType());
+            if (dsEndTypeMatch && compatibleModeEndTypeFilter.isPresent()) {
+                return desc.getCompatibleModeEndType()
+                        .map((e) -> e == compatibleModeEndTypeFilter.get())
+                        .orElse(false);
+//                if (desc.getCompatibleModeEndType().isEmpty()) {
+//                    return false;
+//                }
+//                return compatibleModeEndTypeFilter.get() == desc.getCompatibleModeEndType().get();
+            }
+            return dsEndTypeMatch;
         }).collect(Collectors.toList());
     }
 
@@ -114,5 +130,14 @@ public abstract class AutoCreateTable<COL_WRAPPER extends ColWrapper> implements
     public static abstract class BasicDescriptor extends Descriptor<AutoCreateTable> {
 
         public abstract EndType getEndType();
+
+        /**
+         * 类似取得KingBase支持的SQL关系数据库类型
+         *
+         * @return
+         */
+        public Optional<EndType> getCompatibleModeEndType() {
+            return Optional.empty();
+        }
     }
 }
