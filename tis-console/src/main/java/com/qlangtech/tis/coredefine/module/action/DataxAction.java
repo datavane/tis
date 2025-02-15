@@ -87,6 +87,7 @@ import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
+import com.qlangtech.tis.plugin.datax.common.AutoCreateTable;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta;
@@ -1344,12 +1345,12 @@ public class DataxAction extends BasicModule {
     TableAlias tableAlias;
     Optional<DataxProcessor> dataXAppSource = IAppSource.loadNullable(this, dataxName);
     TableAliasMapper tabMaps = null;//Collections.emptyMap();
-    Optional<String> mapperTabPrefix = Optional.empty();
+    AutoCreateTable mapperTabPrefixAutoTabCreator = null;
     if (dataXAppSource.isPresent()) {
       DataxProcessor dataxSource = dataXAppSource.get();
       IDataxWriter dataXWriter = dataxSource.getWriter(this, true);
       if (dataXWriter instanceof IInitWriterTableExecutor) {
-        mapperTabPrefix = ((IInitWriterTableExecutor) dataXWriter).getAutoCreateTableCanNotBeNull().getMapperTabPrefix();
+        mapperTabPrefixAutoTabCreator = ((IInitWriterTableExecutor) dataXWriter).getAutoCreateTableCanNotBeNull();//.getMapperTabPrefix();
       }
       tabMaps = dataxSource.getTabAlias(this);
     }
@@ -1365,8 +1366,8 @@ public class DataxAction extends BasicModule {
       tableAlias = tabMaps.get(selectedTab);
       if (forceInit || tableAlias == null) {
         tableAlias = new TableAlias(selectedTab.getName());
-        if (mapperTabPrefix.isPresent()) {
-          tableAlias.setTo(mapperTabPrefix.get() + selectedTab.getName());
+        if (mapperTabPrefixAutoTabCreator != null) {
+          tableAlias.setTo(mapperTabPrefixAutoTabCreator.appendTabPrefix(selectedTab.getName()));
         }
         tmapList.add(tableAlias);
       } else {

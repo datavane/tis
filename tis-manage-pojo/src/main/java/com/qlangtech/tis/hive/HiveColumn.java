@@ -30,7 +30,7 @@ import java.util.Optional;
  */
 public class HiveColumn {
 
-    // public static String HIVE_TYPE_STRING = "STRING";
+    public static String HIVE_TYPE_TIMESTAMP = "TIMESTAMP";
 
     // 插入后的name
     private String name;
@@ -117,7 +117,7 @@ public class HiveColumn {
 
         @Override
         public String timestampType(DataType type) {
-            return "TIMESTAMP";
+            return HIVE_TYPE_TIMESTAMP;
         }
 
         @Override

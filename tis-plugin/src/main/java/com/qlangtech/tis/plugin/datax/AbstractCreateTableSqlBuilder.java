@@ -19,6 +19,7 @@
 package com.qlangtech.tis.plugin.datax;
 
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.IDataxProcessor.TableMap;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder.ColWrapper;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
@@ -50,7 +51,7 @@ public abstract class AbstractCreateTableSqlBuilder<T extends ColWrapper> {
 
     public AbstractCreateTableSqlBuilder(
             IDataxProcessor.TableMap tableMapper, DataSourceMeta dsMeta, Optional<RecordTransformerRules> transformers) {
-        this.targetTableName = tableMapper.getTo();
+        this.targetTableName = createTargetTableName(tableMapper);//.getTo();
         this.transformers = Objects.requireNonNull(transformers, "param transformers can not be null");
 
         this.pks = tableMapper.getSourceTab().getPrimaryKeys();
@@ -73,6 +74,10 @@ public abstract class AbstractCreateTableSqlBuilder<T extends ColWrapper> {
         }
         maxColNameLength += 4;
         this.dsMeta = dsMeta;
+    }
+
+    protected String createTargetTableName(TableMap tableMapper) {
+        return tableMapper.getTo();
     }
 
     protected abstract T createColWrapper(IColMetaGetter c);

@@ -51,12 +51,17 @@ public abstract class AutoCreateTable<COL_WRAPPER extends ColWrapper> implements
     @FormField(ordinal = 100, advance = true, type = FormFieldType.INPUTTEXT, validate = {Validator.identity})
     public String aliasPrefix;
 
+    public String appendTabPrefix(String rawTabName) {
+        Optional<String> tabPrefix = getMapperTabPrefix();
+        return tabPrefix.map((prefix) -> prefix + rawTabName).orElse(rawTabName);
+    }
+
     /**
      * 取得映射表的前缀
      *
      * @return
      */
-    public Optional<String> getMapperTabPrefix() {
+    private Optional<String> getMapperTabPrefix() {
         return Optional.ofNullable(aliasPrefix);
     }
 

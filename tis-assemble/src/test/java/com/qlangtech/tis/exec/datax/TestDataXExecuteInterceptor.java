@@ -37,6 +37,7 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncherWithDataXTrigger;
 import com.qlangtech.tis.plugin.PluginStubUtils;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.io.FileUtils;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -138,7 +139,7 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
                 = mock(dataCfgTaskName + "_" + IRemoteTaskTrigger.class.getSimpleName(), IRemoteTaskTrigger.class);
         //
 
-        final String preExecuteTaskName = IDataXBatchPost.getPreExecuteTaskName(new TestSelectedTab(tableName));
+        final String preExecuteTaskName = IDataXBatchPost.getPreExecuteTaskName(EntityName.parse(tableName));
         EasyMock.expect(jobTrigger.getTaskName()).andReturn(dataCfgFileName).anyTimes();
         EasyMock.expect(jobTrigger.isAsyn()).andReturn(false).anyTimes();
         jobTrigger.run();

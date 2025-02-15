@@ -274,20 +274,21 @@ public class DBConfig implements IDbMeta {
      */
     public boolean vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess
             , boolean facade, IMessageHandler msgHandler, Context context, final int expireSec) {
+        int dbCount = 0;
+        for (Map.Entry<String, List<String>> entry : this.getDbEnum().entrySet()) {
+            dbCount += entry.getValue().size();
+        }
+        if (dbCount < 1) {
+            throw new IllegalStateException("dbCount can not small than 1");
+        }
         final ExecutorService fixedThreadPool = Executors.newCachedThreadPool((runnable) -> {
             Thread t = new Thread(runnable);
-//            t.setUncaughtExceptionHandler((tt, e) -> {
-//                logger.error(e.getMessage(), e);
-//            });
             return t;
         });
         try {
             final JDBCConnectionPool connectionPool = JDBCConnection.connectionPool.get();
             final PluginMetas pluginMetas = RobustReflectionConverter2.usedPluginInfo.get();
-            int dbCount = 0;
-            for (Map.Entry<String, List<String>> entry : this.getDbEnum().entrySet()) {
-                dbCount += entry.getValue().size();
-            }
+
             final CountDownLatch countDownLatch = new CountDownLatch(facade ? 1 : dbCount);
             int hostCount = 0;
             AtomicReference<String> fjdbcUrl = new AtomicReference<>();

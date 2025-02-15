@@ -20,6 +20,7 @@ import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.powerjob.IDAGSessionSpec;
 import com.qlangtech.tis.datax.IDataXGenerateCfgs;
 import com.qlangtech.tis.powerjob.SelectedTabTriggers;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -85,6 +86,8 @@ public class DAGSessionSpec implements IDAGSessionSpec {
             , DataXJobSubmit submit
             , RpcServiceReference statusRpc //
             , ISelectedTab entry, String dumpTaskId, IDAGSessionSpec dagSessionSpec, IDataXGenerateCfgs cfgFileNames) {
+
+
         SelectedTabTriggers tabTriggers = new SelectedTabTriggers(entry, appSource);
         RemoteTaskTriggers triggers = Objects.requireNonNull(execChainContext.getTskTriggers(), "triggers can not be null");
         if (org.apache.commons.lang3.StringUtils.isEmpty(dumpTaskId)) {
@@ -106,8 +109,8 @@ public class DAGSessionSpec implements IDAGSessionSpec {
         if (writer instanceof IDataXBatchPost) {
 
             IDataXBatchPost batchPostTask = (IDataXBatchPost) writer;
-
-            IRemoteTaskPostTrigger postTaskTrigger = batchPostTask.createPostTask(execChainContext, entry, cfgFileNames);
+            final EntityName entryName = batchPostTask.parseEntity(entry);// EntityName.parse(entry.getName());
+            IRemoteTaskPostTrigger postTaskTrigger = batchPostTask.createPostTask(execChainContext, entryName, entry, cfgFileNames);
             if (postTaskTrigger != null) {
                 postSpec = dumpSpec.getDpt(postTaskTrigger.getTaskName());
                 triggers.addJoinPhaseTask(postTaskTrigger);
@@ -116,7 +119,7 @@ public class DAGSessionSpec implements IDAGSessionSpec {
             // Objects.requireNonNull(postTaskTrigger, "postTaskTrigger can not be null");
 
 
-            preExec = batchPostTask.createPreExecuteTask(execChainContext, entry);
+            preExec = batchPostTask.createPreExecuteTask(execChainContext, entryName, entry);
             if (preExec != null) {
                 dagSessionSpec.getDpt(preExec.getTaskName());
                 triggers.addDumpPhaseTask(preExec);

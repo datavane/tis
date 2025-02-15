@@ -33,6 +33,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPreviousTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
 import java.util.List;
 import java.util.Optional;
@@ -50,6 +51,11 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
 
     public BatchPostDataXWriter(List<String> taskDependencies) {
         this.taskDependencies = taskDependencies;
+    }
+
+    @Override
+    public EntityName parseEntity(ISelectedTab tab) {
+        return EntityName.parse(tab.getName());
     }
 
     public void verify() {
@@ -73,11 +79,11 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
     }
 
     @Override
-    public IRemoteTaskPreviousTrigger createPreExecuteTask(IExecChainContext execContext, ISelectedTab tab) {
+    public IRemoteTaskPreviousTrigger createPreExecuteTask(IExecChainContext execContext, EntityName entity ,ISelectedTab tab) {
         return new IRemoteTaskPreviousTrigger() {
             @Override
             public String getTaskName() {
-                return IDataXBatchPost.getPreExecuteTaskName(tab);
+                return IDataXBatchPost.getPreExecuteTaskName(entity);
             }
 
             @Override
@@ -88,11 +94,11 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
     }
 
     @Override
-    public IRemoteTaskPostTrigger createPostTask(IExecChainContext execContext, final ISelectedTab tab, IDataXGenerateCfgs cfgFileNames) {
+    public IRemoteTaskPostTrigger createPostTask(IExecChainContext execContext, final EntityName entity,ISelectedTab tab ,IDataXGenerateCfgs cfgFileNames) {
         return new IRemoteTaskPostTrigger() {
             @Override
             public String getTaskName() {
-                return KEY_POST + tab.getName();
+                return KEY_POST + entity.getTabName();
             }
 
 //            @Override

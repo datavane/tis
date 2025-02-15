@@ -254,21 +254,21 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
         }
 
         public TableMap(Optional<String> tabName, final List<CMeta> cmetas) {
+            List<CMeta> cMetas = rewriteCols(cmetas);
+            List<String> pks = cMetas.stream()
+                    .filter((c) -> c.isPk()).map((c) -> c.getName()).collect(Collectors.toUnmodifiableList());
             this.tab = (new ISelectedTab() {
                 @Override
                 public String getName() {
                     return tabName.get();
                 }
-
-
                 @Override
                 public List<String> getPrimaryKeys() {
-                    return TableMap.this.getPrimaryKeys();
+                    return pks;
                 }
-
                 @Override
                 public List<CMeta> getCols() {
-                    return rewriteCols(cmetas);
+                    return cMetas;
                 }
             });
         }
@@ -279,7 +279,7 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
 
 
         public List<String> getPrimaryKeys() {
-            return Collections.emptyList();
+            return tab.getPrimaryKeys();
         }
 
         public static TableMap create(String tableName, List<IColMetaGetter> cols) {

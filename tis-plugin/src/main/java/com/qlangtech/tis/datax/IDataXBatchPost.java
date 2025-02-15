@@ -25,6 +25,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPostTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPreviousTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
 /**
  * 当datax任务有多个子任务完成之后（例如：hive数据同步，多个子库的表导入hdfs完成），需要将执行一次hive数据同步工作
@@ -50,6 +51,7 @@ public interface IDataXBatchPost {
         }
     }
 
+    public EntityName parseEntity(ISelectedTab tab);
 
     /**
      * 本次批次操作会涉及到的阶段区间
@@ -58,8 +60,8 @@ public interface IDataXBatchPost {
      */
     ExecutePhaseRange getPhaseRange();
 
-    public static String getPreExecuteTaskName(ISelectedTab tab) {
-        return KEY_PREP + tab.getName();
+    public static String getPreExecuteTaskName(EntityName tab) {
+        return KEY_PREP + tab.getTabName();
     }
 
     /**
@@ -69,7 +71,7 @@ public interface IDataXBatchPost {
      * @param tab
      * @return
      */
-    public IRemoteTaskPreviousTrigger createPreExecuteTask(IExecChainContext execContext, ISelectedTab tab);
+    public IRemoteTaskPreviousTrigger createPreExecuteTask(IExecChainContext execContext, EntityName entity, ISelectedTab tab);
 
     /**
      * 在dump任务之后执行，例如：将dump到hdfs上的数据同步到数据湖中去
@@ -78,6 +80,6 @@ public interface IDataXBatchPost {
      * @param tab
      * @return
      */
-    public IRemoteTaskPostTrigger createPostTask(IExecChainContext execContext, ISelectedTab tab, IDataXGenerateCfgs cfgFileNames);
+    public IRemoteTaskPostTrigger createPostTask(IExecChainContext execContext, EntityName entity, ISelectedTab tab, IDataXGenerateCfgs cfgFileNames);
 
 }

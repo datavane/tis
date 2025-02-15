@@ -19,6 +19,8 @@
 package com.qlangtech.tis.config.hive.meta;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -26,7 +28,7 @@ import java.util.Properties;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-03-12 13:19
  **/
-public abstract class HiveTable {
+public abstract class HiveTable implements IHiveTableParams {
 
     /**
      * 对应PT最新的分区值
@@ -34,6 +36,7 @@ public abstract class HiveTable {
     public static final String KEY_PT_LATEST = "latest";
 
     private final String name;
+    private final Map<String, String> tabParameters;
 
     /**
      * example: hdfs://namenode/user/admin/default/2022 0530 1539 50/instancedetail/hudi
@@ -42,11 +45,16 @@ public abstract class HiveTable {
      */
     public abstract String getStorageLocation();
 
-    public abstract StoredAs getStoredAs();
+    public abstract <CONFIG /*org.apache.hadoop.conf.Configuration*/> StoredAs getStoredAs(CONFIG conf, ClassLoader classLoader);
 
     public abstract List<String> getPartitionKeys();
 
     public abstract List<HiveTabColType> getCols();
+
+    @Override
+    public String getTabParameter(String paramKey) {
+        return tabParameters.get(paramKey);
+    }
 
     public static class HiveTabColType {
         private final String colName;
@@ -80,25 +88,26 @@ public abstract class HiveTable {
 
 //    public abstract List<ColumnMetaData> getSchema();
 
-    public HiveTable(String name) {
+    public HiveTable(String name, Map<String, String> tabParameters) {
         this.name = name;
+        this.tabParameters = Objects.requireNonNull(tabParameters, "tabParameters can not be null");
     }
 
     public static abstract class StoredAs {
-        public final String inputFormat;
-        public final String outputFormat;
+//        public final String inputFormat;
+//        public final String outputFormat;
 
-       // private final Object serdeInfo;
+        // private final Object serdeInfo;
 
         /**
-         * @param inputFormat
-         * @param outputFormat
+         * // @param inputFormat
+         * // @param outputFormat
          * // @param serdeInfo    org.apache.hadoop.hive.metastore.api.SerdeInfo
          */
-        public StoredAs(String inputFormat, String outputFormat) {
-            this.inputFormat = inputFormat;
-            this.outputFormat = outputFormat;
-          //  this.serdeInfo = serdeInfo;
+        public StoredAs() {
+//            this.inputFormat = inputFormat;
+//            this.outputFormat = outputFormat;
+            //  this.serdeInfo = serdeInfo;
         }
 
         public abstract Properties getSerdeProperties(HiveTable table);

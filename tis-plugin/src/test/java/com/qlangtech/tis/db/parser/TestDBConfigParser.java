@@ -39,6 +39,29 @@ import java.util.regex.Pattern;
  */
 public class TestDBConfigParser extends TestCase {
 
+    public void testSingleHostWithoutDot() {
+
+        String hostAddress = "datanode1";
+        assertHostNameVaild(hostAddress);
+
+        String dbName = "order";
+        Map<String, List<String>> dbEnum = DBConfigParser.parseDBEnum(dbName, hostAddress);
+        assertEquals(1, dbEnum.size());
+        for (Map.Entry<String, List<String>> entry : dbEnum.entrySet()) {
+            Assert.assertEquals(hostAddress, entry.getKey());
+            Assert.assertEquals(1, entry.getValue().size());
+            for (String db : entry.getValue()) {
+                Assert.assertEquals(dbName, db);
+            }
+        }
+    }
+
+    private void assertHostNameVaild(String hostAddress) {
+        Pattern hostPattern = TokenTypes.TT_HOST.createPattern();
+        Matcher matcher = hostPattern.matcher(hostAddress);
+        Assert.assertTrue(String.valueOf(hostPattern), matcher.matches());
+    }
+
     public void testJustParseDBHost() throws Exception {
         DBConfigParser p = getDBParser("order_db_config.txt");
         DBConfig db = p.startParser();
@@ -51,9 +74,7 @@ public class TestDBConfigParser extends TestCase {
     public void testK8SReplicaSetDomain() {
         String mysqlHost = "mysql-0.mysql-svc.default";
         String dbName = "dbname";
-        Pattern hostPattern = TokenTypes.TT_HOST.createPattern();
-        Matcher matcher = hostPattern.matcher(mysqlHost);
-        Assert.assertTrue(String.valueOf(hostPattern), matcher.matches());
+        assertHostNameVaild(mysqlHost);
 
         Map<String, List<String>> dbname = DBConfigParser.parseDBEnum(dbName, mysqlHost);
         Assert.assertEquals(1, dbname.size());

@@ -68,7 +68,7 @@ public class ScannerPatterns {
         //
         TT_WHITESPACE("^(\\s)+", false),
         TT_HOST(//
-                "(^([a-z0-9][a-z0-9\\-]{0,61}[a-z0-9])(\\.([a-z0-9][a-z0-9\\-]{0,61}[a-z0-9]))+)|^localhost"
+                "(^([a-z0-9][a-z0-9\\-]{0,61}[a-z0-9])(\\.([a-z0-9][a-z0-9\\-]{0,61}[a-z0-9]))*)|^localhost"
                 , true, new Group(-1), 996, (testToken) -> {
             Matcher matcher = a2zPattern.matcher(testToken);
             // 存在 a-z的字符 说明是一个host地址

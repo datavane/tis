@@ -37,13 +37,13 @@ https://github.com/datavane/tis/releases/tag/V4.0.1
 
   TIS的安装还是和传统软件安装一样，只需要三个步骤：一、下载tar包，二、解压tar包，三、启动TIS。是的，就这么简单。另外还支持多种部署模式（Docker、Docker-Compose、Kubernetes）。
 
-* :rocket:扩展性强
+* :rocket:强大的扩展性
 
   TIS 继承了Jenkin 的设计思想，使用微前端技术，重新构建了一套前端框架，前端页面可以自动渲染。
 
   TIS 提供了良好的扩展性和SPI机制，开发者可以很轻松地开发新的插件。
 
-* :repeat:支持各种Transformer算子功能
+* :repeat:支持各种Transformer算子
 
   通过在TIS流程中设置Transformer功能逻辑，可实现在ETL数仓功能中，在E（数据抽取）阶段即可高效实现各种字段值转换功能，如：字段脱敏，字段拼接，取子字符串等功能。
 
@@ -113,7 +113,10 @@ TIS基于数据库元数据信息自动生成Flink-SQL脚本,您没看错全部�
 - WEB UI [https://github.com/qlangtech/ng-tis](https://github.com/qlangtech/ng-tis)
 - 发版信息生成器[https://github.com/qlangtech/tis-git-manager](https://github.com/qlangtech/tis-git-manager)
 - 基于Ansible的打包工具 [https://github.com/qlangtech/tis-ansible](https://github.com/qlangtech/tis-ansible)
-- TIS 插件 [1.plugins](https://github.com/qlangtech/plugins) [2.tis-plugins-commercial](https://github.com/qlangtech/tis-plugins-commercial)
+- TIS 插件 
+   1. [plugins](https://github.com/qlangtech/plugins) 
+   2. [tis-plugins-commercial](https://github.com/qlangtech/tis-plugins-commercial)
+   3. SqlServer Connector [qlangtech/tis-sqlserver-plugin](https://github.com/qlangtech/tis-sqlserver-plugin)
 - TIS 插件元数据生成工具 [https://github.com/qlangtech/update-center2](https://github.com/qlangtech/update-center2)
 - DataX [https://github.com/qlangtech/DataX](https://github.com/qlangtech/DataX)
 - Flink Extend [https://github.com/qlangtech/flink](https://github.com/qlangtech/flink)

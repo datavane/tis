@@ -24,6 +24,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPreviousTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.tdfs.TDFSLinker;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -41,7 +42,7 @@ public abstract class MetaDataWriter implements Describable<MetaDataWriter> {
      * @return
      */
     public abstract IRemoteTaskPreviousTrigger createMetaDataWriteTask(
-            TDFSLinker dfsLinker, IExecChainContext execContext, ISelectedTab tab);
+            TDFSLinker dfsLinker, IExecChainContext execContext, EntityName entity, ISelectedTab tab);
 
     /**
      * 得到存放元数据文件的路径
