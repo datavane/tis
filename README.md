@@ -88,6 +88,9 @@ https://github.com/datavane/tis/releases/tag/V4.0.1
 设置MySqlReader目标表、列  
 ![tis](docs/select-tab-cols.png)
 
+设置MySqlReader目标列设置Transformer逻辑。例如，将表中JSON内容的列分拆成多个字段`json_splitter`
+![tis](docs/select-tab-cols-json-splitter.png)
+
 添加ElasticWriter,可视化设置ElasticSearch的Schema Mapping
 ![tis](docs/add-elastic-writer.png)
 
