@@ -55,6 +55,7 @@ public class DataType implements Serializable, Cloneable {
     public DataType clone() throws CloneNotSupportedException {
         //JDBCTypes type, String typeName, int columnSize, boolean unsigned
         DataType result = new DataType(this.type, this.typeName, this.columnSize, this.unsigned);
+        result.setDecimalDigits(this.getDecimalDigits());
         return result;
     }
 

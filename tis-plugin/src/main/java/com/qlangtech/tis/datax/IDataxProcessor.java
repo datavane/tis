@@ -238,6 +238,22 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
     public class TableMap extends TableAlias {
         private final ISelectedTab tab;
 
+        /**
+         * 将transformer 规则添加到列末尾
+         *
+         * @param transformerRules
+         * @return
+         */
+        public List<IColMetaGetter> appendTransformerRuleCols(Optional<RecordTransformerRules> transformerRules) {
+            List<IColMetaGetter> cols = transformerRules.map((rule) -> {
+                TransformerOverwriteCols<OutputParameter> outputParameters = rule.overwriteCols(getSourceCols());
+                return outputParameters.getCols().stream().map((c) -> (IColMetaGetter) c).collect(Collectors.toList());
+            }).orElseGet(() -> {
+                return getSourceCols().stream().map((c) -> c).collect(Collectors.toList());
+            });
+            return cols;
+        }
+
         public TableMap(TableAlias tabAlia, ISelectedTab tab) {
             this(tab);
             this.setTo(tabAlia.getTo());
@@ -262,10 +278,12 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
                 public String getName() {
                     return tabName.get();
                 }
+
                 @Override
                 public List<String> getPrimaryKeys() {
                     return pks;
                 }
+
                 @Override
                 public List<CMeta> getCols() {
                     return cMetas;
@@ -347,12 +365,13 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
         public static TabCols create(
                 IDBReservedKeys dbReservedKeys, TableMap tm, Optional<RecordTransformerRules> transformerRules) {
 
-            List<IColMetaGetter> cols = transformerRules.map((rule) -> {
-                TransformerOverwriteCols<OutputParameter> outputParameters = rule.overwriteCols(tm.getSourceCols());
-                return outputParameters.getCols().stream().map((c) -> (IColMetaGetter) c).collect(Collectors.toList());
-            }).orElseGet(() -> {
-                return tm.getSourceCols().stream().map((c) -> c).collect(Collectors.toList());
-            });
+            List<IColMetaGetter> cols = tm.appendTransformerRuleCols(transformerRules);
+//            transformerRules.map((rule) -> {
+//                TransformerOverwriteCols<OutputParameter> outputParameters = rule.overwriteCols(tm.getSourceCols());
+//                return outputParameters.getCols().stream().map((c) -> (IColMetaGetter) c).collect(Collectors.toList());
+//            }).orElseGet(() -> {
+//                return tm.getSourceCols().stream().map((c) -> c).collect(Collectors.toList());
+//            });
 
             return new TabCols(dbReservedKeys, cols.stream().map((c) -> c.getName()).collect(Collectors.toList()));
         }
