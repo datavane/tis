@@ -1,9 +1,9 @@
 ## activationCode
 **激活码** 获得方法流程如下：
-1. 扫码添加TIS微信小秘书
+1. 扫码添加TIS微信`小秘书`
 
    ![](/images/weixin-xms.jpeg)
-2. 查看`商业版`费用相关文档：[https://www.tis.pub/commerical](https://www.tis.pub/commerical)
+2. 查看`社区协作版`费用相关文档：[https://www.tis.pub/commerical](https://www.tis.pub/commerical)
 3. 发送用户相关信息：
    * 邮箱地址
    * 手机号码
