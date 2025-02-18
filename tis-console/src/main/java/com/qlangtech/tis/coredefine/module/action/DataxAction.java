@@ -1457,10 +1457,10 @@ public class DataxAction extends BasicModule {
     DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this,
       confiemModel.getDataxName());
     List<ISelectedTab> selectedTabs = processMeta.getReader().getSelectedTabs();
-    ESTableAlias esTableAlias = new ESTableAlias();
+    ESTableAlias esTableAlias = new ESTableAlias(schemaContent);
     esTableAlias.setFrom(selectedTabs.stream().findFirst().get().getName());
     esTableAlias.setTo(((ISearchEngineTypeTransfer) processMeta.getWriter()).getIndexName());
-    esTableAlias.setSchemaContent(schemaContent);
+  //  esTableAlias.setSchemaContent(schemaContent);
 
     this.saveTableMapper(this, confiemModel.getDataxName(), Collections.singletonList(esTableAlias));
   }
