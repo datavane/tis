@@ -55,7 +55,8 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
 
     @Override
     public EntityName parseEntity(ISelectedTab tab) {
-        return EntityName.parse(tab.getName());
+       // return EntityName.parse(tab.getName());
+        return tab.getEntityName();
     }
 
     public void verify() {

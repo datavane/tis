@@ -104,6 +104,7 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JsonPostMsgHandler;
 import com.qlangtech.tis.solrdao.ISchema;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.DescriptorsJSONResult;
@@ -1365,9 +1366,9 @@ public class DataxAction extends BasicModule {
     for (ISelectedTab selectedTab : dataxReader.getSelectedTabs()) {
       tableAlias = tabMaps.get(selectedTab);
       if (forceInit || tableAlias == null) {
-        tableAlias = new TableAlias(selectedTab.getName());
+        tableAlias = (tableAlias == null) ? new TableAlias(selectedTab.getName()) : tableAlias;
         if (mapperTabPrefixAutoTabCreator != null) {
-          tableAlias.setTo(mapperTabPrefixAutoTabCreator.appendTabPrefix(selectedTab.getName()));
+          tableAlias.setTo(mapperTabPrefixAutoTabCreator.appendTabPrefix(EntityName.parse(selectedTab.getName()).getTabName()));
         }
         tmapList.add(tableAlias);
       } else {
@@ -1460,7 +1461,7 @@ public class DataxAction extends BasicModule {
     ESTableAlias esTableAlias = new ESTableAlias(schemaContent);
     esTableAlias.setFrom(selectedTabs.stream().findFirst().get().getName());
     esTableAlias.setTo(((ISearchEngineTypeTransfer) processMeta.getWriter()).getIndexName());
-  //  esTableAlias.setSchemaContent(schemaContent);
+    //  esTableAlias.setSchemaContent(schemaContent);
 
     this.saveTableMapper(this, confiemModel.getDataxName(), Collections.singletonList(esTableAlias));
   }

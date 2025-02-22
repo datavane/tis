@@ -21,11 +21,13 @@ package com.qlangtech.tis.plugin.datax.transformer;
 import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 
+import java.io.Serializable;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-22 11:15
  **/
-public class OutputParameter implements IColMetaGetter {
+public class OutputParameter implements IColMetaGetter, Serializable {
     private final String name;
     private final boolean virtual;
     private final DataType type;

@@ -13,15 +13,17 @@ TIS为您提供企业级数据集成服务，**基于批(DataX)，流(Flink-CDC�
 
 ![tis](docs/execute_model_batch_incr.jpg)
 
+## :arrow_forward: 安装说明
+
+快速安装（支持私有云、公有云等环境），方便、快捷 [:green_circle:单机](https://tis.pub/docs/install/tis/uber) [:purple_circle:Docker](https://tis.pub/docs/install/tis/docker) [:large_blue_circle:Docker Compose](https://tis.pub/docs/install/tis/docker-compose) [:brown_circle:K8S](https://tis.pub/docs/install/tis/kubernetes)
+
+
 ## v4.0.1 发布（2024/10/19）：
 
 https://github.com/datavane/tis/releases/tag/V4.0.1
 
 <a href="https://www.bilibili.com/video/BV1rXC1YjECW"> <img src="https://github.com/user-attachments/assets/59a10a10-4a08-45d8-b157-01df5f9dbf5a" /> </a>
 
-## 安装说明
-
-速将TIS在分布式环境中一键安装（支持私有云、公有云等环境），方便、快捷 [详细说明](https://tis.pub/docs/install/tis/uber)
 
 ## 架构
 

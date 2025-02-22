@@ -27,12 +27,14 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
+import com.qlangtech.tis.manage.common.AppAndRuntime;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
+import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -88,7 +90,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     private Map<String, String> extraParams = new HashMap<>();
     private final IPluginContext context;
 
-    public  static UploadPluginMeta appnameMeta(IPluginContext pluginContext, String appname) {
+    public static UploadPluginMeta appnameMeta(IPluginContext pluginContext, String appname) {
         UploadPluginMeta extMeta = parse(pluginContext,
                 "name:" + DataxUtils.DATAX_NAME + "_" + appname, true);
         return extMeta;
@@ -210,6 +212,23 @@ public class UploadPluginMeta implements IUploadPluginMeta {
                     }
                 }
             }
+
+            /**
+             // 为了在dataX穿件流程中，能够在流程中使用IControlMsgHandler.isCollectionAware() 为true ，例如： DataXKafkaReader.createDataXKafkaReader() 方法中
+             // 需要在这里将当前的appAndRuntime 设置到当前的线程上下文中去。
+             // 后续 CheckAppDomainExistValve.getAppDomain() 方法执行就能获得有appName aware的实例了
+             */
+            final String pipe = pmeta.getDataXName(false);
+            AppAndRuntime appAndRuntime = AppAndRuntime.getAppAndRuntime();
+            if (StringUtils.isNotEmpty(pipe)
+                    && (appAndRuntime == null || StringUtils.isEmpty(appAndRuntime.getAppName()))) {
+                appAndRuntime = new AppAndRuntime();
+                appAndRuntime.setRuntime(RunEnvironment.getSysRuntime());
+                appAndRuntime.setAppName(pipe);
+                AppAndRuntime.setAppAndRuntime(appAndRuntime);
+                //CheckAppDomainExistValve
+            }
+
             return pmeta;
             //metas.add(pmeta);
         } else {

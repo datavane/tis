@@ -168,7 +168,8 @@ public class DAGSessionSpec implements IDAGSessionSpec {
             buildTaskTriggers(execChainContext, appSource, submit, statusRpc, entry, entry.getName(), sessionSpec, cfgFileNames);
         }
         if (selectedTabCount < 1) {
-            throw new IllegalStateException("selectedTabCount can not small than 1");
+            throw new IllegalStateException(selectedTabs.stream().map((tab) -> tab.getName()).collect(Collectors.joining(","))
+                    + " relevant selectedTabCount can not small than 1");
         }
         return Pair.of(sessionSpec, selectedTabs);
     }

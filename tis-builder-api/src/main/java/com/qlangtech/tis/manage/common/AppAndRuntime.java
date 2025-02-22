@@ -20,6 +20,8 @@ package com.qlangtech.tis.manage.common;
 
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 
+import java.util.function.Consumer;
+
 /**
  *
  */
@@ -29,12 +31,17 @@ public class AppAndRuntime {
     private String appName;
     private RunEnvironment runtime;
 
+    public static Consumer<AppAndRuntime> newAppAndRuntimeConsumer;
+
     public static AppAndRuntime getAppAndRuntime() {
         return appAndRuntimeLocal.get();
     }
 
     public static void setAppAndRuntime(AppAndRuntime appAndRuntime) {
         appAndRuntimeLocal.set(appAndRuntime);
+        if (newAppAndRuntimeConsumer != null) {
+            newAppAndRuntimeConsumer.accept(appAndRuntime);
+        }
     }
 
     public void setAppName(String appName) {
