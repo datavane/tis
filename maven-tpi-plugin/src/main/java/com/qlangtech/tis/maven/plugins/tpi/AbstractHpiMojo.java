@@ -521,6 +521,7 @@ public abstract class AbstractHpiMojo extends AbstractJenkinsMojo {
                 }
                 if (excludedArtifacts.contains(artifact.getDependencyTrail().get(1))) {
                     // exclude artifacts resolved through a test or provided scope
+                    this.getLog().info(" exclude artifacts resolved through a test or provided scope, artifact:" + artifact.artifact + " skip");
                     continue;
                 }
             }

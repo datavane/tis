@@ -20,6 +20,7 @@ package com.qlangtech.tis.realtime.transfer;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Maps;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -31,9 +32,9 @@ import java.util.stream.Collectors;
  */
 public class DTO {
 
-    private Map<String, Object> after;
+    private Map<String, Object> after = Collections.emptyMap();
 
-    private Map<String, Object> before;
+    private Map<String, Object> before = Collections.emptyMap();
 
     private String dbName;
 
