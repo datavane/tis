@@ -35,6 +35,7 @@ import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
 import com.qlangtech.tis.plugin.ds.IInitWriterTableExecutor;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.StringUtils;
@@ -86,7 +87,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
      * @param
      * @throws Exception
      */
-    public static void process(String dataXName, String tableName, List<String> jdbcUrls) throws Exception {
+    public static void process(String dataXName, String sinkTableName, List<String> jdbcUrls) throws Exception {
         if (StringUtils.isEmpty(dataXName)) {
             throw new IllegalArgumentException("param dataXName can not be null");
         }
@@ -102,7 +103,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
                 = (IInitWriterTableExecutor) writer;
 
         Objects.requireNonNull(dataXWriter, "dataXWriter can not be null,dataXName:" + dataXName);
-        dataXWriter.initWriterTable(tableName, jdbcUrls);
+        dataXWriter.initWriterTable(sinkTableName, jdbcUrls);
     }
 
     public static KeyedPluginStore<DataxWriter> getPluginStore(IPluginContext context, String appname) {

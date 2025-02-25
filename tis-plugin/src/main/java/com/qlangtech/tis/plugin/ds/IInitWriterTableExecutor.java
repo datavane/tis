@@ -36,9 +36,9 @@ public interface IInitWriterTableExecutor {
     AutoCreateTable getAutoCreateTableCanNotBeNull();
 
     /**
-     * @param targetTabName
+     * @param sinkTargetTabName
      * @param jdbcUrls
      * @throws Exception
      */
-    public void initWriterTable(String targetTabName, List<String> jdbcUrls) throws Exception;
+    public void initWriterTable(String sinkTargetTabName, List<String> jdbcUrls) throws Exception;
 }
