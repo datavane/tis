@@ -3,7 +3,7 @@
 1. 扫码添加TIS微信`小秘书`
 
    ![](/images/weixin-xms.jpeg)
-2. 查看`社区协作版`费用相关文档：[https://www.tis.pub/commerical](https://www.tis.pub/commerical)
+2. 查看`社区协作版`相关介绍：[https://www.tis.pub/community-collaboration](https://www.tis.pub/community-collaboration)
 3. 发送用户相关信息：
    * 邮箱地址
    * 手机号码

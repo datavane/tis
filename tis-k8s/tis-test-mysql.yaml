@@ -37,7 +37,7 @@ spec:
           value: "123456"
         - name: TZ
           value: "Asia/Shanghai"
-        image: mysql:5.7
+        image: registry.cn-hangzhou.aliyuncs.com/tis/mysql:5.7
         imagePullPolicy: IfNotPresent
         name: mysql
         volumeMounts:
