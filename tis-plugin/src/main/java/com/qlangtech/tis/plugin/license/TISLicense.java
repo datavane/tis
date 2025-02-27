@@ -273,7 +273,7 @@ public class TISLicense extends ParamsConfig implements BeforePluginSaved, After
                     msgHandler.addActionMessage(context, "证书有效，有效期到：" + hasExpire.expireDate);
                 }
             } catch (Exception e) {
-                throw TisException.create(e.getMessage(), e);
+                throw TisException.create("请检查是否是合法证书，" + e.getMessage(), e);
             }
             return true;
         }
