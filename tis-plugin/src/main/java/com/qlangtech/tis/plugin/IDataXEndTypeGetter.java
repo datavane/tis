@@ -22,7 +22,7 @@ package com.qlangtech.tis.plugin;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-09-08 11:22
  **/
-public interface IDataXEndTypeGetter extends IPluginVenderGetter {
+public interface IDataXEndTypeGetter extends IEndTypeGetter {
 
 
     String KEY_SUPPORT_INCR = "supportIncr";

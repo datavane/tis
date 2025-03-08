@@ -28,7 +28,6 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
-import com.qlangtech.tis.plugin.IPluginVenderGetter;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.incr.ISelectedTabExtendFactory;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
@@ -115,7 +114,7 @@ public abstract class MQListenerFactory
         throw new UnsupportedOperationException();
     }
 
-    public static abstract class BaseDescriptor extends Descriptor<MQListenerFactory> implements IPluginVenderGetter {
+    public static abstract class BaseDescriptor extends Descriptor<MQListenerFactory> implements IEndTypeGetter {
 
         @Override
         public final Map<String, Object> getExtractProps() {

@@ -31,7 +31,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.plugin.IPluginVenderGetter;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.util.HeteroEnum;
@@ -164,7 +164,7 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
     }
 
 
-    public static abstract class BaseSinkFunctionDescriptor extends Descriptor<TISSinkFactory> implements IPluginVenderGetter {
+    public static abstract class BaseSinkFunctionDescriptor extends Descriptor<TISSinkFactory> implements IEndTypeGetter {
         @Override
         public Map<String, Object> getExtractProps() {
             Map<String, Object> vals = super.getExtractProps();

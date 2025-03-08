@@ -22,7 +22,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 端类型
@@ -31,6 +34,45 @@ import java.util.Set;
  * @create: 2023-03-05 10:13
  **/
 public interface IEndTypeGetter {
+
+    /**
+     * 供应商
+     *
+     * @return
+     */
+    default PluginVender getVender() {
+        return PluginVender.TIS;
+    }
+
+    enum PluginVender {
+        FLINK_CDC("FlinkCDC", "flink-cdc", "https://ververica.github.io/flink-cdc-connectors") //
+        , CHUNJUN("Chunjun", "chunjun", "https://dtstack.github.io/chunjun") //
+        , TIS("TIS", "tis", "https://github.com/qlangtech/tis") //
+        , DATAX("DataX", "datax", "https://github.com/alibaba/DataX");
+        final String name;
+        final String tokenId;
+        final String url;
+
+        private PluginVender(String name, String tokenId, String url) {
+            this.name = name;
+            this.tokenId = tokenId;
+            this.url = url;
+        }
+
+        public String getTokenId() {
+            return this.tokenId;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+    }
+
+
     interface IEndType {
         public String getVal();
 
@@ -53,41 +95,63 @@ public interface IEndTypeGetter {
         return EndType.Blank;
     }
 
+    enum EndTypeCategory {
+        Data,
+        Assist
+    }
+
     /**
      * 端类型
      */
     enum EndType implements IEndType {
-        Greenplum("greenplum"), MySQL("mysql", true) //
-        , MariaDB("mariaDB", true) //
-        , Postgres("pg", true), Oracle("oracle", true) //
-        , ElasticSearch("es", true), MongoDB("mongoDB", true) //
-        , StarRocks("starRocks", true), Doris("doris", true) , KingBase("kingbase", true) //
-        , Clickhouse("clickhouse", true), Hudi("hudi", true) //, AliyunOSS("aliyunOSS")
-        , TDFS("t-dfs", true) //
-        , Cassandra("cassandra") //, HDFS("hdfs")
-        , SqlServer("sqlServer", true), TiDB("TiDB", true) //
-        , RocketMQ("rocketMq", true), Kafka("kafka", true), DataFlow("dataflow") //
-        , DaMeng("daMeng", true), AliyunODPS("aliyunOdps", true), HiveMetaStore("hms", true) //
-        , Spark("spark", true) //
-        , RabbitMQ("rabbitmq", true), UnKnowStoreType("unknowStoreType", true),
+        Greenplum("greenplum", EndTypeCategory.Data) //
+        , MySQL("mysql", EndTypeCategory.Data, true) //
+        , MariaDB("mariaDB", EndTypeCategory.Data, true) //
+        , Postgres("pg", EndTypeCategory.Data, true)//
+        , Oracle("oracle", EndTypeCategory.Data, true) //
+        , ElasticSearch("es", EndTypeCategory.Data, true) //
+        , MongoDB("mongoDB", EndTypeCategory.Data, true) //
+        , StarRocks("starRocks", EndTypeCategory.Data, true)//
+        , Doris("doris", EndTypeCategory.Data, true) //
+        , KingBase("kingbase", EndTypeCategory.Data, true) //
+        , Clickhouse("clickhouse", EndTypeCategory.Data, true) //
+        , Hudi("hudi", EndTypeCategory.Data, true) //
+        , TDFS("t-dfs", EndTypeCategory.Data, true) //
+        , Cassandra("cassandra", EndTypeCategory.Data) //, HDFS("hdfs")
+        , SqlServer("sqlServer", EndTypeCategory.Data, true) //
+        , TiDB("TiDB", EndTypeCategory.Data, true) //
+        , RocketMQ("rocketMq", EndTypeCategory.Data, true) //
+        , Kafka("kafka", EndTypeCategory.Data, true) //
+        , DataFlow("dataflow", EndTypeCategory.Assist) //
+        , DaMeng("daMeng", EndTypeCategory.Data, true) //
+        , AliyunODPS("aliyunOdps", EndTypeCategory.Data, true) //
+        , HiveMetaStore("hms", EndTypeCategory.Data, true) //
+        , Spark("spark", EndTypeCategory.Data, true) //
+        , RabbitMQ("rabbitmq", EndTypeCategory.Data, true) //
+        , UnKnowStoreType("unknowStoreType", EndTypeCategory.Assist, true),
 
-        PowerJob("powerjob", true),
-        Flink("flink", true), Docker("docker", true), K8S("k8s", true),
-        BliBli("blibli", true),
-        StreamComputing("stream-computing", true),
-        BatchComputing("batch-computing", true), Dolphinscheduler("ds", true)
+        PowerJob("powerjob", EndTypeCategory.Assist, true),
+        Flink("flink", EndTypeCategory.Assist, true)//
+        , Docker("docker", EndTypeCategory.Assist, true) //
+        , K8S("k8s", EndTypeCategory.Assist, true),
+        BliBli("blibli", EndTypeCategory.Assist, true),
+        StreamComputing("stream-computing", EndTypeCategory.Assist, true) //
+        , BatchComputing("batch-computing", EndTypeCategory.Assist, true)//
+        , Dolphinscheduler("ds", EndTypeCategory.Assist, true)
         // 预览按钮
-        , Preview("preview", true) //
-        , Clone("clone", true) //
-        , Blank("blank", true) //
-        , Concat("concat", true)//
-        , Mask("mask", true)//
-        , Splitter("splitter", true)//
-        , SubString("substr", true) //
-        , License("license", true);
+        , Preview("preview", EndTypeCategory.Assist, true) //
+        , Clone("clone", EndTypeCategory.Assist, true) //
+        , Blank("blank", EndTypeCategory.Assist, true) //
+        , Concat("concat", EndTypeCategory.Assist, true)//
+        , Mask("mask", EndTypeCategory.Assist, true)//
+        , Splitter("splitter", EndTypeCategory.Assist, true)//
+        , SubString("substr", EndTypeCategory.Assist, true) //
+        , License("license", EndTypeCategory.Assist, true);
 
         private final String val;
         private final boolean containICON;
+        public
+        final EndTypeCategory category;
 
         private static final DefaultIconReference unknowStorageType = new DefaultIconReference(UnKnowStoreType);
 
@@ -103,13 +167,18 @@ public interface IEndTypeGetter {
             throw new IllegalStateException("illegal endType:" + endType);
         }
 
-        EndType(String val) {
-            this(val, false);
+        public static List<EndType> getDataEnds() {
+            return Arrays.stream(EndType.values()).filter((end) -> end.category == EndTypeCategory.Data).collect(Collectors.toList());
         }
 
-        EndType(String val, boolean containICON) {
+        EndType(String val, EndTypeCategory category) {
+            this(val, category, false);
+        }
+
+        EndType(String val, EndTypeCategory category, boolean containICON) {
             this.val = val;
             this.containICON = containICON;
+            this.category = category;
         }
 
 
