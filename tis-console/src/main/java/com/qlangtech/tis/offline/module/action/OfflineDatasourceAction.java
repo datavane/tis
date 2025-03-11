@@ -1310,7 +1310,7 @@ public class OfflineDatasourceAction extends BasicModule {
                 for (Descriptor desc : descriptors) {
                   if (StringUtils.endsWithIgnoreCase(String.valueOf(pp.dftVal()), desc.getDisplayName())) {
                     pp.setVal(plugin, createPluginByDefaultVals((new StringBuffer(propPath)).append("->") //
-                        .append(pentry.getKey()).append(":").append(pp.clazz.getName()) //
+                        .append(pentry.getKey()).append(":").append(pp.fieldClazz.getName()) //
                       , Sets.newHashSet() //
                       , desc.getPluginFormPropertyTypes().getKVTuples() //
                       , (Describable) desc.clazz.newInstance()));

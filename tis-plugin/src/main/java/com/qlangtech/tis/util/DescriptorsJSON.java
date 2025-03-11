@@ -43,6 +43,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 /**
@@ -223,10 +224,13 @@ public class DescriptorsJSON<T extends Describable<T>> {
 //                }
 
                 attrs = new JSONArray();
-                ArrayList<Map.Entry<String, PropertyType>> entries =
-                        Lists.newArrayList(pluginFormPropertyTypes.getKVTuples());
 
-                entries.sort(((o1, o2) -> o1.getValue().ordinal() - o2.getValue().ordinal()));
+                List<Entry<String, PropertyType>> entries = pluginFormPropertyTypes.getSortedUseableProperties();
+
+//                ArrayList<Map.Entry<String, PropertyType>> entries =
+//                        Lists.newArrayList(pluginFormPropertyTypes.getKVTuples());
+
+               // entries.sort(((o1, o2) -> o1.getValue().ordinal() - o2.getValue().ordinal()));
                 boolean containAdvanceField = false;
                 for (Map.Entry<String, PropertyType> pp : entries) {
                     key = pp.getKey();
@@ -269,10 +273,10 @@ public class DescriptorsJSON<T extends Describable<T>> {
                     if (val.isDescribable()) {
                         DescriptorsJSON des2Json = new DescriptorsJSON(val.getApplicableDescriptors(), false);
                         attrVal.put("descriptors", des2Json.getDescriptorsJSON());
-                        Annotation extensible = val.clazz.getAnnotation(TISExtensible.class);
+                        Annotation extensible = val.fieldClazz.getAnnotation(TISExtensible.class);
                         // 可以运行时添加插件
                         attrVal.put("extensible", (extensible != null));
-                        attrVal.put(KEY_EXTEND_POINT, val.clazz.getName());
+                        attrVal.put(KEY_EXTEND_POINT, val.fieldClazz.getName());
                     }
                     // attrs.put(attrVal);
                     attrs.add(attrVal);

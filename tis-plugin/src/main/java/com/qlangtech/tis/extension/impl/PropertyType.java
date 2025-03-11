@@ -84,8 +84,9 @@ public class PropertyType implements IPropertyType {
         }, List.class);
     }
 
+    private final Class ownerClazz;
     // private final Optional<Descriptor.ElementPluginDesc> parentPluginDesc;
-    public final Class clazz;
+    public final Class fieldClazz;
 
     public final Type type;
 
@@ -104,13 +105,14 @@ public class PropertyType implements IPropertyType {
 
     public PluginExtraProps.Props extraProp;
 
-    public PropertyType(Field f, FormField formField) {
-        this(f, f.getType(), f.getGenericType(), f.getName(), formField);
+    public PropertyType(Class ownerClazz, Field f, FormField formField) {
+        this(ownerClazz, f, f.getType(), f.getGenericType(), f.getName(), formField);
     }
 
-    PropertyType(Field f, Class clazz, Type type, String displayName, FormField formField) {
+    PropertyType(Class ownerClazz, Field f, Class fieldClazz, Type type, String displayName, FormField formField) {
+        this.ownerClazz = Objects.requireNonNull(ownerClazz, "ownerClass can not be null");
         this.f = f;
-        this.clazz = clazz;
+        this.fieldClazz = fieldClazz;
         this.type = type;
         this.displayName = displayName;
         if (formField == null) {
@@ -156,7 +158,7 @@ public class PropertyType implements IPropertyType {
     @Override
     public boolean isCollectionType() {
         //   PropertyType pt = (PropertyType) propertyType;
-        return List.class.isAssignableFrom(this.clazz);
+        return List.class.isAssignableFrom(this.fieldClazz);
     }
 
     public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(Map<String,
@@ -171,9 +173,9 @@ public class PropertyType implements IPropertyType {
      * @param clazz
      * @return
      */
-    public static Map<String, /*** fieldname */IPropertyType> buildPropertyTypes( //
-                                                                                  Optional<ElementPluginDesc> descriptor,
-                                                                                  Class<? extends Describable> clazz) {
+    public static Map<String, /*** fieldname */IPropertyType>
+    buildPropertyTypes(Optional<ElementPluginDesc> descriptor,
+                       final Class<? extends Describable> clazz) {
         try {
             Map<String, IPropertyType> propMapper = new HashMap<>();
 
@@ -209,7 +211,7 @@ public class PropertyType implements IPropertyType {
                             } else if ((formField = f.getAnnotation(FormField.class)) != null) {
 
                                 PluginExtraProps.Props fieldExtraProps = null;
-                                final PropertyType ptype = new PropertyType(f, formField);
+                                final PropertyType ptype = new PropertyType(clazz, f, formField);
                                 if (extraProps.isPresent() && (fieldExtraProps = extraProps.get().getProp(f.getName())) != null) {
 
                                     ptype.setExtraProp(fieldExtraProps);
@@ -456,7 +458,7 @@ public class PropertyType implements IPropertyType {
     // this(getter.getReturnType(), getter.getGenericReturnType(), getter.toString());
     // }
     public Enum[] getEnumConstants() {
-        return (Enum[]) clazz.getEnumConstants();
+        return (Enum[]) fieldClazz.getEnumConstants();
     }
 
     /**
@@ -508,7 +510,7 @@ public class PropertyType implements IPropertyType {
     }
 
     public void setVal(Object instance, Object val) {
-        PropVal fieldVal = new PropVal(val, this.clazz, this.extraProp);
+        PropVal fieldVal = new PropVal(val, this.fieldClazz, this.extraProp);
         try {
             this.f.set(instance, this.formField.type().valProcessor.processInput(instance, fieldVal));
         } catch (Throwable e) {
@@ -542,10 +544,10 @@ public class PropertyType implements IPropertyType {
     }
 
     private Class computeItemType() {
-        if (clazz.isArray()) {
-            return clazz.getComponentType();
+        if (fieldClazz.isArray()) {
+            return fieldClazz.getComponentType();
         }
-        if (Collection.class.isAssignableFrom(clazz)) {
+        if (Collection.class.isAssignableFrom(fieldClazz)) {
             Type col = Types.getBaseClass(type, Collection.class);
             if (col instanceof ParameterizedType) {
                 return Types.erasure(Types.getTypeArgument(col, 0));
@@ -565,13 +567,13 @@ public class PropertyType implements IPropertyType {
 
     public boolean isDescribable() {
         // }
-        return Describable.class.isAssignableFrom(clazz);
+        return Describable.class.isAssignableFrom(fieldClazz);
     }
 
     public Descriptor getItemTypeDescriptorOrDie() {
         Class it = getItemType();
         if (it == null) {
-            throw new AssertionError(clazz + " is not an array/collection type in " + displayName + ". See " + "https"
+            throw new AssertionError(fieldClazz + " is not an array/collection type in " + displayName + ". See " + "https"
                     + "://wiki.jenkins-ci.org/display/JENKINS/My+class+is+missing+descriptor");
         }
         Descriptor d = TIS.get().getDescriptor(it);
@@ -592,13 +594,13 @@ public class PropertyType implements IPropertyType {
         if (subDescFilter == null && (eprops = this.getExtraProps()) != null) {
             String subDescEnumFilter = eprops.getString(PluginExtraProps.KEY_ENUM_FILTER);
             if (StringUtils.isNotEmpty(subDescEnumFilter)) {
-                String className = this.clazz.getSimpleName() + "_" + this.f.getName() + "_SubFilter";
-                String pkg = this.clazz.getPackage().getName();
+                final Class fieldClazz = this.ownerClazz;
+                String className = fieldClazz.getSimpleName() + "_" + this.f.getName() + "_SubFilter";
+                String pkg = fieldClazz.getPackage().getName();
                 String script = "	package " + pkg + " ;\n"  //
                         + "import java.util.function.Function;\n" //
                         + "import java.util.List;\n" //
                         + "import " + com.qlangtech.tis.extension.Descriptor.class.getName() + ";\n"
-                        // + "import com.qlangtech.plugins.incr.flink.chunjun.sink.SinkTabPropsExtends;\n"
                         + "class " + className + " implements Function<List<? extends Descriptor>,List<? extends " //
                         + "Descriptor>> { \n" //
                         + "	@Override \n" //
@@ -606,7 +608,7 @@ public class PropertyType implements IPropertyType {
                         + "(List<?" + " extends Descriptor> desc) {"  //
                         + subDescEnumFilter + "	}" + "}";
 
-                subDescFilter = GroovyShellEvaluate.createParamizerScript(this.clazz, className, script);
+                subDescFilter = GroovyShellEvaluate.createParamizerScript(fieldClazz, className, script);
             }
         }
 
@@ -614,7 +616,12 @@ public class PropertyType implements IPropertyType {
             subDescFilter = (descs) -> descs;
         }
 
-        return subDescFilter.apply(TIS.get().getDescriptorList(clazz));
+        try {
+
+            return subDescFilter.apply(TIS.get().getDescriptorList(fieldClazz));
+        } catch (Exception e) {
+            throw new RuntimeException("formField:" + this.f, e);
+        }
     }
 
     /**

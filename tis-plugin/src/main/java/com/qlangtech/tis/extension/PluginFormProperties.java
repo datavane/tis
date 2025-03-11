@@ -18,14 +18,21 @@
 package com.qlangtech.tis.extension;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -37,6 +44,25 @@ public abstract class PluginFormProperties {
     public abstract boolean containProperty(String fieldName);
 
     public abstract Set<Map.Entry<String, PropertyType>> getKVTuples();
+
+    /**
+     * 取得可用并且，已经按照 formField.ordinal() 从小到大排好序了
+     *
+     * @return
+     */
+    public List<Entry<String, PropertyType>> getSortedUseableProperties() {
+        List<Entry<String, PropertyType>> entries = this.getKVTuples().stream().filter((entry) -> {
+            JSONObject extraProps = entry.getValue().getExtraProps();
+            if (extraProps != null && extraProps.getBooleanValue(PluginExtraProps.KEY_DISABLE)) {
+                return false;
+            }
+            return true;
+        }).collect(Collectors.toList());
+
+        entries.sort(((o1, o2) -> o1.getValue().ordinal() - o2.getValue().ordinal()));
+        return entries;
+    }
+
 
     public abstract JSON getInstancePropsJson(Object instance);
 

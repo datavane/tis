@@ -24,7 +24,6 @@ import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.PropertyType.PropVal;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.ds.IMultiElement;
-import com.qlangtech.tis.plugin.ds.TypeBase;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import org.apache.commons.lang.StringUtils;
 
@@ -127,7 +126,7 @@ public enum FormFieldType {
         @Override
         public Object serialize2Output(final PropertyType pt, Object val) throws Exception {
 
-            Class targetClazz = pt.clazz;
+            Class targetClazz = pt.fieldClazz;
             Instant ist = null;
             if (targetClazz == Long.class) {
                 ist = Instant.ofEpochMilli((Long) val);
