@@ -346,7 +346,13 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
         public AppKey(IPluginContext pluginContext, StoreResourceType resourceType, String appname,
                       PluginClassCategory<TT> clazz) {
-            super(resourceType.getType(), calAppName(pluginContext, appname), clazz, resourceType.useMetaCfgDir);
+            this(calAppName(pluginContext, appname), resourceType, clazz);
+//            super(resourceType.getType(), calAppName(pluginContext, appname), clazz, resourceType.useMetaCfgDir);
+//            this.resourceType = resourceType;
+        }
+
+        public AppKey(KeyVal keyVal, StoreResourceType resourceType, PluginClassCategory<TT> clazz) {
+            super(resourceType.getType(), keyVal, clazz, resourceType.useMetaCfgDir);
             this.resourceType = resourceType;
         }
 

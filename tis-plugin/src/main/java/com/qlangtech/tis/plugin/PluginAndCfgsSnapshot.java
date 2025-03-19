@@ -260,7 +260,7 @@ public class PluginAndCfgsSnapshot {
                         //  reader.getSelectedTabs().forEach((tab) -> tab.getCols());
                         reader.startScanDependency();
 
-                        RecordTransformerRules.contextParamValsGetterMapper(IPluginContext.namedContext(processor.identityValue()), reader, reader.getSelectedTabs());
+                        RecordTransformerRules.contextParamValsGetterMapper(processor, IPluginContext.namedContext(processor.identityValue()), reader, reader.getSelectedTabs());
                     });
                     dataxProcessor.getWriter(null).startScanDependency();
                 });

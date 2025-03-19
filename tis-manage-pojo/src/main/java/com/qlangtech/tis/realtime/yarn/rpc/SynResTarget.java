@@ -30,6 +30,7 @@ public class SynResTarget {
      * dataX pipeline OR transform workflow
      */
     private final boolean pipeline;
+    private Integer workflowId;
 
     public static SynResTarget pipeline(String name) {
         return new SynResTarget(name, true);
@@ -42,7 +43,13 @@ public class SynResTarget {
      * @return
      */
     public static SynResTarget transform(String name) {
-        return new SynResTarget(name, false);
+        return transform(null, name);
+    }
+
+    public static SynResTarget transform(Integer workflowId, String name) {
+        SynResTarget wfResTarget = new SynResTarget(name, false);
+        wfResTarget.setWorkflowId(workflowId);
+        return wfResTarget;
     }
 
     private SynResTarget(String name, boolean pipeline) {
@@ -51,6 +58,14 @@ public class SynResTarget {
         }
         this.name = name;
         this.pipeline = pipeline;
+    }
+
+    public Integer getWorkflowId() {
+        return workflowId;
+    }
+
+    public void setWorkflowId(Integer workflowId) {
+        this.workflowId = workflowId;
     }
 
     public String getName() {

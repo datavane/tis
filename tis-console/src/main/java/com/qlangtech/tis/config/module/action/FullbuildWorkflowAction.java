@@ -23,8 +23,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
-import com.qlangtech.tis.exec.DefaultExecContext;
+import com.qlangtech.tis.exec.AbstractExecContext;
+import com.qlangtech.tis.exec.impl.DataXPipelineExecContext;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
+import com.qlangtech.tis.exec.impl.WorkflowExecContext;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.PermissionConstant;
@@ -93,8 +95,17 @@ public class FullbuildWorkflowAction extends BasicModule {
     String appname = this.getString(IFullBuildContext.KEY_APP_NAME);
     Integer workflowId = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID, null, false);
 
-    DefaultExecContext execContext = new DefaultExecContext(appname, 0l);
-    execContext.setWorkflowId(workflowId);
+    AbstractExecContext execContext = null;
+    if (StringUtils.isEmpty(appname)) {
+      if (workflowId == null) {
+        throw new IllegalStateException("workflowId can not be null");
+      }
+      execContext = new WorkflowExecContext(workflowId, 0l);
+    } else {
+      execContext = new DataXPipelineExecContext(appname, 0l);
+    }
+
+    // execContext.setWorkflowId(workflowId);
 
     execContext.setExecutePhaseRange(new ExecutePhaseRange(
       FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getValue()))
@@ -105,44 +116,29 @@ public class FullbuildWorkflowAction extends BasicModule {
   }
 
 
-  /**
-   * 取得最近一次成功执行的workflowhistory
-   *
-   * @param context
-   */
-  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
-  public void doGetLatestSuccessWorkflow(Context context) {
-    try {
-      String appName = this.getString(IFullBuildContext.KEY_APP_NAME);
-      if (StringUtils.isEmpty(appName)) {
-        throw new IllegalArgumentException("param appName can not be null");
-      }
-
-
-      WorkFlowBuildHistory latestSuccessWorkflowHistory = this.getLatestSuccessWorkflowHistory(SynResTarget.pipeline(appName));
-      if (latestSuccessWorkflowHistory != null) {
-        this.setBizResult(context, latestSuccessWorkflowHistory);
-        return;
-      }
-      this.addErrorMessage(context, "can not find build history by appname:" + appName);
-//      WorkFlowBuildHistoryCriteria historyCriteria = new WorkFlowBuildHistoryCriteria();
-//      historyCriteria.setOrderByClause("id desc");
-//      historyCriteria.createCriteria()
-//        .andAppNameEqualTo(appName).andStateEqualTo((byte) ExecResult.SUCCESS.getValue());
+//  /**
+//   * 取得最近一次成功执行的workflowhistory
+//   *
+//   * @param context
+//   */
+//  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
+//  public void doGetLatestSuccessWorkflow(Context context) {
+//    try {
+//      String appName = this.getString(IFullBuildContext.KEY_APP_NAME);
+//      if (StringUtils.isEmpty(appName)) {
+//        throw new IllegalArgumentException("param appName can not be null");
+//      }
 //
-//      List<WorkFlowBuildHistory> histories
-//        = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByExample(historyCriteria, 1, 1);
 //
-//      for (WorkFlowBuildHistory buildHistory : histories) {
-//        this.setBizResult(context, buildHistory);
+//      WorkFlowBuildHistory latestSuccessWorkflowHistory = this.getLatestSuccessWorkflowHistory(SynResTarget.pipeline(appName));
+//      if (latestSuccessWorkflowHistory != null) {
+//        this.setBizResult(context, latestSuccessWorkflowHistory);
 //        return;
 //      }
-
-
-    } finally {
-      // logger.info("doGetLatestSuccessWorkflow return ");
-    }
-  }
+//      this.addErrorMessage(context, "can not find build history by appname:" + appName);
+//    } finally {
+//    }
+//  }
 
   @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
   public void doGetWf(Context context) {

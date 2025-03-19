@@ -50,7 +50,7 @@ public class TestSelectedTabTriggers extends TestCase implements TISEasyMock {
                     return JSON.parseObject(org.apache.commons.io.IOUtils.toString(input, TisUTF8.get()));
                 });
 
-        SelectedTabTriggers.SelectedTabTriggersConfig
+        SelectedTabTriggersConfig
                 triggersCfg = SelectedTabTriggers.deserialize(dataXJobCfg);
 
         Assert.assertEquals("mysql_aliyun_hive", triggersCfg.getDataXName());

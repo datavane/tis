@@ -3,6 +3,7 @@
 [![Stargazers over time](https://starchart.cc/qlangtech/tis-solr.svg)](https://starchart.cc/qlangtech/tis-solr)
 ![tis](docs/tis-logo.png)
 
+>过去，数据集成是开发者用代码搭建的"高墙"。如今TIS用一键式操作打破壁垒——DBA、分析师等技术/业务人员无需编程，通过可视化配置即可完成数据抽取、清洗、同步等全流程。现在，整个团队都能像组装乐高一样零代码搭建数据管道！
 
 ![](https://tokei.rs/b1/github/datavane/tis)
 ## TIS介绍

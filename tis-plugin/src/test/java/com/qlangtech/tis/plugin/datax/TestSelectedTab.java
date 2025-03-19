@@ -72,6 +72,11 @@ public class TestSelectedTab extends TestCase {
         }
 
         @Override
+        public boolean isSupportBatch() {
+            return true;
+        }
+
+        @Override
         public List<ColumnMetaData> getTableMetadata(boolean inSink, EntityName table) throws TableNotFoundException {
             Assert.assertEquals(tabName, table.getTableName());
             //  List<ColumnMetaData> cols = Lists.newArrayList();

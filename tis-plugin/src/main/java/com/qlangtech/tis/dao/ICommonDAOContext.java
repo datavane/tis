@@ -27,8 +27,11 @@ import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria.Criteria;
+import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import org.apache.commons.lang.NotImplementedException;
 
 import java.util.List;
@@ -45,13 +48,33 @@ public interface ICommonDAOContext {
 
     public default WorkFlowBuildHistory getLatestSuccessWorkflowHistory(SynResTarget resTarget) {
         Objects.requireNonNull(resTarget, "param resTarget can not be null");
-        if (!resTarget.isPipeline()) {
-            throw new NotImplementedException("resTarget:" + resTarget.getName() + " tranform workflow type has not been implemented");
-        }
+//        if (!resTarget.isPipeline()) {
+//            throw new NotImplementedException("resTarget:" + resTarget.getName() + " tranform workflow type has not been implemented");
+//        }
         WorkFlowBuildHistoryCriteria historyCriteria = new WorkFlowBuildHistoryCriteria();
         historyCriteria.setOrderByClause("id desc");
-        historyCriteria.createCriteria()
-                .andAppNameEqualTo(resTarget.getName()).andStateEqualTo((byte) ExecResult.SUCCESS.getValue());
+        Criteria criteria = historyCriteria.createCriteria().andStateEqualTo((byte) ExecResult.SUCCESS.getValue());
+        if (resTarget.isPipeline()) {
+            criteria.andAppNameEqualTo(resTarget.getName());
+        } else {
+            // workflow
+            Integer workflowId = resTarget.getWorkflowId();
+            if (workflowId == null) {
+                WorkFlowCriteria wfCriteria = new WorkFlowCriteria();
+                wfCriteria.createCriteria().andNameEqualTo(resTarget.getName());
+                List<WorkFlow> workFlows = getWorkflowDAOFacade().getWorkFlowDAO().selectByExample(wfCriteria, 1, 1);
+                boolean hasSetWfId = false;
+                for (WorkFlow wf : workFlows) {
+                    // criteria.andWorkFlowIdEqualTo(wf.getId());
+                    workflowId = wf.getId();
+                    hasSetWfId = true;
+                }
+                if (!hasSetWfId) {
+                    throw new IllegalStateException("has not set workflow Id workFlows.size:" + workFlows.size() + ",workflowName:" + resTarget.getName());
+                }
+            }
+            criteria.andWorkFlowIdEqualTo(workflowId);
+        }
 
         List<WorkFlowBuildHistory> histories
                 = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByExample(historyCriteria, 1, 1);

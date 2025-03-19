@@ -21,7 +21,6 @@ package com.qlangtech.tis.datax;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.JDBCConnection;
-import com.qlangtech.tis.plugin.ds.RunningContext;
 import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
@@ -50,6 +49,11 @@ public class AdapterDataxReader implements IDataxReader {
     @Override
     public void startScanDependency() {
         reader.startScanDependency();
+    }
+
+    @Override
+    public final boolean isSupportBatch() {
+        return reader.isSupportBatch();
     }
 
     @Override

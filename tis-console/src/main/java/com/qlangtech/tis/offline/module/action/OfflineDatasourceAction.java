@@ -67,6 +67,7 @@ import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.ds.*;
+import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
@@ -91,6 +92,7 @@ import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceTable;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import name.fraser.neil.plaintext.diff_match_patch;
 import org.apache.commons.collections.MapUtils;
@@ -1485,13 +1487,17 @@ public class OfflineDatasourceAction extends BasicModule {
     // List<PostParam> params = Lists.newArrayList();
     WorkFlow df = this.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(id);
 
+    WorkFlowBuildHistory latestSuccessWorkflowHistory
+      = this.getDaoContext().getLatestSuccessWorkflowHistory(SynResTarget.transform(df.getId(), df.getName()));
+
     DataXJobSubmit jobSubmit = DataXJobSubmit.getDataXJobSubmit();
 
     // 在powerjob 系统中 定时任务触发，已经生成wfInstanceId
     Optional<Long> powerJobWorkflowInstanceId
       = Optional.ofNullable(this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, null));
 
-    TriggerBuildResult buildResult = jobSubmit.triggerWorkflowJob(this, context, df, dryRun, powerJobWorkflowInstanceId);
+    TriggerBuildResult buildResult = jobSubmit.triggerWorkflowJob(
+      this, context, df, dryRun, powerJobWorkflowInstanceId, Optional.ofNullable(latestSuccessWorkflowHistory));
     if (buildResult.success) {
       // throw new IllegalStateException("dataflowid:" + id + " trigger faild");
       if (buildResult.getTaskid() < 1) {

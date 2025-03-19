@@ -47,6 +47,7 @@ import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.util.RobustReflectionConverter2;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.workflow.pojo.IWorkflow;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -283,10 +284,12 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
      * @param workflow
      * @param dryRun
      * @param powerJobWorkflowInstanceIdOpt powerJobWorkflowInstanceIdOpt 如果是手动触发则为空,如果是定时触发的，例如在powerjob系统中已经生成了powerjob 的workflowInstanceId
+     * @param latestSuccessWorkflowHistory  最近一次成功执行的workflow history记录
      * @return
      */
     public abstract TriggerBuildResult triggerWorkflowJob(
-            IControlMsgHandler module, final Context context, IWorkflow workflow, Boolean dryRun, Optional<Long> powerJobWorkflowInstanceIdOpt);
+            IControlMsgHandler module, final Context context, IWorkflow workflow, Boolean dryRun
+            , Optional<Long> powerJobWorkflowInstanceIdOpt, Optional<WorkFlowBuildHistory> latestSuccessWorkflowHistory);
 
 
     /**

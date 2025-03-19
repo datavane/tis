@@ -219,11 +219,19 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
      * @return
      */
     default boolean isSupportBatch(IPluginContext pluginCtx) {
-        DataxReader reader = (DataxReader) this.getReader(pluginCtx);
-        DataxReader.BaseDataxReaderDescriptor readerDesc = (DataxReader.BaseDataxReaderDescriptor) reader.getDescriptor();
+        List<IDataxReader> readers = this.getReaders(pluginCtx);
         DataxWriter writer = (DataxWriter) this.getWriter(pluginCtx);
         DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
-        return readerDesc.isSupportBatch() && writerDesc.isSupportBatch();
+        return isSupportBatch(readers) && writerDesc.isSupportBatch();
+    }
+
+    private boolean isSupportBatch(List<IDataxReader> readers) {
+        for (IDataxReader readerDesc : readers) {
+            if (!readerDesc.isSupportBatch()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

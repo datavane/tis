@@ -37,6 +37,8 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta
         return new SourceColMetaGetter(this, true);
     }
 
+    public boolean isSupportBatch();
+
     /**
      * 是否支持导入多个子表，当reader如果只支持单个表，那writer如果是MysqlWriter就可以指定表名称和列名
      *

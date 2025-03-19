@@ -40,6 +40,7 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginStore.AfterPluginVerified;
 import com.qlangtech.tis.plugin.IPluginStoreSave;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
@@ -107,8 +108,9 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
     @Override
     public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, boolean includeContextParams) {
+        IPluginContext context = (IPluginContext) pluginCtx;
         Optional<RecordTransformerRules> transformerRules
-                = RecordTransformerRules.loadTransformerRules((IPluginContext) pluginCtx, this.getName());
+                = RecordTransformerRules.loadTransformerRules(context, StoreResourceType.DataApp, context.getCollectionName(), this.getName());
         List<IColMetaGetter> cols = null;
         if (transformerRules.isPresent()) {
             ITransformerBuildInfo transformerBuilder = transformerRules.get().createTransformerBuildInfo((IPluginContext) pluginCtx);

@@ -32,13 +32,16 @@ import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
+import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.taskflow.AdapterTask;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 import com.qlangtech.tis.test.TISTestCase;
+import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,10 +52,11 @@ import java.util.Map;
  **/
 public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
 
+    @Test
     public void testExecute() throws Exception {
         System.setProperty(DataxUtils.EXEC_TIMESTAMP, String.valueOf(TimeFormat.getCurrentTimeStamp()));
-         // String wfName = "tttt71";
-        String wfName = "ttttt6";
+        // String wfName = "tttt71";
+        String wfName = "texx";
 
         int taskId = 999;
         final boolean isDryRun = false;
@@ -63,6 +67,12 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
         WorkflowDumpAndJoinInterceptor interceptor = new WorkflowDumpAndJoinInterceptor();
 
         IExecChainContext execContext = this.mock("execContext", IExecChainContext.class);
+
+        Capture<RemoteTaskTriggers> taskTriggersCapture = EasyMock.newCapture();
+        execContext.setTskTriggers(EasyMock.capture(taskTriggersCapture));
+
+        EasyMock.expect(execContext.getTskTriggers()).andAnswer(taskTriggersCapture::getValue).anyTimes();
+
 
         // Dry Run
         EasyMock.expect(execContext.isDryRun()).andReturn(isDryRun).anyTimes();
@@ -78,6 +88,10 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
 
         execContext.rebindLoggingMDCParams();
         EasyMock.expectLastCall().anyTimes();
+
+        EasyMock.expect(execContext.getSpecifiedLocalLoggerPath()).andReturn(null).times(2);
+        EasyMock.expect(execContext.isDisableGrpcRemoteServerConnect()).andReturn(true).times(2);
+
 
         EasyMock.expect(execContext.getAttribute(EasyMock.eq(DataXJobSubmit.KEY_DATAX_READERS), EasyMock.anyObject()))
                 .andReturn(processor.getReaders(null)).anyTimes();

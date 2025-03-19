@@ -29,6 +29,7 @@ import com.qlangtech.tis.datax.DataXJobSubmit.InstanceType;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISpecifiedLocalLogger;
 import com.qlangtech.tis.datax.TimeFormat;
+import com.qlangtech.tis.exec.impl.DataXPipelineExecContext;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
@@ -42,6 +43,8 @@ import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshotUtils;
+import com.qlangtech.tis.powerjob.SelectedTabTriggersConfig;
+import com.qlangtech.tis.powerjob.TriggersConfig;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -161,14 +164,14 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
         return instanceParams;
     }
 
-    public static DefaultExecContext deserializeInstanceParams(JSONObject instanceParams
-            , Consumer<DefaultExecContext> execChainContextConsumer, Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
-        return DefaultExecContext.deserializeInstanceParams(instanceParams
+    public static AbstractExecContext deserializeInstanceParams(TriggersConfig triggerCfg, JSONObject instanceParams
+            , Consumer<AbstractExecContext> execChainContextConsumer, Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
+        return AbstractExecContext.deserializeInstanceParams(triggerCfg, instanceParams
                 , true, execChainContextConsumer, cfgsSnapshotConsumer);
     }
 
-    public static DefaultExecContext deserializeInstanceParams(JSONObject instanceParams) {
-        return DefaultExecContext.deserializeInstanceParams(instanceParams, false
+    public static AbstractExecContext deserializeInstanceParams(TriggersConfig triggerCfg, JSONObject instanceParams) {
+        return AbstractExecContext.deserializeInstanceParams(triggerCfg, instanceParams, false
                 , (execChainContext) -> {
                 }, (snapshot) -> {
                     throw new UnsupportedOperationException("shall not be execute");

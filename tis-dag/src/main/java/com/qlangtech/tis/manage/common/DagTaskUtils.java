@@ -90,24 +90,24 @@ public class DagTaskUtils {
     /**
      * 取得最近一次workflow成功执行的taskid
      *
-     * @param appName
+     * @param appName 专指dataX pipeline
      * @return
      */
-    public static Optional<WorkFlowBuildHistory> getLatestWFSuccessTaskId(String appName) {
-        if (StringUtils.isBlank(appName)) {
-            throw new IllegalArgumentException("param appName can not be empty");
-        }
-        String url = IExecChainContext.WORKFLOW_CONFIG_URL_POST_FORMAT
-                .format(new Object[]{"fullbuild_workflow_action", "do_get_latest_success_workflow"});
-        List<HttpUtils.PostParam> params = Lists.newArrayList();
-        params.add(new HttpUtils.PostParam(IFullBuildContext.KEY_APP_NAME, appName));
-
-        AjaxResult<WorkFlowBuildHistory> result = HttpUtils.soapRemote(url, params, WorkFlowBuildHistory.class, false);
-        if (!result.isSuccess()) {
-            return Optional.empty();
-        }
-        return Optional.of(result.getBizresult());
-    }
+//    public static Optional<WorkFlowBuildHistory> getLatestWFSuccessTaskId(String appName) {
+//        if (StringUtils.isBlank(appName)) {
+//            throw new IllegalArgumentException("param appName can not be empty");
+//        }
+//        String url = IExecChainContext.WORKFLOW_CONFIG_URL_POST_FORMAT
+//                .format(new Object[]{"fullbuild_workflow_action", "do_get_latest_success_workflow"});
+//        List<HttpUtils.PostParam> params = Lists.newArrayList();
+//        params.add(new HttpUtils.PostParam(IFullBuildContext.KEY_APP_NAME, appName));
+//
+//        AjaxResult<WorkFlowBuildHistory> result = HttpUtils.soapRemote(url, params, WorkFlowBuildHistory.class, false);
+//        if (!result.isSuccess()) {
+//            return Optional.empty();
+//        }
+//        return Optional.of(result.getBizresult());
+//    }
 
     /**
      * 取得当前工作流 执行状态

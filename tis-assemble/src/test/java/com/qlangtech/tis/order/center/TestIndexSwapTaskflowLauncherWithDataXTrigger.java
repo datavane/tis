@@ -114,7 +114,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
 
         @Override
         public TriggerBuildResult triggerWorkflowJob(IControlMsgHandler module, Context context
-                , IWorkflow workflow, Boolean dryRun, Optional<Long> powerJobWorkflowInstanceIdOpt) {
+                , IWorkflow workflow, Boolean dryRun, Optional<Long> powerJobWorkflowInstanceIdOpt, Optional<WorkFlowBuildHistory> latestSuccessWorkflowHistory) {
             throw new UnsupportedOperationException();
         }
 

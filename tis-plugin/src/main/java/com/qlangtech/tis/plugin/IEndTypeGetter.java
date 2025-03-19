@@ -106,6 +106,8 @@ public interface IEndTypeGetter {
     enum EndType implements IEndType {
         Greenplum("greenplum", EndTypeCategory.Data) //
         , MySQL("mysql", EndTypeCategory.Data, true) //
+        , OceanBase("oceanbase", EndTypeCategory.Data, true) //
+        , Paimon("paimon", EndTypeCategory.Data, true) //
         , MariaDB("mariaDB", EndTypeCategory.Data, true) //
         , Postgres("pg", EndTypeCategory.Data, true)//
         , Oracle("oracle", EndTypeCategory.Data, true) //

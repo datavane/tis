@@ -237,7 +237,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
                     }
                     File configFile = DataXJobInfo.getJobPath(dataXCfgDir, readerContext.getReaderContextId(),
                             readerContext.getTaskName() + DataXCfgFile.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
-                    FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, tableMapper
+                    FileUtils.write(configFile, generateDataxConfig(readerContext,  writer, reader, tableMapper
                     ), TisUTF8.get(), false);
                 }
 
@@ -432,7 +432,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
             if (!createDDLFiles.contains(sqlFileName)) {
 
                 Optional<RecordTransformerRules> transformers
-                        = (RecordTransformerRules.loadTransformerRules(pluginCtx, mapper.getFrom()));
+                        = (RecordTransformerRules.loadTransformerRules(pluginCtx, dataxProcessor.getResType(), dataxProcessor.identityValue(), mapper.getFrom()));
 
 
                 CreateTableSqlBuilder.CreateDDL createDDL = Objects.requireNonNull(writer.generateCreateDDL(colMetaGetter, mapper, transformers),
@@ -509,31 +509,30 @@ public class DataXCfgGenerator implements IDataXNameAware {
             return this.getGroupedChildTask().keySet();
         }
 
-        public final Set<TransformerInfo> getTransformerInfo() {
-            Set<TransformerInfo> tinfos = new HashSet<>();
-            Key transformerRuleKey = HeteroEnum.getTransformerRuleKey(pluginCtx, "dump");
-            XmlFile sotre = transformerRuleKey.getSotreFile();
-            File parent = sotre.getFile().getParentFile();
-            if (!parent.exists()) {
-                return Collections.emptySet();
-            }
-            Optional<RecordTransformerRules> transformerRules = null;
-            // Collection<File> files = FileUtils.listFiles(parent, new String[]{"xml"}, false);
-            String xmlExtend = Descriptor.getPluginFileName(StringUtils.EMPTY);
-            SuffixFileFilter filter = new SuffixFileFilter(xmlExtend);
-            Collection<File> matched = FileUtils.listFiles(parent, filter, FalseFileFilter.INSTANCE);
-            for (File tfile : matched) {
-                String tabName = StringUtils.substringBefore(tfile.getName(), xmlExtend);
-                if (this.groupedChildTask.containsKey(tabName)) {
-                    transformerRules = RecordTransformerRules.loadTransformerRules(pluginCtx, tabName);
-
-                    if (transformerRules.isPresent()) {
-                        tinfos.add(new TransformerInfo(tabName, transformerRules.get().rules.size()));
-                    }
-                }
-            }
-            return tinfos;
-        }
+//        public final Set<TransformerInfo> getTransformerInfo() {
+//            Set<TransformerInfo> tinfos = new HashSet<>();
+//            Key transformerRuleKey = HeteroEnum.getTransformerRuleKey(pluginCtx, "dump");
+//            XmlFile sotre = transformerRuleKey.getSotreFile();
+//            File parent = sotre.getFile().getParentFile();
+//            if (!parent.exists()) {
+//                return Collections.emptySet();
+//            }
+//            Optional<RecordTransformerRules> transformerRules = null;
+//            String xmlExtend = Descriptor.getPluginFileName(StringUtils.EMPTY);
+//            SuffixFileFilter filter = new SuffixFileFilter(xmlExtend);
+//            Collection<File> matched = FileUtils.listFiles(parent, filter, FalseFileFilter.INSTANCE);
+//            for (File tfile : matched) {
+//                String tabName = StringUtils.substringBefore(tfile.getName(), xmlExtend);
+//                if (this.groupedChildTask.containsKey(tabName)) {
+//                    transformerRules = RecordTransformerRules.loadTransformerRules(pluginCtx, tabName);
+//
+//                    if (transformerRules.isPresent()) {
+//                        tinfos.add(new TransformerInfo(tabName, transformerRules.get().rules.size()));
+//                    }
+//                }
+//            }
+//            return tinfos;
+//        }
 
         /**
          * Map<String, List<String>> key: logicTableName
@@ -665,10 +664,14 @@ public class DataXCfgGenerator implements IDataXNameAware {
         return readerContext.createTableMap(tabAlias, selectedTabs);
     }
 
+
     public String generateDataxConfig(
-            IDataxReaderContext readerContext, IDataxWriter writer, IDataxReader reader, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
+            IDataxReaderContext readerContext
+            , IDataxWriter writer, IDataxReader reader, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
         Optional<RecordTransformerRules> transformerRules
-                = RecordTransformerRules.loadTransformerRules(this.pluginCtx, readerContext.getSourceTableName());
+                = RecordTransformerRules.loadTransformerRules(this.pluginCtx
+                , Objects.requireNonNull(dataxProcessor, "dataxProcessor can not be null").getResType()
+                , dataxProcessor.identityValue(), readerContext.getSourceTableName());
         return generateDataxConfig(readerContext, writer, reader, transformerRules, tableMapper);
     }
 

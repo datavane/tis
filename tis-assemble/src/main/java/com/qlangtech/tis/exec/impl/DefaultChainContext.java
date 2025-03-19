@@ -62,6 +62,8 @@ public class DefaultChainContext implements IExecChainContext {
 
     private final long ps;
 
+    private Optional<Integer> latestWFSuccessTaskId = Optional.empty();
+
     private ITISCoordinator zkClient;
 
     private ITISFileSystem indexBuildFileSystem;
@@ -80,6 +82,15 @@ public class DefaultChainContext implements IExecChainContext {
 //    public TableDumpFactory getTableDumpFactory() {
 //        throw new UnsupportedOperationException();
 //    }
+
+    /**
+     * 设置最近一次成功执行的历史记录Id
+     *
+     * @param latestWFSuccessTaskId
+     */
+    public void setLatestWFSuccessTaskId(Integer latestWFSuccessTaskId) {
+        this.latestWFSuccessTaskId = Optional.of(latestWFSuccessTaskId);
+    }
 
     //private IIndexMetaData indexMetaData;
 
@@ -375,21 +386,20 @@ public class DefaultChainContext implements IExecChainContext {
 
     @Override
     public PhaseStatusCollection loadPhaseStatusFromLatest() {
-        return loadPhaseStatusFromLatest(this.getIndexName());
+        return loadPhaseStatusFromLatest(this.latestWFSuccessTaskId);
     }
 
     /**
      * 取得pipeline最近一次成功的执行状态
      * TODO 还需要支持workflow的执行状态
      *
-     * @param appName
+     * @param latestWFSuccessTaskId
      * @return
      */
-    public static PhaseStatusCollection loadPhaseStatusFromLatest(String appName) {
+    public static PhaseStatusCollection loadPhaseStatusFromLatest(Optional<Integer> latestWFSuccessTaskId) {
         //FIXME 这段代码在执行workflow时候应该会不兼容，届时再调整
-        Optional<WorkFlowBuildHistory> latestWFSuccessTask = DagTaskUtils.getLatestWFSuccessTaskId(appName);
-
-        return latestWFSuccessTask.map((history) -> IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(history.getId())).orElse(null);
+        // Optional<WorkFlowBuildHistory> latestWFSuccessTask = DagTaskUtils.getLatestWFSuccessTaskId(appName);
+        return latestWFSuccessTaskId.map((historyId) -> IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(historyId)).orElse(null);
 
 //        if (!latestWFSuccessTask.isPresent()) {
 //            return null;

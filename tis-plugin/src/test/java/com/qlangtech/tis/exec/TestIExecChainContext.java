@@ -46,7 +46,7 @@ public class TestIExecChainContext extends TestCase {
         JSONObject instanceParams = IExecChainContext.createInstanceParams(taskId, processor, false, Optional.empty());
         Assert.assertNotNull(instanceParams);
 
-        PluginAndCfgsSnapshot snapshot = DefaultExecContext.resolveCfgsSnapshotConsumer(instanceParams);
+        PluginAndCfgsSnapshot snapshot = AbstractExecContext.resolveCfgsSnapshotConsumer(instanceParams);
         Assert.assertNotNull(snapshot);
     }
 }

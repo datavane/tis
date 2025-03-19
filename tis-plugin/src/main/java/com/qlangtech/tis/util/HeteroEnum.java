@@ -44,6 +44,8 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore.AppKey;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
+import com.qlangtech.tis.plugin.KeyedPluginStore.PluginClassCategory;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
@@ -107,7 +109,8 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             if (StringUtils.isEmpty(tableName)) {
                 throw new IllegalStateException("extra param " + SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID + " can not be empty");
             }
-            Key key = getTransformerRuleKey(pluginContext, tableName);
+            final String appName = pluginMeta.getDataXName();
+            Key key = getTransformerRuleKey(pluginContext, pluginMeta.getProcessModel().resType, appName, tableName);
             return TIS.getPluginStore(key);
         }
 
@@ -115,23 +118,33 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     };
 
 
-    public static Key getTransformerRuleKey(IPluginContext pluginContext, String tableName) {
-        Key key = new TransformerRuleKey(pluginContext, tableName, TRANSFORMER_RULES.extensionPoint);
+    public static Key getTransformerRuleKey(IPluginContext pluginContext, StoreResourceType resourceType, String appname, String tableName) {
+        Key key = new TransformerRuleKey(pluginContext, resourceType, tableName, appname, TRANSFORMER_RULES.extensionPoint);
         return key;
     }
 
-    public static class TransformerRuleKey extends Key {
+    public static class TransformerRuleKey extends KeyedPluginStore.AppKey {
         private final String tableName;
 
-        public TransformerRuleKey(IPluginContext pluginContext, String tableName, Class pluginClass) {
-            super(IFullBuildContext.NAME_APP_DIR, AppKey.calAppName(pluginContext, pluginContext.getCollectionName(), Optional.of("transformer")), pluginClass);
+        /**
+         * IPluginContext pluginContext, StoreResourceType resourceType, String appname, Class<TT> clazz
+         *
+         * @param pluginContext
+         * @param resourceType
+         * @param appname
+         * @param tableName
+         * @param pluginClass
+         */
+        public TransformerRuleKey(IPluginContext pluginContext, StoreResourceType resourceType, String appname, String tableName, Class pluginClass) {
+            // IFullBuildContext.NAME_APP_DIR
+            super(AppKey.calAppName(pluginContext, appname, Optional.of("transformer")), resourceType, new PluginClassCategory(pluginClass));
             this.tableName = tableName;
         }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(keyVal.getKeyVal(), pluginClass.hashCode(), tableName);
-        }
+//        @Override
+//        public int hashCode() {
+//            return Objects.hash(keyVal.getKeyVal(), pluginClass.hashCode(), tableName);
+//        }
 
         @Override
         public String getSerializeFileName() {

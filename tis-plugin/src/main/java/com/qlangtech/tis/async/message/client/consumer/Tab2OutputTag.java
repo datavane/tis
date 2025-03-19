@@ -21,6 +21,7 @@ package com.qlangtech.tis.async.message.client.consumer;
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.realtime.transfer.DTO;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -53,7 +54,10 @@ public class Tab2OutputTag<DTOStream> implements Serializable {
     public <TAG> Map<String, TAG> createTab2OutputTag(Function<DTOStream, TAG> tagCreator) {
         return this.entrySet().stream()
                 .collect(Collectors.toMap( //
-                        (e) -> e.getKey().getFrom()
+                        (e) -> {
+                            EntityName entity = EntityName.parse(e.getKey().getFrom());
+                            return entity.getTabName();
+                        }
                         , (e) -> tagCreator.apply(e.getValue())));
     }
 

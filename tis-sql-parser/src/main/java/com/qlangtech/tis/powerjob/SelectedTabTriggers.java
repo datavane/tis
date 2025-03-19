@@ -20,7 +20,6 @@ package com.qlangtech.tis.powerjob;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.CuratorDataXTaskMessage;
 import com.qlangtech.tis.datax.DataXJobInfo;
 import com.qlangtech.tis.datax.IDataxProcessor;
@@ -30,9 +29,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
-import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -159,58 +156,6 @@ public class SelectedTabTriggers {
 
 
         return mrParams;
-    }
-
-    public static class SelectedTabTriggersConfig {
-
-        private final String tabName;
-        private final String dataXName;
-        private final StoreResourceType resType;
-
-        public SelectedTabTriggersConfig(StoreResourceType resType, String dataXName, String tabName) {
-            this.resType = Objects.requireNonNull(resType, "resType can not be null");
-            if (StringUtils.isEmpty(dataXName)) {
-                throw new IllegalArgumentException("param dataXName can not be empty");
-            }
-            if (StringUtils.isEmpty(tabName)) {
-                throw new IllegalArgumentException("param tabName can not be empty");
-            }
-            this.tabName = tabName;
-            this.dataXName = dataXName;
-        }
-
-
-        private String preTrigger;
-        private String postTrigger;
-        private List<CuratorDataXTaskMessage> splitTabsCfg = Lists.newArrayList();
-
-        public StoreResourceType getResType() {
-            return this.resType;
-        }
-
-        public String getDataXName() {
-            return this.dataXName;
-        }
-
-        public String getTabName() {
-            return this.tabName;
-        }
-
-        public List<CuratorDataXTaskMessage> getSplitTabsCfg() {
-            return this.splitTabsCfg;
-        }
-
-        public void addSplitCfg(CuratorDataXTaskMessage tskMsg) {
-            splitTabsCfg.add(tskMsg);
-        }
-
-        public String getPreTrigger() {
-            return preTrigger;
-        }
-
-        public String getPostTrigger() {
-            return postTrigger;
-        }
     }
 
     public static class SplitTabInfo {

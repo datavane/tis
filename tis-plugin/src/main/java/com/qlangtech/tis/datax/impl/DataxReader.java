@@ -365,6 +365,11 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         return (Class<TT>) BaseDataxReaderDescriptor.class;
     }
 
+    @Override
+    public final boolean isSupportBatch() {
+        return ((BaseDataxReaderDescriptor) this.getDescriptor()).isSupportBatch();
+    }
+
     public static abstract class BaseDataxReaderDescriptor extends Descriptor<DataxReader> implements IDataXEndTypeGetter {
         @Override
         public PluginFormProperties getPluginFormPropertyTypes(Optional<SubFormFilter> subFormFilter) {

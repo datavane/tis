@@ -1344,8 +1344,10 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     // appname 可以为空
     // String appname = this.getString(IFullBuildContext.KEY_APP_NAME);
     // Integer workflowId = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID, null, false);
-    String appname = chainContext.getIndexName();
-    if (StringUtils.isNotBlank(appname)) {
+
+
+    if (chainContext.hasIndexName()) {
+      String appname = chainContext.getIndexName();
       app = this.getApplicationDAO().selectByName(appname);
       if (app == null) {
         throw new IllegalStateException("appname:" + appname + " relevant app pojo is not exist");
