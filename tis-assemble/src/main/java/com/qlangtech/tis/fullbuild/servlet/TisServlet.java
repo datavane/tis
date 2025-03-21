@@ -27,6 +27,7 @@ import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.servlet.impl.HttpExecContext;
 import com.qlangtech.tis.job.common.JobCommon;
+import com.qlangtech.tis.job.common.JobParams;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
@@ -280,8 +281,8 @@ public class TisServlet extends HttpServlet {
     private MDCParamContext getMDCParam(final HttpExecContext execContext, HttpServletResponse res) {
         final String indexName = execContext.getString(IFullBuildContext.KEY_APP_NAME);
         if (StringUtils.isNotEmpty(indexName)) {
-            MDC.put("app", indexName);
-            return StringUtils.startsWith(indexName, TISCollectionUtils.NAME_PREFIX) ?
+            MDC.put(JobParams.KEY_COLLECTION, indexName);
+            return /*StringUtils.startsWith(indexName, TISCollectionUtils.NAME_PREFIX)*/ false ?
                     new FullPhraseMDCParamContext(indexName, res)
                     : new DataXMDCParamContext(indexName, res);
         }
@@ -356,7 +357,7 @@ public class TisServlet extends HttpServlet {
 
         @Override
         void removeParam() {
-            MDC.remove("app");
+            MDC.remove(JobParams.KEY_COLLECTION);
             MDC.remove(IFullBuildContext.KEY_WORKFLOW_ID);
         }
 
@@ -398,14 +399,14 @@ public class TisServlet extends HttpServlet {
 
         @Override
         void removeParam() {
-            MDC.remove("app");
+            MDC.remove(JobParams.KEY_COLLECTION);
             MDC.remove(IFullBuildContext.KEY_WORKFLOW_ID);
         }
 
         @Override
         void resetParam(Integer taskid) {
             super.resetParam(taskid);
-            MDC.put("app", indexName);
+            MDC.put(JobParams.KEY_COLLECTION, indexName);
         }
 
         @Override

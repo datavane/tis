@@ -54,6 +54,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static com.qlangtech.tis.fullbuild.IFullBuildContext.KEY_LASTEST_WORKFLOW_HISTORY_ID;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2015年12月15日 下午4:39:38
@@ -72,6 +74,18 @@ public class DefaultChainContext implements IExecChainContext {
 
     // 执行阶段跨度
     private ExecutePhaseRange executePhaseRange;
+
+    public DefaultChainContext(IParamContext execContext) {
+        super();
+        // DateTimeFormatter yyyyMMddHHmmss = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        this.ps = DataxUtils.currentTimeStamp();
+        this.httpExecContext = execContext;
+        String latestWorkflowHistoryId = execContext.getString(KEY_LASTEST_WORKFLOW_HISTORY_ID);
+        if (StringUtils.isNotEmpty(latestWorkflowHistoryId)) {
+            this.setLatestWFSuccessTaskId(Integer.parseInt(latestWorkflowHistoryId));
+        }
+        ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
+    }
 
     @Override
     public String getJavaMemSpec() {
@@ -144,13 +158,6 @@ public class DefaultChainContext implements IExecChainContext {
         return !this.asynSubJobs.isEmpty();
     }
 
-    public DefaultChainContext(IParamContext execContext) {
-        super();
-        // DateTimeFormatter yyyyMMddHHmmss = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-        this.ps = DataxUtils.currentTimeStamp();
-        this.httpExecContext = execContext;
-        ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
-    }
 
     @Override
     public int getTaskId() {

@@ -1083,7 +1083,8 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
     public IndexName(String param) {
       this.param = param;
-      this.collectionName = TISCollectionUtils.NAME_PREFIX + param;
+      // this.collectionName = TISCollectionUtils.NAME_PREFIX + param;
+      this.collectionName = param;
     }
 
     public String getCollectionName() {

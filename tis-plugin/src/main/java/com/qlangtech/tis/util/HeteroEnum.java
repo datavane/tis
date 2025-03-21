@@ -35,7 +35,6 @@ import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.FileSystemFactory;
@@ -102,16 +101,26 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "transformer", "Transformer", Selectable.Multi, true) {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-
-            // IControlMsgHandler msgHandler = (IControlMsgHandler) pluginContext;
             final String tableName = pluginMeta.getExtraParam(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID);
-
             if (StringUtils.isEmpty(tableName)) {
                 throw new IllegalStateException("extra param " + SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID + " can not be empty");
             }
-            final String appName = pluginMeta.getDataXName();
-            Key key = getTransformerRuleKey(pluginContext, pluginMeta.getProcessModel().resType, appName, tableName);
-            return TIS.getPluginStore(key);
+            return HeteroEnum.createDataXReaderAndWriterRelevant(pluginContext, pluginMeta, new DBOrAppRelevantCreator<IPluginStore>() {
+                @Override
+                public IPluginStore dbRelevant(IPluginContext pluginContext, String saveDbName) {
+                    Key key = getTransformerRuleKey(pluginContext, StoreResourceType.DataBase, saveDbName, tableName);
+                    return TIS.getPluginStore(key);
+                }
+
+                @Override
+                public IPluginStore appRelevant(IPluginContext pluginContext, String dataxName) {
+                    final String appName = dataxName;
+                    Key key = getTransformerRuleKey(pluginContext, pluginMeta.getProcessModel().resType, appName, tableName);
+                    return TIS.getPluginStore(key);
+                }
+            });
+
+
         }
 
 
@@ -119,7 +128,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
 
     public static Key getTransformerRuleKey(IPluginContext pluginContext, StoreResourceType resourceType, String appname, String tableName) {
-        Key key = new TransformerRuleKey(pluginContext, resourceType, tableName, appname, TRANSFORMER_RULES.extensionPoint);
+        Key key = new TransformerRuleKey(pluginContext, resourceType,appname, tableName , TRANSFORMER_RULES.extensionPoint);
         return key;
     }
 
@@ -500,7 +509,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                     //   Class<Describable> clazz = (Class<Describable>) heteroEnum.getExtensionPoint();
                     // DataxReader.SubFieldFormAppKey<Describable> key =
                     return HeteroEnum.createDataXReaderAndWriterRelevant(pluginContext, pluginMeta,
-                            new HeteroEnum.DataXReaderAndWriterRelevantCreator<IPluginStore>() {
+                            new DBOrAppRelevantCreator<IPluginStore>() {
                                 @Override
                                 public IPluginStore dbRelevant(IPluginContext pluginContext, String saveDbName) {
                                     DataxReader.SubFieldFormAppKey key = new DataxReader.SubFieldFormAppKey<>(pluginContext,
@@ -530,7 +539,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             IPluginContext pluginContext, boolean getReader, UploadPluginMeta pluginMeta) {
         IPluginStore<?> store;
         store = createDataXReaderAndWriterRelevant(pluginContext, pluginMeta,
-                new DataXReaderAndWriterRelevantCreator<IPluginStore<?>>() {
+                new DBOrAppRelevantCreator<IPluginStore<?>>() {
                     @Override
                     public IPluginStore<?> dbRelevant(IPluginContext pluginContext, String saveDbName) {
                         if (!getReader) {
@@ -554,7 +563,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
 
     public static <T> T createDataXReaderAndWriterRelevant(IPluginContext pluginContext, UploadPluginMeta pluginMeta,
-                                                           DataXReaderAndWriterRelevantCreator<T> creator) {
+                                                           DBOrAppRelevantCreator<T> creator) {
         final String dataxName = pluginMeta.getDataXName(false);
 
         if (StringUtils.isEmpty(dataxName)) {
@@ -569,7 +578,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         }
     }
 
-    public interface DataXReaderAndWriterRelevantCreator<T> {
+    public interface DBOrAppRelevantCreator<T> {
         public T dbRelevant(IPluginContext pluginContext, String saveDbName);
 
         public T appRelevant(IPluginContext pluginContext, String dataxName);

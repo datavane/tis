@@ -130,7 +130,8 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
 //        }
 
         @Override
-        public TriggerBuildResult triggerJob(IControlMsgHandler module, Context context, String appName, Optional<Long> workflowInstanceIdOpt) {
+        public TriggerBuildResult triggerJob(IControlMsgHandler module, Context context, String appName
+                , Optional<Long> workflowInstanceIdOpt, Optional<WorkFlowBuildHistory> latestWorkflowHistory) {
             return null;
         }
 

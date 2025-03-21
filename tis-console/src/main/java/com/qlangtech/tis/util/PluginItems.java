@@ -313,6 +313,8 @@ public class PluginItems implements IPluginItemsProcessor {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.noStore) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
+    } else if (heteroEnum == HeteroEnum.TRANSFORMER_RULES) {
+      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else {
       if (heteroEnum.isAppNameAware()) {
         if (!this.pluginContext.isCollectionAware()) {

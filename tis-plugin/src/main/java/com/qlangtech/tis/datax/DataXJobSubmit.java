@@ -272,9 +272,12 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
      * @param context
      * @param appName
      * @param powerJobWorkflowInstanceIdOpt 如果是手动触发则为空,如果是定时触发的，例如在powerjob系统中已经生成了powerjob 的workflowInstanceId
+     * @param latestWorkflowHistory         最近一次成功执行的历史记录
      * @return
      */
-    public abstract TriggerBuildResult triggerJob(IControlMsgHandler module, final Context context, String appName, Optional<Long> powerJobWorkflowInstanceIdOpt);
+    public abstract TriggerBuildResult triggerJob(
+            IControlMsgHandler module, final Context context, String appName
+            , Optional<Long> powerJobWorkflowInstanceIdOpt, Optional<WorkFlowBuildHistory> latestWorkflowHistory);
 
     /**
      * 触发workflow执行

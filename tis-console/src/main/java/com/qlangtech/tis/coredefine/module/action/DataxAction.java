@@ -97,6 +97,7 @@ import com.qlangtech.tis.plugin.ds.IInitWriterTableExecutor;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.IdlistElementCreatorFactory;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
+import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
@@ -195,6 +196,8 @@ public class DataxAction extends BasicModule {
       return;
     }
 
+    WorkFlowBuildHistory latestWorkflowHistory
+      = this.getDaoContext().getLatestSuccessWorkflowHistory(SynResTarget.pipeline(dataXProcessor.identityValue()));
 
     Optional<JobTrigger> partialTrigger = JobTrigger.getPartialTriggerFromContext(context);
     DataXCfgGenerator.GenerateCfgs cfgFileNames = dataXProcessor.getDataxCfgFileNames(null, partialTrigger);
@@ -217,7 +220,7 @@ public class DataxAction extends BasicModule {
 
     // this.setBizResult(context, TriggerBuildResult.triggerBuild(this, context, params));
     this.setBizResult(context, jobSubmit.triggerJob(
-      this, context, this.getCollectionName(), powerJobWorkflowInstanceId));
+      this, context, this.getCollectionName(), powerJobWorkflowInstanceId, Optional.ofNullable(latestWorkflowHistory)));
   }
 
 

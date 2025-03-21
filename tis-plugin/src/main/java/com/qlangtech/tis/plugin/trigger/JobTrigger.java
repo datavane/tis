@@ -24,6 +24,7 @@ import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -32,6 +33,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.qlangtech.tis.fullbuild.IFullBuildContext.KEY_LASTEST_WORKFLOW_HISTORY_ID;
 
 /**
  * 触发任务执行扩展点
@@ -88,5 +91,11 @@ public abstract class JobTrigger implements Describable<JobTrigger> {
         }
         return new HttpUtils.PostParam(IFullBuildContext.KEY_PARTIAL_TABS_JOB_TRIGGER, this.selectedTabs().stream().map((tab) -> tab.identityValue())
                 .collect(Collectors.joining(",")));
+    }
+
+    public static void addLatestWorkflowHistoryAsParam(List<HttpUtils.PostParam> params, Optional<WorkFlowBuildHistory> latestWorkflowHistory) {
+        latestWorkflowHistory.ifPresent((wfHistory) -> {
+            params.add(new HttpUtils.PostParam(KEY_LASTEST_WORKFLOW_HISTORY_ID, wfHistory.getId()));
+        });
     }
 }

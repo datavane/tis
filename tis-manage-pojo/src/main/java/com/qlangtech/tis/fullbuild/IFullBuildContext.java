@@ -39,6 +39,10 @@ public interface IFullBuildContext {
     String KEY_PARTIAL_TABS_JOB_TRIGGER = "partialTabs";
 
     String KEY_WORKFLOW_ID = "workflow_id";
+    /**
+     * 最新一次成功执行的workflow history 记录
+     */
+    String KEY_LASTEST_WORKFLOW_HISTORY_ID = "latest_workflow_history_id";
 
     String KEY_WORKFLOW_NAME = "workflow_name";
 

@@ -76,6 +76,8 @@ public class WorkFlowBuildHistory implements Serializable, IBuildHistory {
     @Override
     public Integer getTaskId() {
         return this.id;
+
+
     }
 
     public static long getSerialVersionUID() {
