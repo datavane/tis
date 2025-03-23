@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.async.message.client.consumer.impl;
 
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.async.message.client.consumer.IConsumerHandle;
@@ -28,13 +29,19 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.annotation.FormField;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.incr.ISelectedTabExtendFactory;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
+import com.qlangtech.tis.realtime.transfer.DTO;
 import com.qlangtech.tis.util.HeteroEnum;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,6 +60,33 @@ public abstract class MQListenerFactory
 
     public static String dftZoneId() {
         return DEFAULT_SERVER_TIME_ZONE.getId();
+    }
+
+    /**
+     * 需要过滤数据流中某种特定类型的事件类型，如delete类型
+     */
+    @FormField(ordinal = 10, advance = true, type = FormFieldType.ENUM, validate = {})
+    public List<String> filterRowKind;
+
+
+
+    public List<DTO.EventType> getFilterRowKinds() {
+        if (CollectionUtils.isEmpty(this.filterRowKind)) {
+            return Collections.emptyList();
+        }
+        List<DTO.EventType> kinds = Lists.newArrayList();
+        for (String filter : filterRowKind) {
+            kinds.add(DTO.EventType.parse(filter));
+        }
+        return kinds;
+    }
+
+    public static List<Option> availableRowKinds() {
+        List<Option> opts = new ArrayList<>();
+        for (DTO.EventType rk : DTO.EventType.values()) {
+            opts.add(new Option(rk.getTypeName(), rk.getTypeName()));
+        }
+        return opts;
     }
 
     public static List<Option> availableZoneIds() {

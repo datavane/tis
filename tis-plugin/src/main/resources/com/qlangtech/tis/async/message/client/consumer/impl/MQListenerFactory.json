@@ -1,0 +1,8 @@
+{
+  "filterRowKind": {
+    "label": "过滤",
+    "enumMode": "multiple",
+    "help": "可以将数据流中将某一种事件类型的事件过滤掉，有以下几种类型可以选择：INSERT, UPDATE_BEFORE, UPDATE_AFTER, DELETE",
+    "enum": "com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory.availableRowKinds():uncache_true"
+  }
+}
