@@ -20,13 +20,12 @@ package com.qlangtech.tis.datax;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.config.ParamsConfig;
-import com.qlangtech.tis.config.k8s.ReplicasSpec;
-import com.qlangtech.tis.coredefine.module.action.Specification;
-import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.MemorySpecification;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.impl.DefaultMemorySpecification;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang3.StringUtils;
@@ -45,8 +44,6 @@ import java.util.concurrent.TimeUnit;
 public abstract class DataXJobSubmitParams extends ParamsConfig implements IPluginStore.AfterPluginSaved {
     private static final String LOCAL_DATAX_SUBMIT_PARAMS = "DataXSubmitParams";
     private static final String FIELD_NAME = "name";
-
-    private static final Integer MEMORY_REQUEST_DEFAULT = 1024;
 
     @FormField(ordinal = 0, identity = true, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.identity})
     public String name;
@@ -69,12 +66,14 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
     @FormField(ordinal = 3, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
     public Integer vmParallelism;
 
-    @FormField(ordinal = 4, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
-    public Integer memoryRequest;
+//    @FormField(ordinal = 4, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
+//    public Integer memoryRequest;
+//
+//    @FormField(ordinal = 5, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
+//    public Integer memoryLimit;
 
-    @FormField(ordinal = 5, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
-    public Integer memoryLimit;
-
+    @FormField(ordinal = 4, validate = {Validator.require})
+    public MemorySpecification memorySpec;
 
     /**
      * 取得内存规格参数
@@ -82,10 +81,11 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
      * @return
      */
     public String getJavaMemorySpec() {
-        ReplicasSpec replicSpec = new ReplicasSpec();
-        replicSpec.setMemoryLimit(Specification.parse(this.memoryLimit + Specification.MEMORY_UNIT_MEGABYTE));
-        replicSpec.setMemoryRequest(Specification.parse(this.memoryRequest + Specification.MEMORY_UNIT_MEGABYTE));
-        return replicSpec.toJavaMemorySpec(Optional.empty());
+        return Objects.requireNonNull(memorySpec).getJavaMemorySpec();
+//        ReplicasSpec replicSpec = new ReplicasSpec();
+//        replicSpec.setMemoryLimit(Specification.parse(this.memoryLimit + Specification.MEMORY_UNIT_MEGABYTE));
+//        replicSpec.setMemoryRequest(Specification.parse(this.memoryRequest + Specification.MEMORY_UNIT_MEGABYTE));
+//        return replicSpec.toJavaMemorySpec(Optional.empty());
     }
 
     private transient ArrayBlockingQueue<Long> availableAreaController;
@@ -139,8 +139,9 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
             dft.maxJobs = DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB;
             dft.vmParallelism = DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
             dft.pipelineParallelism = DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
-            dft.memoryLimit = MEMORY_REQUEST_DEFAULT;
-            dft.memoryRequest = MEMORY_REQUEST_DEFAULT;
+            dft.memorySpec = new DefaultMemorySpecification();
+//            dft.memoryLimit = MEMORY_REQUEST_DEFAULT;
+//            dft.memoryRequest = MEMORY_REQUEST_DEFAULT;
             return dft;
         });
     }
@@ -153,9 +154,7 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
         return DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
     }
 
-    public static Integer dftMemory() {
-        return MEMORY_REQUEST_DEFAULT;
-    }
+
 
     /**
      * 由于配置实例LocalDataXJobSubmitParams 为单例，只能返回一个，在TIS中配置需要保证其单例性
@@ -192,8 +191,6 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
             return this.verify(msgHandler, context, postFormVals);
         }
 
-        private static final String FIELD_MEMORY_LIMIT = "memoryLimit";
-        private static final String FIELD_MEMORY_REQUEST = "memoryRequest";
         private static final String FIELD_PIPELINE_PARALLELISM = "pipelineParallelism";
         private static final String FIELD_VM_PARALLELISM = "vmParallelism";
 
@@ -203,7 +200,7 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
             DataXJobSubmitParams submitParams = postFormVals.newInstance();
             if (params.isPresent()) {
                 DataXJobSubmitParams already = params.get();
-                if(!StringUtils.equals(already.name,submitParams.name)){
+                if (!StringUtils.equals(already.name, submitParams.name)) {
                     msgHandler.addFieldError(context, FIELD_NAME, "该配置必须为单实例，已经存在ID为：" + already.name + "的配置实例");
                     return false;
                 }
@@ -214,19 +211,19 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
                 msgHandler.addFieldError(context, "maxJobs", "不能小于" + DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB);
                 validateFaild = true;
             }
-            if (submitParams.memoryLimit < MEMORY_REQUEST_DEFAULT) {
-                msgHandler.addFieldError(context, FIELD_MEMORY_LIMIT, "不能小于" + MEMORY_REQUEST_DEFAULT);
-                validateFaild = true;
-            }
-            if (submitParams.memoryRequest < MEMORY_REQUEST_DEFAULT) {
-                msgHandler.addFieldError(context, FIELD_MEMORY_REQUEST, "不能小于" + MEMORY_REQUEST_DEFAULT);
-                validateFaild = true;
-            }
-            if (!validateFaild && (submitParams.memoryLimit < submitParams.memoryRequest)) {
-                msgHandler.addFieldError(context, FIELD_MEMORY_REQUEST, "不能小于" + submitParams.memoryLimit);
-                msgHandler.addFieldError(context, FIELD_MEMORY_LIMIT, "不能大于" + submitParams.memoryRequest);
-                validateFaild = true;
-            }
+//            if (submitParams.memoryLimit < MemorySpecification.MEMORY_REQUEST_DEFAULT) {
+//                msgHandler.addFieldError(context, MemorySpecification.FIELD_MEMORY_LIMIT, "不能小于" + MemorySpecification.MEMORY_REQUEST_DEFAULT);
+//                validateFaild = true;
+//            }
+//            if (submitParams.memoryRequest < MemorySpecification.MEMORY_REQUEST_DEFAULT) {
+//                msgHandler.addFieldError(context, MemorySpecification.FIELD_MEMORY_REQUEST, "不能小于" + MemorySpecification.MEMORY_REQUEST_DEFAULT);
+//                validateFaild = true;
+//            }
+//            if (!validateFaild && (submitParams.memoryLimit < submitParams.memoryRequest)) {
+//                msgHandler.addFieldError(context, MemorySpecification.FIELD_MEMORY_REQUEST, "不能小于" + submitParams.memoryLimit);
+//                msgHandler.addFieldError(context, MemorySpecification.FIELD_MEMORY_LIMIT, "不能大于" + submitParams.memoryRequest);
+//                validateFaild = true;
+//            }
             //parallelism====================================
             if (submitParams.pipelineParallelism < DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM) {
                 msgHandler.addFieldError(context, FIELD_PIPELINE_PARALLELISM, "不能小于" + DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM);

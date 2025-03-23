@@ -9,20 +9,17 @@
   },
   "pipelineParallelism": {
     "label": "管道任务并发数",
-    "help":"在单个管道同步过程中允许任务并发数目",
-    "dftVal":"com.qlangtech.tis.datax.DataXJobSubmitParams.dftParallelism()"
+    "help": "在单个管道同步过程中允许任务并发数目",
+    "dftVal": "com.qlangtech.tis.datax.DataXJobSubmitParams.dftParallelism()"
   },
   "vmParallelism": {
     "label": "VM任务并发数",
-    "help":"单机版中允许多个同步管道并行执行，由于单机节点内存有限，需要确保VM级别设置DataX任务并发执行数目",
-    "dftVal":"com.qlangtech.tis.datax.DataXJobSubmitParams.dftParallelism()"
+    "help": "单机版中允许多个同步管道并行执行，由于单机节点内存有限，需要确保VM级别设置DataX任务并发执行数目",
+    "dftVal": "com.qlangtech.tis.datax.DataXJobSubmitParams.dftParallelism()"
   },
-  "memoryRequest": {
-    "help":"单个DataX任务内存初始申请，单位：兆。当任务并发数目设置为：n，内存总体初始开销为'n*memoryRequest'，注意防止执行节点OOM",
-    "dftVal": "com.qlangtech.tis.datax.DataXJobSubmitParams.dftMemory()"
-  },
-  "memoryLimit": {
-    "help":"单个DataX任务内存最大极限申请，单位：兆。当任务并发数目设置为：n，内存总体最大极限开销为'n*memoryLimit'，注意防止执行节点OOM",
-    "dftVal": "com.qlangtech.tis.datax.DataXJobSubmitParams.dftMemory()"
+  "memorySpec": {
+    "label": "内存规格",
+    "help": "执行DataX任务申请内存规格,默认为1024兆，如执行大表同步任务请按照实际需求量设置自定义规格",
+    "dftVal": "default"
   }
 }

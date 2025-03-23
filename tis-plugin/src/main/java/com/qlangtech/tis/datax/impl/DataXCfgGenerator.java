@@ -46,8 +46,10 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.AppAndRuntime;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.maven.plugins.tpi.ICoord;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
+import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
@@ -237,7 +239,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
                     }
                     File configFile = DataXJobInfo.getJobPath(dataXCfgDir, readerContext.getReaderContextId(),
                             readerContext.getTaskName() + DataXCfgFile.DATAX_CREATE_DATAX_CFG_FILE_NAME_SUFFIX);
-                    FileUtils.write(configFile, generateDataxConfig(readerContext,  writer, reader, tableMapper
+                    FileUtils.write(configFile, generateDataxConfig(readerContext, writer, reader, tableMapper
                     ), TisUTF8.get(), false);
                 }
 
@@ -509,30 +511,37 @@ public class DataXCfgGenerator implements IDataXNameAware {
             return this.getGroupedChildTask().keySet();
         }
 
-//        public final Set<TransformerInfo> getTransformerInfo() {
-//            Set<TransformerInfo> tinfos = new HashSet<>();
-//            Key transformerRuleKey = HeteroEnum.getTransformerRuleKey(pluginCtx, "dump");
-//            XmlFile sotre = transformerRuleKey.getSotreFile();
-//            File parent = sotre.getFile().getParentFile();
-//            if (!parent.exists()) {
-//                return Collections.emptySet();
-//            }
-//            Optional<RecordTransformerRules> transformerRules = null;
-//            String xmlExtend = Descriptor.getPluginFileName(StringUtils.EMPTY);
-//            SuffixFileFilter filter = new SuffixFileFilter(xmlExtend);
-//            Collection<File> matched = FileUtils.listFiles(parent, filter, FalseFileFilter.INSTANCE);
-//            for (File tfile : matched) {
-//                String tabName = StringUtils.substringBefore(tfile.getName(), xmlExtend);
-//                if (this.groupedChildTask.containsKey(tabName)) {
-//                    transformerRules = RecordTransformerRules.loadTransformerRules(pluginCtx, tabName);
-//
-//                    if (transformerRules.isPresent()) {
-//                        tinfos.add(new TransformerInfo(tabName, transformerRules.get().rules.size()));
-//                    }
-//                }
-//            }
-//            return tinfos;
-//        }
+        /**
+         * 给前端用的
+         *
+         * @return
+         */
+        @JSONField(name = "transformerInfo", serialize = true)
+        public final Set<TransformerInfo> getTransformerInfo() {
+            Set<TransformerInfo> tinfos = new HashSet<>();
+            Key transformerRuleKey = HeteroEnum.getTransformerRuleKey(
+                    pluginCtx, StoreResourceType.DataApp, pluginCtx.getCollectionName(), "dump");
+            XmlFile sotre = transformerRuleKey.getSotreFile();
+            File parent = sotre.getFile().getParentFile();
+            if (!parent.exists()) {
+                return Collections.emptySet();
+            }
+            Optional<RecordTransformerRules> transformerRules = null;
+            String xmlExtend = Descriptor.getPluginFileName(StringUtils.EMPTY);
+            SuffixFileFilter filter = new SuffixFileFilter(xmlExtend);
+            Collection<File> matched = FileUtils.listFiles(parent, filter, FalseFileFilter.INSTANCE);
+            for (File tfile : matched) {
+                String tabName = StringUtils.substringBefore(tfile.getName(), xmlExtend);
+                if (this.groupedChildTask.containsKey(tabName)) {
+                    transformerRules = RecordTransformerRules.loadTransformerRules(
+                            pluginCtx, StoreResourceType.DataApp, pluginCtx.getCollectionName(), tabName);
+                    if (transformerRules.isPresent()) {
+                        tinfos.add(new TransformerInfo(tabName, transformerRules.get().rules.size()));
+                    }
+                }
+            }
+            return tinfos;
+        }
 
         /**
          * Map<String, List<String>> key: logicTableName
