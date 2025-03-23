@@ -27,6 +27,7 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.impl.DefaultMemorySpecification;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang3.StringUtils;
 
@@ -59,20 +60,19 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
      */
     @FormField(ordinal = 2, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
     public Integer pipelineParallelism;
-
     /**
      * 单机VM中的任务并行度
      */
     @FormField(ordinal = 3, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
     public Integer vmParallelism;
 
-//    @FormField(ordinal = 4, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
-//    public Integer memoryRequest;
-//
-//    @FormField(ordinal = 5, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
-//    public Integer memoryLimit;
+    /**
+     * 最大执行任务时间，如果超过需要主动将任务关闭甚至Kill掉
+     */
+    @FormField(ordinal = 4, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
+    public Integer taskExpireHours;
 
-    @FormField(ordinal = 4, validate = {Validator.require})
+    @FormField(ordinal = 5, validate = {Validator.require})
     public MemorySpecification memorySpec;
 
     /**
@@ -155,7 +155,6 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
     }
 
 
-
     /**
      * 由于配置实例LocalDataXJobSubmitParams 为单例，只能返回一个，在TIS中配置需要保证其单例性
      *
@@ -193,6 +192,21 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
 
         private static final String FIELD_PIPELINE_PARALLELISM = "pipelineParallelism";
         private static final String FIELD_VM_PARALLELISM = "vmParallelism";
+
+
+        public boolean validateTaskExpireHours(IFieldErrorHandler msgHandler, Context context, String fieldName, String value) {
+            Integer hours = Integer.parseInt(value);
+            if (hours < 1) {
+                msgHandler.addFieldError(context, fieldName, "不能小于1");
+                return false;
+            }
+            int maxHours = 24;
+            if (hours > maxHours) {
+                msgHandler.addFieldError(context, fieldName, "不能大于" + maxHours + "小时");
+                return false;
+            }
+            return true;
+        }
 
         @Override
         protected boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {

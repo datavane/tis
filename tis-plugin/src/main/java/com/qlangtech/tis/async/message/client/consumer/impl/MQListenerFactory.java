@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.async.message.client.consumer.impl;
 
+import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
@@ -36,6 +37,8 @@ import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.incr.ISelectedTabExtendFactory;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.realtime.transfer.DTO;
+import com.qlangtech.tis.realtime.transfer.DTO.EventType;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.HeteroEnum;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -57,6 +60,7 @@ import java.util.Optional;
 public abstract class MQListenerFactory
         implements IMQListenerFactory, IMQConsumerStatusFactory, Describable<MQListenerFactory> {
     public static final ZoneId DEFAULT_SERVER_TIME_ZONE = ZoneId.systemDefault();
+    private static final String KEY_filterRowKind = "filterRowKind";
 
     public static String dftZoneId() {
         return DEFAULT_SERVER_TIME_ZONE.getId();
@@ -67,7 +71,6 @@ public abstract class MQListenerFactory
      */
     @FormField(ordinal = 10, advance = true, type = FormFieldType.ENUM, validate = {})
     public List<String> filterRowKind;
-
 
 
     public List<DTO.EventType> getFilterRowKinds() {
@@ -149,6 +152,17 @@ public abstract class MQListenerFactory
     }
 
     public static abstract class BaseDescriptor extends Descriptor<MQListenerFactory> implements IEndTypeGetter {
+
+        @Override
+        protected boolean validateAll(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+            MQListenerFactory sourceFactory = postFormVals.newInstance();
+            if (sourceFactory.getFilterRowKinds().size() == EventType.values().length) {
+                msgHandler.addFieldError(context, KEY_filterRowKind, "不能选择全部类型");
+                return false;
+            }
+
+            return true;
+        }
 
         @Override
         public final Map<String, Object> getExtractProps() {

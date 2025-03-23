@@ -293,7 +293,7 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
 
         @Override
         public void addNestMsg(String nestKey, String val) {
-            throw new UnsupportedOperationException("nestKey:" + nestKey + ",val:" + val + ",msg:" + this.msg);
+           // throw new UnsupportedOperationException("nestKey:" + nestKey + ",val:" + val + ",msg:" + this.msg);
         }
     }
 
