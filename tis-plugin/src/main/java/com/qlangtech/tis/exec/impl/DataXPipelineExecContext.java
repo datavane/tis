@@ -69,6 +69,15 @@ public class DataXPipelineExecContext extends AbstractExecContext {
 //        }
     }
 
+    @Override
+    public Integer getWorkflowId() {
+        return null;
+    }
+
+    @Override
+    public String getWorkflowName() {
+        return null;
+    }
 
     @Override
     public String identityValue() {

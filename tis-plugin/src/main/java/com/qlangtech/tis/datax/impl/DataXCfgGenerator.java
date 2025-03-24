@@ -157,7 +157,8 @@ public class DataXCfgGenerator implements IDataXNameAware {
         if (transformerRules.isPresent()) {
             readerTpl.append(",\n\t\"")
                     .append(TransformerConstant.JOB_TRANSFORMER).append("\":\t\t\n {\"").append(TransformerConstant.JOB_TRANSFORMER_NAME)
-                    .append("\":\"").append(readerContext.getSourceEntityName()).append("\",\n\"")
+                    //.append("\":\"").append(readerContext.getSourceEntityName()).append("\",\n\"") getSourceEntityName() 方法返回的有转义符
+                    .append("\":\"").append(readerContext.getSourceTableName()).append("\",\n\"") // getSourceTableName() 方法返回的没有转义符
                     .append(TransformerConstant.JOB_TRANSFORMER_RELEVANT_KEYS).append("\":").append("[")
                     .append(transformerRules.get().relevantColKeys().stream().map((col) -> "\"" + col + "\"").collect(Collectors.joining(",")))
                     .append("]").append("}");

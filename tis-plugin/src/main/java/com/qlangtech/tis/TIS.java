@@ -333,7 +333,8 @@ public class TIS {
         DataSourceFactoryPluginStore pluginStore = getDataSourceFactoryPluginStore(dsProp);
         DS ds = (DS) pluginStore.getPlugin();
         if (validateNull) {
-            Objects.requireNonNull(ds, dsProp.toString() + " relevant plugin can not be null ");
+            Objects.requireNonNull(ds, dsProp.toString()
+                    + " relevant plugin can not be null，store file:" + pluginStore.getTargetFile().getFile());
         }
         return ds;
     }
