@@ -140,6 +140,7 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
             dft.vmParallelism = DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
             dft.pipelineParallelism = DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
             dft.memorySpec = new DefaultMemorySpecification();
+            dft.taskExpireHours = 10;
 //            dft.memoryLimit = MEMORY_REQUEST_DEFAULT;
 //            dft.memoryRequest = MEMORY_REQUEST_DEFAULT;
             return dft;
