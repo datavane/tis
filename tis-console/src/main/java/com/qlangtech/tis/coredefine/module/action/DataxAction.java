@@ -1016,6 +1016,17 @@ public class DataxAction extends BasicModule {
     }
   }
 
+  /**
+   * 将DDl脚本手动同步到目标端
+   * @param context
+   * @throws Exception
+   */
+  @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doSyncSqlDdlCfgsToTarget(Context context) throws Exception {
+     //TODO 这个功能还挺复杂的，需要考虑如果目标表已经存在，且有数据的情况，如果将目标表冒然删除重建这样太粗暴了，需要考虑变化了什么列，通过alter表结构的方式去更新比较妥当
+
+  }
+
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doRegenerateSqlDdlCfgs(Context context) throws Exception {
     String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
