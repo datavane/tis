@@ -28,8 +28,8 @@ import java.text.MessageFormat;
  */
 public abstract class TISBaseCriteria extends BasicCriteria {
 
-    private static final MessageFormat DB_DERBY_PAGINATION_FORMAT = new MessageFormat(" OFFSET {0} ROWS FETCH NEXT {1} ROWS ONLY");
-    private static final MessageFormat DB_MYSQL_PAGINATION_FORMAT = new MessageFormat(" limit {0},{1}");
+    private static final MessageFormat DB_DERBY_PAGINATION_FORMAT = new MessageFormat(" OFFSET {0,number,#} ROWS FETCH NEXT {1,number,#} ROWS ONLY");
+    private static final MessageFormat DB_MYSQL_PAGINATION_FORMAT = new MessageFormat(" limit {0,number,#},{1,number,#}");
 
     public final String getPaginationScript() {
 

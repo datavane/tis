@@ -30,6 +30,7 @@ import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.StoreResourceTypeGetter;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.util.IPluginContext;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -57,6 +58,9 @@ public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGe
     }
 
     static KeyedPluginStore.AppKey createAppSourceKey(IPluginContext context, StoreResourceType resType, String appName) {
+        if (StringUtils.isEmpty(appName)) {
+            throw new IllegalArgumentException("param appName can not be empty");
+        }
         return new KeyedPluginStore.AppKey(context, resType, appName, IAppSource.class);
     }
 
