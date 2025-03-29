@@ -53,15 +53,6 @@ public class AttrVals implements AttrValMap.IAttrVals {
             result.put(key, (JSONObject) val);
         });
         return result;
-//        return this.attrValMap.entrySet()
-//                .stream().collect(Collectors.toMap((e) -> e.getKey()
-//                        , (e) -> {
-//                            JSON j = e.getValue();
-//                            if (!(j instanceof JSONObject)) {
-//                                throw new IllegalStateException("type must be a object:\n" + JsonUtil.toString(j));
-//                            }
-//                            return (JSONObject) e.getValue();
-//                        }));
     }
 
     /**

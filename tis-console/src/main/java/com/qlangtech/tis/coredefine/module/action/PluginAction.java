@@ -69,6 +69,7 @@ import com.qlangtech.tis.util.IPluginWithStore;
 import com.qlangtech.tis.util.IUploadPluginMeta;
 import com.qlangtech.tis.util.ItemsSaveResult;
 import com.qlangtech.tis.util.PluginItems;
+import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
@@ -100,6 +101,8 @@ import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -168,6 +171,16 @@ public class PluginAction extends BasicModule {
   }
 
   private static IconsDefs iconsDefsWithCheckSum;
+
+  /**
+   * 取得端类型相对应的插件列表
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doGetEndtypeDescs(Context context) throws Exception {
+
+  }
 
   public void doGetEndtypeIcons(Context context) throws Exception {
 
@@ -842,6 +855,39 @@ public class PluginAction extends BasicModule {
     });
 
     this.setBizResult(context, new DescriptorsJSON(descs).getDescriptorsJSON());
+  }
+
+  /**
+   * 取得Descs列表
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doGetDescs(Context context) throws Exception {
+    String[] descsImpl = this.getStringArray("desc");
+    if (descsImpl == null || descsImpl.length < 1) {
+      throw new IllegalStateException("argument desc can not be empty");
+    }
+    com.alibaba.fastjson.JSONObject pluginDetail = new com.alibaba.fastjson.JSONObject();
+    com.alibaba.fastjson.JSONArray hlistArray = new com.alibaba.fastjson.JSONArray();
+    HeteroList hList = null;
+    // List<Descriptor> descs = new ArrayList<>();
+    Descriptor desc = null;
+    for (String extImpl : descsImpl) {
+      desc = TIS.get().getDescriptor(extImpl);
+      if (desc == null) {
+        throw new IllegalStateException("extImpl:" + extImpl + " relevant desc can not be null");
+      }
+      hList = new HeteroList(UploadPluginMeta.parse("test_plugin:" + KEY_REQUIRE));
+      hList.setDescriptors(Collections.singletonList(desc));
+      hList.setSelectable(Selectable.Single);
+      hList.setCaption(desc.clazz.getSimpleName());
+      hList.setExtensionPoint(desc.getT());
+
+      hlistArray.add(hList.toJSON());
+    }
+    pluginDetail.put("plugins", hlistArray);
+    this.setBizResult(context, pluginDetail);
   }
 
   /**

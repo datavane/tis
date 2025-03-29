@@ -89,16 +89,12 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         return load(pluginContext, StoreResourceType.DataApp, dataXName);
     }
 
-//    public static IDataxProcessor load(IPluginContext pluginContext, StoreResourceType resType, String dataXName) {
-//        return load(pluginContext, resType, dataXName);
-//    }
 
     public static IDataxProcessor load(IPluginContext pluginContext, StoreResourceType resType, String dataXName) {
         if (processorGetter != null) {
             return processorGetter.get(dataXName);
         }
 
-//        try {
         Optional<IAppSource> appSource = IAppSource.loadNullable(pluginContext, resType, dataXName);
         if (appSource.isPresent()) {
             return (IDataxProcessor) appSource.get();
@@ -177,9 +173,6 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     @Override
     public TableAliasMapper getTabAlias(IPluginContext pluginCtx) {
         boolean isReaderUnStructed = false;
-//        if (this.isRDBMS2RDBMS(null)
-//                || this.isRDBMS2UnStructed(null)
-//                || (isReaderUnStructed = this.isReaderUnStructed(null))) {
 
         if ((this.isRDBMS2RDBMS(pluginCtx))
                 || (isReaderUnStructed = this.isReaderUnStructed(pluginCtx))
@@ -205,11 +198,6 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
             IDataxReader reader = this.getReader(pluginCtx);
             List<ISelectedTab> tabs = reader.getSelectedTabs();
 
-//            if (isReaderUnStructed) {
-//                throw new IllegalStateException("isReaderUnStructed must be false");
-//            }
-
-            // if (!isReaderUnStructed) {
             Map<String, TableAlias> mapper = Maps.newHashMap();
             for (ISelectedTab tab : tabs) {
                 mapper.put(tab.getName(), new TableMap(tab));
@@ -217,9 +205,6 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
             return new TableAliasMapper(mapper);
 
 
-//            } else {
-//                throw new UnsupportedOperationException("reader shall be RDBMS");
-//            }
         }
 
 
@@ -281,11 +266,6 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         return DataxWriter.load(pluginCtx, StoreResourceType.DataApp, this.identityValue(), validateNull);
     }
 
-    //
-//    private transient static Cache<String, Map<String, INotebookable.NotebookEntry>> scanNotebookCache
-//            = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).build();
-
-
     /**
      * 从Reader和Writer实例中扫面可以作为notebook的实例
      *
@@ -298,8 +278,6 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 
     @Override
     public File getDataxCfgDir(IPluginContext pluginContext) {
-//        File dataXWorkDir = getDataXWorkDir(pluginContext);
-//        return new File(dataXWorkDir, DATAX_CFG_DIR_NAME);
         return getDataxCfgDir(pluginContext, this);
     }
 
@@ -377,20 +355,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         public DataxReader getReader() {
             return reader;
         }
-
-
     }
-
-//     "setting": {
-//        "speed": {
-//            "channel": 3
-//        },
-//        "errorLimit": {
-//            "record": 0,
-//                    "percentage": 0.02
-//        }
-//    },
-
 
     /**
      * =======================================
@@ -401,36 +366,4 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     public boolean isExcludeFacadeDAOSupport() {
         return true;
     }
-//
-//    @Override
-//    public Map<IEntityNameGetter, List<IValChain>> getTabTriggerLinker() {
-//
-//        Map<IEntityNameGetter, List<IValChain>> tabColsMapper = Maps.newHashMap();
-//        IDataxReader reader = this.getReader(null);
-//        Objects.requireNonNull(reader, "dataXReader can not be null");
-//        List<ISelectedTab> selectedTabs = reader.getSelectedTabs();
-//        for (ISelectedTab tab : selectedTabs) {
-//            tabColsMapper.put(() -> EntityName.parse(tab.getName()), Collections.emptyList());
-//        }
-//
-//        return tabColsMapper;
-//    }
-//
-//    @Override
-//    public Map<DBNode, List<String>> getDependencyTables(IDBTableNamesGetter dbTableNamesGetter) {
-//        return Collections.emptyMap();
-//    }
-//
-//    @Override
-//    public IERRules getERRule() {
-//        ERRules erRules = new ERRules() {
-//            public List<PrimaryTableMeta> getPrimaryTabs() {
-//                TabExtraMeta tabMeta = new TabExtraMeta();
-//                PrimaryTableMeta ptab = new PrimaryTableMeta("tabName", tabMeta);
-//                return Collections.singletonList(ptab);
-//            }
-//        };
-//
-//        return erRules;
-//    }
 }

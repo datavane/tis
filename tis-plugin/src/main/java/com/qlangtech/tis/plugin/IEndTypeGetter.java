@@ -97,7 +97,9 @@ public interface IEndTypeGetter {
 
     enum EndTypeCategory {
         Data,
-        Assist
+        Assist,
+        // 图标
+        Icon
     }
 
     /**
@@ -130,25 +132,28 @@ public interface IEndTypeGetter {
         , HiveMetaStore("hms", EndTypeCategory.Data, true) //
         , Spark("spark", EndTypeCategory.Data, true) //
         , RabbitMQ("rabbitmq", EndTypeCategory.Data, true) //
-        , UnKnowStoreType("unknowStoreType", EndTypeCategory.Assist, true),
 
-        PowerJob("powerjob", EndTypeCategory.Assist, true),
+
+        , PowerJob("powerjob", EndTypeCategory.Assist, true),
         Flink("flink", EndTypeCategory.Assist, true)//
         , Docker("docker", EndTypeCategory.Assist, true) //
-        , K8S("k8s", EndTypeCategory.Assist, true),
-        BliBli("blibli", EndTypeCategory.Assist, true),
-        StreamComputing("stream-computing", EndTypeCategory.Assist, true) //
-        , BatchComputing("batch-computing", EndTypeCategory.Assist, true)//
-        , Dolphinscheduler("ds", EndTypeCategory.Assist, true)
+        , K8S("k8s", EndTypeCategory.Assist, true)//
+        , Dolphinscheduler("ds", EndTypeCategory.Assist, true) //
+        //
+
         // 预览按钮
-        , Preview("preview", EndTypeCategory.Assist, true) //
-        , Clone("clone", EndTypeCategory.Assist, true) //
-        , Blank("blank", EndTypeCategory.Assist, true) //
-        , Concat("concat", EndTypeCategory.Assist, true)//
-        , Mask("mask", EndTypeCategory.Assist, true)//
-        , Splitter("splitter", EndTypeCategory.Assist, true)//
-        , SubString("substr", EndTypeCategory.Assist, true) //
-        , License("license", EndTypeCategory.Assist, true);
+        , UnKnowStoreType("unknowStoreType", EndTypeCategory.Icon, true) //
+        , BatchComputing("batch-computing", EndTypeCategory.Icon, true)//
+        , StreamComputing("stream-computing", EndTypeCategory.Icon, true) //
+        , BliBli("blibli", EndTypeCategory.Icon, true) //
+        , Preview("preview", EndTypeCategory.Icon, true) //
+        , Clone("clone", EndTypeCategory.Icon, true) //
+        , Blank("blank", EndTypeCategory.Icon, true) //
+        , Concat("concat", EndTypeCategory.Icon, true)//
+        , Mask("mask", EndTypeCategory.Icon, true)//
+        , Splitter("splitter", EndTypeCategory.Icon, true)//
+        , SubString("substr", EndTypeCategory.Icon, true) //
+        , License("license", EndTypeCategory.Icon, true);
 
         private final String val;
         private final boolean containICON;
@@ -171,6 +176,15 @@ public interface IEndTypeGetter {
 
         public static List<EndType> getDataEnds() {
             return Arrays.stream(EndType.values()).filter((end) -> end.category == EndTypeCategory.Data).collect(Collectors.toList());
+        }
+
+        /**
+         * 取得辅助组件类
+         *
+         * @return
+         */
+        public static List<EndType> getAssistTypes() {
+            return Arrays.stream(EndType.values()).filter((end) -> end.category == EndTypeCategory.Assist).collect(Collectors.toList());
         }
 
         EndType(String val, EndTypeCategory category) {
