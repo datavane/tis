@@ -24,6 +24,7 @@ import com.qlangtech.tis.plugin.ds.JDBCConnection;
 import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.util.IPluginContext;
 
 import java.util.List;
 import java.util.Optional;
@@ -87,8 +88,8 @@ public class AdapterDataxReader implements IDataxReader {
     }
 
     @Override
-    public List<ColumnMetaData> getTableMetadata(boolean inSink, EntityName table) throws TableNotFoundException {
-        return reader.getTableMetadata(false, table);
+    public List<ColumnMetaData> getTableMetadata(boolean inSink, IPluginContext pluginContext, EntityName table) throws TableNotFoundException {
+        return reader.getTableMetadata(false, pluginContext, table);
     }
 
     @Override

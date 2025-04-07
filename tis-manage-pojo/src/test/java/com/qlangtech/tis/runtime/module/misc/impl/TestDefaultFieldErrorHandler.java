@@ -25,8 +25,6 @@ import com.qlangtech.tis.trigger.util.JsonUtil;
 import junit.framework.TestCase;
 
 
-
-
 /**
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/9/5
@@ -51,10 +49,12 @@ public class TestDefaultFieldErrorHandler extends TestCase {
 
         fieldErrorHandler.addFieldError(context, "name", msg);
 
-        JsonUtil.assertJSONEqual(TestDefaultFieldErrorHandler.class, "context_error_content.json",
-                JsonUtil.toString(context.getContextMap()), (message, expected, actual) -> {
-            Assert.assertEquals(message, expected, actual);
-        });
+        JsonUtil.assertJSONEqual(TestDefaultFieldErrorHandler.class
+                , "context_error_content.json",
+                JsonUtil.toString(context.getContextMap())
+                , (message, expected, actual) -> {
+                    Assert.assertEquals(message, expected, actual);
+                });
 
 
     }

@@ -45,6 +45,8 @@ public class TestCopyValUDF extends UDFDefinition {
 
     @FormField(ordinal = 1, type = FormFieldType.ENUM, validate = {Validator.require})
     public String from;
+    @FormField(ordinal = 2, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
+    public TargetColType to;
 
     @Override
     public List<UDFDesc> getLiteria() {
@@ -63,8 +65,7 @@ public class TestCopyValUDF extends UDFDefinition {
         return colsCandidate.stream().collect(Collectors.toList());
     }
 
-    @FormField(ordinal = 2, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
-    public TargetColType to;
+
 
     public static List<TargetColType> getCols() {
         return Lists.newArrayList();

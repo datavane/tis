@@ -261,6 +261,11 @@ public class TISLicense extends ParamsConfig implements BeforePluginSaved, After
         }
 
         @Override
+        public String helpPath() {
+            return "community-collaboration";
+        }
+
+        @Override
         protected boolean validateAll(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
             TISLicense license = postFormVals.newInstance();
             try {

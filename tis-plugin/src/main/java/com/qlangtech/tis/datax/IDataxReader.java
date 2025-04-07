@@ -17,14 +17,26 @@
  */
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.IRepositoryResourceScannable;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.plugin.datax.ThreadCacheTableCols;
+import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.IReaderSource;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.ds.TableNotFoundException;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+
+import static com.qlangtech.tis.plugin.datax.SelectedTab.KEY_TABLE_COLS;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -80,4 +92,50 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta
      * @return
      */
     String getTemplate();
+
+
+    public default ThreadCacheTableCols getContextTableColsStream(SuFormProperties.SuFormGetterContext context) {
+        return getContextTableColsStream(context, () -> {
+            //plugin.getSelectedTab()
+            // 从临时文件中将已经选中的列取出来
+            SelectedTab selectedTab = SelectedTab.loadFromTmp(
+                    Objects.requireNonNull(context.store, "store can not be null"), context.getSubFormIdentityField());
+            List<SelectedTab> filledSelectedTab = this.fillSelectedTabMeta(Collections.singletonList(selectedTab));
+            for (SelectedTab tab : filledSelectedTab) {
+                for (CMeta cmeta : tab.getCols()) {
+                    if (cmeta.getType() == null) {
+                        throw new IllegalStateException("table:" + context.getSubFormIdentityField()
+                                + ",col:" + cmeta.getName() + " relevant type can not be null");
+                    }
+                }
+                return tab.getCols();
+            }
+            throw new IllegalStateException("can not arrive here");
+        });
+    }
+
+
+    public default ThreadCacheTableCols getContextTableColsStream(SuFormProperties.SuFormGetterContext context, Supplier<List<CMeta>> selectedCols) {
+        // SuFormProperties.SuFormGetterContext context = SuFormProperties.subFormGetterProcessThreadLocal.get();
+        if (context == null || context.plugin == null) {
+            List<ColumnMetaData> empt = Collections.emptyList();
+            return new ThreadCacheTableCols(null, () -> Collections.emptyList(), empt);// empt.stream();
+        }
+        IDataxReader plugin = this; //Objects.requireNonNull(context.plugin, "context.plugin can not be null");
+//        if (!(plugin instanceof DataSourceMeta)) {
+//            throw new IllegalStateException("plugin must be type of " + DataSourceMeta.class.getName() + ", now type "
+//                    + "of " + plugin.getClass().getName());
+//        }
+        DataSourceMeta dsMeta = plugin;
+        ThreadCacheTableCols cols = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
+            try {
+                return new ThreadCacheTableCols(plugin, selectedCols, dsMeta.getTableMetadata(false //
+                        , Objects.requireNonNull(context.param, "param can not be null").getPluginContext()
+                        , EntityName.parse(context.getSubFormIdentityField())));
+            } catch (TableNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        return cols;// func.apply(cols);
+    }
 }

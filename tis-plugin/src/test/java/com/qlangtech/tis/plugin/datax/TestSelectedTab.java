@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import junit.framework.TestCase;
 
@@ -77,7 +78,7 @@ public class TestSelectedTab extends TestCase {
         }
 
         @Override
-        public List<ColumnMetaData> getTableMetadata(boolean inSink, EntityName table) throws TableNotFoundException {
+        public List<ColumnMetaData> getTableMetadata(boolean inSink, IPluginContext pluginContext, EntityName table) throws TableNotFoundException {
             Assert.assertEquals(tabName, table.getTableName());
             //  List<ColumnMetaData> cols = Lists.newArrayList();
             //  int index, String key, DataType type, boolean pk

@@ -28,7 +28,6 @@ import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.CMeta.ParsePostMCols;
 import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
-import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import junit.framework.TestCase;
@@ -55,7 +54,7 @@ public class TestPluginExtraProps extends TestCase {
 
     private static class TestElementCreatorFactory implements ElementCreatorFactory<CMeta> {
         @Override
-        public CMeta createDefault() {
+        public CMeta createDefault(JSONObject jo) {
             return new CMeta();
         }
 

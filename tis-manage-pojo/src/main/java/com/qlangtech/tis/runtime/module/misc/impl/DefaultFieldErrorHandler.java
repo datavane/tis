@@ -23,7 +23,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.manage.common.IAjaxResult;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.lang.StringUtils;
@@ -43,7 +42,8 @@ import java.util.regex.Pattern;
  * @date 2020/04/13
  */
 public class DefaultFieldErrorHandler implements IFieldErrorHandler {
-
+    private static final Pattern JSONARRAR_TOKEN = Pattern.compile("\\[(\\d+)\\]");
+    private static final Pattern JSONOBJECT_TOKEN = Pattern.compile("\\.([_\\dA-Za-z]+)");
     public static final String KEY_VALIDATE_FIELDS_STACK = "validate_fields_stack";
 
     public static final String KEY_VALIDATE_ITEM_INDEX = "validate_item_index";
@@ -213,36 +213,6 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
         }
     }
 
-    private static class ListDetailedItemsErrors extends ItemsErrors {
-        private List<FieldError> fieldsErrorList = Lists.newArrayList();
-
-        @Override
-        public JSON serial2JSON() {
-            return convertItemsErrorList((fieldsErrorList));
-        }
-
-        private static JSONArray convertItemsErrorList(List<FieldError> fieldErrors) {
-            JSONArray ferrs = new JSONArray();
-            JSONObject o = null;
-            for (FieldError ferr : fieldErrors) {
-                o = new JSONObject();
-                o.put("name", ferr.getFieldName());
-                if ((ferr.getMsg()) != null) {
-                    o.put("content", ferr.getMsg());
-                }
-                if (ferr.itemsErrorList != null) {
-                    JSONArray subErrs = new JSONArray();
-                    for (ItemsErrors itemErros : ferr.itemsErrorList) {
-                        subErrs.add(itemErros.serial2JSON());
-                    }
-                    o.put(IAjaxResult.KEY_ERROR_FIELDS, subErrs);
-                }
-                ferrs.add(o);
-            }
-            return ferrs;
-        }
-    }
-
     public static class FieldError {
 
         private final String fieldName;
@@ -293,7 +263,7 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
 
         @Override
         public void addNestMsg(String nestKey, String val) {
-           // throw new UnsupportedOperationException("nestKey:" + nestKey + ",val:" + val + ",msg:" + this.msg);
+            // throw new UnsupportedOperationException("nestKey:" + nestKey + ",val:" + val + ",msg:" + this.msg);
         }
     }
 
@@ -318,9 +288,6 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
         }
     }
 
-
-    private static final Pattern JSONARRAR_TOKEN = Pattern.compile("\\[(\\d+)\\]");
-    private static final Pattern JSONOBJECT_TOKEN = Pattern.compile("\\.([_\\dA-Za-z]+)");
 
     static IFieldMsg setVal(JSONObject json, String complexPropKey, String val) {
         return setVal(json, complexPropKey, val, Optional.empty());

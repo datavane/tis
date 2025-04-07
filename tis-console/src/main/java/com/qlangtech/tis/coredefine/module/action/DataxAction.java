@@ -1004,8 +1004,10 @@ public class DataxAction extends BasicModule {
       }
 
       DataXCfgGenerator.GenerateCfgs generateCfgs = null;
-      pluginContext.setBizResult(context, getExist ? cfgGenerator.getExistCfg(dataxCfgDir) : (generateCfgs =
-        cfgGenerator.startGenerateCfg(dataxCfgDir)));
+      pluginContext.setBizResult(context
+        , getExist
+          ? cfgGenerator.getExistCfg(dataxCfgDir)
+          : (generateCfgs = cfgGenerator.startGenerateCfg(dataxCfgDir)));
 
       if (!getExist) {
         Objects.requireNonNull(generateCfgs, "generateCfgs can not be null");
@@ -1018,12 +1020,13 @@ public class DataxAction extends BasicModule {
 
   /**
    * 将DDl脚本手动同步到目标端
+   *
    * @param context
    * @throws Exception
    */
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doSyncSqlDdlCfgsToTarget(Context context) throws Exception {
-     //TODO 这个功能还挺复杂的，需要考虑如果目标表已经存在，且有数据的情况，如果将目标表冒然删除重建这样太粗暴了，需要考虑变化了什么列，通过alter表结构的方式去更新比较妥当
+    //TODO 这个功能还挺复杂的，需要考虑如果目标表已经存在，且有数据的情况，如果将目标表冒然删除重建这样太粗暴了，需要考虑变化了什么列，通过alter表结构的方式去更新比较妥当
 
   }
 
@@ -1513,50 +1516,6 @@ public class DataxAction extends BasicModule {
 
           CMeta.ParsePostMCols postMCols = (new IdlistElementCreatorFactory()).parsePostMCols(null, (IControlMsgHandler) msgHandler,
             context, fieldKey /*MultiItemsViewType.keyColsMeta*/, targetCols);
-
-          //          Map<String, Integer> existCols = Maps.newHashMap();
-          //          boolean validateFaild = false;
-          //          Integer previousColIndex = null;
-          //          boolean pk;
-          //          boolean pkHasSelected = false;
-          //          JSONObject type = null;
-          //          for (int i = 0; i < targetCols.size(); i++) {
-          //            targetCol = targetCols.getJSONObject(i);
-          //            index = targetCol.getInteger("index");
-          //            pk = targetCol.getBooleanValue("pk");
-          //            targetColName = targetCol.getString("name");
-          //            if (StringUtils.isNotBlank(targetColName) && (previousColIndex = existCols.put(targetColName,
-          //            index)) != null) {
-          //              msgHandler.addFieldError(context, keyColsMeta + "[" + previousColIndex + "]", "内容不能与第" +
-          //              index + "行重复");
-          //              msgHandler.addFieldError(context, keyColsMeta + "[" + index + "]", "内容不能与第" +
-          //              previousColIndex + "行重复");
-          //              return false;
-          //            }
-          //            if (!Validator.require.validate(DataxAction.this, context, keyColsMeta + "[" + index + "]",
-          //            targetColName)) {
-          //              validateFaild = true;
-          //            } else if (!Validator.db_col_name.validate(DataxAction.this, context, keyColsMeta + "[" +
-          //            index + "]", targetColName)) {
-          //              validateFaild = true;
-          //            }
-          //            colMeta = new CMeta();
-          //            colMeta.setName(targetColName);
-          //            colMeta.setPk(pk);
-          //            if (pk) {
-          //              pkHasSelected = true;
-          //            }
-          ////{"s":"3,12,2","typeDesc":"decimal(12,2)","columnSize":12,"typeName":"VARCHAR","unsigned":false,
-          // "decimalDigits":4,"type":3,"unsignedToken":""}
-          //            type = targetCol.getJSONObject("type");
-          //            dataType = new DataType(type.getInteger("type"), type.getString("typeName"), type.getInteger
-          //            ("columnSize"));
-          //            dataType.setDecimalDigits(type.getInteger("decimalDigits"));
-          //            // DataType dataType = targetCol.getObject("type", DataType.class);
-          //            // colMeta.setType(ISelectedTab.DataXReaderColType.parse(targetCol.getString("type")));
-          //            colMeta.setType(dataType);
-          //            writerCols.add(colMeta);
-          //          }
 
           if (!postMCols.pkHasSelected) {
             addErrorMessage(context, "请至少选择一个主键列");

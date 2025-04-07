@@ -84,7 +84,7 @@ import static com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler.joinField
  * @create: 2021-04-08 13:29
  **/
 public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, IdentityName, AfterPluginVerified {
-    private static final String KEY_TABLE_COLS = "tableRelevantCols";
+    public static final String KEY_TABLE_COLS = "tableRelevantCols";
     public static final String KEY_SOURCE_PROPS = "sourceProps";
     public static final String KEY_FIELD_COLS = "cols";
     public static final String KEY_FIELD_PRIMARY_KEYS = "primaryKeys";
@@ -327,35 +327,39 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
             return new ThreadCacheTableCols(null, () -> Collections.emptyList(), empt);// empt.stream();
         }
         IDataxReader plugin = Objects.requireNonNull(context.plugin, "context.plugin can not be null");
+
+        return plugin.getContextTableColsStream(context);
 //        if (!(plugin instanceof DataSourceMeta)) {
 //            throw new IllegalStateException("plugin must be type of " + DataSourceMeta.class.getName() + ", now type "
 //                    + "of " + plugin.getClass().getName());
 //        }
-        DataSourceMeta dsMeta = plugin;
-        ThreadCacheTableCols cols = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
-            try {
-                return new ThreadCacheTableCols(plugin, () -> {
-                    //plugin.getSelectedTab()
-                    // 从临时文件中将已经选中的列取出来
-                    SelectedTab selectedTab = SelectedTab.loadFromTmp(
-                            Objects.requireNonNull(context.store, "store can not be null"), context.getSubFormIdentityField());
-                    List<SelectedTab> filledSelectedTab = plugin.fillSelectedTabMeta(Collections.singletonList(selectedTab));
-                    for (SelectedTab tab : filledSelectedTab) {
-                        for (CMeta cmeta : tab.getCols()) {
-                            if (cmeta.getType() == null) {
-                                throw new IllegalStateException("table:" + context.getSubFormIdentityField()
-                                        + ",col:" + cmeta.getName() + " relevant type can not be null");
-                            }
-                        }
-                        return tab.getCols();
-                    }
-                    throw new IllegalStateException("can not arrive here");
-                }, dsMeta.getTableMetadata(false, EntityName.parse(context.getSubFormIdentityField())));
-            } catch (TableNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        return cols;// func.apply(cols);
+//        DataSourceMeta dsMeta = plugin;
+//        ThreadCacheTableCols cols = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
+//            try {
+//                return new ThreadCacheTableCols(plugin, () -> {
+//                    //plugin.getSelectedTab()
+//                    // 从临时文件中将已经选中的列取出来
+//                    SelectedTab selectedTab = SelectedTab.loadFromTmp(
+//                            Objects.requireNonNull(context.store, "store can not be null"), context.getSubFormIdentityField());
+//                    List<SelectedTab> filledSelectedTab = plugin.fillSelectedTabMeta(Collections.singletonList(selectedTab));
+//                    for (SelectedTab tab : filledSelectedTab) {
+//                        for (CMeta cmeta : tab.getCols()) {
+//                            if (cmeta.getType() == null) {
+//                                throw new IllegalStateException("table:" + context.getSubFormIdentityField()
+//                                        + ",col:" + cmeta.getName() + " relevant type can not be null");
+//                            }
+//                        }
+//                        return tab.getCols();
+//                    }
+//                    throw new IllegalStateException("can not arrive here");
+//                }, dsMeta.getTableMetadata(false //
+//                        , Objects.requireNonNull(context.param, "param can not be null").getPluginContext()
+//                        , EntityName.parse(context.getSubFormIdentityField())));
+//            } catch (TableNotFoundException e) {
+//                throw new RuntimeException(e);
+//            }
+//        });
+//        return cols;// func.apply(cols);
     }
 
 
@@ -490,7 +494,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         }
     }
 
-    private static SelectedTab loadFromTmp(IPluginStore store, String tabName) {
+    public static SelectedTab loadFromTmp(IPluginStore store, String tabName) {
         try {
             XmlFile xml = getTmpTableStoreFile(Objects.requireNonNull(store, "param store can not be null"), tabName);
             SelectedTab tab = new SelectedTab();

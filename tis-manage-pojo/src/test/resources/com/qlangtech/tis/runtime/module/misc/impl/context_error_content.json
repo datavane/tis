@@ -1,24 +1,24 @@
 {
-  "action_error_fields":[
+  "action_error_fields": [
     [
       [
         {
-          "fieldName":"cols",
-          "msg":[
+          "fieldName": "cols",
+          "msg": [
             null,
             null,
             null,
             [
               {
-                "jsonpath":"不能为空",
-                "name":"格式不复合规范"
+                "jsonpath": "不能为空",
+                "name": "格式不复合规范"
               }
             ]
           ]
         },
         {
-          "fieldName":"name",
-          "msg":"不能为空"
+          "fieldName": "name",
+          "msg": "不能为空"
         }
       ]
     ]

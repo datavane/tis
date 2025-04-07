@@ -32,6 +32,7 @@ import com.qlangtech.tis.plugin.ds.RunningContext;
 import com.qlangtech.tis.plugin.ds.TISTable;
 import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -96,9 +97,8 @@ public class MockDataSourceFactory extends DataSourceFactory implements ITestDum
     }
 
 
-
     @Override
-    public List<ColumnMetaData> getTableMetadata(boolean inSink,EntityName table) {
+    public List<ColumnMetaData> getTableMetadata(boolean inSink, IPluginContext pluginContext, EntityName table) {
         if (!StringUtils.equals(dumper.testTableName, table.getTableName())) {
             Assert.fail("dumper.testTableName:" + dumper.testTableName + " must equal with:" + table);
         }

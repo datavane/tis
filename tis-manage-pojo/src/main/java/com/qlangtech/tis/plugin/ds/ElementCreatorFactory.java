@@ -38,16 +38,20 @@ public interface ElementCreatorFactory<T extends IMultiElement> {
      * @param targetCols
      * @return
      */
-    public   CMeta.ParsePostMCols<T> parsePostMCols(IPropertyType propertyType,
-                                                    IControlMsgHandler msgHandler, Context context, String keyColsMeta,
-                                                    JSONArray targetCols);
+    public CMeta.ParsePostMCols<T> parsePostMCols(IPropertyType propertyType,
+                                                  IControlMsgHandler msgHandler, Context context, String keyColsMeta,
+                                                  JSONArray targetCols);
 
     default ViewContent getViewContentType() {
         return ViewContent.MongoCols;
     }
 
+    default T createDefault() {
+        return this.createDefault(new JSONObject());
+    }
+
     // CMeta
-    T createDefault();
+    T createDefault(JSONObject targetCol);
 
     default T create(JSONObject targetCol) {
         return create(targetCol, (key, errMsg) -> {

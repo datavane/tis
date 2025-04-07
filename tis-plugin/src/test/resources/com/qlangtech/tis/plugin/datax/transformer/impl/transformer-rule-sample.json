@@ -1,7 +1,7 @@
 [{
   "udf": {
     "updateModel": false,
-    "impl": "com.qlangtech.tis.plugin.datax.transformer.impl.CopyValUDF",
+    "impl": "com.qlangtech.tis.plugin.datax.transformer.impl.TestCopyValUDF",
     "vals": {
       "from": {
         "updateModel": true,

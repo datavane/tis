@@ -54,9 +54,10 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
     }
 
     @Override
-    public RecordTransformer createDefault() {
+    public RecordTransformer createDefault(JSONObject targetCol) {
         return new RecordTransformer();
     }
+
 
     @Override
     public void appendExternalJsonProp(IPropertyType propertyType, JSONObject biz) {

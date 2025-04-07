@@ -23,9 +23,9 @@ import com.qlangtech.tis.async.message.client.consumer.IFlinkColCreator;
 import com.qlangtech.tis.async.message.client.consumer.IMQListener;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
-import com.qlangtech.tis.plugin.IEndTypeGetter.EndType;
-import com.qlangtech.tis.plugin.IEndTypeGetter.PluginVender;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.incr.ISelectedTabExtendFactory;
 
 import java.util.Optional;
@@ -40,8 +40,14 @@ public class TestMQListenerFactory extends MQListenerFactory {
         return null;
     }
 
+//    @Override
+//    public IFlinkColCreator<Object> createFlinkColCreator(Optional<ZoneId> zoneId) {
+//        return null;
+//    }
+
+
     @Override
-    public IFlinkColCreator<Object> createFlinkColCreator() {
+    public IFlinkColCreator<Object> createFlinkColCreator(DataSourceMeta sourceMeta) {
         return null;
     }
 

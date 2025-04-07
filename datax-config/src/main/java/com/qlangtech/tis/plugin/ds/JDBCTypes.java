@@ -56,13 +56,21 @@ public enum JDBCTypes {
     final String literia;
 
     public static JDBCTypes parse(int type) {
+        return parse(type, true);
+    }
+
+    public static JDBCTypes parse(int type, boolean validateMatch) {
         for (JDBCTypes t : JDBCTypes.values()) {
             if (t.type == type) {
                 return t;
             }
         }
+        if (validateMatch) {
+            throw new IllegalArgumentException("illegal type value:" + type);
+        } else {
+            return null;
+        }
 
-        throw new IllegalArgumentException("illegal type value:" + type);
     }
 
     private JDBCTypes(int type, String literia) {

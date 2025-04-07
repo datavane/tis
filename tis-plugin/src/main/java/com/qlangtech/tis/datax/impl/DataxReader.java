@@ -127,7 +127,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                 @Override
                 public IStreamTableMeta load(String tableName) throws Exception {
                     try {
-                        List<ColumnMetaData> cols = getTableMetadata(false, EntityName.parse(tableName));
+                        List<ColumnMetaData> cols = getTableMetadata(false, null, EntityName.parse(tableName));
                         final List<IColMetaGetter> colsMeta = cols.stream().map((c) -> new HdfsColMeta(c.getName(), c.isNullable(), c.isPk(),
                                 c.getType())).collect(Collectors.toList());
                         return new IStreamTableMeta() {

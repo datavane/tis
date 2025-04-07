@@ -735,7 +735,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             if (this.isSingleTableModel()) {
                 DependencyNode dumpNode = this.getDumpNodes().get(0);
                 DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(dumpNode.getDbName())));
-                List<ColumnMetaData> cols = dbPlugin.getTableMetadata(false, dumpNode.parseEntityName());
+                List<ColumnMetaData> cols = dbPlugin.getTableMetadata(false, null, dumpNode.parseEntityName());
                 return cols;
             }
 
@@ -757,7 +757,10 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(dumpNode.getDbName())));
                 // List<ColumnMetaData> tableMetadata = ;
                 //TISTable tab = dbPlugin.loadTableMeta(dumpNode.getName());
-                taskNode.setContent(ColumnMetaData.buildExtractSQL(dumpNode.getName(), true, dbPlugin.getTableMetadata(false, dumpNode.parseEntityName())).toString());
+                taskNode.setContent(ColumnMetaData.buildExtractSQL(
+                        dumpNode.getName()
+                        , true
+                        , dbPlugin.getTableMetadata(false, null, dumpNode.parseEntityName())).toString());
                 return taskNode;
             } else {
 

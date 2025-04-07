@@ -142,6 +142,14 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         // load();
     }
 
+    /**
+     * 插件的帮助文档路径（https://www.tis.pub/下的）
+     *
+     * @return
+     */
+    public String helpPath() {
+        return null;
+    }
 
     public void cleanPropertyTypes() {
         this.propertyTypes = null;
@@ -254,6 +262,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
         if (this instanceof IDescribableManipulate.IManipulateStorable) {
             props.put("manipulateStorable", ((IDescribableManipulate.IManipulateStorable) this).isManipulateStorable());
+        }
+        if (StringUtils.isNotEmpty(this.helpPath())) {
+            props.put("helpPath", this.helpPath());
         }
         return props;
     }
@@ -795,7 +806,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         // 如果是多选列组件
                         if ((m = attrDesc.getEnumFieldMode()) != null && m == EnumFieldMode.MULTIPLE) {
                             JSONArray multiSelected = valJ.getJSONArray(KEY_primaryVal);
-                            if (multiSelected.size() < 1) {
+                            if (attrDesc.isInputRequired() && multiSelected.size() < 1) {
                                 addFieldRequiredError(msgHandler, context, attr);
                                 valid = false;
                                 continue;

@@ -575,7 +575,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 //      }
       DataSourceFactory dsFactory = (DataSourceFactory) vals.createDescribable(pluginContext, context).getInstance();
       List<ColumnMetaData> tableMetadata = null;
-      tableMetadata = dsFactory.getTableMetadata(false, EntityName.parse(targetTable));
+      tableMetadata = dsFactory.getTableMetadata(false, (IPluginContext) pluginContext, EntityName.parse(targetTable));
 
       colMetas = tableMetadata.stream().collect(Collectors.toMap((m) -> m.getKey(), (m) -> m));
       break;

@@ -33,6 +33,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -41,6 +42,17 @@ import java.util.Optional;
  * @date 2020/04/13
  */
 public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostContent {
+
+    static final ThreadLocal<IPluginContext> pluginContextThreadLocal = new ThreadLocal<>();
+
+    public static void setPluginContext(IPluginContext pluginContext) {
+        pluginContextThreadLocal.set(pluginContext);
+    }
+
+
+    public static IPluginContext getThreadLocalInstance() {
+        return pluginContextThreadLocal.get();
+    }
 
     public static IPluginContext namedContext(String collectionName) {
         return namedContext(collectionName, Optional.empty());

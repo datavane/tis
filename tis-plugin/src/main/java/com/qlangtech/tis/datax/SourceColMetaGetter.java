@@ -55,7 +55,7 @@ public class SourceColMetaGetter {
 
     protected Map<String, ColumnMetaData> getColMetaDataMap(IDataxReader dataXReader, TableMap tableMapper) {
         try {
-            return ColumnMetaData.toMap(dataXReader.getTableMetadata(false, tableMapper));
+            return ColumnMetaData.toMap(dataXReader.getTableMetadata(false, null, tableMapper));
         } catch (TableNotFoundException e) {
             throw new RuntimeException(e);
         }

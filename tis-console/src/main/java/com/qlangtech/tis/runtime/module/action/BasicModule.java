@@ -177,13 +177,18 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   @Override
   public String execute() throws Exception {
-    this.getRequest().getSession();
-    CheckAppDomainExistValve.getAppDomain(this);
-    // 解析这个方法 event_submit_do_buildjob_by_server
-    Method executeMethod = getExecuteMethod();
-    logger.info(this.getClass().getName() + ":" + executeMethod.getName());
-    executeMethod.invoke(this, context);
-    return getReturnCode();
+    try {
+      IPluginContext.setPluginContext(this);
+      this.getRequest().getSession();
+      CheckAppDomainExistValve.getAppDomain(this);
+      // 解析这个方法 event_submit_do_buildjob_by_server
+      Method executeMethod = getExecuteMethod();
+      logger.info(this.getClass().getName() + ":" + executeMethod.getName());
+      executeMethod.invoke(this, context);
+      return getReturnCode();
+    } finally {
+      IPluginContext.pluginContextThreadLocal.remove();
+    }
   }
 
   public IClusterSnapshotDAO getClusterSnapshotDAO() {

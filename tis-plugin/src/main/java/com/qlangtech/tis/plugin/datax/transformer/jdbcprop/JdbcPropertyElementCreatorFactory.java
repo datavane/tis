@@ -240,7 +240,7 @@ public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<
      * @see com.qlangtech.tis.plugin.datax.transformer.jdbcprop.TargetColType
      */
     @Override
-    public TargetColType createDefault() {
+    public TargetColType createDefault(JSONObject targetCol) {
         return new TargetColType();
     }
 

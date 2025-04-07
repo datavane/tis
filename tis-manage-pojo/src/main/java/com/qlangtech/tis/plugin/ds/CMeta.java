@@ -200,4 +200,18 @@ public class CMeta extends TypeBase implements Serializable, IColMetaGetter, Ide
         public boolean validateFaild = false;
         public boolean pkHasSelected = false;
     }
+
+    /**
+     * https://github.com/datavane/tis/issues/433
+     */
+    public static class VirtualCMeta extends CMeta {
+        /**
+         * 前端使用
+         *
+         * @return
+         */
+        public final boolean isVirtual() {
+            return true;
+        }
+    }
 }

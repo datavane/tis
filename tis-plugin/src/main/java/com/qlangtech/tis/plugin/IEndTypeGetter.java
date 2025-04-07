@@ -153,6 +153,7 @@ public interface IEndTypeGetter {
         , Mask("mask", EndTypeCategory.Icon, true)//
         , Splitter("splitter", EndTypeCategory.Icon, true)//
         , SubString("substr", EndTypeCategory.Icon, true) //
+        , AutoGen("auto-generate", EndTypeCategory.Icon, true) //
         , License("license", EndTypeCategory.Icon, true);
 
         private final String val;

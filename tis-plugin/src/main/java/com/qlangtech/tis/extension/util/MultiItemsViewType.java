@@ -62,14 +62,17 @@ public class MultiItemsViewType implements IMultiItemsView {
     }
 
     public static MultiItemsViewType createMultiItemsViewType(PropertyType propertyType) {
-        return createMultiItemsViewType(propertyType, propertyType.extraProp);
+        return createMultiItemsViewType(propertyType
+                , Objects.requireNonNull(propertyType.extraProp, "propertyType.extraProp can not be null"));
     }
 
     public static MultiItemsViewType createMultiItemsViewType(PropertyType propertyType, PluginExtraProps.Props props) {
 //        if (this.multiItemsViewType == null) {
         // PluginExtraProps.Props props = propertyType.extraProp;
         ElementCreatorFactory elementCreator = null;
-        ViewFormatType formatType = ViewFormatType.parse(getStrProp(props, PluginExtraProps.Props.KEY_VIEW_TYPE));
+        ViewFormatType formatType
+                = ViewFormatType.parse(
+                getStrProp(Objects.requireNonNull(props, "props can not be null"), PluginExtraProps.Props.KEY_VIEW_TYPE));
         try {
             String selectElementCreator = getStrProp(props, CMeta.KEY_ELEMENT_CREATOR_FACTORY);
             if (StringUtils.isEmpty(selectElementCreator)) {

@@ -150,7 +150,7 @@ public class ERRules implements IPrimaryTabFinder, IERRules {
         // 还没有定义erRule
         DependencyNode dumpNode = topology.getFirstDumpNode();
         DataSourceFactory dsStore = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(dumpNode.getDbName())));
-        List<ColumnMetaData> cols = dsStore.getTableMetadata(false, dumpNode.parseEntityName());
+        List<ColumnMetaData> cols = dsStore.getTableMetadata(false, null, dumpNode.parseEntityName());
         //String topologyName, DependencyNode node, TargetColumnMeta targetColMetas
         Optional<ColumnMetaData> firstPK = cols.stream().filter((col) -> col.isPk()).findFirst();
         if (!firstPK.isPresent()) {
@@ -413,7 +413,7 @@ public class ERRules implements IPrimaryTabFinder, IERRules {
     public List<PrimaryTableMeta> getPrimaryTabs() {
         if (primaryTabs == null) {
             primaryTabs = this.getDumpNodes().stream().filter(
-                    (d) -> d.getExtraMeta() != null && d.getExtraMeta().isPrimaryIndexTab())
+                            (d) -> d.getExtraMeta() != null && d.getExtraMeta().isPrimaryIndexTab())
                     .map((d) -> new PrimaryTableMeta(d.getName(), d.getExtraMeta())).collect(Collectors.toList());
         }
         return primaryTabs;

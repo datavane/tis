@@ -18,14 +18,16 @@
 package com.qlangtech.tis.plugin.ds;
 
 
-import com.google.common.collect.Maps;
 import com.qlangtech.tis.datax.IDataxProcessor.TableMap;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.util.IPluginContext;
 
 import java.sql.ResultSet;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 数据源meta信息获取
@@ -34,6 +36,10 @@ import java.util.Map;
  * @date 2021-04-07 15:51
  */
 public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKeys {
+
+    public default Optional<ZoneId> getTimeZone() {
+        return Optional.empty();
+    }
 
     /**
      * 可以在Transformer中使用的数据上下文绑定的参数，例如有这样的需求，用户数据源表是分库的分表的，设计表的主键为自增，导入到目标端doris中会合并成一个表，为了保证多个表的主键没有重复冲突,需要将将主键变换成‘dbName’+‘_’+ pk 的方式免除主键冲突 <br/>
@@ -53,8 +59,8 @@ public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKey
         throw new UnsupportedOperationException();
     }
 
-    default List<ColumnMetaData> getTableMetadata(boolean inSink, TableMap tableMapper) throws TableNotFoundException {
-        return getTableMetadata(inSink, EntityName.parse(tableMapper.getFrom()));
+    default List<ColumnMetaData> getTableMetadata(boolean inSink, IPluginContext pluginContext, TableMap tableMapper) throws TableNotFoundException {
+        return getTableMetadata(inSink, pluginContext, EntityName.parse(tableMapper.getFrom()));
     }
 
     /**
@@ -65,7 +71,7 @@ public interface DataSourceMeta extends Describable.IRefreshable, IDBReservedKey
      * @return
      * @throws TableNotFoundException
      */
-    default List<ColumnMetaData> getTableMetadata(boolean inSink, EntityName table) throws TableNotFoundException {
+    default List<ColumnMetaData> getTableMetadata(boolean inSink, IPluginContext pluginContext, EntityName table) throws TableNotFoundException {
         throw new UnsupportedOperationException("invoke from:" + this.getClass().getName() + ",inSink:" + inSink);
     }
 
