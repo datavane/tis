@@ -380,7 +380,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         @Override
-        public final int hashCode() {
+        public int hashCode() {
             return Objects.hash(keyVal.getKeyVal(), resourceType.getType(), pluginClass);
         }
     }

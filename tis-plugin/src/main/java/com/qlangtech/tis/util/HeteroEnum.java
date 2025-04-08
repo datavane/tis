@@ -41,9 +41,7 @@ import com.qlangtech.tis.offline.FileSystemFactory;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.KeyedPluginStore.AppKey;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
-import com.qlangtech.tis.plugin.KeyedPluginStore.PluginClassCategory;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
@@ -61,7 +59,6 @@ import com.qlangtech.tis.plugin.utils.UploadCustomizedTPI;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -108,14 +105,14 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             return HeteroEnum.createDataXReaderAndWriterRelevant(pluginContext, pluginMeta, new DBOrAppRelevantCreator<IPluginStore>() {
                 @Override
                 public IPluginStore dbRelevant(IPluginContext pluginContext, String saveDbName) {
-                    Key key = getTransformerRuleKey(pluginContext, StoreResourceType.DataBase, saveDbName, tableName);
+                    Key key = TransformerRuleKey.createStoreKey(pluginContext, StoreResourceType.DataBase, saveDbName, tableName);
                     return TIS.getPluginStore(key);
                 }
 
                 @Override
                 public IPluginStore appRelevant(IPluginContext pluginContext, String dataxName) {
                     final String appName = dataxName;
-                    Key key = getTransformerRuleKey(pluginContext, pluginMeta.getProcessModel().resType, appName, tableName);
+                    Key key = TransformerRuleKey.createStoreKey(pluginContext, pluginMeta.getProcessModel().resType, appName, tableName);
                     return TIS.getPluginStore(key);
                 }
             });
@@ -126,40 +123,6 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
     };
 
-
-    public static Key getTransformerRuleKey(IPluginContext pluginContext, StoreResourceType resourceType, String appname, String tableName) {
-        Key key = new TransformerRuleKey(pluginContext, resourceType,appname, tableName , TRANSFORMER_RULES.extensionPoint);
-        return key;
-    }
-
-    public static class TransformerRuleKey extends KeyedPluginStore.AppKey {
-        private final String tableName;
-
-        /**
-         * IPluginContext pluginContext, StoreResourceType resourceType, String appname, Class<TT> clazz
-         *
-         * @param pluginContext
-         * @param resourceType
-         * @param appname
-         * @param tableName
-         * @param pluginClass
-         */
-        public TransformerRuleKey(IPluginContext pluginContext, StoreResourceType resourceType, String appname, String tableName, Class pluginClass) {
-            // IFullBuildContext.NAME_APP_DIR
-            super(AppKey.calAppName(pluginContext, appname, Optional.of("transformer")), resourceType, new PluginClassCategory(pluginClass));
-            this.tableName = tableName;
-        }
-
-//        @Override
-//        public int hashCode() {
-//            return Objects.hash(keyVal.getKeyVal(), pluginClass.hashCode(), tableName);
-//        }
-
-        @Override
-        public String getSerializeFileName() {
-            return this.getSubDirPath() + File.separator + tableName;
-        }
-    }
 
     @TISExtension
     public static final HeteroEnum<NoStorePlaceholderPlugin> noStore //

@@ -43,6 +43,7 @@ import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.RunningContext;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.TransformerRuleKey;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -126,11 +127,11 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 
         Iterator<Entry<Key, KeyedPluginStore>> storeIt = TIS.collectionPluginStore.getEntries().iterator();
         Entry<Key, KeyedPluginStore> entry = null;
-        HeteroEnum.TransformerRuleKey ruleKey = null;
+        TransformerRuleKey ruleKey = null;
         while (storeIt.hasNext()) {
             entry = storeIt.next();
-            if (entry.getKey() instanceof HeteroEnum.TransformerRuleKey) {
-                ruleKey = (HeteroEnum.TransformerRuleKey) entry.getKey();
+            if (entry.getKey() instanceof TransformerRuleKey) {
+                ruleKey = (TransformerRuleKey) entry.getKey();
                 if (StringUtils.equals(ruleKey.keyVal.getVal(), appName)) {
                     storeIt.remove();
                 }

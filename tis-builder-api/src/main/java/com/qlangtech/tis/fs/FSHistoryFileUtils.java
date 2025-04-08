@@ -45,9 +45,9 @@ public class FSHistoryFileUtils {
      */
     public static void deleteHistoryFile(ITISFileSystem fileSystem, EntityName dumpTable) throws Exception {
         deleteMetadata(fileSystem, dumpTable);
-        deleteHdfsFile(fileSystem, dumpTable, false);
+        deleteHdfsFile(fileSystem, INameWithPathGetter.create(dumpTable), false);
         // 索引数据: /user/admin/search4totalpay/all/0/output/20160104003306
-        deleteHdfsFile(fileSystem, dumpTable, true);
+        deleteHdfsFile(fileSystem, INameWithPathGetter.create(dumpTable), true);
     }
 
     /**
@@ -74,7 +74,7 @@ public class FSHistoryFileUtils {
     private static void deleteHdfsFile(ITISFileSystem fileSystem, EntityName dumpTable, boolean isBuildFile, String timestamp) throws IOException {
 
         deleteHdfsFile(fileSystem,
-                dumpTable, //
+                INameWithPathGetter.create(dumpTable), //
                 isBuildFile, //
                 (r) -> StringUtils.equals(r.getName(), timestamp), // MAX_PARTITION_SAVE
                 0);
@@ -112,7 +112,7 @@ public class FSHistoryFileUtils {
      */
     private static void deleteMetadata(ITISFileSystem fileSystem, EntityName dumpTable
             , ITISFileSystem.IPathFilter pathFilter, int maxPartitionSave) throws Exception {
-        String hdfsPath = getJoinTableStorePath(fileSystem.getRootDir(), dumpTable) + "/all";
+        String hdfsPath = getJoinTableStorePath(fileSystem.getRootDir(), INameWithPathGetter.create(dumpTable)) + "/all";
         logger.info("hdfsPath:{}", hdfsPath);
         ITISFileSystem fileSys = fileSystem;
         IPath parent = fileSys.getPath(hdfsPath);

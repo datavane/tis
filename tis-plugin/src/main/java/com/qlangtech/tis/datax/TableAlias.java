@@ -1,6 +1,17 @@
 package com.qlangtech.tis.datax;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.StringUtils;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,10 +34,53 @@ import org.apache.commons.lang.StringUtils;
 /**
  * 表别名
  */
-public class TableAlias {
+public class TableAlias implements Describable<TableAlias> {
     public static final String KEY_FROM_TABLE_NAME = "fromTableName";
     private String from;
     private String to;
+
+    public static List<TableAlias> testTabAlias;
+
+    private static KeyedPluginStore.AppKey createAppSourceKey(IPluginContext context, String appName) {
+        return new KeyedPluginStore.AppKey(context, StoreResourceType.DataApp, appName, TableAlias.class);
+    }
+
+    /**
+     * 保存
+     *
+     * @param context
+     * @param appName
+     * @param tableMaps
+     */
+    public static void save(IPluginContext context, String appName, List<TableAlias> tableMaps) {
+        try {
+            createAppSourceKey(context, appName).getSotreFile().write(tableMaps, Collections.emptySet());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 加载
+     *
+     * @param context
+     * @param appName
+     * @return
+     */
+    public static List<TableAlias> load(IPluginContext context, String appName) {
+        if (testTabAlias != null) {
+            return testTabAlias;
+        }
+        try {
+            XmlFile sotreFile = createAppSourceKey(context, appName).getSotreFile();
+            if (!sotreFile.exists()) {
+                return Collections.emptyList();
+            }
+            return (List<TableAlias>) sotreFile.unmarshal(null);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public TableAlias() {
     }
@@ -56,6 +110,17 @@ public class TableAlias {
 
     public void setTo(String to) {
         this.to = to;
+    }
+
+    /**
+     * 不需要实例化
+     *
+     * @return
+     */
+    @JSONField(serialize = false)
+    @Override
+    public Descriptor<TableAlias> getDescriptor() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

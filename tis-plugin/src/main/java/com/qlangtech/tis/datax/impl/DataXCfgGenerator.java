@@ -46,25 +46,20 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.AppAndRuntime;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.maven.plugins.tpi.ICoord;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
 import com.qlangtech.tis.plugin.StoreResourceType;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
-import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
 import com.qlangtech.tis.datax.IDataXGenerateCfgs;
-import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.TransformerRuleKey;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.collections.Transformer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
@@ -85,8 +80,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -520,7 +513,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
         @JSONField(name = "transformerInfo", serialize = true)
         public final Set<TransformerInfo> getTransformerInfo() {
             Set<TransformerInfo> tinfos = new HashSet<>();
-            Key transformerRuleKey = HeteroEnum.getTransformerRuleKey(
+            Key transformerRuleKey = TransformerRuleKey.createStoreKey(
                     pluginCtx, StoreResourceType.DataApp, pluginCtx.getCollectionName(), "dump");
             XmlFile sotre = transformerRuleKey.getSotreFile();
             File parent = sotre.getFile().getParentFile();

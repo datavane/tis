@@ -17,7 +17,6 @@
  */
 package com.qlangtech.tis.sql.parser.tuple.creator;
 
-import com.qlangtech.tis.dump.INameWithPathGetter;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import org.apache.commons.lang.StringUtils;
 
@@ -31,7 +30,8 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年6月14日
  */
-public class EntityName implements IDumpTable, INameWithPathGetter {
+public class EntityName implements IDumpTable //, INameWithPathGetter
+{
 
     public static final String ROW_MAP_CLASS_NAME = "RowMap";
 
@@ -268,10 +268,10 @@ public class EntityName implements IDumpTable, INameWithPathGetter {
         return UnderlineUtils.removeUnderline(this.getDbname()).toString();
     }
 
-    @Override
-    public String getNameWithPath() {
-        return (this.dbname.isPresent() ? this.dbname.get() : DEFAULT_DATABASE_NAME) + "/" + this.tabName;
-    }
+//    @Override
+//    public String getNameWithPath() {
+//        return (this.dbname.isPresent() ? this.dbname.get() : DEFAULT_DATABASE_NAME) + "/" + this.tabName;
+//    }
 
     @Override
     public int hashCode() {

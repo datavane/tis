@@ -50,6 +50,7 @@ import com.qlangtech.tis.plugin.ds.TestTableInDB;
 import com.qlangtech.tis.plugin.k8s.TestK8sImage;
 import com.qlangtech.tis.util.TestAttrValMap;
 import com.qlangtech.tis.util.TestHeteroList;
+import com.qlangtech.tis.util.TestTransformerRuleKey;
 import com.qlangtech.tis.util.TestUploadPluginMeta;
 import com.qlangtech.tis.util.plugin.TestContainEnumsFieldPlugin;
 import junit.framework.Test;
@@ -101,6 +102,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestDataXCfgGenerator.class);
         suite.addTestSuite(TestCreateDDL.class);
         suite.addTestSuite(TestSplitableTableInDB.class);
+        suite.addTestSuite(TestTransformerRuleKey.class);
         return suite;
     }
 }

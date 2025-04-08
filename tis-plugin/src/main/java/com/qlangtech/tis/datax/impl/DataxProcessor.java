@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.datax.impl;
 
+import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
@@ -31,6 +32,7 @@ import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.IPluginStore.AfterPluginSaved;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.StoreResourceType;
@@ -57,18 +59,23 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 16:46
  */
-public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor, IStreamIncrGenerateStrategy {
+public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor, IStreamIncrGenerateStrategy, AfterPluginSaved {
 
     public static final String DEFAULT_DATAX_PROCESSOR_NAME = "DataxProcessor";
     public static final String DEFAULT_WORKFLOW_PROCESSOR_NAME = "WorkflowProcessor";
     public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
     public static final String DATAX_CREATE_DDL_DIR_NAME = "createDDL";
 
-    private List<TableAlias> tableMaps;
+    private transient List<TableAlias> _tableMaps;
     private transient PluginStore<IAppSource> pluginStore;
 
     public interface IDataxProcessorGetter {
         DataxProcessor get(String dataXName);
+    }
+
+    @Override
+    public void afterSaved(IPluginContext pluginContext, Optional<Context> context) {
+        this._tableMaps = null;
     }
 
     @Override
@@ -165,6 +172,13 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         return this.getTabAlias(null);
     }
 
+    private List<TableAlias> getTableMaps(IPluginContext pluginCtx) {
+        if (this._tableMaps == null) {
+            this._tableMaps = TableAlias.load(pluginCtx, this.identityValue());
+        }
+        return this._tableMaps;
+    }
+
     /**
      * key:Source Table Name
      *
@@ -173,7 +187,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     @Override
     public TableAliasMapper getTabAlias(IPluginContext pluginCtx) {
         boolean isReaderUnStructed = false;
-
+        List<TableAlias> tableMaps = getTableMaps(pluginCtx);
         if ((this.isRDBMS2RDBMS(pluginCtx))
                 || (isReaderUnStructed = this.isReaderUnStructed(pluginCtx))
                 // 支持ElasticSearch
@@ -183,7 +197,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
             if (CollectionUtils.isEmpty(tableMaps)) {
                 return TableAliasMapper.Null;
             }
-            return new TableAliasMapper(this.tableMaps.stream()
+            return new TableAliasMapper(tableMaps.stream()
                     .collect(Collectors.toMap((m) -> {
                         if (StringUtils.isEmpty(m.getFrom())) {
                             throw new IllegalArgumentException("table mapper from can not be empty");
@@ -266,15 +280,15 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         return DataxWriter.load(pluginCtx, StoreResourceType.DataApp, this.identityValue(), validateNull);
     }
 
-    /**
-     * 从Reader和Writer实例中扫面可以作为notebook的实例
-     *
-     * @return
-     * @throws Exception
-     */
-    public void setTableMaps(List<TableAlias> tableMaps) {
-        this.tableMaps = tableMaps;
-    }
+//    /**
+//     * 从Reader和Writer实例中扫面可以作为notebook的实例
+//     *
+//     * @return
+//     * @throws Exception
+//     */
+//    public void setTableMaps(List<TableAlias> tableMaps) {
+//        this.tableMaps = tableMaps;
+//    }
 
     @Override
     public File getDataxCfgDir(IPluginContext pluginContext) {
@@ -308,7 +322,6 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     public File getDataXWorkDir(IPluginContext pluginContext) {
         return IDataxProcessor.getDataXWorkDir(pluginContext, this.identityValue());
     }
-
 
 
     /**

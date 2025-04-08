@@ -38,6 +38,7 @@ import com.qlangtech.tis.sql.parser.tuple.creator.impl.FunctionDataTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.PropGetter;
 import com.qlangtech.tis.sql.parser.visitor.FuncFormat;
 import com.qlangtech.tis.sql.parser.visitor.IBlockToString;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -93,7 +94,9 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
                 tabAlias.forEach((key, alia) -> {
                     aliases.add(alia);
                 });
-
+                if (CollectionUtils.isEmpty(aliases)) {
+                    throw new IllegalStateException("pipeline:" + processor.identityValue() + " relevant aliases can not be empty");
+                }
                 return aliases;
             }
         });

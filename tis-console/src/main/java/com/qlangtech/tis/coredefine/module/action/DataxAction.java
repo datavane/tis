@@ -1281,9 +1281,12 @@ public class DataxAction extends BasicModule {
       throw new IllegalArgumentException("param dataxName can not be null");
     }
 
+    TableAlias.save(this, dataxName, tableMaps);
+
     DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(this, dataxName);
-    dataxProcessor.setTableMaps(tableMaps);
-    IAppSource.save(pluginContext, dataxName, dataxProcessor);
+    dataxProcessor.afterSaved(pluginContext, Optional.empty());
+//    dataxProcessor.setTableMaps(tableMaps);
+//    IAppSource.save(pluginContext, dataxName, dataxProcessor);
   }
 
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
