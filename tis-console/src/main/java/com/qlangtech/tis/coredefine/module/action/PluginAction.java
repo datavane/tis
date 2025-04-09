@@ -918,6 +918,7 @@ public class PluginAction extends BasicModule {
         this.setBizResult(context, hList.toJSON());
         return;
       }
+      throw new IllegalStateException("have not set plugin,meta:" + String.valueOf(meta));
     }
     throw new IllegalStateException("have not set plugin meta");
   }

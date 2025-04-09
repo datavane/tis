@@ -157,13 +157,18 @@ public abstract class MQListenerFactory
     public static abstract class BaseDescriptor extends Descriptor<MQListenerFactory> implements IEndTypeGetter {
 
         @Override
-        protected boolean validateAll(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+        protected final boolean validateAll(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
             MQListenerFactory sourceFactory = postFormVals.newInstance();
             if (sourceFactory.getFilterRowKinds().size() == EventType.values().length) {
-                msgHandler.addFieldError(context, KEY_filterRowKind, "不能选择全部类型");
+                msgHandler.addFieldError(context, KEY_filterRowKind, "不能选择全部类型，如此会过滤掉所有的事件");
                 return false;
             }
 
+            return this.validateMQListenerForm(msgHandler, context, sourceFactory);
+        }
+
+
+        protected  boolean validateMQListenerForm(IControlMsgHandler msgHandler, Context context, MQListenerFactory sourceFactory) {
             return true;
         }
 

@@ -323,8 +323,9 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     public static ThreadCacheTableCols getContextTableColsStream() {
         SuFormProperties.SuFormGetterContext context = SuFormProperties.subFormGetterProcessThreadLocal.get();
         if (context == null || context.plugin == null) {
-            List<ColumnMetaData> empt = Collections.emptyList();
-            return new ThreadCacheTableCols(null, () -> Collections.emptyList(), empt);// empt.stream();
+//            List<ColumnMetaData> empt = Collections.emptyList();
+//            return new ThreadCacheTableCols(null, null, (target) -> Collections.emptyList(), empt);// empt.stream();
+            return ThreadCacheTableCols.createEmptyTableCols();
         }
         IDataxReader plugin = Objects.requireNonNull(context.plugin, "context.plugin can not be null");
 

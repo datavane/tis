@@ -1399,9 +1399,9 @@ public class DataxAction extends BasicModule {
     final String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName);
 
-    if (processMeta.isReaderRDBMS()) {
-      throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
-    }
+//    if (processMeta.isReaderRDBMS()) {
+//      throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
+//    }
     IDataxProcessor processor = DataxProcessor.load(this, dataxName);
     TableAliasMapper tabAlias = processor.getTabAlias(this);
     Optional<TableAlias> findMapper = tabAlias.findFirst();

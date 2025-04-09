@@ -21,8 +21,11 @@ package com.qlangtech.tis.plugin.datax;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -33,25 +36,42 @@ import java.util.stream.Stream;
  * @see com.qlangtech.tis.plugin.datax.SelectedTab
  **/
 public class ThreadCacheTableCols {
-    private final Supplier<List<CMeta>> selectedColsSupplier;
+    private final Function<EntityName, List<CMeta>> selectedColsSupplier;
     private List<CMeta> selectedCols;
     private final List<ColumnMetaData> selectableCols;
     public IDataxReader plugin;
+    private final EntityName targetTable;
     // private final Function<List<ColumnMetaData>, Stream<ColumnMetaData>> selectableColsStreamFunc;
+
+    public static ThreadCacheTableCols createEmptyTableCols() {
+        List<ColumnMetaData> empt = Collections.emptyList();
+        return new ThreadCacheTableCols(null, null, (target) -> Collections.emptyList(), empt) {
+            @Override
+            public List<CMeta> getSelectedCols() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public Stream<ColumnMetaData> getStreamedSelectableCols(Function<List<ColumnMetaData>, Stream<ColumnMetaData>> selectableColsStreamFunc) {
+                return Stream.empty();
+            }
+        };//
+    }
 
     /**
      * @param selectedCols   已经选中的列
      * @param selectableCols
      */
-    public ThreadCacheTableCols(IDataxReader plugin, Supplier<List<CMeta>> selectedCols, List<ColumnMetaData> selectableCols) {
+    public ThreadCacheTableCols(IDataxReader plugin, EntityName targetTable, Function<EntityName, List<CMeta>> selectedCols, List<ColumnMetaData> selectableCols) {
         this.selectedColsSupplier = selectedCols;
         this.selectableCols = selectableCols;
         this.plugin = plugin;
+        this.targetTable = targetTable;
     }
 
     public List<CMeta> getSelectedCols() {
         if (selectedCols == null) {
-            selectedCols = selectedColsSupplier.get();
+            selectedCols = selectedColsSupplier.apply(Objects.requireNonNull(targetTable, "targetTable can not be null"));
         }
         return selectedCols;
     }

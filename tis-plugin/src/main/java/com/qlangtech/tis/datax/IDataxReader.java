@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -95,11 +96,11 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta
 
 
     public default ThreadCacheTableCols getContextTableColsStream(SuFormProperties.SuFormGetterContext context) {
-        return getContextTableColsStream(context, () -> {
+        return getContextTableColsStream(context, (targetTab) -> {
             //plugin.getSelectedTab()
             // 从临时文件中将已经选中的列取出来
             SelectedTab selectedTab = SelectedTab.loadFromTmp(
-                    Objects.requireNonNull(context.store, "store can not be null"), context.getSubFormIdentityField());
+                    Objects.requireNonNull(context.store, "store can not be null"), targetTab.getFullName());
             List<SelectedTab> filledSelectedTab = this.fillSelectedTabMeta(Collections.singletonList(selectedTab));
             for (SelectedTab tab : filledSelectedTab) {
                 for (CMeta cmeta : tab.getCols()) {
@@ -115,11 +116,12 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta
     }
 
 
-    public default ThreadCacheTableCols getContextTableColsStream(SuFormProperties.SuFormGetterContext context, Supplier<List<CMeta>> selectedCols) {
+    public default ThreadCacheTableCols getContextTableColsStream(SuFormProperties.SuFormGetterContext context, Function<EntityName, List<CMeta>> selectedCols) {
         // SuFormProperties.SuFormGetterContext context = SuFormProperties.subFormGetterProcessThreadLocal.get();
         if (context == null || context.plugin == null) {
-            List<ColumnMetaData> empt = Collections.emptyList();
-            return new ThreadCacheTableCols(null, () -> Collections.emptyList(), empt);// empt.stream();
+//            List<ColumnMetaData> empt = Collections.emptyList();
+//            return new ThreadCacheTableCols(null, null, (target) -> Collections.emptyList(), empt);// empt.stream();
+            return ThreadCacheTableCols.createEmptyTableCols();
         }
         IDataxReader plugin = this; //Objects.requireNonNull(context.plugin, "context.plugin can not be null");
 //        if (!(plugin instanceof DataSourceMeta)) {
@@ -129,9 +131,11 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta
         DataSourceMeta dsMeta = plugin;
         ThreadCacheTableCols cols = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
             try {
-                return new ThreadCacheTableCols(plugin, selectedCols, dsMeta.getTableMetadata(false //
+                final EntityName targetTable = EntityName.parse(context.getSubFormIdentityField());
+                return new ThreadCacheTableCols(plugin, targetTable, selectedCols
+                        , dsMeta.getTableMetadata(false //
                         , Objects.requireNonNull(context.param, "param can not be null").getPluginContext()
-                        , EntityName.parse(context.getSubFormIdentityField())));
+                        , targetTable));
             } catch (TableNotFoundException e) {
                 throw new RuntimeException(e);
             }

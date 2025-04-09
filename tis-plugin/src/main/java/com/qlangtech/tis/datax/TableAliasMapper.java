@@ -44,7 +44,8 @@ public class TableAliasMapper {
         @Override
         public TableAlias get(String name) {
             //return super.get(name);
-            return new TableAlias(name);
+            //return new TableAlias(name);
+            return null;
         }
 
         @Override

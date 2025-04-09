@@ -31,6 +31,7 @@ import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.util.IPluginContext;
 
 import java.util.Collections;
 import java.util.List;
@@ -64,10 +65,9 @@ public abstract class DFSResMatcher implements Describable<DFSResMatcher> {
      */
 
     /**
-     *
      * @param hdfsSession
      * @param entityName  使用hive或meta OSS，需要在datax config 配置文件中 添加该参数表明 hive的表名
-     * @param path dataX 配置文件中的path属性
+     * @param path        dataX 配置文件中的path属性
      * @param processor
      * @return
      */
@@ -77,6 +77,9 @@ public abstract class DFSResMatcher implements Describable<DFSResMatcher> {
     public abstract List<ISelectedTab> getSelectedTabs(IDFSReader dfsReader);
 
     public abstract List<ColumnMetaData> getTableMetadata(IDFSReader dfsReader, TableMap tableMapper) throws TableNotFoundException;
+
+    public abstract List<ColumnMetaData> getTableMetadata(IPluginContext pluginContext, String pipelineName, IDFSReader dfsReader, EntityName table) throws TableNotFoundException;
+
 
     public abstract boolean hasMulitTable(IDFSReader dfsReader);
 
