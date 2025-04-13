@@ -123,7 +123,7 @@ public class MultiItemsViewType implements IMultiItemsView {
             try {
 //                BeanUtilsBean.getInstance().getPropertyUtils()
 //                PropertyUtilsBean
-                PropertyDescriptor[] propertyDescs = BeanUtilsBean2.getInstance().getPropertyUtils().getPropertyDescriptors(tupleFactory.createDefault());
+                PropertyDescriptor[] propertyDescs = BeanUtilsBean2.getInstance().getPropertyUtils().getPropertyDescriptors(tupleFactory.createDefault(new JSONObject()));
                 elementPropertyKeys = Lists.newArrayList();
                 for (PropertyDescriptor desc : propertyDescs) {
                     elementPropertyKeys.add(desc.getName());

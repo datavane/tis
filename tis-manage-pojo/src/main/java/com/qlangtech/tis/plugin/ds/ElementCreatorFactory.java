@@ -46,9 +46,9 @@ public interface ElementCreatorFactory<T extends IMultiElement> {
         return ViewContent.MongoCols;
     }
 
-    default T createDefault() {
-        return this.createDefault(new JSONObject());
-    }
+//    default T createDefault() {
+//        return this.createDefault(new JSONObject());
+//    }
 
     // CMeta
     T createDefault(JSONObject targetCol);

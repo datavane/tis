@@ -23,7 +23,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.extension.Descriptor.FormVaildateType;
 import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
 import com.qlangtech.tis.extension.Descriptor.PluginValidateResult;
@@ -31,14 +30,12 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
-import com.qlangtech.tis.plugin.datax.ThreadCacheTableCols;
 import com.qlangtech.tis.plugin.datax.transformer.TargetColumn;
 import com.qlangtech.tis.plugin.datax.transformer.impl.TransformerRuleElementCreatorFactory;
 import com.qlangtech.tis.plugin.datax.transformer.impl.VirtualTargetColumn;
 import com.qlangtech.tis.plugin.datax.transformer.impl.VirtualTargetColumn.VirtualTargetColumnDesc;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.CMeta.ParsePostMCols;
-import com.qlangtech.tis.plugin.ds.ContextParamConfig;
 import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
 import com.qlangtech.tis.plugin.ds.ViewContent;
@@ -47,7 +44,6 @@ import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.BasicDelegateMsgHandler;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescriptorsJSON;
-import org.apache.commons.collections.MapUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -176,7 +172,7 @@ public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<
                                 , errMsg);
                         result.validateFaild = true;
                     });
-                    TargetColType targetColType = createDefault();
+                    TargetColType targetColType = createDefault(new JSONObject());
 
                     targetColType.setTarget(vcol);
                     targetColType.setType(type);
@@ -225,7 +221,7 @@ public class JdbcPropertyElementCreatorFactory implements ElementCreatorFactory<
 
             ParseDescribable describable = valsMap.createDescribable(pluginContext, context);
             TargetColumn targetCol = (TargetColumn) describable.getInstance();
-            TargetColType targetColType = this.createDefault();
+            TargetColType targetColType = this.createDefault(new JSONObject());
             targetColType.setTarget(targetCol);
             targetColType.setType(type);
             result.writerCols.add(targetColType);

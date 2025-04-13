@@ -104,7 +104,7 @@ public class CMeta extends TypeBase implements Serializable, IColMetaGetter, Ide
 
     public static CMeta create(Optional<ElementCreatorFactory<CMeta>> elementCreator, String colName, DataType type) {
         CMeta cmeta = elementCreator.map((factory) -> {
-            return factory.createDefault();
+            return factory.createDefault(new JSONObject());
         }).orElseGet(() -> new CMeta());// new CMeta();
         cmeta.setName(colName);
         cmeta.setType(type);
