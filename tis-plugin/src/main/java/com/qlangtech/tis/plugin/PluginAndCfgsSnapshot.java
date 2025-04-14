@@ -42,6 +42,7 @@ import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
+import com.qlangtech.tis.plugin.license.TISLicense;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
@@ -254,6 +255,7 @@ public class PluginAndCfgsSnapshot {
 
         RobustReflectionConverter2.PluginMetas pluginMetas =
                 RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
+                    TISLicense.load(false);
                     // 先收集plugmeta，特别是通过dataXWriter的dataSource关联的元数据
                     IDataxProcessor dataxProcessor = DataxProcessor.load(null, processor.getResType(), processor.identityValue());
                     dataxProcessor.getReaders(null).forEach((reader) -> {
@@ -264,6 +266,8 @@ public class PluginAndCfgsSnapshot {
                     });
                     dataxProcessor.getWriter(null).startScanDependency();
                 });
+
+
         TargetResName resName = new TargetResName(processor.identityValue());
 //        return createManifestCfgAttrs(resName, System.currentTimeMillis(), Collections.emptyMap(), () -> {
 //            PluginAndCfgsSnapshot localSnapshot = getLocalPluginAndCfgsSnapshot(processor.getResType(), resName, Optional.empty(), pluginMetas);
@@ -306,6 +310,7 @@ public class PluginAndCfgsSnapshot {
         StoreResourceType resourceType = StoreResourceType.DataApp;
         RobustReflectionConverter2.PluginMetas pluginMetas =
                 RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
+                    TISLicense.load(false);
                     MQListenerFactory sourceFactory = HeteroEnum.getIncrSourceListenerFactory(collection.getName());
                     sourceFactory.create();
 

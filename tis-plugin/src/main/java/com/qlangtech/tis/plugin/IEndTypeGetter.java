@@ -98,6 +98,7 @@ public interface IEndTypeGetter {
     enum EndTypeCategory {
         Data,
         Assist,
+        Transformer,
         // 图标
         Icon
     }
@@ -149,11 +150,14 @@ public interface IEndTypeGetter {
         , Preview("preview", EndTypeCategory.Icon, true) //
         , Clone("clone", EndTypeCategory.Icon, true) //
         , Blank("blank", EndTypeCategory.Icon, true) //
-        , Concat("concat", EndTypeCategory.Icon, true)//
-        , Mask("mask", EndTypeCategory.Icon, true)//
-        , Splitter("splitter", EndTypeCategory.Icon, true)//
-        , SubString("substr", EndTypeCategory.Icon, true) //
-        , AutoGen("auto-generate", EndTypeCategory.Icon, true) //
+
+        , Concat("concat", EndTypeCategory.Transformer, true)//
+        , Mask("mask", EndTypeCategory.Transformer, true)//
+        , Splitter("splitter", EndTypeCategory.Transformer, true)//
+        , SubString("substr", EndTypeCategory.Transformer, true) //
+        , AutoGen("auto-generate", EndTypeCategory.Transformer, true) //
+        , Copy("clone", EndTypeCategory.Transformer, true) //
+
         , License("license", EndTypeCategory.Icon, true);
 
         private final String val;
@@ -186,6 +190,10 @@ public interface IEndTypeGetter {
          */
         public static List<EndType> getAssistTypes() {
             return Arrays.stream(EndType.values()).filter((end) -> end.category == EndTypeCategory.Assist).collect(Collectors.toList());
+        }
+
+        public static List<EndType> getTransformerTypes() {
+            return Arrays.stream(EndType.values()).filter((end) -> end.category == EndTypeCategory.Transformer).collect(Collectors.toList());
         }
 
         EndType(String val, EndTypeCategory category) {

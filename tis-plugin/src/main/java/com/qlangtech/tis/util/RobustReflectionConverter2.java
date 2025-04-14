@@ -32,6 +32,7 @@ import com.thoughtworks.xstream.io.ExtendedHierarchicalStreamWriterHelper;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.Mapper;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,8 +111,10 @@ public class RobustReflectionConverter2 implements XStream2.ConverterValve {
 //        }
 
         public void addAll(Collection<PluginMeta> metas, IRepositoryResource res) {
-            this.metas.addAll(metas);
-            this.repoRes.add(res);
+            if (CollectionUtils.isNotEmpty(metas)) {
+                this.metas.addAll(metas);
+            }
+            this.repoRes.add(Objects.requireNonNull(res, "res can not be null"));
         }
 
         public void fillWithDependencies() {

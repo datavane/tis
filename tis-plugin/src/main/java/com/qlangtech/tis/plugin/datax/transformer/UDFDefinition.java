@@ -109,9 +109,21 @@ public abstract class UDFDefinition implements Describable<UDFDefinition>, Manip
     }
 
 
-    protected static class BasicUDFDesc extends Descriptor<UDFDefinition> implements IEndTypeGetter {
+    protected static abstract class BasicUDFDesc extends Descriptor<UDFDefinition> implements IEndTypeGetter {
         public BasicUDFDesc() {
             super();
         }
+
+        @Override
+        public final EndType getEndType() {
+            EndType endType = getTransformerEndType();
+            if (endType.category != EndTypeCategory.Transformer) {
+                throw new IllegalStateException("endtype:" + endType + " category must be " + EndTypeCategory.Transformer);
+            }
+            return endType;
+        }
+
+        protected abstract EndType getTransformerEndType();
+
     }
 }

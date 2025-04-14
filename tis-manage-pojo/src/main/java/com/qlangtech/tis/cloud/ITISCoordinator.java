@@ -54,11 +54,15 @@ public interface ITISCoordinator extends ICoordinator {
     }
 
     static ITISCoordinator create() {
-        return create(Optional.empty());
+        return create(false, Optional.empty());
     }
 
-    static ITISCoordinator create(Optional<String> assembleHost) {
+    static ITISCoordinator create(boolean shallConnect2RemoteIncrStatusServer, Optional<String> assembleHost) {
         //if (Config.isStandaloneMode()) {
+        if (!shallConnect2RemoteIncrStatusServer) {
+            ITISCoordinator.disableRemoteServer();
+        }
+        logger.info("isDisableGrpcRemoteServerConnect:{}", !shallConnect2RemoteIncrStatusServer);
         logger.info("create ITISCoordinator with Standalone Mode");
         return new ITISCoordinator() {
             private final String DEFAULT_CHILD1_PATH = "child001";

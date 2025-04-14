@@ -131,7 +131,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
     public List<T> getPlugins() {
         this.load();
         RobustReflectionConverter2.PluginMetas metas = null;
-        if (pluginMetas != null && !(metas = RobustReflectionConverter2.usedPluginInfo.get()).isCacheable()) {
+        if (//pluginMetas != null &&
+                !(metas = RobustReflectionConverter2.usedPluginInfo.get()).isCacheable()) {
             metas.addAll(pluginMetas, this);
         }
         return plugins;
@@ -439,7 +440,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         processError(dataHolder, (e) -> {
             return file.getFile().getAbsolutePath() + "\n" + TIS.get().getPluginManager().getFaildPluginsDesc();
         });
-        this.pluginMetas = CollectionUtils.isEmpty(pluginMetas) ? null : pluginMetas;
+        // this.pluginMetas = CollectionUtils.isEmpty(pluginMetas) ? null : pluginMetas;
+        this.pluginMetas = pluginMetas;
     }
 
     public static void processError(MapBackedDataHolder dataHolder) {
