@@ -42,6 +42,7 @@
         <tag>HEAD</tag>
     </scm>
 
+
     <properties>
         <revision>4.2.0-SNAPSHOT</revision>
         <testcontainers.version>1.15.3</testcontainers.version>
