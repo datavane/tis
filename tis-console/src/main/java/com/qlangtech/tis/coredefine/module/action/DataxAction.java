@@ -1167,7 +1167,7 @@ public class DataxAction extends BasicModule {
     final String dataxName = this.getCollectionName();
 
     ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
-    DataxProcessor old = (DataxProcessor) pmodel.loadDataXProcessor(null, dataxName);
+    IDataxProcessor old = (IDataxProcessor) pmodel.loadDataXProcessor(null, dataxName);
 
     // DataxProcessor old = DataxProcessor.load(null, dataxName);
     IDataxProcessor editting = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataxName);

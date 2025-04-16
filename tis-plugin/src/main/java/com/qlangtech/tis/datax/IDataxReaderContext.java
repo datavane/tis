@@ -56,8 +56,9 @@ public interface IDataxReaderContext extends IDataxContext {
 
         TableAlias tableAlias = tabAlias.get(this.getSourceTableName());
         if (tableAlias == null) {
-            throw new IllegalStateException("sourceTable:" + this.getSourceTableName() + " can not find " +
-                    "relevant 'tableAlias' keys:[" + tabAlias.getFromTabDesc() + "]");
+//            throw new IllegalStateException("sourceTable:" + this.getSourceTableName() + " can not find " +
+//                    "relevant 'tableAlias' keys:[" + tabAlias.getFromTabDesc() + "]");
+            tableAlias = new TableAlias(this.getSourceTableName());
         }
         ISelectedTab selectedTab = selectedTabs.get(this.getSourceTableName());
         if (selectedTab == null) {

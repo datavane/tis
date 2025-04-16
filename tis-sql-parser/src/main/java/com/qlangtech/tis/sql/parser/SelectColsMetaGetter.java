@@ -19,8 +19,10 @@ package com.qlangtech.tis.sql.parser;
  */
 
 import com.facebook.presto.sql.tree.Expression;
+import com.qlangtech.tis.fullbuild.indexbuild.IPartionableWarehouse;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
+import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,11 +34,11 @@ import java.util.function.Supplier;
  **/
 public class SelectColsMetaGetter extends SqlRewriter {
     public SelectColsMetaGetter(SqlStringBuilder builder
-            , Supplier<IPrimaryTabFinder> erRules, TabPartitions tabPartitions
-            , Optional<List<Expression>> parameters, IJoinTaskContext joinContext) {
+            , Supplier<IPrimaryTabFinder> erRules, TabPartitions tabPartitions, List<DependencyNode> dependencies
+            , Optional<List<Expression>> parameters, IJoinTaskContext joinContext, IPartionableWarehouse dumpTableNameRewriter) {
         super(builder,
-                tabPartitions,
-                erRules, parameters, false, joinContext);
+                tabPartitions, dependencies,
+                erRules, parameters, false, joinContext, dumpTableNameRewriter);
     }
 
     @Override

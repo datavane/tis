@@ -29,28 +29,45 @@ import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Describable.IRefreshable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
+import com.qlangtech.tis.extension.Descriptor.SelectOption;
 import com.qlangtech.tis.extension.IDescribableManipulate;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.PluginFormProperties.IVisitor;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
+import com.qlangtech.tis.extension.PluginWrapper.Dependency;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.extension.impl.SuFormProperties.SuFormGetterContext;
 import com.qlangtech.tis.extension.model.UpdateCenter;
+import com.qlangtech.tis.extension.model.UpdateCenter.DownloadJob;
+import com.qlangtech.tis.extension.model.UpdateCenter.DownloadJob.Failure;
+import com.qlangtech.tis.extension.model.UpdateCenter.InstallationJob;
+import com.qlangtech.tis.extension.model.UpdateCenter.UpdateCenterJob;
 import com.qlangtech.tis.extension.model.UpdateSite;
+import com.qlangtech.tis.extension.model.UpdateSite.Plugin;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.extension.util.PluginExtraProps.Props;
 import com.qlangtech.tis.extension.util.TextFile;
 import com.qlangtech.tis.install.InstallState;
 import com.qlangtech.tis.install.InstallUtil;
+import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.maven.plugins.tpi.ICoord;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IEndTypeGetter.EndType;
+import com.qlangtech.tis.plugin.IEndTypeGetter.Icon;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginTaggable;
+import com.qlangtech.tis.plugin.IPluginTaggable.PluginTag;
 import com.qlangtech.tis.plugin.IdentityDesc;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -69,6 +86,8 @@ import com.qlangtech.tis.util.IPluginWithStore;
 import com.qlangtech.tis.util.IUploadPluginMeta;
 import com.qlangtech.tis.util.ItemsSaveResult;
 import com.qlangtech.tis.util.PluginItems;
+import com.qlangtech.tis.util.PluginItems.PluginItemsSaveEvent;
+import com.qlangtech.tis.util.PluginItems.PluginItemsSaveObserver;
 import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
@@ -81,6 +100,7 @@ import org.apache.struts2.convention.annotation.InterceptorRef;
 import org.apache.struts2.convention.annotation.InterceptorRefs;
 import org.apache.struts2.dispatcher.HttpParameters;
 import org.apache.struts2.dispatcher.Parameter;
+import org.apache.struts2.dispatcher.Parameter.File;
 import org.apache.struts2.dispatcher.multipart.UploadedFile;
 import org.apache.struts2.interceptor.FileUploadInterceptor;
 import org.slf4j.Logger;
@@ -115,10 +135,10 @@ public class PluginAction extends BasicModule {
 
   static {
 
-    PluginItems.addPluginItemsSaveObserver((new PluginItems.PluginItemsSaveObserver() {
+    PluginItems.addPluginItemsSaveObserver((new PluginItemsSaveObserver() {
       // 通知Assemble节点更新pluginStore的缓存
       @Override
-      public void afterSaved(PluginItems.PluginItemsSaveEvent event) {
+      public void afterSaved(PluginItemsSaveEvent event) {
         final String extendPoint = event.heteroEnum.getExtensionPoint().getName();
         // @see "com.qlangtech.tis.fullbuild.servlet.TaskStatusServlet"
         notifyPluginUpdate2AssembleNode(DescriptorsJSON.KEY_EXTEND_POINT + "=" + extendPoint, "pluginStore");
@@ -187,9 +207,9 @@ public class PluginAction extends BasicModule {
     if (iconsDefsWithCheckSum == null) {
       JSONArray iconsDefs = new JSONArray();
       JSONObject icon = null;
-      IEndTypeGetter.Icon i = null;
+      Icon i = null;
 
-      for (IEndTypeGetter.EndType type : IEndTypeGetter.EndType.values()) {
+      for (EndType type : EndType.values()) {
 
         i = type.getIcon();
         if (i == null) {
@@ -310,15 +330,15 @@ public class PluginAction extends BasicModule {
    * 为表单中提交临时文件
    *
    * @param context
-   * @see FileUploadInterceptor
    */
+  @Func(value = PermissionConstant.CONFIG_UPLOAD, sideEffect = false)
   public void doUploadFile(Context context) {
     final String inputName = "file";
     final String fileNameName = inputName + "FileName";
     ActionContext ac = ActionContext.getContext();
     HttpParameters parameters = ac.getParameters();
 
-    Parameter.File file = (Parameter.File) parameters.get(inputName);
+    File file = (File) parameters.get(inputName);
     UploadedFile[] uploades = (UploadedFile[]) file.getObject();
     for (UploadedFile f : uploades) {
       java.io.File tmpFile = new java.io.File(f.getAbsolutePath());
@@ -345,7 +365,7 @@ public class PluginAction extends BasicModule {
    */
   public void doGetFreshEnumField(Context context) {
     DescriptorField descField = parseDescField();
-    List<Descriptor.SelectOption> options = null;
+    List<SelectOption> options = null;
     if (descField.getFieldPropType().typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
       options = DescriptorsJSON.getSelectOptions(descField.getTargetDesc(), descField.getFieldPropType(),
         descField.field);
@@ -392,7 +412,7 @@ public class PluginAction extends BasicModule {
    */
   public void doGetPluginFieldHelp(Context context) {
     DescriptorField descField = parseDescField();
-    PluginExtraProps.Props props = descField.getFieldPropType().extraProp;
+    Props props = descField.getFieldPropType().extraProp;
     if (!props.isAsynHelp()) {
       throw new IllegalStateException("plugin:" + descField.pluginImpl + ",field:" + descField.field + " is not " +
         "support async help content fecthing");
@@ -407,14 +427,14 @@ public class PluginAction extends BasicModule {
    */
   public void doGetUpdateCenterStatus(Context context) {
     UpdateCenter updateCenter = TIS.get().getUpdateCenter();
-    List<UpdateCenter.UpdateCenterJob> jobs = updateCenter.getJobs();
+    List<UpdateCenterJob> jobs = updateCenter.getJobs();
     Collections.sort(jobs, (a, b) -> {
       // 保证最新的安装job排列在最上面
       return b.id - a.id;
     });
     jobs.forEach((job) -> {
-      if (job instanceof UpdateCenter.DownloadJob) {
-        ((UpdateCenter.DownloadJob) job).status.setUsed();
+      if (job instanceof DownloadJob) {
+        ((DownloadJob) job).status.setUsed();
       }
     });
     setBizResult(context, jobs);
@@ -431,7 +451,7 @@ public class PluginAction extends BasicModule {
     PluginManager pluginManager = TIS.get().getPluginManager();
     JSONArray response = new JSONArray();
     JSONObject pluginInfo = null;
-    UpdateSite.Plugin info = null;
+    Plugin info = null;
     PluginFilter pluginFilter = new PluginFilter();
     for (PluginWrapper plugin : pluginManager.getPlugins()) {
 
@@ -476,11 +496,11 @@ public class PluginAction extends BasicModule {
       pluginInfo.put(ICoord.KEY_PLUGIN_VIP, plugin.manifest.isCommunityVIP());
 
       pluginInfo.put("website", plugin.getUrl());
-      List<PluginWrapper.Dependency> dependencies = plugin.getDependencies();
+      List<Dependency> dependencies = plugin.getDependencies();
       if (dependencies != null && !dependencies.isEmpty()) {
         Option o = null;
         List<Option> dependencyMap = Lists.newArrayList();
-        for (PluginWrapper.Dependency dependency : dependencies) {
+        for (Dependency dependency : dependencies) {
           o = new Option(dependency.shortName, dependency.version);
           dependencyMap.add(o);
         }
@@ -494,8 +514,8 @@ public class PluginAction extends BasicModule {
   }
 
   private class PluginFilter {
-    final Set<IPluginTaggable.PluginTag> tags;
-    final Predicate<UpdateSite.Plugin> endTypeMatcher;
+    final Set<PluginTag> tags;
+    final Predicate<Plugin> endTypeMatcher;
     final List<String> extendpoint;
 
     public PluginFilter() {
@@ -504,7 +524,7 @@ public class PluginAction extends BasicModule {
       if (filterTags != null && filterTags.length > 0) {
         this.tags = Sets.newHashSet();
         for (String tag : filterTags) {
-          tags.add(IPluginTaggable.PluginTag.parse(tag));
+          tags.add(PluginTag.parse(tag));
         }
       } else {
         this.tags = null;
@@ -517,7 +537,7 @@ public class PluginAction extends BasicModule {
      * @param info
      * @return true 就直接过滤掉了
      */
-    private boolean filter(Optional<PluginWrapper> plugin, UpdateSite.Plugin info) {
+    private boolean filter(Optional<PluginWrapper> plugin, Plugin info) {
       if (this.tags != null) {
         //  info.pluginTags
         if (!CollectionUtils.containsAny(info.pluginTags, this.tags)) {
@@ -581,11 +601,11 @@ public class PluginAction extends BasicModule {
     boolean dynamicLoad = true;
     UUID correlationId = UUID.randomUUID();
     UpdateCenter updateCenter = TIS.get().getUpdateCenter();
-    List<Future<UpdateCenter.UpdateCenterJob>> installJobs = new ArrayList<>();
+    List<Future<UpdateCenterJob>> installJobs = new ArrayList<>();
     JSONObject willInstall = null;
     String pluginName = null;
-    UpdateSite.Plugin plugin = null;
-    List<Pair<UpdateSite.Plugin, Optional<PluginClassifier>>> coords = Lists.newArrayList();
+    Plugin plugin = null;
+    List<Pair<Plugin, Optional<PluginClassifier>>> coords = Lists.newArrayList();
     Optional<PluginClassifier> classifier = null;
     String c = null;
     List<PluginWrapper> batch = new ArrayList<>();
@@ -613,13 +633,13 @@ public class PluginAction extends BasicModule {
       return;
     }
 
-    for (Pair<UpdateSite.Plugin, Optional<PluginClassifier>> coord : coords) {
+    for (Pair<Plugin, Optional<PluginClassifier>> coord : coords) {
       /***********
        * 校验证书是否有效
        ***********/
       coord.getLeft().validateLicense();
 
-      Future<UpdateCenter.UpdateCenterJob> installJob = coord.getLeft().deploy(dynamicLoad, correlationId,
+      Future<UpdateCenterJob> installJob = coord.getLeft().deploy(dynamicLoad, correlationId,
         coord.getRight(), batch);
       installJobs.add(installJob);
     }
@@ -644,12 +664,12 @@ public class PluginAction extends BasicModule {
               updateCenter.persistInstallStatus();
               Thread.sleep(500);
               failures = false;
-              for (Future<UpdateCenter.UpdateCenterJob> jobFuture : installJobs) {
+              for (Future<UpdateCenterJob> jobFuture : installJobs) {
                 if (!jobFuture.isDone() && !jobFuture.isCancelled()) {
                   continue INSTALLING;
                 }
-                UpdateCenter.UpdateCenterJob job = jobFuture.get();
-                if (job instanceof UpdateCenter.InstallationJob && ((UpdateCenter.InstallationJob) job).status instanceof UpdateCenter.DownloadJob.Failure) {
+                UpdateCenterJob job = jobFuture.get();
+                if (job instanceof InstallationJob && ((InstallationJob) job).status instanceof Failure) {
                   failures = true;
                 }
               }
@@ -703,7 +723,7 @@ public class PluginAction extends BasicModule {
     Pager pager = this.createPager();
     pager.setTotalCount(Integer.MAX_VALUE);
     UpdateCenter center = TIS.get().getUpdateCenter();
-    List<UpdateSite.Plugin> availables = center.getAvailables();
+    List<Plugin> availables = center.getAvailables();
     if (CollectionUtils.isEmpty(availables)) {
       for (UpdateSite usite : center.getSiteList()) {
         TextFile textFile = usite.getDataLoadFaildFile();
@@ -742,14 +762,14 @@ public class PluginAction extends BasicModule {
     this.setBizResult(context, new PaginationResult(pager, availables));
   }
 
-  public Predicate<UpdateSite.Plugin> getEndTypeMatcher() {
-    final String endType = this.getString(IEndTypeGetter.EndType.KEY_END_TYPE);
+  public Predicate<Plugin> getEndTypeMatcher() {
+    final String endType = this.getString(EndType.KEY_END_TYPE);
     return (plugin) -> {
       if (StringUtils.isEmpty(endType)) {
         // 需要，将会收集
         return true;
       } else {
-        IEndTypeGetter.EndType targetEndType = IEndTypeGetter.EndType.parse(endType);
+        EndType targetEndType = EndType.parse(endType);
         return targetEndType.containIn(plugin.endTypes);
       }
     };
@@ -841,7 +861,7 @@ public class PluginAction extends BasicModule {
 
     PluginFormProperties props = desc.getPluginFormPropertyTypes();
 
-    List<? extends Descriptor> descs = props.accept(new PluginFormProperties.IVisitor() {
+    List<? extends Descriptor> descs = props.accept(new IVisitor() {
       @Override
       public List<? extends Descriptor> visit(RootFormProperties props) {
 
@@ -868,8 +888,8 @@ public class PluginAction extends BasicModule {
     if (descsImpl == null || descsImpl.length < 1) {
       throw new IllegalStateException("argument desc can not be empty");
     }
-    com.alibaba.fastjson.JSONObject pluginDetail = new com.alibaba.fastjson.JSONObject();
-    com.alibaba.fastjson.JSONArray hlistArray = new com.alibaba.fastjson.JSONArray();
+    JSONObject pluginDetail = new JSONObject();
+    JSONArray hlistArray = new JSONArray();
     HeteroList hList = null;
     // List<Descriptor> descs = new ArrayList<>();
     Descriptor desc = null;
@@ -911,7 +931,7 @@ public class PluginAction extends BasicModule {
       for (DataxReader plugin : plugins.getKey()) {
 
         SuFormProperties.setSuFormGetterContext(plugin, plugins.getRight(), meta,
-          this.getString(SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID));
+          this.getString(SuFormGetterContext.FIELD_SUBFORM_ID));
 
         hList = meta.getHeteroList(this);
 
@@ -936,8 +956,8 @@ public class PluginAction extends BasicModule {
     if (plugins == null || plugins.size() < 1) {
       throw new IllegalArgumentException("param plugin is not illegal");
     }
-    com.alibaba.fastjson.JSONObject pluginDetail = new com.alibaba.fastjson.JSONObject();
-    com.alibaba.fastjson.JSONArray hlist = new com.alibaba.fastjson.JSONArray();
+    JSONObject pluginDetail = new JSONObject();
+    JSONArray hlist = new JSONArray();
     pluginDetail.put("showExtensionPoint", TIS.get().loadGlobalComponent().isShowExtensionDetail());
     for (UploadPluginMeta pmeta : plugins) {
 
@@ -945,7 +965,7 @@ public class PluginAction extends BasicModule {
       if (!pmeta.isUseCache()) {
         hetero.getItems().forEach((p) -> {
           if (p instanceof Describable.IRefreshable) {
-            ((Describable.IRefreshable) p).refresh();
+            ((IRefreshable) p).refresh();
           }
         });
       }
@@ -1099,12 +1119,12 @@ public class PluginAction extends BasicModule {
    * description: 添加一个 数据源库 date: 2:30 PM 4/28/2017
    */
   @Override
-  public final void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context,
+  public final void addDb(ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context,
                           boolean shallUpdateDB) {
     createDatabase(this, dbDesc, dbName, context, shallUpdateDB, this.offlineManager);
   }
 
-  public static DatasourceDb createDatabase(BasicModule module, Descriptor.ParseDescribable<DataSourceFactory> dbDesc
+  public static DatasourceDb createDatabase(BasicModule module, ParseDescribable<DataSourceFactory> dbDesc
     , String dbName, Context context, boolean shallUpdateDB, OfflineManager offlineManager) {
     if (StringUtils.isEmpty(dbName)) {
       throw new IllegalArgumentException("param dbName can not be empty");

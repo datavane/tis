@@ -25,9 +25,45 @@ import com.qlangtech.tis.datax.TimeFormat;
  * @date 2023/12/5
  */
 public interface IPartionableWarehouse {
+
+    public static IPartionableWarehouse createForNoWriterForTableName() {
+        return new IPartionableWarehouse() {
+            @Override
+            public boolean noRewriteTabName() {
+                return true;
+            }
+
+            @Override
+            public String appendTabPrefix(String rawTabName) {
+                return rawTabName;
+            }
+        };
+    }
+
     /**
      * 取得分区规则
+     *
      * @return
      */
-    public TimeFormat getPsFormat();
+    public default TimeFormat getPsFormat() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 询问是否会对表名作重命名？
+     *
+     * @return
+     */
+    default boolean noRewriteTabName() {
+        return false;
+    }
+
+    /**
+     * 导入到仓库的表可以进行对表名前加一个前缀，如‘ods_’
+     *
+     * @param rawTabName
+     * @return
+     */
+    // @see AutoCreateTable
+    public String appendTabPrefix(String rawTabName);
 }

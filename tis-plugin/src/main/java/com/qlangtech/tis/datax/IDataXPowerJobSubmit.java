@@ -51,7 +51,7 @@ public interface IDataXPowerJobSubmit {
      * @param context
      * @param dataxProcessor
      */
-    public void createJob(IControlMsgHandler module, final Context context, DataxProcessor dataxProcessor);
+    public void createJob(IControlMsgHandler module, final Context context, IDataxProcessor dataxProcessor);
 
 
     /**
@@ -81,5 +81,5 @@ public interface IDataXPowerJobSubmit {
      * @param context
      * @param dataxProcessor
      */
-    public abstract <WorkflowInfoDTO> WorkflowInfoDTO saveJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor);
+    public abstract <WorkflowInfoDTO> WorkflowInfoDTO saveJob(IControlMsgHandler module, Context context, IDataxProcessor dataxProcessor);
 }

@@ -18,16 +18,22 @@
 package com.qlangtech.tis.sql.parser;
 
 import com.facebook.presto.sql.tree.*;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
+import com.qlangtech.tis.fullbuild.indexbuild.IPartionableWarehouse;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.sql.parser.SqlFormatter.Formatter;
 import com.qlangtech.tis.sql.parser.SqlStringBuilder.RewriteProcessContext;
+import com.qlangtech.tis.sql.parser.TabPartitions.DumpTabPartition;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.er.TableMeta;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
+import com.qlangtech.tis.sql.parser.meta.DependencyNode;
+import com.qlangtech.tis.sql.parser.meta.NodeType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
@@ -55,7 +61,8 @@ public class SqlRewriter extends Formatter {
 
 
     private final TabPartitions tabPartition;
-
+    private final List<DependencyNode> dependencyNodes;
+    private final IPartionableWarehouse dumpTableNameRewriter;
     final List<AliasTable> waitProcessAliasTabsSet = Lists.newArrayList();
 
     private AliasTable primayTable;
@@ -77,19 +84,24 @@ public class SqlRewriter extends Formatter {
         this.primayTable = t;
     }
 
-    public SqlRewriter(SqlStringBuilder builder, Map<IDumpTable, ITabPartition> tabPartition, Supplier<IPrimaryTabFinder> erRules
-            , Optional<List<Expression>> parameters, boolean isFinal, IJoinTaskContext joinContext) {
-        this(builder, new TabPartitions(tabPartition), erRules, parameters, isFinal, joinContext);
+    public SqlRewriter(SqlStringBuilder builder, Map<IDumpTable, ITabPartition> tabPartition, List<DependencyNode> dependencies, Supplier<IPrimaryTabFinder> erRules
+            , Optional<List<Expression>> parameters, boolean isFinal, IJoinTaskContext joinContext, IPartionableWarehouse dumpTableNameRewriter) {
+        this(builder, new TabPartitions(tabPartition), dependencies, erRules, parameters, isFinal, joinContext, dumpTableNameRewriter);
     }
 
-    public SqlRewriter(SqlStringBuilder builder, TabPartitions tabPartition, Supplier<IPrimaryTabFinder> erRules
-            , Optional<List<Expression>> parameters, boolean isFinal, IJoinTaskContext joinContext) {
+    public SqlRewriter(SqlStringBuilder builder, TabPartitions tabPartition, List<DependencyNode> dependencies, Supplier<IPrimaryTabFinder> erRules
+            , Optional<List<Expression>> parameters, boolean isFinal, IJoinTaskContext joinContext, IPartionableWarehouse dumpTableNameRewriter) {
         super(builder, erRules, parameters);
         this.tabPartition = tabPartition;
+//        if (CollectionUtils.isEmpty(dependencies)) {
+//            throw new IllegalArgumentException("param dependencies can not be empty");
+//        }
+        this.dependencyNodes = dependencies;
         this.isFinal = isFinal;
         Objects.requireNonNull(joinContext, "param joinContext can not be null");
         Objects.requireNonNull(joinContext.getExecutePhaseRange(), "executePhaseRange can not be null");
         this.joinContext = joinContext;
+        this.dumpTableNameRewriter = dumpTableNameRewriter;
     }
 
     @Override
@@ -169,7 +181,9 @@ public class SqlRewriter extends Formatter {
             SqlFormatter.appendAliasColumns(builder, node.getColumnNames());
             return null;
         } else if (node.getRelation() instanceof TableSubquery) {
-            SqlRewriter w = new SqlRewriter(new SqlStringBuilder(), this.tabPartition, this.erRules, this.parameters, false, joinContext);
+            SqlRewriter w = new SqlRewriter(
+                    new SqlStringBuilder(), this.tabPartition
+                    , dependencyNodes, this.erRules, this.parameters, false, joinContext, this.dumpTableNameRewriter);
             w.process(node.getRelation(), new FormatContext(0));
             Optional<AliasTable> subTable = w.getWaitProcessAliasTabsSet().stream().findFirst();
             if (!subTable.isPresent()) {
@@ -270,35 +284,92 @@ public class SqlRewriter extends Formatter {
 
     private TabPartitions.DumpTabPartition parseDumpTable(QualifiedName tabName) {
         List<String> originalParts = tabName.getOriginalParts();
-        Optional<TabPartitions.DumpTabPartition> find = null;
+        Optional<TabPartitions.DumpTabPartition> find = Optional.empty();
         if (originalParts.size() == 2) {
-            find = tabPartition.findTablePartition(originalParts.get(0), originalParts.get(1));
-        } else if (originalParts.size() == 1) {
-            final RewriterDumpTable tab = RewriterDumpTable.create(originalParts.get(0));
-            //int[] count = new int[1];
 
-            find = tabPartition.findTablePartition(tab.tabname);
 
-//            Stream<Map.Entry<IDumpTable, ITabPartition>> findTabStream = tabPartition.entrySet().stream().filter((r) -> {
-//                boolean match = StringUtils.equals(r.getKey().getTableName(), tab.tabname);
-//                if (match) {
-//                    count[0]++;
+            String partDBName = originalParts.get(0);
+            String partTabName = originalParts.get(1);
+
+            find = findDumpPartition(partDBName, partTabName);
+
+//            NodeType nodeType = null;
+//            boolean findDepNode = false;
+//            for (DependencyNode depNode : this.dependencyNodes) {
+//                if (StringUtils.equals(partTabName, depNode.getName())
+//                        && StringUtils.equals(partDBName, depNode.getDbName())) {
+//                    //&&  == NodeType.DUMP
+//                    findDepNode = true;
+//                    nodeType = depNode.parseNodeType();
+//                    if (nodeType == NodeType.DUMP) {
+//                        partTabName = dumpTableNameRewriter.appendTabPrefix(partTabName);
+//                    }
+//                    // find = tabPartition.findTablePartition(tab.tabname);
+//                    find = tabPartition.findTablePartition(partDBName, partTabName);
+//                    break;
 //                }
-//                return match;
-//            });
-//            if (count[0] > 1) {
-//                throw new IllegalStateException("tabname:" + tab.tabname + " has match more than 1 context tab:" + findTabStream.map((r) -> r.toString()).collect(Collectors.joining(",")));
 //            }
-            //  find = findTabStream.findFirst();
-            // 重新rewrite表名称
+//
+//            if (!findDepNode) {
+//                throw new IllegalStateException(" have not find any match dependency node with:" + String.join(".", originalParts)
+//                        + " candidate nodes:" + this.dependencyNodes.stream().map((n) -> String.valueOf(n)).collect(Collectors.joining(",")));
+//            }
+
+            //  find = tabPartition.findTablePartition(originalParts.get(0), originalParts.get(1));
+        } else if (originalParts.size() == 1) {
+            // RewriterDumpTable tab = null;
+            String partTabName = originalParts.get(0);
+
+            find = findDumpPartition(null, partTabName);
+
         } else {
             throw new IllegalStateException("tabName:" + String.valueOf(tabName) + " is not illegal");
         }
         if (!find.isPresent()) {
-            throw new TisSqlFormatException(tabName.toString() + " can not find tab in[" + tabPartition.joinFullNames() + "]", Optional.empty()); // IllegalStateException(tabName.toString() + " can not find tab in[" + tabPartition.joinFullNames() + "]");
+            throw new TisSqlFormatException(String.valueOf(tabName) + " can not find tab in[" + tabPartition.joinFullNames() + "]", Optional.empty());
         }
         TabPartitions.DumpTabPartition findTab = find.get();
         return findTab;
+    }
+
+    private Optional<DumpTabPartition> findDumpPartition(String partDBName, String partTabName) {
+        Optional<DumpTabPartition> find = Optional.empty();
+        NodeType nodeType = null;
+
+        if (dumpTableNameRewriter.noRewriteTabName()) {
+            find = (partDBName == null) ? tabPartition.findTablePartition(partTabName) : tabPartition.findTablePartition(partDBName, partTabName);
+        } else {
+            boolean findDepNode = false;
+            if (CollectionUtils.isEmpty(this.dependencyNodes)) {
+                throw new IllegalArgumentException("param dependencies can not be empty");
+            }
+            for (DependencyNode depNode : this.dependencyNodes) {
+                if (StringUtils.equals(partTabName, depNode.getName())
+                        && (partDBName == null || StringUtils.equals(partDBName, depNode.getDbName()))) {
+                    findDepNode = true;
+                    //&&  == NodeType.DUMP
+                    nodeType = depNode.parseNodeType(false);
+                    if (nodeType == NodeType.DUMP) {
+                        /**
+                         * 根据autoCreateTable 重命名
+                         */
+                        partTabName = dumpTableNameRewriter.appendTabPrefix(partTabName);
+                    }
+
+                    // tab = RewriterDumpTable.create(partTabName, nodeType);
+                    find = (partDBName == null) ? tabPartition.findTablePartition(partTabName) : tabPartition.findTablePartition(partDBName, partTabName);
+                    break;
+                }
+            }
+            // final RewriterDumpTable tab = RewriterDumpTable.create(originalParts.get(0));
+            if (!findDepNode) {
+                throw new IllegalStateException(" have not find any match dependency node with:" + String.join(".", new String[]{partDBName, partTabName})
+                        + " candidate nodes:" + this.dependencyNodes.stream().map((n) -> String.valueOf(n)).collect(Collectors.joining(",")));
+            }
+        }
+
+
+        return find;
     }
 
     public static class AliasTable implements IAliasTable {
@@ -424,19 +495,25 @@ public class SqlRewriter extends Formatter {
         private final String dbname;
 
         private final String tabname;
+        private final NodeType nodeType;
 
-        private RewriterDumpTable(String dbname, String tabname) {
+        private RewriterDumpTable(String dbname, String tabname, NodeType nodeType) {
             super();
             this.dbname = dbname;
             this.tabname = tabname;
+            this.nodeType = nodeType;
         }
 
-        public static RewriterDumpTable create(String dbname, String tabname) {
-            return new RewriterDumpTable(dbname, tabname);
+        public static RewriterDumpTable create(String dbname, String tabname, NodeType nodeType) {
+            return new RewriterDumpTable(dbname, tabname, nodeType);
         }
 
-        static RewriterDumpTable create(String tabname) {
-            return new RewriterDumpTable(IDumpTable.DEFAULT_DATABASE_NAME, tabname);
+        static RewriterDumpTable create(String tabname, NodeType nodeType) {
+            return new RewriterDumpTable(IDumpTable.DEFAULT_DATABASE_NAME, tabname, nodeType);
+        }
+
+        public boolean isDumpNode() {
+            return this.nodeType == NodeType.DUMP;
         }
 
         @Override

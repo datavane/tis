@@ -20,6 +20,7 @@ package com.qlangtech.tis.sql.parser;
 
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
+import com.qlangtech.tis.fullbuild.indexbuild.IPartionableWarehouse;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.plugin.ds.ColMeta;
 import com.qlangtech.tis.plugin.ds.IDBReservedKeys;
@@ -97,7 +98,7 @@ public interface ISqlTask {
 
     String getSql();
 
-    RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition, Supplier<IPrimaryTabFinder> erRules
+    RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition, IPartionableWarehouse dumpTableNameRewriter, Supplier<IPrimaryTabFinder> erRules
             , IJoinTaskContext templateContext, boolean isFinalNode);
 
     class RewriteSql {

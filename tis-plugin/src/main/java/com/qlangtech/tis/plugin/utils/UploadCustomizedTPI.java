@@ -28,7 +28,7 @@ import com.qlangtech.tis.extension.impl.PluginManifest;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.order.center.IParamContext;
-import com.qlangtech.tis.plugin.IPluginStore.AfterPluginSaved;
+import com.qlangtech.tis.plugin.IPluginStore.ManipuldateProcessor;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.ITmpFileStore;
@@ -50,7 +50,7 @@ import java.util.Optional;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-07-05 13:26
  **/
-public class UploadCustomizedTPI implements Describable<UploadCustomizedTPI>, ITmpFileStore, AfterPluginSaved {
+public class UploadCustomizedTPI implements Describable<UploadCustomizedTPI>, ITmpFileStore, ManipuldateProcessor {
     private static final Logger logger = LoggerFactory.getLogger(UploadCustomizedTPI.class);
     private static final String KEY_FILE = "file";
 
@@ -88,7 +88,7 @@ public class UploadCustomizedTPI implements Describable<UploadCustomizedTPI>, IT
     }
 
     @Override
-    public void afterSaved(IPluginContext pluginContext, Optional<Context> context) {
+    public void manipuldateProcess(IPluginContext pluginContext, Optional<Context> context) {
         PluginManager pm = TIS.get().getPluginManager();
         TmpFile tmpFile = getTmpeFile();
 //        PluginManifest manifest = PluginManifest.create(tmpFile.tmp);
@@ -100,7 +100,7 @@ public class UploadCustomizedTPI implements Describable<UploadCustomizedTPI>, IT
             File targetTpi = new File(TIS.pluginDirRoot, this.getStoreFileName());
             if (targetTpi.exists()) {
                 if (!forceReplace) {
-                    throw TisException.create("插件包" + this.getStoreFileName() + "已经存在，如需强制替换插件包，请设置‘强制替换’为‘是’");
+                    throw TisException.create("插件包：‘" + targetTpi.getAbsolutePath() + "’，已经存在，如需强制替换插件包，请设置‘强制替换’为‘是’");
                 }
                 // 已经存在
                 FileUtils.moveFile(targetTpi, new File(TIS.pluginDirRoot, this.getStoreFileName() + "." + IParamContext.getCurrentMillisecTimeStamp()));

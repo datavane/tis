@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.sql.parser;
 
@@ -21,8 +21,10 @@ import com.facebook.presto.sql.parser.ParsingOptions;
 import com.facebook.presto.sql.parser.SqlParser;
 import com.facebook.presto.sql.tree.Expression;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
+import com.qlangtech.tis.fullbuild.indexbuild.IPartionableWarehouse;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.TisUTF8;
@@ -33,12 +35,15 @@ import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta.SqlDataFlowTopology;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.er.TableMeta;
+import com.qlangtech.tis.sql.parser.meta.DependencyNode;
+import com.qlangtech.tis.sql.parser.meta.NodeType;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.easymock.EasyMock;
 
 import java.io.InputStream;
@@ -46,6 +51,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -59,37 +65,52 @@ public class TestSqlRewriter extends TestCase {
     private final SqlParser sqlParser = new SqlParser();
 
     private static final Map<IDumpTable, ITabPartition> tabPartition;
+    final static List<DependencyNode> dependencyNodes;
 
     private static final SqlDataFlowTopology topology;
 
     // private static final Map<EntityName, ERRules.TabFieldProcessor> tabFieldProcessorMap;
     private static final ERRules totalpayERRules;
-    private static final RewriterDumpTable totalpayinfo = RewriterDumpTable.create("kkkk", "totalpayinfo");
+    private static final RewriterDumpTable totalpayinfo = RewriterDumpTable.create("kkkk", "totalpayinfo", NodeType.DUMP);
 
     static {
         System.setProperty("data.dir", "dataflow");
         ImmutableMap.Builder<IDumpTable, ITabPartition> mapBuilder = ImmutableMap.builder();
         // 全部是原始DUMP表
-        mapBuilder.put(RewriterDumpTable.create("order", "orderdetail"), () -> "20190827111159");
-        mapBuilder.put(RewriterDumpTable.create("order", "order_bill"), () -> "20190828111159");
-        mapBuilder.put(RewriterDumpTable.create("tis", "order_customers"), () -> "20190829111159");
-        mapBuilder.put(RewriterDumpTable.create("tis", "takeout_order_extra"), () -> "2019083027111159");
-        mapBuilder.put(RewriterDumpTable.create("tis", "ent_expense_order"), () -> "2019073027111159");
-        mapBuilder.put(RewriterDumpTable.create("tis", "ent_expense"), () -> "20190730111159");
-        mapBuilder.put(RewriterDumpTable.create("xxxxx", "instancedetail"), () -> "20190630111159");
-        mapBuilder.put(RewriterDumpTable.create("aaaa", "card"), () -> "20190530111159");
-        mapBuilder.put(RewriterDumpTable.create("member", "customer"), () -> "20190430111159");
-        mapBuilder.put(RewriterDumpTable.create("bbb", "specialfee"), () -> "20190230111159");
-        mapBuilder.put(RewriterDumpTable.create("ccc", "payinfo"), () -> "20190330111159");
+        mapBuilder.put(RewriterDumpTable.create("order", "orderdetail", NodeType.DUMP), () -> "20190827111159");
+        mapBuilder.put(RewriterDumpTable.create("order", "order_bill", NodeType.DUMP), () -> "20190828111159");
+        mapBuilder.put(RewriterDumpTable.create("tis", "order_customers", NodeType.DUMP), () -> "20190829111159");
+        mapBuilder.put(RewriterDumpTable.create("tis", "takeout_order_extra", NodeType.DUMP), () -> "2019083027111159");
+        mapBuilder.put(RewriterDumpTable.create("tis", "ent_expense_order", NodeType.DUMP), () -> "2019073027111159");
+        mapBuilder.put(RewriterDumpTable.create("tis", "ent_expense", NodeType.DUMP), () -> "20190730111159");
+        mapBuilder.put(RewriterDumpTable.create("xxxxx", "instancedetail", NodeType.DUMP), () -> "20190630111159");
+        mapBuilder.put(RewriterDumpTable.create("aaaa", "card", NodeType.DUMP), () -> "20190530111159");
+        mapBuilder.put(RewriterDumpTable.create("member", "customer", NodeType.DUMP), () -> "20190430111159");
+        mapBuilder.put(RewriterDumpTable.create("bbb", "specialfee", NodeType.DUMP), () -> "20190230111159");
+        mapBuilder.put(RewriterDumpTable.create("ccc", "payinfo", NodeType.DUMP), () -> "20190330111159");
         mapBuilder.put(totalpayinfo, () -> "20180330111159");
-        mapBuilder.put(RewriterDumpTable.create("hhhh", "order_instance"), () -> "20180329111159");
-        mapBuilder.put(RewriterDumpTable.create("yyyyy", "tmp_pay"), () -> "20180328111159");
-        mapBuilder.put(RewriterDumpTable.create("yyyyy", "tmp_group_specialfee"), () -> "20180328111159");
-        mapBuilder.put(RewriterDumpTable.create("uuuu", "tmp_customer_card"), () -> "20180328111159");
-        mapBuilder.put(RewriterDumpTable.create("oooo", "servicebillinfo"), () -> "20180327111159");
-        mapBuilder.put(RewriterDumpTable.create("oooo", "card_expense_relative"), () -> "20180326111159");
-        mapBuilder.put(RewriterDumpTable.create("shop", "mall_shop"), () -> "20180325111159");
+        mapBuilder.put(RewriterDumpTable.create("hhhh", "order_instance", NodeType.DUMP), () -> "20180329111159");
+        mapBuilder.put(RewriterDumpTable.create("yyyyy", "tmp_pay", NodeType.JOINER_SQL), () -> "20180328111159");
+        mapBuilder.put(RewriterDumpTable.create("yyyyy", "tmp_group_specialfee", NodeType.JOINER_SQL), () -> "20180328111159");
+        mapBuilder.put(RewriterDumpTable.create("uuuu", "tmp_customer_card", NodeType.JOINER_SQL), () -> "20180328111159");
+        mapBuilder.put(RewriterDumpTable.create("oooo", "servicebillinfo", NodeType.DUMP), () -> "20180327111159");
+        mapBuilder.put(RewriterDumpTable.create("oooo", "card_expense_relative", NodeType.JOINER_SQL), () -> "20180326111159");
+        mapBuilder.put(RewriterDumpTable.create("shop", "mall_shop", NodeType.DUMP), () -> "20180325111159");
         tabPartition = mapBuilder.build();
+
+        dependencyNodes = Lists.newArrayList();
+        RewriterDumpTable dumpTable = null;
+        DependencyNode depNode = null;
+        for (Map.Entry<IDumpTable, ITabPartition> tabPartitionEntry : tabPartition.entrySet()) {
+            dumpTable = (RewriterDumpTable) tabPartitionEntry.getKey();
+            if (dumpTable.isDumpNode()) {
+                depNode = DependencyNode.create(String.valueOf(UUID.randomUUID()), dumpTable.getTableName(), NodeType.DUMP);
+                depNode.setDbName(dumpTable.getDbName());
+                dependencyNodes.add(depNode);
+            }
+        }
+
+
         try {
             topology = SqlTaskNodeMeta.getSqlDataFlowTopology("totalpay");
         } catch (Exception e) {
@@ -248,9 +269,9 @@ public class TestSqlRewriter extends TestCase {
         Assert.assertNotNull(extraSqlAssert);
         Assert.assertNotNull(extraSql);
         builder = new SqlStringBuilder();
-        rewriter = new SqlRewriter(builder, tabPartition, ()-> erRules, parameters, isFinal, taskContext);
+        rewriter = new SqlRewriter(builder, tabPartition, dependencyNodes, () -> erRules, parameters, isFinal, taskContext, IPartionableWarehouse.createForNoWriterForTableName());
         // 执行rewrite
-        rewriter.process(sqlParser.createStatement(extraSql, new ParsingOptions()), new FormatContext(0 ));
+        rewriter.process(sqlParser.createStatement(extraSql, new ParsingOptions()), new FormatContext(0));
         final String rewriteSql = processFileContent(builder.toString());
         System.out.println("<<" + exportName);
         System.out.println(extraSql);

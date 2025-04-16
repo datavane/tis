@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
+import com.qlangtech.tis.fullbuild.indexbuild.IPartionableWarehouse;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
@@ -100,7 +101,9 @@ public class TestSqlTaskNodeMeta extends TestCase {
         SqlTaskNodeMeta taskNodeMeta = new SqlTaskNodeMeta();
         taskNodeMeta.setSql(TestSqlRewriter.getScriptContent("supply_goods_rewrite_origin.sql"));
         TabPartitions dumpPartition = createTabPartition();
-        ISqlTask.RewriteSql colMetaGetterSql = taskNodeMeta.getColMetaGetterSql(dumpPartition);
+
+
+        ISqlTask.RewriteSql colMetaGetterSql = taskNodeMeta.getColMetaGetterSql(dumpPartition, IPartionableWarehouse.createForNoWriterForTableName());
 
         System.out.println(colMetaGetterSql.rewriteSql);
 
@@ -123,14 +126,13 @@ public class TestSqlTaskNodeMeta extends TestCase {
         EasyMock.replay(joinTaskContext);
 
         ISqlTask.RewriteSql rewriteSql = taskNodeMeta.getRewriteSql(
-                "supply_goods", dumpPartition, () -> erRule.get(), joinTaskContext, true);
+                "supply_goods", dumpPartition, IPartionableWarehouse.createForNoWriterForTableName(), () -> erRule.get(), joinTaskContext, true);
 
         assertNotNull(rewriteSql);
         assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_unusing_join_result.sql"), rewriteSql.rewriteSql);
         System.out.println(rewriteSql.rewriteSql);
         EasyMock.verify(joinTaskContext);
     }
-
 
 
     public void testGetRewriteSql() throws Exception {
@@ -147,7 +149,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
         EasyMock.replay(joinTaskContext);
 
         ISqlTask.RewriteSql rewriteSql = taskNodeMeta.getRewriteSql(
-                "supply_goods", dumpPartition, () -> erRule.get(), joinTaskContext, true);
+                "supply_goods", dumpPartition, IPartionableWarehouse.createForNoWriterForTableName(), () -> erRule.get(), joinTaskContext, true);
 
         assertNotNull(rewriteSql);
         assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result.txt"), rewriteSql.rewriteSql);

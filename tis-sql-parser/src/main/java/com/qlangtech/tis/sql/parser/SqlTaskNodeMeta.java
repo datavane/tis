@@ -29,8 +29,10 @@ import com.facebook.presto.sql.tree.Statement;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
+import com.qlangtech.tis.fullbuild.indexbuild.IPartionableWarehouse;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
@@ -161,8 +163,9 @@ public class SqlTaskNodeMeta implements ISqlTask {
             String pt = "20200703113848";
             ITabPartition p = () -> pt;
             Map<IDumpTable, ITabPartition> tabPartition = dependencyNodes.stream().collect(Collectors.toMap((r) -> EntityName.parse(r.getName()), (r) -> p));
-
-            taskNodeMeta.getRewriteSql("testTaskName", new MockDumpPartition(tabPartition), () -> new IPrimaryTabFinder() {
+            taskNodeMeta.setDependencies(dependencyNodes);
+            taskNodeMeta.getRewriteSql("testTaskName", new MockDumpPartition(tabPartition)
+                    , IPartionableWarehouse.createForNoWriterForTableName(), () -> new IPrimaryTabFinder() {
             }, tskContext, false);
             return Optional.empty();
         } catch (Throwable e) {
@@ -197,14 +200,14 @@ public class SqlTaskNodeMeta implements ISqlTask {
      *
      * @return
      */
-    public RewriteSql getColMetaGetterSql(TabPartitions tabPartitions) {
+    public RewriteSql getColMetaGetterSql(TabPartitions tabPartitions, IPartionableWarehouse dumpTableNameRewriter) {
 
         IJoinTaskContext joinContext = getTplContext();
         Optional<List<Expression>> parameters = Optional.empty();
 
         SqlStringBuilder builder = new SqlStringBuilder();
         SelectColsMetaGetter rewriter = new SelectColsMetaGetter(builder, () -> new IPrimaryTabFinder() {
-        }, tabPartitions, parameters, joinContext);
+        }, tabPartitions, this.dependencies, parameters, joinContext, dumpTableNameRewriter);
         // 执行rewrite
         try {
             Statement state = getSqlStatement();
@@ -304,7 +307,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
     }
 
     @Override
-    public RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition
+    public RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition, IPartionableWarehouse dumpTableNameRewriter
             , Supplier<IPrimaryTabFinder> erRules, IJoinTaskContext joinContext, boolean isFinalNode) {
         if (dumpPartition.size() < 1) {
             throw new IllegalStateException("taskName:" + taskName + " dumpPartition set size can not small than 1");
@@ -312,7 +315,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         Optional<List<Expression>> parameters = Optional.empty();
 
         SqlStringBuilder builder = new SqlStringBuilder();
-        SqlRewriter rewriter = new SqlRewriter(builder, dumpPartition, erRules, parameters, isFinalNode, joinContext);
+        SqlRewriter rewriter = new SqlRewriter(builder, dumpPartition, this.dependencies, erRules, parameters, isFinalNode, joinContext, dumpTableNameRewriter);
         // 执行rewrite
         try {
             Statement state = getSqlStatement();
