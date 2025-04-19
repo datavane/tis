@@ -45,6 +45,7 @@ import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.git.GitUtils.JoinRule;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
@@ -1414,10 +1415,15 @@ public class OfflineDatasourceAction extends BasicModule {
   public void doGetDatasourceTableCols(Context context) throws TableNotFoundException {
     String tableName = this.getString("tabName");
     com.qlangtech.tis.workflow.pojo.DatasourceDb db = getDsDb();
-    DataxReader dbDataxReader = Objects.requireNonNull(OfflineManager.getDBDataxReader(this, db.getName())
-      , "dbName:" + db.getName() + " relevant reader can not be null");
-    List<ColumnMetaData> colsMeta
-      = dbDataxReader.getTableMetadata(false, this, EntityName.parse(tableName));
+    DataxReader dbDataxReader = OfflineManager.getDBDataxReader(this, db.getName());
+    List<ColumnMetaData> colsMeta = Lists.newArrayList();
+    if (dbDataxReader != null) {
+      colsMeta = dbDataxReader.getTableMetadata(false, this, EntityName.parse(tableName));
+    } else {
+      throw TisException.create("该数据源下还没有选中的表，请先点击编辑，选择您所需要的表");
+    }
+//    = Objects.requireNonNull()
+//      , "dbName:" + db.getName() + " relevant reader can not be null");
     this.setBizResult(context, colsMeta);
   }
 
@@ -1780,16 +1786,22 @@ public class OfflineDatasourceAction extends BasicModule {
     private final String extensionDesc;
 
     List<DatasourceTable> tables;
+    private final Date opDate;
 
     // byte syncOnline;
 
 
-    public DatasourceDb(int id, String extensionDesc) {
+    public DatasourceDb(int id, String extensionDesc, Date opDate) {
       if (StringUtils.isEmpty(extensionDesc)) {
         throw new IllegalArgumentException("param extensionDesc can not be null");
       }
       this.id = id;
       this.extensionDesc = extensionDesc;
+      this.opDate = opDate;
+    }
+
+    public Date getOpDate() {
+      return this.opDate;
     }
 
     /**

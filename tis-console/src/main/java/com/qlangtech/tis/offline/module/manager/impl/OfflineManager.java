@@ -426,8 +426,10 @@ public class OfflineManager {
       if (StringUtils.isEmpty(db.getExtendClass())) {
         continue;
       }
-      dsDb = new OfflineDatasourceAction.DatasourceDb(db.getId(), db.getExtendClass());
+
+      dsDb = new OfflineDatasourceAction.DatasourceDb(db.getId(), db.getExtendClass(), db.getOpTime());
       dsDb.setName(db.getName());
+
       dbsMap.put(db.getId(), dsDb);
     }
 
