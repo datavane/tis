@@ -4,6 +4,7 @@
     "creator": {
       "routerLink": "/offline/ds",
       "label": "配置",
+      "assistType": "dbQuickManager",
       "plugin-parent": {
         "hetero": "datasource",
         "extraParam": "type_detailed,update_false,disableBizStore_true"

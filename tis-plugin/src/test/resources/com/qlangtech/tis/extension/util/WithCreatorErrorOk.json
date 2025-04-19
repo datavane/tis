@@ -1,6 +1,7 @@
 {
   "dbName": {
     "creator": {
+      "assistType": "dbQuickManager",
       "plugin": [
         {
           "descName": "DataX-global"

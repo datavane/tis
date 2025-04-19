@@ -62,7 +62,7 @@ public class OfflineManager {
   private IWorkflowDAOFacade workflowDAOFacade;
 
   public static DataxReader getDBDataxReader(IPluginContext pluginContext, String dbName) {
-    KeyedPluginStore<DataxReader> pluginStore = DataxReader.getPluginStore(pluginContext, true, dbName);
+    KeyedPluginStore<DataxReader> pluginStore = DataxReader.getPluginStore(null, true, dbName);
     return pluginStore.getPlugin();
   }
 

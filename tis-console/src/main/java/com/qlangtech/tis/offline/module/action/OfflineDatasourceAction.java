@@ -95,9 +95,11 @@ import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import name.fraser.neil.plaintext.diff_match_patch;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1087,28 +1089,55 @@ public class OfflineDatasourceAction extends BasicModule {
   public void doGetDatasourceInfo(Context context) throws Exception {
     // 部分DS是 只支持数据写入，例如Hive,所以需要进行过滤
     boolean filterSupportReader = this.getBoolean("filterSupportReader");
+    // 不为空，则需要过滤特定plugin类型的插件
+    List<UploadPluginMeta> pluginMeta = Collections.emptyList();
+    String[] pmeta = this.getStringArray(KEY_PLUGIN);
+    if (pmeta != null && pmeta.length > 0) {
+      pluginMeta = getPluginMeta();
+    }
+    Set<String> filterDescDisplayNames = pluginMeta.stream().map((pm) -> pm.getTargetDesc().matchTargetPluginDescName).collect(Collectors.toSet());
     DescriptorExtensionList<DataSourceFactory, Descriptor<DataSourceFactory>> dbDescs =
       TIS.get().getDescriptorList(DataSourceFactory.class);
 
     Map<String, DataSourceFactory.BaseDataSourceFactoryDescriptor> descMap =
-      dbDescs.stream().collect(Collectors.toMap((desc) -> StringUtils.lowerCase(desc.getDisplayName()),
-        (desc) -> (DataSourceFactory.BaseDataSourceFactoryDescriptor) desc));
+      dbDescs.stream()
+        .map((desc) -> (DataSourceFactory.BaseDataSourceFactoryDescriptor) desc)
+        .filter((desc) -> {
+          boolean accept = !filterSupportReader || desc.getDefaultDataXReaderDescName().isPresent();
+          if (accept && CollectionUtils.isNotEmpty(filterDescDisplayNames)) {
+            return filterDescDisplayNames.contains(desc.getDisplayName());
+          }
+          return accept;
+        }).collect(Collectors.toMap((desc) -> StringUtils.lowerCase(desc.getDisplayName()),
+          (desc) -> desc));
 
-    this.setBizResult(context, filterSupportReader ? new ConfigDsMeta(offlineManager.getDatasourceInfo(), descMap) {
+    this.setBizResult(context, new ConfigDsMeta(offlineManager.getDatasourceInfo(), descMap) {
       @Override
       public Collection<DatasourceDb> getDbsSupportDataXReader() {
 
         return this.dbs.stream().filter((db) -> {
           DataSourceFactory.BaseDataSourceFactoryDescriptor desc = descMap.get(StringUtils.lowerCase(db.extensionDesc));
-          if (desc == null) {
-            //              throw new IllegalStateException("extendDesc:" + db.extensionDesc
-            //                + " can not find relevant Desc instance in :" + String.join(",", descMap.keySet()));
-            return false;
-          }
-          return desc.getDefaultDataXReaderDescName().isPresent();
+          return (desc != null);
         }).collect(Collectors.toList());
       }
-    } : new ConfigDsMeta(offlineManager.getDatasourceInfo(), descMap));
+    });
+
+
+//    this.setBizResult(context, filterSupportReader ? new ConfigDsMeta(offlineManager.getDatasourceInfo(), descMap) {
+//      @Override
+//      public Collection<DatasourceDb> getDbsSupportDataXReader() {
+//
+//        return this.dbs.stream().filter((db) -> {
+//          DataSourceFactory.BaseDataSourceFactoryDescriptor desc = descMap.get(StringUtils.lowerCase(db.extensionDesc));
+//          if (desc == null) {
+//            //              throw new IllegalStateException("extendDesc:" + db.extensionDesc
+//            //                + " can not find relevant Desc instance in :" + String.join(",", descMap.keySet()));
+//            return false;
+//          }
+//          return desc.getDefaultDataXReaderDescName().isPresent();
+//        }).collect(Collectors.toList());
+//      }
+//    } : new ConfigDsMeta(offlineManager.getDatasourceInfo(), descMap));
   }
 
   public static class ConfigDsMeta extends PluginDescMeta {

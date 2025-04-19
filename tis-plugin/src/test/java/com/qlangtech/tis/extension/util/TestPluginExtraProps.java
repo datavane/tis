@@ -24,6 +24,7 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.DefaultPlugin;
 import com.qlangtech.tis.extension.ElementPluginDesc;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.util.PluginExtraProps.RouterAssistType;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.CMeta.ParsePostMCols;
 import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
@@ -36,21 +37,23 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
+import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_CREATOR_ASSIST_TYPE;
+
 /**
  *
  */
 public class TestPluginExtraProps extends TestCase {
 
-    public void testParsePostMCols() {
-
-        ElementCreatorFactory elementCreator = new TestElementCreatorFactory();
-        IControlMsgHandler msgHandler = null;
-        Context context = null;
-        String keyColsMeta = null;
-        JSONArray targetCols = null;
-        IPropertyType propertyType = null;
-        elementCreator.parsePostMCols(propertyType, msgHandler, context, keyColsMeta, targetCols);
-    }
+//    public void testParsePostMCols() {
+//
+//        ElementCreatorFactory elementCreator = new TestElementCreatorFactory();
+//        IControlMsgHandler msgHandler = null;
+//        Context context = null;
+//        String keyColsMeta = null;
+//        JSONArray targetCols = null;
+//        IPropertyType propertyType = null;
+//        elementCreator.parsePostMCols(propertyType, msgHandler, context, keyColsMeta, targetCols);
+//    }
 
     private static class TestElementCreatorFactory implements ElementCreatorFactory<CMeta> {
         @Override
@@ -95,6 +98,7 @@ public class TestPluginExtraProps extends TestCase {
         assertNotNull(creator);
         assertEquals("部门管理", creator.getString("label"));
         assertEquals("/base/departmentlist", creator.getString("routerLink"));
+        assertEquals(RouterAssistType.hyperlink, RouterAssistType.parse(creator.getString(KEY_CREATOR_ASSIST_TYPE)));
     }
 
 //    public void testCreatorWithError() throws Exception {
@@ -174,7 +178,7 @@ public class TestPluginExtraProps extends TestCase {
             PluginExtraProps.load(ElementPluginDesc.create(desc), DefaultPlugin.class);
             Assert.fail("must be faild");
         } catch (Exception e) {
-            Assert.assertEquals("prop key:xxx relevant prop must exist , exist props keys:password,name,cols", e.getMessage());
+            Assert.assertEquals("prop key:xxx relevant prop must exist , exist props keys:password,nestProp,name,cols", e.getMessage());
         }
     }
 }

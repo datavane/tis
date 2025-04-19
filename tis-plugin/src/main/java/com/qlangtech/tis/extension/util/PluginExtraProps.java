@@ -57,6 +57,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.util.HeteroEnum.DATASOURCE;
+import static com.qlangtech.tis.util.HeteroEnum.PARAMS_CONFIG;
+
 /**
  * load extra prop desc like 'lable' and so on
  *
@@ -75,6 +78,41 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     public static final String KEY_DATETIME_FORMAT = "dateTimeFormat";
     public static final String KEY_DISABLE = "disable";
     public static final String KEY_CREATOR = "creator";
+    public static final String KEY_CREATOR_HETERO = "hetero";
+    /**
+     * <pre>
+     *  export enum RouterAssistType {
+     *   hyperlink = 'hyperlink',
+     *   dbQuickManager = 'dbQuickManager',
+     *   paramCfg = 'paramCfg'
+     * }
+     * </pre>
+     */
+    public static final String KEY_CREATOR_ASSIST_TYPE = "assistType";
+
+    public enum RouterAssistType {
+        hyperlink("hyperlink"),
+        dbQuickManager("dbQuickManager"),
+        paramCfg("paramCfg");
+        private final String token;
+
+        public static RouterAssistType parse(String token) {
+            if (StringUtils.isEmpty(token)) {
+                throw new IllegalArgumentException("param '" + KEY_CREATOR_ASSIST_TYPE + "' can not be empty");
+            }
+            for (RouterAssistType assistType : RouterAssistType.values()) {
+                if (assistType.token.equals(token)) {
+                    return assistType;
+                }
+            }
+            throw new IllegalStateException("illegal routerAssistType:" + token);
+        }
+
+        private RouterAssistType(String token) {
+            this.token = token;
+        }
+    }
+
 
     public static final String KEY_ROUTER_LINK = "routerLink";
     public static final String KEY_LABEL = "label";
@@ -215,22 +253,49 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             }
             if (finalValidate) {
                 JSONObject creatorJ = (JSONObject) creator;
+
                 //  Objects.requireNonNull(creatorJ.get(KEY_ROUTER_LINK), errDesc);
                 Objects.requireNonNull(creatorJ.get(KEY_LABEL), errDesc);
                 JSONObject pmeta = null;
                 JSONArray plugins = creatorJ.getJSONArray("plugin");
+                boolean assistTypeEmpty = StringUtils.isEmpty(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE));
                 if (plugins != null) {
                     for (int i = 0; i < plugins.size(); i++) {
                         pmeta = plugins.getJSONObject(i);
-                        if (StringUtils.isBlank(pmeta.getString("hetero")) || StringUtils.isBlank(pmeta.getString(
-                                "descName"))
+                        if (StringUtils.isBlank(pmeta.getString(KEY_CREATOR_HETERO))
+                                || StringUtils.isBlank(pmeta.getString("descName"))
                             // 由于插件中参数不一定是必须的，所以先把以下校验去掉： "extraParam": "append_true"
                             //        || StringUtils.isBlank(pmeta.getString("extraParam"))
                         ) {
                             throw new IllegalStateException("pmeta is illegal:" + pmeta.toJSONString() + "," +
-                                    "pluginClazz:" + pluginClazz.getName());
+                                    "pluginClazz:" + pluginClazz.getName() + ",errDesc:" + errDesc);
+                        }
+                        /**
+                         * 如果assitType 为空，则查看plugin 的KEY_CREATOR_HETERO 如果为 ‘params-cfg’ 则默认ASSIST_TYPE类型为 RouterAssistType.paramCfg
+                         */
+                        if (assistTypeEmpty) {
+                            String hetero = pmeta.getString(KEY_CREATOR_HETERO);
+                            if (StringUtils.isNotEmpty(hetero)) {
+                                if (!DATASOURCE.identity.equals(hetero)) {
+                                    creatorJ.put(KEY_CREATOR_ASSIST_TYPE, RouterAssistType.paramCfg.token);
+                                    assistTypeEmpty = false;
+                                }
+                            }
                         }
                     }
+                }
+
+                if (assistTypeEmpty && StringUtils.isNotEmpty(creatorJ.getString(KEY_ROUTER_LINK))) {
+                    creatorJ.put(KEY_CREATOR_ASSIST_TYPE, RouterAssistType.hyperlink.token);
+                }
+
+                /**
+                 * 校验assistType
+                 */
+                try {
+                    RouterAssistType.parse(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE));
+                } catch (Exception e) {
+                    throw new RuntimeException(errDesc, e);
                 }
             }
         }
