@@ -21,6 +21,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxWriter;
@@ -84,6 +85,10 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 
     // for TEST
     public static IDataxProcessorGetter processorGetter;
+
+    public static IDataxProcessor load(IPluginContext pluginContext, DataXName dataXName) {
+        return load(pluginContext, dataXName.getType(), dataXName.getPipelineName());
+    }
 
 
     public static IDataxProcessor load(IPluginContext pluginContext, String dataXName) {
