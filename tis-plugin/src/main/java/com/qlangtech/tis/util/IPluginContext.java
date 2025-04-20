@@ -20,7 +20,9 @@ package com.qlangtech.tis.util;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataXNameAware;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.SuFormProperties.SuFormGetterContext;
@@ -110,8 +112,8 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostC
             }
 
             @Override
-            public String getCollectionName() {
-                return collectionName;
+            public DataXName getCollectionName() {
+                return new DataXName(collectionName, StoreResourceType.DataApp);
             }
 
             @Override

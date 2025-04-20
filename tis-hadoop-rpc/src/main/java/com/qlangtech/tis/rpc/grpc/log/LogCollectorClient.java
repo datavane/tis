@@ -20,6 +20,7 @@ package com.qlangtech.tis.rpc.grpc.log;
 import ch.qos.logback.classic.Level;
 import com.google.common.collect.ImmutableMap;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.phasestatus.JobLog;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
@@ -241,7 +242,8 @@ public class LogCollectorClient implements ILogReporter {
     }
 
     public static MonotorTarget convert(PMonotorTarget request) {
-        MonotorTarget monotorTarget = MonotorTarget.createRegister(request.getCollection(), convert(request.getLogtype()));
+        MonotorTarget monotorTarget
+                = MonotorTarget.createRegister(DataXName.createDataXPipeline(request.getCollection()), convert(request.getLogtype()));
         if (request.getTaskid() > 0) {
             monotorTarget.setTaskid(request.getTaskid());
         }
@@ -330,7 +332,7 @@ public class LogCollectorClient implements ILogReporter {
 
     @Override
     public java.util.Iterator<com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> buildPhraseStatus(// , final IPhaseStatusCollectionListener slistener
-                                                                                                              Integer taskid)  {
+                                                                                                              Integer taskid) {
         PBuildPhaseStatusParam statusParam = PBuildPhaseStatusParam.newBuilder().setTaskid(taskid).build();
         return blockStub.buildPhraseStatus(statusParam);
         // responseObserver.onCompleted();

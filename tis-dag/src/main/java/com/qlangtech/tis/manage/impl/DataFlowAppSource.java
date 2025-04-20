@@ -27,7 +27,6 @@ import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
@@ -44,7 +43,8 @@ import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.plugin.PluginStore;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
@@ -92,7 +92,7 @@ import java.util.function.Supplier;
  */
 public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
     private static final Logger logger = LoggerFactory.getLogger("fullbuild");
-    public static final File parent = new File(Config.getPluginCfgDir(), IFullBuildContext.NAME_APP_DIR);
+    public static final File parent = new File(Config.getPluginCfgDir(), StoreResourceTypeConstants.NAME_APP_DIR);
     private final String dataflowName;
     private final WorkFlow dataflow;
     private final IFlatTableBuilder flatTableBuilder;

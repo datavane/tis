@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.compiler.streamcode;
 
@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.compiler.java.FileObjectsContext;
 import com.qlangtech.tis.compiler.java.ResourcesFile;
 import com.qlangtech.tis.compiler.java.ZipPath;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
@@ -35,6 +36,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Stack;
 
 /**
@@ -42,7 +44,7 @@ import java.util.Stack;
  * @date 2020/04/13
  */
 public class IndexStreamCodeGenerator {
-    public final String collection;
+    public final DataXName collection;
 
     // private SqlTaskNodeMeta.SqlDataFlowTopology dfTopology;
     private final IBasicAppSource streamIncrGenerateStrategy;
@@ -60,13 +62,13 @@ public class IndexStreamCodeGenerator {
     // 自动生成的incr脚本中需要dao支持吗？
 
 
-    public IndexStreamCodeGenerator(String collection, IBasicAppSource streamIncrGenerateStrategy, long incrScriptTimestamp
-            , IDBTableNamesGetter dbTableNamesGetter)  {
-        if (StringUtils.isEmpty(collection)) {
-            throw new IllegalArgumentException("argument collection can not be null");
-        }
+    public IndexStreamCodeGenerator(DataXName collection, IBasicAppSource streamIncrGenerateStrategy, long incrScriptTimestamp
+            , IDBTableNamesGetter dbTableNamesGetter) {
+//        if (StringUtils.isEmpty(collection)) {
+//            throw new IllegalArgumentException("argument collection can not be null");
+//        }
 
-        this.collection = collection;
+        this.collection = Objects.requireNonNull(collection, "param collection can not be null");
         this.streamIncrGenerateStrategy = streamIncrGenerateStrategy;
         this.dbTableNamesGetter = dbTableNamesGetter;
         if (incrScriptTimestamp < 1) {
@@ -85,14 +87,14 @@ public class IndexStreamCodeGenerator {
         FileUtils.deleteQuietly(streamScriptRootDir);
     }
 
-    private void initialize()  {
+    private void initialize() {
         // FullbuildWorkflowAction.getDataflowTopology(CoreAction.this, this.workFlow);
         // this.dfTopology = SqlTaskNodeMeta.getSqlDataFlowTopology(this.workflowName);
         //  this.dbTables = getDependencyTables(dfTopology);
         facadeList = Lists.newArrayList();
         streamCodeGenerator = new StreamComponentCodeGeneratorFlink(
                 this.collection, incrScriptTimestamp, facadeList, this.streamIncrGenerateStrategy);
-        this.streamScriptRootDir = StreamContextConstant.getStreamScriptRootDir(this.collection, incrScriptTimestamp);
+        this.streamScriptRootDir = StreamContextConstant.getStreamScriptRootDir(this.collection.getPipelineName(), incrScriptTimestamp);
     }
 
 //    private Map<DBNode, List<String>> /* tables */

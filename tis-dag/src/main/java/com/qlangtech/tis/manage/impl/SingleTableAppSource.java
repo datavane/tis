@@ -31,7 +31,7 @@
 //import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
 //import com.qlangtech.tis.manage.ISingleTableAppSource;
 //import com.qlangtech.tis.manage.ISolrAppSource;
-//import com.qlangtech.tis.plugin.StoreResourceType;
+//import com.qlangtech.tis.datax.StoreResourceType;
 //import com.qlangtech.tis.plugin.ds.*;
 //import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 //import com.qlangtech.tis.sql.parser.DBNode;

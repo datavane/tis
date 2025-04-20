@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.coredefine.module.action;
 
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -30,13 +31,22 @@ public class TargetResName extends ResName {
 
     public static final TargetResName K8S_DATAX_INSTANCE_NAME = new TargetResName("datax-worker");
 
+    public static TargetResName createTargetName(DataXName dataXName) {
+      dataXName.assetCheckDataAppType();
+      return new TargetResName(dataXName.getPipelineName());
+    }
+
     public String getStreamSourceHandlerClass() {
+
         return "com.qlangtech.tis.realtime.transfer." + this.getName() + "." + UnderlineUtils.getJavaName(this.getName()) + "SourceHandle";
     }
 
     public TargetResName(String name) {
+
+
         super(name);
     }
+
 
     public boolean equalWithName(String name) {
         return this.getName().equals(name);

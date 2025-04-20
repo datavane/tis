@@ -258,7 +258,7 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
             if (!(mtarget.getLogType() == LogType.INCR_SEND || mtarget.getLogType() == LogType.INCR)) {
                 throw new IllegalArgumentException("target logtype:" + mtarget.getLogType() + " is illegal");
             }
-            evtMeta.collection = mtarget.getCollection();
+            evtMeta.collection = mtarget.getCollection().getPipelineName();
             targetAppenderName.append(mtarget.getCollection());
         }
         String target = targetAppenderName.toString();

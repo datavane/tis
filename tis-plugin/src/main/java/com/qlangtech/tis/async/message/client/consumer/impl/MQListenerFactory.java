@@ -25,6 +25,7 @@ import com.qlangtech.tis.async.message.client.consumer.IConsumerHandle;
 import com.qlangtech.tis.async.message.client.consumer.IFlinkColCreator;
 import com.qlangtech.tis.async.message.client.consumer.IMQConsumerStatusFactory;
 import com.qlangtech.tis.async.message.client.consumer.IMQListenerFactory;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -113,7 +114,7 @@ public abstract class MQListenerFactory
     public abstract <FlinkColType> IFlinkColCreator<FlinkColType> createFlinkColCreator(DataSourceMeta sourceMeta);
 
 
-    public static Optional<Descriptor<SelectedTabExtend>> getIncrSourceSelectedTabExtendDescriptor(String dataXName) {
+    public static Optional<Descriptor<SelectedTabExtend>> getIncrSourceSelectedTabExtendDescriptor(DataXName dataXName) {
         MQListenerFactory incrSourceFactory = HeteroEnum.getIncrSourceListenerFactory(dataXName);
 
         Descriptor<MQListenerFactory> descriptor = incrSourceFactory.getDescriptor();

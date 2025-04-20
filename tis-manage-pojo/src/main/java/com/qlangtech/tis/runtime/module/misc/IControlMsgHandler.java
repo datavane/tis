@@ -18,7 +18,9 @@
 package com.qlangtech.tis.runtime.module.misc;
 
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataXNameAware;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.runtime.module.action.IParamGetter;
 
 import java.io.PrintWriter;
@@ -33,12 +35,12 @@ public interface IControlMsgHandler extends IFieldErrorHandler, IMessageHandler,
         return new IControlMsgHandler() {
             @Override
             public PrintWriter getEventStreamWriter() {
-               throw new UnsupportedOperationException();
+                throw new UnsupportedOperationException();
             }
 
             @Override
-            public String getCollectionName() {
-                return collectionName;
+            public DataXName getCollectionName() {
+                return new DataXName(collectionName, StoreResourceType.DataApp);
             }
 
             @Override

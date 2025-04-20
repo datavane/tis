@@ -33,6 +33,7 @@ import com.qlangtech.tis.coredefine.module.action.IncrUtils.IncrSpecResult;
 import com.qlangtech.tis.datax.DataXCfgFile;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.DataXJobSubmit.InstanceType;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataXPowerJobSubmit;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
@@ -62,6 +63,7 @@ import com.qlangtech.tis.datax.preview.PreviewRowsData;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.extension.SubFormFilter;
+import com.qlangtech.tis.extension.model.UpdateSite.Data;
 import com.qlangtech.tis.extension.util.MultiItemsViewType;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.lang.TisException;
@@ -84,7 +86,7 @@ import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.common.AutoCreateTable;
@@ -189,7 +191,8 @@ public class DataxAction extends BasicModule {
       .map((type) -> InstanceType.parse(type))
       .orElseGet(() -> DataXJobSubmit.getDataXTriggerType());
 
-    IDataxProcessor dataXProcessor = DataxProcessor.load(null, this.getCollectionName());
+    DataXName dataX = this.getCollectionName();
+    IDataxProcessor dataXProcessor = DataxProcessor.load(null, dataX.getType(), dataX.getPipelineName());
 
     if (!dataXProcessor.isSupportBatch(this)) {
       this.addErrorMessage(context, "该数据通道不支持批量数据同步，请使用实时同步");
@@ -753,12 +756,12 @@ public class DataxAction extends BasicModule {
     if (!this.isCollectionAware()) {
       throw new IllegalStateException("must be collection aware");
     }
-    TargetResName resName = new TargetResName(this.getCollectionName());
+    TargetResName resName = TargetResName.createTargetName(this.getCollectionName());
 
     List<UploadPluginMeta> metas = this.getPluginMeta();
     DataXJobWorker.K8SWorkerCptType powerjobCptType = null;
     for (UploadPluginMeta meta : metas) {
-      powerjobCptType = DataXJobWorker.K8SWorkerCptType.parse(meta.getDataXName());
+      powerjobCptType = DataXJobWorker.K8SWorkerCptType.parse(meta.getDataXName().getPipelineName());
     }
     // DataXJobWorker.PowerjobCptType powerjobCptType = DataXJobWorker.PowerjobCptType.parse(this.getString("powerjobCptType"));
     saveWorker(context, resName, Optional.of(powerjobCptType));
@@ -1164,13 +1167,13 @@ public class DataxAction extends BasicModule {
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doUpdateDatax(Context context) throws Exception {
-    final String dataxName = this.getCollectionName();
+    final DataXName dataxName = this.getCollectionName();
 
     ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
-    IDataxProcessor old = (IDataxProcessor) pmodel.loadDataXProcessor(null, dataxName);
+    IDataxProcessor old = (IDataxProcessor) pmodel.loadDataXProcessor(null, dataxName.getPipelineName());
 
     // DataxProcessor old = DataxProcessor.load(null, dataxName);
-    IDataxProcessor editting = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataxName);
+    IDataxProcessor editting = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataxName.getPipelineName());
     File oldWorkDir = old.getDataXWorkDir((IPluginContext) null);
     File edittingDir = editting.getDataXWorkDir((IPluginContext) this);
 
@@ -1198,13 +1201,13 @@ public class DataxAction extends BasicModule {
     Application dataXApp = new Application();
     dataXApp.setUpdateTime(new Date());
     ApplicationCriteria appCriteria = new ApplicationCriteria();
-    appCriteria.createCriteria().andProjectNameEqualTo(dataxName);
+    appCriteria.createCriteria().andProjectNameEqualTo(dataxName.getPipelineName());
     this.getApplicationDAO().updateByExampleSelective(dataXApp, appCriteria);
 
-    IAppSource.cleanAppSourcePluginStoreCache(null, dataxName);
-    IAppSource.cleanAppSourcePluginStoreCache(this, dataxName);
-    SelectedTabExtend.clearTabExtend(null, dataxName);
-    SelectedTabExtend.clearTabExtend(this, dataxName);
+    IAppSource.cleanAppSourcePluginStoreCache(null, dataxName.getPipelineName());
+    IAppSource.cleanAppSourcePluginStoreCache(this, dataxName.getPipelineName());
+    SelectedTabExtend.clearTabExtend(null, dataxName.getPipelineName());
+    SelectedTabExtend.clearTabExtend(this, dataxName.getPipelineName());
 
     DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
       submit.saveJob(this, context, old);
@@ -1222,13 +1225,13 @@ public class DataxAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doCreateUpdateProcess(Context context) throws Exception {
-    String dataXName = this.getCollectionName();
+    DataXName dataXName = this.getCollectionName();
     String execId = this.getString("execId");
     if (StringUtils.isBlank(execId)) {
       throw new IllegalArgumentException("param execId can not be null");
     }
     ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
-    IDataxProcessor dataxProcessor = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataXName);
+    IDataxProcessor dataxProcessor = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataXName.getPipelineName());
 
     // DataxProcessor dataxProcessor = IAppSource.load(null, dataXName);
     dataxProcessor.makeTempDir(execId);
@@ -1296,7 +1299,7 @@ public class DataxAction extends BasicModule {
     if (StringUtils.isEmpty(targetTab)) {
       throw new IllegalArgumentException("param table can not be null");
     }
-    String dataXName = this.getCollectionName();
+    DataXName dataXName = this.getCollectionName();
     Optional<DataXJobSubmit> jobSubmit = DataXJobSubmit.getDataXJobSubmit(false, InstanceType.LOCAL);
     DataXJobSubmit submit = jobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must be present"));
 
@@ -1346,7 +1349,7 @@ public class DataxAction extends BasicModule {
     Objects.requireNonNull(dataxReader, "dataReader:" + dataxName + " relevant instance can not be null");
 
     TableAlias tableAlias;
-    Optional<DataxProcessor> dataXAppSource = IAppSource.loadNullable(this, dataxName);
+    Optional<DataxProcessor> dataXAppSource = IAppSource.loadNullable(this, DataXName.createDataXPipeline(dataxName));
     TableAliasMapper tabMaps = null;//Collections.emptyMap();
     AutoCreateTable mapperTabPrefixAutoTabCreator = null;
     if (dataXAppSource.isPresent()) {
@@ -1592,13 +1595,13 @@ public class DataxAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetDataXMeta(Context context) {
-    String dataXName = this.getCollectionName();
+    DataXName dataXName = this.getCollectionName();
 
     ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
-    IDataxProcessor processor = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataXName);
+    IDataxProcessor processor = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataXName.getPipelineName());
     Map<String, Object> result = Maps.newHashMap();
 
-    Optional<DataxReader> dataXReader = pmodel.getDataXReader(this, dataXName);
+    Optional<DataxReader> dataXReader = pmodel.getDataXReader(this, dataXName.getPipelineName());
     DataxReader.BaseDataxReaderDescriptor readerDesc = null;
     DataxReader reader = null;
     if (dataXReader.isPresent()) {

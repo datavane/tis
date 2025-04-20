@@ -20,6 +20,7 @@ package com.qlangtech.tis;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.component.GlobalComponent;
 import com.qlangtech.tis.config.ParamsConfig;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
@@ -37,7 +38,6 @@ import com.qlangtech.tis.extension.init.InitReactorRunner;
 import com.qlangtech.tis.extension.init.InitStrategy;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.util.VersionNumber;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.install.InstallState;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Config;
@@ -47,7 +47,8 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.ds.DSKey;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -104,7 +105,6 @@ public class TIS {
     public static String VERSION = UNCOMPUTED_VERSION;
 
     private static final Logger logger = LoggerFactory.getLogger(TIS.class);
-    public static final String DB_GROUP_NAME = "db";
 
     public static final String KEY_ALT_SYSTEM_PROP_TIS_PLUGIN_ROOT = "plugin_dir_root";
     //  public static final String KEY_ACTION_CLEAN_TIS = "cleanTis";
@@ -344,7 +344,7 @@ public class TIS {
         if (dsFactoryPluginStoreGetter != null) {
             pluginStore = dsFactoryPluginStoreGetter.getPluginStore(dsProp);
         } else {
-            DSKey key = new DSKey(DB_GROUP_NAME, dsProp, DataSourceFactory.class);
+            DSKey key = new DSKey(StoreResourceTypeConstants.DB_GROUP_NAME, dsProp, DataSourceFactory.class);
             pluginStore = databasePluginStore.get(key);
         }
         return pluginStore;
@@ -364,6 +364,10 @@ public class TIS {
         }
     }
 
+    public static <T extends Describable> IPluginStore<T> getPluginStore(DataXName dataXName, Class<T> key) {
+        return getPluginStore(dataXName.getType().getType(), dataXName.getPipelineName(), key);
+    }
+
     public static <T extends Describable> IPluginStore<T> getPluginStore(String collection, Class<T> key) {
 //        PluginStore<T> pluginStore = collectionPluginStore.get(new KeyedPluginStore.Key(IFullBuildContext.NAME_APP_DIR, collection, key));
 //        if (pluginStore == null) {
@@ -372,7 +376,7 @@ public class TIS {
 //        } else {
 //            return pluginStore;
 //        }
-        return getPluginStore(IFullBuildContext.NAME_APP_DIR, collection, key);
+        return getPluginStore(StoreResourceTypeConstants.NAME_APP_DIR, collection, key);
     }
 
     /**

@@ -20,13 +20,14 @@ package com.qlangtech.tis.manage;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.StoreResourceTypeGetter;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.util.IPluginContext;
@@ -75,8 +76,8 @@ public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGe
         RecordTransformerRules.cleanPluginStoreCache(context, appName);
     }
 
-    static <T extends IAppSource> Optional<T> loadNullable(IPluginContext context, String appName) {
-        return loadNullable(context, StoreResourceType.DataApp, appName);
+    static <T extends IAppSource> Optional<T> loadNullable(IPluginContext context, DataXName appName) {
+        return loadNullable(context, appName.getType(), appName.getPipelineName());
     }
 
     static <T extends IAppSource> Optional<T> loadNullable(
@@ -87,7 +88,7 @@ public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGe
     }
 
     static <T extends IAppSource> T load(String appName) {
-        return load(null, appName);
+        return load(null, DataXName.createDataXPipeline(appName));
     }
 
     /**
@@ -109,7 +110,7 @@ public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGe
      * @param appName
      * @return
      */
-    static <T extends IAppSource> T load(IPluginContext pluginContext, String appName) {
+    static <T extends IAppSource> T load(IPluginContext pluginContext, DataXName appName) {
         Optional<IAppSource> iAppSource = loadNullable(pluginContext, appName);
         if (!iAppSource.isPresent()) {
             throw new IllegalStateException("appName:" + appName + " relevant appSource can not be null");

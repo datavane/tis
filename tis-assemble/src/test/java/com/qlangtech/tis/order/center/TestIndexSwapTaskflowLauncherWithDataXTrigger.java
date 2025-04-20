@@ -27,6 +27,7 @@ import com.qlangtech.tis.dao.ICommonDAOContext;
 import com.qlangtech.tis.datax.CuratorDataXTaskMessage;
 import com.qlangtech.tis.datax.DataXJobInfo;
 import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataXBatchPost;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -130,7 +131,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
 //        }
 
         @Override
-        public TriggerBuildResult triggerJob(IControlMsgHandler module, Context context, String appName
+        public TriggerBuildResult triggerJob(IControlMsgHandler module, Context context, DataXName appName
                 , Optional<Long> workflowInstanceIdOpt, Optional<WorkFlowBuildHistory> latestWorkflowHistory) {
             return null;
         }

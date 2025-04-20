@@ -29,6 +29,7 @@ public class AppAndRuntime {
 
     private static ThreadLocal<AppAndRuntime> appAndRuntimeLocal = new ThreadLocal<AppAndRuntime>();
     private String appName;
+
     private RunEnvironment runtime;
 
     public static Consumer<AppAndRuntime> newAppAndRuntimeConsumer;

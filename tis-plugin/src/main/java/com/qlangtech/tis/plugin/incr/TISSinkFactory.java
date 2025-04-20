@@ -23,6 +23,7 @@ import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.async.message.client.consumer.IFlinkColCreator;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.compiler.incr.ICompileAndPackage;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataXNameAware;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxProcessor;
@@ -120,11 +121,11 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
     public transient String dataXName;
 
     @Override
-    public final String getCollectionName() {
+    public final DataXName getCollectionName() {
         if (StringUtils.isEmpty(this.dataXName)) {
             throw new IllegalStateException("param dataXName can not be empty");
         }
-        return this.dataXName;
+        return DataXName.createDataXPipeline(this.dataXName);
     }
 
     /**

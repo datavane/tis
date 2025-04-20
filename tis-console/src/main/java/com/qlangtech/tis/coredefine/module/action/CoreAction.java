@@ -37,14 +37,12 @@ import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer.CoreNode;
 import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
-import com.qlangtech.tis.datax.job.DefaultSSERunnable;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate;
-import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
-import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteSteps;
 import com.qlangtech.tis.datax.job.JobOrchestrateException;
 import com.qlangtech.tis.datax.job.JobResName;
 import com.qlangtech.tis.datax.job.SSERunnable;
@@ -72,7 +70,6 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
 import com.qlangtech.tis.manage.common.ManageUtils;
 import com.qlangtech.tis.manage.common.RunContext;
-import com.qlangtech.tis.manage.common.valve.AjaxValve.ActionExecResult;
 import com.qlangtech.tis.manage.servlet.DownloadResource;
 import com.qlangtech.tis.manage.servlet.DownloadServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
@@ -181,7 +178,7 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doCreateNewSavepoint(Context context) throws Exception {
     IRCController incrSync = getRCController();
-    TargetResName resName = new TargetResName(this.getCollectionName());
+    TargetResName resName = TargetResName.createTargetName(this.getCollectionName());// new TargetResName(this.getCollectionName());
 
     IRCController.SupportTriggerSavePointResult supportResult = null;
     if (!(supportResult = incrSync.supportTriggerSavePoint(resName)).support) {
@@ -221,7 +218,7 @@ public class CoreAction extends BasicModule {
     }
     IRCController incrSync = getRCController();
 
-    incrSync.discardSavepoint(new TargetResName(this.getCollectionName()), savepointPath);
+    incrSync.discardSavepoint(TargetResName.createTargetName(this.getCollectionName()), savepointPath);
     IndexIncrStatus incrStatus = getIndexIncrStatus(this, false);
     this.setBizResult(context, incrStatus);
   }
@@ -235,7 +232,7 @@ public class CoreAction extends BasicModule {
     // waittingiIntendedStatus(context, IFlinkIncrJobStatus.State.RUNNING);
 
     // ======================================================
-    final ServerLaunchToken incrLaunchToken = incrSync.getLaunchToken(new TargetResName(this.getCollectionName()));
+    final ServerLaunchToken incrLaunchToken = incrSync.getLaunchToken(TargetResName.createTargetName(this.getCollectionName()));
 
     LaunchIncrSyncChannel incrLauncher
       = new LaunchIncrSyncChannel(this.getCollectionName(), this, context, incrLaunchToken, true) {
@@ -283,7 +280,8 @@ public class CoreAction extends BasicModule {
       JobResName.createSubJob(getCollectionName() + " launch", (dto) -> {
         // IncrStreamFactory incrSync = getRCController();
         //  incrSync.relaunch(new TargetResName(this.getCollectionName()), savepointPath);
-        incrSync.restoreFromCheckpoint(new TargetResName(this.getCollectionName()), checkpointId);
+        // new TargetResName(this.getCollectionName().getPipelineName())
+        incrSync.restoreFromCheckpoint(TargetResName.createTargetName(this.getCollectionName()), checkpointId);
       });
 
     /**
@@ -497,7 +495,7 @@ public class CoreAction extends BasicModule {
 
     IndexIncrStatus incrStatus = generateDAOAndIncrScript(this, context, hasCfgChanged.isPresent());
     MQListenerFactory incrFactory = HeteroEnum.getIncrSourceListenerFactory(this.getCollectionName());
-    TISSinkFactory sinkFactory = TISSinkFactory.getIncrSinKFactory(this.getCollectionName());
+    TISSinkFactory sinkFactory = TISSinkFactory.getIncrSinKFactory(this.getCollectionName().getPipelineName());
     incrStatus.setIncrSourceDesc(createDescVals(incrFactory.getDescriptor()));
     incrStatus.setIncrSinkDesc(createDescVals(sinkFactory.getDescriptor()));
     this.setBizResult(context, incrStatus);
@@ -586,10 +584,11 @@ public class CoreAction extends BasicModule {
   }
 
 
-  private static IndexIncrStatus doGetDataXReaderWriterDesc(String appName) throws Exception {
+  private static IndexIncrStatus doGetDataXReaderWriterDesc(DataXName appName) throws Exception {
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     incrStatus.setState(IFlinkIncrJobStatus.State.NONE);
-    IDataxProcessor dataxProcessor = DataxProcessor.load(null, appName);
+
+    IDataxProcessor dataxProcessor = DataxProcessor.load(null, appName.assetCheckDataAppType(), appName.getPipelineName());
     DataxWriter writer = (DataxWriter) dataxProcessor.getWriter(null, true);
     incrStatus.setWriterDesc(createDescVals(writer.getDescriptor()));
 
@@ -636,10 +635,11 @@ public class CoreAction extends BasicModule {
    */
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doReDeployIncrSyncChannal(Context context) throws Exception {
-    IncrStreamFactory streamFactory = IncrStreamFactory.getFactory(this.getCollectionName());
-    streamFactory.removeInstance(new TargetResName(this.getCollectionName()));
+    IncrStreamFactory streamFactory = IncrStreamFactory.getFactory(this.getCollectionName().getPipelineName());
+    TargetResName targetName = TargetResName.createTargetName(this.getCollectionName());
+    streamFactory.removeInstance(targetName);
     Thread.sleep(4000);
-    final ServerLaunchToken incrLaunchToken = streamFactory.getLaunchToken(new TargetResName(this.getCollectionName()));
+    final ServerLaunchToken incrLaunchToken = streamFactory.getLaunchToken(targetName);
     incrLaunchToken.deleteLaunchToken();
     //  this.launchIncrSyncChannel(context, incrLaunchToken);
 
@@ -669,7 +669,7 @@ public class CoreAction extends BasicModule {
     IncrStreamFactory incrSync = getRCController();
 
     // ======================================================
-    final ServerLaunchToken incrLaunchToken = incrSync.getLaunchToken(new TargetResName(this.getCollectionName()));
+    final ServerLaunchToken incrLaunchToken = incrSync.getLaunchToken(TargetResName.createTargetName((this.getCollectionName())));
 
     LaunchIncrSyncChannel incrLauncher
       = new LaunchIncrSyncChannel(this.getCollectionName(), this, context, incrLaunchToken, true) {
@@ -708,7 +708,7 @@ public class CoreAction extends BasicModule {
     final SubJobResName<FlinkJobDeployDTO> relaunch =
       JobResName.createSubJob(getCollectionName() + " launch", (dto) -> {
         // IncrStreamFactory incrSync = getRCController();
-        incrSync.relaunch(new TargetResName(this.getCollectionName()), savepointPath);
+        incrSync.relaunch(TargetResName.createTargetName(this.getCollectionName()), savepointPath);
       });
 
     /**
@@ -735,7 +735,7 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doDeployIncrSyncChannal(Context context) throws Exception {
     IncrStreamFactory streamFactory = getRCController();// IncrStreamFactory.getFactory(this.getCollectionName());
-    final ServerLaunchToken incrLaunchToken = streamFactory.getLaunchToken(new TargetResName(this.getCollectionName()));
+    final ServerLaunchToken incrLaunchToken = streamFactory.getLaunchToken(TargetResName.createTargetName(this.getCollectionName()));
 
     LaunchIncrSyncChannel incrLauncher
       = new LaunchIncrSyncChannel(this.getCollectionName(), this, context, incrLaunchToken) {
@@ -908,10 +908,10 @@ public class CoreAction extends BasicModule {
   }
 
   private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(BasicModule module) {
+    DataXName dataXName = module.getCollectionName();
+    Optional<IBasicAppSource> appSource = IAppSource.loadNullable(null, dataXName.getType(), dataXName.getPipelineName());
 
-    IBasicAppSource appSource = IAppSource.load(null, module.getCollectionName());
-
-    Date scriptLastOpTime = appSource.accept(new IBasicAppSource.IAppSourceVisitor<Date>() {
+    Date scriptLastOpTime = appSource.get().accept(new IBasicAppSource.IAppSourceVisitor<Date>() {
       @Override
       public Date visit(DataxProcessor app) {
         Application application = module.getApplicationDAO().selectByName(app.identityValue());
@@ -933,7 +933,7 @@ public class CoreAction extends BasicModule {
         return workFlow.getOpTime();
       }
     });
-    return new IndexStreamCodeGenerator(module.getCollectionName(), appSource
+    return new IndexStreamCodeGenerator(module.getCollectionName(), appSource.get()
       , ManageUtils.formatNowYyyyMMddHHmmss(scriptLastOpTime), (dbId, rewriteableTables) -> {
       // 通过dbid返回db中的所有表名称
 //      DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
@@ -985,7 +985,7 @@ public class CoreAction extends BasicModule {
 //      throw new IllegalArgumentException("param wfName can not be null");
 //    }
 
-    ISolrAppSource appSource = IAppSource.load(null, app.getProjectName());
+    ISolrAppSource appSource = IAppSource.load(null, DataXName.createDataXPipeline(app.getProjectName()));
 
     if (!appSource.triggerFullIndexSwapeValidate(module, context)) {
       return new TriggerBuildResult(false);
@@ -2248,7 +2248,7 @@ public class CoreAction extends BasicModule {
   private FCoreRequest createCoreRequest(Context context, int assignGroupCount, int group, int replica, String setVerbs, boolean isAppNameAware, boolean mustSelectMoreOneReplicAtLeast) {
     // boolean valid = false;
     // CoreRequest request = ;
-    CoreRequest coreRequest = createIps(context, this.getCollectionName(), null);
+    CoreRequest coreRequest = createIps(context, this.getCollectionName().getPipelineName(), null);
     FCoreRequest result = new FCoreRequest(coreRequest, assignGroupCount + group, assignGroupCount);
     // StringBuffer addserverSummary = new StringBuffer();
     // 不用为单独的一个组设置服务ip地址

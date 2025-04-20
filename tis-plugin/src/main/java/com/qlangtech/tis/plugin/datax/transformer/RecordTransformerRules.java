@@ -22,6 +22,7 @@ import com.alibaba.datax.core.job.ITransformerBuildInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -33,7 +34,7 @@ import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.ContextParamConfig;
@@ -142,7 +143,8 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
     public static Function<String, RecordTransformerRules> transformerRulesLoader4Test;
 
     public ITransformerBuildInfo createTransformerBuildInfo(IPluginContext pluginContext) {
-        DataxReader dataxReader = Objects.requireNonNull(DataxReader.load(pluginContext, pluginContext.getCollectionName())
+        DataXName dataX = pluginContext.getCollectionName();
+        DataxReader dataxReader = Objects.requireNonNull(DataxReader.load(pluginContext, dataX.getPipelineName())
                 , "dataX:" + pluginContext.getCollectionName() + " relevant DataXReader can not be null");
         return createTransformerBuildInfo(dataxReader);
     }
@@ -150,7 +152,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
     public static Map<String /*tableName*/, Map<String /*contextParamName*/, Function<RunningContext, Object>>>
     contextParamValsGetterMapper(
             IDataxProcessor processor, IPluginContext pluginContext, IDataxReader dataxReader, List<ISelectedTab> tabs) {
-       return contextParamValsGetterMapper(processor.getResType(),processor.identityValue(),pluginContext,dataxReader,tabs);
+        return contextParamValsGetterMapper(processor.getResType(), processor.identityValue(), pluginContext, dataxReader, tabs);
     }
 
     /**

@@ -21,6 +21,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.HttpUtils;
@@ -69,11 +70,11 @@ public class TestGenerateDAOAndIncrScript extends TestCase {
 
     private IndexStreamCodeGenerator getIndexStreamCodeGenerator() throws Exception {
 
-
-        IAppSource appSource = IAppSource.load(null, collection);
+        DataXName dataXName = DataXName.createDataXPipeline(collection);
+        IAppSource appSource = IAppSource.load(null, dataXName);
         assertNotNull(appSource);
 
-        return new IndexStreamCodeGenerator(collection, (IBasicAppSource) appSource, dataflowTimestamp, (dbid, tables) -> {
+        return new IndexStreamCodeGenerator(dataXName, (IBasicAppSource) appSource, dataflowTimestamp, (dbid, tables) -> {
             assertTrue(tables.size() > 0);
             return tables;
         });
@@ -127,7 +128,7 @@ public class TestGenerateDAOAndIncrScript extends TestCase {
         }
 
         @Override
-        public String getCollectionName() {
+        public DataXName getCollectionName() {
            throw new UnsupportedOperationException();
         }
     }

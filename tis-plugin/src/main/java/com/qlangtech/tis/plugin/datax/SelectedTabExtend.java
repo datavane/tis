@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
@@ -35,7 +36,7 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.SetPluginsResult;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -104,8 +105,9 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
         Optional<Descriptor<SelectedTabExtend>> sinkExtendDesc = Optional.empty();
 
         if (incrExtend) {
-            sourceExtendDesc = MQListenerFactory.getIncrSourceSelectedTabExtendDescriptor(pluginMeta.getDataXName());
-            sinkExtendDesc = TISSinkFactory.getIncrSinkSelectedTabExtendDescriptor(pluginMeta.getDataXName());
+            DataXName dataX = pluginMeta.getDataXName();
+            sourceExtendDesc = MQListenerFactory.getIncrSourceSelectedTabExtendDescriptor(dataX);
+            sinkExtendDesc = TISSinkFactory.getIncrSinkSelectedTabExtendDescriptor(dataX.getPipelineName());
             if (!sourceExtendDesc.isPresent() && !sinkExtendDesc.isPresent()) {
                 throw new IllegalStateException("neither selectedTableSourceExtendDesc nor selectedTabSinkExtendDesc "
                         + "is " + "present");
@@ -305,7 +307,7 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
                                     for (CMeta col : tab.cols) {
                                         if (tab.primaryKeys.contains(col.getName())) {
                                             reOrderCols.add(col);
-                                        }else{
+                                        } else {
                                             notPksCols.add(col);
                                         }
                                     }
@@ -392,8 +394,8 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
                 Selectable.Multi, true) {
             @Override
             public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-                final String dataxName = pluginMeta.getDataXName();
-                return storeCreator.apply(pluginContext, dataxName);
+                final DataXName dataxName = pluginMeta.getDataXName();
+                return storeCreator.apply(pluginContext, dataxName.getPipelineName());
 
             }
         };

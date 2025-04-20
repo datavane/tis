@@ -19,6 +19,7 @@
 package com.qlangtech.tis.coredefine.module.action;
 
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.job.DefaultSSERunnable;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
@@ -33,14 +34,14 @@ import java.util.Optional;
  * @create: 2024-09-10 14:48
  **/
 public abstract class LaunchIncrSyncChannel {
-  private final String appName;
+  private final DataXName appName;
   private final BasicModule module;
   private final Context context;
   private final ServerLaunchToken incrLaunchToken;
   private final TISK8sDelegate k8sClient;
   private final boolean isRelaunch;
 
-  public LaunchIncrSyncChannel(String appName, BasicModule module, Context context, ServerLaunchToken incrLaunchToken) {
+  public LaunchIncrSyncChannel(DataXName appName, BasicModule module, Context context, ServerLaunchToken incrLaunchToken) {
     this(appName, module, context, incrLaunchToken, false);
   }
 
@@ -51,18 +52,19 @@ public abstract class LaunchIncrSyncChannel {
    * @param incrLaunchToken
    * @param isRelaunch      是否是重新启动
    */
-  public LaunchIncrSyncChannel(String appName, BasicModule module, Context context, ServerLaunchToken incrLaunchToken, boolean isRelaunch) {
+  public LaunchIncrSyncChannel(DataXName appName, BasicModule module, Context context, ServerLaunchToken incrLaunchToken, boolean isRelaunch) {
+    appName.assetCheckDataAppType();
     this.appName = appName;
     this.module = module;
     this.context = context;
     this.incrLaunchToken = incrLaunchToken;
-    this.k8sClient = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
+    this.k8sClient = TISK8sDelegate.getK8SDelegate(appName);
     this.isRelaunch = isRelaunch;
   }
 
-  public String getCollectionName() {
-    return appName;
-  }
+//  public String getCollectionName() {
+//    return appName.getPipelineName();
+//  }
 
   protected abstract ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobWorkingOrchestrate(TISK8sDelegate k8sClient);
 
@@ -102,7 +104,7 @@ public abstract class LaunchIncrSyncChannel {
   class FlinkJobDeployDTO {
     final Context context;
     final TISK8sDelegate k8sClient;
-    private final StringBuffer logger = new StringBuffer("flink sync app:" + getCollectionName());
+    private final StringBuffer logger = new StringBuffer("flink sync app:" + appName);
 
     public FlinkJobDeployDTO(Context context, TISK8sDelegate k8sClient) {
       this.context = context;

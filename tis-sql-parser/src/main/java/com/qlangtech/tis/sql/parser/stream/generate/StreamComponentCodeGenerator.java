@@ -19,6 +19,7 @@
 package com.qlangtech.tis.sql.parser.stream.generate;
 
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
@@ -61,12 +62,12 @@ public class StreamComponentCodeGenerator extends StreamCodeContext {
     private final boolean excludeFacadeDAOSupport;
     private final List<FacadeContext> daoFacadeList;
 
-    public StreamComponentCodeGenerator(String collectionName, long timestamp,
+    public StreamComponentCodeGenerator(DataXName collectionName, long timestamp,
                                         List<FacadeContext> daoFacadeList, IStreamIncrGenerateStrategy streamIncrGenerateStrategy) {
         this(collectionName, timestamp, daoFacadeList, streamIncrGenerateStrategy, false);
     }
 
-    public StreamComponentCodeGenerator(String collectionName, long timestamp,
+    public StreamComponentCodeGenerator(DataXName collectionName, long timestamp,
                                         List<FacadeContext> daoFacadeList, IStreamIncrGenerateStrategy streamIncrGenerateStrategy
             , boolean excludeFacadeDAOSupport) {
         super(collectionName, timestamp);

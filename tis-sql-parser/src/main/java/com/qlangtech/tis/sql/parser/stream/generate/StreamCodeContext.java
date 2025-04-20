@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.sql.parser.stream.generate;
 
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import org.apache.commons.lang.StringUtils;
@@ -37,8 +38,8 @@ public class StreamCodeContext {
 
     protected final boolean incrScriptDirCreated;
 
-    public StreamCodeContext(String collectionName, long timestamp) {
-        this.collectionName = collectionName;
+    public StreamCodeContext(DataXName collectionName, long timestamp) {
+        this.collectionName = collectionName.getPipelineName();
         this.timestamp = timestamp;
         try {
             incrScriptDir = getScalaStreamScriptDir(this.collectionName, this.timestamp);

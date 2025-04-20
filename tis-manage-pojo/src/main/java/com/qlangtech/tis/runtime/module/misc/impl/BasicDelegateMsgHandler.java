@@ -18,6 +18,7 @@
 package com.qlangtech.tis.runtime.module.misc.impl;
 
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 
@@ -76,12 +77,12 @@ public abstract class BasicDelegateMsgHandler implements IControlMsgHandler {
     }
 
     @Override
-    public String getCollectionName() {
+    public DataXName getCollectionName() {
         return delegate.getCollectionName();
     }
 
     @Override
-    public String getTISDataXName() {
+    public DataXName getTISDataXName() {
         return delegate.getTISDataXName();
     }
 

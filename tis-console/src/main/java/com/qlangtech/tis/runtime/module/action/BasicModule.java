@@ -36,6 +36,7 @@ import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
@@ -80,7 +81,7 @@ import com.qlangtech.tis.manage.common.apps.AppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -255,12 +256,12 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return execId;
   }
 
-  public String getCollectionName() {
+  public DataXName getCollectionName() {
     String collection = this.getAppDomain().getAppName();
     if (StringUtils.isBlank(collection)) {
       throw new IllegalStateException("param collection can not be null");
     }
-    return collection;
+    return DataXName.createDataXPipeline(collection);
   }
 
   @Override

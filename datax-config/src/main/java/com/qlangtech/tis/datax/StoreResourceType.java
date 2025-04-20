@@ -1,10 +1,3 @@
-package com.qlangtech.tis.plugin;
-
-import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.datax.impl.DataxProcessor;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
-import org.apache.commons.lang.StringUtils;
-
 /**
  *   Licensed to the Apache Software Foundation (ASF) under one
  *   or more contributor license agreements.  See the NOTICE file
@@ -23,15 +16,20 @@ import org.apache.commons.lang.StringUtils;
  *   limitations under the License.
  */
 
+package com.qlangtech.tis.datax;
+
+
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-02-08 11:08
  **/
 public enum StoreResourceType {
 
-    DataBase(TIS.DB_GROUP_NAME, false, StringUtils.EMPTY) //
-    , DataApp(IFullBuildContext.NAME_APP_DIR, false, DataxProcessor.DEFAULT_DATAX_PROCESSOR_NAME) //
-    , DataFlow(IFullBuildContext.NAME_DATAFLOW_DIR, true, DataxProcessor.DEFAULT_WORKFLOW_PROCESSOR_NAME);
+    DataBase(StoreResourceTypeConstants.DB_GROUP_NAME, false, StringUtils.EMPTY) //
+    , DataApp(StoreResourceTypeConstants.NAME_APP_DIR, false, StoreResourceTypeConstants.DEFAULT_DATAX_PROCESSOR_NAME) //
+    , DataFlow(StoreResourceTypeConstants.NAME_DATAFLOW_DIR, true, StoreResourceTypeConstants.DEFAULT_WORKFLOW_PROCESSOR_NAME);
 
     public static final String KEY_STORE_RESOURCE_TYPE = "storeResType";
     public static final String KEY_PROCESS_MODEL = "processModel";

@@ -15,31 +15,20 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.qlangtech.tis.trigger.jst;
 
-import com.qlangtech.tis.datax.DataXName;
-import com.qlangtech.tis.trigger.socket.LogType;
+package com.qlangtech.tis.datax;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
- */
-public class RegisterMonotorTarget extends MonotorTarget {
-
-    private static final long serialVersionUID = 1L;
-
-    private final boolean register;
-
-    /**
-     * @param collection
-     * @param logType
-     */
-    public RegisterMonotorTarget(boolean register, DataXName collection, LogType logType) {
-        super(collection, logType);
-        this.register = register;
-    }
-
-    public boolean isRegister() {
-        return register;
-    }
+ *
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2025-04-20 14:14
+ **/
+public class StoreResourceTypeConstants {
+    public static final String DB_GROUP_NAME = "db";
+    public static final String NAME_APP_DIR = "ap";
+    // public static final File parent = new File(
+    // "D:\\j2ee_solution\\eclipse-standard-kepler-SR2-win32-x86_64\\workspace\\tis-saturn\\tis-sql-parser\\src\\main\\resources\\totalpaytest");
+    public static final String NAME_DATAFLOW_DIR = "df";
+    public static final String DEFAULT_DATAX_PROCESSOR_NAME = "DataxProcessor";
+    public static final String DEFAULT_WORKFLOW_PROCESSOR_NAME = "WorkflowProcessor";
 }

@@ -35,7 +35,8 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IPluginStore.AfterPluginSaved;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
@@ -61,8 +62,6 @@ import java.util.stream.Collectors;
  */
 public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor, IStreamIncrGenerateStrategy, AfterPluginSaved {
 
-    public static final String DEFAULT_DATAX_PROCESSOR_NAME = "DataxProcessor";
-    public static final String DEFAULT_WORKFLOW_PROCESSOR_NAME = "WorkflowProcessor";
     public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
     public static final String DATAX_CREATE_DDL_DIR_NAME = "createDDL";
 
@@ -114,7 +113,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     }
 
     public static Descriptor<IAppSource> getPluginDescMeta() {
-        return getPluginDescMeta(DEFAULT_DATAX_PROCESSOR_NAME);
+        return getPluginDescMeta(StoreResourceTypeConstants.DEFAULT_DATAX_PROCESSOR_NAME);
     }
 
     public static Descriptor<IAppSource> getPluginDescMeta(String targetProcessName) {

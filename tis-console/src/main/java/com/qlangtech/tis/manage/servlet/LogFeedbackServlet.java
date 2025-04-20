@@ -30,6 +30,7 @@ import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.action.ExtendWorkFlowBuildHistory;
 import com.qlangtech.tis.coredefine.module.action.TISK8sDelegate;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.job.common.JobCommon;
@@ -129,7 +130,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
     // 在客户端中将服务端的流式消息缓存一些，这样用户重复打开终端显示，第二次显示不会为空内容
     private final Map<LogType, CyclicBuffer<MessageOrBuilder>> logtypes = new HashMap<>();
 
-    private String collectionName;
+    private DataXName collectionName;
 
     private int taskid;
 
@@ -143,7 +144,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
     public void onWebSocketConnect(Session sess) {
       super.onWebSocketConnect(sess);
       this.taskid = Integer.parseInt(this.getParameter(JobCommon.KEY_TASK_ID, Collections.singletonList("-1")));
-      this.collectionName = getParameter("collection", Collections.singletonList(MonotorTarget.DUMP_COLLECTION));
+      this.collectionName = DataXName.createDataXPipeline(getParameter("collection", Collections.singletonList(MonotorTarget.DUMP_COLLECTION)));
       List<RegisterMonotorTarget> typies = parseLogTypes(this.getParameter("logtype"));
       logger.info("taskid:{},appname:{},typies:{}", this.taskid, this.collectionName
         , typies.stream().map((t) -> String.valueOf(t)).collect(Collectors.joining(",")));
@@ -300,7 +301,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
       } else if (monitorTarget.testLogType(LogType.FULL, LogType.INCR, LogType.INCR_SEND)) {
         PMonotorTarget.Builder t = PMonotorTarget.newBuilder();
         t.setLogtype(LogCollectorClient.convert(monitorTarget.getLogType().typeKind));
-        t.setCollection(this.collectionName);
+        t.setCollection(this.collectionName.getPipelineName());
         if (this.taskid > 0) {
           t.setTaskid(this.taskid);
         }
@@ -335,12 +336,12 @@ public class LogFeedbackServlet extends WebSocketServlet {
           transferTagStatus = new HashMap<>();
         final Map<String, TopicTagStatus> /* this.tag */
           binlogTopicTagStatus = new HashMap<>();
-        List<TopicTagIncrStatus.FocusTags> focusTags = getFocusTags(zkGetter.getInstance(), collectionName);
+        List<TopicTagIncrStatus.FocusTags> focusTags = getFocusTags(zkGetter.getInstance(), collectionName.getPipelineName());
         // 如果size为0，则说明远程工作节点没有正常执行
         if (focusTags.size() > 0) {
           TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
           executorService.execute(() -> {
-            IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(this.collectionName, this
+            IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(this.collectionName.getPipelineName(), this
               , transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, plugin.createConsumerStatus(), zkGetter);
             incrTagHeatBeatMonitor.build();
           });

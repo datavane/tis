@@ -85,11 +85,11 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
 
     static Descriptor getWriterDescriptor(UploadPluginMeta pluginMeta //IPluginContext pluginContext, String dataXName
     ) throws Exception {
-        String dataXName = pluginMeta.getDataXName(false);
-        if (StringUtils.isNotEmpty(dataXName)) {
+        DataXName dataXName = pluginMeta.getDataXName(false);
+        if (dataXName != null) {
 //            Descriptor descriptor = TIS.get().getDescriptor(FileUtils.readFileToString(getWriterDescFile(pluginMeta.getPluginContext(), dataXName), TisUTF8.get()));
 //            return descriptor;
-            return getWriterDescriptor(pluginMeta.getPluginContext(), dataXName);
+            return getWriterDescriptor(pluginMeta.getPluginContext(), dataXName.getPipelineName());
         } else {
             return null;
         }

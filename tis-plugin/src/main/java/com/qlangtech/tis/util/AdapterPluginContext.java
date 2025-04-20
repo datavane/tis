@@ -21,6 +21,7 @@ package com.qlangtech.tis.util;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -115,7 +116,7 @@ public abstract class AdapterPluginContext implements IPluginContext, IControlMs
     }
 
     @Override
-    public String getCollectionName() {
+    public DataXName getCollectionName() {
         return pluginContext.getCollectionName();
     }
 

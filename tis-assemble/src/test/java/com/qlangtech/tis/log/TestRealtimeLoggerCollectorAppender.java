@@ -1,24 +1,25 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.log;
 
 import ch.qos.logback.classic.spi.LoggingEvent;
 import com.qlangtech.tis.BaseTestCase;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.rpc.server.FullBuildStatCollectorServer;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
@@ -45,7 +46,7 @@ public class TestRealtimeLoggerCollectorAppender extends BaseTestCase {
     private static final Logger logger = LoggerFactory.getLogger(TestRealtimeLoggerCollectorAppender.class);
 
     public void testIncrProcessLogger() {
-        MonotorTarget mtarget = MonotorTarget.createRegister(collection, LogType.INCR);
+        MonotorTarget mtarget = MonotorTarget.createRegister(DataXName.createDataXPipeline(collection), LogType.INCR);
         AtomicBoolean closed = new AtomicBoolean(false);
         final AtomicInteger receivedCount = new AtomicInteger();
         FullBuildStatCollectorServer.addListener(mtarget, new RealtimeLoggerCollectorAppender.LoggerCollectorAppenderListener() {
@@ -85,7 +86,7 @@ public class TestRealtimeLoggerCollectorAppender extends BaseTestCase {
         assertNotNull(bufferAppender);
         AtomicBoolean closed = new AtomicBoolean(false);
         final AtomicInteger receivedCount = new AtomicInteger();
-        MonotorTarget mtarget = MonotorTarget.createRegister("", LogType.FULL);
+        MonotorTarget mtarget = MonotorTarget.createRegister(DataXName.createDataXPipeline(""), LogType.FULL);
         mtarget.setTaskid(taskid);
         String logMsg = "start to log";
         AtomicInteger logIndex = new AtomicInteger();

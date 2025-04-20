@@ -220,7 +220,7 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
      * @return
      */
     @Override
-    public PreviewRowsData previewRowsData(String dataXName, String tableName, QueryCriteria queryCriteria) {
+    public PreviewRowsData previewRowsData(DataXName dataXName, String tableName, QueryCriteria queryCriteria) {
         throw new UnsupportedOperationException();
     }
 
@@ -276,7 +276,7 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
      * @return
      */
     public abstract TriggerBuildResult triggerJob(
-            IControlMsgHandler module, final Context context, String appName
+            IControlMsgHandler module, final Context context, DataXName appName
             , Optional<Long> powerJobWorkflowInstanceIdOpt, Optional<WorkFlowBuildHistory> latestWorkflowHistory);
 
     /**

@@ -20,15 +20,14 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.alibaba.datax.common.util.Configuration;
 import com.alibaba.datax.core.job.IJobContainerContext;
-import com.alibaba.datax.plugin.rdbms.util.DataXResourceName;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.offline.DataxUtils;
-import com.qlangtech.tis.plugin.StoreResourceType;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -42,7 +41,7 @@ import java.util.function.Function;
 public interface IDataSourceFactoryGetter {
     public static IDataSourceFactoryGetter getWriterDataSourceFactoryGetter(Configuration originalConfig, IJobContainerContext containerContext) {
         return getDataSourceFactoryGetter(originalConfig, containerContext, (res) -> {
-            return DataxWriter.load(null, res.resType, res.getDataXName(), true);
+            return DataxWriter.load(null, res.getType(), res.getPipelineName(), true);
         });
     }
 
@@ -50,8 +49,8 @@ public interface IDataSourceFactoryGetter {
                                                                             IJobContainerContext containerContext) {
         return getDataSourceFactoryGetter(config, containerContext, (res) -> {
 
-            if (res.resType != StoreResourceType.DataFlow) {
-                IDataxProcessor processor = DataxProcessor.load(null, res.resType, res.getDataXName());
+            if (res.getType() != StoreResourceType.DataFlow) {
+                IDataxProcessor processor = DataxProcessor.load(null, res.getType(), res.getPipelineName());
                 IDataxReader reader = null;
                 if ((reader = processor.getReader(null)) instanceof IDataSourceFactoryGetter) {
                     return reader;
@@ -76,17 +75,20 @@ public interface IDataSourceFactoryGetter {
 
     static IDataSourceFactoryGetter getDataSourceFactoryGetter(Configuration originalConfig,
                                                                IJobContainerContext containerContext,
-                                                               Function<DataXResourceName, Object> callable) {
+                                                               Function<DataXName, Object> callable) {
 
 
-        String dataXName = containerContext.getTISDataXName(); // originalConfig.getString(DataxUtils.DATAX_NAME);
+        DataXName dataXName = containerContext.getTISDataXName(); // originalConfig.getString(DataxUtils.DATAX_NAME);
         StoreResourceType resType =
                 StoreResourceType.parse(originalConfig.getString(StoreResourceType.KEY_STORE_RESOURCE_TYPE));
-        if (StringUtils.isEmpty(dataXName)) {
+        if (dataXName == null) {
             throw new IllegalArgumentException("param dataXName:" + dataXName + "can not be null");
         }
+        if (dataXName.getType() != resType) {
+            throw new IllegalStateException("dataXName type:" + dataXName.getType() + " must be equal with resType:" + resType);
+        }
         try {
-            Object dataxPlugin = callable.apply(new DataXResourceName(() -> dataXName, resType));
+            Object dataxPlugin = callable.apply(dataXName);
             Objects.requireNonNull(dataxPlugin, "dataXName:" + dataXName + " relevant instance can not be null");
             if (!(dataxPlugin instanceof IDataSourceFactoryGetter)) {
                 throw new IllegalStateException("dataxWriter:" + dataxPlugin.getClass() + " mus be type of " + IDataSourceFactoryGetter.class);

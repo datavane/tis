@@ -20,7 +20,7 @@ package com.qlangtech.tis.util;
 
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
 import junit.framework.TestCase;
 
 import java.util.HashMap;

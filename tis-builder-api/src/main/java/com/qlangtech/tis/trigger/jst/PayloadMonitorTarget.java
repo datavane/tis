@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.trigger.jst;
 
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.trigger.socket.LogType;
 import org.apache.commons.lang.StringUtils;
 
@@ -32,7 +33,7 @@ public class PayloadMonitorTarget extends RegisterMonotorTarget {
 
     private static final long serialVersionUID = 1L;
 
-    public PayloadMonitorTarget(boolean register, String collection, String payload, LogType logtype) {
+    public PayloadMonitorTarget(boolean register, DataXName collection, String payload, LogType logtype) {
         super(register, collection, logtype);
         if (StringUtils.isEmpty(payload)) {
             throw new IllegalArgumentException("param buildName can not be null");

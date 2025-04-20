@@ -31,17 +31,18 @@ public interface IDataXNameAware {
      * @return
      */
     default boolean isCollectionAware() {
-        return StringUtils.isNotEmpty(getCollectionName());
+        //  return StringUtils.isNotEmpty(getCollectionName());
+        return getCollectionName() != null;
     }
 
-    String getCollectionName();
+    DataXName getCollectionName();
 
     /**
      * 取得DataX名称
      *
      * @return
      */
-    public default String getTISDataXName() {
+    public default DataXName getTISDataXName() {
         return this.getCollectionName();
     }
 }

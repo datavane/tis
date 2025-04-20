@@ -36,7 +36,7 @@ import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.taskflow.AdapterTask;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 import com.qlangtech.tis.test.TISTestCase;
 import org.easymock.Capture;

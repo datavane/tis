@@ -25,11 +25,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.extension.model.UpdateSite.Data;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
@@ -481,7 +483,8 @@ public class SchemaAction extends BasicModule {
 
   private boolean getStructSchema(Context context, Application app, ISchemaJsonVisitor... schemaVisitor) throws Exception {
     UploadResource schemaRes = getAppSchema(this, app);
-    return this.getStructSchema(context, SchemaAction.createSchemaPlugin(app.getProjectName()), schemaRes.getContent(), schemaVisitor);
+    return this.getStructSchema(context, SchemaAction.createSchemaPlugin(DataXName.createDataXPipeline(app.getProjectName()))
+      , schemaRes.getContent(), schemaVisitor);
   }
 
   /**
@@ -579,7 +582,7 @@ public class SchemaAction extends BasicModule {
    * @param collection
    * @return
    */
-  public static ISchemaPluginContext createSchemaPlugin(String collection) {
+  public static ISchemaPluginContext createSchemaPlugin(DataXName collection) {
     IPluginStore<FieldTypeFactory> fieldTypePluginStore = TIS.getPluginStore(collection, FieldTypeFactory.class);
     Objects.requireNonNull(fieldTypePluginStore, "fieldTypePluginStore can not be null");
     final List<FieldTypeFactory> plugins = fieldTypePluginStore.getPlugins();
@@ -607,7 +610,7 @@ public class SchemaAction extends BasicModule {
   }
 
   public static SchemaResult parseSchemaResultWithPluginCfg(
-    String collection, IMessageHandler msgHandler, Context context, byte[] resContent) throws Exception {
+    DataXName collection, IMessageHandler msgHandler, Context context, byte[] resContent) throws Exception {
     final Map<String, Boolean> pluginTypeAddedMap = Maps.newHashMap();
     ISchemaPluginContext schemaPlugin = createSchemaPlugin(collection);
 

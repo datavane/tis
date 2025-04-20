@@ -20,13 +20,13 @@ package com.qlangtech.tis.sql.parser;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.IPartionableWarehouse;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
@@ -57,7 +57,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
         super.setUp();
         CenterResource.setNotFetchFromCenterRepository();
         System.clearProperty(Config.KEY_DATA_DIR);
-        SqlTaskNode.parent = new File(Config.getMetaCfgDir(), IFullBuildContext.NAME_DATAFLOW_DIR);
+        SqlTaskNode.parent = new File(Config.getMetaCfgDir(), StoreResourceTypeConstants.NAME_DATAFLOW_DIR);
     }
 
     private final File parent = new File("./src/main/resources/totalpay");

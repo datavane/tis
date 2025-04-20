@@ -18,6 +18,8 @@ package com.qlangtech.tis.plugin;
  *   limitations under the License.
  */
 
+import com.qlangtech.tis.datax.StoreResourceType;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-02-08 11:09

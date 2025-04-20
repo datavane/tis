@@ -21,7 +21,7 @@ package com.qlangtech.tis.exec.impl;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.AbstractExecContext;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Objects;

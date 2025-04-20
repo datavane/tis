@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.trigger.jst;
 
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.trigger.socket.LogType;
 import java.io.Serializable;
 
@@ -31,13 +32,13 @@ public class MonotorTarget implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    public final String collection;
+    public final DataXName collection;
 
     public final LogType logType;
 
     private Integer taskid;
 
-    private static MonotorTarget create(String collection, LogType logtype) {
+    private static MonotorTarget create(DataXName collection, LogType logtype) {
         if (logtype == null) {
             throw new IllegalArgumentException("log type can not be null");
         }
@@ -56,16 +57,16 @@ public class MonotorTarget implements Serializable {
         return new RegisterMonotorTarget(true, target.collection, target.logType);
     }
 
-    public static RegisterMonotorTarget createRegister(String collection, LogType logtype) {
+    public static RegisterMonotorTarget createRegister(DataXName collection, LogType logtype) {
         MonotorTarget target = create(collection, logtype);
         return new RegisterMonotorTarget(true, target.collection, target.logType);
     }
 
-    public static PayloadMonitorTarget createPayloadMonitor(String collection, String payload, LogType logtype) {
+    public static PayloadMonitorTarget createPayloadMonitor(DataXName collection, String payload, LogType logtype) {
         return new PayloadMonitorTarget(true, collection, payload, logtype);
     }
 
-    public static RegisterMonotorTarget createUnregister(String collection, LogType logtype) {
+    public static RegisterMonotorTarget createUnregister(DataXName collection, LogType logtype) {
         MonotorTarget target = create(collection, logtype);
         return new RegisterMonotorTarget(false, target.collection, target.logType);
     }
@@ -84,13 +85,13 @@ public class MonotorTarget implements Serializable {
         return this.hashCode() == obj.hashCode();
     }
 
-    MonotorTarget(String collection, LogType logType) {
+    MonotorTarget(DataXName collection, LogType logType) {
         super();
         this.collection = collection;
         this.logType = logType;
     }
 
-    public String getCollection() {
+    public DataXName getCollection() {
         return collection;
     }
 

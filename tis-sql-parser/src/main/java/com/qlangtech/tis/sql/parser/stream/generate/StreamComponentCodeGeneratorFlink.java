@@ -20,6 +20,7 @@ package com.qlangtech.tis.sql.parser.stream.generate;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.datax.TableAliasMapper;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -73,7 +74,7 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
     private final List<FacadeContext> daoFacadeList;
 
 
-    public StreamComponentCodeGeneratorFlink(String collectionName, long timestamp,
+    public StreamComponentCodeGeneratorFlink(DataXName collectionName, long timestamp,
                                              List<FacadeContext> daoFacadeList, IBasicAppSource streamIncrGenerateStrategy) {
         super(collectionName, timestamp);
         Objects.requireNonNull(streamIncrGenerateStrategy, "streamIncrGenerateStrategy can not be null");

@@ -19,6 +19,7 @@
 package com.qlangtech.tis.datax.preview;
 
 import com.alibaba.datax.common.element.QueryCriteria;
+import com.qlangtech.tis.datax.DataXName;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -26,5 +27,5 @@ import com.alibaba.datax.common.element.QueryCriteria;
  **/
 public interface IPreviewRowsDataService {
     PreviewRowsData previewRowsData(
-            String dataXName, String tableName, QueryCriteria queryCriteria);
+            DataXName dataXName, String tableName, QueryCriteria queryCriteria);
 }

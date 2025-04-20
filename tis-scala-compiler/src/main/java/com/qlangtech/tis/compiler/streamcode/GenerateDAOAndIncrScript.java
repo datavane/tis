@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.compiler.streamcode;
 
@@ -26,6 +26,7 @@ import com.qlangtech.tis.compiler.java.IOutputEntry;
 import com.qlangtech.tis.compiler.java.JavaCompilerProcess;
 import com.qlangtech.tis.coredefine.module.action.IbatorProperties;
 import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.job.JobOrchestrateException;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
@@ -70,7 +71,7 @@ public class GenerateDAOAndIncrScript {
      * @param dependencyDbs      Map<Integer,Long[DBID]>
      * @throws Exception
      */
-    public void generate(Context context, IndexIncrStatus incrStatus, boolean compilerAndPackage, Map<Integer, Long> dependencyDbs)  {
+    public void generate(Context context, IndexIncrStatus incrStatus, boolean compilerAndPackage, Map<Integer, Long> dependencyDbs) {
         generateDAOScript(context, dependencyDbs);
         generateIncrScript(context, incrStatus, compilerAndPackage, Collections.unmodifiableMap(indexStreamCodeGenerator.getDbTables()), false);
     }
@@ -92,8 +93,9 @@ public class GenerateDAOAndIncrScript {
     public void generateIncrScript(Context context, IndexIncrStatus incrStatus, boolean compilerAndPackage, Map<DBNode, List<String>> dbNameMap, boolean hasCfgChanged) {
         try {
             //final Map<DBNode, List<String>> dbNameMap = Collections.unmodifiableMap(indexStreamCodeGenerator.getDbTables());
+            DataXName dataXName = indexStreamCodeGenerator.collection;
             File sourceRoot = StreamContextConstant.getStreamScriptRootDir(
-                    indexStreamCodeGenerator.collection, indexStreamCodeGenerator.incrScriptTimestamp);
+                    dataXName.getPipelineName() , indexStreamCodeGenerator.incrScriptTimestamp);
             if (!indexStreamCodeGenerator.isIncrScriptDirCreated()
                     || // 检查Faild Token文件是否存在
                     incrStreamCodeCompileFaild(sourceRoot)
@@ -107,7 +109,7 @@ public class GenerateDAOAndIncrScript {
                 // 生成依赖dao依赖元数据信息
                 DBNode.dump(dbNameMap.keySet().stream().collect(Collectors.toList())
                         , StreamContextConstant.getDbDependencyConfigMetaFile(
-                                indexStreamCodeGenerator.collection, indexStreamCodeGenerator.incrScriptTimestamp));
+                                dataXName.getPipelineName(), indexStreamCodeGenerator.incrScriptTimestamp));
                 /**
                  * *********************************************************************************
                  * 生成spring相关配置文件
@@ -119,13 +121,13 @@ public class GenerateDAOAndIncrScript {
             // TODO 真实生产环境中需要 和 代码build阶段分成两步
             if (compilerAndPackage) {
 
-                TISSinkFactory streamFactory = TISSinkFactory.getIncrSinKFactory(this.indexStreamCodeGenerator.collection);
+                TISSinkFactory streamFactory = TISSinkFactory.getIncrSinKFactory(dataXName.getPipelineName());
 //                 HeteroEnum.INCR_STREAM_CONFIG.getPluginStore(
 //                        IPluginContext.namedContext(this.indexStreamCodeGenerator.collection), null);
                 // (TISSinkFactory) pluginStore.getPlugin();
-                Objects.requireNonNull(streamFactory, "relevant streamFactory can not be null,collection:" + this.indexStreamCodeGenerator.collection);
+                Objects.requireNonNull(streamFactory, "relevant streamFactory can not be null,collection:" + dataXName);
 //                CompileAndPackage packager = new CompileAndPackage();
-                streamFactory.getCompileAndPackageManager().process(context, this.msgHandler, indexStreamCodeGenerator.collection
+                streamFactory.getCompileAndPackageManager().process(context, this.msgHandler, dataXName.getPipelineName()
                         , dbNameMap.entrySet().stream().collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue()))
                         , sourceRoot, indexStreamCodeGenerator.getSpringXmlConfigsObjectsContext());
             }
@@ -140,7 +142,7 @@ public class GenerateDAOAndIncrScript {
         }
     }
 
-    private void generateDAOScript(Context context, Map<Integer, Long> dependencyDbs)  {
+    private void generateDAOScript(Context context, Map<Integer, Long> dependencyDbs) {
         final Map<DBNode, List<String>> dbNameMap = Collections.unmodifiableMap(indexStreamCodeGenerator.getDbTables());
         if (dbNameMap.size() < 1) {
             throw new IllegalStateException("dbNameMap size can not small than 1");

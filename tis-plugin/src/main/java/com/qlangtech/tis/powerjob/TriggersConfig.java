@@ -18,7 +18,7 @@
 
 package com.qlangtech.tis.powerjob;
 
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Objects;

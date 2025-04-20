@@ -29,6 +29,7 @@ import com.google.common.collect.Sets;
 import com.qlangtech.tis.datax.DBDataXChildTask;
 import com.qlangtech.tis.datax.DataXCfgFile;
 import com.qlangtech.tis.datax.DataXJobInfo;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataXNameAware;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
 import com.qlangtech.tis.datax.IDataxContext;
@@ -48,7 +49,7 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
@@ -114,8 +115,8 @@ public class DataXCfgGenerator implements IDataXNameAware {
     private final TableMapCreator tableMapCreator;
 
     @Override
-    public String getCollectionName() {
-        return this.dataxName;
+    public DataXName getCollectionName() {
+        return new DataXName(this.dataxName, dataxProcessor.getResType());
     }
 
     public DataXCfgGenerator(IPluginContext pluginCtx, String dataxName, IDataxProcessor dataxProcessor) {
@@ -513,8 +514,9 @@ public class DataXCfgGenerator implements IDataXNameAware {
         @JSONField(name = "transformerInfo", serialize = true)
         public final Set<TransformerInfo> getTransformerInfo() {
             Set<TransformerInfo> tinfos = new HashSet<>();
+            DataXName dataX = pluginCtx.getCollectionName();
             Key transformerRuleKey = TransformerRuleKey.createStoreKey(
-                    pluginCtx, StoreResourceType.DataApp, pluginCtx.getCollectionName(), "dump");
+                    pluginCtx, dataX.getType(), dataX.getPipelineName(), "dump");
             XmlFile sotre = transformerRuleKey.getSotreFile();
             File parent = sotre.getFile().getParentFile();
             if (!parent.exists()) {
@@ -528,7 +530,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
                 String tabName = StringUtils.substringBefore(tfile.getName(), xmlExtend);
                 if (this.groupedChildTask.containsKey(tabName)) {
                     transformerRules = RecordTransformerRules.loadTransformerRules(
-                            pluginCtx, StoreResourceType.DataApp, pluginCtx.getCollectionName(), tabName);
+                            pluginCtx, dataX.getType(), dataX.getPipelineName(), tabName);
                     if (transformerRules.isPresent()) {
                         tinfos.add(new TransformerInfo(tabName, transformerRules.get().rules.size()));
                     }

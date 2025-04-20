@@ -26,6 +26,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.coredefine.module.action.*;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.biz.dal.dao.impl.SnapshotViewImplDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
@@ -345,11 +346,11 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   }
 
   @Override
-  public String getCollectionName() {
+  public DataXName getCollectionName() {
     if ((this.indexName) == null) {
       throw new IllegalStateException("indexName can not be null");
     }
-    return this.indexName.getCollectionName();
+    return DataXName.createDataXPipeline(this.indexName.getCollectionName());
   }
 
 
@@ -552,7 +553,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
   @Override
   public AppDomainInfo getAppDomain() {
-    Application application = this.getApplicationDAO().selectByName(this.getCollectionName());
+    Application application = this.getApplicationDAO().selectByName(this.getCollectionName().getPipelineName());
     if (application == null) {
       throw new IllegalStateException("indexName:" + indexName + " relevant app can not be null");
     }
@@ -991,7 +992,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     }
 
     @Override
-    public String getCollectionName() {
+    public DataXName getCollectionName() {
       return CollectionAction.this.getCollectionName();
     }
 

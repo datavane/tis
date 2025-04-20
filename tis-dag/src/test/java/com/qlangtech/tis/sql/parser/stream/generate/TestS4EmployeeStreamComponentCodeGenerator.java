@@ -19,6 +19,7 @@
 package com.qlangtech.tis.sql.parser.stream.generate;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 
@@ -32,7 +33,7 @@ public class TestS4EmployeeStreamComponentCodeGenerator extends BasicTestCase {
 
     public void testGeneratorCode() throws Exception {
         long timestamp = 20201111115959l;
-        String collectionName = "search4test";
+        DataXName collectionName = DataXName.createDataXPipeline( "search4test");
         String dfName = "current_dept_emp";
 
         IAppSource appSource = IAppSource.load(null,collectionName);
@@ -50,7 +51,7 @@ public class TestS4EmployeeStreamComponentCodeGenerator extends BasicTestCase {
         streamCodeGenerator.build();
 
         TestStreamComponentCodeGenerator.assertGenerateContentEqual(
-                timestamp, collectionName, "S4testListener.scala");
+                timestamp, collectionName.getPipelineName(), "S4testListener.scala");
         // EasyMock.verify(streamIncrGenerateStrategy);
     }
 

@@ -21,7 +21,6 @@ package com.qlangtech.tis.coredefine.module.action;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.IDataxProcessor;
-import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -29,7 +28,8 @@ import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -52,7 +52,7 @@ public enum ProcessModel {
         return getDataXBasicProcessMeta(Optional.empty(), writerDesc);
     }
             , () -> {
-        return DataxProcessor.getPluginDescMeta(DataxProcessor.DEFAULT_WORKFLOW_PROCESSOR_NAME);
+        return DataxProcessor.getPluginDescMeta(StoreResourceTypeConstants.DEFAULT_WORKFLOW_PROCESSOR_NAME);
     }, StoreResourceType.DataFlow
     ) //
     , CreateDatax("createDatax", (pluginContext, dataxPipeName, reader, writer) -> {
@@ -71,7 +71,7 @@ public enum ProcessModel {
         return processMeta;
     } //
             , () -> {
-        return DataxProcessor.getPluginDescMeta(DataxProcessor.DEFAULT_DATAX_PROCESSOR_NAME);
+        return DataxProcessor.getPluginDescMeta(StoreResourceTypeConstants.DEFAULT_DATAX_PROCESSOR_NAME);
     }, StoreResourceType.DataApp);
 
     private final String val;

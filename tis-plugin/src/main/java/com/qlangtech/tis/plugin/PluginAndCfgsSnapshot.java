@@ -27,7 +27,9 @@ import com.qlangtech.tis.async.message.client.consumer.IFlinkColCreator;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.config.flink.IFlinkCluster;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.PluginManager;
@@ -311,7 +313,7 @@ public class PluginAndCfgsSnapshot {
         RobustReflectionConverter2.PluginMetas pluginMetas =
                 RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
                     TISLicense.load(false);
-                    MQListenerFactory sourceFactory = HeteroEnum.getIncrSourceListenerFactory(collection.getName());
+                    MQListenerFactory sourceFactory = HeteroEnum.getIncrSourceListenerFactory(DataXName.createDataXPipeline(collection.getName()));
                     sourceFactory.create();
 
                     // 先收集plugmeta，特别是通过dataXWriter的dataSource关联的元数据

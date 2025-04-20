@@ -22,6 +22,7 @@ import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.coredefine.module.action.ProcessModel;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -30,7 +31,7 @@ import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
 import com.qlangtech.tis.manage.common.AppAndRuntime;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
@@ -218,13 +219,17 @@ public class UploadPluginMeta implements IUploadPluginMeta {
              // 需要在这里将当前的appAndRuntime 设置到当前的线程上下文中去。
              // 后续 CheckAppDomainExistValve.getAppDomain() 方法执行就能获得有appName aware的实例了
              */
-            final String pipe = pmeta.getDataXName(false);
+            final DataXName pipe = pmeta.getDataXName(false);
             AppAndRuntime appAndRuntime = AppAndRuntime.getAppAndRuntime();
-            if (StringUtils.isNotEmpty(pipe)
-                    && (appAndRuntime == null || StringUtils.isEmpty(appAndRuntime.getAppName()))) {
+            if ( // StringUtils.isNotEmpty(pipe)
+                    pipe != null
+                            &&
+                            (appAndRuntime == null || StringUtils.isEmpty(appAndRuntime.getAppName()))) {
                 appAndRuntime = new AppAndRuntime();
                 appAndRuntime.setRuntime(RunEnvironment.getSysRuntime());
-                appAndRuntime.setAppName(pipe);
+                appAndRuntime.setAppName(pipe.getPipelineName());
+                StoreResourceType type = pipe.getType();
+
                 AppAndRuntime.setAppAndRuntime(appAndRuntime);
                 //CheckAppDomainExistValve
             }
@@ -387,16 +392,31 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     }
 
 
-    public String getDataXName(boolean validateNull) {
+    public DataXName getDataXName(boolean validateNull) {
         final String dataxName = (this.getExtraParam(DataxUtils.DATAX_NAME));
-        if (validateNull && StringUtils.isEmpty(dataxName)) {
+        if (StringUtils.isNotEmpty(dataxName)) {
+            //
+            return DataXName.createDataXPipeline(dataxName);
+        }
+        String dbName = this.getExtraParam(DataxUtils.DATAX_DB_NAME);
+        if (StringUtils.isNotEmpty(dbName)) {
+            return new DataXName(dbName, StoreResourceType.DataBase);
+        }
+
+        if (validateNull) {
             throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
         }
-        return dataxName;
+        return null;
     }
 
-    public String getDataXName() {
-        return getDataXName(true);
+    public DataXName getDataXName() {
+        StoreResourceType resType = this.getProcessModel().resType;
+        DataXName dataXName = getDataXName(true);
+        if (dataXName.getType() != resType) {
+            throw new IllegalStateException("dataXName.getType():"
+                    + dataXName.getType() + " must be equal with resType:" + resType);
+        }
+        return dataXName;
     }
 
     public boolean getBoolean(String key) {

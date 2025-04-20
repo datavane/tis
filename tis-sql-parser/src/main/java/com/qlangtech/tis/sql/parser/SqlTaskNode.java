@@ -23,8 +23,8 @@ import com.facebook.presto.sql.tree.Query;
 import com.facebook.presto.sql.tree.TISStackableAstVisitor.StackableAstVisitorContext;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.plugin.ds.JDBCTypes;
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  */
 public class SqlTaskNode {
 
-    public static File parent = new File(Config.getMetaCfgDir(), IFullBuildContext.NAME_DATAFLOW_DIR);
+    public static File parent = new File(Config.getMetaCfgDir(), StoreResourceTypeConstants.NAME_DATAFLOW_DIR);
 
     // private Map<String, SqlTaskNode> all;
     private Optional<TisGroupBy> groupBy = Optional.empty();

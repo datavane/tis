@@ -56,9 +56,5 @@ public interface IFullBuildContext {
     String KEY_TRIGGER_TYPE = "triggertype";
 
     String KEY_BUILD_HISTORY_TASK_ID = "history.task.id";
-    String NAME_APP_DIR = "ap";
-    // public static final File parent = new File(
-    // "D:\\j2ee_solution\\eclipse-standard-kepler-SR2-win32-x86_64\\workspace\\tis-saturn\\tis-sql-parser\\src\\main\\resources\\totalpaytest");
-    String NAME_DATAFLOW_DIR = "df";
     String KEY_TARGET_NAME = "targetName";
 }

@@ -23,6 +23,7 @@ import com.qlangtech.tis.config.k8s.ReplicasSpec;
 import com.qlangtech.tis.coredefine.module.action.impl.AdapterRCController;
 import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails;
 import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.datax.job.JobOrchestrateException;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
@@ -68,10 +69,11 @@ public class TISK8sDelegate {
     });
   }
 
-  public static TISK8sDelegate getK8SDelegate(String collection) {
+  public static TISK8sDelegate getK8SDelegate(DataXName collection) {
     TISK8sDelegate delegate = null;
-    if ((delegate = colIncrLogMap.get(collection)) == null) {
-      delegate = colIncrLogMap.computeIfAbsent(collection, (c) -> {
+    collection.assetCheckDataAppType();
+    if ((delegate = colIncrLogMap.get(collection.getPipelineName())) == null) {
+      delegate = colIncrLogMap.computeIfAbsent(collection.getPipelineName(), (c) -> {
         return new TISK8sDelegate(c);
       });
     }

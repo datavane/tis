@@ -22,6 +22,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
@@ -42,7 +43,7 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
-import com.qlangtech.tis.plugin.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
@@ -251,9 +252,13 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             if (!pluginContext.isCollectionAware()) {
                 throw new IllegalStateException("must be collection aware");
             }
-            DataXJobWorker.K8SWorkerCptType powerjobCptType = DataXJobWorker.K8SWorkerCptType.parse(pluginMeta.getDataXName());
-
-            return DataXJobWorker.getJobWorkerStore(new TargetResName(pluginContext.getCollectionName()), Optional.of(powerjobCptType));
+            DataXName dataXName = pluginMeta.getDataXName();
+            DataXJobWorker.K8SWorkerCptType powerjobCptType = DataXJobWorker.K8SWorkerCptType.parse(dataXName.getPipelineName());
+            DataXName dataX = pluginContext.getCollectionName();
+            if (dataX.getType() != StoreResourceType.DataApp) {
+                throw new IllegalStateException(" dataX.getType must be " + StoreResourceType.DataApp);
+            }
+            return DataXJobWorker.getJobWorkerStore(new TargetResName(dataX.getPipelineName()), Optional.of(powerjobCptType));
 
             //return super.getPluginStore(pluginContext, pluginMeta);
         }
@@ -385,9 +390,12 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             Selectable.Multi, true) {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            final String dataxName = pluginMeta.getDataXName();// (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
+            final DataXName dataxName = pluginMeta.getDataXName();// (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
+            if (dataxName.assetCheckDataAppType() != pluginMeta.getProcessModel().resType) {
+
+            }
             return com.qlangtech.tis.manage.IAppSource.getPluginStore(pluginContext,
-                    pluginMeta.getProcessModel().resType, dataxName);
+                    pluginMeta.getProcessModel().resType, dataxName.getPipelineName());
         }
     };
 
@@ -421,13 +429,13 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     // for Test stub
     public static Function<String, MQListenerFactory> incrSourceListenerFactoryStub;
 
-    public static MQListenerFactory getIncrSourceListenerFactory(String dataXName) {
-
+    public static MQListenerFactory getIncrSourceListenerFactory(DataXName dataXName) {
+        dataXName.assetCheckDataAppType();
         if (incrSourceListenerFactoryStub != null) {
-            return incrSourceListenerFactoryStub.apply(dataXName);
+            return incrSourceListenerFactoryStub.apply(dataXName.getPipelineName());
         }
 
-        IPluginContext pluginContext = IPluginContext.namedContext(dataXName);
+        IPluginContext pluginContext = IPluginContext.namedContext(dataXName.getPipelineName());
         List<MQListenerFactory> mqFactories = MQ.getPlugins(pluginContext, null);
         MQListenerFactory mqFactory = null;
         for (MQListenerFactory factory : mqFactories) {
@@ -527,17 +535,18 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
     public static <T> T createDataXReaderAndWriterRelevant(IPluginContext pluginContext, UploadPluginMeta pluginMeta,
                                                            DBOrAppRelevantCreator<T> creator) {
-        final String dataxName = pluginMeta.getDataXName(false);
+        final DataXName dataxName = pluginMeta.getDataXName(true);
 
-        if (StringUtils.isEmpty(dataxName)) {
-            String saveDbName = pluginMeta.getExtraParam(DataxUtils.DATAX_DB_NAME);
+        //if (StringUtils.isEmpty(dataxName)) {
+        if (dataxName.getType() == StoreResourceType.DataBase) {
+            String saveDbName = dataxName.getPipelineName();// pluginMeta.getExtraParam(DataxUtils.DATAX_DB_NAME);
             if (StringUtils.isNotBlank(saveDbName)) {
                 return creator.dbRelevant(pluginContext, saveDbName);
             } else {
                 throw new IllegalArgumentException("plugin extra param " + DataxUtils.DATAX_NAME + " can not be null");
             }
         } else {
-            return creator.appRelevant(pluginContext, dataxName);
+            return creator.appRelevant(pluginContext, dataxName.getPipelineName());
         }
     }
 
@@ -630,7 +639,8 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             if (!pluginContext.isCollectionAware()) {
                 throw new IllegalStateException(this.getExtensionPoint().getName() + " must be collection aware");
             }
-            store = TIS.getPluginStore(pluginContext.getCollectionName(), this.extensionPoint);
+            DataXName dataXName = pluginContext.getCollectionName();
+            store = TIS.getPluginStore(dataXName.getType().getType(), dataXName.getPipelineName(), this.extensionPoint);
         } else {
             store = TIS.getPluginStore(this.extensionPoint);
         }

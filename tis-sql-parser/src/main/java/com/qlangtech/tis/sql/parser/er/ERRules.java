@@ -20,10 +20,10 @@ package com.qlangtech.tis.sql.parser.er;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -193,7 +193,7 @@ public class ERRules implements IPrimaryTabFinder, IERRules {
 
     private static File getErRuleFile(String topology) {
         final String topologyPath = topology + File.separator + ER_RULES_FILE_NAME;
-        CenterResource.copyFromRemote2Local(IFullBuildContext.NAME_DATAFLOW_DIR + File.separator + topologyPath, true);
+        CenterResource.copyFromRemote2Local(StoreResourceTypeConstants.NAME_DATAFLOW_DIR + File.separator + topologyPath, true);
         return new File(SqlTaskNode.parent, topologyPath);
     }
 
