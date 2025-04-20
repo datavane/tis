@@ -53,7 +53,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 /**
- * 全量执行各个节点状态收集，供console端实时拉取
+ * 全量执行各个节点状态收集日志，供console端实时拉取
  *
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-05-11 10:17
