@@ -21,8 +21,6 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import org.apache.commons.lang.StringUtils;
-//import org.apache.zookeeper.Watcher;
-//import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +52,7 @@ public interface ITISCoordinator extends ICoordinator {
     }
 
     static ITISCoordinator create() {
-        return create(false, Optional.empty());
+        return create(true, Optional.empty());
     }
 
     static ITISCoordinator create(boolean shallConnect2RemoteIncrStatusServer, Optional<String> assembleHost) {

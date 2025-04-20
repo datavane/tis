@@ -42,17 +42,5 @@ public class ZooKeeperGetter extends EnvironmentBindService<ITISCoordinator> {
   @Override
   protected ITISCoordinator createSerivce(final RunEnvironment runtime) {
     return ITISCoordinator.create();
-
-//        final String zkAddress = Config.getZKHost();
-//        validateMultiServerIsReachable(zkAddress);
-//        try {
-//            log.debug("runtime:" + runtime + ", address:" + zkAddress + " rmi server connection has been established");
-//            // try {
-//            final TisZkClient target = new TisZkClient(zkAddress, 30000);
-//            return target;
-//        } catch (Exception e) {
-//            // }
-//            throw new RuntimeException(e.getMessage(), e);
-//        }
   }
 }
