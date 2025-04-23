@@ -22,6 +22,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -86,11 +87,11 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
      * @param
      * @throws Exception
      */
-    public static void process(String dataXName, String sinkTableName, List<String> jdbcUrls) throws Exception {
-        if (StringUtils.isEmpty(dataXName)) {
+    public static void process(DataXName dataXName, String sinkTableName, List<String> jdbcUrls) throws Exception {
+        if ((dataXName) == null) {
             throw new IllegalArgumentException("param dataXName can not be null");
         }
-        DataxWriter writer = DataxWriter.load(null, dataXName);
+        DataxWriter writer = DataxWriter.load(null, dataXName.getType(), dataXName.getPipelineName(), true);
         // 由于TableInDB 实例缓存时间太长了，如果在数据库中直接drop表之后在此处，执行全量构建就不会创建表了，先把缓存去掉
 //        TableInDB existTabs = writer.getExistTabsInSink(dataXName);
 //        if (existTabs.contains(tableName)) {
@@ -114,8 +115,8 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
         return TIS.dataXWriterPluginStore.get(createDataXWriterKey(context, resType, name));
     }
 
-    public static void cleanPluginStoreCache(IPluginContext context, String appname) {
-        TIS.dataXWriterPluginStore.clear(createDataXWriterKey(context, appname));
+    public static void cleanPluginStoreCache(IPluginContext context, DataXName appname) {
+        TIS.dataXWriterPluginStore.clear(createDataXWriterKey(context, appname.getType(), appname.getPipelineName()));
     }
 
     private static KeyedPluginStore.AppKey createDataXWriterKey(IPluginContext context, String appname) {
@@ -139,6 +140,10 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
      * 测试用
      */
     public static IDataxWriterGetter dataxWriterGetter;
+
+    public static DataxWriter load(IPluginContext context, DataXName appName) {
+        return load(context, appName.getType(), appName.getPipelineName(), true);
+    }
 
     public static DataxWriter load(IPluginContext context, String appName) {
         return load(context, StoreResourceType.DataApp, appName, true);

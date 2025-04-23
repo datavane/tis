@@ -50,6 +50,7 @@ import com.qlangtech.tis.sql.parser.meta.Position;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
 import com.qlangtech.tis.sql.parser.utils.DefaultDumpNodeMapContext;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
@@ -166,7 +167,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             taskNodeMeta.setDependencies(dependencyNodes);
             taskNodeMeta.getRewriteSql("testTaskName", new MockDumpPartition(tabPartition)
                     , IPartionableWarehouse.createForNoWriterForTableName(), () -> new IPrimaryTabFinder() {
-            }, tskContext, false);
+                    }, tskContext, false);
             return Optional.empty();
         } catch (Throwable e) {
             int indexOf;
@@ -331,7 +332,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         if (primaryTable == null) {
             throw new IllegalStateException("task:" + taskName + " has not find primary table");
         }
-        return new RewriteSql(this.getSql(), builder.toString(), rewriter.outputCols, rewriter.getPrimayTable());
+        return new RewriteSql(this.getSql(), builder.toString(), IDumpTable.appendPreservedPsCols(rewriter.outputCols), rewriter.getPrimayTable());
     }
 
     private Statement getSqlStatement() {

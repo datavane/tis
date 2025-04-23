@@ -48,7 +48,7 @@ public class TestGenerateCfgs {
     public void testReadFromGen() throws Exception {
         File dataxCfgDir = folder.newFolder();
         IPluginContext pluginContext = IPluginContext.namedContext("test");
-        DataXCfgGenerator.GenerateCfgs genCfgs = new DataXCfgGenerator.GenerateCfgs(pluginContext, dataxCfgDir);
+        DataXCfgGenerator.GenerateCfgs genCfgs = new DataXCfgGenerator.GenerateCfgs(null, pluginContext, dataxCfgDir);
         long timestamp = System.currentTimeMillis();
         genCfgs.setGenTime(timestamp);
         Map<String, List<DBDataXChildTask>> groupedChildTask = Maps.newHashMap();
@@ -63,7 +63,7 @@ public class TestGenerateCfgs {
 
         genCfgs.write2GenFile(dataxCfgDir);
 
-        DataXCfgGenerator.GenerateCfgs generateCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(pluginContext, dataxCfgDir, Optional.empty());
+        DataXCfgGenerator.GenerateCfgs generateCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(null, pluginContext, dataxCfgDir, Optional.empty());
 
         Assert.assertEquals(timestamp, generateCfgs.getGenTime());
 

@@ -38,6 +38,9 @@ public class TableAlias implements Describable<TableAlias> {
     private String from;
     private String to;
 
+    // 不需要改写表名（例如加前缀‘ods_’）这样的操作，分析流中join中间表是不需要重命名的
+    private boolean shallNotRewriteTargetTableName;
+
     public static List<TableAlias> testTabAlias;
 
     private static KeyedPluginStore.AppKey createAppSourceKey(IPluginContext context, String appName) {
@@ -84,6 +87,11 @@ public class TableAlias implements Describable<TableAlias> {
     public TableAlias() {
     }
 
+    public <T extends TableAlias> T setShallNotRewriteTargetTableName() {
+        this.shallNotRewriteTargetTableName = true;
+        return (T) this;
+    }
+
     public boolean hasNotUseAlias() {
         return StringUtils.equalsIgnoreCase(this.getFrom(), this.getTo());
     }
@@ -93,6 +101,25 @@ public class TableAlias implements Describable<TableAlias> {
         // 如果使用oracle的表，表名中可能出现点，所以要将它去掉
         int indexOfCommon = StringUtils.indexOf(from, ".");
         this.to = indexOfCommon > -1 ? StringUtils.substring(from, indexOfCommon + 1) : from;
+    }
+
+    private boolean isFromEqualTo() {
+        return StringUtils.equals(this.from, this.to);
+    }
+
+    /**
+     * 加前缀别名
+     *
+     * @param autoCreateTable
+     * @return
+     */
+    public String createTargetTableName(com.qlangtech.tis.plugin.datax.common.AutoCreateTable autoCreateTable) {
+        if (this.shallNotRewriteTargetTableName) {
+            return this.getFrom();
+        }
+        // From 和 To 相等的情况下 可以加前缀
+        return this.isFromEqualTo() //
+                ? autoCreateTable.appendTabPrefix(this.getFrom()) : this.getTo();
     }
 
     public String getFrom() {

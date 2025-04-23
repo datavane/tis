@@ -24,13 +24,14 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.TestIncrSourceSelectedTabExtend;
 import com.qlangtech.tis.async.message.client.consumer.impl.TestMQListenerFactory;
 import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
@@ -60,7 +61,7 @@ public class TestSuFormProperties extends TestCase {
     String pluginName = "test_plugin";
     File writerDescFile;
 
-    final String meta = pluginName + ":require," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_" + SubFieldContainPlugin.PLUGIN_NAME + "," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_" + SubFieldContainPlugin.class.getName() + "," + UploadPluginMeta.KEY_TARGET_PLUGIN_DESC + "_incr_process_extend,subFormFieldName_" + SubFieldContainPlugin.SUB_PROP_FIELD_NAME + "," + DataxUtils.DATAX_NAME + "_" + dataXName + ",maxReaderTableCount_9999";
+    final String meta = pluginName + ":require," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_" + SubFieldContainPlugin.PLUGIN_NAME + "," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_" + SubFieldContainPlugin.class.getName() + "," + UploadPluginMeta.KEY_TARGET_PLUGIN_DESC + "_incr_process_extend,subFormFieldName_" + SubFieldContainPlugin.SUB_PROP_FIELD_NAME + "," + StoreResourceType.DATAX_NAME + "_" + dataXName + ",maxReaderTableCount_9999";
 
     final UploadPluginMeta pluginMeta = UploadPluginMeta.parse(meta);
 
@@ -236,7 +237,8 @@ public class TestSuFormProperties extends TestCase {
     private void buildSourceExtendSelectedTestEnvironment(IStartSourceExtendSelectedTestEnvironment tester) throws Exception {
         IPluginContext pluginContext = EasyMock.mock("pluginContext", IPluginContext.class);
         EasyMock.expect(pluginContext.isCollectionAware()).andReturn(true).anyTimes();
-        EasyMock.expect(pluginContext.getCollectionName()).andReturn(dataXName).anyTimes();
+        DataXName dataX = DataXName.createDataXPipeline(dataXName);
+        EasyMock.expect(pluginContext.getCollectionName()).andReturn(dataX).anyTimes();
         EasyMock.expect(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).andReturn("").anyTimes();
         EasyMock.replay(pluginContext);
 
@@ -262,7 +264,7 @@ public class TestSuFormProperties extends TestCase {
         pluginStore.setPlugins(pluginContext, Optional.empty(), Lists.newArrayList(new Descriptor.ParseDescribable(tabs)));
 
         dlist = Lists.newArrayList(new Descriptor.ParseDescribable(subReader));
-        String metaWithOutSubfield = pluginName + ":require," + DataxUtils.DATAX_NAME + "_" + dataXName + ",maxReaderTableCount_9999";
+        String metaWithOutSubfield = pluginName + ":require," + StoreResourceType.DATAX_NAME + "_" + dataXName + ",maxReaderTableCount_9999";
         pluginStore = HeteroEnum.DATAX_READER.getPluginStore(pluginContext, UploadPluginMeta.parse(metaWithOutSubfield));
         pluginStore.setPlugins(pluginContext, Optional.empty(), dlist);
 
@@ -320,7 +322,7 @@ public class TestSuFormProperties extends TestCase {
     public void testVisitSubForm() {
         SubFieldContainPlugin plugin = new SubFieldContainPlugin();
 
-        String meta = pluginName + ":require," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_" + SubFieldContainPlugin.class.getName() + "," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_incr_process_extend,subFormFieldName_" + SubFieldContainPlugin.SUB_PROP_FIELD_NAME + "," + DataxUtils.DATAX_NAME + "_" + dataXName + ",maxReaderTableCount_9999";
+        String meta = pluginName + ":require," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_" + SubFieldContainPlugin.class.getName() + "," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_incr_process_extend,subFormFieldName_" + SubFieldContainPlugin.SUB_PROP_FIELD_NAME + "," + StoreResourceType.DATAX_NAME + "_" + dataXName + ",maxReaderTableCount_9999";
         // dataxName_" + dataXName
         UploadPluginMeta pluginMeta = UploadPluginMeta.parse(meta);
 

@@ -18,6 +18,7 @@
 package com.qlangtech.tis.manage.common;
 
 import com.opensymphony.xwork2.ActionContext;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
@@ -39,7 +40,7 @@ import java.util.Objects;
 public class CheckAppDomainExistValve {
   static {
     AppAndRuntime.newAppAndRuntimeConsumer = (appRuntime) -> {
-      if (StringUtils.isNotEmpty(appRuntime.getAppName())) {
+      if (appRuntime.getAppName() != null) {
         removeAppDomain();
       }
     };
@@ -75,16 +76,17 @@ public class CheckAppDomainExistValve {
       return domain;
     }
     try {
-      if (StringUtils.isEmpty(environment.getAppName())) {
+      if ((environment.getAppName()) == null) {
         // 只选择了环境 参数
         // appDomain = new AppDomainInfo(-1, -1, Integer
         // .parseInt(match.group(2)), context);
         appDomain = AppDomainInfo.createAppNotAware(environment.getRuntime());
       } else {
-        appDomain = queryApplication(request, context, environment.getAppName(), environment.getRuntime());
+        DataXName dataXName = environment.getAppName();
+        appDomain = queryApplication(request, context, dataXName.getPipelineName(), environment.getRuntime());
         if (appDomain == null) {
           Application app = new Application();
-          app.setProjectName(environment.getAppName());
+          app.setProjectName(dataXName.getPipelineName());
           appDomain = new AppDomainInfo(0, 0, environment.getRuntime(), app);
         }
       }

@@ -31,7 +31,6 @@ import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginStoreSave;
@@ -299,12 +298,12 @@ public class PluginItems implements IPluginItemsProcessor {
     } else if (heteroEnum == HeteroEnum.K8S_SESSION_WORKER) {
       boolean hasSetDataXId = false;
       for (Descriptor.ParseDescribable<?> plugin : dlist) {
-        pluginMeta.putExtraParams(DataxUtils.DATAX_NAME, ((IdentityName) plugin.getInstance()).identityValue());
+        pluginMeta.putExtraParams(StoreResourceType.DATAX_NAME, ((IdentityName) plugin.getInstance()).identityValue());
         hasSetDataXId = true;
         break;
       }
       if (!hasSetDataXId) {
-        throw new IllegalStateException("has not set " + DataxUtils.DATAX_NAME);
+        throw new IllegalStateException("has not set " + StoreResourceType.DATAX_NAME);
       }
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.DATAX_WORKER) {

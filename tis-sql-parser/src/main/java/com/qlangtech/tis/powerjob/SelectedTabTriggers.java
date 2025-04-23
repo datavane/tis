@@ -26,7 +26,6 @@ import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPostTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPreviousTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.trigger.util.JsonUtil;
@@ -99,7 +98,7 @@ public class SelectedTabTriggers {
 
         SelectedTabTriggersConfig triggersConfig
                 = new SelectedTabTriggersConfig(StoreResourceType.valueOf(exec.getString(KEY_RES_TYPE))
-                , jobParams.getString(DataxUtils.DATAX_NAME), jobParams.getString(KEY_TABLE));
+                , jobParams.getString(StoreResourceType.DATAX_NAME), jobParams.getString(KEY_TABLE));
         if (jobParams.containsKey(KEY_PRE)) {
             triggersConfig.preTrigger = jobParams.getString(KEY_PRE);
         }
@@ -131,7 +130,7 @@ public class SelectedTabTriggers {
             PowerJobRemoteTaskTrigger splitTabTrigger = null;
             mrParams = new JSONObject();
             mrParams.put(KEY_TABLE, this.entry.getName());
-            mrParams.put(DataxUtils.DATAX_NAME, this.appSource.identityValue());
+            mrParams.put(StoreResourceType.DATAX_NAME, this.appSource.identityValue());
             if (this.getPreTrigger() != null) {
                 mrParams.put(KEY_PRE, this.getPreTrigger().getTaskName());
             }

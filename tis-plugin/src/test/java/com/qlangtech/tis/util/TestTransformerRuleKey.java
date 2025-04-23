@@ -19,6 +19,7 @@
 package com.qlangtech.tis.util;
 
 import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
 import com.qlangtech.tis.datax.StoreResourceType;
 import junit.framework.TestCase;
@@ -38,11 +39,11 @@ public class TestTransformerRuleKey extends TestCase {
         IPluginContext pluginContext = IPluginContext.namedContext("test");
         String tabOrderDetail = "orderdetail";
         String tabTotalpay = "totalpay";
-
+        DataXName dataX = pluginContext.getCollectionName();
         Key storeKeyOrderDetail = TransformerRuleKey.createStoreKey(
-                pluginContext, StoreResourceType.DataApp, pluginContext.getCollectionName(), tabOrderDetail);
+                pluginContext, dataX.getType(), dataX.getPipelineName(), tabOrderDetail);
         Key storeKeyTotalpay = TransformerRuleKey.createStoreKey(
-                pluginContext, StoreResourceType.DataApp, pluginContext.getCollectionName(), tabTotalpay);
+                pluginContext, dataX.getType(), dataX.getPipelineName(), tabTotalpay);
 
         key2TableMapper.put(storeKeyOrderDetail, tabOrderDetail);
         key2TableMapper.put(storeKeyTotalpay, tabTotalpay);

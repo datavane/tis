@@ -32,7 +32,6 @@ public class DataxUtils {
      * // @see DataXJobSingleProcessorExecutor 中进行消费dataX执行command，测试中使用
      */
     public static Consumer<String> localDataXCommandConsumer;
-    public static final String DATAX_NAME = "dataxName";
     public static final String POWERJOB_WORKFLOW_INSTANCE_ID = "powerJobWorkflowInstanceId";
 
     /**
@@ -40,8 +39,6 @@ public class DataxUtils {
      */
     public static final String TIS_WORK_FLOW_CHANNEL = "tisWorkflowChannel";
 
-    // 用于保存DB对应的 tables
-    public static final String DATAX_DB_NAME = "dataxDB";
     public static final String EXEC_TIMESTAMP = "execTimeStamp";
 
     public static final String DATASOURCE_FACTORY_IDENTITY = "dataSourceFactoryId";

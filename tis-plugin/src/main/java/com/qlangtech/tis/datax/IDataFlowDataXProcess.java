@@ -16,39 +16,18 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.datax.impl;
-
-import com.qlangtech.tis.datax.StoreResourceType;
+package com.qlangtech.tis.datax;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-07-04 12:35
+ * @create: 2025-04-23 15:05
  **/
-public class TransformerInfo {
-    private final String tableName;
+public interface IDataFlowDataXProcess {
     /**
-     * 有多少条转换规则
+     * 通过表名称获取到对应DataSource identityName
+     *
+     * @param tabName
+     * @return
      */
-    private final int ruleCount;
-    private final StoreResourceType resType;
-    private final String pipeName;
-
-    public TransformerInfo(StoreResourceType resType, String pipeName, String tableName, int ruleCount) {
-        this.tableName = tableName;
-        this.ruleCount = ruleCount;
-        this.resType = resType;
-        this.pipeName = pipeName;
-    }
-
-    public String getPipeParma() {
-        return StoreResourceType.getPipeParma(this.resType, pipeName);
-    }
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    public int getRuleCount() {
-        return ruleCount;
-    }
+    public String getDBNameByTable(String tabName);
 }

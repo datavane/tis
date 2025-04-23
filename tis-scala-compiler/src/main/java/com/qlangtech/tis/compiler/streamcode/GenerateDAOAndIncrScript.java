@@ -121,7 +121,7 @@ public class GenerateDAOAndIncrScript {
             // TODO 真实生产环境中需要 和 代码build阶段分成两步
             if (compilerAndPackage) {
 
-                TISSinkFactory streamFactory = TISSinkFactory.getIncrSinKFactory(dataXName.getPipelineName());
+                TISSinkFactory streamFactory = TISSinkFactory.getIncrSinKFactory(dataXName);
 //                 HeteroEnum.INCR_STREAM_CONFIG.getPluginStore(
 //                        IPluginContext.namedContext(this.indexStreamCodeGenerator.collection), null);
                 // (TISSinkFactory) pluginStore.getPlugin();

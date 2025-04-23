@@ -24,6 +24,7 @@ import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Describable.IRefreshable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
@@ -65,13 +66,13 @@ public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGe
         return new KeyedPluginStore.AppKey(context, resType, appName, IAppSource.class);
     }
 
-    static void cleanPluginStoreCache(IPluginContext context, String appName) {
-        TIS.appSourcePluginStore.clear(createAppSourceKey(context, appName));
+    static void cleanPluginStoreCache(IPluginContext context, DataXName appName) {
+        TIS.appSourcePluginStore.clear(createAppSourceKey(context, appName.getType(), appName.getPipelineName()));
     }
 
-    static void cleanAppSourcePluginStoreCache(IPluginContext context, String appName) {
+    static void cleanAppSourcePluginStoreCache(IPluginContext context, DataXName appName) {
         IAppSource.cleanPluginStoreCache(context, appName);
-        DataxReader.cleanPluginStoreCache(context, false, appName);
+        DataxReader.cleanPluginStoreCache(context, false, appName.getPipelineName());
         DataxWriter.cleanPluginStoreCache(context, appName);
         RecordTransformerRules.cleanPluginStoreCache(context, appName);
     }
@@ -90,6 +91,8 @@ public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGe
     static <T extends IAppSource> T load(String appName) {
         return load(null, DataXName.createDataXPipeline(appName));
     }
+
+
 
     /**
      * save

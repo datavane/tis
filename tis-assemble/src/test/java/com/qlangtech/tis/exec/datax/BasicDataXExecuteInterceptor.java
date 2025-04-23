@@ -29,6 +29,7 @@ import com.qlangtech.tis.datax.DBDataXChildTask;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.TransformerInfo;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
@@ -48,6 +49,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -113,7 +115,9 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
     }
 
     protected DataXCfgGenerator.GenerateCfgs mockGenerateCfgs(File dataxCfgDir) throws IOException {
-        DataXCfgGenerator.GenerateCfgs genCfg = new DataXCfgGenerator.GenerateCfgs(IPluginContext.namedContext(AP_NAME), dataxCfgDir);
+
+        DataXCfgGenerator.GenerateCfgs genCfg
+                = new DataXCfgGenerator.GenerateCfgs(new MockDataxProcessor(), IPluginContext.namedContext(AP_NAME), dataxCfgDir);
         genCfg.setGenTime(System.currentTimeMillis());
         Map<String, List<DBDataXChildTask>> groupedChildTask = Maps.newHashMap();
         groupedChildTask.put(tableName, Lists.newArrayList(
@@ -143,6 +147,12 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
         public StoreResourceType getResType() {
             // throw new UnsupportedOperationException();
             return StoreResourceType.DataApp;
+        }
+
+        @Override
+        public Set<TransformerInfo> getTransformerInfo(
+                IPluginContext pluginCtx, Map<String, List<DBDataXChildTask>> groupedChildTask) {
+            throw new UnsupportedOperationException();
         }
 
         @Override

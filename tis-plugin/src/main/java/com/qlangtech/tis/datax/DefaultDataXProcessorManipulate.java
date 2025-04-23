@@ -41,17 +41,17 @@ import java.util.stream.Collectors;
 public abstract class DefaultDataXProcessorManipulate implements Describable<DefaultDataXProcessorManipulate>, ManipuldateProcessor {
 
     private static IPluginStore<DefaultDataXProcessorManipulate> getPluginStore(
-            IPluginContext context, String appName) {
-        if (StringUtils.isEmpty(appName)) {
+            IPluginContext context, DataXName appName) {
+        if (appName == null) {
             throw new IllegalArgumentException("param appName can not be empty");
         }
-        KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(context, StoreResourceType.DataApp, appName, DefaultDataXProcessorManipulate.class);
+        KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(context, appName.getType(), appName.getPipelineName(), DefaultDataXProcessorManipulate.class);
         IPluginStore<DefaultDataXProcessorManipulate> pluginStore = TIS.getPluginStore(appKey);
         return pluginStore;
     }
 
     public static <T extends DefaultDataXProcessorManipulate> Pair<List<T>, IPluginStore<DefaultDataXProcessorManipulate>>
-    loadPlugins(IPluginContext context, final Class<T> clazz, String appName) {
+    loadPlugins(IPluginContext context, final Class<T> clazz, DataXName appName) {
         IPluginStore<DefaultDataXProcessorManipulate> store = getPluginStore(context, appName);
         List<T> result = store.getPlugins().stream()
                 .filter((p) -> clazz.isAssignableFrom(p.getClass()))

@@ -23,14 +23,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.DataXName;
+import com.qlangtech.tis.datax.IDataFlowDataXProcess;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
@@ -108,7 +109,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
         return transformerRules;
     }
 
-    public static void cleanPluginStoreCache(IPluginContext context, String appName) {
+    public static int cleanPluginStoreCache(IPluginContext context, DataXName appName) {
         // TIS.appSourcePluginStore.clear(createAppSourceKey(context, appName));
 
 //        TIS.visitCollectionPluginStoreEntities((entry) -> {
@@ -123,9 +124,10 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 //        });
 
         if (context == null) {
-            return;
+            return -1;
         }
 
+        int clearCount = 0;
         Iterator<Entry<Key, KeyedPluginStore>> storeIt = TIS.collectionPluginStore.getEntries().iterator();
         Entry<Key, KeyedPluginStore> entry = null;
         TransformerRuleKey ruleKey = null;
@@ -133,11 +135,14 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
             entry = storeIt.next();
             if (entry.getKey() instanceof TransformerRuleKey) {
                 ruleKey = (TransformerRuleKey) entry.getKey();
-                if (StringUtils.equals(ruleKey.keyVal.getVal(), appName)) {
+                if (StringUtils.equals(ruleKey.keyVal.getVal(), appName.getPipelineName())
+                        && ruleKey.resourceType == appName.getType()) {
                     storeIt.remove();
+                    clearCount++;
                 }
             }
         }
+        return clearCount;
     }
 
     public static Function<String, RecordTransformerRules> transformerRulesLoader4Test;
@@ -153,6 +158,11 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
     contextParamValsGetterMapper(
             IDataxProcessor processor, IPluginContext pluginContext, IDataxReader dataxReader, List<ISelectedTab> tabs) {
         return contextParamValsGetterMapper(processor.getResType(), processor.identityValue(), pluginContext, dataxReader, tabs);
+    }
+
+    public static Map<String /*tableName*/, Map<String /*contextParamName*/, Function<RunningContext, Object>>> contextParamValsGetterMapper(
+            DataXName appName, IPluginContext pluginContext, IDataxReader dataxReader, List<ISelectedTab> tabs) {
+        return contextParamValsGetterMapper(appName.getType(), appName.getPipelineName(), pluginContext, dataxReader, tabs);
     }
 
     /**
@@ -275,22 +285,29 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
         return Optional.empty();
     }
 
-    private static Pair<List<RecordTransformerRules>, IPluginStore> getPluginsAndStore(IPluginContext pluginCtx, StoreResourceType resourceType, String appname, String tableName) {
+    private static Pair<List<RecordTransformerRules>, IPluginStore> getPluginsAndStore(
+            IPluginContext pluginCtx, StoreResourceType resourceType, String appname, String tableName) {
 
         if (StringUtils.isEmpty(tableName)) {
             throw new IllegalArgumentException("param tableName:" + tableName + " can not be empty");
+        }
+
+        if (resourceType == StoreResourceType.DataFlow) {
+            IDataxProcessor dataxProcessor = DataxProcessor.load(pluginCtx, resourceType, appname);
+            IDataFlowDataXProcess dataFlowDataXProcess = (IDataFlowDataXProcess) dataxProcessor;
+            appname = dataFlowDataXProcess.getDBNameByTable(tableName);
+            resourceType = StoreResourceType.DataBase;
         }
 
         try {
             String rawContent = HeteroEnum.TRANSFORMER_RULES.identity + ":require,"
                     + SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID + "_" + tableName
                     + "," + StoreResourceType.KEY_PROCESS_MODEL + "_" + resourceType.getType()
-                    + "," + DataxUtils.DATAX_NAME + "_" + appname;
+                    + "," + StoreResourceType.getPipeParma(resourceType, appname);
             return HeteroEnum.TRANSFORMER_RULES.getPluginsAndStore(pluginCtx, UploadPluginMeta.parse(rawContent));
         } catch (Throwable e) {
             throw new RuntimeException("tableName:" + tableName, e);
         }
-
     }
 
     @FormField(ordinal = 1, type = FormFieldType.MULTI_SELECTABLE, validate = {})

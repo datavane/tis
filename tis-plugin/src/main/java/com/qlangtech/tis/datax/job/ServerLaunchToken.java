@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.coredefine.module.action.LoopQueue;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.datax.job.DataXJobWorker.K8SWorkerCptType;
 import com.qlangtech.tis.datax.job.DataXJobWorker.LaunchToken;
@@ -33,7 +34,6 @@ import com.qlangtech.tis.datax.job.SSERunnable.SSEEventType;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -193,7 +193,7 @@ public class ServerLaunchToken extends Observable implements Closeable {
     public static class FlinkClusterTokenManager {
         public final static String JSON_KEY_WEB_INTERFACE_URL = "webInterfaceURL";
         public final static String JSON_KEY_CLUSTER_ID = "clusterId";
-        public final static String JSON_KEY_APP_NAME = DataxUtils.DATAX_NAME;
+        public final static String JSON_KEY_APP_NAME = StoreResourceType.DATAX_NAME;
         public final static String JSON_KEY_CLUSTER_TYPE = "clusterType";
         public final static String JSON_KEY_K8S_NAMESPACE = "k8s_namespace";
         public final static String JSON_KEY_K8S_BASE_PATH = "k8s_base_path";

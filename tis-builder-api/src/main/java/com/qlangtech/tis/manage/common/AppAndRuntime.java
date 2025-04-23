@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.manage.common;
 
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 
 import java.util.function.Consumer;
@@ -28,7 +29,7 @@ import java.util.function.Consumer;
 public class AppAndRuntime {
 
     private static ThreadLocal<AppAndRuntime> appAndRuntimeLocal = new ThreadLocal<AppAndRuntime>();
-    private String appName;
+    private DataXName appName;
 
     private RunEnvironment runtime;
 
@@ -45,7 +46,7 @@ public class AppAndRuntime {
         }
     }
 
-    public void setAppName(String appName) {
+    public void setAppName(DataXName appName) {
         this.appName = appName;
     }
 
@@ -53,7 +54,7 @@ public class AppAndRuntime {
         this.runtime = runtime;
     }
 
-    public String getAppName() {
+    public DataXName getAppName() {
         return appName;
     }
 

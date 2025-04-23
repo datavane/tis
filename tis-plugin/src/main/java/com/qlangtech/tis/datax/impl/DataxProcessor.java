@@ -21,6 +21,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.DBDataXChildTask;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
@@ -29,29 +30,37 @@ import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.datax.TableAliasMapper;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
+import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IPluginStore.AfterPluginSaved;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.StoreResourceTypeConstants;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.TransformerRuleKey;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FalseFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -72,6 +81,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     public interface IDataxProcessorGetter {
         DataxProcessor get(String dataXName);
     }
+
+
 
     @Override
     public void afterSaved(IPluginContext pluginContext, Optional<Context> context) {
@@ -348,7 +359,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         if (dataxCfgDir.list().length < 1) {
             throw new IllegalStateException("dataxCfgDir is empty can not find any files:" + dataxCfgDir.getAbsolutePath());
         }
-        DataXCfgGenerator.GenerateCfgs genCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(pluginContext, dataxCfgDir, partialTrigger);
+        DataXCfgGenerator.GenerateCfgs genCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(processor, pluginContext, dataxCfgDir, partialTrigger);
         return genCfgs;
     }
 

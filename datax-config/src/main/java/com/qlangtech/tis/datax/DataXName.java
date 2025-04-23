@@ -30,9 +30,26 @@ public class DataXName {
         return new DataXName(pipelineName, StoreResourceType.DataApp);
     }
 
+    public boolean isDataAppType() {
+        return this.getType() == StoreResourceType.DataApp;
+    }
+
+    public boolean isDataFlowType() {
+        return this.getType() == StoreResourceType.DataFlow;
+    }
+
     public StoreResourceType assetCheckDataAppType() {
-        if (this.getType() != StoreResourceType.DataApp) {
-            throw new IllegalStateException("dataXName type must be :" + StoreResourceType.DataApp + " but is :" + this.getType());
+//        if (this.getType() != StoreResourceType.DataApp) {
+//            throw new IllegalStateException("dataXName type must be :" + StoreResourceType.DataApp + " but is :" + this.getType());
+//        }
+//        return this.getType();
+
+        return this.assetCheckType(StoreResourceType.DataApp);
+    }
+
+    public StoreResourceType assetCheckType(StoreResourceType resType) {
+        if (this.getType() != resType) {
+            throw new IllegalStateException("dataXName type must be :" + resType + " but is :" + this.getType());
         }
         return this.getType();
     }

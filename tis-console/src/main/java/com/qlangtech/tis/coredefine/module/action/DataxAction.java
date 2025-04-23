@@ -63,7 +63,6 @@ import com.qlangtech.tis.datax.preview.PreviewRowsData;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.extension.SubFormFilter;
-import com.qlangtech.tis.extension.model.UpdateSite.Data;
 import com.qlangtech.tis.extension.util.MultiItemsViewType;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.lang.TisException;
@@ -153,7 +152,7 @@ import java.util.stream.Collectors;
 @InterceptorRefs({@InterceptorRef("tisStack")})
 public class DataxAction extends BasicModule {
   private static final Logger logger = LoggerFactory.getLogger(DataxAction.class);
-  private static final String PARAM_KEY_DATAX_NAME = DataxUtils.DATAX_NAME;
+  private static final String PARAM_KEY_DATAX_NAME = StoreResourceType.DATAX_NAME;
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doDeletePowerJobWorkflow(Context context) throws Exception {
@@ -230,7 +229,7 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doSaveTableCreateDdl(Context context) throws Exception {
     JSONObject post = this.parseJsonPost();
-    String dataXName = post.getString(DataxUtils.DATAX_NAME);
+    String dataXName = post.getString(StoreResourceType.DATAX_NAME);
     String createTableDDL = post.getString("content");
     if (StringUtils.isEmpty(createTableDDL)) {
       throw new IllegalArgumentException("create table ddl can not be null");
@@ -976,7 +975,7 @@ public class DataxAction extends BasicModule {
 
   /**
    * 重新生成datax配置文件
-   *
+   * generate_datax_cfgs
    * @param context
    * @throws Exception
    */
@@ -1111,7 +1110,7 @@ public class DataxAction extends BasicModule {
 
       this.getApplicationDAO().deleteByPrimaryKey(appDomain.getAppid());
       this.addActionMessage(context, "已经成功将数据通道'" + appDomain.getAppName() + "'删除");
-      IAppSource.cleanAppSourcePluginStoreCache(this, appDomain.getAppName());
+      IAppSource.cleanAppSourcePluginStoreCache(this, DataXName.createDataXPipeline(appDomain.getAppName()));
       deleteSuccess = true;
     } finally {
       if (deleteSuccess) {
@@ -1167,9 +1166,9 @@ public class DataxAction extends BasicModule {
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doUpdateDatax(Context context) throws Exception {
-    final DataXName dataxName = this.getCollectionName();
-
     ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
+    final DataXName dataxName = new DataXName(this.getCollectionName().getPipelineName(), pmodel.resType);
+
     IDataxProcessor old = (IDataxProcessor) pmodel.loadDataXProcessor(null, dataxName.getPipelineName());
 
     // DataxProcessor old = DataxProcessor.load(null, dataxName);
@@ -1204,8 +1203,8 @@ public class DataxAction extends BasicModule {
     appCriteria.createCriteria().andProjectNameEqualTo(dataxName.getPipelineName());
     this.getApplicationDAO().updateByExampleSelective(dataXApp, appCriteria);
 
-    IAppSource.cleanAppSourcePluginStoreCache(null, dataxName.getPipelineName());
-    IAppSource.cleanAppSourcePluginStoreCache(this, dataxName.getPipelineName());
+    IAppSource.cleanAppSourcePluginStoreCache(null, dataxName);
+    IAppSource.cleanAppSourcePluginStoreCache(this, dataxName);
     SelectedTabExtend.clearTabExtend(null, dataxName.getPipelineName());
     SelectedTabExtend.clearTabExtend(this, dataxName.getPipelineName());
 

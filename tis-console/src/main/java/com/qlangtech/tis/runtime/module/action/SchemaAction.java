@@ -28,10 +28,10 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
-import com.qlangtech.tis.extension.model.UpdateSite.Data;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
@@ -40,7 +40,6 @@ import com.qlangtech.tis.manage.biz.dal.dao.IServerGroupDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.*;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.spring.aop.Func;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
@@ -100,7 +99,7 @@ public class SchemaAction extends BasicModule {
    * @throws Exception
    */
   public void doGetEsTplFields(Context context) throws Exception {
-    String dataxName = this.getString(DataxUtils.DATAX_NAME);
+    String dataxName = this.getString(StoreResourceType.DATAX_NAME);
 
     StepType stepType = StepType.parse(this.getString("stepType"));
     //DataxProcessor process = DataxProcessor.load(this, dataxName);
@@ -443,7 +442,7 @@ public class SchemaAction extends BasicModule {
     com.alibaba.fastjson.JSONObject body = this.parseJsonPost();
 
     ISearchEngineTypeTransfer typeTransfer
-      = ISearchEngineTypeTransfer.load(this, body.getString(DataxUtils.DATAX_NAME));
+      = ISearchEngineTypeTransfer.load(this, body.getString(StoreResourceType.DATAX_NAME));
     writerStructFields(context, body, typeTransfer);
   }
 

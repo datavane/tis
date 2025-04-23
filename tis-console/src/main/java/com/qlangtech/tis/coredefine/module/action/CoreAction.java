@@ -495,7 +495,7 @@ public class CoreAction extends BasicModule {
 
     IndexIncrStatus incrStatus = generateDAOAndIncrScript(this, context, hasCfgChanged.isPresent());
     MQListenerFactory incrFactory = HeteroEnum.getIncrSourceListenerFactory(this.getCollectionName());
-    TISSinkFactory sinkFactory = TISSinkFactory.getIncrSinKFactory(this.getCollectionName().getPipelineName());
+    TISSinkFactory sinkFactory = TISSinkFactory.getIncrSinKFactory(this.getCollectionName());
     incrStatus.setIncrSourceDesc(createDescVals(incrFactory.getDescriptor()));
     incrStatus.setIncrSinkDesc(createDescVals(sinkFactory.getDescriptor()));
     this.setBizResult(context, incrStatus);

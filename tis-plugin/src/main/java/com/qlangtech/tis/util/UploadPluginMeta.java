@@ -29,7 +29,6 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
 import com.qlangtech.tis.manage.common.AppAndRuntime;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
@@ -93,7 +92,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
 
     public static UploadPluginMeta appnameMeta(IPluginContext pluginContext, String appname) {
         UploadPluginMeta extMeta = parse(pluginContext,
-                "name:" + DataxUtils.DATAX_NAME + "_" + appname, true);
+                "name:" + StoreResourceType.DATAX_NAME + "_" + appname, true);
         return extMeta;
     }
 
@@ -128,6 +127,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     }
 
     public ProcessModel getProcessModel() {
+
         return ProcessModel.parse(this.getExtraParam(StoreResourceType.KEY_PROCESS_MODEL));
     }
 
@@ -147,15 +147,21 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     }
 
     public static List<UploadPluginMeta> parse(IPluginContext context, String[] plugins) {
-        return parse(context, plugins, true).stream().map((meta) -> (UploadPluginMeta) meta).collect(Collectors.toList());
+        return parse(context, plugins, true, true).stream().map((meta) -> (UploadPluginMeta) meta).collect(Collectors.toList());
     }
 
     public static List<IUploadPluginMeta> parse(String[] plugins, boolean useCache) {
-        return parse(null, plugins, useCache);
+        return parse(null, plugins, useCache, true);
     }
 
-    public static List<IUploadPluginMeta> parse(IPluginContext context, String[] plugins, boolean useCache) {
-        if (plugins == null || plugins.length < 1) {
+    public static List<IUploadPluginMeta> parse(
+            IPluginContext context, String[] plugins, boolean useCache) {
+        return parse(context, plugins, useCache, true);
+    }
+
+    public static List<IUploadPluginMeta> parse(
+            IPluginContext context, String[] plugins, boolean useCache, boolean validatePluginEmpty) {
+        if (validatePluginEmpty && (plugins == null || plugins.length < 1)) {
             throw new IllegalArgumentException("plugin size:" + plugins.length + " length can not small than 1");
         }
         List<IUploadPluginMeta> metas = Lists.newArrayList();
@@ -215,7 +221,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
             }
 
             /**
-             // 为了在dataX穿件流程中，能够在流程中使用IControlMsgHandler.isCollectionAware() 为true ，例如： DataXKafkaReader.createDataXKafkaReader() 方法中
+             // 为了在dataX创建流程中，能够在流程中使用IControlMsgHandler.isCollectionAware() 为true ，例如： DataXKafkaReader.createDataXKafkaReader() 方法中
              // 需要在这里将当前的appAndRuntime 设置到当前的线程上下文中去。
              // 后续 CheckAppDomainExistValve.getAppDomain() 方法执行就能获得有appName aware的实例了
              */
@@ -224,11 +230,11 @@ public class UploadPluginMeta implements IUploadPluginMeta {
             if ( // StringUtils.isNotEmpty(pipe)
                     pipe != null
                             &&
-                            (appAndRuntime == null || StringUtils.isEmpty(appAndRuntime.getAppName()))) {
+                            (appAndRuntime == null || (appAndRuntime.getAppName()) != null)) {
                 appAndRuntime = new AppAndRuntime();
                 appAndRuntime.setRuntime(RunEnvironment.getSysRuntime());
-                appAndRuntime.setAppName(pipe.getPipelineName());
-                StoreResourceType type = pipe.getType();
+                appAndRuntime.setAppName(pipe);
+                // StoreResourceType type = pipe.getType();
 
                 AppAndRuntime.setAppAndRuntime(appAndRuntime);
                 //CheckAppDomainExistValve
@@ -245,6 +251,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
 //        return HeteroEnum.DATAX_READER.getPlugins(pluginContext, UploadPluginMeta.parse(pluginContext,
 //                this.name + ":" + DataxUtils.DATAX_NAME + "_" + this.getDataXName(),
 //                useCache));
+       // this.getDataXName()
         IPluginStore<DataxReader> store = (IPluginStore<DataxReader>) HeteroEnum.getDataXReaderAndWriterRelevantPluginStore(
                 pluginContext, true, this);
         return Pair.of(store.getPlugins(), store);
@@ -393,18 +400,19 @@ public class UploadPluginMeta implements IUploadPluginMeta {
 
 
     public DataXName getDataXName(boolean validateNull) {
-        final String dataxName = (this.getExtraParam(DataxUtils.DATAX_NAME));
+        final String dataxName = (this.getExtraParam(StoreResourceType.DATAX_NAME));
         if (StringUtils.isNotEmpty(dataxName)) {
             //
-            return DataXName.createDataXPipeline(dataxName);
+            //  return DataXName.createDataXPipeline(dataxName);
+            return new DataXName(dataxName, this.getProcessModel().resType);
         }
-        String dbName = this.getExtraParam(DataxUtils.DATAX_DB_NAME);
+        String dbName = this.getExtraParam(StoreResourceType.DATAX_DB_NAME);
         if (StringUtils.isNotEmpty(dbName)) {
             return new DataXName(dbName, StoreResourceType.DataBase);
         }
 
         if (validateNull) {
-            throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + DataxUtils.DATAX_NAME + " can not be null");
+            throw new IllegalArgumentException("plugin extra param 'DataxUtils.DATAX_NAME'" + StoreResourceType.DATAX_NAME + " can not be null");
         }
         return null;
     }

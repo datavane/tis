@@ -20,10 +20,10 @@ package com.qlangtech.tis.offline.module.action;
 
 import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.BasicActionTestCase;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.util.UploadPluginMeta;
 
 /**
@@ -48,7 +48,7 @@ public class TestOfflineDatasourceAction extends BasicActionTestCase {
       "    \"name\":\"dataxReader\",\n" +
       "    \"require\":true,\n" +
       "    \"extraParam\":\"" + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_MySQL,"
-      + SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," + DataxUtils.DATAX_DB_NAME + "_order,maxReaderTableCount_9999\"\n" +
+      + SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," + StoreResourceType.DATAX_DB_NAME + "_order,maxReaderTableCount_9999\"\n" +
       "}";
     request.setContent(postContent.getBytes(TisUTF8.get()));
 

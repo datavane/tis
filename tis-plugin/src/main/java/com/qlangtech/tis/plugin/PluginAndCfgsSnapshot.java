@@ -318,7 +318,7 @@ public class PluginAndCfgsSnapshot {
 
                     // 先收集plugmeta，特别是通过dataXWriter的dataSource关联的元数据
                     IDataxProcessor processor = DataxProcessor.load(null, resourceType, collection.getName());
-                    TISSinkFactory incrSinKFactory = TISSinkFactory.getIncrSinKFactory(collection.getName());
+                    TISSinkFactory incrSinKFactory = TISSinkFactory.getIncrSinKFactory(new DataXName(collection.getName(), resourceType));
                     incrSinKFactory.createSinkFunction(processor, new IFlinkColCreator() {
                         @Override
                         public Object build(IColMetaGetter meta, int colIndex) {

@@ -615,6 +615,8 @@ public class OfflineDatasourceAction extends BasicModule {
     // 保存一个时间戳
     SqlTaskNodeMeta.persistence(topologyPojo, parent);
     dbSaverCallback.afterPersistence(this, context, topologyPojo);
+    IDataxProcessor dfProcessor = DataxProcessor.load(this, StoreResourceType.DataFlow, topologyName);
+    dfProcessor.refresh();
     // 备份之用
     FileUtils.write(new File(parent, topologyName + "_content.json"), content, getEncode(), false);
     this.addActionMessage(context, "'" + topologyName + "'保存成功");

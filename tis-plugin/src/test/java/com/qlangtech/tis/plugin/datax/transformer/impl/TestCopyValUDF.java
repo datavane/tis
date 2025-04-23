@@ -48,6 +48,18 @@ public class TestCopyValUDF extends UDFDefinition {
     @FormField(ordinal = 2, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
     public TargetColType to;
 
+    public static TestCopyValUDF create() {
+        TestCopyValUDF cpUDF = new TestCopyValUDF();
+        cpUDF.from = "base_id";
+        TargetColType targetColType = new TargetColType();
+        VirtualTargetColumn targetColumn = new VirtualTargetColumn();
+        final String baseId = "new_base_id";
+        targetColumn.name = baseId;
+        targetColType.setTarget(targetColumn);
+        cpUDF.to = targetColType;
+        return cpUDF;
+    }
+
     @Override
     public List<UDFDesc> getLiteria() {
         List<UDFDesc> literia = Lists.newArrayList(new UDFDesc("from", this.from));
@@ -64,7 +76,6 @@ public class TestCopyValUDF extends UDFDefinition {
         List<CMeta> colsCandidate = SelectedTab.getColsCandidate();
         return colsCandidate.stream().collect(Collectors.toList());
     }
-
 
 
     public static List<TargetColType> getCols() {

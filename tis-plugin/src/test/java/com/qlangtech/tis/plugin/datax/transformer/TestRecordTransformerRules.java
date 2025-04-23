@@ -18,12 +18,24 @@
 
 package com.qlangtech.tis.plugin.datax.transformer;
 
+import com.google.common.collect.Lists;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
 import com.qlangtech.tis.extension.util.impl.DefaultGroovyShellFactory;
+import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.datax.transformer.impl.TestCopyValUDF;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import junit.framework.TestCase;
+import org.easymock.EasyMock;
 import org.junit.Assert;
+
+import java.util.Optional;
+
+import static com.qlangtech.tis.util.HeteroEnum.TRANSFORMER_RULES;
 
 /**
  *
@@ -35,7 +47,7 @@ public class TestRecordTransformerRules extends TestCase {
             T plugin = clazz.newInstance();// RecordTransformerRules.class.newInstance();
 // DescriptorsJSON descJson = new DescriptorsJSON(plugin.getDescriptor());
             JsonUtil.assertJSONEqual(clazz, assertFileName
-                    ,JsonUtil.toString( DescriptorsJSON.desc(plugin.getDescriptor()) ), (m, e, a) -> {
+                    , JsonUtil.toString(DescriptorsJSON.desc(plugin.getDescriptor())), (m, e, a) -> {
                         Assert.assertEquals(m, e, a);
                     });
             //return plugin;
@@ -44,9 +56,27 @@ public class TestRecordTransformerRules extends TestCase {
         }
     }
 
+    public void testCleanPluginStoreCache() {
+        DataXName dataX = DataXName.createDataXPipeline("test");
+        IPluginContext pluginContext = IPluginContext.namedContext(dataX);
+
+        UploadPluginMeta pluginMeta
+                = UploadPluginMeta.parse("transformer:require,dataxName_" + dataX.getPipelineName() + ",id_orderdetail");
+
+        IPluginStore pluginStore
+                = TRANSFORMER_RULES.getPluginStore(pluginContext, pluginMeta);
+        TestCopyValUDF cpUDF = TestCopyValUDF.create();
+        RecordTransformerRules rules = RecordTransformerRules.create(cpUDF);
+        pluginStore.setPlugins(pluginContext, Optional.empty(), Lists.newArrayList(new ParseDescribable(rules)));
+
+        int clearCount = RecordTransformerRules.cleanPluginStoreCache(pluginContext, dataX);
+        Assert.assertEquals(1, clearCount);
+    }
+
+
     public void testDescJsonGen() {
         DefaultGroovyShellFactory.setInConsoleModule();
-        assertDesc(RecordTransformerRules.class,"record-transformer-rules-descriptor.json");
+        assertDesc(RecordTransformerRules.class, "record-transformer-rules-descriptor.json");
     }
 
 

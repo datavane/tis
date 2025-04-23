@@ -93,7 +93,7 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
             "Incr Sink Factory", //
             Selectable.Single, true);
 
-    public static TISSinkFactory getIncrSinKFactory(String dataXName) {
+    public static TISSinkFactory getIncrSinKFactory(DataXName dataXName) {
         IPluginContext pluginContext = IPluginContext.namedContext(dataXName);
         return getIncrSinKFactory(pluginContext);
     }

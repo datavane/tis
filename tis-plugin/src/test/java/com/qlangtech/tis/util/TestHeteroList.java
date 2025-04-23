@@ -19,13 +19,13 @@ package com.qlangtech.tis.util;
 
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.ExtensionFinder;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.ClassicPluginStrategy;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
@@ -80,7 +80,7 @@ public class TestHeteroList extends TestCase {
 
         HeteroEnum dataxReader = HeteroEnum.DATAX_READER;
         String pluginMeta = dataxReader.identity + ":require," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME
-                + "_MySQL," + SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," + DataxUtils.DATAX_NAME + "_" + DATAX_INSTANCE_NAME;
+                + "_MySQL," + SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," + StoreResourceType.DATAX_NAME + "_" + DATAX_INSTANCE_NAME;
 
         UploadPluginMeta meta = UploadPluginMeta.parse(pluginMeta);
         IPluginContext pluginContext = EasyMock.createMock("pluginContext", IPluginContext.class);

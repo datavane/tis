@@ -24,10 +24,14 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.datax.impl.TransformerInfo;
+import com.qlangtech.tis.extension.Describable.IRefreshable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
 import com.qlangtech.tis.plugin.StoreResourceTypeGetter;
 import com.qlangtech.tis.plugin.datax.transformer.OutputParameter;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
@@ -41,16 +45,22 @@ import com.qlangtech.tis.plugin.trigger.JobTrigger;
 import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.TransformerRuleKey;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FalseFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -59,11 +69,49 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 14:38
  */
-public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
+public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, IRefreshable {
 
     static File getWriterDescFile(IPluginContext pluginContext, String dataXName) {
         File workDir = getDataXWorkDir(pluginContext, dataXName);
         return new File(workDir, "writerDesc");
+    }
+
+    @Override
+    default void refresh() {
+
+    }
+
+    /**
+     * @param tinfos
+     * @param pluginCtx
+     * @param groupedChildTask key: tableName
+     * @param resType
+     * @param pipeName
+     */
+    static void addTransformerInfo(Set<TransformerInfo> tinfos,
+                                   IPluginContext pluginCtx
+            , Map<String, List<DBDataXChildTask>> groupedChildTask, StoreResourceType resType, String pipeName) {
+        Key transformerRuleKey = TransformerRuleKey.createStoreKey(pluginCtx, resType, pipeName, "dump");
+        XmlFile sotre = transformerRuleKey.getSotreFile();
+        File parent = sotre.getFile().getParentFile();
+        if (!parent.exists()) {
+            // return Collections.emptySet();
+            return;
+        }
+        Optional<RecordTransformerRules> transformerRules = null;
+        String xmlExtend = Descriptor.getPluginFileName(org.apache.commons.lang.StringUtils.EMPTY);
+        SuffixFileFilter filter = new SuffixFileFilter(xmlExtend);
+        Collection<File> matched = FileUtils.listFiles(parent, filter, FalseFileFilter.INSTANCE);
+        for (File tfile : matched) {
+            String tabName = org.apache.commons.lang.StringUtils.substringBefore(tfile.getName(), xmlExtend);
+            if (groupedChildTask.containsKey(tabName)) {
+                transformerRules = RecordTransformerRules.loadTransformerRules(
+                        pluginCtx, resType, pipeName, tabName);
+                if (transformerRules.isPresent()) {
+                    tinfos.add(new TransformerInfo(resType, pipeName, tabName, transformerRules.get().rules.size()));
+                }
+            }
+        }
     }
 
     default SynResTarget getResTarget() {
@@ -75,6 +123,10 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
             default:
                 throw new IllegalStateException("resType:" + this.getResType() + " is not support ");
         }
+    }
+
+    default DataXName getDataXName() {
+        return new DataXName(this.identityValue(), this.getResType());
     }
 
     static File getDataXWorkDir(IPluginContext pluginContext, String appName) {
@@ -102,7 +154,11 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
             if (StringUtils.isEmpty(dataXName)) {
                 throw new IllegalArgumentException("param dataXName can not be empty");
             }
-            Descriptor descriptor = TIS.get().getDescriptor(FileUtils.readFileToString(getWriterDescFile(pluginContext, dataXName), TisUTF8.get()));
+            File writerDescFile = getWriterDescFile(pluginContext, dataXName);
+            if (!writerDescFile.exists()) {
+                return null;
+            }
+            Descriptor descriptor = TIS.get().getDescriptor(FileUtils.readFileToString(writerDescFile, TisUTF8.get()));
             return descriptor;
         } catch (IOException e) {
             throw new RuntimeException("dataXName:" + dataXName, e);
@@ -233,6 +289,12 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter {
         }
         return true;
     }
+
+    /**
+     * @param groupedChildTask
+     * @return
+     */
+    Set<TransformerInfo> getTransformerInfo(IPluginContext pluginCtx, Map<String, List<DBDataXChildTask>> groupedChildTask);
 
     /**
      * 标示DataXWriter会自己创建IDataxProcessor.TableMap实例，使用这个标示必须满足isSupportMultiTable为false，具体例子可以看DataXMongodbWriter

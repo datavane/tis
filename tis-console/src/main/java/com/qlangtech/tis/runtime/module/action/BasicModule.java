@@ -35,6 +35,7 @@ import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
+import com.qlangtech.tis.coredefine.module.action.ProcessModel;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -156,15 +157,23 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   protected List<UploadPluginMeta> getPluginMeta() {
+    return getPluginMeta(true);
+  }
+
+  protected List<UploadPluginMeta> getPluginMeta(boolean validatePluginEmpty) {
     final boolean useCache = Boolean.parseBoolean(this.getString("use_cache", "true"));
     // return UploadPluginMeta.parse(this, this.getStringArray("plugin"), useCache);
-    return parsePluginMeta(this.getStringArray(KEY_PLUGIN), useCache)
+    return parsePluginMeta(this.getStringArray(KEY_PLUGIN), useCache, validatePluginEmpty)
       .stream().map((meta) -> (UploadPluginMeta) meta).collect(Collectors.toList());
   }
 
   @Override
   public List<IUploadPluginMeta> parsePluginMeta(String[] plugins, boolean useCache) {
-    return UploadPluginMeta.parse(this, plugins, useCache);
+    return parsePluginMeta(plugins, useCache, true);
+  }
+
+  public List<IUploadPluginMeta> parsePluginMeta(String[] plugins, boolean useCache, boolean validatePluginEmpty) {
+    return UploadPluginMeta.parse(this, plugins, useCache, validatePluginEmpty);
   }
 
 //  protected static WorkFlow getAppBindedWorkFlow(BasicModule module) {
@@ -257,10 +266,27 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   public DataXName getCollectionName() {
+
+    List<UploadPluginMeta> metas = getPluginMeta(false);
+    for (UploadPluginMeta pm : metas) {
+      // 在url 参数上设置的DataX名称优先级高
+      DataXName dataX = pm.getDataXName(false);
+      if (dataX != null) {
+        return dataX;
+      }
+    }
+
     String collection = this.getAppDomain().getAppName();
     if (StringUtils.isBlank(collection)) {
       throw new IllegalStateException("param collection can not be null");
     }
+
+    final String processModel = this.getString(StoreResourceType.KEY_PROCESS_MODEL);
+    if (StringUtils.isNotEmpty(processModel)) {
+      ProcessModel process = ProcessModel.parse(processModel);
+      return new DataXName(collection, process.resType);
+    }
+
     return DataXName.createDataXPipeline(collection);
   }
 

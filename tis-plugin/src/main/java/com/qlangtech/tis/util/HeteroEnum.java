@@ -23,6 +23,8 @@ import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.DataXName;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
@@ -37,7 +39,6 @@ import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.manage.IAppSource;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.FileSystemFactory;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -111,8 +112,8 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                 }
 
                 @Override
-                public IPluginStore appRelevant(IPluginContext pluginContext, String dataxName) {
-                    final String appName = dataxName;
+                public IPluginStore appRelevant(IPluginContext pluginContext, DataXName dataxName) {
+                    final String appName = dataxName.getPipelineName();
                     Key key = TransformerRuleKey.createStoreKey(pluginContext, pluginMeta.getProcessModel().resType, appName, tableName);
                     return TIS.getPluginStore(key);
                 }
@@ -267,7 +268,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     public static <T extends DataXJobWorker> T getFlinkK8SSessionCluster(String clusterId) {
         return (T) K8S_SESSION_WORKER.getPluginStore(null
                 , UploadPluginMeta.parse(K8SWorkerCptType.FlinkCluster.token + ":"
-                        + UploadPluginMeta.KEY_REQUIRE + "," + DataxUtils.DATAX_NAME + "_" + clusterId)).getPlugin();
+                        + UploadPluginMeta.KEY_REQUIRE + "," + StoreResourceType.DATAX_NAME + "_" + clusterId)).getPlugin();
     }
 
     @TISExtension
@@ -391,9 +392,9 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
             final DataXName dataxName = pluginMeta.getDataXName();// (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
-            if (dataxName.assetCheckDataAppType() != pluginMeta.getProcessModel().resType) {
-
-            }
+//            if (dataxName.assetCheckDataAppType() != pluginMeta.getProcessModel().resType) {
+//
+//            }
             return com.qlangtech.tis.manage.IAppSource.getPluginStore(pluginContext,
                     pluginMeta.getProcessModel().resType, dataxName.getPipelineName());
         }
@@ -489,10 +490,10 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                                 }
 
                                 @Override
-                                public IPluginStore appRelevant(IPluginContext pluginContext, String dataxName) {
+                                public IPluginStore appRelevant(IPluginContext pluginContext, DataXName dataxName) {
 
                                     DataxReader.SubFieldFormAppKey key = new DataxReader.SubFieldFormAppKey<>(pluginContext,
-                                            false, dataxName, props, clazz);
+                                            false, dataxName.getPipelineName(), props, clazz);
                                     KeyedPluginStore<SelectedTab> subFormStore = KeyedPluginStore.getPluginStore(key);
 
                                     return SelectedTabExtend.wrapSubFormStore(pluginContext, dataxName, subFormStore);
@@ -520,13 +521,28 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                     }
 
                     @Override
-                    public IPluginStore<?> appRelevant(IPluginContext pluginContext, String dataxName) {
+                    public IPluginStore<?> appRelevant(IPluginContext pluginContext, DataXName dataxName) {
+//                        KeyedPluginStore<?> keyStore = getReader ?
+//                                :
+                        if (getReader) {
+                            if (dataxName.isDataAppType()) {
+                                return DataxReader.getPluginStore(pluginContext, dataxName.getPipelineName());
+                            } else if (dataxName.isDataFlowType()) {
+                                IDataxProcessor dataflowProcessor = DataxProcessor.load(pluginContext, dataxName);
+                                return null;
+                            } else {
+                                throw new IllegalStateException("illegal resource type:" + dataxName);
+                            }
+                        } else {
+                            return DataxWriter.getPluginStore(pluginContext, dataxName.getType(), dataxName.getPipelineName());
+                        }
 
 
-                        KeyedPluginStore<?> keyStore = getReader ?
-                                DataxReader.getPluginStore(pluginContext, dataxName) :
-                                DataxWriter.getPluginStore(pluginContext, pluginMeta.getProcessModel().resType, dataxName);
-                        return keyStore;
+//                        KeyedPluginStore<?> keyStore =
+//                               // DataxReader.getPluginStore(pluginContext, dataxName) :
+//                                DataxWriter.getPluginStore(pluginContext, dataxName.getType(), dataxName.getPipelineName());
+
+                        // return keyStore;
                     }
                 });
         return store;
@@ -543,17 +559,17 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             if (StringUtils.isNotBlank(saveDbName)) {
                 return creator.dbRelevant(pluginContext, saveDbName);
             } else {
-                throw new IllegalArgumentException("plugin extra param " + DataxUtils.DATAX_NAME + " can not be null");
+                throw new IllegalArgumentException("plugin extra param " + StoreResourceType.DATAX_NAME + " can not be null");
             }
         } else {
-            return creator.appRelevant(pluginContext, dataxName.getPipelineName());
+            return creator.appRelevant(pluginContext, dataxName);
         }
     }
 
     public interface DBOrAppRelevantCreator<T> {
         public T dbRelevant(IPluginContext pluginContext, String saveDbName);
 
-        public T appRelevant(IPluginContext pluginContext, String dataxName);
+        public T appRelevant(IPluginContext pluginContext, DataXName dataxName);
 
     }
 

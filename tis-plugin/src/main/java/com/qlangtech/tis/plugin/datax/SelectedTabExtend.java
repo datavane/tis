@@ -243,7 +243,7 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
         this.tabName = name;
     }
 
-    public static IPluginStore wrapSubFormStore(IPluginContext pluginContext, String dataxName,
+    public static IPluginStore wrapSubFormStore(IPluginContext pluginContext, DataXName dataxName,
                                                 KeyedPluginStore<SelectedTab> subFormStore) {
 
         final KeyedPluginStore<SelectedTabExtend> tabExtendStore =
@@ -386,7 +386,7 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
     //    };
 
     private static HeteroEnum<SelectedTabExtend> createTabExtendHetero(
-            BiFunction<IPluginContext, String, IPluginStore> storeCreator) {
+            BiFunction<IPluginContext, DataXName, IPluginStore> storeCreator) {
         return new HeteroEnum<SelectedTabExtend>(//
                 SelectedTabExtend.class, //
                 HETERO_ENUM_IDENTITY, //
@@ -395,7 +395,7 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
             @Override
             public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
                 final DataXName dataxName = pluginMeta.getDataXName();
-                return storeCreator.apply(pluginContext, dataxName.getPipelineName());
+                return storeCreator.apply(pluginContext, dataxName);
 
             }
         };
@@ -420,22 +420,30 @@ public abstract class SelectedTabExtend implements Describable<SelectedTabExtend
     //    };
 
 
-    public static KeyedPluginStore<SelectedTabExtend> getIncrPluginStore(IPluginContext pluginContext, String appname) {
+    public static KeyedPluginStore<SelectedTabExtend> getIncrPluginStore(IPluginContext pluginContext, DataXName appname) {
 
+        validateNotDataBaseType(appname);
         KeyedPluginStore.PluginClassCategory pluginCategory =
                 new KeyedPluginStore.PluginClassCategory(SelectedTabExtend.class, "_incr");
 
         KeyedPluginStore.AppKey key = new KeyedPluginStore.AppKey(pluginContext, StoreResourceType.parse(false),
-                appname, pluginCategory);
+                appname.getPipelineName(), pluginCategory);
         return pluginStore.get(key);
     }
 
     public static KeyedPluginStore<SelectedTabExtend> getBatchPluginStore( //
                                                                            IPluginContext pluginContext,
-                                                                           String appname) {
+                                                                           DataXName appname) {
+        validateNotDataBaseType(appname);
         KeyedPluginStore.AppKey key = new KeyedPluginStore.AppKey(pluginContext, StoreResourceType.parse(false),
-                appname, new KeyedPluginStore.PluginClassCategory(SelectedTabExtend.class, "_batch"));
+                appname.getPipelineName(), new KeyedPluginStore.PluginClassCategory(SelectedTabExtend.class, "_batch"));
         return pluginStore.get(key);
+    }
+
+    private static void validateNotDataBaseType(DataXName appname) {
+        if (appname.getType() == StoreResourceType.DataBase) {
+            throw new IllegalArgumentException("resType:" + appname.getType() + " can not be " + StoreResourceType.DataBase);
+        }
     }
 
     private static final transient Memoizer<KeyedPluginStore.AppKey, KeyedPluginStore<SelectedTabExtend>> pluginStore  //

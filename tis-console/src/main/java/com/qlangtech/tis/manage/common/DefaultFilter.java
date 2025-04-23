@@ -18,6 +18,7 @@
 package com.qlangtech.tis.manage.common;
 
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.ChangeDomainAction;
 import junit.framework.Assert;
@@ -79,7 +80,7 @@ public final class DefaultFilter implements Filter {
       }
       // Matcher match = p2.matcher(cookie.getValue());
       // if (match.matches()) {
-      appAndRuntime.setAppName(appName);
+      appAndRuntime.setAppName(DataXName.createDataXPipeline(appName));
       // RunEnvironment.getSysEnvironment();//
       appAndRuntime.setRuntime(RunEnvironment.getSysRuntime());
       // RunEnvironment.getEnum(Short.parseShort(match.group(2)));

@@ -56,14 +56,14 @@ public class TestDataXCfgGenerator extends TestCase {
         RecordTransformerRules.transformerRulesLoader4Test = (tab) -> {
             RecordTransformerRules tRules = new RecordTransformerRules();
             RecordTransformer transformer = new RecordTransformer();
-            TestCopyValUDF cpUDF = new TestCopyValUDF();
-            cpUDF.from = "base_id";
-            TargetColType targetColType = new TargetColType();
-            VirtualTargetColumn targetColumn = new VirtualTargetColumn();
+            TestCopyValUDF cpUDF =  TestCopyValUDF.create();
+//            cpUDF.from = "base_id";
+//            TargetColType targetColType = new TargetColType();
+//            VirtualTargetColumn targetColumn = new VirtualTargetColumn();
             final String baseId = "new_base_id";
-            targetColumn.name = baseId;
-            targetColType.setTarget(targetColumn);
-            cpUDF.to = targetColType;
+//            targetColumn.name = baseId;
+//            targetColType.setTarget(targetColumn);
+//            cpUDF.to = targetColType;
             transformer.setUdf(cpUDF);
             tRules.rules.add(transformer);
 

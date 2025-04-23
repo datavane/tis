@@ -26,6 +26,7 @@ import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.SuFormProperties.SuFormGetterContext;
+import com.qlangtech.tis.extension.model.UpdateSite.Data;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler.BizLogic;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
@@ -56,12 +57,21 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostC
         return pluginContextThreadLocal.get();
     }
 
-    public static IPluginContext namedContext(String collectionName) {
+
+    public static IPluginContext namedContext(DataXName collectionName) {
         return namedContext(collectionName, Optional.empty());
     }
 
+    public static IPluginContext namedContext(String collectionName) {
+        return namedContext(DataXName.createDataXPipeline(collectionName), Optional.empty());
+    }
+
     public static IPluginContext namedContext(String collectionName, Optional<String> execId) {
-        if (StringUtils.isEmpty(collectionName)) {
+        return namedContext(collectionName, execId);
+    }
+
+    public static IPluginContext namedContext(DataXName collectionName, Optional<String> execId) {
+        if ((collectionName) == null) {
             throw new IllegalArgumentException("param collectionName can not be empty");
         }
         return new IPluginContext() {
@@ -113,7 +123,7 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostC
 
             @Override
             public DataXName getCollectionName() {
-                return new DataXName(collectionName, StoreResourceType.DataApp);
+                return collectionName;
             }
 
             @Override
