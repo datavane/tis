@@ -420,7 +420,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
             if (!createDDLFiles.contains(sqlFileName)) {
 
                 Optional<RecordTransformerRules> transformers
-                        = (RecordTransformerRules.loadTransformerRules(pluginCtx, dataxProcessor.getResType(), dataxProcessor.identityValue(), mapper.getFrom()));
+                        = (RecordTransformerRules.loadTransformerRules(pluginCtx, dataxProcessor, mapper.getFrom()));
 
 
                 CreateTableSqlBuilder.CreateDDL createDDL = Objects.requireNonNull(writer.generateCreateDDL(colMetaGetter, mapper, transformers),
@@ -645,8 +645,8 @@ public class DataXCfgGenerator implements IDataXNameAware {
             , IDataxWriter writer, IDataxReader reader, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
         Optional<RecordTransformerRules> transformerRules
                 = RecordTransformerRules.loadTransformerRules(this.pluginCtx
-                , Objects.requireNonNull(dataxProcessor, "dataxProcessor can not be null").getResType()
-                , dataxProcessor.identityValue(), readerContext.getSourceTableName());
+                , Objects.requireNonNull(dataxProcessor, "dataxProcessor can not be null")
+                , readerContext.getSourceTableName());
         return generateDataxConfig(readerContext, writer, reader, transformerRules, tableMapper);
     }
 

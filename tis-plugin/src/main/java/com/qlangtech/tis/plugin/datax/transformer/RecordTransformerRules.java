@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.DataXName;
-import com.qlangtech.tis.datax.IDataFlowDataXProcess;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -31,22 +30,20 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
-import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.ContextParamConfig;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.RunningContext;
-import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.TransformerRuleKey;
-import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -74,6 +71,9 @@ import java.util.stream.Stream;
  **/
 public class RecordTransformerRules implements Describable<RecordTransformerRules> {
 
+    @FormField(ordinal = 1, type = FormFieldType.MULTI_SELECTABLE, validate = {})
+    public List<RecordTransformer> rules = Lists.newArrayList();
+
     public static void main(String[] args) {
         Map<String, Integer> test = new HashMap<>();
         test.put("test1", 1);
@@ -89,6 +89,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 
         System.out.println(String.join(",", test.keySet()));
     }
+
 
     /**
      * 目前单元测试中使用
@@ -147,23 +148,25 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 
     public static Function<String, RecordTransformerRules> transformerRulesLoader4Test;
 
-    public ITransformerBuildInfo createTransformerBuildInfo(IPluginContext pluginContext) {
+    public ITransformerBuildInfo createTransformerBuildInfo(IPluginContext pluginContext, ISelectedTab tab) {
         DataXName dataX = pluginContext.getCollectionName();
-        DataxReader dataxReader = Objects.requireNonNull(DataxReader.load(pluginContext, dataX.getPipelineName())
-                , "dataX:" + pluginContext.getCollectionName() + " relevant DataXReader can not be null");
+        IDataxProcessor dataxProcessor = DataxProcessor.load(pluginContext, dataX);
+        IDataxReader dataxReader = dataxProcessor.getReader(pluginContext, tab);
+//        DataxReader dataxReader = Objects.requireNonNull(DataxReader.load(pluginContext, dataX.getPipelineName())
+//                , "dataX:" + pluginContext.getCollectionName() + " relevant DataXReader can not be null");
         return createTransformerBuildInfo(dataxReader);
     }
 
-    public static Map<String /*tableName*/, Map<String /*contextParamName*/, Function<RunningContext, Object>>>
-    contextParamValsGetterMapper(
-            IDataxProcessor processor, IPluginContext pluginContext, IDataxReader dataxReader, List<ISelectedTab> tabs) {
-        return contextParamValsGetterMapper(processor.getResType(), processor.identityValue(), pluginContext, dataxReader, tabs);
-    }
+//    public static Map<String /*tableName*/, Map<String /*contextParamName*/, Function<RunningContext, Object>>>
+//    contextParamValsGetterMapper(
+//            IDataxProcessor processor, IPluginContext pluginContext, IDataxReader dataxReader, List<ISelectedTab> tabs) {
+//        return contextParamValsGetterMapper(processor.getResType(), processor.identityValue(), pluginContext, dataxReader, tabs);
+//    }
 
-    public static Map<String /*tableName*/, Map<String /*contextParamName*/, Function<RunningContext, Object>>> contextParamValsGetterMapper(
-            DataXName appName, IPluginContext pluginContext, IDataxReader dataxReader, List<ISelectedTab> tabs) {
-        return contextParamValsGetterMapper(appName.getType(), appName.getPipelineName(), pluginContext, dataxReader, tabs);
-    }
+//    public static Map<String /*tableName*/, Map<String /*contextParamName*/, Function<RunningContext, Object>>> contextParamValsGetterMapper(
+//            DataXName appName, IPluginContext pluginContext, IDataxReader dataxReader, List<ISelectedTab> tabs) {
+//        return contextParamValsGetterMapper(appName.getType(), appName.getPipelineName(), pluginContext, dataxReader, tabs);
+//    }
 
     /**
      * @param pluginContext
@@ -172,11 +175,11 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
      * @return Map<String, Map < String, Function < RunningContext, Object>>>
      */
     public static Map<String /*tableName*/, Map<String /*contextParamName*/, Function<RunningContext, Object>>> contextParamValsGetterMapper(
-            StoreResourceType resType, String appName, IPluginContext pluginContext, IDataxReader dataxReader, List<ISelectedTab> tabs) {
+            IDataxProcessor processor, IPluginContext pluginContext, IDataxReader dataxReader, List<ISelectedTab> tabs) {
         Map<String, Map<String, Function<RunningContext, Object>>> contextParamValsGetterMapper = Maps.newHashMap();
         Optional<RecordTransformerRules> transformerRules = null;
         for (ISelectedTab tab : tabs) {
-            transformerRules = RecordTransformerRules.loadTransformerRules(pluginContext, resType, appName, tab.getName());
+            transformerRules = RecordTransformerRules.loadTransformerRules(pluginContext, processor, tab.getName());
             if (transformerRules.isPresent()) {
                 ITransformerBuildInfo transformerBuildInfo
                         = transformerRules.get().createTransformerBuildInfo(Objects.requireNonNull(dataxReader, "dataxReader can not be null"));
@@ -191,7 +194,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
     }
 
 
-    private ITransformerBuildInfo createTransformerBuildInfo(IDataxReader dataxReader) {
+    public ITransformerBuildInfo createTransformerBuildInfo(IDataxReader dataxReader) {
         if (dataxReader == null) {
             throw new IllegalArgumentException("param dataXReader can not be null");
         }
@@ -254,10 +257,10 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
         };
     }
 
-    public static Optional<RecordTransformerRules> loadTransformerRules(
-            IPluginContext pluginCtx, IDataxProcessor processor, String tableName) {
-        return loadTransformerRules(pluginCtx, processor.getResType(), processor.identityValue(), tableName);
-    }
+//    public static Optional<RecordTransformerRules> loadTransformerRules(
+//            IPluginContext pluginCtx, IDataxProcessor processor, String tableName) {
+//        return loadTransformerRules(pluginCtx, processor.getResType(), processor.identityValue(), tableName);
+//    }
 
     /**
      * 加载基于数据通道的表转换（Transformer）规则
@@ -267,7 +270,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
      * @return
      */
     public static Optional<RecordTransformerRules> loadTransformerRules(
-            IPluginContext pluginCtx, StoreResourceType resourceType, String appname, String tableName) {
+            IPluginContext pluginCtx, IDataxProcessor dataxProcessor, String tableName) {
 
         if (StringUtils.isEmpty(tableName)) {
             throw new IllegalArgumentException("param tableName can not be empty");
@@ -278,40 +281,24 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
         }
 
         for (RecordTransformerRules trule
-                : getPluginsAndStore(pluginCtx, resourceType, appname, tableName).getLeft()) {
+                : dataxProcessor.getRecordTransformerRulesAndPluginStore(pluginCtx, tableName).getLeft()) {
             return CollectionUtils.isEmpty(trule.rules) ? Optional.empty() : Optional.of(trule);
         }
 
         return Optional.empty();
     }
 
-    private static Pair<List<RecordTransformerRules>, IPluginStore> getPluginsAndStore(
-            IPluginContext pluginCtx, StoreResourceType resourceType, String appname, String tableName) {
+//    private static Pair<List<RecordTransformerRules>, IPluginStore> getPluginsAndStore(
+//            IPluginContext pluginCtx, IDataxProcessor dataxProcessor, String tableName) {
+//
+//        if (StringUtils.isEmpty(tableName)) {
+//            throw new IllegalArgumentException("param tableName:" + tableName + " can not be empty");
+//        }
+//        // IDataxProcessor dataxProcessor = DataxProcessor.load(pluginCtx, resourceType, appname);
+//        return dataxProcessor.getRecordTransformerRulesAndPluginStore(pluginCtx, tableName);
+//
+//    }
 
-        if (StringUtils.isEmpty(tableName)) {
-            throw new IllegalArgumentException("param tableName:" + tableName + " can not be empty");
-        }
-
-        if (resourceType == StoreResourceType.DataFlow) {
-            IDataxProcessor dataxProcessor = DataxProcessor.load(pluginCtx, resourceType, appname);
-            IDataFlowDataXProcess dataFlowDataXProcess = (IDataFlowDataXProcess) dataxProcessor;
-            appname = dataFlowDataXProcess.getDBNameByTable(tableName);
-            resourceType = StoreResourceType.DataBase;
-        }
-
-        try {
-            String rawContent = HeteroEnum.TRANSFORMER_RULES.identity + ":require,"
-                    + SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID + "_" + tableName
-                    + "," + StoreResourceType.KEY_PROCESS_MODEL + "_" + resourceType.getType()
-                    + "," + StoreResourceType.getPipeParma(resourceType, appname);
-            return HeteroEnum.TRANSFORMER_RULES.getPluginsAndStore(pluginCtx, UploadPluginMeta.parse(rawContent));
-        } catch (Throwable e) {
-            throw new RuntimeException("tableName:" + tableName, e);
-        }
-    }
-
-    @FormField(ordinal = 1, type = FormFieldType.MULTI_SELECTABLE, validate = {})
-    public List<RecordTransformer> rules = Lists.newArrayList();
 
     /**
      * udf集合相关出参的列

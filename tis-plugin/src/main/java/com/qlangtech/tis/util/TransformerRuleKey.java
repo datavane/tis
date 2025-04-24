@@ -46,7 +46,9 @@ public class TransformerRuleKey extends KeyedPluginStore.AppKey {
      */
     public TransformerRuleKey(IPluginContext pluginContext, StoreResourceType resourceType, String appname, String tableName, Class pluginClass) {
         // IFullBuildContext.NAME_APP_DIR
-        super(AppKey.calAppName(pluginContext, appname, Optional.of("transformer")), resourceType, new PluginClassCategory(pluginClass));
+        super(AppKey.calAppName(pluginContext, appname, Optional.of("transformer"), resourceType == StoreResourceType.DataApp)
+                , resourceType
+                , new PluginClassCategory(pluginClass));
         this.tableName = tableName;
     }
 

@@ -83,7 +83,6 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     }
 
 
-
     @Override
     public void afterSaved(IPluginContext pluginContext, Optional<Context> context) {
         this._tableMaps = null;
@@ -113,6 +112,9 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 
 
     public static IDataxProcessor load(IPluginContext pluginContext, StoreResourceType resType, String dataXName) {
+        if (resType == StoreResourceType.DataBase) {
+            throw new IllegalArgumentException("resType is not support:" + StoreResourceType.DataBase);
+        }
         if (processorGetter != null) {
             return processorGetter.get(dataXName);
         }

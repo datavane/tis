@@ -24,6 +24,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.ESTableAlias;
 import com.qlangtech.tis.extension.Describable;
@@ -108,11 +109,12 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, boolean includeContextParams) {
         IPluginContext context = (IPluginContext) pluginCtx;
         DataXName dataX = context.getCollectionName();
+
         Optional<RecordTransformerRules> transformerRules
-                = RecordTransformerRules.loadTransformerRules(context, dataX.getType(), dataX.getPipelineName(), this.getName());
+                = RecordTransformerRules.loadTransformerRules(context, DataxProcessor.load(context, dataX), this.getName());
         List<IColMetaGetter> cols = null;
         if (transformerRules.isPresent()) {
-            ITransformerBuildInfo transformerBuilder = transformerRules.get().createTransformerBuildInfo((IPluginContext) pluginCtx);
+            ITransformerBuildInfo transformerBuilder = transformerRules.get().createTransformerBuildInfo((IPluginContext) pluginCtx, this);
 
             List<OutputParameter> overwriteColsWithContextParams
                     = transformerBuilder.overwriteColsWithContextParams(this.getCols());

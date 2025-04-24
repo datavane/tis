@@ -367,6 +367,17 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         public static KeyVal calAppName(IPluginContext pluginContext, String appname, Optional<String> subPath) {
+            return calAppName(pluginContext, appname, subPath, true);
+        }
+
+        /**
+         * @param pluginContext
+         * @param appname
+         * @param subPath
+         * @param updateAware   是否要关注update处理？
+         * @return
+         */
+        public static KeyVal calAppName(IPluginContext pluginContext, String appname, Optional<String> subPath, boolean updateAware) {
             if (pluginContext == null) {
                 return new KeyVal(appname);
             }
@@ -376,7 +387,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             if (inUpdateProcess && !pluginContext.isCollectionAware()) {
                 throw new IllegalStateException("pluginContext.isCollectionAware() must be true");
             }
-            return (pluginContext != null && inUpdateProcess) ? new KeyVal(appname, pluginContext.getExecId(), subPath) :
+            return (updateAware && pluginContext != null && inUpdateProcess) ? new KeyVal(appname, pluginContext.getExecId(), subPath) :
                     new KeyVal(appname, subPath);
         }
 

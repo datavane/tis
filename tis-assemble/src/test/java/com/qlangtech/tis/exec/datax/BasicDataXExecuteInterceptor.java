@@ -24,6 +24,7 @@ import com.qlangtech.tis.datax.DataXCfgFile;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataxGlobalCfg;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.datax.DBDataXChildTask;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
@@ -34,12 +35,15 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableInDB;
 import com.qlangtech.tis.test.TISTestCase;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.easymock.EasyMock;
 
 import java.io.File;
@@ -152,6 +156,16 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
         @Override
         public Set<TransformerInfo> getTransformerInfo(
                 IPluginContext pluginCtx, Map<String, List<DBDataXChildTask>> groupedChildTask) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Pair<List<RecordTransformerRules>, IPluginStore> getRecordTransformerRulesAndPluginStore(IPluginContext pluginCtx, String tableName) {
+           throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public IDataxReader getReader(IPluginContext pluginContext, ISelectedTab tab) {
             throw new UnsupportedOperationException();
         }
 
