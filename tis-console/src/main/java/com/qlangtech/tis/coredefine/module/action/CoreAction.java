@@ -1105,12 +1105,16 @@ public class CoreAction extends BasicModule {
     WorkFlow workFlow = new WorkFlow();
     WorkFlowBuildHistoryCriteria query = new WorkFlowBuildHistoryCriteria();
     WorkFlowBuildHistoryCriteria.Criteria criteria = query.createCriteria();
-    if (isCollectionAware()) {
-      criteria.andAppIdEqualTo(this.getAppDomain().getAppid());
-    } else {
-      if (wfid < 0) {
-        throw new IllegalArgumentException("param wfid can not small than 0");
-      }
+//    if (isCollectionAware()) {
+//
+//    } else {
+//      if (wfid < 0) {
+//        throw new IllegalArgumentException("param wfid can not small than 0");
+//      }
+//    }
+
+    if (wfid > 0) {
+      // 使用workflow 纬度过滤
       criteria.andWorkFlowIdEqualTo(wfid);
       workFlow = new WorkFlow();
       if (getwf) {
@@ -1119,13 +1123,21 @@ public class CoreAction extends BasicModule {
           throw new IllegalStateException("can not find workflow in db ,wfid:" + wfid);
         }
       }
+    } else {
+      // 使用app pipeline 纬度过滤
+      criteria.andAppIdEqualTo(this.getAppDomain().getAppid());
     }
+
+
     query.setOrderByClause("id desc");
 
     IWorkFlowBuildHistoryDAO historyDAO = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();
     Pager pager = this.createPager();
     pager.setTotalCount(historyDAO.countByExample(query));
 
+//    if ((wfid > 0) && StringUtils.isEmpty(workFlow.getName())) {
+//      throw new IllegalStateException("workflow name can not be empty");
+//    }
 
     this.setBizResult(context
       , new PaginationResult(pager, adapterBuildHistory(
