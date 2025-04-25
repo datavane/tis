@@ -18,6 +18,7 @@
 package com.qlangtech.tis.plugin.ds;
 
 import com.alibaba.datax.common.util.ISelectedTabMeta;
+import com.alibaba.datax.core.job.ISourceTable;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-18 10:16
  */
-public interface ISelectedTab extends ISelectedTabMeta {
+public interface ISelectedTab extends ISelectedTabMeta, ISourceTable {
 
     default EntityName getEntityName() {
         return EntityName.parse(this.getName());
@@ -40,6 +41,11 @@ public interface ISelectedTab extends ISelectedTabMeta {
 
     default String getName() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default String getSourceTableName() {
+        return this.getName();
     }
 
     default String getWhere() {

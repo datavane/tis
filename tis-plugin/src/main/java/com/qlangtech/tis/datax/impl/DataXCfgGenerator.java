@@ -138,16 +138,16 @@ public class DataXCfgGenerator implements IDataXNameAware {
             throw new IllegalStateException("writerTpl of '" + writer.getDataxMeta().getName() + "' can not be null");
         }
 
-
+        readerTpl.append(",\n\t\"")
+                .append(TransformerConstant.JOB_TRANSFORMER).append("\":\t\t\n {\"").append(TransformerConstant.JOB_TRANSFORMER_NAME)
+                //.append("\":\"").append(readerContext.getSourceEntityName()).append("\",\n\"") getSourceEntityName() 方法返回的有转义符
+                .append("\":\"").append(readerContext.getSourceTableName()).append("\",\n\"") // getSourceTableName() 方法返回的没有转义符
+                .append(TransformerConstant.JOB_TRANSFORMER_RELEVANT_KEYS).append("\":").append("[");
         if (transformerRules.isPresent()) {
-            readerTpl.append(",\n\t\"")
-                    .append(TransformerConstant.JOB_TRANSFORMER).append("\":\t\t\n {\"").append(TransformerConstant.JOB_TRANSFORMER_NAME)
-                    //.append("\":\"").append(readerContext.getSourceEntityName()).append("\",\n\"") getSourceEntityName() 方法返回的有转义符
-                    .append("\":\"").append(readerContext.getSourceTableName()).append("\",\n\"") // getSourceTableName() 方法返回的没有转义符
-                    .append(TransformerConstant.JOB_TRANSFORMER_RELEVANT_KEYS).append("\":").append("[")
-                    .append(transformerRules.get().relevantColKeys().stream().map((col) -> "\"" + col + "\"").collect(Collectors.joining(",")))
-                    .append("]").append("}");
+            readerTpl.append(transformerRules.get().relevantColKeys().stream().map((col) -> "\"" + col + "\"").collect(Collectors.joining(",")));
         }
+        readerTpl.append("]").append("}");
+
 
         String template = StringUtils.replace(tpl, "<!--reader-->", readerTpl.toString());
         template = StringUtils.replace(template, "<!--writer-->", writerTpl);
@@ -416,7 +416,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
             }
             // 创建ddl
             IDataxProcessor.TableMap mapper = tableMapper.get();
-            String sqlFileName = mapper.getTo() + DataXCfgFile.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
+            String sqlFileName = mapper.getFrom() + DataXCfgFile.DATAX_CREATE_DDL_FILE_NAME_SUFFIX;
             if (!createDDLFiles.contains(sqlFileName)) {
 
                 Optional<RecordTransformerRules> transformers

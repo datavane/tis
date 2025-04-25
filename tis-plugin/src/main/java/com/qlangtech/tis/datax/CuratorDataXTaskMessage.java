@@ -161,14 +161,9 @@ public class CuratorDataXTaskMessage implements IDataXTaskRelevant {
         this.jobId = jobId;
     }
 
-//    public void setJobPath(String jobPath) {
-//        this.jobPath = jobPath;
-//    }
-
     public void setJobName(String jobName) {
         this.jobName = jobName;
     }
-
 
     @Override
     public String toString() {

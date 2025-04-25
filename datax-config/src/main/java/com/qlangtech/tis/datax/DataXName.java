@@ -72,7 +72,7 @@ public class DataXName {
 
     @Override
     public String toString() {
-        return "'" + pipelineName + '\'' +
-                ", type=" + type;
+        // 为了兼容之前老的使用，这里的名称就只用this.pipelineName
+        return this.pipelineName;
     }
 }

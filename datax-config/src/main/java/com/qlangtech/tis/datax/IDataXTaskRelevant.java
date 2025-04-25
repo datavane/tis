@@ -35,6 +35,8 @@ public interface IDataXTaskRelevant extends ISpecifiedLocalLogger {
 
     public String getDataXName();
 
+
+
     public long getExecEpochMilli();
 
     default <T> boolean containAttr(Class<T> key) {

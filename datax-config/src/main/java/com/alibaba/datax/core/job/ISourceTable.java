@@ -16,30 +16,12 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.plugin.ds;
-
-import com.alibaba.datax.core.job.ISourceTable;
-import com.qlangtech.tis.plugin.datax.common.AutoCreateTable;
-
-import java.util.List;
+package com.alibaba.datax.core.job;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
- * @create: 2022-09-19 11:51
+ * @create: 2025-04-25 14:09
  **/
-public interface IInitWriterTableExecutor {
-
-    /**
-     * 取得自动建表逻辑
-     *
-     * @return
-     */
-    AutoCreateTable getAutoCreateTableCanNotBeNull();
-
-    /**
-     * @param sourceTable 目标库表名
-     * @param jdbcUrls
-     * @throws Exception
-     */
-    public void initWriterTable(ISourceTable sourceTable, String sinkTargetTabName, List<String> jdbcUrls) throws Exception;
+public interface ISourceTable {
+    String getSourceTableName();
 }

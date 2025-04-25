@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.datax.impl;
 
+import com.alibaba.datax.core.job.IJobContainerContext;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -84,10 +85,13 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
     /**
      * 初始化表RDBMS的表，如果表不存在就创建表
      *
-     * @param
+     * @param containerContext
+     * @param sinkTableName    没有经过rename的表名
+     * @param jdbcUrls
      * @throws Exception
      */
-    public static void process(DataXName dataXName, String sinkTableName, List<String> jdbcUrls) throws Exception {
+    public static void process(IJobContainerContext containerContext, String sinkTableName, List<String> jdbcUrls) throws Exception {
+        DataXName dataXName = containerContext.getTISDataXName();
         if ((dataXName) == null) {
             throw new IllegalArgumentException("param dataXName can not be null");
         }
@@ -103,7 +107,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
                 = (IInitWriterTableExecutor) writer;
 
         Objects.requireNonNull(dataXWriter, "dataXWriter can not be null,dataXName:" + dataXName);
-        dataXWriter.initWriterTable(sinkTableName, jdbcUrls);
+        dataXWriter.initWriterTable(containerContext, sinkTableName, jdbcUrls);
     }
 
     public static KeyedPluginStore<DataxWriter> getPluginStore(IPluginContext context, String appname) {
