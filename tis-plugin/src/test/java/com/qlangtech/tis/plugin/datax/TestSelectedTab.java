@@ -23,6 +23,7 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IGroupChildTaskIterator;
 import com.qlangtech.tis.datax.IStreamTableMeta;
+import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.ds.*;
@@ -106,7 +107,7 @@ public class TestSelectedTab extends TestCase {
         }
 
         @Override
-        public IStreamTableMeta getStreamTableMeta(String tableName) {
+        public IStreamTableMeta getStreamTableMeta(TableAlias tableAlias) {
             throw new UnsupportedOperationException();
         }
 

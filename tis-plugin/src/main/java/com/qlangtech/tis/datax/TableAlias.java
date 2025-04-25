@@ -38,6 +38,19 @@ public class TableAlias implements Describable<TableAlias> {
     private String from;
     private String to;
 
+    public static TableAlias create(String from, String to) {
+        if (StringUtils.isEmpty(from)) {
+            throw new IllegalArgumentException("param from can not be empty");
+        }
+        if (StringUtils.isEmpty(to)) {
+            throw new IllegalArgumentException("param to can not be empty");
+        }
+        TableAlias tableAlias = new TableAlias();
+        tableAlias.setFrom(from);
+        tableAlias.setTo(to);
+        return tableAlias;
+    }
+
     // 不需要改写表名（例如加前缀‘ods_’）这样的操作，分析流中join中间表是不需要重命名的
     private boolean shallNotRewriteTargetTableName;
 

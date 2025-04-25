@@ -26,6 +26,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IStreamTableMeta;
+import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.PluginFormProperties;
@@ -118,8 +119,8 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
     private transient LoadingCache<String, IStreamTableMeta> tabMetaCache;
 
     @Override
-    public final IStreamTableMeta getStreamTableMeta(String tableName) {
-
+    public final IStreamTableMeta getStreamTableMeta(TableAlias tableAlias) {
+        final String tableName = tableAlias.getFrom();
         if (this.tabMetaCache == null) {
             tabMetaCache = CacheBuilder.newBuilder().expireAfterWrite(40, TimeUnit.SECONDS).build(new CacheLoader<String, IStreamTableMeta>() {
                 @Override

@@ -113,7 +113,7 @@ public class AdapterDataxReader implements IDataxReader {
     }
 
     @Override
-    public IStreamTableMeta getStreamTableMeta(String tableName) {
-        return reader.getStreamTableMeta(tableName);
+    public IStreamTableMeta getStreamTableMeta(TableAlias tableAlias) {
+        return reader.getStreamTableMeta(tableAlias);
     }
 }
