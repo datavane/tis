@@ -413,9 +413,13 @@ public class OfflineManager {
   /**
    * description: 获取所有的数据源 date: 7:43 PM 5/19/2017
    */
-  public Collection<OfflineDatasourceAction.DatasourceDb> getDatasourceInfo() throws Exception {
+  public Collection<OfflineDatasourceAction.DatasourceDb> getDatasourceInfo(Optional<String> dsNameLike) throws Exception {
     DatasourceDbCriteria criteria = new DatasourceDbCriteria();
-    criteria.createCriteria();
+    DatasourceDbCriteria.Criteria query = criteria.createCriteria();
+    dsNameLike.ifPresent((dsName) -> {
+      query.andNameLike("%" + dsName + "%");
+    });
+
     List<DatasourceDb> dbList = workflowDAOFacade.getDatasourceDbDAO().selectByExample(criteria);
     //DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
     //tableCriteria.createCriteria();

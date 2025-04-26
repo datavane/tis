@@ -1091,6 +1091,7 @@ public class OfflineDatasourceAction extends BasicModule {
   public void doGetDatasourceInfo(Context context) throws Exception {
     // 部分DS是 只支持数据写入，例如Hive,所以需要进行过滤
     boolean filterSupportReader = this.getBoolean("filterSupportReader");
+    Optional<String> dsNameLike = Optional.ofNullable(this.getString("datasourceName"));
     // 不为空，则需要过滤特定plugin类型的插件
     List<UploadPluginMeta> pluginMeta = Collections.emptyList();
     String[] pmeta = this.getStringArray(KEY_PLUGIN);
@@ -1113,7 +1114,7 @@ public class OfflineDatasourceAction extends BasicModule {
         }).collect(Collectors.toMap((desc) -> StringUtils.lowerCase(desc.getDisplayName()),
           (desc) -> desc));
 
-    this.setBizResult(context, new ConfigDsMeta(offlineManager.getDatasourceInfo(), descMap) {
+    this.setBizResult(context, new ConfigDsMeta(offlineManager.getDatasourceInfo(dsNameLike), descMap) {
       @Override
       public Collection<DatasourceDb> getDbsSupportDataXReader() {
 
