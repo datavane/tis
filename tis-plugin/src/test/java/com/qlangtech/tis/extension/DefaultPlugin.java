@@ -73,6 +73,11 @@ public class DefaultPlugin implements Describable<DefaultPlugin> {
         }
 
         @Override
+        public String getDisplayName() {
+            return "default Plugin";
+        }
+
+        @Override
         public Integer get() {
             return DFT_NEST_PROP_VAL;
         }

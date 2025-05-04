@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.border.EmptyBorder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -179,21 +180,40 @@ public interface IEndTypeGetter {
             throw new IllegalStateException("illegal endType:" + endType);
         }
 
-        public static List<EndType> getDataEnds() {
-            return Arrays.stream(EndType.values()).filter((end) -> end.category == EndTypeCategory.Data).collect(Collectors.toList());
+        private static Set<EndType> _dataEnds;
+        private static Set<EndType> _assistTypes;
+        private static Set<EndType> _transformerTypes;
+
+        public static Set<EndType> getDataEnds() {
+            if (_dataEnds == null) {
+                _dataEnds = filterTypes2Set(EndTypeCategory.Data);
+            }
+            return _dataEnds;
         }
+
+        private static Set<EndType> filterTypes2Set(EndTypeCategory data) {
+            return Arrays.stream(EndType.values())
+                    .filter((end) -> end.category == data).collect(Collectors.toSet());
+        }
+
 
         /**
          * 取得辅助组件类
          *
          * @return
          */
-        public static List<EndType> getAssistTypes() {
-            return Arrays.stream(EndType.values()).filter((end) -> end.category == EndTypeCategory.Assist).collect(Collectors.toList());
+        public static Set<EndType> getAssistTypes() {
+            if (_assistTypes == null) {
+                _assistTypes = filterTypes2Set(EndTypeCategory.Assist);
+            }
+            return _assistTypes;
         }
 
-        public static List<EndType> getTransformerTypes() {
-            return Arrays.stream(EndType.values()).filter((end) -> end.category == EndTypeCategory.Transformer).collect(Collectors.toList());
+        public static Set<EndType> getTransformerTypes() {
+            if (_transformerTypes == null) {
+                _transformerTypes = filterTypes2Set(EndTypeCategory.Transformer);
+            }
+            return _transformerTypes;
         }
 
         EndType(String val, EndTypeCategory category) {

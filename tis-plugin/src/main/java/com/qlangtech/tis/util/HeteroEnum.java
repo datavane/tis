@@ -518,7 +518,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                             throw new IllegalStateException("getReader must be true");
                         }
 
-                        IPluginContext maskExecIdContext = IPluginContext.namedContext(pluginContext.getCollectionName());
+                        IPluginContext maskExecIdContext = null; //IPluginContext.namedContext(pluginContext.getCollectionName());
                         return DataxReader.getPluginStore(maskExecIdContext, true, saveDbName);
                     }
 

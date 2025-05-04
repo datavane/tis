@@ -1,6 +1,6 @@
 {
   "dbName": {
-    "label": "数据库名",
+    "label": "目标数据库",
     "creator": {
       "routerLink": "/offline/ds",
       "label": "配置",

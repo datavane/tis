@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.extension;
 
+import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
@@ -51,5 +52,11 @@ public class TestDescriptor extends TestCase {
                 , JsonUtil.toString(desc), (m, e, a) -> {
                     assertEquals(m, e, a);
                 });
+    }
+
+    public void testGetDisplayNameAsAnchor() {
+        DefaultPlugin dftPlugin = new DefaultPlugin();
+        Descriptor<DefaultPlugin> descriptor = dftPlugin.getDescriptor();
+        Assert.assertEquals("default-plugin", descriptor.getDisplayNameAsAnchor());
     }
 }

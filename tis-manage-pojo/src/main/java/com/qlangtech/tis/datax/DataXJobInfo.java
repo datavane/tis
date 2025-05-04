@@ -1,7 +1,6 @@
 package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.plugin.ds.DBIdentity;
-import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -34,10 +33,12 @@ import java.util.concurrent.atomic.AtomicReference;
  **/
 public class DataXJobInfo {
 
-    public static final AtomicReference<File> dataXExecutorDir
-            = new AtomicReference<>(TisAppLaunch.isTestMock()
-            ? new File(".")
-            : new File("/opt/tis/" + IDataXTaskRelevant.KEY_TIS_DATAX_EXECUTOR));
+//    public static final AtomicReference<File> dataXExecutorDir
+//            = new AtomicReference<>(TisAppLaunch.isTestMock()
+//            ? new File(".")
+//            : new File("/opt/tis/" + IDataXTaskRelevant.KEY_TIS_DATAX_EXECUTOR));
+
+    public static final AtomicReference<File> dataXExecutorDir = new AtomicReference<>(new File("."));
 
     public static int DATAX_THREAD_PROCESSING_CANCAL_EXITCODE = 943;
     private static final String FILENAME_SPLIT_CHAR = "/";

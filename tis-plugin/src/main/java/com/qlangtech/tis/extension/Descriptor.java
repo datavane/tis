@@ -26,8 +26,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
+import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxReader.BaseDataxReaderDescriptor;
 import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.datax.impl.DataxWriter.BaseDataxWriterDescriptor;
 import com.qlangtech.tis.extension.impl.AdapterPluginFormProperties;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.EnumFieldMode;
@@ -42,6 +46,7 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter.EndType;
+import com.qlangtech.tis.plugin.IEndTypeGetter.EndTypeCategory;
 import com.qlangtech.tis.plugin.IEndTypeGetter.IEndType;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -50,8 +55,11 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.CMeta;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.IMultiElement;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.incr.TISSinkFactory;
+import com.qlangtech.tis.pubhook.common.Nullable;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
@@ -110,7 +118,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     private static final String KEY_VALIDATE_METHOD_PREFIX = "validate";
     private static final Pattern validateMethodPattern = Pattern.compile(KEY_VALIDATE_METHOD_PREFIX + "(.+?)");
-
+    private static final Pattern PATTERN_DISPLAY_NAME = Pattern.compile("(\\s+)(\\w)");
     /**
      * The class being described by this descriptor.
      */
@@ -208,6 +216,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
     }
 
+    private HelpPath _helpPath;
+
     /**
      * Get extract props for client UI initialize
      *
@@ -263,11 +273,43 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         if (this instanceof IDescribableManipulate.IManipulateStorable) {
             props.put("manipulateStorable", ((IDescribableManipulate.IManipulateStorable) this).isManipulateStorable());
         }
-        if (StringUtils.isNotEmpty(this.helpPath())) {
-            props.put("helpPath", this.helpPath());
+        if (_helpPath == null) {
+            String helpPath = this.helpPath();
+            this._helpPath = HelpPath.create(helpPath);
+            if (StringUtils.isEmpty(helpPath)) {
+                if (this instanceof IEndTypeGetter) {
+                    EndType endType = Objects.requireNonNull(((IEndTypeGetter) this).getEndType(), "endType can not be null");
+                    if (endType.category == EndTypeCategory.Assist) {
+                        helpPath = "docs/integrations/assist/" + endType.getVal() + "/#" + this.getDisplayNameAsAnchor();
+                    } else if (endType.category == EndTypeCategory.Data) {
+                        String anchor = null;
+                        if (this instanceof DataSourceFactory.BaseDataSourceFactoryDescriptor
+                                || this instanceof ParamsConfig.BasicParamsConfigDescriptor) {
+                            anchor = "数据源配置";
+                        } else if (this instanceof BaseDataxReaderDescriptor) {
+                            anchor = "批量读";
+                        } else if (this instanceof BaseDataxWriterDescriptor) {
+                            anchor = "批量写";
+                        } else if (this instanceof MQListenerFactory.BaseDescriptor) {
+                            anchor = "实时读";
+                        } else if (this instanceof TISSinkFactory.BaseSinkFunctionDescriptor) {
+                            anchor = "实时写";
+                        }
+                        helpPath = "docs/integrations/data/" + endType.getVal() + "/#" + anchor;
+                    } else if (endType.category == EndTypeCategory.Transformer) {
+                        helpPath = "docs/integrations/transformer/" + endType.getVal() + "/#" + this.getDisplayNameAsAnchor();
+                    }
+                    this._helpPath = new HelpPath(helpPath);
+                }
+            }
+        }
+
+        if (!_helpPath.isNull()) {
+            props.put("helpPath", this._helpPath.getPath());
         }
         return props;
     }
+
 
     private Map<String, Object> appendProps(IEndType endType, Map<String, Object> eprops) {
         eprops.put(EndType.KEY_END_TYPE, endType.getVal());
@@ -1310,6 +1352,16 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     public String getDisplayName() {
         return clazz.getSimpleName();
+    }
+
+    public final String getDisplayNameAsAnchor() {
+        final String displayName = this.getDisplayName();
+
+        Matcher matcher = PATTERN_DISPLAY_NAME.matcher(displayName);
+        if (matcher.find()) {
+            return matcher.replaceAll((mr) -> "-" + StringUtils.lowerCase(mr.group(2)));
+        }
+        return displayName;
     }
 
     public String getId() {
