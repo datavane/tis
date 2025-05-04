@@ -227,10 +227,8 @@ public class UploadPluginMeta implements IUploadPluginMeta {
              */
             final DataXName pipe = pmeta.getDataXName(false);
             AppAndRuntime appAndRuntime = AppAndRuntime.getAppAndRuntime();
-            if ( // StringUtils.isNotEmpty(pipe)
-                    pipe != null
-                            &&
-                            (appAndRuntime == null || (appAndRuntime.getAppName()) != null)) {
+            if (pipe != null &&
+                    (appAndRuntime == null || (appAndRuntime.getAppName()) == null)) {
                 appAndRuntime = new AppAndRuntime();
                 appAndRuntime.setRuntime(RunEnvironment.getSysRuntime());
                 appAndRuntime.setAppName(pipe);
@@ -251,7 +249,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
 //        return HeteroEnum.DATAX_READER.getPlugins(pluginContext, UploadPluginMeta.parse(pluginContext,
 //                this.name + ":" + DataxUtils.DATAX_NAME + "_" + this.getDataXName(),
 //                useCache));
-       // this.getDataXName()
+        // this.getDataXName()
         IPluginStore<DataxReader> store = (IPluginStore<DataxReader>) HeteroEnum.getDataXReaderAndWriterRelevantPluginStore(
                 pluginContext, true, this);
         return Pair.of(store.getPlugins(), store);

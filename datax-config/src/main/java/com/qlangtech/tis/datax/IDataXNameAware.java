@@ -18,8 +18,6 @@ package com.qlangtech.tis.datax;
  * limitations under the License.
  */
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-02-23 10:35

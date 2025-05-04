@@ -169,7 +169,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 
     public static DataXJobWorker getJobWorker(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType) {
 
-        if (!(resName.equalWithName(TargetResName.K8S_DATAX_INSTANCE_NAME.getName()) || K8S_FLINK_CLUSTER_NAME.match(resName))) {
+        if (notMatchK8SDataXAndFlinkCluster(resName)) {
             throw new IllegalStateException("illegal resName:" + resName);
         }
 
@@ -183,8 +183,7 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     }
 
     public static IPluginStore<DataXJobWorker> getJobWorkerStore(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType) {
-        if (!(resName.equalWithName(TargetResName.K8S_DATAX_INSTANCE_NAME.getName())
-                || K8S_FLINK_CLUSTER_NAME.match(resName))) {
+        if (notMatchK8SDataXAndFlinkCluster(resName)) {
             throw new IllegalStateException("illegal resName:" + resName);
         }
         return TIS.getPluginStore(
@@ -195,6 +194,11 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
                         return (getVal() + this.suffix);
                     }
                 }, DataXJobWorker.class));
+    }
+
+    public static boolean notMatchK8SDataXAndFlinkCluster(TargetResName resName) {
+        return !(resName.equalWithName(TargetResName.K8S_DATAX_INSTANCE_NAME.getName())
+                || K8S_FLINK_CLUSTER_NAME.match(resName));
     }
 
     public static void setJobWorker(TargetResName resName, Optional<K8SWorkerCptType> powerjobCptType, DataXJobWorker worker) {

@@ -36,9 +36,11 @@ import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.action.ProcessModel;
+import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.extension.Descriptor;
@@ -266,17 +268,21 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   public DataXName getCollectionName() {
+    String collection = this.getAppDomain().getAppName();
 
-    List<UploadPluginMeta> metas = getPluginMeta(false);
-    for (UploadPluginMeta pm : metas) {
-      // 在url 参数上设置的DataX名称优先级高
-      DataXName dataX = pm.getDataXName(false);
-      if (dataX != null) {
-        return dataX;
+    if (StringUtils.isNotEmpty(collection)
+      && DataXJobWorker.notMatchK8SDataXAndFlinkCluster(new TargetResName(collection))) {
+
+      List<UploadPluginMeta> metas = getPluginMeta(false);
+      for (UploadPluginMeta pm : metas) {
+        // 在url 参数上设置的DataX名称优先级高
+        DataXName dataX = pm.getDataXName(false);
+        if (dataX != null) {
+          return dataX;
+        }
       }
     }
 
-    String collection = this.getAppDomain().getAppName();
     if (StringUtils.isBlank(collection)) {
       throw new IllegalStateException("param collection can not be null");
     }
