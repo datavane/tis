@@ -62,7 +62,7 @@ metadata:
 spec:
   ports:
     - name: mysql-svc
-  #    nodePort: 32005
+      nodePort: 32005
       port: 3306
       protocol: TCP
       targetPort: 3306
