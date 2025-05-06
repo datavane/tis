@@ -37,6 +37,8 @@ public interface IWriteModeSupport {
 
     public static List<Option> supportModes() {
         return Arrays.stream(WriteMode.values())
+                // update 不能幂等，所以忽略
+                .filter((mode) -> mode != WriteMode.Update)
                 .map((mode) -> new Option(mode.name(), mode.token)).collect(Collectors.toList());
     }
 
