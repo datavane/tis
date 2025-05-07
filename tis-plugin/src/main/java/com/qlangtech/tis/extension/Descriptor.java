@@ -280,7 +280,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 if (this instanceof IEndTypeGetter) {
                     EndType endType = Objects.requireNonNull(((IEndTypeGetter) this).getEndType(), "endType can not be null");
                     if (endType.category == EndTypeCategory.Assist) {
-                        helpPath = "docs/integrations/assist/" + endType.getVal() + "/#" + this.getDisplayNameAsAnchor();
+                        helpPath = "docs/integrations/assist/" + endType.name() + "/#" + this.getDisplayNameAsAnchor();
                     } else if (endType.category == EndTypeCategory.Data) {
                         String anchor = null;
                         if (this instanceof DataSourceFactory.BaseDataSourceFactoryDescriptor
@@ -295,9 +295,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         } else if (this instanceof TISSinkFactory.BaseSinkFunctionDescriptor) {
                             anchor = "实时写";
                         }
-                        helpPath = "docs/integrations/data/" + endType.getVal() + "/#" + anchor;
+                        helpPath = "docs/integrations/data/" + endType.name() + "/#" + anchor;
                     } else if (endType.category == EndTypeCategory.Transformer) {
-                        helpPath = "docs/integrations/transformer/" + endType.getVal() + "/#" + this.getDisplayNameAsAnchor();
+                        helpPath = "docs/integrations/transformer/" + endType.name() + "/#" + this.getDisplayNameAsAnchor();
                     }
                     this._helpPath = new HelpPath(helpPath);
                 }
