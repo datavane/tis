@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -31,7 +32,17 @@ import java.util.List;
 public class QueryCriteria {
     private List<OffsetColVal> pagerOffsetCursor;
 
-//    public String createWhereAndOrderByStatment() {
+    private Optional<String> targetPreviewHost = Optional.empty();
+
+    public void setTargetPreviewHost(String targetPreviewHost) {
+        this.targetPreviewHost = Optional.of(targetPreviewHost);
+    }
+
+    public String getTargetPreviewHost() {
+        return targetPreviewHost.orElse("127.0.0.1");
+    }
+
+    //    public String createWhereAndOrderByStatment() {
 //        return Objects.requireNonNull(pagerOffsetPointCols, "pagerOffsetPointCols can not be null")
 //                .createWhereAndOrderByStatment(this.nextPakge);
 //    }

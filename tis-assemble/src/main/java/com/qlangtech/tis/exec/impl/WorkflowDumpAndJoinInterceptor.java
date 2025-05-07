@@ -65,9 +65,9 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
         WorkFlow wf = new WorkFlow();
         wf.setId(null);
         wf.setName(execChainContext.getWorkflowName());
+        ;
 
-
-        IDataxProcessor dataxProc = DataxProcessor.load(null, StoreResourceType.DataFlow, wf.getName());
+        IDataxProcessor dataxProc = execChainContext.getProcessor();// DataxProcessor.load(null, StoreResourceType.DataFlow, wf.getName());
         IDataxWriter writer = dataxProc.getWriter(null, true);
         DataFlowAppSource appRule = new DataFlowAppSource(wf, writer);
         //Map<String, TISReactor.TaskAndMilestone> taskMap = Maps.newHashMap();
