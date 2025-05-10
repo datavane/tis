@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,9 +171,9 @@ public class CenterResource {
      * @param directDownload 取得目标文件的元数据信息，比如最新更新时间
      * @return 是否已经更新本地文件
      */
-    public static boolean copyFromRemote2Local(final URL url, final File local, boolean directDownload) {
+    public static Pair<Boolean, File> copyFromRemote2Local(final URL url, final File local, boolean directDownload) {
         if (notFetchFromCenterRepository()) {
-            return false;
+            return Pair.of(false, local);
         }
         // final File lastModifiedFile = new File(local.getParentFile(), local.getName() + KEY_LAST_MODIFIED_EXTENDION);
         // ShallWriteLocalResult shallWriteLocal = null;
@@ -193,15 +194,15 @@ public class CenterResource {
 //            }
         //}
         // ShallWriteLocalResult[] shallWriteLocalAry = new ShallWriteLocalResult[]{shallWriteLocal};
-        return HttpUtils.get(url, new ConfigFileContext.StreamProcess<Boolean>() {
+        return HttpUtils.get(url, new ConfigFileContext.StreamProcess<Pair<Boolean, File>>() {
 
             @Override
-            public Boolean p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+            public Pair<Boolean, File> p(int status, InputStream stream, Map<String, List<String>> headerFields) {
 
                 FileUtils.deleteQuietly(local);
                 if (isTargetResourceNotExist(headerFields)) {
                     logger.warn("remote resource not exist:" + url);
-                    return false;
+                    return Pair.of(false, local);
                 }
 //                if (shallWriteLocalAry[0] == null) {
 //                    if (!(shallWriteLocalAry[0] = shallWriteLocal(headerFields, url, local, lastModifiedFile)).shall) {
@@ -222,7 +223,8 @@ public class CenterResource {
 //                } catch (IOException e) {
 //                    throw new RuntimeException("can not write:" + lastUpdate + " to lastModifiedFile:" + lastModifiedFile.getAbsolutePath(), e);
 //                }
-                return true;
+              
+                return Pair.of(true, local);
             }
         });
     }

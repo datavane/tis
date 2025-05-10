@@ -528,9 +528,9 @@ public class PluginAndCfgsSnapshot {
                 FileUtils.writeStringToFile(PluginStore.getLastModifyTimeStampFile(cfg),
                         String.valueOf(entry.getValue()), TisUTF8.get());
                 // cfgChanged = true;
-                updateTpisLogger.append(entry.getKey()).append(localTimestamp == null ?
-                        "[" + entry.getValue() + "] " + "local is none" :
-                        " center ver:" + entry.getValue() + " > " + "local ver:" + localTimestamp).append("\n");
+                updateTpisLogger.append(entry.getKey()).append(localTimestamp == null
+                        ? "[" + entry.getValue() + "] " + "local is none"
+                        : " center ver:" + entry.getValue() + " > " + "local ver:" + localTimestamp).append("\n");
             }
         }
 

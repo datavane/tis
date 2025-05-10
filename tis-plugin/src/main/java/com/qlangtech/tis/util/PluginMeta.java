@@ -34,6 +34,7 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
 import java.net.URL;
@@ -319,14 +320,14 @@ public class PluginMeta {
     public boolean copyFromRemote(List<File> pluginFileCollector, boolean ignoreDependencies, boolean directDownload) {
         final URL url = CenterResource.getPathURL(Config.SUB_DIR_LIBS + "/" + Config.KEY_TIS_PLUGIN_ROOT + "/" + this.getPluginPackageName());
         final File local = getPluginPackageFile();
-        boolean updated = CenterResource.copyFromRemote2Local(url, local, directDownload);
-        if (!ignoreDependencies && updated) {
+        Pair<Boolean, File> updated = CenterResource.copyFromRemote2Local(url, local, directDownload);
+        if (!ignoreDependencies && updated.getKey()) {
             for (PluginMeta d : this.getMetaDependencies()) {
                 d.copyFromRemote(pluginFileCollector);
             }
             pluginFileCollector.add(local);
         }
-        return updated;
+        return updated.getKey();
     }
 
 //        public void install() {
