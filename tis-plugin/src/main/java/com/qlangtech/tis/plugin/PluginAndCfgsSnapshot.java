@@ -251,7 +251,8 @@ public class PluginAndCfgsSnapshot {
     public static Manifest createDataBatchJobManifestCfgAttrs(IDataxProcessor processor
             , Map<String, String> extraEnvProps, Optional<Predicate<PluginMeta>> pluginMetasFilter) throws Exception {
 
-        if (processor.getResType() != StoreResourceType.DataApp) {
+        if (processor.getResType() != StoreResourceType.DataApp
+                && processor.getResType() != StoreResourceType.DataFlow) {
             throw new IllegalArgumentException("resType must be " + StoreResourceType.DataApp + " but now is " + processor.getResType());
         }
 

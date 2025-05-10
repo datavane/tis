@@ -23,6 +23,7 @@ import com.qlangtech.tis.datax.impl.TestTableAlias;
 import com.qlangtech.tis.datax.job.TestServerLaunchToken;
 import com.qlangtech.tis.db.parser.TestDBConfigParser;
 import com.qlangtech.tis.db.parser.TestScannerPatterns;
+import com.qlangtech.tis.exec.TestAbstractExecContext;
 import com.qlangtech.tis.extension.TestContainAdvanceFieldPlugin;
 import com.qlangtech.tis.extension.TestDescriptor;
 import com.qlangtech.tis.extension.impl.TestPluginManifest;
@@ -103,6 +104,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestCreateDDL.class);
         suite.addTestSuite(TestSplitableTableInDB.class);
         suite.addTestSuite(TestTransformerRuleKey.class);
+        suite.addTestSuite(TestAbstractExecContext.class);
         return suite;
     }
 }

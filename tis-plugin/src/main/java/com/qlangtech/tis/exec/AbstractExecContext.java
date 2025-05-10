@@ -194,6 +194,7 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
             case DataFlow:
                 WorkflowExecContext wfContext = new WorkflowExecContext(0, triggerTimestamp);
                 wfContext.setWorkflowName(triggerCfg.getDataXName());
+                execChainContext = wfContext;
                 break;
             case DataApp:
                 String appName = instanceParams.getString(JobParams.KEY_COLLECTION);
