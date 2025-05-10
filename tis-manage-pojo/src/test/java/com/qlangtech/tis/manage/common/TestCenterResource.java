@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.easymock.EasyMock;
 
 import java.io.ByteArrayInputStream;
@@ -85,16 +86,16 @@ public class TestCenterResource extends TestCase  {
 
         EasyMock.replay(vals);
 
-        File local = CenterResource.copyFromRemote2Local(
+        Pair<Boolean, File> local = CenterResource.copyFromRemote2Local(
                 KEY_TIS_PLUGIN_CONFIG + "/" + cfgFile, true);
-        assertFalse("local file is not exist", local.exists());
+        assertFalse("local file is not exist", local.getValue().exists());
 
         local = CenterResource.copyFromRemote2Local(
                 KEY_TIS_PLUGIN_CONFIG + "/" + cfgFile, true);
-        assertTrue("local file is exist", local.exists());
+        assertTrue("local file is exist", local.getValue().exists());
         try (InputStream input = TestCenterResource.class.getResourceAsStream(cfgFile)) {
             assertNotNull(input);
-            assertEquals(IOUtils.toString(input, TisUTF8.get()), FileUtils.readFileToString(local, TisUTF8.get()));
+            assertEquals(IOUtils.toString(input, TisUTF8.get()), FileUtils.readFileToString(local.getValue(), TisUTF8.get()));
         }
 
         // timestamp 文件比较

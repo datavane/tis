@@ -320,14 +320,14 @@ public class PluginMeta {
     public boolean copyFromRemote(List<File> pluginFileCollector, boolean ignoreDependencies, boolean directDownload) {
         final URL url = CenterResource.getPathURL(Config.SUB_DIR_LIBS + "/" + Config.KEY_TIS_PLUGIN_ROOT + "/" + this.getPluginPackageName());
         final File local = getPluginPackageFile();
-        Pair<Boolean, File> updated = CenterResource.copyFromRemote2Local(url, local, directDownload);
-        if (!ignoreDependencies && updated.getKey()) {
+       Boolean updated = CenterResource.copyFromRemote2Local(url, local, directDownload);
+        if (!ignoreDependencies && updated) {
             for (PluginMeta d : this.getMetaDependencies()) {
                 d.copyFromRemote(pluginFileCollector);
             }
             pluginFileCollector.add(local);
         }
-        return updated.getKey();
+        return updated;
     }
 
 //        public void install() {

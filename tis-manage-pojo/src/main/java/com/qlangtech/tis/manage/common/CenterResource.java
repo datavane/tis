@@ -80,11 +80,11 @@ public class CenterResource {
      *
      * @param filePath
      */
-    public static File copyFromRemote2Local(String filePath, boolean isConfig) {
+    public static Pair<Boolean, File> copyFromRemote2Local(String filePath, boolean isConfig) {
         URL url = getPathURL((isConfig ? Config.SUB_DIR_CFG_REPO : Config.SUB_DIR_LIBS) + "/" + filePath);
         File local = new File(isConfig ? Config.getMetaCfgDir() : Config.getLibDir(), filePath);
-        copyFromRemote2Local(url, local, false);
-        return local;
+
+        return Pair.of(copyFromRemote2Local(url, local, false), local);
     }
 
     public static List<String> getSubDirs(final String relativePath) {
@@ -101,7 +101,7 @@ public class CenterResource {
         List<String> subFiles = CenterResource.getSubFiles(relativePath, false, true);
         List<File> subs = Lists.newArrayList();
         for (String f : subFiles) {
-            subs.add(CenterResource.copyFromRemote2Local(CenterResource.getPath(relativePath, f), true));
+            subs.add(CenterResource.copyFromRemote2Local(CenterResource.getPath(relativePath, f), true).getValue());
         }
         return subs;
     }
@@ -171,9 +171,9 @@ public class CenterResource {
      * @param directDownload 取得目标文件的元数据信息，比如最新更新时间
      * @return 是否已经更新本地文件
      */
-    public static Pair<Boolean, File> copyFromRemote2Local(final URL url, final File local, boolean directDownload) {
+    public static Boolean copyFromRemote2Local(final URL url, final File local, boolean directDownload) {
         if (notFetchFromCenterRepository()) {
-            return Pair.of(false, local);
+            return false;
         }
         // final File lastModifiedFile = new File(local.getParentFile(), local.getName() + KEY_LAST_MODIFIED_EXTENDION);
         // ShallWriteLocalResult shallWriteLocal = null;
@@ -194,15 +194,15 @@ public class CenterResource {
 //            }
         //}
         // ShallWriteLocalResult[] shallWriteLocalAry = new ShallWriteLocalResult[]{shallWriteLocal};
-        return HttpUtils.get(url, new ConfigFileContext.StreamProcess<Pair<Boolean, File>>() {
+        return HttpUtils.get(url, new ConfigFileContext.StreamProcess<Boolean>() {
 
             @Override
-            public Pair<Boolean, File> p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+            public Boolean p(int status, InputStream stream, Map<String, List<String>> headerFields) {
 
                 FileUtils.deleteQuietly(local);
                 if (isTargetResourceNotExist(headerFields)) {
                     logger.warn("remote resource not exist:" + url);
-                    return Pair.of(false, local);
+                    return false;
                 }
 //                if (shallWriteLocalAry[0] == null) {
 //                    if (!(shallWriteLocalAry[0] = shallWriteLocal(headerFields, url, local, lastModifiedFile)).shall) {
@@ -223,8 +223,8 @@ public class CenterResource {
 //                } catch (IOException e) {
 //                    throw new RuntimeException("can not write:" + lastUpdate + " to lastModifiedFile:" + lastModifiedFile.getAbsolutePath(), e);
 //                }
-              
-                return Pair.of(true, local);
+
+                return true;
             }
         });
     }

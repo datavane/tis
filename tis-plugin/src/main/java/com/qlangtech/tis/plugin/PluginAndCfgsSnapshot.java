@@ -514,7 +514,7 @@ public class PluginAndCfgsSnapshot {
                 "------------------------------\n");
 
         Long localTimestamp;
-        File cfg = null;
+        Pair<Boolean, File> cfg = null;
         //boolean cfgChanged = false;
         // URL globalCfg = null;
         updateTpisLogger.append(">>global cfg compare:\n");
@@ -525,12 +525,13 @@ public class PluginAndCfgsSnapshot {
                 //globalCfg = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO, TIS.KEY_TIS_PLUGIN_CONFIG + "/" +
                 // entry.getKey());
                 cfg = CenterResource.copyFromRemote2Local(StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG + "/" + entry.getKey(), true);
-                FileUtils.writeStringToFile(PluginStore.getLastModifyTimeStampFile(cfg),
+                FileUtils.writeStringToFile(PluginStore.getLastModifyTimeStampFile(cfg.getRight()),
                         String.valueOf(entry.getValue()), TisUTF8.get());
                 // cfgChanged = true;
                 updateTpisLogger.append(entry.getKey()).append(localTimestamp == null
-                        ? "[" + entry.getValue() + "] " + "local is none"
-                        : " center ver:" + entry.getValue() + " > " + "local ver:" + localTimestamp).append("\n");
+                                ? "[" + entry.getValue() + "] " + "local is none"
+                                : " center ver:" + entry.getValue() + " > " + "local ver:" + localTimestamp)
+                        .append(cfg.getKey() ? (" copy to " + cfg.getValue().getAbsolutePath()) : " skip to copy").append("\n");
             }
         }
 
