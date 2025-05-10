@@ -48,7 +48,7 @@ public class TopologyDir {
 
     public File synchronizeRemoteRes(String resName) {
         // CenterResource.copyFromRemote2Local(url, localFile);
-        return CenterResource.copyFromRemote2Local(CenterResource.getPath(relativePath, resName), true);
+        return CenterResource.copyFromRemote2Local(CenterResource.getPath(relativePath, resName), true).getValue();
         // return localFile;
     }
 
