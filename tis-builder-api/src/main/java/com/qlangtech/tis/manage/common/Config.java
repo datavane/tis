@@ -19,6 +19,7 @@ package com.qlangtech.tis.manage.common;
 
 
 import com.qlangtech.tis.config.BasicConfig;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.org.apache.commons.io.FileUtils;
 import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.utils.TisMetaProps;
@@ -52,7 +53,6 @@ public class Config extends BasicConfig {
     public static final String SYSTEM_KEY_LOGBACK_PATH_KEY = "logback.configurationFile";
     public static final String SYSTEM_KEY_LOGBACK_PATH_VALUE = "logback-datax.xml";
     public static final String SYSTEM_KEY__LOGBACK_HUDI = "logback-hudi.xml";
-    public static final String KEY_TIS_PLUGIN_CONFIG = "tis_plugin_config";
     public static final String KEY_TIS_PLUGIN_ROOT = "plugins";
     /**
      * 用于运行时指定logback本地日志Appender 输出文件路径
@@ -228,7 +228,7 @@ public class Config extends BasicConfig {
     }
 
     public static File getPluginCfgDir() {
-        return new File(Config.getMetaCfgDir(), KEY_TIS_PLUGIN_CONFIG);
+        return new File(Config.getMetaCfgDir(), StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG);
     }
 
     public static File getLibDir() {

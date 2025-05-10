@@ -30,6 +30,7 @@ import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.PluginManager;
@@ -260,12 +261,15 @@ public class PluginAndCfgsSnapshot {
                 RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
                     TISLicense.load(false);
                     // 先收集plugmeta，特别是通过dataXWriter的dataSource关联的元数据
-                    IDataxProcessor dataxProcessor = DataxProcessor.load(null, processor.getResType(), processor.identityValue());
+                    IDataxProcessor dataxProcessor = DataxProcessor.load(
+                            null, processor.getResType(), processor.identityValue());
                     dataxProcessor.getReaders(null).forEach((reader) -> {
                         //  reader.getSelectedTabs().forEach((tab) -> tab.getCols());
                         reader.startScanDependency();
 
-                        RecordTransformerRules.contextParamValsGetterMapper(processor, IPluginContext.namedContext(processor.identityValue()), reader, reader.getSelectedTabs());
+                        RecordTransformerRules.contextParamValsGetterMapper(
+                                processor, IPluginContext.namedContext(new DataXName(processor.identityValue(), processor.getResType()))
+                                , reader, reader.getSelectedTabs());
                     });
                     dataxProcessor.getWriter(null).startScanDependency();
                 });
@@ -520,7 +524,7 @@ public class PluginAndCfgsSnapshot {
                 // 更新本地配置文件
                 //globalCfg = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO, TIS.KEY_TIS_PLUGIN_CONFIG + "/" +
                 // entry.getKey());
-                cfg = CenterResource.copyFromRemote2Local(Config.KEY_TIS_PLUGIN_CONFIG + "/" + entry.getKey(), true);
+                cfg = CenterResource.copyFromRemote2Local(StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG + "/" + entry.getKey(), true);
                 FileUtils.writeStringToFile(PluginStore.getLastModifyTimeStampFile(cfg),
                         String.valueOf(entry.getValue()), TisUTF8.get());
                 // cfgChanged = true;
@@ -540,7 +544,7 @@ public class PluginAndCfgsSnapshot {
             KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(null, StoreResourceType.parse(false),
                     this.collection.getName(), (KeyedPluginStore.PluginClassCategory) null);
             URL appCfgUrl = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO,
-                    Config.KEY_TIS_PLUGIN_CONFIG + "/" + appKey.getSubDirPath());
+                    StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG + "/" + appKey.getSubDirPath());
 
             updateTpisLogger.append("app cfg url:" + appCfgUrl + " config file enum:");
             KeyedPluginStore.PluginMetas appMetas = localSnaphsot.appMetas.get();

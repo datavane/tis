@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin;
 
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.extension.ExtensionFinder;
 import com.qlangtech.tis.extension.impl.ClassicPluginStrategy;
 import com.qlangtech.tis.manage.common.Config;
@@ -102,7 +103,7 @@ public class PluginStubUtils {
 
     public static void setTISField() throws Exception {
         Field pluginCfgRootField = TIS.class.getField("pluginCfgRoot");
-        setFinalStatic(pluginCfgRootField, new File(Config.getMetaCfgDir(), Config.KEY_TIS_PLUGIN_CONFIG));
+        setFinalStatic(pluginCfgRootField, new File(Config.getMetaCfgDir(), StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG));
 
         Field pluginDirRootField = TIS.class.getDeclaredField("pluginDirRoot");
         setFinalStatic(pluginDirRootField, new File(Config.getLibDir(), Config.KEY_TIS_PLUGIN_ROOT));

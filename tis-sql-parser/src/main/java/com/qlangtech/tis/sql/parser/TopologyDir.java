@@ -18,9 +18,9 @@
 package com.qlangtech.tis.sql.parser;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -43,7 +43,7 @@ public class TopologyDir {
 
     public TopologyDir(File dir, String topologyName) {
         this.dir = dir;
-        this.relativePath = StoreResourceTypeConstants.NAME_DATAFLOW_DIR + "/" + topologyName;
+        this.relativePath = StoreResourceTypeConstants.getDataFlowRelativeDir() + "/" + topologyName;
     }
 
     public File synchronizeRemoteRes(String resName) {

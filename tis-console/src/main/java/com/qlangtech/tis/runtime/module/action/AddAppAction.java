@@ -27,6 +27,7 @@ import com.qlangtech.tis.coredefine.biz.FCoreRequest;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import com.qlangtech.tis.manage.IAppSource;
@@ -75,7 +76,7 @@ import java.util.regex.Pattern;
 public class AddAppAction extends SchemaAction implements ModelDriven<Application> {
   // tab or df
   public static String SOURCE_TYPE_SINGLE_TABLE = "tab";
-  public static String SOURCE_TYPE_DF = "df";
+  public static String SOURCE_TYPE_DF = StoreResourceTypeConstants.NAME_DATAFLOW_DIR;// "df";
   // 单元测试用，生产环境中不需要使用
   public static AppKey.IAppKeyProcess appKeyProcess = (key) -> {
   };

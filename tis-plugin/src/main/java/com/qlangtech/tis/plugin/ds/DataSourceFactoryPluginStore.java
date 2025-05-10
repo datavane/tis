@@ -18,21 +18,16 @@
 package com.qlangtech.tis.plugin.ds;
 
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.CenterResource;
-import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.SetPluginsResult;
-import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.util.IPluginContext;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -90,10 +85,10 @@ public class DataSourceFactoryPluginStore extends KeyedPluginStore<DataSourceFac
     public void copyConfigFromRemote() {
         List<String> subFiles
                 = CenterResource.getSubFiles(
-                Config.KEY_TIS_PLUGIN_CONFIG + File.separator + this.key.getSubDirPath(), false, true);
+                StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG + File.separator + this.key.getSubDirPath(), false, true);
         for (String f : subFiles) {
             CenterResource.copyFromRemote2Local(
-                    Config.KEY_TIS_PLUGIN_CONFIG + File.separator + this.key.getSubDirPath() + File.separator + f, true);
+                    StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG + File.separator + this.key.getSubDirPath() + File.separator + f, true);
         }
     }
 

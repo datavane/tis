@@ -29,7 +29,7 @@ public enum StoreResourceType {
 
     DataBase(StoreResourceTypeConstants.DB_GROUP_NAME, false, StringUtils.EMPTY) //
     , DataApp(StoreResourceTypeConstants.NAME_APP_DIR, false, StoreResourceTypeConstants.DEFAULT_DATAX_PROCESSOR_NAME) //
-    , DataFlow(StoreResourceTypeConstants.NAME_DATAFLOW_DIR, true, StoreResourceTypeConstants.DEFAULT_WORKFLOW_PROCESSOR_NAME);
+    , DataFlow(StoreResourceTypeConstants.NAME_DATAFLOW_DIR, false, StoreResourceTypeConstants.DEFAULT_WORKFLOW_PROCESSOR_NAME);
 
     public static final String KEY_STORE_RESOURCE_TYPE = "storeResType";
     public static final String KEY_PROCESS_MODEL = "processModel";

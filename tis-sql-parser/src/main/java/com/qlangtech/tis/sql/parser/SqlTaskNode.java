@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  */
 public class SqlTaskNode {
 
-    public static File parent = new File(Config.getMetaCfgDir(), StoreResourceTypeConstants.NAME_DATAFLOW_DIR);
+    public static File parent = new File(Config.getMetaCfgDir(), StoreResourceTypeConstants.getDataFlowRelativeDir());
 
     // private Map<String, SqlTaskNode> all;
     private Optional<TisGroupBy> groupBy = Optional.empty();

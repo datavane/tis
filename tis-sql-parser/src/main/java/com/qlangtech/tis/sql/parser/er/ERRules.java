@@ -193,8 +193,9 @@ public class ERRules implements IPrimaryTabFinder, IERRules {
 
     private static File getErRuleFile(String topology) {
         final String topologyPath = topology + File.separator + ER_RULES_FILE_NAME;
-        CenterResource.copyFromRemote2Local(StoreResourceTypeConstants.NAME_DATAFLOW_DIR + File.separator + topologyPath, true);
-        return new File(SqlTaskNode.parent, topologyPath);
+        return CenterResource.copyFromRemote2Local(
+                StoreResourceTypeConstants.getDataFlowRelativeDir() + File.separator + topologyPath, true);
+        // return new File(SqlTaskNode.parent, topologyPath);
     }
 
     public static String serialize(ERRules rules) {

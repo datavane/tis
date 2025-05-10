@@ -431,7 +431,7 @@ public class TIS {
 
     public final transient PluginManager pluginManager;
 
-    public static final File pluginCfgRoot = new File(Config.getMetaCfgDir(), Config.KEY_TIS_PLUGIN_CONFIG);
+    public static final File pluginCfgRoot = new File(Config.getMetaCfgDir(), StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG);
 
     public static final File pluginDirRoot;
 
