@@ -60,7 +60,7 @@ public class TestTIS extends TestCase {
         List<String> subFiles = CenterResource.getSubFiles(collectionRelativePath, false, true);
         List<File> subs = Lists.newArrayList();
         for (String f : subFiles) {
-            subs.add(CenterResource.copyFromRemote2Local(CenterResource.getPath(collectionRelativePath, f), true));
+            subs.add(CenterResource.copyFromRemote2Local(CenterResource.getPath(collectionRelativePath, f), true).getValue());
         }
         Set<PluginMeta> pluginMetas = TIS.loadIncrComponentUsedPlugin(collection, subs, true);
 

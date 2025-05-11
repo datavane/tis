@@ -28,6 +28,7 @@ import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.DataXJobSubmit.InstanceType;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISpecifiedLocalLogger;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.exec.impl.DataXPipelineExecContext;
 import com.qlangtech.tis.fs.ITISFileSystem;
@@ -141,19 +142,20 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
 
 
     static JSONObject createInstanceParams( //
-                                            Integer tisTaskId, IdentityName processor, boolean dryRun, Optional<String> pluginCfgsMetas) {
+                                            Integer tisTaskId, IDataxProcessor processor, boolean dryRun, Optional<String> pluginCfgsMetas) {
 
         JSONObject instanceParams = new JSONObject();
         instanceParams.put(JobParams.KEY_TASK_ID, tisTaskId);
         instanceParams.put(JobParams.KEY_COLLECTION, processor.identityValue());
         instanceParams.put(DataxUtils.EXEC_TIMESTAMP, TimeFormat.getCurrentTimeStamp());
+        instanceParams.put(StoreResourceType.KEY_STORE_RESOURCE_TYPE, processor.getResType().getType());
         instanceParams.put(IFullBuildContext.DRY_RUN, dryRun);
 
         instanceParams.put(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS, pluginCfgsMetas.orElseGet(() -> {
             try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 // 将数据通道的依赖插件以及配置信息添加到instanceParams中
                 PluginAndCfgsSnapshotUtils.writeManifest2OutputStream(outputStream
-                        , PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs((IDataxProcessor) processor));
+                        , PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs(processor));
                 final Base64 base64 = new Base64();
                 return base64.encodeAsString(outputStream.toByteArray());
                 // instanceParams.put(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS, base64.encodeAsString(outputStream.toByteArray()));
@@ -225,25 +227,29 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
     class TriggerNewTaskParam {
         private final Long powerJobWorkflowInstanceId;
         private final String appname;
-        private final boolean tisDataflowType;
+        private final StoreResourceType resourceType;
         private final InstanceType instanceTriggerType;
 
         /**
          * @param powerJobWorkflowInstanceId
          * @param appname                    可能是dataX pipeline 名称，也可能是 tis DataFlow名称
-         * @param tisDataflowType            是否是DataXFlow名称
+         * @param resourceType               是否是DataXFlow名称
          */
-        public TriggerNewTaskParam(Long powerJobWorkflowInstanceId, InstanceType instanceTriggerType, String appname, boolean tisDataflowType) {
+        public TriggerNewTaskParam(
+                Long powerJobWorkflowInstanceId
+                , InstanceType instanceTriggerType
+                , String appname
+                , StoreResourceType resourceType) {
             this.powerJobWorkflowInstanceId = Objects.requireNonNull(powerJobWorkflowInstanceId);
             this.instanceTriggerType = Objects.requireNonNull(instanceTriggerType, "param instanceTriggerType can not be null");
             this.appname = Objects.requireNonNull(appname, "appname can not be null");
-            this.tisDataflowType = tisDataflowType;
+            this.resourceType = Objects.requireNonNull(resourceType, "resourceType can not be null");
         }
 
         public List<HttpUtils.PostParam> params() {
             return Lists.newArrayList(
                     new HttpUtils.PostParam(InstanceType.KEY_TYPE, this.instanceTriggerType.literia)
-                    , new HttpUtils.PostParam(DataxUtils.TIS_WORK_FLOW_CHANNEL, tisDataflowType)
+                    , new HttpUtils.PostParam(StoreResourceType.KEY_STORE_RESOURCE_TYPE, resourceType.getType())
                     , new HttpUtils.PostParam(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, powerJobWorkflowInstanceId)
                     , new HttpUtils.PostParam(TriggerBuildResult.KEY_APPNAME, appname)
             );

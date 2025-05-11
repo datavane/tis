@@ -34,10 +34,10 @@ public class DataxUtils {
     public static Consumer<String> localDataXCommandConsumer;
     public static final String POWERJOB_WORKFLOW_INSTANCE_ID = "powerJobWorkflowInstanceId";
 
-    /**
-     * 触发执行是否是 TIS workflow 类型的
-     */
-    public static final String TIS_WORK_FLOW_CHANNEL = "tisWorkflowChannel";
+//    /**
+//     * 触发执行是否是 TIS workflow 类型的
+//     */
+//    public static final String TIS_WORK_FLOW_CHANNEL = "tisWorkflowChannel";
 
     public static final String EXEC_TIMESTAMP = "execTimeStamp";
 

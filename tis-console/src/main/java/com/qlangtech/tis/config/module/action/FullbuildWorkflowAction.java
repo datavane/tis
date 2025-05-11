@@ -53,6 +53,7 @@ import java.util.stream.Collectors;
  */
 public class FullbuildWorkflowAction extends BasicModule {
   private static final Logger logger = LoggerFactory.getLogger(FullbuildWorkflowAction.class);
+  private static final String TIS_WORK_FLOW_CHANNEL = "tisWorkflowChannel";
   /**
    *
    */
@@ -74,7 +75,7 @@ public class FullbuildWorkflowAction extends BasicModule {
     // 校验参数必须有
     this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID);
     Rundata rundata = this.getRundata();
-    if (this.getBoolean(DataxUtils.TIS_WORK_FLOW_CHANNEL)) {
+    if (this.getBoolean(TIS_WORK_FLOW_CHANNEL)) {
       rundata.forwardTo("offline", "offline_datasource_action", "execute_workflow");
     } else {
       rundata.forwardTo("coredefine", "datax_action", "trigger_fullbuild_task");

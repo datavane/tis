@@ -204,26 +204,12 @@ public class CenterResource {
                     logger.warn("remote resource not exist:" + url);
                     return false;
                 }
-//                if (shallWriteLocalAry[0] == null) {
-//                    if (!(shallWriteLocalAry[0] = shallWriteLocal(headerFields, url, local, lastModifiedFile)).shall) {
-//                        return false;
-//                    }
-//                }
-                // Assert.assertTrue("shallWriteLocalAry shall be true", shallWriteLocalAry[0].shall);
 
-                // long lastUpdate = shallWriteLocalAry[0].lastUpdateTimestamp;// getLastUpdateTimeStamp(headerFields, url);
                 try {
-
                     FileUtils.copyInputStreamToFile(stream, local);
                 } catch (IOException e) {
                     throw new RuntimeException("local file:" + local.getAbsolutePath(), e);
                 }
-//                try {
-//                    FileUtils.write(lastModifiedFile, String.valueOf(lastUpdate), TisUTF8.get());
-//                } catch (IOException e) {
-//                    throw new RuntimeException("can not write:" + lastUpdate + " to lastModifiedFile:" + lastModifiedFile.getAbsolutePath(), e);
-//                }
-
                 return true;
             }
         });

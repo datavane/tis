@@ -82,6 +82,11 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
         ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
     }
 
+    /**
+     * @param instanceParams
+     * @return
+     * @see IExecChainContext#createInstanceParams Params set in this method
+     */
     public static PluginAndCfgsSnapshot resolveCfgsSnapshotConsumer(JSONObject instanceParams) {
         String pluginCfgsMetas = instanceParams.getString(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS);
         String appName = instanceParams.getString(JobParams.KEY_COLLECTION);
@@ -90,9 +95,11 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
                     + PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS + " of instanceParams can not be null");
         }
 
+        StoreResourceType resType = StoreResourceType.parse(instanceParams.getString(StoreResourceType.KEY_STORE_RESOURCE_TYPE));
+
         final Base64 base64 = new Base64();
         try (InputStream manifestJar = new ByteArrayInputStream(base64.decode(pluginCfgsMetas))) {
-            return PluginAndCfgsSnapshot.getRepositoryCfgsSnapshot(appName, manifestJar);
+            return PluginAndCfgsSnapshot.getRepositoryCfgsSnapshot(appName, resType, manifestJar);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -72,6 +72,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -100,8 +101,9 @@ public class PluginAndCfgsSnapshot {
         return "task_xxxx";
     }
 
-    public static PluginAndCfgsSnapshot getRepositoryCfgsSnapshot(String resName, InputStream manifestJar) throws IOException {
-        return getRepositoryCfgsSnapshot(resName, manifestJar, true);
+    public static PluginAndCfgsSnapshot getRepositoryCfgsSnapshot(
+            String resName, StoreResourceType resourceType, InputStream manifestJar) throws IOException {
+        return getRepositoryCfgsSnapshot(resName, Objects.requireNonNull(resourceType), manifestJar, true);
     }
 
     /**
@@ -112,8 +114,9 @@ public class PluginAndCfgsSnapshot {
      * @return
      * @throws IOException
      */
-    public static PluginAndCfgsSnapshot getRepositoryCfgsSnapshot(String resName, InputStream manifestJar,
-                                                                  boolean resetConfigWithSysProps) throws IOException {
+    public static PluginAndCfgsSnapshot getRepositoryCfgsSnapshot(
+            String resName, StoreResourceType resourceType, InputStream manifestJar,
+            boolean resetConfigWithSysProps) throws IOException {
 
         PluginAndCfgsSnapshot pluginAndCfgsSnapshot = null;
         String appName = null;
@@ -129,7 +132,7 @@ public class PluginAndCfgsSnapshot {
         // processPluginMetas(pluginMetas);
 
         pluginAndCfgsSnapshot =
-                PluginAndCfgsSnapshot.setLocalPluginAndCfgsSnapshot(PluginAndCfgsSnapshot.deserializePluginAndCfgsSnapshot(new TargetResName(appName), manifest));
+                PluginAndCfgsSnapshot.setLocalPluginAndCfgsSnapshot(PluginAndCfgsSnapshot.deserializePluginAndCfgsSnapshot(new TargetResName(appName), resourceType, manifest));
         Attributes sysProps = manifest.getAttributes(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS);
         if (resetConfigWithSysProps) {
             Config.setConfig(null);
@@ -196,6 +199,7 @@ public class PluginAndCfgsSnapshot {
     }
 
     private final TargetResName collection;
+    private final StoreResourceType resType;
 
     /**
      * key:fileName val:lastModifyTimestamp
@@ -212,7 +216,7 @@ public class PluginAndCfgsSnapshot {
 
     private final Optional<KeyedPluginStore.PluginMetas> appMetas;
 
-    public PluginAndCfgsSnapshot(TargetResName collection, Map<String, Long> globalPluginStoreLastModify,
+    public PluginAndCfgsSnapshot(TargetResName collection, StoreResourceType resType, Map<String, Long> globalPluginStoreLastModify,
                                  IPluginMetasInfo metasInfo, Long appLastModifyTimestamp,
                                  KeyedPluginStore.PluginMetas appMetas) {
         this.globalPluginStoreLastModify = globalPluginStoreLastModify;
@@ -221,6 +225,7 @@ public class PluginAndCfgsSnapshot {
         this.repoRes = metasInfo.getRepoResources();
         this.appLastModifyTimestamp = appLastModifyTimestamp;
         this.collection = collection;
+        this.resType = Objects.requireNonNull(resType, "resType can not be null");
         this.appMetas = Optional.ofNullable(appMetas);
     }
 
@@ -282,7 +287,7 @@ public class PluginAndCfgsSnapshot {
 //        }).getRight();
 
 
-        return createManifestCfgAttrs(resName, System.currentTimeMillis()
+        return createManifestCfgAttrs(resName, processor.getResType(), System.currentTimeMillis()
                 , extraEnvProps, () -> {
 
                     KeyedPluginStore.PluginMetas metas
@@ -297,7 +302,7 @@ public class PluginAndCfgsSnapshot {
                         collectAllPluginMeta(meta, collector);
                     }
 
-                    return new PluginAndCfgsSnapshot(resName, globalPluginStoreLastModify
+                    return new PluginAndCfgsSnapshot(resName, processor.getResType(), globalPluginStoreLastModify
                             , collector //
                             , metas.lastModifyTimestamp, metas);
 
@@ -377,7 +382,7 @@ public class PluginAndCfgsSnapshot {
                            Map<String, String> extraEnvProps,
                            Optional<Predicate<PluginMeta>> pluginMetasFilter, IPluginMetasInfo appendPluginMeta) throws Exception {
 
-        return createManifestCfgAttrs(collection, timestamp, extraEnvProps, () -> {
+        return createManifestCfgAttrs(collection, resourceType, timestamp, extraEnvProps, () -> {
             PluginAndCfgsSnapshot localSnapshot = getLocalPluginAndCfgsSnapshot(resourceType, collection, pluginMetasFilter, appendPluginMeta);
             return localSnapshot;
         });
@@ -423,6 +428,7 @@ public class PluginAndCfgsSnapshot {
 
     public static Pair<PluginAndCfgsSnapshot, Manifest> //
     createManifestCfgAttrs(TargetResName collection,
+                           StoreResourceType resourceType,
                            long timestamp,
                            Map<String, String> extraEnvProps,
                            Supplier<PluginAndCfgsSnapshot> localPluginAndCfgsSnapshotCreator) throws Exception {
@@ -436,6 +442,8 @@ public class PluginAndCfgsSnapshot {
         Map<String, Attributes> entries = manifest.getEntries();
         Attributes attrs = new Attributes();
         attrs.put(new Attributes.Name(collection.getName()), String.valueOf(timestamp));
+        attrs.put(new Attributes.Name(StoreResourceType.KEY_STORE_RESOURCE_TYPE)
+                , Objects.requireNonNull(resourceType, "resourceType can not be null").getType());
         // 传递App名称
         entries.put(TIS_APP_NAME, attrs);
 
@@ -531,7 +539,7 @@ public class PluginAndCfgsSnapshot {
                 updateTpisLogger.append(entry.getKey()).append(localTimestamp == null
                                 ? "[" + entry.getValue() + "] " + "local is none"
                                 : " center ver:" + entry.getValue() + " > " + "local ver:" + localTimestamp)
-                        .append(cfg.getKey() ? (" copy to " + cfg.getValue().getAbsolutePath()) : " skip to copy").append("\n");
+                        .append(cfg.getKey() ? (",copy to " + cfg.getValue().getAbsolutePath()) : " skip to copy").append("\n");
             }
         }
 
@@ -542,7 +550,8 @@ public class PluginAndCfgsSnapshot {
                 .append("local:").append(localSnaphsot.appLastModifyTimestamp).append("\n");
         if (this.appLastModifyTimestamp > localSnaphsot.appLastModifyTimestamp) {
             // 更新app相关配置,下载并更新本地配置
-            KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(null, StoreResourceType.parse(false),
+            KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(
+                    null, this.resType,
                     this.collection.getName(), (KeyedPluginStore.PluginClassCategory) null);
             URL appCfgUrl = CenterResource.getPathURL(Config.SUB_DIR_CFG_REPO,
                     StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG + "/" + appKey.getSubDirPath());
@@ -753,7 +762,7 @@ public class PluginAndCfgsSnapshot {
      * @param manifest
      * @return
      */
-    public static PluginAndCfgsSnapshot deserializePluginAndCfgsSnapshot(TargetResName app, Manifest manifest) {
+    public static PluginAndCfgsSnapshot deserializePluginAndCfgsSnapshot(TargetResName app, StoreResourceType resourceType, Manifest manifest) {
         Map<String, Long> globalPluginStoreLastModify = Maps.newHashMap();
         //  Long appLastModifyTimestamp;
         Attributes pluginMetas = manifest.getAttributes(Config.KEY_PLUGIN_METAS);
@@ -782,7 +791,7 @@ public class PluginAndCfgsSnapshot {
             }
         });
 
-        return new PluginAndCfgsSnapshot(app, globalPluginStoreLastModify, new IPluginMetasInfo() {
+        return new PluginAndCfgsSnapshot(app, resourceType, globalPluginStoreLastModify, new IPluginMetasInfo() {
             @Override
             public Set<PluginMeta> getMetas() {
                 return Sets.newHashSet(metas);
@@ -880,7 +889,7 @@ public class PluginAndCfgsSnapshot {
         gPluginStoreLastModify = ComponentMeta.getGlobalPluginStoreLastModifyTimestamp(dataxComponentMeta);
 
         try {
-            return new PluginAndCfgsSnapshot(collection, gPluginStoreLastModify //
+            return new PluginAndCfgsSnapshot(collection, resourceType, gPluginStoreLastModify //
                     , pluginMetaSet //
                     , pluginMetas.lastModifyTimestamp, pluginMetas);
         } catch (Exception e) {
