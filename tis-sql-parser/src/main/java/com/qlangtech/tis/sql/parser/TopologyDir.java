@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
+import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -44,6 +45,14 @@ public class TopologyDir {
     public TopologyDir(File dir, String topologyName) {
         this.dir = dir;
         this.relativePath = StoreResourceTypeConstants.getDataFlowRelativeDir() + "/" + topologyName;
+    }
+
+    public SqlTaskNodeMeta getSqlTaskNodeMeta(String keyId) {
+        File nodeMetaFile = new File(this.dir, keyId + ".yaml");
+        if (!nodeMetaFile.exists()) {
+            throw new IllegalStateException("file not exit:" + nodeMetaFile.getAbsolutePath());
+        }
+        return SqlTaskNodeMeta.deserializeTaskNode(nodeMetaFile);
     }
 
     public File synchronizeRemoteRes(String resName) {

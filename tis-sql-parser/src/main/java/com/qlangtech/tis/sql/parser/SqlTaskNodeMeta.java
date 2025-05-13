@@ -550,6 +550,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         taskNode.setSql(sqlTskCfg.getSqlScript());
         taskNode.setId(sqlTskCfg.getId());
         taskNode.setExportName(sqlTskCfg.getExportName());
+        //taskNode.setDependencies(sqlTskCfg.getDependencies());
         return taskNode;
     }
 

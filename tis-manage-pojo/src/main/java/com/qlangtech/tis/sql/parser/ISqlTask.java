@@ -33,7 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.text.MessageFormat;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -47,6 +46,13 @@ public interface ISqlTask {
     String KEY_SQL_SCRIPT = "sqlScript";
     String KEY_EXECUTE_TYPE = "executeType";
     String KEY_EXPORT_NAME = "exportName";
+    //String KEY_DEPENDENCIES = "dependencies";
+   // String KEY_DATAFLOW_NAME = "dataflow";
+
+//    public static List<DependencyNode> deserializeDependencyNodes(JSONObject sqlTaskCfg) {
+//        List<DependencyNode> dependencyNodes = JSONArray.parseArray(sqlTaskCfg.getString(KEY_DEPENDENCIES), DependencyNode.class);
+//        return dependencyNodes;
+//    }
 
     public static JSONObject json(ISqlTask sqlTask) {
         JSONObject task = new JSONObject();
@@ -54,6 +60,10 @@ public interface ISqlTask {
         task.put(KEY_SQL_SCRIPT, sqlTask.getSql());
         task.put(KEY_EXECUTE_TYPE, NodeType.JOINER_SQL.getType());
         task.put(KEY_EXPORT_NAME, sqlTask.getExportName());
+//        if (CollectionUtils.isEmpty(sqlTask.getDependencies())) {
+//            throw new IllegalStateException("sqlTask.getDependencies() can not be empty");
+//        }
+        //  task.put(KEY_DEPENDENCIES, JSONArray.toJSONString(sqlTask.getDependencies()));
         return task;
     }
 
@@ -63,6 +73,7 @@ public interface ISqlTask {
         taskCfg.sqlScript = sqlTask.getString(KEY_SQL_SCRIPT);
         taskCfg.executeType = NodeType.parse(sqlTask.getString(KEY_EXECUTE_TYPE));
         taskCfg.exportName = sqlTask.getString(KEY_EXPORT_NAME);
+        // taskCfg.dependencies = deserializeDependencyNodes(sqlTask); // JSONArray.parseArray(sqlTask.getString(KEY_DEPENDENCIES), DependencyNode.class);
         return taskCfg;
     }
 
@@ -71,6 +82,11 @@ public interface ISqlTask {
         private String sqlScript;
         private NodeType executeType;
         private String exportName;
+        // private List<DependencyNode> dependencies;
+
+//        public List<DependencyNode> getDependencies() {
+//            return dependencies;
+//        }
 
         public String getId() {
             return id;

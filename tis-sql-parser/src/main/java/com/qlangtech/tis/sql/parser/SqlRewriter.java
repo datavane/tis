@@ -89,6 +89,17 @@ public class SqlRewriter extends Formatter {
         this(builder, new TabPartitions(tabPartition), dependencies, erRules, parameters, isFinal, joinContext, dumpTableNameRewriter);
     }
 
+    /**
+     *
+     * @param builder
+     * @param tabPartition
+     * @param dependencies
+     * @param erRules
+     * @param parameters
+     * @param isFinal
+     * @param joinContext
+     * @param dumpTableNameRewriter
+     */
     public SqlRewriter(SqlStringBuilder builder, TabPartitions tabPartition, List<DependencyNode> dependencies, Supplier<IPrimaryTabFinder> erRules
             , Optional<List<Expression>> parameters, boolean isFinal, IJoinTaskContext joinContext, IPartionableWarehouse dumpTableNameRewriter) {
         super(builder, erRules, parameters);

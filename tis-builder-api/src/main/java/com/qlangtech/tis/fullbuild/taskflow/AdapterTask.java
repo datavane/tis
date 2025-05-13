@@ -51,6 +51,10 @@ public abstract class AdapterTask extends DataflowTask {
         return createTaskWorkStatus(this.joinExecContext);
     }
 
+    /**
+     * @param chainContext key 为toplog中 中的id（example：0529fe74-291a-7778-ad17-1ee7e934ebdf）
+     * @return
+     */
     public static Map<String, Boolean> createTaskWorkStatus(IJoinTaskContext chainContext) {
         Map<String, Boolean> taskWorkStatus = chainContext.getAttribute(KEY_TASK_WORK_STATUS);
         if (taskWorkStatus == null) {

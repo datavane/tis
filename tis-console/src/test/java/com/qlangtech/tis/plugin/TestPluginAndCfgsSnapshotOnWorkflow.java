@@ -26,6 +26,7 @@ import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
+import com.qlangtech.tis.util.RobustReflectionConverter2;
 import junit.framework.TestCase;
 
 import java.util.List;
@@ -51,5 +52,16 @@ public class TestPluginAndCfgsSnapshotOnWorkflow extends TestCase {
     IDataxProcessor processor = DataxProcessor.load(null, StoreResourceType.DataFlow, "tpch_parse_on_hive");
     Manifest manifest = PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs(processor);
     Assert.assertNotNull(manifest);
+  }
+
+  public void testCollectMetas4tpch_parse_on_hive() {
+    RobustReflectionConverter2.PluginMetas pluginMetas =
+      RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
+
+        IDataxProcessor dataxProcessor = DataxProcessor.load(
+          null, StoreResourceType.DataFlow, "tpch_parse_on_hive");
+        dataxProcessor.getWriter(null).startScanDependency();
+      });
+    Assert.assertNotNull(pluginMetas);
   }
 }

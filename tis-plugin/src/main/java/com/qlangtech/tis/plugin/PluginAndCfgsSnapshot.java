@@ -132,7 +132,8 @@ public class PluginAndCfgsSnapshot {
         // processPluginMetas(pluginMetas);
 
         pluginAndCfgsSnapshot =
-                PluginAndCfgsSnapshot.setLocalPluginAndCfgsSnapshot(PluginAndCfgsSnapshot.deserializePluginAndCfgsSnapshot(new TargetResName(appName), resourceType, manifest));
+                PluginAndCfgsSnapshot.setLocalPluginAndCfgsSnapshot(
+                        PluginAndCfgsSnapshot.deserializePluginAndCfgsSnapshot(new TargetResName(appName), resourceType, manifest));
         Attributes sysProps = manifest.getAttributes(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS);
         if (resetConfigWithSysProps) {
             Config.setConfig(null);
@@ -259,7 +260,10 @@ public class PluginAndCfgsSnapshot {
 
         if (processor.getResType() != StoreResourceType.DataApp
                 && processor.getResType() != StoreResourceType.DataFlow) {
-            throw new IllegalArgumentException("resType must be " + StoreResourceType.DataApp + " but now is " + processor.getResType());
+            throw new IllegalArgumentException("resType must be "
+                    + StoreResourceType.DataApp
+                    + " or "
+                    + StoreResourceType.DataFlow + " but now is " + processor.getResType());
         }
 
         RobustReflectionConverter2.PluginMetas pluginMetas =

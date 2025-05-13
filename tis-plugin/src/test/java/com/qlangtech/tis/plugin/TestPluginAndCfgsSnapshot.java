@@ -22,14 +22,19 @@ import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
+import com.qlangtech.tis.plugin.license.TISLicense;
+import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PluginMeta;
+import com.qlangtech.tis.util.RobustReflectionConverter2;
 import edu.emory.mathcs.backport.java.util.Collections;
 import junit.framework.TestCase;
 
@@ -53,13 +58,12 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
 
     public void testCreateDataBatchJobManifestCfgAttrs() throws Exception {
         String appName = "mysql";
-       // String appName = "mysql_hudi";
+        // String appName = "mysql_hudi";
         // String appName = "mysql_doris3";
         Manifest manifest = PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs( //
                 new TargetResName(appName));
         Assert.assertNotNull(manifest);
     }
-
 
 
     public void testCreateFlinkIncrJobManifestCfgAttrs() throws Exception {
@@ -116,7 +120,7 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
 
         snapshot.getPluginNames();
 
-        PluginAndCfgsSnapshot sn = PluginAndCfgsSnapshot.deserializePluginAndCfgsSnapshot(datax, manifest);
+        PluginAndCfgsSnapshot sn = PluginAndCfgsSnapshot.deserializePluginAndCfgsSnapshot(datax, StoreResourceType.DataApp, manifest);
         assertNotNull(sn);
     }
 
@@ -136,5 +140,7 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
 //        Set<XStream2.PluginMeta> pluginMetas = remote.shallBeUpdateTpis(local);
 //        Assert.assertTrue(CollectionUtils.isNotEmpty(pluginMetas));
     }
+
+
 
 }
