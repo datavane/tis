@@ -244,15 +244,38 @@ public class ChangeDomainAction extends BasicModule implements ModelDriven<Chang
         addCookie(response, name, value, domain, 60 * 60 * 24 * 3);
     }
 
-    public static void addCookie(HttpServletResponse response, String name, String value, String domain, int maxAge) {
-        Assert.assertNotNull(domain);
-        Cookie cookie = new Cookie(name, value);
-        cookie.setMaxAge(maxAge);
-        cookie.setPath("/");
-        cookie.setDomain(domain);
-        cookie.setVersion(0);
-        response.addCookie(cookie);
-    }
+    public static void addCookie(HttpServletResponse response, HttpServletRequest request, 
+                             String name, String value, String domain, int maxAge) {
+      // Input validation
+      if (StringUtils.isBlank(name) || value == null || response == null || request == null || domain == null) {
+          return;
+      }
+      
+      Cookie cookie = new Cookie(name, value);
+      
+      // Security settings
+      cookie.setHttpOnly(true);  // Protect against XSS
+      cookie.setMaxAge(maxAge < 0 ? Config.SESSION_TIMEOUT_SEC : maxAge);
+      cookie.setPath("/");
+      
+      if (domain != null) {
+          // Validate domain before setting it
+          String sanitizedDomain = sanitizeDomain(domain);
+          cookie.setDomain(sanitizedDomain);
+      }
+      
+      // Set secure flag if HTTPS is used or enforced
+      cookie.setSecure(StringUtils.startsWithIgnoreCase(ServerConfig.getServerURL(), "https://") || 
+                      (request != null && request.isSecure()));
+      
+      response.addCookie(cookie);
+  }
+  
+  // Helper method to sanitize domain
+  private static String sanitizeDomain(String domain) {
+      // Basic domain validation/sanitization logic
+      return domain.replaceAll("[^a-zA-Z0-9.-]", "");
+  }
 
     /**
      * 点击业务线select
