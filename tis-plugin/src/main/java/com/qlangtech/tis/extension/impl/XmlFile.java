@@ -55,6 +55,7 @@ public final class XmlFile {
 
     private final File file;
     public final String relativePath;
+    private boolean xsSecurityInitialized = false;
 
     public XmlFile(File file) {
         this(DEFAULT_XSTREAM, file);
@@ -79,6 +80,31 @@ public final class XmlFile {
     }
 
     public XStream getXStream() {
+        // Apply security hardening to the existing XStream instance
+        // This only needs to happen once
+        if (!xsSecurityInitialized) {
+            synchronized(this) {
+                if (!xsSecurityInitialized) {
+                    // Apply security configurations to the existing xs instance
+
+                    // Set up allowlist for permitted classes
+                    xs.allowTypesByWildcard(new String[] {
+                            "com.qlangtech.tis.**"
+                            // Add other necessary packages your application needs
+                    });
+
+                    // Block commonly exploited classes
+                    xs.denyTypes(new Class[] {
+                            java.lang.System.class,
+                            java.lang.ProcessBuilder.class,
+                            java.lang.Runtime.class
+                    });
+
+                    xsSecurityInitialized = true;
+                }
+            }
+        }
+
         return xs;
     }
 
