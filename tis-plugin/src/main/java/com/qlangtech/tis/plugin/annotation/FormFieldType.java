@@ -90,20 +90,21 @@ public enum FormFieldType {
     , JDBCColumn(11, new IPropValProcessor() {
         @Override
         public Object processInput(Object instance, PropVal val) throws Exception {
-           // return IPropValProcessor.super.processInput(instance, val);
+            // return IPropValProcessor.super.processInput(instance, val);
             return null;
         }
 
         @Override
         public Object serialize2Output(PropertyType pt, Object val) throws Exception {
-           // return IPropValProcessor.super.serialize2Output(pt, val);
+            // return IPropValProcessor.super.serialize2Output(pt, val);
             return null;
         }
     }),
     /**
      * 输入一个数字
      */
-    INT_NUMBER(4), ENUM(5), DateTime(10, new IPropValProcessor() {
+    INT_NUMBER(4) //
+    , ENUM(5), DateTime(10, new IPropValProcessor() {
         final DateTimeFormatter isoFormat = DateTimeFormatter.ISO_DATE_TIME;
 
         @Override
@@ -140,7 +141,7 @@ public enum FormFieldType {
         }
     }
 
-    );
+    ), DECIMAL_NUMBER(11);
 
     public static void main(String[] args) throws Exception {
         //  SimpleDateFormat dateTimeFormat =new SimpleDateFormat("yyyy-MM-ddTHH:mm:ss.SSS");

@@ -208,6 +208,11 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
             TransformerOverwriteCols<OutputParameter> transformerWithoutContextParams;
 
             @Override
+            public RecordTransformerRules getTransformersRules() {
+                return transformers;
+            }
+
+            @Override
             public boolean containContextParams() {
                 return this.overwriteColsWithContextParams != null
                         && CollectionUtils.isNotEmpty(overwriteColsWithContextParams.getContextParams());

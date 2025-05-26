@@ -120,6 +120,15 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
 
     public transient String dataXName;
 
+    /**
+     * Sink 端是否已经启用FlinkCDCPipeline机制，如启动，则source端监听事件流不需要按照表名进行侧分流
+     *
+     * @return
+     */
+    public boolean flinkCDCPipelineEnable() {
+        return false;
+    }
+
     @Override
     public final DataXName getCollectionName() {
         if (StringUtils.isEmpty(this.dataXName)) {

@@ -151,9 +151,9 @@ public abstract class MQListenerFactory
         return (Class<TT>) BaseDescriptor.class;
     }
 
-    public void setConsumerHandle(IConsumerHandle consumerHandle) {
-        throw new UnsupportedOperationException();
-    }
+//    public void setConsumerHandle(IConsumerHandle consumerHandle) {
+//        throw new UnsupportedOperationException();
+//    }
 
     public static abstract class BaseDescriptor extends Descriptor<MQListenerFactory> implements IEndTypeGetter {
 

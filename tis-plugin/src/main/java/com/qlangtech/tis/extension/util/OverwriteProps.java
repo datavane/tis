@@ -42,6 +42,14 @@ public class OverwriteProps {
         return (new OverwriteProps()).setPlaceholder(placeholder);
     }
 
+    public static OverwriteProps label(String label) {
+        return label((l) -> label);
+    }
+
+    public static OverwriteProps label(Function<String, String> labelRewrite) {
+        return (new OverwriteProps()).setLabelRewrite(labelRewrite);
+    }
+
     public static OverwriteProps withAppendHelper(String appendHelper) {
         return (new OverwriteProps()).setAppendHelper(appendHelper);
     }
@@ -70,6 +78,7 @@ public class OverwriteProps {
     private Object dftVal;
     private Object placeholder;
     private Boolean disabled;
+    public Function<String, String> labelRewrite = (label) -> label;
 
 
     public Optional<List<Option>> opts = Optional.empty();
@@ -77,6 +86,11 @@ public class OverwriteProps {
 
     public OverwriteProps setAppendHelper(String appendHelper) {
         this.appendHelper = Optional.of(appendHelper);
+        return this;
+    }
+
+    public OverwriteProps setLabelRewrite(Function<String, String> labelRewrite) {
+        this.labelRewrite = labelRewrite;
         return this;
     }
 

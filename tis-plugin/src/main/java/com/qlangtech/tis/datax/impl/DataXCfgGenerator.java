@@ -690,7 +690,9 @@ public class DataXCfgGenerator implements IDataXNameAware {
             JSONObject rw = contentAry.getJSONObject(0);
             String readerName = rw.getJSONObject("reader").getString("name");
             String writerName = rw.getJSONObject("writer").getString("name");
-            validatePluginName(writer.getDataxMeta(), reader.getDataxMeta(), writerName, readerName);
+            validatePluginName(writer.getDataxMeta(), reader.getDataxMeta()
+                    , Objects.requireNonNull(writerName, "writerName can not be null")
+                    , Objects.requireNonNull(readerName, "readerName can not be null"));
         } else {
             // 在单元测试流程中
             return;

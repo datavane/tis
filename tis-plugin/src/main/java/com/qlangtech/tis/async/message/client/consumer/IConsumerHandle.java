@@ -29,7 +29,8 @@ public interface IConsumerHandle<SOURCE, FLINK_RESULT> {
     /**
      * 处理消息Handle，业务逻辑在此处理
      *
+     * @param flinkCDCPipelineEnable Sink 端是否已经启用FlinkCDCPipeline机制，如启动，则source端监听事件流不需要按照表名进行侧分流
      * @param asyncMsg
      */
-    FLINK_RESULT consume(TargetResName dataxName, AsyncMsg<SOURCE> asyncMsg, IDataxProcessor dataXProcessor) throws Exception;
+    FLINK_RESULT consume(boolean flinkCDCPipelineEnable, TargetResName dataxName, AsyncMsg<SOURCE> asyncMsg, IDataxProcessor dataXProcessor) throws Exception;
 }

@@ -32,6 +32,10 @@ import java.util.function.Function;
  * // @see com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules
  **/
 public interface ITransformerBuildInfo {
+
+
+    <RecordTransformerRules> RecordTransformerRules getTransformersRules();
+
     /**
      * 是否有当前上下文绑定参数
      *
@@ -61,7 +65,9 @@ public interface ITransformerBuildInfo {
      * @return
      */
     List<IColMetaGetter> originColsWithContextParams();
+
     List<OutputParameter> tranformerColsWithoutContextParams();
+
     /**
      * 取得执行当前上线文绑定的参数，例如，当前数据库的名称等
      *

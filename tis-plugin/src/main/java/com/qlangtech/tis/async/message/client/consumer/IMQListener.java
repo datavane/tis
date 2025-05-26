@@ -28,16 +28,25 @@ import java.util.List;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public interface IMQListener<FLINK_RESULT> {
+public interface IMQListener<SOURCE> {
 
 //    String getTopic();
 //
 //    void setDeserialize(IAsyncMsgDeserialize deserialize);
 
-    IConsumerHandle getConsumerHandle();
+//    IConsumerHandle getConsumerHandle();
 
     /**
      * Listener启动
+     *
+     * @param flinkCDCPipelineEnable sinkFunc 是否使用flinkCDC Pipeline流程
+     * @param dataxName
+     * @param rdbmsReader
+     * @param tabs
+     * @param dataXProcessor
+     * @return
+     * @throws MQConsumeException
      */
-    FLINK_RESULT start(TargetResName dataxName, IDataxReader rdbmsReader, List<ISelectedTab> tabs, IDataxProcessor dataXProcessor) throws MQConsumeException;
+    AsyncMsg<SOURCE> start(boolean flinkCDCPipelineEnable, TargetResName dataxName
+            , IDataxReader rdbmsReader, List<ISelectedTab> tabs, IDataxProcessor dataXProcessor) throws MQConsumeException;
 }
