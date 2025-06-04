@@ -225,10 +225,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      */
     public Map<String, Object> getExtractProps() {
         final Map<String, Object> props = new HashMap<>();
-        // Map<String, Boolean> notebook = new HashMap<>();
-        //notebook.put("ability", (this instanceof INotebookable));
-//        notebook.put("activate", TisAppLaunch.get().isZeppelinActivate());
-        //  props.put("notebook", notebook);
+
 
         if (this instanceof IEndTypeGetter) {
             appendProps(((IEndTypeGetter) this).getEndType(), (props));
@@ -257,10 +254,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         eprops.put(IdentityName.PLUGIN_IDENTITY_NAME, id.identityValue());
                         eprops.put("descMeta", DescriptorsJSON.createPluginFormPropertyTypes(desc, Optional.empty()).getLeft());
 
-//                        if (desc instanceof IEndTypeGetter) {
-//                            appendProps(((IEndTypeGetter) desc).getEndType(), (eprops));
-//                        }
-//                        DescriptorsJSON.setDescInfo(desc,eprops);
                         storeManipuldate.add(eprops);
                     }
                 } catch (Exception e) {
@@ -348,12 +341,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     }
                 }
 
-                //                else {
-                //                    // 针对全部属性联合进行校验，例如：在上提交数据库配置表单，服务端需要连接一下数据库进行测试就需要拿到所有表单信息之后惊醒一次校验
-                //                    // 这个校验一般是放在字段校验之后进行的
-                //
-                //                   // mapBuilder.put(KEY_VALIDATE_METHOD_PREFIX, validateMethod);
-                //                }
             }
         }
         return mapBuilder.build();
@@ -462,7 +449,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 Objects.requireNonNull(subProps, "prop:" + filter.subFieldName + " relevant subProps can not be null ");
 
                 subPluginFormPropertyTypes = SuFormProperties.copy(
-                        PropertyType.filterFieldProp(this.getPropertyTypes(ElementPluginDesc.create(this)))
+                        PropertyType.filterFieldProp(this.getPropertyTypes(true, ElementPluginDesc.create(this)))
                         , this.clazz
                         , this
                         , subProps);
@@ -525,14 +512,19 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     public Map<String, /*** fieldname*/IPropertyType> getPropertyTypes() {
-        return getPropertyTypes(ElementPluginDesc.create(this));
+        return this.getPropertyTypes(true);
     }
 
-    private Map<String, /*** fieldname*/IPropertyType> getPropertyTypes(Optional<ElementPluginDesc> descriptor) {
-        if (propertyTypes == null) {
-            propertyTypes = Collections.unmodifiableMap(PropertyType.buildPropertyTypes(descriptor, clazz));
+    public Map<String, /*** fieldname*/IPropertyType> getPropertyTypes(boolean useCache) {
+        return getPropertyTypes(useCache, ElementPluginDesc.create(this));
+    }
 
-            List<PropertyType> identityFields = propertyTypes.values().stream().filter((p) -> {
+    private Map<String, /*** fieldname*/IPropertyType> getPropertyTypes(boolean useCache, Optional<ElementPluginDesc> descriptor) {
+        if (!useCache || propertyTypes == null) {
+
+            Map<String, IPropertyType> tmpPropertyTypes = Collections.unmodifiableMap(PropertyType.buildPropertyTypes(descriptor, clazz));
+
+            List<PropertyType> identityFields = tmpPropertyTypes.values().stream().filter((p) -> {
                 return (p instanceof PropertyType) && ((PropertyType) p).isIdentity();
             }).map((p) -> (PropertyType) p).collect(Collectors.toList());
             if (IdentityName.class.isAssignableFrom(this.clazz)) {
@@ -545,23 +537,19 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             } else {
                 if (identityFields.size() > 0) {
                     throw new IllegalStateException("class:" + this.clazz + " is not type of " + IdentityName.class //
-                            + " but more than one identity col:" + identityFields.stream().map((c) -> c.displayName).collect(Collectors.joining(",")));
+                            + " but more than one identity col:"
+                            + identityFields.stream().map((c) -> c.displayName).collect(Collectors.joining(",")));
                 }
             }
-
-
+            if (!useCache) {
+                propertyTypes = null;
+                return tmpPropertyTypes;
+            }
+            propertyTypes = tmpPropertyTypes;
         }
         return propertyTypes;
     }
 
-
-    //    public final PluginValidateResult verify(IControlMsgHandler msgHandler, Context context //
-//            , boolean verify //
-//            , AttrVals formData, Optional<IPropertyType.SubFormFilter> subFormFilter) {
-//        final PluginFormProperties /** * fieldname */
-//                propertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
-//        return verify(msgHandler, context, verify, formData, propertyTypes, subFormFilter);
-//    }
 
     /**
      * 校验客户端提交的表单
@@ -1069,18 +1057,12 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
     }
 
-//    private ParseDescribable<Describable> parseDescribable(IPluginContext pluginContext
-//            , AttrValMap.IAttrVals keyValMap, Optional<IPropertyType.SubFormFilter> subFormFilter) {
-//        return parseDescribable(pluginContext, keyValMap, , subFormFilter);
-//    }
 
     public ParseDescribable<Describable> parseDescribable(IControlMsgHandler pluginContext
             , Context context, AttrValMap.IAttrVals keyValMap
             , Optional<PluginFormProperties> pTypes, Optional<SubFormFilter> subFormFilter, PropValRewrite propValRewrite) {
 
         PluginFormProperties propertyTypes = getPropertyTypes(pTypes, subFormFilter);
-
-        //   PluginFormProperties propertyTypes = this.getPluginFormPropertyTypes(subFormFilter);
 
         return propertyTypes.accept(new PluginFormProperties.IVisitor() {
             @Override

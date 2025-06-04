@@ -163,6 +163,6 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
 
     @Override
     public Set<Map.Entry<String, PropertyType>> getKVTuples() {
-        return PropertyType.filterFieldProp(subFormFieldsDescriptor).entrySet();
+        return PropertyType.filterFieldProp(true, subFormFieldsDescriptor).entrySet();
     }
 }

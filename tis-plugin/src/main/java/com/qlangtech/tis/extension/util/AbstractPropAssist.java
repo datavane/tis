@@ -21,6 +21,7 @@ package com.qlangtech.tis.extension.util;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
@@ -32,7 +33,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -42,6 +42,7 @@ import java.util.function.Function;
 public abstract class AbstractPropAssist<T extends Describable, FIELD> {
 
     private Descriptor<T> descriptor;
+    private Map<String, /*** fieldname*/IPropertyType> props;
 
     protected AbstractPropAssist(Descriptor<T> descriptor) {
         this.descriptor = descriptor;
@@ -51,15 +52,22 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
         addFieldDescriptor(fieldName, configOption, new OverwriteProps());
     }
 
-    protected Options createFlinkOptions() {
+    private Map<String, IPropertyType> getProps() {
+        if (props == null) {
+            this.props = descriptor.getPropertyTypes(false);
+        }
+        return props;
+    }
+
+    protected Options createOptions() {
         return new Options(this);
     }
 
     public static class Options<T extends Describable, FIELD> {
-        private final List<PropAssistFieldTriple<T, FIELD>> opts = Lists.newArrayList();
-        private Map<String, /*** fieldname*/PropertyType> props;
+        private final List<PropAssistFieldTriple<FIELD>> opts = Lists.newArrayList();
 
-        private AbstractPropAssist<T, FIELD> propsAssist;
+
+        private final AbstractPropAssist<T, FIELD> propsAssist;
 
         public Options(AbstractPropAssist<T, FIELD> propsAssist) {
             this.propsAssist = propsAssist;
@@ -70,28 +78,29 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
         }
 
         public void addFieldDescriptor(String fieldName, FIELD configOption, OverwriteProps overwriteProps) {
+
             propsAssist.addFieldDescriptor(fieldName, configOption, overwriteProps);
         }
 
         public void setTarget(BiConsumer<FIELD, Object> targetPropSetter, T instance) {
-            //  org.apache.flink.configuration.Configuration cfg = new org.apache.flink.configuration.Configuration();
             PropertyType property = null;
-            Function<T, Object> propGetter = null;
+            Function<Object, Object> propValFilter = null;
             Object val = null;
-            for (PropAssistFieldTriple<T, FIELD> opt : opts) {
-                propGetter = opt.getPropGetter();
-                if (propGetter != null) {
-                    val = propGetter.apply(instance);
-                } else {
-                    if (StringUtils.isEmpty(opt.getFieldName())) {
-                        throw new IllegalStateException("fieldKey can not be empty");
-                    }
-                    property = Objects.requireNonNull(getProps().get(opt.getFieldName())
-                            , "key:" + opt.getFieldName() + " relevant props can not be null");
-                    val = property.getVal(instance);
+            for (PropAssistFieldTriple<FIELD> opt : opts) {
+                propValFilter = opt.getPropValFilter();
+
+                if (StringUtils.isEmpty(opt.getFieldName())) {
+                    throw new IllegalStateException("fieldKey can not be empty");
                 }
+                property = Objects.requireNonNull((PropertyType) getProps().get(opt.getFieldName())
+                        , "key:" + opt.getFieldName() + " relevant props can not be null");
+                val = property.getVal(instance);
+
                 if (val == null) {
                     continue;
+                }
+                if (propValFilter != null) {
+                    val = propValFilter.apply(val);
                 }
                 targetPropSetter.accept(opt.getField(), val);
             }
@@ -101,28 +110,21 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
             this.add(fieldName, option, null);
         }
 
-        public void add(FIELD option, Function<T, Object> propGetter) {
-            this.add(null, TISAssistProp.create(option), propGetter);
+        public void add(FIELD option, PropValFilter propValFilter) {
+            this.add(null, TISAssistProp.create(option), propValFilter);
         }
 
-        public void add(String fieldName, TISAssistProp<FIELD> option, Function<T, Object> propGetter) {
+        public void add(String fieldName, TISAssistProp<FIELD> option, PropValFilter propValFilter) {
             if (StringUtils.isNotEmpty(fieldName)) {
+
                 this.addFieldDescriptor(fieldName, option.configOption, option.overwriteProp);
 
             }
-            this.opts.add(PropAssistFieldTriple.of(fieldName, option.configOption, propGetter));
+            this.opts.add(PropAssistFieldTriple.of(fieldName, option.configOption, propValFilter));
         }
 
-        public Map<String, PropertyType> getProps() {
-            if (props == null) {
-                this.props = propsAssist.descriptor.getPluginFormPropertyTypes().accept(new PluginFormProperties.IVisitor() {
-                    @Override
-                    public Map<String, PropertyType> visit(RootFormProperties props) {
-                        return props.propertiesType;
-                    }
-                });
-            }
-            return props;
+        public Map<String, IPropertyType> getProps() {
+            return propsAssist.getProps();
         }
     }
 
@@ -141,7 +143,6 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
         }
 
         public TISAssistProp overwriteDft(Object dftVal) {
-            // overwriteProp.setDftVal(dftVal);
             return this.setOverwriteProp(OverwriteProps.dft(dftVal));
         }
 
@@ -186,86 +187,19 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
 
         Object dftVal = overwriteProps.processDftVal(getDefaultValue(configOption));
 
+        PropertyType propertyType = Objects.requireNonNull((PropertyType) getProps().get(fieldName)
+                , "fieldName:" + fieldName + " relevant propertyType can not be null");
+        dftVal = propertyType.serialize2Output(dftVal);
+
         StringBuffer helperContent = new StringBuffer(desc);
         if (overwriteProps.appendHelper.isPresent()) {
             helperContent.append("\n\n").append(overwriteProps.appendHelper.get());
         }
 
-        // Type targetClazz = configOption.type();
         final List<Option> opts = getOptEnums(configOption);
-//        switch (targetClazz) {
-//            case LIST: {
-//                throw new IllegalStateException("unsupported type:" + targetClazz);
-//            }
-//            case BOOLEAN: {
-//                opts = Lists.newArrayList(new Option("是", true), new Option("否", false));
-//                break;
-//            }
-//            case CLASS:
-//            case PASSWORD:
-//            case INT:
-//            case DOUBLE:
-//            case LONG:
-//            case SHORT:
-//            case STRING:
-//            default:
-//                // throw new IllegalStateException("unsupported type:" + targetClazz);
-//        }
-
-//        if (configOption.recommender() instanceof EnumRecommender) {
-//            EnumRecommender enums = (EnumRecommender) configOption.recommender();
-//            List vals = enums.validValues(null, null);
-//            opts = (List<Option>) vals.stream().map((e) -> new Option(String.valueOf(e))).collect(Collectors.toList());
-//        }
-
-
-//        if (targetClazz == Duration.class) {
-//            if (dftVal != null) {
-//                dftVal = ((Duration) dftVal).getSeconds();
-//            }
-//            helperContent.append("\n\n 单位：`秒`");
-//        } else if (targetClazz == MemorySize.class) {
-//            if (dftVal != null) {
-//                dftVal = ((MemorySize) dftVal).getKibiBytes();
-//            }
-//            helperContent.append("\n\n 单位：`kb`");
-//        } else if (targetClazz.isEnum()) {
-//            List<Enum> enums = EnumUtils.getEnumList((Class<Enum>) targetClazz);
-//            opts = enums.stream().map((e) -> new Option(e.name())).collect(Collectors.toList());
-//        } else if (targetClazz == Boolean.class) {
-//            opts = Lists.newArrayList(new Option("是", true), new Option("否", false));
-//        }
 
         descriptor.addFieldDescriptor(fieldName, dftVal
                 , overwriteProps.labelRewrite.apply(getDisplayName(configOption)), helperContent.toString()
                 , overwriteProps.opts.isPresent() ? overwriteProps.opts : Optional.ofNullable(opts));
     }
-
-
-//    public class FieldTriple<T extends Describable,FIELD> {
-//        public static <T extends Describable,FIELD> FieldTriple<T,FIELD> of(String fieldName, FIELD field, Function<T, Object> propGetter) {
-//            return new FieldTriple<>(fieldName, field, propGetter);
-//        }
-//        private final String fieldName;
-//        private final FIELD field;
-//        private final Function<T, Object> propGetter;
-//
-//        private FieldTriple(String fieldName, FIELD field, Function<T, Object> propGetter) {
-//            this.fieldName = fieldName;
-//            this.field = field;
-//            this.propGetter = propGetter;
-//        }
-//
-//        public String getFieldName() {
-//            return fieldName;
-//        }
-//
-//        public FIELD getField() {
-//            return field;
-//        }
-//
-//        public Function<T, Object> getPropGetter() {
-//            return propGetter;
-//        }
-//    }
 }

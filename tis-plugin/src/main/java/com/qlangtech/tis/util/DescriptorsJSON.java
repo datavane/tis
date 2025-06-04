@@ -186,51 +186,10 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
                 final JSONObject desJson = pair.getKey();
                 Descriptor desc = pair.getValue();//new JSONObject();
-                // des.put("formLevel", formLevel);
-//                Descriptor desc = pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
-//                    @Override
-//                    public Descriptor visit(RootFormProperties props) {
-//                        return dd;
-//                    }
-//
-//                    @Override
-//                    public Descriptor visit(BaseSubFormProperties props) {
-//                        JSONObject subForm = new JSONObject();
-//                        subForm.put("fieldName", props.getSubFormFieldName());
-//                        if (subFormFilter.isPresent()) {
-//
-//                            SubFormFilter filter = subFormFilter.get();
-//                            if (!filter.subformDetailView) {
-//                                desJson.put("subForm", true);
-//                                subForm.put("idList", props.getSubFormIdListGetter(filter).build(filter));
-//                            }
-//                        }
-//                        desJson.put("subFormMeta", subForm);
-//                        return props.subFormFieldsDescriptor;
-//                    }
-//                });
-//
-//                desJson.put(KEY_EXTEND_POINT, desc.getT().getName());
-//
-//                setDescInfo(desc, desJson);
-//
-//                desJson.put("veriflable", desc.overWriteValidateMethod);
-//                if (IdentityName.class.isAssignableFrom(desc.clazz)) {
-//                    desJson.put("pkField", desc.getIdentityField().displayName);
-//                }
-//                extractProps = desc.getExtractProps();
-//                if (!extractProps.isEmpty()) {
-//                    desJson.put("extractProps", extractProps);
-//                }
-
                 attrs = new JSONArray();
 
                 List<Entry<String, PropertyType>> entries = pluginFormPropertyTypes.getSortedUseableProperties();
 
-//                ArrayList<Map.Entry<String, PropertyType>> entries =
-//                        Lists.newArrayList(pluginFormPropertyTypes.getKVTuples());
-
-               // entries.sort(((o1, o2) -> o1.getValue().ordinal() - o2.getValue().ordinal()));
                 boolean containAdvanceField = false;
                 for (Map.Entry<String, PropertyType> pp : entries) {
                     key = pp.getKey();
@@ -250,6 +209,8 @@ public class DescriptorsJSON<T extends Describable<T>> {
                     attrVal.put("type", val.typeIdentity());
                     attrVal.put("required", val.isInputRequired());
                     attrVal.put("ord", val.ordinal());
+
+
                     // 是否是高级组
                     if (val.advance()) {
                         containAdvanceField = true;
@@ -264,6 +225,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                             clone.put(PluginExtraProps.Props.KEY_VIEW_TYPE, vt.getViewTypeToken());
                             return clone;
                         });
+                        val.appendExternalProp(ep);
                         attrVal.put("eprops", n != null ? n : ep);
                     }
 
@@ -278,7 +240,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                         attrVal.put("extensible", (extensible != null));
                         attrVal.put(KEY_EXTEND_POINT, val.fieldClazz.getName());
                     }
-                    // attrs.put(attrVal);
+
                     attrs.add(attrVal);
                 }
                 // 对象拥有的属性

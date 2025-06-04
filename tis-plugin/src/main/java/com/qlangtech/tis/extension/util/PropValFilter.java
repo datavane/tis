@@ -15,20 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.qlangtech.tis.extension;
+
+package com.qlangtech.tis.extension.util;
+
+import java.util.function.Function;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2021-04-11 12:11
- */
-public interface IPropertyType {
-    String KEY_UNIT = "unit";
-    int CONST_UNIT_INTEGER_FIELD = 12;
-
-    /**
-     * 对应的property 是否是集合属性
-     *
-     * @return
-     */
-    boolean isCollectionType();
+ * @author: 百岁（baisui@qlangtech.com）
+ * @create: 2025-06-03 18:07
+ **/
+public abstract class PropValFilter implements Function<Object, Object> {
 }

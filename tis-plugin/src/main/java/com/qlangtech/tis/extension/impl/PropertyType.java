@@ -99,6 +99,17 @@ public class PropertyType implements IPropertyType {
     public final Field f;
 
 
+    public Object serialize2Output(Object val) {
+        if (val == null) {
+            return null;
+        }
+        try {
+            return this.formField.type().valProcessor.serialize2Output(this, val);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private Boolean inputRequired;
 
     private MultiItemsViewType multiItemsViewType;
@@ -339,8 +350,13 @@ public class PropertyType implements IPropertyType {
         return enums;
     }
 
-    public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(Descriptor descriptor) {
-        return filterFieldProp(descriptor.getPropertyTypes());
+    /**
+     * @param useCache   是否使用缓存的
+     * @param descriptor
+     * @return
+     */
+    public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(boolean useCache, Descriptor descriptor) {
+        return filterFieldProp(descriptor.getPropertyTypes(useCache));
     }
 
 
@@ -407,6 +423,10 @@ public class PropertyType implements IPropertyType {
 
     public int typeIdentity() {
         return formField.type().getIdentity();
+    }
+
+    public void appendExternalProp(JSONObject attrVal) {
+        formField.type().appendExternalProps.accept(attrVal);
     }
 
     private Validator[] validators;
@@ -483,8 +503,8 @@ public class PropertyType implements IPropertyType {
             if (this.formField.type() == FormFieldType.MULTI_SELECTABLE) {
                 return this.getMultiItemsViewType().serialize2Frontend(this.isCollectionType() ? val : Collections.singletonList(val));
             }
-
-            return this.formField.type().valProcessor.serialize2Output(this, val);
+            return serialize2Output(val);
+            //  return this.formField.type().valProcessor.serialize2Output(this, val);
         } catch (Exception e) {
             throw new RuntimeException("property:" + this.f.getName(), e);
         }

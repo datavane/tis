@@ -41,10 +41,6 @@ public class ElementPluginDesc {
     /**
      * The host plugin class for the cols element
      */
-    // private final Class<? extends Describable> hostPluginClazz;
-//        public ElementPluginDesc(Descriptor elementDesc) {
-//            this(elementDesc, null);
-//        }
     public static Optional<ElementPluginDesc> create(Descriptor elementDesc) {
         return Optional.of(new ElementPluginDesc(elementDesc));
     }
@@ -55,7 +51,6 @@ public class ElementPluginDesc {
      */
     private ElementPluginDesc(Descriptor elementDesc) {
         this.elementDesc = Objects.requireNonNull(elementDesc, "elementDesc can not be null");
-        //  this.hostPluginClazz = hostPluginClazz;
     }
 
     public PluginExtraProps getFieldExtraDescs() {
@@ -66,7 +61,8 @@ public class ElementPluginDesc {
         return this.elementDesc;
     }
 
-//        public Class<? extends Describable> getHostPluginClazz() {
-//            return this.hostPluginClazz;
-//        }
+    @Override
+    public String toString() {
+        return elementDesc.clazz.getSimpleName() + ",extraDescs:" + String.join(",", getFieldExtraDescs().keySet());
+    }
 }

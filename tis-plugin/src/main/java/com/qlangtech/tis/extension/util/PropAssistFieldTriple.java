@@ -18,28 +18,31 @@
 
 package com.qlangtech.tis.extension.util;
 
-import com.qlangtech.tis.extension.Describable;
-
 import java.util.function.Function;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-12-27 12:12
  **/
-public class PropAssistFieldTriple<T extends Describable,FIELD> {
+public class PropAssistFieldTriple<FIELD> {
 
     private final String fieldName;
     private final FIELD field;
-    private final Function<T, Object> propGetter;
+    private final PropValFilter propValFilter;
 
-    private PropAssistFieldTriple(String fieldName, FIELD field, Function<T, Object> propGetter) {
+    /**
+     * @param fieldName
+     * @param field
+     * @param propValFilter 设置目标端对象最终，会进行一次值的转换（可以和目标端类型相一致）
+     */
+    private PropAssistFieldTriple(String fieldName, FIELD field, PropValFilter propValFilter) {
         this.fieldName = fieldName;
         this.field = field;
-        this.propGetter = propGetter;
+        this.propValFilter = propValFilter;
     }
 
-    public static <T extends Describable,FIELD> PropAssistFieldTriple<T,FIELD> of(String fieldName, FIELD field, Function<T, Object> propGetter) {
-        return new PropAssistFieldTriple<>(fieldName, field, propGetter);
+    public static <FIELD> PropAssistFieldTriple<FIELD> of(String fieldName, FIELD field, PropValFilter propValFilter) {
+        return new PropAssistFieldTriple<>(fieldName, field, propValFilter);
     }
 
     public String getFieldName() {
@@ -50,7 +53,7 @@ public class PropAssistFieldTriple<T extends Describable,FIELD> {
         return field;
     }
 
-    public Function<T, Object> getPropGetter() {
-        return propGetter;
+    public PropValFilter getPropValFilter() {
+        return propValFilter;
     }
 }
