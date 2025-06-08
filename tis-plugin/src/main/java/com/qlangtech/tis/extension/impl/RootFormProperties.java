@@ -65,7 +65,7 @@ public class RootFormProperties extends PluginFormProperties {
             Object o = null;
             for (Map.Entry<String, PropertyType> entry : propertiesType.entrySet()) {
 
-                o = entry.getValue().getVal(instance);
+                o = entry.getValue().getFrontendOutput(instance);
                 if (o == null) {
                     continue;
                 }

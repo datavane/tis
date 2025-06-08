@@ -98,8 +98,13 @@ public class PropertyType implements IPropertyType {
 
     public final Field f;
 
-
-    public Object serialize2Output(Object val) {
+    /**
+     * 值最终要显示在前端页面上给用户查看
+     *
+     * @param val
+     * @return
+     */
+    public Object serialize2FrontendOutput(Object val) {
         if (val == null) {
             return null;
         }
@@ -491,19 +496,28 @@ public class PropertyType implements IPropertyType {
     }
 
     /**
+     *
+     * @param instance
+     * @return
+     */
+    public Object getFrontendOutput(Object instance) {
+        return this.getVal(true, instance);
+    }
+
+    /**
      * 取得实例的值
      *
      * @param instance
      * @return
      */
-    public Object getVal(Object instance) {
+    public Object getVal(boolean serialize2Frontend, Object instance) {
 
         try {
             Object val = this.f.get(instance);
             if (this.formField.type() == FormFieldType.MULTI_SELECTABLE) {
                 return this.getMultiItemsViewType().serialize2Frontend(this.isCollectionType() ? val : Collections.singletonList(val));
             }
-            return serialize2Output(val);
+            return serialize2Frontend ? serialize2FrontendOutput(val) : val;
             //  return this.formField.type().valProcessor.serialize2Output(this, val);
         } catch (Exception e) {
             throw new RuntimeException("property:" + this.f.getName(), e);

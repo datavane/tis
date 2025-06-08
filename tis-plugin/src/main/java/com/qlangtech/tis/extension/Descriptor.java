@@ -59,7 +59,6 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.IMultiElement;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
-import com.qlangtech.tis.pubhook.common.Nullable;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
@@ -69,7 +68,6 @@ import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.ISelectOptionsGetter;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.impl.AttrVals;
-import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -1256,7 +1254,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     public String getIdentityValue(T tDescribable) {
-        return (String) getIdentityField().getVal(tDescribable);
+        return (String) getIdentityField().getFrontendOutput(tDescribable);
     }
 
     public PropertyType getIdentityField() {

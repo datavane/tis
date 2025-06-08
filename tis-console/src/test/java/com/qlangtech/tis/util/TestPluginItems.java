@@ -152,7 +152,7 @@ public class TestPluginItems extends TestCase {
     PropertyType pt = null;
     pt = propertiesType.get(key);
     assertNotNull(pt);
-    assertEquals(value, pt.getVal(reader));
+    assertEquals(value, pt.getFrontendOutput(reader));
   }
 
   private void validateSubFormSave() {

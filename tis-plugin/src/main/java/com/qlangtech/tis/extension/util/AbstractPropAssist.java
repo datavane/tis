@@ -22,9 +22,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
-import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
-import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.manage.common.Option;
 import org.apache.commons.lang.StringUtils;
 
@@ -48,9 +46,9 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
         this.descriptor = descriptor;
     }
 
-    protected void addFieldDescriptor(String fieldName, FIELD configOption) {
-        addFieldDescriptor(fieldName, configOption, new OverwriteProps());
-    }
+//    protected void addFieldDescriptor(String fieldName, FIELD configOption) {
+//        addFieldDescriptor(fieldName, configOption, new OverwriteProps());
+//    }
 
     private Map<String, IPropertyType> getProps() {
         if (props == null) {
@@ -73,14 +71,35 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
             this.propsAssist = propsAssist;
         }
 
-        public void addFieldDescriptor(String fieldName, FIELD configOption) {
-            propsAssist.addFieldDescriptor(fieldName, configOption);
+        public void add(String fieldName, FIELD configOption) {
+            // propsAssist.addFieldDescriptor(fieldName, configOption, new OverwriteProps());
+            this.add(fieldName, TISAssistProp.create(configOption));
         }
 
-        public void addFieldDescriptor(String fieldName, FIELD configOption, OverwriteProps overwriteProps) {
+        public void add(String fieldName, FIELD configOption, OverwriteProps overwriteProps) {
+            TISAssistProp<FIELD> assistProp = TISAssistProp.create(configOption);
+            this.add(fieldName, assistProp.setOverwriteProp(overwriteProps), null);
+        }
 
+        private void addFieldDescriptor(String fieldName, FIELD configOption, OverwriteProps overwriteProps) {
             propsAssist.addFieldDescriptor(fieldName, configOption, overwriteProps);
         }
+
+        public void add(String fieldName, TISAssistProp<FIELD> option, PropValFilter propValFilter) {
+            if (StringUtils.isNotEmpty(fieldName)) {
+                this.addFieldDescriptor(fieldName, option.configOption, option.overwriteProp);
+            }
+            this.opts.add(PropAssistFieldTriple.of(fieldName, option.configOption, propValFilter));
+        }
+
+        public void add(String fieldName, TISAssistProp option) {
+            this.add(fieldName, option, null);
+        }
+
+        public void add(FIELD option, PropValFilter propValFilter) {
+            this.add(null, TISAssistProp.create(option), propValFilter);
+        }
+
 
         public void setTarget(BiConsumer<FIELD, Object> targetPropSetter, T instance) {
             PropertyType property = null;
@@ -94,7 +113,7 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
                 }
                 property = Objects.requireNonNull((PropertyType) getProps().get(opt.getFieldName())
                         , "key:" + opt.getFieldName() + " relevant props can not be null");
-                val = property.getVal(instance);
+                val = property.getVal(false, instance);
 
                 if (val == null) {
                     continue;
@@ -106,22 +125,6 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
             }
         }
 
-        public void add(String fieldName, TISAssistProp option) {
-            this.add(fieldName, option, null);
-        }
-
-        public void add(FIELD option, PropValFilter propValFilter) {
-            this.add(null, TISAssistProp.create(option), propValFilter);
-        }
-
-        public void add(String fieldName, TISAssistProp<FIELD> option, PropValFilter propValFilter) {
-            if (StringUtils.isNotEmpty(fieldName)) {
-
-                this.addFieldDescriptor(fieldName, option.configOption, option.overwriteProp);
-
-            }
-            this.opts.add(PropAssistFieldTriple.of(fieldName, option.configOption, propValFilter));
-        }
 
         public Map<String, IPropertyType> getProps() {
             return propsAssist.getProps();
@@ -189,7 +192,7 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
 
         PropertyType propertyType = Objects.requireNonNull((PropertyType) getProps().get(fieldName)
                 , "fieldName:" + fieldName + " relevant propertyType can not be null");
-        dftVal = propertyType.serialize2Output(dftVal);
+        dftVal = propertyType.serialize2FrontendOutput(dftVal);
 
         StringBuffer helperContent = new StringBuffer(desc);
         if (overwriteProps.appendHelper.isPresent()) {
