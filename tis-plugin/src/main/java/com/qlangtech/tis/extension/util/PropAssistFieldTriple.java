@@ -18,8 +18,6 @@
 
 package com.qlangtech.tis.extension.util;
 
-import java.util.function.Function;
-
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-12-27 12:12

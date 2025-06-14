@@ -41,4 +41,6 @@ public interface IHiveConnGetter extends IdentityName {
     public String getMetaStoreUrls();
 
     public IHiveMetaStore createMetaStoreClient();
+
+
 }

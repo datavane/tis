@@ -39,4 +39,20 @@ public interface IHiveMetaStore extends Closeable {
     public HiveTable getTable(String database, String tableName);
 
     public List<HiveTable> getTables(String database);
+
+    /**
+     * org.apache.hadoop.hive.metastore.IMetaStoreClient can be unwrap in client size
+     *
+     * @param <T>
+     * @return
+     */
+    <T> T unwrapClient();
+
+    /**
+     * 取得org.apache.hadoop.hive.conf.HiveConf
+     *
+     * @param <HIVE_CONFIG>
+     * @return
+     */
+    <HIVE_CONFIG> HIVE_CONFIG getHiveCfg();
 }

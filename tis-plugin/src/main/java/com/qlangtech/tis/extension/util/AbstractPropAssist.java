@@ -141,12 +141,23 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
             return new TISAssistProp(configOption);
         }
 
+        public FIELD getConfigOption() {
+            return configOption;
+        }
+
         private TISAssistProp(FIELD configOption) {
             this.configOption = configOption;
         }
 
         public TISAssistProp overwriteDft(Object dftVal) {
             return this.setOverwriteProp(OverwriteProps.dft(dftVal));
+        }
+
+        public TISAssistProp overwriteBooleanEnums() {
+            OverwriteProps booleanEnums = OverwriteProps.createBooleanEnums();
+            overwriteProp.setEnumOpts(booleanEnums.opts.get());
+            overwriteProp.dftValConvert = booleanEnums.dftValConvert;
+            return this;
         }
 
         public TISAssistProp overwritePlaceholder(Object placeholder) {
