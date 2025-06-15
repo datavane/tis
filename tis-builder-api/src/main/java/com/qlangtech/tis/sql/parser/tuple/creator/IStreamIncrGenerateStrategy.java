@@ -126,26 +126,4 @@ public interface IStreamIncrGenerateStrategy {
         public <T> List<T> getDumpTables();
     }
 
-    public static abstract class AdapterStreamTemplateData implements IStreamTemplateData {
-        private final IStreamTemplateData data;
-
-        public AdapterStreamTemplateData(IStreamTemplateData data) {
-            this.data = data;
-        }
-
-        @Override
-        public String getCollection() {
-            return data.getCollection();
-        }
-
-        @Override
-        public String getJavaName() {
-            return data.getJavaName();
-        }
-
-        @Override
-        public List<EntityName> getDumpTables() {
-            return data.getDumpTables();
-        }
-    }
 }
