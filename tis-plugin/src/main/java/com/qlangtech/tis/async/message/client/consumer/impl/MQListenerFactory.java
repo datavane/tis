@@ -21,7 +21,6 @@ import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
-import com.qlangtech.tis.async.message.client.consumer.IConsumerHandle;
 import com.qlangtech.tis.async.message.client.consumer.IFlinkColCreator;
 import com.qlangtech.tis.async.message.client.consumer.IMQConsumerStatusFactory;
 import com.qlangtech.tis.async.message.client.consumer.IMQListenerFactory;
@@ -33,18 +32,17 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
-import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.incr.ISelectedTabExtendFactory;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
+import com.qlangtech.tis.plugin.timezone.DefaultTISTimeZone;
+import com.qlangtech.tis.plugin.timezone.TISTimeZone;
 import com.qlangtech.tis.realtime.transfer.DTO;
 import com.qlangtech.tis.realtime.transfer.DTO.EventType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.HeteroEnum;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.dbcp.BasicDataSourceFactory;
 
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -63,11 +61,14 @@ import java.util.Optional;
 @Public
 public abstract class MQListenerFactory
         implements IMQListenerFactory, IMQConsumerStatusFactory, Describable<MQListenerFactory> {
-    public static final ZoneId DEFAULT_SERVER_TIME_ZONE = ZoneId.systemDefault();
     private static final String KEY_filterRowKind = "filterRowKind";
 
     public static String dftZoneId() {
-        return DEFAULT_SERVER_TIME_ZONE.getId();
+        return TISTimeZone.dftZoneId();
+    }
+
+    public static List<Option> availableZoneIds() {
+        return TISTimeZone.availableZoneIds();
     }
 
     /**
@@ -96,13 +97,6 @@ public abstract class MQListenerFactory
         return opts;
     }
 
-    public static List<Option> availableZoneIds() {
-        List<Option> opts = new ArrayList<>();
-        ZoneId.SHORT_IDS.forEach((key, val) -> {
-            opts.add(new Option(val, val));
-        });
-        return opts;
-    }
 
     /**
      * 根据Source端 Col 对应的DataType 生成对应的FlinkCol类型用于数值转化
@@ -169,7 +163,7 @@ public abstract class MQListenerFactory
         }
 
 
-        protected  boolean validateMQListenerForm(IControlMsgHandler msgHandler, Context context, MQListenerFactory sourceFactory) {
+        protected boolean validateMQListenerForm(IControlMsgHandler msgHandler, Context context, MQListenerFactory sourceFactory) {
             return true;
         }
 

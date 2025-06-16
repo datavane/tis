@@ -76,6 +76,11 @@ public class HiveColumn {
         }
 
         @Override
+        public String timeType(DataType type) {
+            return timestampType(type);
+        }
+
+        @Override
         public String decimalType(DataType type) {
             return "DECIMAL(" + type.getColumnSize() + "," + type.getDecimalDigits() + ")";
         }

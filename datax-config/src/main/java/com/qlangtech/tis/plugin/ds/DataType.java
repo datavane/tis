@@ -350,6 +350,62 @@ public class DataType implements Serializable, Cloneable {
     }
 
     public interface TypeVisitor<T> {
+        T intType(DataType type);
+//         {
+//            return bigInt(type);
+//        }
+
+        T bigInt(DataType type);
+
+        T floatType(DataType type);
+//        {
+//            return doubleType(type);
+//        }
+
+        T doubleType(DataType type);
+
+        T decimalType(DataType type);
+//         {
+//            return doubleType(type);
+//        }
+
+        T dateType(DataType type);
+
+        T timeType(DataType type);
+//         {
+//            return timestampType(type);
+//        }
+
+        T timestampType(DataType type);
+
+        T bitType(DataType type);
+
+        T blobType(DataType type);
+
+        T varcharType(DataType type);
+
+        T tinyIntType(DataType dataType);
+//         {
+//            return intType(dataType);
+//        }
+
+        T smallIntType(DataType dataType);
+//         {
+//            return intType(dataType);
+//        }
+
+        T boolType(DataType dataType);
+//         {
+//            return bitType(dataType);
+//        }
+    }
+
+    /**
+     * 部分采用默认实现方式
+     *
+     * @param <T>
+     */
+    public interface PartialTypeVisitor<T> extends TypeVisitor<T> {
         default T intType(DataType type) {
             return bigInt(type);
         }

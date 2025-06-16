@@ -1,0 +1,8 @@
+{
+  "timeZone": {
+    "label": "时区编码",
+    "dftVal": "com.qlangtech.tis.plugin.timezone.TISTimeZone.dftZoneId()",
+    "enum": "com.qlangtech.tis.plugin.timezone.TISTimeZone.availableZoneIds()",
+    "help": "选择服务端所在时区"
+  }
+}

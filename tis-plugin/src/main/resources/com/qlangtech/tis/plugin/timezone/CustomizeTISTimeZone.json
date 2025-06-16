@@ -1,0 +1,7 @@
+{
+  "timeZone": {
+    "label": "时区编码",
+    "placeholder": "example：Asia/Shanghai",
+    "help": "设置服务端所在时区编码"
+  }
+}

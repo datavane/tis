@@ -44,7 +44,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Wrapper;
-import java.time.ZoneId;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
