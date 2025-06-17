@@ -39,6 +39,21 @@ public class DataTypeMeta {
 
     private final DataType _type;
 
+    /**
+     * 正规化decimal的精度
+     *
+     * @param type
+     * @return
+     */
+    public static int[] normalizeDecimalPrecisionAndScale(DataType type) {
+        int precision = type.getColumnSize();
+        Integer scale = type.getDecimalDigits();
+        if (precision < 1 || precision > DataTypeMeta.DEFAULT_DECIMAL_PRECISION) {
+            precision = DataTypeMeta.DEFAULT_DECIMAL_PRECISION;
+        }
+        return new int[]{precision, scale};
+    }
+
     public interface IMultiItemsView {
         public static IMultiItemsView unknow() {
             return new IMultiItemsView() {
