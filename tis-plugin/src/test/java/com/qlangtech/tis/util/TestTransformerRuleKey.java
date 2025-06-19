@@ -35,11 +35,20 @@ public class TestTransformerRuleKey extends TestCase {
 
     public void testCreateStoreKey() {
 
-        Map<Key, String> key2TableMapper = new HashMap<>();
+
         IPluginContext pluginContext = IPluginContext.namedContext("test");
+        DataXName dataX = pluginContext.getCollectionName();
+
+        verifyKeyVal(pluginContext, dataX);
+
+        verifyKeyVal(null, dataX);
+    }
+
+    private static void verifyKeyVal(IPluginContext pluginContext, DataXName dataX) {
+        Map<Key, String> key2TableMapper = new HashMap<>();
         String tabOrderDetail = "orderdetail";
         String tabTotalpay = "totalpay";
-        DataXName dataX = pluginContext.getCollectionName();
+
         Key storeKeyOrderDetail = TransformerRuleKey.createStoreKey(
                 pluginContext, dataX.getType(), dataX.getPipelineName(), tabOrderDetail);
         Key storeKeyTotalpay = TransformerRuleKey.createStoreKey(

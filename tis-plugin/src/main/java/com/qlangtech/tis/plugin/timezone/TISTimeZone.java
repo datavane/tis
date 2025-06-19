@@ -35,6 +35,23 @@ public abstract class TISTimeZone implements Describable<TISTimeZone> {
 
     public static final ZoneId DEFAULT_SERVER_TIME_ZONE = ZoneId.systemDefault();
 
+    private static final List<Option> opts;
+
+    static {
+        opts = new ArrayList<>();
+        opts.add(new Option("Australia/Sydney"));
+        opts.add(new Option("Africa/Cairo"));
+        opts.add(new Option("Europe/Paris"));
+        opts.add(new Option("Asia/Tokyo"));
+        opts.add(new Option(DEFAULT_SERVER_TIME_ZONE.getId()));
+    }
+
+    public static TISTimeZone dftZone() {
+        DefaultTISTimeZone zone = new DefaultTISTimeZone();
+        zone.timeZone = TISTimeZone.dftZoneId();
+        return zone;
+    }
+
     public static String dftZoneId() {
         return TISTimeZone.DEFAULT_SERVER_TIME_ZONE.getId();
     }
@@ -42,10 +59,6 @@ public abstract class TISTimeZone implements Describable<TISTimeZone> {
     public abstract ZoneId getTimeZone();
 
     public static List<Option> availableZoneIds() {
-        List<Option> opts = new ArrayList<>();
-        ZoneId.SHORT_IDS.forEach((key, val) -> {
-            opts.add(new Option(val, val));
-        });
         return opts;
     }
 }

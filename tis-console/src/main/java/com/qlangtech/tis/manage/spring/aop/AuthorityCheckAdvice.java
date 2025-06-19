@@ -21,6 +21,9 @@ import com.opensymphony.xwork2.Action;
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.ActionProxy;
 import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
+import com.qlangtech.tis.lang.ErrorValue;
+import com.qlangtech.tis.lang.TisException;
+import com.qlangtech.tis.lang.TisException.ErrorCode;
 import com.qlangtech.tis.manage.common.IUser;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.RunContextGetter;
@@ -87,6 +90,7 @@ public class AuthorityCheckAdvice extends MethodFilterInterceptor {
         return initAction.getReturnCode();
       }
     }
+
 
 
     ActionProxy proxy = invocation.getProxy();

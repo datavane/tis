@@ -21,6 +21,8 @@ package com.qlangtech.tis.extension.util;
 import java.util.function.Function;
 
 /**
+ * 设置目标端对象最终，会进行一次值的转换（可以和目标端类型相一致）
+ *
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2025-06-03 18:07
  **/

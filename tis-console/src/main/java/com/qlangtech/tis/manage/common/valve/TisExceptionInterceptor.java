@@ -24,13 +24,16 @@ import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
+import com.qlangtech.tis.lang.ErrorValue;
 import com.qlangtech.tis.lang.TisException;
+import com.qlangtech.tis.lang.TisException.ErrorCode;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.TisActionMapper;
 import com.qlangtech.tis.manage.spring.aop.AuthorityCheckAdvice;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ds.JDBCConnection;
 import com.qlangtech.tis.plugin.ds.JDBCConnectionPool;
+import com.qlangtech.tis.runtime.module.action.SysInitializeAction;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.slf4j.Logger;
@@ -83,6 +86,12 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
     ActionProxy proxy = invocation.getProxy();
     AjaxValve.ActionExecResult execResult = null;
     try (JDBCConnectionPool jdbcConnectionPool = JDBCConnectionPool.create()) {
+
+      if (!SysInitializeAction.hasReadFreshManReadme()) {
+        throw TisException.create(
+          ErrorValue.create(ErrorCode.TIS_FRESHMAN_README_HAVE_NOT_READ, Collections.emptyMap()), ErrorCode.TIS_FRESHMAN_README_HAVE_NOT_READ.name());
+      }
+
       JDBCConnection.connectionPool.set(jdbcConnectionPool);
       if (disableTransaction) {
         return invocation.invoke();

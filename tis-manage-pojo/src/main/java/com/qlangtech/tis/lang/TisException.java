@@ -93,6 +93,12 @@ public class TisException extends RuntimeException {
             return new String[]{"coredefine", "core_action", "incr_delete"};
         }),
         FLINK_SESSION_CLUSTER_LOSS_OF_CONTACT(new RemoveDataxWorkerForward()),
+        /**
+         * TIS 刚打开时候还没有阅读新人指南
+         */
+        TIS_FRESHMAN_README_HAVE_NOT_READ((rundata) -> {
+            return new String[]{"coredefine", "core_action", "incr_delete"};
+        }),
         POWER_JOB_CLUSTER_LOSS_OF_CONTACT(new RemoveDataxWorkerForward() {
             @Override
             public String[] apply(BasicRundata rundata) {

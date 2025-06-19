@@ -26,17 +26,13 @@ import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
-import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
-import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
-import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.ContextParamConfig;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
@@ -46,7 +42,6 @@ import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.TransformerRuleKey;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -147,6 +142,13 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
     }
 
     public static Function<String, RecordTransformerRules> transformerRulesLoader4Test;
+
+
+    public List<UDFDefinition> getTransformerUDFs() {
+        return this
+                .rules.stream().map((t) -> t.getUdf()).collect(Collectors.toList());
+    }
+
 
     public ITransformerBuildInfo createTransformerBuildInfo(IPluginContext pluginContext, ISelectedTab tab) {
         DataXName dataX = pluginContext.getCollectionName();

@@ -379,7 +379,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
          */
         public static KeyVal calAppName(IPluginContext pluginContext, String appname, Optional<String> subPath, boolean updateAware) {
             if (pluginContext == null) {
-                return new KeyVal(appname);
+                return new KeyVal(appname, Objects.requireNonNull(subPath, "subPath can not be null"));
             }
             String referer = StringUtils.trimToEmpty(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER));
             Matcher configPathMatcher = DATAX_UPDATE_PATH.matcher(referer);
