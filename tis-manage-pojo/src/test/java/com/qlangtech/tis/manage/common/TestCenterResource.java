@@ -19,6 +19,7 @@ package com.qlangtech.tis.manage.common;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -49,6 +50,10 @@ public class TestCenterResource extends TestCase  {
         Config.setTestDataDir();
     }
 
+    public void test(){
+
+        CenterResource.copyFromRemote2Local(StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG + "/com.qlangtech.tis.offline.FileSystemFactory.xml", true);
+    }
     /**
      * CenterResource.copyFromRemote2Local
      */

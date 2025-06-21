@@ -46,6 +46,8 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
+import com.qlangtech.tis.lang.TisException;
+import com.qlangtech.tis.lang.TisException.ErrorCode;
 import com.qlangtech.tis.manage.biz.dal.dao.IAppTriggerJobRelationDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IApplicationDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IBizFuncAuthorityDAO;
@@ -178,14 +180,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return UploadPluginMeta.parse(this, plugins, useCache, validatePluginEmpty);
   }
 
-//  protected static WorkFlow getAppBindedWorkFlow(BasicModule module) {
-//    Integer wfid = module.getAppDomain().getApp().getWorkFlowId();
-//    WorkFlow dataflow = module.loadDF(wfid);// module.getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(wfid);
-//    if (dataflow == null) {
-//      throw new IllegalStateException("wfid relevant dataflow can not be null");
-//    }
-//    return dataflow;
-//  }
 
   @Override
   public String execute() throws Exception {
@@ -201,6 +195,16 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     } finally {
       IPluginContext.pluginContextThreadLocal.remove();
     }
+  }
+
+  /**
+   * 处理恢复TIS异常
+   *
+   * @param context
+   */
+  public final void doExceptionRestore(Context context) {
+    ErrorCode errorCode = TisException.parse(this.getString("errorCode"));
+    errorCode.execForward(this.getRundata());
   }
 
   public IClusterSnapshotDAO getClusterSnapshotDAO() {

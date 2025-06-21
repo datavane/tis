@@ -44,10 +44,7 @@ public class OperationLogAction extends BasicModule {
 
   private IOperationLogDAO operationLogDAO;
 
-  public void doExceptionRestore(Context context) {
-    ErrorCode errorCode = TisException.parse(this.getString("errorCode"));
-    errorCode.execForward(this.getRundata());
-  }
+
 
   /**
    * @param context

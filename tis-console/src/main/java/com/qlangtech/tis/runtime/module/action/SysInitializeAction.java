@@ -19,7 +19,6 @@ package com.qlangtech.tis.runtime.module.action;
 
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.Department;
@@ -34,10 +33,9 @@ import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.spring.TISDataSourceFactory;
 import com.qlangtech.tis.manage.spring.TISDataSourceFactory.SystemDBInit;
-import com.qlangtech.tis.plugin.license.TISLicense;
-import com.qlangtech.tis.plugin.license.TISLicense.HasExpire;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.UploadJarAction.ConfigContentGetter;
+import com.qlangtech.tis.utils.FreshmanReadmeToken;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
@@ -54,12 +52,10 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -193,42 +189,10 @@ public class SysInitializeAction extends BasicModule {
     return _isSysInitialized;
   }
 
-  private static final AtomicLong lastReadFreshManReadmeCheckTimestamp = new AtomicLong();
 
-  /**
-   * 是否已经阅读TIS新人指南，有的新人刚下载了TIS还没有阅读过TIS的文档，当TIS系统一打开先跳出一个新人指南对话框
-   *
-   * @return
-   */
-  public static boolean hasReadFreshManReadme() {
-    long lastCheck = lastReadFreshManReadmeCheckTimestamp.get();
-    final long currentTime = System.currentTimeMillis();
-    // 3秒钟之内只允许一个ajax 请求校验失败，防止前端页面中重复打开新人欢迎页面
-    if (lastCheck < currentTime) {
-      if (!(lastReadFreshManReadmeCheckTimestamp.compareAndSet(lastCheck, currentTime + 3000))) {
-        return true;
-      }
-    }
-    File readFreshManTokenFile = getReadFreshManTokenFile();
-    if (!readFreshManTokenFile.exists()) {
-      return false;
-    }
-    try {
-      String tokenContent = FileUtils.readFileToString(readFreshManTokenFile, TisUTF8.get());
-      long epochMilli = Long.parseLong(tokenContent);
-
-      return System.currentTimeMillis() < epochMilli;
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
 
   static File getSysInitializedTokenFile() {
     return new File(Config.getDataDir(), "system_initialized_token");
-  }
-
-  static File getReadFreshManTokenFile() {
-    return new File(Config.getDataDir(), "freshman_readme_token");
   }
 
   private static void touchSysInitializedToken() throws Exception {

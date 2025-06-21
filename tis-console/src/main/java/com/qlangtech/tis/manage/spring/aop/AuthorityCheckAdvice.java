@@ -92,25 +92,31 @@ public class AuthorityCheckAdvice extends MethodFilterInterceptor {
     }
 
 
-
-    ActionProxy proxy = invocation.getProxy();
-    String namespace = proxy.getNamespace();
+    //ActionProxy proxy = invocation.getProxy();
+    //  String namespace = proxy.getNamespace();
     final Method method = action.getExecuteMethod();
     Func func = method.getAnnotation(Func.class);
     final Rundata rundata = BasicModule.getRundataInstance();
     // }
     final IUser user = UserUtils.getUser(ServletActionContext.getRequest(), daoContextGetter.get());
-    if (!user.hasLogin() && !(action instanceof LoginAction || StringUtils.startsWith(namespace, "/config"))) {
+    if (!user.hasLogin() && !(isProcessLoginOrInConfigNamespace(invocation))) {
       rundata.redirectTo("/runtime/login.htm");
       return Action.NONE;
     }
     action.setAuthtoken(user);
     if (func == null) {
-      log.debug("target:" + proxy.getActionName() + ",method:" + method.getName() + " has not set FUNC");
+      log.debug("target:" + action.getClass().getSimpleName() + ",method:" + method.getName() + " has not set FUNC");
       return invocation.invoke();
     }
 
     return invocation.invoke();
+  }
+
+  public static boolean isProcessLoginOrInConfigNamespace(ActionInvocation invocation) {
+    BasicModule action = (BasicModule) invocation.getAction();
+    ActionProxy proxy = invocation.getProxy();
+    String namespace = proxy.getNamespace();
+    return action instanceof LoginAction || StringUtils.startsWith(namespace, "/config");
   }
 
   public static boolean inNotForwardProcess() {

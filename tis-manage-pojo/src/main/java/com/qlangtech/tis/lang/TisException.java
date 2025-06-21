@@ -27,6 +27,7 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.runtime.module.misc.BasicRundata;
 import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.utils.FreshmanReadmeToken;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -97,7 +98,11 @@ public class TisException extends RuntimeException {
          * TIS 刚打开时候还没有阅读新人指南
          */
         TIS_FRESHMAN_README_HAVE_NOT_READ((rundata) -> {
-            return new String[]{"coredefine", "core_action", "incr_delete"};
+            // 是否稍后再阅读
+            boolean remindMeLater = Boolean.parseBoolean(rundata.getStringParam("remindMeLater"));
+            // 永远也不回被打开了
+            FreshmanReadmeToken.setFreshManReadmeHasRead(remindMeLater);
+            return null;
         }),
         POWER_JOB_CLUSTER_LOSS_OF_CONTACT(new RemoveDataxWorkerForward() {
             @Override
@@ -118,7 +123,9 @@ public class TisException extends RuntimeException {
 
         public void execForward(BasicRundata rundata) {
             String[] forwardParams = forward.apply(rundata);
-            BasicRundata.forward(rundata, forwardParams);
+            if (forwardParams != null) {
+                BasicRundata.forward(rundata, forwardParams);
+            }
         }
     }
 

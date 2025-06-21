@@ -116,6 +116,9 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
                 val = property.getVal(false, instance);
 
                 if (val == null) {
+                    if (property.isInputRequired()) {
+                        throw new IllegalStateException("property:" + property.displayName + " is required but now is null");
+                    }
                     continue;
                 }
                 if (propValFilter != null) {
@@ -132,7 +135,7 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
     }
 
     public static class TISAssistProp<FIELD> {
-        private OverwriteProps overwriteProp = new OverwriteProps();
+        OverwriteProps overwriteProp = new OverwriteProps();
         private final FIELD configOption;
 
         boolean hasSetOverWrite = false;
@@ -143,6 +146,25 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
 
         public FIELD getConfigOption() {
             return configOption;
+        }
+
+        /**
+         * 重新定义enumOpts和默认值
+         *
+         * @param assistProp
+         * @param enumOpts
+         * @param dftVal
+         */
+        public static void set(TISAssistProp assistProp, List<Option> enumOpts, Object dftVal) {
+            if (!assistProp.hasSetOverWrite) {
+                OverwriteProps overwriteProp = new OverwriteProps();
+                overwriteProp.setEnumOpts(enumOpts);
+                overwriteProp.setDftVal(dftVal);
+                assistProp.setOverwriteProp(overwriteProp);
+            } else {
+                assistProp.overwriteProp.setEnumOpts(enumOpts);
+                assistProp.overwriteProp.setDftVal(dftVal);
+            }
         }
 
         private TISAssistProp(FIELD configOption) {

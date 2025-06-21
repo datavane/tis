@@ -33,7 +33,7 @@ import com.qlangtech.tis.manage.spring.aop.AuthorityCheckAdvice;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ds.JDBCConnection;
 import com.qlangtech.tis.plugin.ds.JDBCConnectionPool;
-import com.qlangtech.tis.runtime.module.action.SysInitializeAction;
+import com.qlangtech.tis.utils.FreshmanReadmeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.slf4j.Logger;
@@ -83,13 +83,16 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
     if (!disableTransaction) {
       status = transactionManager.getTransaction(new DefaultTransactionDefinition());
     }
+
     ActionProxy proxy = invocation.getProxy();
     AjaxValve.ActionExecResult execResult = null;
     try (JDBCConnectionPool jdbcConnectionPool = JDBCConnectionPool.create()) {
 
-      if (!SysInitializeAction.hasReadFreshManReadme()) {
+      if (!FreshmanReadmeToken.hasReadFreshManReadme()
+        && !AuthorityCheckAdvice.isProcessLoginOrInConfigNamespace(invocation)) {
         throw TisException.create(
-          ErrorValue.create(ErrorCode.TIS_FRESHMAN_README_HAVE_NOT_READ, Collections.emptyMap()), ErrorCode.TIS_FRESHMAN_README_HAVE_NOT_READ.name());
+          ErrorValue.create(ErrorCode.TIS_FRESHMAN_README_HAVE_NOT_READ
+            , Collections.emptyMap()), ErrorCode.TIS_FRESHMAN_README_HAVE_NOT_READ.name());
       }
 
       JDBCConnection.connectionPool.set(jdbcConnectionPool);
