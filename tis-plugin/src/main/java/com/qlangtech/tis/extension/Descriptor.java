@@ -106,6 +106,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public static final String SWITCH_OFF = "off";
     public static final String SWITCH_ON = "on";
     public static final String SWITCH_DEFAULT = "default";
+    /**
+     * 自定义
+     */
+    public static final String SWITCH_CUSTOMIZE = "customize";
 
     public static final String KEY_ENUM_PROP = "enum";
 

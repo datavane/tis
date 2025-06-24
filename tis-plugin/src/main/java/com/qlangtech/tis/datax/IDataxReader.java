@@ -22,7 +22,6 @@ import com.qlangtech.tis.plugin.IRepositoryResourceScannable;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.ThreadCacheTableCols;
 import com.qlangtech.tis.plugin.ds.CMeta;
-import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.IReaderSource;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
@@ -35,7 +34,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 import static com.qlangtech.tis.plugin.datax.SelectedTab.KEY_TABLE_COLS;
 

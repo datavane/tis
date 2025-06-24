@@ -31,6 +31,7 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -39,9 +40,14 @@ import java.util.Optional;
 @Public
 public abstract class IncrStreamFactory implements Describable<IncrStreamFactory>, IRCController {
 
+    public static Function<String, IncrStreamFactory> stubStreamFactory;
+
     public static IncrStreamFactory getFactory(String indexName) {
         if (StringUtils.isEmpty(indexName)) {
             throw new IllegalArgumentException("indexName:" + indexName + " can not be empty");
+        }
+        if (stubStreamFactory != null) {
+            return stubStreamFactory.apply(indexName);
         }
         IPluginStore<IncrStreamFactory> store = TIS.getPluginStore(indexName, IncrStreamFactory.class);
         IncrStreamFactory k8sConfig = store.getPlugin();
