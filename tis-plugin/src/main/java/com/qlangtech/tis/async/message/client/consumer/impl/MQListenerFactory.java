@@ -36,7 +36,6 @@ import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.incr.ISelectedTabExtendFactory;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
-import com.qlangtech.tis.plugin.timezone.DefaultTISTimeZone;
 import com.qlangtech.tis.plugin.timezone.TISTimeZone;
 import com.qlangtech.tis.realtime.transfer.DTO;
 import com.qlangtech.tis.realtime.transfer.DTO.EventType;
@@ -44,7 +43,6 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.HeteroEnum;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

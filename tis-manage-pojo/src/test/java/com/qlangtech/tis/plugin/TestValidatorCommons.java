@@ -79,6 +79,21 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
         Assert.assertTrue(url, matcher.matches());
     }
 
+    public void testPattern_integer() {
+        Matcher matcher = ValidatorCommons.pattern_integer.matcher("-1");
+        Assert.assertTrue(matcher.matches());
+        matcher = ValidatorCommons.pattern_integer.matcher(".1");
+        Assert.assertFalse(matcher.matches());
+        matcher = ValidatorCommons.pattern_integer.matcher("-19999888");
+        Assert.assertTrue(matcher.matches());
+
+        matcher = ValidatorCommons.pattern_integer.matcher("19999888");
+        Assert.assertTrue(matcher.matches());
+
+        matcher = ValidatorCommons.pattern_integer.matcher("1.1");
+        Assert.assertFalse(matcher.matches());
+    }
+
     public void testUserName() {
 
 //        Validator userNameValidator = Validator.user_name;

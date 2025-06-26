@@ -495,7 +495,11 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         public void merge(Props p) {
             jsonMerge(props, p.props);
             if (p.isAsynHelp()) {
-                this.asynHelp = p.asynHelp;
+                StringBuffer buffer = (new StringBuffer(p.asynHelp));
+                if (StringUtils.isNotBlank(this.asynHelp)) {
+                    buffer.append("\n\n").append(this.asynHelp);
+                }
+                this.asynHelp = buffer.toString();
             }
         }
 

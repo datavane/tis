@@ -51,7 +51,7 @@ public interface ValidatorCommons {
 
     Pattern pattern_identity = Pattern.compile("[A-Z\\da-z_\\-]+");
 
-    Pattern pattern_integer = Pattern.compile("[1-9]{1}[\\d]{0,}|0");
+    Pattern pattern_integer = Pattern.compile("-?[1-9]{1}[\\d]{0,}|0");
 
     String MSG_INTEGER_ERROR = "必须是整型数字";
 
