@@ -18,7 +18,9 @@
 package com.qlangtech.tis;
 
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.StoreResourceTypeConstants;
+import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.util.PluginMeta;
@@ -46,10 +48,16 @@ public class TestTIS extends TestCase {
 //        TIS.clean();
     }
 
+    public void testGetDisplayName() {
+        Descriptor descriptor = TIS.get().getDescriptor("com.qlangtech.tis.plugins.incr.flink.cdc.mysql.startup.EarliestStartupOptions");
+        Assert.assertNotNull(descriptor);
+        descriptor.getDisplayName();
+    }
+
     public void testLoadClass() throws Exception {
 
-      //  String clazz = "org.apache.flink.calcite.shaded.org.codehaus.commons.compiler.CompileException";
-        String clazz ="org.apache.flink.table.planner.calcite.FlinkRelOptClusterFactory";
+        //  String clazz = "org.apache.flink.calcite.shaded.org.codehaus.commons.compiler.CompileException";
+        String clazz = "org.apache.flink.table.planner.calcite.FlinkRelOptClusterFactory";
 
         URL aClass = TIS.get().getPluginManager().uberClassLoader.getResource(StringUtils.replace(clazz, ".", "/") + ".class");
         System.out.println(aClass);
