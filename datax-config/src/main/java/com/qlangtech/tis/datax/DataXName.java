@@ -18,13 +18,14 @@
 
 package com.qlangtech.tis.datax;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2025-04-20 14:08
  **/
-public class DataXName {
+public class DataXName implements Serializable {
 
     public static DataXName createDataXPipeline(String pipelineName) {
         return new DataXName(pipelineName, StoreResourceType.DataApp);

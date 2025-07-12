@@ -42,6 +42,7 @@ import com.qlangtech.tis.rpc.grpc.log.common.Empty;
 import com.qlangtech.tis.rpc.grpc.log.common.JoinTaskStatus;
 import com.tis.hadoop.rpc.StatusRpcClientFactory;
 import io.grpc.stub.StreamObserver;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,7 +148,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
             tableMultiDataIndexStatus.setBufferQueueRemainingCapacity(updateCounterFromClient.getBufferQueueRemainingCapacity());
             tableMultiDataIndexStatus.setConsumeErrorCount(updateCounterFromClient.getConsumeErrorCount());
             tableMultiDataIndexStatus.setIgnoreRowsCount(updateCounterFromClient.getIgnoreRowsCount());
-            tableMultiDataIndexStatus.setUUID(updateCounterFromClient.getUuid());
+            tableMultiDataIndexStatus.setUUID(uuid);
             tableMultiDataIndexStatus.setFromAddress(from);
             tableMultiDataIndexStatus.setUpdateTime(updateTime);
             tableMultiDataIndexStatus.setIncrProcessPaused(updateCounterFromClient.getIncrProcessPaused());
@@ -322,7 +323,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         }
         ConcurrentHashMap<String, TableMultiDataIndexStatus> /* uuid发送过来的节点id */
                 indexStatus = updateCounterStatus.get(collection);
-        return (indexStatus.size() > 0);
+        return MapUtils.isNotEmpty(indexStatus);
     }
 
     /**

@@ -1,0 +1,23 @@
+{
+  "pause": {
+    "label": "暂停/恢复",
+    "dftVal": false,
+    "enum": [
+      {
+        "label": "暂停",
+        "val": true
+      },
+      {
+        "label": "恢复",
+        "val": false
+      }
+    ]
+  },
+  "rateCfg": {
+    "dftVal": "NoLimit"
+  },
+  "name": {
+    "dftVal": "com.qlangtech.tis.plugin.rate.IncrRateController.dftProcessName():uncache_true",
+    "readonly": true
+  }
+}

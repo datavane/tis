@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.async.message.client.consumer.IFlinkColCreator;
-import com.qlangtech.tis.async.message.client.consumer.IMQConsumerStatusFactory;
 import com.qlangtech.tis.async.message.client.consumer.IMQListenerFactory;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataXPluginMeta;
@@ -58,8 +57,12 @@ import java.util.Optional;
  */
 @Public
 public abstract class MQListenerFactory
-        implements IMQListenerFactory, IMQConsumerStatusFactory, Describable<MQListenerFactory> {
+        implements IMQListenerFactory, Describable<MQListenerFactory> {
     private static final String KEY_filterRowKind = "filterRowKind";
+
+
+
+
 
     public static String dftZoneId() {
         return TISTimeZone.dftZoneId();

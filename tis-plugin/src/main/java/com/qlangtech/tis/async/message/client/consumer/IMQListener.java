@@ -17,10 +17,11 @@
  */
 package com.qlangtech.tis.async.message.client.consumer;
 
-import com.qlangtech.tis.coredefine.module.action.TargetResName;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 
 import java.util.List;
 
@@ -47,6 +48,6 @@ public interface IMQListener<SOURCE> {
      * @return
      * @throws MQConsumeException
      */
-    AsyncMsg<SOURCE> start(boolean flinkCDCPipelineEnable, TargetResName dataxName
+    AsyncMsg<SOURCE> start(IncrStreamFactory streamFactory, boolean flinkCDCPipelineEnable, DataXName dataxName
             , IDataxReader rdbmsReader, List<ISelectedTab> tabs, IDataxProcessor dataXProcessor) throws MQConsumeException;
 }

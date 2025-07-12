@@ -34,9 +34,13 @@ import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.job.common.JobCommon;
+import com.qlangtech.tis.manage.servlet.TopicTagIncrStatus.FocusTags;
 import com.qlangtech.tis.manage.spring.ZooKeeperGetter;
 import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.plugin.rate.IncrRateController;
+import com.qlangtech.tis.plugin.rate.IndexCollectionConfig;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
+import com.qlangtech.tis.realtime.transfer.IIncreaseCounter;
 import com.qlangtech.tis.realtime.yarn.rpc.JobType;
 import com.qlangtech.tis.realtime.yarn.rpc.TopicInfo;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
@@ -72,6 +76,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -329,8 +334,8 @@ public class LogFeedbackServlet extends WebSocketServlet {
           }
         });
       } else if (monitorTarget.testLogType(LogType.MQ_TAGS_STATUS)) {
-        PluginStore<MQListenerFactory> mqListenerFactory = (PluginStore<MQListenerFactory>) TIS.getPluginStore(this.collectionName, MQListenerFactory.class);
-        MQListenerFactory plugin = mqListenerFactory.getPlugin();
+        // PluginStore<MQListenerFactory> mqListenerFactory = (PluginStore<MQListenerFactory>) TIS.getPluginStore(this.collectionName, MQListenerFactory.class);
+        // MQListenerFactory plugin = mqListenerFactory.getPlugin();
         // 增量节点处理
         final Map<String, TopicTagStatus> /* this.tag */
           transferTagStatus = new HashMap<>();
@@ -341,8 +346,13 @@ public class LogFeedbackServlet extends WebSocketServlet {
         if (focusTags.size() > 0) {
           TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
           executorService.execute(() -> {
+            IndexCollectionConfig collectionConfig = IndexCollectionConfig.getIndexCollectionConfig(collectionName);
+
+            Long collectionInterval = Optional.ofNullable(collectionConfig)
+              .map((cfg) -> cfg.duration.toMillis()).orElse(IndexCollectionConfig.defaultDuration() * 1000l);
+
             IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(this.collectionName.getPipelineName(), this
-              , transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, plugin.createConsumerStatus(), zkGetter);
+              , transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, zkGetter, collectionInterval);
             incrTagHeatBeatMonitor.build();
           });
         }
@@ -380,7 +390,8 @@ public class LogFeedbackServlet extends WebSocketServlet {
 
       PhaseStatusCollection buildState
         = LogCollectorClient.convert(ss, new ExecutePhaseRange(
-        FullbuildPhase.parse(this.buildTask.getDelegate().getStartPhase()), FullbuildPhase.parse(this.buildTask.getDelegate().getEndPhase())));
+        FullbuildPhase.parse(this.buildTask.getDelegate().getStartPhase())
+        , FullbuildPhase.parse(this.buildTask.getDelegate().getEndPhase())));
       boolean jobStop = false;
       ExtendWorkFlowBuildHistory status = null;
       if (preTaskComplete != null) {
@@ -493,16 +504,19 @@ public class LogFeedbackServlet extends WebSocketServlet {
   }
 
   public static List<TopicTagIncrStatus.FocusTags> getFocusTags(ITISCoordinator zookeeper, String collectionName) throws MalformedURLException {
+    TopicTagIncrStatus.FocusTags focusTags = new FocusTags(collectionName, Collections.singletonList(IIncreaseCounter.TABLE_CONSUME_COUNT));
+    return Collections.singletonList(focusTags);
     //
-    JobType.RemoteCallResult<TopicInfo> topicInfo = JobType.ACTION_getTopicTags.assembIncrControlWithResult(
-      CoreAction.getAssembleNodeAddress(zookeeper),
-      collectionName, Collections.emptyList(), TopicInfo.class);
-    if (topicInfo.biz.getTopicWithTags().size() < 1) {
-      // 返回为空的话可以证明没有正常启动
-      return Collections.emptyList();
-    }
-    TopicInfo topicTags = topicInfo.biz;
-    return topicTags.getTopicWithTags().entrySet().stream().map((entry) -> new TopicTagIncrStatus.FocusTags(entry.getKey(), entry.getValue())).collect(Collectors.toList());
+//    JobType.RemoteCallResult<TopicInfo> topicInfo = JobType.ACTION_getTopicTags.assembIncrControlWithResult(
+//      CoreAction.getAssembleNodeAddress(zookeeper),
+//      collectionName, Collections.emptyList(), TopicInfo.class);
+//    if (topicInfo.biz.getTopicWithTags().size() < 1) {
+//      // 返回为空的话可以证明没有正常启动
+//      return Collections.emptyList();
+//    }
+//    TopicInfo topicTags = topicInfo.biz;
+//    return topicTags.getTopicWithTags()
+//      .entrySet().stream().map((entry) -> new TopicTagIncrStatus.FocusTags(entry.getKey(), entry.getValue())).collect(Collectors.toList());
   }
 
   static class TagCountMap extends HashMap<String, /* tag */

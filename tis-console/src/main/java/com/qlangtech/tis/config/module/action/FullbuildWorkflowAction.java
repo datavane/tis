@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.exec.AbstractExecContext;
 import com.qlangtech.tis.exec.impl.DataXPipelineExecContext;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
@@ -32,10 +33,13 @@ import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.CreateNewTaskResult;
+import com.qlangtech.tis.manage.common.DefaultFilter;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.plugin.rate.IncrRateController;
+import com.qlangtech.tis.realtime.yarn.rpc.IncrRateControllerCfgDTO;
 import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
@@ -44,7 +48,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -80,6 +86,26 @@ public class FullbuildWorkflowAction extends BasicModule {
     } else {
       rundata.forwardTo("coredefine", "datax_action", "trigger_fullbuild_task");
     }
+  }
+
+  /**
+   * @param context
+   */
+  public void doGetRateController(Context context) {
+    DataXName dataXPipeline = DataXName.createDataXPipeline(this.getString(IncrRateControllerCfgDTO.KEY_PIPELINE));
+    Long lastModified = this.getLong(IncrRateControllerCfgDTO.KEY_LAST_MODIFIED);
+    IncrRateController rateController = IncrRateController.getRateController(dataXPipeline);
+
+    if (rateController == null) {
+      return;
+    }
+    if (lastModified != null
+      && lastModified >= Objects.requireNonNull(rateController.lastModified, "lastModified can not be null")) {
+      return;
+    }
+    IncrRateControllerCfgDTO controllerCfgDTO = rateController.createIncrRateControllerCfgDTO();
+
+    this.setBizResult(context, controllerCfgDTO);
   }
 
   /**

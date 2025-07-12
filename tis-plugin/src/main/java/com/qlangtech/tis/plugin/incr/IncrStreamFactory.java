@@ -57,6 +57,8 @@ public abstract class IncrStreamFactory implements Describable<IncrStreamFactory
         return k8sConfig;
     }
 
+    public abstract boolean supportRateLimiter();
+    public abstract <RateLimiterStrategy> RateLimiterStrategy getRateLimiterStrategy();
     public abstract Integer getParallelism();
 
     public abstract ServerLaunchToken getLaunchToken(TargetResName indexName);

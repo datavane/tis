@@ -25,15 +25,23 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.ajax.AjaxResult;
+import com.qlangtech.tis.assemble.ExecResult;
+import com.qlangtech.tis.datax.DataXName;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.ConfigFileContext.HTTPMethod;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
+import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.realtime.yarn.rpc.IncrRateControllerCfgDTO;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +55,7 @@ import java.util.stream.Stream;
  */
 public class HttpUtils {
 
+    private static final Logger logger = LoggerFactory.getLogger(HttpUtils.class);
 
     public interface IMsgProcess {
         public void err(String content);
@@ -181,6 +190,15 @@ public class HttpUtils {
             @Override
             public ContentType getContentType() {
                 return ContentType.Application_x_www_form_urlencoded;
+            }
+
+            @Override
+            public void error(int status, InputStream errstream, IOException e) throws Exception {
+                if (errorShortCircuit) {
+                    super.error(status, errstream, e);
+                } else {
+                    logger.warn(e.getMessage());
+                }
             }
 
             @Override

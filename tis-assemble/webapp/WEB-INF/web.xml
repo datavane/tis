@@ -91,10 +91,10 @@
         <servlet-class>com.qlangtech.tis.realtime.servlet.RealtimeStatePageServlet</servlet-class>
     </servlet>
 -->
-    <!--	<servlet>-->
-    <!--		<servlet-name>incrControlServlet</servlet-name>-->
-    <!--		<servlet-class>com.qlangtech.tis.realtime.servlet.IncrControlServlet</servlet-class>-->
-    <!--	</servlet>-->
+    	<servlet>
+    		<servlet-name>incrControlServlet</servlet-name>
+    		<servlet-class>com.qlangtech.tis.realtime.servlet.IncrControlServlet</servlet-class>
+    	</servlet>
 
     <!--	<servlet>-->
     <!--		<servlet-name>monitorServlet</servlet-name>-->
@@ -143,10 +143,10 @@
         <url-pattern>/histogram-state</url-pattern>
     </servlet-mapping>
      -->
-    <!--	<servlet-mapping>-->
-    <!--		<servlet-name>incrControlServlet</servlet-name>-->
-    <!--		<url-pattern>/incr-control</url-pattern>-->
-    <!--	</servlet-mapping>-->
+    	<servlet-mapping>
+    		<servlet-name>incrControlServlet</servlet-name>
+    		<url-pattern>/incr-control</url-pattern>
+    	</servlet-mapping>
 
     <!--
     <servlet-mapping>

@@ -15,7 +15,6 @@
 package com.qlangtech.tis.manage.servlet;
 
 import com.alibaba.fastjson.JSONObject;
-import com.qlangtech.tis.async.message.client.consumer.IMQConsumerStatusFactory;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.manage.spring.ZooKeeperGetter;
@@ -29,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -46,21 +46,21 @@ public class IncrTagHeatBeatMonitor {
 
   private final TopicTagIncrStatus topicTagIncrStatus;
 
-  private final IMQConsumerStatusFactory.IMQConsumerStatus consumerStatus;
 
   private final String collectionName;
   private final ZooKeeperGetter zkGetter;
+  private final Long collectionInterval;
 
   public IncrTagHeatBeatMonitor(String collectionName, ILogListener messagePush, Map<String, TopicTagStatus> transferTagStatus
     , Map<String, TopicTagStatus> binlogTopicTagStatus, TopicTagIncrStatus topicTagIncrStatus //
-    , IMQConsumerStatusFactory.IMQConsumerStatus consumerStatus, ZooKeeperGetter zkGetter) {
+    , ZooKeeperGetter zkGetter, Long collectionInterval) {
     this.collectionName = collectionName;
     this.messagePush = messagePush;
     this.transferTagStatus = transferTagStatus;
     this.binlogTopicTagStatus = binlogTopicTagStatus;
     this.topicTagIncrStatus = topicTagIncrStatus;
-    this.consumerStatus = consumerStatus;
     this.zkGetter = zkGetter;
+    this.collectionInterval = Objects.requireNonNull(collectionInterval, "collectionInterval can not be null");
   }
 
   public void build() {
@@ -72,22 +72,22 @@ public class IncrTagHeatBeatMonitor {
         long currSec = (System.currentTimeMillis() / 1000);
 
         getIncrTransferTagUpdateMap(this.zkGetter.getInstance(), transferTagStatus, collectionName);
-        for (String tabTag : topicTagIncrStatus.getFocusTags()) {
-          topicTagIncrStatus.add(currSec, TopicTagIncrStatus.TopicTagIncr.create(tabTag, Collections.emptyMap(), transferTagStatus));
-        }
+//        for (String tabTag : topicTagIncrStatus.getFocusTags()) {
+//          topicTagIncrStatus.add(currSec, TopicTagIncrStatus.TopicTagIncr.create(tabTag, Collections.emptyMap(), transferTagStatus));
+//        }
         for (String summaryKey : TopicTagIncrStatus.ALL_SUMMARY_KEYS) {
           topicTagIncrStatus.add(currSec, TopicTagIncrStatus.TopicTagIncr.create(summaryKey, Collections.emptyMap(), transferTagStatus));
         }
         // logger.info("p4{}", System.currentTimeMillis() - start);
         // start = System.currentTimeMillis();
-        averageTopicTagIncr = topicTagIncrStatus.getAverageTopicTagIncr(true, /** average */false);
+        averageTopicTagIncr = topicTagIncrStatus.getAverageTopicTagIncr(false, /** average */false);
         // logger.info("p5{}", System.currentTimeMillis() - start);
         // start = System.currentTimeMillis();
         ExecuteState<TopicTagIncrStatus.TisIncrStatus> event = ExecuteState.create(LogType.MQ_TAGS_STATUS, averageTopicTagIncr);
         messagePush.sendMsg2Client(event);
         // start = System.currentTimeMillis();
         try {
-          Thread.sleep(1000l);
+          Thread.sleep(collectionInterval);
         } catch (InterruptedException e) {
         }
       }
@@ -125,12 +125,15 @@ public class IncrTagHeatBeatMonitor {
   private void setMetricCount(Map<String, TopicTagStatus> tagStatus, String tagName, Integer count) {
     TopicTagStatus tagStat;
     tagStat = tagStatus.get(tagName);
+    logger.info("tagName:{},count:{}", tagName, count);
     if (tagStat == null) {
       // String topic, String tag, int count, long lastUpdates
-      tagStat = new TopicTagStatus(StringUtils.EMPTY, tagName, count, -1);
+      tagStat = new TopicTagStatus(StringUtils.EMPTY, tagName, count, System.currentTimeMillis());
       tagStatus.put(tagName, tagStat);
     } else {
       tagStat.setCount(count);
+      tagStat.setLastUpdate(System.currentTimeMillis());
+      // tagStat.merge(tagStat);
     }
   }
 }

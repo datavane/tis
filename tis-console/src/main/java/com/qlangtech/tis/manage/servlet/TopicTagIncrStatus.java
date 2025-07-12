@@ -49,7 +49,9 @@ public class TopicTagIncrStatus {
   // private static final String KEY_SOLR_CONSUME = "solrConsume";
   // public static final String KEY_TABLE_CONSUME_COUNT = "tableConsumeCount";
   public static final Set<String> ALL_SUMMARY_KEYS
-    = Sets.newHashSet(IIncreaseCounter.SOLR_CONSUME_COUNT, IIncreaseCounter.TABLE_CONSUME_COUNT);
+    = Sets.newHashSet(
+    //IIncreaseCounter.SOLR_CONSUME_COUNT,
+    IIncreaseCounter.TABLE_CONSUME_COUNT);
 
   private final Collection<String> focusTags;
 
@@ -193,7 +195,7 @@ public class TopicTagIncrStatus {
 
       @Override
       protected SimpleDateFormat initialValue() {
-        return new SimpleDateFormat("MM/dd HH:mm:ss");
+        return new SimpleDateFormat("HH:mm:ss");
       }
     };
 
@@ -225,8 +227,7 @@ public class TopicTagIncrStatus {
     TopicTagIncr create(//
                         String tag, //
                         Map<String, /* this.tag */
-                          TopicTagStatus> binlog, Map<String, /* this.tag */
-      TopicTagStatus> transfer) {
+                          TopicTagStatus> binlog, Map<String, /* this.tag */TopicTagStatus> transfer) {
       long binlogIncr = 0;
       long binlogIncrLastUpdate = 0;
       long trantransferIncr = 0;
@@ -237,6 +238,7 @@ public class TopicTagIncrStatus {
       }
       TopicTagStatus transferTagStat = transfer.get(tag);
       if (transferTagStat != null) {
+        binlogIncrLastUpdate = transferTagStat.getLastUpdateTime();
         trantransferIncr = transferTagStat.getIncr();
       }
       return new TopicTagIncr(tag, (int) binlogIncr, binlogIncrLastUpdate, (int) trantransferIncr);

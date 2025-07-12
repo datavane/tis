@@ -28,8 +28,8 @@ import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.servlet.impl.HttpExecContext;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.job.common.JobParams;
-import com.qlangtech.tis.manage.common.DagTaskUtils;
-import com.qlangtech.tis.manage.common.TISCollectionUtils;
+import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.manage.common.TaskSoapUtils;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import org.apache.commons.lang.StringUtils;
@@ -209,13 +209,13 @@ public class TisServlet extends HttpServlet {
                                      ************************************************************/
                                     ExecResult execResult = startWork(chainContext).isSuccess() ? ExecResult.SUCCESS : ExecResult.FAILD;
 
-                                    DagTaskUtils.createTaskComplete(newTaskId, chainContext, execResult);
+                                    TaskSoapUtils.createTaskComplete(newTaskId, chainContext, execResult);
                                 } catch (InterruptedException e) {
                                     // 说明当前任务被 终止了
                                     logger.info("taskid:{} has been canceled", newTaskId);
                                     return;
                                 } catch (Throwable e) {
-                                    DagTaskUtils.createTaskComplete(newTaskId, chainContext, ExecResult.FAILD);
+                                    TaskSoapUtils.createTaskComplete(newTaskId, chainContext, ExecResult.FAILD);
                                     getLog().error(e.getMessage(), e);
                                     throw new RuntimeException(e);
                                 } finally {

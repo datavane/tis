@@ -1,0 +1,7 @@
+{
+  "recordsPerSecond": {
+    "label": "rateLimit",
+    "dftVal": 10000,
+    "help": "每秒最多处理的事件记录数目，当实时任务启动之后，支持运行期动态调整该限流参数"
+  }
+}

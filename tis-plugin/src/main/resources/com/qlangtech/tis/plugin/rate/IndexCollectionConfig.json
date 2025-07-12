@@ -1,0 +1,10 @@
+{
+  "name": {
+    "dftVal": "com.qlangtech.tis.plugin.rate.IncrRateController.dftProcessName():uncache_true",
+    "readonly": true
+  },
+  "duration": {
+    "label": "采集间隔",
+    "dftVal": "com.qlangtech.tis.plugin.rate.IndexCollectionConfig.defaultDuration()"
+  }
+}

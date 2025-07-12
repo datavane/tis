@@ -19,12 +19,9 @@
 package com.qlangtech.tis.manage.common;
 
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.ajax.AjaxResult;
-import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
@@ -32,101 +29,17 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.DumpTask;
 import com.qlangtech.tis.fullbuild.taskflow.JoinTask;
 import com.qlangtech.tis.fullbuild.taskflow.TaskAndMilestone;
-import com.qlangtech.tis.job.common.JobCommon;
-import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.powerjob.IDAGSessionSpec;
 import com.qlangtech.tis.sql.parser.DAGSessionSpec;
-import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
-import org.apache.commons.lang.StringUtils;
 
-import java.text.MessageFormat;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-06-03 14:57
  **/
 public class DagTaskUtils {
-    public static final MessageFormat WORKFLOW_CONFIG_URL_FORMAT
-            = new MessageFormat(Config.getConfigRepositoryHost()
-            + "/config/config.ajax?action={0}&event_submit_{1}=true&handler={2}{3}");
 
-
-    public static void feedbackAsynTaskStatus(int taskid, String subTaskName, boolean success) {
-        String url = WORKFLOW_CONFIG_URL_FORMAT
-                .format(new Object[]{"fullbuild_workflow_action", "do_feedback_asyn_task_status", StringUtils.EMPTY,
-                        StringUtils.EMPTY});
-        List<HttpUtils.PostParam> params = Lists.newArrayList();
-        params.add(new HttpUtils.PostParam(IParamContext.KEY_REQUEST_DISABLE_TRANSACTION, true));
-        params.add(new HttpUtils.PostParam(JobCommon.KEY_TASK_ID, taskid));
-        params.add(new HttpUtils.PostParam(IParamContext.KEY_ASYN_JOB_NAME, subTaskName));
-        params.add(new HttpUtils.PostParam(IParamContext.KEY_ASYN_JOB_SUCCESS, success));
-
-        HttpUtils.soapRemote(url, params, CreateNewTaskResult.class, false);
-    }
-
-    public static void createTaskComplete(int taskid, IExecChainContext chainContext, ExecResult execResult) {
-        if (execResult == null) {
-            throw new IllegalArgumentException("param execResult can not be null");
-        }
-        String url = WORKFLOW_CONFIG_URL_FORMAT
-                .format(new Object[]{"fullbuild_workflow_action", "do_task_complete", StringUtils.EMPTY, /* advance_query_result */
-                        StringUtils.EMPTY});
-        //
-        List<HttpUtils.PostParam> params = Lists.newArrayList(//
-                new HttpUtils.PostParam("execresult", String.valueOf(execResult.getValue())), //
-                new HttpUtils.PostParam(JobCommon.KEY_TASK_ID, String.valueOf(taskid)));
-
-        if (chainContext.containAsynJob()) {
-            for (IExecChainContext.AsynSubJob asynJob : chainContext.getAsynSubJobs()) {
-                params.add(new HttpUtils.PostParam(IParamContext.KEY_ASYN_JOB_NAME, asynJob.jobName));
-            }
-        }
-
-        HttpUtils.soapRemote(url, params, CreateNewTaskResult.class);
-    }
-
-    /**
-     * 取得最近一次workflow成功执行的taskid
-     *
-     * @param appName 专指dataX pipeline
-     * @return
-     */
-//    public static Optional<WorkFlowBuildHistory> getLatestWFSuccessTaskId(String appName) {
-//        if (StringUtils.isBlank(appName)) {
-//            throw new IllegalArgumentException("param appName can not be empty");
-//        }
-//        String url = IExecChainContext.WORKFLOW_CONFIG_URL_POST_FORMAT
-//                .format(new Object[]{"fullbuild_workflow_action", "do_get_latest_success_workflow"});
-//        List<HttpUtils.PostParam> params = Lists.newArrayList();
-//        params.add(new HttpUtils.PostParam(IFullBuildContext.KEY_APP_NAME, appName));
-//
-//        AjaxResult<WorkFlowBuildHistory> result = HttpUtils.soapRemote(url, params, WorkFlowBuildHistory.class, false);
-//        if (!result.isSuccess()) {
-//            return Optional.empty();
-//        }
-//        return Optional.of(result.getBizresult());
-//    }
-
-    /**
-     * 取得当前工作流 执行状态
-     *
-     * @param taskId
-     * @return
-     */
-    public static WorkFlowBuildHistory getWFStatus(Integer taskId) {
-        if (taskId == null || taskId < 1) {
-            throw new IllegalArgumentException("param taskId can not be empty");
-        }
-        String url = IExecChainContext.WORKFLOW_CONFIG_URL_POST_FORMAT
-                .format(new Object[]{"fullbuild_workflow_action", "do_get_wf"});
-        List<HttpUtils.PostParam> params = Lists.newArrayList();
-        params.add(new HttpUtils.PostParam(JobCommon.KEY_TASK_ID, taskId));
-
-        AjaxResult<WorkFlowBuildHistory> result = HttpUtils.soapRemote(url, params, WorkFlowBuildHistory.class, true);
-        return result.getBizresult();
-    }
 
     public static List<IRemoteTaskTrigger> createTasks(IExecChainContext execChainContext, ITaskPhaseInfo phaseStatus
             , IDAGSessionSpec dagSessionSpec, RemoteTaskTriggers tskTriggers) {

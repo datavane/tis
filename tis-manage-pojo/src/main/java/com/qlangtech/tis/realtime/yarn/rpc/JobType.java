@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.realtime.yarn.rpc;
 
@@ -39,9 +39,9 @@ import java.util.Map;
 public enum JobType {
 
     IndexJobRunning(1, "JobRunning"),
-//    //
-//    QueryIndexJobRunningStatus(2, "QueryIncrStatus"),
-//    // incr process tags的状态
+    //
+    QueryIndexJobRunningStatus(2, "QueryIncrStatus"),
+    //    // incr process tags的状态
     Collection_TopicTags_status(3, "collection_topic_tags_status"),
     // 取得增量监听的tags
     ACTION_getTopicTags(4, "get_topic_tags");
@@ -108,28 +108,26 @@ public enum JobType {
         params.add(new HttpUtils.PostParam("collection", collectionName));
         params.add(new HttpUtils.PostParam("action", this.getName()));
         params.addAll(extraParams);
-        return //
-                HttpUtils.post(//
-                        applyUrl, //
-                        params, new PostFormStreamProcess<RemoteCallResult>() {
+        return HttpUtils.post(//
+                applyUrl, //
+                params, new PostFormStreamProcess<RemoteCallResult>() {
 
-                            public RemoteCallResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-                                RemoteCallResult<T> result = new RemoteCallResult<>();
-                                try {
-                                    // System.out.println(IOUtils.toString(stream, TisUTF8.get()));
-                                    com.alibaba.fastjson.JSONObject j = JSON.parseObject(IOUtils.toString(stream, TisUTF8.get()));
-                                    result.success = j.getBoolean("success");
-                                    result.msg = j.getString("msg");
-                                    if (deserialize != null && j.containsKey(KEY_BIZ)) {
-                                        // JSON.toJavaObject(j.getJSONObject(KEY_BIZ), clazz);
-                                        result.biz = deserialize.deserialize(j.getJSONObject(KEY_BIZ));
-                                    }
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                                return result;
+                    public RemoteCallResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+                        RemoteCallResult<T> result = new RemoteCallResult<>();
+                        try {
+                            com.alibaba.fastjson.JSONObject j = JSON.parseObject(IOUtils.toString(stream, TisUTF8.get()));
+                            result.success = j.getBoolean("success");
+                            result.msg = j.getString("msg");
+                            if (deserialize != null && j.containsKey(KEY_BIZ)) {
+                                // JSON.toJavaObject(j.getJSONObject(KEY_BIZ), clazz);
+                                result.biz = deserialize.deserialize(j.getJSONObject(KEY_BIZ));
                             }
-                        });
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        return result;
+                    }
+                });
     }
 
     public interface IAssembIncrControlResult {

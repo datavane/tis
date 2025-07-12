@@ -33,6 +33,7 @@ import com.qlangtech.tis.extension.impl.TestXmlFile;
 import com.qlangtech.tis.extension.model.TestUpdateCenter;
 import com.qlangtech.tis.extension.util.TestGroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.TestPluginExtraProps;
+import com.qlangtech.tis.manage.common.TaskSoapUtilsTest;
 import com.qlangtech.tis.plugin.TestComponentMeta;
 import com.qlangtech.tis.plugin.TestInnerPropOfIdentityName;
 import com.qlangtech.tis.plugin.TestKeyedPluginStore;
@@ -66,6 +67,7 @@ public class TestAll extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTestSuite(TaskSoapUtilsTest.class);
         suite.addTestSuite(TestPropertyType.class);
         suite.addTestSuite(TestTableInDB.class);
         suite.addTestSuite(TestSelectedTab.class);
