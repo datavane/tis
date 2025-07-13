@@ -151,7 +151,8 @@ public interface IEndTypeGetter {
         , Preview("preview", EndTypeCategory.Icon, true) //
         , Clone("clone", EndTypeCategory.Icon, true) //
         , Blank("blank", EndTypeCategory.Icon, true) //
-
+        //
+        , Replace("replace", EndTypeCategory.Transformer, true)//
         , Concat("concat", EndTypeCategory.Transformer, true)//
         , Mask("mask", EndTypeCategory.Transformer, true)//
         , Splitter("splitter", EndTypeCategory.Transformer, true)//
