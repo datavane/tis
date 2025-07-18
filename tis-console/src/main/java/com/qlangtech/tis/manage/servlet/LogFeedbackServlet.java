@@ -150,7 +150,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
       super.onWebSocketConnect(sess);
       this.taskid = Integer.parseInt(this.getParameter(JobCommon.KEY_TASK_ID, Collections.singletonList("-1")));
       this.collectionName = DataXName.createDataXPipeline(getParameter("collection", Collections.singletonList(MonotorTarget.DUMP_COLLECTION)));
-      List<RegisterMonotorTarget> typies = parseLogTypes(this.getParameter("logtype"));
+      List<RegisterMonotorTarget> typies = RegisterMonotorTarget.parseLogTypes(this.collectionName, this.taskid, this.getParameter("logtype"));
       logger.info("taskid:{},appname:{},typies:{}", this.taskid, this.collectionName
         , typies.stream().map((t) -> String.valueOf(t)).collect(Collectors.joining(",")));
       try {
@@ -201,7 +201,8 @@ public class LogFeedbackServlet extends WebSocketServlet {
     @Override
     public void onWebSocketText(String message) {
       JSONObject body = JSON.parseObject(message);
-      List<RegisterMonotorTarget> logtype = parseLogTypes(body.getString("logtype"));
+      List<RegisterMonotorTarget> logtype
+        = RegisterMonotorTarget.parseLogTypes(this.collectionName, this.taskid, body.getString("logtype"));
       addMonitor(logtype);
     }
 
@@ -334,28 +335,29 @@ public class LogFeedbackServlet extends WebSocketServlet {
           }
         });
       } else if (monitorTarget.testLogType(LogType.MQ_TAGS_STATUS)) {
+        throw new UnsupportedOperationException(" has been migrate to IncrControlWebSocketServlet");
         // PluginStore<MQListenerFactory> mqListenerFactory = (PluginStore<MQListenerFactory>) TIS.getPluginStore(this.collectionName, MQListenerFactory.class);
         // MQListenerFactory plugin = mqListenerFactory.getPlugin();
         // 增量节点处理
-        final Map<String, TopicTagStatus> /* this.tag */
-          transferTagStatus = new HashMap<>();
-        final Map<String, TopicTagStatus> /* this.tag */
-          binlogTopicTagStatus = new HashMap<>();
-        List<TopicTagIncrStatus.FocusTags> focusTags = getFocusTags(zkGetter.getInstance(), collectionName.getPipelineName());
-        // 如果size为0，则说明远程工作节点没有正常执行
-        if (focusTags.size() > 0) {
-          TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
-          executorService.execute(() -> {
-            IndexCollectionConfig collectionConfig = IndexCollectionConfig.getIndexCollectionConfig(collectionName);
-
-            Long collectionInterval = Optional.ofNullable(collectionConfig)
-              .map((cfg) -> cfg.duration.toMillis()).orElse(IndexCollectionConfig.defaultDuration() * 1000l);
-
-            IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(this.collectionName.getPipelineName(), this
-              , transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, zkGetter, collectionInterval);
-            incrTagHeatBeatMonitor.build();
-          });
-        }
+//        final Map<String, TopicTagStatus> /* this.tag */
+//          transferTagStatus = new HashMap<>();
+//        final Map<String, TopicTagStatus> /* this.tag */
+//          binlogTopicTagStatus = new HashMap<>();
+//        List<TopicTagIncrStatus.FocusTags> focusTags = getFocusTags(zkGetter.getInstance(), collectionName.getPipelineName());
+//        // 如果size为0，则说明远程工作节点没有正常执行
+//        if (focusTags.size() > 0) {
+//          TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
+//          executorService.execute(() -> {
+//            IndexCollectionConfig collectionConfig = IndexCollectionConfig.getIndexCollectionConfig(collectionName);
+//
+//            Long collectionInterval = Optional.ofNullable(collectionConfig)
+//              .map((cfg) -> cfg.duration.toMillis()).orElse(IndexCollectionConfig.defaultDuration() * 1000l);
+//
+//            IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(this.collectionName.getPipelineName(), this
+//              , transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, zkGetter, collectionInterval);
+//            incrTagHeatBeatMonitor.build();
+//          });
+//        }
       } else {
         throw new IllegalStateException("monitor type:" + monitorTarget + " is illegal");
       }
@@ -443,10 +445,6 @@ public class LogFeedbackServlet extends WebSocketServlet {
       sendMsg2Client(JSON.toJSONString(biz, false));
     }
 
-    private void sendMsg2Client(MessageOrBuilder biz) throws IOException {
-      sendMsg2Client(JsonFormatPrinter.print(biz));
-    }
-
     private void sendMsg2Client(String jsonContent) throws IOException {
       synchronized (LogSocket.this) {
         if (this.isClosed()) {
@@ -458,37 +456,42 @@ public class LogFeedbackServlet extends WebSocketServlet {
       }
     }
 
-    /**
-     * LogCollectorClient.IPhaseStatusCollectionListener>>>>>>>>>>>>>>>>>
-     */
-    /**
-     * 需要监听的实体的格式 “full”,“incrbuild:search4totalpay-1”
-     *
-     * @param logstype
-     * @return
-     */
-    private List<RegisterMonotorTarget> parseLogTypes(String logstype) {
-      List<RegisterMonotorTarget> types = new ArrayList<>();
-      for (String t : StringUtils.split(logstype, ",")) {
-        String[] arg = null;
-        if (StringUtils.indexOf(t, ":") > 0) {
-          arg = StringUtils.split(t, ":");
-          if (arg.length != 2) {
-            throw new IllegalArgumentException("arg:" + t + " is not illegal");
-          }
-          PayloadMonitorTarget payloadMonitor = MonotorTarget.createPayloadMonitor(this.collectionName, arg[1], LogType.parse(arg[0]));
-          types.add(payloadMonitor);
-        } else {
-          types.add(MonotorTarget.createRegister(this.collectionName, LogType.parse(t)));
-        }
-      }
-      types.forEach((t) -> {
-        if (this.taskid > 0) {
-          t.setTaskid(this.taskid);
-        }
-      });
-      return types;
+    private void sendMsg2Client(MessageOrBuilder biz) throws IOException {
+      sendMsg2Client(JsonFormatPrinter.print(biz));
     }
+
+
+//    /**
+//     * LogCollectorClient.IPhaseStatusCollectionListener>>>>>>>>>>>>>>>>>
+//     */
+//    /**
+//     * 需要监听的实体的格式 “full”,“incrbuild:search4totalpay-1”
+//     *
+//     * @param logstype
+//     * @return
+//     */
+//    private List<RegisterMonotorTarget> parseLogTypes(String logstype) {
+//      List<RegisterMonotorTarget> types = new ArrayList<>();
+//      for (String t : StringUtils.split(logstype, ",")) {
+//        String[] arg = null;
+//        if (StringUtils.indexOf(t, ":") > 0) {
+//          arg = StringUtils.split(t, ":");
+//          if (arg.length != 2) {
+//            throw new IllegalArgumentException("arg:" + t + " is not illegal");
+//          }
+//          PayloadMonitorTarget payloadMonitor = MonotorTarget.createPayloadMonitor(this.collectionName, arg[1], LogType.parse(arg[0]));
+//          types.add(payloadMonitor);
+//        } else {
+//          types.add(MonotorTarget.createRegister(this.collectionName, LogType.parse(t)));
+//        }
+//      }
+//      types.forEach((t) -> {
+//        if (this.taskid > 0) {
+//          t.setTaskid(this.taskid);
+//        }
+//      });
+//      return types;
+//    }
 
     private String getParameter(String key) {
       return this.getParameter(key, Collections.emptyList());
@@ -503,21 +506,6 @@ public class LogFeedbackServlet extends WebSocketServlet {
     }
   }
 
-  public static List<TopicTagIncrStatus.FocusTags> getFocusTags(ITISCoordinator zookeeper, String collectionName) throws MalformedURLException {
-    TopicTagIncrStatus.FocusTags focusTags = new FocusTags(collectionName, Collections.singletonList(IIncreaseCounter.TABLE_CONSUME_COUNT));
-    return Collections.singletonList(focusTags);
-    //
-//    JobType.RemoteCallResult<TopicInfo> topicInfo = JobType.ACTION_getTopicTags.assembIncrControlWithResult(
-//      CoreAction.getAssembleNodeAddress(zookeeper),
-//      collectionName, Collections.emptyList(), TopicInfo.class);
-//    if (topicInfo.biz.getTopicWithTags().size() < 1) {
-//      // 返回为空的话可以证明没有正常启动
-//      return Collections.emptyList();
-//    }
-//    TopicInfo topicTags = topicInfo.biz;
-//    return topicTags.getTopicWithTags()
-//      .entrySet().stream().map((entry) -> new TopicTagIncrStatus.FocusTags(entry.getKey(), entry.getValue())).collect(Collectors.toList());
-  }
 
   static class TagCountMap extends HashMap<String, /* tag */
     Integer> {

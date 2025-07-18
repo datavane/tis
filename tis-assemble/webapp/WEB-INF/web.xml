@@ -155,5 +155,13 @@
     </servlet-mapping>
     -->
 
+    <servlet>
+        <servlet-name>incrControlWebSocket</servlet-name>
+        <servlet-class>com.qlangtech.tis.realtime.servlet.IncrControlWebSocketServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>incrControlWebSocket</servlet-name>
+        <url-pattern>/incr-control-websocket</url-pattern>
+    </servlet-mapping>
 
 </web-app>

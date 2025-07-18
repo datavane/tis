@@ -17,14 +17,15 @@
  */
 package com.qlangtech.tis.manage.servlet;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.qlangtech.tis.realtime.transfer.IIncreaseCounter;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -33,11 +34,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
-import static java.util.stream.Collectors.toSet;
+import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -48,12 +47,17 @@ public class TopicTagIncrStatus {
   // public static final  String KEY_BINLOG_READ_OFFSET = "binlogOffset";
   // private static final String KEY_SOLR_CONSUME = "solrConsume";
   // public static final String KEY_TABLE_CONSUME_COUNT = "tableConsumeCount";
-  public static final Set<String> ALL_SUMMARY_KEYS
-    = Sets.newHashSet(
+  public static final List<Pair<String, Function<TopicTagIncr, Integer>>> ALL_SUMMARY_KEYS_PAIR_LIST
+    = Lists.newArrayList(
     //IIncreaseCounter.SOLR_CONSUME_COUNT,
-    IIncreaseCounter.TABLE_CONSUME_COUNT);
+    Pair.of(IIncreaseCounter.TABLE_CONSUME_COUNT, (tagIncr) -> tagIncr.getTrantransferIncr()),
+    Pair.of(IIncreaseCounter.TABLE_INSERT_COUNT, (tagIncr) -> tagIncr.getBinlogIncr()),
+    Pair.of(IIncreaseCounter.TABLE_UPDATE_COUNT, (tagIncr) -> tagIncr.getBinlogIncr()),
+    Pair.of(IIncreaseCounter.TABLE_DELETE_COUNT, (tagIncr) -> tagIncr.getBinlogIncr()));
 
-  private final Collection<String> focusTags;
+  public static final List<String> ALL_SUMMARY_KEYS = ALL_SUMMARY_KEYS_PAIR_LIST.stream().map((p) -> p.getKey()).collect(Collectors.toList());
+
+  private final List<String> focusTags;
 
   private final LoadingCache<Long, TopicTagIncrSnapshotStatus> /* 秒的时间戳 */
     c = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.SECONDS).build(new CacheLoader<Long, TopicTagIncrSnapshotStatus>() {
@@ -72,8 +76,17 @@ public class TopicTagIncrStatus {
 
   public TopicTagIncrStatus(Collection<FocusTags> focusTags) {
     super();
+
+//    Function<String, Pair<String, Function<TopicTagIncr, Integer>>> cc = (tag) ->
+//      Pair.of(tag, new Function<TopicTagIncr, Integer>() {
+//        @Nullable
+//        @Override
+//        public Integer apply(TopicTagIncr tagInc) {
+//          return tagInc.getTrantransferIncr();
+//        }
+//      });
     this.focusTags = //
-      focusTags.stream().flatMap((t) -> t.getTags().stream()).collect(toSet());
+      focusTags.stream().flatMap((t) -> t.getTags().stream()).map((tag) -> tag).collect(Collectors.toList());
   }
 
   public void add(Long timeSerialize, TopicTagIncr tagIncr) {
@@ -105,9 +118,20 @@ public class TopicTagIncrStatus {
 
     TisIncrStatus(List<TopicTagIncr> summary, List<TopicTagIncr> tags) {
       this.summary = Maps.newHashMap();
-      summary.forEach((r) -> {
-        this.summary.put(r.getTag(), r.getTrantransferIncr());
-      });
+      if (ALL_SUMMARY_KEYS_PAIR_LIST.size() != summary.size()) {
+        throw new IllegalArgumentException(
+          "ALL_SUMMARY_KEYS size:" + ALL_SUMMARY_KEYS_PAIR_LIST.size() + " must equal with:" + summary.size());
+      }
+      Pair<String, Function<TopicTagIncr, Integer>> p = null;
+      TopicTagIncr tagIncr = null;
+      for (int i = 0; i < summary.size(); i++) {
+        p = ALL_SUMMARY_KEYS_PAIR_LIST.get(i);
+        tagIncr = summary.get(i);
+        this.summary.put(p.getKey(), p.getValue().apply(tagIncr));
+      }
+//      summary.forEach((r) -> {
+//        this.summary.put(r.getTag(), r.getTrantransferIncr());
+//      });
       this.tags = tags;
     }
 
@@ -120,7 +144,7 @@ public class TopicTagIncrStatus {
     }
   }
 
-  protected List<TopicTagIncr> process(Collection<String> focusTags, boolean average, boolean test) {
+  protected List<TopicTagIncr> process(List<String> focusTags, boolean average, boolean test) {
     List<TopicTagIncr> result = new ArrayList<>();
     Map<Long, TopicTagIncrSnapshotStatus> /* 秒的时间戳 */
       timeRangeMap = c.asMap();
@@ -130,14 +154,14 @@ public class TopicTagIncrStatus {
     }
     int binlogIncrSum = 0;
     int trantransferIncrSum = 0;
-    long binlogIncrLastUpdate = 0;
+    TopicTagIncr lastTagIncr = null;
     TopicTagIncr tagIncrPair = null;
-    for (String tab : focusTags) {
+    for (String tag : focusTags) {
       binlogIncrSum = 0;
       trantransferIncrSum = 0;
-      binlogIncrLastUpdate = 0;
+      lastTagIncr = null;
       for (TopicTagIncrSnapshotStatus stat : timeRangeMap.values()) {
-        tagIncrPair = stat.incrStatus.get(tab);
+        tagIncrPair = stat.incrStatus.get(tag);
         if (tagIncrPair == null) {
           continue;
         }
@@ -146,24 +170,28 @@ public class TopicTagIncrStatus {
         // System.out.println("hahah tab:" + tab + ",binlogIncrSum:" + binlogIncrSum);
       }
       if (lastCreate != null) {
-        tagIncrPair = lastCreate.incrStatus.get(tab);
+        tagIncrPair = lastCreate.incrStatus.get(tag);
         if (tagIncrPair != null) {
-          binlogIncrLastUpdate = tagIncrPair.binlogIncrLastUpdate;
+          lastTagIncr = tagIncrPair;
         }
       }
       // String tag, int binlogIncr, long binlogIncrLastUpdate, int trantransferIncr
       result.add(new //
         TopicTagIncr(//
-        tab, //
-        calculateTraffic(tab, average, rangeSize, binlogIncrSum, test), //
-        binlogIncrLastUpdate, calculateTraffic(tab, average, rangeSize, trantransferIncrSum, test)));
+        tag, //
+        // calculateTraffic(tag, average, rangeSize, binlogIncrSum, test), //
+        /** binlogIncr，统计最终绝对值例如，增量程序启动后 update，delete，insert 各操作的总数统计 */
+        lastTagIncr != null ? lastTagIncr.binlogIncr : 0,
+        lastTagIncr != null ? lastTagIncr.binlogIncrLastUpdate : 0
+        /** trantransferIncr */
+        , calculateTraffic(tag, average, rangeSize, trantransferIncrSum, test)));
     }
     return result;
   }
 
-  public Collection<String> getFocusTags() {
-    return this.focusTags;
-  }
+//  public Collection<String> getFocusTags() {
+//    return this.focusTags;
+//  }
 
   /**
    * 计算流量
@@ -223,33 +251,32 @@ public class TopicTagIncrStatus {
       return trantransferIncr;
     }
 
-    public static //
-    TopicTagIncr create(//
-                        String tag, //
-                        Map<String, /* this.tag */
-                          TopicTagStatus> binlog, Map<String, /* this.tag */TopicTagStatus> transfer) {
-      long binlogIncr = 0;
+    public static TopicTagIncr create(
+      String tag
+      , Map<String, /* this.tag */TopicTagStatus> transfer) {
+      long accumulateCount = 0;
       long binlogIncrLastUpdate = 0;
       long trantransferIncr = 0;
-      TopicTagStatus binlogTagStat = binlog.get(tag);
-      if (binlogTagStat != null) {
-        binlogIncr = binlogTagStat.getIncr();
-        binlogIncrLastUpdate = binlogTagStat.getLastUpdateTime();
-      }
+      //TopicTagStatus binlogTagStat = binlog.get(tag);
+//      if (binlogTagStat != null) {
+//        binlogIncr = binlogTagStat.getIncr();
+//        binlogIncrLastUpdate = binlogTagStat.getLastUpdateTime();
+//      }
       TopicTagStatus transferTagStat = transfer.get(tag);
       if (transferTagStat != null) {
         binlogIncrLastUpdate = transferTagStat.getLastUpdateTime();
         trantransferIncr = transferTagStat.getIncr();
+        accumulateCount = transferTagStat.getCount();
       }
-      return new TopicTagIncr(tag, (int) binlogIncr, binlogIncrLastUpdate, (int) trantransferIncr);
+      return new TopicTagIncr(tag, (int) accumulateCount, binlogIncrLastUpdate, (int) trantransferIncr);
     }
 
     public TopicTagIncr(String tag, int binlogIncr, long binlogIncrLastUpdate, int trantransferIncr) {
       super();
       this.tag = tag;
       this.binlogIncr = binlogIncr;
-      this.trantransferIncr = trantransferIncr;
       this.binlogIncrLastUpdate = binlogIncrLastUpdate;
+      this.trantransferIncr = trantransferIncr;
     }
   }
 

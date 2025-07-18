@@ -185,7 +185,7 @@ public class TestIncrStatusServer extends BaseTestCase {
         tableUpdateCounter.setConsumeErrorCount(1);
         tableUpdateCounter.setBufferQueueRemainingCapacity(1000);
         tableUpdateCounter.put("test_table", 999l);
-        updateCt.addTableCounter(collectionName, tableUpdateCounter);
+        updateCt.setPipelineTableCounterMetric(new PipelineFlinkTaskId(collectionName, UUID.randomUUID().toString()), tableUpdateCounter);
         return updateCt;
     }
 

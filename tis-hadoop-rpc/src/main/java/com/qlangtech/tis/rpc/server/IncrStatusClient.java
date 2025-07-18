@@ -99,7 +99,7 @@ public class IncrStatusClient implements IncrStatusUmbilicalProtocol {
             sbuilder.setUuid(value.getUUID());
             sbuilder.setIncrProcessPaused(value.isIncrProcessPaused());
             com.qlangtech.tis.grpc.TableSingleDataIndexStatus s = sbuilder.build();
-            builder.putData(e.getKey(), s);
+            builder.putData(e.getKey().getKey(), s);
         });
         builder.setFrom(upateCounter.getFrom());
         builder.setGcCounter(upateCounter.getGcCounter());

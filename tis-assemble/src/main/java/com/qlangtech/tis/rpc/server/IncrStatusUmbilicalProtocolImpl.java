@@ -36,6 +36,7 @@ import com.qlangtech.tis.realtime.transfer.TableMultiDataIndexStatus;
 import com.qlangtech.tis.realtime.yarn.rpc.ConsumeDataKeeper;
 import com.qlangtech.tis.realtime.yarn.rpc.IndexJobRunningStatus;
 import com.qlangtech.tis.realtime.yarn.rpc.PingResult;
+import com.qlangtech.tis.realtime.yarn.rpc.PipelineFlinkTaskId;
 import com.qlangtech.tis.realtime.yarn.rpc.impl.YarnStateStatistics;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
 import com.qlangtech.tis.rpc.grpc.log.common.Empty;
@@ -118,7 +119,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         JoinPhaseStatus.JoinTaskStatus joinTskStatus = LogCollectorClient.convert(joinStat);
         joinPhase.taskStatus.put(joinStat.getJoinTaskName(), joinTskStatus);
 //        if (phaseStatusSet.isComplete()) {
-          //  phaseStatusSet.flushStatus2Local();
+        //  phaseStatusSet.flushStatus2Local();
 //        }
         joinPhase.isComplete();
         phaseStatusSet.flushStatus2Local();
@@ -140,11 +141,12 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         // 为了避免分布式集群中多个节点时间不同，现在统一使用本节点的时间
         // updateCounter.getUpdateTime();
         long updateTime = ConsumeDataKeeper.getCurrentTimeInSec();
+        PipelineFlinkTaskId pipeFlinkTaskIdKey = null;
         for (Map.Entry<String, com.qlangtech.tis.grpc.TableSingleDataIndexStatus> entry : updateCounter.getDataMap().entrySet()) {
-            String indexName = entry.getKey();
+            pipeFlinkTaskIdKey = PipelineFlinkTaskId.parse(entry.getKey());
             com.qlangtech.tis.grpc.TableSingleDataIndexStatus updateCounterFromClient = entry.getValue();
             String uuid = updateCounterFromClient.getUuid();
-            TableMultiDataIndexStatus tableMultiDataIndexStatus = getAppSubExecNodeMetrixStatus(indexName, uuid);
+            TableMultiDataIndexStatus tableMultiDataIndexStatus = getAppSubExecNodeMetrixStatus(pipeFlinkTaskIdKey, uuid);
             tableMultiDataIndexStatus.setBufferQueueRemainingCapacity(updateCounterFromClient.getBufferQueueRemainingCapacity());
             tableMultiDataIndexStatus.setConsumeErrorCount(updateCounterFromClient.getConsumeErrorCount());
             tableMultiDataIndexStatus.setIgnoreRowsCount(updateCounterFromClient.getIgnoreRowsCount());
@@ -167,12 +169,15 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         responseObserver.onCompleted();
     }
 
-    public TableMultiDataIndexStatus getAppSubExecNodeMetrixStatus(String indexName, String subExecNodeId) {
-        ConcurrentHashMap<String, TableMultiDataIndexStatus> indexStatus = updateCounterStatus.get(indexName);
+    public TableMultiDataIndexStatus getAppSubExecNodeMetrixStatus(PipelineFlinkTaskId pipeFlinkTaskIdKey, String subExecNodeId) {
+        ConcurrentHashMap<String, TableMultiDataIndexStatus> indexStatus = updateCounterStatus.get(pipeFlinkTaskIdKey.getPipeline());
         if (indexStatus == null) {
             synchronized (updateCounterStatus) {
-                indexStatus = updateCounterStatus.computeIfAbsent(indexName, k -> new ConcurrentHashMap<>());
+                indexStatus = updateCounterStatus.computeIfAbsent(pipeFlinkTaskIdKey.getPipeline(), k -> new ConcurrentHashMap<>());
             }
+        }
+        if (!StringUtils.equals(subExecNodeId, pipeFlinkTaskIdKey.getTaskId())) {
+            throw new IllegalStateException("subExecNodeId:" + subExecNodeId + ",must equal with:" + pipeFlinkTaskIdKey.getTaskId());
         }
         TableMultiDataIndexStatus tableMultiDataIndexStatus = indexStatus.get(subExecNodeId);
         if (tableMultiDataIndexStatus == null) {
@@ -462,6 +467,25 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         return getTableUpdateCountMap(updateCounterStatus.get(collection));
     }
 
+    /**
+     * 取得运行中
+     *
+     * @return
+     */
+    public Map<String, Long> getRunPipelineIncrAccumulationCount() {
+        Map<String, Long> result = Maps.newHashMap();
+        Map<String, Long> tagAccumulateCount = null;
+        for (Map.Entry<String /**indexName*/
+                , ConcurrentHashMap<String /**uuid代表监听信息的节点*/, TableMultiDataIndexStatus>>
+                entry : updateCounterStatus.entrySet()) {
+            if (this.isIncrGoingOn(entry.getKey())) {
+                tagAccumulateCount = getTableUpdateCountMap(entry.getValue());
+                result.put(entry.getKey(), tagAccumulateCount.getOrDefault(IIncreaseCounter.TABLE_CONSUME_COUNT, 0l));
+            }
+        }
+        return result;
+    }
+
     private void printLog(ConcurrentHashMap<String, TableMultiDataIndexStatus> indexStatus, long currentTimeInSec) {
         String dateString = formatYyyyMMddHHmmss.get().format(new Date());
         Map<String, YarnStateStatistics> yarnStateMap = getYarnStateMap(indexStatus, currentTimeInSec);
@@ -630,7 +654,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         for (TableMultiDataIndexStatus aIndexStatus : indexStatus.values()) {
             for (String tableName : aIndexStatus.getTableNames()) {
                 LinkedList<ConsumeDataKeeper> consumeDataKeepers = aIndexStatus.getConsumeDataKeepList(tableName);
-                if (consumeDataKeepers.size() <= 0) {
+                if (consumeDataKeepers.size() < 1) {
                     continue;
                 }
                 long accumulation = consumeDataKeepers.getLast().getAccumulation();
@@ -646,6 +670,6 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
 
     @Override
     public void registerAppSubExecNodeMetrixStatus(String appName, String subExecNodeId) {
-        this.getAppSubExecNodeMetrixStatus(appName, subExecNodeId);
+        this.getAppSubExecNodeMetrixStatus(new PipelineFlinkTaskId(appName, subExecNodeId), subExecNodeId);
     }
 }

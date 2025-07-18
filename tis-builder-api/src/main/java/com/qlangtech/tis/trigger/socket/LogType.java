@@ -30,6 +30,8 @@ public enum LogType {
     DATAX_WORKER_POD_LOG(7, "datax-worker-pod-log"),
     // 近一段时间内增量监听的各个tag的多少值, 之前是监听rocketMQ的发送情况的
     MQ_TAGS_STATUS(2, "mq_tags_status"),
+    /* 所有正在运行的数据通道消费量报告*/
+    ALL_RUNNING_PIPELINE_CONSUME_TAGS_STATUS(8, "all_running_pipeline_consume_tags_status"),
     // 全量构建各阶段日志信息
     FULL(3, "full"),
     INCR(4, "incr"),
