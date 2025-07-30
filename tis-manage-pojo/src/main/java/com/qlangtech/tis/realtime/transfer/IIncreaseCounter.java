@@ -40,7 +40,21 @@ public interface IIncreaseCounter {
     String TABLE_UPDATE_COUNT = "tableUpdateCount";
     String TABLE_DELETE_COUNT = "tableDeleteCount";
 
+    // 代表当前限流的控制类型
+    String METRIC_LIMIT_RATE_CONTROLLER_TYPE = "limitRateControllerType";
+    String METRIC_LIMIT_RATE_PER_SECOND_NUMS = "limitRatePerSecondNums";
+
+//    enum LimitRateControllerType {
+//        Paused((short)1),Paused((short)1)
+//        private final short state;
+//        private LimitRateControllerType(short state){
+// this.state = state;
+//        }
+//    }
+
     Set<String> COLLECTABLE_TABLE_COUNT_METRIC = Sets.newHashSet(TABLE_CONSUME_COUNT, TABLE_INSERT_COUNT, TABLE_UPDATE_COUNT, TABLE_DELETE_COUNT);
+
+    Set<String> COLLECTABLE_METRIC_LIMIT_GAUGE = Sets.newHashSet(METRIC_LIMIT_RATE_CONTROLLER_TYPE, METRIC_LIMIT_RATE_PER_SECOND_NUMS);
 
     MonitorSysTagMarker getMonitorTagMarker();
 

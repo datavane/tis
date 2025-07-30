@@ -27,6 +27,7 @@ import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncherWithDataXTrig
 import com.qlangtech.tis.rpc.server.TestIncrStatusServer;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
+import com.qlangtech.tis.manage.servlet.TestIncrTagHeatBeatMonitor;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -36,7 +37,8 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses(
-        {TestDataXExecuteInterceptorForMethodBuildTaskTriggers.class
+        {  TestIncrTagHeatBeatMonitor.class
+                ,TestDataXExecuteInterceptorForMethodBuildTaskTriggers.class
                 , TestDataXExecuteInterceptor.class
                 , TestRealtimeLoggerCollectorAppender.class
                 , TestIncrStatusServer.class
@@ -48,6 +50,7 @@ import org.junit.runners.Suite;
 public class TestAll  //extends TestCase
 {
     static {
+
         System.setProperty("logback.configurationFile", "src/main/resources/logback-assemble.xml");
     }
 

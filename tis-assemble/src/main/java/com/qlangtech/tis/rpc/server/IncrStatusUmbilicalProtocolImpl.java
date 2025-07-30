@@ -32,6 +32,7 @@ import com.qlangtech.tis.grpc.MasterJob;
 import com.qlangtech.tis.grpc.TableSingleDataIndexStatus;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.realtime.transfer.IIncreaseCounter;
+import com.qlangtech.tis.realtime.transfer.ListenerStatusKeeper.LimitRateTypeAndRatePerSecNums;
 import com.qlangtech.tis.realtime.transfer.TableMultiDataIndexStatus;
 import com.qlangtech.tis.realtime.yarn.rpc.ConsumeDataKeeper;
 import com.qlangtech.tis.realtime.yarn.rpc.IndexJobRunningStatus;
@@ -45,6 +46,7 @@ import com.tis.hadoop.rpc.StatusRpcClientFactory;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -138,12 +140,19 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
     @Override
     public void reportStatus(com.qlangtech.tis.grpc.UpdateCounterMap updateCounter, StreamObserver<com.qlangtech.tis.grpc.MasterJob> responseObserver) {
         String from = updateCounter.getFrom();
+
+        //  updateCounter.getGcCounter();
         // 为了避免分布式集群中多个节点时间不同，现在统一使用本节点的时间
         // updateCounter.getUpdateTime();
         long updateTime = ConsumeDataKeeper.getCurrentTimeInSec();
         PipelineFlinkTaskId pipeFlinkTaskIdKey = null;
         for (Map.Entry<String, com.qlangtech.tis.grpc.TableSingleDataIndexStatus> entry : updateCounter.getDataMap().entrySet()) {
             pipeFlinkTaskIdKey = PipelineFlinkTaskId.parse(entry.getKey());
+
+            pipeFlinkTaskIdKey.getPipeline();
+            LimitRateTypeAndRatePerSecNums.create(updateCounter.getGcCounter());
+
+
             com.qlangtech.tis.grpc.TableSingleDataIndexStatus updateCounterFromClient = entry.getValue();
             String uuid = updateCounterFromClient.getUuid();
             TableMultiDataIndexStatus tableMultiDataIndexStatus = getAppSubExecNodeMetrixStatus(pipeFlinkTaskIdKey, uuid);
@@ -155,7 +164,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
             tableMultiDataIndexStatus.setUpdateTime(updateTime);
             tableMultiDataIndexStatus.setIncrProcessPaused(updateCounterFromClient.getIncrProcessPaused());
             // tableMultiDataIndexStatus.setTis30sAvgRT(updateCounterFromClient.getTis30sAvgRT());
-            tableMultiDataIndexStatus.setTis30sAvgRT(updateCounterFromClient.getTis30SAvgRT());
+            tableMultiDataIndexStatus.setIncrRateLimitConfig(LimitRateTypeAndRatePerSecNums.create(updateCounterFromClient.getTis30SAvgRT()));
             for (Map.Entry<String, Long> tabUpdate : updateCounterFromClient.getTableConsumeDataMap().entrySet()) {
                 tableMultiDataIndexStatus.put(tabUpdate.getKey(), new ConsumeDataKeeper(tabUpdate.getValue(), updateTime));
             }
@@ -462,8 +471,8 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
      * @param collection
      * @return
      */
-    public Map<String, /* tag */
-            Long> getUpdateAbsoluteCountMap(String collection) {
+    public  Pair<Map<String, /* tag */
+            Long>, LimitRateTypeAndRatePerSecNums> getUpdateAbsoluteCountMap(String collection) {
         return getTableUpdateCountMap(updateCounterStatus.get(collection));
     }
 
@@ -479,7 +488,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
                 , ConcurrentHashMap<String /**uuid代表监听信息的节点*/, TableMultiDataIndexStatus>>
                 entry : updateCounterStatus.entrySet()) {
             if (this.isIncrGoingOn(entry.getKey())) {
-                tagAccumulateCount = getTableUpdateCountMap(entry.getValue());
+                tagAccumulateCount = getTableUpdateCountMap(entry.getValue()).getKey();
                 result.put(entry.getKey(), tagAccumulateCount.getOrDefault(IIncreaseCounter.TABLE_CONSUME_COUNT, 0l));
             }
         }
@@ -510,7 +519,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
             // add from
             yarnStateStatistics.setFrom(status.getFromAddress());
             // add Tis30sAvgRT
-            yarnStateStatistics.setTis30sAvgRT(status.getTis30sAvgRT());
+            yarnStateStatistics.setTis30sAvgRT(status.getIncrRateLimitConfig().serialize());
             // add tbTPS
             LinkedList<ConsumeDataKeeper> consumeDataKeepers = status.getConsumeDataKeepList(IIncreaseCounter.TABLE_CONSUME_COUNT);
             if (consumeDataKeepers == null || consumeDataKeepers.size() <= 0) {
@@ -637,7 +646,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
             return "[]";
         }
         StringBuffer desc = new StringBuffer("<<\r\n");
-        Map<String, Long> updateCountMap = getTableUpdateCountMap(indexStatus);
+        Map<String, Long> updateCountMap = getTableUpdateCountMap(indexStatus).getKey();
         for (Map.Entry<String, Long> entry : updateCountMap.entrySet()) {
             desc.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\r\n");
         }
@@ -645,13 +654,20 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
         return desc.toString();
     }
 
-    private Map<String, /* tag */
-            Long> getTableUpdateCountMap(ConcurrentHashMap<String, TableMultiDataIndexStatus> indexStatus) {
+    private Pair<Map<String, /* tag */
+            Long>, LimitRateTypeAndRatePerSecNums> getTableUpdateCountMap(ConcurrentHashMap<String, TableMultiDataIndexStatus> indexStatus) {
         if (indexStatus == null) {
-            return Collections.emptyMap();
+            return Pair.of(Collections.emptyMap(), null);
         }
         Map<String, Long> updateCountMap = new HashMap<>();
+        LimitRateTypeAndRatePerSecNums rateLimitConfig = null;
         for (TableMultiDataIndexStatus aIndexStatus : indexStatus.values()) {
+
+            LimitRateTypeAndRatePerSecNums rate = aIndexStatus.getIncrRateLimitConfig();
+            if (rateLimitConfig == null || rateLimitConfig.getControllerType().isEmpty()) {
+                rateLimitConfig = rate;
+            }
+
             for (String tableName : aIndexStatus.getTableNames()) {
                 LinkedList<ConsumeDataKeeper> consumeDataKeepers = aIndexStatus.getConsumeDataKeepList(tableName);
                 if (consumeDataKeepers.size() < 1) {
@@ -665,7 +681,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
                 }
             }
         }
-        return updateCountMap;
+        return Pair.of(updateCountMap, rateLimitConfig);
     }
 
     @Override

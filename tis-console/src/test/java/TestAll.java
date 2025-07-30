@@ -20,7 +20,7 @@ import com.qlangtech.tis.coredefine.module.action.TestDataXAction;
 import com.qlangtech.tis.coredefine.module.action.TestPluginAction;
 import com.qlangtech.tis.coredefine.module.action.TestPluginItemsParser;
 import com.qlangtech.tis.manage.common.TestUserUtils;
-import com.qlangtech.tis.manage.servlet.TestIncrTagHeatBeatMonitor;
+
 import com.qlangtech.tis.offline.module.action.TestOfflineDatasourceAction;
 import com.qlangtech.tis.plugin.TestPluginAndCfgsSnapshotOnWorkflow;
 import com.qlangtech.tis.runtime.module.action.TestSchemaAction;
@@ -40,7 +40,7 @@ public class TestAll extends TestCase {
   public static Test suite() {
     TestSuite suite = new TestSuite();
     suite.addTestSuite(TestPluginItems.class);
-    suite.addTestSuite(TestIncrTagHeatBeatMonitor.class);
+
     // suite.addTestSuite(TestTISK8sDelegate.class);
     //suite.addTestSuite(TestCoreAction.class);
 

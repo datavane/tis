@@ -30,7 +30,7 @@ public class IncrRateControllerCfgDTO {
     public static final String KEY_PIPELINE = "pipeline";
     public static final String KEY_LAST_MODIFIED = "lastModified";
 
-    private Boolean pause;
+    //  private Boolean pause;
 
     private Long lastModified;
 
@@ -38,15 +38,16 @@ public class IncrRateControllerCfgDTO {
 
     private Map<String, Object> payloadParams;
 
-    public Boolean getPause() {
-        return pause;
-    }
+//    public Boolean getPause() {
+//        return pause;
+//    }
 
     public Long getLastModified() {
         return lastModified;
     }
 
     public RateControllerType getControllerType() {
+
         return controllerType;
     }
 
@@ -66,15 +67,35 @@ public class IncrRateControllerCfgDTO {
         this.payloadParams = payloadParams;
     }
 
-    public void setPause(Boolean pause) {
-        this.pause = pause;
-    }
+//    public void setPause(Boolean pause) {
+//        this.pause = pause;
+//    }
 
     public enum RateControllerType {
-        FloodDischargeRate,
-        NoLimitParam,
-        RateLimit,
+        // 暂停
+        Paused((short) 1),
+        FloodDischargeRate((short) 2),
+        NoLimitParam((short) 3),
+        RateLimit((short) 4),
         // 没有开启流控 DataGeneratorSource 中产生一条未不需要处理的消息
-        SkipProcess
+        SkipProcess((short) 5);
+        private final short type;
+
+        public static RateControllerType parse(short token) {
+            for (RateControllerType type : RateControllerType.values()) {
+                if (token == type.type) {
+                    return type;
+                }
+            }
+            return null;
+        }
+
+        private RateControllerType(short type) {
+            this.type = type;
+        }
+
+        public short getTypeToken() {
+            return type;
+        }
     }
 }

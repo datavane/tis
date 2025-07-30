@@ -61,6 +61,14 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta
 
     <T extends ISelectedTab> List<T> getSelectedTabs();
 
+    /**
+     * 取得未来经过col类型填充的selectedTab
+     *
+     * @param <T>
+     * @return
+     */
+    <T extends ISelectedTab> List<T> getUnfilledSelectedTabs();
+
     @Override
     default ISelectedTab getSelectedTab(String tableName) {
         if (StringUtils.isEmpty(tableName)) {
@@ -114,18 +122,12 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta
     }
 
 
-    public default ThreadCacheTableCols getContextTableColsStream(SuFormProperties.SuFormGetterContext context, Function<EntityName, List<CMeta>> selectedCols) {
-        // SuFormProperties.SuFormGetterContext context = SuFormProperties.subFormGetterProcessThreadLocal.get();
+    public default ThreadCacheTableCols getContextTableColsStream(
+            SuFormProperties.SuFormGetterContext context, Function<EntityName, List<CMeta>> selectedCols) {
         if (context == null || context.plugin == null) {
-//            List<ColumnMetaData> empt = Collections.emptyList();
-//            return new ThreadCacheTableCols(null, null, (target) -> Collections.emptyList(), empt);// empt.stream();
             return ThreadCacheTableCols.createEmptyTableCols();
         }
-        IDataxReader plugin = this; //Objects.requireNonNull(context.plugin, "context.plugin can not be null");
-//        if (!(plugin instanceof DataSourceMeta)) {
-//            throw new IllegalStateException("plugin must be type of " + DataSourceMeta.class.getName() + ", now type "
-//                    + "of " + plugin.getClass().getName());
-//        }
+        IDataxReader plugin = this;
         DataSourceMeta dsMeta = plugin;
         ThreadCacheTableCols cols = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
             try {
@@ -138,6 +140,6 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta
                 throw new RuntimeException(e);
             }
         });
-        return cols;// func.apply(cols);
+        return cols;
     }
 }

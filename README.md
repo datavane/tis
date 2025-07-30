@@ -17,7 +17,7 @@ TIS为您提供企业级数据集成服务，**基于批(DataX)，流(Flink-CDC�
 快速安装（支持私有云、公有云等环境），方便、快捷 [:green_circle:单机](https://tis.pub/docs/install/tis/uber) [:purple_circle:Docker](https://tis.pub/docs/install/tis/docker) [:large_blue_circle:Docker Compose](https://tis.pub/docs/install/tis/docker-compose) [:brown_circle:K8S](https://tis.pub/docs/install/tis/kubernetes)
 
 ## v4.2.1 发布（2025/5/1）：
-https://github.com/datavane/tis/releases/tag/v4.2.0
+https://github.com/datavane/tis/releases/tag/v4.2.1
 
 **历史发布**：
 * v4.1.0 发布（2025/2/2）：https://github.com/datavane/tis/releases/tag/v4.1.0
@@ -121,6 +121,7 @@ TIS基于数据库元数据信息自动生成Flink-SQL脚本,您没看错全部�
    1. [plugins](https://github.com/qlangtech/plugins) 
    2. [tis-plugins-commercial](https://github.com/qlangtech/tis-plugins-commercial)
    3. SqlServer Connector [qlangtech/tis-sqlserver-plugin](https://github.com/qlangtech/tis-sqlserver-plugin)
+   4. Paimon Connector [qlangtech/tis-paimon-plugin](https://github.com/qlangtech/tis-paimon-plugin)
 - TIS 插件元数据生成工具 [https://github.com/qlangtech/update-center2](https://github.com/qlangtech/update-center2)
 - DataX [https://github.com/qlangtech/DataX](https://github.com/qlangtech/DataX)
 - Flink Extend [https://github.com/qlangtech/flink](https://github.com/qlangtech/flink)

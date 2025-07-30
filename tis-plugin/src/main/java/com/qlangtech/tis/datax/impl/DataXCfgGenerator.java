@@ -149,6 +149,9 @@ public class DataXCfgGenerator implements IDataXNameAware {
         readerTpl.append("]").append("}");
 
 
+//        readerTpl.append(",\n\t\"")
+//                .append(ISelectedTab.KEY_SELECTED_TAB).append("\":\t \"").append(readerContext.getSourceTableName()).append("\"");
+
         String template = StringUtils.replace(tpl, "<!--reader-->", readerTpl.toString());
         template = StringUtils.replace(template, "<!--writer-->", writerTpl);
         return template;

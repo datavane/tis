@@ -136,8 +136,9 @@ public interface IEndTypeGetter {
         , RabbitMQ("rabbitmq", EndTypeCategory.Data, true) //
 
 
-        , PowerJob("powerjob", EndTypeCategory.Assist, true),
-        Flink("flink", EndTypeCategory.Assist, true)//
+        , PowerJob("powerjob", EndTypeCategory.Assist, true)
+        , Flink("flink", EndTypeCategory.Assist, true)//
+        , RateController("rate-controller", EndTypeCategory.Assist, true)//
         , Docker("docker", EndTypeCategory.Assist, true) //
         , K8S("k8s", EndTypeCategory.Assist, true)//
         , Dolphinscheduler("ds", EndTypeCategory.Assist, true) //

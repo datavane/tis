@@ -29,14 +29,16 @@ import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
+ * @see com.qlangtech.tis.plugin.rate.IncrRateController
  */
 @Public
-public abstract class ParamsConfig implements Describable<ParamsConfig>, IdentityName {
+public abstract class ParamsConfig implements Describable<ParamsConfig>, IdentityName, Predicate<UploadPluginMeta> {
     public static final String CONTEXT_PARAMS_CFG = "params-cfg";
 
 
@@ -51,6 +53,16 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
 //        return items.stream().filter((r) -> type.isAssignableFrom(r.getClass())).map((r) -> (T) r).collect(Collectors.toList());
 //    }
 
+    /**
+     * 判断该插件是否满足当前上下文条件（例如： IncrRateController利用 identity值进行实例隔离）
+     *
+     * @param uploadPluginMeta the input argument
+     * @return
+     */
+    @Override
+    public boolean test(UploadPluginMeta uploadPluginMeta) {
+        return true;
+    }
 
     public static IPluginStore<ParamsConfig> getTargetPluginStore(UploadPluginMeta.TargetDesc desc) {
         if (desc == null || StringUtils.isEmpty(desc.matchTargetPluginDescName)) {
@@ -76,6 +88,9 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
     }
 
     public static IPluginStore<ParamsConfig> getChildPluginStore(String childFile) {
+        if (StringUtils.isEmpty(childFile)) {
+            throw new IllegalArgumentException("param childFile can not be empty");
+        }
         return TIS.getPluginStore(CONTEXT_PARAMS_CFG, childFile, ParamsConfig.class);
     }
 
@@ -130,6 +145,15 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
     public static List<Descriptor<ParamsConfig>> all(Class<?> type) {
         List<Descriptor<ParamsConfig>> desc = HeteroEnum.PARAMS_CONFIG.descriptors();
         return desc.stream().filter((r) -> type.isAssignableFrom(r.getT())).collect(Collectors.toList());
+    }
+
+    /**
+     * 取得存储的路径，这样可以让用户选择是否按照 identityName 来隔离
+     *
+     * @return
+     */
+    public String getStoreGroup() {
+        return this.getDescriptor().getDisplayName();
     }
 
 

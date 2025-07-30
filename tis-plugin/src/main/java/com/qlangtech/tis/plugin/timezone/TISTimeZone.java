@@ -21,6 +21,7 @@ package com.qlangtech.tis.plugin.timezone;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.manage.common.Option;
 
+import java.io.Serializable;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,7 @@ import java.util.List;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2025-06-16 16:11
  **/
-public abstract class TISTimeZone implements Describable<TISTimeZone> {
+public abstract class TISTimeZone implements Describable<TISTimeZone>, Serializable {
 
     public static final ZoneId DEFAULT_SERVER_TIME_ZONE = ZoneId.systemDefault();
 

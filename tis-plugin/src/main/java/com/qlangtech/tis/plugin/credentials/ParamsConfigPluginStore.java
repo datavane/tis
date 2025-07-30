@@ -61,16 +61,6 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
         }
     }
 
-//    public static void main(String[] args) {
-//        File root = new File(".");
-//        Path rootPath = root.toPath();
-//        Iterator<File> fit = FileUtils.iterateFiles(root, null, true);
-//        while (fit.hasNext()) {
-//            File f = fit.next();
-//            System.out.println(f.getAbsolutePath());
-//            System.out.println(rootPath.relativize(f.toPath()));
-//        }
-//    }
 
     private final UploadPluginMeta pluginMeta;
 
@@ -94,20 +84,42 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
     public List<ParamsConfig> getPlugins() {
         List<ParamsConfig> plugins = Lists.newArrayList();
         UploadPluginMeta.TargetDesc targetDesc = this.pluginMeta.getTargetDesc();
+
+
         //
-        visitAllPluginStore((store) -> {
-            List<ParamsConfig> childs = store.getRight().getPlugins();
+        if (StringUtils.isEmpty(targetDesc.matchTargetPluginDescName)) {
+            visitAllPluginStore((store) -> {
+                List<ParamsConfig> childs = store.getRight().getPlugins();
+                add2Childs(childs, plugins);
+                return null;
+            });
+        } else {
+            IPluginStore<ParamsConfig> pluginStore = ParamsConfig.getChildPluginStore(targetDesc.pluginStoreGroupPath(this.pluginMeta));
+            List<ParamsConfig> childs = pluginStore.getPlugins();
+            add2Childs(childs, plugins);
+        }
 
-            if (StringUtils.isEmpty(targetDesc.matchTargetPluginDescName)) {
-                plugins.addAll(childs);
-            } else if (StringUtils.equals(targetDesc.matchTargetPluginDescName, store.getKey())) {
-                plugins.addAll(childs);
-                return childs;
-            }
-
-            return null;
-        });
+//        visitAllPluginStore((store) -> {
+//            List<ParamsConfig> childs = store.getRight().getPlugins();
+//
+//            if (StringUtils.isEmpty(targetDesc.matchTargetPluginDescName)) {
+//                add2Childs(childs, plugins);
+//            } else if (StringUtils.equals(targetDesc.matchTargetPluginDescName, store.getKey())) {
+//                add2Childs(childs, plugins);
+//                return childs;
+//            }
+//
+//            return null;
+//        });
         return plugins;
+    }
+
+    private void add2Childs(List<ParamsConfig> childs, List<ParamsConfig> plugins) {
+        childs.forEach((c) -> {
+            if (c.test(this.pluginMeta)) {
+                plugins.add(c);
+            }
+        });
     }
 
 
@@ -116,9 +128,6 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
 
         TT result = null;
         for (String childFile : childFiles) {
-//            if (!StringUtils.equals(targetDesc.matchTargetPluginDescName, childFile)) {
-//                continue;
-//            }
             IPluginStore<ParamsConfig> pluginStore = ParamsConfig.getChildPluginStore(childFile);
             result = func.apply(Pair.of(childFile, pluginStore));
             if (result != null) {
@@ -176,17 +185,19 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
             , List<Descriptor.ParseDescribable<ParamsConfig>> dlist, boolean update) {
 
         Map<String, List<Descriptor.ParseDescribable<ParamsConfig>>> desc2Plugin = Maps.newHashMap();
-        String descName = null;
+        String storeGroup = null;
         ParamsConfig paramCfg = null;
         List<Descriptor.ParseDescribable<ParamsConfig>> plugins = null;
         boolean cfgChanged = false;
         for (Descriptor.ParseDescribable<ParamsConfig> p : dlist) {
             paramCfg = p.getInstance();
-            descName = paramCfg.getDescriptor().getDisplayName();
-            plugins = desc2Plugin.get(descName);
+//            paramCfg.identityValue();
+            storeGroup = paramCfg.getStoreGroup();
+//            descName = paramCfg.getDescriptor().getDisplayName();
+            plugins = desc2Plugin.get(storeGroup);
             if (plugins == null) {
                 plugins = Lists.newArrayList();
-                desc2Plugin.put(descName, plugins);
+                desc2Plugin.put(storeGroup, plugins);
             }
             plugins.add(p);
         }

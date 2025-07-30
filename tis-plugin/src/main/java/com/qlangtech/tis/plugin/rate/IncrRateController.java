@@ -23,19 +23,25 @@ import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.manage.common.AppAndRuntime;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IEndTypeGetter.EndType;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginStore.BeforePluginSaved;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
+import com.qlangtech.tis.realtime.yarn.rpc.IncrRateControllerCfgDTO.RateControllerType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.IPluginContext;
 
+import java.io.File;
 import java.util.Objects;
 import java.util.Optional;
 
 import com.qlangtech.tis.realtime.yarn.rpc.IncrRateControllerCfgDTO;
+import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -54,7 +60,19 @@ public class IncrRateController extends ParamsConfig implements IPluginStore.Aft
     }
 
     public static IncrRateController getRateController(DataXName dataXName) {
-        return ParamsConfig.getItem(dataXName.getPipelineName(), INCR_RATE_CONTROLLER, false);
+        final String pipelineName = dataXName.getPipelineName();
+        return ParamsConfig.getItem(dataXName.getPipelineName()
+                , INCR_RATE_CONTROLLER + File.separator + pipelineName, false);
+    }
+
+    @Override
+    public boolean test(UploadPluginMeta uploadPluginMeta) {
+        return StringUtils.equals(this.name, uploadPluginMeta.getPluginContext().getCollectionName().getPipelineName());
+    }
+
+    @Override
+    public String getStoreGroup() {
+        return super.getStoreGroup() + File.separatorChar + this.identityValue();
     }
 
     /**
@@ -88,17 +106,30 @@ public class IncrRateController extends ParamsConfig implements IPluginStore.Aft
 
     public IncrRateControllerCfgDTO createIncrRateControllerCfgDTO() {
         IncrRateControllerCfgDTO cfgDTO = new IncrRateControllerCfgDTO();
-        cfgDTO.setPause(this.pause);
+        // cfgDTO.setPause(this.pause);
         cfgDTO.setPayloadParams(Objects.requireNonNull(this.rateCfg).getPayloadParams());
         cfgDTO.setControllerType(this.rateCfg.getControllerType());
+        if (this.pause) {
+            cfgDTO.setControllerType(RateControllerType.Paused);
+        }
         cfgDTO.setLastModified(this.lastModified);
         return cfgDTO;
     }
 
     @TISExtension
-    public static class DftDesc extends BasicParamsConfigDescriptor {
+    public static class DftDesc extends BasicParamsConfigDescriptor implements IEndTypeGetter {
         public DftDesc() {
             super(INCR_RATE_CONTROLLER);
+        }
+
+        @Override
+        public String helpPath() {
+            return "docs/guide/rate-controller";
+        }
+
+        @Override
+        public EndType getEndType() {
+            return EndType.RateController;
         }
 
         @Override

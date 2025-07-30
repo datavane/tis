@@ -269,6 +269,14 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
 //        return loadTransformerRules(pluginCtx, processor.getResType(), processor.identityValue(), tableName);
 //    }
 
+    public static Optional<RecordTransformerRules> loadTransformerRules(
+            IPluginContext pluginCtx, DataXName dataX, String tableName) {
+        if (transformerRulesLoader4Test != null) {
+            return Optional.ofNullable(transformerRulesLoader4Test.apply(tableName));
+        }
+        return loadTransformerRules(pluginCtx, DataxProcessor.load(pluginCtx, dataX), tableName);
+    }
+
     /**
      * 加载基于数据通道的表转换（Transformer）规则
      *
@@ -284,7 +292,7 @@ public class RecordTransformerRules implements Describable<RecordTransformerRule
         }
 
         if (transformerRulesLoader4Test != null) {
-            return Optional.of(transformerRulesLoader4Test.apply(tableName));
+            return Optional.ofNullable(transformerRulesLoader4Test.apply(tableName));
         }
 
         for (RecordTransformerRules trule

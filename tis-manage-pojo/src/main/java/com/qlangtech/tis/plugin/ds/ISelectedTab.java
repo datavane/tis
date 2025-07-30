@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
  * @date 2021-04-18 10:16
  */
 public interface ISelectedTab extends ISelectedTabMeta, ISourceTable {
+    //String KEY_SELECTED_TAB = "tab";
 
     default EntityName getEntityName() {
         return EntityName.parse(this.getName());

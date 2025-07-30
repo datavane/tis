@@ -17,9 +17,11 @@ package com.qlangtech.tis.realtime.servlet;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.grpc.LaunchReportInfoEntry;
 import com.qlangtech.tis.grpc.TopicInfo;
+import com.qlangtech.tis.realtime.transfer.ListenerStatusKeeper.LimitRateTypeAndRatePerSecNums;
 import com.qlangtech.tis.realtime.yarn.rpc.JobType;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +30,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 /**
@@ -78,7 +81,8 @@ public class IncrControlServlet extends javax.servlet.http.HttpServlet {
             wirteXml2Client(resp, true, "success execute", incrStatusUmbilicalProtocol.getIndexJobRunningStatus(collection));
         } else if (jobTpe == JobType.Collection_TopicTags_status) {
             // curl -d"collection=search4totalpay&action=collection_topic_tags_status" http://localhost:8080/incr-control?collection=search4totalpay
-            final Map<String, Long> /* absolute count */
+            final Pair<Map<String, /* tag */
+                    Long>, LimitRateTypeAndRatePerSecNums>
                     tagCountMap = this.incrStatusUmbilicalProtocol.getUpdateAbsoluteCountMap(collection);
             wirteXml2Client(resp, true, StringUtils.EMPTY, tagCountMap);
         } else if (jobTpe == JobType.ACTION_getTopicTags) {

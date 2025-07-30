@@ -5,6 +5,7 @@
   },
   "duration": {
     "label": "采集间隔",
-    "dftVal": "com.qlangtech.tis.plugin.rate.IndexCollectionConfig.defaultDuration()"
+    "dftVal": "com.qlangtech.tis.plugin.rate.IndexCollectionConfig.defaultDuration()",
+    "help": "可控制页面可视化指标采集频率"
   }
 }

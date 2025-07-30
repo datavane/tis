@@ -63,6 +63,11 @@ public class AdapterDataxReader implements IDataxReader {
     }
 
     @Override
+    public <T extends ISelectedTab> List<T> getUnfilledSelectedTabs() {
+        return reader.getUnfilledSelectedTabs();
+    }
+
+    @Override
     public IGroupChildTaskIterator getSubTasks() {
         return reader.getSubTasks();
     }

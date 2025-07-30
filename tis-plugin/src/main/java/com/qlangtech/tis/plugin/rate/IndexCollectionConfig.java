@@ -26,7 +26,10 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.time.Duration;
 
 /**
@@ -46,6 +49,16 @@ public class IndexCollectionConfig extends ParamsConfig {
     public static int defaultDuration() {
         // 默认5秒采集一次,与flink.yaml 配置文件中的采样频率一致
         return 5;
+    }
+
+    @Override
+    public boolean test(UploadPluginMeta uploadPluginMeta) {
+        return StringUtils.equals(this.identityValue(), uploadPluginMeta.getPluginContext().getCollectionName().getPipelineName());
+    }
+
+    @Override
+    public String getStoreGroup() {
+        return super.getStoreGroup() + File.separator + this.identityValue();
     }
 
     public static IndexCollectionConfig getIndexCollectionConfig(DataXName dataXName) {
@@ -69,6 +82,11 @@ public class IndexCollectionConfig extends ParamsConfig {
 
         public DefaultDesc() {
             super(INDEX_COLLECTION_CONFIG);
+        }
+
+        @Override
+        public String helpPath() {
+            return "docs/guide/metric-collect-frequency";
         }
 
         public boolean validateDuration(IFieldErrorHandler msgHandler, Context context, String fieldName, String value) {

@@ -97,6 +97,11 @@ public class TestSelectedTab extends TestCase {
         }
 
         @Override
+        public <T extends ISelectedTab> List<T> getUnfilledSelectedTabs() {
+            return (List<T>) getSelectedTabs();
+        }
+
+        @Override
         public IGroupChildTaskIterator getSubTasks(Predicate<ISelectedTab> filter) {
             throw new UnsupportedOperationException();
         }

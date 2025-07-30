@@ -95,7 +95,7 @@ public class IncrStatusClient implements IncrStatusUmbilicalProtocol {
             sbuilder.setBufferQueueUsedSize(value.getBufferQueueUsedSize());
             sbuilder.setConsumeErrorCount(value.getConsumeErrorCount());
             sbuilder.setIgnoreRowsCount(value.getIgnoreRowsCount());
-            sbuilder.setTis30SAvgRT(value.getTis30sAvgRT());
+            sbuilder.setTis30SAvgRT(value.getIncrRateLimitConfig().serialize());
             sbuilder.setUuid(value.getUUID());
             sbuilder.setIncrProcessPaused(value.isIncrProcessPaused());
             com.qlangtech.tis.grpc.TableSingleDataIndexStatus s = sbuilder.build();

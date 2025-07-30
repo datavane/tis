@@ -217,15 +217,15 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
             if (newSubDescriptor == null) {
                 return null;
             }
-            return rewriteSubFormProperties.computeIfAbsent(subformProps.parentClazz, (clazz) -> {
-
-                SuFormProperties rewriteSubFormProperties = SuFormProperties.copy(
-                        PropertyType.filterFieldProp(PropertyType.buildPropertyTypes(ElementPluginDesc.create(newSubDescriptor), newSubDescriptor.clazz))
-                        , newSubDescriptor.clazz
-                        , newSubDescriptor
-                        , subformProps);
-                return rewriteSubFormProperties;
-            });
+            return rewriteSubFormProperties.computeIfAbsent(this.getClass() //subformProps.parentClazz
+                    , (clazz) -> {
+                        SuFormProperties rewriteSubFormProperties = SuFormProperties.copy(
+                                PropertyType.filterFieldProp(PropertyType.buildPropertyTypes(ElementPluginDesc.create(newSubDescriptor), newSubDescriptor.clazz))
+                                , newSubDescriptor.clazz
+                                , newSubDescriptor
+                                , subformProps);
+                        return rewriteSubFormProperties;
+                    });
         }
 
         //   SuFormProperties.SuFormPropertiesBehaviorMeta overwriteBehaviorMeta(SuFormProperties.SuFormPropertiesBehaviorMeta behaviorMeta) throws Exception;

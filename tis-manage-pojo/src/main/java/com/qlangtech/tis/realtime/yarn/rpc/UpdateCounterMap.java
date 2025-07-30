@@ -46,6 +46,7 @@ public class UpdateCounterMap {
         this.from = from;
     }
 
+
     public long getGcCounter() {
         return gcCounter;
     }
@@ -85,4 +86,5 @@ public class UpdateCounterMap {
     public HashMap<PipelineFlinkTaskId, TableSingleDataIndexStatus> getData() {
         return this.data;
     }
+
 }

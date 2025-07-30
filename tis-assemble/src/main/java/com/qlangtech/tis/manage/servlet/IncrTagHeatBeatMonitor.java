@@ -17,11 +17,13 @@
  */
 package com.qlangtech.tis.manage.servlet;
 
+import com.qlangtech.tis.realtime.transfer.ListenerStatusKeeper.LimitRateTypeAndRatePerSecNums;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.trigger.socket.ExecuteState;
 import com.qlangtech.tis.trigger.socket.LogType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,12 +69,12 @@ public class IncrTagHeatBeatMonitor {
     public void build() {
         TopicTagStatus tagStat = null;
         TopicTagIncrStatus.TisIncrStatus averageTopicTagIncr;
+        LimitRateTypeAndRatePerSecNums rateLimitState = null;
         try {
             while (!messagePush.isClosed()) {
                 // long start = System.currentTimeMillis();
                 long currSec = (System.currentTimeMillis() / 1000);
-
-                getIncrTransferTagUpdateMap(transferTagStatus, collectionName);
+                rateLimitState = getIncrTransferTagUpdateMap(transferTagStatus, collectionName);
 //        for (String tabTag : topicTagIncrStatus.getFocusTags()) {
 //          topicTagIncrStatus.add(currSec, TopicTagIncrStatus.TopicTagIncr.create(tabTag, Collections.emptyMap(), transferTagStatus));
 //        }
@@ -82,6 +84,8 @@ public class IncrTagHeatBeatMonitor {
                 // logger.info("p4{}", System.currentTimeMillis() - start);
                 // start = System.currentTimeMillis();
                 averageTopicTagIncr = topicTagIncrStatus.getAverageTopicTagIncr(false, /** average */false);
+
+                averageTopicTagIncr.setRateLimitConfig(rateLimitState);
                 // logger.info("p5{}", System.currentTimeMillis() - start);
                 // start = System.currentTimeMillis();
                 ExecuteState<TopicTagIncrStatus.TisIncrStatus> event = ExecuteState.create(LogType.MQ_TAGS_STATUS, averageTopicTagIncr);
@@ -104,15 +108,18 @@ public class IncrTagHeatBeatMonitor {
      * @param collection
      * @throws Exception
      */
-    private void getIncrTransferTagUpdateMap(
+    private LimitRateTypeAndRatePerSecNums getIncrTransferTagUpdateMap(
             final Map<String, /* this.tag */    TopicTagStatus> transferTagStatus, String collection) throws Exception {
 
-        final Map<String, Long> /* absolute count */
+        final Pair<Map<String, /* tag */ Long>, LimitRateTypeAndRatePerSecNums> /* absolute count */
                 tagCountMap = this.incrStatusUmbilicalProtoco.getUpdateAbsoluteCountMap(collection);
 
-        for (Map.Entry<String,Long> entry : tagCountMap.entrySet()) {
+        for (Map.Entry<String, Long> entry : tagCountMap.getKey().entrySet()) {
             setMetricCount(transferTagStatus, entry.getKey(), entry.getValue());
         }
+
+        LimitRateTypeAndRatePerSecNums limitRateConfig = tagCountMap.getValue();
+        return limitRateConfig;
         // curl -d"collection=search4totalpay&action=collection_topic_tags_status" http://localhost:8080/incr-control?collection=search4totalpay
         // http://localhost:8083/tis-assemble/incr-control?collection=mysql_mysql&action=collection_topic_tags_status
 //        JobType.RemoteCallResult<Void> tagCountMap
@@ -130,7 +137,7 @@ public class IncrTagHeatBeatMonitor {
 //                });
     }
 
-    private void setMetricCount(Map<String, TopicTagStatus> tagStatus, String tagName, Long  count) {
+    private void setMetricCount(Map<String, TopicTagStatus> tagStatus, String tagName, Long count) {
         TopicTagStatus tagStat;
         tagStat = tagStatus.get(tagName);
         logger.info("tagName:{},count:{}", tagName, count);

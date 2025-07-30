@@ -38,6 +38,7 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,6 +78,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     // 目标插件名称
     public static String PLUGIN_META_TARGET_DESCRIPTOR_NAME = "targetDescriptorName";
     public static String PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION = "targetDescriptorImpl";
+    public static String PLUGIN_META_TARGET_PIPELINE_NAME_AWARE = "targetPipelineNameAware";
     // 禁止向context中写入biz状态
     public static final String KEY_DISABLE_BIZ_SET = "disableBizStore";
 
@@ -348,6 +350,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         public final String descDisplayName;
         public final String impl;
         public final String matchTargetPluginDescName;
+        private final boolean pipelineNameAware;
 
         public static final TargetDesc create(UploadPluginMeta meta) {
             return new TargetDesc(
@@ -356,7 +359,18 @@ public class UploadPluginMeta implements IUploadPluginMeta {
                     // targetDescriptorName
                     , meta.getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_NAME) //
                     // targetDescriptorImpl
-                    , meta.getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION));
+                    , meta.getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION)
+                    , meta.getBoolean(PLUGIN_META_TARGET_PIPELINE_NAME_AWARE)
+            );
+        }
+
+        public String pluginStoreGroupPath(UploadPluginMeta meta) {
+            StringBuffer result = new StringBuffer(matchTargetPluginDescName);
+            if (pipelineNameAware) {
+                result.append(File.separator).append(
+                        Objects.requireNonNull(meta, "meta can not be null").getPluginContext().getCollectionName());
+            }
+            return result.toString();
         }
 
         public Descriptor getTargetDescriptor() {
@@ -365,10 +379,11 @@ public class UploadPluginMeta implements IUploadPluginMeta {
             return parentDesc;
         }
 
-        private TargetDesc(String matchTargetPluginDescName, String name, String impl) {
+        private TargetDesc(String matchTargetPluginDescName, String name, String impl, boolean pipelineNameAware) {
             this.matchTargetPluginDescName = matchTargetPluginDescName;
             this.descDisplayName = name;
             this.impl = impl;
+            this.pipelineNameAware = pipelineNameAware;
         }
 
         public boolean shallMatchTargetDesc() {
