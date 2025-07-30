@@ -198,6 +198,11 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         UploadPluginMeta pmeta;
         Matcher attrMatcher;
         String attr;
+
+        if (StringUtils.endsWith(plugin, ",")) {
+            throw new IllegalStateException("plugin:'" + plugin + "' can not endWith ','");
+        }
+
         matcher = PATTERN_PLUGIN_META.matcher(plugin);
         if (matcher.matches()) {
             pmeta = new UploadPluginMeta(context, matcher.group(1), useCache);

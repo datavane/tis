@@ -682,7 +682,8 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                 return he;
             }
         }
-        throw new IllegalStateException("identity:" + identity + " is illegal,exist:" + pluginEnums.stream().map((h) -> "'" + h.getIdentity() + "'").collect(Collectors.joining(",")));
+        throw new IllegalStateException("identity:" + identity + " is illegal,exist:"
+                + pluginEnums.stream().map((h) -> "'" + h.getIdentity() + "'").collect(Collectors.joining(",")));
     }
 
 

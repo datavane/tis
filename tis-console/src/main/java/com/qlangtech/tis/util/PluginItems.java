@@ -20,6 +20,7 @@ package com.qlangtech.tis.util;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.coredefine.module.action.PluginItemsParser;
@@ -150,8 +151,8 @@ public class PluginItems implements IPluginItemsProcessor {
    * @return
    */
   private static List<IdentityName> loadExistDbs(boolean listen2SaveEvent, String... extendClass) {
-
-    if (extendClass == null || extendClass.length < 1) {
+    final ActionContext actionContext = ActionContext.getContext();
+    if (extendClass == null || extendClass.length < 1 || actionContext == null) {
       throw new IllegalArgumentException("param extendClass can not be null");
     }
 
@@ -169,7 +170,7 @@ public class PluginItems implements IPluginItemsProcessor {
     }
 
 
-    IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(ServletActionContext.getServletContext(), IWorkflowDAOFacade.class);
+    IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(actionContext.getServletContext(), IWorkflowDAOFacade.class);
     Objects.requireNonNull(wfFacade, "wfFacade can not be null");
     DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
     List<String> extendClazzs = Lists.newArrayList(); // Lists.newArrayList(extendClass).stre;
