@@ -135,7 +135,7 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
       JDBCConnection.connectionPool.remove();
       SuFormProperties.subFormGetterProcessThreadLocal.remove();
       GroovyShellUtil.pluginThreadLocal.remove();
-      UpdateSite.pluginArts.remove();
+      UpdateSite.pluginArtsThreadlocal.remove();
     }
   }
 }

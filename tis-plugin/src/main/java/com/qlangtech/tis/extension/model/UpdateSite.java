@@ -1019,7 +1019,8 @@ public class UpdateSite {
         }
     }
 
-    public static ThreadLocal<ConcurrentHashMap<String, List<IPluginCoord>>> pluginArts = new ThreadLocal<ConcurrentHashMap<String, List<IPluginCoord>>>() {
+    public static ThreadLocal<ConcurrentHashMap<String, List<IPluginCoord>>> pluginArtsThreadlocal
+            = new ThreadLocal<ConcurrentHashMap<String, List<IPluginCoord>>>() {
         @Override
         protected ConcurrentHashMap<String, List<IPluginCoord>> initialValue() {
             return new ConcurrentHashMap<>();
@@ -1045,56 +1046,63 @@ public class UpdateSite {
         }
 
 
+        private List<IPluginCoord> createPluginCoords() {
+
+            Plugin plugin = null;
+            // 如果被依赖的插件已经先安装上上了，那么，新加的差价必须要和被依赖的插件的 classifier相一致
+            // PluginWrapper installed = null;
+            List<ITPIArtifact> installCoords = Lists.newArrayList();
+            getDepInstallCoords(installCoords, MultiClassifierPlugin.this);
+
+            Optional<ITPIArtifact> containClassifier
+                    = installCoords.stream().filter((c) -> c.getClassifier().isPresent()).findAny();
+
+            if (CollectionUtils.isEmpty(installCoords) || !containClassifier.isPresent()) {
+                return coords.stream().collect(Collectors.toList());
+            } else {
+                final String id = "merge";
+                Optional<PluginClassifier> depClassifier = null;
+                PluginClassifier c = null;
+                Map<String, String> dimension = Maps.newHashMap();
+                for (ITPIArtifact dep : installCoords) {
+                    depClassifier = dep.getClassifier();
+                    if (depClassifier.isPresent()) {
+                        c = depClassifier.get();
+                        dimension.putAll(c.dimensionMap());
+                    }
+                }
+                PluginClassifier.validateDimension(dimension);
+
+                ITPIArtifact merge = new ITPIArtifact() {
+                    @Override
+                    public String getIdentityName() {
+                        return id;
+                    }
+
+                    @Override
+                    public Optional<PluginClassifier> getClassifier() {
+                        return Optional.of(new PluginClassifier(dimension));
+                    }
+                };
+
+                return coords.stream().filter((coord) -> {
+                    ITPIArtifactMatch matchh = ITPIArtifact.matchh(this.getDisplayName(), coord.getClassifier());
+                    matchh.setIdentityName(id);
+                    return ITPIArtifact.isEquals(merge, matchh);
+                }).collect(Collectors.toList());
+            }
+        }
+
         @Override
         @JSONField(serialize = true)
         public List<IPluginCoord> getArts() {
-            return pluginArts.get().computeIfAbsent(this.getDisplayName(), (key) -> {
-                Plugin plugin = null;
-                // 如果被依赖的插件已经先安装上上了，那么，新加的差价必须要和被依赖的插件的 classifier相一致
-                // PluginWrapper installed = null;
-                List<ITPIArtifact> installCoords = Lists.newArrayList();
-                getDepInstallCoords(installCoords, MultiClassifierPlugin.this);
-
-                Optional<ITPIArtifact> containClassifier
-                        = installCoords.stream().filter((c) -> c.getClassifier().isPresent()).findAny();
-
-                if (CollectionUtils.isEmpty(installCoords) || !containClassifier.isPresent()) {
-                    return coords.stream().collect(Collectors.toList());
-                } else {
-                    final String id = "merge";
-                    Optional<PluginClassifier> depClassifier = null;
-                    PluginClassifier c = null;
-                    Map<String, String> dimension = Maps.newHashMap();
-                    for (ITPIArtifact dep : installCoords) {
-                        depClassifier = dep.getClassifier();
-                        if (depClassifier.isPresent()) {
-                            c = depClassifier.get();
-                            dimension.putAll(c.dimensionMap());
-                        }
-                    }
-                    PluginClassifier.validateDimension(dimension);
-
-                    ITPIArtifact merge = new ITPIArtifact() {
-                        @Override
-                        public String getIdentityName() {
-                            return id;
-                        }
-
-                        @Override
-                        public Optional<PluginClassifier> getClassifier() {
-                            return Optional.of(new PluginClassifier(dimension));
-                        }
-                    };
-
-                    return coords.stream().filter((coord) -> {
-                        ITPIArtifactMatch matchh = ITPIArtifact.matchh(this.getDisplayName(), coord.getClassifier());
-                        matchh.setIdentityName(id);
-                        return ITPIArtifact.isEquals(merge, matchh);
-                    }).collect(Collectors.toList());
-                }
-            });
-
-
+            ConcurrentHashMap<String, List<IPluginCoord>> pluginArts = pluginArtsThreadlocal.get();
+            List<IPluginCoord> pluginCoords = pluginArts.get(this.getDisplayName());
+            if (pluginCoords == null) {
+                pluginCoords = this.createPluginCoords();
+                pluginArts.put(this.getDisplayName(), pluginCoords);
+            }
+            return pluginCoords;
         }
 
         private void getDepInstallCoords(List<ITPIArtifact> installCoords, Plugin p) {
