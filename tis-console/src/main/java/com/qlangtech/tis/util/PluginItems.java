@@ -152,7 +152,10 @@ public class PluginItems implements IPluginItemsProcessor {
    */
   private static List<IdentityName> loadExistDbs(boolean listen2SaveEvent, String... extendClass) {
     final ActionContext actionContext = ActionContext.getContext();
-    if (extendClass == null || extendClass.length < 1 || actionContext == null) {
+    if (actionContext == null) {
+      return Collections.emptyList();
+    }
+    if (extendClass == null || extendClass.length < 1) {
       throw new IllegalArgumentException("param extendClass can not be null");
     }
 
