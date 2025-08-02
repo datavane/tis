@@ -21,6 +21,7 @@ package com.qlangtech.tis.exec;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
@@ -46,7 +47,7 @@ public class TestIExecChainContext extends TestCase {
         JSONObject instanceParams = IExecChainContext.createInstanceParams(taskId, processor, false, Optional.empty());
         Assert.assertNotNull(instanceParams);
 
-        PluginAndCfgsSnapshot snapshot = AbstractExecContext.resolveCfgsSnapshotConsumer(instanceParams);
+        PluginAndCfgsSnapshot snapshot = AbstractExecContext.resolveCfgsSnapshotConsumer(StoreResourceType.DataApp, instanceParams);
         Assert.assertNotNull(snapshot);
     }
 }

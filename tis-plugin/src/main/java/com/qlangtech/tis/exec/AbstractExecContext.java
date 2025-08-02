@@ -87,7 +87,8 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
      * @return
      * @see IExecChainContext#createInstanceParams Params set in this method
      */
-    public static PluginAndCfgsSnapshot resolveCfgsSnapshotConsumer(JSONObject instanceParams) {
+    public static PluginAndCfgsSnapshot resolveCfgsSnapshotConsumer(
+            StoreResourceType resourceType, JSONObject instanceParams) {
         String pluginCfgsMetas = instanceParams.getString(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS);
         String appName = instanceParams.getString(JobParams.KEY_COLLECTION);
         if (StringUtils.isEmpty(pluginCfgsMetas)) {
@@ -95,11 +96,12 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
                     + PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS + " of instanceParams can not be null");
         }
 
-        StoreResourceType resType = StoreResourceType.parse(instanceParams.getString(StoreResourceType.KEY_STORE_RESOURCE_TYPE));
+        //  StoreResourceType resType = StoreResourceType.parse(instanceParams.getString(StoreResourceType.KEY_STORE_RESOURCE_TYPE));
 
         final Base64 base64 = new Base64();
         try (InputStream manifestJar = new ByteArrayInputStream(base64.decode(pluginCfgsMetas))) {
-            return PluginAndCfgsSnapshot.getRepositoryCfgsSnapshot(appName, resType, manifestJar);
+            return PluginAndCfgsSnapshot.getRepositoryCfgsSnapshot(
+                    appName, Objects.requireNonNull(resourceType, "resourceType can not be null"), manifestJar);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -238,7 +240,7 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
 //                throw new RuntimeException(e);
 //            }
 
-            cfgsSnapshotConsumer.accept(resolveCfgsSnapshotConsumer(instanceParams));
+            cfgsSnapshotConsumer.accept(resolveCfgsSnapshotConsumer(triggerCfg.getResType(), instanceParams));
         }
 
         return execChainContext;

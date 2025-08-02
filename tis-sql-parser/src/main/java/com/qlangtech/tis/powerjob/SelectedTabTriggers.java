@@ -32,6 +32,7 @@ import com.qlangtech.tis.trigger.util.JsonUtil;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * @author 百岁 (baisui@qlangtech.com)
@@ -128,9 +129,10 @@ public class SelectedTabTriggers {
             JSONObject execCfg = null;
             JSONArray dataxJobInfo = null;
             PowerJobRemoteTaskTrigger splitTabTrigger = null;
-            mrParams = new JSONObject();
+            mrParams = this.appSource.createNode();// new JSONObject();
             mrParams.put(KEY_TABLE, this.entry.getName());
-            mrParams.put(StoreResourceType.DATAX_NAME, this.appSource.identityValue());
+//            mrParams.put(StoreResourceType.DATAX_NAME, this.appSource.identityValue());
+//            mrParams.put(StoreResourceType.KEY_STORE_RESOURCE_TYPE, this.appSource.getResType().getType());
             if (this.getPreTrigger() != null) {
                 mrParams.put(KEY_PRE, this.getPreTrigger().getTaskName());
             }

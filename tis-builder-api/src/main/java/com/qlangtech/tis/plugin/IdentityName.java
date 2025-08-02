@@ -17,6 +17,9 @@
  */
 package com.qlangtech.tis.plugin;
 
+import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.datax.StoreResourceType;
+
 /**
  * The plugin global unique identity name
  *
@@ -38,12 +41,9 @@ public interface IdentityName {
         };
     }
 
-//    /**
-//     * 相同类型的插件不能重名
-//     *
-//     * @return
-//     */
-//    String getName();
+
+
+
 
     /**
      * 取得唯一ID
