@@ -5,7 +5,8 @@
   },
   "activationCode": {
     "label": "激活码",
-    "rows": 15
+    "rows": 15,
+    "placeholder": "点击🫲左侧❓‘问号’图标，可了解激活码获得流程"
   },
   "email": {
     "readonly": true
