@@ -42,6 +42,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -61,6 +62,8 @@ public class UserAction extends BasicModule {
   public void doGetUserInfo(Context context) throws Exception {
     IUser user = UserUtils.getUser(this.getRequest(), this.getDaoContext());
     Map<String, Object> sysInfo = createSysInfo(user);
+    Optional<String> firstRowPK = this.getApplicationDAO().selectFirstRowPK();
+    sysInfo.put("firstPipelinePK", firstRowPK.isPresent());
     this.setBizResult(context, sysInfo);
   }
 
@@ -74,6 +77,7 @@ public class UserAction extends BasicModule {
       sysInfo.put("usr", Objects.requireNonNull(user, "user can not be null"));
       sysInfo.put("sysInitialized", SysInitializeAction.isSysInitialized());
       sysInfo.put("tisMeta", Config.getMetaProps().tisMetaProps);
+
       TISLicense tisLicense = TISLicense.load(false);
 
       if (tisLicense != null) {

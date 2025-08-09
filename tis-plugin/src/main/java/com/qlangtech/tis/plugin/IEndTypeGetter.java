@@ -136,8 +136,7 @@ public interface IEndTypeGetter {
         , RabbitMQ("rabbitmq", EndTypeCategory.Data, true) //
 
 
-        , PowerJob("powerjob", EndTypeCategory.Assist, true)
-        , Flink("flink", EndTypeCategory.Assist, true)//
+        , PowerJob("powerjob", EndTypeCategory.Assist, true), Flink("flink", EndTypeCategory.Assist, true)//
         , RateController("rate-controller", EndTypeCategory.Assist, true)//
         , Docker("docker", EndTypeCategory.Assist, true) //
         , K8S("k8s", EndTypeCategory.Assist, true)//
@@ -149,6 +148,7 @@ public interface IEndTypeGetter {
         , BatchComputing("batch-computing", EndTypeCategory.Icon, true)//
         , StreamComputing("stream-computing", EndTypeCategory.Icon, true) //
         , BliBli("blibli", EndTypeCategory.Icon, true) //
+        , Hand("hand", EndTypeCategory.Icon, true) //
         , Preview("preview", EndTypeCategory.Icon, true) //
         , Clone("clone", EndTypeCategory.Icon, true) //
         , Blank("blank", EndTypeCategory.Icon, true) //

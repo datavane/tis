@@ -95,6 +95,7 @@
     where app_id = #appId:INTEGER#
   </select>
 
+
   <select id="ibatorgenerated_selectByName" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.manage.biz.dal.pojo.Application" >
 
     select app_id, app_type, project_name, recept, manager, create_time, update_time,

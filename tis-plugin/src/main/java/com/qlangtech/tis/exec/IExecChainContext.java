@@ -23,14 +23,13 @@ import com.qlangtech.tis.ajax.AjaxResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.cloud.ITISCoordinator;
-import com.qlangtech.tis.coredefine.module.action.PowerjobTriggerBuildResult;
+import com.qlangtech.tis.coredefine.module.action.DistributeJobTriggerBuildResult;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.DataXJobSubmit.InstanceType;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISpecifiedLocalLogger;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.TimeFormat;
-import com.qlangtech.tis.exec.impl.DataXPipelineExecContext;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
@@ -41,10 +40,8 @@ import com.qlangtech.tis.manage.common.CreateNewTaskResult;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
-import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshotUtils;
-import com.qlangtech.tis.powerjob.SelectedTabTriggersConfig;
 import com.qlangtech.tis.powerjob.TriggersConfig;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -130,10 +127,10 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
      * @param triggerNewTaskParam
      * @return
      */
-    static PowerjobTriggerBuildResult triggerNewTask(TriggerNewTaskParam triggerNewTaskParam) {
+    static DistributeJobTriggerBuildResult triggerNewTask(TriggerNewTaskParam triggerNewTaskParam) {
         String url = WORKFLOW_CONFIG_URL_POST_FORMAT
                 .format(new Object[]{"fullbuild_workflow_action", "do_initialize_trigger_task"});
-        AjaxResult<PowerjobTriggerBuildResult> result = HttpUtils.soapRemote(url, triggerNewTaskParam.params(), PowerjobTriggerBuildResult.class);
+        AjaxResult<DistributeJobTriggerBuildResult> result = HttpUtils.soapRemote(url, triggerNewTaskParam.params(), DistributeJobTriggerBuildResult.class);
         if (!result.isSuccess()) {
             throw new IllegalStateException("error:" + String.join(",", result.getErrormsg()));
         }

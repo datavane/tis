@@ -29,7 +29,7 @@ import java.util.Objects;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/12/11
  */
-public class PowerjobTriggerBuildResult extends TriggerBuildResult {
+public class DistributeJobTriggerBuildResult extends TriggerBuildResult {
     private String pluginCfgsMetas;
     /**
      * 用于Crontab任务传递的参数
@@ -40,10 +40,10 @@ public class PowerjobTriggerBuildResult extends TriggerBuildResult {
      */
     private Integer previousTaskId;
 
-    public PowerjobTriggerBuildResult() {
+    public DistributeJobTriggerBuildResult() {
     }
 
-    public PowerjobTriggerBuildResult(boolean success, JSONObject instanceParams) {
+    public DistributeJobTriggerBuildResult(boolean success, JSONObject instanceParams) {
         super(success);
         // JSONObject instanceParams = Objects.requireNonNull(instanceParamsRef).get();
         pluginCfgsMetas = Objects.requireNonNull(instanceParams, "instanceParams can not be null") //

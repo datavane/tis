@@ -9,10 +9,9 @@ spec:
       name: tis-console-8080
       protocol: TCP
       targetPort: tis-8080
-      nodePort: 31000
   selector:
     app: tis-console
-  type: NodePort
+  type: LoadBalancer
 ---
 
 apiVersion: v1
@@ -66,45 +65,45 @@ spec:
 #    requests:
 #      storage: 5Gi
 
-#apiVersion: v1
-#kind: PersistentVolume
-#metadata:
-#  name: csi-pv
-#  labels:
-#    alicloud-pvname: disk-pv
-#spec:
-#  capacity:
-#    storage: 20Gi
-#  accessModes:
-#    - ReadWriteOnce
-#  persistentVolumeReclaimPolicy: Retain
-#  csi:
-#    driver: diskplugin.csi.alibabacloud.com
-#    volumeHandle: "d-bp1hbalx48and9z4c8h1"
-#  nodeAffinity:
-#    required:
-#      nodeSelectorTerms:
-#        - matchExpressions:
-#            - key: topology.diskplugin.csi.alibabacloud.com/zone
-#              operator: In
-#              values:
-#                - "cn-hangzhou-k"
-#---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-pv
+  labels:
+    alicloud-pvname: disk-pv
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: diskplugin.csi.alibabacloud.com
+    volumeHandle: "d-bp1hbalx48and9z4c8h1"
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: topology.diskplugin.csi.alibabacloud.com/zone
+              operator: In
+              values:
+                - "cn-hangzhou-k"
+---
 
-#apiVersion: v1
-#kind: PersistentVolumeClaim
-#metadata:
-#  name: disk-pvc
-#spec:
-#  accessModes:
-#    - ReadWriteOnce
-#  resources:
-#    requests:
-#      storage: 20Gi
-#  selector:
-#    matchLabels:
-#      alicloud-pvname: disk-pv
-#---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: disk-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  selector:
+    matchLabels:
+      alicloud-pvname: disk-pv
+---
 # 使用本地磁盘
 #apiVersion: v1
 #kind: PersistentVolumeClaim
@@ -165,8 +164,8 @@ spec:
           volumeMounts:
             - name: tis-config-volume
               mountPath: /opt/app/tis-uber/web-start/conf/tis-web-config/
-#            - name: tis-console-pvc
-#              mountPath: "/opt/data"
+            - name: tis-console-pvc
+              mountPath: "/opt/data"
           image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:4.3.0-SNAPSHOT
         #  command: [ "/bin/sh", "-c", "sleep 1000000" ]
           ports:
@@ -185,8 +184,8 @@ spec:
         - name: tis-config-volume
           configMap:
             name: tis-config
-#        - name: tis-console-pvc
-#          persistentVolumeClaim:
-#            claimName: disk-pvc
+        - name: tis-console-pvc
+          persistentVolumeClaim:
+            claimName: disk-pvc
 ---
 

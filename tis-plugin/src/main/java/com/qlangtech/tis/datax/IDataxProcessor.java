@@ -28,6 +28,7 @@ import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.impl.TransformerInfo;
 import com.qlangtech.tis.extension.Describable.IRefreshable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -79,6 +80,7 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
     default JSONObject createNode() {
         JSONObject initNode = new JSONObject();
         initNode.put(StoreResourceType.DATAX_NAME, this.identityValue());
+        initNode.put(IFullBuildContext.KEY_APP_NAME, this.identityValue());
         // 是否是dataflow的处理类型
         initNode.put(StoreResourceType.KEY_STORE_RESOURCE_TYPE, this.getResType().getType());
         return initNode;
