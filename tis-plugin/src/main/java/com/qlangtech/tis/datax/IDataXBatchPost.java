@@ -18,20 +18,15 @@
 
 package com.qlangtech.tis.datax;
 
-import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPostTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPreviousTrigger;
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
-import com.qlangtech.tis.powerjob.IDAGSessionSpec;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Objects;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 /**
@@ -54,13 +49,18 @@ public interface IDataXBatchPost {
      */
     static Pair<IRemoteTaskPreviousTrigger, IRemoteTaskPostTrigger> process(IDataxProcessor appSource, ISelectedTab entry
             , BiFunction<IDataXBatchPost, EntityName, Pair<IRemoteTaskPreviousTrigger, IRemoteTaskPostTrigger>> consumer) {
-        IDataxWriter writer = appSource.getWriter(null, true);
+        if (entry == null) {
+            throw new IllegalArgumentException("param entry can not be null");
+        }
+        IDataxWriter writer = Objects.requireNonNull(
+                appSource, "appSource can not be null").getWriter(null, true);
         //execChainContext.getString()
         if (writer instanceof IDataXBatchPost) {
 
             IDataXBatchPost batchPostTask = (IDataXBatchPost) writer;
             final EntityName entryName = batchPostTask.parseEntity(entry);// EntityName.parse(entry.getName());
-            return consumer.apply(batchPostTask, Objects.requireNonNull(entryName, "entryName can not be null"));
+            return Objects.requireNonNull(consumer, "consumer can not be null")
+                    .apply(batchPostTask, Objects.requireNonNull(entryName, "entryName can not be null"));
         }
 
         return Pair.of(null, null);
