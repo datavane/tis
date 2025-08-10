@@ -25,7 +25,14 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPostTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPreviousTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.powerjob.IDAGSessionSpec;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 /**
  * 当datax任务有多个子任务完成之后（例如：hive数据同步，多个子库的表导入hdfs完成），需要将执行一次hive数据同步工作
@@ -37,6 +44,27 @@ public interface IDataXBatchPost {
 
     String KEY_POST = "post_";
     String KEY_PREP = "prep_";
+
+    /**
+     * @param appSource
+     * @param entry
+     * @param consumer
+     * @return preExec = null;
+     * *             IRemoteTaskPostTrigger postTaskTrigger
+     */
+    static Pair<IRemoteTaskPreviousTrigger, IRemoteTaskPostTrigger> process(IDataxProcessor appSource, ISelectedTab entry
+            , BiFunction<IDataXBatchPost, EntityName, Pair<IRemoteTaskPreviousTrigger, IRemoteTaskPostTrigger>> consumer) {
+        IDataxWriter writer = appSource.getWriter(null, true);
+        //execChainContext.getString()
+        if (writer instanceof IDataXBatchPost) {
+
+            IDataXBatchPost batchPostTask = (IDataXBatchPost) writer;
+            final EntityName entryName = batchPostTask.parseEntity(entry);// EntityName.parse(entry.getName());
+            return consumer.apply(batchPostTask, Objects.requireNonNull(entryName, "entryName can not be null"));
+        }
+
+        return Pair.of(null, null);
+    }
 
     public enum LifeCycleHook {
         Prep(KEY_PREP), Post(KEY_POST);

@@ -95,7 +95,7 @@ public class DAGSessionSpec implements IDAGSessionSpec {
         }
         //  RemoteTaskTriggers triggers = new RemoteTaskTriggers();
         IRemoteTaskTrigger jobTrigger = null;
-        IDataxWriter writer = appSource.getWriter(null, true);
+        IDataxWriter writerr = appSource.getWriter(null, true);
         //execChainContext.getString()
 
 
@@ -103,16 +103,17 @@ public class DAGSessionSpec implements IDAGSessionSpec {
         if (CollectionUtils.isEmpty(cfgFileNames.getDataXCfgFiles())) {
             throw new IllegalStateException("dataX cfgFileNames can not be empty");
         }
-        IDAGSessionSpec postSpec = null;
-        IDAGSessionSpec dumpSpec = dagSessionSpec.getDpt(dumpTaskId).setMilestone();
-        IRemoteTaskPreviousTrigger preExec = null;
-        if (writer instanceof IDataXBatchPost) {
 
-            IDataXBatchPost batchPostTask = (IDataXBatchPost) writer;
-            final EntityName entryName = batchPostTask.parseEntity(entry);// EntityName.parse(entry.getName());
+        IDAGSessionSpec dumpSpec = dagSessionSpec.getDpt(dumpTaskId).setMilestone();
+
+        final IDAGSessionSpec[] postSpec = new DAGSessionSpec[1];
+        Pair<IRemoteTaskPreviousTrigger, IRemoteTaskPostTrigger> preAndPost
+                = IDataXBatchPost.process(appSource, entry, (batchPostTask, entryName) -> {
+
+            IRemoteTaskPreviousTrigger preExec = null;
             IRemoteTaskPostTrigger postTaskTrigger = batchPostTask.createPostTask(execChainContext, entryName, entry, cfgFileNames);
             if (postTaskTrigger != null) {
-                postSpec = dumpSpec.getDpt(postTaskTrigger.getTaskName());
+                postSpec[0] = dumpSpec.getDpt(postTaskTrigger.getTaskName());
                 triggers.addJoinPhaseTask(postTaskTrigger);
                 tabTriggers.setPostTrigger(postTaskTrigger);
             }
@@ -125,7 +126,30 @@ public class DAGSessionSpec implements IDAGSessionSpec {
                 triggers.addDumpPhaseTask(preExec);
                 tabTriggers.setPreTrigger(preExec);
             }
-        }
+
+            return Pair.of(preExec, postTaskTrigger);
+        });
+
+//        if (writer instanceof IDataXBatchPost) {
+//
+//            IDataXBatchPost batchPostTask = (IDataXBatchPost) writer;
+//            final EntityName entryName = batchPostTask.parseEntity(entry);// EntityName.parse(entry.getName());
+//            IRemoteTaskPostTrigger postTaskTrigger = batchPostTask.createPostTask(execChainContext, entryName, entry, cfgFileNames);
+//            if (postTaskTrigger != null) {
+//                postSpec = dumpSpec.getDpt(postTaskTrigger.getTaskName());
+//                triggers.addJoinPhaseTask(postTaskTrigger);
+//                tabTriggers.setPostTrigger(postTaskTrigger);
+//            }
+//            // Objects.requireNonNull(postTaskTrigger, "postTaskTrigger can not be null");
+//
+//
+//            preExec = batchPostTask.createPreExecuteTask(execChainContext, entryName, entry);
+//            if (preExec != null) {
+//                dagSessionSpec.getDpt(preExec.getTaskName());
+//                triggers.addDumpPhaseTask(preExec);
+//                tabTriggers.setPreTrigger(preExec);
+//            }
+//        }
 
         List<DBDataXChildTask> dataXCfgsOfTab = cfgFileNames.getDataXTaskDependencies(entry.getName());
 
@@ -139,11 +163,11 @@ public class DAGSessionSpec implements IDAGSessionSpec {
                     , statusRpc, appSource
                     , new DataXJobSubmit.TableDataXEntity(fileName, entry));
 
-            IDAGSessionSpec childDumpSpec = getDumpSpec(postSpec, dumpSpec)
+            IDAGSessionSpec childDumpSpec = getDumpSpec(postSpec[0], dumpSpec)
                     .getDpt(Objects.requireNonNull(jobTrigger, "jobTrigger can not be null").getTaskName());
 
-            if (preExec != null) {
-                childDumpSpec.getDpt(preExec.getTaskName());
+            if (preAndPost.getKey() != null) {
+                childDumpSpec.getDpt(preAndPost.getKey().getTaskName());
             }
 
             triggers.addDumpPhaseTask(jobTrigger);
