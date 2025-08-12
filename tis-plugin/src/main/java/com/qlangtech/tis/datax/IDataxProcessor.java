@@ -72,18 +72,34 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
         return new File(workDir, "writerDesc");
     }
 
+    static JSONObject createNode(String pipeName, StoreResourceType type) {
+        if (StringUtils.isEmpty(pipeName)) {
+            throw new IllegalArgumentException("param pipeName can not be empty");
+        }
+        if (type == null) {
+            throw new IllegalArgumentException("param type can not be null");
+        }
+        JSONObject initNode = new JSONObject();
+        initNode.put(StoreResourceType.DATAX_NAME, pipeName);
+        initNode.put(IFullBuildContext.KEY_APP_NAME, pipeName);
+        // 是否是dataflow的处理类型
+        initNode.put(StoreResourceType.KEY_STORE_RESOURCE_TYPE, type.getType());
+        return initNode;
+    }
+
     @Override
     default void refresh() {
 
     }
 
     default JSONObject createNode() {
-        JSONObject initNode = new JSONObject();
-        initNode.put(StoreResourceType.DATAX_NAME, this.identityValue());
-        initNode.put(IFullBuildContext.KEY_APP_NAME, this.identityValue());
-        // 是否是dataflow的处理类型
-        initNode.put(StoreResourceType.KEY_STORE_RESOURCE_TYPE, this.getResType().getType());
-        return initNode;
+//        JSONObject initNode = new JSONObject();
+//        initNode.put(StoreResourceType.DATAX_NAME, this.identityValue());
+//        initNode.put(IFullBuildContext.KEY_APP_NAME, this.identityValue());
+//        // 是否是dataflow的处理类型
+//        initNode.put(StoreResourceType.KEY_STORE_RESOURCE_TYPE, this.getResType().getType());
+//        return initNode;
+        return createNode(this.identityValue(), this.getResType());
     }
 
     /**
