@@ -564,57 +564,7 @@ public class DataxAction extends BasicModule {
     DefaultSSERunnable.execute(launchProcess, dataxJobWorker.inService(), launchToken, () -> {
       dataxJobWorker.executeLaunchService(launchProcess);
     });
-
-
-//    launchProcess.writeExecuteSteps(k8SLaunching.getExecuteSteps());
-//    if (dataxJobWorker.inService()) {
-//      // throw new IllegalStateException("dataxJobWorker is in serivce ,can not launch repeat");
-//      for (SubJobLog subJobLog : k8SLaunching.getLogs()) {
-//        //public void writeMessage(InfoType logLevel, long timestamp, String msg)
-//        launchProcess.writeHistoryLog(subJobLog);
-//      }
-//      return;
-//    }
-//    if (k8SLaunching.isLaunching()) {
-//
-//      if (k8SLaunching.isFaild()) {
-////        k8SLaunching.getExecuteSteps();
-////        k8SLaunching.getMilestones();
-//
-//        // launchProcess.writeExecuteSteps(k8SLaunching.getExecuteSteps());
-//
-//        for (SubJobLog subJobLog : k8SLaunching.getLogs()) {
-//          //public void writeMessage(InfoType logLevel, long timestamp, String msg)
-//          launchProcess.writeHistoryLog(subJobLog);
-//        }
-//        return;
-//      } else if (launchToken.hasWriteOwner()) {
-//
-//        // 说明启动流程正在执行，attach 到执行流程
-//        launchToken.addObserver(k8SLaunching);
-//        //  k8SLaunching.attach2RunningProcessor();
-//        return;
-//      }
-//
-//    }
-//
-//    try {
-//      launchProcess.setLaunchToken(launchToken);
-//      launchProcess.startLaunch();
-//
-//      dataxJobWorker.executeLaunchService(launchProcess);
-//
-//
-//    } finally {
-//      launchProcess.terminate();
-//    }
   }
-
-//  private DataXJobWorker getDataXJobWorker() {
-//    K8SWorkerCptType cptType = this.getBoolean(KEY_USING_POWERJOB_USE_EXIST_CLUSTER)
-//      ? K8SWorkerCptType.UsingExistCluster : K8SWorkerCptType.Server;
-//    return getDataXJobWorker(cptType);
-//  }
 
   private DataXJobWorker getDataXJobWorker(K8SWorkerCptType cptType) {
     DataXJobWorker dataxJobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName(), Optional.of(cptType));
@@ -634,8 +584,6 @@ public class DataxAction extends BasicModule {
 
     DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName());
 
-    //    PluginStore<DataXJobWorker> dataxJobWorkerStore = TIS.getPluginStore(DataXJobWorker.class);
-    //    DataXJobWorker dataxJobWorker = dataxJobWorkerStore.getPlugin();
     if (!jobWorker.inService()) {
       throw new IllegalStateException("dataxJobWorker is not in serivce ,can not remove");
     }
@@ -647,12 +595,6 @@ public class DataxAction extends BasicModule {
   public void doWorkerDesc(Context context) {
     final TargetResName targetName = getK8SJobWorkerTargetName();
 
-//    DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(targetName);
-//    if (jobWorker != null && jobWorker.inService()) {
-//      throw new IllegalStateException("dataX worker is on duty");
-//    }
-
-    // String appName = this.getCollectionName();
     PluginDescMeta pluginDescMeta = new PluginDescMeta(DataXJobWorker.getDesc(targetName));
 
     boolean addJobTplOverwritePlugin = this.getBoolean("addJobTplOverwritePlugin");

@@ -152,7 +152,15 @@ public class TisException extends RuntimeException {
         for (Throwable ex : throwables) {
             if (TisException.class.isAssignableFrom(ex.getClass())) {
                 // 需要找到最后一个
-                last = (TisException) ex;
+                if (last == null) {
+                    last = (TisException) ex;
+                } else {
+                    if (((TisException) ex).errCode.isPresent()) {
+                        last = (TisException) ex;
+                    }
+                }
+
+
             }
         }
         return last;
