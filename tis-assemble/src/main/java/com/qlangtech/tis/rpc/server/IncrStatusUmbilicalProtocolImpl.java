@@ -426,8 +426,9 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
     }
 
 
-    void removeIndexUpdateCounterStatus(String collection) {
+    public void removeIndexUpdateCounterStatus(String collection) {
         this.updateCounterStatus.remove(collection);
+        this.indexTopicInfo.remove(collection);
     }
 
     private boolean startLogging = false;
@@ -471,7 +472,7 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
      * @param collection
      * @return
      */
-    public  Pair<Map<String, /* tag */
+    public Pair<Map<String, /* tag */
             Long>, LimitRateTypeAndRatePerSecNums> getUpdateAbsoluteCountMap(String collection) {
         return getTableUpdateCountMap(updateCounterStatus.get(collection));
     }

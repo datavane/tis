@@ -26,8 +26,11 @@ import com.qlangtech.tis.coredefine.module.action.impl.RcDeployment;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
 import com.qlangtech.tis.datax.job.JobOrchestrateException;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.incr.WatchPodLog;
+import com.qlangtech.tis.realtime.yarn.rpc.JobType;
+import com.qlangtech.tis.realtime.yarn.rpc.JobType.RemoteCallResult;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.util.HeteroEnum;
@@ -36,6 +39,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.MalformedURLException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -210,9 +215,11 @@ public class TISK8sDelegate {
    * 删除增量实例
    */
   public void removeIncrProcess() {
+
     try {
       this.incrSync.removeInstance(this.indexName);
       this.cleanResource();
+
     } catch (Throwable e) {
       try {
         // 看一下RC 是否已经没有了如果是没有了 就直接回收资源
@@ -224,6 +231,7 @@ public class TISK8sDelegate {
       }
       throw new RuntimeException(this.indexName.getName(), e);
     }
+
   }
 
   private void cleanResource() {
@@ -231,6 +239,20 @@ public class TISK8sDelegate {
     TISK8sDelegate tisk8sDelegate = colIncrLogMap.remove(this.indexName);
     if (tisk8sDelegate != null) {
       tisk8sDelegate.close();
+    }
+
+    RemoteCallResult remoteCallResult
+      = null;
+    try {
+      remoteCallResult = JobType.PipelineDelete.assembIncrControlWithResult(this.indexName.getName(), Collections.emptyList(), null);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
+    // remoteCallResultSuccess = tRemoteCallResult.success;
+    if (remoteCallResult == null || !remoteCallResult.success) {
+      throw TisException.create(
+        "piple:" + this.indexName + " delete faild,detail:"
+          + (remoteCallResult != null ? remoteCallResult.msg : StringUtils.EMPTY));
     }
   }
 

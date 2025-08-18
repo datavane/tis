@@ -61,14 +61,15 @@ public class IncrControlServlet extends javax.servlet.http.HttpServlet {
         this.doPost(req, resp);
     }
 
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String collection = req.getParameter("collection");
-        if (StringUtils.isBlank(collection)) {
-            throw new ServletException("param collection:" + collection + " can not be null");
-        }
-        JobType jobTpe = JobType.parseJobType(req.getParameter("action"));
+        String collection = getPipelineName(req);
+        JobType jobTpe = getJobType(req);
         if (jobTpe == JobType.IndexJobRunning) {
+            if (1 == 1) {
+                throw new UnsupportedEncodingException("incr pause/resume has been abandon");
+            }
             boolean stop = Boolean.parseBoolean(req.getParameter("stop"));
             if (stop) {
                 incrStatusUmbilicalProtocol.stop(collection);
@@ -98,9 +99,25 @@ public class IncrControlServlet extends javax.servlet.http.HttpServlet {
                 }
             }
             wirteXml2Client(resp, true, StringUtils.EMPTY, convert);
+        } else if (jobTpe == JobType.PipelineDelete) {
+            this.incrStatusUmbilicalProtocol.removeIndexUpdateCounterStatus(collection);
+            wirteXml2Client(resp, true, StringUtils.EMPTY);
         } else {
             throw new ServletException("action:" + req.getParameter("action") + " is not illegal");
         }
+    }
+
+    private static JobType getJobType(HttpServletRequest req) {
+        JobType jobTpe = JobType.parseJobType(req.getParameter("action"));
+        return jobTpe;
+    }
+
+    private static String getPipelineName(HttpServletRequest req) throws ServletException {
+        String collection = req.getParameter("collection");
+        if (StringUtils.isBlank(collection)) {
+            throw new ServletException("param collection:" + collection + " can not be null");
+        }
+        return collection;
     }
 
     protected void wirteXml2Client(HttpServletResponse response, boolean success, String msg, Object... biz) {

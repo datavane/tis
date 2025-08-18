@@ -20,10 +20,13 @@ package com.qlangtech.tis.realtime.yarn.rpc;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.ConfigFileContext.HTTPMethod;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.PostFormStreamProcess;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,6 +34,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -44,7 +48,8 @@ public enum JobType {
     //    // incr process tags的状态
     Collection_TopicTags_status(3, "collection_topic_tags_status"),
     // 取得增量监听的tags
-    ACTION_getTopicTags(4, "get_topic_tags");
+    ACTION_getTopicTags(4, "get_topic_tags"),
+    PipelineDelete(5, "pipeline_delete");
 
     public int getValue() {
         return value;
@@ -53,10 +58,16 @@ public enum JobType {
     private final int value;
 
     private final String name;
+    private final HTTPMethod method;
 
     private JobType(int value, String name) {
+        this(value, name, HTTPMethod.POST);
+    }
+
+    private JobType(int value, String name, HTTPMethod method) {
         this.value = value;
         this.name = name;
+        this.method = method;
     }
 
     public String getName() {
@@ -84,9 +95,8 @@ public enum JobType {
     }
 
     public <T> RemoteCallResult<T> assembIncrControlWithResult(
-            String getAssembleHttpHost,
             String collectionName, List<HttpUtils.PostParam> extraParams, Class<T> clazz) throws MalformedURLException {
-        return assembIncrControl(getAssembleHttpHost, collectionName, extraParams, clazz == null ? null : new IAssembIncrControlResult() {
+        return assembIncrControl(collectionName, extraParams, clazz == null ? null : new IAssembIncrControlResult() {
 
             public T deserialize(JSONObject json) {
                 return JSON.toJavaObject(json, clazz);
@@ -101,14 +111,21 @@ public enum JobType {
      * @return
      * @throws MalformedURLException
      */
-    public <T> RemoteCallResult<T> assembIncrControl(String getAssembleHttpHost, String collectionName
+    public <T> RemoteCallResult<T> assembIncrControl(String collectionName
             , List<HttpUtils.PostParam> extraParams, IAssembIncrControlResult deserialize) throws MalformedURLException {
+        final String getAssembleHttpHost = Config.getAssembleHttpHost();
+        if (StringUtils.isEmpty(getAssembleHttpHost)) {
+            throw new IllegalArgumentException("param getAssembleHttpHost can not be empty");
+        }
+        if (StringUtils.isEmpty(collectionName)) {
+            throw new IllegalArgumentException("param collectionName can not be empty");
+        }
         URL applyUrl = new URL(getAssembleHttpHost + "/incr-control");
         List<HttpUtils.PostParam> params = Lists.newArrayList();
         params.add(new HttpUtils.PostParam("collection", collectionName));
         params.add(new HttpUtils.PostParam("action", this.getName()));
         params.addAll(extraParams);
-        return HttpUtils.post(//
+        return HttpUtils.process(//
                 applyUrl, //
                 params, new PostFormStreamProcess<RemoteCallResult>() {
 
@@ -127,7 +144,7 @@ public enum JobType {
                         }
                         return result;
                     }
-                });
+                }, Objects.requireNonNull(this.method, "method can not be null"));
     }
 
     public interface IAssembIncrControlResult {

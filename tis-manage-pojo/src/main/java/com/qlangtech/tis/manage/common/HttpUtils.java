@@ -139,7 +139,9 @@ public class HttpUtils {
     }
 
     public static <T> T process(URL url, List<PostParam> params, PostFormStreamProcess<T> process, HTTPMethod httpMethod) {
-        return ConfigFileContext.processContent(url, process, httpMethod, process.getContentType().serializeParams(params), 1);
+        return ConfigFileContext.processContent(
+                url, process, httpMethod,
+                process.getContentType().serializeParams(params), 1);
     }
 
     public static <T> T post(String urlString, List<PostParam> params, PostFormStreamProcess<T> process) {
