@@ -81,7 +81,7 @@ https://github.com/datavane/tis/releases/tag/v4.2.1
 ### 批量导入流程设置
 
 选择Reader/Writer插件类型
-![tis](docs/datax-add-step2.png)
+![tis](docs/datax-add-step2.png_bak)
 
 添加MySqlReader
 ![tis](docs/add-mysql-reader.png)
