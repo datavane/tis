@@ -21,6 +21,7 @@ package com.qlangtech.tis.extension;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.DefaultPluginNest.DefaultExportPortProvider;
+import com.qlangtech.tis.extension.util.AbstractPropAssist.MarkdownHelperContent;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -67,8 +68,8 @@ public class DefaultPlugin implements Describable<DefaultPlugin> {
     @TISExtension
     public static class DefaultDescriptor extends Descriptor<DefaultPlugin> implements DefaultExportPortProvider {
         public DefaultDescriptor() {
-            this.addFieldDescriptor("name", DFT_NAME_VALUE, FILED_NAME_DESCRIPTION);
-          //  this.addFieldDescriptor("nestProp.exportPort", DFT_NEST_PROP_VAL, null);
+            this.addFieldDescriptor("name", DFT_NAME_VALUE, new MarkdownHelperContent(FILED_NAME_DESCRIPTION));
+            //  this.addFieldDescriptor("nestProp.exportPort", DFT_NEST_PROP_VAL, null);
             // this.addFieldDescriptor("xxx", DFT_NAME_VALUE, FILED_NAME_DESCRIPTION);
         }
 
@@ -82,7 +83,7 @@ public class DefaultPlugin implements Describable<DefaultPlugin> {
             return DFT_NEST_PROP_VAL;
         }
 
-        public void addFieldDescriptor(String fieldName, Object dftVal, String helperContent) {
+        public void addFieldDescriptor(String fieldName, Object dftVal, MarkdownHelperContent helperContent) {
             super.addFieldDescriptor(fieldName, dftVal, helperContent);
         }
     }

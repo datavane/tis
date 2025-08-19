@@ -24,6 +24,7 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.DefaultPlugin;
 import com.qlangtech.tis.extension.ElementPluginDesc;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.util.AbstractPropAssist.MarkdownHelperContent;
 import com.qlangtech.tis.extension.util.PluginExtraProps.RouterAssistType;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.CMeta.ParsePostMCols;
@@ -174,7 +175,7 @@ public class TestPluginExtraProps extends TestCase {
         try {
             DefaultPlugin plugin = new DefaultPlugin();
             DefaultPlugin.DefaultDescriptor desc = (DefaultPlugin.DefaultDescriptor) plugin.getDescriptor();
-            desc.addFieldDescriptor("xxx", DefaultPlugin.DFT_NAME_VALUE, DefaultPlugin.FILED_NAME_DESCRIPTION);
+            desc.addFieldDescriptor("xxx", DefaultPlugin.DFT_NAME_VALUE, new MarkdownHelperContent(DefaultPlugin.FILED_NAME_DESCRIPTION));
             PluginExtraProps.load(ElementPluginDesc.create(desc), DefaultPlugin.class);
             Assert.fail("must be faild");
         } catch (Exception e) {

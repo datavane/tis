@@ -31,6 +31,7 @@ import com.qlangtech.tis.extension.impl.TestPropertyType;
 import com.qlangtech.tis.extension.impl.TestSuFormProperties;
 import com.qlangtech.tis.extension.impl.TestXmlFile;
 import com.qlangtech.tis.extension.model.TestUpdateCenter;
+import com.qlangtech.tis.extension.util.AbstractPropAssistTest;
 import com.qlangtech.tis.extension.util.TestGroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.TestPluginExtraProps;
 import com.qlangtech.tis.manage.common.TaskSoapUtilsTest;
@@ -67,6 +68,7 @@ public class TestAll extends TestCase {
 
     public static Test suite() {
         TestSuite suite = new TestSuite();
+        suite.addTestSuite(AbstractPropAssistTest.class);
         suite.addTestSuite(TaskSoapUtilsTest.class);
         suite.addTestSuite(TestPropertyType.class);
         suite.addTestSuite(TestTableInDB.class);

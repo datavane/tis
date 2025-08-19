@@ -166,7 +166,7 @@ spec:
               mountPath: /opt/app/tis-uber/web-start/conf/tis-web-config/
             - name: tis-console-pvc
               mountPath: "/opt/data"
-          image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:4.3.0-SNAPSHOT
+          image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:4.3.0
         #  command: [ "/bin/sh", "-c", "sleep 1000000" ]
           ports:
             - name: tis-8080

@@ -29,6 +29,7 @@ import com.qlangtech.tis.extension.ElementPluginDesc;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.extension.impl.PropertyType;
+import com.qlangtech.tis.extension.util.AbstractPropAssist.MarkdownHelperContent;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -58,7 +59,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.util.HeteroEnum.DATASOURCE;
-import static com.qlangtech.tis.util.HeteroEnum.PARAMS_CONFIG;
 
 /**
  * load extra prop desc like 'lable' and so on
@@ -167,7 +167,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                     pps = new Props(validate(o.getJSONObject(propKey), propKey, pluginClazz, resourceName, false));
                     StringBuffer asynHelp = null;
                     if ((asynHelp = propHelps.get(propKey)) != null) {
-                        pps.tagAsynHelp(asynHelp);
+                        pps.tagAsynHelp(new MarkdownHelperContent(asynHelp.toString()));
                     }
                     props.put(propKey, pps);
                 }
@@ -367,7 +367,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         public static final String KEY_VIEW_TYPE = "viewtype";
         private static final String KEY_ASYNC_HELP = "asyncHelp";
         private final JSONObject props;
-        private String asynHelp;
+        private MarkdownHelperContent asynHelp;
 
         public Props(JSONObject props) {
             this.props = props;
@@ -375,7 +375,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         @JSONField(serialize = false)
         public String getAsynHelp() {
-            return this.asynHelp;
+            if (this.asynHelp == null) {
+                return null;
+            }
+            return this.asynHelp.getContent().toString();
         }
 
         @JSONField(serialize = false)
@@ -474,10 +477,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         /**
          * 标记帮助内容从服务端异步获取
          */
-        public void tagAsynHelp(StringBuffer asynHelp) {
+        public void tagAsynHelp(MarkdownHelperContent asynHelp) {
             props.put(KEY_ASYNC_HELP, true);
             props.remove(KEY_HELP);
-            this.asynHelp = asynHelp.toString();
+            this.asynHelp = asynHelp;
         }
 
         public boolean isAsynHelp() {
@@ -495,11 +498,11 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         public void merge(Props p) {
             jsonMerge(props, p.props);
             if (p.isAsynHelp()) {
-                StringBuffer buffer = (new StringBuffer(p.asynHelp));
-                if (StringUtils.isNotBlank(this.asynHelp)) {
-                    buffer.append("\n\n").append(this.asynHelp);
+                MarkdownHelperContent tpl = this.asynHelp;
+                this.asynHelp = new MarkdownHelperContent(p.asynHelp);
+                if (tpl != null) {
+                    this.asynHelp = this.asynHelp.append(tpl);
                 }
-                this.asynHelp = buffer.toString();
             }
         }
 

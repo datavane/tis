@@ -26,6 +26,9 @@ import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.manage.common.Option;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -204,7 +207,7 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
         }
     }
 
-    protected abstract String getDescription(FIELD configOption);
+    protected abstract MarkdownHelperContent getDescription(FIELD configOption);
 
     protected abstract Object getDefaultValue(FIELD configOption);
 
@@ -219,7 +222,7 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
     protected abstract String getDisplayName(FIELD configOption);
 
     protected final void addFieldDescriptor(String fieldName, FIELD configOption, OverwriteProps overwriteProps) {
-        String desc = getDescription(configOption);//.description();
+        MarkdownHelperContent desc = getDescription(configOption);//.description();
 
         Object dftVal = overwriteProps.processDftVal(getDefaultValue(configOption));
 
@@ -227,15 +230,89 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
                 , "fieldName:" + fieldName + " relevant propertyType can not be null");
         dftVal = propertyType.serialize2FrontendOutput(dftVal);
 
-        StringBuffer helperContent = new StringBuffer(desc);
-        if (overwriteProps.appendHelper.isPresent()) {
-            helperContent.append("\n\n").append(overwriteProps.appendHelper.get());
-        }
+//        StringBuffer helperContent = new StringBuffer(desc);
+//        if (overwriteProps.appendHelper.isPresent()) {
+//            helperContent.append("\n").append(overwriteProps.appendHelper.get());
+//        }
+//
+//        ;
 
         final List<Option> opts = getOptEnums(configOption);
 
         descriptor.addFieldDescriptor(fieldName, dftVal
-                , overwriteProps.labelRewrite.apply(getDisplayName(configOption)), helperContent.toString()
+                , overwriteProps.labelRewrite.apply(getDisplayName(configOption)), desc.append(overwriteProps)
                 , overwriteProps.opts.isPresent() ? overwriteProps.opts : Optional.ofNullable(opts));
+    }
+
+    public static class MarkdownHelperContent {
+        private final StringBuffer content;
+        int lastLineEmptyCount = 0;
+        boolean hasAddLine = false;
+        public MarkdownHelperContent(String content) {
+            this.content = new StringBuffer();
+            this.appendContent(content);
+        }
+
+        /**
+         *
+         * @param content
+         */
+        private MarkdownHelperContent appendContent(String content) {
+
+            try (BufferedReader reader = new BufferedReader(new StringReader(content))) {
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    if (StringUtils.isEmpty(line)) {
+                        lastLineEmptyCount++;
+                    } else {
+                        lastLineEmptyCount = 0;
+                    }
+                    if (lastLineEmptyCount > 1) {
+                        continue;
+                    }
+                    if (hasAddLine) {
+                        this.content.append("\n");
+                    }
+                    this.content.append(line);
+                    hasAddLine = true;
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return this;
+        }
+
+        public MarkdownHelperContent(MarkdownHelperContent content) {
+            this(content.getContent().toString());
+        }
+
+        public MarkdownHelperContent append(OverwriteProps overwriteProps) {
+            if (overwriteProps.appendHelper.isPresent()) {
+                //  content.append("\n").append(overwriteProps.appendHelper.get());
+                this.appendContent("\n\n" + overwriteProps.appendHelper.get());
+            }
+            return this;
+        }
+
+        /**
+         * 确保每次添加内容，上下content 之间都添加一个空行（因为是markdown文本内容，不然不会换行）
+         * @param content
+         * @return
+         */
+        public MarkdownHelperContent append(MarkdownHelperContent content) {
+            if (content.isNotEmpty()) {
+                // this.content.append("\n").append(content.content);
+                this.appendContent("\n\n" + content.content.toString());
+            }
+            return this;
+        }
+
+        public StringBuffer getContent() {
+            return this.content;
+        }
+
+        public boolean isNotEmpty() {
+            return StringUtils.isNotEmpty(this.content.toString());
+        }
     }
 }

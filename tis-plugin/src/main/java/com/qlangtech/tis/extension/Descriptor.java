@@ -40,6 +40,7 @@ import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.extension.util.AbstractPropAssist.MarkdownHelperContent;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
@@ -1496,7 +1497,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     public PluginExtraProps fieldExtraDescs = new PluginExtraProps();
 
-    public void addFieldDescriptor(String fieldName, Object dftVal, String helperContent) {
+    public void addFieldDescriptor(String fieldName, Object dftVal, MarkdownHelperContent helperContent) {
         this.addFieldDescriptor(fieldName, dftVal, null, helperContent, Optional.empty(), false);
     }
 
@@ -1507,17 +1508,17 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @param enums
      * @return
      */
-    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String helperContent,
+    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, MarkdownHelperContent helperContent,
                                                      Optional<List<Option>> enums) {
         return addFieldDescriptor(fieldName, dftVal, null, helperContent, enums, false);
     }
 
-    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String label, String helperContent,
+    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String label, MarkdownHelperContent helperContent,
                                                      Optional<List<Option>> enums) {
         return addFieldDescriptor(fieldName, dftVal, label, helperContent, enums, false);
     }
 
-    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String label, String helperContent,
+    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String label, MarkdownHelperContent helperContent,
                                                      Optional<List<Option>> enums, boolean disabled) {
         JSONObject c = new JSONObject();
         PropertyType.setDefaultVal(dftVal, c);
@@ -1528,8 +1529,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             PropertyType.setDisabled(c);
         }
         PluginExtraProps.Props props = new PluginExtraProps.Props(c);
-        if (StringUtils.isNotEmpty(helperContent)) {
-            props.tagAsynHelp(new StringBuffer(helperContent));
+//        if (StringUtils.isNotEmpty(helperContent)) {
+//            props.tagAsynHelp(new StringBuffer(helperContent));
+//        }
+        if(helperContent.isNotEmpty()){
+            props.tagAsynHelp(helperContent);
         }
         if (enums.isPresent()) {
             c.put(KEY_ENUM_PROP, Option.toJson(enums.get()));
