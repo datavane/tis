@@ -59,7 +59,12 @@ public class ApplicationDAOImpl extends BasicDAO<Application, ApplicationCriteri
 
         Connection conn = session.getCurrentConnection();
         try (Statement statement = Objects.requireNonNull(conn, "conn can not b null").createStatement()) {
-          try (ResultSet resultSet = statement.executeQuery("select app_id from application limit 1")) {
+
+          ApplicationCriteria criteria = new ApplicationCriteria();
+          criteria.setPage(1);
+          criteria.setPageSize(1);
+
+          try (ResultSet resultSet = statement.executeQuery("select app_id from application" + criteria.getPaginationScript())) {
             if (resultSet.next()) {
               return Optional.of(resultSet.getString(1));
             }
