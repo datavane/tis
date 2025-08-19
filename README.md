@@ -16,10 +16,12 @@ TIS为您提供企业级数据集成服务，**基于批(DataX)，流(Flink-CDC�
 
 快速安装（支持私有云、公有云等环境），方便、快捷 [:green_circle:单机](https://tis.pub/docs/install/tis/uber) [:purple_circle:Docker](https://tis.pub/docs/install/tis/docker) [:large_blue_circle:Docker Compose](https://tis.pub/docs/install/tis/docker-compose) [:brown_circle:K8S](https://tis.pub/docs/install/tis/kubernetes)
 
-## v4.2.1 发布（2025/5/1）：
-https://github.com/datavane/tis/releases/tag/v4.2.1
+##  发布：
+
+最新版本：v4.2.1（2025/8/19) https://github.com/datavane/tis/releases/tag/v4.3.0
 
 **历史发布**：
+* v4.2.1 发布（2025/5/1）：https://github.com/datavane/tis/releases/tag/v4.2.1
 * v4.1.0 发布（2025/2/2）：https://github.com/datavane/tis/releases/tag/v4.1.0
 * v4.0.1 发布（2024/10/19）：https://github.com/datavane/tis/releases/tag/V4.0.1
 
@@ -81,7 +83,7 @@ https://github.com/datavane/tis/releases/tag/v4.2.1
 ### 批量导入流程设置
 
 选择Reader/Writer插件类型
-![tis](docs/datax-add-step2.png_bak)
+![tis](docs/datax-add-step2.png)
 
 添加MySqlReader
 ![tis](docs/add-mysql-reader.png)
