@@ -66,7 +66,7 @@ public class AppViewAction extends BasicModule {
     ApplicationCriteria query = new ApplicationCriteria();
 
     Criteria criteria = query.createCriteria();
-    criteria.andAppIdNotEqualTo(SysInitializeAction.TEMPLATE_APPLICATION_DEFAULT_ID);
+   // criteria.andAppIdNotEqualTo(SysInitializeAction.TEMPLATE_APPLICATION_DEFAULT_ID);
     if (dptid != null) {
       context.put("bizdomain", this.getDepartmentDAO().loadFromWriteDB(dptid));
       // criteria.andDptIdEqualTo(dptid);

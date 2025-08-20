@@ -64,7 +64,7 @@ public class ApplicationDAOImpl extends BasicDAO<Application, ApplicationCriteri
           criteria.setPage(1);
           criteria.setPageSize(1);
 
-          try (ResultSet resultSet = statement.executeQuery("select app_id from application" + criteria.getPaginationScript())) {
+          try (ResultSet resultSet = statement.executeQuery("select app_id,project_name from application" + criteria.getPaginationScript())) {
             if (resultSet.next()) {
               return Optional.of(resultSet.getString(1));
             }

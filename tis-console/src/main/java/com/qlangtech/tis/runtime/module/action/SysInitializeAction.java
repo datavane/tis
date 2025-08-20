@@ -72,12 +72,12 @@ public class SysInitializeAction extends BasicModule {
 
   public static final int DEPARTMENT_DEFAULT_ID = 2;
   private static final int DEPARTMENT_ROOT_ID = 1;
-  public static final int TEMPLATE_APPLICATION_DEFAULT_ID = 1;
+//  public static final int TEMPLATE_APPLICATION_DEFAULT_ID = 1;
 
   public static final String ADMIN_ID = "9999";
   public static final String ADMIN_NAME = "admin";
 
-  public static final String APP_NAME_TEMPLATE = "search4template";
+ // public static final String APP_NAME_TEMPLATE = "search4template";
   private static final Pattern PATTERN_ZK_ADDRESS = Pattern.compile("([^/]+)(/.+)$");
 
   private static Boolean _isSysInitialized;
@@ -176,7 +176,7 @@ public class SysInitializeAction extends BasicModule {
     // 添加一个系统管理员
     this.getUsrDptRelationDAO().addAdminUser();
     this.initializeDepartment();
-    this.initializeAppAndSchema();
+   // this.initializeAppAndSchema();
 
     touchSysInitializedToken();
   }
@@ -316,62 +316,62 @@ public class SysInitializeAction extends BasicModule {
   }
 
 
-  public void initializeAppAndSchema() throws IOException {
-    this.getApplicationDAO().deleteByPrimaryKey(TEMPLATE_APPLICATION_DEFAULT_ID);
-    SnapshotCriteria snapshotQuery = new SnapshotCriteria();
-    snapshotQuery.createCriteria().andAppidEqualTo(TEMPLATE_APPLICATION_DEFAULT_ID);
-    this.getSnapshotDAO().deleteByExample(snapshotQuery);
+//  public void initializeAppAndSchema() throws IOException {
+//    this.getApplicationDAO().deleteByPrimaryKey(TEMPLATE_APPLICATION_DEFAULT_ID);
+//    SnapshotCriteria snapshotQuery = new SnapshotCriteria();
+//    snapshotQuery.createCriteria().andAppidEqualTo(TEMPLATE_APPLICATION_DEFAULT_ID);
+//    this.getSnapshotDAO().deleteByExample(snapshotQuery);
+//
+//    ServerGroupCriteria serverGroupQuery = new ServerGroupCriteria();
+//    serverGroupQuery.createCriteria().andAppIdEqualTo(TEMPLATE_APPLICATION_DEFAULT_ID);
+//    this.getServerGroupDAO().deleteByExample(serverGroupQuery);
+//
+//    // 添加初始化模板配置
+//    Application app = new Application();
+//    // app.setAppId(TEMPLATE_APPLICATION_DEFAULT_ID);
+//    app.setProjectName(APP_NAME_TEMPLATE);
+//    app.setDptId(DEPARTMENT_DEFAULT_ID);
+//    app.setDptName("default");
+//    app.setIsDeleted("N");
+//    app.setManager(ADMIN_NAME);
+//    app.setUpdateTime(new Date());
+//    app.setCreateTime(new Date());
+//    app.setRecept(ADMIN_NAME);
+//
+//    Integer newAppId = this.getApplicationDAO().insertSelective(app);
+//    if (newAppId != TEMPLATE_APPLICATION_DEFAULT_ID) {
+//      throw new IllegalStateException("newAppId:" + newAppId + " must equal with " + TEMPLATE_APPLICATION_DEFAULT_ID);
+//    }
+//
+//    app.setAppId(TEMPLATE_APPLICATION_DEFAULT_ID);
+//    this.initializeSchemaConfig(app);
+//  }
 
-    ServerGroupCriteria serverGroupQuery = new ServerGroupCriteria();
-    serverGroupQuery.createCriteria().andAppIdEqualTo(TEMPLATE_APPLICATION_DEFAULT_ID);
-    this.getServerGroupDAO().deleteByExample(serverGroupQuery);
 
-    // 添加初始化模板配置
-    Application app = new Application();
-    // app.setAppId(TEMPLATE_APPLICATION_DEFAULT_ID);
-    app.setProjectName(APP_NAME_TEMPLATE);
-    app.setDptId(DEPARTMENT_DEFAULT_ID);
-    app.setDptName("default");
-    app.setIsDeleted("N");
-    app.setManager(ADMIN_NAME);
-    app.setUpdateTime(new Date());
-    app.setCreateTime(new Date());
-    app.setRecept(ADMIN_NAME);
-
-    Integer newAppId = this.getApplicationDAO().insertSelective(app);
-    if (newAppId != TEMPLATE_APPLICATION_DEFAULT_ID) {
-      throw new IllegalStateException("newAppId:" + newAppId + " must equal with " + TEMPLATE_APPLICATION_DEFAULT_ID);
-    }
-
-    app.setAppId(TEMPLATE_APPLICATION_DEFAULT_ID);
-    this.initializeSchemaConfig(app);
-  }
-
-
-  void initializeSchemaConfig(Application app) throws IOException {
-    Snapshot snap = new Snapshot();
-    snap.setCreateTime(new Date());
-    snap.setCreateUserId(9999l);
-    snap.setCreateUserName("admin");
-    snap.setUpdateTime(new Date());
-
-    snap.setAppId(app.getAppId());
-    try (InputStream schemainput = this.getClass().getResourceAsStream("/solrtpl/schema.xml.tpl")) {
-      ConfigContentGetter schema = new ConfigContentGetter(ConfigFileReader.FILE_SCHEMA,
-        IOUtils.toString(schemainput, BasicModule.getEncode()));
-      snap = UploadJarAction.processFormItem(this.getDaoContext(), schema, snap);
-    }
-    try (InputStream solrconfigInput = this.getClass().getResourceAsStream("/solrtpl/solrconfig.xml.tpl")) {
-      ConfigContentGetter solrConfig = new ConfigContentGetter(ConfigFileReader.FILE_SOLR,
-        IOUtils.toString(solrconfigInput, BasicModule.getEncode()));
-      snap = UploadJarAction.processFormItem(this.getDaoContext(), solrConfig, snap);
-    }
-    snap.setPreSnId(-1);
-    Integer snapshotId = this.getSnapshotDAO().insertSelective(snap);
-
-    GroupAction.createGroup(RunEnvironment.getSysRuntime(), AddAppAction.FIRST_GROUP_INDEX, app.getAppId(),
-      snapshotId, this.getServerGroupDAO());
-  }
+//  void initializeSchemaConfig(Application app) throws IOException {
+//    Snapshot snap = new Snapshot();
+//    snap.setCreateTime(new Date());
+//    snap.setCreateUserId(9999l);
+//    snap.setCreateUserName("admin");
+//    snap.setUpdateTime(new Date());
+//
+//    snap.setAppId(app.getAppId());
+//    try (InputStream schemainput = this.getClass().getResourceAsStream("/solrtpl/schema.xml.tpl")) {
+//      ConfigContentGetter schema = new ConfigContentGetter(ConfigFileReader.FILE_SCHEMA,
+//        IOUtils.toString(schemainput, BasicModule.getEncode()));
+//      snap = UploadJarAction.processFormItem(this.getDaoContext(), schema, snap);
+//    }
+//    try (InputStream solrconfigInput = this.getClass().getResourceAsStream("/solrtpl/solrconfig.xml.tpl")) {
+//      ConfigContentGetter solrConfig = new ConfigContentGetter(ConfigFileReader.FILE_SOLR,
+//        IOUtils.toString(solrconfigInput, BasicModule.getEncode()));
+//      snap = UploadJarAction.processFormItem(this.getDaoContext(), solrConfig, snap);
+//    }
+//    snap.setPreSnId(-1);
+//    Integer snapshotId = this.getSnapshotDAO().insertSelective(snap);
+//
+//    GroupAction.createGroup(RunEnvironment.getSysRuntime(), AddAppAction.FIRST_GROUP_INDEX, app.getAppId(),
+//      snapshotId, this.getServerGroupDAO());
+//  }
 
 
   void initializeDepartment() {
