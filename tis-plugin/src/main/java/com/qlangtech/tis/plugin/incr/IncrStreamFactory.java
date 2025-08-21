@@ -38,7 +38,7 @@ import java.util.function.Function;
  * @date 2020/04/13
  */
 @Public
-public abstract class IncrStreamFactory implements Describable<IncrStreamFactory>, IRCController {
+public abstract class IncrStreamFactory implements Describable<IncrStreamFactory>, IRCController, IConsumerRateLimiter {
 
     public static Function<String, IncrStreamFactory> stubStreamFactory;
 
@@ -57,8 +57,7 @@ public abstract class IncrStreamFactory implements Describable<IncrStreamFactory
         return k8sConfig;
     }
 
-    public abstract boolean supportRateLimiter();
-    public abstract <RateLimiterStrategy> RateLimiterStrategy getRateLimiterStrategy();
+
     public abstract Integer getParallelism();
 
     public abstract ServerLaunchToken getLaunchToken(TargetResName indexName);
