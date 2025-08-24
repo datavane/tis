@@ -18,7 +18,7 @@ TIS为您提供企业级数据集成服务，**基于批(DataX)，流(Flink-CDC�
 
 ##  发布：
 
-最新版本：v4.2.1（2025/8/19) https://github.com/datavane/tis/releases/tag/v4.3.0
+最新版本：v4.3.0（2025/8/19) https://github.com/datavane/tis/releases/tag/v4.3.0
 
 **历史发布**：
 * v4.2.1 发布（2025/5/1）：https://github.com/datavane/tis/releases/tag/v4.2.1
@@ -111,9 +111,10 @@ TIS为您提供企业级数据集成服务，**基于批(DataX)，流(Flink-CDC�
 TIS基于数据库元数据信息自动生成Flink-SQL脚本,您没看错全部脚本自动生！
 ![tis](docs/incr_step_3.png)
 
-实时数据通道创建完成！构建一个实时数仓就这么简单！！！   
-![tis](docs/incr_step_4.png)
+实时数据通道创建完成！控制台实时显示实时同步流量，并且，可以执行限流，启停（Pause/Resume）等操作[详细](https://tis.pub/docs/guide/rate-controller/)
+![tis](docs/realtime_metric_show.gif)
 
+构建一个实时数仓就这么简单！！！
 ## 依赖项目
 
 - WEB UI [https://github.com/qlangtech/ng-tis](https://github.com/qlangtech/ng-tis)
