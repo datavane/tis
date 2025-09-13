@@ -1171,21 +1171,21 @@ public class CoreAction extends BasicModule {
     FileUtils.copyFile(logFile, getResponse().getOutputStream());
   }
 
-  /**
-   * 取得POJO 內容
-   *
-   * @param context
-   * @throws Exception
-   */
-  public void doGetPojoData(Context context) throws Exception {
-    final AppDomainInfo appDomainInfo = this.getAppDomain();
-    try (StringWriter writer = new StringWriter()) {
-      if (!ViewPojo.downloadResource(context, appDomainInfo, this, writer)) {
-        return;
-      }
-      this.setBizResult(context, writer.toString());
-    }
-  }
+//  /**
+//   * 取得POJO 內容
+//   *
+//   * @param context
+//   * @throws Exception
+//   */
+//  public void doGetPojoData(Context context) throws Exception {
+//    final AppDomainInfo appDomainInfo = this.getAppDomain();
+//    try (StringWriter writer = new StringWriter()) {
+//      if (!ViewPojo.downloadResource(context, appDomainInfo, this, writer)) {
+//        return;
+//      }
+//      this.setBizResult(context, writer.toString());
+//    }
+//  }
 
   /**
    * 判断索引是否存在
