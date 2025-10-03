@@ -52,6 +52,7 @@ import com.qlangtech.tis.plugin.ds.TestSplitableTableInDB;
 import com.qlangtech.tis.plugin.ds.TestTableInDB;
 import com.qlangtech.tis.plugin.k8s.TestK8sImage;
 import com.qlangtech.tis.util.TestAttrValMap;
+import com.qlangtech.tis.util.TestDescriptorsJSONForAIPromote;
 import com.qlangtech.tis.util.TestHeteroList;
 import com.qlangtech.tis.util.TestTransformerRuleKey;
 import com.qlangtech.tis.util.TestUploadPluginMeta;
@@ -109,6 +110,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestSplitableTableInDB.class);
         suite.addTestSuite(TestTransformerRuleKey.class);
         suite.addTestSuite(TestAbstractExecContext.class);
+        suite.addTestSuite(TestDescriptorsJSONForAIPromote.class);
         return suite;
     }
 }

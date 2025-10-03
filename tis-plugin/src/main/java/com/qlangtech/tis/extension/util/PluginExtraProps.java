@@ -25,6 +25,8 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.qlangtech.tis.IPluginEnum;
+import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.ElementPluginDesc;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.IOUtils;
@@ -35,6 +37,7 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.HeteroEnum;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.ClassUtils;
@@ -58,6 +61,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.plugin.IdentityName.create;
 import static com.qlangtech.tis.util.HeteroEnum.DATASOURCE;
 
 /**
@@ -78,7 +82,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     public static final String KEY_DATETIME_FORMAT = "dateTimeFormat";
     public static final String KEY_DISABLE = "disable";
     public static final String KEY_CREATOR = "creator";
+    public static final String KEY_PLUGIN = "plugin";
     public static final String KEY_CREATOR_HETERO = "hetero";
+    public static final String KEY_DESC_NAME = "descName";
     /**
      * <pre>
      *  export enum RouterAssistType {
@@ -164,7 +170,15 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 PluginExtraProps props = new PluginExtraProps();
                 Props pps = null;
                 for (String propKey : o.keySet()) {
-                    pps = new Props(validate(o.getJSONObject(propKey), propKey, pluginClazz, resourceName, false));
+
+
+                    pps = new Props(o.getJSONObject(propKey));
+
+//                    pps.getRefCreator().ifPresent((creator) -> {
+//                        Props.validate(creator, propKey, pluginClazz, resourceName, false);
+//                    });
+
+
                     StringBuffer asynHelp = null;
                     if ((asynHelp = propHelps.get(propKey)) != null) {
                         pps.tagAsynHelp(new MarkdownHelperContent(asynHelp.toString()));
@@ -184,6 +198,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         return load(Optional.empty(), clazz);
     }
 
+
     /**
      * field form extran descriptor
      *
@@ -194,23 +209,33 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     public static Optional<PluginExtraProps> load(Optional<ElementPluginDesc> desc, Class<?> clazz) {
 
 
-        PluginExtraProps ep = visitAncestorsClass(clazz, (c, extraProps) -> {
-            Optional<PluginExtraProps> nxtExtraProps = parseExtraProps(c);
-            if (nxtExtraProps.isPresent()) {
-                if (extraProps == null) {
-                    extraProps = nxtExtraProps.get();
-                } else {
-                    extraProps.mergeProps(nxtExtraProps.get());
-                }
-            }
-            return extraProps;
-        });
+        PluginExtraProps ep = visitAncestorsClass(clazz
+                , (c, extraProps, finalChild) -> {
+                    Optional<PluginExtraProps> nxtExtraProps = parseExtraProps(c);
+                    if (nxtExtraProps.isPresent()) {
+                        if (extraProps == null) {
+                            extraProps = nxtExtraProps.get();
+                        } else {
+                            extraProps.mergeProps(nxtExtraProps.get());
+                        }
+                    }
+                    if (finalChild && extraProps != null) {
+                        extraProps.forEach((k, prop) -> {
+                            prop.setFieldRefCreateor();
+                        });
+                    }
+                    return extraProps;
+                });
 
 
         if (ep != null) {
             String resourceName = clazz.getSimpleName() + ".json";
             for (Map.Entry<String, PluginExtraProps.Props> entry : ep.entrySet()) {
-                validate(entry.getValue().props, entry.getKey(), clazz, resourceName, true);
+                Optional<FieldRefCreateor> refCreator = entry.getValue().getRefCreator();
+                refCreator.ifPresent((createor) -> {
+                    PluginExtraProps.Props.validate(createor, entry.getKey(), clazz, resourceName, true);
+                });
+
             }
 
         }
@@ -233,74 +258,81 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         Class targetClass = null;
         for (int i = allSuperclasses.size() - 2; i >= 0; i--) {
             targetClass = (Class) allSuperclasses.get(i);
-            extraProps = clazzVisitor.process(targetClass, extraProps);
+            extraProps = clazzVisitor.process(targetClass, extraProps, i == 0);
         }
         return extraProps;
     }
 
 
     public interface IClassVisitor<T> {
-        T process(Class<?> clazz, T extraProps);
+        /**
+         *
+         * @param clazz
+         * @param extraProps
+         * @param finalChild 是否是最后一个子类
+         * @return
+         */
+        T process(Class<?> clazz, T extraProps, boolean finalChild);
     }
 
-    private static JSONObject validate(JSONObject props, String propKey, Class<?> pluginClazz, String resourceName,
-                                       boolean finalValidate) {
-        String errDesc = createErrorMsg(propKey, pluginClazz, resourceName);
-        Object creator = props.get(KEY_CREATOR);
-        if (creator != null) {
-            if (!(creator instanceof JSONObject)) {
-                throw new IllegalStateException("prop creator must be type of JSONObject:" + errDesc);
-            }
-            if (finalValidate) {
-                JSONObject creatorJ = (JSONObject) creator;
-
-                //  Objects.requireNonNull(creatorJ.get(KEY_ROUTER_LINK), errDesc);
-                Objects.requireNonNull(creatorJ.get(KEY_LABEL), errDesc);
-                JSONObject pmeta = null;
-                JSONArray plugins = creatorJ.getJSONArray("plugin");
-                boolean assistTypeEmpty = StringUtils.isEmpty(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE));
-                if (plugins != null) {
-                    for (int i = 0; i < plugins.size(); i++) {
-                        pmeta = plugins.getJSONObject(i);
-                        if (StringUtils.isBlank(pmeta.getString(KEY_CREATOR_HETERO))
-                                || StringUtils.isBlank(pmeta.getString("descName"))
-                            // 由于插件中参数不一定是必须的，所以先把以下校验去掉： "extraParam": "append_true"
-                            //        || StringUtils.isBlank(pmeta.getString("extraParam"))
-                        ) {
-                            throw new IllegalStateException("pmeta is illegal:" + pmeta.toJSONString() + "," +
-                                    "pluginClazz:" + pluginClazz.getName() + ",errDesc:" + errDesc);
-                        }
-                        /**
-                         * 如果assitType 为空，则查看plugin 的KEY_CREATOR_HETERO 如果为 ‘params-cfg’ 则默认ASSIST_TYPE类型为 RouterAssistType.paramCfg
-                         */
-                        if (assistTypeEmpty) {
-                            String hetero = pmeta.getString(KEY_CREATOR_HETERO);
-                            if (StringUtils.isNotEmpty(hetero)) {
-                                if (!DATASOURCE.identity.equals(hetero)) {
-                                    creatorJ.put(KEY_CREATOR_ASSIST_TYPE, RouterAssistType.paramCfg.token);
-                                    assistTypeEmpty = false;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (assistTypeEmpty && StringUtils.isNotEmpty(creatorJ.getString(KEY_ROUTER_LINK))) {
-                    creatorJ.put(KEY_CREATOR_ASSIST_TYPE, RouterAssistType.hyperlink.token);
-                }
-
-                /**
-                 * 校验assistType
-                 */
-                try {
-                    RouterAssistType.parse(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE));
-                } catch (Exception e) {
-                    throw new RuntimeException(errDesc, e);
-                }
-            }
-        }
-        return props;
-    }
+//    private static JSONObject validate(JSONObject props, String propKey, Class<?> pluginClazz, String resourceName,
+//                                       boolean finalValidate) {
+//        String errDesc = createErrorMsg(propKey, pluginClazz, resourceName);
+//        Object creator = props.get(KEY_CREATOR);
+//        if (creator != null) {
+//            if (!(creator instanceof JSONObject)) {
+//                throw new IllegalStateException("prop creator must be type of JSONObject:" + errDesc);
+//            }
+//            if (finalValidate) {
+//                JSONObject creatorJ = (JSONObject) creator;
+//
+//                //  Objects.requireNonNull(creatorJ.get(KEY_ROUTER_LINK), errDesc);
+//                Objects.requireNonNull(creatorJ.get(KEY_LABEL), errDesc);
+//                JSONObject pmeta = null;
+//                JSONArray plugins = creatorJ.getJSONArray(KEY_PLUGIN);
+//                boolean assistTypeEmpty = StringUtils.isEmpty(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE));
+//                if (plugins != null) {
+//                    for (int i = 0; i < plugins.size(); i++) {
+//                        pmeta = plugins.getJSONObject(i);
+//                        if (StringUtils.isBlank(pmeta.getString(KEY_CREATOR_HETERO))
+//                                || StringUtils.isBlank(pmeta.getString(KEY_DESC_NAME))
+//                            // 由于插件中参数不一定是必须的，所以先把以下校验去掉： "extraParam": "append_true"
+//                            //        || StringUtils.isBlank(pmeta.getString("extraParam"))
+//                        ) {
+//                            throw new IllegalStateException("pmeta is illegal:" + pmeta.toJSONString() + "," +
+//                                    "pluginClazz:" + pluginClazz.getName() + ",errDesc:" + errDesc);
+//                        }
+//                        /**
+//                         * 如果assitType 为空，则查看plugin 的KEY_CREATOR_HETERO 如果为 ‘params-cfg’ 则默认ASSIST_TYPE类型为 RouterAssistType.paramCfg
+//                         */
+//                        if (assistTypeEmpty) {
+//                            String hetero = pmeta.getString(KEY_CREATOR_HETERO);
+//                            if (StringUtils.isNotEmpty(hetero)) {
+//                                if (!DATASOURCE.identity.equals(hetero)) {
+//                                    creatorJ.put(KEY_CREATOR_ASSIST_TYPE, RouterAssistType.paramCfg.token);
+//                                    assistTypeEmpty = false;
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                if (assistTypeEmpty && StringUtils.isNotEmpty(creatorJ.getString(KEY_ROUTER_LINK))) {
+//                    creatorJ.put(KEY_CREATOR_ASSIST_TYPE, RouterAssistType.hyperlink.token);
+//                }
+//
+//                /**
+//                 * 校验assistType
+//                 */
+//                try {
+//                    RouterAssistType.parse(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE));
+//                } catch (Exception e) {
+//                    throw new RuntimeException(errDesc, e);
+//                }
+//            }
+//        }
+//        return props;
+//    }
 
     private static String createErrorMsg(String propKey, Class<?> pluginClazz, String resourceName) {
         return String.format("propKey:%s,package:%s,propKey:%s", propKey, pluginClazz.getPackage().getName(),
@@ -361,6 +393,98 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     }
 
 
+    public static class FieldRefCreateor {
+        String label;
+        RouterAssistType assistType = null;
+
+        List<CandidatePlugin> candidatePlugins = Lists.newArrayList();
+
+        public FieldRefCreateor() {
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public List<CandidatePlugin> getCandidatePlugins() {
+            return this.candidatePlugins;
+        }
+
+        public void addCandidatePlugin(CandidatePlugin candidate) {
+            this.candidatePlugins.add(candidate);
+        }
+
+        public void setLabel(String label) {
+            this.label = label;
+        }
+
+        public RouterAssistType getAssistType() {
+            return assistType;
+        }
+
+        public void setAssistType(RouterAssistType assistType) {
+            this.assistType = assistType;
+        }
+    }
+
+    public static class CandidatePlugin {
+        private String displayName;
+        private String hetero;
+        /**
+         * 可以为空
+         */
+        private Optional<Descriptor> descriptor;
+
+        public CandidatePlugin(String displayName, String hetero) {
+            this.displayName = displayName;
+            this.hetero = hetero;
+        }
+
+        public void validate(String errDesc, Class<?> pluginClazz) {
+            if (StringUtils.isBlank(this.hetero)
+                    || StringUtils.isBlank(this.displayName)
+                // 由于插件中参数不一定是必须的，所以先把以下校验去掉： "extraParam": "append_true"
+                //        || StringUtils.isBlank(pmeta.getString("extraParam"))
+            ) {
+                throw new IllegalStateException("pmeta is illegal,hetero:" + this.hetero + ",displayName:" + this.displayName + "," +
+                        "pluginClazz:" + pluginClazz.getName() + ",errDesc:" + errDesc);
+            }
+        }
+
+//        public void setDescriptor(Descriptor descriptor) {
+//            this.descriptor = descriptor;
+//        }
+
+        public String getDisplayName() {
+            return this.displayName;
+        }
+
+        public Descriptor getInstalledPluginDescriptor() {
+            if (descriptor == null) {
+                IPluginEnum hetero = this.getHetero();
+                List<Descriptor> descriptors = hetero.descriptors();
+                for (Descriptor d : descriptors) {
+                    if (this.getDisplayName().equals(d.getDisplayName())) {
+                        descriptor = Optional.of(d);
+                        return d;
+                    }
+                }
+                descriptor = Optional.empty();
+            }
+
+            return descriptor.orElse(null);
+        }
+
+        public void setDisplayName(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public IPluginEnum getHetero() {
+            return HeteroEnum.of(this.hetero);
+        }
+    }
+
+
     public static class Props {
         public static final String KEY_HELP = "help";
         public static final String KEY_VALIDATOR = "validators";
@@ -369,8 +493,113 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         private final JSONObject props;
         private MarkdownHelperContent asynHelp;
 
+        private Optional<FieldRefCreateor> _fieldRefCreateor;
+
         public Props(JSONObject props) {
             this.props = props;
+        }
+
+        private void setFieldRefCreateor() {
+            this._fieldRefCreateor = Optional.ofNullable(createFieldRefCreateor(this.props));
+        }
+
+        private static FieldRefCreateor createFieldRefCreateor(JSONObject props) {
+            FieldRefCreateor createor = null;
+            Object creator = props.get(KEY_CREATOR);
+            if (creator != null) {
+                if (!(creator instanceof JSONObject)) {
+                    throw new IllegalStateException("prop creator must be type of JSONObject,but is " + creator.getClass());
+                }
+                createor = new FieldRefCreateor();
+
+                JSONObject creatorJ = (JSONObject) creator;
+                createor.setLabel(creatorJ.getString(KEY_LABEL));
+                //  Objects.requireNonNull(creatorJ.get(KEY_ROUTER_LINK), errDesc);
+                // Objects.requireNonNull(creatorJ.get(KEY_LABEL), errDesc);
+                JSONObject pmeta = null;
+                JSONArray plugins = creatorJ.getJSONArray(KEY_PLUGIN);
+                boolean assistTypeEmpty = StringUtils.isEmpty(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE));
+                if (plugins != null) {
+                    for (int i = 0; i < plugins.size(); i++) {
+                        pmeta = plugins.getJSONObject(i);
+//                        if (StringUtils.isBlank(pmeta.getString(KEY_CREATOR_HETERO))
+//                                || StringUtils.isBlank(pmeta.getString(KEY_DESC_NAME))
+//                            // 由于插件中参数不一定是必须的，所以先把以下校验去掉： "extraParam": "append_true"
+//                            //        || StringUtils.isBlank(pmeta.getString("extraParam"))
+//                        ) {
+//                            throw new IllegalStateException("pmeta is illegal:" + pmeta.toJSONString() + "," +
+//                                    "pluginClazz:" + pluginClazz.getName() + ",errDesc:" + errDesc);
+//                        }
+
+
+                        /**
+                         * 如果assitType 为空，则查看plugin 的KEY_CREATOR_HETERO 如果为 ‘params-cfg’ 则默认ASSIST_TYPE类型为 RouterAssistType.paramCfg
+                         */
+                        if (assistTypeEmpty) {
+                            String hetero = pmeta.getString(KEY_CREATOR_HETERO);
+                            if (StringUtils.isNotEmpty(hetero)) {
+                                if (!DATASOURCE.identity.equals(hetero)) {
+                                    creatorJ.put(KEY_CREATOR_ASSIST_TYPE, RouterAssistType.paramCfg.token);
+                                    assistTypeEmpty = false;
+                                }
+                            }
+                        }
+
+                        createor.addCandidatePlugin(new CandidatePlugin(pmeta.getString(KEY_DESC_NAME), pmeta.getString(KEY_CREATOR_HETERO)));
+                    }
+                }
+
+                if (assistTypeEmpty && StringUtils.isNotEmpty(creatorJ.getString(KEY_ROUTER_LINK))) {
+                    creatorJ.put(KEY_CREATOR_ASSIST_TYPE, RouterAssistType.hyperlink.token);
+                }
+                createor.setAssistType(RouterAssistType.parse(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE)));
+            }
+            return createor;
+        }
+
+        public static void validate(FieldRefCreateor creatorJ, String propKey, Class<?> pluginClazz, String resourceName,
+                                    boolean finalValidate) {
+            String errDesc = createErrorMsg(propKey, pluginClazz, resourceName);
+
+            if (finalValidate) {
+                Objects.requireNonNull(creatorJ.getLabel(), errDesc);
+                // JSONObject pmeta = null;
+                List<CandidatePlugin> plugins = creatorJ.getCandidatePlugins();//.getJSONArray(KEY_PLUGIN);
+                for (CandidatePlugin plugin : plugins) {
+                    plugin.validate(errDesc, pluginClazz);
+                }
+
+                Objects.requireNonNull(creatorJ.getAssistType(), errDesc);
+            }
+
+        }
+
+        /**
+         * 解析creator部分
+         * <pre>
+         * "eprops": {
+         * 	"help": "描述：Hadoop hdfs文件系统namenode节点地址。格式：hdfs://ip:端口；例如：hdfs://127.0.0.1:9000",
+         * 	"creator": {
+         *  	"plugin": [{
+         * 			"hetero": "fs",
+         * 			"descName": "HDFS"
+         *        },
+         *       {
+         * 			"hetero": "fs",
+         * 	    	"descName": "Aliyun-Jindo-HDFS"
+         *      }
+         * 	],
+         * 	"label": "管理",
+         * 	"assistType": "paramCfg"
+         *  }
+         * }
+         *
+         * </pre>
+         *
+         * @return
+         */
+        public Optional<FieldRefCreateor> getRefCreator() {
+            return this._fieldRefCreateor;
         }
 
         @JSONField(serialize = false)

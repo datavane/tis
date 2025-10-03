@@ -41,6 +41,7 @@ import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
+import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.extension.Descriptor;
@@ -1428,12 +1429,15 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   @Override
-  public final PrintWriter getEventStreamWriter() {
+  public final SSERunnable.SSEEventWriter getEventStreamWriter() {
     try {
       HttpServletResponse response = ServletActionContext.getResponse();
       response.setContentType("text/event-stream");
       response.setCharacterEncoding(TisUTF8.getName());
-      return response.getWriter();
+      response.setHeader("Cache-Control", "no-cache");
+      response.setHeader("Connection", "keep-alive");
+      response.setHeader("X-Accel-Buffering", "no"); // 禁用Nginx缓冲
+      return new SSERunnable.SSEEventWriter(response.getWriter());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

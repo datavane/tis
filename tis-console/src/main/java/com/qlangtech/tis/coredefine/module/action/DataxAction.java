@@ -289,11 +289,8 @@ public class DataxAction extends BasicModule {
     pmodel.getDataXReader(this, dataxName);
 
     final String requestDescId = writerDesc.getString("impl");
-    DataxWriter writer = pmodel.loadWriter(this, writerDesc, dataxName);//  (DataxWriter)dataxProcessor.getWriter(this);
+    DataxWriter writer = pmodel.loadWriter(this, writerDesc, dataxName);
 
-    // DataxReader.load(this, dataxName);
-    // KeyedPluginStore<DataxWriter> writerStore = DataxWriter.getPluginStore(this, dataxName);
-    //    DataxWriter writer = writerStore.getPlugin();
     Map<String, Object> pluginInfo = Maps.newHashMap();
     DescriptorsJSONResult writeDesc = null;
     if (writer != null) {
@@ -303,21 +300,6 @@ public class DataxAction extends BasicModule {
       writeDesc = DescriptorsJSON.desc(requestDescId);
     }
     pluginInfo.put("desc", writeDesc);
-    //    final String requestDescId = writerDesc.getString("impl");
-    //    if (writer != null && StringUtils.equals(writer.getDescriptor().getId(), requestDescId)) {
-    //      DataxReader readerPlugin = DataxReader.load(this, dataxName);
-    //      DataxWriter.BaseDataxWriterDescriptor writerDescriptor = (DataxWriter.BaseDataxWriterDescriptor) writer
-    //      .getDescriptor();
-    //      if (!writerDescriptor.isSupportMultiTable() && readerPlugin.getSelectedTabs().size() > 1) {
-    //        // 这种情况是不允许的，例如：elastic这样的writer中对于column的设置比较复杂，需要在writer plugin页面中完成，所以就不能支持在reader中选择多个表了
-    //        throw new IllegalStateException("status is not allowed:!writerDescriptor.isSupportMultiTable() &&
-    //        readerPlugin.hasMulitTable()");
-    //      }
-    //      pluginInfo.put("item", (new DescribableJSON(writer)).getItemJson());
-    //    }
-    // pluginInfo.put("desc", new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON
-    // (DescriptorsJSON.FORM_START_LEVEL));
-
 
     this.setBizResult(context, pluginInfo);
   }

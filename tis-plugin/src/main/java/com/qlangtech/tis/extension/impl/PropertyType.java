@@ -20,6 +20,7 @@ package com.qlangtech.tis.extension.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
@@ -59,6 +60,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_LABEL;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -137,6 +140,28 @@ public class PropertyType implements IPropertyType {
         this.formField = formField;
     }
 
+    public List<Option> getEnumPropOptions() {
+        List<Option> opts = Lists.newArrayList();
+        Object enumPp = Objects.requireNonNull(this.getExtraProps(), "extraProps can not be null, for property:"
+                + this.f.getName()).get(Descriptor.KEY_ENUM_PROP);
+        if (enumPp == null) {
+            throw new IllegalStateException("enumPp can not be empty");
+        }
+        JSONArray enums = null;
+        if (enumPp instanceof JSONArray) {
+            enums = (JSONArray) enumPp;
+        } else if (enumPp instanceof UnCacheString) {
+            enums = ((UnCacheString<JSONArray>) enumPp).getValue();
+        } else {
+            throw new IllegalStateException("unsupport type:" + enumPp.getClass().getName());
+        }
+        for (int i = 0; i < enums.size(); i++) {
+            JSONObject opt = enums.getJSONObject(i);
+            opts.add(new Option(opt.getString(KEY_LABEL), opt.get(Option.KEY_VALUE)));
+        }
+        return opts;
+    }
+
     /**
      * 设置默认值
      *
@@ -163,7 +188,7 @@ public class PropertyType implements IPropertyType {
             throw new IllegalArgumentException("param label can not be null");
         }
         Objects.requireNonNull(props, "props can not be null")
-                .put(PluginExtraProps.KEY_LABEL, label);
+                .put(KEY_LABEL, label);
     }
 
     public static void setDisabled(JSONObject props) {
@@ -200,7 +225,7 @@ public class PropertyType implements IPropertyType {
             // 支持使用继承的方式来实现复用，例如：DataXHiveWriter继承DataXHdfsWriter来实现
             PluginExtraProps.visitAncestorsClass(clazz, new PluginExtraProps.IClassVisitor<Void>() {
                 @Override
-                public Void process(Class<?> targetClass, Void v) {
+                public Void process(Class<?> targetClass, Void v, boolean finalChild) {
                     FormField formField = null;
                     SubForm subFormFields = null;
                     //   ptype = null;
@@ -235,27 +260,10 @@ public class PropertyType implements IPropertyType {
                                     Object dftVal = fieldExtraProps.getDftVal();
                                     String help = fieldExtraProps.getHelpContent();
                                     JSONObject props = fieldExtraProps.getProps();
-                                    // Object disabled = props.get(PluginExtraProps.KEY_DISABLE);
-
-//                                    if (disabled != null) {
-//                                        if (StringUtils.startsWith(String.valueOf(disabled), IMessageHandler.TSEARCH_PACKAGE)) {
-//                                            props.put(PluginExtraProps.KEY_DISABLE, GroovyShellEvaluate.scriptEval(String.valueOf(disabled)));
-//                                        }
-//                                    }
-//                                    disabled = props.get(PluginExtraProps.KEY_DISABLE);
-//                                    if (disabled != null) {
-//                                        if ((disabled instanceof JsonUtil.UnCacheString && ((JsonUtil.UnCacheString<Boolean>) disabled).getValue())
-//                                                || (disabled instanceof Boolean && (Boolean) disabled)
-//                                        ) {
-//                                            propMapper.remove(f.getName());
-//                                            continue;
-//                                        }
-//                                    }
 
                                     if (fieldExtraProps.getBoolean(PluginExtraProps.KEY_DISABLE)) {
                                         propMapper.remove(f.getName());
                                         continue;
-                                        //return null;
                                     }
 
                                     if (StringUtils.isNotEmpty(help) && StringUtils.startsWith(help,
@@ -272,8 +280,6 @@ public class PropertyType implements IPropertyType {
                                                 Function.identity();
 
                                         setDefaultVal(GroovyShellEvaluate.scriptEval(String.valueOf(dftVal), process), props);
-//                                        props.put(PluginExtraProps.KEY_DFTVAL_PROP,
-//                                                GroovyShellEvaluate.scriptEval(String.valueOf(dftVal), process));
                                     }
 
                                     if (placeholder != null && StringUtils.startsWith(placeholder,
@@ -297,9 +303,7 @@ public class PropertyType implements IPropertyType {
                                         ElementPluginDesc paretPluginRef = descriptor.get();
                                         resolveEnumProp(paretPluginRef.getElementDesc(), feProps, (cols) -> {
                                             final List<CMeta> mcols = (List<CMeta>) cols;
-//                                            if (CollectionUtils.isEmpty(mcols)) {
-//                                                throw new IllegalStateException("mcols can not be empty");
-//                                            }
+
                                             return ptype.multiSelectablePropProcess((viewType) -> {
                                                 // cols有两种显示模式
                                                 MultiItemsViewType multiItemsViewType = viewType;
@@ -314,15 +318,11 @@ public class PropertyType implements IPropertyType {
 
                                             }, true);
                                         });
-
-
                                     }
-
-
                                 }
                                 propMapper.put(f.getName(), ptype);
                             } else {
-                                // throw new IllegalStateException("field:" + f.getName() + " is illegal");
+
                             }
                         }
                     } catch (Exception e) {
@@ -396,6 +396,13 @@ public class PropertyType implements IPropertyType {
             return null;
         }
         return this.extraProp.getProps();
+    }
+
+    public Optional<PluginExtraProps.FieldRefCreateor> getRefCreator() {
+        if (this.extraProp == null) {
+            return Optional.empty();
+        }
+        return extraProp.getRefCreator();
     }
 
     @JSONField(serialize = false)

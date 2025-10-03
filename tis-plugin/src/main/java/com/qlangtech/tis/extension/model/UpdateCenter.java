@@ -85,6 +85,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.zip.GZIPInputStream;
 
 //import edu.umd.cs.findbugs.annotations.CheckForNull;
@@ -354,10 +355,38 @@ public class UpdateCenter implements Saveable {
         return new ConnectionCheckJob(site);
     }
 
+    /**
+     * 可被安装的插件列表，已经去除掉了已经被安装的
+     *
+     * @return
+     */
     public List<UpdateSite.Plugin> getAvailables() {
+        return getPlugins((site) -> site.getAvailables());
+//        Map<String, UpdateSite.Plugin> pluginMap = new LinkedHashMap<>();
+//        for (UpdateSite site : sites) {
+//            for (UpdateSite.Plugin plugin : site.getAvailables()) {
+//                final UpdateSite.Plugin existing = pluginMap.get(plugin.name);
+//                if (existing == null) {
+//                    pluginMap.put(plugin.name, plugin);
+//                } else if (!existing.version.equals(plugin.version)) {
+//                    // allow secondary update centers to publish different versions
+//                    // TODO refactor to consolidate multiple versions of the same plugin within the one row
+//                    final String altKey = plugin.name + ":" + plugin.version;
+//                    if (!pluginMap.containsKey(altKey)) {
+//                        pluginMap.put(altKey, plugin);
+//                    }
+//                }
+//            }
+//        }
+//
+//        return new ArrayList<>(pluginMap.values());
+    }
+
+
+    public List<UpdateSite.Plugin> getPlugins(Function<UpdateSite, List<UpdateSite.Plugin>> pluginsCreator) {
         Map<String, UpdateSite.Plugin> pluginMap = new LinkedHashMap<>();
         for (UpdateSite site : sites) {
-            for (UpdateSite.Plugin plugin : site.getAvailables()) {
+            for (UpdateSite.Plugin plugin : pluginsCreator.apply(site)) {
                 final UpdateSite.Plugin existing = pluginMap.get(plugin.name);
                 if (existing == null) {
                     pluginMap.put(plugin.name, plugin);
@@ -371,8 +400,8 @@ public class UpdateCenter implements Saveable {
                 }
             }
         }
+        return Lists.newArrayList(pluginMap.values());
 
-        return new ArrayList<>(pluginMap.values());
     }
 
     /**

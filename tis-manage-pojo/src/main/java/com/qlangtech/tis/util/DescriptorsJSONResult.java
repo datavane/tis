@@ -21,12 +21,11 @@ package com.qlangtech.tis.util;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONType;
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.trigger.util.JsonUtil;
-import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -53,7 +52,7 @@ public class DescriptorsJSONResult {
 
     /**
      *
-     * @param id 插件的实现类className值
+     * @param id       插件的实现类className值
      * @param descJson
      * @param desc
      */
@@ -66,5 +65,12 @@ public class DescriptorsJSONResult {
         return Objects.requireNonNull(descs.get(descId)
                 , "descId:" + descId + " relevant desc can not be null").getLeft();
     }
+
+    public Map<String, JSONObject> getDescriptorsResult() {
+        return this.descs.entrySet().stream()
+                .collect(Collectors.toMap(
+                        (e) -> e.getKey(), (e) -> e.getValue().getLeft()));
+    }
+
 
 }

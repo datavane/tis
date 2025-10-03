@@ -38,7 +38,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -88,6 +87,11 @@ public class DescriptorsJSON<T extends Describable<T>> {
         this.rootDesc = rootDesc;
     }
 
+    /**
+     *
+     * @param descriptor
+     * @param rootDesc   由于describe 可以嵌套，此标志位可以判断 是否是根元素
+     */
     public DescriptorsJSON(Descriptor<T> descriptor, boolean rootDesc) {
         this(Collections.singletonList(descriptor), rootDesc);
     }
@@ -116,10 +120,11 @@ public class DescriptorsJSON<T extends Describable<T>> {
     /**
      * @param descriptor
      * @param subFormFilter
+     * @param forAIPromote
      * @return
      */
     public static Pair<JSONObject, Descriptor> createPluginFormPropertyTypes(
-            Descriptor<?> descriptor, Optional<SubFormFilter> subFormFilter) {
+            Descriptor<?> descriptor, Optional<SubFormFilter> subFormFilter, boolean forAIPromote) {
         PluginFormProperties pluginFormPropertyTypes = descriptor.getPluginFormPropertyTypes(subFormFilter);
 
         JSONObject desJson = new JSONObject();
@@ -149,15 +154,18 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
         desJson.put(KEY_EXTEND_POINT, desc.getT().getName());
 
-        setDescInfo(desc, desJson);
+        setDescInfo(desc, forAIPromote, desJson);
 
         desJson.put("veriflable", desc.overWriteValidateMethod);
         if (IdentityName.class.isAssignableFrom(desc.clazz)) {
             desJson.put("pkField", desc.getIdentityField().displayName);
         }
 
-        Map<String, Object> extractProps = desc.getExtractProps();
-        desJson.put("extractProps", extractProps);
+        if (!forAIPromote) {
+            Map<String, Object> extractProps = desc.getExtractProps();
+            desJson.put("extractProps", extractProps);
+        }
+
         return Pair.of(desJson, desc);
     }
 
@@ -167,22 +175,19 @@ public class DescriptorsJSON<T extends Describable<T>> {
         String key;
         PropertyType val;
         JSONObject extraProps = null;
-        // FormField fieldAnnot;
+
         JSONObject attrVal;
         DescriptorsJSONResult descriptors = new DescriptorsJSONResult(this.rootDesc);
-        Map<String, Object> extractProps;
-        // IPropertyType.SubFormFilter subFilter = null;
-
+        // Map<String, Object> extractProps;
 
         List<Descriptor<?>> acceptDescs = getAcceptDescs(subFormFilter);
-
 
         for (Descriptor<?> dd : acceptDescs) {
             try {
 
                 PluginFormProperties pluginFormPropertyTypes = dd.getPluginFormPropertyTypes(subFormFilter);
 
-                Pair<JSONObject, Descriptor> pair = createPluginFormPropertyTypes(dd, subFormFilter);
+                Pair<JSONObject, Descriptor> pair = createFormPropertyTypes(subFormFilter, dd);
 
                 final JSONObject desJson = pair.getKey();
                 Descriptor desc = pair.getValue();//new JSONObject();
@@ -194,7 +199,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                 for (Map.Entry<String, PropertyType> pp : entries) {
                     key = pp.getKey();
                     val = pp.getValue();
-                    extraProps = val.getExtraProps();
+                    extraProps = getFieldExtraProps(val);
 
                     if (extraProps != null && extraProps.getBooleanValue(PluginExtraProps.KEY_DISABLE)) {
                         continue;
@@ -219,7 +224,8 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
                     if (extraProps != null) {
                         // 额外属性
-                        JSONObject ep = extraProps;
+                        final JSONObject ep = extraProps;
+                        //this.processExtraProps(dd, val, val);
                         JSONObject n = val.multiSelectablePropProcess((vt) -> {
                             JSONObject clone = (JSONObject) ep.clone();
                             clone.put(PluginExtraProps.Props.KEY_VIEW_TYPE, vt.getViewTypeToken());
@@ -233,7 +239,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                         attrVal.put("options", getSelectOptions(desc, val, key));
                     }
                     if (val.isDescribable()) {
-                        DescriptorsJSON des2Json = new DescriptorsJSON(val.getApplicableDescriptors(), false);
+                        DescriptorsJSON des2Json = createInnerDescrible(val);
                         attrVal.put("descriptors", des2Json.getDescriptorsJSON());
                         Annotation extensible = val.fieldClazz.getAnnotation(TISExtensible.class);
                         // 可以运行时添加插件
@@ -256,6 +262,24 @@ public class DescriptorsJSON<T extends Describable<T>> {
         return descriptors;
     }
 
+//    protected boolean processExtraProps(Descriptor<?> desc, PropertyType propVal,  PropertyType propertyType) {
+//        return true;
+//    }
+
+    protected JSONObject getFieldExtraProps(PropertyType val) {
+
+        return val.getExtraProps();
+    }
+
+    protected Pair<JSONObject, Descriptor> createFormPropertyTypes(Optional<SubFormFilter> subFormFilter, Descriptor<?> dd) {
+        Pair<JSONObject, Descriptor> pair = createPluginFormPropertyTypes(dd, subFormFilter, false);
+        return pair;
+    }
+
+    protected DescriptorsJSON createInnerDescrible(PropertyType val) {
+        return new DescriptorsJSON(val.getApplicableDescriptors(), false);
+    }
+
     private List<Descriptor<?>> getAcceptDescs(Optional<SubFormFilter> subFormFilter) {
         PluginFormProperties pluginFormPropertyTypes = null;
         List<Descriptor<?>> acceptDescs = Lists.newArrayList(this.descriptors);
@@ -274,11 +298,19 @@ public class DescriptorsJSON<T extends Describable<T>> {
         return acceptDescs;
     }
 
-    public static void setDescInfo(Descriptor d, Map<String, Object> des) {
+    /**
+     *
+     * @param d
+     * @param forAIPromote 是否是为了生成大模型Promote用
+     * @param des
+     */
+    public static void setDescInfo(Descriptor d, boolean forAIPromote, Map<String, Object> des) {
         des.put(KEY_DISPLAY_NAME, d.getDisplayName());
         des.put(KEY_IMPL, d.getId());
-        des.put(KEY_IMPL_URL,
-                Config.TIS_PUB_PLUGINS_DOC_URL + StringUtils.remove(StringUtils.lowerCase(d.clazz.getName()), "."));
+        if (!forAIPromote) {
+            des.put(KEY_IMPL_URL,
+                    Config.TIS_PUB_PLUGINS_DOC_URL + StringUtils.remove(StringUtils.lowerCase(d.clazz.getName()), "."));
+        }
     }
 
     public static List<Descriptor.SelectOption> getSelectOptions(Descriptor descriptor, PropertyType propType,

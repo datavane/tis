@@ -267,6 +267,10 @@ public class HttpUtils {
         public String getValue() {
             return String.valueOf(this.value);
         }
+
+        public Object getRawVal() {
+            return this.value;
+        }
     }
 
 

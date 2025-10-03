@@ -77,7 +77,7 @@ public abstract class PostFormStreamProcess<T> extends StreamProcess<T> {
         JSON(HEADERS_CONTENT_TYPE_JSON, (params) -> {
             JSONObject json = new JSONObject();
             for (HttpUtils.PostParam param : params) {
-                json.put(param.getKey(), param.getValue());
+                json.put(param.getKey(), param.getRawVal());
             }
             return json.toString().getBytes(Charset.forName(TisUTF8.getName()));
         });

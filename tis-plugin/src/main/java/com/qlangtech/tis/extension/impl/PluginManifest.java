@@ -22,6 +22,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginStrategy;
 import com.qlangtech.tis.extension.PluginWrapper;
+import com.qlangtech.tis.extension.TISExtendsionInterceptor;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.maven.plugins.tpi.ICoord;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
@@ -68,7 +69,7 @@ import static org.apache.commons.io.FilenameUtils.getBaseName;
  **/
 public abstract class PluginManifest {
 
-    public static final String META_PATH_EXTENDPOINTS = "META-INF/annotations/extendpoints.txt";
+    public static final String META_PATH_EXTENDPOINTS = "META-INF/annotations/" + TISExtendsionInterceptor.FILE_EXTENDPOINTS;
     private static final Logger LOGGER = LoggerFactory.getLogger(PluginManifest.class);
     static final Pattern fromJpl = Pattern.compile("^file:.+/(.+?)/target/.+?$");
     public final URL baseResourceURL;

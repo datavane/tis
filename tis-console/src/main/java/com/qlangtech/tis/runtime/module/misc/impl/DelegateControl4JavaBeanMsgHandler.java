@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.runtime.module.misc.impl;
 
+import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
@@ -57,7 +58,7 @@ public class DelegateControl4JavaBeanMsgHandler extends BasicDelegateMsgHandler 
   }
 
   @Override
-  public PrintWriter getEventStreamWriter() {
+  public SSERunnable.SSEEventWriter getEventStreamWriter() {
     throw new UnsupportedOperationException();
   }
 }

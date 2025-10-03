@@ -678,7 +678,7 @@ public class OfflineDatasourceAction extends BasicModule {
 
   public static Tab getDatabase(IPluginContext pluginContext, OfflineManager offlineManager,
                                 IWorkflowDAOFacade wfDaoFacade, Map<Integer,
-    com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap, Integer dbId, String tabName) {
+      com.qlangtech.tis.workflow.pojo.DatasourceDb> dbMap, Integer dbId, String tabName) {
 
     com.qlangtech.tis.workflow.pojo.DatasourceDb db = null;
     // DatasourceTable tab = wfDaoFacade.getDatasourceTableDAO().selectByPrimaryKey(tableid);
@@ -1365,19 +1365,20 @@ public class OfflineDatasourceAction extends BasicModule {
 
             FormFieldType fieldType = pp.formField.type();
             if (fieldType == FormFieldType.SELECTABLE || fieldType == FormFieldType.ENUM) {
-
-              Object enumPp = pp.getExtraProps().get(Descriptor.KEY_ENUM_PROP);
-              JSONArray enums = null;
-              if (enumPp instanceof JSONArray) {
-                enums = (JSONArray) enumPp;
-              } else if (enumPp instanceof UnCacheString) {
-                enums = ((UnCacheString<JSONArray>) enumPp).getValue();
-              } else {
-                throw new IllegalStateException("unsupport type:" + pp.getClass().getName());
-              }
-              for (int i = 0; i < enums.size(); i++) {
-                JSONObject opt = enums.getJSONObject(i);
-                pp.setVal(plugin, opt.get(Option.KEY_VALUE));
+              List<Option> propOptions = pp.getEnumPropOptions();
+//              Object enumPp = pp.getExtraProps().get(Descriptor.KEY_ENUM_PROP);
+//              JSONArray enums = null;
+//              if (enumPp instanceof JSONArray) {
+//                enums = (JSONArray) enumPp;
+//              } else if (enumPp instanceof UnCacheString) {
+//                enums = ((UnCacheString<JSONArray>) enumPp).getValue();
+//              } else {
+//                throw new IllegalStateException("unsupport type:" + pp.getClass().getName());
+//              }
+              for (int i = 0; i < propOptions.size(); i++) {
+                Option opt = propOptions.get(i);
+                //opt.get(Option.KEY_VALUE)
+                pp.setVal(plugin, opt.getValue());
                 continue ppDftValGetter;
               }
             }

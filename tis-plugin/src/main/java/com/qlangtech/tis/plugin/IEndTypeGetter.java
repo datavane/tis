@@ -141,6 +141,8 @@ public interface IEndTypeGetter {
         , Docker("docker", EndTypeCategory.Assist, true) //
         , K8S("k8s", EndTypeCategory.Assist, true)//
         , Dolphinscheduler("ds", EndTypeCategory.Assist, true) //
+        , Deepseek("deepseek", EndTypeCategory.Assist, true) //
+        , QWen("qwen", EndTypeCategory.Assist, true) //
         //
 
         // 预览按钮

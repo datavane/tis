@@ -22,7 +22,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.koubei.web.tag.pager.Pager;
 import com.opensymphony.xwork2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
@@ -51,7 +50,6 @@ import com.qlangtech.tis.extension.model.UpdateCenter.InstallationJob;
 import com.qlangtech.tis.extension.model.UpdateCenter.UpdateCenterJob;
 import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.model.UpdateSite.Plugin;
-import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.extension.util.PluginExtraProps.Props;
 import com.qlangtech.tis.extension.util.TextFile;
 import com.qlangtech.tis.install.InstallState;
@@ -62,12 +60,9 @@ import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.maven.plugins.tpi.ICoord;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
-import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter.EndType;
 import com.qlangtech.tis.plugin.IEndTypeGetter.Icon;
 import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.IPluginTaggable;
-import com.qlangtech.tis.plugin.IPluginTaggable.PluginTag;
 import com.qlangtech.tis.plugin.IdentityDesc;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -99,10 +94,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.struts2.convention.annotation.InterceptorRef;
 import org.apache.struts2.convention.annotation.InterceptorRefs;
 import org.apache.struts2.dispatcher.HttpParameters;
-import org.apache.struts2.dispatcher.Parameter;
 import org.apache.struts2.dispatcher.Parameter.File;
 import org.apache.struts2.dispatcher.multipart.UploadedFile;
-import org.apache.struts2.interceptor.FileUploadInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,7 +109,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.function.Predicate;
@@ -452,7 +444,7 @@ public class PluginAction extends BasicModule {
     JSONArray response = new JSONArray();
     JSONObject pluginInfo = null;
     Plugin info = null;
-    PluginFilter pluginFilter = new PluginFilter();
+    PluginFilter pluginFilter = PluginFilter.create(this);//  new PluginFilter(this.getExtendpointParam());
     for (PluginWrapper plugin : pluginManager.getPlugins()) {
 
 
@@ -513,78 +505,6 @@ public class PluginAction extends BasicModule {
     this.setBizResult(context, response);
   }
 
-  private class PluginFilter {
-    final Set<PluginTag> tags;
-    final Predicate<Plugin> endTypeMatcher;
-    final List<String> extendpoint;
-
-    public PluginFilter() {
-      this.extendpoint = getExtendpointParam();
-      final String[] filterTags = getStringArray("tag");
-      if (filterTags != null && filterTags.length > 0) {
-        this.tags = Sets.newHashSet();
-        for (String tag : filterTags) {
-          tags.add(PluginTag.parse(tag));
-        }
-      } else {
-        this.tags = null;
-      }
-      this.endTypeMatcher = getEndTypeMatcher();
-    }
-
-    /**
-     * @param plugin
-     * @param info
-     * @return true 就直接过滤掉了
-     */
-    private boolean filter(Optional<PluginWrapper> plugin, Plugin info) {
-      if (this.tags != null) {
-        //  info.pluginTags
-        if (!CollectionUtils.containsAny(info.pluginTags, this.tags)) {
-          return true;
-        }
-      }
-
-      if (CollectionUtils.isNotEmpty(extendpoint)) {
-        if (!CollectionUtils.containsAny(info.extendPoints.keySet(), extendpoint)) {
-          return true;
-        }
-      }
-
-      boolean collect = endTypeMatcher.test(info);
-      if (!collect) {
-        return true;
-      }
-      return filterPlugin((plugin.isPresent() ? plugin.get().getDisplayName() : info.title), (info != null ?
-        info.excerpt : null));
-    }
-  }
-
-
-  private boolean filterPlugin(String title, String excerpt) {
-
-    List<String> queries = getQueryPluginParam();
-    if (CollectionUtils.isEmpty(queries)) {
-      return false;
-    }
-    boolean collect = false;
-    for (String searchQ : queries) {
-      if (StringUtils.indexOfIgnoreCase(title, searchQ) > -1 || (StringUtils.isNotBlank(excerpt) && StringUtils.indexOfIgnoreCase(excerpt, searchQ) > -1)) {
-        collect = true;
-        break;
-      }
-    }
-    // 收集
-    return !collect;
-  }
-
-  private List<String> getQueryPluginParam() {
-    String[] queries = StringUtils.split(this.getString("query"), " ");
-    if (queries == null) {
-      return Collections.emptyList();
-    }
-    return Lists.newArrayList(queries);
-  }
 
   /**
    * 安装插件
@@ -592,108 +512,27 @@ public class PluginAction extends BasicModule {
    * @param context
    */
   public void doInstallPlugins(Context context) {
-    JSONArray pluginsInstall = this.parseJsonArrayPost();
-    if (pluginsInstall.size() < 1) {
+    JSONArray willBeInstall = this.parseJsonArrayPost();
+    if (willBeInstall.size() < 1) {
       this.addErrorMessage(context, "请选择需要安装的插件");
       return;
     }
-    long start = System.currentTimeMillis();
-    boolean dynamicLoad = true;
-    UUID correlationId = UUID.randomUUID();
-    UpdateCenter updateCenter = TIS.get().getUpdateCenter();
-    List<Future<UpdateCenterJob>> installJobs = new ArrayList<>();
-    JSONObject willInstall = null;
-    String pluginName = null;
-    Plugin plugin = null;
-    List<Pair<Plugin, Optional<PluginClassifier>>> coords = Lists.newArrayList();
-    Optional<PluginClassifier> classifier = null;
-    String c = null;
-    List<PluginWrapper> batch = new ArrayList<>();
-    for (int i = 0; i < pluginsInstall.size(); i++) {
-      willInstall = pluginsInstall.getJSONObject(i);
-      pluginName = willInstall.getString("name");
-      classifier = Optional.empty();
-      if (StringUtils.isNotEmpty(c = willInstall.getString("selectedClassifier"))) {
-        classifier = Optional.of(PluginClassifier.create(c));
-      }
-      if (willInstall.getBooleanValue("multiClassifier") && !classifier.isPresent()) {
-        this.addFieldError(context, pluginName, "请选择安装的版本");
-        continue;
-      }
 
-      if (StringUtils.isEmpty(pluginName)) {
-        throw new IllegalStateException("plugin name can not empty");
+    List<PluginWillInstall> pluginsInstall = PluginWillInstall.parse(willBeInstall);
+    for (PluginWillInstall willInstall : pluginsInstall) {
+      if (willInstall.isMultiClassifier() && !willInstall.isPresentPluginClassifier()) {
+        this.addFieldError(context, willInstall.getName(), "请选择安装的版本");
+        //  continue;
       }
-      plugin = updateCenter.getPlugin(pluginName);
-
-      coords.add(Pair.of(plugin, classifier));
     }
 
     if (this.hasErrors(context)) {
       return;
     }
 
-    for (Pair<Plugin, Optional<PluginClassifier>> coord : coords) {
-      /***********
-       * 校验证书是否有效
-       ***********/
-      coord.getLeft().validateLicense();
 
-      Future<UpdateCenterJob> installJob = coord.getLeft().deploy(dynamicLoad, correlationId,
-        coord.getRight(), batch);
-      installJobs.add(installJob);
-    }
-
-    if (dynamicLoad) {
-      installJobs.add(updateCenter.addJob(updateCenter.new CompleteBatchJob(batch, start, correlationId)));
-    }
-
-    final TIS tis = TIS.get();
-
-    //TODO: 每个安装流程都要进来
-    if (true || !tis.getInstallState().isSetupComplete()) {
-      tis.setInstallState(InstallState.INITIAL_PLUGINS_INSTALLING);
-      updateCenter.persistInstallStatus();
-      new Thread() {
-        @Override
-        public void run() {
-          boolean failures = false;
-          INSTALLING:
-          while (true) {
-            try {
-              updateCenter.persistInstallStatus();
-              Thread.sleep(500);
-              failures = false;
-              for (Future<UpdateCenterJob> jobFuture : installJobs) {
-                if (!jobFuture.isDone() && !jobFuture.isCancelled()) {
-                  continue INSTALLING;
-                }
-                UpdateCenterJob job = jobFuture.get();
-                if (job instanceof InstallationJob && ((InstallationJob) job).status instanceof Failure) {
-                  failures = true;
-                }
-              }
-            } catch (Exception e) {
-              logger.warn("Unexpected error while waiting for initial plugin set to install.", e);
-            }
-            break;
-          }
-          updateCenter.persistInstallStatus();
-          if (!failures) {
-            try {
-              // 为了使Assemble 节点有时间初始化
-              Thread.sleep(2000);
-            } catch (InterruptedException e) {
-            }
-            // 为了让Assemble等节点的uberClassLoader重新加载一次，需要主动向Assemble等节点发送一个指令
-            //   notifyPluginUpdate2AssembleNode(TIS.KEY_ACTION_CLEAN_TIS + "=true", "TIS");
-            InstallUtil.proceedToNextStateFrom(InstallState.INITIAL_PLUGINS_INSTALLING);
-          }
-        }
-      }.start();
-    }
+    PluginWillInstall.installPlugins(pluginsInstall);
   }
-
 
   /**
    * 重新加载updateSite元数据信息
@@ -738,7 +577,7 @@ public class PluginAction extends BasicModule {
       }
     }
 
-    PluginFilter filter = new PluginFilter();
+    PluginFilter filter = PluginFilter.create(this);// new PluginFilter(this);
     availables = availables.stream().filter((plugin) -> {
       return !(filter.filter(Optional.empty(), plugin));
     }).collect(Collectors.toList());
@@ -762,20 +601,8 @@ public class PluginAction extends BasicModule {
     this.setBizResult(context, new PaginationResult(pager, availables));
   }
 
-  public Predicate<Plugin> getEndTypeMatcher() {
-    final String endType = this.getString(EndType.KEY_END_TYPE);
-    return (plugin) -> {
-      if (StringUtils.isEmpty(endType)) {
-        // 需要，将会收集
-        return true;
-      } else {
-        EndType targetEndType = EndType.parse(endType);
-        return targetEndType.containIn(plugin.endTypes);
-      }
-    };
-  }
 
-  private List<String> getExtendpointParam() {
+  public List<String> getExtendpointParam() {
     return Arrays.asList(this.getStringArray("extendpoint"));
   }
 

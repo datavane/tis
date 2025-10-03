@@ -55,6 +55,7 @@ public interface PermissionConstant {
 
   String DATAX_MANAGE = "dataX_manage";
 
+  String AI_AGENT = "ai_agent";
   //
   // // 应用视图
   // public static final String PERMISSION_CORE_VIEW = "core_view";

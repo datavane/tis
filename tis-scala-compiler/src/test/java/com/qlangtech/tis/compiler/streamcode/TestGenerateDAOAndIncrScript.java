@@ -22,6 +22,7 @@ import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
 import com.qlangtech.tis.datax.DataXName;
+import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.HttpUtils;
@@ -83,7 +84,7 @@ public class TestGenerateDAOAndIncrScript extends TestCase {
     private static class DefaultMessageHandler implements IControlMsgHandler {
 
         @Override
-        public PrintWriter getEventStreamWriter() {
+        public SSERunnable.SSEEventWriter getEventStreamWriter() {
             throw new UnsupportedOperationException();
         }
 

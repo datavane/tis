@@ -21,6 +21,10 @@ package com.qlangtech.tis.datax.job;
 import com.qlangtech.tis.coredefine.module.action.ResName;
 import com.qlangtech.tis.trigger.feedback.IJobFeedback;
 
+import java.io.FilterWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -109,10 +113,43 @@ public interface SSERunnable extends Runnable, IJobFeedback {
      */
     public void writeComplete(ResName subJob, boolean success);
 
+   public static class SSEEventWriter extends FilterWriter {
+      // private final PrintWriter writer;
+
+       public SSEEventWriter(Writer writer) {
+           super(writer);
+       }
+
+       public  final  void writeSSEEvent(SSERunnable.SSEEventType event, String data)  {
+           synchronized (lock) {
+               try {
+                   this.out.write("event: " + event.getEventType() + "\n");
+                   this.out.write("data: " + data + "\n\n");
+                   this.out.flush();
+               } catch (IOException e) {
+                   throw new RuntimeException(e);
+               }
+           }
+       }
+   }
+
     enum SSEEventType {
         TASK_MILESTONE("taskMilestone"),
         TASK_EXECUTE_STEPS("executeSteps"),
-        TASK_LOG("message");
+        TASK_LOG("message"),
+
+        /**
+         * AI AGENT relevant
+         */
+        AI_AGNET_SESSION("session"),
+        AI_AGNET_MESSAGE("ai_agent_message"),
+        AI_AGNET_TOKEN("ai_agent_token"),
+        AI_AGNET_PROGRESS("ai_agent_progress"),
+        AI_AGNET_PLUGIN("ai_agent_plugin"),
+        AI_AGNET_ERROR("ai_agent_error"),
+        AI_AGENT_INPUT_REQUEST("ai_agent_input_request"),
+        AI_AGNET_SELECTION_REQUEST("ai_agent_selection_request"),
+        AI_AGNET_DONE("ai_agent_done");
 
         private final String eventType;
 

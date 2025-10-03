@@ -57,17 +57,10 @@ public class DefaultSSERunnable implements SSERunnable {
      */
     public static k8SLaunching execute(DefaultSSERunnable launchProcess, boolean inService
             , ServerLaunchToken launchToken, Runnable runnable) {
-        // ServerLaunchToken launchToken = dataxJobWorker.getProcessTokenFile();
-
-
         k8SLaunching k8SLaunching = launchProcess.hasLaunchingToken(launchProcess.executeSteps, launchToken);
-
-
         launchProcess.writeExecuteSteps(k8SLaunching.getExecuteSteps());
         if (inService) {
-            // throw new IllegalStateException("dataxJobWorker is in serivce ,can not launch repeat");
             for (SubJobLog subJobLog : k8SLaunching.getLogs()) {
-                //public void writeMessage(InfoType logLevel, long timestamp, String msg)
                 launchProcess.writeHistoryLog(subJobLog);
             }
             return k8SLaunching;
@@ -75,13 +68,7 @@ public class DefaultSSERunnable implements SSERunnable {
         if (k8SLaunching.isLaunching()) {
 
             if (k8SLaunching.isFaild()) {
-//        k8SLaunching.getExecuteSteps();
-//        k8SLaunching.getMilestones();
-
-                // launchProcess.writeExecuteSteps(k8SLaunching.getExecuteSteps());
-
                 for (SubJobLog subJobLog : k8SLaunching.getLogs()) {
-                    //public void writeMessage(InfoType logLevel, long timestamp, String msg)
                     launchProcess.writeHistoryLog(subJobLog);
                 }
                 return k8SLaunching;
@@ -98,9 +85,7 @@ public class DefaultSSERunnable implements SSERunnable {
         try {
             launchProcess.setLaunchToken(launchToken);
             launchProcess.startLaunch();
-
             runnable.run();
-            // dataxJobWorker.executeLaunchService(launchProcess);
             return null;
         } finally {
             launchProcess.terminate();
@@ -116,61 +101,16 @@ public class DefaultSSERunnable implements SSERunnable {
         SSERunnable.setLocalThread(this);
         this.httpClientWriter = clientWriter;
         this.runnable = runnable;
-
-        //  this.launchToken = dataxJobWorker.getServerLaunchTokenFile();
-        this.executeSteps = executeSteps.getExecuteSteps();// dataxJobWorker.getExecuteSteps();
-//        if (CollectionUtils.isEmpty(this.executeSteps)) {
-//            throw new IllegalStateException("executeSteps can not be empty,dataxJobWorker:" + dataxJobWorker.getClass().getName());
-//        }
+        this.executeSteps = executeSteps.getExecuteSteps();
     }
 
 
     public k8SLaunching hasLaunchingToken(List<ExecuteStep> executeSteps, ServerLaunchToken launchToken) {
         ServerLaunchLog launchWALLog = launchToken.buildWALLog(executeSteps);
         k8SLaunching k8SLaunching = new k8SLaunching(launchWALLog);
-        // k8SLaunching.setExecuteSteps(executeSteps);
         if (!k8SLaunching.launchWALLog.isLaunchingTokenExist()) {
             return k8SLaunching;
         }
-
-        //   try {
-        //  LineIterator lines = FileUtils.lineIterator(launchToken.getLaunchingToken(), TisUTF8.getName());
-//      String[] line = null;
-//      SSEEventType event;
-//      String data;
-
-//            Map<String, SubJobMilestone> milestones = Maps.newHashMap();
-//
-//            LoopQueue<SubJobLog> loggerQueue = new LoopQueue<>(new SubJobLog[100]);
-//            //   final JSONArray[] subJobExecStepsJSONArray = new JSONArray[1];
-//            while (lines.hasNext()) {
-//                processLaunchWALLine(lines.nextLine(), new LaunchWALLineVisitor() {
-//
-//                    @Override
-//                    public void process(SubJobLog jobLog) {
-//                        loggerQueue.write(jobLog);
-//                    }
-//
-//                    @Override
-//                    public void process(SubJobMilestone stone) {
-//                        milestones.put(stone.getName(), stone);
-//                    }
-//                });
-//            }
-//
-//            k8SLaunching.setMilestones(Lists.newArrayList(milestones.values()));
-//            k8SLaunching.setExecuteSteps(SubJobMilestone.readSubJobJSONArray(executeSteps, (subJobName) -> milestones.get(subJobName)));
-//            k8SLaunching.setLogs(loggerQueue.readBuffer());
-//        line = StringUtils.split(lines.nextLine(), splitChar);
-//        event = SSEEventType.parse(line[0]);
-//        data = line[1];
-//
-
-
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-
         return k8SLaunching;
     }
 
@@ -237,10 +177,6 @@ public class DefaultSSERunnable implements SSERunnable {
             return launchWALLog.getMilestones();
         }
 
-//        public void setMilestones(List<SubJobMilestone> milestones) {
-//            this.milestones = milestones;
-//        }
-
         public SubJobLog[] getLogs() {
             return this.launchWALLog.getLogs();
         }
@@ -258,25 +194,8 @@ public class DefaultSSERunnable implements SSERunnable {
          */
         public boolean isFaild() {
             return this.launchWALLog.isFaild();
-//            for (SubJobMilestone subJobMilestone : getMilestones()) {
-//                if (subJobMilestone.isFaild()) {
-//                    return true;
-//                }
-//            }
-//            return false;
         }
 
-        /**
-         * 说明启动流程正在执行，attach 到执行流程
-         */
-//    public void attach2RunningProcessor(ServerLaunchToken launchToken) {
-//      // inAttach2RunningProcessor = true;
-//      launchToken.addObserver(this);
-//      //  launchToken = Optional.empty();
-////      .ifPresent((lt) -> {
-////        lt.addObserver(this);
-////      });
-//    }
         @Override
         public void update(Observable o, Object arg) {
             String line = (String) arg;
@@ -291,17 +210,11 @@ public class DefaultSSERunnable implements SSERunnable {
                 public void process(SubJobMilestone stone) {
                     writeComplete(new TargetResName(stone.getName()), stone.isSuccess());
                 }
-
-//        @Override
-//        public void process(JSONArray subJobExecStepsJSONArray) {
-//          throw new UnsupportedOperationException();
-//        }
             });
         }
     }
 
     public void startLaunch() {
-        // this.writeExecuteSteps(this.executeSteps);
         this.launchToken.get().touchLaunchingToken();
     }
 
@@ -309,13 +222,6 @@ public class DefaultSSERunnable implements SSERunnable {
 
         JSONArray steps = SubJobMilestone.createSubJobJSONArray(executeSteps);
 
-//     new JSONArray();
-//    JSONObject step = null;
-//    for (ExecuteStep s : executeSteps) {
-//      step = SubJobMilestone.createMilestoneJson(s.getName()
-//        , Optional.ofNullable(s.getDescribe()), false, null);
-//      steps.add(step);
-//    }
         writeMessage(SSEEventType.TASK_EXECUTE_STEPS, JsonUtil.toString(steps, false));
     }
 
@@ -348,9 +254,6 @@ public class DefaultSSERunnable implements SSERunnable {
         JSONObject m = SubJobLog.createSubJobLog(logLevel, timestamp, msg);
 
         this.writeMessage(SSEEventType.TASK_LOG, JsonUtil.toString(m, false));
-//    writer.println("event: message");
-//    writer.println("data: " + JsonUtil.toString(m, false));
-//    writer.println(); // note the additional line being written to the stream..
     }
 
     public static class SubJobLog {
@@ -395,14 +298,12 @@ public class DefaultSSERunnable implements SSERunnable {
     private void writeMessage(SSEEventType event, Object data) {
         httpClientWriter.println("event: " + event.getEventType());
         httpClientWriter.println("data: " + data);
-        httpClientWriter.println(); // note the additional line being written to the stream..
+        httpClientWriter.println();
         httpClientWriter.flush();
 
-        //  if (!inAttach2RunningProcessor) {
         launchToken.ifPresent((lt) -> {
             lt.appendLaunchingLine(event.getEventType() + splitChar + data);
         });
-        //}
     }
 
     @Override

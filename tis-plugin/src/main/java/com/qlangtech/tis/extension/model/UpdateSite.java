@@ -543,18 +543,16 @@ public class UpdateSite {
                 extendPoints.forEach((key, val) -> {
                     String extendpoint = key;
                     JSONArray impls = (JSONArray) val;
-                    this.extendPoints.put(extendpoint, impls.toJavaList(String.class));
+                    List<String> implTokens = impls.toJavaList(String.class);
+
+                    this.extendPoints.put(extendpoint, implTokens);
+
+//                    this.extendPoints.put(extendpoint, implTokens.stream().map((imp) -> {
+//                        String[] split = org.apache.commons.lang3.StringUtils.split(imp, ":");
+//                        return new PluginImpl(split[0], split.length > 1 ? split[1] : null);
+//                    }).collect(Collectors.toList()));
                 });
             }
-            // final String releaseTimestamp = get(o, "releaseTimestamp");
-//            Date date = null;
-//            if (releaseTimestamp != null) {
-//                try {
-//                    date = Date.from(Instant.parse(releaseTimestamp));
-//                } catch (Exception ex) {
-//                    LOGGER.info("Failed to parse releaseTimestamp for " + title + " from " + sourceId, ex);
-//                }
-//            }
             final String popularityFromJson = get(o, "popularity");
             Double popularity = 0.0;
             if (popularityFromJson != null) {
@@ -826,6 +824,28 @@ public class UpdateSite {
         }
     }
 
+
+//    public static final class PluginImpl {
+//        private final String impl;
+//        private final String displayName;
+//
+//        /**
+//         * @param impl        插件的实现
+//         * @param displayName 插件的显示名称
+//         */
+//        public PluginImpl(String impl, String displayName) {
+//            this.impl = impl;
+//            this.displayName = displayName;
+//        }
+//
+//        public String getImpl() {
+//            return this.impl;
+//        }
+//
+//        public String getDisplayName() {
+//            return this.displayName;
+//        }
+//    }
 
     protected UpdateCenter.InstallationJob createInstallationJob(Plugin plugin
             , IPluginCoord coord, UpdateCenter uc, boolean dynamicLoad) {
@@ -1493,6 +1513,10 @@ public class UpdateSite {
 
     public List<Plugin> getAvailables() {
         return getPlugins((p) -> p.getInstalled() == null);
+    }
+
+    public List<Plugin> getAllPlugins() {
+        return getPlugins((p) -> true);
     }
 
     public List<Plugin> getPlugins(Predicate<Plugin> predicate) {

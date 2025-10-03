@@ -21,6 +21,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataXNameAware;
 import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.runtime.module.action.IParamGetter;
 
 import java.io.PrintWriter;
@@ -34,7 +35,7 @@ public interface IControlMsgHandler extends IFieldErrorHandler, IMessageHandler,
     public static IControlMsgHandler namedContext(String collectionName) {
         return new IControlMsgHandler() {
             @Override
-            public PrintWriter getEventStreamWriter() {
+            public SSERunnable.SSEEventWriter getEventStreamWriter() {
                 throw new UnsupportedOperationException();
             }
 
@@ -95,5 +96,5 @@ public interface IControlMsgHandler extends IFieldErrorHandler, IMessageHandler,
      *
      * @return
      */
-    public PrintWriter getEventStreamWriter();
+    public SSERunnable.SSEEventWriter getEventStreamWriter();
 }

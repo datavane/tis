@@ -18,7 +18,6 @@
 
 package com.qlangtech.tis.extension;
 
-import com.qlangtech.tis.pubhook.common.Nullable;
 import org.apache.commons.lang.StringUtils;
 
 /**

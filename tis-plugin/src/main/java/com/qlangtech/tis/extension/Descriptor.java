@@ -147,10 +147,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             clazz = (Class) getClass();
         this.clazz = clazz;
         this.validateMethodMap = this.createValidateMap();
-
-        // doing this turns out to be very error prone,
-        // as field initializers in derived types will override values.
-        // load();
     }
 
     /**
@@ -219,14 +215,81 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
     }
 
+    /**
+     * 提供给AI使用，获取每个插件中引用（s）类型的插件
+     *
+     * @return
+     */
+    public Map<String, PropsImplRefs> getPropsImplRefs() {
+        Map<String, PropsImplRefs> result = Maps.newHashMap();
+
+        for (Map.Entry<String, /*** fieldname*/IPropertyType> entry : this.getPropertyTypes().entrySet()) {
+            if (!(entry.getValue() instanceof PropertyType)) {
+                continue;
+            }
+            final PropertyType pt = (PropertyType) entry.getValue();
+            Optional<PluginExtraProps.FieldRefCreateor> refCreator = pt.getRefCreator();
+
+            refCreator.ifPresent((creator) -> {
+
+                JSONObject extraProps = pt.getExtraProps();
+                switch (pt.formField.type()) {
+                    case ENUM: {
+                        //  extraProps.getJSONArray();
+                        break;
+                    }
+                    case SELECTABLE: {
+
+                        break;
+                    }
+                    default:
+                        throw new IllegalStateException();
+                }
+                List<Option> valOptions = null;
+
+                result.put(entry.getKey(), new PropsImplRefs(creator.getCandidatePlugins(), valOptions));
+
+//                List<PluginExtraProps.CandidatePlugin> candidatePlugins = creator.getCandidatePlugins();
+//                for (PluginExtraProps.CandidatePlugin candidatePlugin : candidatePlugins) {
+//                   // candidatePlugin.
+//                }
+                //  result.put(entry.getKey(), );
+            });
+        }
+        return result;
+    }
+
+
+    public static class PropsImplRefs {
+        private final List<PluginExtraProps.CandidatePlugin> candidatePlugins;
+        private final List<Option> valOptions;
+
+        public PropsImplRefs(List<PluginExtraProps.CandidatePlugin> candidatePlugins, List<Option> valOptions) {
+            this.candidatePlugins = candidatePlugins;
+            this.valOptions = valOptions;
+        }
+
+        public List<PluginExtraProps.CandidatePlugin> getCandidatePlugins() {
+            return candidatePlugins;
+        }
+
+        public List<Option> getValOptions() {
+            return valOptions;
+        }
+    }
+
     private HelpPath _helpPath;
+
+    public Map<String, Object> getExtractProps() {
+        return this.getExtractProps(false);
+    }
 
     /**
      * Get extract props for client UI initialize
      *
      * @return
      */
-    public Map<String, Object> getExtractProps() {
+    public Map<String, Object> getExtractProps(boolean forAIPromote) {
         final Map<String, Object> props = new HashMap<>();
 
 
@@ -255,7 +318,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         eprops = Maps.newHashMap();
                         id = (IdentityName) plugin;
                         eprops.put(IdentityName.PLUGIN_IDENTITY_NAME, id.identityValue());
-                        eprops.put("descMeta", DescriptorsJSON.createPluginFormPropertyTypes(desc, Optional.empty()).getLeft());
+                        eprops.put("descMeta"
+                                , DescriptorsJSON.createPluginFormPropertyTypes(desc, Optional.empty(), forAIPromote).getLeft());
 
                         storeManipuldate.add(eprops);
                     }
@@ -270,34 +334,39 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             props.put("manipulateStorable", ((IDescribableManipulate.IManipulateStorable) this).isManipulateStorable());
         }
         if (_helpPath == null) {
-            String helpPath = this.helpPath();
-            this._helpPath = HelpPath.create(helpPath);
-            if (StringUtils.isEmpty(helpPath)) {
-                if (this instanceof IEndTypeGetter) {
-                    EndType endType = Objects.requireNonNull(((IEndTypeGetter) this).getEndType(), "endType can not be null");
-                    if (endType.category == EndTypeCategory.Assist) {
-                        helpPath = "docs/integrations/assist/" + endType.name() + "/#" + this.getDisplayNameAsAnchor();
-                    } else if (endType.category == EndTypeCategory.Data) {
-                        String anchor = null;
-                        if (this instanceof DataSourceFactory.BaseDataSourceFactoryDescriptor
-                                || this instanceof ParamsConfig.BasicParamsConfigDescriptor) {
-                            anchor = "数据源配置";
-                        } else if (this instanceof BaseDataxReaderDescriptor) {
-                            anchor = "批量读";
-                        } else if (this instanceof BaseDataxWriterDescriptor) {
-                            anchor = "批量写";
-                        } else if (this instanceof MQListenerFactory.BaseDescriptor) {
-                            anchor = "实时读";
-                        } else if (this instanceof TISSinkFactory.BaseSinkFunctionDescriptor) {
-                            anchor = "实时写";
+            if (forAIPromote) {
+                this._helpPath = HelpPath.NULL_PATH;
+            } else {
+                String helpPath = this.helpPath();
+                this._helpPath = HelpPath.create(helpPath);
+                if (StringUtils.isEmpty(helpPath)) {
+                    if (this instanceof IEndTypeGetter) {
+                        EndType endType = Objects.requireNonNull(((IEndTypeGetter) this).getEndType(), "endType can not be null");
+                        if (endType.category == EndTypeCategory.Assist) {
+                            helpPath = "docs/integrations/assist/" + endType.name() + "/#" + this.getDisplayNameAsAnchor();
+                        } else if (endType.category == EndTypeCategory.Data) {
+                            String anchor = null;
+                            if (this instanceof DataSourceFactory.BaseDataSourceFactoryDescriptor
+                                    || this instanceof ParamsConfig.BasicParamsConfigDescriptor) {
+                                anchor = "数据源配置";
+                            } else if (this instanceof BaseDataxReaderDescriptor) {
+                                anchor = "批量读";
+                            } else if (this instanceof BaseDataxWriterDescriptor) {
+                                anchor = "批量写";
+                            } else if (this instanceof MQListenerFactory.BaseDescriptor) {
+                                anchor = "实时读";
+                            } else if (this instanceof TISSinkFactory.BaseSinkFunctionDescriptor) {
+                                anchor = "实时写";
+                            }
+                            helpPath = "docs/integrations/data/" + endType.name() + "/#" + anchor;
+                        } else if (endType.category == EndTypeCategory.Transformer) {
+                            helpPath = "docs/integrations/transformer/" + endType.name() + "/#" + this.getDisplayNameAsAnchor();
                         }
-                        helpPath = "docs/integrations/data/" + endType.name() + "/#" + anchor;
-                    } else if (endType.category == EndTypeCategory.Transformer) {
-                        helpPath = "docs/integrations/transformer/" + endType.name() + "/#" + this.getDisplayNameAsAnchor();
+                        this._helpPath = new HelpPath(helpPath);
                     }
-                    this._helpPath = new HelpPath(helpPath);
                 }
             }
+
         }
 
         if (!_helpPath.isNull()) {
@@ -491,17 +560,12 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                             for (IdentityName subProp : subFormPropVal) {
                                 if (StringUtils.equals(subformDetailId, subProp.identityValue())) {
                                     return _subPluginFormPropertyTypes.convertRootFormProps().getInstancePropsJson(subProp);
-//                                    return (new RootFormProperties(
-//                                            _subPluginFormPropertyTypes.subFormFieldsDescriptor, _subPluginFormPropertyTypes.fieldsType)).getInstancePropsJson(subProp);
                                 }
                             }
 
                             ISelectedTab subDetailed = _subPluginFormPropertyTypes.newSubDetailed();
                             _subPluginFormPropertyTypes.pkPropertyType.setVal(subDetailed, subformDetailId);
                             return _subPluginFormPropertyTypes.convertRootFormProps().getInstancePropsJson(subDetailed);
-                            // return (new RootFormProperties(_subPluginFormPropertyTypes.subFormFieldsDescriptor, _subPluginFormPropertyTypes.fieldsType)).getInstancePropsJson(subDetailed);
-                            // throw new IllegalStateException("subformDetailId:" + subformDetailId + " has not find
-                            // subForm instance");
                         }
                     };
 
@@ -885,21 +949,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return attrDesc.multiSelectablePropProcess((viewType) -> {
             return viewType.getPostSelectedItems(attrDesc, msgHandler, context, eprops);
         });
-        //return attrDesc.getMultiItemsViewType().getPostSelectedItems(attrDesc, msgHandler, context, eprops);
-
-//        return propertyTypes.accept(new PluginFormProperties.IVisitor() {
-//            @Override
-//            public List<FormFieldType.SelectedItem> visit(RootFormProperties props) {
-//                throw new UnsupportedOperationException("RootFormProperties");
-//            }
-//
-//            @Override
-//            public List<FormFieldType.SelectedItem> visit(BaseSubFormProperties props) {
-//
-//            }
-//        });
-
-
     }
 
     public static class PluginValidateResult {
@@ -1109,42 +1158,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
                         // 保存子form detail list
                         List<Describable> subDetailedList = Lists.newArrayList();
-                        //AtomicReference<SelectedTabExtend> batchSourceExtendRef = new AtomicReference<>();
                         props.visitAllSubDetailed(null, keyValMap, new SuFormProperties.ISubDetailedProcess<Void>() {
                             public Void process(String subFormId, AttrValMap attrVals) {
 
                                 ParseDescribable<Describable> r = attrVals.createDescribable(pluginContext, context, Optional.of(props.convertRootFormProps()));
-
                                 Describable plugin = setParentPluginClass(r);
-//                                if (plugin instanceof IParentHostPluginAware) {
-//                                    ((IParentHostPluginAware) plugin).setParentHostPluginClass(props.getParentPluginDesc().clazz);
-//                                }
-                                // BATCH_SOURCE 类型的 tabExtend 需要将他set到 Selected中去
-                                //                                SelectedTabExtend sourceBatchExtend = null;
-                                //                                if (plugin instanceof SelectedTabExtend //
-                                //                                        && (sourceBatchExtend = (SelectedTabExtend)
-                                //                                        plugin).getExtendType() ==
-                                //                                        SelectedTabExtend.ExtendType.BATCH_SOURCE) {
-                                //                                    batchSourceExtendRef.set(sourceBatchExtend);
-                                //                                } else {
                                 subDetailedList.add(plugin);
-                                //}
-
                                 return null;
                             }
                         });
-                        //                        SelectedTabExtend tabExtend = batchSourceExtendRef.get();
-                        //                        if (tabExtend != null) {
-                        //                            subDetailedList.stream().filter((tab) -> tab instanceof
-                        //                            SelectedTab) //
-                        //                                    .map((tab) -> (SelectedTab) tab)//
-                        //                                    .forEach((tab) -> {
-                        //                                        tab.setSourceProps(tabExtend);
-                        //                                    });
-                        //                        }
-
-
-                        // props.subFormField.set(result.instance, subDetailedList);
                         return new ParseDescribable<>(subDetailedList);
 
                     } catch (Exception e) {
@@ -1177,7 +1199,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             attr = entry.getKey();
             attrDesc = entry.getValue();
             valJ = keyValMap.get(attr);
-            // attrDesc.getExtraProps(PluginExtraProps.KEY_DISABLE);
+
             if (valJ == null && attrDesc.isInputRequired()) {
                 throw new IllegalStateException("prop:" + attr + " can not be empty,desc :" + this.clazz.getSimpleName());
             }
@@ -1208,7 +1230,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                             return c;
                         }
                     }).collect(Collectors.toList());
-                    //attrDesc.is
 
                     if (attrDesc.isCollectionType()) {
                         attrDesc.setVal(describable, propValRewrite.rewrite(attrDesc, multi));
@@ -1408,11 +1429,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 return Collections.emptyList();
             }
             return opts.stream().map((r) -> {
-//                Descriptor desc = null;
-//                EndType endType = null;
-//                if ((desc = ((Describable) r).getDescriptor()) instanceof IEndTypeGetter) {
-//                    endType = ((IEndTypeGetter) desc).getEndType();
-//                }
                 return new SelectOption(r.identityValue(), r.getDescribleClass(), null);
             }).collect(Collectors.toList());
         } catch (Exception e) {
@@ -1529,10 +1545,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             PropertyType.setDisabled(c);
         }
         PluginExtraProps.Props props = new PluginExtraProps.Props(c);
-//        if (StringUtils.isNotEmpty(helperContent)) {
-//            props.tagAsynHelp(new StringBuffer(helperContent));
-//        }
-        if(helperContent.isNotEmpty()){
+        if (helperContent.isNotEmpty()) {
             props.tagAsynHelp(helperContent);
         }
         if (enums.isPresent()) {

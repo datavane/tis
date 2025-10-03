@@ -78,7 +78,7 @@ public class DescribableJSON<T extends Describable<T>> {
 
                 return props.subFormFieldsDescriptor;
             }
-        }), item);
+        }), false, item);
 
 
         final JSON vals = pluginFormPropertyTypes.getInstancePropsJson(this.instance);
