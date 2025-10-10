@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.Optional;
 
 /**
  * 指标采集配置
@@ -62,7 +63,10 @@ public class IndexCollectionConfig extends ParamsConfig {
     }
 
     public static IndexCollectionConfig getIndexCollectionConfig(DataXName dataXName) {
-        return ParamsConfig.getItem(dataXName.getPipelineName(), INDEX_COLLECTION_CONFIG, false);
+        return ParamsConfig.getItem(
+                dataXName.getPipelineName()
+                , INDEX_COLLECTION_CONFIG
+                , Optional.empty(), false);
     }
 
     @Override

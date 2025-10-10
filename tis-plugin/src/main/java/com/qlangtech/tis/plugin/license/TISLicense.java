@@ -75,7 +75,7 @@ public class TISLicense extends ParamsConfig implements BeforePluginSaved, After
      * @return
      */
     public static TISLicense load(boolean validateNull) {
-        return ParamsConfig.getItem(key_tis_license, KEY_DISPLAY_NAME, validateNull);
+        return ParamsConfig.getItem(key_tis_license, KEY_DISPLAY_NAME, Optional.empty(), validateNull);
     }
 
 

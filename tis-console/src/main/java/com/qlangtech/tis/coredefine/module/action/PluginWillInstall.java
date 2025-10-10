@@ -38,12 +38,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  *
@@ -53,7 +50,9 @@ import java.util.concurrent.TimeoutException;
 public class PluginWillInstall {
 
   private static final Logger logger = LoggerFactory.getLogger(PluginWillInstall.class);
-
+  /**
+   * tpi 名称
+   */
   private String name;
   private Optional<PluginClassifier> classifier;
   private boolean multiClassifier;
@@ -194,6 +193,12 @@ public class PluginWillInstall {
   }
 
 
+  /**
+   *
+   * @param name               例如：tis-asyncmsg-rocketmq-plugin，tis-chunjun-base-plugin 等
+   * @param selectedClassifier
+   * @param multiClassifier
+   */
   public PluginWillInstall(String name, Optional<PluginClassifier> selectedClassifier, boolean multiClassifier) {
     this.name = name;
     this.classifier = selectedClassifier;

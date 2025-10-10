@@ -18,7 +18,17 @@
 package com.qlangtech.tis.aiagent.llm;
 
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.config.ParamsConfig;
+import com.qlangtech.tis.manage.common.ILoginUser;
+import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
+import com.qlangtech.tis.plugin.llm.DeepSeekProvider;
+import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 大模型接口抽象
@@ -26,46 +36,105 @@ import java.util.List;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/9/17
  */
-public interface LLMProvider {
+public abstract class LLMProvider extends ParamsConfig {
+
+    protected static final String KEY_DISPLAY_NAME = "LLM";
+
+
+    public static List<ParamsConfig> getExistProviders() {
+        IPluginContext context = IPluginContext.getThreadLocalInstance();
+        List<ParamsConfig> llmProviders = loadAllProvidersBindWithUser(context);
+        return llmProviders;
+        //  return llmProviders.stream().map(ParamsConfig::map2SelectOption).collect(Collectors.toList());
+    }
+
+
+    /**
+     *
+     * @param context
+     * @return
+     */
+    private static List<ParamsConfig> loadAllProvidersBindWithUser(IPluginContext context) {
+
+//                = UploadPluginMeta.parse(HeteroEnum.PARAMS_CONFIG_USER_ISOLATION.identity + ":" + KEY_REQUIRE
+//                + "," + KEY_TARGET_PLUGIN_DESC + "_" + KEY_DISPLAY_NAME);
+
+        UploadPluginMeta pluginMeta = ParamsConfigPluginStore.createParamsConfigUserIsolation(KEY_DISPLAY_NAME);
+        List<ParamsConfig> llmProviders
+                = HeteroEnum.PARAMS_CONFIG_USER_ISOLATION.getPlugins(context, pluginMeta);
+        return llmProviders;
+    }
+
+    /**
+     * 加载实例
+     *
+     * @param pluginContext 需要根据当前登录的用户进行隔离
+     * @param identityName
+     * @return
+     */
+    public static LLMProvider load(IPluginContext pluginContext, String identityName) {
+        if (StringUtils.isEmpty(identityName)) {
+            throw new IllegalArgumentException("param identityName can not be null");
+        }
+
+        //PartialSettedPluginContext pluginContext = new PartialSettedPluginContext();
+        List<ParamsConfig> providers = loadAllProvidersBindWithUser(pluginContext);
+        for (ParamsConfig config : providers) {
+            if (StringUtils.equals(config.identityValue(), config.identityValue())) {
+                return (LLMProvider) config;
+            }
+        }
+        throw new IllegalStateException("can not find llmProvider with name:" + identityName);
+        //  return ParamsConfig.getItem(identityName, KEY_DISPLAY_NAME, Optional.of(user.getName()), true);
+    }
+
+
+    /**
+     * 加载所有的实例
+     *
+     * @param user 需要根据当前登录的用户进行隔离
+     * @return
+     */
+    public static List<LLMProvider> loadAll(ILoginUser user) {
+        return getItems(KEY_DISPLAY_NAME, Optional.of(user.getName()));
+    }
+
 
     /**
      * 调用LLM进行文本生成
-     * @param prompt 提示词
+     *
+     * @param prompt       提示词
      * @param systemPrompt 系统提示词
-     * @param temperature 温度参数
      * @return 生成的文本和token使用情况
      */
-    LLMResponse chat(String prompt, String systemPrompt, double temperature);
+    public abstract LLMResponse chat(String prompt, String systemPrompt);
 
     /**
      * 调用LLM进行JSON格式化输出
-     * @param prompt 提示词
+     *
+     * @param prompt       提示词
      * @param systemPrompt 系统提示词
-     * @param jsonSchema JSON Schema定义
+     * @param jsonSchema   JSON Schema定义
      * @return 生成的JSON对象和token使用情况
      * @see DeepSeekProvider#chatJson(String, String, String)
      */
-    LLMResponse chatJson(String prompt, String systemPrompt, String jsonSchema);
+    public abstract LLMResponse chatJson(String prompt, String systemPrompt, String jsonSchema);
 
     /**
      * 获取提供商名称
      */
-    String getProviderName();
+    public abstract String getProviderName();
 
     /**
      * 检查是否可用
      */
-    boolean isAvailable();
+    public abstract boolean isAvailable();
 
-    /**
-     * 获取配置信息
-     */
-    LLMConfig getConfig();
 
     /**
      * LLM响应结果
      */
-    class LLMResponse {
+    public static class LLMResponse {
         private String content;
         private JSONObject jsonContent;
         private long promptTokens;
@@ -137,57 +206,6 @@ public interface LLMProvider {
 
         public void setErrorMessage(String errorMessage) {
             this.errorMessage = errorMessage;
-        }
-    }
-
-    /**
-     * LLM配置信息
-     */
-    class LLMConfig {
-        private String apiKey;
-        private String apiUrl;
-        private String model;
-        private int maxTokens;
-        private double defaultTemperature;
-
-        public String getApiKey() {
-            return apiKey;
-        }
-
-        public void setApiKey(String apiKey) {
-            this.apiKey = apiKey;
-        }
-
-        public String getApiUrl() {
-            return apiUrl;
-        }
-
-        public void setApiUrl(String apiUrl) {
-            this.apiUrl = apiUrl;
-        }
-
-        public String getModel() {
-            return model;
-        }
-
-        public void setModel(String model) {
-            this.model = model;
-        }
-
-        public int getMaxTokens() {
-            return maxTokens;
-        }
-
-        public void setMaxTokens(int maxTokens) {
-            this.maxTokens = maxTokens;
-        }
-
-        public double getDefaultTemperature() {
-            return defaultTemperature;
-        }
-
-        public void setDefaultTemperature(double defaultTemperature) {
-            this.defaultTemperature = defaultTemperature;
         }
     }
 }

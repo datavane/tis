@@ -1,0 +1,26 @@
+{
+  "name": {
+    "readonly": true,
+    "label": "Name",
+    "help": "当前登录用户名"
+  },
+  "llm": {
+    "label": "模型",
+    "help": "大模型接口提供方",
+    "creator": {
+      "label": "配置",
+      "plugin": [
+        {
+          "hetero": "params-cfg-user-isolation",
+          "targetItemDesc": "LLM",
+          "descName": "DeepSeek"
+        }
+      ]
+    }
+  },
+  "email": {
+    "label": "Email",
+    "help": "用户电子邮箱地址",
+    "placeholder": "baisui@qlangtech.com"
+  }
+}

@@ -22,13 +22,16 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -41,9 +44,16 @@ import java.util.stream.Collectors;
 public abstract class ParamsConfig implements Describable<ParamsConfig>, IdentityName, Predicate<UploadPluginMeta> {
     public static final String CONTEXT_PARAMS_CFG = "params-cfg";
 
-
     public static <T extends ParamsConfig> List<T> getItems(String pluginDesc) {
-        IPluginStore<ParamsConfig> paramsCfgStore = getTargetPluginStore(pluginDesc);
+        return getItems(pluginDesc, Optional.empty());
+    }
+
+    public Option map2SelectOption() {
+        return new Option(this.identityValue());
+    }
+
+    public static <T extends ParamsConfig> List<T> getItems(String pluginDesc, Optional<String> subpath) {
+        IPluginStore<ParamsConfig> paramsCfgStore = getTargetPluginStore(CONTEXT_PARAMS_CFG, pluginDesc, subpath);
         return paramsCfgStore.getPlugins().stream().map((p) -> (T) p).collect(Collectors.toList());
     }
 
@@ -65,40 +75,49 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
     }
 
     public static IPluginStore<ParamsConfig> getTargetPluginStore(UploadPluginMeta.TargetDesc desc) {
+        return getTargetPluginStore(CONTEXT_PARAMS_CFG, desc);
+    }
+
+    public static IPluginStore<ParamsConfig> getTargetPluginStore(String childContextDir, UploadPluginMeta.TargetDesc desc) {
         if (desc == null || StringUtils.isEmpty(desc.matchTargetPluginDescName)) {
             throw new IllegalStateException("desc param is not illegal, desc:" + ((desc == null) ? "null" : desc.toString()));
         }
-        return ParamsConfig.getTargetPluginStore(desc.matchTargetPluginDescName);
+        return ParamsConfig.getTargetPluginStore(childContextDir, desc.matchTargetPluginDescName, Optional.empty());
     }
 
-    public static IPluginStore<ParamsConfig> getTargetPluginStore(String targetPluginDesc) {
-        return getTargetPluginStore(targetPluginDesc, true);
+    public static IPluginStore<ParamsConfig> getTargetPluginStore(String childContextDir, String targetPluginDesc, Optional<String> subpath) {
+        return getTargetPluginStore(childContextDir, targetPluginDesc, subpath, true);
     }
 
     public static IPluginStore<ParamsConfig> getTargetPluginStore(
-            String targetPluginDesc, boolean validateExist) {
+            String childContextDir, String targetPluginDesc, Optional<String> subpath, boolean validateExist) {
         if (StringUtils.isEmpty(targetPluginDesc)) {
             throw new IllegalStateException("param targetPluginDesc can not be null");
         }
-        IPluginStore<ParamsConfig> childPluginStore = getChildPluginStore(targetPluginDesc);
+        IPluginStore<ParamsConfig> childPluginStore = getChildPluginStore(childContextDir, targetPluginDesc, subpath);
         if (validateExist && childPluginStore == null) {
             throw new IllegalStateException("targetPluginDesc:" + targetPluginDesc + " relevant childPluginStore can not be null");
         }
         return childPluginStore;
     }
 
-    public static IPluginStore<ParamsConfig> getChildPluginStore(String childFile) {
+    public static IPluginStore<ParamsConfig> getChildPluginStore(String childContextDir, String childFile) {
+        return getChildPluginStore(childContextDir, childFile, Optional.empty());
+    }
+
+    public static IPluginStore<ParamsConfig> getChildPluginStore(String childContextDir, String childFile, Optional<String> subpath) {
         if (StringUtils.isEmpty(childFile)) {
             throw new IllegalArgumentException("param childFile can not be empty");
         }
-        return TIS.getPluginStore(CONTEXT_PARAMS_CFG, childFile, ParamsConfig.class);
+
+        return TIS.getPluginStore(new KeyedPluginStore.Key(childContextDir, new KeyedPluginStore.KeyVal(childFile, subpath), ParamsConfig.class));
     }
 
 
     public abstract <INSTANCE> INSTANCE createConfigInstance();
 
     public static <T extends ParamsConfig> T getItem(String identityName, String targetPluginDesc) {
-        return getItem(identityName, targetPluginDesc, true);
+        return getItem(identityName, targetPluginDesc, Optional.empty(), true);
     }
 
     /**
@@ -108,11 +127,11 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
      * @param <T>
      * @return
      */
-    public static <T extends ParamsConfig> T getItem(String identityName, String targetPluginDesc, boolean valiateNull) {
+    public static <T extends ParamsConfig> T getItem(String identityName, String targetPluginDesc, Optional<String> subpath, boolean valiateNull) {
         if (StringUtils.isEmpty(identityName)) {
             throw new IllegalArgumentException("param identityName can not be empty");
         }
-        List<T> items = getItems(targetPluginDesc);
+        List<T> items = getItems(targetPluginDesc, subpath);
         for (T i : items) {
             if (StringUtils.equals(i.identityValue(), identityName)) {
                 return i;
@@ -129,12 +148,15 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
 
     @Override
     @JSONField(serialize = false)
-    public final Descriptor<ParamsConfig> getDescriptor() {
+    public final BasicParamsConfigDescriptor getDescriptor() {
         Descriptor<ParamsConfig> desc = TIS.get().getDescriptor(this.getClass());
+        if (desc == null) {
+            throw new IllegalStateException("describle class:" + this.getClass() + " relevant desc can not be null");
+        }
         if (!BasicParamsConfigDescriptor.class.isAssignableFrom(desc.getClass())) {
             throw new IllegalStateException(desc.getClass().getSimpleName() + " must be child of " + BasicParamsConfigDescriptor.class.getName());
         }
-        return desc;
+        return (BasicParamsConfigDescriptor) desc;
     }
 
     // public static DescriptorExtensionList<ParamsConfig, Descriptor<ParamsConfig>> all() {
@@ -153,7 +175,7 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
      * @return
      */
     public String getStoreGroup() {
-        return this.getDescriptor().getDisplayName();
+        return this.getDescriptor().paramsConfigType();
     }
 
 
@@ -166,6 +188,11 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
         }
 
         public final String paramsConfigType() {
+            return this.paramsConfigType;
+        }
+
+        @Override
+        public String getDisplayName() {
             return this.paramsConfigType;
         }
     }

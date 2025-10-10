@@ -33,11 +33,13 @@ import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.util.AbstractPropAssist.MarkdownHelperContent;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.ClassUtils;
@@ -429,15 +431,48 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
     public static class CandidatePlugin {
         private String displayName;
+       // private String targetPluginCategory;
         private String hetero;
         /**
          * 可以为空
          */
         private Optional<Descriptor> descriptor;
 
+        /**
+         *
+         * @param displayName
+         * @param hetero
+         */
         public CandidatePlugin(String displayName, String hetero) {
+            if (StringUtils.isEmpty(displayName)) {
+                throw new IllegalArgumentException("displayName can not be empty");
+            }
             this.displayName = displayName;
+          //  this.targetPluginCategory = StringUtils.defaultIfEmpty(targetPluginCategory, displayName);
             this.hetero = hetero;
+        }
+
+        public static JSONArray convertOptionsArray(
+                Optional<IEndTypeGetter.EndType> endType, List<CandidatePlugin> candidatePlugins) {
+            JSONArray optionsArray = new JSONArray();
+            for (int i = 0; i < candidatePlugins.size(); i++) {
+                CandidatePlugin candidate = candidatePlugins.get(i);
+                JSONObject option = new JSONObject();
+                option.put("index", i);
+                option.put("name", candidate.getDisplayName());
+                option.put("extendpoint", candidate.getHetero().getExtensionPoint().getName());
+                endType.ifPresent((et) -> {
+                    option.put("endType", et.getVal());
+                });
+                option.put("description", candidate.getDisplayName());
+                option.put("installed", candidate.getInstalledPluginDescriptor() != null);
+                Descriptor<?> installedDesc = candidate.getInstalledPluginDescriptor();
+                if (installedDesc != null) {
+                    option.put("version", installedDesc.getId());
+                }
+                optionsArray.add(option);
+            }
+            return optionsArray;
         }
 
         public void validate(String errDesc, Class<?> pluginClazz) {
@@ -460,7 +495,11 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         }
 
         public Descriptor getInstalledPluginDescriptor() {
-            if (descriptor == null) {
+            return this.getInstalledPluginDescriptor(false);
+        }
+
+        public Descriptor getInstalledPluginDescriptor(boolean useFresh) {
+            if (useFresh || descriptor == null) {
                 IPluginEnum hetero = this.getHetero();
                 List<Descriptor> descriptors = hetero.descriptors();
                 for (Descriptor d : descriptors) {
@@ -475,12 +514,18 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return descriptor.orElse(null);
         }
 
-        public void setDisplayName(String displayName) {
-            this.displayName = displayName;
-        }
+//        public void setDisplayName(String displayName) {
+//            this.displayName = displayName;
+//        }
 
         public IPluginEnum getHetero() {
             return HeteroEnum.of(this.hetero);
+        }
+
+        @Override
+        public String toString() {
+            return "displayName='" + displayName + '\'' +
+                    ", hetero='" + hetero + '\'';
         }
     }
 
@@ -493,7 +538,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         private final JSONObject props;
         private MarkdownHelperContent asynHelp;
 
-        private Optional<FieldRefCreateor> _fieldRefCreateor;
+        private Optional<FieldRefCreateor> _fieldRefCreateor = Optional.empty();
 
         public Props(JSONObject props) {
             this.props = props;
@@ -544,6 +589,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                                 }
                             }
                         }
+
+
+                        pmeta.getString(UploadPluginMeta.KEY_TARGET_PLUGIN_DESC);
 
                         createor.addCandidatePlugin(new CandidatePlugin(pmeta.getString(KEY_DESC_NAME), pmeta.getString(KEY_CREATOR_HETERO)));
                     }

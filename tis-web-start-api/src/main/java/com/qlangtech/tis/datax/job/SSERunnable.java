@@ -28,6 +28,7 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 
 /**
  * 由于PowerJob集群启动需要比较长时间，需要通过SSE（Server Send Event技术将服务端执行的状态反馈给客户端）
@@ -113,26 +114,6 @@ public interface SSERunnable extends Runnable, IJobFeedback {
      */
     public void writeComplete(ResName subJob, boolean success);
 
-   public static class SSEEventWriter extends FilterWriter {
-      // private final PrintWriter writer;
-
-       public SSEEventWriter(Writer writer) {
-           super(writer);
-       }
-
-       public  final  void writeSSEEvent(SSERunnable.SSEEventType event, String data)  {
-           synchronized (lock) {
-               try {
-                   this.out.write("event: " + event.getEventType() + "\n");
-                   this.out.write("data: " + data + "\n\n");
-                   this.out.flush();
-               } catch (IOException e) {
-                   throw new RuntimeException(e);
-               }
-           }
-       }
-   }
-
     enum SSEEventType {
         TASK_MILESTONE("taskMilestone"),
         TASK_EXECUTE_STEPS("executeSteps"),
@@ -148,6 +129,9 @@ public interface SSERunnable extends Runnable, IJobFeedback {
         AI_AGNET_PLUGIN("ai_agent_plugin"),
         AI_AGNET_ERROR("ai_agent_error"),
         AI_AGENT_INPUT_REQUEST("ai_agent_input_request"),
+        /**
+         * 让用户选择不同的Descriptor（例如：MySQL-v5、MySQL-v8之一）
+         */
         AI_AGNET_SELECTION_REQUEST("ai_agent_selection_request"),
         AI_AGNET_DONE("ai_agent_done");
 

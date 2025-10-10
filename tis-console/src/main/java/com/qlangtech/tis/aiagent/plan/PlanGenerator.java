@@ -29,33 +29,50 @@ import com.qlangtech.tis.plugin.IEndTypeGetter;
  */
 public class PlanGenerator {
 
+  public static String KEY_SOURCE = "source";
+  public static String KEY_TARGET = "target";
+  public static String KEY_TYPE = "type";
+  public static String KEY_EXTRACT_INFO = "extractInfo";
+
   private final LLMProvider llmProvider;
 
   public PlanGenerator(LLMProvider llmProvider) {
     this.llmProvider = llmProvider;
   }
 
+
   /**
    * 根据用户输入和LLM分析结果生成执行计划
    */
   public TaskPlan generatePlan(String userInput, JSONObject llmAnalysis) {
-    TaskPlan plan = new TaskPlan();
+
+    JSONObject source = llmAnalysis.getJSONObject(PlanGenerator.KEY_SOURCE);
+    JSONObject target = llmAnalysis.getJSONObject(PlanGenerator.KEY_TARGET);
+
+    TaskPlan.DataEndCfg sourceEnd
+      = new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.valueOf(source.getString(PlanGenerator.KEY_TYPE)));
+    sourceEnd.setRelevantDesc(source.getString(PlanGenerator.KEY_EXTRACT_INFO));
+
+    TaskPlan.DataEndCfg targetEnd
+      = new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.valueOf(target.getString(PlanGenerator.KEY_TYPE)));
+    targetEnd.setRelevantDesc(target.getString(PlanGenerator.KEY_EXTRACT_INFO));
+
+    TaskPlan plan = new TaskPlan(sourceEnd, targetEnd, this.llmProvider);
     plan.setUserInput(userInput);
 
     //  String sourceType = ;
     //String targetType = llmAnalysis.getString("target_type");
-
-    plan.setSourceType(IEndTypeGetter.EndType.valueOf(llmAnalysis.getString("source_type")));
-    plan.setTargetType(IEndTypeGetter.EndType.valueOf(llmAnalysis.getString("target_type")));
+//    plan.setSourceEnd(sourceEnd);
+//    plan.setTargetEnd(targetEnd);
 
     // 根据源端和目标端类型，生成对应的执行步骤
-    if (plan.getSourceType() == IEndTypeGetter.EndType.MySQL
-      && plan.getTargetType() == IEndTypeGetter.EndType.Paimon) {
-      generateMySQLToPaimonPlan(plan, llmAnalysis.getJSONObject("options"));
-    } else {
-      // 其他类型的同步计划
-      generateGenericPlan(plan, llmAnalysis);
-    }
+//    if (plan.getSourceEnd().getType() == IEndTypeGetter.EndType.MySQL
+//      && plan.getTargetEnd().getType() == IEndTypeGetter.EndType.Paimon) {
+//      generateMySQLToPaimonPlan(plan, llmAnalysis.getJSONObject("options"));
+//    } else {
+    // 其他类型的同步计划
+    generateGenericPlan(plan, llmAnalysis);
+    //}
 
     return plan;
   }
@@ -70,7 +87,7 @@ public class PlanGenerator {
 
     // Step 1: 检查并安装插件
     TaskStep installStep = new TaskStep("检查并安装必要插件", TaskStep.StepType.PLUGIN_INSTALL);
-    installStep.setDescription("检查" + plan.getSourceType() + " Reader和" + plan.getTargetType() + " Writer插件是否已安装");
+    installStep.setDescription("检查" + plan.getSourceEnd() + " Reader和" + plan.getTargetEnd() + " Writer插件是否已安装");
     plan.addStep(installStep);
 
     // Step 2: 创建MySQL数据源
@@ -165,13 +182,13 @@ public class PlanGenerator {
     TaskStep installStep = new TaskStep("检查并安装必要插件", TaskStep.StepType.PLUGIN_INSTALL);
     plan.addStep(installStep);
 
-    TaskStep readerStep = new TaskStep("创建数据源Reader", TaskStep.StepType.PLUGIN_CREATE);
-    readerStep.setDescription("配置源端数据读取器");
+    TaskStep readerStep = new TaskStep("创建数据源Reader、Writer插件实例", TaskStep.StepType.PLUGIN_CREATE);
+    readerStep.setDescription("配置源端数据读取器及写入器");
     plan.addStep(readerStep);
 
-    TaskStep writerStep = new TaskStep("创建目标端Writer", TaskStep.StepType.PLUGIN_CREATE);
-    writerStep.setDescription("配置目标端数据写入器");
-    plan.addStep(writerStep);
+//    TaskStep writerStep = new TaskStep("创建目标端Writer", TaskStep.StepType.PLUGIN_CREATE);
+//    writerStep.setDescription("配置目标端数据写入器");
+//    plan.addStep(writerStep);
 
     TaskStep executeStep = new TaskStep("执行数据同步", TaskStep.StepType.EXECUTE_BATCH);
     executeStep.setDescription("执行数据同步任务");

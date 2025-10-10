@@ -21,12 +21,19 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.core.AgentContext;
+import com.qlangtech.tis.aiagent.core.SelectionOptions;
 import com.qlangtech.tis.aiagent.core.TISPlanAndExecuteAgent;
+import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.template.TaskTemplateRegistry;
+import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.PermissionConstant;
+import com.qlangtech.tis.manage.common.UserProfile;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
+import com.qlangtech.tis.util.HeteroEnum;
+import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,11 +42,15 @@ import javax.servlet.AsyncContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static com.qlangtech.tis.aiagent.core.AgentContext.KEY_REQUEST_ID;
 
 /**
  * Chat Pipeline Action控制器
@@ -75,6 +86,19 @@ public class ChatPipelineAction extends BasicModule {
 
     this.setBizResult(context, templates);
   }
+
+
+//  @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
+//  public void doGetLlmProviders(Context context) {
+//
+//    JSONObject llm = null;
+//    List<LLMProvider> llms = LLMProvider.loadAll(this.getUser());
+////for(  llms){
+////
+////}
+//
+//  }
+
 
   /**
    * 创建新的聊天会话
@@ -118,6 +142,31 @@ public class ChatPipelineAction extends BasicModule {
   }
 
   /**
+   * 切换模型
+   */
+  @Func(value = PermissionConstant.AI_AGENT, sideEffect = true)
+  public void doChangeLlm(Context context) {
+    String llm = this.getString("llm");
+    if (StringUtils.isEmpty(llm)) {
+      throw new IllegalArgumentException("param llm can not be empty");
+    }
+    UserProfile profile = UserProfile.load(this, false);
+    if (profile == null) {
+      profile = new UserProfile();
+      profile.name = this.getUser().getName();
+    }
+
+    if (StringUtils.equals(llm, profile.llm)) {
+      return;
+    }
+
+    profile.llm = llm;
+    UserProfile.update(this, profile);
+    // this.setBizResult(context,);
+    this.addActionMessage(context, "成功切换模型为：" + llm);
+  }
+
+  /**
    * SSE聊天接口 - 使用AsyncContext确保连接正确管理
    */
   @Func(value = PermissionConstant.AI_AGENT, sideEffect = true)
@@ -137,26 +186,18 @@ public class ChatPipelineAction extends BasicModule {
     HttpServletResponse response = ServletActionContext.getResponse();
 
     // 设置SSE响应头
-//    response.setContentType("text/event-stream");
-//    response.setCharacterEncoding("UTF-8");
-//    response.setHeader("Cache-Control", "no-cache");
-//    response.setHeader("Connection", "keep-alive");
-//    response.setHeader("X-Accel-Buffering", "no"); // 禁用Nginx缓冲
-
     // 启动异步处理 - 这是关键！
     AsyncContext asyncContext = request.startAsync(request, response);
 
     // 设置超时时间（10分钟）
     asyncContext.setTimeout(600000);
-    SSERunnable.SSEEventWriter writer = this.getEventStreamWriter();
+    SSEEventWriter writer = this.getEventStreamWriter();
     // PrintWriter writer = response.getWriter();
 
     // 发送会话ID
     JSONObject sessionInfo = new JSONObject();
     sessionInfo.put("sessionId", sessionId);
-//    writer.write("event: session\n");
-//    writer.write("data: " + sessionInfo.toJSONString() + "\n\n");
-//    writer.flush();
+
 
     writer.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_SESSION, sessionInfo.toJSONString());
 
@@ -166,11 +207,13 @@ public class ChatPipelineAction extends BasicModule {
     // 保存AgentContext到session中，供submitSelection使用
     session.setAgentContext(agentContext);
 
+
+    final LLMProvider llmProvider = LLMProvider.load(this, "default");
     // 异步执行Agent任务
     String finalSessionId = sessionId;
     executorService.execute(() -> {
       try {
-        TISPlanAndExecuteAgent agent = new TISPlanAndExecuteAgent(agentContext);
+        TISPlanAndExecuteAgent agent = new TISPlanAndExecuteAgent(agentContext, llmProvider);
         agent.execute(userInput);
 
         // 保存助手回复到会话历史
@@ -223,35 +266,77 @@ public class ChatPipelineAction extends BasicModule {
   }
 
   /**
-   * 提交用户选择（响应Agent的选择请求）
+   * 插件安装完成之后确认是否已经安装完成
+   *
+   * @param context
    */
   @Func(value = PermissionConstant.AI_AGENT, sideEffect = true)
-  public void doSubmitSelection(Context context) {
-    String sessionId = this.getString("sessionId");
-    String requestId = this.getString("requestId");
-    Integer selectedIndex = this.getInt("selectedIndex");
+  public void doCheckInstallOption(Context context) {
+    JSONObject jsonContent = this.getJSONPostContent();
+    // String sessionId = jsonContent.getString("sessionId");
+    String requestId = jsonContent.getString(KEY_REQUEST_ID);
+    // Integer selectedIndex = jsonContent.getInteger("selectedIndex");
+    ChatSession session = getChatSession(jsonContent);
+    String selectionKey = AgentContext.getSelectionKey(requestId);
+    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(), "agentContext can not be null");
+    SelectionOptions selectionOptions = agentContext.getSessionData(selectionKey);
+    List<PluginExtraProps.CandidatePlugin> cplugins = selectionOptions.getCandidatePlugins();
+    for (PluginExtraProps.CandidatePlugin candidatePlugin : cplugins) {
+      // 更新一下缓存
+      candidatePlugin.getInstalledPluginDescriptor(true);
+    }
 
-    if (sessionId == null || requestId == null || selectedIndex == null) {
-      this.addErrorMessage(context, "参数不完整");
-      return;
+    this.setBizResult(context, PluginExtraProps.CandidatePlugin.convertOptionsArray(Optional.empty(), cplugins));
+  }
+
+  private ChatSession getChatSession(JSONObject post) {
+    String sessionId = post.getString("sessionId");
+    if (sessionId == null) {
+      //this.addErrorMessage(context, "参数不完整");
+      //return;
+      throw new IllegalStateException("sessionId == null");
     }
 
     ChatSession session = sessions.get(sessionId);
     if (session == null) {
-      this.addErrorMessage(context, "会话不存在");
-      return;
+      // this.addErrorMessage(context, "会话不存在");
+      // return;
+      throw new IllegalStateException("sessionId:" + sessionId + " relevant session instance can not be null");
+    }
+    return session;
+  }
+
+  /**
+   * 提交用户选择（响应Agent的选择请求）
+   *
+   * @see AgentContext#waitForUserSelection 中等待用户输入项
+   */
+  @Func(value = PermissionConstant.AI_AGENT, sideEffect = true)
+  public void doSubmitSelection(Context context) {
+
+    JSONObject jsonContent = this.getJSONPostContent();
+
+    String sessionId = jsonContent.getString("sessionId");
+    String requestId = jsonContent.getString(KEY_REQUEST_ID);
+    Integer selectedIndex = jsonContent.getInteger("selectedIndex");
+
+    if (sessionId == null || requestId == null || selectedIndex == null) {
+      //this.addErrorMessage(context, "参数不完整");
+      //return;
+      throw new IllegalStateException("sessionId == null || requestId == null || selectedIndex == null");
     }
 
+    ChatSession session = getChatSession(jsonContent);
     // 获取AgentContext
-    AgentContext agentContext = session.getAgentContext();
-    if (agentContext == null) {
-      this.addErrorMessage(context, "会话上下文不存在");
-      return;
-    }
+    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(), "agentContext can not be null,sessionId:" + sessionId);
 
     // 保存用户选择到sessionData中，waitForUserSelection会读取这个值
-    String selectionKey = "user_selection_" + requestId;
-    agentContext.setSessionData(selectionKey, selectedIndex);
+    String selectionKey = AgentContext.getSelectionKey(requestId);
+    SelectionOptions selectionOptions = agentContext.getSessionData(selectionKey);
+    agentContext.setSessionData(selectionKey, selectionOptions.setSelectedIndex(selectedIndex));
+
+    // 通知等待线程，用户选择已提交
+    agentContext.notifyUserSelectionSubmitted(requestId);
 
     logger.info("User selection submitted for session={}, requestId={}, selectedIndex={}",
       sessionId, requestId, selectedIndex);

@@ -22,14 +22,14 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.datax.DataXName;
-import com.qlangtech.tis.datax.job.SSERunnable;
+import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
+import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.List;
 
@@ -62,12 +62,17 @@ public abstract class AdapterPluginContext implements IPluginContext, IControlMs
     }
 
     @Override
+    public final ILoginUser getLoginUser() {
+        return this.pluginContext.getLoginUser();
+    }
+
+    @Override
     public JSONObject getJSONPostContent() {
         return pluginContext.getJSONPostContent();
     }
 
     @Override
-    public SSERunnable.SSEEventWriter getEventStreamWriter() {
+    public SSEEventWriter getEventStreamWriter() {
         return msgHandler.getEventStreamWriter();
     }
 

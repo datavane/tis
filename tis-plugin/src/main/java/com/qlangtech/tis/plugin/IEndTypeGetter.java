@@ -22,9 +22,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.border.EmptyBorder;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -143,6 +141,8 @@ public interface IEndTypeGetter {
         , Dolphinscheduler("ds", EndTypeCategory.Assist, true) //
         , Deepseek("deepseek", EndTypeCategory.Assist, true) //
         , QWen("qwen", EndTypeCategory.Assist, true) //
+        , UserProfile("user-profile", EndTypeCategory.Assist, true)
+        //
         //
 
         // 预览按钮

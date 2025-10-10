@@ -19,6 +19,7 @@ package com.qlangtech.tis.aiagent.execute.impl;
 
 import com.qlangtech.tis.aiagent.core.AgentContext;
 import com.qlangtech.tis.aiagent.execute.StepExecutor;
+import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.plan.TaskPlan;
 import com.qlangtech.tis.aiagent.plan.TaskStep;
 import com.qlangtech.tis.manage.common.CenterResource;
@@ -47,6 +48,7 @@ public class TestPluginDownloadAndInstallExecutor extends EasyMockSupport {
   private TaskStep mockStep;
   private AgentContext mockContext;
   private IMocksControl control;
+  private LLMProvider mockLLMProvider;
 
   @Before
   public void setUp() {
@@ -57,6 +59,8 @@ public class TestPluginDownloadAndInstallExecutor extends EasyMockSupport {
     mockPlan = control.createMock(TaskPlan.class);
     mockStep = control.createMock(TaskStep.class);
     mockContext = control.createMock(AgentContext.class);
+
+    mockLLMProvider = control.createMock(LLMProvider.class);
   }
 
   /**
@@ -84,9 +88,8 @@ public class TestPluginDownloadAndInstallExecutor extends EasyMockSupport {
 //    }
 
     CenterResource.setNotFetchFromCenterRepository();
-    TaskPlan taskPlan = new TaskPlan();
-    taskPlan.setSourceType(IEndTypeGetter.EndType.MySQL);
-    taskPlan.setTargetType(IEndTypeGetter.EndType.Paimon);
+    TaskPlan taskPlan = new TaskPlan(new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.MySQL), new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.Paimon), mockLLMProvider);
+
     executor.execute(taskPlan, mockStep, mockContext);
   }
 

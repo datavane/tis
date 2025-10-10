@@ -54,6 +54,7 @@ import com.qlangtech.tis.extension.util.PluginExtraProps.Props;
 import com.qlangtech.tis.extension.util.TextFile;
 import com.qlangtech.tis.install.InstallState;
 import com.qlangtech.tis.install.InstallUtil;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.spring.aop.Func;
@@ -626,34 +627,74 @@ public class PluginAction extends BasicModule {
    */
   public void doGetDescriptor(Context context) {
     this.errorsPageShow(context);
+    DescriptorsGetter result = getDescriptorsGetter();
+
+    for (Descriptor desc : result.descriptors) {
+      if (StringUtils.equals(desc.getDisplayName(), result.displayName)) {
+        this.setBizResult(context, new DescriptorsJSON(desc).getDescriptorsJSON());
+        return;
+      }
+    }
+    this.setBizResult(context, Collections.singletonMap("notFoundExtension", result.hetero.getExtensionPoint().getName()));
+    this.addErrorMessage(context, "displayName:" + result.displayName + " relevant Descriptor can not be null");
+
+  }
+
+  private DescriptorsGetter getDescriptorsGetter() {
     final String displayName = this.getString("name");
     if (StringUtils.isEmpty(displayName)) {
       throw new IllegalArgumentException("request param 'impl' can not be null");
     }
     IPluginEnum hetero = HeteroEnum.of(this.getString("hetero"));
     List<Descriptor<Describable>> descriptors = null;
-
+    DescriptorsGetter result = new DescriptorsGetter(displayName, hetero);
     String[] plugins = this.getStringArray(KEY_PLUGIN);
     if (plugins != null && plugins.length > 0) {
       List<UploadPluginMeta> pluginMetas = this.getPluginMeta();
       for (UploadPluginMeta meta : pluginMetas) {
         IPluginStore pluginStore = hetero.getPluginStore(this, meta);
         descriptors = pluginStore.allDescriptor();
+        result.setItems(pluginStore.getPlugins());
+        result.setPluginMeta(meta);
         break;
       }
     } else {
       descriptors = hetero.descriptors();
     }
+    result.descriptors = descriptors;
+    return result;
+  }
 
-    for (Descriptor desc : descriptors) {
-      if (StringUtils.equals(desc.getDisplayName(), displayName)) {
-        this.setBizResult(context, new DescriptorsJSON(desc).getDescriptorsJSON());
-        return;
-      }
+  private static class DescriptorsGetter {
+    public final String displayName;
+    public final IPluginEnum hetero;
+    public List<Descriptor<Describable>> descriptors;
+
+    private List<Describable> items = Collections.emptyList();
+
+    private UploadPluginMeta pluginMeta;
+
+
+    public DescriptorsGetter(String displayName, IPluginEnum hetero) {
+      this.displayName = displayName;
+      this.hetero = hetero;
     }
-    this.setBizResult(context, Collections.singletonMap("notFoundExtension", hetero.getExtensionPoint().getName()));
-    this.addErrorMessage(context, "displayName:" + displayName + " relevant Descriptor can not be null");
 
+    public UploadPluginMeta getPluginMeta() {
+      return pluginMeta;
+    }
+
+    public void setPluginMeta(UploadPluginMeta pluginMeta) {
+      this.pluginMeta = pluginMeta;
+    }
+
+    public List<Describable> getItems() {
+      return this.items;
+    }
+
+    public void setItems(List<Describable> items) {
+      this.items = items;
+    }
   }
 
   /**
@@ -702,6 +743,30 @@ public class PluginAction extends BasicModule {
     });
 
     this.setBizResult(context, new DescriptorsJSON(descs).getDescriptorsJSON());
+  }
+
+  /**
+   * 取得一个插件的一条记录
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doGetDescrible(Context context) throws Exception {
+
+    DescriptorsGetter descriptorsGetter = getDescriptorsGetter();
+
+    HeteroList hlist = new HeteroList(descriptorsGetter.getPluginMeta());
+    if (CollectionUtils.isEmpty(descriptorsGetter.descriptors)) {
+      throw new IllegalStateException("descriptors can not be empty");
+    }
+    hlist.setDescriptors(descriptorsGetter.descriptors);
+    hlist.setExtensionPoint(descriptorsGetter.hetero.getExtensionPoint());
+    hlist.setSelectable(Selectable.Single);
+    hlist.setCaption(org.apache.commons.lang.StringUtils.EMPTY);
+
+    hlist.setItems(descriptorsGetter.getItems());
+
+    this.setBizResult(context, hlist.toJSON());
   }
 
   /**
@@ -859,12 +924,6 @@ public class PluginAction extends BasicModule {
       return;
     }
 
-//    if (processNotebook) {
-//      for (IPluginItemsProcessor pi : categoryPlugins) {
-//        this.setBizResult(context, pi.cerateOrGetNotebook(this, context));
-//        return;
-//      }
-//    }
 
     List<IItemsSaveResult> describables = Lists.newArrayList();
 

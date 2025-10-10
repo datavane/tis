@@ -68,6 +68,10 @@ public interface ValidatorCommons {
     Pattern pattern_user_name = Pattern.compile("[A-Z\\da-z_\\-\\.\\$]+");
     String MSG_USER_NAME_ERROR = "必须由小写字母，大写字母，数字、下划线、点、减号组成";
 
+
+    // 基础的正则表达式
+    Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    String MSG_EMAIL_ERROR = "必须符合Email格式，" + EMAIL_PATTERN.pattern();
     /**
      * 非数字开头
      */

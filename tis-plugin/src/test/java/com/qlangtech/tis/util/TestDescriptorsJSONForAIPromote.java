@@ -20,6 +20,7 @@ package com.qlangtech.tis.util;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.aiagent.plan.DescribableImpl;
 import com.qlangtech.tis.extension.DefaultPlugin;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -39,6 +40,7 @@ import java.util.*;
 public class TestDescriptorsJSONForAIPromote extends TestCase {
 
     private DefaultPlugin.DefaultDescriptor defaultDescriptor;
+    private DescribableImpl describableImpl;
 
     @Override
     protected void setUp() throws Exception {
@@ -52,14 +54,16 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
 
         // 创建DefaultDescriptor实例
         defaultDescriptor = new DefaultPlugin.DefaultDescriptor();
+        describableImpl = new DescribableImpl(DefaultPlugin.class, Optional.empty());
     }
 
     /**
      * 测试构造方法 - 单个描述符
      */
     public void testConstructorWithSingleDescriptor() {
+
         DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON =
-                new DescriptorsJSONForAIPromote<>(defaultDescriptor);
+                new DescriptorsJSONForAIPromote<>(defaultDescriptor, describableImpl);
         assertNotNull(descriptorsJSON);
     }
 
@@ -85,7 +89,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      */
     public void testGetDescriptorsJSON() {
         DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON =
-                new DescriptorsJSONForAIPromote<>(defaultDescriptor);
+                new DescriptorsJSONForAIPromote<>(defaultDescriptor, describableImpl);
 
         DescriptorsJSONResult result = descriptorsJSON.getDescriptorsJSON();
 
@@ -125,7 +129,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      */
     public void testFieldParsing() {
         DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON =
-                new DescriptorsJSONForAIPromote<>(defaultDescriptor);
+                new DescriptorsJSONForAIPromote<>(defaultDescriptor, describableImpl);
 
         DescriptorsJSONResult result = descriptorsJSON.getDescriptorsJSON();
 
@@ -252,7 +256,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      */
     public void testInheritance() {
         DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON =
-                new DescriptorsJSONForAIPromote<>(defaultDescriptor);
+                new DescriptorsJSONForAIPromote<>(defaultDescriptor, describableImpl);
 
         // 验证是 DescriptorsJSON 的子类
         assertTrue("Should be instance of DescriptorsJSON",
@@ -274,7 +278,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
 
         // 创建 AI 模式的 DescriptorsJSONForAIPromote
         DescriptorsJSONForAIPromote<DefaultPlugin> aiJSON =
-                new DescriptorsJSONForAIPromote<>(defaultDescriptor);
+                new DescriptorsJSONForAIPromote<>(defaultDescriptor, describableImpl);
         DescriptorsJSONResult aiResult = aiJSON.getDescriptorsJSON();
 
         String descriptorId = defaultDescriptor.getId();
@@ -320,7 +324,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      */
     public void testDefaultValues() {
         DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON =
-                new DescriptorsJSONForAIPromote<>(defaultDescriptor);
+                new DescriptorsJSONForAIPromote<>(defaultDescriptor, describableImpl);
 
         DescriptorsJSONResult result = descriptorsJSON.getDescriptorsJSON();
 
@@ -339,7 +343,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      */
     public void testExtendPoint() {
         DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON =
-                new DescriptorsJSONForAIPromote<>(defaultDescriptor);
+                new DescriptorsJSONForAIPromote<>(defaultDescriptor, describableImpl);
 
         DescriptorsJSONResult result = descriptorsJSON.getDescriptorsJSON();
 

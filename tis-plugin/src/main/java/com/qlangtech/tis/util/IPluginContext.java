@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.SuFormProperties.SuFormGetterContext;
 import com.qlangtech.tis.extension.model.UpdateSite.Data;
+import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler.BizLogic;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
@@ -74,79 +75,12 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostC
         if ((collectionName) == null) {
             throw new IllegalArgumentException("param collectionName can not be empty");
         }
-        return new IPluginContext() {
-            @Override
-            public JSONObject getJSONPostContent() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public void executeBizLogic(BizLogic logicType, Context context, Object param) throws Exception {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public List<IUploadPluginMeta> parsePluginMeta(String[] plugins, boolean useCache) {
-                return Collections.emptyList();
-            }
-
-            @Override
-            public Pair<Boolean, IPluginItemsProcessor> getPluginItems(
-                    IUploadPluginMeta pluginMeta, Context context, int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public String getExecId() {
-                return execId.orElse(null);
-            }
-
-            @Override
-            public boolean isCollectionAware() {
-                return true;
-            }
-
-            @Override
-            public boolean isDataSourceAware() {
-                return false;
-            }
-
-            @Override
-            public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context,
-                              boolean shallUpdateDB) {
-            }
-
-            @Override
-            public String getRequestHeader(String key) {
-                return null;
-            }
-
-            @Override
-            public DataXName getCollectionName() {
-                return collectionName;
-            }
-
-            @Override
-            public void errorsPageShow(Context context) {
-
-            }
-
-            @Override
-            public void addActionMessage(Context context, String msg) {
-
-            }
-
-            @Override
-            public void setBizResult(Context context, Object result, boolean overwriteable) {
-
-            }
-
-            @Override
-            public void addErrorMessage(Context context, String msg) {
-
-            }
-        };
+        PartialSettedPluginContext context = new PartialSettedPluginContext();
+        return context.setCollectionName(collectionName).setExecId(execId);
     }
+
+
+    ILoginUser getLoginUser();
 
     /**
      * 执行更新流程客户端会保存一个ExecId的UUID

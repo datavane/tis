@@ -30,7 +30,6 @@ import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -43,7 +42,7 @@ import java.util.Optional;
 public class DefaultSSERunnable implements SSERunnable {
 
 
-    private final PrintWriter httpClientWriter;
+    private final SSEEventWriter httpClientWriter;
     private final Runnable runnable;
     private Optional<ServerLaunchToken> launchToken = Optional.empty();
     private final List<ExecuteStep> executeSteps;
@@ -97,7 +96,7 @@ public class DefaultSSERunnable implements SSERunnable {
         this(controlHandler.getEventStreamWriter(), executeSteps, runnable);
     }
 
-    public DefaultSSERunnable(PrintWriter clientWriter, ExecuteSteps executeSteps, Runnable runnable) {
+    public DefaultSSERunnable(SSEEventWriter clientWriter, ExecuteSteps executeSteps, Runnable runnable) {
         SSERunnable.setLocalThread(this);
         this.httpClientWriter = clientWriter;
         this.runnable = runnable;
@@ -296,10 +295,12 @@ public class DefaultSSERunnable implements SSERunnable {
 
 
     private void writeMessage(SSEEventType event, Object data) {
-        httpClientWriter.println("event: " + event.getEventType());
-        httpClientWriter.println("data: " + data);
-        httpClientWriter.println();
-        httpClientWriter.flush();
+//        httpClientWriter.println("event: " + event.getEventType());
+//        httpClientWriter.println("data: " + data);
+//        httpClientWriter.println();
+//        httpClientWriter.flush();
+
+        httpClientWriter.writeSSEEvent(event, String.valueOf( data ));
 
         launchToken.ifPresent((lt) -> {
             lt.appendLaunchingLine(event.getEventType() + splitChar + data);

@@ -95,7 +95,7 @@ public class TestServerLaunchToken extends TestCase {
         TestDataXJobWorker jobWorker = new TestDataXJobWorker();
         StringWriter writer = new StringWriter();
 
-        DefaultSSERunnable sseRunnable = new DefaultSSERunnable(new PrintWriter(writer), new ExecuteSteps(jobWorker, executeSteps), () -> {
+        DefaultSSERunnable sseRunnable = new DefaultSSERunnable(new SSEEventWriter(new PrintWriter(writer)), new ExecuteSteps(jobWorker, executeSteps), () -> {
 
         });
 

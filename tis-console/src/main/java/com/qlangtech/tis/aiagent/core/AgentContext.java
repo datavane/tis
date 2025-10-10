@@ -17,13 +17,16 @@
  */
 package com.qlangtech.tis.aiagent.core;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
 
-import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -33,13 +36,23 @@ import java.util.concurrent.atomic.AtomicLong;
  * @date 2025/9/17
  */
 public class AgentContext {
+
+  public static final String KEY_REQUEST_ID = "requestId";
+
+  public static String getSelectionKey(String requestId) {
+    return "user_selection_" + requestId;
+  }
+
   private final String sessionId;
-  private final SSERunnable.SSEEventWriter sseWriter;
-  private final Map<String, Object> sessionData;
+  private final SSEEventWriter sseWriter;
+  private final Map<String, ISessionData> sessionData;
   private final AtomicLong tokenCount;
   private volatile boolean cancelled = false;
 
-  public AgentContext(String sessionId, SSERunnable.SSEEventWriter sseWriter) {
+  // 用于等待用户选择的同步对象集合，每个requestId对应一个锁对象
+  private final Map<String, Object> selectionLocks = new ConcurrentHashMap<>();
+
+  public AgentContext(String sessionId, SSEEventWriter sseWriter) {
     this.sessionId = sessionId;
     this.sseWriter = sseWriter;
     this.sessionData = new HashMap<>();
@@ -130,14 +143,35 @@ public class AgentContext {
    * @param prompt    提示信息
    * @param options   候选项列表
    */
-  public void requestUserSelection(String requestId, String prompt, JSONObject options) {
+  public void requestUserSelection(String requestId, String prompt, JSONObject options, List<PluginExtraProps.CandidatePlugin> candidatePlugins) {
     if (!cancelled && sseWriter != null) {
       JSONObject data = new JSONObject();
       data.put("type", "selection_request");
-      data.put("requestId", requestId);
+      data.put(KEY_REQUEST_ID, requestId);
       data.put("prompt", prompt);
       data.put("options", options);
-      sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_SELECTION_REQUEST, data.toJSONString());
+
+      /**
+       * 向缓存中写入初始数据
+       */
+      this.setSessionData(getSelectionKey(requestId), SelectionOptions.createUnSelectedOptions(candidatePlugins));
+      sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_SELECTION_REQUEST, data);
+    }
+  }
+
+  /**
+   * 通知用户选择已提交
+   * 当用户在前端提交选择时，调用此方法唤醒等待的线程
+   *
+   * @param requestId 请求标识符
+   * @see AgentContext#waitForUserSelection
+   */
+  public void notifyUserSelectionSubmitted(String requestId) {
+    Object lock = selectionLocks.get(requestId);
+    if (lock != null) {
+      synchronized (lock) {
+        lock.notifyAll(); // 唤醒等待的线程
+      }
     }
   }
 
@@ -147,28 +181,53 @@ public class AgentContext {
    * @param requestId 请求标识符
    * @return 用户选择的索引，如果超时或取消返回-1
    */
-  public int waitForUserSelection(String requestId) {
-    String selectionKey = "user_selection_" + requestId;
-    int maxWaitSeconds = 300;
-    int waitCount = 0;
+  public SelectionOptions waitForUserSelection(String requestId) {
+    String selectionKey = getSelectionKey(requestId);
 
-    while (!cancelled && waitCount < maxWaitSeconds * 10) {
-      Object selection = getSessionData(selectionKey);
-      if (selection != null) {
-        sessionData.remove(selectionKey);
-        return (Integer) selection;
-      }
+    // 为每个requestId创建一个专用的锁对象
+    Object lock = selectionLocks.computeIfAbsent(requestId, k -> new Object());
 
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        return -1;
+    try {
+      synchronized (lock) {
+        long maxWaitMillis = 300000; // 5分钟超时
+        long startTime = System.currentTimeMillis();
+
+        while (!cancelled) {
+          // 检查是否已有用户选择结果
+          SelectionOptions selection = getSessionData(selectionKey);
+          if (selection != null && selection.hasSelectedOpt()) {
+            sessionData.remove(selectionKey);
+            return selection;
+          }
+
+          // 计算剩余等待时间
+          long elapsedTime = System.currentTimeMillis() - startTime;
+          long remainingTime = maxWaitMillis - elapsedTime;
+
+          if (remainingTime <= 0) {
+            // 超时
+            break;
+          }
+
+          try {
+            // 等待notify信号或超时
+            lock.wait(remainingTime);
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+          }
+        }
       }
-      waitCount++;
+    } finally {
+      // 清理锁对象，避免内存泄漏
+      selectionLocks.remove(requestId);
     }
 
-    return -1;
+    return null;
+  }
+
+  private void sendSSEEvent(SSERunnable.SSEEventType event, JSONObject data) {
+    this.sseWriter.writeSSEEvent(event, data);
   }
 
   private void sendSSEEvent(SSERunnable.SSEEventType event, String data) {
@@ -182,6 +241,14 @@ public class AgentContext {
 
   public void cancel() {
     this.cancelled = true;
+
+    // 通知所有等待的选择请求
+    for (Object lock : selectionLocks.values()) {
+      synchronized (lock) {
+        lock.notifyAll();
+      }
+    }
+    selectionLocks.clear();
   }
 
   public boolean isCancelled() {
@@ -192,12 +259,14 @@ public class AgentContext {
     return sessionId;
   }
 
-  public void setSessionData(String key, Object value) {
+  public void setSessionData(String key, ISessionData value) {
     sessionData.put(key, value);
   }
 
-  public Object getSessionData(String key) {
-    return sessionData.get(key);
+
+  public <T extends ISessionData> T getSessionData(String selectedKey) {
+    return (T) Objects.requireNonNull(sessionData.get(selectedKey)
+      , "key:" + selectedKey + " relevant instance can not be null");
   }
 
   public long getTokenCount() {

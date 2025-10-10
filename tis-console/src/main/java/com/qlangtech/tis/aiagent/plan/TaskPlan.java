@@ -18,6 +18,7 @@
 package com.qlangtech.tis.aiagent.plan;
 
 import com.google.common.collect.ImmutableMap;
+import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
@@ -29,6 +30,8 @@ import org.apache.commons.collections.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 任务执行计划
@@ -62,25 +65,29 @@ public class TaskPlan {
   }
 
   private String planId;
-  private IEndTypeGetter.EndType sourceType;
-  private IEndTypeGetter.EndType targetType;
+  private final DataEndCfg sourceEnd;
+  private final DataEndCfg targetEnd;
   private List<TaskStep> steps;
   private String userInput;
   private long createTime;
+  private final LLMProvider llmProvider;
 
-  public TaskPlan() {
+  public TaskPlan(DataEndCfg sourceEnd, DataEndCfg targetEnd, LLMProvider llmProvider) {
     this.steps = new ArrayList<>();
     this.createTime = System.currentTimeMillis();
+    this.llmProvider = Objects.requireNonNull(llmProvider, "llmProvider can not be null");
+    this.sourceEnd = Objects.requireNonNull(sourceEnd, "sourceEnd can not be null");
+    this.targetEnd = Objects.requireNonNull(targetEnd, "targetEnd can not be null");
 
     ImmutableMap.Builder<Class<? extends Describable>, DescribableImpl> mapBuilder = new ImmutableMap.Builder<>();
-    mapBuilder.put(DataxReader.class, new DescribableImpl(DataxReader.class));
-    mapBuilder.put(MQListenerFactory.class, new DescribableImpl(MQListenerFactory.class));
+    mapBuilder.put(DataxReader.class, new DescribableImpl(DataxReader.class, Optional.of(sourceEnd.getType())));
+    mapBuilder.put(MQListenerFactory.class, new DescribableImpl(MQListenerFactory.class, Optional.of(sourceEnd.getType())));
 
     this.readerExtendPoints = mapBuilder.build();
 
     mapBuilder = new ImmutableMap.Builder<>();
-    mapBuilder.put(DataxWriter.class, new DescribableImpl(DataxWriter.class));
-    mapBuilder.put(TISSinkFactory.class, new DescribableImpl(TISSinkFactory.class));
+    mapBuilder.put(DataxWriter.class, new DescribableImpl(DataxWriter.class, Optional.of(targetEnd.getType())));
+    mapBuilder.put(TISSinkFactory.class, new DescribableImpl(TISSinkFactory.class, Optional.of(targetEnd.getType())));
 
     this.writerExtendPoints = mapBuilder.build();
 
@@ -90,6 +97,10 @@ public class TaskPlan {
 //        // , new DescribableImpl(com.qlangtech.tis.plugin.ds.DataSourceFactory.class)
 //        , new DescribableImpl(com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory.class)
 //    } ;
+  }
+
+  public LLMProvider getLLMProvider() {
+    return this.llmProvider;
   }
 
   public void addStep(TaskStep step) {
@@ -104,21 +115,15 @@ public class TaskPlan {
     this.planId = planId;
   }
 
-  public IEndTypeGetter.EndType getSourceType() {
-    return sourceType;
+  public DataEndCfg getSourceEnd() {
+    return sourceEnd;
   }
 
-  public void setSourceType(IEndTypeGetter.EndType sourceType) {
-    this.sourceType = sourceType;
+
+  public DataEndCfg getTargetEnd() {
+    return targetEnd;
   }
 
-  public IEndTypeGetter.EndType getTargetType() {
-    return targetType;
-  }
-
-  public void setTargetType(IEndTypeGetter.EndType targetType) {
-    this.targetType = targetType;
-  }
 
   public List<TaskStep> getSteps() {
     return steps;
@@ -152,5 +157,34 @@ public class TaskPlan {
     return (int) steps.stream()
       .filter(step -> step.getStatus() == TaskStep.Status.COMPLETED)
       .count();
+  }
+
+  /**
+   * 数据端解析内容
+   */
+  public static class DataEndCfg {
+    private final IEndTypeGetter.EndType type;
+
+    public DataEndCfg(IEndTypeGetter.EndType type) {
+      this.type = type;
+    }
+
+    /**
+     * 端配置描述信息
+     */
+    private String relevantDesc;
+
+    public IEndTypeGetter.EndType getType() {
+      return type;
+    }
+
+
+    public String getRelevantDesc() {
+      return relevantDesc;
+    }
+
+    public void setRelevantDesc(String relevantDesc) {
+      this.relevantDesc = relevantDesc;
+    }
   }
 }

@@ -1,0 +1,29 @@
+{
+  "name": {
+    "help": "实例的唯一性名称，取一个方便记忆的名称",
+    "placeholder": "deepSeek1"
+  },
+  "apiKey": {
+    "label": "api_key",
+    "help": "连接密钥，请妥善保管"
+  },
+  "baseUrl": {
+    "label": "base_url",
+    "dftVal": "https://api.deepseek.com",
+    "readonly": true
+  },
+  "model": {
+    "dftVal": "deepseek-chat",
+    "readonly": true,
+    "help": "模型的 ID"
+  },
+  "maxTokens": {
+    "dftVal": 4000,
+    "help": "最大生成 token 数量"
+  },
+  "temperature": {
+    "dftVal": 1,
+    "readonly": true,
+    "help": "采样温度，介于 0 和 2 之间。更高的值，如 0.8，会使输出更随机，而更低的值，如 0.2，会使其更加集中和确定。 我们通常建议可以更改这个值或者更改 top_p，但不建议同时对两者进行修改。"
+  }
+}

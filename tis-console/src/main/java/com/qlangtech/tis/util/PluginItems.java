@@ -30,6 +30,7 @@ import com.qlangtech.tis.extension.Descriptor.FormVaildateType;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
@@ -85,6 +86,7 @@ public class PluginItems implements IPluginItemsProcessor {
     this.heteroEnum = pluginMeta.getHeteroEnum();
     this.pluginMeta = pluginMeta;
     this.pluginContext = pluginMeta.isDisableBizSet() ? new AdapterPluginContext(pluginContext) {
+
       @Override
       public void setBizResult(Context context, Object result) {
         //super.setBizResult(context, result);
@@ -224,7 +226,8 @@ public class PluginItems implements IPluginItemsProcessor {
     if (OfflineDatasourceAction.existDbs != null) {
       return OfflineDatasourceAction.existDbs;
     }
-    return loadExistDbs(true, extendClass).stream().map((db) -> new Option(db.identityValue(), db.identityValue())).collect(Collectors.toList());
+    return loadExistDbs(true, extendClass)
+      .stream().map((db) -> new Option(db.identityValue(), db.identityValue())).collect(Collectors.toList());
   }
 
   private IPluginStoreSave<?> getStore(List<Descriptor.ParseDescribable<?>> dlist) {
@@ -291,7 +294,8 @@ public class PluginItems implements IPluginItemsProcessor {
 
     } else if (heteroEnum == HeteroEnum.uploadCustomizedTPI) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
-    } else if (heteroEnum == HeteroEnum.PARAMS_CONFIG) {
+    } else if (heteroEnum == HeteroEnum.PARAMS_CONFIG
+      || heteroEnum == HeteroEnum.PARAMS_CONFIG_USER_ISOLATION) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.K8S_DEFAULT_IMAGES) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);

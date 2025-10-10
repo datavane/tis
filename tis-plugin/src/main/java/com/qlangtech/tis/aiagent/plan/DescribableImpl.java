@@ -27,6 +27,7 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -44,10 +45,12 @@ public class DescribableImpl {
    */
   private List<String> impls = Lists.newArrayList();
   private Descriptor _descriptor;
+  private final Optional<IEndTypeGetter.EndType> endType;
 
   // private boolean _implPluginHasInstalled;
-  public DescribableImpl(Class<? extends Describable> extendPoint) {
+  public DescribableImpl(Class<? extends Describable> extendPoint, Optional<IEndTypeGetter.EndType> endType) {
     this.extendPoint = extendPoint;
+    this.endType = endType;
   }
 
   public Class<? extends Describable> getExtendPoint() {
@@ -58,11 +61,8 @@ public class DescribableImpl {
     return this.extendPoint.getName();
   }
 
-  public Descriptor getImplDesc() {
-    return this.getImplDesc(Optional.empty());
-  }
 
-  public Descriptor getImplDesc(Optional<IEndTypeGetter.EndType> endType) {
+  public Descriptor getImplDesc() {
     if (CollectionUtils.isEmpty(this.impls)) {
       throw new IllegalStateException("prop impl can not be empty");
     }
@@ -72,10 +72,12 @@ public class DescribableImpl {
         if (endType.isPresent()) {
           if ((d instanceof IEndTypeGetter)
             && (((IEndTypeGetter) d).getEndType() == endType.get())) {
+            //  this.endType = endType;
             this._descriptor = d;
             return d;
           }
         } else {
+          //this.endType = Optional.empty();
           this._descriptor = d;
           return d;
         }
@@ -93,8 +95,9 @@ public class DescribableImpl {
     this.impls.add(impl);
   }
 
-  public DescribableImpl setDescriptor(Descriptor desc) {
-    this._descriptor = desc;
+  public DescribableImpl setDescriptor( Descriptor desc) {
+    this._descriptor = Objects.requireNonNull(desc, "desc can not be null");
+   // this.endType = endType;
     this.impls = Collections.singletonList(desc.getId());
     return this;
   }

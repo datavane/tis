@@ -39,6 +39,7 @@ import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.offline.FileSystemFactory;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -66,6 +67,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -179,15 +181,55 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             ParamsConfig.class, //
             "params-cfg", // },//
             "基础配置", Selectable.Multi, false) {
+        /**
+         * ParamsConfig 出来的plugin已经是某一个类别的了，不需要再使用displayName进行过滤了
+         * @param pluginMeta
+         * @param plugins
+         * @return
+         */
+        @Override
+        protected List<ParamsConfig> filterByPluginDisplayName(UploadPluginMeta pluginMeta, List<ParamsConfig> plugins) {
+            return plugins;
+        }
+
+        @Override
+        protected <T extends Describable<T>> List<Descriptor<T>> filterDescriptors(UploadPluginMeta.TargetDesc targetDesc, List<T> items, boolean justGetItemRelevant, List<Descriptor<T>> descriptors) {
+            return descriptors;
+        }
+
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
             return new ParamsConfigPluginStore(pluginMeta);
         }
+    };
 
-//        @Override
-//        public <T extends Describable<T>> List<Descriptor<T>> descriptors() {
-//            return super.descriptors();
-//        }
+    @TISExtension
+    public static final HeteroEnum<ParamsConfig> PARAMS_CONFIG_USER_ISOLATION = new HeteroEnum<ParamsConfig>(//
+            ParamsConfig.class, //
+            "params-cfg-user-isolation", // },//
+            "基础配置", Selectable.Multi, false) {
+        @Override
+        protected <T extends Describable<T>> List<Descriptor<T>> filterDescriptors(
+                UploadPluginMeta.TargetDesc targetDesc, List<T> items, boolean justGetItemRelevant, List<Descriptor<T>> descriptors) {
+            return descriptors;
+        }
+
+        /**
+         * ParamsConfig 出来的plugin已经是某一个类别的了，不需要再使用displayName进行过滤了
+         * @param pluginMeta
+         * @param plugins
+         * @return
+         */
+        @Override
+        protected List<ParamsConfig> filterByPluginDisplayName(UploadPluginMeta pluginMeta, List<ParamsConfig> plugins) {
+            return plugins;
+        }
+
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            ILoginUser user = pluginContext.getLoginUser();
+            return new ParamsConfigPluginStore(pluginMeta, Optional.of(user));
+        }
     };
     // ////////////////////////////////////////////////////////
     private static final String KEY_K8S_IMAGES = "k8s-images";
@@ -617,13 +659,16 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             return Pair.of(Collections.emptyList(), null);
         }
         List<T> plugins = store.getPlugins();
+        return Pair.of(filterByPluginDisplayName(pluginMeta, plugins), store);
+    }
+
+    protected List<T> filterByPluginDisplayName(UploadPluginMeta pluginMeta, List<T> plugins) {
         UploadPluginMeta.TargetDesc targetDesc = null;
         if (pluginMeta != null && (targetDesc = pluginMeta.getTargetDesc()).shallMatchTargetDesc()) {
             final UploadPluginMeta.TargetDesc finalDesc = targetDesc;
-            return Pair.of(plugins.stream().filter((p) -> finalDesc.isNameMatch(p.getDescriptor().getDisplayName())).collect(Collectors.toList()), store);
+            return plugins.stream().filter((p) -> finalDesc.isNameMatch(p.getDescriptor().getDisplayName())).collect(Collectors.toList());
         }
-
-        return Pair.of(plugins, store);
+        return plugins;
     }
 
     /**
@@ -668,13 +713,41 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     }
 
 
+    public final <T extends Describable<T>> List<Descriptor<T>> descriptors(UploadPluginMeta.TargetDesc targetDesc, List<T> items, boolean justGetItemRelevant) {
+        List<Descriptor<T>> descriptors = descriptors();
+        return filterDescriptors(targetDesc, items, justGetItemRelevant, descriptors);
+    }
+
+    protected <T extends Describable<T>> List<Descriptor<T>> filterDescriptors(
+            UploadPluginMeta.TargetDesc targetDesc, List<T> items, boolean justGetItemRelevant, List<Descriptor<T>> descriptors) {
+        if (targetDesc.shallMatchTargetDesc()) {
+            descriptors =
+                    descriptors.stream().filter((desc) -> targetDesc.isNameMatch(desc.getDisplayName())).collect(Collectors.toList());
+        } else {
+            //  boolean justGetItemRelevant = Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
+            if (justGetItemRelevant) {
+                Set<String> itemRelevantDescNames =
+                        items.stream().map((i) -> i.getDescriptor().getDisplayName()).collect(Collectors.toSet());
+                descriptors =
+                        descriptors.stream().filter((d) -> itemRelevantDescNames.contains(d.getDisplayName())).collect(Collectors.toList());
+            } else if (StringUtils.isNotEmpty(targetDesc.descDisplayName)) {
+                descriptors =
+                        descriptors.stream().filter((d) -> targetDesc.descDisplayName.equals(d.getDisplayName())).collect(Collectors.toList());
+            }
+        }
+        return descriptors;
+    }
+
     public <T extends Describable<T>> List<Descriptor<T>> descriptors() {
         IPluginStore pluginStore = TIS.getPluginStore(this.extensionPoint);
-        return pluginStore.allDescriptor();
+        List<Descriptor<T>> descriptors = pluginStore.allDescriptor();
+        return descriptors;
     }
 
     public static <T extends Describable<T>> IPluginEnum<T> of(String identity) {
-
+        if (StringUtils.isEmpty(identity)) {
+            throw new IllegalArgumentException("param identity can not be empty");
+        }
         ExtensionList<IPluginEnum> pluginEnums = TIS.get().getExtensionList(IPluginEnum.class);
 
         for (IPluginEnum he : pluginEnums) {

@@ -229,7 +229,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }
             final PropertyType pt = (PropertyType) entry.getValue();
             Optional<PluginExtraProps.FieldRefCreateor> refCreator = pt.getRefCreator();
-
+            Objects.requireNonNull(refCreator, "field:" + entry.getKey() + " of plugin:" + this.clazz.getName() + " relevant refCreator can not be null");
             refCreator.ifPresent((creator) -> {
 
                 JSONObject extraProps = pt.getExtraProps();

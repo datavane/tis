@@ -17,13 +17,10 @@
  */
 package com.qlangtech.tis.runtime.module.misc.impl;
 
-import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONObject;
-import com.qlangtech.tis.datax.job.SSERunnable;
+import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.lang.StringUtils;
-
-import java.io.PrintWriter;
 
 /**
  * 支持json post处理
@@ -56,7 +53,7 @@ public class DelegateControl4JsonPostMsgHandler extends BasicDelegateMsgHandler 
     }
 
     @Override
-    public SSERunnable.SSEEventWriter getEventStreamWriter() {
+    public SSEEventWriter getEventStreamWriter() {
         throw new UnsupportedOperationException();
     }
 }

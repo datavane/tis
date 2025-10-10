@@ -18,28 +18,19 @@
 
 package com.qlangtech.tis.util;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.IPluginEnum;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-
-import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_CREATOR_HETERO;
-import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_DESC_NAME;
 
 /**
  * 生成的json描述信息提供给大模型使用

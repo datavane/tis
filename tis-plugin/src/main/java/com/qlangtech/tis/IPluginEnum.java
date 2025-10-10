@@ -53,6 +53,8 @@ public interface IPluginEnum<T extends Describable<T>> extends IdentityName {
 
     public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta);
 
+    public <T extends Describable<T>> List<Descriptor<T>> descriptors(UploadPluginMeta.TargetDesc targetDesc, List<T> items,boolean justGetItemRelevant);
+
     public <T extends Describable<T>> List<Descriptor<T>> descriptors();
 
     public boolean isIdentityUnique();

@@ -312,12 +312,12 @@ public class UploadPluginMeta implements IUploadPluginMeta {
 
                     @Override
                     public List<Descriptor> descriptors() {
-                        // incrTabExtendSuit.getDescriptors();
                         Descriptor selectedTabClassDesc =
                                 TIS.get().getDescriptor(IncrSourceExtendSelected.selectedTabClass);
                         return subFilter.subformDetailView ? incrTabExtendSuit.getDescriptors() :
                                 incrTabExtendSuit.getDescriptorsWithAppendDesc(selectedTabClassDesc);
                     }
+
 
                 };
             }
@@ -359,7 +359,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
 
         public static final TargetDesc create(UploadPluginMeta meta) {
             return new TargetDesc(
-                    // targetItemDesc
+                    // prop:matchTargetPluginDescName targetItemDesc
                     meta.getExtraParam(KEY_TARGET_PLUGIN_DESC) //
                     // targetDescriptorName
                     , meta.getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_NAME) //
@@ -473,28 +473,26 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         hList.setExtensionPoint(hEnum.getExtensionPoint());
         List<T> items = hEnum.getPlugins(pluginContext, this);
         hList.setItems(items);
-
-        List<Descriptor<T>> descriptors = hEnum.descriptors();
         final TargetDesc targetDesc = this.getTargetDesc();
-        //if (StringUtils.isNotEmpty(this.getTargetPluginDesc())) {
-        if (targetDesc.shallMatchTargetDesc()) {
-            //            descriptors = descriptors.stream()
-            //                    .filter((desc) -> this.getTargetPluginDesc().equals(desc.getDisplayName()))
-            //                    .collect(Collectors.toList());
-            descriptors =
-                    descriptors.stream().filter((desc) -> targetDesc.isNameMatch(desc.getDisplayName())).collect(Collectors.toList());
-        } else {
-            boolean justGetItemRelevant = Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
-            if (justGetItemRelevant) {
-                Set<String> itemRelevantDescNames =
-                        items.stream().map((i) -> i.getDescriptor().getDisplayName()).collect(Collectors.toSet());
-                descriptors =
-                        descriptors.stream().filter((d) -> itemRelevantDescNames.contains(d.getDisplayName())).collect(Collectors.toList());
-            } else if (StringUtils.isNotEmpty(targetDesc.descDisplayName)) {
-                descriptors =
-                        descriptors.stream().filter((d) -> targetDesc.descDisplayName.equals(d.getDisplayName())).collect(Collectors.toList());
-            }
-        }
+        boolean justGetItemRelevant = Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
+        List<Descriptor<T>> descriptors = hEnum.descriptors(targetDesc, items, justGetItemRelevant);
+
+
+//        if (targetDesc.shallMatchTargetDesc()) {
+//            descriptors =
+//                    descriptors.stream().filter((desc) -> targetDesc.isNameMatch(desc.getDisplayName())).collect(Collectors.toList());
+//        } else {
+//            boolean justGetItemRelevant = Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
+//            if (justGetItemRelevant) {
+//                Set<String> itemRelevantDescNames =
+//                        items.stream().map((i) -> i.getDescriptor().getDisplayName()).collect(Collectors.toSet());
+//                descriptors =
+//                        descriptors.stream().filter((d) -> itemRelevantDescNames.contains(d.getDisplayName())).collect(Collectors.toList());
+//            } else if (StringUtils.isNotEmpty(targetDesc.descDisplayName)) {
+//                descriptors =
+//                        descriptors.stream().filter((d) -> targetDesc.descDisplayName.equals(d.getDisplayName())).collect(Collectors.toList());
+//            }
+//        }
         hList.setDescriptors(descriptors);
 
         hList.setSelectable(hEnum.getSelectable());

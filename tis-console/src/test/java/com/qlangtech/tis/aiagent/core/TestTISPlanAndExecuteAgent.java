@@ -91,7 +91,7 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
     expect(mockContext.isCancelled()).andReturn(false).anyTimes();
 
     // 创建Agent实例
-    agent = new TISPlanAndExecuteAgent(mockContext);
+    agent = new TISPlanAndExecuteAgent(mockContext, mockLLMProvider);
 
     // 使用反射注入mock对象
     injectMockDependencies();
@@ -99,9 +99,9 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
 
   private void injectMockDependencies() throws Exception {
     // 注入LLMProvider
-    Field llmProviderField = TISPlanAndExecuteAgent.class.getDeclaredField("llmProvider");
-    llmProviderField.setAccessible(true);
-    llmProviderField.set(agent, mockLLMProvider);
+//    Field llmProviderField = TISPlanAndExecuteAgent.class.getDeclaredField("llmProvider");
+//    llmProviderField.setAccessible(true);
+//    llmProviderField.set(agent, mockLLMProvider);
 
     // 注入PlanGenerator
     Field planGeneratorField = TISPlanAndExecuteAgent.class.getDeclaredField("planGenerator");
@@ -354,9 +354,8 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
 
     expect(mockLLMProvider.chatJson(anyString(), anyString(), anyString())).andReturn(mockResponse);
 
-    TaskPlan expectedPlan = new TaskPlan();
-    expectedPlan.setSourceType(IEndTypeGetter.EndType.MySQL);
-    expectedPlan.setTargetType(IEndTypeGetter.EndType.Doris);
+    TaskPlan expectedPlan = new TaskPlan(new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.MySQL), new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.Doris), mockLLMProvider);
+
 
     expect(mockPlanGenerator.generatePlan(eq(userInput), anyObject(JSONObject.class))).andReturn(expectedPlan);
     mockContext.updateTokenUsage(500L);
@@ -370,8 +369,8 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
 
     // 验证
     assertNotNull(result);
-    assertEquals("mysql", result.getSourceType());
-    assertEquals("doris", result.getTargetType());
+    assertEquals(IEndTypeGetter.EndType.MySQL, result.getSourceEnd().getType());
+    assertEquals(IEndTypeGetter.EndType.Doris, result.getTargetEnd().getType());
     assertNotNull(result.getPlanId());
 
     verifyAll();
@@ -474,9 +473,8 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
     String userInput = "创建数据同步管道";
 
     // 创建需要用户确认的计划
-    TaskPlan mockPlan = new TaskPlan();
-    mockPlan.setSourceType(IEndTypeGetter.EndType.MySQL);
-    mockPlan.setTargetType(IEndTypeGetter.EndType.Paimon);
+    TaskPlan mockPlan = new TaskPlan(new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.MySQL), new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.Paimon), mockLLMProvider);
+
 
     TaskStep confirmStep = new TaskStep("需要确认的步骤", TaskStep.StepType.PLUGIN_CREATE);
     confirmStep.setStepId("step-1");
@@ -532,7 +530,7 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
           expectLastCall().anyTimes();
           replay(context);
 
-          TISPlanAndExecuteAgent concurrentAgent = new TISPlanAndExecuteAgent(context);
+          TISPlanAndExecuteAgent concurrentAgent = new TISPlanAndExecuteAgent(context, this.mockLLMProvider);
 
           // 注入mock依赖
           Field llmField = TISPlanAndExecuteAgent.class.getDeclaredField("llmProvider");
@@ -570,10 +568,10 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
    * 创建模拟的TaskPlan
    */
   private TaskPlan createMockTaskPlan() {
-    TaskPlan plan = new TaskPlan();
+    TaskPlan plan = new TaskPlan(new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.MySQL), new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.Paimon), mockLLMProvider);
     plan.setPlanId("test-plan-id");
-    plan.setSourceType(IEndTypeGetter.EndType.MySQL);
-    plan.setTargetType(IEndTypeGetter.EndType.Paimon);
+//    plan.setSourceEnd();
+//    plan.setTargetEnd();
     plan.setUserInput("测试输入");
 
     TaskStep step1 = new TaskStep("步骤1", TaskStep.StepType.PLUGIN_CREATE);

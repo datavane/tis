@@ -62,7 +62,7 @@ public class IncrRateController extends ParamsConfig implements IPluginStore.Aft
     public static IncrRateController getRateController(DataXName dataXName) {
         final String pipelineName = dataXName.getPipelineName();
         return ParamsConfig.getItem(dataXName.getPipelineName()
-                , INCR_RATE_CONTROLLER + File.separator + pipelineName, false);
+                , INCR_RATE_CONTROLLER + File.separator + pipelineName, Optional.empty(), false);
     }
 
     @Override

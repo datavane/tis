@@ -46,7 +46,8 @@ public class TestInnerPropOfIdentityName extends TestCase {
 
     @Override
     public void setUp() throws Exception {
-        this.targetPluginStore = ParamsConfig.getTargetPluginStore(IKerberos.IDENTITY + "_test");
+        this.targetPluginStore = ParamsConfig.getTargetPluginStore(
+                ParamsConfig.CONTEXT_PARAMS_CFG, IKerberos.IDENTITY + "_test", Optional.empty());
 
     }
 

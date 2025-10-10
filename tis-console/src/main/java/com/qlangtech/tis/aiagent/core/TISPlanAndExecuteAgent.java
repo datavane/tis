@@ -18,10 +18,7 @@
 package com.qlangtech.tis.aiagent.core;
 
 import com.alibaba.fastjson.JSONObject;
-import com.qlangtech.tis.aiagent.execute.StepExecutor;
-import com.qlangtech.tis.aiagent.execute.impl.PluginDownloadAndInstallExecutor;
-import com.qlangtech.tis.aiagent.execute.impl.PluginInstanceCreateExecutor;
-import com.qlangtech.tis.aiagent.llm.DeepSeekProvider;
+import com.qlangtech.tis.plugin.llm.DeepSeekProvider;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.plan.PlanGenerator;
 import com.qlangtech.tis.aiagent.plan.TaskPlan;
@@ -31,11 +28,15 @@ import com.qlangtech.tis.plugin.IEndTypeGetter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_EXTRACT_INFO;
+import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_SOURCE;
+import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_TARGET;
+import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_TYPE;
 
 /**
  * TIS Plan-And-Execute Agent主控制器
@@ -50,23 +51,18 @@ public class TISPlanAndExecuteAgent {
   private final LLMProvider llmProvider;
   private final PlanGenerator planGenerator;
   private final TaskTemplateRegistry templateRegistry;
-  private final Map<TaskStep.StepType, StepExecutor> executors;
+  //private final Map<TaskStep.StepType, StepExecutor> executors;
 
-  public TISPlanAndExecuteAgent(AgentContext context) {
+  public TISPlanAndExecuteAgent(AgentContext context, LLMProvider llmProvider) {
     this.context = context;
 
     // 初始化LLM Provider
-    LLMProvider.LLMConfig llmConfig = new LLMProvider.LLMConfig();
-    llmConfig.setApiKey("sk-2e8c31e1864c48b7b7ccc0f0ac83936e");
-    llmConfig.setMaxTokens(4000);
-    llmConfig.setDefaultTemperature(0.7);
-    this.llmProvider = new DeepSeekProvider(llmConfig);
+
+    this.llmProvider = Objects.requireNonNull(llmProvider, "llmProvider can not be null");// LLMProvider.load("default");
 
     // 初始化组件
     this.planGenerator = new PlanGenerator(llmProvider);
     this.templateRegistry = new TaskTemplateRegistry();
-    this.executors = new HashMap<>();
-    initExecutors();
   }
 
   /**
@@ -85,7 +81,7 @@ public class TISPlanAndExecuteAgent {
       }
 
       context.sendMessage(String.format("我已经理解您的需求：从%s同步到%s。现在开始执行...",
-        plan.getSourceType(), plan.getTargetType()));
+        plan.getSourceEnd(), plan.getTargetEnd()));
 
       // 2. 执行任务计划
       executePlan(plan);
@@ -99,7 +95,7 @@ public class TISPlanAndExecuteAgent {
   /**
    * 生成任务计划
    */
-  private TaskPlan generatePlan(String userInput) {
+  TaskPlan generatePlan(String userInput) {
     try {
       // 使用LLM分析用户输入
       String systemPrompt = buildSystemPrompt();
@@ -210,16 +206,11 @@ public class TISPlanAndExecuteAgent {
    * 执行单个步骤
    */
   private boolean executeStep(TaskPlan plan, TaskStep step) {
-    StepExecutor executor = executors.get(step.getType());
-    if (executor == null) {
-      logger.warn("Step executor not found: {}", step.getType());
-      return false;
-    }
 
     try {
-      return executor.execute(plan, step, context);
+      return step.execute(plan, step, context);
     } catch (Exception e) {
-    //  logger.error("Step execution exception: " + step.getName(), e);
+      //  logger.error("Step execution exception: " + step.getName(), e);
       // return false;
       throw new IllegalStateException("Step execution exception: " + step.getName(), e);
     }
@@ -239,16 +230,6 @@ public class TISPlanAndExecuteAgent {
     return "yes"; // 默认返回yes继续执行
   }
 
-  /**
-   * 初始化步骤执行器
-   */
-  private void initExecutors() {
-    // TODO: 注册各类型步骤的执行器
-    executors.put(TaskStep.StepType.PLUGIN_INSTALL, new PluginDownloadAndInstallExecutor());
-    executors.put(TaskStep.StepType.PLUGIN_CREATE, new PluginInstanceCreateExecutor());
-    // executors.put(TaskStep.StepType.EXECUTE_BATCH, new BatchExecutor());
-    // executors.put(TaskStep.StepType.EXECUTE_INCR, new IncrExecutor());
-  }
 
   /**
    * 构建系统提示词
@@ -260,8 +241,8 @@ public class TISPlanAndExecuteAgent {
       = dataEnds.stream().map((end) -> String.valueOf(end)).collect(Collectors.joining("，"));
 
     return "你是TIS数据集成平台的智能助手。你的任务是帮助用户创建数据同步管道。\n" +
-      "TIS支持多种数据源，包括" + supportedDataEnds + "等各种类型的数据端，" +
-      "请根据用户的描述，识别源端和目标端的数据类型。";
+      "TIS支持多种数据源，枚举端类型为：" + supportedDataEnds + "，" +
+      "请根据用户的描述，识别源端和目标端的类型。";
   }
 
   /**
@@ -275,12 +256,22 @@ public class TISPlanAndExecuteAgent {
    * 获取计划JSON Schema
    */
   private String getPlanSchema() {
+//    return "{\n" +
+//      "  \"source_type\": \"string\",\n" +
+//      "  \"target_type\": \"string\",\n" +
+//      "  \"options\": {\n" +
+//      "    \"execute_batch\": \"类型为boolean，表明数据管道创建完成之后是否立即触发全量数据同步\",\n" +
+//      "    \"enable_incr\": \"类型为boolean，表明数据管道创建完成后是否立即启动增量事实同步\"\n" +
+//      "  }\n" +
+//      "}";
+
+
     return "{\n" +
-      "  \"source_type\": \"string\",\n" +
-      "  \"target_type\": \"string\",\n" +
+      "  \"" + KEY_SOURCE + "\": {\"" + KEY_TYPE + "\":\"string,值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" + KEY_EXTRACT_INFO + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取源端相关的描述信息\"} ,\n" +
+      "  \"" + KEY_TARGET + "\": {\"" + KEY_TYPE + "\":\"string,值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" + KEY_EXTRACT_INFO + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取目标端相关的描述信息\"} ,\n" +
       "  \"options\": {\n" +
-      "    \"execute_batch\": \"类型为boolean，表明数据管道创建完成之后是否立即触发全量数据同步\",\n" +
-      "    \"enable_incr\": \"类型为boolean，表明数据管道创建完成后是否立即启动增量事实同步\"\n" +
+      "    \"execute_batch\": \"类型为boolean，表明数据管道创建完成之后是否立即触发全量数据同步，默认为false\",\n" +
+      "    \"enable_incr\": \"类型为boolean，表明数据管道创建完成后是否立即启动增量事实同步，默认为false\"\n" +
       "  }\n" +
       "}";
 

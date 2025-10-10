@@ -19,11 +19,9 @@ package com.qlangtech.tis.runtime.module.misc.impl;
 
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.datax.DataXName;
-import com.qlangtech.tis.datax.job.SSERunnable;
+import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
-
-import java.io.PrintWriter;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -88,7 +86,7 @@ public abstract class BasicDelegateMsgHandler implements IControlMsgHandler {
     }
 
     @Override
-    public SSERunnable.SSEEventWriter getEventStreamWriter() {
+    public SSEEventWriter getEventStreamWriter() {
         return delegate.getEventStreamWriter();
     }
 

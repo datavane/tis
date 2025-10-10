@@ -31,6 +31,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.biz.dal.dao.impl.SnapshotViewImplDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
+import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IPluginStore;
@@ -495,10 +496,11 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 //    if (limit == null) {
 //      throw new IllegalArgumentException("param limit can not be null");
 //    }
-////    final String queryFields = post.getString(KEY_QUERY_QUERY_FIELDS);
-////    if (StringUtils.isEmpty(queryFields)) {
-////      throw new IllegalArgumentException("'queryFields' can not be null");
-////    }
+
+  /// /    final String queryFields = post.getString(KEY_QUERY_QUERY_FIELDS);
+  /// /    if (StringUtils.isEmpty(queryFields)) {
+  /// /      throw new IllegalArgumentException("'queryFields' can not be null");
+  /// /    }
 //    final String orderBy = post.getString(KEY_QUERY_ORDER_BY);
 //    Integer rowsOffset = post.getInteger(KEY_QUERY_ROWS_OFFSET);
 //
@@ -544,7 +546,6 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 //      return;
 //    }
 //  }
-
   private String createQuery(List<SubCriteria> andQueryCriteria) {
     return andQueryCriteria.stream().map(sc -> {
       return "(" + sc.ors.stream().map((or) -> or.getName() + ":" + or.getValue()).collect(Collectors.joining(" OR ")) + ")";
@@ -1014,6 +1015,11 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     @Override
     public void errorsPageShow(Context context) {
 
+    }
+
+    @Override
+    public ILoginUser getLoginUser() {
+      throw new UnsupportedOperationException();
     }
 
     @Override

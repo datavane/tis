@@ -49,6 +49,10 @@ public enum Validator {
 
         return validatePattern(msgHandler, context, rule(ValidatorCommons.pattern_user_name,
                 ValidatorCommons.MSG_USER_NAME_ERROR), fieldKey, fieldData);
+    }),
+    email((msgHandler, context, fieldKey, fieldData) -> {
+        return validatePattern(msgHandler, context, rule(ValidatorCommons.EMAIL_PATTERN, ValidatorCommons.MSG_EMAIL_ERROR)
+                , fieldKey, fieldData);
     }), forbid_start_with_number((msgHandler, context, fieldKey, fieldData) -> {
         // 禁止以数字开头
         return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_FORBID_START_WITH_NUMBER,
@@ -98,6 +102,7 @@ public enum Validator {
         return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_NONE_BLANK,
                 ValidatorCommons.MSG_NONE_BLANK_ERROR), fieldKey, fieldData);
     });
+
 
     public static Validator parse(String token) {
         return Objects.requireNonNull(Validator.valueOf(token));

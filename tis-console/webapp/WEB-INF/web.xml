@@ -49,6 +49,7 @@
   <filter>
     <filter-name>setResponseLocal</filter-name>
     <filter-class>com.qlangtech.tis.manage.common.DefaultFilter</filter-class>
+    <async-supported>true</async-supported>
   </filter>
   <filter-mapping>
     <filter-name>setResponseLocal</filter-name>
@@ -58,6 +59,7 @@
   <servlet>
     <servlet-name>struts2</servlet-name>
     <servlet-class>org.apache.struts2.dispatcher.servlet.StrutsServlet</servlet-class>
+    <async-supported>true</async-supported>
   </servlet>
 
   <servlet-mapping>

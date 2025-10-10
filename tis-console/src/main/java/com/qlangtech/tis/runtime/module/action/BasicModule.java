@@ -41,7 +41,7 @@ import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.job.DataXJobWorker;
-import com.qlangtech.tis.datax.job.SSERunnable;
+import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.extension.Descriptor;
@@ -74,6 +74,7 @@ import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
 import com.qlangtech.tis.manage.common.CheckAppDomainExistValve;
 import com.qlangtech.tis.manage.common.CreateNewTaskResult;
+import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.manage.common.IUser;
 import com.qlangtech.tis.manage.common.ManageUtils;
 import com.qlangtech.tis.manage.common.MockContext;
@@ -122,7 +123,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -915,6 +915,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return this.authtoken;
   }
 
+  @Override
+  public ILoginUser getLoginUser() {
+    return this.authtoken;
+  }
+
   public String getUserId() {
     return UserUtils.getUser(this.getRequest(), this).getId();
   }
@@ -1429,7 +1434,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   @Override
-  public final SSERunnable.SSEEventWriter getEventStreamWriter() {
+  public final SSEEventWriter getEventStreamWriter() {
     try {
       HttpServletResponse response = ServletActionContext.getResponse();
       response.setContentType("text/event-stream");
@@ -1437,7 +1442,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
       response.setHeader("Cache-Control", "no-cache");
       response.setHeader("Connection", "keep-alive");
       response.setHeader("X-Accel-Buffering", "no"); // 禁用Nginx缓冲
-      return new SSERunnable.SSEEventWriter(response.getWriter());
+      return new SSEEventWriter(response.getWriter());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

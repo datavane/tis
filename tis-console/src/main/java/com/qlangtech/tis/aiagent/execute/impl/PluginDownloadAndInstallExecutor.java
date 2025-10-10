@@ -67,8 +67,8 @@ public class PluginDownloadAndInstallExecutor implements StepExecutor {
       throw new RuntimeException(e);
     }
 
-    Set<PluginWillInstall> pluginsInstall = parsePluginWillInstalls(plan.getSourceType(), plan.readerExtendPoints.values(), availables);
-    pluginsInstall.addAll(parsePluginWillInstalls(plan.getTargetType(), plan.writerExtendPoints.values(), availables));
+    Set<PluginWillInstall> pluginsInstall = parsePluginWillInstalls(plan.getSourceEnd().getType(), plan.readerExtendPoints.values(), availables);
+    pluginsInstall.addAll(parsePluginWillInstalls(plan.getTargetEnd().getType(), plan.writerExtendPoints.values(), availables));
 
     plan.checkDescribableImplHasSet();
     Boolean success = false;
