@@ -85,12 +85,6 @@ public class TestRealTISPlanAndExecuteAgent {
       AgentContext agentContext = new AgentContext(String.valueOf(UUID.randomUUID()), printWriter);
       agentContextRef.set(agentContext);
 
-//      DeepSeekProvider llmProvider = new DeepSeekProvider();
-//      llmProvider.apiKey = "sk-2e8c31e1864c48b7b7ccc0f0ac83936e";
-//      llmProvider.maxTokens = 4000;
-//      llmProvider.temperature = 1;
-//      llmProvider.baseUrl = "https://api.deepseek.com";
-//      llmProvider.model = DeepSeekProvider.DEFAULT_MODEL;
       PartialSettedPluginContext context = new PartialSettedPluginContext();
       LLMProvider llmProvider = LLMProvider.load(context.setLoginUser(() -> "admin"), "default");
 
