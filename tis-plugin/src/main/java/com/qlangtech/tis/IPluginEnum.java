@@ -20,6 +20,7 @@ package com.qlangtech.tis;
 
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
@@ -51,9 +52,17 @@ public interface IPluginEnum<T extends Describable<T>> extends IdentityName {
 
     public <T> List<T> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta);
 
+
+    default <T> T findPlugin(PluginExtraProps.CandidatePlugin candidatePlugin, IdentityName identity) {
+        throw new UnsupportedOperationException("hetero:"
+                + this.getExtensionPoint().getSimpleName()
+                + "is not support for findPlugin with param id:" + identity.identityValue());
+    }
+
+
     public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta);
 
-    public <T extends Describable<T>> List<Descriptor<T>> descriptors(UploadPluginMeta.TargetDesc targetDesc, List<T> items,boolean justGetItemRelevant);
+    public <T extends Describable<T>> List<Descriptor<T>> descriptors(UploadPluginMeta.TargetDesc targetDesc, List<T> items, boolean justGetItemRelevant);
 
     public <T extends Describable<T>> List<Descriptor<T>> descriptors();
 

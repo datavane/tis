@@ -98,6 +98,15 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         return extMeta;
     }
 
+    /**
+     *
+     * @param pluginEnum
+     * @return
+     */
+    public static UploadPluginMeta create(IPluginEnum pluginEnum) {
+        return UploadPluginMeta.parse(pluginEnum.identityValue() + ":" + KEY_REQUIRE);
+    }
+
 
     public boolean isUpdate() {
         return this.getBoolean(DBIdentity.KEY_UPDATE);
@@ -108,11 +117,12 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     }
 
     @Override
-    public void putExtraParams(String key, String val) {
+    public UploadPluginMeta putExtraParams(String key, String val) {
         if (StringUtils.isEmpty(val)) {
             throw new IllegalArgumentException("key:" + key + " relevant val can not be null");
         }
         this.extraParams.put(key, val);
+        return this;
     }
 
     /**
@@ -465,14 +475,24 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         return "UploadPluginMeta{" + "name='" + name + '\'' + ", required=" + required + "," + this.extraParams.entrySet().stream().map((e) -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(",")) + '}';
     }
 
-    public <T extends Describable<T>> HeteroList<T> getHeteroList(IPluginContext pluginContext) {
+    public <T extends Describable<T>> HeteroList<T> createEmptyItemAndDescriptorsHetero() {
         IPluginEnum hEnum = getHeteroEnum();
         HeteroList<T> hList = new HeteroList<>(this);
         hList.setCaption(hEnum.getCaption());
         hList.setIdentityId(hEnum.getIdentity());
         hList.setExtensionPoint(hEnum.getExtensionPoint());
+        hList.setSelectable(hEnum.getSelectable());
+        return hList;
+    }
+
+
+    public <T extends Describable<T>> HeteroList<T> getHeteroList(IPluginContext pluginContext) {
+        IPluginEnum hEnum = getHeteroEnum();
+        HeteroList<T> hList = createEmptyItemAndDescriptorsHetero();
+
         List<T> items = hEnum.getPlugins(pluginContext, this);
         hList.setItems(items);
+
         final TargetDesc targetDesc = this.getTargetDesc();
         boolean justGetItemRelevant = Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
         List<Descriptor<T>> descriptors = hEnum.descriptors(targetDesc, items, justGetItemRelevant);
@@ -495,7 +515,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
 //        }
         hList.setDescriptors(descriptors);
 
-        hList.setSelectable(hEnum.getSelectable());
+
         return hList;
     }
 }

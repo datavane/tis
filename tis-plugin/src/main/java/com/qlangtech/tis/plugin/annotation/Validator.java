@@ -365,17 +365,4 @@ public enum Validator {
         this.fieldValidator = fv;
     }
 
-    public interface IFieldValidator {
-
-        /**
-         * @param msgHandler
-         * @param context
-         * @param fieldKey
-         * @param fieldData
-         * @return false：校验失败有错误
-         */
-        boolean validate(//
-                         IFieldErrorHandler msgHandler, //
-                         Context context, String fieldKey, String fieldData);
-    }
 }

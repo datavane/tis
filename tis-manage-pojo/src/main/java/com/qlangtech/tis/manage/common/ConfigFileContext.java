@@ -32,6 +32,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -167,7 +168,7 @@ public class ConfigFileContext {
         streamProcess.preSet(conn);
         // 设置15秒超时
         conn.setConnectTimeout(15 * 1000);
-        conn.setReadTimeout(15 * 1000);
+        conn.setReadTimeout((int) streamProcess.getSocketReadTimeout().toMillis());
         conn.setRequestMethod(method.name());
         conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2 (.NET CLR 3.5.30729)");
         for (Header h : heads) {
@@ -200,6 +201,7 @@ public class ConfigFileContext {
         protected static final List<Header> HEADER_TEXT_HTML = Lists.newArrayList(new Header("content-type", "text/html"));
 
         protected static final List<Header> HEADER_GET_META;
+
 
         static {
             List<Header> tmpList = Lists.newArrayList(HEADER_TEXT_HTML);
@@ -243,6 +245,18 @@ public class ConfigFileContext {
 
         public List<Header> getHeaders() {
             return HEADER_TEXT_HTML;
+        }
+
+        public static final Duration dftSocketReadTimeout = Duration.ofSeconds(15);
+
+        /**
+         * socket read 超时时间 <br>
+         * 单位:秒
+         *
+         * @return
+         */
+        public Duration getSocketReadTimeout() {
+            return dftSocketReadTimeout;
         }
     }
 

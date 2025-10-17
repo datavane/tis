@@ -72,5 +72,6 @@ public class DefaultContext implements Context {
 
     @Override
     public void remove(String key) {
+        contextMap.remove(key);
     }
 }

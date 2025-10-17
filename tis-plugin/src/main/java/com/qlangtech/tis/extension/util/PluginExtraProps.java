@@ -32,14 +32,17 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.util.AbstractPropAssist.MarkdownHelperContent;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.ClassUtils;
@@ -59,11 +62,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.qlangtech.tis.plugin.IdentityName.create;
 import static com.qlangtech.tis.util.HeteroEnum.DATASOURCE;
 
 /**
@@ -87,6 +90,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     public static final String KEY_PLUGIN = "plugin";
     public static final String KEY_CREATOR_HETERO = "hetero";
     public static final String KEY_DESC_NAME = "descName";
+
+    public static final String KEY_ROUTER_LINK = "routerLink";
+    // 枚举过滤器,只对底层Describle类型的enum起效
+    public static final String KEY_ENUM_FILTER = "subDescEnumFilter";
     /**
      * <pre>
      *  export enum RouterAssistType {
@@ -121,11 +128,6 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         }
     }
 
-
-    public static final String KEY_ROUTER_LINK = "routerLink";
-    public static final String KEY_LABEL = "label";
-    // 枚举过滤器,只对底层Describle类型的enum起效
-    public static final String KEY_ENUM_FILTER = "subDescEnumFilter";
 
     private static Optional<PluginExtraProps> parseExtraProps(Class<?> pluginClazz) {
         return parseExtraProps(pluginClazz, Optional.empty());
@@ -223,7 +225,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                     }
                     if (finalChild && extraProps != null) {
                         extraProps.forEach((k, prop) -> {
-                            prop.setFieldRefCreateor();
+                            //  prop.setFieldRefCreateor();
                         });
                     }
                     return extraProps;
@@ -399,6 +401,13 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         String label;
         RouterAssistType assistType = null;
 
+        /**
+         * 下拉列表选项
+         */
+        private Supplier<List<Option>> selectableOpts = () -> Collections.emptyList();
+
+        private Supplier<Object> dftValGetter = () -> null;
+
         List<CandidatePlugin> candidatePlugins = Lists.newArrayList();
 
         public FieldRefCreateor() {
@@ -406,6 +415,14 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         public String getLabel() {
             return label;
+        }
+
+        public List<Option> getValOptions() {
+            return this.selectableOpts.get();
+        }
+
+        public void setSelectableOpts(Supplier<List<Option>> selectableOpts) {
+            this.selectableOpts = selectableOpts;
         }
 
         public List<CandidatePlugin> getCandidatePlugins() {
@@ -420,6 +437,14 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             this.label = label;
         }
 
+        public Object getDftValue() {
+            return dftValGetter.get();
+        }
+
+        public void setDftValGetter(Supplier<Object> dftValGetter) {
+            this.dftValGetter = dftValGetter;
+        }
+
         public RouterAssistType getAssistType() {
             return assistType;
         }
@@ -431,25 +456,29 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
     public static class CandidatePlugin {
         private String displayName;
-       // private String targetPluginCategory;
+        // private String targetPluginCategory;
         private String hetero;
+        private final Optional<String> targetItemDesc;
         /**
          * 可以为空
          */
         private Optional<Descriptor> descriptor;
+
 
         /**
          *
          * @param displayName
          * @param hetero
          */
-        public CandidatePlugin(String displayName, String hetero) {
+        public CandidatePlugin(String displayName, Optional<String> targetItemDesc, String hetero) {
             if (StringUtils.isEmpty(displayName)) {
                 throw new IllegalArgumentException("displayName can not be empty");
             }
             this.displayName = displayName;
-          //  this.targetPluginCategory = StringUtils.defaultIfEmpty(targetPluginCategory, displayName);
+            this.targetItemDesc = Objects.requireNonNull(targetItemDesc, "targetItemDesc can not be null");
+            //  this.targetPluginCategory = StringUtils.defaultIfEmpty(targetPluginCategory, displayName);
             this.hetero = hetero;
+
         }
 
         public static JSONArray convertOptionsArray(
@@ -490,8 +519,54 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 //            this.descriptor = descriptor;
 //        }
 
+        public String getTargetItemDesc() {
+            return this.targetItemDesc.orElse(this.getDisplayName());
+        }
+
         public String getDisplayName() {
             return this.displayName;
+        }
+
+        /**
+         * 根据existOpts中可选项，选择最大的后缀+1，生成最新主键
+         *
+         * @param existOpts
+         * @return
+         */
+        public <T extends IdentityName> String createNewPrimaryFieldValue(List<T> existOpts) {
+//            String descName = StringUtils.lowerCase(this.getDisplayName());
+//            Pattern pattern = Pattern.compile(descName + "-?(\\d+)");
+//            Matcher matcher = null;
+//            int maxSufix = 1;
+//            for (IdentityName opt : existOpts) {
+//                matcher = pattern.matcher(StringUtils.lowerCase(opt.identityValue()));
+//                if (matcher.matches()) {
+//                    int curr;
+//                    if ((curr = Integer.valueOf(matcher.group(1))) >= maxSufix) {
+//                        maxSufix = curr + 1;
+//                    }
+//                }
+//            }
+//            return descName + "-" + maxSufix;
+            return createNewPrimaryFieldValue(this.getDisplayName(), existOpts);
+        }
+
+        public static <T extends IdentityName> String createNewPrimaryFieldValue(
+                final String displayName, List<T> existOpts) {
+            String descName = StringUtils.lowerCase(displayName);
+            Pattern pattern = Pattern.compile(descName + "-?(\\d+)");
+            Matcher matcher = null;
+            int maxSufix = 1;
+            for (IdentityName opt : existOpts) {
+                matcher = pattern.matcher(StringUtils.lowerCase(opt.identityValue()));
+                if (matcher.matches()) {
+                    int curr;
+                    if ((curr = Integer.valueOf(matcher.group(1))) >= maxSufix) {
+                        maxSufix = curr + 1;
+                    }
+                }
+            }
+            return descName + "-" + maxSufix;
         }
 
         public Descriptor getInstalledPluginDescriptor() {
@@ -538,15 +613,15 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         private final JSONObject props;
         private MarkdownHelperContent asynHelp;
 
-        private Optional<FieldRefCreateor> _fieldRefCreateor = Optional.empty();
+        private Optional<FieldRefCreateor> _fieldRefCreateor;
 
         public Props(JSONObject props) {
             this.props = props;
         }
 
-        private void setFieldRefCreateor() {
-            this._fieldRefCreateor = Optional.ofNullable(createFieldRefCreateor(this.props));
-        }
+//        private void setFieldRefCreateor() {
+//            this._fieldRefCreateor = Optional.ofNullable(createFieldRefCreateor(this.props));
+//        }
 
         private static FieldRefCreateor createFieldRefCreateor(JSONObject props) {
             FieldRefCreateor createor = null;
@@ -558,7 +633,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 createor = new FieldRefCreateor();
 
                 JSONObject creatorJ = (JSONObject) creator;
-                createor.setLabel(creatorJ.getString(KEY_LABEL));
+                createor.setLabel(creatorJ.getString(Option.KEY_LABEL));
                 //  Objects.requireNonNull(creatorJ.get(KEY_ROUTER_LINK), errDesc);
                 // Objects.requireNonNull(creatorJ.get(KEY_LABEL), errDesc);
                 JSONObject pmeta = null;
@@ -567,15 +642,6 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 if (plugins != null) {
                     for (int i = 0; i < plugins.size(); i++) {
                         pmeta = plugins.getJSONObject(i);
-//                        if (StringUtils.isBlank(pmeta.getString(KEY_CREATOR_HETERO))
-//                                || StringUtils.isBlank(pmeta.getString(KEY_DESC_NAME))
-//                            // 由于插件中参数不一定是必须的，所以先把以下校验去掉： "extraParam": "append_true"
-//                            //        || StringUtils.isBlank(pmeta.getString("extraParam"))
-//                        ) {
-//                            throw new IllegalStateException("pmeta is illegal:" + pmeta.toJSONString() + "," +
-//                                    "pluginClazz:" + pluginClazz.getName() + ",errDesc:" + errDesc);
-//                        }
-
 
                         /**
                          * 如果assitType 为空，则查看plugin 的KEY_CREATOR_HETERO 如果为 ‘params-cfg’ 则默认ASSIST_TYPE类型为 RouterAssistType.paramCfg
@@ -590,10 +656,11 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                             }
                         }
 
-
-                        pmeta.getString(UploadPluginMeta.KEY_TARGET_PLUGIN_DESC);
-
-                        createor.addCandidatePlugin(new CandidatePlugin(pmeta.getString(KEY_DESC_NAME), pmeta.getString(KEY_CREATOR_HETERO)));
+                        createor.addCandidatePlugin(
+                                new CandidatePlugin( //
+                                        pmeta.getString(KEY_DESC_NAME)//
+                                        , Optional.ofNullable(pmeta.getString(UploadPluginMeta.KEY_TARGET_PLUGIN_DESC))//
+                                        , pmeta.getString(KEY_CREATOR_HETERO)));
                     }
                 }
 
@@ -601,6 +668,28 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                     creatorJ.put(KEY_CREATOR_ASSIST_TYPE, RouterAssistType.hyperlink.token);
                 }
                 createor.setAssistType(RouterAssistType.parse(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE)));
+
+
+                createor.setSelectableOpts(() -> {
+                    JSONArray enums = props.getJSONArray(Descriptor.KEY_ENUM_PROP);
+                    JSONObject option = null;
+                    if (CollectionUtils.isEmpty(enums)) {
+                        return Collections.emptyList();
+                    }
+                    List<Option> opts = Lists.newArrayList();
+                    for (int idx = 0; idx < enums.size(); idx++) {
+                        option = enums.getJSONObject(idx);
+                        opts.add(Option.create(option));
+                    }
+                    return opts;
+                });
+
+                if (props.containsKey(KEY_DFTVAL_PROP)) {
+                    createor.setDftValGetter(() -> {
+                        return props.get(KEY_DFTVAL_PROP);
+                    });
+                }
+
             }
             return createor;
         }
@@ -647,6 +736,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
          * @return
          */
         public Optional<FieldRefCreateor> getRefCreator() {
+            if (this._fieldRefCreateor == null) {
+                this._fieldRefCreateor = Optional.ofNullable(createFieldRefCreateor(this.props));
+            }
             return this._fieldRefCreateor;
         }
 

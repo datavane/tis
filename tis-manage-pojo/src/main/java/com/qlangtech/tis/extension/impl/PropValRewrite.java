@@ -25,5 +25,10 @@ import com.qlangtech.tis.extension.IPropertyType;
  * @create: 2024-07-10 16:31
  **/
 public interface PropValRewrite {
+
+    public static PropValRewrite dftRewrite() {
+        return ((propType, val) -> val);
+    }
+
     Object rewrite(IPropertyType propType, Object val);
 }

@@ -525,7 +525,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
             final Object actionContext = context.getContext();
             dbConfig.vistDbURL(false, 5, (dbName, dbHost, jdbcUrl) -> {
                 try (JDBCConnection conn = dsFactory.getConnection(jdbcUrl, Optional.empty(), true)) {
-                    // 由于不在同一个线程内需要重新版定线程
+                    // 由于不在同一个线程内需要重新绑定线程
                     context.setContext(actionContext);
                     validateResult[0] = validateConnection(conn, dsFactory, msgHandler, context);
                 } catch (Exception e) {

@@ -23,15 +23,23 @@ import com.qlangtech.tis.plugin.IdentityName;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class Option {
+public class Option implements IdentityName {
 
     public static final String KEY_VALUE = "val";
+    public static final String KEY_LABEL = "label";
+
+    public static Option create(JSONObject option) {
+        return new Option(Objects.requireNonNull(option, "option can not be null")
+                .getString(Option.KEY_LABEL)
+                , option.getString(Option.KEY_VALUE));
+    }
 
     public static JSONArray toJson(List<?> options) {
         // Option
@@ -49,7 +57,7 @@ public class Option {
                 }
             }).forEach((key) -> {
                 JSONObject o = new JSONObject();
-                o.put("label", ((Option) key).getName());
+                o.put(KEY_LABEL, ((Option) key).getName());
                 o.put(KEY_VALUE, ((Option) key).getValue());
                 enums.add(o);
                 //return key;
@@ -74,6 +82,11 @@ public class Option {
 
     public Option(String val) {
         this(val, val);
+    }
+
+    @Override
+    public String identityValue() {
+        return String.valueOf(value);
     }
 
     public String getName() {

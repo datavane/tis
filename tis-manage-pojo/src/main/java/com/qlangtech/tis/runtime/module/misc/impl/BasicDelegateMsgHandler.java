@@ -46,6 +46,11 @@ public abstract class BasicDelegateMsgHandler implements IControlMsgHandler {
     }
 
     @Override
+    public BasicPipelineValidator getPipelineValidator(BizLogic logicType) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void addFieldError(Context context, String fieldName, String msg, Object... params) {
         delegate.addFieldError(context, fieldName, msg, params);
     }

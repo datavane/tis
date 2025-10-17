@@ -20,6 +20,7 @@ package com.qlangtech.tis.coredefine.module.action;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.opensymphony.xwork2.Action;
 import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
@@ -38,14 +39,7 @@ public class TestDataXAction extends BasicActionTestCase {
    * @throws Exception
    */
   public void testDoLaunchDataxWorker() throws Exception {
-// this.servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,);
-//    event_submit_do_get_plugin_config_info: y
-//    action: plugin_action
-//    plugin: dataxReader:require,targetDescriptorName_MySQL,subFormFieldName_selectedTabs,dataxName_baisuitest
 
-    //doGetPluginConfigInfo
-    // String dataXName = "baisuitestTestcase";
-    // request.addHeader(DataxReader.HEAD_KEY_REFERER, "/x/" + dataXName + "/config");
     request.setParameter("event_submit_do_launch_datax_worker", "y");
     request.setParameter("action", "datax_action");
     request.setParameter(DataxAction.KEY_USING_POWERJOB_USE_EXIST_CLUSTER, "false");
@@ -58,7 +52,7 @@ public class TestDataXAction extends BasicActionTestCase {
     ActionProxy proxy = getActionProxy();
     this.replay();
     String result = proxy.execute();
-    assertEquals("DataXAction_ajax", result);
+    assertEquals(Action.NONE, result);
     AjaxValve.ActionExecResult aResult = showBizResult();
     assertNotNull(aResult);
     assertTrue(aResult.isSuccess());
@@ -93,8 +87,8 @@ public class TestDataXAction extends BasicActionTestCase {
   private ActionProxy getActionProxy() {
     ActionProxy proxy = getActionProxy("/coredefine/corenodemanage.ajax");
     assertNotNull(proxy);
-    PluginAction pluginAction = (PluginAction) proxy.getAction();
-    assertNotNull(pluginAction);
+    DataxAction dataXAction = (DataxAction) proxy.getAction();
+    assertNotNull(dataXAction);
     return proxy;
   }
 }

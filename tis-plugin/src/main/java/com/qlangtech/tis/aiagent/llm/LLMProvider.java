@@ -107,7 +107,7 @@ public abstract class LLMProvider extends ParamsConfig {
      * @param systemPrompt 系统提示词
      * @return 生成的文本和token使用情况
      */
-    public abstract LLMResponse chat(String prompt, String systemPrompt);
+    public abstract LLMResponse chat(String prompt, List<String> systemPrompt);
 
     /**
      * 调用LLM进行JSON格式化输出
@@ -116,9 +116,9 @@ public abstract class LLMProvider extends ParamsConfig {
      * @param systemPrompt 系统提示词
      * @param jsonSchema   JSON Schema定义
      * @return 生成的JSON对象和token使用情况
-     * @see DeepSeekProvider#chatJson(String, String, String)
+     * @see DeepSeekProvider#chatJson(String, List, String)
      */
-    public abstract LLMResponse chatJson(String prompt, String systemPrompt, String jsonSchema);
+    public abstract LLMResponse chatJson(String prompt, List<String> systemPrompt, String jsonSchema);
 
     /**
      * 获取提供商名称

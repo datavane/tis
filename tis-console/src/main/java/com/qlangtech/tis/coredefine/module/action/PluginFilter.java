@@ -88,7 +88,7 @@ public class PluginFilter {
     return getEndTypeMatcher(endType);
   }
 
-  private static Predicate<UpdateSite.Plugin> getEndTypeMatcher(final String endType) {
+  public static Predicate<UpdateSite.Plugin> getEndTypeMatcher(final String endType) {
     if (StringUtils.isEmpty(endType)) {
       return (plugin) -> true;
     }

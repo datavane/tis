@@ -141,7 +141,7 @@ public class TestValidator extends TestCase {
                         , field2Name
                         , new Validator.FieldValidators(Validator.require) {
                         }.addDependency(field1Name)
-                        , (Validator.IFieldValidator) ((msgHdr, ctx, fieldKey, fieldData) -> {
+                        , (IFieldValidator) ((msgHdr, ctx, fieldKey, fieldData) -> {
 
                             assertEquals(field1NameVal, field1Val[0]);
 
@@ -189,7 +189,7 @@ public class TestValidator extends TestCase {
         }
         try {
             Validator.fieldsValidator(new Validator.FieldValidators(Validator.require) {
-            }, (Validator.IFieldValidator) ((msgHandler, context, fieldKey, fieldData) -> {
+            }, (IFieldValidator) ((msgHandler, context, fieldKey, fieldData) -> {
                 return true;
             }));
             fail("rule must start with type of string ");
@@ -205,7 +205,7 @@ public class TestValidator extends TestCase {
                         field1Name //
                         , new Validator.FieldValidators(Validator.require) {
                         } //
-                        , (Validator.IFieldValidator) ((msgHandler, context, fieldKey, fieldData) -> {
+                        , (IFieldValidator) ((msgHandler, context, fieldKey, fieldData) -> {
                             if (!StringUtils.isNumeric(fieldData)) {
                                 msgHandler.addFieldError(context, field1Name, numbericValidateFaild);
                                 // 校验是否是数字

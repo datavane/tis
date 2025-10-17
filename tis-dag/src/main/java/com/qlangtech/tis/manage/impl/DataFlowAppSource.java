@@ -99,6 +99,11 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
     private final IDataSourceFactoryGetter dsGetter;
 
     @Override
+    public String identityValue() {
+        return this.dataflowName;
+    }
+
+    @Override
     public void setPluginStore(PluginStore<IAppSource> pluginStore) {
 
     }

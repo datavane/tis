@@ -142,6 +142,8 @@ public interface IEndTypeGetter {
         , Deepseek("deepseek", EndTypeCategory.Assist, true) //
         , QWen("qwen", EndTypeCategory.Assist, true) //
         , UserProfile("user-profile", EndTypeCategory.Assist, true)
+        , Pipeline("pipeline", EndTypeCategory.Assist, true)
+        , Workflow("workflow", EndTypeCategory.Assist, true)
         //
         //
 

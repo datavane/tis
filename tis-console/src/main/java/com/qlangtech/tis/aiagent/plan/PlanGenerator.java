@@ -20,6 +20,9 @@ package com.qlangtech.tis.aiagent.plan;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+
+import java.util.Objects;
 
 /**
  * 任务计划生成器
@@ -35,9 +38,11 @@ public class PlanGenerator {
   public static String KEY_EXTRACT_INFO = "extractInfo";
 
   private final LLMProvider llmProvider;
+  private final IControlMsgHandler controlMsgHandler;
 
-  public PlanGenerator(LLMProvider llmProvider) {
+  public PlanGenerator(LLMProvider llmProvider, IControlMsgHandler controlMsgHandler) {
     this.llmProvider = llmProvider;
+    this.controlMsgHandler = Objects.requireNonNull(controlMsgHandler, "controlMsgHandler can not be null");
   }
 
 
@@ -57,7 +62,7 @@ public class PlanGenerator {
       = new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.valueOf(target.getString(PlanGenerator.KEY_TYPE)));
     targetEnd.setRelevantDesc(target.getString(PlanGenerator.KEY_EXTRACT_INFO));
 
-    TaskPlan plan = new TaskPlan(sourceEnd, targetEnd, this.llmProvider);
+    TaskPlan plan = new TaskPlan(sourceEnd, targetEnd, this.llmProvider, this.controlMsgHandler);
     plan.setUserInput(userInput);
 
     //  String sourceType = ;

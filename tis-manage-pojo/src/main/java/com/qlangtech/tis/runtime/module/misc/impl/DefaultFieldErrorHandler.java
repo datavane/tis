@@ -56,6 +56,11 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public BasicPipelineValidator getPipelineValidator(BizLogic logicType) {
+        throw new UnsupportedOperationException();
+    }
+
     public static void pushFieldStack(Context context, String fieldName, int itemIndex) {
         Stack<FieldIndex> fieldStack = (Stack<FieldIndex>) context.get(KEY_VALIDATE_FIELDS_STACK);
         if (fieldStack == null) {

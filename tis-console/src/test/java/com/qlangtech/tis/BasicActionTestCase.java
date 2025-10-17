@@ -18,13 +18,16 @@
 package com.qlangtech.tis;
 
 import com.alibaba.fastjson.JSONObject;
+import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.spring.EnvironmentBindService;
+import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.test.TISEasyMock;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.struts2.junit.StrutsSpringTestCase;
 
 import java.io.IOException;
@@ -73,7 +76,13 @@ public class BasicActionTestCase extends StrutsSpringTestCase implements TISEasy
     }
   }
 
-
+  protected  <ACTION extends BasicModule> Pair<ActionProxy, ACTION> getProxy(String url) {
+    ActionProxy proxy = getActionProxy(url);
+    assertNotNull(proxy);
+    ACTION action = (ACTION) proxy.getAction();
+    assertNotNull(action);
+    return Pair.of(proxy, action);
+  }
   protected AjaxValve.ActionExecResult showBizResult() {
     AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
     if (!actionExecResult.isSuccess()) {

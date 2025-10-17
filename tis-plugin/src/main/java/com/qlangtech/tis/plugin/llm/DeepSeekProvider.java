@@ -34,6 +34,7 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -43,6 +44,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -79,9 +81,12 @@ public class DeepSeekProvider extends LLMProvider {
     @FormField(type = FormFieldType.INT_NUMBER, advance = true, ordinal = 5, validate = {Validator.require, Validator.integer})
     public Integer temperature;
 
+    @FormField(type = FormFieldType.DURATION_OF_SECOND, advance = true, ordinal = 6, validate = {Validator.require, Validator.integer})
+    public Duration readTimeout;
+
 
     @Override
-    public LLMResponse chat(String prompt, String systemPrompt) {
+    public LLMResponse chat(String prompt, List<String> systemPrompt) {
 
         try {
 
@@ -91,11 +96,13 @@ public class DeepSeekProvider extends LLMProvider {
             postParams.add(new HttpUtils.PostParam("max_tokens", getMaxTokens()));
 
             JSONArray messages = new JSONArray();
-            if (systemPrompt != null && !systemPrompt.isEmpty()) {
-                JSONObject systemMessage = new JSONObject();
-                systemMessage.put("role", "system");
-                systemMessage.put("content", systemPrompt);
-                messages.add(systemMessage);
+            if (CollectionUtils.isNotEmpty(systemPrompt)) {
+                for (String sysP : systemPrompt) {
+                    JSONObject systemMessage = new JSONObject();
+                    systemMessage.put("role", "system");
+                    systemMessage.put("content", sysP);
+                    messages.add(systemMessage);
+                }
             }
 
             JSONObject userMessage = new JSONObject();
@@ -107,6 +114,11 @@ public class DeepSeekProvider extends LLMProvider {
                 @Override
                 public ContentType getContentType() {
                     return ContentType.JSON;
+                }
+
+                @Override
+                public Duration getSocketReadTimeout() {
+                    return readTimeout;
                 }
 
                 @Override
@@ -184,9 +196,11 @@ public class DeepSeekProvider extends LLMProvider {
     }
 
     @Override
-    public LLMResponse chatJson(String prompt, String systemPrompt, String jsonSchema) {
-        String enhancedPrompt = prompt + "\n\n请严格按照以下JSON Schema格式返回结果：\n" + jsonSchema;
-
+    public LLMResponse chatJson(String prompt, List<String> systemPrompt, String jsonSchema) {
+        String enhancedPrompt = prompt;
+        if (StringUtils.isNotEmpty(jsonSchema)) {
+            enhancedPrompt += "\n\n请严格按照以下JSON Schema格式返回结果：\n" + jsonSchema;
+        }
         LLMResponse response = chat(enhancedPrompt, systemPrompt);
 
         if (response.isSuccess() && response.getContent() != null) {

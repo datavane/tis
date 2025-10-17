@@ -42,4 +42,9 @@ public class AdapterFieldErrorHandler implements IFieldErrorHandler {
     public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
         return target.validateBizLogic(logicType, context, fieldName, value);
     }
+
+    @Override
+    public BasicPipelineValidator getPipelineValidator(BizLogic logicType) {
+        return target.getPipelineValidator(logicType);
+    }
 }

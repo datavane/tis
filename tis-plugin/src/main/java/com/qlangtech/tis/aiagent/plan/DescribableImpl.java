@@ -36,75 +36,73 @@ import java.util.Optional;
  * @date 2025/9/19
  */
 public class DescribableImpl {
-  /**
-   * 扩展点
-   */
-  private final Class<? extends Describable> extendPoint;
-  /**
-   * 详细实现插件类
-   */
-  private List<String> impls = Lists.newArrayList();
-  private Descriptor _descriptor;
-  private final Optional<IEndTypeGetter.EndType> endType;
+    /**
+     * 扩展点
+     */
+    private final Class<? extends Describable> extendPoint;
+    /**
+     * 详细实现插件类
+     */
+    private List<String> impls = Lists.newArrayList();
+    private Descriptor _descriptor;
+    private final Optional<IEndTypeGetter.EndType> endType;
 
-  // private boolean _implPluginHasInstalled;
-  public DescribableImpl(Class<? extends Describable> extendPoint, Optional<IEndTypeGetter.EndType> endType) {
-    this.extendPoint = extendPoint;
-    this.endType = endType;
-  }
-
-  public Class<? extends Describable> getExtendPoint() {
-    return this.extendPoint;
-  }
-
-  public String getExtendPointClassName() {
-    return this.extendPoint.getName();
-  }
-
-
-  public Descriptor getImplDesc() {
-    if (CollectionUtils.isEmpty(this.impls)) {
-      throw new IllegalStateException("prop impl can not be empty");
+    // private boolean _implPluginHasInstalled;
+    public DescribableImpl(Class<? extends Describable> extendPoint, Optional<IEndTypeGetter.EndType> endType) {
+        this.extendPoint = extendPoint;
+        this.endType = endType;
     }
-    if (_descriptor == null) {
-      for (String impl : this.impls) {
-        Descriptor d = TIS.get().getDescriptor(impl);
-        if (endType.isPresent()) {
-          if ((d instanceof IEndTypeGetter)
-            && (((IEndTypeGetter) d).getEndType() == endType.get())) {
-            //  this.endType = endType;
-            this._descriptor = d;
-            return d;
-          }
-        } else {
-          //this.endType = Optional.empty();
-          this._descriptor = d;
-          return d;
+
+    public Class<? extends Describable> getExtendPoint() {
+        return this.extendPoint;
+    }
+
+    public String getExtendPointClassName() {
+        return this.extendPoint.getName();
+    }
+
+
+    public Descriptor getImplDesc() {
+        if (CollectionUtils.isEmpty(this.impls)) {
+            throw new IllegalStateException("prop impl can not be empty");
         }
-      }
+        if (_descriptor == null) {
+            for (String impl : this.impls) {
+                Descriptor d = TIS.get().getDescriptor(impl);
+                if (endType.isPresent()) {
+                    if ((d instanceof IEndTypeGetter)
+                            && (((IEndTypeGetter) d).getEndType() == endType.get())) {
+                        //  this.endType = endType;
+                        this._descriptor = d;
+                        return d;
+                    }
+                } else {
+                    //this.endType = Optional.empty();
+                    this._descriptor = d;
+                    return d;
+                }
+            }
 
+        }
+        return this._descriptor;
     }
-    return this._descriptor;
-  }
 
-//  public void setImpls(String impls) {
-//    this.impls = Lists.newArrayList(impls);
-//  }
 
-  public void addImpl(String impl) {
-    this.impls.add(impl);
-  }
+    public DescribableImpl addImpl(String impl) {
+        this.impls.add(impl);
+        return this;
+    }
 
-  public DescribableImpl setDescriptor( Descriptor desc) {
-    this._descriptor = Objects.requireNonNull(desc, "desc can not be null");
-   // this.endType = endType;
-    this.impls = Collections.singletonList(desc.getId());
-    return this;
-  }
+    public DescribableImpl setDescriptor(Descriptor desc) {
+        this._descriptor = Objects.requireNonNull(desc, "desc can not be null");
+        // this.endType = endType;
+        this.impls = Collections.singletonList(desc.getId());
+        return this;
+    }
 
-  public List<String> getImpls() {
-    return this.impls;
-  }
+    public List<String> getImpls() {
+        return this.impls;
+    }
 
 
 }

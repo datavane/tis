@@ -19,7 +19,10 @@ package com.qlangtech.tis.runtime.module.misc;
 
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.annotation.IFieldValidator;
 
+import javax.xml.validation.Validator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,8 +54,7 @@ public interface IFieldErrorHandler {
     void addFieldError(final Context context, String fieldName, String msg, Object... params);
 
     enum BizLogic {
-        VALIDATE_APP_NAME_DUPLICATE
-        , VALIDATE_WORKFLOW_NAME_DUPLICATE
+        VALIDATE_APP_NAME_DUPLICATE, VALIDATE_WORKFLOW_NAME_DUPLICATE
         // 创建新的数据管道
         , CREATE_DATA_PIPELINE
     }
@@ -67,4 +69,11 @@ public interface IFieldErrorHandler {
      * @return
      */
     boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value);
+
+    public BasicPipelineValidator getPipelineValidator(BizLogic logicType);
+
+    abstract class BasicPipelineValidator implements IFieldValidator {
+
+        public abstract <T extends IdentityName> List<T> getExistEntities();
+    }
 }

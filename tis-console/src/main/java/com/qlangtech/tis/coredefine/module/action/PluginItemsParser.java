@@ -29,7 +29,9 @@ import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.AttrValMap;
+import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PluginItems;
 import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -53,36 +55,43 @@ public class PluginItemsParser {
     this.items = items;
   }
 
+
+  public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta, Context context,
+                                                   int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
+    return parsePluginItems(module, module, pluginMeta, context, pluginIndex, itemsArray, verify, propValRewrite);
+  }
+
   /**
    *
    * @param module
    * @param pluginMeta
    * @param context
    * @param pluginIndex
-   * @param itemsArray   example:   <pre>[ {
-   *                         "impl" : "com.qlangtech.tis.config.spark.impl.DefaultSparkConnGetter",
-   *                         "vals" : {
-   *                           "connStrategy" : {
-   *                             "descVal" : {
-   *                               "impl" : "com.qlangtech.tis.config.spark.impl.YarnConnStrategy",
-   *                               "vals" : {
-   *                                 "yarnSite" : {
-   *                                   "_primaryVal" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<configuration>\n <!-- Site specific YARN configuration properties -->\n  <!--RM的主机名 -->\n  <property>\n    <name>yarn.resourcemanager.hostname</name>\n    <value>192.168.28.200</value>\n  </property>\n\n  <!--RM对客户端暴露的地址,客户端通过该地址向RM提交应用程序、杀死应用程序等-->\n  <property>\n    <name>yarn.resourcemanager.address</name>\n    <value>${yarn.resourcemanager.hostname}:8032</value>\n  </property>\n\n  <!--RM对AM暴露的访问地址,AM通过该地址向RM申请资源、释放资源等-->\n  <property>\n    <name>yarn.resourcemanager.scheduler.address</name>\n    <value>${yarn.resourcemanager.hostname}:8030</value>\n  </property>\n\n  <!--RM对外暴露的web http地址,用户可通过该地址在浏览器中查看集群信息-->\n  <property>\n    <name>yarn.resourcemanager.webapp.address</name>\n    <value>${yarn.resourcemanager.hostname}:8088</value>\n  </property>\n\n  <!--RM对NM暴露地址,NM通过该地址向RM汇报心跳、领取任务等-->\n  <property>\n    <name>yarn.resourcemanager.resource-tracker.address</name>\n    <value>${yarn.resourcemanager.hostname}:8031</value>\n  </property>\n\n  <!--RM对管理员暴露的访问地址,管理员通过该地址向RM发送管理命令等-->\n  <property>\n    <name>yarn.resourcemanager.admin.address</name>\n    <value>${yarn.resourcemanager.hostname}:8033</value>\n  </property>\n</configuration>"
-   *                                 }
-   *                               }
-   *                             }
-   *                           },
-   *                           "name" : {
-   *                             "_primaryVal" : "spark_yarn"
-   *                           }
-   *                         }
-   *                       } ]</pre>
+   * @param itemsArray     example:   <pre>[ {
+   *                                                                                           "impl" : "com.qlangtech.tis.config.spark.impl.DefaultSparkConnGetter",
+   *                                                                                           "vals" : {
+   *                                                                                             "connStrategy" : {
+   *                                                                                               "descVal" : {
+   *                                                                                                 "impl" : "com.qlangtech.tis.config.spark.impl.YarnConnStrategy",
+   *                                                                                                 "vals" : {
+   *                                                                                                   "yarnSite" : {
+   *                                                                                                     "_primaryVal" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<configuration>\n <!-- Site specific YARN configuration properties -->\n  <!--RM的主机名 -->\n  <property>\n    <name>yarn.resourcemanager.hostname</name>\n    <value>192.168.28.200</value>\n  </property>\n\n  <!--RM对客户端暴露的地址,客户端通过该地址向RM提交应用程序、杀死应用程序等-->\n  <property>\n    <name>yarn.resourcemanager.address</name>\n    <value>${yarn.resourcemanager.hostname}:8032</value>\n  </property>\n\n  <!--RM对AM暴露的访问地址,AM通过该地址向RM申请资源、释放资源等-->\n  <property>\n    <name>yarn.resourcemanager.scheduler.address</name>\n    <value>${yarn.resourcemanager.hostname}:8030</value>\n  </property>\n\n  <!--RM对外暴露的web http地址,用户可通过该地址在浏览器中查看集群信息-->\n  <property>\n    <name>yarn.resourcemanager.webapp.address</name>\n    <value>${yarn.resourcemanager.hostname}:8088</value>\n  </property>\n\n  <!--RM对NM暴露地址,NM通过该地址向RM汇报心跳、领取任务等-->\n  <property>\n    <name>yarn.resourcemanager.resource-tracker.address</name>\n    <value>${yarn.resourcemanager.hostname}:8031</value>\n  </property>\n\n  <!--RM对管理员暴露的访问地址,管理员通过该地址向RM发送管理命令等-->\n  <property>\n    <name>yarn.resourcemanager.admin.address</name>\n    <value>${yarn.resourcemanager.hostname}:8033</value>\n  </property>\n</configuration>"
+   *                                                                                                   }
+   *                                                                                                 }
+   *                                                                                               }
+   *                                                                                             },
+   *                                                                                             "name" : {
+   *                                                                                               "_primaryVal" : "spark_yarn"
+   *                                                                                             }
+   *                                                                                           }
+   *                                                                                         } ]</pre>
    * @param verify
    * @param propValRewrite
    * @return
    */
-  public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta, Context context,
-                                                   int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
+  public static PluginItemsParser parsePluginItems( //
+    IPluginContext module, IControlMsgHandler msgHandler, UploadPluginMeta pluginMeta, Context context,
+    int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
     context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
     Optional<SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
 
@@ -116,7 +125,7 @@ public class PluginItemsParser {
         for (IdentityName p : plugins) {
           desc = ((Describable) p).getDescriptor();
           PluginValidateResult r = new PluginValidateResult(new Descriptor.PostFormVals(desc,
-            module, context, AttrValMap.IAttrVals.rootForm(Collections.emptyMap())), pluginIndex, newAddItemsCount++);
+            msgHandler, context, AttrValMap.IAttrVals.rootForm(Collections.emptyMap())), pluginIndex, newAddItemsCount++);
           r.setDescriptor(desc);
           identityUniqueMap.put(p.identityValue(), r);
         }
@@ -124,8 +133,8 @@ public class PluginItemsParser {
 
       for (PluginValidateResult i : parseResult.items) {
         if ((previous = identityUniqueMap.put(i.getIdentityFieldValue(), i)) != null) {
-          previous.addIdentityFieldValueDuplicateError(module, context);
-          i.addIdentityFieldValueDuplicateError(module, context);
+          previous.addIdentityFieldValueDuplicateError(msgHandler, context);
+          i.addIdentityFieldValueDuplicateError(msgHandler, context);
           return parseResult;
         }
       }

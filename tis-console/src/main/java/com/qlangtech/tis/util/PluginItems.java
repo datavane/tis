@@ -91,6 +91,10 @@ public class PluginItems implements IPluginItemsProcessor {
       public void setBizResult(Context context, Object result) {
         //super.setBizResult(context, result);
       }
+      @Override
+      public BasicPipelineValidator getPipelineValidator(BizLogic logicType) {
+        throw new UnsupportedOperationException();
+      }
     } : pluginContext;
     this.context = context;
   }
@@ -159,6 +163,9 @@ public class PluginItems implements IPluginItemsProcessor {
     }
     if (extendClass == null || extendClass.length < 1) {
       throw new IllegalArgumentException("param extendClass can not be null");
+    }
+    if (actionContext.getServletContext() == null) {
+      throw new IllegalStateException("ServletContext can not be null");
     }
 
     Descriptor descriptor = GroovyShellUtil.descriptorThreadLocal.get();

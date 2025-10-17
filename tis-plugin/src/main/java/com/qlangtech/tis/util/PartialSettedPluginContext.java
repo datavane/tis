@@ -22,11 +22,15 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.datax.DataXName;
+import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
@@ -39,9 +43,56 @@ import java.util.Optional;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/10/9
  */
-public class PartialSettedPluginContext implements IPluginContext {
+public class PartialSettedPluginContext implements IPluginContext, IControlMsgHandler {
 
     private DataXName collectionName;
+    private IFieldErrorHandler fieldErrorHandler;
+    private IMessageHandler messageHandler;
+
+    private IPluginContext targetRuntimeContext;
+
+    /**
+     * @param fieldErrorHandler
+     * @param messageHandler
+     * @return
+     * @see // DefaultMessageHandler
+     */
+    public PartialSettedPluginContext setMessageAndFieldErrorHandler(IFieldErrorHandler fieldErrorHandler, IMessageHandler messageHandler) {
+        this.fieldErrorHandler = fieldErrorHandler;
+        this.messageHandler = messageHandler;
+        return this;
+    }
+
+    public PartialSettedPluginContext setTargetRuntimeContext(IPluginContext targetRuntimeContext) {
+        this.targetRuntimeContext = Objects.requireNonNull(targetRuntimeContext, "param targetRuntimeContext can not be null");
+        return this;
+    }
+
+    @Override
+    public void errorsPageShow(Context context) {
+        messageHandler.errorsPageShow(context);
+    }
+
+    @Override
+    public void addActionMessage(Context context, String msg) {
+        messageHandler.addActionMessage(context, msg);
+    }
+
+    @Override
+    public void setBizResult(Context context, Object result) {
+        messageHandler.setBizResult(context, result);
+    }
+
+    @Override
+    public void setBizResult(Context context, Object result, boolean overwriteable) {
+        messageHandler.setBizResult(context, result, overwriteable);
+    }
+
+    @Override
+    public void addErrorMessage(Context context, String msg) {
+        messageHandler.addErrorMessage(context, msg);
+    }
+
 
     private Optional<String> execId;
 
@@ -54,11 +105,16 @@ public class PartialSettedPluginContext implements IPluginContext {
 
     @Override
     public ILoginUser getLoginUser() {
-        throw new UnsupportedOperationException();
+        return this.loginUser;
     }
 
     @Override
     public void executeBizLogic(IFieldErrorHandler.BizLogic logicType, Context context, Object param) throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public BasicPipelineValidator getPipelineValidator(BizLogic logicType) {
         throw new UnsupportedOperationException();
     }
 
@@ -80,17 +136,19 @@ public class PartialSettedPluginContext implements IPluginContext {
 
     @Override
     public boolean isCollectionAware() {
-        return true;
+        return collectionName.getType() == StoreResourceType.DataApp;
     }
 
     @Override
     public boolean isDataSourceAware() {
-        return false;
+        return collectionName.getType() == StoreResourceType.DataBase;
     }
 
     @Override
     public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context,
                       boolean shallUpdateDB) {
+        Objects.requireNonNull(this.targetRuntimeContext, "targetRuntimeContext can not be null")
+                .addDb(dbDesc, dbName, context, shallUpdateDB);
     }
 
     @Override
@@ -101,26 +159,6 @@ public class PartialSettedPluginContext implements IPluginContext {
     @Override
     public DataXName getCollectionName() {
         return collectionName;
-    }
-
-    @Override
-    public void errorsPageShow(Context context) {
-
-    }
-
-    @Override
-    public void addActionMessage(Context context, String msg) {
-
-    }
-
-    @Override
-    public void setBizResult(Context context, Object result, boolean overwriteable) {
-
-    }
-
-    @Override
-    public void addErrorMessage(Context context, String msg) {
-
     }
 
     public PartialSettedPluginContext setCollectionName(DataXName collectionName) {
@@ -137,4 +175,35 @@ public class PartialSettedPluginContext implements IPluginContext {
         this.loginUser = Objects.requireNonNull(loginUser, "loginUser can not be null");
         return this;
     }
+
+    @Override
+    public SSEEventWriter getEventStreamWriter() {
+        return null;
+    }
+
+    @Override
+    public String getString(String key) {
+        return "";
+    }
+
+    @Override
+    public String getString(String key, String dftVal) {
+        return "";
+    }
+
+    @Override
+    public boolean getBoolean(String key) {
+        return false;
+    }
+
+    @Override
+    public void addFieldError(Context context, String fieldName, String msg, Object... params) {
+        fieldErrorHandler.addFieldError(context, fieldName, msg, params);
+    }
+
+    @Override
+    public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
+        return fieldErrorHandler.validateBizLogic(logicType, context, fieldName, value);
+    }
+
 }

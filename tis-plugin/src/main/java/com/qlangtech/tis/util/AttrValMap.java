@@ -70,7 +70,7 @@ public class AttrValMap {
 
     public static List<AttrValMap> describableAttrValMapList(JSONArray itemsArray,
                                                              Optional<SubFormFilter> subFormFilter) {
-        return describableAttrValMapList(itemsArray, subFormFilter, ((propType, val) -> val));
+        return describableAttrValMapList(itemsArray, subFormFilter, PropValRewrite.dftRewrite());
     }
 
     public static List<AttrValMap> describableAttrValMapList(JSONArray itemsArray,
@@ -106,13 +106,23 @@ public class AttrValMap {
         return new AttrValMap(attrValMap, subFormFilter, descriptor, propValRewrite);
     }
 
-    public AttrValMap(//IControlMsgHandler msgHandler,
-                      AttrVals attrValMap, Optional<SubFormFilter> subFormFilter, Descriptor descriptor, PropValRewrite propValRewrite) {
+    private AttrValMap(
+            AttrVals attrValMap, Optional<SubFormFilter> subFormFilter, Descriptor descriptor, PropValRewrite propValRewrite) {
         this.attrValMap = attrValMap;
         this.descriptor = descriptor;
         //  this.msgHandler = msgHandler;
         this.subFormFilter = subFormFilter;
         this.propValRewrite = propValRewrite;
+    }
+
+    public JSONObject getPostJsonBody() {
+        JSONObject body = new JSONObject();
+        DescriptorsJSON.setDescInfo(this.descriptor, false, body);
+
+        JSONObject vals = new JSONObject();
+        this.attrValMap.vistAttrValMap(vals::put);
+        body.put(PLUGIN_EXTENSION_VALS, vals);
+        return body;
     }
 
 
@@ -172,6 +182,9 @@ public class AttrValMap {
         return this.attrValMap.size();
     }
 
+    public AttrVals getAttrVals() {
+        return this.attrValMap;
+    }
 
     /**
      * @author: 百岁（baisui@qlangtech.com）

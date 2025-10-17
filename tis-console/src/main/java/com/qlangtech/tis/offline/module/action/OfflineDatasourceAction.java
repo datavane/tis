@@ -64,6 +64,7 @@ import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.IFieldValidator;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
@@ -84,7 +85,6 @@ import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.*;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import com.qlangtech.tis.trigger.util.UnCacheString;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroList;
 import com.qlangtech.tis.util.IPluginContext;
@@ -440,7 +440,7 @@ public class OfflineDatasourceAction extends BasicModule {
         , new Validator.FieldValidators(Validator.require) {
           // 添加校验依赖
         }.addDependency(validateRuleDependency), //
-        new Validator.IFieldValidator() {
+        new IFieldValidator() {
           @Override
           public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
             Optional<TisSqlFormatException> sqlErr = SqlTaskNodeMeta.validateSql(fieldData, dependencyNodes);
@@ -453,7 +453,7 @@ public class OfflineDatasourceAction extends BasicModule {
         }, //
         "exportName" //
         , new Validator.FieldValidators(Validator.require, Validator.identity) {
-        }, Validator.db_col_name.getFieldValidator(), new Validator.IFieldValidator() {
+        }, Validator.db_col_name.getFieldValidator(), new IFieldValidator() {
           @Override
           public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
             //            Matcher m = pattern_table_name.matcher(fieldData);
@@ -483,7 +483,7 @@ public class OfflineDatasourceAction extends BasicModule {
               dependencyNodes.add(createDependencyNode(o));
             }
           }
-        }, new Validator.IFieldValidator() {
+        }, new IFieldValidator() {
           @Override
           public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
             JSONArray dpts = JSON.parseArray(fieldData);

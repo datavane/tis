@@ -88,6 +88,7 @@ import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.plugin.annotation.IFieldValidator;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.common.AutoCreateTable;
@@ -411,10 +412,6 @@ public class DataxAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doRelaunchDataxWorker(Context context) throws Exception {
-//    this.doRemoveDataxWorker(context);
-//    DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(this.getK8SJobWorkerTargetName());
-//    jobWorker.remove();
-//    this.doLaunchDataxWorker(context);
     K8SWorkerCptType cptType = getPowerJobCptType();
     relaunchK8SCluster(context, cptType);
   }
@@ -1434,7 +1431,7 @@ public class DataxAction extends BasicModule {
         @Override
         public void setFieldVal(String val) {
         }
-      }, new Validator.IFieldValidator() {
+      }, new IFieldValidator() {
         @Override
         public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
           // CMeta colMeta = null;

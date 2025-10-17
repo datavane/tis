@@ -56,6 +56,10 @@ public enum DbScope {
         this.token = token;
     }
 
+    public String getToken() {
+        return this.token;
+    }
+
     public String getDBType() {
         return this.type;
     }

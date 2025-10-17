@@ -25,9 +25,11 @@ import com.qlangtech.tis.aiagent.plan.TaskPlan;
 import com.qlangtech.tis.aiagent.plan.TaskStep;
 import com.qlangtech.tis.aiagent.template.TaskTemplateRegistry;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -51,18 +53,19 @@ public class TISPlanAndExecuteAgent {
   private final LLMProvider llmProvider;
   private final PlanGenerator planGenerator;
   private final TaskTemplateRegistry templateRegistry;
-  //private final Map<TaskStep.StepType, StepExecutor> executors;
+  private IControlMsgHandler controlMsgHandler;
 
-  public TISPlanAndExecuteAgent(AgentContext context, LLMProvider llmProvider) {
+  public TISPlanAndExecuteAgent(AgentContext context, LLMProvider llmProvider, IControlMsgHandler controlMsgHandler) {
     this.context = context;
 
     // 初始化LLM Provider
 
     this.llmProvider = Objects.requireNonNull(llmProvider, "llmProvider can not be null");// LLMProvider.load("default");
-
+    this.controlMsgHandler = controlMsgHandler;
     // 初始化组件
-    this.planGenerator = new PlanGenerator(llmProvider);
+    this.planGenerator = new PlanGenerator(llmProvider, this.controlMsgHandler);
     this.templateRegistry = new TaskTemplateRegistry();
+
   }
 
   /**
@@ -81,7 +84,7 @@ public class TISPlanAndExecuteAgent {
       }
 
       context.sendMessage(String.format("我已经理解您的需求：从%s同步到%s。现在开始执行...",
-        plan.getSourceEnd(), plan.getTargetEnd()));
+        plan.getSourceEnd().getType(), plan.getTargetEnd().getType()));
 
       // 2. 执行任务计划
       executePlan(plan);
@@ -101,7 +104,7 @@ public class TISPlanAndExecuteAgent {
       String systemPrompt = buildSystemPrompt();
       String prompt = buildUserPrompt(userInput);
 
-      LLMProvider.LLMResponse response = llmProvider.chatJson(prompt, systemPrompt, getPlanSchema());
+      LLMProvider.LLMResponse response = llmProvider.chatJson(prompt, Collections.singletonList(systemPrompt), getPlanSchema());
 
       if (!response.isSuccess()) {
         logger.error("LLM call failed: {}", response.getErrorMessage());

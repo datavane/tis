@@ -17,17 +17,26 @@
  */
 package com.qlangtech.tis.aiagent.core;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.util.AttrValMap;
+import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.HeteroList;
+import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 
 /**
  * Agent执行上下文，管理会话状态和SSE通信
@@ -38,10 +47,11 @@ import java.util.concurrent.atomic.AtomicLong;
 public class AgentContext {
 
   public static final String KEY_REQUEST_ID = "requestId";
+  public static final String KEY_VALIDATE_PLUGIN_ATTR_VALS  = "config";
 
-  public static String getSelectionKey(String requestId) {
-    return "user_selection_" + requestId;
-  }
+//  public static String getSelectionKey(String requestId) {
+//    return "user_selection_" + requestId;
+//  }
 
   private final String sessionId;
   private final SSEEventWriter sseWriter;
@@ -74,13 +84,34 @@ public class AgentContext {
   /**
    * 发送JSON数据到客户端（用于插件配置）
    */
-  public void sendPluginConfig(String pluginImpl, JSONObject config) {
+  public void sendPluginConfig(
+    SessionKey requestId
+    , IPluginEnum pluginEnum, String pluginImpl, AttrValMap valMap) throws Exception {
+
     if (!cancelled && sseWriter != null) {
+
+
       JSONObject data = new JSONObject();
       data.put("type", "plugin");
       data.put("impl", pluginImpl);
-      data.put("config", config);
-      sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_PLUGIN, data.toJSONString());
+
+      JSONArray items = new JSONArray();
+      items.add(valMap.getPostJsonBody());
+
+
+      UploadPluginMeta pmeta = UploadPluginMeta.create(pluginEnum);
+      HeteroList heteroList = pmeta.createEmptyItemAndDescriptorsHetero();
+      heteroList.setDescriptors(Collections.singletonList(valMap.descriptor));
+
+      data.put(KEY_VALIDATE_PLUGIN_ATTR_VALS, heteroList.toJSON(items));
+      data.put(KEY_REQUEST_ID, requestId.getSessionKey());
+      // String requestId = "plugin_select_" + System.currentTimeMillis();
+      /**
+       * 向缓存中写入初始数据
+       */
+      this.setSessionData(requestId, new PluginPropsComplement());
+
+      sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_PLUGIN, data);
     }
   }
 
@@ -143,18 +174,18 @@ public class AgentContext {
    * @param prompt    提示信息
    * @param options   候选项列表
    */
-  public void requestUserSelection(String requestId, String prompt, JSONObject options, List<PluginExtraProps.CandidatePlugin> candidatePlugins) {
+  public void requestUserSelection(SessionKey requestId, String prompt, JSONObject options, List<PluginExtraProps.CandidatePlugin> candidatePlugins) {
     if (!cancelled && sseWriter != null) {
       JSONObject data = new JSONObject();
       data.put("type", "selection_request");
-      data.put(KEY_REQUEST_ID, requestId);
+      data.put(KEY_REQUEST_ID, requestId.getSessionKey());
       data.put("prompt", prompt);
       data.put("options", options);
 
       /**
        * 向缓存中写入初始数据
        */
-      this.setSessionData(getSelectionKey(requestId), SelectionOptions.createUnSelectedOptions(candidatePlugins));
+      this.setSessionData(requestId, SelectionOptions.createUnSelectedOptions(candidatePlugins));
       sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_SELECTION_REQUEST, data);
     }
   }
@@ -166,8 +197,8 @@ public class AgentContext {
    * @param requestId 请求标识符
    * @see AgentContext#waitForUserSelection
    */
-  public void notifyUserSelectionSubmitted(String requestId) {
-    Object lock = selectionLocks.get(requestId);
+  public void notifyUserSelectionSubmitted(SessionKey requestId) {
+    Object lock = selectionLocks.get(requestId.getSessionKey());
     if (lock != null) {
       synchronized (lock) {
         lock.notifyAll(); // 唤醒等待的线程
@@ -181,11 +212,13 @@ public class AgentContext {
    * @param requestId 请求标识符
    * @return 用户选择的索引，如果超时或取消返回-1
    */
-  public SelectionOptions waitForUserSelection(String requestId) {
-    String selectionKey = getSelectionKey(requestId);
+  public <ChatSessionData extends ISessionData> ChatSessionData
+  waitForUserSelection(
+    SessionKey requestId, Predicate<ChatSessionData> predicate) {
+    // String selectionKey = getSelectionKey(requestId);
 
     // 为每个requestId创建一个专用的锁对象
-    Object lock = selectionLocks.computeIfAbsent(requestId, k -> new Object());
+    Object lock = selectionLocks.computeIfAbsent(requestId.getSessionKey(), k -> new Object());
 
     try {
       synchronized (lock) {
@@ -194,9 +227,10 @@ public class AgentContext {
 
         while (!cancelled) {
           // 检查是否已有用户选择结果
-          SelectionOptions selection = getSessionData(selectionKey);
-          if (selection != null && selection.hasSelectedOpt()) {
-            sessionData.remove(selectionKey);
+          ChatSessionData selection = getSessionData(requestId);
+          // if (selection != null && selection.hasSelectedOpt()) {
+          if (predicate.test(selection)) {
+            sessionData.remove(requestId.getSessionKey());
             return selection;
           }
 
@@ -259,13 +293,13 @@ public class AgentContext {
     return sessionId;
   }
 
-  public void setSessionData(String key, ISessionData value) {
-    sessionData.put(key, value);
+  public void setSessionData(SessionKey requestId, ISessionData value) {
+    sessionData.put(Objects.requireNonNull(requestId).getSessionKey(), value);
   }
 
 
-  public <T extends ISessionData> T getSessionData(String selectedKey) {
-    return (T) Objects.requireNonNull(sessionData.get(selectedKey)
+  public <T extends ISessionData> T getSessionData(SessionKey selectedKey) {
+    return (T) Objects.requireNonNull(sessionData.get(selectedKey.getSessionKey())
       , "key:" + selectedKey + " relevant instance can not be null");
   }
 

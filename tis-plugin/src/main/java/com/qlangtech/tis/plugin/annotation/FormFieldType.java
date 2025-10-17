@@ -299,6 +299,10 @@ public enum FormFieldType {
     }
 
     public static void main(String[] args) throws Exception {
+
+        for (FormFieldType type : FormFieldType.values()) {
+            System.out.println("* "+type.identity + ": " + String.valueOf(type));
+        }
     }
 
     private final int identity;

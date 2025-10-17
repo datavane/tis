@@ -23,6 +23,8 @@ import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.plan.TaskPlan;
 import com.qlangtech.tis.aiagent.plan.TaskStep;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,12 +45,13 @@ import static org.junit.Assert.*;
  * @author 百岁 (baisui@qlangtech.com)
  * @create 2025/9/17
  */
-public class ITTISPlanAndExecuteAgent {
+public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
 
   private StringWriter outputWriter;
   private SSEEventWriter printWriter;
   private TestAgentContext testContext;
   private MockLLMProvider mockLLMProvider;
+  private IControlMsgHandler controlMsgHandler;
 
   @Before
   public void setUp() {
@@ -56,6 +59,7 @@ public class ITTISPlanAndExecuteAgent {
     printWriter = new SSEEventWriter(new PrintWriter(outputWriter));
     testContext = new TestAgentContext("test-session", printWriter);
     mockLLMProvider = new MockLLMProvider();
+    controlMsgHandler = createMock(IControlMsgHandler.class);
   }
 
   /**
@@ -64,7 +68,7 @@ public class ITTISPlanAndExecuteAgent {
   @Test
   public void testCompleteTaskFlow() throws Exception {
     // 创建Agent，使用测试配置
-    TISPlanAndExecuteAgent agent = new TestableAgent(testContext, mockLLMProvider);
+    TISPlanAndExecuteAgent agent = new TestableAgent(testContext, mockLLMProvider, controlMsgHandler);
 
     // 准备用户输入
     String userInput = "创建MySQL到Paimon的数据同步管道，MySQL地址192.168.1.100，用户root，密码123456，数据库test";
@@ -98,7 +102,7 @@ public class ITTISPlanAndExecuteAgent {
   public void testTaskCancellation() throws Exception {
     // 创建可取消的context
     CancellableAgentContext cancellableContext = new CancellableAgentContext("cancel-test", printWriter);
-    TISPlanAndExecuteAgent agent = new TestableAgent(cancellableContext, mockLLMProvider);
+    TISPlanAndExecuteAgent agent = new TestableAgent(cancellableContext, mockLLMProvider, controlMsgHandler);
 
     // 启动任务
     Thread taskThread = new Thread(() -> {
@@ -127,7 +131,7 @@ public class ITTISPlanAndExecuteAgent {
   public void testErrorRecovery() throws Exception {
     // 创建会失败的LLM Provider
     FailingLLMProvider failingProvider = new FailingLLMProvider();
-    TISPlanAndExecuteAgent agent = new TestableAgent(testContext, failingProvider);
+    TISPlanAndExecuteAgent agent = new TestableAgent(testContext, failingProvider, controlMsgHandler);
 
     // 执行任务
     agent.execute("测试错误恢复");
@@ -161,7 +165,7 @@ public class ITTISPlanAndExecuteAgent {
           StringWriter writer = new StringWriter();
           SSEEventWriter pw = new SSEEventWriter(new PrintWriter(writer));
           TestAgentContext ctx = new TestAgentContext("task-" + taskId, pw);
-          TISPlanAndExecuteAgent agent = new TestableAgent(ctx, mockLLMProvider);
+          TISPlanAndExecuteAgent agent = new TestableAgent(ctx, mockLLMProvider, controlMsgHandler);
 
           // 执行任务
           agent.execute("任务 " + taskId);
@@ -198,8 +202,8 @@ public class ITTISPlanAndExecuteAgent {
    * 可测试的Agent，允许注入mock依赖
    */
   private static class TestableAgent extends TISPlanAndExecuteAgent {
-    public TestableAgent(AgentContext context, LLMProvider llmProvider) {
-      super(context, llmProvider);
+    public TestableAgent(AgentContext context, LLMProvider llmProvider, IControlMsgHandler controlMsgHandler) {
+      super(context, llmProvider, controlMsgHandler);
       try {
         // 使用反射注入LLMProvider
 //        java.lang.reflect.Field field = TISPlanAndExecuteAgent.class.getDeclaredField("llmProvider");
@@ -302,7 +306,7 @@ public class ITTISPlanAndExecuteAgent {
    */
   public static class MockLLMProvider extends LLMProvider {
     @Override
-    public LLMResponse chat(String prompt, String systemPrompt) {
+    public LLMResponse chat(String prompt, List<String> systemPrompt) {
       LLMResponse response = new LLMResponse();
       response.setSuccess(true);
       response.setContent("Mock response");
@@ -311,7 +315,7 @@ public class ITTISPlanAndExecuteAgent {
     }
 
     @Override
-    public LLMResponse chatJson(String prompt, String systemPrompt, String jsonSchema) {
+    public LLMResponse chatJson(String prompt, List<String> systemPrompt, String jsonSchema) {
       LLMResponse response = new LLMResponse();
       response.setSuccess(true);
 
@@ -359,7 +363,7 @@ public class ITTISPlanAndExecuteAgent {
    */
   private static class FailingLLMProvider extends LLMProvider {
     @Override
-    public LLMResponse chat(String prompt, String systemPrompt) {
+    public LLMResponse chat(String prompt, List<String> systemPrompt) {
       LLMResponse response = new LLMResponse();
       response.setSuccess(false);
       response.setErrorMessage("Simulated failure");
@@ -367,7 +371,7 @@ public class ITTISPlanAndExecuteAgent {
     }
 
     @Override
-    public LLMResponse chatJson(String prompt, String systemPrompt, String jsonSchema) {
+    public LLMResponse chatJson(String prompt, List<String> systemPrompt, String jsonSchema) {
       return chat(prompt, systemPrompt);
     }
 

@@ -22,13 +22,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -53,6 +53,29 @@ public class AttrVals implements AttrValMap.IAttrVals {
             result.put(key, (JSONObject) val);
         });
         return result;
+    }
+
+    public JSONObject getAttrVal(String fieldName) {
+        JSON prop = this.attrValMap.get(fieldName);
+        if (!(prop instanceof JSONObject)) {
+            throw new IllegalStateException("type must be a object:\n" + JsonUtil.toString(prop));
+        }
+        return (JSONObject) prop;
+    }
+
+    public Object getPrimaryVal(String fieldName) {
+        JSONObject attrVal = getAttrVal(fieldName);
+        return attrVal.get(Descriptor.KEY_primaryVal);
+    }
+
+    public void setPrimaryVal(String fieldName, Object val) {
+        if (val == null) {
+            throw new IllegalArgumentException("field:" + fieldName + " relevant val can not be null");
+        }
+        JSONObject attrVal = getAttrVal(fieldName);
+        Objects.requireNonNull(attrVal
+                        , "field:" + fieldName + " relevatn attrVal can not be null")
+                .put(Descriptor.KEY_primaryVal, val);
     }
 
     /**
@@ -81,7 +104,6 @@ public class AttrVals implements AttrValMap.IAttrVals {
      */
     @Override
     public Map<String, JSONArray> asSubFormDetails() {
-
         Map<String, JSONArray> result = Maps.newHashMap();
         vistAttrValMap((key, val) -> {
             JSON j = val;
@@ -89,20 +111,8 @@ public class AttrVals implements AttrValMap.IAttrVals {
                 throw new IllegalStateException("type must be a array:\n" + JsonUtil.toString(j));
             }
             result.put(key, (JSONArray) val);
-//            return (JSONArray) val;
         });
         return result;
-//        return this.attrValMap.entrySet()
-//                .stream()
-//                .collect(Collectors.toMap(
-//                        (e) -> e.getKey()
-//                        , (e) -> {
-//                            JSON j = e.getValue();
-//                            if (!(j instanceof JSONArray)) {
-//                                throw new IllegalStateException("type must be a array:\n" + JsonUtil.toString(j));
-//                            }
-//                            return (JSONArray) e.getValue();
-//                        }));
     }
 
     public void vistAttrValMap(BiConsumer<String, JSON> tabValConsumer) {
@@ -110,15 +120,6 @@ public class AttrVals implements AttrValMap.IAttrVals {
                 .stream().forEach((entry -> {
                     tabValConsumer.accept(entry.getKey(), entry.getValue());
                 }));
-//                .collect(Collectors.toMap(
-//                        (e) -> e.getKey()
-//                        , (e) -> {
-//                            JSON j = e.getValue();
-//                            if (!(j instanceof JSONArray)) {
-//                                throw new IllegalStateException("type must be a array:\n" + JsonUtil.toString(j));
-//                            }
-//                            return (JSONArray) e.getValue();
-//                        }));
     }
 
 

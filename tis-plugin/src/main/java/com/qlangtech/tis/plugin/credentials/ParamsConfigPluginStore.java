@@ -21,12 +21,14 @@ package com.qlangtech.tis.plugin.credentials;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.config.ParamsConfig.BasicParamsConfigDescriptor;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.ExtensionList;
 import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IRepositoryResource;
@@ -59,6 +61,23 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
     private final String childContextDir;
     private final UploadPluginMeta pluginMeta;
 
+    public static UploadPluginMeta createParamsConfigUserIsolation(String paramPluginCategory) {
+        return createParamsConfig(HeteroEnum.PARAMS_CONFIG_USER_ISOLATION, paramPluginCategory);
+    }
+
+
+    public static UploadPluginMeta createParamsConfig(IPluginEnum hetero, PluginExtraProps.CandidatePlugin candidatePlugin) {
+        // getTargetItemDesc()
+        return createParamsConfig(hetero, candidatePlugin.getTargetItemDesc());
+    }
+
+    public static UploadPluginMeta createParamsConfig(IPluginEnum hetero, String paramPluginCategory) {
+        UploadPluginMeta pluginMeta
+                = UploadPluginMeta.parse(hetero.identityValue() + ":" + KEY_REQUIRE
+                + "," + KEY_TARGET_PLUGIN_DESC + "_" + paramPluginCategory);
+        return pluginMeta;
+    }
+
 
     public ParamsConfigPluginStore(UploadPluginMeta pluginMeta) {
         this(pluginMeta, Optional.empty());
@@ -79,12 +98,6 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
         }
     }
 
-    public static UploadPluginMeta createParamsConfigUserIsolation(String paramPluginCategory) {
-        UploadPluginMeta pluginMeta
-                = UploadPluginMeta.parse(HeteroEnum.PARAMS_CONFIG_USER_ISOLATION.identity + ":" + KEY_REQUIRE
-                + "," + KEY_TARGET_PLUGIN_DESC + "_" + paramPluginCategory);
-        return pluginMeta;
-    }
 
     @Override
     public List<IRepositoryResource> getAll() {

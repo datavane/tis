@@ -145,6 +145,7 @@
       <artifactId>commons-lang3</artifactId>
     </dependency>
     <!--struts2 has use  asm:9.7,https://github.com/apache/struts/blob/48c4e3b6a0b8b5b410263f119bc2e35cbccb8e17/pom.xml#L112-->
+    <!-- Spring 4.x与ASM 9.7兼容，无需特殊scope -->
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>

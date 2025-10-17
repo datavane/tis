@@ -31,4 +31,18 @@ public interface IPropertyType {
      * @return
      */
     boolean isCollectionType();
+
+    /**
+     * 是否是主键
+     *
+     * @return
+     */
+    boolean isIdentity();
+
+    /**
+     * 字段成员名称说明
+     *
+     * @return
+     */
+    String propertyName();
 }

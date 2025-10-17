@@ -25,6 +25,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.PropertyType;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta.IMultiItemsView;
@@ -33,14 +34,11 @@ import com.qlangtech.tis.plugin.ds.IMultiElement;
 import com.qlangtech.tis.plugin.ds.IdlistElementCreatorFactory;
 import com.qlangtech.tis.plugin.ds.ViewContent;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
-import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.BeanUtilsBean2;
-import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.lang.StringUtils;
 
 import java.beans.PropertyDescriptor;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -189,7 +187,7 @@ public class MultiItemsViewType implements IMultiItemsView {
                 if (val.getClass() != String.class) {
                     throw new IllegalStateException("val:" + val + " must be type of String,but now is " + val.getClass());
                 }
-                item = new FormFieldType.SelectedItem(select.getString(PluginExtraProps.KEY_LABEL) //
+                item = new FormFieldType.SelectedItem(select.getString(Option.KEY_LABEL) //
                         , String.valueOf(val) //
                         , select.containsKey(keyChecked) && select.getBoolean(keyChecked));
                 if (item.isChecked()) {

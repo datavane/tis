@@ -61,7 +61,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_LABEL;
+import static com.qlangtech.tis.manage.common.Option.KEY_LABEL;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -100,6 +100,11 @@ public class PropertyType implements IPropertyType {
     public final FormField formField;
 
     public final Field f;
+
+    @Override
+    public String propertyName() {
+        return this.f.getName();
+    }
 
     /**
      * 值最终要显示在前端页面上给用户查看
@@ -387,6 +392,7 @@ public class PropertyType implements IPropertyType {
      *
      * @return
      */
+    @Override
     public boolean isIdentity() {
         return this.formField.identity();
     }

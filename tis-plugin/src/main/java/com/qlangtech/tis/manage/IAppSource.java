@@ -26,6 +26,7 @@ import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Describable.IRefreshable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.datax.StoreResourceType;
@@ -44,7 +45,7 @@ import java.util.Optional;
  * @date 2021-03-31 11:16
  */
 @Public
-public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGetter {
+public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGetter, IdentityName {
 
     static <T extends IAppSource> KeyedPluginStore<T> getPluginStore(IPluginContext context, String appName) {
         return getPluginStore(context, StoreResourceType.DataApp, appName);
@@ -91,7 +92,6 @@ public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGe
     static <T extends IAppSource> T load(String appName) {
         return load(null, DataXName.createDataXPipeline(appName));
     }
-
 
 
     /**

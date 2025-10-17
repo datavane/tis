@@ -59,19 +59,19 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostC
     }
 
 
-    public static IPluginContext namedContext(DataXName collectionName) {
+    public static PartialSettedPluginContext namedContext(DataXName collectionName) {
         return namedContext(collectionName, Optional.empty());
     }
 
-    public static IPluginContext namedContext(String collectionName) {
+    public static PartialSettedPluginContext namedContext(String collectionName) {
         return namedContext(DataXName.createDataXPipeline(collectionName), Optional.empty());
     }
 
-    public static IPluginContext namedContext(String collectionName, Optional<String> execId) {
+    public static PartialSettedPluginContext namedContext(String collectionName, Optional<String> execId) {
         return namedContext(collectionName, execId);
     }
 
-    public static IPluginContext namedContext(DataXName collectionName, Optional<String> execId) {
+    public static PartialSettedPluginContext namedContext(DataXName collectionName, Optional<String> execId) {
         if ((collectionName) == null) {
             throw new IllegalArgumentException("param collectionName can not be empty");
         }

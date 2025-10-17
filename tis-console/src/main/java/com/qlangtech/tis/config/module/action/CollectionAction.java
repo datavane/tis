@@ -30,9 +30,9 @@ import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.biz.dal.dao.impl.SnapshotViewImplDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
+import com.qlangtech.tis.manage.biz.dal.pojo.Department;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
 import com.qlangtech.tis.manage.common.ILoginUser;
-import com.qlangtech.tis.manage.common.TISCollectionUtils;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.ds.*;
@@ -41,7 +41,6 @@ import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.rpc.grpc.log.stream.PExecuteState;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
-import com.qlangtech.tis.runtime.module.action.SysInitializeAction;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.solrdao.ISchemaField;
 import com.qlangtech.tis.solrdao.ISchemaPluginContext;
@@ -115,7 +114,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
   private IndexName indexName = null;
 
   private PlatformTransactionManager transactionManager;
-  private OfflineManager offlineManager;
+
 
   @Autowired
   public void setTransactionManager(PlatformTransactionManager transactionManager) {
@@ -682,7 +681,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     confirmModel.setCoreNode(coreNode);
     confirmModel.setTplAppId(getTemplateApp(this).getAppId());
     ExtendApp extendApp = new ExtendApp();
-    extendApp.setDptId(SysInitializeAction.DEPARTMENT_DEFAULT_ID);
+    extendApp.setDptId(Department.DEPARTMENT_DEFAULT_ID);
     extendApp.setName(indexName);
     extendApp.setRecept(this.getUser().getName());
     Objects.requireNonNull(df.getId(), "id of dataflow can not be null");
@@ -896,7 +895,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     dsDescriptpr = pluginDesc.get();
 
 
-    PluginItems items = new PluginItems(new DftPluginContext(pluginType), context, pluginMeta);
+    PluginItems items = new PluginItems(new DftPluginContext(pluginType, this), context, pluginMeta);
     JSONArray itemsArray = new JSONArray();
     JSONObject item = new JSONObject();
     JSONObject vals = new JSONObject();
@@ -969,22 +968,21 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
   }
 
-  @Autowired
-  public void setOfflineManager(OfflineManager offlineManager) {
-    this.offlineManager = offlineManager;
-  }
 
   private class DftPluginContext implements IPluginContext {
 
     private final HeteroEnum pluginType;
 
+    private final IPluginContext delegateContext;
+
+    public DftPluginContext(HeteroEnum pluginType, IPluginContext delegateContext) {
+      this.pluginType = pluginType;
+      this.delegateContext = Objects.requireNonNull(delegateContext, "delegateContext");
+    }
+
     @Override
     public void executeBizLogic(BizLogic logicType, Context context, Object param) throws Exception {
       throw new UnsupportedOperationException();
-    }
-
-    public DftPluginContext(HeteroEnum pluginType) {
-      this.pluginType = pluginType;
     }
 
     @Override
@@ -1044,23 +1042,27 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 
     @Override
     public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {
-      // CollectionAction.this.
-      DatasourceDbCriteria criteria = new DatasourceDbCriteria();
-      criteria.createCriteria().andNameEqualTo(dbName);
-      int exist = CollectionAction.this.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);
-      // 如果数据库已经存在则直接跳过
-      if (exist > 0) {
-        for (DatasourceDb db : CollectionAction.this.getWorkflowDAOFacade()
-          .getDatasourceDbDAO().selectByExample(criteria)) {
-          CollectionAction.this.setBizResult(context, offlineManager.getDbConfig(CollectionAction.this, db));
-          return;
-        }
-      }
-      if (shallUpdateDB) {
-        PluginAction.createDatabase(CollectionAction.this, dbDesc, dbName, context, true, offlineManager);
-      }
-
+      delegateContext.addDb(dbDesc, dbName, context, shallUpdateDB);
     }
+//    @Override
+//    public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {
+//      // CollectionAction.this.
+//      DatasourceDbCriteria criteria = new DatasourceDbCriteria();
+//      criteria.createCriteria().andNameEqualTo(dbName);
+//      int exist = CollectionAction.this.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);
+//      // 如果数据库已经存在则直接跳过
+//      if (exist > 0) {
+//        for (DatasourceDb db : CollectionAction.this.getWorkflowDAOFacade()
+//          .getDatasourceDbDAO().selectByExample(criteria)) {
+//          CollectionAction.this.setBizResult(context, offlineManager.getDbConfig(CollectionAction.this, db));
+//          return;
+//        }
+//      }
+//      if (shallUpdateDB) {
+//        PluginAction.createDatabase(CollectionAction.this, dbDesc, dbName, context, true, offlineManager);
+//      }
+//
+//    }
   }
 
   private static class LogReader implements ILogListener {

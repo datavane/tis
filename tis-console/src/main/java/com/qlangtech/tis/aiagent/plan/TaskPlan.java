@@ -17,14 +17,19 @@
  */
 package com.qlangtech.tis.aiagent.plan;
 
+import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.ImmutableMap;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;
@@ -45,7 +50,12 @@ public class TaskPlan {
 
 
   public final Map<Class<? extends Describable>, DescribableImpl> writerExtendPoints;
+  public final DescribableImpl processorExtendPoints;
+  private final MockContext runtimeContext = new MockContext();
 
+  public Context getRuntimeContext() {
+      return this.runtimeContext;
+  }
 
   /**
    * 校验每个扩展点都找到对应的实现插件
@@ -71,13 +81,19 @@ public class TaskPlan {
   private String userInput;
   private long createTime;
   private final LLMProvider llmProvider;
+  private final IControlMsgHandler controlMsgHandler;
 
-  public TaskPlan(DataEndCfg sourceEnd, DataEndCfg targetEnd, LLMProvider llmProvider) {
+  public TaskPlan(DataEndCfg sourceEnd, DataEndCfg targetEnd, LLMProvider llmProvider, IControlMsgHandler controlMsgHandler) {
     this.steps = new ArrayList<>();
     this.createTime = System.currentTimeMillis();
     this.llmProvider = Objects.requireNonNull(llmProvider, "llmProvider can not be null");
     this.sourceEnd = Objects.requireNonNull(sourceEnd, "sourceEnd can not be null");
     this.targetEnd = Objects.requireNonNull(targetEnd, "targetEnd can not be null");
+    this.controlMsgHandler = Objects.requireNonNull(controlMsgHandler, "controlMsgHandler can not be null");
+
+
+    this.processorExtendPoints = new DescribableImpl(IAppSource.class, Optional.empty())
+      .addImpl("com.qlangtech.tis.plugin.datax.DefaultDataxProcessor");
 
     ImmutableMap.Builder<Class<? extends Describable>, DescribableImpl> mapBuilder = new ImmutableMap.Builder<>();
     mapBuilder.put(DataxReader.class, new DescribableImpl(DataxReader.class, Optional.of(sourceEnd.getType())));
@@ -97,6 +113,10 @@ public class TaskPlan {
 //        // , new DescribableImpl(com.qlangtech.tis.plugin.ds.DataSourceFactory.class)
 //        , new DescribableImpl(com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory.class)
 //    } ;
+  }
+
+  public IControlMsgHandler getControlMsgHandler() {
+    return Objects.requireNonNull(this.controlMsgHandler, "controlMsgHandler can not be null");
   }
 
   public LLMProvider getLLMProvider() {
@@ -170,7 +190,7 @@ public class TaskPlan {
     }
 
     /**
-     * 端配置描述信息
+     * 端配置描述信息，一段自然语言
      */
     private String relevantDesc;
 

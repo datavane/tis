@@ -26,6 +26,7 @@ import com.qlangtech.tis.extension.ElementPluginDesc;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.util.AbstractPropAssist.MarkdownHelperContent;
 import com.qlangtech.tis.extension.util.PluginExtraProps.RouterAssistType;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.CMeta.ParsePostMCols;
 import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
@@ -34,6 +35,9 @@ import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import junit.framework.TestCase;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -130,7 +134,7 @@ public class TestPluginExtraProps extends TestCase {
         assertNotNull(creator);
 
         assertEquals("/base/departmentlist", creator.getString(PluginExtraProps.KEY_ROUTER_LINK));
-        assertEquals("部门管理", creator.getString(PluginExtraProps.KEY_LABEL));
+        assertEquals("部门管理", creator.getString(Option.KEY_LABEL));
 
         JSONArray plugins = creator.getJSONArray("plugin");
         assertEquals(1, plugins.size());
@@ -181,5 +185,126 @@ public class TestPluginExtraProps extends TestCase {
         } catch (Exception e) {
             Assert.assertEquals("prop key:xxx relevant prop must exist , exist props keys:password,nestProp,name,cols", e.getMessage());
         }
+    }
+
+    /**
+     * 测试 CandidatePlugin.createNewPrimaryFieldValue 方法
+     */
+    public void testCreateNewPrimaryFieldValue() {
+        // 测试用例1：空的选项列表
+        PluginExtraProps.CandidatePlugin candidate = new PluginExtraProps.CandidatePlugin(
+            "MySQLReader", Optional.empty(), "datax-reader"
+        );
+        
+        List<Option> emptyOpts = Collections.emptyList();
+        String result = candidate.createNewPrimaryFieldValue(emptyOpts);
+        assertEquals("mysqlreader-1", result);
+        
+        // 测试用例2：存在部分匹配的选项
+        List<Option> existingOpts = Arrays.asList(
+            new Option("第一个MySQL读取器", "mysqlreader-1"),
+            new Option("第三个MySQL读取器", "mysqlreader-3"),
+            new Option("其他插件", "other-plugin")
+        );
+        result = candidate.createNewPrimaryFieldValue(existingOpts);
+        assertEquals("mysqlreader-4", result);
+        
+        // 测试用例3：存在连续的选项
+        List<Option> continuousOpts = Arrays.asList(
+            new Option("第一个MySQL读取器", "mysqlreader1"),
+            new Option("第二个MySQL读取器", "mysqlreader2"),
+            new Option("第三个MySQL读取器", "mysqlreader3")
+        );
+        result = candidate.createNewPrimaryFieldValue(continuousOpts);
+        assertEquals("mysqlreader-4", result);
+        
+        // 测试用例4：不规则的命名模式
+        List<Option> irregularOpts = Arrays.asList(
+            new Option("大写的MySQL读取器", "MYSQLREADER-10"),
+            new Option("小写的MySQL读取器", "mysqlreader5"),
+            new Option("不相关的插件", "unrelated")
+        );
+        result = candidate.createNewPrimaryFieldValue(irregularOpts);
+        assertEquals("mysqlreader-11", result);
+        
+        // 测试用例5：包含非数字后缀的选项
+        List<Option> mixedOpts = Arrays.asList(
+            new Option("非数字后缀", "mysqlreader-abc"),
+            new Option("数字后缀", "mysqlreader-2"),
+            new Option("空后缀", "mysqlreader-")
+        );
+        result = candidate.createNewPrimaryFieldValue(mixedOpts);
+        assertEquals("mysqlreader-3", result);
+    }
+
+    /**
+     * 测试不同插件名称的 createNewPrimaryFieldValue 方法
+     */
+    public void testCreateNewPrimaryFieldValueWithDifferentNames() {
+        // 测试复合名称的插件
+        PluginExtraProps.CandidatePlugin esCandidate = new PluginExtraProps.CandidatePlugin(
+            "ElasticSearchWriter", Optional.empty(), "datax-writer"
+        );
+        
+        List<Option> esOpts = Arrays.asList(
+            new Option("ES写入器1", "elasticsearchwriter-1"),
+            new Option("ES写入器2", "elasticsearchwriter-2")
+        );
+        String result = esCandidate.createNewPrimaryFieldValue(esOpts);
+        assertEquals("elasticsearchwriter-3", result);
+        
+        // 测试单个字符的插件名
+        PluginExtraProps.CandidatePlugin singleCharCandidate = new PluginExtraProps.CandidatePlugin(
+            "A", Optional.empty(), "test"
+        );
+        
+        List<Option> singleCharOpts = Arrays.asList(
+            new Option("单字符插件", "a-5")
+        );
+        result = singleCharCandidate.createNewPrimaryFieldValue(singleCharOpts);
+        assertEquals("a-6", result);
+        
+        // 测试包含数字的插件名
+        PluginExtraProps.CandidatePlugin numericCandidate = new PluginExtraProps.CandidatePlugin(
+            "Plugin2Test", Optional.empty(), "test"
+        );
+        
+        List<Option> numericOpts = Arrays.asList(
+            new Option("数字插件1", "plugin2test-1"),
+            new Option("数字插件3", "plugin2test-3")
+        );
+        result = numericCandidate.createNewPrimaryFieldValue(numericOpts);
+        assertEquals("plugin2test-4", result);
+    }
+
+    /**
+     * 测试边界情况
+     */
+    public void testCreateNewPrimaryFieldValueEdgeCases() {
+        PluginExtraProps.CandidatePlugin candidate = new PluginExtraProps.CandidatePlugin(
+            "TestPlugin", Optional.empty(), "test"
+        );
+        
+        // 测试大数字后缀
+        List<Option> largeNumberOpts = Arrays.asList(
+            new Option("大数字插件", "testplugin-999")
+        );
+        String result = candidate.createNewPrimaryFieldValue(largeNumberOpts);
+        assertEquals("testplugin-1000", result);
+        
+        // 测试零后缀
+        List<Option> zeroOpts = Arrays.asList(
+            new Option("零后缀插件", "testplugin-0")
+        );
+        result = candidate.createNewPrimaryFieldValue(zeroOpts);
+        assertEquals("testplugin-1", result);
+        
+        // 测试负数后缀（应该被忽略）
+        List<Option> negativeOpts = Arrays.asList(
+            new Option("负数后缀插件", "testplugin--1"),
+            new Option("正常插件", "testplugin-1")
+        );
+        result = candidate.createNewPrimaryFieldValue(negativeOpts);
+        assertEquals("testplugin-2", result);
     }
 }

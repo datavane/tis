@@ -22,7 +22,10 @@ import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataXNameAware;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.runtime.module.action.IParamGetter;
+
+import java.util.List;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -36,6 +39,8 @@ public interface IControlMsgHandler extends IFieldErrorHandler, IMessageHandler,
             public SSEEventWriter getEventStreamWriter() {
                 throw new UnsupportedOperationException();
             }
+
+
 
             @Override
             public DataXName getCollectionName() {
@@ -66,7 +71,10 @@ public interface IControlMsgHandler extends IFieldErrorHandler, IMessageHandler,
             public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
                 throw new UnsupportedOperationException();
             }
-
+            @Override
+            public BasicPipelineValidator getPipelineValidator(BizLogic logicType) {
+                throw new UnsupportedOperationException();
+            }
             @Override
             public void errorsPageShow(Context context) {
                 throw new UnsupportedOperationException();
@@ -95,4 +103,6 @@ public interface IControlMsgHandler extends IFieldErrorHandler, IMessageHandler,
      * @return
      */
     public SSEEventWriter getEventStreamWriter();
+
+
 }

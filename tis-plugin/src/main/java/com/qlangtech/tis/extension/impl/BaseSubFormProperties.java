@@ -66,6 +66,16 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
     }
 
     @Override
+    public final boolean isIdentity() {
+        return false;
+    }
+
+    @Override
+    public String propertyName() {
+        return this.subFormField.getName();
+    }
+
+    @Override
     public final Descriptor getDescriptor() {
         return this.subFormFieldsDescriptor;
     }

@@ -17,8 +17,9 @@
  */
 package com.qlangtech.tis.plugin;
 
-import com.alibaba.fastjson.JSONObject;
-import com.qlangtech.tis.datax.StoreResourceType;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Objects;
 
 /**
  * The plugin global unique identity name
@@ -41,8 +42,10 @@ public interface IdentityName {
         };
     }
 
-
-
+    default boolean equalWithId(IdentityName identity) {
+        return StringUtils.equals(identityValue()
+                , Objects.requireNonNull(identity, "identity can not be null").identityValue());
+    }
 
 
     /**

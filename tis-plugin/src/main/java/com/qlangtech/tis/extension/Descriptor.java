@@ -220,8 +220,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      *
      * @return
      */
-    public Map<String, PropsImplRefs> getPropsImplRefs() {
-        Map<String, PropsImplRefs> result = Maps.newHashMap();
+    public Map<String, PluginExtraProps.FieldRefCreateor> getPropsImplRefs() {
+        Map<String, PluginExtraProps.FieldRefCreateor> result = Maps.newHashMap();
 
         for (Map.Entry<String, /*** fieldname*/IPropertyType> entry : this.getPropertyTypes().entrySet()) {
             if (!(entry.getValue() instanceof PropertyType)) {
@@ -229,25 +229,26 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }
             final PropertyType pt = (PropertyType) entry.getValue();
             Optional<PluginExtraProps.FieldRefCreateor> refCreator = pt.getRefCreator();
-            Objects.requireNonNull(refCreator, "field:" + entry.getKey() + " of plugin:" + this.clazz.getName() + " relevant refCreator can not be null");
+            Objects.requireNonNull(refCreator, "field:" + entry.getKey()
+                    + " of plugin:" + this.clazz.getName() + " relevant refCreator can not be null");
             refCreator.ifPresent((creator) -> {
+               // List<Option> selectableOpts =  creator.getSelectableOpts();
+                //JSONObject extraProps = pt.getExtraProps();
+//                switch (pt.formField.type()) {
+//                    case ENUM: {
+//                        //  extraProps.getJSONArray();
+//                        break;
+//                    }
+//                    case SELECTABLE: {
+//
+//                        break;
+//                    }
+//                    default:
+//                        throw new IllegalStateException();
+//                }
+              //  List<Option> valOptions = null;
 
-                JSONObject extraProps = pt.getExtraProps();
-                switch (pt.formField.type()) {
-                    case ENUM: {
-                        //  extraProps.getJSONArray();
-                        break;
-                    }
-                    case SELECTABLE: {
-
-                        break;
-                    }
-                    default:
-                        throw new IllegalStateException();
-                }
-                List<Option> valOptions = null;
-
-                result.put(entry.getKey(), new PropsImplRefs(creator.getCandidatePlugins(), valOptions));
+                result.put(entry.getKey(), creator);
 
 //                List<PluginExtraProps.CandidatePlugin> candidatePlugins = creator.getCandidatePlugins();
 //                for (PluginExtraProps.CandidatePlugin candidatePlugin : candidatePlugins) {
@@ -260,23 +261,23 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
 
-    public static class PropsImplRefs {
-        private final List<PluginExtraProps.CandidatePlugin> candidatePlugins;
-        private final List<Option> valOptions;
-
-        public PropsImplRefs(List<PluginExtraProps.CandidatePlugin> candidatePlugins, List<Option> valOptions) {
-            this.candidatePlugins = candidatePlugins;
-            this.valOptions = valOptions;
-        }
-
-        public List<PluginExtraProps.CandidatePlugin> getCandidatePlugins() {
-            return candidatePlugins;
-        }
-
-        public List<Option> getValOptions() {
-            return valOptions;
-        }
-    }
+//    public static class PropsImplRefs {
+//        private final List<PluginExtraProps.CandidatePlugin> candidatePlugins;
+//        private final List<Option> valOptions;
+//
+//        public PropsImplRefs(List<PluginExtraProps.CandidatePlugin> candidatePlugins, List<Option> valOptions) {
+//            this.candidatePlugins = candidatePlugins;
+//            this.valOptions = valOptions;
+//        }
+//
+//        public List<PluginExtraProps.CandidatePlugin> getCandidatePlugins() {
+//            return candidatePlugins;
+//        }
+//
+//        public List<Option> getValOptions() {
+//            return valOptions;
+//        }
+//    }
 
     private HelpPath _helpPath;
 
@@ -630,7 +631,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public final PluginValidateResult verify(IControlMsgHandler msgHandler, Context context //
             , FormVaildateType verify //
             , AttrVals formData //
-            , Optional<PluginFormProperties> pTypes, Optional<SubFormFilter> subFormFilter, PropValRewrite propValRewrite, Optional<PostFormVals> parentFormVals) {
+            , Optional<PluginFormProperties> pTypes //
+            , Optional<SubFormFilter> subFormFilter//
+            , PropValRewrite propValRewrite//
+            , Optional<PostFormVals> parentFormVals) {
         if (parentFormVals == null) {
             throw new IllegalArgumentException("param parentFormVals can not be null");
         }

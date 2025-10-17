@@ -18,10 +18,13 @@
 package com.qlangtech.tis.plugin.ds;
 
 import com.qlangtech.tis.offline.DbScope;
+import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Optional;
+
+import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
 
 /**
  * DS update extra params posted form client
@@ -39,6 +42,11 @@ public class PostedDSProp {
         return new PostedDSProp(DBIdentity.parse(pluginMeta.getExtraParam(DBIdentity.KEY_DB_NAME))
                 , DbScope.parse(pluginMeta.getExtraParam(DBIdentity.KEY_TYPE))
                 , pluginMeta.isUpdate());
+    }
+
+    public static UploadPluginMeta createPluginMeta(DBIdentity dbName, boolean update) {
+        return UploadPluginMeta.parse(HeteroEnum.DATASOURCE.identityValue() + ":" + KEY_REQUIRE
+                + "," + DBIdentity.KEY_DB_NAME + "_" + dbName.identityValue() + "," + DBIdentity.KEY_UPDATE + "_" + update);
     }
 
     public static PostedDSProp parse(String dbIdVal) {

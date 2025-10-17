@@ -34,7 +34,9 @@ import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.config.module.action.CollectionAction;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
+import com.qlangtech.tis.coredefine.module.action.PluginAction;
 import com.qlangtech.tis.coredefine.module.action.ProcessModel;
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.datax.DataXJobSubmit;
@@ -87,8 +89,10 @@ import com.qlangtech.tis.manage.common.UserUtils;
 import com.qlangtech.tis.manage.common.apps.AppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
+import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.plugin.annotation.IFieldValidator;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
@@ -106,6 +110,8 @@ import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.pojo.DatasourceDb;
+import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
@@ -154,6 +160,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   protected IClusterSnapshotDAO clusterSnapshotDAO;
   protected IWorkflowDAOFacade wfDAOFacade;
   private IERRulesGetter erRulesGetter;
+  protected OfflineManager offlineManager;
 
   @Override
   public Optional<ERRules> getErRules(String dfName) {
@@ -246,11 +253,37 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return false;
   }
 
+//  @Override
+//  public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc //
+//    , String dbName, Context context, boolean shallUpdateDB) {
+//    throw new UnsupportedOperationException(this.getClass().getName());
+//  }
+
+
   @Override
   public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {
-    throw new UnsupportedOperationException(this.getClass().getName());
+    // CollectionAction.this.
+    DatasourceDbCriteria criteria = new DatasourceDbCriteria();
+    criteria.createCriteria().andNameEqualTo(dbName);
+    int exist = this.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);
+    // 如果数据库已经存在则直接跳过
+    if (exist > 0) {
+      for (DatasourceDb db : this.getWorkflowDAOFacade()
+        .getDatasourceDbDAO().selectByExample(criteria)) {
+        this.setBizResult(context, offlineManager.getDbConfig(this, db));
+        return;
+      }
+    }
+    if (shallUpdateDB) {
+      PluginAction.createDatabase(this, dbDesc, dbName, context, true, offlineManager);
+    }
+
   }
 
+  @Autowired
+  public void setOfflineManager(OfflineManager offlineManager) {
+    this.offlineManager = offlineManager;
+  }
 
   @Override
   public boolean isCollectionAware() {
@@ -324,23 +357,18 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   @Override
   public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
+    return getPipelineValidator(logicType).validate(this, context, fieldName, value);
+  }
+
+  @Override
+  public BasicPipelineValidator getPipelineValidator(BizLogic logicType) {
     switch (logicType) {
       case VALIDATE_APP_NAME_DUPLICATE:
         AppNameDuplicateValidator nameDuplicateValidator = new AppNameDuplicateValidator(this.getApplicationDAO());
-        return nameDuplicateValidator.validate(this, context, fieldName, value);
+        return nameDuplicateValidator;
       case VALIDATE_WORKFLOW_NAME_DUPLICATE:
-
         DataFlowDuplicateValidator wfValidator = new DataFlowDuplicateValidator(this.wfDAOFacade.getWorkFlowDAO());
-        return wfValidator.validate(this, context, fieldName, value);
-//      case DB_NAME_DUPLICATE:
-//        DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
-//        dbCriteria.createCriteria().andNameEqualTo(value);
-//        int existDBsCount = this.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(dbCriteria);
-//        if (existDBsCount > 0) {
-//          this.addFieldError(context, fieldName, IdentityName.MSG_ERROR_NAME_DUPLICATE);
-//          return false;
-//        }
-//        return true;
+        return wfValidator;
       default:
         throw new IllegalStateException("illegal logicType:" + logicType);
     }
@@ -541,13 +569,20 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     });
   }
 
-  public static class DataFlowDuplicateValidator implements Validator.IFieldValidator {
+
+  public static class DataFlowDuplicateValidator extends BasicPipelineValidator {
     private final IWorkFlowDAO workFlowDAO;
 
     public DataFlowDuplicateValidator(IWorkFlowDAO workFlowDAO) {
       this.workFlowDAO = workFlowDAO;
     }
 
+    @Override
+    public List<WorkFlow> getExistEntities() {
+      WorkFlowCriteria criteria = new WorkFlowCriteria();
+      criteria.createCriteria();
+      return workFlowDAO.selectByExample(criteria);
+    }
 
     @Override
     public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
@@ -568,7 +603,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     }
   }
 
-  public static class AppNameDuplicateValidator implements Validator.IFieldValidator {
+  public static class AppNameDuplicateValidator extends BasicPipelineValidator {
     //private final Application app;
     private final IApplicationDAO appDAO;
 
@@ -591,6 +626,13 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
         return false;
       }
       return true;
+    }
+
+    @Override
+    public List<Application> getExistEntities() {
+      ApplicationCriteria criteria = new ApplicationCriteria();
+      criteria.createCriteria();
+      return appDAO.selectByExample(criteria);
     }
   }
 
@@ -1223,6 +1265,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
    * @param context
    * @param msg
    */
+  @Override
   public void addErrorMessage(final Context context, String msg) {
     messageHandler.addErrorMessage(context, msg);
   }

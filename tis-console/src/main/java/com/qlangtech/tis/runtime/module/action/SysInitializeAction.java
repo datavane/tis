@@ -20,24 +20,15 @@ package com.qlangtech.tis.runtime.module.action;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.model.UpdateCenter;
-import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.Department;
-import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria;
-import com.qlangtech.tis.manage.biz.dal.pojo.Snapshot;
-import com.qlangtech.tis.manage.biz.dal.pojo.SnapshotCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Config.SysDBType;
-import com.qlangtech.tis.manage.common.ConfigFileReader;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.spring.TISDataSourceFactory;
 import com.qlangtech.tis.manage.spring.TISDataSourceFactory.SystemDBInit;
-import com.qlangtech.tis.pubhook.common.RunEnvironment;
-import com.qlangtech.tis.runtime.module.action.UploadJarAction.ConfigContentGetter;
-import com.qlangtech.tis.utils.FreshmanReadmeToken;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -48,7 +39,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -70,7 +60,6 @@ public class SysInitializeAction extends BasicModule {
   private static final long serialVersionUID = 1L;
   private static final Logger logger = LoggerFactory.getLogger(SysInitializeAction.class);
 
-  public static final int DEPARTMENT_DEFAULT_ID = 2;
   private static final int DEPARTMENT_ROOT_ID = 1;
 //  public static final int TEMPLATE_APPLICATION_DEFAULT_ID = 1;
 
@@ -376,7 +365,7 @@ public class SysInitializeAction extends BasicModule {
 
   void initializeDepartment() {
 
-    this.getDepartmentDAO().deleteByPrimaryKey(DEPARTMENT_DEFAULT_ID);
+    this.getDepartmentDAO().deleteByPrimaryKey(Department.DEPARTMENT_DEFAULT_ID);
     this.getDepartmentDAO().deleteByPrimaryKey(DEPARTMENT_ROOT_ID);
 
     // 初始化部门
@@ -399,8 +388,8 @@ public class SysInitializeAction extends BasicModule {
     dpt.setFullName("/tis/default");
     dpt.setParentId(dptId);
     dptId = this.getDepartmentDAO().insertSelective(dpt);
-    if (dptId != DEPARTMENT_DEFAULT_ID) {
-      throw new IllegalStateException("dptId:" + dptId + " must equal with:" + DEPARTMENT_DEFAULT_ID);
+    if (dptId != Department.DEPARTMENT_DEFAULT_ID) {
+      throw new IllegalStateException("dptId:" + dptId + " must equal with:" + Department.DEPARTMENT_DEFAULT_ID);
     }
   }
 

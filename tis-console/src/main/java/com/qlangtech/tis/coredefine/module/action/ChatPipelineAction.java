@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.core.AgentContext;
 import com.qlangtech.tis.aiagent.core.SelectionOptions;
+import com.qlangtech.tis.aiagent.core.SessionKey;
 import com.qlangtech.tis.aiagent.core.TISPlanAndExecuteAgent;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.template.TaskTemplateRegistry;
@@ -182,7 +183,7 @@ public class ChatPipelineAction extends BasicModule {
     session.addMessage("user", userInput);
 
     // 获取原始的Servlet请求和响应对象
-    HttpServletRequest request = ServletActionContext.getRequest();
+    final HttpServletRequest request = ServletActionContext.getRequest();
     HttpServletResponse response = ServletActionContext.getResponse();
 
     // 设置SSE响应头
@@ -211,9 +212,12 @@ public class ChatPipelineAction extends BasicModule {
     final LLMProvider llmProvider = LLMProvider.load(this, "default");
     // 异步执行Agent任务
     String finalSessionId = sessionId;
+
     executorService.execute(() -> {
       try {
-        TISPlanAndExecuteAgent agent = new TISPlanAndExecuteAgent(agentContext, llmProvider);
+        ServletActionContext.getActionContext(request);
+
+        TISPlanAndExecuteAgent agent = new TISPlanAndExecuteAgent(agentContext, llmProvider, this);
         agent.execute(userInput);
 
         // 保存助手回复到会话历史
@@ -221,13 +225,8 @@ public class ChatPipelineAction extends BasicModule {
 
       } catch (Exception e) {
         logger.error("Agent execution failed", e);
-
-//          writer.write("event: error\n");
-//          writer.write("data: \n\n");
-//          writer.flush();
         writer.writeSSEEvent(
           SSERunnable.SSEEventType.AI_AGNET_ERROR, "{\"error\":\"" + e.getMessage() + "\"}");
-
       } finally {
         try {
           writer.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_DONE, "{\"finished\":true}");
@@ -274,12 +273,12 @@ public class ChatPipelineAction extends BasicModule {
   public void doCheckInstallOption(Context context) {
     JSONObject jsonContent = this.getJSONPostContent();
     // String sessionId = jsonContent.getString("sessionId");
-    String requestId = jsonContent.getString(KEY_REQUEST_ID);
+    SessionKey requestId = SessionKey.create(jsonContent.getString(KEY_REQUEST_ID));
     // Integer selectedIndex = jsonContent.getInteger("selectedIndex");
     ChatSession session = getChatSession(jsonContent);
-    String selectionKey = AgentContext.getSelectionKey(requestId);
+    //String selectionKey = AgentContext.getSelectionKey(requestId);
     AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(), "agentContext can not be null");
-    SelectionOptions selectionOptions = agentContext.getSessionData(selectionKey);
+    SelectionOptions selectionOptions = agentContext.getSessionData(requestId);
     List<PluginExtraProps.CandidatePlugin> cplugins = selectionOptions.getCandidatePlugins();
     for (PluginExtraProps.CandidatePlugin candidatePlugin : cplugins) {
       // 更新一下缓存
@@ -317,7 +316,7 @@ public class ChatPipelineAction extends BasicModule {
     JSONObject jsonContent = this.getJSONPostContent();
 
     String sessionId = jsonContent.getString("sessionId");
-    String requestId = jsonContent.getString(KEY_REQUEST_ID);
+    SessionKey requestId = SessionKey.create(jsonContent.getString(KEY_REQUEST_ID));
     Integer selectedIndex = jsonContent.getInteger("selectedIndex");
 
     if (sessionId == null || requestId == null || selectedIndex == null) {
@@ -328,12 +327,11 @@ public class ChatPipelineAction extends BasicModule {
 
     ChatSession session = getChatSession(jsonContent);
     // 获取AgentContext
-    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(), "agentContext can not be null,sessionId:" + sessionId);
+    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext()
+      , "agentContext can not be null,sessionId:" + sessionId);
 
-    // 保存用户选择到sessionData中，waitForUserSelection会读取这个值
-    String selectionKey = AgentContext.getSelectionKey(requestId);
-    SelectionOptions selectionOptions = agentContext.getSessionData(selectionKey);
-    agentContext.setSessionData(selectionKey, selectionOptions.setSelectedIndex(selectedIndex));
+    SelectionOptions selectionOptions = agentContext.getSessionData(requestId);
+    agentContext.setSessionData(requestId, selectionOptions.setSelectedIndex(selectedIndex));
 
     // 通知等待线程，用户选择已提交
     agentContext.notifyUserSelectionSubmitted(requestId);

@@ -38,6 +38,7 @@ import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.offline.FileSystemFactory;
@@ -53,6 +54,7 @@ import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.datax.transformer.TargetColumn;
 import com.qlangtech.tis.plugin.datax.transformer.UDFDefinition;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
@@ -181,6 +183,19 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             ParamsConfig.class, //
             "params-cfg", // },//
             "基础配置", Selectable.Multi, false) {
+        @Override
+        public ParamsConfig findPlugin(PluginExtraProps.CandidatePlugin candidatePlugin, IdentityName identity) {
+            // return super.findPlugin(identity);
+
+            IPluginStore<ParamsConfig> pluginStore = getPluginStore(null, ParamsConfigPluginStore.createParamsConfig(this, candidatePlugin));
+            for (ParamsConfig paramCfg : pluginStore.getPlugins()) {
+                if (paramCfg.equalWithId(identity)) {
+                    return paramCfg;
+                }
+            }
+            throw new IllegalStateException("can not find paramCfg with category:" + candidatePlugin.getTargetItemDesc() + ",identity:" + identity);
+        }
+
         /**
          * ParamsConfig 出来的plugin已经是某一个类别的了，不需要再使用displayName进行过滤了
          * @param pluginMeta
@@ -360,10 +375,15 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "datasource", //
             "数据源", //
             Selectable.Single, true) {
+
+        @Override
+        public DataSourceFactory findPlugin(PluginExtraProps.CandidatePlugin candidatePlugin, IdentityName identity) {
+            DataSourceFactoryPluginStore store = TIS.getDataSourceFactoryPluginStore(PostedDSProp.parse(identity.identityValue()));
+            return Objects.requireNonNull(store, "db store can not be null").getPlugin();
+        }
+
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            //return super.getPluginStore(pluginContext, pluginMeta);
-
             if (!pluginContext.isDataSourceAware()) {
                 throw new IllegalArgumentException("pluginContext must be dataSourceAware");
             }
@@ -409,7 +429,6 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             Selectable.Multi, true) {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            //   return super.getPluginStore(pluginContext, pluginMeta);
             return getDataXReaderAndWriterStore(pluginContext, true, pluginMeta, Optional.empty());
         }
     };
@@ -433,26 +452,11 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             Selectable.Multi, true) {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            final DataXName dataxName = pluginMeta.getDataXName();// (pluginMeta.getExtraParam(DataxUtils.DATAX_NAME));
-//            if (dataxName.assetCheckDataAppType() != pluginMeta.getProcessModel().resType) {
-//
-//            }
+            final DataXName dataxName = pluginMeta.getDataXName();
             return com.qlangtech.tis.manage.IAppSource.getPluginStore(pluginContext,
                     pluginMeta.getProcessModel().resType, dataxName.getPipelineName());
         }
     };
-
-//    @TISExtension
-//    public static final HeteroEnum<JobTrigger> JOB_TRIGGER = new HeteroEnum<JobTrigger>(//
-//            JobTrigger.class, //
-//            "jobTrigger", //
-//            "Job Trigger", //
-//            Selectable.Single, true) {
-//        @Override
-//        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-//            return IPluginStore.noSaveStore();
-//        }
-//    };
 
     public final String caption;
 
@@ -713,7 +717,8 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     }
 
 
-    public final <T extends Describable<T>> List<Descriptor<T>> descriptors(UploadPluginMeta.TargetDesc targetDesc, List<T> items, boolean justGetItemRelevant) {
+    public final <T extends Describable<T>> List<Descriptor<T>> descriptors( //
+                                                                             UploadPluginMeta.TargetDesc targetDesc, List<T> items, boolean justGetItemRelevant) {
         List<Descriptor<T>> descriptors = descriptors();
         return filterDescriptors(targetDesc, items, justGetItemRelevant, descriptors);
     }

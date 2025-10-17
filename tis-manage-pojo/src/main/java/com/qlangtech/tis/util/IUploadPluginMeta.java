@@ -30,5 +30,5 @@ public interface IUploadPluginMeta {
      * 是否执行删除
      */
     String KEY_JSON_MANIPULATE_BOOL_DELETE_PROCESS = "deleteProcess";
-    public void putExtraParams(String key, String val);
+    public IUploadPluginMeta putExtraParams(String key, String val);
 }

@@ -41,6 +41,8 @@ import java.util.Optional;
  */
 public class HeteroList<T extends Describable<T>> {
 
+    public static final String KEY_ITEMS = "items";
+
     private List<Descriptor<T>> descriptors;
 
     private List<T> items = new ArrayList<>();
@@ -108,6 +110,38 @@ public class HeteroList<T extends Describable<T>> {
     }
 
     public JSONObject toJSON() throws Exception {
+        Optional<SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
+        return toJSON(createItemsJSONArray(this.pluginMeta, this.getItems(), subFormFilter));
+//        JSONObject o = new JSONObject();
+//        o.put("caption", this.getCaption());
+//        o.put("identityId", this.identityId);
+//        o.put("cardinality", this.getSelectable().identity);
+//        o.put("extensionPoint", this.extensionPoint.getName());
+//        //http://tis.pub/docs/guide/plugin/plugins/#%E6%89%A9%E5%B1%95%E7%82%B9comqlangtechtisasyncmessageclientconsumerimplabstractasyncmsgdeserialize
+//        o.put("extensionPointUrl",
+//                Config.TIS_PUB_PLUGINS_DOC_URL + URLEncoder.encode(StringUtils.lowerCase(StringUtils.remove(this.extensionPoint.getName(), ".")), TisUTF8.getName()));
+//
+//
+//
+//        DescriptorsJSON desc2Json = new DescriptorsJSON(this.descriptors, true);
+//
+//
+//        if (this.getItems().size() == 1) {
+//            for (T plugin : this.getItems()) {
+//                Map<Class<? extends Descriptor>, Describable> pluginThreadLocal =
+//                        GroovyShellUtil.pluginThreadLocal.get();
+//                pluginThreadLocal.put(plugin.getDescriptor().getClass(), plugin);
+//                break;
+//            }
+//            // GroovyShellEvaluate.pluginThreadLocal.set(this.getItems().get(0));
+//        }
+//        o.put("descriptors", desc2Json.getDescriptorsJSON(subFormFilter));
+//        o.put("items", createItemsJSONArray(this.pluginMeta, this.getItems(), subFormFilter));
+//
+//        return o;
+    }
+
+    public JSONObject toJSON(JSONArray items) throws Exception {
         JSONObject o = new JSONObject();
         o.put("caption", this.getCaption());
         o.put("identityId", this.identityId);
@@ -132,7 +166,7 @@ public class HeteroList<T extends Describable<T>> {
             // GroovyShellEvaluate.pluginThreadLocal.set(this.getItems().get(0));
         }
         o.put("descriptors", desc2Json.getDescriptorsJSON(subFormFilter));
-        o.put("items", createItemsJSONArray(this.pluginMeta, this.getItems(), subFormFilter));
+        o.put(KEY_ITEMS, items);
 
         return o;
     }

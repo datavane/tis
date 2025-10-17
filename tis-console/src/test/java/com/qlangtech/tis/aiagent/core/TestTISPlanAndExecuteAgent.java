@@ -25,6 +25,7 @@ import com.qlangtech.tis.aiagent.plan.TaskPlan;
 import com.qlangtech.tis.aiagent.plan.TaskStep;
 import com.qlangtech.tis.aiagent.template.TaskTemplateRegistry;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
 import org.junit.Before;
@@ -35,6 +36,7 @@ import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +74,7 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
   private StepExecutor mockStepExecutor;
   private TISPlanAndExecuteAgent agent;
   private StringWriter stringWriter;
+  private IControlMsgHandler mockMsgHandler;
 
   @Before
   public void setUp() throws Exception {
@@ -81,6 +84,7 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
     mockPlanGenerator = createMock(PlanGenerator.class);
     mockTemplateRegistry = createMock(TaskTemplateRegistry.class);
     mockStepExecutor = createMock(StepExecutor.class);
+    mockMsgHandler = createMock(IControlMsgHandler.class);
 
     // 创建真实的PrintWriter用于测试
     stringWriter = new StringWriter();
@@ -91,7 +95,7 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
     expect(mockContext.isCancelled()).andReturn(false).anyTimes();
 
     // 创建Agent实例
-    agent = new TISPlanAndExecuteAgent(mockContext, mockLLMProvider);
+    agent = new TISPlanAndExecuteAgent(mockContext, mockLLMProvider, mockMsgHandler);
 
     // 使用反射注入mock对象
     injectMockDependencies();
@@ -139,7 +143,7 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
     jsonContent.put("target_type", "paimon");
     mockResponse.setJsonContent(jsonContent);
 
-    expect(mockLLMProvider.chatJson(anyString(), anyString(), anyString())).andReturn(mockResponse);
+    expect(mockLLMProvider.chatJson(anyString(), Collections.singletonList(anyString()), anyString())).andReturn(mockResponse);
 
     // 模拟生成计划
     TaskPlan mockPlan = createMockTaskPlan();
@@ -190,7 +194,7 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
     mockResponse.setSuccess(false);
     mockResponse.setErrorMessage("Failed to understand input");
 
-    expect(mockLLMProvider.chatJson(anyString(), anyString(), anyString())).andReturn(mockResponse);
+    expect(mockLLMProvider.chatJson(anyString(), Collections.singletonList(anyString()), anyString())).andReturn(mockResponse);
 
     // 记录期望的调用
     mockContext.sendMessage(contains("我正在分析您的需求"));
@@ -221,7 +225,7 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
     mockResponse.setSuccess(true);
     mockResponse.setJsonContent(new JSONObject());
 
-    expect(mockLLMProvider.chatJson(anyString(), anyString(), anyString())).andReturn(mockResponse);
+    expect(mockLLMProvider.chatJson(anyString(), Collections.singletonList(anyString()), anyString())).andReturn(mockResponse);
     expect(mockPlanGenerator.generatePlan(anyString(), anyObject())).andReturn(mockPlan);
 
     // 重置isCancelled的期望，第一次返回false，第二次返回true
@@ -258,7 +262,7 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
     mockResponse.setSuccess(true);
     mockResponse.setJsonContent(new JSONObject());
 
-    expect(mockLLMProvider.chatJson(anyString(), anyString(), anyString())).andReturn(mockResponse);
+    expect(mockLLMProvider.chatJson(anyString(), Collections.singletonList(anyString()), anyString())).andReturn(mockResponse);
     expect(mockPlanGenerator.generatePlan(anyString(), anyObject())).andReturn(mockPlan);
 
     // 模拟第一个步骤执行失败
@@ -299,7 +303,7 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
     mockResponse.setSuccess(true);
     mockResponse.setJsonContent(new JSONObject());
 
-    expect(mockLLMProvider.chatJson(anyString(), anyString(), anyString())).andReturn(mockResponse);
+    expect(mockLLMProvider.chatJson(anyString(), Collections.singletonList(anyString()), anyString())).andReturn(mockResponse);
     expect(mockPlanGenerator.generatePlan(anyString(), anyObject())).andReturn(mockPlan);
 
     // 模拟步骤执行抛出异常
@@ -352,9 +356,10 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
     jsonContent.put("target_type", "doris");
     mockResponse.setJsonContent(jsonContent);
 
-    expect(mockLLMProvider.chatJson(anyString(), anyString(), anyString())).andReturn(mockResponse);
+    expect(mockLLMProvider.chatJson(anyString(), Collections.singletonList(anyString()), anyString())).andReturn(mockResponse);
 
-    TaskPlan expectedPlan = new TaskPlan(new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.MySQL), new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.Doris), mockLLMProvider);
+    TaskPlan expectedPlan = new TaskPlan(
+      new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.MySQL), new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.Doris), mockLLMProvider, this.mockMsgHandler);
 
 
     expect(mockPlanGenerator.generatePlan(eq(userInput), anyObject(JSONObject.class))).andReturn(expectedPlan);
@@ -473,7 +478,8 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
     String userInput = "创建数据同步管道";
 
     // 创建需要用户确认的计划
-    TaskPlan mockPlan = new TaskPlan(new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.MySQL), new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.Paimon), mockLLMProvider);
+    TaskPlan mockPlan = new TaskPlan(new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.MySQL)
+      , new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.Paimon), mockLLMProvider, this.mockMsgHandler);
 
 
     TaskStep confirmStep = new TaskStep("需要确认的步骤", TaskStep.StepType.PLUGIN_CREATE);
@@ -485,7 +491,7 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
     mockResponse.setSuccess(true);
     mockResponse.setJsonContent(new JSONObject());
 
-    expect(mockLLMProvider.chatJson(anyString(), anyString(), anyString())).andReturn(mockResponse);
+    expect(mockLLMProvider.chatJson(anyString(), Collections.singletonList(anyString()), anyString())).andReturn(mockResponse);
     expect(mockPlanGenerator.generatePlan(anyString(), anyObject())).andReturn(mockPlan);
     expect(mockStepExecutor.execute(anyObject(), anyObject(), anyObject())).andReturn(true);
 
@@ -530,7 +536,7 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
           expectLastCall().anyTimes();
           replay(context);
 
-          TISPlanAndExecuteAgent concurrentAgent = new TISPlanAndExecuteAgent(context, this.mockLLMProvider);
+          TISPlanAndExecuteAgent concurrentAgent = new TISPlanAndExecuteAgent(context, this.mockLLMProvider, this.mockMsgHandler);
 
           // 注入mock依赖
           Field llmField = TISPlanAndExecuteAgent.class.getDeclaredField("llmProvider");
@@ -538,7 +544,7 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
           LLMProvider llm = createMock(LLMProvider.class);
           LLMProvider.LLMResponse response = new LLMProvider.LLMResponse();
           response.setSuccess(false);
-          expect(llm.chatJson(anyString(), anyString(), anyString())).andReturn(response).anyTimes();
+          expect(llm.chatJson(anyString(), Collections.singletonList(anyString()), anyString())).andReturn(response).anyTimes();
           replay(llm);
           llmField.set(concurrentAgent, llm);
 
@@ -568,7 +574,8 @@ public class TestTISPlanAndExecuteAgent extends EasyMockSupport {
    * 创建模拟的TaskPlan
    */
   private TaskPlan createMockTaskPlan() {
-    TaskPlan plan = new TaskPlan(new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.MySQL), new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.Paimon), mockLLMProvider);
+    TaskPlan plan = new TaskPlan(new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.MySQL)
+      , new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.Paimon), mockLLMProvider, mockMsgHandler);
     plan.setPlanId("test-plan-id");
 //    plan.setSourceEnd();
 //    plan.setTargetEnd();

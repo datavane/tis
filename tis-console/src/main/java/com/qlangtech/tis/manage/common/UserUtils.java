@@ -22,13 +22,16 @@ import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelation;
 import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.common.apps.TerminatorAdminAppsFetcher;
+import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.runtime.module.action.LoginAction;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.dispatcher.StrutsRequestWrapper;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.Objects;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -44,6 +47,13 @@ public class UserUtils {
   }
 
   public static final String USER_TOKEN_SESSION = UserUtils.class.getName() + "user";
+
+  public static String currentLoginUserName() {
+    RunContext runContext = BasicServlet.getBeanByType(ServletActionContext.getServletContext(), RunContext.class);
+    final IUser user = UserUtils.getUser(
+      ServletActionContext.getRequest(), Objects.requireNonNull(runContext, "runContext can not be null"));
+    return user.getName();
+  }
 
   public static final IUser getUser(final HttpServletRequest r, RunContext runContext) {
 

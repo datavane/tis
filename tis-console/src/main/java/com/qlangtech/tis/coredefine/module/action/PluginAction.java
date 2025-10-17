@@ -124,7 +124,7 @@ import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
 @InterceptorRefs({@InterceptorRef("tisStack")})
 public class PluginAction extends BasicModule {
   private static final Logger logger = LoggerFactory.getLogger(PluginAction.class);
-  private OfflineManager offlineManager;
+ // private OfflineManager offlineManager;
 
   static {
 
@@ -382,7 +382,8 @@ public class PluginAction extends BasicModule {
     }
 
     PropertyType getFieldPropType() {
-      return (PropertyType) getTargetDesc().getPropertyType(this.field);
+      return (PropertyType) Objects.requireNonNull(getTargetDesc()
+        , "impl:" + this.pluginImpl + " relevant desc can not be null").getPropertyType(this.field);
     }
   }
 
@@ -1055,9 +1056,9 @@ public class PluginAction extends BasicModule {
   }
 
 
-  @Autowired
-  public void setOfflineManager(OfflineManager offlineManager) {
-    this.offlineManager = offlineManager;
-  }
+//  @Autowired
+//  public void setOfflineManager(OfflineManager offlineManager) {
+//    this.offlineManager = offlineManager;
+//  }
 
 }

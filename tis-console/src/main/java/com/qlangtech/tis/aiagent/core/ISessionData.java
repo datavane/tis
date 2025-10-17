@@ -22,6 +22,8 @@ package com.qlangtech.tis.aiagent.core;
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/10/6
+ * @see PluginPropsComplement
+ * @see SelectionOptions
  */
 public interface ISessionData {
 }
