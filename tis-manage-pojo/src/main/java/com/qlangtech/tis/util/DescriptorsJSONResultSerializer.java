@@ -21,6 +21,7 @@ package com.qlangtech.tis.util;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.fastjson2.JSONWriter;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.web.start.TisAppLaunch;
@@ -40,17 +41,20 @@ public class DescriptorsJSONResultSerializer implements ObjectSerializer {
 
     @Override
     public void write(JSONWriter jsonWriter, Object object, Object fieldName, Type fieldType, long features) {
-
+        boolean prettyFormat = SerializerFeature.isEnabled((int) features, SerializerFeature.PrettyFormat);
         DescriptorsJSONResult value = (DescriptorsJSONResult) object;
         Objects.requireNonNull(value, "callable of " + fieldName + " can not be null");
-        jsonWriter.writeRaw(toJSONString(value));
+        jsonWriter.writeRaw(toJSONString(value, prettyFormat));
     }
 
-    public String toJSONString(DescriptorsJSONResult value) {
+    public String toJSONString(DescriptorsJSONResult value, boolean prettyFormat) {
         JSONObject o = new JSONObject();
         final int fieldSize = value.descs.size();
-        StringBuffer json = new StringBuffer();
-        json.append("{\n");
+        StringBuilder json = new StringBuilder();
+        json.append("{");
+        if (prettyFormat) {
+            json.append("\n");
+        }
         int fieldIndex = 0;
         for (Map.Entry<String, Pair<JSONObject, Object>> entry : value.descs.entrySet()) {
             try {
@@ -58,7 +62,7 @@ public class DescriptorsJSONResultSerializer implements ObjectSerializer {
                     DescriptorsJSONResult.rootDescriptorLocal.set(entry.getValue().getValue());
                 }
                 json.append("\t\"").append(entry.getKey()).append("\":")
-                        .append(JsonUtil.toString(entry.getValue().getLeft(), TisAppLaunch.isTestMock()));
+                        .append(JsonUtil.toString(entry.getValue().getLeft(), prettyFormat));
                 if (++fieldIndex < fieldSize) {
                     json.append(",");
                 }
@@ -70,7 +74,10 @@ public class DescriptorsJSONResultSerializer implements ObjectSerializer {
                 }
             }
         }
-        json.append("\n}");
+        if (prettyFormat) {
+            json.append("\n");
+        }
+        json.append("}");
         return json.toString();
     }
 

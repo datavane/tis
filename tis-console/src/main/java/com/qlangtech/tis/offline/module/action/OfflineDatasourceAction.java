@@ -89,6 +89,7 @@ import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroList;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceTable;
@@ -1124,23 +1125,6 @@ public class OfflineDatasourceAction extends BasicModule {
         }).collect(Collectors.toList());
       }
     });
-
-
-//    this.setBizResult(context, filterSupportReader ? new ConfigDsMeta(offlineManager.getDatasourceInfo(), descMap) {
-//      @Override
-//      public Collection<DatasourceDb> getDbsSupportDataXReader() {
-//
-//        return this.dbs.stream().filter((db) -> {
-//          DataSourceFactory.BaseDataSourceFactoryDescriptor desc = descMap.get(StringUtils.lowerCase(db.extensionDesc));
-//          if (desc == null) {
-//            //              throw new IllegalStateException("extendDesc:" + db.extensionDesc
-//            //                + " can not find relevant Desc instance in :" + String.join(",", descMap.keySet()));
-//            return false;
-//          }
-//          return desc.getDefaultDataXReaderDescName().isPresent();
-//        }).collect(Collectors.toList());
-//      }
-//    } : new ConfigDsMeta(offlineManager.getDatasourceInfo(), descMap));
   }
 
   public static class ConfigDsMeta extends PluginDescMeta {
@@ -1225,7 +1209,8 @@ public class OfflineDatasourceAction extends BasicModule {
           allNewTabs.add(createNewSelectedTab(pluginFormPropertyTypes, tab2cols));
           // 需要将desc中的取option列表解析一下（JsonUtil.UnCacheString）
           tabDesc.put(tab2cols.getKey(),
-            JSON.parseObject(JsonUtil.toString(desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()))));
+            JSON.parseObject(JsonUtil.toString(
+              desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()))));
         } finally {
           SuFormProperties.subFormGetterProcessThreadLocal.remove();
         }

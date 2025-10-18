@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin;
 import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.util.IPluginContext;
 
 import java.util.List;
@@ -30,6 +31,22 @@ import java.util.Optional;
  * @date 2020/04/13
  */
 public interface IPluginStoreSave<T extends Describable> extends IRepositoryTargetFile {
+
+    /**
+     * 不执行任何保存功能
+     */
+     IPluginStoreSave noneSave = new IPluginStoreSave() {
+        @Override
+        public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional optional, List dlist, boolean update) {
+            return new SetPluginsResult(true, false);
+        }
+
+        @Override
+        public XmlFile getTargetFile() {
+            throw new UnsupportedOperationException();
+        }
+    };
+
 
     default SetPluginsResult setPlugins(IPluginContext pluginContext
             , Optional<Context> context, List<Descriptor.ParseDescribable<T>> dlist) {

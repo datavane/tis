@@ -66,6 +66,10 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     private static final Pattern PATTERN_PLUGIN_META = Pattern.compile("(.+?)(:(,?(" + PATTERN_PLUGIN_ATTRIBUTE + "))"
             + "+)?");
 
+    /**
+     * 跳过插件实例保存执行流程
+     */
+    public static final String KEY_SKIP_PLUGINS_SAVE =  "skipPluginSave";
     public static final String KEY_REQUIRE = "require";
 
     public static final String KEY_UNCACHE = "uncache";

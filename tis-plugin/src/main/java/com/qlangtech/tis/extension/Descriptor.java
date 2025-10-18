@@ -232,7 +232,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             Objects.requireNonNull(refCreator, "field:" + entry.getKey()
                     + " of plugin:" + this.clazz.getName() + " relevant refCreator can not be null");
             refCreator.ifPresent((creator) -> {
-               // List<Option> selectableOpts =  creator.getSelectableOpts();
+                // List<Option> selectableOpts =  creator.getSelectableOpts();
                 //JSONObject extraProps = pt.getExtraProps();
 //                switch (pt.formField.type()) {
 //                    case ENUM: {
@@ -246,7 +246,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 //                    default:
 //                        throw new IllegalStateException();
 //                }
-              //  List<Option> valOptions = null;
+                //  List<Option> valOptions = null;
 
                 result.put(entry.getKey(), creator);
 
@@ -676,23 +676,45 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         }
                     }
 
+
                     boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, postFormVals, propValRewrite, parentFormVals);
 
-                    if (valid && verify == FormVaildateType.VERIFY) {
-                        if (!verify(msgHandler, context, postFormVals) //
-                                || !validateSubformByParent(subFormFilter, postFormVals)) {
-                            valid = false;
+                    if (verify == FormVaildateType.STRICT) {
+                        if (valid) {
+                            if (!verify(msgHandler, context, postFormVals) //
+                                    || !validateSubformByParent(subFormFilter, postFormVals)) {
+                                valid = false;
+                            }
+                        }
+                        if (valid) {
+                            if (!validateAll(msgHandler, context, postFormVals)//
+                                    || !validateSubformByParent(subFormFilter, postFormVals)) {
+                                valid = false;
+                            }
+                        }
+                        if (valid) {
+                            return isValid(msgHandler, context, FormVaildateType.SECOND_VALIDATE
+                                    , subFormFilter, propertyTypes, postFormVals, propValRewrite, Optional.of(postFormVals));
+                        }
+                    } else {
+                        if (valid && verify == FormVaildateType.VERIFY) {
+                            if (!verify(msgHandler, context, postFormVals) //
+                                    || !validateSubformByParent(subFormFilter, postFormVals)) {
+                                valid = false;
+                            }
+                        }
+                        if (valid && verify == FormVaildateType.FIRST_VALIDATE) {
+                            if (!validateAll(msgHandler, context, postFormVals)//
+                                    || !validateSubformByParent(subFormFilter, postFormVals)) {
+                                valid = false;
+                            }
+                        }
+                        if (valid && verify == FormVaildateType.VERIFY) {
+                            return isValid(msgHandler, context, FormVaildateType.SECOND_VALIDATE, subFormFilter, propertyTypes, postFormVals, propValRewrite, Optional.of(postFormVals));
                         }
                     }
-                    if (valid && verify == FormVaildateType.FIRST_VALIDATE) {
-                        if (!validateAll(msgHandler, context, postFormVals)//
-                                || !validateSubformByParent(subFormFilter, postFormVals)) {
-                            valid = false;
-                        }
-                    }
-                    if (valid && verify == FormVaildateType.VERIFY) {
-                        return isValid(msgHandler, context, FormVaildateType.SECOND_VALIDATE, subFormFilter, propertyTypes, postFormVals, propValRewrite, Optional.of(postFormVals));
-                    }
+
+
                     return valid;
                 }
 
@@ -817,7 +839,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
         FIRST_VALIDATE,
         SECOND_VALIDATE,
-        VERIFY;
+        VERIFY,
+        // 最严格的校验 VERIFY + FIRST_VALIDATE 都要执行
+        STRICT;
 
         public static FormVaildateType create(boolean verify) {
             return verify ? VERIFY : FIRST_VALIDATE;

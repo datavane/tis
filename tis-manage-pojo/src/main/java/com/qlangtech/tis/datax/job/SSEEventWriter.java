@@ -46,7 +46,7 @@ public class SSEEventWriter extends FilterWriter {
     }
 
     public final void writeSSEEvent(SSERunnable.SSEEventType event, JSONObject data) {
-        this.writeSSEEvent(event, data.toJSONString());
+        this.writeSSEEvent(event, com.qlangtech.tis.trigger.util.JsonUtil.toString(data, false));
         sseEventConsumer.accept(event, data);
     }
 

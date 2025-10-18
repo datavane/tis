@@ -34,6 +34,7 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 

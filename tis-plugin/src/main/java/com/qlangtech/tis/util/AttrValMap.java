@@ -18,6 +18,7 @@
 package com.qlangtech.tis.util;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
@@ -35,6 +36,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.qlangtech.tis.extension.Descriptor.KEY_DESC_VAL;
+import static com.qlangtech.tis.extension.Descriptor.KEY_primaryVal;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -120,14 +124,40 @@ public class AttrValMap {
         DescriptorsJSON.setDescInfo(this.descriptor, false, body);
 
         JSONObject vals = new JSONObject();
-        this.attrValMap.vistAttrValMap(vals::put);
+        this.attrValMap.vistAttrValMap((field, val) -> {
+            convertFieldVal(vals, field, val);
+        });
         body.put(PLUGIN_EXTENSION_VALS, vals);
         return body;
     }
 
+    private void convertFieldVal(JSONObject vals, String field, JSON val) {
+        if (val instanceof JSONObject) {
+            JSONObject propVal = (JSONObject) val;
+            if (propVal.containsKey(KEY_DESC_VAL)) {
+                // 说明是describle类型的
+                JSONObject pluginBody = propVal.getJSONObject(KEY_DESC_VAL);
+                JSONObject pluginVals = new JSONObject();
+                JSONObject rawVals = pluginBody.getJSONObject(PLUGIN_EXTENSION_VALS);
+                for (Map.Entry<String, Object> entry : rawVals.entrySet()) {
+                    convertFieldVal(pluginVals, entry.getKey(), (JSON) entry.getValue());
+                }
+                pluginBody.put(PLUGIN_EXTENSION_VALS, pluginVals);
+                vals.put(field, pluginBody);
+
+            } else {
+                vals.put(field, propVal.get(KEY_primaryVal));
+            }
+        } else {
+            throw new IllegalStateException("illegal val type:" + val.getClass().getName());
+        }
+    }
+
+
+
+
 
     public Descriptor.PluginValidateResult validate(IControlMsgHandler msgHandler, Context context, FormVaildateType verify, Optional<PostFormVals> parentFormVals) {
-        // return this.descriptor.verify(msgHandler, context, verify, attrValMap, subFormFilter);
         return this.validate(msgHandler, context, Optional.empty(), verify, parentFormVals);
     }
 
@@ -139,31 +169,10 @@ public class AttrValMap {
      * @return true：校验没有错误 false：校验有错误
      */
     public Descriptor.PluginValidateResult validate(
-            IControlMsgHandler msgHandler, Context context, Optional<PluginFormProperties> propertyTypes, FormVaildateType verify, Optional<PostFormVals> parentFormVals) {
+            IControlMsgHandler msgHandler, Context context
+            , Optional<PluginFormProperties> propertyTypes, FormVaildateType verify, Optional<PostFormVals> parentFormVals) {
         return this.descriptor.verify(msgHandler, context, verify, attrValMap, propertyTypes, subFormFilter, this.propValRewrite, parentFormVals);
     }
-
-//    /**
-//     * 二次校验，如果Describle插件内部有Describle类型的属性，当父插件校验通过之后，再继续对内部的Describle子插件进行校验
-//     * @param msgHandler
-//     * @param context
-//     * @param postFormVals
-//     * @param verify
-//     * @return
-//     */
-//    public Descriptor.PluginValidateResult secondValidate(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals, PostFormVals parentPostFormVals) {
-//        return this.descriptor.secondVerify(msgHandler,context, null ,parentPostFormVals);
-//    }
-
-//    public String createOrGetNotebook(IControlMsgHandler msgHandler, Context context) throws Exception {
-//
-//        if (!(this.descriptor instanceof INotebookable)) {
-//            throw new IllegalStateException("desc:" + this.descriptor.getClass().getName() + " must be instance of " + INotebookable.class.getSimpleName());
-//        }
-//        INotebookable notebook = (INotebookable) this.descriptor;
-//        return notebook.createOrGetNotebook((new Descriptor.PostFormVals(this.descriptor, msgHandler, context,
-//                this.attrValMap)).newInstance());
-//    }
 
     public Descriptor.ParseDescribable createDescribable(IControlMsgHandler pluginContext, Context context) {
         return this.createDescribable(pluginContext, context, Optional.empty());

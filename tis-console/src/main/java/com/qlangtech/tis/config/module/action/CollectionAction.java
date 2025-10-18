@@ -1044,25 +1044,6 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {
       delegateContext.addDb(dbDesc, dbName, context, shallUpdateDB);
     }
-//    @Override
-//    public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {
-//      // CollectionAction.this.
-//      DatasourceDbCriteria criteria = new DatasourceDbCriteria();
-//      criteria.createCriteria().andNameEqualTo(dbName);
-//      int exist = CollectionAction.this.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);
-//      // 如果数据库已经存在则直接跳过
-//      if (exist > 0) {
-//        for (DatasourceDb db : CollectionAction.this.getWorkflowDAOFacade()
-//          .getDatasourceDbDAO().selectByExample(criteria)) {
-//          CollectionAction.this.setBizResult(context, offlineManager.getDbConfig(CollectionAction.this, db));
-//          return;
-//        }
-//      }
-//      if (shallUpdateDB) {
-//        PluginAction.createDatabase(CollectionAction.this, dbDesc, dbName, context, true, offlineManager);
-//      }
-//
-//    }
   }
 
   private static class LogReader implements ILogListener {

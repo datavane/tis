@@ -19,7 +19,6 @@
 package com.qlangtech.tis.util;
 
 import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 
 /**
  *
@@ -29,8 +28,5 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
  **/
 public interface IPluginItemsProcessor {
   IPluginWithStore getStorePlugins();
-
- // String cerateOrGetNotebook(IControlMsgHandler pluginContext, Context context) throws Exception;
-
   IItemsSaveResult save(Context context);
 }

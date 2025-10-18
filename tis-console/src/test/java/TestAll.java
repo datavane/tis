@@ -40,14 +40,9 @@ public class TestAll extends TestCase {
   public static Test suite() {
     TestSuite suite = new TestSuite();
     suite.addTestSuite(TestPluginItems.class);
-
-    // suite.addTestSuite(TestTISK8sDelegate.class);
-    //suite.addTestSuite(TestCoreAction.class);
-
     suite.addTestSuite(TestSysInitializeAction.class);
     suite.addTestSuite(TestSchemaResult.class);
     suite.addTestSuite(TestSchemaAction.class);
-    //suite.addTestSuite(TestCollectionAction.class);
     suite.addTestSuite(TestPluginAction.class);
     suite.addTestSuite(TestOfflineDatasourceAction.class);
     suite.addTestSuite(TestDataXAction.class);

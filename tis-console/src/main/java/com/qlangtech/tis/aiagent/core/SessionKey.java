@@ -46,4 +46,9 @@ public class SessionKey {
   public String getSessionKey() {
     return this.requestId;
   }
+
+  @Override
+  public String toString() {
+    return this.getSessionKey();
+  }
 }

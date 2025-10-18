@@ -115,6 +115,30 @@ public class AgentContext {
     }
   }
 
+
+  /**
+   * 请求用户从候选项中选择
+   *
+   * @param requestId 请求标识符，用于后续匹配用户的选择结果
+   * @param prompt    提示信息
+   * @param options   候选项列表
+   */
+  public void requestUserSelection(SessionKey requestId, String prompt, JSONObject options, List<PluginExtraProps.CandidatePlugin> candidatePlugins) {
+    if (!cancelled && sseWriter != null) {
+      JSONObject data = new JSONObject();
+      data.put("type", "selection_request");
+      data.put(KEY_REQUEST_ID, requestId.getSessionKey());
+      data.put("prompt", prompt);
+      data.put("options", options);
+
+      /**
+       * 向缓存中写入初始数据
+       */
+      this.setSessionData(requestId, SelectionOptions.createUnSelectedOptions(candidatePlugins));
+      sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_SELECTION_REQUEST, data);
+    }
+  }
+
   /**
    * 发送进度更新
    */
@@ -167,28 +191,7 @@ public class AgentContext {
     }
   }
 
-  /**
-   * 请求用户从候选项中选择
-   *
-   * @param requestId 请求标识符，用于后续匹配用户的选择结果
-   * @param prompt    提示信息
-   * @param options   候选项列表
-   */
-  public void requestUserSelection(SessionKey requestId, String prompt, JSONObject options, List<PluginExtraProps.CandidatePlugin> candidatePlugins) {
-    if (!cancelled && sseWriter != null) {
-      JSONObject data = new JSONObject();
-      data.put("type", "selection_request");
-      data.put(KEY_REQUEST_ID, requestId.getSessionKey());
-      data.put("prompt", prompt);
-      data.put("options", options);
 
-      /**
-       * 向缓存中写入初始数据
-       */
-      this.setSessionData(requestId, SelectionOptions.createUnSelectedOptions(candidatePlugins));
-      sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_SELECTION_REQUEST, data);
-    }
-  }
 
   /**
    * 通知用户选择已提交

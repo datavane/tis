@@ -43,9 +43,7 @@ import com.qlangtech.tis.plugin.TestPluginStore;
 import com.qlangtech.tis.plugin.annotation.TestValidator;
 import com.qlangtech.tis.plugin.datax.TestCreateDDL;
 import com.qlangtech.tis.plugin.datax.TestSelectedTab;
-import com.qlangtech.tis.plugin.datax.transformer.impl.TestCopyValUDF;
 import com.qlangtech.tis.plugin.datax.transformer.impl.TestTransformerRuleElementCreatorFactory;
-//import com.qlangtech.tis.plugin.datax.transformer.jdbcprop.TestPainTargetColumn;
 import com.qlangtech.tis.plugin.datax.transformer.jdbcprop.TestTargetColType;
 import com.qlangtech.tis.plugin.ds.TestDataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.TestSplitableTableInDB;
@@ -80,7 +78,6 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestTableAlias.class);
         suite.addTestSuite(TestScannerPatterns.class);
         suite.addTestSuite(TestDBConfigParser.class);
-        //   suite.addTestSuite(TestValidatorCommons.class);
         suite.addTestSuite(TestHeteroList.class);
         suite.addTestSuite(TestUploadPluginMeta.class);
         suite.addTestSuite(TestValidator.class);
@@ -102,9 +99,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestK8sImage.class);
         suite.addTestSuite(TestServerLaunchToken.class);
         suite.addTestSuite(TestTransformerRuleElementCreatorFactory.class);
-        // suite.addTestSuite(TestCopyValUDF.class);
         suite.addTestSuite(TestTargetColType.class);
-        //  suite.addTestSuite(TestPainTargetColumn.class);
         suite.addTestSuite(TestDataXCfgGenerator.class);
         suite.addTestSuite(TestCreateDDL.class);
         suite.addTestSuite(TestSplitableTableInDB.class);

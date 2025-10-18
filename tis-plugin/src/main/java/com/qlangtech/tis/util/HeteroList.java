@@ -26,6 +26,7 @@ import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.CompanionPluginFactory;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.lang.StringUtils;
 
 import java.net.URLEncoder;

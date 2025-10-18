@@ -893,7 +893,7 @@ public class PluginAction extends BasicModule {
 
     boolean faild = false;
     List<IPluginItemsProcessor> categoryPlugins = Lists.newArrayList();
-    // final boolean processNotebook = this.getBoolean("getNotebook");
+
     // 是否进行业务逻辑校验？当正式提交表单时候不进行业务逻辑校验，用户可能先添加一个不存在的数据库配置
     final boolean verify = this.getBoolean("verify");
     Pair<Boolean, IPluginItemsProcessor> pluginItemsParser = null;
@@ -902,7 +902,8 @@ public class PluginAction extends BasicModule {
       pluginMeta = plugins.get(pluginIndex);
       JSONArray itemsArray = pluginArray.getJSONArray(pluginIndex);
 
-      pluginItemsParser = getPluginItems(pluginMeta, context, pluginIndex, itemsArray, verify, ((propType, val) -> val));
+      pluginItemsParser = getPluginItems(pluginMeta, context, pluginIndex
+        , itemsArray, verify, ((propType, val) -> val));
       if (pluginItemsParser.getKey()) {
         faild = true;
       }

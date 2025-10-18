@@ -60,6 +60,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.util.UploadPluginMeta.KEY_SKIP_PLUGINS_SAVE;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020-02-10 12:24
@@ -91,6 +93,7 @@ public class PluginItems implements IPluginItemsProcessor {
       public void setBizResult(Context context, Object result) {
         //super.setBizResult(context, result);
       }
+
       @Override
       public BasicPipelineValidator getPipelineValidator(BizLogic logicType) {
         throw new UnsupportedOperationException();
@@ -238,6 +241,10 @@ public class PluginItems implements IPluginItemsProcessor {
   }
 
   private IPluginStoreSave<?> getStore(List<Descriptor.ParseDescribable<?>> dlist) {
+    if (this.pluginMeta.getBoolean(KEY_SKIP_PLUGINS_SAVE)) {
+      return IPluginStoreSave.noneSave;
+    }
+
     IPluginStoreSave<?> store = null;
     if (heteroEnum == HeteroEnum.APP_SOURCE) {
 

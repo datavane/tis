@@ -46,6 +46,10 @@ public class DescriptorsJSONResult {
      */
     final boolean rootDesc;
 
+    /**
+     *
+     * @param rootDesc
+     */
     public DescriptorsJSONResult(boolean rootDesc) {
         this.rootDesc = rootDesc;
     }
