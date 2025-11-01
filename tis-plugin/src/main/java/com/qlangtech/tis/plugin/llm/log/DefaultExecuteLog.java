@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson2.reader.ObjectReaderImplJSONP;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
+import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.slf4j.Logger;
@@ -39,10 +40,10 @@ public class DefaultExecuteLog implements ExecuteLog {
     private JSONObject responseJson;
     private JSONObject errBody;
     private final Logger logger;
-    private final String prompt;
+    private final UserPrompt prompt;
     private final IAgentContext context;
 
-    public DefaultExecuteLog(String prompt, IAgentContext context, Logger logger) {
+    public DefaultExecuteLog(UserPrompt prompt, IAgentContext context, Logger logger) {
         this.logger = Objects.requireNonNull(logger, "logger can not be null");
         this.prompt = Objects.requireNonNull(prompt, "prompt can not be null");
         this.context = Objects.requireNonNull(context, "context can not be null");
@@ -50,7 +51,7 @@ public class DefaultExecuteLog implements ExecuteLog {
 
     @Override
     public void setPostParams(List<HttpUtils.PostParam> postParams) {
-        context.sendLLMStatus(LLMProvider.LLMChatPhase.Start, prompt);
+        context.sendLLMStatus(LLMProvider.LLMChatPhase.Start, prompt.getAbstractInfo());
         this.postParams = postParams;
     }
 

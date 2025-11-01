@@ -26,6 +26,7 @@ import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.trigger.util.JsonUtil;
@@ -332,7 +333,8 @@ public class AgentContext implements IAgentContext {
 
           if (remainingTime <= 0) {
             // 超时
-            break;
+            throw TisException.create("操作已经超时");
+            // break;
           }
 
           try {

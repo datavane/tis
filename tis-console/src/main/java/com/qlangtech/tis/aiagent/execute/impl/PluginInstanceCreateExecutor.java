@@ -33,6 +33,7 @@ import com.qlangtech.tis.aiagent.core.SelectionOptions;
 import com.qlangtech.tis.aiagent.core.TableSelectApplySessionData;
 import com.qlangtech.tis.aiagent.execute.StepExecutor;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
+import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
 import com.qlangtech.tis.aiagent.plan.TaskPlan;
 import com.qlangtech.tis.aiagent.plan.TaskStep;
@@ -126,7 +127,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
 //        prefix + plan.getTargetEnd().getType()
 //        , pipelineRules.getExistEntities(Optional.of(prefix))));
 
-      AttrValMap pluginVals = createPluginInstance(plan, context, plan.getUserInput() //
+      AttrValMap pluginVals = createPluginInstance(plan, context, new UserPrompt("正在生成管道主体配置...", plan.getUserInput()) //
         , Optional.empty() //
         , plan.processorExtendPoints, HeteroEnum.APP_SOURCE, new IPrimaryValRewrite() {
           IFieldErrorHandler.BasicPipelineValidator pipelineRules
@@ -166,7 +167,9 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
       DescribableImpl dataXReaderImpl = plan.readerExtendPoints.get(DataxReader.class);
 
       DataxReader dataXReader = createPluginAndStore(HeteroEnum.DATAX_READER, plan, Optional.of(endCfg.getType())
-        , dataXReaderImpl, endCfg.getRelevantDesc(), context, primaryValRewrite, ctx, pluginCtx, processMeta);
+        , dataXReaderImpl
+        , new UserPrompt("正在生成源端" + endCfg.getType() + "主体配置...", endCfg.getRelevantDesc())
+        , context, primaryValRewrite, ctx, pluginCtx, processMeta);
 
       /**********************************************************
        * 选择表
@@ -244,9 +247,11 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
       DescribableImpl dataXWriterImpl = plan.writerExtendPoints.get(DataxWriter.class);
 
       createPluginAndStore(HeteroEnum.DATAX_WRITER, plan, Optional.of(endCfg.getType())
-        , dataXWriterImpl, endCfg.getRelevantDesc(), context, primaryValRewrite, ctx, pluginCtx, processMeta);
+        , dataXWriterImpl
+        , new UserPrompt("正在生成目标端" + endCfg.getType() + "主体配置...", endCfg.getRelevantDesc())
+        , context, primaryValRewrite, ctx, pluginCtx, processMeta);
 
-     // TableAlias.saveTableMapper(this, dataxName, tableMaps);
+      // TableAlias.saveTableMapper(this, dataxName, tableMaps);
 
       /*******************************************************
        * 创建管道
@@ -277,7 +282,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
 
   private <PLUGIN extends Describable> PLUGIN createPluginAndStore(HeteroEnum hetero
     , TaskPlan plan, Optional<IEndTypeGetter.EndType> endType, DescribableImpl pluginImpl
-    , String userInput
+    , UserPrompt userInput
     , AgentContext context, IPrimaryValRewrite primaryValRewrite
     , Context ctx, PartialSettedPluginContext pluginCtx, UploadPluginMeta pluginMetaMeta) throws Exception {
     AttrValMap pluginVals = createPluginInstance(plan, context, userInput //
@@ -313,7 +318,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
    * @return
    * @throws Exception
    */
-  private AttrValMap createPluginInstance(TaskPlan plan, AgentContext context, String userInput //
+  private AttrValMap createPluginInstance(TaskPlan plan, AgentContext context, UserPrompt userInput //
     , Optional<IEndTypeGetter.EndType> endType, DescribableImpl pluginImpl //
     , IPluginEnum heteroEnum, IPrimaryValRewrite primaryValRewrite) throws Exception {
     Pair<DescriptorsJSONResult, DescriptorsJSONForAIPromote> desc = DescriptorsJSONForAIPromote.desc(pluginImpl);
@@ -321,7 +326,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
     DescriptorsJSONForAIPromote forAIPromote = desc.getValue();
     DescribableImpl propImplInfo = null;
     Descriptor implDesc = null;
-    Map<String, PluginExtraProps.FieldRefCreateor> propsImplRefs = null;
+    // Map<String, PluginExtraProps.FieldRefCreateor> propsImplRefs = null;
     Map<Class<? extends Descriptor>, DescribableImpl> fieldDescRegister = forAIPromote.getFieldDescRegister();
 
     Map<String, IdentityName> propsImplRefsVals = null;
@@ -329,7 +334,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
     for (Map.Entry<Class<? extends Descriptor>, DescribableImpl> entry : fieldDescRegister.entrySet()) {
       propImplInfo = entry.getValue();
       implDesc = propImplInfo.getImplDesc();
-      propsImplRefs = implDesc.getPropsImplRefs();
+      // propsImplRefs = implDesc.getPropsImplRefs();
       // PluginExtraProps.FieldRefCreateor refCreateor = null;
 
       propsImplRefsVals = setPropsImplRefsVals(plan, context, userInput, endType, implDesc);
@@ -375,7 +380,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
   }
 
   private Map<String, IdentityName> setPropsImplRefsVals(TaskPlan plan, AgentContext context
-    , String userInput, Optional<IEndTypeGetter.EndType> endType, Descriptor implDesc) throws Exception {
+    , UserPrompt userInput, Optional<IEndTypeGetter.EndType> endType, Descriptor implDesc) throws Exception {
     Map<String, IdentityName> propsImplRefsVals = Maps.newHashMap();
     Map<String, PluginExtraProps.FieldRefCreateor> propsImplRefs = implDesc.getPropsImplRefs();
     Descriptor installedPluginDescriptor;
@@ -426,7 +431,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
 
       List<Option> existOpts = refCreateor.getValOptions();
       // 开始实例化插件
-      AttrValMap pluginVals = createInnerPluginInstance(plan, context, userInput, refCreateor
+      AttrValMap pluginVals = createInnerPluginInstance(plan, context, userInput.setAbstract("解析'" + candidatePlugin.getTargetItemDesc() + "'插件内容"), refCreateor
         , Objects.requireNonNull(candidatePlugin
           , "candidatePlugin can not be null for field:" + e.getKey()));
 
@@ -439,32 +444,20 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
         continue fieldValCreate;
       }
 
-      Context ctx = plan.getRuntimeContext(true);// new DefaultContext(); //plan.getRuntimeContext();
-      // PartialSettedPluginContext msgHandler = createPluginContext(plan, null);
-
-      // Descriptor.ParseDescribable plugin = pluginVals.createDescribable(msgHandler, ctx);
+      Context ctx = plan.getRuntimeContext(true);
       // 需要持久化
       IPluginEnum pluginEnum = candidatePlugin.getHetero();
-      IdentityName pluginRef = IdentityName.create(pluginVals.getPrimaryFieldVal());// (IdentityName) plugin.getInstance();
-      // IPluginStore pluginStore = null;
+      IdentityName pluginRef = IdentityName.create(pluginVals.getPrimaryFieldVal());
       IPluginContext pluginCtx = null;
       PluginItems pItems = null;
       switch (refCreateor.getAssistType()) {
         case paramCfg: {
-//          pluginStore = pluginEnum.getPluginStore(
-//            null, ParamsConfigPluginStore.createParamsConfig(pluginEnum, candidatePlugin));
-
           pItems = new PluginItems(pluginCtx, ctx, ParamsConfigPluginStore.createParamsConfig(pluginEnum, candidatePlugin));
-
           break;
         }
         case dbQuickManager: {
           pluginCtx = IPluginContext.namedContext(new DataXName(pluginRef.identityValue(), StoreResourceType.DataBase))
             .setTargetRuntimeContext((IPluginContext) plan.getControlMsgHandler());
-//          pluginStore
-//            = pluginEnum.getPluginStore(
-//            pluginCtx, PostedDSProp.createPluginMeta(DBIdentity.parseId(pluginRef.identityValue()), false)
-//              .putExtraParams(DBIdentity.KEY_TYPE, DbScope.DETAILED.getToken()));
           pItems = new PluginItems(pluginCtx, ctx, PostedDSProp.createPluginMeta(DBIdentity.parseId(pluginRef.identityValue()), false)
             .putExtraParams(DBIdentity.KEY_TYPE, DbScope.DETAILED.getToken()));
           break;
@@ -483,9 +476,6 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
       /**
        * 持久化保存
        */
-//      Objects.requireNonNull(pluginStore, "pluginStore can not be null")
-//        .setPlugins(pluginCtx, Optional.of(plan.getRuntimeContext()), Collections.singletonList(plugin));
-
       propsImplRefsVals.put(e.getKey(), pluginRef);
     }
     return propsImplRefsVals;
@@ -600,17 +590,17 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
    * @param llmProvider
    * @return
    */
-  public JSONObject extractUserInput2Json(IAgentContext context, String userInput
+  public JSONObject extractUserInput2Json(IAgentContext context, UserPrompt userInput
     , Optional<IEndTypeGetter.EndType> endType, JSONObject descriptorJson, LLMProvider llmProvider) {
-    String prompt = "用户输入内容：" + userInput + "\n 参照json结构说明，如下：\n" + JsonUtil.toString(descriptorJson, true);
-    String systemPrompt = "你是TIS数据集成平台的智能助手。你的任务是帮助用户创建数据同步管道。\n" +
+    String prompt = "用户输入内容：" + userInput.getPrompt() + "\n 参照json结构说明，如下：\n" + JsonUtil.toString(descriptorJson, true);
+    final String systemPrompt = "你是TIS数据集成平台的智能助手。你的任务是帮助用户创建数据同步管道。\n" +
       endType.map((end) -> "当前处理的数据端是针对：" + String.valueOf(end)).orElse(StringUtils.EMPTY) + "\n" +
       "现在需要通过用户提交的内容，结合提系统提供的json结构说明，解析出结构化的json作为输出内容";
 
     JSONObject pluginPostBody = null;
     final String jsonSchema = "\n\n请严格按照系统提示中输出json的Schema格式返回结果";
     try (InputStream sysPromote = PluginInstanceCreateExecutor.class.getResourceAsStream("describle_plugin_json_create_deamo.md")) {
-      LLMProvider.LLMResponse llmResponse = llmProvider.chatJson(context, prompt
+      LLMProvider.LLMResponse llmResponse = llmProvider.chatJson(context, userInput.setNewPrompt(prompt)
         , Lists.newArrayList(systemPrompt
           , IOUtils.toString(Objects.requireNonNull(sysPromote, "sysPromote can not be null"), TisUTF8.get())), jsonSchema);
       return pluginPostBody = llmResponse.getJsonContent();
@@ -629,7 +619,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
    * @return
    * @throws Exception
    */
-  private AttrValMap createInnerPluginInstance(TaskPlan plan, AgentContext context, String userInput
+  private AttrValMap createInnerPluginInstance(TaskPlan plan, AgentContext context, UserPrompt userInput
     , PluginExtraProps.FieldRefCreateor refCreateor //
     , PluginExtraProps.CandidatePlugin candidate) throws Exception {
     Descriptor installedPluginDescriptor = candidate.getInstalledPluginDescriptor();

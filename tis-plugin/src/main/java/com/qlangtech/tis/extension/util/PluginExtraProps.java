@@ -455,7 +455,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     }
 
     public static class CandidatePlugin {
-        private String displayName;
+        private final String displayName;
         // private String targetPluginCategory;
         private String hetero;
         private final Optional<String> targetItemDesc;
@@ -518,6 +518,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 //        public void setDescriptor(Descriptor descriptor) {
 //            this.descriptor = descriptor;
 //        }
+
 
         public String getTargetItemDesc() {
             return this.targetItemDesc.orElse(this.getDisplayName());

@@ -141,9 +141,7 @@ public interface IEndTypeGetter {
         , Dolphinscheduler("ds", EndTypeCategory.Assist, true) //
         , Deepseek("deepseek", EndTypeCategory.Assist, true) //
         , QWen("qwen", EndTypeCategory.Assist, true) //
-        , UserProfile("user-profile", EndTypeCategory.Assist, true)
-        , Pipeline("pipeline", EndTypeCategory.Assist, true)
-        , Workflow("workflow", EndTypeCategory.Assist, true)
+        , UserProfile("user-profile", EndTypeCategory.Assist, true), Pipeline("pipeline", EndTypeCategory.Assist, true), Workflow("workflow", EndTypeCategory.Assist, true)
         //
         //
 
@@ -178,12 +176,19 @@ public interface IEndTypeGetter {
         public static String KEY_SUPPORT_ICON = "supportIcon";
 
         public static EndType parse(String endType) {
+            return parse(endType, true, true);
+        }
+
+        public static EndType parse(String endType, boolean compareByVal, boolean validateNull) {
             for (EndType end : EndType.values()) {
-                if (end.val.equals(endType)) {
+                if ((compareByVal ? end.val : String.valueOf(end)).equals(endType)) {
                     return end;
                 }
             }
-            throw new IllegalStateException("illegal endType:" + endType);
+            if (validateNull) {
+                throw new IllegalStateException("illegal endType:" + endType);
+            }
+            return null;
         }
 
         private static Set<EndType> _dataEnds;

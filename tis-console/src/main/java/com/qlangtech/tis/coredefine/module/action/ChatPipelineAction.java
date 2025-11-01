@@ -169,10 +169,14 @@ public class ChatPipelineAction extends BasicModule {
     this.setBizResult(context, history);
   }
 
+  @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
+  public void doCancelCurrentTask(Context context) {
+
+  }
   /**
    * 切换模型
    */
-  @Func(value = PermissionConstant.AI_AGENT, sideEffect = true)
+  @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
   public void doChangeLlm(Context context) {
     String llm = this.getString("llm");
     if (StringUtils.isEmpty(llm)) {
@@ -197,7 +201,7 @@ public class ChatPipelineAction extends BasicModule {
   /**
    * SSE聊天接口 - 使用AsyncContext确保连接正确管理
    */
-  @Func(value = PermissionConstant.AI_AGENT, sideEffect = true)
+  @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
   public void doChat(Context context) throws IOException {
     String sessionId = this.getString("sessionId");
     String userInput = this.getString("input");
@@ -271,7 +275,7 @@ public class ChatPipelineAction extends BasicModule {
   /**
    * 用户响应输入（响应Agent的输入请求）
    */
-  @Func(value = PermissionConstant.AI_AGENT, sideEffect = true)
+  @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
   public void doUserResponse(Context context) {
     String sessionId = this.getString("sessionId");
     String fieldId = this.getString("fieldId");
@@ -296,7 +300,7 @@ public class ChatPipelineAction extends BasicModule {
    *
    * @param context
    */
-  @Func(value = PermissionConstant.AI_AGENT, sideEffect = true)
+  @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
   public void doConfirmTableSelection(Context context) {
     JSONObject jsonContent = this.getJSONPostContent();
     RequestKey requestId = RequestKey.create(jsonContent.getString(KEY_REQUEST_ID));
@@ -322,7 +326,7 @@ public class ChatPipelineAction extends BasicModule {
    *
    * @param context
    */
-  @Func(value = PermissionConstant.AI_AGENT, sideEffect = true)
+  @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
   public void doCheckInstallOption(Context context) {
     JSONObject jsonContent = this.getJSONPostContent();
     RequestKey requestId = RequestKey.create(jsonContent.getString(KEY_REQUEST_ID));
@@ -384,7 +388,7 @@ public class ChatPipelineAction extends BasicModule {
    *
    * @see AgentContext#waitForUserPost 中等待用户输入项
    */
-  @Func(value = PermissionConstant.AI_AGENT, sideEffect = true)
+  @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
   public void doSubmitSelection(Context context) {
 
     JSONObject jsonContent = this.getJSONPostContent();
@@ -421,7 +425,7 @@ public class ChatPipelineAction extends BasicModule {
   /**
    * 清除会话
    */
-  @Func(value = PermissionConstant.AI_AGENT, sideEffect = true)
+  @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
   public void doClearSession(Context context) {
     String sessionId = this.getString("sessionId");
     sessions.remove(sessionId);

@@ -25,6 +25,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
 import com.qlangtech.tis.aiagent.core.TestRealTISPlanAndExecuteAgent;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
+import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.Descriptor;
@@ -87,7 +88,7 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
       // 需要遍历他的所有属性如果有需要创建的属性插件需要先创建
       JSONObject jsonObject
         = instanceCreateExecutor.extractUserInput2Json(IAgentContext.createNull(),
-        userInput, endType, Objects.requireNonNull(entry.getValue()), llmProvider);
+        new UserPrompt("解析数据源配置", userInput), endType, Objects.requireNonNull(entry.getValue()), llmProvider);
 
       Objects.requireNonNull(jsonObject);
 

@@ -19,12 +19,15 @@ package com.qlangtech.tis.aiagent.core;
 
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
+import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.aiagent.plan.PlanGenerator;
 import com.qlangtech.tis.aiagent.plan.TaskPlan;
 import com.qlangtech.tis.aiagent.plan.TaskStep;
 import com.qlangtech.tis.aiagent.template.TaskTemplateRegistry;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,12 +59,11 @@ public class TISPlanAndExecuteAgent {
   private IControlMsgHandler controlMsgHandler;
 
 
-
   public TISPlanAndExecuteAgent(AgentContext context, LLMProvider llmProvider, IControlMsgHandler controlMsgHandler) {
     this.context = context;
 
     // 初始化LLM Provider
-    this.llmProvider = Objects.requireNonNull(llmProvider, "llmProvider can not be null");// LLMProvider.load("default");
+    this.llmProvider = Objects.requireNonNull(llmProvider, "llmProvider can not be null");
     this.controlMsgHandler = controlMsgHandler;
     // 初始化组件
     this.planGenerator = new PlanGenerator(llmProvider, this.controlMsgHandler);
@@ -74,7 +76,7 @@ public class TISPlanAndExecuteAgent {
    */
   public void execute(String userInput) {
     try {
-      context.sendMessage("您好！我正在分析您的需求...");
+      //context.sendMessage("您好！我正在分析您的需求...");
 
       // 1. 解析用户输入，生成执行计划
       TaskPlan plan = generatePlan(userInput);
@@ -92,7 +94,13 @@ public class TISPlanAndExecuteAgent {
 
     } catch (Exception e) {
       logger.error("Task execution failed", e);
-      context.sendError("执行任务时发生错误：" + e.getMessage());
+      TisException tisException = null;
+      if ((tisException = ExceptionUtils.throwableOfThrowable(e, TisException.class)) != null) {
+        context.sendError(tisException.getMessage());
+      } else {
+        context.sendError("执行任务时发生错误：" + e.getMessage());
+      }
+
     }
   }
 
@@ -106,14 +114,11 @@ public class TISPlanAndExecuteAgent {
       String prompt = buildUserPrompt(userInput);
 
       LLMProvider.LLMResponse response = llmProvider.chatJson(Objects.requireNonNull(context, "context can not be null")
-        , prompt, Collections.singletonList(systemPrompt), getPlanSchema());
+        , new UserPrompt("您好！我正在分析您的需求...", prompt), Collections.singletonList(systemPrompt), getPlanSchema());
 
       if (!response.isSuccess()) {
         throw new IllegalStateException("LLM call failed: " + response.getErrorMessage());
       }
-
-      // 更新Token使用情况
-     // context.updateTokenUsage(response.getTotalTokens());
 
       // 解析LLM返回的计划
       JSONObject planJson = response.getJsonContent();

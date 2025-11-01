@@ -20,6 +20,7 @@ package com.qlangtech.tis.aiagent.plan;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -59,14 +60,15 @@ public class PlanGenerator {
     JSONObject source = llmAnalysis.getJSONObject(PlanGenerator.KEY_SOURCE);
     JSONObject target = llmAnalysis.getJSONObject(PlanGenerator.KEY_TARGET);
 
+    // IEndTypeGetter.EndType.valueOf(source.getString(PlanGenerator.KEY_TYPE))
     TaskPlan.SourceDataEndCfg sourceEnd
-      = new TaskPlan.SourceDataEndCfg(IEndTypeGetter.EndType.valueOf(source.getString(PlanGenerator.KEY_TYPE)));
+      = new TaskPlan.SourceDataEndCfg(parseEndType(source));
     sourceEnd.setRelevantDesc(source.getString(PlanGenerator.KEY_EXTRACT_INFO));
     String[] extractTabs = StringUtils.split(source.getString(SUB_PROP_FIELD_NAME), ",");
     sourceEnd.setSelectedTabs(Lists.newArrayList(extractTabs));
 
     TaskPlan.DataEndCfg targetEnd
-      = new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.valueOf(target.getString(PlanGenerator.KEY_TYPE)));
+      = new TaskPlan.DataEndCfg(parseEndType(target));
     targetEnd.setRelevantDesc(target.getString(PlanGenerator.KEY_EXTRACT_INFO));
 
     TaskPlan plan = new TaskPlan(sourceEnd, targetEnd, this.llmProvider, this.controlMsgHandler);
@@ -87,6 +89,16 @@ public class PlanGenerator {
     //}
 
     return plan;
+  }
+
+  private static IEndTypeGetter.EndType parseEndType(JSONObject target) {
+    String type = target.getString(PlanGenerator.KEY_TYPE);
+    IEndTypeGetter.EndType endType
+      = IEndTypeGetter.EndType.parse(type, false, false);
+    if (endType == null) {
+      throw TisException.create("TIS目前不支持端类型：'" + type + "' ");
+    }
+    return endType;
   }
 
   /**

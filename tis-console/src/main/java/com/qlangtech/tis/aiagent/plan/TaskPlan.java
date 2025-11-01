@@ -35,6 +35,7 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,13 +84,15 @@ public class TaskPlan {
   public void checkDescribableImplHasSet() {
     for (DescribableImpl dImpl : readerExtendPoints.values()) {
       if (CollectionUtils.isEmpty(dImpl.getImpls())) {
-        throw new IllegalStateException(dImpl.getExtendPoint().getName() + " relevant plugin impl can not be null");
+        throw new IllegalStateException(dImpl.getExtendPoint().getSimpleName()
+          + "：" + dImpl.getEndType().map(String::valueOf).orElse(StringUtils.EMPTY) + " relevant plugin impl can not be null");
       }
     }
 
     for (DescribableImpl dImpl : writerExtendPoints.values()) {
       if (CollectionUtils.isEmpty(dImpl.getImpls())) {
-        throw new IllegalStateException(dImpl.getExtendPoint().getName() + " relevant plugin impl can not be null");
+        throw new IllegalStateException(dImpl.getExtendPoint().getSimpleName()
+          + "：" + dImpl.getEndType().map(String::valueOf).orElse(StringUtils.EMPTY) + " relevant plugin impl can not be null");
       }
     }
   }

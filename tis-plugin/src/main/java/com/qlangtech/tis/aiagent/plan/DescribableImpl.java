@@ -53,6 +53,10 @@ public class DescribableImpl {
         this.endType = endType;
     }
 
+    public Optional<IEndTypeGetter.EndType> getEndType() {
+        return this.endType;
+    }
+
     public Class<? extends Describable> getExtendPoint() {
         return this.extendPoint;
     }

@@ -24,6 +24,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
+import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
@@ -108,11 +109,11 @@ public class QWenLLMProvider extends LLMProvider {
     public Boolean printLog;
 
     @Override
-    public LLMResponse chat(IAgentContext context, String prompt, List<String> systemPrompt) {
+    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
         return chat(context, prompt, systemPrompt, true);
     }
 
-    public LLMResponse chat(IAgentContext context, String prompt, List<String> systemPrompt, boolean logSummary) {
+    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary) {
         ExecuteLog executeLog = this.printLog ? new DefaultExecuteLog(prompt, context, logger) : new NoneExecuteLog();
         try {
             // 构建请求参数
@@ -132,7 +133,7 @@ public class QWenLLMProvider extends LLMProvider {
 
             JSONObject userMessage = new JSONObject();
             userMessage.put("role", "user");
-            userMessage.put("content", prompt);
+            userMessage.put("content", prompt.getPrompt());
             messages.add(userMessage);
             postParams.add(new HttpUtils.PostParam("messages", messages));
 
@@ -255,15 +256,15 @@ public class QWenLLMProvider extends LLMProvider {
     }
 
     @Override
-    public LLMResponse chatJson(IAgentContext context, String prompt, List<String> systemPrompt, String jsonSchema) {
+    public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, String jsonSchema) {
         // 增强prompt，要求返回JSON格式
-        String enhancedPrompt = prompt;
+        String enhancedPrompt = prompt.getPrompt();
         if (StringUtils.isNotEmpty(jsonSchema)) {
             enhancedPrompt += "\n\n请严格按照以下JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + jsonSchema;
             enhancedPrompt += "\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。";
         }
 
-        LLMResponse response = chat(context, enhancedPrompt, systemPrompt, false);
+        LLMResponse response = chat(context, prompt.setNewPrompt(enhancedPrompt), systemPrompt, false);
 
         try {
             if (response.isSuccess() && response.getContent() != null) {
@@ -366,7 +367,7 @@ public class QWenLLMProvider extends LLMProvider {
 
             QWenLLMProvider llmProvider = postFormVals.newInstance();
             try {
-                llmProvider.chat(IAgentContext.createNull(), "hello", null);
+                llmProvider.chat(IAgentContext.createNull(), new UserPrompt("test", "hello"), null);
             } catch (Exception e) {
                 msgHandler.addErrorMessage(context, e.getMessage());
                 return false;
