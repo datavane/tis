@@ -1,0 +1,90 @@
+{
+  "name": {
+    "help": "实例的唯一性名称，取一个方便记忆的名称",
+    "placeholder": "qwen1"
+  },
+  "apiKey": {
+    "label": "API Key",
+    "help": "通义千问API密钥，请在阿里云控制台获取并妥善保管"
+  },
+  "baseUrl": {
+    "label": "Base URL",
+    "readonly": true,
+    "dftVal": "https://dashscope.aliyuncs.com",
+    "help": "API基础地址，默认为通义千问官方地址"
+  },
+  "model": {
+    "label": "模型",
+    "dftVal": "qwen-plus",
+    "help": "模型的 ID，支持 qwen-turbo、qwen-plus、qwen-max、qwen-max-longcontext 等",
+    "enum": [
+      {
+        "val": "qwen-turbo",
+        "label": "通义千问-Turbo（快速）"
+      },
+      {
+        "val": "qwen-plus",
+        "label": "通义千问-Plus（均衡）"
+      },
+      {
+        "val": "qwen-max",
+        "label": "通义千问-Max（高质量）"
+      },
+      {
+        "val": "qwen-max-longcontext",
+        "label": "通义千问-Max长文本（支持长上下文）"
+      }
+    ]
+  },
+  "maxTokens": {
+    "label": "最大Token数",
+    "dftVal": 2048,
+    "help": "最大生成 token 数量，不同模型有不同的限制"
+  },
+  "temperature": {
+    "label": "温度",
+    "dftVal": 0.1,
+    "help": "采样温度，介于 0 和 2 之间。更高的值会使输出更随机，更低的值会使其更加集中和确定。建议调整范围为 0.1 到 1.0"
+  },
+  "topP": {
+    "label": "Top P",
+    "dftVal": 0.1,
+    "help": "核采样参数，介于 0 和 1 之间。仅考虑概率累积达到 top_p 的词元。建议与 temperature 二选一进行调整"
+  },
+  "stream": {
+    "label": "流式输出",
+    "dftVal": false,
+    "help": "是否开启流式输出，开启后会逐步返回生成的内容",
+    "readonly": true,
+    "enum": [
+      {
+        "val": true,
+        "label": "是"
+      },
+      {
+        "val": false,
+        "label": "否"
+      }
+    ]
+  },
+  "readTimeout": {
+    "label": "读取超时",
+    "dftVal": "com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess.dftSocketReadTimeout.getSeconds()",
+    "help": "Socket 读取数据超时时间（秒）"
+  },
+  "printLog": {
+    "label": "打印日志",
+    "dftVal": false,
+    "help": "是否打印与模型交互的执行日志",
+    "enum": [
+      {
+        "val": true,
+        "label": "是"
+      },
+      {
+        "val": false,
+        "label": "否"
+      }
+    ]
+  }
+}

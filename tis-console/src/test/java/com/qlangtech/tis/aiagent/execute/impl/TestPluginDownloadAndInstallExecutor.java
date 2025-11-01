@@ -33,7 +33,11 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * PluginDownloadExecutor单元测试 - 基础功能测试
@@ -92,7 +96,7 @@ public class TestPluginDownloadAndInstallExecutor extends EasyMockSupport {
 
     CenterResource.setNotFetchFromCenterRepository();
     TaskPlan taskPlan = new TaskPlan(
-      new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.MySQL)
+      new TaskPlan.SourceDataEndCfg(IEndTypeGetter.EndType.MySQL)
       , new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.Paimon), mockLLMProvider, this.mockMsgHandler);
 
     executor.execute(taskPlan, mockStep, mockContext);

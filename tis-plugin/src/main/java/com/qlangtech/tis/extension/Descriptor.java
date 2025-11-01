@@ -60,6 +60,7 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.IMultiElement;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
+import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
@@ -835,19 +836,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
     }
 
-    public enum FormVaildateType {
-
-        FIRST_VALIDATE,
-        SECOND_VALIDATE,
-        VERIFY,
-        // 最严格的校验 VERIFY + FIRST_VALIDATE 都要执行
-        STRICT;
-
-        public static FormVaildateType create(boolean verify) {
-            return verify ? VERIFY : FIRST_VALIDATE;
-        }
-    }
-
 
     private boolean isValid(IControlMsgHandler msgHandler, Context context, FormVaildateType validateType,
                             Optional<SubFormFilter> subFormFilter, PluginFormProperties propertyTypes,
@@ -1243,7 +1231,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     throw new IllegalStateException("impl:" + impl + " relevant descripotor can not be null");
                 }
                 ParseDescribable vals = descriptor.newInstance(pluginContext, context,
-                        parseAttrValMap(descVal.get(AttrValMap.PLUGIN_EXTENSION_VALS)), Optional.empty(), propValRewrite);
+                        AttrVals.parseAttrValMap(descVal.get(AttrValMap.PLUGIN_EXTENSION_VALS)), Optional.empty(), propValRewrite);
                 attrDesc.setVal(describable, propValRewrite.rewrite(attrDesc, vals.getInstance()));
             } else {
 
@@ -1312,9 +1300,13 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     public PropertyType getIdentityField() {
+        return this.getIdentityField(true);
+    }
+
+    public PropertyType getIdentityField(boolean validateNull) {
         if (identityProp == null) {
             getPropertyTypes();
-            if (identityProp == null) {
+            if (validateNull && identityProp == null) {
                 throw new IllegalStateException("property identityProp can not be null,desc:" + this.getClass());
             }
         }
@@ -1352,31 +1344,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             this.instance = instance;
             this.subFormFields = subFormFields;
         }
-    }
-
-    public static AttrVals parseAttrValMap(Object vals) {
-        Map<String, JSON> attrValMap = Maps.newHashMap();
-        if (vals == null) {
-            return new AttrVals(attrValMap);
-        }
-        // Object vals = jsonObject.get("vals");
-        if (vals instanceof Map) {
-            ((Map<String, Object>) vals).forEach((attrName, val) -> {
-                try {
-                    attrValMap.put(attrName, (JSON) val);
-                } catch (Exception e) {
-                    // 在multiSelectItem的场景下，可能存在提交的itemProperty没有使用‘ItemPropVal’包装的情况
-                    if (val instanceof String) {
-                        JSONObject o = new JSONObject();
-                        o.put(Descriptor.KEY_primaryVal, val);
-                        attrValMap.put(attrName, o);
-                    } else {
-                        throw new RuntimeException("attrName:" + attrName + ",valType:" + val.getClass().getSimpleName(), e);
-                    }
-                }
-            });
-        }
-        return new AttrVals(attrValMap);
     }
 
 
@@ -1456,8 +1423,25 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             if (opts == null) {
                 return Collections.emptyList();
             }
+//            final EndType[] endType = new EndType[1];
+//            if (this instanceof IEndTypeGetter) {
+//                endType[0] = (((IEndTypeGetter) this).getEndType());
+//            }
+
+            Map<Class, Optional<EndType>> pluginEndTypeMapper = Maps.newHashMap();
+
             return opts.stream().map((r) -> {
-                return new SelectOption(r.identityValue(), r.getDescribleClass(), null);
+                Optional<EndType> et = null;
+                if ((et = pluginEndTypeMapper.get(r.getClass())) == null) {
+                    EndType endType = null;
+                    Descriptor desc = null;
+                    if ((desc = ((Describable) r).getDescriptor()) instanceof IEndTypeGetter) {
+                        endType = (((IEndTypeGetter) desc).getEndType());
+                    }
+                    et = Optional.ofNullable(endType);
+                    pluginEndTypeMapper.put(r.getClass(), et);
+                }
+                return new SelectOption(r.identityValue(), r.getDescribleClass(), et.orElse(null));
             }).collect(Collectors.toList());
         } catch (Exception e) {
             throw new RuntimeException("field name:" + name + ",class:" + this.getClass().getName(), e);

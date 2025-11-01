@@ -23,7 +23,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.coredefine.module.action.DataxAction;
@@ -35,13 +34,10 @@ import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.db.parser.DBConfigSuit;
-import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
-import com.qlangtech.tis.extension.impl.PropertyType;
-import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.git.GitUtils.JoinRule;
@@ -59,15 +55,11 @@ import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.offline.pojo.GitRepositoryCommitPojo;
 import com.qlangtech.tis.offline.pojo.TISDb;
 import com.qlangtech.tis.offline.pojo.WorkflowPojo;
-import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.datax.StoreResourceType;
-import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.IFieldValidator;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.datax.SelectedTab;
-import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
@@ -89,7 +81,6 @@ import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroList;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.workflow.dao.IWorkFlowDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceTable;
@@ -98,7 +89,6 @@ import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import name.fraser.neil.plaintext.diff_match_patch;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -1186,35 +1176,18 @@ public class OfflineDatasourceAction extends BasicModule {
     HeteroList<DataxReader> heteroList = pluginMeta.getHeteroList(this);
     List<DataxReader> readers = heteroList.getItems();
     Map<String, List<ColumnMetaData>> mapCols = null;
-    List<ISelectedTab> allNewTabs = Lists.newArrayList();
+    final List<ISelectedTab> allNewTabs = Lists.newArrayList();
     PluginFormProperties pluginFormPropertyTypes = null;
     Map<String, Object> bizResult = Maps.newHashMap();
     Map<String, JSONObject> tabDesc = Maps.newHashMap();
     for (DataxReader reader : readers) {
       DescriptorsJSON desc2Json = new DescriptorsJSON(reader.getDescriptor());
-      mapCols = selectedTabs.stream().collect(Collectors.toMap((tab) -> tab, (tab) -> {
-        try {
-          return reader.getTableMetadata(false, this, EntityName.parse(tab));
-        } catch (TableNotFoundException e) {
-          throw new RuntimeException(e);
-        }
-      }));
-      if (MapUtils.isEmpty(mapCols)) {
-        throw new IllegalStateException("mapCols can not be empty");
-      }
       pluginFormPropertyTypes = reader.getDescriptor().getPluginFormPropertyTypes(pluginMeta.getSubFormFilter());
-      for (Map.Entry<String, List<ColumnMetaData>> tab2cols : mapCols.entrySet()) {
-        try {
-          SuFormProperties.setSuFormGetterContext(reader, pluginMeta, tab2cols.getKey());
-          allNewTabs.add(createNewSelectedTab(pluginFormPropertyTypes, tab2cols));
-          // 需要将desc中的取option列表解析一下（JsonUtil.UnCacheString）
-          tabDesc.put(tab2cols.getKey(),
-            JSON.parseObject(JsonUtil.toString(
-              desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()))));
-        } finally {
-          SuFormProperties.subFormGetterProcessThreadLocal.remove();
-        }
-      }
+      allNewTabs.addAll(reader.createDefaultTables(this, selectedTabs, pluginMeta, (entry) -> {
+        tabDesc.put(entry.getKey(),
+          JSON.parseObject(JsonUtil.toString(
+            desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()))));
+      }, true));
       //  bizResult.put("subformDescriptor", desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()));
       break;
     }
@@ -1246,137 +1219,6 @@ public class OfflineDatasourceAction extends BasicModule {
 
     }
     throw new IllegalStateException("has not parse meta instance pluginName:" + pluginName);
-  }
-
-  /**
-   * 通过表名和列创建新tab实例，如果SelectedTab对象中有其他字段但是没有设置默认值，创建过程中就会出错
-   *
-   * @param pluginFormPropertyTypes
-   * @param tab2cols
-   * @return
-   */
-  private ISelectedTab createNewSelectedTab(PluginFormProperties pluginFormPropertyTypes //
-    , Map.Entry<String, List<ColumnMetaData>> tab2cols) {
-    return pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
-
-
-      @Override
-      public ISelectedTab visit(BaseSubFormProperties props) {
-
-
-        try {
-          SelectedTab subForm = props.newSubDetailed();
-
-          fillDefaultVals(props, subForm);
-
-          Descriptor parentDesc = props.getParentPluginDesc();
-
-          if (parentDesc instanceof CompanionPluginFactory) {
-            Descriptor<Describable> companionDesc = ((CompanionPluginFactory) parentDesc).getCompanionDescriptor();
-            SelectedTabExtend tabExt = (SelectedTabExtend) companionDesc.clazz.newInstance();
-            fillDefaultVals(companionDesc.getPluginFormPropertyTypes(), tabExt);
-            subForm.setSourceProps(tabExt);
-          }
-
-          return subForm;
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-
-
-      }
-
-      private void fillDefaultVals(PluginFormProperties props, Describable subForm) {
-        Set<Map.Entry<String, PropertyType>> kvs = props.getKVTuples();
-        PropertyType pp = null;
-
-        final Set<String> skipProps = Sets.newHashSet();
-        ppDftValGetter:
-        for (Map.Entry<String, PropertyType> pentry : kvs) {
-          pp = pentry.getValue();
-          if (pp.isIdentity()) {
-            pp.setVal(subForm, tab2cols.getKey());
-            skipProps.add(pentry.getKey());
-            continue;
-          }
-
-          if (pp.formField.type() == FormFieldType.MULTI_SELECTABLE) {
-            skipProps.add(pentry.getKey());
-            pp.setVal(subForm, tab2cols.getValue().stream() //
-              .map(ColumnMetaData::convert).collect(Collectors.toList()));
-            continue ppDftValGetter;
-          }
-        }
-
-        createPluginByDefaultVals(new StringBuffer(subForm.getClass().getName()), skipProps, kvs, subForm);
-      }
-
-      private Describable createPluginByDefaultVals(StringBuffer propPath, final Set<String> skipProps,
-                                                    Set<Map.Entry<String, PropertyType>> kvTuples, Describable plugin) {
-        PropertyType pp = null;
-        ppDftValGetter:
-        for (Map.Entry<String, PropertyType> pentry : kvTuples) {
-          pp = pentry.getValue();
-          if (skipProps.contains(pentry.getKey())) {
-            continue;
-          }
-
-
-          if (pp.dftVal() != null) {
-            if (pp.isDescribable()) {
-              List<? extends Descriptor> descriptors = pp.getApplicableDescriptors();
-              try {
-                for (Descriptor desc : descriptors) {
-                  if (StringUtils.endsWithIgnoreCase(String.valueOf(pp.dftVal()), desc.getDisplayName())) {
-                    pp.setVal(plugin, createPluginByDefaultVals((new StringBuffer(propPath)).append("->") //
-                        .append(pentry.getKey()).append(":").append(pp.fieldClazz.getName()) //
-                      , Sets.newHashSet() //
-                      , desc.getPluginFormPropertyTypes().getKVTuples() //
-                      , (Describable) desc.clazz.newInstance()));
-                    continue ppDftValGetter;
-                  }
-                }
-              } catch (Exception e) {
-                throw new RuntimeException(e);
-              }
-            } else {
-              pp.setVal(plugin, pp.dftVal());
-              continue ppDftValGetter;
-            }
-
-
-          } else {
-
-
-            FormFieldType fieldType = pp.formField.type();
-            if (fieldType == FormFieldType.SELECTABLE || fieldType == FormFieldType.ENUM) {
-              List<Option> propOptions = pp.getEnumPropOptions();
-//              Object enumPp = pp.getExtraProps().get(Descriptor.KEY_ENUM_PROP);
-//              JSONArray enums = null;
-//              if (enumPp instanceof JSONArray) {
-//                enums = (JSONArray) enumPp;
-//              } else if (enumPp instanceof UnCacheString) {
-//                enums = ((UnCacheString<JSONArray>) enumPp).getValue();
-//              } else {
-//                throw new IllegalStateException("unsupport type:" + pp.getClass().getName());
-//              }
-              for (int i = 0; i < propOptions.size(); i++) {
-                Option opt = propOptions.get(i);
-                //opt.get(Option.KEY_VALUE)
-                pp.setVal(plugin, opt.getValue());
-                continue ppDftValGetter;
-              }
-            }
-          }
-
-          if (pp.isInputRequired()) {
-            throw new IllegalStateException("have not prepare for table:" + tab2cols.getKey()
-              + " creating:" + propPath + ",prop name:'" + pentry.getKey() + "',subform class:" + plugin.getClass().getName());
-          }
-        }
-        return plugin;
-      }
-    });
   }
 
   /**

@@ -35,6 +35,7 @@ import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -121,10 +122,9 @@ public enum FormFieldType {
 
         @Override
         public Object processInput(Object instance, PropVal val) throws Exception {
-
-            //  SimpleDateFormat dateTimeFormat = val.extraProp.getDateTimeFormat();
             LocalDateTime dateTime = LocalDateTime.parse((String) val.rawVal(), isoFormat);
-            Instant ist = dateTime.atZone(TimeFormat.sysZoneId).toInstant();
+            // ng-zorro 组件上传使用格林尼治时间
+            Instant ist = dateTime.atZone(ZoneOffset.UTC).toInstant();
             //  Date dateTime = dateTimeFormat.parse();
             Class targetClazz = val.getTargetClazz();
             if (targetClazz == Long.class) {
@@ -153,7 +153,7 @@ public enum FormFieldType {
         }
     }
     ) //
-    , DECIMAL_NUMBER(11)
+    , DECIMAL_NUMBER(4)
     /**
      * 时间长度duration
      */
@@ -301,7 +301,7 @@ public enum FormFieldType {
     public static void main(String[] args) throws Exception {
 
         for (FormFieldType type : FormFieldType.values()) {
-            System.out.println("* "+type.identity + ": " + String.valueOf(type));
+            System.out.println("* " + type.identity + ": " + String.valueOf(type));
         }
     }
 

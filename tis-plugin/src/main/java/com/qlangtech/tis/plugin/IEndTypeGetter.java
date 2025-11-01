@@ -126,7 +126,7 @@ public interface IEndTypeGetter {
         , TiDB("TiDB", EndTypeCategory.Data, true) //
         , RocketMQ("rocketMq", EndTypeCategory.Data, true) //
         , Kafka("kafka", EndTypeCategory.Data, true) //
-        , DataFlow("dataflow", EndTypeCategory.Assist) //
+        //, DataFlow("dataflow", EndTypeCategory.Assist) //
         , DaMeng("daMeng", EndTypeCategory.Data, true) //
         , AliyunODPS("aliyunOdps", EndTypeCategory.Data, true) //
         , HiveMetaStore("hms", EndTypeCategory.Data, true) //

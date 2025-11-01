@@ -1200,22 +1200,8 @@ public class DataxAction extends BasicModule {
       return;
     }
 
-    this.saveTableMapper(this, dataxName, tableMaps);
+    TableAlias.saveTableMapper(this, dataxName, tableMaps);
 
-  }
-
-  private void saveTableMapper(IPluginContext pluginContext, String dataxName, List<TableAlias> tableMaps) {
-
-    if (StringUtils.isBlank(dataxName)) {
-      throw new IllegalArgumentException("param dataxName can not be null");
-    }
-
-    TableAlias.save(this, dataxName, tableMaps);
-
-    DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(this, dataxName);
-    dataxProcessor.afterSaved(pluginContext, Optional.empty());
-//    dataxProcessor.setTableMaps(tableMaps);
-//    IAppSource.save(pluginContext, dataxName, dataxProcessor);
   }
 
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
@@ -1394,7 +1380,7 @@ public class DataxAction extends BasicModule {
     esTableAlias.setTo(((ISearchEngineTypeTransfer) processMeta.getWriter()).getIndexName());
     //  esTableAlias.setSchemaContent(schemaContent);
 
-    this.saveTableMapper(this, confiemModel.getDataxName(), Collections.singletonList(esTableAlias));
+    TableAlias.saveTableMapper(this, confiemModel.getDataxName(), Collections.singletonList(esTableAlias));
   }
 
 
@@ -1461,7 +1447,7 @@ public class DataxAction extends BasicModule {
     }
 
 
-    this.saveTableMapper(this, dataxName, Collections.singletonList(tableMapper));
+    TableAlias.saveTableMapper(this, dataxName, Collections.singletonList(tableMapper));
   }
 
 

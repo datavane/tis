@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -125,20 +126,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
     StringBuffer result = new StringBuffer();
     result.append("{\n");
     result.append(" \"").append(KEY_SUCCESS).append("\":").append(actionExecResult.isSuccess());
-    JSONArray errors = new JSONArray();
-    if (errorMsgList != null) {
-      for (Object msg : errorMsgList) {
-        if (msg instanceof String) {
-          errors.add(msg);
-        } else if (msg instanceof TisException.ErrMsg) {
-          // errors.put();
-          errors.add(msg);
-        } else {
-          throw new IllegalStateException("illegal error type:" + msg.getClass().getName());
-        }
-
-      }
-    }
+    JSONArray errors = errorMsgListConvert2JsonArray(errorMsgList);
     result.append(",\n \"").append(KEY_ERROR_MSG).append("\":").append(JsonUtil.toString(errors));
     if (errorPageShow != null) {
       result.append(",\n \"").append(IMessageHandler.ACTION_ERROR_PAGE_SHOW).append("\":").append(errorPageShow);
@@ -157,23 +145,44 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
       } else if (extendVal instanceof JSONArray) {
         result.append(JsonUtil.toString((JSONArray) extendVal));
       } else {
-        //com.alibaba.fastjson.JSON.toJSONString(extendVal, SerializerFeature.DisableCircularReferenceDetect,
-        // SerializerFeature.PrettyFormat)
         result.append(JsonUtil.toString(extendVal));
       }
     }
     if (pluginErrorList != null) {
-      JSONArray pluginErrs = new JSONArray();
-      for (List<ItemsErrors> /** item*/
-        onePluginOfItems : pluginErrorList) {
-        JSONArray itemErrs = convertItemsErrorList(onePluginOfItems);// convertItemsErrorList(onePluginOfItems);
-        pluginErrs.add(itemErrs);
-      }
+      JSONArray pluginErrs = pluginErrorListConvert2JsonArray(pluginErrorList);
       result.append(",\n \"").append(IAjaxResult.KEY_ERROR_FIELDS).append("\":");
       result.append(JsonUtil.toString(pluginErrs));
     }
     result.append("\n}");
     return result;
+  }
+
+  public static JSONArray pluginErrorListConvert2JsonArray(List<List<ItemsErrors>> pluginErrorList) {
+    JSONArray pluginErrs = new JSONArray();
+    for (List<ItemsErrors> /** item*/
+      onePluginOfItems : Objects.requireNonNull(pluginErrorList, "pluginErrorList can not be null")) {
+      JSONArray itemErrs = convertItemsErrorList(onePluginOfItems);
+      pluginErrs.add(itemErrs);
+    }
+    return pluginErrs;
+  }
+
+  public static JSONArray errorMsgListConvert2JsonArray(List<Object> errorMsgList) {
+    JSONArray errors = new JSONArray();
+    if (errorMsgList != null) {
+      for (Object msg : errorMsgList) {
+        if (msg instanceof String) {
+          errors.add(msg);
+        } else if (msg instanceof TisException.ErrMsg) {
+          // errors.put();
+          errors.add(msg);
+        } else {
+          throw new IllegalStateException("illegal error type:" + msg.getClass().getName());
+        }
+
+      }
+    }
+    return errors;
   }
 
   private static JSONArray convertItemsErrorList(List<ItemsErrors> itemsErrorList) {

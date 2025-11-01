@@ -40,7 +40,7 @@ import java.util.function.Predicate;
 public class SubFieldContainPlugin extends DataxReader implements IdentityName {
 
     public static final String PLUGIN_NAME = "test_subFieldContainPlugin";
-    public static final String SUB_PROP_FIELD_NAME = "selectedTabs";
+
 
     @FormField(ordinal = 0, identity = true, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
     public String name;

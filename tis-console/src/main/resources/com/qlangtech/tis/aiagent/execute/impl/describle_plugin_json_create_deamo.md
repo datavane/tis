@@ -345,7 +345,7 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
 4. extendPoint: 插件的扩展点，其实也就是以上impl属性是继承于此
 5. containAdvance: 是否包含高级属性（attrs下的advance属性为true），所谓高级属性是用户在表单输入过程中不需要关注的属性,一般都有默认值
 6. veriflable：当用户填写完表单后，是否支持校验，例如：是否能够正常连接数据库,
-7. attrs 数组下元组
+7. `attrs` 数组下元组
    1. ord: 属性的排序，可以当作属性重要性说明，优先级高的该值就小,
    2. eprops.label: 属性label属性 
    3. placeholder: 可当作用户输入值样例
@@ -353,7 +353,7 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
    5. enum: 属性值可以从罗列的多个枚举值中选择一个作为属性值，内部可包含多个`{ "val": string, "label": string }`元素
    6. help：属性的帮助说明信息
    7. describable: 属性值是否为一个嵌套的`插件结构`
-   8. pk: 是否为主键 
+   8. pk: 是否为主键，当pk=true时，在用户提交的本文中如没有抽取到对应的内容，输出的`_primaryVal`属性对应的值不要自动生成（切记）
    9. type: 属性值类型，值为int的类型，值对应的类型说明参考：`fieldType值说明`
   10. key: 属性键名称
   11. required: 是否必须输入
@@ -382,7 +382,12 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
 2. attrs 数组下元组：如果不能从用户输入的内容中解析得到对应的值，元组下有`dftVal`（默认值）则就用该值作为输入值，如没有默认值保持输入项值为空即可
 
 # 输出json内容示例：
-根据`用户提交的内容` 与 `系统json结构说明` 内容，期望经过大模型处理生成以下标准化json结构输出
+根据 `用户提交的内容` 与 `系统json结构说明` 内容，期望经过大模型处理生成以下标准化json结构输出。
+
+## 重点说明
+以上 `json结构示例` 说到的 attrs下的`pk`属性true时，在用户提交的本文中如没有抽取到对应的内容，输出的`_primaryVal`属性对应的值不要自动生成（切记）.正如，如下输出的json内容中`vals.name._primaryVal`的值应该是空的，
+因为用户提交的内容中并没有明确说明。
+
 ``` json
 {
 	"impl": "com.qlangtech.tis.plugin.ds.mysql.MySQLV8DataSourceFactory",

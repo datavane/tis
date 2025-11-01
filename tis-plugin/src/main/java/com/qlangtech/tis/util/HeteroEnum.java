@@ -395,32 +395,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             return TIS.getDataSourceFactoryPluginStore(dsProp);
         }
     };
-    //    @TISExtension
-    //    public static final HeteroEnum<FieldTypeFactory> SOLR_FIELD_TYPE = new HeteroEnum<FieldTypeFactory>(//
-    //            FieldTypeFactory.class, //
-    //            "field-type", //
-    //            "字段类型", //
-    //            Selectable.Multi);
-    //    //  @TISExtension
-    //    public static final HeteroEnum<QueryParserFactory> SOLR_QP = new HeteroEnum<QueryParserFactory>(//
-    //            QueryParserFactory.class, //
-    //            "qp", //
-    //            "QueryParser", //
-    //            Selectable.Multi);
-    //    //@TISExtension
-    //    public static final HeteroEnum<SearchComponentFactory> SOLR_SEARCH_COMPONENT = new
-    //    HeteroEnum<SearchComponentFactory>(//
-    //            SearchComponentFactory.class, //
-    //            "searchComponent", //
-    //            "SearchComponent", //
-    //            Selectable.Multi);
-    //    //@TISExtension
-    //    public static final HeteroEnum<TISTransformerFactory> SOLR_TRANSFORMER = new
-    //    HeteroEnum<TISTransformerFactory>(//
-    //            TISTransformerFactory.class, //
-    //            "transformer", //
-    //            "Transformer", //
-    //            Selectable.Multi);
+
     @TISExtension
     public static final HeteroEnum<DataxReader> DATAX_READER = new HeteroEnum<DataxReader>(//
             DataxReader.class, //
@@ -564,14 +539,12 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                             throw new IllegalStateException("getReader must be true");
                         }
 
-                        IPluginContext maskExecIdContext = null; //IPluginContext.namedContext(pluginContext.getCollectionName());
+                        IPluginContext maskExecIdContext = null;
                         return DataxReader.getPluginStore(maskExecIdContext, true, saveDbName);
                     }
 
                     @Override
                     public IPluginStore<?> appRelevant(IPluginContext pluginContext, DataXName dataxName) {
-//                        KeyedPluginStore<?> keyStore = getReader ?
-//                                :
                         if (getReader) {
                             if (dataxName.isDataAppType()) {
                                 return DataxReader.getPluginStore(pluginContext, dataxName.getPipelineName());
@@ -584,13 +557,6 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
                         } else {
                             return DataxWriter.getPluginStore(pluginContext, dataxName.getType(), dataxName.getPipelineName());
                         }
-
-
-//                        KeyedPluginStore<?> keyStore =
-//                               // DataxReader.getPluginStore(pluginContext, dataxName) :
-//                                DataxWriter.getPluginStore(pluginContext, dataxName.getType(), dataxName.getPipelineName());
-
-                        // return keyStore;
                     }
                 });
         return store;
@@ -651,7 +617,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
     public <T> T getPlugin() {
         if (this.selectable != Selectable.Single) {
-            throw new IllegalStateException(this.extensionPoint + " selectable is:" + this.selectable);
+            throw new IllegalStateException(this.extensionPoint + ",identity:" + this.identity + ", selectable is:" + this.selectable);
         }
         IPluginStore store = TIS.getPluginStore(this.extensionPoint);
         return (T) store.getPlugin();
@@ -784,4 +750,31 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     public Selectable getSelectable() {
         return this.selectable;
     }
+
+    //    @TISExtension
+    //    public static final HeteroEnum<FieldTypeFactory> SOLR_FIELD_TYPE = new HeteroEnum<FieldTypeFactory>(//
+    //            FieldTypeFactory.class, //
+    //            "field-type", //
+    //            "字段类型", //
+    //            Selectable.Multi);
+    //    //  @TISExtension
+    //    public static final HeteroEnum<QueryParserFactory> SOLR_QP = new HeteroEnum<QueryParserFactory>(//
+    //            QueryParserFactory.class, //
+    //            "qp", //
+    //            "QueryParser", //
+    //            Selectable.Multi);
+    //    //@TISExtension
+    //    public static final HeteroEnum<SearchComponentFactory> SOLR_SEARCH_COMPONENT = new
+    //    HeteroEnum<SearchComponentFactory>(//
+    //            SearchComponentFactory.class, //
+    //            "searchComponent", //
+    //            "SearchComponent", //
+    //            Selectable.Multi);
+    //    //@TISExtension
+    //    public static final HeteroEnum<TISTransformerFactory> SOLR_TRANSFORMER = new
+    //    HeteroEnum<TISTransformerFactory>(//
+    //            TISTransformerFactory.class, //
+    //            "transformer", //
+    //            "Transformer", //
+    //            Selectable.Multi);
 }

@@ -28,6 +28,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
@@ -51,20 +52,22 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
 
     private IPluginContext targetRuntimeContext;
 
-    /**
-     * @param fieldErrorHandler
-     * @param messageHandler
-     * @return
-     * @see // DefaultMessageHandler
-     */
-    public PartialSettedPluginContext setMessageAndFieldErrorHandler(IFieldErrorHandler fieldErrorHandler, IMessageHandler messageHandler) {
-        this.fieldErrorHandler = fieldErrorHandler;
-        this.messageHandler = messageHandler;
-        return this;
-    }
+//    /**
+//     * @param fieldErrorHandler
+//     * @param messageHandler
+//     * @return
+//     * @see // DefaultMessageHandler
+//     */
+//    public PartialSettedPluginContext setMessageAndFieldErrorHandler(IFieldErrorHandler fieldErrorHandler, IMessageHandler messageHandler) {
+//        this.fieldErrorHandler = fieldErrorHandler;
+//        this.messageHandler = messageHandler;
+//        return this;
+//    }
 
     public PartialSettedPluginContext setTargetRuntimeContext(IPluginContext targetRuntimeContext) {
         this.targetRuntimeContext = Objects.requireNonNull(targetRuntimeContext, "param targetRuntimeContext can not be null");
+        this.fieldErrorHandler = (IFieldErrorHandler) targetRuntimeContext;
+        this.messageHandler = targetRuntimeContext;
         return this;
     }
 
@@ -125,7 +128,7 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
 
     @Override
     public Pair<Boolean, IPluginItemsProcessor> getPluginItems(
-            IUploadPluginMeta pluginMeta, Context context, int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
+            IUploadPluginMeta pluginMeta, Context context, int pluginIndex, JSONArray itemsArray, FormVaildateType verify, PropValRewrite propValRewrite) {
         throw new UnsupportedOperationException();
     }
 
@@ -203,6 +206,7 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
 
     @Override
     public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
+
         return fieldErrorHandler.validateBizLogic(logicType, context, fieldName, value);
     }
 

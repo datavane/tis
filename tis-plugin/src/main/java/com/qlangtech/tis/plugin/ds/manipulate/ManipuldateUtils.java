@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
+import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.IPluginItemsProcessor;
 import com.qlangtech.tis.util.IUploadPluginMeta;
@@ -72,7 +73,8 @@ public class ManipuldateUtils {
             JSONArray itemsArray = new JSONArray();
             itemsArray.add(manipulateTarget);
             Pair<Boolean, IPluginItemsProcessor> pluginItems
-                    = pluginContext.getPluginItems(meta, context, 0, itemsArray, false, ((propType, val) -> {
+                    = pluginContext.getPluginItems(meta, context
+                    , 0, itemsArray, FormVaildateType.create(false), ((propType, val) -> {
                 PropertyType ptype = (PropertyType) propType;
                 if (ptype.isIdentity()) {
                     originIdentityIdConsumer.accept((String) val);

@@ -22,6 +22,7 @@ import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.IRepositoryTargetFile;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.AdapterMessageHandler;
@@ -150,18 +151,22 @@ public class DBConfig implements IDbMeta {
 
     public void vistDbURL(boolean resolveHostIp, final int expireSec, IDbUrlProcess urlProcess, boolean facade) {
         String[] err = new String[1];
-        if (!this.vistDbURL(resolveHostIp, urlProcess, facade, new AdapterMessageHandler() {
-            @Override
-            public void addErrorMessage(Context context, String msg) {
-                err[0] = msg;
+        try {
+            if (!this.vistDbURL(resolveHostIp, urlProcess, facade, new AdapterMessageHandler() {
+                @Override
+                public void addErrorMessage(Context context, String msg) {
+                    err[0] = msg;
+                }
+            }, new DefaultContext(), expireSec)) {
+                throw TisException.create("error:" + err[0]);
             }
-        }, new DefaultContext(), expireSec)) {
-            throw new IllegalStateException("error:" + err[0]);
+        } catch (JDBCConnectionException e) {
+            throw TisException.create(e.getMessage(), e);
         }
     }
 
-    public boolean vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess, boolean facade, IMessageHandler msgHandler, Context context) {
-
+    public boolean vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess
+            , boolean facade, IMessageHandler msgHandler, Context context) throws JDBCConnectionException {
         return vistDbURL(resolveHostIp, urlProcess, facade, msgHandler, context, expireSec);
     }
 
@@ -273,7 +278,7 @@ public class DBConfig implements IDbMeta {
      * 遍历所有的jdbc URL
      */
     public boolean vistDbURL(boolean resolveHostIp, IDbUrlProcess urlProcess
-            , boolean facade, IMessageHandler msgHandler, Context context, final int expireSec) {
+            , boolean facade, IMessageHandler msgHandler, Context context, final int expireSec) throws JDBCConnectionException {
         int dbCount = 0;
         for (Map.Entry<String, List<String>> entry : this.getDbEnum().entrySet()) {
             dbCount += entry.getValue().size();
@@ -340,7 +345,7 @@ public class DBConfig implements IDbMeta {
                 throw new RuntimeException(e);
             }
             if (exceptionCollect.get() != null) {
-                throw new RuntimeException(exceptionCollect.get());
+                throw new JDBCConnectionException(exceptionCollect.get());
             }
             return true;
         } finally {

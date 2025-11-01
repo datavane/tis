@@ -25,18 +25,18 @@ import org.apache.commons.lang3.StringUtils;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/10/14
  */
-public class SessionKey {
+public class RequestKey {
   private final String requestId;
 
-  public static SessionKey create() {
+  public static RequestKey create() {
     return create("tis_session_" + System.currentTimeMillis());
   }
 
-  public static SessionKey create(String requestKey) {
-    return new SessionKey(requestKey);
+  public static RequestKey create(String requestKey) {
+    return new RequestKey(requestKey);
   }
 
-  public SessionKey(String requestId) {
+  public RequestKey(String requestId) {
     if (StringUtils.isEmpty(requestId)) {
       throw new IllegalArgumentException("requestId can not be empty");
     }

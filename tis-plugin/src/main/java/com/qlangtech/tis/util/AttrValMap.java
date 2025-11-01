@@ -24,13 +24,14 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.Descriptor.FormVaildateType;
+import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.extension.Descriptor.PostFormVals;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.impl.AttrVals;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,8 @@ import static com.qlangtech.tis.extension.Descriptor.KEY_DESC_VAL;
 import static com.qlangtech.tis.extension.Descriptor.KEY_primaryVal;
 
 /**
+ * 代表从前端页面中提交的表单plugin内容
+ *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
@@ -106,7 +109,7 @@ public class AttrValMap {
             throw new IllegalStateException("impl:" + impl + " can not find relevant ");
         }
         Object vals = jsonObject.get(PLUGIN_EXTENSION_VALS);
-        AttrVals attrValMap = Descriptor.parseAttrValMap(vals);
+        AttrVals attrValMap = AttrVals.parseAttrValMap(vals);
         return new AttrValMap(attrValMap, subFormFilter, descriptor, propValRewrite);
     }
 
@@ -119,6 +122,31 @@ public class AttrValMap {
         this.propValRewrite = propValRewrite;
     }
 
+    /**
+     * 取得主键键值
+     *
+     * @return
+     */
+    public final String getPrimaryFieldVal() {
+        return String.valueOf(getPKVal());
+    }
+
+    public final boolean isPrimaryFieldEmpty() {
+        Object val = getPKVal();
+        return val == null || StringUtils.isEmpty(String.valueOf(val));
+    }
+
+    private Object getPKVal() {
+        return this.getAttrVals()
+                .getPrimaryVal(Objects.requireNonNull(this.descriptor, "descriptor can not be null")
+                        .getIdentityField().propertyName());
+    }
+
+    /**
+     * 用于在前端页面上渲染plugin实例的json
+     *
+     * @return
+     */
     public JSONObject getPostJsonBody() {
         JSONObject body = new JSONObject();
         DescriptorsJSON.setDescInfo(this.descriptor, false, body);
@@ -144,7 +172,6 @@ public class AttrValMap {
                 }
                 pluginBody.put(PLUGIN_EXTENSION_VALS, pluginVals);
                 vals.put(field, pluginBody);
-
             } else {
                 vals.put(field, propVal.get(KEY_primaryVal));
             }
@@ -152,9 +179,6 @@ public class AttrValMap {
             throw new IllegalStateException("illegal val type:" + val.getClass().getName());
         }
     }
-
-
-
 
 
     public Descriptor.PluginValidateResult validate(IControlMsgHandler msgHandler, Context context, FormVaildateType verify, Optional<PostFormVals> parentFormVals) {

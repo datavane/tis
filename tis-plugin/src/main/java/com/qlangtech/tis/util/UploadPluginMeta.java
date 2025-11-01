@@ -69,7 +69,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     /**
      * 跳过插件实例保存执行流程
      */
-    public static final String KEY_SKIP_PLUGINS_SAVE =  "skipPluginSave";
+    public static final String KEY_SKIP_PLUGINS_SAVE = "skipPluginSave";
     public static final String KEY_REQUIRE = "require";
 
     public static final String KEY_UNCACHE = "uncache";
@@ -96,6 +96,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     private Map<String, String> extraParams = new HashMap<>();
     private final IPluginContext context;
 
+
     public static UploadPluginMeta appnameMeta(IPluginContext pluginContext, String appname) {
         UploadPluginMeta extMeta = parse(pluginContext,
                 "name:" + StoreResourceType.DATAX_NAME + "_" + appname, true);
@@ -111,6 +112,17 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         return UploadPluginMeta.parse(pluginEnum.identityValue() + ":" + KEY_REQUIRE);
     }
 
+    /**
+     * @param context
+     * @param name
+     * @param useCache 服务端会将某些资源进行缓存，客户端在取用之时，可以将最新的缓存失效，进而取用最新数据
+     */
+    private UploadPluginMeta(IPluginContext context, String name, boolean useCache) {
+        this.name = name;
+        this.context = context;
+        this.useCache = useCache;
+
+    }
 
     public boolean isUpdate() {
         return this.getBoolean(DBIdentity.KEY_UPDATE);
@@ -430,6 +442,9 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         return this.extraParams.get(key);
     }
 
+    public boolean getBoolean(String key) {
+        return Boolean.parseBoolean(this.getExtraParam(key));
+    }
 
     public DataXName getDataXName(boolean validateNull) {
         final String dataxName = (this.getExtraParam(StoreResourceType.DATAX_NAME));
@@ -459,20 +474,6 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         return dataXName;
     }
 
-    public boolean getBoolean(String key) {
-        return Boolean.parseBoolean(this.getExtraParam(key));
-    }
-
-    /**
-     * @param context
-     * @param name
-     * @param useCache 服务端会将某些资源进行缓存，客户端在取用之时，可以将最新的缓存失效，进而取用最新数据
-     */
-    private UploadPluginMeta(IPluginContext context, String name, boolean useCache) {
-        this.name = name;
-        this.context = context;
-        this.useCache = useCache;
-    }
 
     @Override
     public String toString() {
@@ -498,7 +499,8 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         hList.setItems(items);
 
         final TargetDesc targetDesc = this.getTargetDesc();
-        boolean justGetItemRelevant = Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
+
+        boolean justGetItemRelevant = this.getBoolean(KEY_JUST_GET_ITEM_RELEVANT);// Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
         List<Descriptor<T>> descriptors = hEnum.descriptors(targetDesc, items, justGetItemRelevant);
 
 

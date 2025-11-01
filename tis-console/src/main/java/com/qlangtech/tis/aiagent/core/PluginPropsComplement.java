@@ -28,8 +28,14 @@ import com.qlangtech.tis.util.AttrValMap;
  */
 public class PluginPropsComplement implements ISessionData {
   private AttrValMap pluginValMap;
+  private final AttrValMap unComplementValMap;
 
-  public PluginPropsComplement() {
+  public PluginPropsComplement(AttrValMap unComplementValMap) {
+    this.unComplementValMap = unComplementValMap;
+  }
+
+  public AttrValMap getUnComplementValMap() {
+    return this.unComplementValMap;
   }
 
   public AttrValMap getPluginValMap() {

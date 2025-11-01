@@ -90,6 +90,7 @@ import com.qlangtech.tis.manage.common.apps.AppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.common.apps.IDepartmentGetter;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.IFieldValidator;
@@ -143,6 +144,8 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.util.UploadPluginMeta.KEY_SKIP_PLUGINS_SAVE;
+
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -168,7 +171,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return erRulesGetter.getErRules(dfName);
   }
 
-  protected List<UploadPluginMeta> getPluginMeta() {
+  public List<UploadPluginMeta> getPluginMeta() {
     return getPluginMeta(true);
   }
 
@@ -185,7 +188,13 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   public List<IUploadPluginMeta> parsePluginMeta(String[] plugins, boolean useCache, boolean validatePluginEmpty) {
-    return UploadPluginMeta.parse(this, plugins, useCache, validatePluginEmpty);
+    List<IUploadPluginMeta> metas = UploadPluginMeta.parse(this, plugins, useCache, validatePluginEmpty);
+    for (IUploadPluginMeta meta : metas) {
+      if (this.getBoolean(KEY_SKIP_PLUGINS_SAVE)) {
+        meta.putExtraParams(KEY_SKIP_PLUGINS_SAVE, Boolean.TRUE.toString());
+      }
+    }
+    return metas;
   }
 
 
@@ -556,7 +565,15 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     this.wfDAOFacade = facade;
   }
 
-  protected void createPipeline(Context context, String dataxName) throws Exception {
+  /**
+   *
+   * @param context
+   * @param dataxName
+   * @throws Exception
+   * @see RunContext#createPipeline(Context, String)
+   */
+  @Override
+  public void createPipeline(Context context, String dataxName) throws Exception {
     DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(null, StoreResourceType.DataApp, dataxName);
     Application app = dataxProcessor.buildApp();
 
@@ -578,27 +595,23 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     }
 
     @Override
-    public List<WorkFlow> getExistEntities() {
+    public <T extends IdentityName> List<T> getExistEntities(Optional<String> namePrefix) {
       WorkFlowCriteria criteria = new WorkFlowCriteria();
-      criteria.createCriteria();
-      return workFlowDAO.selectByExample(criteria);
+      WorkFlowCriteria.Criteria c = criteria.createCriteria();
+      namePrefix.ifPresent((prefix) -> {
+        c.andNameLike(prefix + "%");
+      });
+      return (List<T>) workFlowDAO.selectByExample(criteria);
     }
 
     @Override
     public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
-
-//      Application app = new Application();
-//      app.setProjectName(fieldData);
-//      if (!AddAppAction.isAppNameValid(msgHandler, context, fieldKey, app)) {
-//        return false;
-//      }
       WorkFlowCriteria criteria = new WorkFlowCriteria();
       criteria.createCriteria().andNameEqualTo(fieldData);
       if (workFlowDAO.countByExample(criteria) > 0) {
         msgHandler.addFieldError(context, fieldKey, "已经有同名实例(‘" + fieldData + "’)存在");
         return false;
       }
-
       return true;
     }
   }
@@ -629,11 +642,21 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     }
 
     @Override
-    public List<Application> getExistEntities() {
+    public <T extends IdentityName> List<T> getExistEntities(Optional<String> namePrefix) {
       ApplicationCriteria criteria = new ApplicationCriteria();
-      criteria.createCriteria();
-      return appDAO.selectByExample(criteria);
+      ApplicationCriteria.Criteria c = criteria.createCriteria();
+      namePrefix.ifPresent((prefix) -> {
+        c.andProjectNameLike(prefix + "%");
+      });
+      return (List<T>) appDAO.selectByExample(criteria);
     }
+
+// @Override
+//    public List<Application> getExistEntities(Optional<String> namePrefix) {
+//      ApplicationCriteria criteria = new ApplicationCriteria();
+//      criteria.createCriteria();
+//      return appDAO.selectByExample(criteria);
+//    }
   }
 
   /**
@@ -671,15 +694,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     app.setIsAutoDeploy(true);
     if (!justValidate) {
       result = AddAppAction.createApplication(app, context, this, afterAppCreate);
-
-//      Optional<DataXJobSubmit> dataXJobSubmit //
-//        = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit.getDataXTriggerType());
-//      if (!dataXJobSubmit.isPresent()) {
-//        throw new IllegalStateException("dataXJobSubmit must be present");
-//      }
-      // 这里可以在pwoerjob 中创建workflow任务
-      // dataXJobSubmit.get().createJob(this, context, dataxProcessor);
-
       DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
         submit.createJob(this, context, dataxProcessor);
       });

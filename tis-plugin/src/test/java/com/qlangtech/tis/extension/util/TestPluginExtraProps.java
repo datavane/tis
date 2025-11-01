@@ -197,8 +197,8 @@ public class TestPluginExtraProps extends TestCase {
         );
         
         List<Option> emptyOpts = Collections.emptyList();
-        String result = candidate.createNewPrimaryFieldValue(emptyOpts);
-        assertEquals("mysqlreader-1", result);
+        String result = candidate.createNewPrimaryFieldValue(emptyOpts).identityValue();
+        assertEquals("mysqlreader_1", result);
         
         // 测试用例2：存在部分匹配的选项
         List<Option> existingOpts = Arrays.asList(
@@ -206,8 +206,8 @@ public class TestPluginExtraProps extends TestCase {
             new Option("第三个MySQL读取器", "mysqlreader-3"),
             new Option("其他插件", "other-plugin")
         );
-        result = candidate.createNewPrimaryFieldValue(existingOpts);
-        assertEquals("mysqlreader-4", result);
+        result = candidate.createNewPrimaryFieldValue(existingOpts).identityValue();
+        assertEquals("mysqlreader_4", result);
         
         // 测试用例3：存在连续的选项
         List<Option> continuousOpts = Arrays.asList(
@@ -215,8 +215,8 @@ public class TestPluginExtraProps extends TestCase {
             new Option("第二个MySQL读取器", "mysqlreader2"),
             new Option("第三个MySQL读取器", "mysqlreader3")
         );
-        result = candidate.createNewPrimaryFieldValue(continuousOpts);
-        assertEquals("mysqlreader-4", result);
+        result = candidate.createNewPrimaryFieldValue(continuousOpts).identityValue();
+        assertEquals("mysqlreader_4", result);
         
         // 测试用例4：不规则的命名模式
         List<Option> irregularOpts = Arrays.asList(
@@ -224,8 +224,8 @@ public class TestPluginExtraProps extends TestCase {
             new Option("小写的MySQL读取器", "mysqlreader5"),
             new Option("不相关的插件", "unrelated")
         );
-        result = candidate.createNewPrimaryFieldValue(irregularOpts);
-        assertEquals("mysqlreader-11", result);
+        result = candidate.createNewPrimaryFieldValue(irregularOpts).identityValue();
+        assertEquals("mysqlreader_11", result);
         
         // 测试用例5：包含非数字后缀的选项
         List<Option> mixedOpts = Arrays.asList(
@@ -233,8 +233,8 @@ public class TestPluginExtraProps extends TestCase {
             new Option("数字后缀", "mysqlreader-2"),
             new Option("空后缀", "mysqlreader-")
         );
-        result = candidate.createNewPrimaryFieldValue(mixedOpts);
-        assertEquals("mysqlreader-3", result);
+        result = candidate.createNewPrimaryFieldValue(mixedOpts).identityValue();
+        assertEquals("mysqlreader_3", result);
     }
 
     /**
@@ -250,8 +250,8 @@ public class TestPluginExtraProps extends TestCase {
             new Option("ES写入器1", "elasticsearchwriter-1"),
             new Option("ES写入器2", "elasticsearchwriter-2")
         );
-        String result = esCandidate.createNewPrimaryFieldValue(esOpts);
-        assertEquals("elasticsearchwriter-3", result);
+        String result = esCandidate.createNewPrimaryFieldValue(esOpts).identityValue();
+        assertEquals("elasticsearchwriter_3", result);
         
         // 测试单个字符的插件名
         PluginExtraProps.CandidatePlugin singleCharCandidate = new PluginExtraProps.CandidatePlugin(
@@ -261,8 +261,8 @@ public class TestPluginExtraProps extends TestCase {
         List<Option> singleCharOpts = Arrays.asList(
             new Option("单字符插件", "a-5")
         );
-        result = singleCharCandidate.createNewPrimaryFieldValue(singleCharOpts);
-        assertEquals("a-6", result);
+        result = singleCharCandidate.createNewPrimaryFieldValue(singleCharOpts).identityValue();
+        assertEquals("a_6", result);
         
         // 测试包含数字的插件名
         PluginExtraProps.CandidatePlugin numericCandidate = new PluginExtraProps.CandidatePlugin(
@@ -273,8 +273,8 @@ public class TestPluginExtraProps extends TestCase {
             new Option("数字插件1", "plugin2test-1"),
             new Option("数字插件3", "plugin2test-3")
         );
-        result = numericCandidate.createNewPrimaryFieldValue(numericOpts);
-        assertEquals("plugin2test-4", result);
+        result = numericCandidate.createNewPrimaryFieldValue(numericOpts).identityValue();
+        assertEquals("plugin2test_4", result);
     }
 
     /**
@@ -289,22 +289,22 @@ public class TestPluginExtraProps extends TestCase {
         List<Option> largeNumberOpts = Arrays.asList(
             new Option("大数字插件", "testplugin-999")
         );
-        String result = candidate.createNewPrimaryFieldValue(largeNumberOpts);
-        assertEquals("testplugin-1000", result);
+        String result = candidate.createNewPrimaryFieldValue(largeNumberOpts).identityValue();
+        assertEquals("testplugin_1000", result);
         
         // 测试零后缀
         List<Option> zeroOpts = Arrays.asList(
             new Option("零后缀插件", "testplugin-0")
         );
-        result = candidate.createNewPrimaryFieldValue(zeroOpts);
-        assertEquals("testplugin-1", result);
+        result = candidate.createNewPrimaryFieldValue(zeroOpts).identityValue();
+        assertEquals("testplugin_1", result);
         
         // 测试负数后缀（应该被忽略）
         List<Option> negativeOpts = Arrays.asList(
             new Option("负数后缀插件", "testplugin--1"),
             new Option("正常插件", "testplugin-1")
         );
-        result = candidate.createNewPrimaryFieldValue(negativeOpts);
-        assertEquals("testplugin-2", result);
+        result = candidate.createNewPrimaryFieldValue(negativeOpts).identityValue();
+        assertEquals("testplugin_2", result);
     }
 }

@@ -20,14 +20,21 @@ package com.qlangtech.tis.aiagent.core;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.IPluginEnum;
+import com.qlangtech.tis.aiagent.llm.LLMProvider;
+import com.qlangtech.tis.aiagent.plan.DescribableImpl;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.manage.common.valve.AjaxValve;
+import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
-import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroList;
-import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,17 +45,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 
+import static com.qlangtech.tis.manage.common.IAjaxResult.KEY_ERROR_FIELDS;
+import static com.qlangtech.tis.manage.common.IAjaxResult.KEY_ERROR_MSG;
+
 /**
  * Agent执行上下文，管理会话状态和SSE通信
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/9/17
  */
-public class AgentContext {
+public class AgentContext implements IAgentContext {
 
   public static final String KEY_REQUEST_ID = "requestId";
-  public static final String KEY_VALIDATE_PLUGIN_ATTR_VALS  = "config";
-
+  public static final String KEY_CONTENT_DETAIL = "content";
+  public static final String KEY_VALIDATE_PLUGIN_ATTR_VALS = "config";
+  public static final long maxWaitMillis = 300000; // 5分钟超时
 //  public static String getSelectionKey(String requestId) {
 //    return "user_selection_" + requestId;
 //  }
@@ -76,19 +87,75 @@ public class AgentContext {
     if (!cancelled && sseWriter != null) {
       JSONObject data = new JSONObject();
       data.put("type", "text");
-      data.put("content", message);
+      data.put(KEY_CONTENT_DETAIL, message);
       sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_MESSAGE, data.toJSONString());
+    }
+  }
+
+
+  /**
+   * 向客户端发送输入选择表请求
+   *
+   * @param requestId
+   * @param reasonDetail    发送该条消息的原因
+   * @param pipeline
+   * @param dataXReaderImpl
+   * @throws Exception
+   */
+  public void sendTableSelectApply(
+    RequestKey requestId, String reasonDetail, IdentityName pipeline, DescribableImpl dataXReaderImpl) throws Exception {
+
+    if (!cancelled && sseWriter != null) {
+
+      JSONObject data = new JSONObject();
+      data.put(KEY_REQUEST_ID, requestId.getSessionKey());
+      data.put(StoreResourceType.DATAX_NAME
+        , Objects.requireNonNull(pipeline, "pipeline can not be null").identityValue());
+
+      if (StringUtils.isEmpty(reasonDetail)) {
+        throw new IllegalArgumentException("reasonDetail can not be empty");
+      }
+
+      data.put(KEY_CONTENT_DETAIL, reasonDetail);
+      data.put("dataXReaderDesc", new DescriptorsJSON(dataXReaderImpl.getImplDesc()).getDescriptorsJSON());
+
+//      data.put("type", "plugin");
+//      data.put("impl", pluginImpl);
+//
+//      JSONArray items = new JSONArray();
+//      items.add(valMap.getPostJsonBody());
+//
+//
+//      UploadPluginMeta pmeta = UploadPluginMeta.create(pluginEnum);
+//      HeteroList heteroList = pmeta.createEmptyItemAndDescriptorsHetero();
+//      heteroList.setDescriptors(Collections.singletonList(valMap.descriptor));
+//
+//      data.put(KEY_VALIDATE_PLUGIN_ATTR_VALS, heteroList.toJSON(items));
+//      data.put(KEY_REQUEST_ID, requestId.getSessionKey());
+      // String requestId = "plugin_select_" + System.currentTimeMillis();
+      /**
+       * 向缓存中写入初始数据
+       */
+      this.setSessionData(requestId, new TableSelectApplySessionData());
+
+      this.sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_SELECT_TABLE, data);
     }
   }
 
   /**
    * 发送JSON数据到客户端（用于插件配置）
+   *
+   * @see com.qlangtech.tis.coredefine.module.action.ChatPipelineAction#doSubmitPluginPropsComplement wait from it for notify
    */
   public void sendPluginConfig(
-    SessionKey requestId
+    RequestKey requestId, AjaxValve.ActionExecResult validateResult
     , IPluginEnum pluginEnum, String pluginImpl, AttrValMap valMap) throws Exception {
 
     if (!cancelled && sseWriter != null) {
+
+      if (validateResult == null) {
+        throw new IllegalArgumentException("reasonDetail can not be empty");
+      }
 
 
       JSONObject data = new JSONObject();
@@ -105,11 +172,21 @@ public class AgentContext {
 
       data.put(KEY_VALIDATE_PLUGIN_ATTR_VALS, heteroList.toJSON(items));
       data.put(KEY_REQUEST_ID, requestId.getSessionKey());
+
       // String requestId = "plugin_select_" + System.currentTimeMillis();
       /**
        * 向缓存中写入初始数据
        */
-      this.setSessionData(requestId, new PluginPropsComplement());
+      this.setSessionData(requestId, new PluginPropsComplement(valMap));
+
+      JSONObject errors = new JSONObject();
+      if (CollectionUtils.isNotEmpty(validateResult.getErrorMsgs())) {
+        errors.put(KEY_ERROR_MSG, AjaxValve.errorMsgListConvert2JsonArray(validateResult.getErrorMsgs()));
+      }
+      if (CollectionUtils.isNotEmpty(validateResult.getPluginErrorList())) {
+        errors.put(KEY_ERROR_FIELDS, AjaxValve.pluginErrorListConvert2JsonArray(validateResult.getPluginErrorList()));
+      }
+      data.put(KEY_CONTENT_DETAIL, errors);
 
       sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_PLUGIN, data);
     }
@@ -123,7 +200,7 @@ public class AgentContext {
    * @param prompt    提示信息
    * @param options   候选项列表
    */
-  public void requestUserSelection(SessionKey requestId, String prompt, JSONObject options, List<PluginExtraProps.CandidatePlugin> candidatePlugins) {
+  public void requestUserSelection(RequestKey requestId, String prompt, JSONObject options, List<PluginExtraProps.CandidatePlugin> candidatePlugins) {
     if (!cancelled && sseWriter != null) {
       JSONObject data = new JSONObject();
       data.put("type", "selection_request");
@@ -156,6 +233,7 @@ public class AgentContext {
   /**
    * 发送Token使用情况
    */
+  @Override
   public void updateTokenUsage(long tokens) {
     tokenCount.addAndGet(tokens);
     if (!cancelled && sseWriter != null) {
@@ -163,6 +241,18 @@ public class AgentContext {
       data.put("type", "token");
       data.put("count", tokenCount.get());
       sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_TOKEN, data.toJSONString());
+    }
+  }
+
+  @Override
+  public void sendLLMStatus(LLMProvider.LLMChatPhase llmChatPhase, String detailInfo) {
+    if (!cancelled && sseWriter != null) {
+      JSONObject data = new JSONObject();
+      if (StringUtils.isNotEmpty(detailInfo)) {
+        data.put("detail", detailInfo);
+      }
+      data.put("status", llmChatPhase);
+      sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_LLM_CHAT_STATUS, JsonUtil.toString(data, false));
     }
   }
 
@@ -192,15 +282,14 @@ public class AgentContext {
   }
 
 
-
   /**
    * 通知用户选择已提交
    * 当用户在前端提交选择时，调用此方法唤醒等待的线程
    *
    * @param requestId 请求标识符
-   * @see AgentContext#waitForUserSelection
+   * @see AgentContext#waitForUserPost
    */
-  public void notifyUserSelectionSubmitted(SessionKey requestId) {
+  public void notifyUserSelectionSubmitted(RequestKey requestId) {
     Object lock = selectionLocks.get(requestId.getSessionKey());
     if (lock != null) {
       synchronized (lock) {
@@ -216,8 +305,8 @@ public class AgentContext {
    * @return 用户选择的索引，如果超时或取消返回-1
    */
   public <ChatSessionData extends ISessionData> ChatSessionData
-  waitForUserSelection(
-    SessionKey requestId, Predicate<ChatSessionData> predicate) {
+  waitForUserPost(
+    RequestKey requestId, Predicate<ChatSessionData> predicate) {
     // String selectionKey = getSelectionKey(requestId);
 
     // 为每个requestId创建一个专用的锁对象
@@ -225,7 +314,7 @@ public class AgentContext {
 
     try {
       synchronized (lock) {
-        long maxWaitMillis = 300000; // 5分钟超时
+
         long startTime = System.currentTimeMillis();
 
         while (!cancelled) {
@@ -296,12 +385,12 @@ public class AgentContext {
     return sessionId;
   }
 
-  public void setSessionData(SessionKey requestId, ISessionData value) {
+  public void setSessionData(RequestKey requestId, ISessionData value) {
     sessionData.put(Objects.requireNonNull(requestId).getSessionKey(), value);
   }
 
 
-  public <T extends ISessionData> T getSessionData(SessionKey selectedKey) {
+  public <T extends ISessionData> T getSessionData(RequestKey selectedKey) {
     return (T) Objects.requireNonNull(sessionData.get(selectedKey.getSessionKey())
       , "key:" + selectedKey + " relevant instance can not be null");
   }

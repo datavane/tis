@@ -306,16 +306,16 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
    */
   public static class MockLLMProvider extends LLMProvider {
     @Override
-    public LLMResponse chat(String prompt, List<String> systemPrompt) {
+    public LLMResponse chat(IAgentContext context, String prompt, List<String> systemPrompt) {
       LLMResponse response = new LLMResponse();
       response.setSuccess(true);
       response.setContent("Mock response");
-      response.setTotalTokens(100);
+     // response.setTotalTokens(100);
       return response;
     }
 
     @Override
-    public LLMResponse chatJson(String prompt, List<String> systemPrompt, String jsonSchema) {
+    public LLMResponse chatJson(IAgentContext context, String prompt, List<String> systemPrompt, String jsonSchema) {
       LLMResponse response = new LLMResponse();
       response.setSuccess(true);
 
@@ -332,7 +332,7 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
       json.put("source_config", sourceConfig);
 
       response.setJsonContent(json);
-      response.setTotalTokens(200);
+     // response.setTotalTokens(200);
       return response;
     }
 
@@ -363,7 +363,7 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
    */
   private static class FailingLLMProvider extends LLMProvider {
     @Override
-    public LLMResponse chat(String prompt, List<String> systemPrompt) {
+    public LLMResponse chat(IAgentContext context, String prompt, List<String> systemPrompt) {
       LLMResponse response = new LLMResponse();
       response.setSuccess(false);
       response.setErrorMessage("Simulated failure");
@@ -371,8 +371,8 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
     }
 
     @Override
-    public LLMResponse chatJson(String prompt, List<String> systemPrompt, String jsonSchema) {
-      return chat(prompt, systemPrompt);
+    public LLMResponse chatJson(IAgentContext context, String prompt, List<String> systemPrompt, String jsonSchema) {
+      return chat(context, prompt, systemPrompt);
     }
 
     @Override

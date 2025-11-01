@@ -36,6 +36,8 @@ public class Application implements Serializable, IdentityName {
 
     private String projectName;
 
+    private Date lastProcessTime;
+
     public boolean hasAppendSearch4Prefix = false;
 
     private String recept;
@@ -62,6 +64,14 @@ public class Application implements Serializable, IdentityName {
 
 
     private String fullBuildCronTime;
+
+    public Date getLastProcessTime() {
+        return lastProcessTime;
+    }
+
+    public void setLastProcessTime(Date lastProcessTime) {
+        this.lastProcessTime = lastProcessTime;
+    }
 
     @Override
     public String identityValue() {

@@ -68,7 +68,7 @@ public class DatasourceDbDAOImpl extends BasicDAO<DatasourceDb, DatasourceDbCrit
     }
 
     public List<DatasourceDb> selectByExample(DatasourceDbCriteria criteria) {
-        return this.selectByExample(criteria, 1, 100);
+        return this.selectByExample(criteria, 1, 500);
     }
 
     @SuppressWarnings("unchecked")

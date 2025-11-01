@@ -20,6 +20,7 @@ package com.qlangtech.tis.manage.common;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -264,6 +265,7 @@ public class HttpUtils {
             return this.key;
         }
 
+        @JSONField(serialize = false)
         public String getValue() {
             return String.valueOf(this.value);
         }

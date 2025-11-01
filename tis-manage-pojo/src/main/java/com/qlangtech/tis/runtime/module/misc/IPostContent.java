@@ -37,7 +37,7 @@ public interface IPostContent {
 
     public default Pair<Boolean, IPluginItemsProcessor>
     getPluginItems(IUploadPluginMeta pluginMeta, Context context,
-                   int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
+                   int pluginIndex, JSONArray itemsArray, FormVaildateType verify, PropValRewrite propValRewrite) {
         throw new UnsupportedOperationException();
     }
 

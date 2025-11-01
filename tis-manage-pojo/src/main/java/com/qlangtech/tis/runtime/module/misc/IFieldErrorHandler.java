@@ -22,8 +22,9 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.IFieldValidator;
 
-import javax.xml.validation.Validator;
+
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -74,6 +75,11 @@ public interface IFieldErrorHandler {
 
     abstract class BasicPipelineValidator implements IFieldValidator {
 
-        public abstract <T extends IdentityName> List<T> getExistEntities();
+        /**
+         *
+         * @param namePrefix 是否使用名称前缀匹配
+         * @return
+         */
+        public abstract <T extends IdentityName> List<T> getExistEntities(Optional<String> namePrefix);
     }
 }

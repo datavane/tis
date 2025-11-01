@@ -4,11 +4,11 @@
     "placeholder": "deepSeek1"
   },
   "apiKey": {
-    "label": "api_key",
+    "label": "API Key",
     "help": "连接密钥，请妥善保管"
   },
   "baseUrl": {
-    "label": "base_url",
+    "label": "Base URL",
     "dftVal": "https://api.deepseek.com",
     "readonly": true
   },
@@ -28,6 +28,20 @@
   },
   "readTimeout": {
     "dftVal": "com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess.dftSocketReadTimeout.getSeconds()",
-    "help":"Socket 读取数据超时时间"
+    "help": "Socket 读取数据超时时间"
+  },
+  "printLog": {
+    "dftVal": false,
+    "help": "是否打印与模型交互的执行日志",
+    "enum": [
+      {
+        "val": true,
+        "label": "是"
+      },
+      {
+        "val": false,
+        "label": "否"
+      }
+    ]
   }
 }

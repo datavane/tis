@@ -24,6 +24,7 @@ package com.qlangtech.tis.aiagent.core;
  * @date 2025/10/6
  * @see PluginPropsComplement
  * @see SelectionOptions
+ * @see TableSelectApplySessionData
  */
 public interface ISessionData {
 }

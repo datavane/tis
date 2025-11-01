@@ -19,7 +19,6 @@
 package com.qlangtech.tis.aiagent.core;
 
 import com.alibaba.fastjson.JSONObject;
-import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
@@ -30,7 +29,6 @@ import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.HeteroList;
@@ -38,7 +36,6 @@ import com.qlangtech.tis.util.PartialSettedPluginContext;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.struts2.ServletActionContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.OutputStreamWriter;
@@ -81,14 +78,11 @@ public class TestRealTISPlanAndExecuteAgent extends BasicActionTestCase {
       new PrintWriter(new OutputStreamWriter(System.out, TisUTF8.get()))
       , (event, data) -> {
       AgentContext agentContext = Objects.requireNonNull(agentContextRef.get(), "AgentContext instance can not be null");
-      SessionKey requestId = null;
+      final RequestKey requestId = RequestKey.create(data.getString(KEY_REQUEST_ID));
       if (event == SSERunnable.SSEEventType.AI_AGNET_SELECTION_REQUEST) {
-        requestId = SessionKey.create(data.getString(KEY_REQUEST_ID));
+
         Assert.assertNotNull("requestId can not be null", requestId);
-
-
         // final String selectionKey = AgentContext.getSelectionKey(requestId);
-
         SelectionOptions selection = agentContext.getSessionData(requestId);
         Assert.assertNotNull("selection can not be null", selection);
 
@@ -98,17 +92,17 @@ public class TestRealTISPlanAndExecuteAgent extends BasicActionTestCase {
         agentContext.setSessionData(requestId, new SelectionOptions(0, selection.getCandidatePlugins()));
         agentContext.notifyUserSelectionSubmitted(requestId);
       } else if (event == SSERunnable.SSEEventType.AI_AGNET_PLUGIN) {
-        requestId = SessionKey.create(data.getString(KEY_REQUEST_ID));
+        // requestId = RequestKey.create(data.getString(KEY_REQUEST_ID));
 
         JSONObject jsonObject = data.getJSONObject(KEY_VALIDATE_PLUGIN_ATTR_VALS);
 
-        List<AttrValMap> attrVals = AttrValMap.describableAttrValMapList(jsonObject.getJSONArray(HeteroList.KEY_ITEMS), Optional.empty());
-        Assert.assertTrue(CollectionUtils.isNotEmpty(attrVals));
-        PluginPropsComplement pluginPropsComplement = new PluginPropsComplement();
+        // List<AttrValMap> attrVals = AttrValMap.describableAttrValMapList(jsonObject.getJSONArray(HeteroList.KEY_ITEMS), Optional.empty());
+        // Assert.assertTrue(CollectionUtils.isNotEmpty(attrVals));
+        PluginPropsComplement pluginPropsComplement = agentContext.getSessionData(requestId);// new PluginPropsComplement();
 
-        for (AttrValMap valMap : attrVals) {
-          pluginPropsComplement.setPluginValMap(valMap);
-        }
+        // for (AttrValMap valMap : attrVals) {
+        pluginPropsComplement.setPluginValMap(pluginPropsComplement.getUnComplementValMap());
+        //}
 
         agentContext.setSessionData(requestId, pluginPropsComplement);
         agentContext.notifyUserSelectionSubmitted(requestId);

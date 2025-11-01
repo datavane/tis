@@ -18,10 +18,13 @@
 package com.qlangtech.tis.aiagent.llm;
 
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.aiagent.core.IAgentContext;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.llm.DeepSeekProvider;
+import com.qlangtech.tis.plugin.llm.log.NoneExecuteLog;
+import com.qlangtech.tis.plugin.llm.log.ExecuteLog;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -37,6 +40,9 @@ import java.util.Optional;
  * @date 2025/9/17
  */
 public abstract class LLMProvider extends ParamsConfig {
+    public enum LLMChatPhase {
+        Start, ERROR, Complete
+    }
 
     protected static final String KEY_DISPLAY_NAME = "LLM";
 
@@ -45,7 +51,6 @@ public abstract class LLMProvider extends ParamsConfig {
         IPluginContext context = IPluginContext.getThreadLocalInstance();
         List<ParamsConfig> llmProviders = loadAllProvidersBindWithUser(context);
         return llmProviders;
-        //  return llmProviders.stream().map(ParamsConfig::map2SelectOption).collect(Collectors.toList());
     }
 
 
@@ -55,10 +60,6 @@ public abstract class LLMProvider extends ParamsConfig {
      * @return
      */
     private static List<ParamsConfig> loadAllProvidersBindWithUser(IPluginContext context) {
-
-//                = UploadPluginMeta.parse(HeteroEnum.PARAMS_CONFIG_USER_ISOLATION.identity + ":" + KEY_REQUIRE
-//                + "," + KEY_TARGET_PLUGIN_DESC + "_" + KEY_DISPLAY_NAME);
-
         UploadPluginMeta pluginMeta = ParamsConfigPluginStore.createParamsConfigUserIsolation(KEY_DISPLAY_NAME);
         List<ParamsConfig> llmProviders
                 = HeteroEnum.PARAMS_CONFIG_USER_ISOLATION.getPlugins(context, pluginMeta);
@@ -107,7 +108,7 @@ public abstract class LLMProvider extends ParamsConfig {
      * @param systemPrompt 系统提示词
      * @return 生成的文本和token使用情况
      */
-    public abstract LLMResponse chat(String prompt, List<String> systemPrompt);
+    public abstract LLMResponse chat(IAgentContext context, String prompt, List<String> systemPrompt);
 
     /**
      * 调用LLM进行JSON格式化输出
@@ -118,7 +119,7 @@ public abstract class LLMProvider extends ParamsConfig {
      * @return 生成的JSON对象和token使用情况
      * @see DeepSeekProvider#chatJson(String, List, String)
      */
-    public abstract LLMResponse chatJson(String prompt, List<String> systemPrompt, String jsonSchema);
+    public abstract LLMResponse chatJson(IAgentContext context, String prompt, List<String> systemPrompt, String jsonSchema);
 
     /**
      * 获取提供商名称
@@ -139,10 +140,20 @@ public abstract class LLMProvider extends ParamsConfig {
         private JSONObject jsonContent;
         private long promptTokens;
         private long completionTokens;
-        private long totalTokens;
+        //private long totalTokens;
         private String model;
         private boolean success;
         private String errorMessage;
+
+        public final ExecuteLog executeLog;
+
+        public LLMResponse() {
+            this(new NoneExecuteLog());
+        }
+
+        public LLMResponse(ExecuteLog executeLog) {
+            this.executeLog = executeLog;
+        }
 
         public String getContent() {
             return content;
@@ -176,13 +187,13 @@ public abstract class LLMProvider extends ParamsConfig {
             this.completionTokens = completionTokens;
         }
 
-        public long getTotalTokens() {
-            return totalTokens;
-        }
-
-        public void setTotalTokens(long totalTokens) {
-            this.totalTokens = totalTokens;
-        }
+//        public long getTotalTokens() {
+//            return totalTokens;
+//        }
+//
+//        public void setTotalTokens(long totalTokens) {
+//            this.totalTokens = totalTokens;
+//        }
 
         public String getModel() {
             return model;

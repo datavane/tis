@@ -18,6 +18,7 @@
 package com.qlangtech.tis.plugin.ds;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
@@ -33,6 +34,7 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.runtime.module.misc.impl.AdapterMessageHandler;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -65,6 +67,17 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     // public static final ZoneId DEFAULT_SERVER_TIME_ZONE = MQListenerFactory.DEFAULT_SERVER_TIME_ZONE; // ZoneId.systemDefault();// ZoneId.of("Asia/Shanghai");
     public static final String DS_TYPE_MYSQL = "MySQL";
     public static final String DS_TYPE_MYSQL_V8 = DS_TYPE_MYSQL + "-V8";
+
+    /**
+     * 加载DataSource
+     *
+     * @param dbName
+     * @param <D>
+     * @return
+     */
+    public static <D extends DataSourceFactory> D load(String dbName) {
+        return TIS.getDataBasePlugin(PostedDSProp.parse(dbName));
+    }
 
     @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.identity})
     public String name;
@@ -520,19 +533,42 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         protected boolean validateDSFactory(IControlMsgHandler msgHandler, Context context, T dsFactory) {
 
             DBConfig dbConfig = Objects.requireNonNull(dsFactory.getDbConfig(), "dbConfig can not be null");
-            Exception[] faild = new Exception[1];
+            Throwable[] faild = new Throwable[1];
             boolean[] validateResult = new boolean[1];
             final Object actionContext = context.getContext();
-            dbConfig.vistDbURL(false, 5, (dbName, dbHost, jdbcUrl) -> {
-                try (JDBCConnection conn = dsFactory.getConnection(jdbcUrl, Optional.empty(), true)) {
-                    // 由于不在同一个线程内需要重新绑定线程
-                    context.setContext(actionContext);
-                    validateResult[0] = validateConnection(conn, dsFactory, msgHandler, context);
-                } catch (Exception e) {
-                    faild[0] = e;
-                    logger.warn(e.getMessage(), e);
+
+            try {
+                if (!dbConfig.vistDbURL(false, (dbName, dbHost, jdbcUrl) -> {
+                    try (JDBCConnection conn = dsFactory.getConnection(jdbcUrl, Optional.empty(), true)) {
+                        // 由于不在同一个线程内需要重新绑定线程
+                        context.setContext(actionContext);
+                        validateResult[0] = validateConnection(conn, dsFactory, msgHandler, context);
+                    } catch (Throwable e) {
+                        faild[0] = e;
+                        logger.warn(e.getMessage(), e);
+                    }
+                }, false, msgHandler, context, 5)) {
+                    // throw TisException.create("error:" + err[0]);
+                    return false;
                 }
-            });
+            } catch (JDBCConnectionException e) {
+                // throw new RuntimeException(e);
+                logger.error(e.getMessage(), e);
+                msgHandler.addErrorMessage(context, e.getMessage());
+                return false;
+            }
+//
+//            dbConfig.vistDbURL(false, 5, (dbName, dbHost, jdbcUrl) -> {
+//                try (JDBCConnection conn = dsFactory.getConnection(jdbcUrl, Optional.empty(), true)) {
+//                    // 由于不在同一个线程内需要重新绑定线程
+//                    context.setContext(actionContext);
+//                    validateResult[0] = validateConnection(conn, dsFactory, msgHandler, context);
+//                } catch (Throwable e) {
+//                    faild[0] = e;
+//                    logger.warn(e.getMessage(), e);
+//                }
+//            });
+
 
             if (faild[0] != null) {
                 msgHandler.addErrorMessage(context, "请确认连接参数是否正确:" + faild[0].getMessage());

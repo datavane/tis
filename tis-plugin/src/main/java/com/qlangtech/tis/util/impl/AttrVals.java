@@ -42,6 +42,31 @@ public class AttrVals implements AttrValMap.IAttrVals {
         this.attrValMap = attrValMap;
     }
 
+    public static AttrVals parseAttrValMap(Object vals) {
+        Map<String, JSON> attrValMap = Maps.newHashMap();
+        if (vals == null) {
+            return new AttrVals(attrValMap);
+        }
+        // Object vals = jsonObject.get("vals");
+        if (vals instanceof Map) {
+            ((Map<String, Object>) vals).forEach((attrName, val) -> {
+                try {
+                    attrValMap.put(attrName, (JSON) val);
+                } catch (Exception e) {
+                    // 在multiSelectItem的场景下，可能存在提交的itemProperty没有使用‘ItemPropVal’包装的情况
+                    if (val instanceof String) {
+                        JSONObject o = new JSONObject();
+                        o.put(Descriptor.KEY_primaryVal, val);
+                        attrValMap.put(attrName, o);
+                    } else {
+                        throw new RuntimeException("attrName:" + attrName + ",valType:" + val.getClass().getSimpleName(), e);
+                    }
+                }
+            });
+        }
+        return new AttrVals(attrValMap);
+    }
+
     @Override
     public Map<String, JSONObject> asRootFormVals() {
         Map<String, JSONObject> result = Maps.newHashMap();
@@ -57,7 +82,7 @@ public class AttrVals implements AttrValMap.IAttrVals {
 
     public JSONObject getAttrVal(String fieldName) {
         JSON prop = this.attrValMap.get(fieldName);
-        if (!(prop instanceof JSONObject)) {
+        if (prop != null && !(prop instanceof JSONObject)) {
             throw new IllegalStateException("type must be a object:\n" + JsonUtil.toString(prop));
         }
         return (JSONObject) prop;
@@ -65,6 +90,9 @@ public class AttrVals implements AttrValMap.IAttrVals {
 
     public Object getPrimaryVal(String fieldName) {
         JSONObject attrVal = getAttrVal(fieldName);
+        if (attrVal == null) {
+            return null;
+        }
         return attrVal.get(Descriptor.KEY_primaryVal);
     }
 

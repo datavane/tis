@@ -125,8 +125,14 @@ public interface SSERunnable extends Runnable, IJobFeedback {
         AI_AGNET_SESSION("session"),
         AI_AGNET_MESSAGE("ai_agent_message"),
         AI_AGNET_TOKEN("ai_agent_token"),
+        /**
+         * 大模型result 交互状态显示
+         */
+        AI_AGNET_LLM_CHAT_STATUS("ai_agent_llm_chat_status"),
         AI_AGNET_PROGRESS("ai_agent_progress"),
         AI_AGNET_PLUGIN("ai_agent_plugin"),
+        // 选择导入表
+        AI_AGNET_SELECT_TABLE("ai_agent_select_tabs"),
         AI_AGNET_ERROR("ai_agent_error"),
         AI_AGENT_INPUT_REQUEST("ai_agent_input_request"),
         /**

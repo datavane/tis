@@ -135,6 +135,10 @@
     -->
     insert into application
     <dynamic prepend="(" >
+
+      <isNotNull prepend="," property="lastProcessTime" >
+        last_process_time
+      </isNotNull>
       <isNotNull prepend="," property="appId" >
         app_id
       </isNotNull>
@@ -174,6 +178,9 @@
     </dynamic>
     values
     <dynamic prepend="(" >
+      <isNotNull prepend="," property="lastProcessTime" >
+        CURRENT_TIMESTAMP
+      </isNotNull>
       <isNotNull prepend="," property="appId" >
         #appId:INTEGER#
       </isNotNull>

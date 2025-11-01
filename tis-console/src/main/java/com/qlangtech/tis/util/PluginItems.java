@@ -26,11 +26,10 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.coredefine.module.action.PluginItemsParser;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.Descriptor.FormVaildateType;
+import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.IAppSource;
-import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
@@ -48,8 +47,8 @@ import com.qlangtech.tis.utils.DBsGetter;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.struts2.ServletActionContext;
 
 import java.util.Collections;
 import java.util.List;
@@ -102,6 +101,12 @@ public class PluginItems implements IPluginItemsProcessor {
     this.context = context;
   }
 
+  public final List<AttrValMap> getItems() {
+    if (CollectionUtils.isEmpty(this.items)) {
+      throw new IllegalStateException("items can not be empty");
+    }
+    return items;
+  }
 
   /**
    * 校验提交的表单
@@ -112,7 +117,7 @@ public class PluginItems implements IPluginItemsProcessor {
    * @param verify
    * @return
    */
-  public PluginItemsParser validate(IPluginContext module, Context context, int pluginIndex, boolean verify) {
+  public PluginItemsParser validate(IPluginContext module, Context context, int pluginIndex, FormVaildateType verify) {
     List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
     PluginItemsParser parseResult = new PluginItemsParser(items);
     parseResult.pluginItems = this;
@@ -129,7 +134,8 @@ public class PluginItems implements IPluginItemsProcessor {
           Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
 
           if (!(validateResult = attrValMap.validate((IControlMsgHandler) module
-            , context, FormVaildateType.create(verify), Optional.empty())).isValid()) {
+            , context, Objects.requireNonNull(verify, "verify can not be null") //
+            , Optional.empty())).isValid()) {
             parseResult.faild = true;
           } else {
             validateResult.setDescriptor(attrValMap.descriptor);
@@ -406,8 +412,12 @@ public class PluginItems implements IPluginItemsProcessor {
     if (!result.success) {
       return new ItemsSaveResult(Collections.emptyList(), result);
     }
-    observable.notifyObservers(new PluginItemsSaveEvent(this.pluginContext, this.heteroEnum, store.describableList, result.cfgChanged));
+    notifyNewPluginSaved(store.describableList, result.cfgChanged);
     return new ItemsSaveResult(store.describableList, result);
+  }
+
+  private void notifyNewPluginSaved(List<Describable> describableList, boolean cfgChanged) {
+    observable.notifyObservers(new PluginItemsSaveEvent(this.pluginContext, this.heteroEnum, describableList, cfgChanged));
   }
 
   private List<Descriptor.ParseDescribable<?>> getPlugins(List<Describable> describableList) {

@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.valve.AjaxValve.ActionExecResult;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
+import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.ItemsErrors;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.IUploadPluginMeta;
@@ -70,7 +71,7 @@ public class TestPluginItemsParser extends BasicPluginAction {
 
       PluginItemsParser.parsePluginItems(pluginAction
         , (UploadPluginMeta) m
-        , context, 0, itemsArray, false, (propType, val) -> {
+        , context, 0, itemsArray, FormVaildateType.create( false), (propType, val) -> {
           PropertyType ptype = (PropertyType) propType;
           // 将原先的主键覆盖掉
           return ptype.isIdentity() ? newIdentityName : val;

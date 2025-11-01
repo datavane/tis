@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.manage.common;
 
+import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.cloud.ISolrZKClientGetter;
 import com.qlangtech.tis.dao.ICommonDAOContext;
 import com.qlangtech.tis.manage.biz.dal.dao.IAppTriggerJobRelationDAO;
@@ -42,7 +43,9 @@ import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
  */
 public interface RunContext extends ISolrZKClientGetter, ICommonDAOContext {
 
-//  public IApplicationDAO getApplicationDAO();
+  default void createPipeline(Context context, String dataxName) throws Exception {
+    throw new UnsupportedOperationException();
+  }
 
   public IGroupInfoDAO getGroupInfoDAO();
 

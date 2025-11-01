@@ -46,6 +46,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
+import static com.qlangtech.tis.extension.Descriptor.KEY_OPTIONS;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
@@ -237,7 +239,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                     }
 
                     if (val.typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
-                        attrVal.put("options", getSelectOptions(desc, val, key));
+                        attrVal.put(KEY_OPTIONS, getSelectOptions(desc, val, key));
                     }
                     if (val.isDescribable()) {
                         DescriptorsJSON des2Json = createInnerDescrible(val);

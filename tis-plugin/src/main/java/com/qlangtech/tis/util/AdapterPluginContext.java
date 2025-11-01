@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -52,7 +53,9 @@ public abstract class AdapterPluginContext implements IPluginContext, IControlMs
     }
 
     @Override
-    public Pair<Boolean, IPluginItemsProcessor> getPluginItems(IUploadPluginMeta pluginMeta, Context context, int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
+    public Pair<Boolean, IPluginItemsProcessor> getPluginItems(
+            IUploadPluginMeta pluginMeta, Context context, int pluginIndex
+            , JSONArray itemsArray, FormVaildateType verify, PropValRewrite propValRewrite) {
         return pluginContext.getPluginItems(pluginMeta, context, pluginIndex, itemsArray, verify, propValRewrite);
     }
 

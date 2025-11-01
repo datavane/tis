@@ -74,4 +74,12 @@ public class DefaultContext implements Context {
     public void remove(String key) {
         contextMap.remove(key);
     }
+
+    @Override
+    public Object getContext() {
+       return new Object();
+    }
+    @Override
+    public <T> void setContext(T actionContext) {
+    }
 }

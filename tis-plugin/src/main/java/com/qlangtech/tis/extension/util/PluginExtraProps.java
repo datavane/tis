@@ -533,7 +533,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
          * @param existOpts
          * @return
          */
-        public <T extends IdentityName> String createNewPrimaryFieldValue(List<T> existOpts) {
+        public <T extends IdentityName> IdentityName createNewPrimaryFieldValue(List<T> existOpts) {
 //            String descName = StringUtils.lowerCase(this.getDisplayName());
 //            Pattern pattern = Pattern.compile(descName + "-?(\\d+)");
 //            Matcher matcher = null;
@@ -551,10 +551,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return createNewPrimaryFieldValue(this.getDisplayName(), existOpts);
         }
 
-        public static <T extends IdentityName> String createNewPrimaryFieldValue(
+        public static <T extends IdentityName> IdentityName createNewPrimaryFieldValue(
                 final String displayName, List<T> existOpts) {
             String descName = StringUtils.lowerCase(displayName);
-            Pattern pattern = Pattern.compile(descName + "-?(\\d+)");
+            Pattern pattern = Pattern.compile(descName + "_?(\\d+)");
             Matcher matcher = null;
             int maxSufix = 1;
             for (IdentityName opt : existOpts) {
@@ -566,7 +566,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                     }
                 }
             }
-            return descName + "-" + maxSufix;
+            return IdentityName.create( descName + "_" + maxSufix);
         }
 
         public Descriptor getInstalledPluginDescriptor() {
@@ -735,6 +735,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
          *
          * @return
          */
+        @JSONField(serialize = false)
         public Optional<FieldRefCreateor> getRefCreator() {
             if (this._fieldRefCreateor == null) {
                 this._fieldRefCreateor = Optional.ofNullable(createFieldRefCreateor(this.props));
@@ -765,6 +766,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return (String) props.get(KEY_HELP);
         }
 
+        @JSONField(serialize = false)
         public List<ValidatorCfg> getExtraValidators() {
             Object v = props.get(KEY_VALIDATOR);
             if (v == null) {

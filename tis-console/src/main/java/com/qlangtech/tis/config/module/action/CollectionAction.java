@@ -28,6 +28,7 @@ import com.qlangtech.tis.coredefine.module.action.*;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.manage.biz.dal.dao.impl.SnapshotViewImplDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.Department;
@@ -54,8 +55,6 @@ import com.qlangtech.tis.sql.parser.meta.Position;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.util.*;
-import com.qlangtech.tis.workflow.pojo.DatasourceDb;
-import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
 import org.apache.commons.lang.StringUtils;
@@ -566,7 +565,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     throws TableNotFoundException {
     TargetColumnMeta columnMeta = new TargetColumnMeta(targetTable);
     Map<String, ColumnMetaData> colMetas = null;
-    if (dataSourceItems.validate(this, context, 0, false).faild) {
+    if (dataSourceItems.validate(this, context, 0, FormVaildateType.create(false)).faild) {
       return columnMeta.invalid();
     }
 
@@ -830,7 +829,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
       throw new IllegalStateException("incr plugin item size can not small than 1");
     }
 
-    PluginItemsParser validate = incrPluginItems.validate(this, context, 0, false);
+    PluginItemsParser validate = incrPluginItems.validate(this, context, 0, FormVaildateType.create(false));
     if (validate.faild) {
       return false;
     }

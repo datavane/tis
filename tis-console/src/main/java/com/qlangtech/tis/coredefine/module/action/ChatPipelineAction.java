@@ -18,12 +18,16 @@
 package com.qlangtech.tis.coredefine.module.action;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.aiagent.core.AgentContext;
+import com.qlangtech.tis.aiagent.core.PluginPropsComplement;
+import com.qlangtech.tis.aiagent.core.RequestKey;
 import com.qlangtech.tis.aiagent.core.SelectionOptions;
-import com.qlangtech.tis.aiagent.core.SessionKey;
 import com.qlangtech.tis.aiagent.core.TISPlanAndExecuteAgent;
+import com.qlangtech.tis.aiagent.core.TableSelectApplySessionData;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.template.TaskTemplateRegistry;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
@@ -33,7 +37,10 @@ import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.common.UserProfile;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
-import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.AttrValMap;
+import com.qlangtech.tis.util.DescribableJSON;
+import com.qlangtech.tis.util.ItemsSaveResult;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.slf4j.Logger;
@@ -52,6 +59,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.qlangtech.tis.aiagent.core.AgentContext.KEY_REQUEST_ID;
+import static com.qlangtech.tis.aiagent.core.AgentContext.maxWaitMillis;
+import static com.qlangtech.tis.datax.impl.DataxReader.SUB_PROP_FIELD_NAME;
 
 /**
  * Chat Pipeline Action控制器
@@ -68,11 +77,9 @@ public class ChatPipelineAction extends BasicModule {
   // 异步执行线程池
   private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
-  /**
-   * 获取任务模板列表
-   */
   @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
-  public void doGetTemplates(Context context) {
+  public void doGetPageInitialize(Context context) throws Exception {
+    JSONObject response = new JSONObject();
     TaskTemplateRegistry registry = new TaskTemplateRegistry();
     JSONArray templates = new JSONArray();
 
@@ -84,28 +91,49 @@ public class ChatPipelineAction extends BasicModule {
       templateJson.put("sampleText", template.getSampleText());
       templates.add(templateJson);
     }
+    response.put("templates", templates);
 
-    this.setBizResult(context, templates);
+    response.put("session", createSession());
+
+    response.put("hetero", PluginAction.getDescrible(this).toJSON());
+    /**
+     * 等待用户输入的最大超时时间
+     */
+    response.put("applyUserInputMaxWaitMillis", maxWaitMillis);
+
+    this.setBizResult(context, response);
   }
 
-
+//  /**
+//   * 获取任务模板列表
+//   */
 //  @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
-//  public void doGetLlmProviders(Context context) {
+//  public void doGetTemplates(Context context) {
+//    TaskTemplateRegistry registry = new TaskTemplateRegistry();
+//    JSONArray templates = new JSONArray();
 //
-//    JSONObject llm = null;
-//    List<LLMProvider> llms = LLMProvider.loadAll(this.getUser());
-////for(  llms){
-////
-////}
-//
+//    for (TaskTemplateRegistry.TaskTemplate template : registry.getAllTemplates()) {
+//      JSONObject templateJson = new JSONObject();
+//      templateJson.put("id", template.getId());
+//      templateJson.put("name", template.getName());
+//      templateJson.put("description", template.getDescription());
+//      templateJson.put("sampleText", template.getSampleText());
+//      templates.add(templateJson);
+//    }
+//    this.setBizResult(context, templates);
 //  }
-
 
   /**
    * 创建新的聊天会话
    */
   @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
   public void doCreateSession(Context context) {
+    JSONObject result = createSession();
+
+    this.setBizResult(context, result);
+  }
+
+  private JSONObject createSession() {
     String sessionId = UUID.randomUUID().toString();
     ChatSession session = new ChatSession(sessionId);
     sessions.put(sessionId, session);
@@ -113,8 +141,7 @@ public class ChatPipelineAction extends BasicModule {
     JSONObject result = new JSONObject();
     result.put("sessionId", sessionId);
     result.put("createTime", System.currentTimeMillis());
-
-    this.setBizResult(context, result);
+    return result;
   }
 
   /**
@@ -265,6 +292,32 @@ public class ChatPipelineAction extends BasicModule {
   }
 
   /**
+   * 确认表选择
+   *
+   * @param context
+   */
+  @Func(value = PermissionConstant.AI_AGENT, sideEffect = true)
+  public void doConfirmTableSelection(Context context) {
+    JSONObject jsonContent = this.getJSONPostContent();
+    RequestKey requestId = RequestKey.create(jsonContent.getString(KEY_REQUEST_ID));
+    ChatSession session = getChatSession(jsonContent);
+    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(), "agentContext can not be null");
+    TableSelectApplySessionData tableSelectionSessionData = agentContext.getSessionData(requestId);
+
+    JSONArray selectedTab = jsonContent.getJSONArray(SUB_PROP_FIELD_NAME);
+
+    tableSelectionSessionData.setTableSelectConfirm(!selectedTab.isEmpty());
+
+    if (!tableSelectionSessionData.isTableSelectConfirm()) {
+      this.addErrorMessage(context, "请选择目标表");
+      return;
+    }
+    agentContext.notifyUserSelectionSubmitted(requestId);
+    this.setBizResult(context, tableSelectionSessionData.isTableSelectConfirm());
+
+  }
+
+  /**
    * 插件安装完成之后确认是否已经安装完成
    *
    * @param context
@@ -272,8 +325,7 @@ public class ChatPipelineAction extends BasicModule {
   @Func(value = PermissionConstant.AI_AGENT, sideEffect = true)
   public void doCheckInstallOption(Context context) {
     JSONObject jsonContent = this.getJSONPostContent();
-    // String sessionId = jsonContent.getString("sessionId");
-    SessionKey requestId = SessionKey.create(jsonContent.getString(KEY_REQUEST_ID));
+    RequestKey requestId = RequestKey.create(jsonContent.getString(KEY_REQUEST_ID));
     // Integer selectedIndex = jsonContent.getInteger("selectedIndex");
     ChatSession session = getChatSession(jsonContent);
     //String selectionKey = AgentContext.getSelectionKey(requestId);
@@ -291,24 +343,46 @@ public class ChatPipelineAction extends BasicModule {
   private ChatSession getChatSession(JSONObject post) {
     String sessionId = post.getString("sessionId");
     if (sessionId == null) {
-      //this.addErrorMessage(context, "参数不完整");
-      //return;
       throw new IllegalStateException("sessionId == null");
     }
 
     ChatSession session = sessions.get(sessionId);
     if (session == null) {
-      // this.addErrorMessage(context, "会话不存在");
-      // return;
       throw new IllegalStateException("sessionId:" + sessionId + " relevant session instance can not be null");
     }
     return session;
   }
 
   /**
+   *
+   * @param context
+   * @see AgentContext#sendPluginConfig(RequestKey, IPluginEnum, String, AttrValMap)  notify for
+   * @see PluginAction#doSavePluginConfig(Context) 通过该方法forward过来
+   */
+  public void doSubmitPluginPropsComplement(Context context) {
+    JSONObject jsonContent = this.getJSONPostContent();
+    ChatSession session = getChatSession(jsonContent);
+    RequestKey requestId = RequestKey.create(jsonContent.getString(KEY_REQUEST_ID));
+    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext()
+      , "agentContext can not be null,sessionId:" + session.getSessionId());
+
+    PluginPropsComplement complement = agentContext.getSessionData(requestId);
+    List<AttrValMap> postItems = PluginAction.getPostItems(this.getRequest());
+    if (CollectionUtils.isEmpty(postItems)) {
+      throw new IllegalStateException("postItems can not be empty");
+    }
+    for (AttrValMap postItem : postItems) {
+      complement.setPluginValMap(postItem);
+      break;
+    }
+    agentContext.notifyUserSelectionSubmitted(requestId);
+    setBizResult(context, requestId);
+  }
+
+  /**
    * 提交用户选择（响应Agent的选择请求）
    *
-   * @see AgentContext#waitForUserSelection 中等待用户输入项
+   * @see AgentContext#waitForUserPost 中等待用户输入项
    */
   @Func(value = PermissionConstant.AI_AGENT, sideEffect = true)
   public void doSubmitSelection(Context context) {
@@ -316,7 +390,7 @@ public class ChatPipelineAction extends BasicModule {
     JSONObject jsonContent = this.getJSONPostContent();
 
     String sessionId = jsonContent.getString("sessionId");
-    SessionKey requestId = SessionKey.create(jsonContent.getString(KEY_REQUEST_ID));
+    RequestKey requestId = RequestKey.create(jsonContent.getString(KEY_REQUEST_ID));
     Integer selectedIndex = jsonContent.getInteger("selectedIndex");
 
     if (sessionId == null || requestId == null || selectedIndex == null) {

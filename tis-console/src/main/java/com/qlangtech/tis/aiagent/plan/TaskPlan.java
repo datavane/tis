@@ -18,6 +18,7 @@
 package com.qlangtech.tis.aiagent.plan;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.google.common.collect.ImmutableMap;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
@@ -28,8 +29,11 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;
@@ -51,10 +55,26 @@ public class TaskPlan {
 
   public final Map<Class<? extends Describable>, DescribableImpl> writerExtendPoints;
   public final DescribableImpl processorExtendPoints;
-  private final MockContext runtimeContext = new MockContext();
+  private MockContext runtimeContext;
 
-  public Context getRuntimeContext() {
+  public Context getRuntimeContext(boolean createNew) {
+
+    if (createNew) {
+      DefaultContext ctx = new DefaultContext();
+      setPluginMeta(ctx);
+      return ctx;
+    } else {
+      if (runtimeContext == null) {
+        runtimeContext = new MockContext();
+        setPluginMeta(runtimeContext);
+      }
       return this.runtimeContext;
+    }
+  }
+
+  private static void setPluginMeta(Context ctx) {
+    ctx.put(UploadPluginMeta.KEY_PLUGIN_META, UploadPluginMeta.create(HeteroEnum.APP_SOURCE)
+      .putExtraParams(DBIdentity.KEY_UPDATE, Boolean.FALSE.toString()));
   }
 
   /**
@@ -75,7 +95,7 @@ public class TaskPlan {
   }
 
   private String planId;
-  private final DataEndCfg sourceEnd;
+  private final SourceDataEndCfg sourceEnd;
   private final DataEndCfg targetEnd;
   private List<TaskStep> steps;
   private String userInput;
@@ -83,7 +103,7 @@ public class TaskPlan {
   private final LLMProvider llmProvider;
   private final IControlMsgHandler controlMsgHandler;
 
-  public TaskPlan(DataEndCfg sourceEnd, DataEndCfg targetEnd, LLMProvider llmProvider, IControlMsgHandler controlMsgHandler) {
+  public TaskPlan(SourceDataEndCfg sourceEnd, DataEndCfg targetEnd, LLMProvider llmProvider, IControlMsgHandler controlMsgHandler) {
     this.steps = new ArrayList<>();
     this.createTime = System.currentTimeMillis();
     this.llmProvider = Objects.requireNonNull(llmProvider, "llmProvider can not be null");
@@ -106,13 +126,6 @@ public class TaskPlan {
     mapBuilder.put(TISSinkFactory.class, new DescribableImpl(TISSinkFactory.class, Optional.of(targetEnd.getType())));
 
     this.writerExtendPoints = mapBuilder.build();
-
-//      = new ImmutableMap.Builder.
-//    {
-//      new DescribableImpl(com.qlangtech.tis.datax.impl.DataxReader.class)
-//        // , new DescribableImpl(com.qlangtech.tis.plugin.ds.DataSourceFactory.class)
-//        , new DescribableImpl(com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory.class)
-//    } ;
   }
 
   public IControlMsgHandler getControlMsgHandler() {
@@ -135,8 +148,8 @@ public class TaskPlan {
     this.planId = planId;
   }
 
-  public DataEndCfg getSourceEnd() {
-    return sourceEnd;
+  public SourceDataEndCfg getSourceEnd() {
+    return this.sourceEnd;
   }
 
 
@@ -207,4 +220,21 @@ public class TaskPlan {
       this.relevantDesc = relevantDesc;
     }
   }
+
+  public static class SourceDataEndCfg extends DataEndCfg {
+    private List<String> selectedTabs;
+
+    public SourceDataEndCfg(IEndTypeGetter.EndType type) {
+      super(type);
+    }
+
+    public List<String> getSelectedTabs() {
+      return this.selectedTabs;
+    }
+
+    public void setSelectedTabs(List<String> selectedTabs) {
+      this.selectedTabs = selectedTabs;
+    }
+  }
+
 }

@@ -18,7 +18,6 @@
 package com.qlangtech.tis.aiagent.core;
 
 import com.alibaba.fastjson.JSONObject;
-import com.qlangtech.tis.plugin.llm.DeepSeekProvider;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.plan.PlanGenerator;
 import com.qlangtech.tis.aiagent.plan.TaskPlan;
@@ -39,6 +38,7 @@ import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_EXTRACT_INFO;
 import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_SOURCE;
 import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_TARGET;
 import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_TYPE;
+import static com.qlangtech.tis.datax.impl.DataxReader.SUB_PROP_FIELD_NAME;
 
 /**
  * TIS Plan-And-Execute Agent主控制器
@@ -55,11 +55,12 @@ public class TISPlanAndExecuteAgent {
   private final TaskTemplateRegistry templateRegistry;
   private IControlMsgHandler controlMsgHandler;
 
+
+
   public TISPlanAndExecuteAgent(AgentContext context, LLMProvider llmProvider, IControlMsgHandler controlMsgHandler) {
     this.context = context;
 
     // 初始化LLM Provider
-
     this.llmProvider = Objects.requireNonNull(llmProvider, "llmProvider can not be null");// LLMProvider.load("default");
     this.controlMsgHandler = controlMsgHandler;
     // 初始化组件
@@ -104,15 +105,15 @@ public class TISPlanAndExecuteAgent {
       String systemPrompt = buildSystemPrompt();
       String prompt = buildUserPrompt(userInput);
 
-      LLMProvider.LLMResponse response = llmProvider.chatJson(prompt, Collections.singletonList(systemPrompt), getPlanSchema());
+      LLMProvider.LLMResponse response = llmProvider.chatJson(Objects.requireNonNull(context, "context can not be null")
+        , prompt, Collections.singletonList(systemPrompt), getPlanSchema());
 
       if (!response.isSuccess()) {
-        logger.error("LLM call failed: {}", response.getErrorMessage());
-        return null;
+        throw new IllegalStateException("LLM call failed: " + response.getErrorMessage());
       }
 
       // 更新Token使用情况
-      context.updateTokenUsage(response.getTotalTokens());
+     // context.updateTokenUsage(response.getTotalTokens());
 
       // 解析LLM返回的计划
       JSONObject planJson = response.getJsonContent();
@@ -128,8 +129,7 @@ public class TISPlanAndExecuteAgent {
       return plan;
 
     } catch (Exception e) {
-      logger.error("Failed to generate execution plan", e);
-      return null;
+      throw new RuntimeException(e);
     }
   }
 
@@ -210,13 +210,13 @@ public class TISPlanAndExecuteAgent {
    */
   private boolean executeStep(TaskPlan plan, TaskStep step) {
 
-    try {
-      return step.execute(plan, step, context);
-    } catch (Exception e) {
-      //  logger.error("Step execution exception: " + step.getName(), e);
-      // return false;
-      throw new IllegalStateException("Step execution exception: " + step.getName(), e);
-    }
+    // try {
+    return step.execute(plan, step, context);
+//    } catch (Exception e) {
+//      //  logger.error("Step execution exception: " + step.getName(), e);
+//      // return false;
+//      throw new IllegalStateException("Step execution exception: " + step.getName(), e);
+//    }
   }
 
   /**
@@ -259,44 +259,14 @@ public class TISPlanAndExecuteAgent {
    * 获取计划JSON Schema
    */
   private String getPlanSchema() {
-//    return "{\n" +
-//      "  \"source_type\": \"string\",\n" +
-//      "  \"target_type\": \"string\",\n" +
-//      "  \"options\": {\n" +
-//      "    \"execute_batch\": \"类型为boolean，表明数据管道创建完成之后是否立即触发全量数据同步\",\n" +
-//      "    \"enable_incr\": \"类型为boolean，表明数据管道创建完成后是否立即启动增量事实同步\"\n" +
-//      "  }\n" +
-//      "}";
-
 
     return "{\n" +
-      "  \"" + KEY_SOURCE + "\": {\"" + KEY_TYPE + "\":\"string,值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" + KEY_EXTRACT_INFO + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取源端相关的描述信息\"} ,\n" +
+      "  \"" + KEY_SOURCE + "\": {\"" + KEY_TYPE + "\":\"string,值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" + KEY_EXTRACT_INFO + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取源端相关的描述信息\",\"" + SUB_PROP_FIELD_NAME + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取源端相关的表名称，使用逗号(‘,’)分隔,如不能抽取得到则设置为空字符串\"} ,\n" +
       "  \"" + KEY_TARGET + "\": {\"" + KEY_TYPE + "\":\"string,值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" + KEY_EXTRACT_INFO + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取目标端相关的描述信息\"} ,\n" +
       "  \"options\": {\n" +
       "    \"execute_batch\": \"类型为boolean，表明数据管道创建完成之后是否立即触发全量数据同步，默认为false\",\n" +
       "    \"enable_incr\": \"类型为boolean，表明数据管道创建完成后是否立即启动增量事实同步，默认为false\"\n" +
       "  }\n" +
       "}";
-
-
-//        return "{\n" +
-//               "  \"source_type\": \"string\",\n" +
-//               "  \"target_type\": \"string\",\n" +
-//               "  \"source_config\": {\n" +
-//               "    \"host\": \"string\",\n" +
-//               "    \"port\": \"number\",\n" +
-//               "    \"username\": \"string\",\n" +
-//               "    \"password\": \"string\",\n" +
-//               "    \"database\": \"string\"\n" +
-//               "  },\n" +
-//               "  \"target_config\": {\n" +
-//               "    \"host\": \"string\",\n" +
-//               "    \"database\": \"string\"\n" +
-//               "  },\n" +
-//               "  \"options\": {\n" +
-//               "    \"execute_batch\": \"boolean\",\n" +
-//               "    \"enable_incr\": \"boolean\"\n" +
-//               "  }\n" +
-//               "}";
   }
 }

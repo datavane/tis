@@ -1,6 +1,7 @@
 package com.qlangtech.tis.datax;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
@@ -11,6 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -98,6 +100,20 @@ public class TableAlias implements Describable<TableAlias> {
     }
 
     public TableAlias() {
+    }
+
+    public static void saveTableMapper(IPluginContext pluginContext, String dataxName, List<TableAlias> tableMaps) {
+
+      if (StringUtils.isBlank(dataxName)) {
+        throw new IllegalArgumentException("param dataxName can not be null");
+      }
+
+      save(pluginContext, dataxName, tableMaps);
+
+      DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(pluginContext, dataxName);
+      dataxProcessor.afterSaved(pluginContext, Optional.empty());
+  //    dataxProcessor.setTableMaps(tableMaps);
+  //    IAppSource.save(pluginContext, dataxName, dataxProcessor);
     }
 
     public <T extends TableAlias> T setShallNotRewriteTargetTableName() {

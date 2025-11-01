@@ -48,6 +48,7 @@ import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.TransformerRuleKey;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
@@ -75,7 +76,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
     public static final String DATAX_CREATE_DDL_DIR_NAME = "createDDL";
 
-    private transient List<TableAlias> _tableMaps;
+    private transient Map<String, TableAlias> _tableMaps;
     private transient PluginStore<IAppSource> pluginStore;
 
     public interface IDataxProcessorGetter {
@@ -189,9 +190,27 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         return this.getTabAlias(null);
     }
 
-    private List<TableAlias> getTableMaps(IPluginContext pluginCtx) {
+    private Map<String, TableAlias> getTableMaps(IPluginContext pluginCtx) {
         if (this._tableMaps == null) {
-            this._tableMaps = TableAlias.load(pluginCtx, this.identityValue());
+
+            List<TableAlias> aliases = TableAlias.load(pluginCtx, this.identityValue());
+            if (CollectionUtils.isEmpty(aliases)) {
+
+                IDataxReader reader = this.getReader(pluginCtx);
+                List<ISelectedTab> tabs = reader.getSelectedTabs();
+                Map<String, TableAlias> mapper = Maps.newHashMap();
+                for (ISelectedTab tab : tabs) {
+                    mapper.put(tab.getName(), new TableMap(tab));
+                }
+                this._tableMaps = mapper;
+            } else {
+                this._tableMaps = aliases.stream().collect(Collectors.toMap((m) -> {
+                    if (StringUtils.isEmpty(m.getFrom())) {
+                        throw new IllegalArgumentException("table mapper from can not be empty");
+                    }
+                    return m.getFrom();
+                }, (m) -> m));
+            }
         }
         return this._tableMaps;
     }
@@ -204,36 +223,32 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     @Override
     public TableAliasMapper getTabAlias(IPluginContext pluginCtx) {
         boolean isReaderUnStructed = false;
-        List<TableAlias> tableMaps = getTableMaps(pluginCtx);
+        Map<String, TableAlias> tableMaps = getTableMaps(pluginCtx);
         if ((this.isRDBMS2RDBMS(pluginCtx))
                 || (isReaderUnStructed = this.isReaderUnStructed(pluginCtx))
                 // 支持ElasticSearch
-                || CollectionUtils.isNotEmpty(tableMaps)
+                || MapUtils.isNotEmpty(tableMaps)
         ) {
 
-            if (CollectionUtils.isEmpty(tableMaps)) {
+            if (MapUtils.isEmpty(tableMaps)) {
                 return TableAliasMapper.Null;
             }
-            return new TableAliasMapper(tableMaps.stream()
-                    .collect(Collectors.toMap((m) -> {
-                        if (StringUtils.isEmpty(m.getFrom())) {
-                            throw new IllegalArgumentException("table mapper from can not be empty");
-                        }
-                        return m.getFrom();
-                    }, (m) -> {
-                        return m;
-                    })));
+            return new TableAliasMapper(tableMaps);
 
         } else {
 
-            IDataxReader reader = this.getReader(pluginCtx);
-            List<ISelectedTab> tabs = reader.getSelectedTabs();
-
-            Map<String, TableAlias> mapper = Maps.newHashMap();
-            for (ISelectedTab tab : tabs) {
-                mapper.put(tab.getName(), new TableMap(tab));
+            if (MapUtils.isEmpty(tableMaps)) {
+                throw new IllegalStateException("tableMaps can not be empty");
             }
-            return new TableAliasMapper(mapper);
+
+//            IDataxReader reader = this.getReader(pluginCtx);
+//            List<ISelectedTab> tabs = reader.getSelectedTabs();
+//
+//            Map<String, TableAlias> mapper = Maps.newHashMap();
+//            for (ISelectedTab tab : tabs) {
+//                mapper.put(tab.getName(), new TableMap(tab));
+//            }
+            return new TableAliasMapper(tableMaps);
 
 
         }

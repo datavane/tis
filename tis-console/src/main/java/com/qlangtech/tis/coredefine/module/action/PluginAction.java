@@ -32,6 +32,7 @@ import com.qlangtech.tis.extension.Describable.IRefreshable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
 import com.qlangtech.tis.extension.Descriptor.SelectOption;
+import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.extension.IDescribableManipulate;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.PluginFormProperties.IVisitor;
@@ -45,16 +46,11 @@ import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties.SuFormGetterContext;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.model.UpdateCenter.DownloadJob;
-import com.qlangtech.tis.extension.model.UpdateCenter.DownloadJob.Failure;
-import com.qlangtech.tis.extension.model.UpdateCenter.InstallationJob;
 import com.qlangtech.tis.extension.model.UpdateCenter.UpdateCenterJob;
 import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.model.UpdateSite.Plugin;
 import com.qlangtech.tis.extension.util.PluginExtraProps.Props;
 import com.qlangtech.tis.extension.util.TextFile;
-import com.qlangtech.tis.install.InstallState;
-import com.qlangtech.tis.install.InstallUtil;
-import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.spring.aop.Func;
@@ -72,6 +68,7 @@ import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.BasicRundata;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
@@ -99,10 +96,8 @@ import org.apache.struts2.dispatcher.Parameter.File;
 import org.apache.struts2.dispatcher.multipart.UploadedFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -110,9 +105,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.Future;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
@@ -124,7 +116,7 @@ import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
 @InterceptorRefs({@InterceptorRef("tisStack")})
 public class PluginAction extends BasicModule {
   private static final Logger logger = LoggerFactory.getLogger(PluginAction.class);
- // private OfflineManager offlineManager;
+  // private OfflineManager offlineManager;
 
   static {
 
@@ -560,7 +552,6 @@ public class PluginAction extends BasicModule {
   public void doGetAvailablePlugins(Context context) throws Exception {
 
 
-    //List<String> extendpoint = getExtendpointParam();
     Pager pager = this.createPager();
     pager.setTotalCount(Integer.MAX_VALUE);
     UpdateCenter center = TIS.get().getUpdateCenter();
@@ -583,22 +574,6 @@ public class PluginAction extends BasicModule {
     availables = availables.stream().filter((plugin) -> {
       return !(filter.filter(Optional.empty(), plugin));
     }).collect(Collectors.toList());
-
-
-    //    if (CollectionUtils.isNotEmpty(extendpoint)) {
-    //
-    //      Predicate<UpdateSite.Plugin> endTypeMatcher = getEndTypeMatcher();
-    //
-    //      availables = availables.stream().filter((plugin) -> {
-    //        return CollectionUtils.containsAny(plugin.extendPoints.keySet(), extendpoint);
-    //      }).filter(endTypeMatcher).collect(Collectors.toList());
-    //    }
-    //
-    //    if (CollectionUtils.isNotEmpty(this.getQueryPluginParam())) {
-    //      availables = availables.stream().filter((plugin) -> {
-    //        return !filterPlugin(plugin.title, plugin.excerpt);
-    //      }).collect(Collectors.toList());
-    //    }
 
     this.setBizResult(context, new PaginationResult(pager, availables));
   }
@@ -628,7 +603,7 @@ public class PluginAction extends BasicModule {
    */
   public void doGetDescriptor(Context context) {
     this.errorsPageShow(context);
-    DescriptorsGetter result = getDescriptorsGetter();
+    DescriptorsGetter result = getDescriptorsGetter(this);
 
     for (Descriptor desc : result.descriptors) {
       if (StringUtils.equals(desc.getDisplayName(), result.displayName)) {
@@ -641,19 +616,19 @@ public class PluginAction extends BasicModule {
 
   }
 
-  private DescriptorsGetter getDescriptorsGetter() {
-    final String displayName = this.getString("name");
+  private static DescriptorsGetter getDescriptorsGetter(BasicModule module) {
+    final String displayName = module.getString("name");
     if (StringUtils.isEmpty(displayName)) {
       throw new IllegalArgumentException("request param 'impl' can not be null");
     }
-    IPluginEnum hetero = HeteroEnum.of(this.getString("hetero"));
+    IPluginEnum hetero = HeteroEnum.of(module.getString("hetero"));
     List<Descriptor<Describable>> descriptors = null;
     DescriptorsGetter result = new DescriptorsGetter(displayName, hetero);
-    String[] plugins = this.getStringArray(KEY_PLUGIN);
+    String[] plugins = module.getStringArray(KEY_PLUGIN);
     if (plugins != null && plugins.length > 0) {
-      List<UploadPluginMeta> pluginMetas = this.getPluginMeta();
+      List<UploadPluginMeta> pluginMetas = module.getPluginMeta();
       for (UploadPluginMeta meta : pluginMetas) {
-        IPluginStore pluginStore = hetero.getPluginStore(this, meta);
+        IPluginStore pluginStore = hetero.getPluginStore(module, meta);
         descriptors = pluginStore.allDescriptor();
         result.setItems(pluginStore.getPlugins());
         result.setPluginMeta(meta);
@@ -754,11 +729,17 @@ public class PluginAction extends BasicModule {
    */
   public void doGetDescrible(Context context) throws Exception {
 
-    DescriptorsGetter descriptorsGetter = getDescriptorsGetter();
+    HeteroList hlist = getDescrible(this);
+    this.setBizResult(context, hlist.toJSON());
+  }
+
+  public static HeteroList getDescrible(BasicModule module) {
+    DescriptorsGetter descriptorsGetter = getDescriptorsGetter(module);
 
     HeteroList hlist = new HeteroList(descriptorsGetter.getPluginMeta());
     if (CollectionUtils.isEmpty(descriptorsGetter.descriptors)) {
-      throw new IllegalStateException("descriptors can not be empty");
+      throw new IllegalStateException(
+        descriptorsGetter.displayName + "," + descriptorsGetter.hetero.identityValue() + " relevant descriptors can not be empty");
     }
     hlist.setDescriptors(descriptorsGetter.descriptors);
     hlist.setExtensionPoint(descriptorsGetter.hetero.getExtensionPoint());
@@ -766,8 +747,7 @@ public class PluginAction extends BasicModule {
     hlist.setCaption(org.apache.commons.lang.StringUtils.EMPTY);
 
     hlist.setItems(descriptorsGetter.getItems());
-
-    this.setBizResult(context, hlist.toJSON());
+    return hlist;
   }
 
   /**
@@ -805,6 +785,7 @@ public class PluginAction extends BasicModule {
 
   /**
    * plugin form 的子表单的某条详细记录被点击
+   * subform_detailed_click
    *
    * @param context
    * @throws Exception
@@ -895,7 +876,7 @@ public class PluginAction extends BasicModule {
     List<IPluginItemsProcessor> categoryPlugins = Lists.newArrayList();
 
     // 是否进行业务逻辑校验？当正式提交表单时候不进行业务逻辑校验，用户可能先添加一个不存在的数据库配置
-    final boolean verify = this.getBoolean("verify");
+    final FormVaildateType verifyType = FormVaildateType.parse(this.getString("verify"));
     Pair<Boolean, IPluginItemsProcessor> pluginItemsParser = null;
     for (int pluginIndex = 0; pluginIndex < plugins.size(); pluginIndex++) {
 
@@ -903,21 +884,21 @@ public class PluginAction extends BasicModule {
       JSONArray itemsArray = pluginArray.getJSONArray(pluginIndex);
 
       pluginItemsParser = getPluginItems(pluginMeta, context, pluginIndex
-        , itemsArray, verify, ((propType, val) -> val));
+        , itemsArray, verifyType, ((propType, val) -> val));
       if (pluginItemsParser.getKey()) {
         faild = true;
       }
       categoryPlugins.add(pluginItemsParser.getValue());
     }
 
-    if (verify && !this.hasErrors(context)) {
+    if (verifyType.isVerify() && !this.hasErrors(context)) {
       for (IPluginItemsProcessor pi : categoryPlugins) {
         IPluginWithStore storePlugins = pi.getStorePlugins();
         storePlugins.afterVerified();
       }
     }
 
-    if (this.hasErrors(context) || (verify)) {
+    if (this.hasErrors(context) || (verifyType.isVerify())) {
       return;
     }
     if (faild) {
@@ -934,7 +915,10 @@ public class PluginAction extends BasicModule {
     }
 
     if (forwardParams != null) {
-      this.getRequest().setAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT, describables);
+      Pair<List<IItemsSaveResult>, IPluginItemsProcessor> itemSaveResult
+        = Pair.of(describables, (IPluginItemsProcessor) pluginItemsParser.getRight());
+      this.getRequest().setAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT, itemSaveResult);
+
       // getRundata().forwardTo(forwardParams[0], forwardParams[1], forwardParams[2]);
 
       BasicRundata.forward(getRundata(), forwardParams);
@@ -957,7 +941,19 @@ public class PluginAction extends BasicModule {
   }
 
   public static List<ItemsSaveResult> getItemsSaveResultInRequest(HttpServletRequest request) {
-    return (List<ItemsSaveResult>) request.getAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT);
+    Pair<List<ItemsSaveResult>, IPluginItemsProcessor> saveResult = getPluginActionSaveResult(request);
+    return saveResult.getLeft();
+  }
+
+  private static Pair<List<ItemsSaveResult>, IPluginItemsProcessor> getPluginActionSaveResult(HttpServletRequest request) {
+    Pair<List<ItemsSaveResult>, IPluginItemsProcessor> saveResult =
+      (Pair<List<ItemsSaveResult>, IPluginItemsProcessor>) request.getAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT);
+    return Objects.requireNonNull(saveResult, "saveResult can not be null");
+  }
+
+  public static List<AttrValMap> getPostItems(HttpServletRequest request) {
+    Pair<List<ItemsSaveResult>, IPluginItemsProcessor> saveResult = getPluginActionSaveResult(request);
+    return saveResult.getValue().getItems();
   }
 
   protected String[] getActionForwardParam(JSONObject postData) {
@@ -982,8 +978,9 @@ public class PluginAction extends BasicModule {
    * @see com.qlangtech.tis.runtime.module.misc.IPostContent impl of
    */
   @Override
-  public final Pair<Boolean, IPluginItemsProcessor> getPluginItems(IUploadPluginMeta pluginMeta, Context context,
-                                                                   int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
+  public final Pair<Boolean, IPluginItemsProcessor> getPluginItems(
+    IUploadPluginMeta pluginMeta, Context context,
+    int pluginIndex, JSONArray itemsArray, FormVaildateType verify, PropValRewrite propValRewrite) {
     PluginItemsParser pluginItemsParser
       = PluginItemsParser.parsePluginItems(this, (UploadPluginMeta) pluginMeta, context, pluginIndex, itemsArray, verify, propValRewrite);
     return Pair.of(pluginItemsParser.faild, pluginItemsParser.pluginItems);

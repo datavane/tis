@@ -18,11 +18,15 @@
 package com.qlangtech.tis.aiagent.plan;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
+
+import static com.qlangtech.tis.datax.impl.DataxReader.SUB_PROP_FIELD_NAME;
 
 /**
  * 任务计划生成器
@@ -36,6 +40,7 @@ public class PlanGenerator {
   public static String KEY_TARGET = "target";
   public static String KEY_TYPE = "type";
   public static String KEY_EXTRACT_INFO = "extractInfo";
+  // public static String KEY_SELECTED_TABS = "sele";
 
   private final LLMProvider llmProvider;
   private final IControlMsgHandler controlMsgHandler;
@@ -54,9 +59,11 @@ public class PlanGenerator {
     JSONObject source = llmAnalysis.getJSONObject(PlanGenerator.KEY_SOURCE);
     JSONObject target = llmAnalysis.getJSONObject(PlanGenerator.KEY_TARGET);
 
-    TaskPlan.DataEndCfg sourceEnd
-      = new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.valueOf(source.getString(PlanGenerator.KEY_TYPE)));
+    TaskPlan.SourceDataEndCfg sourceEnd
+      = new TaskPlan.SourceDataEndCfg(IEndTypeGetter.EndType.valueOf(source.getString(PlanGenerator.KEY_TYPE)));
     sourceEnd.setRelevantDesc(source.getString(PlanGenerator.KEY_EXTRACT_INFO));
+    String[] extractTabs = StringUtils.split(source.getString(SUB_PROP_FIELD_NAME), ",");
+    sourceEnd.setSelectedTabs(Lists.newArrayList(extractTabs));
 
     TaskPlan.DataEndCfg targetEnd
       = new TaskPlan.DataEndCfg(IEndTypeGetter.EndType.valueOf(target.getString(PlanGenerator.KEY_TYPE)));

@@ -102,7 +102,8 @@ public class SplitableTableInDB extends TableInDB {
     public DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity, boolean shallRewrite2RegexPattern) {
 
         SplitableDB splitableDB = tabs.get(tabEntity.getSourceTableName());
-        Objects.requireNonNull(splitableDB, "SourceTableName:" + tabEntity.getSourceTableName() + " relevant splitableDB can not be null");
+        Objects.requireNonNull(splitableDB, "SourceTableName:" + tabEntity.getSourceTableName()
+                + " relevant splitableDB can not be null,exist tabs:" + String.join(",", tabs.keySet()));
 
         List<String> matchedTabs = splitableDB.getTabsInDB(tabEntity.getDbIdenetity(), shallRewrite2RegexPattern);
         if (CollectionUtils.isEmpty(matchedTabs)) {

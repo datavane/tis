@@ -25,6 +25,7 @@ import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.Descriptor.PluginValidateResult;
+import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -57,7 +58,7 @@ public class PluginItemsParser {
 
 
   public static PluginItemsParser parsePluginItems(BasicModule module, UploadPluginMeta pluginMeta, Context context,
-                                                   int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
+                                                   int pluginIndex, JSONArray itemsArray, FormVaildateType verify, PropValRewrite propValRewrite) {
     return parsePluginItems(module, module, pluginMeta, context, pluginIndex, itemsArray, verify, propValRewrite);
   }
 
@@ -91,7 +92,7 @@ public class PluginItemsParser {
    */
   public static PluginItemsParser parsePluginItems( //
     IPluginContext module, IControlMsgHandler msgHandler, UploadPluginMeta pluginMeta, Context context,
-    int pluginIndex, JSONArray itemsArray, boolean verify, PropValRewrite propValRewrite) {
+    int pluginIndex, JSONArray itemsArray, FormVaildateType verify, PropValRewrite propValRewrite) {
     context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
     Optional<SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
 

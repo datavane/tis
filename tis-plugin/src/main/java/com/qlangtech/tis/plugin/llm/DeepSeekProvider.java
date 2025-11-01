@@ -21,8 +21,8 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.aiagent.core.IAgentContext;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
-import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
@@ -33,6 +33,9 @@ import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.llm.log.DefaultExecuteLog;
+import com.qlangtech.tis.plugin.llm.log.ExecuteLog;
+import com.qlangtech.tis.plugin.llm.log.NoneExecuteLog;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
@@ -84,12 +87,23 @@ public class DeepSeekProvider extends LLMProvider {
     @FormField(type = FormFieldType.DURATION_OF_SECOND, advance = true, ordinal = 6, validate = {Validator.require, Validator.integer})
     public Duration readTimeout;
 
+    /**
+     * 是否打印日志
+     */
+    @FormField(type = FormFieldType.ENUM, advance = true, ordinal = 7, validate = {Validator.require})
+    public Boolean printLog;
 
     @Override
-    public LLMResponse chat(String prompt, List<String> systemPrompt) {
+    public LLMResponse chat(IAgentContext context, String prompt, List<String> systemPrompt) {
+        return chat(context, prompt, systemPrompt, true);
+    }
 
+
+    public LLMResponse chat(IAgentContext context, String prompt, List<String> systemPrompt, boolean logSummary) {
+        ExecuteLog executeLog = this.printLog
+                ? new DefaultExecuteLog(prompt, context, logger)
+                : new NoneExecuteLog();
         try {
-
             List<HttpUtils.PostParam> postParams = new ArrayList<>();
             postParams.add(new HttpUtils.PostParam("model", getModel()));
             postParams.add(new HttpUtils.PostParam("temperature", temperature));
@@ -110,6 +124,9 @@ public class DeepSeekProvider extends LLMProvider {
             userMessage.put("content", prompt);
             messages.add(userMessage);
             postParams.add(new HttpUtils.PostParam("messages", messages));
+
+            executeLog.setPostParams(postParams);
+
             return HttpUtils.post(new URL(getApiUrl()), postParams, new PostFormStreamProcess<LLMResponse>() {
                 @Override
                 public ContentType getContentType() {
@@ -126,6 +143,7 @@ public class DeepSeekProvider extends LLMProvider {
                     if (errstream != null) {
                         try {
                             JSONObject errBody = JSONObject.parseObject(IOUtils.toString(errstream, TisUTF8.get()));
+                            executeLog.setError(errBody);
                             JSONObject errDetail = errBody.getJSONObject("error");
                             String errMessage = errDetail.getString("message");
                             if (StringUtils.isNotEmpty(errMessage)) {
@@ -141,10 +159,11 @@ public class DeepSeekProvider extends LLMProvider {
 
                 @Override
                 public LLMResponse p(int status, InputStream stream, Map headerFields) throws IOException {
-                    LLMResponse response = new LLMResponse();
+                    LLMResponse response = new LLMResponse(executeLog);
                     String responseStr = IOUtils.toString(stream, TisUTF8.get());
 
                     JSONObject responseJson = JSON.parseObject(responseStr);
+                    executeLog.setResponse(responseJson);
 
                     if (responseJson.containsKey("choices")) {
                         JSONArray choices = responseJson.getJSONArray("choices");
@@ -160,7 +179,8 @@ public class DeepSeekProvider extends LLMProvider {
                         JSONObject usage = responseJson.getJSONObject("usage");
                         response.setPromptTokens(usage.getLongValue("prompt_tokens"));
                         response.setCompletionTokens(usage.getLongValue("completion_tokens"));
-                        response.setTotalTokens(usage.getLongValue("total_tokens"));
+                        // response.setTotalTokens();
+                        context.updateTokenUsage(usage.getLongValue("total_tokens"));
                     }
 
                     response.setModel(getModel());
@@ -176,35 +196,24 @@ public class DeepSeekProvider extends LLMProvider {
             });
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (logSummary) {
+                executeLog.summary();
+            }
         }
     }
 
-    private int getMaxTokens() {
-        return this.maxTokens;
-    }
-
-    private String getModel() {
-        return this.model;
-    }
-
-    private String getApiKey() {
-        return this.apiKey;
-    }
-
-    private String getApiUrl() {
-        return this.baseUrl + URL_PATH;
-    }
 
     @Override
-    public LLMResponse chatJson(String prompt, List<String> systemPrompt, String jsonSchema) {
+    public LLMResponse chatJson(IAgentContext context, String prompt, List<String> systemPrompt, String jsonSchema) {
         String enhancedPrompt = prompt;
         if (StringUtils.isNotEmpty(jsonSchema)) {
             enhancedPrompt += "\n\n请严格按照以下JSON Schema格式返回结果：\n" + jsonSchema;
         }
-        LLMResponse response = chat(enhancedPrompt, systemPrompt);
+        LLMResponse response = chat(context, enhancedPrompt, systemPrompt, false);
 
-        if (response.isSuccess() && response.getContent() != null) {
-            try {
+        try {
+            if (response.isSuccess() && response.getContent() != null) {
                 String content = response.getContent();
                 int start = content.indexOf("{");
                 int end = content.lastIndexOf("}") + 1;
@@ -212,12 +221,11 @@ public class DeepSeekProvider extends LLMProvider {
                     String jsonStr = content.substring(start, end);
                     JSONObject jsonContent = JSON.parseObject(jsonStr);
                     response.setJsonContent(jsonContent);
+                    response.executeLog.setResponse(jsonContent);
                 }
-            } catch (Exception e) {
-                logger.error("Failed to parse JSON response", e);
-                response.setSuccess(false);
-                response.setErrorMessage("JSON parse failed: " + e.getMessage());
             }
+        } finally {
+            response.executeLog.summary();
         }
 
         return response;
@@ -243,6 +251,22 @@ public class DeepSeekProvider extends LLMProvider {
         return this.name;
     }
 
+    private int getMaxTokens() {
+        return this.maxTokens;
+    }
+
+    private String getModel() {
+        return this.model;
+    }
+
+    private String getApiKey() {
+        return this.apiKey;
+    }
+
+    private String getApiUrl() {
+        return this.baseUrl + URL_PATH;
+    }
+
     @TISExtension
     public static final class DftDescriptor extends BasicParamsConfigDescriptor implements IEndTypeGetter {
         public DftDescriptor() {
@@ -264,7 +288,7 @@ public class DeepSeekProvider extends LLMProvider {
 
             DeepSeekProvider deepSeek = postFormVals.newInstance();
             try {
-                deepSeek.chat("hello", null);
+                deepSeek.chat(IAgentContext.createNull(), "hello", null);
             } catch (Exception e) {
                 msgHandler.addErrorMessage(context, e.getMessage());
                 return false;

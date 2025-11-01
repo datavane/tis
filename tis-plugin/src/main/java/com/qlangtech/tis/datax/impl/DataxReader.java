@@ -22,6 +22,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.datax.IDataxReader;
@@ -33,16 +34,21 @@ import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
+import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
+import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.plugin.incr.ISelectedTabExtendFactory;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
@@ -50,6 +56,7 @@ import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +69,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -74,6 +82,7 @@ import java.util.stream.Collectors;
 public abstract class DataxReader implements Describable<DataxReader>, IDataxReader, IPluginStore.RecyclableController {
     private static final Logger logger = LoggerFactory.getLogger(DataxReader.class);
     public static final String HEAD_KEY_REFERER = "Referer";
+    public static final String SUB_PROP_FIELD_NAME = "selectedTabs";
     public static final ThreadLocal<DataxReader> dataxReaderThreadLocal = new ThreadLocal<>();
 
     public static DataxReader getThreadBingDataXReader() {
@@ -117,6 +126,166 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
 
 
     private transient LoadingCache<String, IStreamTableMeta> tabMetaCache;
+
+    /**
+     * 根据ISelectedTab 定义的默认值初始化一个默认的表实例
+     *
+     * @param pluginContext
+     * @param selectedTabs
+     * @param pluginMeta
+     * @param tabMetaConsumer
+     * @return
+     */
+    public List<ISelectedTab> createDefaultTables(IPluginContext pluginContext, List<String> selectedTabs
+            , UploadPluginMeta pluginMeta, Consumer<Map.Entry<String /*tableName*/, List<ColumnMetaData>>> tabMetaConsumer, boolean validateMapColsNull) {
+        List<ISelectedTab> allNewTabs = Lists.newArrayList();
+        Map<String, List<ColumnMetaData>> mapCols;
+        mapCols = selectedTabs.stream().collect(Collectors.toMap((tab) -> tab, (tab) -> {
+            try {
+                return this.getTableMetadata(false, pluginContext, EntityName.parse(tab));
+            } catch (TableNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }));
+        if (MapUtils.isEmpty(mapCols)) {
+            if (validateMapColsNull) {
+                throw new IllegalStateException("mapCols can not be empty");
+            }
+            return Collections.emptyList();
+        }
+        PluginFormProperties pluginFormPropertyTypes = this.getDescriptor().getPluginFormPropertyTypes(pluginMeta.getSubFormFilter());
+        for (Map.Entry<String /*tableName*/, List<ColumnMetaData>> tab2cols : mapCols.entrySet()) {
+            try {
+                SuFormProperties.setSuFormGetterContext(this, pluginMeta, tab2cols.getKey());
+                allNewTabs.add(createNewSelectedTab(pluginFormPropertyTypes, tab2cols));
+                // 需要将desc中的取option列表解析一下（JsonUtil.UnCacheString）
+                tabMetaConsumer.accept(tab2cols);
+            } finally {
+                SuFormProperties.subFormGetterProcessThreadLocal.remove();
+            }
+        }
+        return allNewTabs;
+    }
+
+    /**
+     * 通过表名和列创建新tab实例，如果SelectedTab对象中有其他字段但是没有设置默认值，创建过程中就会出错
+     *
+     * @param pluginFormPropertyTypes
+     * @param tab2cols
+     * @return
+     */
+    private static ISelectedTab createNewSelectedTab(PluginFormProperties pluginFormPropertyTypes //
+            , Map.Entry<String, List<ColumnMetaData>> tab2cols) {
+        return pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
+
+            @Override
+            public ISelectedTab visit(BaseSubFormProperties props) {
+
+                try {
+                    SelectedTab subForm = props.newSubDetailed();
+
+                    fillDefaultVals(props, subForm);
+
+                    Descriptor parentDesc = props.getParentPluginDesc();
+
+                    if (parentDesc instanceof CompanionPluginFactory) {
+                        Descriptor<Describable> companionDesc = ((CompanionPluginFactory) parentDesc).getCompanionDescriptor();
+                        SelectedTabExtend tabExt = (SelectedTabExtend) companionDesc.clazz.newInstance();
+                        fillDefaultVals(companionDesc.getPluginFormPropertyTypes(), tabExt);
+                        subForm.setSourceProps(tabExt);
+                    }
+
+                    return subForm;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+
+            }
+
+            private void fillDefaultVals(PluginFormProperties props, Describable subForm) {
+                Set<Map.Entry<String, PropertyType>> kvs = props.getKVTuples();
+                PropertyType pp = null;
+
+                final Set<String> skipProps = Sets.newHashSet();
+                ppDftValGetter:
+                for (Map.Entry<String, PropertyType> pentry : kvs) {
+                    pp = pentry.getValue();
+                    if (pp.isIdentity()) {
+                        pp.setVal(subForm, tab2cols.getKey());
+                        skipProps.add(pentry.getKey());
+                        continue;
+                    }
+
+                    if (pp.formField.type() == FormFieldType.MULTI_SELECTABLE) {
+                        skipProps.add(pentry.getKey());
+                        pp.setVal(subForm, tab2cols.getValue().stream() //
+                                .map(ColumnMetaData::convert).collect(Collectors.toList()));
+                        continue ppDftValGetter;
+                    }
+                }
+
+                createPluginByDefaultVals(new StringBuffer(subForm.getClass().getName()), skipProps, kvs, subForm);
+            }
+
+            private Describable createPluginByDefaultVals(StringBuffer propPath, final Set<String> skipProps,
+                                                          Set<Map.Entry<String, PropertyType>> kvTuples, Describable plugin) {
+                PropertyType pp = null;
+                ppDftValGetter:
+                for (Map.Entry<String, PropertyType> pentry : kvTuples) {
+                    pp = pentry.getValue();
+                    if (skipProps.contains(pentry.getKey())) {
+                        continue;
+                    }
+
+
+                    if (pp.dftVal() != null) {
+                        if (pp.isDescribable()) {
+                            List<? extends Descriptor> descriptors = pp.getApplicableDescriptors();
+                            try {
+                                for (Descriptor desc : descriptors) {
+                                    if (StringUtils.endsWithIgnoreCase(String.valueOf(pp.dftVal()), desc.getDisplayName())) {
+                                        pp.setVal(plugin, createPluginByDefaultVals((new StringBuffer(propPath)).append("->") //
+                                                        .append(pentry.getKey()).append(":").append(pp.fieldClazz.getName()) //
+                                                , Sets.newHashSet() //
+                                                , desc.getPluginFormPropertyTypes().getKVTuples() //
+                                                , (Describable) desc.clazz.newInstance()));
+                                        continue ppDftValGetter;
+                                    }
+                                }
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        } else {
+                            pp.setVal(plugin, pp.dftVal());
+                            continue ppDftValGetter;
+                        }
+
+
+                    } else {
+
+
+                        FormFieldType fieldType = pp.formField.type();
+                        if (fieldType == FormFieldType.SELECTABLE || fieldType == FormFieldType.ENUM) {
+                            List<Option> propOptions = pp.getEnumPropOptions();
+
+                            for (int i = 0; i < propOptions.size(); i++) {
+                                Option opt = propOptions.get(i);
+                                pp.setVal(plugin, opt.getValue());
+                                continue ppDftValGetter;
+                            }
+                        }
+                    }
+
+                    if (pp.isInputRequired()) {
+                        throw new IllegalStateException("have not prepare for table:" + tab2cols.getKey()
+                                + " creating:" + propPath + ",prop name:'" + pentry.getKey() + "',subform class:" + plugin.getClass().getName());
+                    }
+                }
+                return plugin;
+            }
+        });
+    }
 
     @Override
     public final IStreamTableMeta getStreamTableMeta(TableAlias tableAlias) {
