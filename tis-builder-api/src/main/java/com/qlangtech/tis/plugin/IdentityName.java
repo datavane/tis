@@ -48,6 +48,7 @@ public interface IdentityName {
     }
 
 
+
     /**
      * 取得唯一ID
      *

@@ -25,6 +25,7 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 import java.util.Objects;
@@ -93,7 +94,11 @@ public class AttrVals implements AttrValMap.IAttrVals {
         if (attrVal == null) {
             return null;
         }
-        return attrVal.get(Descriptor.KEY_primaryVal);
+        Object val = attrVal.get(Descriptor.KEY_primaryVal);
+        if (val instanceof String) {
+            return StringUtils.trimToNull((String) val);
+        }
+        return val;
     }
 
     public void setPrimaryVal(String fieldName, Object val) {

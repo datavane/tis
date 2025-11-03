@@ -12,7 +12,8 @@
         "content": [
             {
                 "reader": <!--reader-->,
-                "writer": <!--writer-->
+                "writer": <!--writer-->,
+                "dataxName": "${dataxName}"
             }
         ] 
     }

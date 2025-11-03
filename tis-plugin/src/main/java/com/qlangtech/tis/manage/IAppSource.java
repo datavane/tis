@@ -125,6 +125,10 @@ public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGe
         return TIS.get().getDescriptor(this.getClass());
     }
 
+    default DataXName getDataXName() {
+        return new DataXName(this.identityValue(), this.getResType());
+    }
+
     /**
      * 拷贝一份新的实例
      *

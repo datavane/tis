@@ -71,6 +71,9 @@ import static com.qlangtech.tis.datax.impl.DataxReader.SUB_PROP_FIELD_NAME;
 public class ChatPipelineAction extends BasicModule {
   private static final Logger logger = LoggerFactory.getLogger(ChatPipelineAction.class);
 
+  // 常量定义
+  private static final String KEY_SESSION_ID = "sessionId";
+
   // 会话管理
   private static final ConcurrentHashMap<String, ChatSession> sessions = new ConcurrentHashMap<>();
 
@@ -139,7 +142,7 @@ public class ChatPipelineAction extends BasicModule {
     sessions.put(sessionId, session);
 
     JSONObject result = new JSONObject();
-    result.put("sessionId", sessionId);
+    result.put(KEY_SESSION_ID, sessionId);
     result.put("createTime", System.currentTimeMillis());
     return result;
   }
@@ -149,12 +152,15 @@ public class ChatPipelineAction extends BasicModule {
    */
   @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
   public void doGetSessionHistory(Context context) {
-    String sessionId = this.getString("sessionId");
-    ChatSession session = sessions.get(sessionId);
+    String sessionId = this.getString(KEY_SESSION_ID);
 
+    if (StringUtils.isEmpty(sessionId)) {
+      throw new IllegalStateException("sessionId can not be empty");
+    }
+
+    ChatSession session = sessions.get(sessionId);
     if (session == null) {
-      this.addErrorMessage(context, "会话不存在");
-      return;
+      throw new IllegalStateException("session can not be found for sessionId: " + sessionId);
     }
 
     JSONArray history = new JSONArray();
@@ -171,7 +177,37 @@ public class ChatPipelineAction extends BasicModule {
 
   @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
   public void doCancelCurrentTask(Context context) {
+    // 获取JSON POST内容
+    JSONObject jsonContent = this.getJSONPostContent();
 
+    // 从JSON中获取sessionId
+    String sessionId = jsonContent.getString(KEY_SESSION_ID);
+    if (StringUtils.isEmpty(sessionId)) {
+      throw new IllegalStateException("sessionId can not be empty");
+    }
+
+    // 获取对应的ChatSession
+    ChatSession session = sessions.get(sessionId);
+    if (session == null) {
+      throw new IllegalStateException("session can not be found for sessionId: " + sessionId);
+    }
+
+    // 获取AgentContext
+    AgentContext agentContext = session.getAgentContext();
+    if (agentContext == null) {
+      // 这个情况可能是正常的业务状态（没有正在执行的任务），所以使用错误消息而非异常
+      this.addErrorMessage(context, "当前会话没有正在执行的任务");
+      return;
+    }
+
+    // 调用cancel方法
+    agentContext.cancel();
+
+    // 记录日志
+    logger.info("User {} cancelled task for session: {}", this.getUser().getName(), sessionId);
+
+    // 返回成功响应
+   // this.addActionMessage(context, "任务取消成功");
   }
   /**
    * 切换模型
@@ -203,7 +239,7 @@ public class ChatPipelineAction extends BasicModule {
    */
   @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
   public void doChat(Context context) throws IOException {
-    String sessionId = this.getString("sessionId");
+    String sessionId = this.getString(KEY_SESSION_ID);
     String userInput = this.getString("input");
 
     if (sessionId == null || sessionId.isEmpty()) {
@@ -228,7 +264,7 @@ public class ChatPipelineAction extends BasicModule {
 
     // 发送会话ID
     JSONObject sessionInfo = new JSONObject();
-    sessionInfo.put("sessionId", sessionId);
+    sessionInfo.put(KEY_SESSION_ID, sessionId);
 
 
     writer.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_SESSION, sessionInfo.toJSONString());
@@ -263,6 +299,8 @@ public class ChatPipelineAction extends BasicModule {
           writer.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_DONE, "{\"finished\":true}");
 
         } finally {
+          // 清理AgentContext，避免内存泄漏
+          session.setAgentContext(null);
           // 完成异步处理 - 确保连接正确关闭
           asyncContext.complete();
         }
@@ -277,14 +315,21 @@ public class ChatPipelineAction extends BasicModule {
    */
   @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
   public void doUserResponse(Context context) {
-    String sessionId = this.getString("sessionId");
+    String sessionId = this.getString(KEY_SESSION_ID);
     String fieldId = this.getString("fieldId");
     String userResponse = this.getString("response");
 
+    if (StringUtils.isEmpty(sessionId)) {
+      throw new IllegalStateException("sessionId can not be empty");
+    }
+
+    if (StringUtils.isEmpty(fieldId)) {
+      throw new IllegalStateException("fieldId can not be empty");
+    }
+
     ChatSession session = sessions.get(sessionId);
     if (session == null) {
-      this.addErrorMessage(context, "会话不存在");
-      return;
+      throw new IllegalStateException("session can not be found for sessionId: " + sessionId);
     }
 
     // 保存用户响应
@@ -345,7 +390,7 @@ public class ChatPipelineAction extends BasicModule {
   }
 
   private ChatSession getChatSession(JSONObject post) {
-    String sessionId = post.getString("sessionId");
+    String sessionId = post.getString(KEY_SESSION_ID);
     if (sessionId == null) {
       throw new IllegalStateException("sessionId == null");
     }
@@ -393,7 +438,7 @@ public class ChatPipelineAction extends BasicModule {
 
     JSONObject jsonContent = this.getJSONPostContent();
 
-    String sessionId = jsonContent.getString("sessionId");
+    String sessionId = jsonContent.getString(KEY_SESSION_ID);
     RequestKey requestId = RequestKey.create(jsonContent.getString(KEY_REQUEST_ID));
     Integer selectedIndex = jsonContent.getInteger("selectedIndex");
 
@@ -427,7 +472,7 @@ public class ChatPipelineAction extends BasicModule {
    */
   @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
   public void doClearSession(Context context) {
-    String sessionId = this.getString("sessionId");
+    String sessionId = this.getString(KEY_SESSION_ID);
     sessions.remove(sessionId);
 
     JSONObject result = new JSONObject();

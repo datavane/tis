@@ -37,6 +37,14 @@ import static com.qlangtech.tis.datax.impl.DataxReader.SUB_PROP_FIELD_NAME;
  */
 public class PlanGenerator {
 
+  /**
+   * 用户意图
+   */
+  public static String KEY_INTENTION = "intention";
+  public static String KEY_EXECUTE_BATCH = "execute_batch";
+  public static String KEY_EXECUTE_INCR = "enable_incr";
+  public static String KEY_EXECUTE_OPTION_CONFIG = "options";
+
   public static String KEY_SOURCE = "source";
   public static String KEY_TARGET = "target";
   public static String KEY_TYPE = "type";
@@ -57,15 +65,28 @@ public class PlanGenerator {
    */
   public TaskPlan generatePlan(String userInput, JSONObject llmAnalysis) {
 
+    AgentTaskIntention taskIntention = AgentTaskIntention.valueOf(llmAnalysis.getString(KEY_INTENTION));
+    if (taskIntention != AgentTaskIntention.CreatePipeline) {
+      throw TisException.create("目前TIS Data Pipeline Agent 不支持非" + String.valueOf(AgentTaskIntention.CreatePipeline) + "的任务");
+    }
+
     JSONObject source = llmAnalysis.getJSONObject(PlanGenerator.KEY_SOURCE);
     JSONObject target = llmAnalysis.getJSONObject(PlanGenerator.KEY_TARGET);
+    final JSONObject options = llmAnalysis.getJSONObject(KEY_EXECUTE_OPTION_CONFIG);
+
 
     // IEndTypeGetter.EndType.valueOf(source.getString(PlanGenerator.KEY_TYPE))
+    // 查看需要抽取什么表
     TaskPlan.SourceDataEndCfg sourceEnd
       = new TaskPlan.SourceDataEndCfg(parseEndType(source));
     sourceEnd.setRelevantDesc(source.getString(PlanGenerator.KEY_EXTRACT_INFO));
     String[] extractTabs = StringUtils.split(source.getString(SUB_PROP_FIELD_NAME), ",");
     sourceEnd.setSelectedTabs(Lists.newArrayList(extractTabs));
+
+    if (options != null) {
+      sourceEnd.setExecuteBatch(options.getBooleanValue(KEY_EXECUTE_BATCH));
+      sourceEnd.setExecuteIncr(options.getBooleanValue(KEY_EXECUTE_INCR));
+    }
 
     TaskPlan.DataEndCfg targetEnd
       = new TaskPlan.DataEndCfg(parseEndType(target));

@@ -455,7 +455,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     }
 
     public static class CandidatePlugin {
+        protected static final String KEY_DISABLE_PLUGIN_INSTALL = "disablePluginInstall";
+        protected static final String KEY_INSTALLED = "installed";
         private final String displayName;
+        private String description;
         // private String targetPluginCategory;
         private String hetero;
         private final Optional<String> targetItemDesc;
@@ -475,10 +478,31 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 throw new IllegalArgumentException("displayName can not be empty");
             }
             this.displayName = displayName;
+           // this.description = displayName;
             this.targetItemDesc = Objects.requireNonNull(targetItemDesc, "targetItemDesc can not be null");
             //  this.targetPluginCategory = StringUtils.defaultIfEmpty(targetPluginCategory, displayName);
             this.hetero = hetero;
+        }
 
+        public void setExtraProps(Optional<IEndTypeGetter.EndType> endType, JSONObject option) {
+            option.put(KEY_DISABLE_PLUGIN_INSTALL, false);
+            option.put("extendpoint", this.getHetero().getExtensionPoint().getName());
+            endType.ifPresent((et) -> {
+                option.put("endType", et.getVal());
+            });
+            option.put(KEY_INSTALLED, this.getInstalledPluginDescriptor() != null);
+            Descriptor<?> installedDesc = this.getInstalledPluginDescriptor();
+            if (installedDesc != null) {
+                option.put("version", installedDesc.getId());
+            }
+        }
+
+        public String getDescription() {
+            return this.description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
         }
 
         public static JSONArray convertOptionsArray(
@@ -489,20 +513,25 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 JSONObject option = new JSONObject();
                 option.put("index", i);
                 option.put("name", candidate.getDisplayName());
-                option.put("extendpoint", candidate.getHetero().getExtensionPoint().getName());
-                endType.ifPresent((et) -> {
-                    option.put("endType", et.getVal());
-                });
-                option.put("description", candidate.getDisplayName());
-                option.put("installed", candidate.getInstalledPluginDescriptor() != null);
-                Descriptor<?> installedDesc = candidate.getInstalledPluginDescriptor();
-                if (installedDesc != null) {
-                    option.put("version", installedDesc.getId());
-                }
+                option.put("description", candidate.getDescription());
+
+                candidate.setExtraProps(endType, option);
                 optionsArray.add(option);
             }
             return optionsArray;
         }
+
+//        private static void setExtraProps(Optional<IEndTypeGetter.EndType> endType, JSONObject option, CandidatePlugin candidate) {
+//            option.put("extendpoint", candidate.getHetero().getExtensionPoint().getName());
+//            endType.ifPresent((et) -> {
+//                option.put("endType", et.getVal());
+//            });
+//            option.put("installed", candidate.getInstalledPluginDescriptor() != null);
+//            Descriptor<?> installedDesc = candidate.getInstalledPluginDescriptor();
+//            if (installedDesc != null) {
+//                option.put("version", installedDesc.getId());
+//            }
+//        }
 
         public void validate(String errDesc, Class<?> pluginClazz) {
             if (StringUtils.isBlank(this.hetero)
@@ -518,6 +547,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 //        public void setDescriptor(Descriptor descriptor) {
 //            this.descriptor = descriptor;
 //        }
+
+
 
 
         public String getTargetItemDesc() {
@@ -567,7 +598,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                     }
                 }
             }
-            return IdentityName.create( descName + "_" + maxSufix);
+            return IdentityName.create(descName + "_" + maxSufix);
         }
 
         public Descriptor getInstalledPluginDescriptor() {

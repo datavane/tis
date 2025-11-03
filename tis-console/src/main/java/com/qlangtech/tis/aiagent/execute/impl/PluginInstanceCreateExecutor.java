@@ -50,12 +50,14 @@ import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.AppAndRuntime;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.offline.DbScope;
+import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -93,6 +95,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.aiagent.execute.impl.PluginInstanceCreateExecutor.PluginEqualResult.notEqual;
 import static com.qlangtech.tis.datax.StoreResourceType.DATAX_NAME;
 import static com.qlangtech.tis.datax.impl.ESTableAlias.MAX_READER_TABLE_SELECT_COUNT;
 import static com.qlangtech.tis.extension.Descriptor.KEY_DESC_VAL;
@@ -170,7 +173,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
         , dataXReaderImpl
         , new UserPrompt("正在生成源端" + endCfg.getType() + "主体配置...", endCfg.getRelevantDesc())
         , context, primaryValRewrite, ctx, pluginCtx, processMeta);
-
+      endCfg.setEndTypeMeta((IDataXEndTypeGetter) dataXReaderImpl.getImplDesc());
       /**********************************************************
        * 选择表
        **********************************************************/
@@ -184,7 +187,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
       IPluginStore tabsStore = HeteroEnum.DATAX_READER.getPluginStore(pluginCtx, selectedTabsMeta);
 
       TaskPlan.SourceDataEndCfg sourceEnd = plan.getSourceEnd();
-
+      sourceEnd.setProcessor((IAppSource) process);
       List<Descriptor.ParseDescribable> selectedTabs = Lists.newArrayList();
       if (CollectionUtils.isNotEmpty(sourceEnd.getSelectedTabs())) {
         // 当用户明确说明需要同步哪些表
@@ -250,6 +253,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
         , dataXWriterImpl
         , new UserPrompt("正在生成目标端" + endCfg.getType() + "主体配置...", endCfg.getRelevantDesc())
         , context, primaryValRewrite, ctx, pluginCtx, processMeta);
+      endCfg.setEndTypeMeta((IDataXEndTypeGetter) dataXWriterImpl.getImplDesc());
 
       // TableAlias.saveTableMapper(this, dataxName, tableMaps);
 
@@ -262,6 +266,10 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
       // 创建datax配置和SQL脚本
       DataxAction.generateDataXCfgs(pluginCtx, ctx, StoreResourceType.DataApp, primaryFieldVal.identityValue(), false);
 
+      // /x/mysql_to_doris_3/manage
+      // context.sendMessage();
+      context.sendMessage("数据管道：`" + primaryFieldVal.identityValue() + "`已经创建成功"
+        , new AgentContext.ManagerLink("管理", "/x/" + primaryFieldVal.identityValue() + "/manage"));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -440,6 +448,8 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
        */
       Optional<Describable> existPlugin = this.findExistPlugin(candidatePlugin, pluginVals, existOpts);
       if (existPlugin.isPresent()) {
+        IdentityName foundExist = (IdentityName) existPlugin.get();
+        context.sendMessage("找到既存" + candidatePlugin.getDisplayName() + "类型的实例：'" + foundExist.identityValue() + "'与您提交内容一致");
         propsImplRefsVals.put(e.getKey(), ((IdentityName) existPlugin.get()));
         continue fieldValCreate;
       }
@@ -469,6 +479,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
         }
       }
       pItems.items = Collections.singletonList(pluginVals);
+      context.sendMessage("创建" + candidatePlugin.getDisplayName() + "类型实例：'" + pluginRef.identityValue() + "'");
       ItemsSaveResult saved = pItems.save(ctx);
       if (!saved.cfgSaveResult.success) {
         throw new IllegalStateException("identity:" + pluginRef.identityValue() + " of plugin save process faild");
@@ -495,18 +506,21 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
         continue;
       }
 
-      if (isPluginEqual(plugin, pluginVals.getAttrVals())) {
-        if ((plugin instanceof IdentityName)) {
+      PluginEqualResult equalResult = null;
+      if ((equalResult = isPluginEqual(plugin, pluginVals.getAttrVals())).isEqual()) {
+        if (!(plugin instanceof IdentityName)) {
           throw new IllegalStateException("plugin:"
             + plugin.getClass().getName() + " must be type of " + IdentityName.class.getSimpleName());
         }
         return Optional.of(plugin);
       }
+      // equalResult.printUnEqualStack();
     }
+
     return Optional.empty();
   }
 
-  boolean isPluginEqual(Describable plugin, AttrVals pluginVals) throws Exception {
+  PluginEqualResult isPluginEqual(Describable plugin, AttrVals pluginVals) throws Exception {
     // 空值检查
     Descriptor desc = Objects.requireNonNull(plugin, "plugin can not be null").getDescriptor();
     PluginFormProperties propertyTypes = desc.getPluginFormPropertyTypes();
@@ -514,7 +528,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
     return Objects.requireNonNull(propertyTypes, "propertyTypes can not be null")
       .accept(new PluginFormProperties.IVisitor() {
         @Override
-        public Boolean visit(RootFormProperties props) {
+        public PluginEqualResult visit(RootFormProperties props) {
           try {
             PropertyType pt = null;
             String fieldName = null;
@@ -533,7 +547,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
                 describle = pluginVals.getAttrVal(fieldName);
                 if (describle == null) {
                   // throw new IllegalStateException("fieldName:" + fieldName + " relevant describle can not be null");
-                  return false;
+                  return notEqual("fieldName:" + fieldName + " relevant describle is null");
                 }
 
                 Object vals = Objects.requireNonNull(describle.getJSONObject(KEY_DESC_VAL)
@@ -543,15 +557,17 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
                   if (exist == null) {
                     continue;
                   }
-                  return false;
+                  return notEqual("fieldName:" + fieldName + " vals is null but exist vals is not null");
                 }
 
                 if (exist == null) {
-                  return false;
+                  return notEqual("fieldName:" + fieldName + " relevant exist vals is  null");
                 }
 
-                if (!isPluginEqual((Describable) exist, AttrVals.parseAttrValMap(vals))) {
-                  return false;
+                PluginEqualResult compareResult = null;
+                if (!(compareResult = isPluginEqual((Describable) exist, AttrVals.parseAttrValMap(vals))).equal) {
+                  return notEqual("desc field:" + fieldName + "," + compareResult.unEqualLogger)
+                    .setStack(compareResult.stack);
                 }
 
               } else {
@@ -560,14 +576,14 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
                   continue;
                 }
                 if (primaryVal == null ^ exist == null) {
-                  return false;
+                  return notEqual("fieldName:" + fieldName + ",primaryVal(" + primaryVal + ") == null ^ exist(\"" + exist + "\") == null");
                 }
                 if (!StringUtils.equals(String.valueOf(exist), String.valueOf(primaryVal))) {
-                  return false;
+                  return notEqual("fieldName:" + fieldName + ",exist(" + exist + ") != " + primaryVal);
                 }
               }
             }
-            return true;
+            return new PluginEqualResult(true, null);
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
@@ -579,6 +595,39 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
           throw new UnsupportedOperationException();
         }
       });
+  }
+
+  public static class PluginEqualResult {
+    private boolean equal;
+    private Exception stack;
+    private final String unEqualLogger;
+
+    public static PluginEqualResult notEqual(String unEqualLogger) {
+      return new PluginEqualResult(false, unEqualLogger);
+    }
+
+    public boolean isEqual() {
+      return equal;
+    }
+
+    public PluginEqualResult(boolean equal, String unEqualLogger) {
+      this.stack = equal ? null : new Exception();
+      this.equal = equal;
+      this.unEqualLogger = unEqualLogger;
+    }
+
+    public PluginEqualResult setStack(Exception stack) {
+      this.stack = stack;
+      return this;
+    }
+
+    private void printUnEqualStack() {
+      if (!this.equal) {
+        System.out.println("detail:" + unEqualLogger);
+        stack.printStackTrace();
+      }
+    }
+
   }
 
   /**
@@ -676,7 +725,7 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
     return valMap;
   }
 
-  private static PartialSettedPluginContext createPluginContext(TaskPlan plan, @Nullable DataXName name) {
+  public static PartialSettedPluginContext createPluginContext(TaskPlan plan, @Nullable DataXName name) {
     PartialSettedPluginContext pluginContext = null;
     if (name != null) {
       pluginContext = IPluginContext.namedContext(name);
@@ -733,19 +782,13 @@ public class PluginInstanceCreateExecutor implements StepExecutor {
 
     RequestKey requestId = RequestKey.create();// "plugin_select_" + System.currentTimeMillis();
 
-    JSONObject optionsData = new JSONObject();
-    optionsData.put("fieldName", fieldName);
-
-    JSONArray optionsArray = PluginExtraProps.CandidatePlugin.convertOptionsArray(endType, candidatePlugins);
-
-    optionsData.put("candidates", optionsArray);
 
     String prompt = String.format("请选择 %s 字段的插件实现", fieldName);
 //    context.sendMessage(prompt);
     /************************************************************************
      * 向客户端发送需要用户确认的请求
      ************************************************************************/
-    context.requestUserSelection(requestId, prompt, optionsData, candidatePlugins);
+    context.requestUserSelection(requestId, prompt, endType, candidatePlugins);
 
     /************************************************************************
      * 等待客户端发送的选择信息

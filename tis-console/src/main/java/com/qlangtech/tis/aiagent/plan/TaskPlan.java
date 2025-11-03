@@ -22,12 +22,13 @@ import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.google.common.collect.ImmutableMap;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
-import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.MockContext;
+import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
@@ -200,9 +201,18 @@ public class TaskPlan {
    */
   public static class DataEndCfg {
     private final IEndTypeGetter.EndType type;
+    private IDataXEndTypeGetter endTypeMeta;
 
     public DataEndCfg(IEndTypeGetter.EndType type) {
       this.type = type;
+    }
+
+    public IDataXEndTypeGetter getEndTypeMeta() {
+      return endTypeMeta;
+    }
+
+    public void setEndTypeMeta(IDataXEndTypeGetter endTypeMeta) {
+      this.endTypeMeta = endTypeMeta;
     }
 
     /**
@@ -226,6 +236,19 @@ public class TaskPlan {
 
   public static class SourceDataEndCfg extends DataEndCfg {
     private List<String> selectedTabs;
+    /**
+     * 对应管道的profile
+     */
+    private IAppSource processor;
+    /**
+     * 是否触发全量历史数据同步
+     */
+    private boolean executeBatch;
+
+    /**
+     * 是否启动增量实时数据同步
+     */
+    private boolean executeIncr;
 
     public SourceDataEndCfg(IEndTypeGetter.EndType type) {
       super(type);
@@ -237,6 +260,32 @@ public class TaskPlan {
 
     public void setSelectedTabs(List<String> selectedTabs) {
       this.selectedTabs = selectedTabs;
+    }
+
+    public void setExecuteBatch(boolean val) {
+      this.executeBatch = val;
+    }
+
+    public void setExecuteIncr(boolean val) {
+      this.executeIncr = val;
+    }
+
+    public boolean isExecuteBatch() {
+      return executeBatch;
+    }
+
+    public boolean isExecuteIncr() {
+      return this.executeIncr;
+    }
+
+
+
+    public IAppSource getProcessor() {
+      return this.processor;
+    }
+
+    public void setProcessor(IAppSource processor) {
+      this.processor = processor;
     }
   }
 

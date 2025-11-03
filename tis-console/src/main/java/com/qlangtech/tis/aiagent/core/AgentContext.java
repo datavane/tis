@@ -28,6 +28,7 @@ import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
@@ -42,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
@@ -84,12 +86,42 @@ public class AgentContext implements IAgentContext {
   /**
    * 发送文本消息到客户端
    */
-  public void sendMessage(String message) {
+  public void sendMessage(String message, ManagerLink... link) {
     if (!cancelled && sseWriter != null) {
       JSONObject data = new JSONObject();
       data.put("type", "text");
       data.put(KEY_CONTENT_DETAIL, message);
-      sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_MESSAGE, data.toJSONString());
+      for (ManagerLink l : link) {
+        data.put("payloadLink", l);
+        break;
+      }
+      sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_MESSAGE, JsonUtil.toString(data, false));
+    }
+  }
+
+  public static class ManagerLink {
+    /**
+     *
+     */
+    private final String linkAddress;
+    private final String linkText;
+
+    /**
+     *
+     * @param linkText
+     * @param linkAddress example: /x/mysql_to_doris_3/manage
+     */
+    public ManagerLink(String linkText, String linkAddress) {
+      this.linkAddress = linkAddress;
+      this.linkText = linkText;
+    }
+
+    public String getLinkAddress() {
+      return linkAddress;
+    }
+
+    public String getLinkText() {
+      return linkText;
     }
   }
 
@@ -119,21 +151,6 @@ public class AgentContext implements IAgentContext {
 
       data.put(KEY_CONTENT_DETAIL, reasonDetail);
       data.put("dataXReaderDesc", new DescriptorsJSON(dataXReaderImpl.getImplDesc()).getDescriptorsJSON());
-
-//      data.put("type", "plugin");
-//      data.put("impl", pluginImpl);
-//
-//      JSONArray items = new JSONArray();
-//      items.add(valMap.getPostJsonBody());
-//
-//
-//      UploadPluginMeta pmeta = UploadPluginMeta.create(pluginEnum);
-//      HeteroList heteroList = pmeta.createEmptyItemAndDescriptorsHetero();
-//      heteroList.setDescriptors(Collections.singletonList(valMap.descriptor));
-//
-//      data.put(KEY_VALIDATE_PLUGIN_ATTR_VALS, heteroList.toJSON(items));
-//      data.put(KEY_REQUEST_ID, requestId.getSessionKey());
-      // String requestId = "plugin_select_" + System.currentTimeMillis();
       /**
        * 向缓存中写入初始数据
        */
@@ -199,15 +216,25 @@ public class AgentContext implements IAgentContext {
    *
    * @param requestId 请求标识符，用于后续匹配用户的选择结果
    * @param prompt    提示信息
-   * @param options   候选项列表
+   * @param endType   候选项列表
    */
-  public void requestUserSelection(RequestKey requestId, String prompt, JSONObject options, List<PluginExtraProps.CandidatePlugin> candidatePlugins) {
+  public void requestUserSelection(RequestKey requestId, String prompt
+    , Optional<IEndTypeGetter.EndType> endType, List<PluginExtraProps.CandidatePlugin> candidatePlugins) {
     if (!cancelled && sseWriter != null) {
+
+      JSONObject optionsData = new JSONObject();
+      // optionsData.put("fieldName", fieldName);
+
+      JSONArray optionsArray = PluginExtraProps.CandidatePlugin.convertOptionsArray(endType, candidatePlugins);
+
+      optionsData.put("candidates", optionsArray);
+
+
       JSONObject data = new JSONObject();
       data.put("type", "selection_request");
       data.put(KEY_REQUEST_ID, requestId.getSessionKey());
       data.put("prompt", prompt);
-      data.put("options", options);
+      data.put("options", optionsData);
 
       /**
        * 向缓存中写入初始数据
@@ -265,7 +292,7 @@ public class AgentContext implements IAgentContext {
       JSONObject data = new JSONObject();
       data.put("type", "error");
       data.put("message", error);
-      sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_ERROR, data.toJSONString());
+      sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_ERROR, JsonUtil.toString(data, false));
     }
   }
 
@@ -308,7 +335,6 @@ public class AgentContext implements IAgentContext {
   public <ChatSessionData extends ISessionData> ChatSessionData
   waitForUserPost(
     RequestKey requestId, Predicate<ChatSessionData> predicate) {
-    // String selectionKey = getSelectionKey(requestId);
 
     // 为每个requestId创建一个专用的锁对象
     Object lock = selectionLocks.computeIfAbsent(requestId.getSessionKey(), k -> new Object());
@@ -359,11 +385,6 @@ public class AgentContext implements IAgentContext {
   }
 
   private void sendSSEEvent(SSERunnable.SSEEventType event, String data) {
-//    synchronized (sseWriter) {
-//      sseWriter.write("event: " + event.getEventType() + "\n");
-//      sseWriter.write("data: " + data + "\n\n");
-//      sseWriter.flush();
-//    }
     this.sseWriter.writeSSEEvent(event, data);
   }
 

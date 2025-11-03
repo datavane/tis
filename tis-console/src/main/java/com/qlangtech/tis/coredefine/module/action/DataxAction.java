@@ -193,6 +193,7 @@ public class DataxAction extends BasicModule {
       .orElseGet(() -> DataXJobSubmit.getDataXTriggerType());
 
     DataXName dataX = this.getCollectionName();
+
     IDataxProcessor dataXProcessor = DataxProcessor.load(null, dataX.getType(), dataX.getPipelineName());
 
     if (!dataXProcessor.isSupportBatch(this)) {

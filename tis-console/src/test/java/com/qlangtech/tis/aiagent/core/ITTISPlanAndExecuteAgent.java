@@ -238,9 +238,9 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
     }
 
     @Override
-    public void sendMessage(String message) {
+    public void sendMessage(String message, ManagerLink... link) {
       messages.add(message);
-      super.sendMessage(message);
+      super.sendMessage(message, link);
     }
 
     @Override
@@ -311,7 +311,7 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
       LLMResponse response = new LLMResponse();
       response.setSuccess(true);
       response.setContent("Mock response");
-     // response.setTotalTokens(100);
+      // response.setTotalTokens(100);
       return response;
     }
 
@@ -333,7 +333,7 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
       json.put("source_config", sourceConfig);
 
       response.setJsonContent(json);
-     // response.setTotalTokens(200);
+      // response.setTotalTokens(200);
       return response;
     }
 

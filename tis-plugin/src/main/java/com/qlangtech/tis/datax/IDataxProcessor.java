@@ -122,9 +122,9 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
         }
     }
 
-    default DataXName getDataXName() {
-        return new DataXName(this.identityValue(), this.getResType());
-    }
+//    default DataXName getDataXName() {
+//        return new DataXName(this.identityValue(), this.getResType());
+//    }
 
     static File getDataXWorkDir(IPluginContext pluginContext, String appName) {
         KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(pluginContext, appName);

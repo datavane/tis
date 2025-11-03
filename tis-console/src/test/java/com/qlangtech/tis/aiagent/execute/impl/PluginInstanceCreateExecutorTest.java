@@ -209,10 +209,10 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     replay(plugin, descriptor, formProperties, propType1, propType2);
 
     // 执行测试
-    boolean result = executor.isPluginEqual(plugin, pluginVals);
+    PluginInstanceCreateExecutor.PluginEqualResult result = executor.isPluginEqual(plugin, pluginVals);
 
     // 验证结果
-    assertTrue("插件属性相等时应该返回true", result);
+    assertTrue("插件属性相等时应该返回true", result.isEqual());
 
     // 验证 mock 对象调用
     verify(plugin, descriptor, formProperties, propType1, propType2);
@@ -281,7 +281,7 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     replay(plugin, descriptor, formProperties, propType1, propType2);
 
     // 执行测试
-    boolean result = executor.isPluginEqual(plugin, pluginVals);
+    boolean result = executor.isPluginEqual(plugin, pluginVals).isEqual();
 
     // 验证结果
     assertFalse("插件属性不相等时应该返回false", result);
@@ -320,6 +320,6 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     PluginInstanceCreateExecutor executor = new PluginInstanceCreateExecutor();
 
     Assert.assertTrue("dataSource instance must be equal "
-      , executor.isPluginEqual(orderDb, valMap.getAttrVals()));
+      , executor.isPluginEqual(orderDb, valMap.getAttrVals()).isEqual());
   }
 }

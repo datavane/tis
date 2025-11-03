@@ -154,6 +154,9 @@ public interface IEndTypeGetter {
         , Preview("preview", EndTypeCategory.Icon, true) //
         , Clone("clone", EndTypeCategory.Icon, true) //
         , Blank("blank", EndTypeCategory.Icon, true) //
+        , Stop("tis-stop", EndTypeCategory.Icon, true) //
+        , Link("tis-link", EndTypeCategory.Icon, true) //
+
         //
         , Replace("replace", EndTypeCategory.Transformer, true)//
         , Concat("concat", EndTypeCategory.Transformer, true)//

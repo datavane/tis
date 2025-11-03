@@ -31,13 +31,20 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.qlangtech.tis.aiagent.plan.AgentTaskIntention;
+
+import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_EXECUTE_BATCH;
+import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_EXECUTE_INCR;
+import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_EXECUTE_OPTION_CONFIG;
 import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_EXTRACT_INFO;
+import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_INTENTION;
 import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_SOURCE;
 import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_TARGET;
 import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_TYPE;
@@ -250,7 +257,8 @@ public class TISPlanAndExecuteAgent {
 
     return "你是TIS数据集成平台的智能助手。你的任务是帮助用户创建数据同步管道。\n" +
       "TIS支持多种数据源，枚举端类型为：" + supportedDataEnds + "，" +
-      "请根据用户的描述，识别源端和目标端的类型。";
+      "请根据用户的描述，识别源端和目标端的类型。现在智能平台接受用户提交任务，需要识别任务意图对应输出json结果中的'" + KEY_INTENTION
+      + "'字段，他是一个枚举类型，支持的值为：" + Arrays.stream(AgentTaskIntention.values()).map(String::valueOf).collect(Collectors.joining(","));
   }
 
   /**
@@ -266,11 +274,12 @@ public class TISPlanAndExecuteAgent {
   private String getPlanSchema() {
 
     return "{\n" +
+      "  \"" + KEY_INTENTION + "\":\"string类型\",\n" +
       "  \"" + KEY_SOURCE + "\": {\"" + KEY_TYPE + "\":\"string,值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" + KEY_EXTRACT_INFO + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取源端相关的描述信息\",\"" + SUB_PROP_FIELD_NAME + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取源端相关的表名称，使用逗号(‘,’)分隔,如不能抽取得到则设置为空字符串\"} ,\n" +
       "  \"" + KEY_TARGET + "\": {\"" + KEY_TYPE + "\":\"string,值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" + KEY_EXTRACT_INFO + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取目标端相关的描述信息\"} ,\n" +
-      "  \"options\": {\n" +
-      "    \"execute_batch\": \"类型为boolean，表明数据管道创建完成之后是否立即触发全量数据同步，默认为false\",\n" +
-      "    \"enable_incr\": \"类型为boolean，表明数据管道创建完成后是否立即启动增量事实同步，默认为false\"\n" +
+      "  \"" + KEY_EXECUTE_OPTION_CONFIG + "\": {\n" +
+      "    \"" + KEY_EXECUTE_BATCH + "\": \"类型为boolean，表明数据管道创建完成之后是否立即触发全量数据同步，默认为false\",\n" +
+      "    \"" + KEY_EXECUTE_INCR + "\": \"类型为boolean，表明数据管道创建完成后是否立即启动增量事实同步，默认为false\"\n" +
       "  }\n" +
       "}";
   }
