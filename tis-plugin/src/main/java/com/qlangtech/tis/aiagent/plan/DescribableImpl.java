@@ -68,7 +68,7 @@ public class DescribableImpl {
 
     public Descriptor getImplDesc() {
         if (CollectionUtils.isEmpty(this.impls)) {
-            throw new IllegalStateException("prop impl can not be empty");
+            throw new IllegalStateException("prop impls can not be empty");
         }
         if (_descriptor == null) {
             for (String impl : this.impls) {

@@ -413,6 +413,11 @@ public class PluginAction extends BasicModule {
    */
   public void doGetUpdateCenterStatus(Context context) {
     UpdateCenter updateCenter = TIS.get().getUpdateCenter();
+    List<UpdateCenterJob> jobs = getInstallJobs(updateCenter);
+    setBizResult(context, jobs);
+  }
+
+  public static List<UpdateCenterJob> getInstallJobs(UpdateCenter updateCenter) {
     List<UpdateCenterJob> jobs = updateCenter.getJobs();
     Collections.sort(jobs, (a, b) -> {
       // 保证最新的安装job排列在最上面
@@ -423,7 +428,7 @@ public class PluginAction extends BasicModule {
         ((DownloadJob) job).status.setUsed();
       }
     });
-    setBizResult(context, jobs);
+    return jobs;
   }
 
   /**

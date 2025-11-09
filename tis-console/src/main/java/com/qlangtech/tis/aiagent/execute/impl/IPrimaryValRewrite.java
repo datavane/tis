@@ -28,6 +28,11 @@ import org.apache.commons.lang3.StringUtils;
  * @date 2025/10/26
  */
 public interface IPrimaryValRewrite {
+  /**
+   * 创建主键值
+   * @param pk
+   * @return
+   */
   IdentityName newCreate(PropertyType pk);
 
   default boolean isDuplicateInExistEntities(PropertyType pk, String identityFieldVal) {

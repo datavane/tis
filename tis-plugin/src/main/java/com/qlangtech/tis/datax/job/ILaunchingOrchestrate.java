@@ -20,10 +20,11 @@ package com.qlangtech.tis.datax.job;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * 启动执行剧本
@@ -33,10 +34,25 @@ import java.util.stream.Collectors;
  **/
 public interface ILaunchingOrchestrate<T> {
 
+    /**
+     * 任务名称
+     *
+     * @return
+     */
+    String getTaskName();
+
     public List<ExecuteStep<T>> getExecuteSteps();
 
-    public static <TT> ILaunchingOrchestrate<TT> create(SubJobResName... flinkDeployRes) {
+    public static <TT> ILaunchingOrchestrate<TT> create(String taskName, SubJobResName... flinkDeployRes) {
+        if (StringUtils.isEmpty(taskName)) {
+            throw new IllegalArgumentException("param taskName can not be empty");
+        }
         return new ILaunchingOrchestrate() {
+            @Override
+            public String getTaskName() {
+                return taskName;
+            }
+
             @Override
             public List<ExecuteStep<TT>> getExecuteSteps() {
                 List<ExecuteStep<TT>> launchSteps = Lists.newArrayList();
@@ -50,19 +66,25 @@ public interface ILaunchingOrchestrate<T> {
 
 
     public default ExecuteSteps createExecuteSteps(Object owner) {
-        return new ExecuteSteps(owner, this.getExecuteSteps().stream().collect(Collectors.toList()));
+        return new ExecuteSteps(this.getTaskName(), owner, this.getExecuteSteps());
     }
 
     public class ExecuteSteps {
 
         private final List<ExecuteStep> executeSteps;
+        private final String taskName;
+
+        public String getTaskName() {
+            return this.taskName;
+        }
 
         public List<ExecuteStep> getExecuteSteps() {
             return this.executeSteps;
         }
 
-        public ExecuteSteps(Object owner, List<ExecuteStep> executeSteps) {
-            this.executeSteps = executeSteps;
+        public ExecuteSteps(String taskName, Object owner, List<? extends ExecuteStep> executeSteps) {
+            this.executeSteps = (List<ExecuteStep>) executeSteps;
+            this.taskName = Objects.requireNonNull(taskName, "param taskName can not be null");
             if (CollectionUtils.isEmpty(this.executeSteps)) {
                 throw new IllegalStateException("executeSteps can not be empty,owner:"
                         + Objects.requireNonNull(owner, "owner can not be null").getClass().getName());

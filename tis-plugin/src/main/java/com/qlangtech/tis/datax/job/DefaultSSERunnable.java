@@ -28,12 +28,15 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.trigger.socket.InfoType;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -45,7 +48,19 @@ public class DefaultSSERunnable implements SSERunnable {
     private final SSEEventWriter httpClientWriter;
     private final Runnable runnable;
     private Optional<ServerLaunchToken> launchToken = Optional.empty();
-    private final List<ExecuteStep> executeSteps;
+    private final ExecuteSteps executeSteps;
+
+    public DefaultSSERunnable(IControlMsgHandler controlHandler
+            , ExecuteSteps executeSteps, Runnable runnable) {
+        this(controlHandler.getEventStreamWriter(), executeSteps, runnable);
+    }
+
+    public DefaultSSERunnable(SSEEventWriter clientWriter, ExecuteSteps executeSteps, Runnable runnable) {
+        SSERunnable.setLocalThread(this);
+        this.httpClientWriter = clientWriter;
+        this.runnable = runnable;
+        this.executeSteps = executeSteps;
+    }
 
     /**
      * @param launchProcess
@@ -56,8 +71,8 @@ public class DefaultSSERunnable implements SSERunnable {
      */
     public static k8SLaunching execute(DefaultSSERunnable launchProcess, boolean inService
             , ServerLaunchToken launchToken, Runnable runnable) {
-        k8SLaunching k8SLaunching = launchProcess.hasLaunchingToken(launchProcess.executeSteps, launchToken);
-        launchProcess.writeExecuteSteps(k8SLaunching.getExecuteSteps());
+        k8SLaunching k8SLaunching = launchProcess.hasLaunchingToken(launchToken);
+        launchProcess.writeExecuteSteps(k8SLaunching.launchWALLog.executeSteps);
         if (inService) {
             for (SubJobLog subJobLog : k8SLaunching.getLogs()) {
                 launchProcess.writeHistoryLog(subJobLog);
@@ -91,20 +106,8 @@ public class DefaultSSERunnable implements SSERunnable {
         }
     }
 
-    public DefaultSSERunnable(IControlMsgHandler controlHandler
-            , ExecuteSteps executeSteps, Runnable runnable) {
-        this(controlHandler.getEventStreamWriter(), executeSteps, runnable);
-    }
 
-    public DefaultSSERunnable(SSEEventWriter clientWriter, ExecuteSteps executeSteps, Runnable runnable) {
-        SSERunnable.setLocalThread(this);
-        this.httpClientWriter = clientWriter;
-        this.runnable = runnable;
-        this.executeSteps = executeSteps.getExecuteSteps();
-    }
-
-
-    public k8SLaunching hasLaunchingToken(List<ExecuteStep> executeSteps, ServerLaunchToken launchToken) {
+    public k8SLaunching hasLaunchingToken(ServerLaunchToken launchToken) {
         ServerLaunchLog launchWALLog = launchToken.buildWALLog(executeSteps);
         k8SLaunching k8SLaunching = new k8SLaunching(launchWALLog);
         if (!k8SLaunching.launchWALLog.isLaunchingTokenExist()) {
@@ -144,7 +147,7 @@ public class DefaultSSERunnable implements SSERunnable {
      */
     public class k8SLaunching implements Observer {
 
-        private final ServerLaunchLog launchWALLog;
+        public final ServerLaunchLog launchWALLog;
         private final List<ExecuteStep> executeSteps;
 
         public k8SLaunching(ServerLaunchLog launchWALLog) {
@@ -217,11 +220,15 @@ public class DefaultSSERunnable implements SSERunnable {
         this.launchToken.get().touchLaunchingToken();
     }
 
-    public void writeExecuteSteps(List<ExecuteStep> executeSteps) {
+    public void writeExecuteSteps(ILaunchingOrchestrate.ExecuteSteps executeSteps) {
 
-        JSONArray steps = SubJobMilestone.createSubJobJSONArray(executeSteps);
+        JSONObject body = new JSONObject();
+        JSONArray steps = SubJobMilestone.createSubJobJSONArray(
+                Objects.requireNonNull(executeSteps, "executeSteps can not be null").getExecuteSteps());
+        body.put("steps", steps);
+        body.put("taskName", executeSteps.getTaskName());
 
-        writeMessage(SSEEventType.TASK_EXECUTE_STEPS, JsonUtil.toString(steps, false));
+        writeMessage(SSEEventType.TASK_EXECUTE_STEPS, JsonUtil.toString(body, false));
     }
 
 
@@ -300,7 +307,7 @@ public class DefaultSSERunnable implements SSERunnable {
 //        httpClientWriter.println();
 //        httpClientWriter.flush();
 
-        httpClientWriter.writeSSEEvent(event, String.valueOf( data ));
+        httpClientWriter.writeSSEEvent(event, String.valueOf(data));
 
         launchToken.ifPresent((lt) -> {
             lt.appendLaunchingLine(event.getEventType() + splitChar + data);

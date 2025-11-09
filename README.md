@@ -72,6 +72,7 @@ TIS为您提供企业级数据集成服务，**基于批(DataX)，流(Flink-CDC�
     * [多源同步Doris方案](https://tis.pub/docs/example/mysql-sync-doris)
     * [将数据变更同步到Kafka](https://tis.pub/docs/example/sink-2-kafka)
     * [利用TIS实现T+1离线分析](https://tis.pub/docs/example/dataflow)
+    * [多源同步Paimon方案](https://tis.pub/docs/example/paimon/)
 - 视频示例
     * [安装示例](https://www.bilibili.com/video/BV18q4y1p73B/)
     * [启用分布式执行功能](https://www.bilibili.com/video/BV1Cq4y1D7z4?share_source=copy_web)

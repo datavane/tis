@@ -20,7 +20,11 @@ package com.qlangtech.tis.aiagent.plan;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
+import com.qlangtech.tis.datax.DataXName;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.lang.TisException;
+import com.qlangtech.tis.manage.IAppSource;
+import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -231,12 +235,31 @@ public class PlanGenerator {
     readerStep.setDescription("配置源端数据读取器及写入器");
     plan.addStep(readerStep);
 
-//    TaskStep writerStep = new TaskStep("创建目标端Writer", TaskStep.StepType.PLUGIN_CREATE);
-//    writerStep.setDescription("配置目标端数据写入器");
-//    plan.addStep(writerStep);
 
     TaskStep executeStep = new TaskStep("执行数据同步", TaskStep.StepType.EXECUTE_BATCH);
     executeStep.setDescription("执行数据同步任务");
     plan.addStep(executeStep);
+
+    //mysql_to_doris_16
+//    TaskPlan.SourceDataEndCfg sourceEnd = plan.getSourceEnd();
+//    DataxProcessor processor = IAppSource.load(null, DataXName.createDataXPipeline("mysql_to_doris_18"));
+//    sourceEnd.setProcessor(processor);
+//    IDataXEndTypeGetter endMeta = new IDataXEndTypeGetter() {
+//      @Override
+//      public boolean isSupportIncr() {
+//        return true;
+//      }
+//
+//      @Override
+//      public boolean isSupportBatch() {
+//        return true;
+//      }
+//    };
+//    sourceEnd.setEndTypeMeta(endMeta);
+//    plan.getTargetEnd().setEndTypeMeta(endMeta);
+
+    TaskStep incrStep = new TaskStep("增量实时数据同步启动", TaskStep.StepType.EXECUTE_INCR);
+    incrStep.setDescription("构建增量实时数据同步通道");
+    plan.addStep(incrStep);
   }
 }

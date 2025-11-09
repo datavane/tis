@@ -29,6 +29,7 @@ import com.qlangtech.tis.plugin.IPluginTaggable;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -88,7 +89,7 @@ public class PluginFilter {
     return getEndTypeMatcher(endType);
   }
 
-  public static Predicate<UpdateSite.Plugin> getEndTypeMatcher(final String endType) {
+  public static Predicate<UpdateSite.Plugin> getEndTypeMatcher(final @Nullable String endType) {
     if (StringUtils.isEmpty(endType)) {
       return (plugin) -> true;
     }

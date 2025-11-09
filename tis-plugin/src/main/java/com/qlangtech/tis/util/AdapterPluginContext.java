@@ -48,6 +48,11 @@ public abstract class AdapterPluginContext implements IPluginContext, IControlMs
     }
 
     @Override
+    public BasicPipelineValidator getPipelineValidator(BizLogic logicType) {
+        return msgHandler.getPipelineValidator(logicType);
+    }
+
+    @Override
     public void executeBizLogic(BizLogic logicType, Context context, Object param) throws Exception {
         pluginContext.executeBizLogic(logicType, context, param);
     }

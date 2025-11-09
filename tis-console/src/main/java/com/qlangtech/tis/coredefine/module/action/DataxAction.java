@@ -388,7 +388,7 @@ public class DataxAction extends BasicModule {
 
     List<ExecuteStep> executeSteps = Collections.singletonList(execStep);
     DefaultSSERunnable launchProcess = new DefaultSSERunnable(
-      writer, new ExecuteSteps(dataxJobWorker, executeSteps), () -> {
+      writer, new ExecuteSteps("调整Pod数量", dataxJobWorker, executeSteps), () -> {
       try {
         Thread.sleep(4000l);
       } catch (InterruptedException e) {

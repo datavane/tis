@@ -135,6 +135,11 @@ public interface SSERunnable extends Runnable, IJobFeedback {
         AI_AGNET_SELECT_TABLE("ai_agent_select_tabs"),
         AI_AGNET_ERROR("ai_agent_error"),
         AI_AGENT_INPUT_REQUEST("ai_agent_input_request"),
+        // 开始 打开启动增量通道启动执行进度对话框
+        AI_AGNET_OPEN_LAUNCHING_PROCESS("ai_agent_open_launching_process"),
+
+        // 显示先前正在安装的插件的安装进度
+        AI_AGNET_PLUGIN_INSTALL_STATUS("ai_agent_plugin_install_status"),
         /**
          * 让用户选择不同的Descriptor（例如：MySQL-v5、MySQL-v8之一）
          */

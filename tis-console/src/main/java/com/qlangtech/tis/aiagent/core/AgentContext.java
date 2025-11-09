@@ -25,7 +25,9 @@ import com.qlangtech.tis.aiagent.plan.DescribableImpl;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
+import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.lang.PayloadLink;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
@@ -83,45 +85,46 @@ public class AgentContext implements IAgentContext {
     this.tokenCount = new AtomicLong(0);
   }
 
+  public SSEEventWriter getSseWriter() {
+    return this.sseWriter;
+  }
+
   /**
    * 发送文本消息到客户端
    */
-  public void sendMessage(String message, ManagerLink... link) {
+  public void sendMessage(String message, PayloadLink... link) {
     if (!cancelled && sseWriter != null) {
       JSONObject data = new JSONObject();
       data.put("type", "text");
       data.put(KEY_CONTENT_DETAIL, message);
-      for (ManagerLink l : link) {
-        data.put("payloadLink", l);
+      for (PayloadLink l : link) {
+        data.put(KEY_PAYLOAD_LINK, l);
         break;
       }
       sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_MESSAGE, JsonUtil.toString(data, false));
     }
   }
 
-  public static class ManagerLink {
-    /**
-     *
-     */
-    private final String linkAddress;
-    private final String linkText;
+  /**
+   * 发送插件安装状态到客户端
+   *
+   * @param requestKey
+   * @param installJobs
+   */
+  public void sendPluginInstallStatus(
+    RequestKey requestKey, List<UpdateCenter.UpdateCenterJob> installJobs, boolean complete) {
 
-    /**
-     *
-     * @param linkText
-     * @param linkAddress example: /x/mysql_to_doris_3/manage
-     */
-    public ManagerLink(String linkText, String linkAddress) {
-      this.linkAddress = linkAddress;
-      this.linkText = linkText;
-    }
+    if (!cancelled && sseWriter != null) {
+      JSONObject data = new JSONObject();
+      data.put(KEY_REQUEST_ID, requestKey.getSessionKey());
 
-    public String getLinkAddress() {
-      return linkAddress;
-    }
+      // 直接将 installJobs 列表传递，前端会自动映射到 InstallPluginItem
+      data.put("installJobs", installJobs);
+      data.put("complete", complete);
 
-    public String getLinkText() {
-      return linkText;
+      sendSSEEvent(
+        SSERunnable.SSEEventType.AI_AGNET_PLUGIN_INSTALL_STATUS
+        , JsonUtil.toString(data, false));
     }
   }
 
@@ -284,14 +287,20 @@ public class AgentContext implements IAgentContext {
     }
   }
 
+  private static final String KEY_PAYLOAD_LINK = "payloadLink";
+
   /**
    * 发送错误信息
    */
-  public void sendError(String error) {
+  public void sendError(String error, PayloadLink... link) {
     if (!cancelled && sseWriter != null) {
       JSONObject data = new JSONObject();
       data.put("type", "error");
       data.put("message", error);
+      for (PayloadLink l : link) {
+        data.put(KEY_PAYLOAD_LINK, l);
+        break;
+      }
       sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_ERROR, JsonUtil.toString(data, false));
     }
   }
@@ -368,7 +377,7 @@ public class AgentContext implements IAgentContext {
             lock.wait(remainingTime);
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return null;
+            throw TisException.create("已经取消此次操作", e);
           }
         }
       }

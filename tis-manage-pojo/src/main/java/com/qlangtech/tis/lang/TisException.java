@@ -56,6 +56,7 @@ import java.util.regex.Pattern;
  */
 public class TisException extends RuntimeException {
     private final Optional<ErrorValue> errCode;
+    private PayloadLink payloadLink;
 
     private static class RemoveDataxWorkerForward implements Function<BasicRundata, String[]> {
         @Override
@@ -179,6 +180,20 @@ public class TisException extends RuntimeException {
     private TisException(String message) {
         super(message);
         this.errCode = Optional.empty();
+    }
+
+    public TisException setPayloadLink(PayloadLink payloadLink) {
+        this.payloadLink = payloadLink;
+        return this;
+    }
+
+    /**
+     * 当抛出异常，需要在前端在异常信息旁边添加一个，详细对话框链接
+     *
+     * @return
+     */
+    public Optional<PayloadLink> getPayloadLink() {
+        return Optional.ofNullable(payloadLink);
     }
 
     public static TisException create(String message, Throwable cause) {

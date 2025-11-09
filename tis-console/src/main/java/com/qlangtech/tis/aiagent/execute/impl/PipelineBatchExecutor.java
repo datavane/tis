@@ -19,9 +19,9 @@
 package com.qlangtech.tis.aiagent.execute.impl;
 
 import com.alibaba.citrus.turbine.Context;
-import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.aiagent.core.AgentContext;
+import com.qlangtech.tis.lang.PayloadLink;
 import com.qlangtech.tis.aiagent.core.RequestKey;
 import com.qlangtech.tis.aiagent.core.SelectionOptions;
 import com.qlangtech.tis.aiagent.execute.StepExecutor;
@@ -31,10 +31,8 @@ import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
-import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.util.PartialSettedPluginContext;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -101,23 +99,11 @@ public class PipelineBatchExecutor implements StepExecutor {
       , runtimeContext, dataXName, Optional.empty(), Optional.empty());
     if (triggerResult.success) {
       context.sendMessage("已经成功触发'" + String.valueOf(dataXName) + "'全量历史数据同步执行。"
-        , new AgentContext.ManagerLink("查看任务执行状态", "/x/" + String.valueOf(dataXName) + "/app_build_history/" + triggerResult.getTaskid()));
+        , new PayloadLink("查看任务执行状态", "/x/" + String.valueOf(dataXName) + "/app_build_history/" + triggerResult.getTaskid()));
     } else {
       context.sendError("触发'" + String.valueOf(dataXName) + "'全量历史数据同步失败。");
     }
     return true;
-  }
-
-  private static class NormalSelectionOption extends PluginExtraProps.CandidatePlugin {
-    public NormalSelectionOption(String displayName) {
-      super(displayName, Optional.empty(), null);
-    }
-
-    @Override
-    public void setExtraProps(Optional<IEndTypeGetter.EndType> endType, JSONObject option) {
-      option.put(KEY_DISABLE_PLUGIN_INSTALL, true);
-      option.put(KEY_INSTALLED, true);
-    }
   }
 
   @Override

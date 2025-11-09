@@ -24,6 +24,7 @@ import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.aiagent.plan.TaskPlan;
 import com.qlangtech.tis.aiagent.plan.TaskStep;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
+import com.qlangtech.tis.lang.PayloadLink;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.easymock.EasyMockSupport;
 import org.junit.Before;
@@ -238,15 +239,15 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
     }
 
     @Override
-    public void sendMessage(String message, ManagerLink... link) {
+    public void sendMessage(String message, PayloadLink... link) {
       messages.add(message);
       super.sendMessage(message, link);
     }
 
     @Override
-    public void sendError(String error) {
+    public void sendError(String error, PayloadLink... link) {
       errors.add(error);
-      super.sendError(error);
+      super.sendError(error, link);
     }
 
     @Override

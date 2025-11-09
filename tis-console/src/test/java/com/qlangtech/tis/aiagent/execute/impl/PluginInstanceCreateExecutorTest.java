@@ -32,23 +32,15 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
-import com.qlangtech.tis.runtime.module.misc.DefaultMessageHandler;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSONForAIPromote;
 import com.qlangtech.tis.util.DescriptorsJSONResult;
 
-import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PartialSettedPluginContext;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
-import org.easymock.EasyMock;
-import org.easymock.MockType;
-import org.easymock.EasyMockRunner;
-import org.easymock.Mock;
-import org.easymock.TestSubject;
-import org.junit.runner.RunWith;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
@@ -209,7 +201,7 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     replay(plugin, descriptor, formProperties, propType1, propType2);
 
     // 执行测试
-    PluginInstanceCreateExecutor.PluginEqualResult result = executor.isPluginEqual(plugin, pluginVals);
+    PluginEqualResult result = executor.isPluginEqual(plugin, pluginVals);
 
     // 验证结果
     assertTrue("插件属性相等时应该返回true", result.isEqual());

@@ -95,11 +95,12 @@ public class TestServerLaunchToken extends TestCase {
         TestDataXJobWorker jobWorker = new TestDataXJobWorker();
         StringWriter writer = new StringWriter();
 
-        DefaultSSERunnable sseRunnable = new DefaultSSERunnable(new SSEEventWriter(new PrintWriter(writer)), new ExecuteSteps(jobWorker, executeSteps), () -> {
-
+        DefaultSSERunnable sseRunnable
+                = new DefaultSSERunnable(new SSEEventWriter(new PrintWriter(writer))
+                , new ExecuteSteps("测试任务", jobWorker, executeSteps), () -> {
         });
 
-        k8SLaunching k8SLaunching = sseRunnable.hasLaunchingToken(executeSteps, launchToken);
+        k8SLaunching k8SLaunching = sseRunnable.hasLaunchingToken(launchToken);
 
         /**==============================
          * IMPORT

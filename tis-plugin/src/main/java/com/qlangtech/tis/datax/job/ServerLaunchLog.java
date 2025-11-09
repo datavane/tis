@@ -32,7 +32,7 @@ public class ServerLaunchLog implements IReplicaScalaLog {
     private final boolean launchingTokenExist;
     private List<SubJobMilestone> milestones;
     private SubJobLog[] logs;
-    private List<ExecuteStep> executeSteps;
+    public ILaunchingOrchestrate.ExecuteSteps executeSteps;
 
     public ServerLaunchLog(boolean launchingTokenExist) {
         this.launchingTokenExist = launchingTokenExist;
@@ -51,7 +51,7 @@ public class ServerLaunchLog implements IReplicaScalaLog {
         this.milestones = milestones;
     }
 
-    public void setExecuteSteps(List<ExecuteStep> executeSteps) {
+    public void setExecuteSteps(ILaunchingOrchestrate.ExecuteSteps executeSteps) {
         this.executeSteps = executeSteps;
     }
 
@@ -86,6 +86,7 @@ public class ServerLaunchLog implements IReplicaScalaLog {
     }
 
     public List<ExecuteStep> getExecuteSteps() {
-        return executeSteps;
+        return executeSteps.getExecuteSteps();
     }
+
 }

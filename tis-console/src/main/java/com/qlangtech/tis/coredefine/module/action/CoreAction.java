@@ -38,6 +38,7 @@ import com.qlangtech.tis.coredefine.module.control.SelectableServer;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer.CoreNode;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.DataXName;
+import com.qlangtech.tis.datax.IDataXNameAware;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -45,6 +46,7 @@ import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate;
 import com.qlangtech.tis.datax.job.JobOrchestrateException;
 import com.qlangtech.tis.datax.job.JobResName;
+import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.datax.job.ServerLaunchToken;
 import com.qlangtech.tis.datax.job.ServerLaunchToken.FlinkClusterTokenManager;
@@ -79,15 +81,17 @@ import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.screen.BasicScreen;
-import com.qlangtech.tis.runtime.module.screen.ViewPojo;
 import com.qlangtech.tis.runtime.pojo.ServerGroupAdapter;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.sql.parser.DBNode;
 import com.qlangtech.tis.sql.parser.stream.generate.StreamCodeContext;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
+import com.qlangtech.tis.util.AdapterPluginContext;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.ItemsSaveResult;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO;
@@ -102,7 +106,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -295,7 +298,7 @@ public class CoreAction extends BasicModule {
         }
       });
 
-    return ILaunchingOrchestrate.create(checkEnvironment, relaunch, confirm);
+    return ILaunchingOrchestrate.create("增量实时通道恢复", checkEnvironment, relaunch, confirm);
   }
 
   /**
@@ -402,7 +405,7 @@ public class CoreAction extends BasicModule {
     // 可以基于checkpoint恢复任务的前提是，需要开启checkpoint，并且使用了持久化statebackend
     incrStatus.setRestorableByCheckpoint(incrStreamFactory.restorable().isPresent());
     incrStatus.setK8sPluginInitialized(true);
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module);
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module.getTISDataXName(), module);
     StreamCodeContext streamCodeContext
       = new StreamCodeContext(module.getCollectionName(), indexStreamCodeGenerator.incrScriptTimestamp);
     incrStatus.setIncrScriptCreated(streamCodeContext.isIncrScriptDirCreated());
@@ -535,32 +538,16 @@ public class CoreAction extends BasicModule {
     BasicModule module, Context context
     , boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage, boolean excludeFacadeDAOSupport, boolean hasCfgChanged) throws Exception {
 
-
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module);
-    // List<FacadeContext> facadeList = indexStreamCodeGenerator.getFacadeList();
-    //PluginStore<IncrStreamFactory> store = TIS.getPluginStore(IncrStreamFactory.class);
+    IndexStreamCodeGenerator indexStreamCodeGenerator
+      = getIndexStreamCodeGenerator(module.getTISDataXName(), module);
 
     IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
-//    if (validateGlobalIncrStreamFactory && store.getPlugin() == null) {
-//      throw new IllegalStateException("global IncrStreamFactory config can not be null");
-//    }
 
-    //if (store.getPlugin() != null) {
     // 已经定义了全局插件
     IPluginStore<IncrStreamFactory> collectionBindIncrStreamFactoryStore = getIncrStreamFactoryStore(module);
     if (collectionBindIncrStreamFactoryStore.getPlugin() == null) {
-      // 需要将全局插件属性拷贝到collection绑定的插件属性上来
-//      Descriptor flinkStreamDesc = TIS.get().getDescriptor(IncrStreamFactory.FLINK_STREM);
-//      if (flinkStreamDesc == null) {
-//        throw new IllegalStateException(
-//          "can not find findStream Factory in plugin repository, Descriptor ID:" + IncrStreamFactory.FLINK_STREM);
-//      }
-//
-//      collectionBindIncrStreamFactoryStore.setPlugins(module, Optional.of(context)
-//        , Collections.singletonList(flinkStreamDesc.newInstance(module, Collections.emptyMap(), Optional.empty())));
-      //  throw new IllegalStateException("collectionName:" + module.getCollectionName() + " relevant plugin can not be null " + IncrStreamFactory.class.getName());
     }
-    //}
+
     // 这里永远是false应该
     incrStatus.setK8sPluginInitialized(false);
     // 判断是否已经成功创建，如果已经创建了，就退出
@@ -568,7 +555,6 @@ public class CoreAction extends BasicModule {
       incrStatus.setIncrScriptCreated(true);
       incrStatus.setIncrScriptMainFileContent(indexStreamCodeGenerator.readIncrScriptMainFileContent());
       log.info("incr script has create ignore it file path:{}", indexStreamCodeGenerator.getIncrScriptDirPath());
-      // this.setBizResult(context, incrStatus);
     }
     GenerateDAOAndIncrScript generateDAOAndIncrScript = new GenerateDAOAndIncrScript(module, indexStreamCodeGenerator);
     if (excludeFacadeDAOSupport) {
@@ -614,17 +600,20 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_CONFIG_EDIT)
   public void doCompileAndPackage(Context context) {
 
-    // IBasicAppSource appSource = IAppSource.load(null, this.getCollectionName());
 
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
+    compileAndPackageIncrPipeline(this.getCollectionName(), this, context);
+  }
+
+  private static void compileAndPackageIncrPipeline(DataXName pipelineName, BasicModule module, Context context) {
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(pipelineName, module);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
-    GenerateDAOAndIncrScript daoAndIncrScript = new GenerateDAOAndIncrScript(this, indexStreamCodeGenerator);
+    GenerateDAOAndIncrScript daoAndIncrScript = new GenerateDAOAndIncrScript(module, indexStreamCodeGenerator);
 
     // if (appSource.isExcludeFacadeDAOSupport()) {
     if (true) {
       daoAndIncrScript.generateIncrScript(context, incrStatus, true, Collections.emptyMap(), false);
     } else {
-      Map<Integer, Long> dependencyDbs = getDependencyDbsMap(this, indexStreamCodeGenerator);
+      Map<Integer, Long> dependencyDbs = getDependencyDbsMap(module, indexStreamCodeGenerator);
       // 需要facadeDAO支持
       daoAndIncrScript.generate(context, incrStatus, true, dependencyDbs);
     }
@@ -635,8 +624,12 @@ public class CoreAction extends BasicModule {
    */
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doReDeployIncrSyncChannal(Context context) throws Exception {
-    IncrStreamFactory streamFactory = IncrStreamFactory.getFactory(this.getCollectionName().getPipelineName());
-    TargetResName targetName = TargetResName.createTargetName(this.getCollectionName());
+    deployIncrSyncChannal(context, this, this.getCollectionName());
+  }
+
+  public static void deployIncrSyncChannal(Context context, BasicModule module, DataXName pipelineName) throws Exception {
+    IncrStreamFactory streamFactory = IncrStreamFactory.getFactory(pipelineName.getPipelineName());
+    TargetResName targetName = TargetResName.createTargetName(pipelineName);
     streamFactory.removeInstance(targetName);
     Thread.sleep(4000);
     final ServerLaunchToken incrLaunchToken = streamFactory.getLaunchToken(targetName);
@@ -644,10 +637,10 @@ public class CoreAction extends BasicModule {
     //  this.launchIncrSyncChannel(context, incrLaunchToken);
 
     LaunchIncrSyncChannel incrLauncher
-      = new LaunchIncrSyncChannel(this.getCollectionName(), this, context, incrLaunchToken) {
+      = new LaunchIncrSyncChannel(pipelineName, module, context, incrLaunchToken) {
       @Override
       protected ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobWorkingOrchestrate(TISK8sDelegate k8sClient) {
-        return CoreAction.this.getFlinkJobWorkingOrchestrate(k8sClient);
+        return CoreAction.getFlinkJobWorkingOrchestrate(pipelineName, module, k8sClient);
       }
     };
 
@@ -722,7 +715,7 @@ public class CoreAction extends BasicModule {
         }
       });
 
-    return ILaunchingOrchestrate.create(checkEnvironment, relaunch, confirm);
+    return ILaunchingOrchestrate.create("增量实时通道重新部署", checkEnvironment, relaunch, confirm);
   }
 
   /**
@@ -734,70 +727,62 @@ public class CoreAction extends BasicModule {
    */
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doDeployIncrSyncChannal(Context context) throws Exception {
-    IncrStreamFactory streamFactory = getRCController();// IncrStreamFactory.getFactory(this.getCollectionName());
-    final ServerLaunchToken incrLaunchToken = streamFactory.getLaunchToken(TargetResName.createTargetName(this.getCollectionName()));
+    DataXName pipelineName = this.getCollectionName();
+    IncrStreamFactory streamFactory = getRCController();
 
-    LaunchIncrSyncChannel incrLauncher
-      = new LaunchIncrSyncChannel(this.getCollectionName(), this, context, incrLaunchToken) {
-      @Override
-      protected ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobWorkingOrchestrate(TISK8sDelegate k8sClient) {
-        return CoreAction.this.getFlinkJobWorkingOrchestrate(k8sClient);
-      }
-    };
+    startDeployIncrSyncChannal(this, context, streamFactory, pipelineName);
 
-    incrLauncher.executeLaunch();
-
-    // this.launchIncrSyncChannel(context, incrLaunchToken);
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     this.setBizResult(context, incrStatus);
 
   }
 
-//  public void launchIncrSyncChannel(Context context, final ServerLaunchToken incrLaunchToken) {
-//    TISK8sDelegate k8sClient = TISK8sDelegate.getK8SDelegate(this.getCollectionName());
-//
-//    ILaunchingOrchestrate<FlinkJobDeployDTO> orchestrate = getFlinkJobWorkingOrchestrate(k8sClient);
-//    final ExecuteSteps executeSteps = orchestrate.createExecuteSteps(this);
-//    DefaultSSERunnable launchProcess = new DefaultSSERunnable(this, executeSteps, () -> {
-//      try {
-//        Thread.sleep(4000l);
-//      } catch (InterruptedException e) {
-//      }
-//    }) {
-//      @Override
-//      public void afterLaunched() {
-//        addActionMessage(context, "已经成功启动Flink增量实例");
-//      }
-//    };
-//
-//
-//    DefaultSSERunnable.execute(launchProcess, false
-//      , incrLaunchToken, () -> {
-//        incrLaunchToken.writeLaunchToken(() -> {
-//          for (ExecuteStep execStep : executeSteps.getExecuteSteps()) {
-//            execStep.getSubJob().execSubJob(new FlinkJobDeployDTO(context, k8sClient));
-//          }
-//          return Optional.empty();
-//        });
-//        launchProcess.afterLaunched();
-//      });
-//  }
+  public static void startDeployIncrSyncChannal(BasicModule module, Context context, IncrStreamFactory streamFactory, DataXName pipelineName) {
+    startDeployIncrSyncChannal(module.getEventStreamWriter(), module, context, streamFactory, pipelineName);
+  }
+
+  public static void startDeployIncrSyncChannal(SSEEventWriter sseEventWriter, BasicModule module
+    , Context context, IncrStreamFactory streamFactory, DataXName pipelineName) {
+    final ServerLaunchToken incrLaunchToken = streamFactory.getLaunchToken(TargetResName.createTargetName(pipelineName));
+
+    LaunchIncrSyncChannel incrLauncher
+      = new LaunchIncrSyncChannel(pipelineName, new AdapterPluginContext(module) {
+      @Override
+      public DataXName getTISDataXName() {
+        return Objects.requireNonNull(pipelineName);
+      }
+
+      @Override
+      public SSEEventWriter getEventStreamWriter() {
+        return sseEventWriter;
+      }
+    }, context, incrLaunchToken) {
+      @Override
+      protected ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobWorkingOrchestrate(TISK8sDelegate k8sClient) {
+        return CoreAction.getFlinkJobWorkingOrchestrate(pipelineName, module, k8sClient);
+      }
+    };
+
+    incrLauncher.executeLaunch();
+
+  }
 
 
-  private ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobWorkingOrchestrate(TISK8sDelegate k8sClient) {
+  private static ILaunchingOrchestrate<FlinkJobDeployDTO> getFlinkJobWorkingOrchestrate(
+    DataXName pipelineName, BasicModule module, TISK8sDelegate k8sClient) {
 
     /**
      * 1 step Check
      */
     final SubJobResName<FlinkJobDeployDTO> checkEnvironment =
-      JobResName.createSubJob(getCollectionName() + " check environment", (dto) -> {
+      JobResName.createSubJob(pipelineName + " check environment", (dto) -> {
         k8sClient.checkUseable();
       });
 
     /**
      * 2 step compileAndPackage
      */
-    final String subJobName = "Incr " + getCollectionName() + " Compile And Package";
+    final String subJobName = "Incr " + pipelineName + " Compile And Package";
     final SubJobResName<FlinkJobDeployDTO> compileAndPackage =
       JobResName.createSubJob(subJobName, (dto) -> {
         final SSERunnable sse = SSERunnable.getLocal();
@@ -807,9 +792,9 @@ public class CoreAction extends BasicModule {
          * compile&deploy
          * ==========================================================
          */
-        this.doCompileAndPackage(dto.context);
+        compileAndPackageIncrPipeline(pipelineName,
+          Objects.requireNonNull(module, "module can not be null"), dto.context);
         if (dto.hasErrors()) {
-
           throw new JobOrchestrateException(subJobName + " faild");
           //return;
         }
@@ -820,9 +805,9 @@ public class CoreAction extends BasicModule {
      * 3 step Deploy
      */
     final SubJobResName<FlinkJobDeployDTO> deploy
-      = SubJobResName.createSubJob("Incr " + getCollectionName() + " Deploy", (dto) -> {
+      = SubJobResName.createSubJob("Incr " + pipelineName + " Deploy", (dto) -> {
 
-      IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
+      IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(pipelineName, module);
 
       // 将打包好的构建，发布到k8s集群中去
       // https://github.com/kubernetes-client/java
@@ -860,7 +845,7 @@ public class CoreAction extends BasicModule {
           public void visit(FlinkJobDeploymentDetails details) {
             switch (details.getIncrJobStatus().getState()) {
               case FAILED:
-                throw TisException.create(getCollectionName() + " faild");
+                throw TisException.create(pipelineName + " faild");
               case RUNNING:
                 loop.set(false);
                 break;
@@ -869,7 +854,7 @@ public class CoreAction extends BasicModule {
           }
         });
         if (loop.get()) {
-          log.info("check " + getCollectionName() + " deploy status,tryCount:" + tryCount.get());
+          log.info("check " + pipelineName + " deploy status,tryCount:" + tryCount.get());
           try {
             Thread.sleep(3000);
           } catch (InterruptedException e) {
@@ -879,18 +864,7 @@ public class CoreAction extends BasicModule {
       }
     });
 
-    return ILaunchingOrchestrate.create(checkEnvironment, compileAndPackage, deploy, confirm);
-
-//    return new ILaunchingOrchestrate() {
-//      @Override
-//      public List<ExecuteStep<FlinkJobDeployDTO>> getExecuteSteps() {
-//        List<ExecuteStep<FlinkJobDeployDTO>> launchSteps = Lists.newArrayList();
-//        for (SubJobResName rcRes : flinkDeployRes) {
-//          launchSteps.add(new ExecuteStep(rcRes, null));
-//        }
-//        return launchSteps;
-//      }
-//    };
+    return ILaunchingOrchestrate.create("增量实时通道启动", checkEnvironment, compileAndPackage, deploy, confirm);
   }
 
 
@@ -907,9 +881,9 @@ public class CoreAction extends BasicModule {
       .collect(Collectors.toMap(DatasourceDb::getId, (r) -> ManageUtils.formatNowYyyyMMddHHmmss(r.getOpTime())));
   }
 
-  private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(BasicModule module) {
-    DataXName dataXName = module.getCollectionName();
-    Optional<IBasicAppSource> appSource = IAppSource.loadNullable(null, dataXName.getType(), dataXName.getPipelineName());
+  private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(DataXName dataXName, BasicModule module) {
+    //  DataXName dataXName = pipelineNameAware.getCollectionName();
+    Optional<IBasicAppSource> appSource = IAppSource.loadNullable(null, Objects.requireNonNull(dataXName).getType(), dataXName.getPipelineName());
 
     Date scriptLastOpTime = appSource.get().accept(new IBasicAppSource.IAppSourceVisitor<Date>() {
       @Override
@@ -933,7 +907,7 @@ public class CoreAction extends BasicModule {
         return workFlow.getOpTime();
       }
     });
-    return new IndexStreamCodeGenerator(module.getCollectionName(), appSource.get()
+    return new IndexStreamCodeGenerator(dataXName, appSource.get()
       , ManageUtils.formatNowYyyyMMddHHmmss(scriptLastOpTime), (dbId, rewriteableTables) -> {
       // 通过dbid返回db中的所有表名称
 //      DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
@@ -1284,7 +1258,7 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doIncrDelete(Context context) throws Exception {
 
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this.getTISDataXName(), this);
     indexStreamCodeGenerator.deleteScript();
 
     try {
@@ -1306,7 +1280,7 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doIncrStop(Context context) throws Exception {
 
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this);
+    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(this.getTISDataXName(), this);
     indexStreamCodeGenerator.deleteScript();
 
     TISK8sDelegate k8sDelegate = TISK8sDelegate.getK8SDelegate(this.getCollectionName());

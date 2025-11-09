@@ -314,6 +314,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return execId;
   }
 
+  @Override
   public DataXName getCollectionName() {
     String collection = this.getAppDomain().getAppName();
 

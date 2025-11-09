@@ -230,18 +230,6 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
                 "label": "时区编码",
                 "enum": [
                   {
-                    "val": "Australia/Sydney",
-                    "label": "Australia/Sydney"
-                  },
-                  {
-                    "val": "Africa/Cairo",
-                    "label": "Africa/Cairo"
-                  },
-                  {
-                    "val": "Europe/Paris",
-                    "label": "Europe/Paris"
-                  },
-                  {
                     "val": "Asia/Tokyo",
                     "label": "Asia/Tokyo"
                   },
@@ -347,17 +335,19 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
 6. veriflable：当用户填写完表单后，是否支持校验，例如：是否能够正常连接数据库,
 7. `attrs` 数组下元组
    1. ord: 属性的排序，可以当作属性重要性说明，优先级高的该值就小,
-   2. eprops.label: 属性label属性 
-   3. placeholder: 可当作用户输入值样例
-   4. dftVal: 属性默认值,
-   5. enum: 属性值可以从罗列的多个枚举值中选择一个作为属性值，内部可包含多个`{ "val": string, "label": string }`元素
-   6. help：属性的帮助说明信息
-   7. describable: 属性值是否为一个嵌套的`插件结构`
-   8. pk: 是否为主键，当pk=true时，在用户提交的本文中如没有抽取到对应的内容，输出的`_primaryVal`属性对应的值不要自动生成（切记）
-   9. type: 属性值类型，值为int的类型，值对应的类型说明参考：`fieldType值说明`
-  10. key: 属性键名称
-  11. required: 是否必须输入
-  12. advance: 是否为高级属性
+   2. eprops：内包含扩展属性
+      1. label: 属性label属性 
+      2. placeholder: 可当作用户输入值样例
+      3. dftVal: 属性默认值,
+      4. enum: 属性值可以从罗列的多个枚举值中选择一个作为属性值，内部可包含多个`{ "val": string, "label": string }`元素
+      5. help：属性的帮助说明信息
+   3. describable: 属性值表明是否为一个嵌套的`插件结构`
+   4. descriptors：当以上`describable`=true时会有此属性，内部是一个Map数据结构，`Key`为插件插件完整实现类名，Value为内嵌插件结构说明。注意：在最终生成的json结果中，对应属性的`descVal`下的`impl`属性值必须与Map属性下Value对应实例的`impl`属性值严格一致
+   5. pk: 是否为主键，当pk=true时，在用户提交的本文中如没有抽取到对应的内容，输出的`_primaryVal`属性对应的值不要自动生成（切记）
+   6. type: 属性值类型，值为int的类型，值对应的类型说明参考：`fieldType值说明`
+   7. key: 属性键名称
+   8. required: 是否必须输入
+   9. advance: 是否为高级属性
 
 ## fieldType值说明
 
@@ -378,15 +368,27 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
 
 # 大模型解析说明
 
-1. 解析后生成的json内容中，需要有全部attrs 数组下元组对应的值
-2. attrs 数组下元组：如果不能从用户输入的内容中解析得到对应的值，元组下有`dftVal`（默认值）则就用该值作为输入值，如没有默认值保持输入项值为空即可
+# 大模型解析说明
+
+1. 解析后生成的json内容中，需要有全部attrs数组下元组对应的值
+2. attrs数组下元组：如果不能从用户输入的内容中解析得到对应的值，元组下有`dftVal`（默认值）则就用该值作为输入值，如没有默认值保持输入项值为空即可
+3. **重要警告：在处理`describable`为`true`的属性时，`descVal`下的`impl`属性值必须严格使用`descriptors`中对应的完整类名（key值），绝对不允许使用`displayName`的值。例如：**
+  - ✅ 正确：`"impl": "com.qlangtech.plugins.incr.flink.launch.statbackend.FileSystemState"`
+  - ❌ 错误：`"impl": "FSState"`（这是displayName）
+  - ✅ 正确：`"impl": "com.qlangtech.tis.plugin.ds.NoneSplitTableStrategy"`
+  - ❌ 错误：`"impl": "off"`（这是displayName）
 
 # 输出json内容示例：
-根据 `用户提交的内容` 与 `系统json结构说明` 内容，期望经过大模型处理生成以下标准化json结构输出。
+根据 `用户提交的内容` 与 `系统json结构说明` 内容，期望经过大模型处理生成以下标准化json结构输出。以下是要点说明：
 
-## 重点说明
-以上 `json结构示例` 说到的 attrs下的`pk`属性true时，在用户提交的本文中如没有抽取到对应的内容，输出的`_primaryVal`属性对应的值不要自动生成（切记）.正如，如下输出的json内容中`vals.name._primaryVal`的值应该是空的，
+1. 以上 `json结构示例` 说到的 attrs下的`pk`属性true时，在用户提交的本文中如没有抽取到对应的内容，输出的`_primaryVal`属性对应的值不要自动生成（切记）.正如，如下输出的json内容中`vals.name._primaryVal`的值应该是空的，
 因为用户提交的内容中并没有明确说明。
+2. `json结构示例`中处理`describable`为`true`属性时，最终识别到的`descVal`下的`impl`属性值必须与`descriptors`Map属性下Value对应实例的`impl`属性值严格一致
+
+   **特别注意：必须使用完整的类名路径，不能使用displayName的简写形式。**
+
+   如下输出的json内容中：`vals.splitTableStrategy.descVal.impl`，由于splitTableStrategy的默认值为`off`，所以属性为`com.qlangtech.tis.plugin.ds.NoneSplitTableStrategy`（注意：`off`只是displayName，绝对不能用作impl值）
+     
 
 ``` json
 {

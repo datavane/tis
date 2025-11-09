@@ -84,6 +84,8 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static com.qlangtech.tis.util.HeteroEnum.PARAMS_CONFIG_USER_ISOLATION;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-04-02 09:15
@@ -882,7 +884,7 @@ public class PluginAndCfgsSnapshot {
             ExtensionList<HeteroEnum> hlist = TIS.get().getExtensionList(HeteroEnum.class);
             keyedPluginStores =
                     hlist.stream()
-                            .filter((e) -> !e.isAppNameAware())
+                            .filter((e) -> !e.isAppNameAware() && (e != PARAMS_CONFIG_USER_ISOLATION))
                             .flatMap((e) -> e.getPluginStore(null, upm).getAll().stream())
                             .collect(Collectors.toList());
         }

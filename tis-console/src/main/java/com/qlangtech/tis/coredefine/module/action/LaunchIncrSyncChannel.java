@@ -24,8 +24,12 @@ import com.qlangtech.tis.datax.job.DefaultSSERunnable;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteStep;
 import com.qlangtech.tis.datax.job.ILaunchingOrchestrate.ExecuteSteps;
+import com.qlangtech.tis.datax.job.JobOrchestrateException;
+import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.datax.job.ServerLaunchToken;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.Optional;
 
@@ -35,13 +39,13 @@ import java.util.Optional;
  **/
 public abstract class LaunchIncrSyncChannel {
   private final DataXName appName;
-  private final BasicModule module;
+  private final IControlMsgHandler module;
   private final Context context;
   private final ServerLaunchToken incrLaunchToken;
   private final TISK8sDelegate k8sClient;
   private final boolean isRelaunch;
 
-  public LaunchIncrSyncChannel(DataXName appName, BasicModule module, Context context, ServerLaunchToken incrLaunchToken) {
+  public LaunchIncrSyncChannel(DataXName appName, IControlMsgHandler module, Context context, ServerLaunchToken incrLaunchToken) {
     this(appName, module, context, incrLaunchToken, false);
   }
 
@@ -52,7 +56,7 @@ public abstract class LaunchIncrSyncChannel {
    * @param incrLaunchToken
    * @param isRelaunch      是否是重新启动
    */
-  public LaunchIncrSyncChannel(DataXName appName, BasicModule module, Context context, ServerLaunchToken incrLaunchToken, boolean isRelaunch) {
+  public LaunchIncrSyncChannel(DataXName appName, IControlMsgHandler module, Context context, ServerLaunchToken incrLaunchToken, boolean isRelaunch) {
     appName.assetCheckDataAppType();
     this.appName = appName;
     this.module = module;
@@ -88,17 +92,30 @@ public abstract class LaunchIncrSyncChannel {
       }
     };
 
-
-    DefaultSSERunnable.execute(launchProcess, false
-      , incrLaunchToken, () -> {
-        incrLaunchToken.writeLaunchToken(isRelaunch, () -> {
-          for (ExecuteStep execStep : executeSteps.getExecuteSteps()) {
-            execStep.getSubJob().execSubJob(new FlinkJobDeployDTO(context, k8sClient));
-          }
-          return Optional.empty();
+    final SSERunnable sse = SSERunnable.getLocal();
+    try {
+      DefaultSSERunnable.execute(launchProcess, false
+        , incrLaunchToken, () -> {
+          incrLaunchToken.writeLaunchToken(isRelaunch, () -> {
+            for (ExecuteStep execStep : executeSteps.getExecuteSteps()) {
+              execStep.getSubJob().execSubJob(new FlinkJobDeployDTO(context, k8sClient));
+            }
+            return Optional.empty();
+          });
+          launchProcess.afterLaunched();
         });
-        launchProcess.afterLaunched();
-      });
+    } catch (Exception e) {
+      if (ExceptionUtils.indexOfThrowable(e, JobOrchestrateException.class) < 0) {
+        /**
+         * 处理非编排异常，例如在启动过程中对<strong>flink-cluster/standalone_mysql_to_doris_18.launched_token</strong> 校验失败，那就应该算步骤第一步就出错了
+         */
+        for (ExecuteStep execStep : executeSteps.getExecuteSteps()) {
+          sse.writeComplete(execStep.getSubJob(), false);
+          break;
+        }
+      }
+      throw e;
+    }
   }
 
   class FlinkJobDeployDTO {

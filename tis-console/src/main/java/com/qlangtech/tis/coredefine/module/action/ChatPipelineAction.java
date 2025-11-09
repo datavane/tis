@@ -37,6 +37,7 @@ import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.common.UserProfile;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
+import com.qlangtech.tis.util.AdapterPluginContext;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.ItemsSaveResult;
@@ -57,6 +58,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.aiagent.core.AgentContext.KEY_REQUEST_ID;
 import static com.qlangtech.tis.aiagent.core.AgentContext.maxWaitMillis;
@@ -207,8 +209,9 @@ public class ChatPipelineAction extends BasicModule {
     logger.info("User {} cancelled task for session: {}", this.getUser().getName(), sessionId);
 
     // 返回成功响应
-   // this.addActionMessage(context, "任务取消成功");
+    // this.addActionMessage(context, "任务取消成功");
   }
+
   /**
    * 切换模型
    */
@@ -259,7 +262,7 @@ public class ChatPipelineAction extends BasicModule {
 
     // 设置超时时间（10分钟）
     asyncContext.setTimeout(600000);
-    SSEEventWriter writer = this.getEventStreamWriter();
+    SSEEventWriter sseWriter = this.getEventStreamWriter();
     // PrintWriter writer = response.getWriter();
 
     // 发送会话ID
@@ -267,10 +270,10 @@ public class ChatPipelineAction extends BasicModule {
     sessionInfo.put(KEY_SESSION_ID, sessionId);
 
 
-    writer.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_SESSION, sessionInfo.toJSONString());
+    sseWriter.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_SESSION, sessionInfo.toJSONString());
 
     // 创建Agent上下文
-    AgentContext agentContext = new AgentContext(sessionId, writer);
+    AgentContext agentContext = new AgentContext(sessionId, sseWriter);
 
     // 保存AgentContext到session中，供submitSelection使用
     session.setAgentContext(agentContext);
@@ -284,7 +287,14 @@ public class ChatPipelineAction extends BasicModule {
       try {
         ServletActionContext.getActionContext(request);
 
-        TISPlanAndExecuteAgent agent = new TISPlanAndExecuteAgent(agentContext, llmProvider, this);
+        TISPlanAndExecuteAgent agent = new TISPlanAndExecuteAgent(agentContext, llmProvider, this
+//          , new AdapterPluginContext(this) {
+//          @Override
+//          public SSEEventWriter getEventStreamWriter() {
+//            return sseWriter;
+//          }
+//        }
+        );
         agent.execute(userInput);
 
         // 保存助手回复到会话历史
@@ -292,11 +302,11 @@ public class ChatPipelineAction extends BasicModule {
 
       } catch (Exception e) {
         logger.error("Agent execution failed", e);
-        writer.writeSSEEvent(
+        sseWriter.writeSSEEvent(
           SSERunnable.SSEEventType.AI_AGNET_ERROR, "{\"error\":\"" + e.getMessage() + "\"}");
       } finally {
         try {
-          writer.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_DONE, "{\"finished\":true}");
+          sseWriter.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_DONE, "{\"finished\":true}");
 
         } finally {
           // 清理AgentContext，避免内存泄漏
@@ -361,6 +371,8 @@ public class ChatPipelineAction extends BasicModule {
       this.addErrorMessage(context, "请选择目标表");
       return;
     }
+
+    tableSelectionSessionData.setTableSelected(selectedTab.stream().map(String::valueOf).collect(Collectors.toList()));
     agentContext.notifyUserSelectionSubmitted(requestId);
     this.setBizResult(context, tableSelectionSessionData.isTableSelectConfirm());
 
@@ -375,10 +387,9 @@ public class ChatPipelineAction extends BasicModule {
   public void doCheckInstallOption(Context context) {
     JSONObject jsonContent = this.getJSONPostContent();
     RequestKey requestId = RequestKey.create(jsonContent.getString(KEY_REQUEST_ID));
-    // Integer selectedIndex = jsonContent.getInteger("selectedIndex");
     ChatSession session = getChatSession(jsonContent);
-    //String selectionKey = AgentContext.getSelectionKey(requestId);
-    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(), "agentContext can not be null");
+    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext()
+      , "sessionId:" + session.getSessionId() + " relevant agentContext can not be null");
     SelectionOptions selectionOptions = agentContext.getSessionData(requestId);
     List<PluginExtraProps.CandidatePlugin> cplugins = selectionOptions.getCandidatePlugins();
     for (PluginExtraProps.CandidatePlugin candidatePlugin : cplugins) {

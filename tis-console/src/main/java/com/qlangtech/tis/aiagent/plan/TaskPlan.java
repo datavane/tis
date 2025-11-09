@@ -26,6 +26,8 @@ import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.lang.PayloadLink;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
@@ -83,17 +85,16 @@ public class TaskPlan {
    * 校验每个扩展点都找到对应的实现插件
    */
   public void checkDescribableImplHasSet() {
-    for (DescribableImpl dImpl : readerExtendPoints.values()) {
-      if (CollectionUtils.isEmpty(dImpl.getImpls())) {
-        throw new IllegalStateException(dImpl.getExtendPoint().getSimpleName()
-          + "：" + dImpl.getEndType().map(String::valueOf).orElse(StringUtils.EMPTY) + " relevant plugin impl can not be null");
-      }
-    }
+    checkDescribableImplHasSet(readerExtendPoints);
+    checkDescribableImplHasSet(writerExtendPoints);
+  }
 
-    for (DescribableImpl dImpl : writerExtendPoints.values()) {
+  private void checkDescribableImplHasSet(Map<Class<? extends Describable>, DescribableImpl> extendPoints) {
+    for (DescribableImpl dImpl : extendPoints.values()) {
       if (CollectionUtils.isEmpty(dImpl.getImpls())) {
-        throw new IllegalStateException(dImpl.getExtendPoint().getSimpleName()
-          + "：" + dImpl.getEndType().map(String::valueOf).orElse(StringUtils.EMPTY) + " relevant plugin impl can not be null");
+        throw TisException.create(dImpl.getExtendPoint().getSimpleName()
+            + "：" + dImpl.getEndType().map(String::valueOf).orElse(StringUtils.EMPTY) + "，请确认对应的端目前是否支持")
+          .setPayloadLink(new PayloadLink("TIS支持的端类型", "https://tis.pub/docs/plugin/source-sink/"));
       }
     }
   }
@@ -132,8 +133,8 @@ public class TaskPlan {
     this.writerExtendPoints = mapBuilder.build();
   }
 
-  public IControlMsgHandler getControlMsgHandler() {
-    return Objects.requireNonNull(this.controlMsgHandler, "controlMsgHandler can not be null");
+  public <T> T getControlMsgHandler() {
+    return (T) Objects.requireNonNull(this.controlMsgHandler, "controlMsgHandler can not be null");
   }
 
   public LLMProvider getLLMProvider() {
@@ -277,7 +278,6 @@ public class TaskPlan {
     public boolean isExecuteIncr() {
       return this.executeIncr;
     }
-
 
 
     public IAppSource getProcessor() {

@@ -24,6 +24,7 @@ import com.qlangtech.tis.aiagent.plan.PlanGenerator;
 import com.qlangtech.tis.aiagent.plan.TaskPlan;
 import com.qlangtech.tis.aiagent.plan.TaskStep;
 import com.qlangtech.tis.aiagent.template.TaskTemplateRegistry;
+import com.qlangtech.tis.lang.PayloadLink;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
@@ -34,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -82,33 +84,24 @@ public class TISPlanAndExecuteAgent {
    * 执行用户任务
    */
   public void execute(String userInput) {
-    try {
-      //context.sendMessage("您好！我正在分析您的需求...");
+    // try {
+    //context.sendMessage("您好！我正在分析您的需求...");
 
-      // 1. 解析用户输入，生成执行计划
-      TaskPlan plan = generatePlan(userInput);
+    // 1. 解析用户输入，生成执行计划
+    TaskPlan plan = generatePlan(userInput);
 
-      if (plan == null || plan.getSteps().isEmpty()) {
-        context.sendError("抱歉，我无法理解您的需求，请重新描述。");
-        return;
-      }
-
-      context.sendMessage(String.format("我已经理解您的需求：从%s同步到%s。现在开始执行...",
-        plan.getSourceEnd().getType(), plan.getTargetEnd().getType()));
-
-      // 2. 执行任务计划
-      executePlan(plan);
-
-    } catch (Exception e) {
-      logger.error("Task execution failed", e);
-      TisException tisException = null;
-      if ((tisException = ExceptionUtils.throwableOfThrowable(e, TisException.class)) != null) {
-        context.sendError(tisException.getMessage());
-      } else {
-        context.sendError("执行任务时发生错误：" + e.getMessage());
-      }
-
+    if (plan == null || plan.getSteps().isEmpty()) {
+      context.sendError("抱歉，我无法理解您的需求，请重新描述。");
+      return;
     }
+
+    context.sendMessage(String.format("我已经理解您的需求：从%s同步到%s。现在开始执行...",
+      plan.getSourceEnd().getType(), plan.getTargetEnd().getType()));
+
+    // 2. 执行任务计划
+    executePlan(plan);
+
+
   }
 
   /**
@@ -203,7 +196,19 @@ public class TISPlanAndExecuteAgent {
       } catch (Exception e) {
         logger.error("Step execution failed: " + step.getName(), e);
         step.markAsFailed(e.getMessage());
-        context.sendError(String.format("步骤执行异常：%s - %s", step.getName(), e.getMessage()));
+        // context.sendError(String.format("步骤执行异常：%s - %s", step.getName(), e.getMessage()));
+        final String errMsgTpl = "步骤执行异常：%s - %s";
+        TisException tisException = null;
+        if ((tisException = ExceptionUtils.throwableOfThrowable(e, TisException.class)) != null) {
+          Optional<PayloadLink> payloadLink = tisException.getPayloadLink();
+          PayloadLink[] links = Objects.requireNonNull(payloadLink, "payloadLink can not be null")
+            .map((l) -> new PayloadLink[]{l}).orElse(new PayloadLink[0]);
+          context.sendError(String.format(errMsgTpl, step.getName(), tisException.getMessage()), links);
+        } else {
+          context.sendError(String.format(errMsgTpl, step.getName(), e.getMessage()));
+        }
+
+
         break;
       }
     }

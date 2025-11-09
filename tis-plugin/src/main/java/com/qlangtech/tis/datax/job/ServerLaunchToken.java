@@ -109,7 +109,7 @@ public class ServerLaunchToken extends Observable implements Closeable {
 //        return create(launchTokenParentDir, basicDesc.getWorkerType(), false, basicDesc.getWorkerCptType());
 //    }
 
-    public ServerLaunchLog buildWALLog(List<ExecuteStep> executeSteps) {
+    public ServerLaunchLog buildWALLog(ILaunchingOrchestrate.ExecuteSteps executeSteps) {
         ServerLaunchLog k8SLaunching = new ServerLaunchLog(this.isLaunchingTokenExist());
         k8SLaunching.setExecuteSteps(executeSteps);
 
@@ -148,7 +148,14 @@ public class ServerLaunchToken extends Observable implements Closeable {
             }
 
             k8SLaunching.setMilestones(Lists.newArrayList(milestones.values()));
-            k8SLaunching.setExecuteSteps(SubJobMilestone.readSubJobJSONArray(executeSteps, (subJobName) -> milestones.get(subJobName)));
+
+            k8SLaunching.setExecuteSteps(
+                    new ILaunchingOrchestrate.ExecuteSteps(
+                            executeSteps.getTaskName()
+                            , this
+                            , SubJobMilestone.readSubJobJSONArray(executeSteps.getExecuteSteps()
+                            , (subJobName) -> milestones.get(subJobName))));
+
             k8SLaunching.setLogs(loggerQueue.readBuffer());
 
 
@@ -405,7 +412,7 @@ public class ServerLaunchToken extends Observable implements Closeable {
                 .add(Objects.requireNonNull(note, "note can not be null"));
     }
 
-    public void writeLaunchToken(Callable<Optional<JSONObject>> bizLogic) {
+    public void writeLaunchToken(IServerLaunchCallable bizLogic) {
         writeLaunchToken(false, bizLogic);
     }
 
@@ -415,7 +422,7 @@ public class ServerLaunchToken extends Observable implements Closeable {
      * @param isRelaunch 是否重新启动？
      * @param bizLogic
      */
-    public void writeLaunchToken(boolean isRelaunch, Callable<Optional<JSONObject>> bizLogic) {
+    public void writeLaunchToken(boolean isRelaunch, IServerLaunchCallable bizLogic) {
         if (writeLaunchTokenLock.compareAndSet(0, 1)) {
 
             try {
@@ -424,7 +431,7 @@ public class ServerLaunchToken extends Observable implements Closeable {
                     // 1.如果是重新启动，则luanchToken必须要存在
                     // 2.如果是新的启动，则luanchToken必须要不存在
                     throw TisException.create("launch token :" + this.launchedToken.getPath()
-                            + " shall " +  (isRelaunch ? StringUtils.EMPTY : "not") + "  be exist");
+                            + " shall " + (isRelaunch ? StringUtils.EMPTY : "not") + "  be exist");
                 }
 
                 try {

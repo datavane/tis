@@ -46,30 +46,25 @@ import java.util.function.Supplier;
 public enum ProcessModel {
 
     CreateWorkFlow("createWorkFlow"  //
-            , (pluginContext, dataxPipeName, reader, writer) -> {
-        DataxWriter.BaseDataxWriterDescriptor writerDesc
-                = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
+            , (pluginContext, dataxPipeName, reader, writerDesc) -> {
+//        DataxWriter.BaseDataxWriterDescriptor writerDesc
+//                = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
         return getDataXBasicProcessMeta(Optional.empty(), writerDesc);
     }
             , () -> {
         return DataxProcessor.getPluginDescMeta(StoreResourceTypeConstants.DEFAULT_WORKFLOW_PROCESSOR_NAME);
     }, StoreResourceType.DataFlow
     ) //
-    , CreateDatax("createDatax", (pluginContext, dataxPipeName, reader, writer) -> {
-        DataxReader.BaseDataxReaderDescriptor readerDesc
-                = (DataxReader.BaseDataxReaderDescriptor) TIS.get().getDescriptor(reader.getString("impl"));
-        DataxWriter.BaseDataxWriterDescriptor writerDesc
-                = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
+    , CreateDatax("createDatax", (pluginContext, dataxPipeName, readerDesc, writerDesc) -> {
+//        DataxReader.BaseDataxReaderDescriptor readerDesc
+//                = (DataxReader.BaseDataxReaderDescriptor) TIS.get().getDescriptor(reader.getString("impl"));
+//        DataxWriter.BaseDataxWriterDescriptor writerDesc
+//                = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
         DataXBasicProcessMeta processMeta = getDataXBasicProcessMeta(Optional.of(readerDesc), writerDesc);
         FileUtils.write(IDataxProcessor.getWriterDescFile(
                 pluginContext, dataxPipeName), writerDesc.getId(), TisUTF8.get(), false);
-
-//        IDataxProcessor processor
-//                = DataxProcessor.load(null, StoreResourceType.DataApp, dataxPipeName);
-//        IDataxReader reader1 = processor.getReader(null);
-
         return processMeta;
-    } //
+    }
             , () -> {
         return DataxProcessor.getPluginDescMeta(StoreResourceTypeConstants.DEFAULT_DATAX_PROCESSOR_NAME);
     }, StoreResourceType.DataApp);
@@ -129,6 +124,11 @@ public enum ProcessModel {
     public DataXBasicProcessMeta createProcessMeta(IPluginContext pluginContext
             , String dataXName, JSONObject reader, JSONObject writer) throws Exception {
         return this.processMetaCreator.createProcessMeta(pluginContext, dataXName, reader, writer);
+    }
+
+    public DataXBasicProcessMeta createProcessMeta(IPluginContext pluginContext, String dataXName
+            , DataxReader.BaseDataxReaderDescriptor reader, DataxWriter.BaseDataxWriterDescriptor writer) throws Exception {
+        return processMetaCreator.createProcessMeta(pluginContext, dataXName, reader, writer);
     }
 
     public Descriptor<IAppSource> getPluginDescMeta() {

@@ -16,36 +16,27 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.aiagent.core;
+package com.qlangtech.tis.aiagent.execute.impl;
 
-import java.util.List;
-import java.util.Objects;
+import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
+
+import java.util.Optional;
 
 /**
  *
  * @author 百岁 (baisui@qlangtech.com)
- * @date 2025/10/24
+ * @date 2025/11/3
  */
-public class TableSelectApplySessionData implements ISessionData {
-  /**
-   * 表选择确认，为true则说明表学则流程已经成功了
-   */
-  private boolean tableSelectConfirm;
-  private List<String> selectedTabs;
-
-  public boolean isTableSelectConfirm() {
-    return tableSelectConfirm;
+public class NormalSelectionOption extends PluginExtraProps.CandidatePlugin {
+  public NormalSelectionOption(String displayName) {
+    super(displayName, Optional.empty(), null);
   }
 
-  public void setTableSelectConfirm(boolean tableSelectConfirm) {
-    this.tableSelectConfirm = tableSelectConfirm;
-  }
-
-  public void setTableSelected(List<String> selectedTabs) {
-    this.selectedTabs = Objects.requireNonNull(selectedTabs, "selectedTabs can not be null");
-  }
-
-  public List<String> getSelectedTabs() {
-    return this.selectedTabs;
+  @Override
+  public void setExtraProps(Optional<IEndTypeGetter.EndType> endType, JSONObject option) {
+    option.put(KEY_DISABLE_PLUGIN_INSTALL, true);
+    option.put(KEY_INSTALLED, true);
   }
 }
