@@ -33,6 +33,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
+import com.qlangtech.tis.extension.impl.EnumFieldMode;
 import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
@@ -268,10 +269,22 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                         FormFieldType fieldType = pp.formField.type();
                         if (fieldType == FormFieldType.SELECTABLE || fieldType == FormFieldType.ENUM) {
                             List<Option> propOptions = pp.getEnumPropOptions();
-
+                            EnumFieldMode enumFieldMode = pp.getEnumFieldMode();
                             for (int i = 0; i < propOptions.size(); i++) {
                                 Option opt = propOptions.get(i);
-                                pp.setVal(plugin, opt.getValue());
+                                Object targetVal = null;
+                                switch (enumFieldMode) {
+                                    case MULTIPLE:
+                                        targetVal = Collections.singletonList(opt.getValue());
+                                        break;
+                                    case DEFAULT:
+                                        targetVal = (opt.getValue());
+                                        break;
+                                    default:
+                                        throw new IllegalStateException("illegal enumFieldMode:" + enumFieldMode);
+                                }
+
+                                pp.setVal(plugin, targetVal);
                                 continue ppDftValGetter;
                             }
                         }

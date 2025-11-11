@@ -557,7 +557,8 @@ public class PropertyType implements IPropertyType {
     }
 
     public void setVal(Object instance, Object val) {
-        PropVal fieldVal = new PropVal(val, this.fieldClazz, this.extraProp);
+
+        PropVal fieldVal = new PropVal(val, this.fieldClazz, this);
         try {
             this.f.set(instance, this.formField.type().valProcessor.processInput(instance, fieldVal));
         } catch (Throwable e) {
@@ -569,12 +570,14 @@ public class PropertyType implements IPropertyType {
     public static class PropVal {
         private final Object val;
         private final Class targetClazz;
-        public final PluginExtraProps.Props extraProp;
+        public final PropertyType propertyType;
 
-        public PropVal(Object val, Class targetClazz, PluginExtraProps.Props extraProp) {
+        public PropVal(Object val, Class targetClazz, PropertyType propertyType) {
             this.val = val;
             this.targetClazz = targetClazz;
-            this.extraProp = extraProp;
+            this.propertyType = propertyType;
+
+
         }
 
         public <T> T convertedVal() {

@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.SubFormFilter;
+import com.qlangtech.tis.extension.impl.EnumFieldMode;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.PropertyType.PropVal;
 import com.qlangtech.tis.manage.common.Option;
@@ -116,7 +117,12 @@ public enum FormFieldType {
      * 输入一个数字
      */
     INT_NUMBER(4) //
-    , ENUM(5) //
+    , ENUM(5, new IPropValProcessor() {
+        @Override
+        public Object processInput(Object instance, PropVal val) throws Exception {
+            return IPropValProcessor.super.processInput(instance, val);
+        }
+    }) //
     , DateTime(10, new IPropValProcessor() {
         final DateTimeFormatter isoFormat = DateTimeFormatter.ISO_DATE_TIME;
 

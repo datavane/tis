@@ -26,6 +26,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.coredefine.module.action.PluginItemsParser;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
@@ -205,9 +206,10 @@ public class PluginItems implements IPluginItemsProcessor {
     // return dbs.stream().map((db) -> new Option(db.getName(), db.getName())).collect(Collectors.toList());
   }
 
-  private static class DBIdentity implements IdentityName {
+  private static class DBIdentity implements IdentityName, IEndTypeGetter {
     private final com.qlangtech.tis.workflow.pojo.DatasourceDb db;
     private final List<Descriptor<DataSourceFactory>> dsDescs;
+    private Descriptor _descriptor;
 
     public DBIdentity(DatasourceDb db, List<Descriptor<DataSourceFactory>> dsDescs) {
       this.db = db;
@@ -221,13 +223,29 @@ public class PluginItems implements IPluginItemsProcessor {
 
     @Override
     public Class<?> getDescribleClass() {
-      for (Descriptor<DataSourceFactory> desc : dsDescs) {
-        if (desc.getDisplayName().equalsIgnoreCase(db.getExtendClass())) {
-          return desc.clazz;
+      return getDesc().clazz;
+    }
+
+    private Descriptor getDesc() {
+      if (_descriptor == null) {
+        for (Descriptor<DataSourceFactory> desc : dsDescs) {
+          if (desc.getDisplayName().equalsIgnoreCase(db.getExtendClass())) {
+            return _descriptor = desc;
+          }
         }
+        throw new IllegalStateException("can not find '" + db.getExtendClass() + "' in " //
+          + dsDescs.stream().map((d) -> d.getDisplayName()).collect(Collectors.joining(",")));
       }
-      throw new IllegalStateException("can not find '" + db.getExtendClass() + "' in " //
-        + dsDescs.stream().map((d) -> d.getDisplayName()).collect(Collectors.joining(",")));
+      return _descriptor;
+    }
+
+    @Override
+    public EndType getEndType() {
+      Descriptor desc = null;
+      if ((desc = getDesc()) instanceof IEndTypeGetter) {
+        return ((IEndTypeGetter) desc).getEndType();
+      }
+      return null;
     }
   }
 

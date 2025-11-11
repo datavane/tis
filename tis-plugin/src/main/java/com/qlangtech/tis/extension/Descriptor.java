@@ -1431,16 +1431,19 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             Map<Class, Optional<EndType>> pluginEndTypeMapper = Maps.newHashMap();
 
             return opts.stream().map((r) -> {
-                Optional<EndType> et = null;
-                if ((et = pluginEndTypeMapper.get(r.getClass())) == null) {
+                Optional<EndType> et = Optional.empty();
+                if (r instanceof Describable
+                        && (et = pluginEndTypeMapper.get(r.getClass())) == null) {
                     EndType endType = null;
                     Descriptor desc = null;
                     if ((desc = ((Describable) r).getDescriptor()) instanceof IEndTypeGetter) {
                         endType = (((IEndTypeGetter) desc).getEndType());
                     }
                     et = Optional.ofNullable(endType);
-                    pluginEndTypeMapper.put(r.getClass(), et);
+                } else if (r instanceof IEndTypeGetter) {
+                    et = Optional.ofNullable(((IEndTypeGetter) r).getEndType());
                 }
+                pluginEndTypeMapper.put(r.getClass(), et);
                 return new SelectOption(r.identityValue(), r.getDescribleClass(), et.orElse(null));
             }).collect(Collectors.toList());
         } catch (Exception e) {
