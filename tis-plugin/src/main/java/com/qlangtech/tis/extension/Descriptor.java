@@ -1092,6 +1092,12 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             super(Maps.newHashMap());
         }
 
+        public FormData(String key, String val) {
+            this();
+            this.addProp(key, val);
+        }
+
+
         public JSONObject addProp(String key, String val) {
             JSONObject o = new JSONObject();
             o.put(Descriptor.KEY_primaryVal, val);

@@ -17,10 +17,12 @@
  */
 package com.qlangtech.tis.db.parser;
 
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.db.parser.ScannerPatterns.TokenTypes;
 import com.qlangtech.tis.plugin.ds.DBConfig;
 import junit.framework.TestCase;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -28,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -38,6 +41,25 @@ import java.util.regex.Pattern;
  * @date 2017年9月7日
  */
 public class TestDBConfigParser extends TestCase {
+
+    public void testCenterOrderYyos() {
+        String logicDBName = "center_order_yyos_";
+        Map<String, List<String>> centerOrderYyos
+                = DBConfigParser.parseDBEnum(logicDBName, "rm-2zeraf77tcjw3fyn4.mysql.rds.aliyuncs.com[0008-0015]");
+        MapUtils.isNotEmpty(centerOrderYyos);
+
+        for (Map.Entry<String, List<String>> entry : centerOrderYyos.entrySet()) {
+            Assert.assertEquals("rm-2zeraf77tcjw3fyn4.mysql.rds.aliyuncs.com", entry.getKey());
+            Assert.assertEquals(8, entry.getValue().size());
+
+            List<String> targetDBs = Lists.newArrayList();
+            for (int i = 8; i <= 15; i++) {
+                targetDBs.add(logicDBName + String.format("%04d", i));
+            }
+            Assert.assertTrue(CollectionUtils.isEqualCollection(targetDBs, entry.getValue()));
+        }
+    }
+
 
     public void testSingleHostWithoutDot() {
 

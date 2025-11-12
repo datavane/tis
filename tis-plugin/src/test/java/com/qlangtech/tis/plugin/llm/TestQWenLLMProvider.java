@@ -62,7 +62,7 @@ public class TestQWenLLMProvider extends TestCase {
         provider.maxTokens = 2048;
         provider.temperature = 0.7f;
         provider.topP = 0.9f;
-        provider.stream = false;
+        //provider.stream = false;
         provider.printLog = false;
         provider.readTimeout = Duration.ofSeconds(30);
 
@@ -238,25 +238,7 @@ public class TestQWenLLMProvider extends TestCase {
         assertEquals(1.0f, provider.topP);
     }
 
-    /**
-     * 测试流式输出配置
-     */
-    @Test
-    public void testStreamConfiguration() {
-        QWenLLMProvider provider = createTestProvider();
 
-        // 测试流式输出关闭
-        provider.stream = false;
-        assertFalse(provider.stream);
-
-        // 测试流式输出开启
-        provider.stream = true;
-        assertTrue(provider.stream);
-
-        // 测试null情况（应该使用默认值）
-        provider.stream = null;
-        assertNull(provider.stream);
-    }
 
     /**
      * 创建测试用的Provider实例
@@ -270,7 +252,7 @@ public class TestQWenLLMProvider extends TestCase {
         provider.maxTokens = 2048;
         provider.temperature = 0.7f;
         provider.topP = 0.9f;
-        provider.stream = false;
+      //  provider.stream = false;
         provider.printLog = false;
         provider.readTimeout = Duration.ofSeconds(30);
         return provider;
