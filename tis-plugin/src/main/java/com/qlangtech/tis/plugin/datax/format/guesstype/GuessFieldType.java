@@ -59,8 +59,11 @@ public abstract class GuessFieldType implements Describable<GuessFieldType> {
      * @return
      * @throws IOException
      */
-    public abstract Map<String/*tableName*/, Map<String/*colName*/, DataType>> processStructGuess(
-            IGuessColTypeFormatConfig textFormat, StructuredReader<StructuredRecord> reader) throws IOException;
+    public abstract Map<KafkaLogicalTableName/*tableName*/, Map<String/*colName*/, DataType>>
+    processStructGuess(
+            TargetTabsEntities targetTabs,
+            IGuessColTypeFormatConfig textFormat,
+            StructuredReader<StructuredRecord> reader) throws IOException;
 
 
     protected boolean isAllTypeJudged(DataType[] types, Optional<DataType> dftType) {
