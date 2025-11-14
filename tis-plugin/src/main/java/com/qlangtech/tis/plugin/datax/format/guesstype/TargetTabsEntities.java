@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.datax.format.guesstype;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -46,9 +47,16 @@ public class TargetTabsEntities {
         this.focusTabs = Lists.newArrayList(focusTabs).stream().sorted(new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {
-                return o1.length() - o2.length();
+                // 保证长的字符串先出来比较
+                return o2.length() - o1.length();
             }
         }).map(FocusWildcardTabName::new).collect(Collectors.toList());
+        int reduceSize;
+        if ((reduceSize = Sets.newHashSet(this.focusTabs).size()) < this.focusTabs.size()) {
+            throw new IllegalStateException("reduced this.focusTabs size:"
+                    + reduceSize + " small than focusTabs size:" + this.focusTabs.size());
+        }
+
     }
 
     /**

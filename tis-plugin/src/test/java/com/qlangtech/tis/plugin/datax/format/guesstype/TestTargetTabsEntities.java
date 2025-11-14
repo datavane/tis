@@ -36,7 +36,7 @@ public class TestTargetTabsEntities extends TestCase {
      */
     public void testParseLogicalTableWithExactMatch() {
         // 构造测试数据：普通表名（不带通配符）
-        String[] focusTabs = new String[]{"order_detail", "customer"};
+        String[] focusTabs = new String[]{"order_detail_extend", "order_detail*", "customer"};
         TargetTabsEntities entities = new TargetTabsEntities(focusTabs);
 
         // 测试精确匹配
@@ -154,8 +154,11 @@ public class TestTargetTabsEntities extends TestCase {
         String[] focusTabs = new String[]{"order*", "order_detail*"};
         TargetTabsEntities entities = new TargetTabsEntities(focusTabs);
 
-        // "order_detail_001" 应该匹配第一个更短的 "order*"
+        // "order_detail_001" 应该匹配第一个更长的 "order_detail*"
         KafkaLogicalTableName result = entities.parseLogicalTable("order_detail_001");
+        Assert.assertEquals("order_detail", result.getLogicalTableName());
+
+        result = entities.parseLogicalTable("order_001");
         Assert.assertEquals("order", result.getLogicalTableName());
     }
 
