@@ -435,6 +435,15 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
         }
 
         public String getDBSchema();
+
+        /**
+         * 例如：在mysql8数据源中使用dbName作为schemaName，所以需要使用schema的地方直接使用dbName就可以了
+         *
+         * @return
+         */
+        public default boolean isUseDBNameAsSchemaName() {
+            return false;
+        }
     }
 
     public interface IConnProcessor {
