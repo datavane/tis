@@ -427,7 +427,7 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     @Public
     public interface ISchemaSupported {
 
-        public static Optional<ISchemaSupported> schemaSupported(DataSourceFactory dsFactory) {
+         public static Optional<ISchemaSupported> schemaSupported(DataSourceFactory dsFactory) {
             if (dsFactory instanceof ISchemaSupported && !"MySQLV8DataSourceFactory".equals(dsFactory.getClass().getSimpleName())) {
                 return Optional.of((ISchemaSupported) dsFactory);
             }
