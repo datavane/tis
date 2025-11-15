@@ -427,11 +427,30 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
     @Public
     public interface ISchemaSupported {
 
-         public static Optional<ISchemaSupported> schemaSupported(DataSourceFactory dsFactory) {
-            if (dsFactory instanceof ISchemaSupported && !"MySQLV8DataSourceFactory".equals(dsFactory.getClass().getSimpleName())) {
-                return Optional.of((ISchemaSupported) dsFactory);
+//        public static Optional<ISchemaSupported> schemaSupported(DataSourceFactory dsFactory) {
+//            if (dsFactory instanceof ISchemaSupported) {
+//                return Optional.of((ISchemaSupported) dsFactory);
+//            }
+//            return Optional.empty();
+//        }
+
+        /**
+         *
+         * @param schemaSupport
+         * @param dbNanme       数据库名称
+         * @param tabName       物理表名
+         * @return
+         */
+        public static String getCDCTableTokens(Optional<DataSourceFactory.ISchemaSupported> schemaSupport, String dbNanme, String tabName) {
+            if (StringUtils.isEmpty(dbNanme)) {
+                throw new IllegalArgumentException("param dbName can not be empty");
             }
-            return Optional.empty();
+            if (StringUtils.isEmpty(tabName)) {
+                throw new IllegalArgumentException("param tabName can not be empty");
+            }
+            return Objects.requireNonNull(schemaSupport, "schemaSupport can not be null")
+                    .filter((schema) -> !schema.isUseDBNameAsSchemaName())
+                    .map(DataSourceFactory.ISchemaSupported::getDBSchema).orElse(dbNanme) + "." + tabName;
         }
 
         public String getDBSchema();
