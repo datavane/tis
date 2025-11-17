@@ -305,9 +305,9 @@ public enum FormFieldType {
     }
 
     public static void main(String[] args) throws Exception {
-
+        int index = 1;
         for (FormFieldType type : FormFieldType.values()) {
-            System.out.println("* " + type.identity + ": " + String.valueOf(type));
+            System.out.println((index++) + ". " + String.valueOf(type));
         }
     }
 

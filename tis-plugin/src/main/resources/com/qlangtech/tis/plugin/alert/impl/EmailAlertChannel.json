@@ -1,0 +1,39 @@
+{
+  "smtpHost": {
+    "label": "SMTP服务器",
+    "help": "邮件服务器地址，例如: smtp.qq.com, smtp.163.com, smtp.gmail.com",
+    "placeholder": "smtp.example.com"
+  },
+  "smtpPort": {
+    "label": "SMTP端口",
+    "help": "邮件服务器端口，通常为25(不加密)、465(SSL)、587(TLS)",
+    "placeholder": "465"
+  },
+  "userName": {
+    "label": "用户名",
+    "help": "SMTP认证用户名，通常为完整的邮箱地址",
+    "placeholder": "your-email@example.com"
+  },
+  "password": {
+    "label": "密码",
+    "help": "SMTP认证密码或授权码(某些邮箱需要使用专用授权码)",
+    "placeholder": "请输入密码或授权码"
+  },
+  "from": {
+    "label": "发件人地址",
+    "help": "发件人邮箱地址，必须与SMTP认证用户名匹配",
+    "placeholder": "your-email@example.com"
+  },
+  "to": {
+    "label": "收件人地址",
+    "help": "收件人邮箱地址，多个收件人用英文逗号分隔",
+    "placeholder": "user1@example.com,user2@example.com"
+  },
+  "ssl": {
+    "label": "启用SSL",
+    "help": "是否使用SSL加密连接(端口465通常需要启用)"
+  },
+  "alertTpl": {
+    "dftVal": "com.qlangtech.tis.plugin.alert.impl.EmailAlertChannel.loadDefaultTpl()"
+  }
+}

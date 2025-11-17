@@ -103,6 +103,13 @@ public enum Validator {
                 ValidatorCommons.MSG_NONE_BLANK_ERROR), fieldKey, fieldData);
     });
 
+    public static void main(String[] args) {
+        int index = 1;
+        for (Validator value : Validator.values()) {
+            System.out.println(index++ + ". " + value);
+        }
+
+    }
 
     public static Validator parse(String token) {
         return Objects.requireNonNull(Validator.valueOf(token));

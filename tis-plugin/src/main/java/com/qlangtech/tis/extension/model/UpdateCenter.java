@@ -269,8 +269,8 @@ public class UpdateCenter implements Saveable {
     }
 
     /**
-     * Configures update center to get plugins/updates from alternate servers,
-     * and optionally using alternate strategies for downloading, installing
+     * Configures update center to get plugins/updates from alertnate servers,
+     * and optionally using alertnate strategies for downloading, installing
      * and upgrading.
      *
      * @param config Configuration data

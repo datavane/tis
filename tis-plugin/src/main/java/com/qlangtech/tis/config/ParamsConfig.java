@@ -153,10 +153,15 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
         if (desc == null) {
             throw new IllegalStateException("describle class:" + this.getClass() + " relevant desc can not be null");
         }
-        if (!BasicParamsConfigDescriptor.class.isAssignableFrom(desc.getClass())) {
-            throw new IllegalStateException(desc.getClass().getSimpleName() + " must be child of " + BasicParamsConfigDescriptor.class.getName());
+        Class<? extends BasicParamsConfigDescriptor> basicDescriptorClass = getBasicParamsConfigDescriptorClass();
+        if (!basicDescriptorClass.isAssignableFrom(desc.getClass())) {
+            throw new IllegalStateException(desc.getClass().getSimpleName() + " must be child of " + basicDescriptorClass.getName());
         }
         return (BasicParamsConfigDescriptor) desc;
+    }
+
+    protected Class<? extends BasicParamsConfigDescriptor> getBasicParamsConfigDescriptorClass() {
+        return BasicParamsConfigDescriptor.class;
     }
 
     // public static DescriptorExtensionList<ParamsConfig, Descriptor<ParamsConfig>> all() {

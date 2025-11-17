@@ -135,6 +135,7 @@ TIS基于数据库元数据信息自动生成Flink-SQL脚本,您没看错全部�
 - TIS Docs Manager [https://github.com/qlangtech/tis-doc](https://github.com/qlangtech/tis-doc)
 - 扩展Debezium [qlangtech/debezium](https://github.com/qlangtech/debezium)
 - 扩展Flink-CDC [qlangtech/flink-cdc](https://github.com/qlangtech/flink-cdc)
+- 借鉴StreamPark 任务状态监控机制 [apache/streampark](https://github.com/apache/streampark)
 - 部分插件参数配置参考 Airbyte [https://github.com/airbytehq/airbyte](https://github.com/airbytehq/airbyte)
 - 架构思想参考 [https://github.com/jenkinsci/jenkins](https://github.com/jenkinsci/jenkins)
 

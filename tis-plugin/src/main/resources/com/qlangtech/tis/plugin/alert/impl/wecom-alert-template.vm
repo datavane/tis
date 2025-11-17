@@ -1,0 +1,30 @@
+## ⚠️ ${title}
+
+**${subject}**
+
+---
+
+> 任务名称: <font color="warning">${jobName}</font>
+> 任务状态: <font color="warning">${status}</font>
+#if(${startTime})
+> 开始时间: ${startTime}
+#end
+#if(${endTime})
+> 结束时间: ${endTime}
+#end
+#if(${duration})
+> 运行时长: ${duration}
+#end
+#if(${restart})
+> 重启信息: 第 ${restartIndex} 次重启 / 总计 ${totalRestart} 次
+#end
+
+#if(${link})
+[查看Flink Web UI](${link})
+#end
+
+---
+
+<font color="info">📢 请及时处理异常任务!</font>
+
+<font color="comment">🤖 此消息由 TIS 平台自动发送</font>

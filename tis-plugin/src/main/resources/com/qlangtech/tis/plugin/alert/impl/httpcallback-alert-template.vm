@@ -1,0 +1,20 @@
+{
+  "alertType": "flink-job-alert",
+  "title": "${title}",
+  "subject": "${subject}",
+  "jobName": "${jobName}",
+  "status": "${status}",
+#if(${startTime})
+  "startTime": "${startTime}",
+#end
+#if(${endTime})
+  "endTime": "${endTime}",
+#end
+#if(${duration})
+  "duration": "${duration}",
+#end
+#if(${link})
+  "link": "${link}",
+#end
+  "timestamp": "$!{endTime}"
+}

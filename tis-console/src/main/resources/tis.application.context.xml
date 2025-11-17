@@ -19,18 +19,27 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:task="http://www.springframework.org/schema/task"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/task  http://www.springframework.org/schema/task/spring-task.xsd
        ">
 
   <!--
   <context:property-placeholder location="tis:tis-web-config/config.properties"/>
  -->
 
-<!--  <bean id="clusterStateReader" class="com.qlangtech.tis.manage.spring.ClusterStateReader">-->
-<!--    <property name="zooKeeperGetter" ref="zooKeeperGetter"/>-->
-<!--  </bean>-->
+  <!--  <bean id="clusterStateReader" class="com.qlangtech.tis.manage.spring.ClusterStateReader">-->
+  <!--    <property name="zooKeeperGetter" ref="zooKeeperGetter"/>-->
+  <!--  </bean>-->
+  <task:annotation-driven/>
+
+  <task:scheduled-tasks>
+    <task:scheduled ref="flinkJobsMonitor" method="executeTask" fixed-rate="5000"/>
+  </task:scheduled-tasks>
+
+  <bean id="flinkJobsMonitor" class="com.qlangtech.tis.alert.FlinkJobsMonitor" />
+
 
   <!-- 百岁添加 fordao -->
   <import resource="classpath:/datasource-config-tis.xml"/>

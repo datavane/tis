@@ -1,0 +1,19 @@
+{
+  "webhookUrl": {
+    "label": "Webhook URL",
+    "help": "飞书群机器人的Webhook完整地址。在群设置中添加自定义机器人后获取",
+    "placeholder": "https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  },
+  "secret": {
+    "label": "签名密钥",
+    "help": "飞书机器人的签名密钥(Secret)，用于验证请求合法性。如果机器人启用了签名验证则必填",
+    "placeholder": "请输入签名密钥"
+  },
+  "atAll": {
+    "label": "@所有人",
+    "help": "是否在消息中@所有群成员"
+  },
+  "alertTpl": {
+    "dftVal": "com.qlangtech.tis.plugin.alert.impl.LarkAlertChannel.loadDefaultTpl()"
+  }
+}

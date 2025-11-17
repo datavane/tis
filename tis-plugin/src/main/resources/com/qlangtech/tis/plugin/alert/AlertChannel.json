@@ -1,0 +1,13 @@
+{
+  "name": {
+    "help": "实例的唯一性名称，取一个方便记忆的名称",
+    "placeholder": "my_first_alert_target"
+  },
+  "alertTpl": {
+    "label": "模版",
+    "rows": 18,
+    "help": "报警信息模版(velocity)，请谨慎修改避免不必要的错误。可用变量: title, subject, jobName, status, startTime, endTime, duration, link, restart, restartIndex, totalRestart等",
+    "style": "codemirror",
+    "mode": "text/velocity"
+  }
+}

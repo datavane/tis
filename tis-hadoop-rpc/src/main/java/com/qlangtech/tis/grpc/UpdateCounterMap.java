@@ -737,7 +737,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * Use alternate mutation accessors instead.
+     * Use alertnate mutation accessors instead.
      */
     @java.lang.Deprecated
     public java.util.Map<java.lang.String, com.qlangtech.tis.grpc.TableSingleDataIndexStatus>

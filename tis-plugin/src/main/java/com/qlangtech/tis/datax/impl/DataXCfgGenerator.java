@@ -662,7 +662,6 @@ public class DataXCfgGenerator implements IDataXNameAware {
             IDataxReaderContext readerContext, IDataxWriter writer, IDataxReader reader
             , Optional<RecordTransformerRules> transformerRules, Optional<IDataxProcessor.TableMap> tableMap) {
         Objects.requireNonNull(writer, "writer can not be null");
-        StringWriter writerContent = null;
 
 
         final String tpl = getTemplateContent(readerContext, reader, writer, transformerRules);
@@ -671,18 +670,32 @@ public class DataXCfgGenerator implements IDataXNameAware {
         }
         try {
             VelocityContext mergeData = createContext(readerContext, writer.getSubTask(tableMap, (transformerRules)));
-            writerContent = new StringWriter();
-            velocityEngine.evaluate(mergeData, writerContent, "tablex-writer.vm", tpl);
-        } catch (Exception e) {
-            throw new RuntimeException(tpl + "\n", e);
-        }
-        String content = writerContent.toString();
-        try {
+            //      writerContent = new StringWriter();
+            //  velocityEngine.evaluate(mergeData, writerContent, "tablex-writer.vm", tpl);
+
+            String content = evaluateTemplate(mergeData, tpl);
             JSONObject cfg = JSON.parseObject(content);
             validatePluginName(writer, reader, cfg);
             return JsonUtil.toString(cfg, true);
         } catch (Exception e) {
-            throw new RuntimeException(content, e);
+            throw new RuntimeException(tpl + "\n", e);
+        }
+
+    }
+
+    /**
+     * 利用velocity渲染模版
+     *
+     * @param mergeData
+     * @param tpl       velocity 模版
+     * @return
+     */
+    public static String evaluateTemplate(VelocityContext mergeData, final String tpl) {
+        try (StringWriter writerContent = new StringWriter()) {
+            velocityEngine.evaluate(mergeData, writerContent, "tablex-writer.vm", tpl);
+            return writerContent.toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

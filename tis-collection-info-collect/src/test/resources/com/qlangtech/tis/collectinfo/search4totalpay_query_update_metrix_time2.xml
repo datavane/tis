@@ -56,7 +56,7 @@
                     <long name="CACHE.searcher.statsCache.retrieveStats">0</long>
                     <long name="CACHE.searcher.statsCache.sendGlobalStats">1</long>
                     <long name="SEARCHER.searcher.indexVersion">4</long>
-                    <long name="CACHE.searcher.statsCache.missingGlobalTermStats">0</long>
+                    <long name="CACHE.searcher.statsCache.missingGlobalertmStats">0</long>
                     <date name="SEARCHER.searcher.openedAt">2020-10-04T06:30:20.880Z</date>
                     <str name="SEARCHER.searcher.readerDir">NRTCachingDirectory(MMapDirectory@/opt/data/solrhome/search4totalpay_shard1_replica_n1/data/index20200928124940 lockFactory=org.apache.lucene.store.NativeFSLockFactory@6885f8a5; maxCacheMB=48.0 maxMergeSizeMB=4.0)</str>
                     <long name="CACHE.searcher.statsCache.receiveGlobalStats">1</long>

@@ -223,6 +223,20 @@
         <!--            <version>4.5.2</version>-->
         <!--        </dependency>-->
 
+        <!-- Apache Commons Email for email alerts -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-email</artifactId>
+            <version>1.5</version>
+        </dependency>
+
+        <!-- Apache Commons Codec for HMAC-SHA256 signature -->
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.15</version>
+        </dependency>
+
     </dependencies>
 
     <build>
