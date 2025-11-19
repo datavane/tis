@@ -141,7 +141,19 @@ public interface IEndTypeGetter {
         , Dolphinscheduler("ds", EndTypeCategory.Assist, true) //
         , Deepseek("deepseek", EndTypeCategory.Assist, true) //
         , QWen("qwen", EndTypeCategory.Assist, true) //
-        , UserProfile("user-profile", EndTypeCategory.Assist, true), Pipeline("pipeline", EndTypeCategory.Assist, true), Workflow("workflow", EndTypeCategory.Assist, true)
+        , UserProfile("user-profile", EndTypeCategory.Assist, true) //
+        , Pipeline("pipeline", EndTypeCategory.Assist, true) //
+        , Workflow("workflow", EndTypeCategory.Assist, true) //
+        /**
+         * alter channel
+         */
+        , DingTalk("dingding", EndTypeCategory.Assist, true) //
+        , WeCom("weCom", EndTypeCategory.Assist, true) //
+        // 飞书
+        , Lark("lark", EndTypeCategory.Assist, true) //
+        , Email("email", EndTypeCategory.Assist, true) //
+        , Http("http", EndTypeCategory.Assist, true) //
+        , Alert("tis-alert", EndTypeCategory.Assist, true) //
         //
         //
 

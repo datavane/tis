@@ -19,25 +19,24 @@
 package com.qlangtech.tis.plugin.alert.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.qlangtech.tis.plugin.alert.AlertTemplate;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.extension.impl.IOUtils;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.plugin.alert.AlertChannel;
+import com.qlangtech.tis.plugin.alert.AlertTemplate;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * 飞书(Lark)告警渠道
@@ -70,8 +69,9 @@ public class LarkAlertChannel extends AlertChannel {
             String messageContent = renderTemplate(alertTemplate);
 
             // 构建飞书消息体
-            JSONObject message = new JSONObject();
-            message.put("msg_type", "interactive");
+            List<HttpUtils.PostParam> postParams = Lists.newArrayList();
+            //JSONObject message = new JSONObject();
+            postParams.add(new HttpUtils.PostParam("msg_type", "interactive"));
 
             // 构建卡片内容
             JSONObject card = new JSONObject();
@@ -95,18 +95,18 @@ public class LarkAlertChannel extends AlertChannel {
 
             card.put("elements", new Object[]{content});
 
-            message.put("card", card);
+            postParams.add(new HttpUtils.PostParam("card", card));
 
             // 如果配置了secret,需要计算签名
             if (StringUtils.isNotEmpty(this.secret)) {
                 long timestamp = System.currentTimeMillis() / 1000;
                 String sign = generateSign(timestamp);
-                message.put("timestamp", String.valueOf(timestamp));
-                message.put("sign", sign);
+                postParams.add(new HttpUtils.PostParam("timestamp", String.valueOf(timestamp)));
+                postParams.add(new HttpUtils.PostParam("sign", sign));
             }
 
             // 发送HTTP请求
-            sendHttpRequest(this.webhookUrl, message.toJSONString());
+            sendHttpRequest(this.webhookUrl, postParams);
 
             logger.info("Lark alert sent successfully via channel [{}]", this.name);
 
@@ -129,51 +129,46 @@ public class LarkAlertChannel extends AlertChannel {
         return Base64.encodeBase64String(signData);
     }
 
-    /**
-     * 发送HTTP POST请求
-     */
-    private void sendHttpRequest(String urlString, String jsonBody) throws Exception {
-        URL url = new URL(urlString);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-        try {
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            conn.setDoOutput(true);
-
-            try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = jsonBody.getBytes(StandardCharsets.UTF_8);
-                os.write(input, 0, input.length);
-            }
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new RuntimeException("Lark API returned error code: " + responseCode);
-            }
-
-        } finally {
-            conn.disconnect();
-        }
-    }
+//    /**
+//     * 发送HTTP POST请求
+//     */
+//    private void sendHttpRequest(String urlString, String jsonBody) throws Exception {
+//        URL url = new URL(urlString);
+//        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+//
+//        try {
+//            conn.setRequestMethod("POST");
+//            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+//            conn.setDoOutput(true);
+//
+//            try (OutputStream os = conn.getOutputStream()) {
+//                byte[] input = jsonBody.getBytes(StandardCharsets.UTF_8);
+//                os.write(input, 0, input.length);
+//            }
+//
+//            int responseCode = conn.getResponseCode();
+//            if (responseCode != HttpURLConnection.HTTP_OK) {
+//                throw new RuntimeException("Lark API returned error code: " + responseCode);
+//            }
+//
+//        } finally {
+//            conn.disconnect();
+//        }
+//    }
 
     /**
      * 加载默认的飞书告警模板
      */
     public static String loadDefaultTpl() {
-        try {
-            return org.apache.commons.io.IOUtils.toString(
-                LarkAlertChannel.class.getResourceAsStream("lark-alert-template.vm"),
-                java.nio.charset.StandardCharsets.UTF_8);
-        } catch (java.io.IOException e) {
-            throw new RuntimeException("Failed to load default lark template", e);
-        }
+        return IOUtils.loadResourceFromClasspath(LarkAlertChannel.class, "lark-alert-template.vm");
     }
 
     @TISExtension
     public static class DefaultDescriptor extends AlertChannelDescDesc {
+
         @Override
-        public String getDisplayName() {
-            return "Lark";
+        public EndType getEndType() {
+            return EndType.Lark;
         }
     }
 }

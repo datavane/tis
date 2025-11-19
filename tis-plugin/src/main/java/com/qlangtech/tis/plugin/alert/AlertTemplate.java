@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.qlangtech.tis.plugin.alert;
@@ -21,6 +21,7 @@ package com.qlangtech.tis.plugin.alert;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.function.BiConsumer;
 
 /**
  * 报警消息数据模型
@@ -32,6 +33,40 @@ import java.util.Date;
 public class AlertTemplate implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    /**
+     * 创建一个用于测试报警的默认实例
+     * 模拟Flink任务失败场景
+     */
+    public static AlertTemplate createDefault() {
+        Date now = new Date();
+        Date startTime = new Date(now.getTime() - 3600000); // 1小时前启动
+
+        return AlertTemplate.builder()
+                .title("【TIS报警测试】Flink任务状态异常")
+                .subject("数据同步任务执行失败告警")
+                .jobName("mysql-to-doris-sync-job")
+                .status("FAILED")
+                .type(1) // 任务状态报警
+                .startTime(startTime)
+                .endTime(now)
+                .duration(startTime, now)
+                .link("http://localhost:8081/#/job/running")
+                .cpFailureRateInterval("5min")
+                .cpMaxFailureInterval(3)
+                .restart(true, 3)
+                .restartIndex(2)
+                .totalRestart(3)
+                .atAll(false)
+                .allJobs(10)
+                .affectedJobs(1)
+                .failedJobs(1)
+                .lostJobs(0)
+                .cancelledJobs(0)
+                .probeJobs(10)
+                .user("admin")
+                .build();
+    }
 
     private String title;                     // 标题
     private String subject;                   // 主题
@@ -63,6 +98,24 @@ public class AlertTemplate implements Serializable {
     // Builder模式
     public static Builder builder() {
         return new Builder();
+    }
+
+    public void visitAllProp(BiConsumer<String, Object> propConsumer) {
+        // 将AlertTemplate的所有字段添加到上下文中
+        // 使用反射获取所有字段值
+        java.lang.reflect.Field[] fields = AlertTemplate.class.getDeclaredFields();
+        for (java.lang.reflect.Field field : fields) {
+            try {
+                field.setAccessible(true);
+                Object value = field.get(this);
+                if (value != null) {
+                    propConsumer.accept(field.getName(), value);
+//                    context.put(field.getName(), value);
+                }
+            } catch (IllegalAccessException e) {
+                // 忽略无法访问的字段
+            }
+        }
     }
 
     public static class Builder {

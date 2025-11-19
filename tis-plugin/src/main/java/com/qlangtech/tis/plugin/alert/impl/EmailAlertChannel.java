@@ -18,21 +18,26 @@
 
 package com.qlangtech.tis.plugin.alert.impl;
 
+import com.alibaba.citrus.turbine.Context;
+import com.google.common.collect.Lists;
+import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.extension.impl.IOUtils;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.alert.AlertChannel;
 import com.qlangtech.tis.plugin.alert.AlertTemplate;
-import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import org.apache.commons.io.IOUtils;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * Email告警渠道
@@ -45,26 +50,57 @@ public class EmailAlertChannel extends AlertChannel {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailAlertChannel.class);
 
-    @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
+    @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.hostWithoutPort})
     public String smtpHost;
 
-    @FormField(ordinal = 2, type = FormFieldType.INT_NUMBER, validate = {Validator.require})
+    @FormField(ordinal = 2, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
     public Integer smtpPort;
 
-    @FormField(ordinal = 3, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
+    @FormField(ordinal = 3, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.none_blank})
     public String userName;
 
     @FormField(ordinal = 4, type = FormFieldType.PASSWORD, validate = {Validator.require})
     public String password;
 
-    @FormField(ordinal = 5, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
+    @FormField(ordinal = 5, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.email})
     public String from;
 
     @FormField(ordinal = 6, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
     public String to;
 
-    @FormField(ordinal = 7, type = FormFieldType.ENUM, validate = {})
+    @FormField(ordinal = 7, type = FormFieldType.ENUM, validate = {Validator.require})
     public Boolean ssl = false;
+
+    /**
+     * 邮件接收人列表
+     *
+     * @return
+     */
+    public List<String> getRecipients() {
+//        List<String> result = Lists.newArrayList();
+//        String[] recipients = this.to.split(",");
+//        for (String recipient : recipients) {
+//            String trimmed = recipient.trim();
+//            if (StringUtils.isNotEmpty(trimmed)) {
+//                result.add(trimmed);
+//            }
+//        }
+//        return result;
+
+        return getRecipients(this.to);
+    }
+
+    private static List<String> getRecipients(String to) {
+        List<String> result = Lists.newArrayList();
+        String[] recipients = to.split(",");
+        for (String recipient : recipients) {
+            String trimmed = recipient.trim();
+            if (StringUtils.isNotEmpty(trimmed)) {
+                result.add(trimmed);
+            }
+        }
+        return result;
+    }
 
     @Override
     public void send(AlertTemplate alertTemplate) {
@@ -82,7 +118,7 @@ public class EmailAlertChannel extends AlertChannel {
             email.setSmtpPort(this.smtpPort);
             email.setAuthentication(this.userName, this.password);
             email.setSSLOnConnect(this.ssl != null && this.ssl);
-            email.setCharset("UTF-8");
+            email.setCharset(TisUTF8.getName());
 
             // 设置发件人
             email.setFrom(this.from);
@@ -111,7 +147,7 @@ public class EmailAlertChannel extends AlertChannel {
             // 发送邮件
             String messageId = email.send();
             logger.info("Email alert sent successfully via channel [{}], messageId: {}",
-                       this.name, messageId);
+                    this.name, messageId);
 
         } catch (EmailException e) {
             logger.error("Failed to send email alert via channel [{}]", this.name, e);
@@ -123,20 +159,51 @@ public class EmailAlertChannel extends AlertChannel {
      * 加载默认的Email告警模板
      */
     public static String loadDefaultTpl() {
-        try {
-            return IOUtils.toString(
-                EmailAlertChannel.class.getResourceAsStream("email-alert-template.vm"),
-                StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load default email template", e);
-        }
+
+
+        return IOUtils.loadResourceFromClasspath(
+                EmailAlertChannel.class, "email-alert-template.vm");
     }
 
     @TISExtension
     public static class DefaultDescriptor extends AlertChannelDescDesc {
+
+
+        /**
+         * 对接收人进行校验
+         *
+         * @param msgHandler
+         * @param context
+         * @param fieldName
+         * @param value
+         * @return
+         */
+        public boolean validateTo(IFieldErrorHandler msgHandler, Context context, String fieldName, String value) {
+            List<String> recipients = getRecipients(value);
+            if (CollectionUtils.isEmpty(recipients)) {
+                msgHandler.addFieldError(context, fieldName, "请设置邮件接收人");
+                return false;
+            }
+            for (String to : recipients) {
+                if (!Validator.email.validate(msgHandler, context, fieldName, to)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+
         @Override
-        public String getDisplayName() {
-            return "Email";
+        protected boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+            EmailAlertChannel alertChannel = postFormVals.newInstance();
+            alertChannel.send(AlertTemplate.createDefault());
+            msgHandler.addActionMessage(context, "已经成功发送一封邮件到：" + String.join(",", alertChannel.getRecipients()));
+            return true;
+        }
+
+        @Override
+        public EndType getEndType() {
+            return EndType.Email;
         }
     }
 }

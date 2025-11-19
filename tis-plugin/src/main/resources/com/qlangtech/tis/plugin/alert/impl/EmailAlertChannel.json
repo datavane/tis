@@ -31,7 +31,18 @@
   },
   "ssl": {
     "label": "启用SSL",
-    "help": "是否使用SSL加密连接(端口465通常需要启用)"
+    "help": "是否使用SSL加密连接(端口465通常需要启用)",
+    "dftVal": false,
+    "enum": [
+      {
+        "val": true,
+        "label": "是"
+      },
+      {
+        "val": false,
+        "label": "否"
+      }
+    ]
   },
   "alertTpl": {
     "dftVal": "com.qlangtech.tis.plugin.alert.impl.EmailAlertChannel.loadDefaultTpl()"

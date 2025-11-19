@@ -19,13 +19,16 @@
 package com.qlangtech.tis.plugin.alert.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
+import com.qlangtech.tis.extension.impl.IOUtils;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.plugin.alert.AlertChannel;
 import com.qlangtech.tis.plugin.alert.AlertTemplate;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import org.apache.commons.io.IOUtils;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +38,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * 企业微信告警渠道
@@ -67,12 +71,13 @@ public class WeComAlertChannel extends AlertChannel {
             String messageContent = renderTemplate(alertTemplate);
 
             // 构建企业微信消息体
-            JSONObject message = new JSONObject();
-            message.put("msgtype", "markdown");
+            List<HttpUtils.PostParam> postParams = Lists.newArrayList();
+            //JSONObject message = new JSONObject();
+            postParams.add(new HttpUtils.PostParam("msgtype", "markdown"));
 
             JSONObject markdown = new JSONObject();
             markdown.put("content", messageContent);
-            message.put("markdown", markdown);
+            postParams.add(new HttpUtils.PostParam("markdown", markdown));
 
             // 添加@提醒列表
             if (StringUtils.isNotEmpty(this.mentionedList) || StringUtils.isNotEmpty(this.mentionedMobileList)) {
@@ -88,7 +93,7 @@ public class WeComAlertChannel extends AlertChannel {
             }
 
             // 发送HTTP请求
-            sendHttpRequest(this.webhookUrl, message.toJSONString());
+            sendHttpRequest(this.webhookUrl, postParams);
 
             logger.info("WeCom alert sent successfully via channel [{}]", this.name);
 
@@ -98,51 +103,21 @@ public class WeComAlertChannel extends AlertChannel {
         }
     }
 
-    /**
-     * 发送HTTP POST请求
-     */
-    private void sendHttpRequest(String urlString, String jsonBody) throws Exception {
-        URL url = new URL(urlString);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-        try {
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            conn.setDoOutput(true);
-
-            try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = jsonBody.getBytes(StandardCharsets.UTF_8);
-                os.write(input, 0, input.length);
-            }
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new RuntimeException("WeCom API returned error code: " + responseCode);
-            }
-
-        } finally {
-            conn.disconnect();
-        }
-    }
 
     /**
      * 加载默认的企业微信告警模板
      */
     public static String loadDefaultTpl() {
-        try {
-            return IOUtils.toString(
-                WeComAlertChannel.class.getResourceAsStream("wecom-alert-template.vm"),
-                StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load default wecom template", e);
-        }
+
+        return IOUtils.loadResourceFromClasspath(WeComAlertChannel.class, "wecom-alert-template.vm");
     }
 
     @TISExtension
     public static class DefaultDescriptor extends AlertChannelDescDesc {
+
         @Override
-        public String getDisplayName() {
-            return "WeCom";
+        public EndType getEndType() {
+            return EndType.WeCom;
         }
     }
 }

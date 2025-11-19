@@ -11,7 +11,18 @@
   },
   "atAll": {
     "label": "@所有人",
-    "help": "是否在消息中@所有群成员"
+    "help": "是否在消息中@所有群成员",
+    "dftVal": false,
+    "enum": [
+      {
+        "val": true,
+        "label": "是"
+      },
+      {
+        "val": false,
+        "label": "否"
+      }
+    ]
   },
   "atMobiles": {
     "label": "@指定成员",

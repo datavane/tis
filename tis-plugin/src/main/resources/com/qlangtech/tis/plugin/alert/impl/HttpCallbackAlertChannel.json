@@ -1,19 +1,29 @@
 {
   "callbackUrl": {
     "label": "回调URL",
-    "help": "HTTP回调的目标URL地址，系统将通过POST请求发送告警信息到此地址",
+    "help": "HTTP回调的目标URL地址，系统将通过POST请求发送告警信息到此地址，例如：http://your-server.com/api/alert/callback",
     "placeholder": "http://your-server.com/api/alert/callback"
   },
   "headers": {
     "label": "自定义请求头",
     "help": "自定义HTTP请求头，每行一个，格式为 Header-Name: Header-Value。例如添加认证信息",
     "placeholder": "Authorization: Bearer your-token\nX-Custom-Header: custom-value",
-    "type": "textarea",
     "rows": 5
   },
   "sendAsJson": {
     "label": "发送JSON格式",
-    "help": "勾选后将完整的AlertTemplate对象序列化为JSON发送；不勾选则发送包含渲染后模板内容的简化JSON"
+    "help": "勾选后将完整的状态对象序列化为JSON发送；不勾选则发送包含渲染后模板内容的简化JSON",
+    "dftVal": false,
+    "enum": [
+      {
+        "val": true,
+        "label": "是"
+      },
+      {
+        "val": false,
+        "label": "否"
+      }
+    ]
   },
   "alertTpl": {
     "dftVal": "com.qlangtech.tis.plugin.alert.impl.HttpCallbackAlertChannel.loadDefaultTpl()"

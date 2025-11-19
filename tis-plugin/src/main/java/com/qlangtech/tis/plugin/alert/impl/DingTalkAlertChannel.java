@@ -18,13 +18,18 @@
 
 package com.qlangtech.tis.plugin.alert.impl;
 
+import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONObject;
-import com.qlangtech.tis.plugin.alert.AlertTemplate;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.extension.impl.IOUtils;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.plugin.alert.AlertChannel;
+import com.qlangtech.tis.plugin.alert.AlertTemplate;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -32,11 +37,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * 钉钉告警渠道
@@ -71,14 +74,16 @@ public class DingTalkAlertChannel extends AlertChannel {
             // 渲染消息内容
             String messageContent = renderTemplate(alertTemplate);
 
+            List<HttpUtils.PostParam> postParams = Lists.newArrayList();
+
             // 构建钉钉消息体
-            JSONObject message = new JSONObject();
-            message.put("msgtype", "markdown");
+            //  JSONObject message = new JSONObject();
+            postParams.add(new HttpUtils.PostParam("msgtype", "markdown"));
 
             JSONObject markdown = new JSONObject();
             markdown.put("title", alertTemplate.getTitle() != null ? alertTemplate.getTitle() : "TIS Flink Job Alert");
             markdown.put("text", messageContent);
-            message.put("markdown", markdown);
+            postParams.add(new HttpUtils.PostParam("markdown", markdown));
 
             // 构建@信息
             JSONObject at = new JSONObject();
@@ -88,13 +93,13 @@ public class DingTalkAlertChannel extends AlertChannel {
                 String[] mobiles = this.atMobiles.split(",");
                 at.put("atMobiles", mobiles);
             }
-            message.put("at", at);
+            postParams.add(new HttpUtils.PostParam("at", at));
 
             // 计算签名并构建URL
             String webhookUrl = buildWebhookUrl();
 
             // 发送HTTP请求
-            sendHttpRequest(webhookUrl, message.toJSONString());
+            this.sendHttpRequest(webhookUrl, postParams);
 
             logger.info("DingTalk alert sent successfully via channel [{}]", this.name);
 
@@ -127,51 +132,28 @@ public class DingTalkAlertChannel extends AlertChannel {
         return baseUrl;
     }
 
-    /**
-     * 发送HTTP POST请求
-     */
-    private void sendHttpRequest(String urlString, String jsonBody) throws Exception {
-        URL url = new URL(urlString);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-        try {
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            conn.setDoOutput(true);
-
-            try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = jsonBody.getBytes(StandardCharsets.UTF_8);
-                os.write(input, 0, input.length);
-            }
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new RuntimeException("DingTalk API returned error code: " + responseCode);
-            }
-
-        } finally {
-            conn.disconnect();
-        }
-    }
 
     /**
      * 加载默认的钉钉告警模板
      */
     public static String loadDefaultTpl() {
-        try {
-            return org.apache.commons.io.IOUtils.toString(
-                DingTalkAlertChannel.class.getResourceAsStream("dingtalk-alert-template.vm"),
-                java.nio.charset.StandardCharsets.UTF_8);
-        } catch (java.io.IOException e) {
-            throw new RuntimeException("Failed to load default dingtalk template", e);
-        }
+        return IOUtils.loadResourceFromClasspath(
+                DingTalkAlertChannel.class, "dingtalk-alert-template.vm");
     }
 
     @TISExtension
     public static class DefaultDescriptor extends AlertChannelDescDesc {
+
         @Override
-        public String getDisplayName() {
-            return "DingTalk";
+        protected boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+
+            return true;
+        }
+
+        @Override
+        public EndType getEndType() {
+            return EndType.DingTalk;
         }
     }
 }

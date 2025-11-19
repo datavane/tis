@@ -193,7 +193,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                 Pair<JSONObject, Descriptor> pair = createFormPropertyTypes(subFormFilter, dd);
 
                 final JSONObject desJson = pair.getKey();
-                Descriptor desc = pair.getValue();//new JSONObject();
+                Descriptor desc = pair.getValue();
                 attrs = new JSONArray();
 
                 List<Entry<String, PropertyType>> entries = pluginFormPropertyTypes.getSortedUseableProperties();
