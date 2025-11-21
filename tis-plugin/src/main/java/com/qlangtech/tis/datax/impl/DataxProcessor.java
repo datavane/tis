@@ -98,7 +98,9 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     public static IDataxProcessorGetter processorGetter;
 
     public static IDataxProcessor load(IPluginContext pluginContext, DataXName dataXName) {
-        return load(pluginContext, dataXName.getType(), dataXName.getPipelineName());
+        return load(pluginContext
+                , Objects.requireNonNull(dataXName, "dataXName can not be null").getType()
+                , dataXName.getPipelineName());
     }
 
 

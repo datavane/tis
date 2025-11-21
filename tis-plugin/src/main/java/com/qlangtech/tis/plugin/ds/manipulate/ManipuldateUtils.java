@@ -27,6 +27,7 @@ import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.IPluginItemsProcessor;
 import com.qlangtech.tis.util.IUploadPluginMeta;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -43,7 +44,7 @@ public class ManipuldateUtils {
 
 
     public static ManipulateItemsProcessor instance(IPluginContext pluginContext, Context context, String newIdentityName
-            , Consumer<IUploadPluginMeta> pluginMetaConsumer) {
+            , Consumer<UploadPluginMeta> pluginMetaConsumer) {
         // Objects.requireNonNull(contextb, "param content can not be null");
         JSONObject postContent = Objects.requireNonNull(pluginContext, "pluginContext can not be null").getJSONPostContent();
         JSONObject manipulateTarget = postContent.getJSONObject(IUploadPluginMeta.KEY_JSON_MANIPULATE_TARGET);
@@ -62,36 +63,41 @@ public class ManipuldateUtils {
             throw new IllegalStateException("pluginMeta can not be empty");
         }
         for (IUploadPluginMeta meta : pluginMeta) {
-            String[] originId = new String[1];
-            Consumer<String> originIdentityIdConsumer = (originIdentityId) -> {
-                originId[0] = originIdentityId;
-            };
+            UploadPluginMeta m = (UploadPluginMeta) meta;
+            // 保存pipeline Name用
+            // String[] originId = new String[1];
+//            Consumer<String> originIdentityIdConsumer = (originIdentityId) -> {
+//                originId[0] = originIdentityId;
+//            };
             // 控制是否重名的业务逻辑校验，update=true则不需要校验
             meta.putExtraParams(DBIdentity.KEY_UPDATE, Boolean.toString(StringUtils.isEmpty(newIdentityName) || updateProcess));
-            pluginMetaConsumer.accept(meta);
+            pluginMetaConsumer.accept(m);
 
-            JSONArray itemsArray = new JSONArray();
-            itemsArray.add(manipulateTarget);
-            Pair<Boolean, IPluginItemsProcessor> pluginItems
-                    = pluginContext.getPluginItems(meta, context
-                    , 0, itemsArray, FormVaildateType.create(false), ((propType, val) -> {
-                PropertyType ptype = (PropertyType) propType;
-                if (ptype.isIdentity()) {
-                    originIdentityIdConsumer.accept((String) val);
-                }
-                // 将原先的主键覆盖掉
-                return (ptype.isIdentity() && StringUtils.isNotEmpty(newIdentityName)) ? newIdentityName : val;
-            }));
+            // JSONArray itemsArray = new JSONArray();
+            // itemsArray.add(manipulateTarget);
+//            Pair<Boolean, IPluginItemsProcessor> pluginItems
+//                    = pluginContext.getPluginItems(meta, context
+//                    , 0, itemsArray, FormVaildateType.create(false), ((propType, val) -> {
+//                        PropertyType ptype = (PropertyType) propType;
+//                        if (ptype.isIdentity()) {
+//                            //
+//                            originIdentityIdConsumer.accept((String) val);
+//                        }
+//                        // 将原先的主键覆盖掉
+//                        return (ptype.isIdentity() && StringUtils.isNotEmpty(newIdentityName)) ? newIdentityName : val;
+//                    }));
 
-            if (context.hasErrors()) {
-                return null;
-            }
+//            if (context.hasErrors()) {
+//                return null;
+//            }
 
-            if (pluginItems.getKey()) {
-                throw new IllegalStateException("pluginItems parse faild");
-            }
-            IPluginItemsProcessor itemsProcessor = pluginItems.getRight();
-            return new ManipulateItemsProcessor(originId[0], itemsProcessor, updateProcess, deleteProcess);
+//            if (pluginItems.getKey()) {
+//                throw new IllegalStateException("pluginItems parse faild");
+//            }
+            // IPluginItemsProcessor itemsProcessor = pluginItems.getRight();
+            return new ManipulateItemsProcessor(m, //
+                    Objects.requireNonNull(m.getDataXName(), "dataXName can not be null").getPipelineName() //, itemsProcessor
+                    , updateProcess, deleteProcess);
         }
 
         throw new IllegalStateException("can not reach here");

@@ -859,11 +859,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     getResponse().flushBuffer();
   }
 
-//  @Override
-//  public TISZkStateReader getZkStateReader() {
-//    return this.getDaoContext().getZkStateReader();
-//  }
-
   public static UsrDptRelation getUserDepartment(BasicModule basicModule) {
     UsrDptRelationCriteria query = new UsrDptRelationCriteria();
     query.createCriteria().andUsrIdEqualTo(basicModule.getUserId());

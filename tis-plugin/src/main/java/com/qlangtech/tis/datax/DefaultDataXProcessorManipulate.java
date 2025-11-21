@@ -19,6 +19,7 @@
 package com.qlangtech.tis.datax;
 
 import com.alibaba.citrus.turbine.Context;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -28,15 +29,21 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginStore.ManipuldateProcessor;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.annotation.FormField;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.manipulate.ManipulateItemsProcessor;
 import com.qlangtech.tis.plugin.ds.manipulate.ManipuldateUtils;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +53,31 @@ import java.util.stream.Collectors;
  * @create: 2024-07-10 20:56
  **/
 public abstract class DefaultDataXProcessorManipulate implements Describable<DefaultDataXProcessorManipulate>, ManipuldateProcessor, IdentityName {
+
+    @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require,
+            Validator.identity})
+    public String name;
+
+    public static final ConcurrentMap<String /*PipelineId*/, DataXProcessorTemplateManipulateStore>
+            processorManipulateRegister = Maps.newConcurrentMap();
+
+
+    private static final class DataXProcessorTemplateManipulateStore {
+        private Map<IdentityName, DefaultDataXProcessorManipulate> manipuldateStore = Maps.newHashMap();
+
+        public Collection<DefaultDataXProcessorManipulate> getManipulates() {
+            return manipuldateStore.values();
+        }
+
+        public void replace(DefaultDataXProcessorManipulate replace) {
+            manipuldateStore.put(replace, replace);
+        }
+
+        public void remove(IdentityName replace) {
+            manipuldateStore.remove(replace);
+        }
+    }
+
 
     public static IPluginStore<DefaultDataXProcessorManipulate> getPluginStore(
             IPluginContext context, DataXName appName) {
@@ -58,13 +90,34 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
     }
 
     @Override
+    public final String identityValue() {
+        return this.name;
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        DefaultDataXProcessorManipulate that = (DefaultDataXProcessorManipulate) o;
+        return Objects.equals(name, that.name);
+    }
+
+    @Override
+    public final int hashCode() {
+        return Objects.hashCode(name);
+    }
+
+    protected String getNewIdentityName() {
+        return null;
+    }
+
+    @Override
     public final void manipuldateProcess(IPluginContext pluginContext, Optional<Context> context) {
         synchronized (DefaultDataXProcessorManipulate.class) {
             /**
              * 校验
              */
             ManipulateItemsProcessor itemsProcessor
-                    = ManipuldateUtils.instance(pluginContext, context.get(), null
+                    = ManipuldateUtils.instance(pluginContext, context.orElseThrow(), this.getNewIdentityName()
                     , (meta) -> {
                     });
             if (org.apache.commons.lang.StringUtils.isEmpty(itemsProcessor.getOriginIdentityId())) {
@@ -118,14 +171,18 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
         private final IPluginStore<DefaultDataXProcessorManipulate> store;
         private final List<? extends DefaultDataXProcessorManipulate> plugins;
         private final IDescribableManipulate.IManipulateStorable storable;
+        private final DataXName pipelineName;
 
-        public ProcessorManipulateManager(Class<T> targetClazz
+
+        public ProcessorManipulateManager(DataXName pipelineName, Class<T> targetClazz
                 , IPluginStore<DefaultDataXProcessorManipulate> store
                 , List<? extends DefaultDataXProcessorManipulate> plugins, IDescribableManipulate.IManipulateStorable storable) {
             this.targetClazz = targetClazz;
             this.store = store;
             this.plugins = plugins;
             this.storable = storable;
+            this.pipelineName
+                    = Objects.requireNonNull(pipelineName, "pipelineName can not be null");
         }
 
         public List<T> getTargetInstancePlugin() {
@@ -146,6 +203,16 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
             List<Descriptor.ParseDescribable<DefaultDataXProcessorManipulate>> dlist = getPluginsExclude(beReplace);
             dlist.add(new Descriptor.ParseDescribable<>(beReplace));
             store.setPlugins(pluginContext, context, dlist, true);
+            DataXProcessorTemplateManipulateStore manipulateStore = getManipulateStore();
+
+            manipulateStore.replace(beReplace);
+
+        }
+
+        private DataXProcessorTemplateManipulateStore getManipulateStore() {
+            return processorManipulateRegister.computeIfAbsent(
+                    this.pipelineName.getPipelineName(), (pipe) -> new DataXProcessorTemplateManipulateStore());
+
         }
 
         /**
@@ -161,6 +228,8 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
             }
             List<Descriptor.ParseDescribable<DefaultDataXProcessorManipulate>> dlist = getPluginsExclude(id);
             store.setPlugins(pluginContext, context, dlist, true);
+            DataXProcessorTemplateManipulateStore manipulateStore = getManipulateStore();
+            manipulateStore.remove(id);
         }
 
         private List<Descriptor.ParseDescribable<DefaultDataXProcessorManipulate>> getPluginsExclude(IdentityName id) {
@@ -175,13 +244,12 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
     }
 
     public static <T extends DefaultDataXProcessorManipulate> ProcessorManipulateManager<T>
-    loadPlugins(IPluginContext context, final Class<T> clazz, DataXName appName, IDescribableManipulate.IManipulateStorable storable) {
-        IPluginStore<DefaultDataXProcessorManipulate> store = getPluginStore(context, appName);
+    loadPlugins(IPluginContext context, final Class<T> clazz, DataXName pipelineName, IDescribableManipulate.IManipulateStorable storable) {
+        IPluginStore<DefaultDataXProcessorManipulate> store = getPluginStore(context, pipelineName);
         List<? extends DefaultDataXProcessorManipulate> result = store.getPlugins().stream()
-                // .filter((p) -> clazz.isAssignableFrom(p.getClass()))
                 .map((p) -> p)
                 .collect(Collectors.toList());
-        return new ProcessorManipulateManager<>(clazz, store, result, storable);// Pair.of(result, store);
+        return new ProcessorManipulateManager<>(pipelineName, clazz, store, result, storable);// Pair.of(result, store);
     }
 
     @Override

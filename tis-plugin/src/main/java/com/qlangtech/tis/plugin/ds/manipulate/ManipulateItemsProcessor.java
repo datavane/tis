@@ -18,21 +18,23 @@
 
 package com.qlangtech.tis.plugin.ds.manipulate;
 
-import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.util.IPluginItemsProcessor;
+import com.qlangtech.tis.util.UploadPluginMeta;
+
+import java.util.Objects;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-09-01 12:07
  **/
 public class ManipulateItemsProcessor {
-    private final IPluginItemsProcessor itemsProcessor;
-    private final  String  originIdentityId;
+    // private final IPluginItemsProcessor itemsProcessor;
+    private final String originIdentityId;
     /**
      * 是否是更新还是添加操作
      */
     private final boolean updateProcess;
     private final boolean deleteProcess;
+    private final UploadPluginMeta pluginMeta;
 
     public boolean isUpdateProcess() {
         return updateProcess;
@@ -42,18 +44,25 @@ public class ManipulateItemsProcessor {
         return deleteProcess;
     }
 
-    public ManipulateItemsProcessor(String  originIdentityId ,IPluginItemsProcessor itemsProcessor, boolean updateProcess, boolean deleteProcess) {
-        this.itemsProcessor = itemsProcessor;
+    public ManipulateItemsProcessor(UploadPluginMeta pluginMeta, String originIdentityId
+                                    // ,IPluginItemsProcessor itemsProcessor
+            , boolean updateProcess, boolean deleteProcess) {
+        // this.itemsProcessor = itemsProcessor;
+        this.pluginMeta = Objects.requireNonNull(pluginMeta, "pluginMeta can not be null");
         this.updateProcess = updateProcess;
         this.deleteProcess = deleteProcess;
         this.originIdentityId = originIdentityId;
+    }
+
+    public UploadPluginMeta getPluginMeta() {
+        return this.pluginMeta;
     }
 
     public String getOriginIdentityId() {
         return originIdentityId;
     }
 
-    public void save(Context context) {
-        itemsProcessor.save(context);
-    }
+//    public void save(Context context) {
+//        itemsProcessor.save(context);
+//    }
 }

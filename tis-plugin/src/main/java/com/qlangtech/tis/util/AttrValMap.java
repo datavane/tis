@@ -103,7 +103,8 @@ public class AttrValMap {
                                                  com.alibaba.fastjson.JSONObject jsonObject, PropValRewrite propValRewrite) {
         String impl = null;
         Descriptor descriptor;
-        impl = jsonObject.getString(PLUGIN_EXTENSION_IMPL);
+        impl = Objects.requireNonNull(jsonObject, "jsonObject can not be null")
+                .getString(PLUGIN_EXTENSION_IMPL);
         descriptor = TIS.get().getDescriptor(impl);
         if (descriptor == null) {
             throw new IllegalStateException("impl:" + impl + " can not find relevant ");

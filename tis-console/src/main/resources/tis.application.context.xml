@@ -35,7 +35,7 @@
   <task:annotation-driven/>
 
   <task:scheduled-tasks>
-    <task:scheduled ref="flinkJobsMonitor" method="executeTask" fixed-rate="5000"/>
+    <task:scheduled ref="flinkJobsMonitor" method="executeTask" fixed-rate="30000"/>
   </task:scheduled-tasks>
 
   <bean id="flinkJobsMonitor" class="com.qlangtech.tis.alert.FlinkJobsMonitor" />
