@@ -58,11 +58,24 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
             Validator.identity})
     public String name;
 
-    public static final ConcurrentMap<String /*PipelineId*/, DataXProcessorTemplateManipulateStore>
+    private static final ConcurrentMap<String /*PipelineId*/, DataXProcessorTemplateManipulateStore>
             processorManipulateRegister = Maps.newConcurrentMap();
 
+    public static DataXProcessorTemplateManipulateStore getManipulateStore(String pipelineName) {
+        if (StringUtils.isEmpty(pipelineName)) {
+            throw new IllegalArgumentException("param pipelineName can not be empty");
+        }
+        return processorManipulateRegister.computeIfAbsent(
+                pipelineName, (pipe) -> {
+                    DataXProcessorTemplateManipulateStore store = new DataXProcessorTemplateManipulateStore();
+                    for (DefaultDataXProcessorManipulate manipulate : getPluginStore(null, DataXName.createDataXPipeline(pipe)).getPlugins()) {
+                        store.replace(manipulate);
+                    }
+                    return store;
+                });
+    }
 
-    private static final class DataXProcessorTemplateManipulateStore {
+    public static final class DataXProcessorTemplateManipulateStore {
         private Map<IdentityName, DefaultDataXProcessorManipulate> manipuldateStore = Maps.newHashMap();
 
         public Collection<DefaultDataXProcessorManipulate> getManipulates() {
@@ -210,9 +223,9 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
         }
 
         private DataXProcessorTemplateManipulateStore getManipulateStore() {
-            return processorManipulateRegister.computeIfAbsent(
-                    this.pipelineName.getPipelineName(), (pipe) -> new DataXProcessorTemplateManipulateStore());
-
+            return DefaultDataXProcessorManipulate.getManipulateStore(this.pipelineName.getPipelineName());
+//            return processorManipulateRegister.computeIfAbsent(
+//                    this.pipelineName.getPipelineName(), (pipe) -> new DataXProcessorTemplateManipulateStore());
         }
 
         /**

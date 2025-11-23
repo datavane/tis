@@ -21,8 +21,10 @@ package com.qlangtech.tis.plugin.ds.manipulate;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.datax.DefaultDataXProcessorManipulate;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
+import com.qlangtech.tis.plugin.ds.DataSourceFactoryManipulate;
 import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.IPluginItemsProcessor;
@@ -39,6 +41,8 @@ import java.util.function.Consumer;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-07-10 23:16
+ * @see DefaultDataXProcessorManipulate
+ * @see DataSourceFactoryManipulate
  **/
 public class ManipuldateUtils {
 
@@ -47,7 +51,7 @@ public class ManipuldateUtils {
             , Consumer<UploadPluginMeta> pluginMetaConsumer) {
         // Objects.requireNonNull(contextb, "param content can not be null");
         JSONObject postContent = Objects.requireNonNull(pluginContext, "pluginContext can not be null").getJSONPostContent();
-        JSONObject manipulateTarget = postContent.getJSONObject(IUploadPluginMeta.KEY_JSON_MANIPULATE_TARGET);
+       // JSONObject manipulateTarget = postContent.getJSONObject(IUploadPluginMeta.KEY_JSON_MANIPULATE_TARGET);
         boolean updateProcess = postContent.getBooleanValue(IUploadPluginMeta.KEY_JSON_MANIPULATE_BOOL_UPDATE_PROCESS);
         final boolean deleteProcess = postContent.getBooleanValue(IUploadPluginMeta.KEY_JSON_MANIPULATE_BOOL_DELETE_PROCESS);
         final String keyManipulatePluginMeta = "manipulatePluginMeta";

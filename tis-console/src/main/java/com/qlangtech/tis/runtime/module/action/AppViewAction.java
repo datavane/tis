@@ -34,6 +34,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -87,7 +88,7 @@ public class AppViewAction extends BasicModule {
     query.setOrderByClause("last_process_time desc,app_id desc");
     int allRows = this.getApplicationDAO().countByExample(query);
     Pager pager = getPager();
-    List<Application> apps = Collections.emptyList();
+    List<ApplicationDelegate> apps = Collections.emptyList();
     pager.setTotalCount(allRows);
     if (allRows < 1) {
       //this.addErrorMessage(context, "很抱歉，未能找到结果");
@@ -97,7 +98,11 @@ public class AppViewAction extends BasicModule {
     context.put("recept", recept);
     context.put("dptId", dptId);
 
-    apps = this.getApplicationDAO().selectByExample(query, pager.getCurPage(), pager.getRowsPerPage());
+    apps = this.getApplicationDAO().selectByExample(query, pager.getCurPage(), pager.getRowsPerPage())
+      .stream().map((app) -> {
+        ApplicationDelegate dlg = new ApplicationDelegate(app);
+        return dlg;
+      }).collect(Collectors.toList());
     // apps.forEach((app) -> {
 //      WorkFlow df = null;
 //      if (app.getWorkFlowId() != null && (df = getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(app.getWorkFlowId())) != null) {
@@ -116,8 +121,5 @@ public class AppViewAction extends BasicModule {
     return pager;
   }
 
-  public static class ApplicationWrapper extends Application {
-    private Application target;
 
-  }
 }

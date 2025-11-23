@@ -24,7 +24,7 @@ package com.qlangtech.tis.util;
  * @create: 2024-07-10 09:34
  **/
 public interface IUploadPluginMeta {
-    String KEY_JSON_MANIPULATE_TARGET = "manipulateTarget";
+   // String KEY_JSON_MANIPULATE_TARGET = "manipulateTarget";
     String KEY_JSON_MANIPULATE_BOOL_UPDATE_PROCESS = "updateProcess";
     /**
      * 是否执行删除

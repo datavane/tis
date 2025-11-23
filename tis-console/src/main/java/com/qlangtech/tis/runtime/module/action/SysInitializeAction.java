@@ -18,6 +18,7 @@
 package com.qlangtech.tis.runtime.module.action;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.manage.biz.dal.pojo.Department;
@@ -112,7 +113,8 @@ public class SysInitializeAction extends BasicModule {
     // initializeDB(tisConsoleSqlFile, SysDBType.parse(dbType));
 
     SysInitializeAction initAction = createSysInitializeAction();
-    initAction.init(MockContext.instance, false, SysDBType.parse(dbType), tisConsoleSqlFile);
+    DefaultContext context = new DefaultContext();
+    initAction.init(context, false, SysDBType.parse(dbType), tisConsoleSqlFile);
 
   }
 

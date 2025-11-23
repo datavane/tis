@@ -65,8 +65,8 @@ public class TestPluginItemsParser extends BasicPluginAction {
       pluginMeta = (UploadPluginMeta) m;
       Assert.assertFalse("must be insert process", pluginMeta.isUpdate());
       JSONArray itemsArray = new JSONArray();
-      itemsArray.add(Objects.requireNonNull(postJson.getJSONObject(IUploadPluginMeta.KEY_JSON_MANIPULATE_TARGET)
-        , IUploadPluginMeta.KEY_JSON_MANIPULATE_TARGET));
+//      itemsArray.add(Objects.requireNonNull(postJson.getJSONObject(IUploadPluginMeta.KEY_JSON_MANIPULATE_TARGET)
+//        , IUploadPluginMeta.KEY_JSON_MANIPULATE_TARGET));
 
 
       PluginItemsParser.parsePluginItems(pluginAction

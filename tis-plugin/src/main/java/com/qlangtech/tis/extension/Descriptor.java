@@ -307,27 +307,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             Optional<IPluginStore> manipulateStore = descManipuldate.getManipulateStore();
             manipulateStore.ifPresent((man) -> {
                 List<Describable> plugins = man.getPlugins();
-                IdentityName id = null;
-                Descriptor desc = null;
-                JSONArray storeManipuldate = new JSONArray();
-                Map<String, Object> eprops = null;
-                try {
-                    for (Describable plugin : plugins) {
-                        if (!(plugin instanceof IdentityName)) {
-                            throw new IllegalStateException("plugin must be a IdentityName:" + ToStringBuilder.reflectionToString(plugin));
-                        }
-                        desc = plugin.getDescriptor();
-                        eprops = Maps.newHashMap();
-                        id = (IdentityName) plugin;
-                        eprops.put(IdentityName.PLUGIN_IDENTITY_NAME, id.identityValue());
-                        eprops.put("descMeta"
-                                , DescriptorsJSON.createPluginFormPropertyTypes(desc, Optional.empty(), forAIPromote).getLeft());
-
-                        storeManipuldate.add(eprops);
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+                JSONArray storeManipuldate = getManipulateMetas(forAIPromote, plugins);
                 manipulate.put("stored", storeManipuldate);
             });
             props.put("manipulate", manipulate);
@@ -375,6 +355,31 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             props.put("helpPath", this._helpPath.getPath());
         }
         return props;
+    }
+
+    public static JSONArray getManipulateMetas(boolean forAIPromote, Collection<? extends Describable> plugins) {
+        IdentityName id = null;
+        Descriptor desc = null;
+        JSONArray storeManipuldate = new JSONArray();
+        Map<String, Object> eprops = null;
+        try {
+            for (Describable plugin : plugins) {
+                if (!(plugin instanceof IdentityName)) {
+                    throw new IllegalStateException("plugin must be a IdentityName:" + ToStringBuilder.reflectionToString(plugin));
+                }
+                desc = plugin.getDescriptor();
+                eprops = Maps.newHashMap();
+                id = (IdentityName) plugin;
+                eprops.put(IdentityName.PLUGIN_IDENTITY_NAME, id.identityValue());
+                eprops.put("descMeta"
+                        , DescriptorsJSON.createPluginFormPropertyTypes(desc, Optional.empty(), forAIPromote).getLeft());
+
+                storeManipuldate.add(eprops);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return storeManipuldate;
     }
 
 
