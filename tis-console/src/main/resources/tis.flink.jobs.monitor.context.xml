@@ -19,31 +19,17 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:task="http://www.springframework.org/schema/task"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/task  http://www.springframework.org/schema/task/spring-task.xsd
        ">
 
-  <!-- 百岁添加 fordao -->
-  <import resource="classpath:/datasource-config-tis.xml"/>
 
-  <import resource="classpath:/conf/cluster-dao-context.xml"/>
+  <task:scheduled-tasks>
+    <task:scheduled ref="flinkJobsMonitor" method="executeTask" fixed-rate="30000"/>
+  </task:scheduled-tasks>
 
-  <import resource="classpath:/dal/dal-dao.xml"/>
-
-  <import resource="classpath:/dal/runtime-application.xml"/>
-  <!--
-    触发全量任务使用先去掉
-    <import resource="classpath:/com/qlangtech/tis/trigger/trigger.context.xml"/>
-    <import resource="classpath:/conf/terminator-job-trigger-relation-context.xml"/>
-
-  <import resource="classpath:/conf/terminatorTriggerBizDal-dao-context.xml"/>
-  -->
-  <import resource="classpath:/conf/comDfireTisWorkflow-dao-context.xml"/>
+  <bean id="flinkJobsMonitor" class="com.qlangtech.tis.alert.FlinkJobsMonitor"/>
 
 
-  <!-- <import resource="classpath:/com/qlangtech/tis/manage/operation-log-aop.xml"
-      /> -->
-  <!-- 添加 用来处理offline中的db和git更新操作 -->
-  <bean id="offlineManager" class="com.qlangtech.tis.offline.module.manager.impl.OfflineManager">
-    <property name="comDfireTisWorkflowDAOFacade" ref="wfDaoFacade"/>
-  </bean>
 </beans>
