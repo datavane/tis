@@ -413,7 +413,8 @@ public class PropertyType implements IPropertyType {
 
     @JSONField(serialize = false)
     public EnumFieldMode getEnumFieldMode() {
-        if (this.formField.type() != FormFieldType.ENUM) {
+        if (this.formField.type() != FormFieldType.ENUM
+                && this.formField.type() != FormFieldType.SELECTABLE) {
             return null;
         }
         return EnumFieldMode.parse(this.extraProp != null ? getExtraProps().getString("enumMode") : null);

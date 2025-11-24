@@ -36,6 +36,14 @@ public abstract class FlinkJobDeploymentDetails implements IDeploymentDetail {
     private final IFlinkClusterConfig clusterCfg;
     private final IFlinkIncrJobStatus incrJobStatus;
 
+    public abstract String getJobId();
+
+    public abstract String getJobName();
+
+    public final String getJobManagerUrl() {
+        return this.clusterCfg.getJobManagerAddress().getUrl() + "/#/job/" + this.getJobId() + "/overview";
+    }
+
     public abstract boolean isRunning();
 
     public FlinkJobDeploymentDetails(IFlinkClusterConfig clusterCfg, IFlinkIncrJobStatus incrJobStatus) {
@@ -59,6 +67,16 @@ public abstract class FlinkJobDeploymentDetails implements IDeploymentDetail {
     private static class NoneStateDetail extends FlinkJobDeploymentDetails {
         public NoneStateDetail(IFlinkClusterConfig clusterCfg, IFlinkIncrJobStatus incrJobStatus) {
             super(clusterCfg, incrJobStatus);
+        }
+
+        @Override
+        public String getJobId() {
+            return null;
+        }
+
+        @Override
+        public String getJobName() {
+            return null;
         }
 
         @Override

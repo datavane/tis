@@ -27,6 +27,9 @@ import java.util.Optional;
  **/
 public interface IFlinkIncrJobStatus<JobID> {
     String KEY_SAVEPOINT_DIR_PREFIX = "savepoint_";
+    String KEY_INCR_JOB_LOG = "incrJob.log";
+
+
 
     public enum State {
         FAILED,
@@ -57,7 +60,7 @@ public interface IFlinkIncrJobStatus<JobID> {
 
     public void discardSavepoint(String savepointDirectory);
 
-    public void stop(String savepointDirectory) ;
+    public void stop(String savepointDirectory);
 
     public void cancel();
 

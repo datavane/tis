@@ -28,6 +28,7 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
 
 
 /**
@@ -56,6 +60,13 @@ public abstract class AlertChannel extends ParamsConfig {
 
     @FormField(type = FormFieldType.TEXTAREA, advance = false, ordinal = 999, validate = {Validator.require})
     public String alertTpl;
+
+    public static List<AlertChannel> load(Set<String> alertChannelNames) {
+        if (CollectionUtils.isEmpty(alertChannelNames)) {
+            throw new IllegalArgumentException("param alertChannelName can not be empty");
+        }
+        return ParamsConfig.getItems(KEY_CATEGORY, Optional.empty(), (p) -> alertChannelNames.contains(p.identityValue()));
+    }
 
     @Override
     public AlertChannel createConfigInstance() {
@@ -205,7 +216,7 @@ public abstract class AlertChannel extends ParamsConfig {
 
         @Override
         public final String getDisplayName() {
-            return String.valueOf(this.getEndType())+"_Chan";
+            return String.valueOf(this.getEndType()) + "_Chan";
         }
     }
 }

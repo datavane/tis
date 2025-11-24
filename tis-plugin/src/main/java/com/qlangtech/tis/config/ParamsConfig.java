@@ -45,7 +45,7 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
     public static final String CONTEXT_PARAMS_CFG = "params-cfg";
 
     public static <T extends ParamsConfig> List<T> getItems(String pluginDesc) {
-        return getItems(pluginDesc, Optional.empty());
+        return getItems(pluginDesc, Optional.empty(), (p) -> true);
     }
 
     public Option map2SelectOption() {
@@ -53,8 +53,12 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
     }
 
     public static <T extends ParamsConfig> List<T> getItems(String pluginDesc, Optional<String> subpath) {
+        return getItems(pluginDesc, subpath, (p) -> true);
+    }
+
+    public static <T extends ParamsConfig> List<T> getItems(String pluginDesc, Optional<String> subpath, Predicate<T> filter) {
         IPluginStore<ParamsConfig> paramsCfgStore = getTargetPluginStore(CONTEXT_PARAMS_CFG, pluginDesc, subpath);
-        return paramsCfgStore.getPlugins().stream().map((p) -> (T) p).collect(Collectors.toList());
+        return paramsCfgStore.getPlugins().stream().map((p) -> (T) p).filter(filter).collect(Collectors.toList());
     }
 
 //    取得所有的配置项
@@ -131,7 +135,7 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
         if (StringUtils.isEmpty(identityName)) {
             throw new IllegalArgumentException("param identityName can not be empty");
         }
-        List<T> items = getItems(targetPluginDesc, subpath);
+        List<T> items = getItems(targetPluginDesc, subpath, (p) -> true);
         for (T i : items) {
             if (StringUtils.equals(i.identityValue(), identityName)) {
                 return i;

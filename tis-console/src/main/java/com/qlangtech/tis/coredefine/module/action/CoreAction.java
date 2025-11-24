@@ -323,16 +323,6 @@ public class CoreAction extends BasicModule {
     DataXJobSubmit dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit();
     dataXJobSubmit.cancelTask(this, context, buildHistory);
 
-//    List<ConfigFileContext.Header> headers = Lists.newArrayList();
-//    headers.add(new ConfigFileContext.Header(JobCommon.KEY_TASK_ID, String.valueOf(taskId)));
-//    headers.add(new ConfigFileContext.Header(IParamContext.KEY_ASYN_JOB_NAME, String.valueOf(processState == ExecResult.ASYN_DOING)));
-//    headers.add(new ConfigFileContext.Header(IFullBuildContext.KEY_APP_NAME, IAppSourcePipelineController.DATAX_FULL_PIPELINE + buildHistory.getAppName()));
-//
-//    TriggerBuildResult triggerResult = TriggerBuildResult.triggerBuild(this, context, ConfigFileContext.HTTPMethod.DELETE, Collections.emptyList(), headers);
-//    if (!triggerResult.success) {
-//      return;
-//    }
-
     WorkFlowBuildHistory record = new WorkFlowBuildHistory();
     record.setState((byte) ExecResult.CANCEL.getValue());
 
@@ -361,13 +351,10 @@ public class CoreAction extends BasicModule {
 
           @Override
           public void visit(FlinkJobDeploymentDetails details) {
-            // getTargetStatus.set( (targetStatus == IFlinkIncrJobStatus.State.RUNNING ) ?  details.getIncrJobStatus().getState() == targetStatus);
             getTargetStatus.set(!((targetStatus == IFlinkIncrJobStatus.State.RUNNING) ^ details.isRunning()));
           }
         });
         if (getTargetStatus.get()) {
-          //IndexIncrStatus incrStatus = getIndexIncrStatus(this, detail);
-          // this.setBizResult(context, incrStatus);
           return detail;
         } else {
           // 执行终止操作之后从服务端应该要能取到已经终止的状态，不然重新尝试等待，尝试3次
@@ -388,11 +375,12 @@ public class CoreAction extends BasicModule {
   public void doGetIncrStatus(Context context) throws Exception {
     final boolean cache = this.getBoolean("cache");
     IndexIncrStatus incrStatus = getIndexIncrStatus(this, cache);
+    setIncrScriptCreated(this, incrStatus);
     this.setBizResult(context, incrStatus);
   }
 
 
-  public static IndexIncrStatus getIndexIncrStatus(BasicModule module, IDeploymentDetail rcConfig) throws Exception {
+  public static IndexIncrStatus getIndexIncrStatus(IControlMsgHandler module, IDeploymentDetail rcConfig) throws Exception {
     IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
     IPluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
@@ -405,10 +393,7 @@ public class CoreAction extends BasicModule {
     // 可以基于checkpoint恢复任务的前提是，需要开启checkpoint，并且使用了持久化statebackend
     incrStatus.setRestorableByCheckpoint(incrStreamFactory.restorable().isPresent());
     incrStatus.setK8sPluginInitialized(true);
-    IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator(module.getTISDataXName(), module);
-    StreamCodeContext streamCodeContext
-      = new StreamCodeContext(module.getCollectionName(), indexStreamCodeGenerator.incrScriptTimestamp);
-    incrStatus.setIncrScriptCreated(streamCodeContext.isIncrScriptDirCreated());
+    //  setIncrScriptCreated(module, incrStatus);
     // TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(module.getCollectionName());
     // IDeploymentDetail rcConfig = k8s.getRcConfig(getRcConfigInCache);
     incrStatus.setState(rcConfig != null ? IFlinkIncrJobStatus.State.RUNNING : IFlinkIncrJobStatus.State.NONE);
@@ -434,13 +419,21 @@ public class CoreAction extends BasicModule {
     return incrStatus;
   }
 
+  private static void setIncrScriptCreated(BasicModule module, IndexIncrStatus incrStatus) {
+    IndexStreamCodeGenerator indexStreamCodeGenerator
+      = getIndexStreamCodeGenerator(module.getTISDataXName(), module);
+    StreamCodeContext streamCodeContext
+      = new StreamCodeContext(module.getCollectionName(), indexStreamCodeGenerator.incrScriptTimestamp);
+    incrStatus.setIncrScriptCreated(streamCodeContext.isIncrScriptDirCreated());
+  }
+
   /**
    * @param module
    * @param getRcConfigInCache
    * @return
    * @throws Exception
    */
-  public static IndexIncrStatus getIndexIncrStatus(BasicModule module, boolean getRcConfigInCache) throws Exception {
+  public static IndexIncrStatus getIndexIncrStatus(IControlMsgHandler module, boolean getRcConfigInCache) throws Exception {
     IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
     IPluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
@@ -455,18 +448,17 @@ public class CoreAction extends BasicModule {
       return incrStatus;
     }
 
-
     k8s.checkUseable();
     IDeploymentDetail rcConfig = k8s.getRcConfig(getRcConfigInCache);
     return getIndexIncrStatus(module, rcConfig);
 
   }
 
-  public static IPluginStore<IncrStreamFactory> getIncrStreamFactoryStore(BasicModule module) {
+  public static IPluginStore<IncrStreamFactory> getIncrStreamFactoryStore(IControlMsgHandler module) {
     return getIncrStreamFactoryStore(module, false);
   }
 
-  private static IPluginStore<IncrStreamFactory> getIncrStreamFactoryStore(BasicModule module, boolean validateNull) {
+  private static IPluginStore<IncrStreamFactory> getIncrStreamFactoryStore(IControlMsgHandler module, boolean validateNull) {
     IPluginStore<IncrStreamFactory> store = TIS.getPluginStore(module.getCollectionName(), IncrStreamFactory.class);
     if (validateNull && store.getPlugin() == null) {
       throw new IllegalStateException("collection:" + module.getCollectionName() + " relevant IncrStreamFactory store can not be null");

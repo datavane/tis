@@ -29,6 +29,7 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginStore.ManipuldateProcessor;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.alert.AlertChannel;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -82,6 +83,10 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
             return manipuldateStore.values();
         }
 
+        public DefaultDataXProcessorManipulate getManipuldate(IdentityName id) {
+            return manipuldateStore.get(id);
+        }
+
         public void replace(DefaultDataXProcessorManipulate replace) {
             manipuldateStore.put(replace, replace);
         }
@@ -89,6 +94,13 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
         public void remove(IdentityName replace) {
             manipuldateStore.remove(replace);
         }
+    }
+
+    public interface MonitorForEventsManager {
+        String KEY_ALERT = "alert";
+        public boolean isActivate();
+
+        public List<AlertChannel> getAlertChannels();
     }
 
 

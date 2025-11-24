@@ -34,19 +34,12 @@ public interface IdentityName {
     String PLUGIN_IDENTITY_NAME = "identityName";
 
     public static IdentityName create(final String value) {
-        return new IdentityName() {
-            @Override
-            public String identityValue() {
-                return value;
-            }
-        };
+        return new DftIdentityName(value);
     }
-
     default boolean equalWithId(IdentityName identity) {
         return StringUtils.equals(identityValue()
                 , Objects.requireNonNull(identity, "identity can not be null").identityValue());
     }
-
 
 
     /**
