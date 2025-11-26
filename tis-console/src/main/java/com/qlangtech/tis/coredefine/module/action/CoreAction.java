@@ -272,7 +272,7 @@ public class CoreAction extends BasicModule {
      */
     final SubJobResName<FlinkJobDeployDTO> checkEnvironment =
       JobResName.createSubJob(getCollectionName() + " check environment", (dto) -> {
-        k8sClient.checkUseable();
+        k8sClient.checkUseable(true);
       });
 
 
@@ -427,14 +427,19 @@ public class CoreAction extends BasicModule {
     incrStatus.setIncrScriptCreated(streamCodeContext.isIncrScriptDirCreated());
   }
 
+  public static IndexIncrStatus getIndexIncrStatus(IControlMsgHandler module, boolean getRcConfigInCache) throws Exception {
+    IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
+    return getIndexIncrStatus(module, incrStatus, getRcConfigInCache);
+  }
+
   /**
    * @param module
    * @param getRcConfigInCache
    * @return
    * @throws Exception
    */
-  public static IndexIncrStatus getIndexIncrStatus(IControlMsgHandler module, boolean getRcConfigInCache) throws Exception {
-    IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
+  public static IndexIncrStatus getIndexIncrStatus(IControlMsgHandler module, IndexIncrStatus incrStatus, boolean getRcConfigInCache) throws Exception {
+
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
     IPluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
 
@@ -448,7 +453,7 @@ public class CoreAction extends BasicModule {
       return incrStatus;
     }
 
-    k8s.checkUseable();
+    k8s.checkUseable(false);
     IDeploymentDetail rcConfig = k8s.getRcConfig(getRcConfigInCache);
     return getIndexIncrStatus(module, rcConfig);
 
@@ -683,7 +688,7 @@ public class CoreAction extends BasicModule {
      */
     final SubJobResName<FlinkJobDeployDTO> checkEnvironment =
       JobResName.createSubJob(getCollectionName() + " check environment", (dto) -> {
-        k8sClient.checkUseable();
+        k8sClient.checkUseable(true);
       });
 
 
@@ -768,7 +773,7 @@ public class CoreAction extends BasicModule {
      */
     final SubJobResName<FlinkJobDeployDTO> checkEnvironment =
       JobResName.createSubJob(pipelineName + " check environment", (dto) -> {
-        k8sClient.checkUseable();
+        k8sClient.checkUseable(true);
       });
 
     /**

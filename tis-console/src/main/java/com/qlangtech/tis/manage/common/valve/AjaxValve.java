@@ -53,6 +53,12 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
 
   public static final String EXEC_NULL = "exec_null";
 
+  public static StringBuffer buildResultStruct(Context context) {
+    ActionExecResult r = new ActionExecResult(context).invoke();
+    return buildResultStruct(r, r.errorPageShow, r.errorMsgList, r.msgList, r.pluginErrorList, r.getBizResult()
+    );
+  }
+
   /**
    * 不需要在客户端显示成功信息
    */
@@ -112,11 +118,6 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
     //    } catch (JSONException e) {
     //      throw new IOException(e);
     //    }
-  }
-
-  public static StringBuffer buildResultStruct(Context context) {
-    ActionExecResult r = new ActionExecResult(context).invoke();
-    return buildResultStruct(r, r.errorPageShow, r.errorMsgList, r.msgList, r.pluginErrorList, r.getBizResult());
   }
 
   private static StringBuffer buildResultStruct(IExecResult actionExecResult, Boolean errorPageShow,

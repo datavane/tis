@@ -44,7 +44,7 @@ public class AlertTemplate implements Serializable {
 
         return AlertTemplate.builder()
                 .title("【TIS报警测试】Flink任务状态异常")
-                .subject("数据同步任务执行失败告警")
+                .subject("数据同步任务执行失败告警[测试]")
                 .jobName("mysql-to-doris-sync-job")
                 .status("FAILED")
                 .type(1) // 任务状态报警

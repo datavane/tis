@@ -20,24 +20,18 @@ package com.qlangtech.tis.plugin.alert.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.plugin.alert.AlertChannel;
 import com.qlangtech.tis.plugin.alert.AlertTemplate;
-import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -113,11 +107,16 @@ public class WeComAlertChannel extends AlertChannel {
     }
 
     @TISExtension
-    public static class DefaultDescriptor extends AlertChannelDescDesc {
+    public static class DefaultDescriptor extends AlertChannelDescDesc<WeComAlertChannel> {
 
         @Override
         public EndType getEndType() {
             return EndType.WeCom;
+        }
+
+        @Override
+        protected String verifySuccessMessage(WeComAlertChannel alertChannel) {
+            return "";
         }
     }
 }

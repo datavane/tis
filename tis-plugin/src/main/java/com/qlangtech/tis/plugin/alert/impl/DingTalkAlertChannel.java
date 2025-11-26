@@ -18,18 +18,17 @@
 
 package com.qlangtech.tis.plugin.alert.impl;
 
-import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.alert.AlertChannel;
 import com.qlangtech.tis.plugin.alert.AlertTemplate;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -38,7 +37,6 @@ import org.slf4j.LoggerFactory;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -52,10 +50,10 @@ public class DingTalkAlertChannel extends AlertChannel {
 
     private static final Logger logger = LoggerFactory.getLogger(DingTalkAlertChannel.class);
 
-    @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
+    @FormField(ordinal = 1, type = FormFieldType.PASSWORD, validate = {Validator.require})
     public String accessToken;
 
-    @FormField(ordinal = 2, type = FormFieldType.INPUTTEXT, validate = {})
+    @FormField(ordinal = 2, type = FormFieldType.PASSWORD, validate = {Validator.require})
     public String secret;
 
     @FormField(ordinal = 3, type = FormFieldType.ENUM, validate = {})
@@ -121,17 +119,16 @@ public class DingTalkAlertChannel extends AlertChannel {
             String stringToSign = timestamp + "\n" + this.secret;
 
             Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(this.secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
-            byte[] signData = mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
+            mac.init(new SecretKeySpec(this.secret.getBytes(TisUTF8.get()), "HmacSHA256"));
+            byte[] signData = mac.doFinal(stringToSign.getBytes(TisUTF8.get()));
 
-            String sign = URLEncoder.encode(Base64.encodeBase64String(signData), "UTF-8");
+            String sign = URLEncoder.encode(Base64.encodeBase64String(signData), TisUTF8.get());
 
             return baseUrl + "&timestamp=" + timestamp + "&sign=" + sign;
         }
 
         return baseUrl;
     }
-
 
 
     /**
@@ -143,12 +140,11 @@ public class DingTalkAlertChannel extends AlertChannel {
     }
 
     @TISExtension
-    public static class DefaultDescriptor extends AlertChannelDescDesc {
+    public static class DefaultDescriptor extends AlertChannelDescDesc<DingTalkAlertChannel> {
 
         @Override
-        protected boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
-
-            return true;
+        protected String verifySuccessMessage(DingTalkAlertChannel alertChannel) {
+            return "已经成功发送一条测试信息到指定的钉钉";
         }
 
         @Override

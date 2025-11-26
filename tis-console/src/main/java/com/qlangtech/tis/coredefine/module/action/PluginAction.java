@@ -881,7 +881,7 @@ public class PluginAction extends BasicModule {
     List<IPluginItemsProcessor> categoryPlugins = Lists.newArrayList();
 
     // 是否进行业务逻辑校验？当正式提交表单时候不进行业务逻辑校验，用户可能先添加一个不存在的数据库配置
-    final FormVaildateType verifyType = FormVaildateType.parse(this.getString("verify"));
+    final FormVaildateType verifyType = FormVaildateType.parse(this.getString(FormVaildateType.VERIFY.getToken()));
     Pair<Boolean, IPluginItemsProcessor> pluginItemsParser = null;
     for (int pluginIndex = 0; pluginIndex < plugins.size(); pluginIndex++) {
 

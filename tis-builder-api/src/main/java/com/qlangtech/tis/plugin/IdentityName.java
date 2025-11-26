@@ -36,6 +36,11 @@ public interface IdentityName {
     public static IdentityName create(final String value) {
         return new DftIdentityName(value);
     }
+
+    public static IdentityName create(final IdentityName value) {
+        return new DftIdentityName(value.identityValue());
+    }
+
     default boolean equalWithId(IdentityName identity) {
         return StringUtils.equals(identityValue()
                 , Objects.requireNonNull(identity, "identity can not be null").identityValue());

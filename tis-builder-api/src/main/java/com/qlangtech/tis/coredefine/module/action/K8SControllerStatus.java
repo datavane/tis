@@ -31,7 +31,7 @@ import java.util.Map;
  **/
 public class K8SControllerStatus {
     // k8s的RC是否已经创建
-    private IFlinkIncrJobStatus.State state;
+    private IFlinkIncrJobStatus.State state = IFlinkIncrJobStatus.State.NONE;
     private List<RcDeployment> rcDeployments;
     private Map<String, Object> payloads = Collections.emptyMap();
     private FlinkJobDeploymentDetails flinJobDetail;

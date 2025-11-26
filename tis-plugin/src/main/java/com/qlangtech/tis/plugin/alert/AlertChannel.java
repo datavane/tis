@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.plugin.alert;
 
+import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
@@ -27,8 +28,8 @@ import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 
 
 /**
@@ -208,11 +208,21 @@ public abstract class AlertChannel extends ParamsConfig {
         return AlertChannelDescDesc.class;
     }
 
-    public static abstract class AlertChannelDescDesc extends BasicParamsConfigDescriptor implements IEndTypeGetter {
+    public static abstract class AlertChannelDescDesc<T extends AlertChannel> extends BasicParamsConfigDescriptor implements IEndTypeGetter {
 
         public AlertChannelDescDesc() {
             super(KEY_CATEGORY);
         }
+
+        @Override
+        protected final boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+            T alertChannel = postFormVals.newInstance();
+            alertChannel.send(AlertTemplate.createDefault());
+            msgHandler.addActionMessage(context, this.verifySuccessMessage(alertChannel));
+            return true;
+        }
+
+        protected abstract String verifySuccessMessage(T alertChannel);
 
         @Override
         public final String getDisplayName() {

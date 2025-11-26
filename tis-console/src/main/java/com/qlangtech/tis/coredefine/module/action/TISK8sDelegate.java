@@ -130,8 +130,8 @@ public class TISK8sDelegate {
     return incrSync.hasCreated(this.indexName);
   }
 
-  public void checkUseable() {
-    incrSync.checkUseable(this.indexName);
+  public void checkUseable(boolean deploying) {
+    incrSync.checkUseable(this.indexName, deploying);
   }
 
   public static void main(String[] args) throws Exception {

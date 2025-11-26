@@ -33,11 +33,11 @@ import java.time.format.DateTimeFormatter;
  * @create: 2023-02-23 13:31
  **/
 public enum TimeFormat implements ITimeFormat {
-
-    yyyyMMddHHmmss(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) //
+    yyyyMMdd_HH_mm_ss(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) //
+    , yyyyMMddHHmmss(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) //
     , yyyyMMdd(DateTimeFormatter.ofPattern("yyyyMMdd")) //
     , yyyy_MM_dd(DateTimeFormatter.ofPattern(DATA_FORMAT));
-   // public static final String DATA_FORMAT = yyyy_MM_dd.timeFormatter.p;
+    // public static final String DATA_FORMAT = yyyy_MM_dd.timeFormatter.p;
     public static final ZoneId sysZoneId = ZoneOffset.systemDefault();
     public final DateTimeFormatter timeFormatter;
     public static Long timestampForTest;

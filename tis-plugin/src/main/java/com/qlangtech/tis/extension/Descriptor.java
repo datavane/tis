@@ -29,6 +29,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.IManipulateStatus;
 import com.qlangtech.tis.datax.impl.DataxReader.BaseDataxReaderDescriptor;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.impl.DataxWriter.BaseDataxWriterDescriptor;
@@ -70,6 +71,7 @@ import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.ISelectOptionsGetter;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.impl.AttrVals;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -206,7 +208,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 break;
             }
             try {
-                Method validateMethod = clazz.getDeclaredMethod("verify", IControlMsgHandler.class, Context.class,
+                Method validateMethod = clazz.getDeclaredMethod(FormVaildateType.VERIFY.getToken(), IControlMsgHandler.class,
+                        Context.class,
                         PostFormVals.class);
                 this.overWriteValidateMethod = true;//(validateMethod.getDeclaringClass() != Descriptor.class);
                 break;
@@ -361,25 +364,35 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         IdentityName id = null;
         Descriptor desc = null;
         JSONArray storeManipuldate = new JSONArray();
-        Map<String, Object> eprops = null;
+        // JSONObject eprops = null;
         try {
             for (Describable plugin : plugins) {
-                if (!(plugin instanceof IdentityName)) {
-                    throw new IllegalStateException("plugin must be a IdentityName:" + ToStringBuilder.reflectionToString(plugin));
-                }
-                desc = plugin.getDescriptor();
-                eprops = Maps.newHashMap();
-                id = (IdentityName) plugin;
-                eprops.put(IdentityName.PLUGIN_IDENTITY_NAME, id.identityValue());
-                eprops.put("descMeta"
-                        , DescriptorsJSON.createPluginFormPropertyTypes(desc, Optional.empty(), forAIPromote).getLeft());
 
-                storeManipuldate.add(eprops);
+                storeManipuldate.add(getManipulateMeta(forAIPromote, plugin));
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         return storeManipuldate;
+    }
+
+    public static JSONObject getManipulateMeta(boolean forAIPromote, Describable plugin) {
+        if (!(plugin instanceof IdentityName)) {
+            throw new IllegalStateException("plugin must be a IdentityName:"
+                    + ToStringBuilder.reflectionToString(plugin));
+        }
+        Descriptor desc = Objects.requireNonNull(plugin.getDescriptor(), "desc can not be null");
+        JSONObject eprops = new JSONObject();
+        IdentityName id = (IdentityName) plugin;
+        eprops.put(IdentityName.PLUGIN_IDENTITY_NAME, id.identityValue());
+        eprops.put("descMeta"
+                , DescriptorsJSON.createPluginFormPropertyTypes(
+                        desc, Optional.empty(), forAIPromote).getLeft());
+        if (plugin instanceof IManipulateStatus) {
+            IManipulateStatus status = (IManipulateStatus) plugin;
+            eprops.put("stateSummary", status.manipulateStatusSummary());
+        }
+        return eprops;
     }
 
 

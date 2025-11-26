@@ -166,11 +166,16 @@ public class HttpCallbackAlertChannel extends AlertChannel {
     }
 
     @TISExtension
-    public static class DefaultDescriptor extends AlertChannelDescDesc {
+    public static class DefaultDescriptor extends AlertChannelDescDesc<HttpCallbackAlertChannel> {
 
         @Override
         public EndType getEndType() {
             return EndType.Http;
+        }
+
+        @Override
+        protected String verifySuccessMessage(HttpCallbackAlertChannel alertChannel) {
+            return "已经成功调用 Http URL：" + alertChannel.callbackUrl;
         }
     }
 }

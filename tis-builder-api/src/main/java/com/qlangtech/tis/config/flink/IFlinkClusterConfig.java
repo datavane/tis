@@ -26,6 +26,8 @@ package com.qlangtech.tis.config.flink;
  **/
 public interface IFlinkClusterConfig {
 
+    String KEY_JOB_MANAGER_ADDRESS = "jobManagerAddress";
+
     static IFlinkClusterConfig create(IFlinkClusterConfig clusterConfig) {
         return new Dft(clusterConfig.getJobManagerAddress());
     }

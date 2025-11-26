@@ -54,6 +54,10 @@ public enum FormVaildateType {
         return this == VERIFY;
     }
 
+    public String getToken() {
+        return this.token;
+    }
+
     private FormVaildateType(String token) {
         this.token = token;
     }

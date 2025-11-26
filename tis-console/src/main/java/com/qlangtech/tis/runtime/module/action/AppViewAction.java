@@ -99,10 +99,7 @@ public class AppViewAction extends BasicModule {
     context.put("dptId", dptId);
 
     apps = this.getApplicationDAO().selectByExample(query, pager.getCurPage(), pager.getRowsPerPage())
-      .stream().map((app) -> {
-        ApplicationDelegate dlg = new ApplicationDelegate(app);
-        return dlg;
-      }).collect(Collectors.toList());
+      .stream().map(ApplicationDelegate::new).collect(Collectors.toList());
     // apps.forEach((app) -> {
 //      WorkFlow df = null;
 //      if (app.getWorkFlowId() != null && (df = getWorkflowDAOFacade().getWorkFlowDAO().selectByPrimaryKey(app.getWorkFlowId())) != null) {

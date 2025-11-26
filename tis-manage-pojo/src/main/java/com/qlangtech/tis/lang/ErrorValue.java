@@ -48,6 +48,11 @@ public class ErrorValue {
         return code;
     }
 
+
+    public <T> T getPayload(String key) {
+        return (T) this.payload.get(key);
+    }
+
     public Map<String, Object> getPayload() {
         return payload;
     }

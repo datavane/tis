@@ -28,7 +28,6 @@ import com.qlangtech.tis.plugin.alert.AlertTemplate;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -166,8 +165,7 @@ public class EmailAlertChannel extends AlertChannel {
     }
 
     @TISExtension
-    public static class DefaultDescriptor extends AlertChannelDescDesc {
-
+    public static class DefaultDescriptor extends AlertChannelDescDesc<EmailAlertChannel> {
 
         /**
          * 对接收人进行校验
@@ -192,13 +190,9 @@ public class EmailAlertChannel extends AlertChannel {
             return true;
         }
 
-
         @Override
-        protected boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
-            EmailAlertChannel alertChannel = postFormVals.newInstance();
-            alertChannel.send(AlertTemplate.createDefault());
-            msgHandler.addActionMessage(context, "已经成功发送一封邮件到：" + String.join(",", alertChannel.getRecipients()));
-            return true;
+        protected String verifySuccessMessage(EmailAlertChannel alertChannel) {
+            return "已经成功发送一封邮件到：" + String.join(",", alertChannel.getRecipients());
         }
 
         @Override

@@ -20,32 +20,35 @@ package com.qlangtech.tis.alert;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.config.flink.JobManagerAddress;
 import com.qlangtech.tis.coredefine.module.action.IFlinkIncrJobStatus;
 import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
 import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.DefaultDataXProcessorManipulate;
 import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.lang.ErrorValue;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.alert.AlertChannel;
 import com.qlangtech.tis.plugin.alert.AlertTemplate;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FalseFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.config.flink.IFlinkClusterConfig.KEY_JOB_MANAGER_ADDRESS;
 import static com.qlangtech.tis.coredefine.module.action.CoreAction.getIndexIncrStatus;
 
 /**
@@ -96,7 +99,80 @@ public class FlinkJobsMonitor implements InitializingBean {
 
       logger.debug("Flink jobs status check completed");
     } catch (Exception e) {
-      logger.error("Error during Flink jobs monitoring", e);
+      TisException.ErrMsg errMsg = TisException.getErrMsg(e);
+      ErrorValue errCode = errMsg.getErrCode();
+      if (errCode != null) {
+        if (errCode.getCode() == TisException.ErrorCode.FLINK_INSTANCE_LOSS_OF_CONTACT) {
+          this.doAlert(createNoneDeployment(errCode));
+        }
+      } else {
+        logger.error("Error during Flink jobs monitoring", e);
+      }
+
+    }
+  }
+
+  private static FlinkJobDeploymentDetails createNoneDeployment(ErrorValue errCode) {
+    return FlinkJobDeploymentDetails.noneState(
+      DataXName.createDataXPipeline(errCode.getPayload(IFullBuildContext.KEY_APP_NAME))
+      , () -> Optional.ofNullable((JobManagerAddress) errCode.getPayload(KEY_JOB_MANAGER_ADDRESS))
+        .orElseGet(() -> new JobManagerAddress("127.0.0.1", 8081)), new NoneFlinkIncrJobStatus());
+  }
+
+  private static class NoneFlinkIncrJobStatus implements IFlinkIncrJobStatus<Object> {
+    @Override
+    public State getState() {
+      return State.DISAPPEAR;
+    }
+
+    @Override
+    public Object createNewJob(Object o) {
+      return null;
+    }
+
+    @Override
+    public Object getLaunchJobID() {
+      return null;
+    }
+
+    @Override
+    public void relaunch(Object o) {
+
+    }
+
+    @Override
+    public void addSavePoint(String savepointDirectory, State state) {
+
+    }
+
+    @Override
+    public void discardSavepoint(String savepointDirectory) {
+
+    }
+
+    @Override
+    public void stop(String savepointDirectory) {
+
+    }
+
+    @Override
+    public void cancel() {
+
+    }
+
+    @Override
+    public Optional<FlinkSavepoint> containSavepoint(String path) {
+      return Optional.empty();
+    }
+
+    @Override
+    public void setState(State state) {
+
+    }
+
+    @Override
+    public List<FlinkSavepoint> getSavepointPaths() {
+      return List.of();
     }
   }
 
@@ -178,8 +254,10 @@ public class FlinkJobsMonitor implements InitializingBean {
         .restart(false, 0)
         .build();
 
+      Pair<List<AlertChannel>, DefaultDataXProcessorManipulate.MonitorForEventsManager>
+        pair = this.getPipelineAlertChannels(jobInfo.getJobName());
       // 获取所有配置的报警渠道
-      List<AlertChannel> alertChannels = this.getPipelineAlertChannels(jobInfo.getJobName());
+      List<AlertChannel> alertChannels = pair.getKey();
 
       if (alertChannels.isEmpty()) {
         logger.warn("No alert channels configured, skip sending alert for job [{}]",
@@ -187,18 +265,23 @@ public class FlinkJobsMonitor implements InitializingBean {
         return;
       }
 
+      boolean hasSuccess = false;
       // 通过每个报警渠道发送报警
       for (AlertChannel channel : alertChannels) {
         try {
           logger.info("Sending alert via channel [{}] for job [{}]",
             channel.identityValue(), jobInfo.getJobName());
           channel.send(alertTemplate);
+          hasSuccess = true;
         } catch (Exception e) {
           logger.error("Failed to send alert via channel [{}] for job [{}]",
             channel.identityValue(), jobInfo.getJobName(), e);
         }
       }
-
+      if (hasSuccess) {
+        // 用于前端展示
+        pair.getValue().addSendCount();
+      }
     } catch (Exception e) {
       logger.error("Error during alert execution for job [{}]", jobInfo.getJobName(), e);
     }
@@ -207,21 +290,18 @@ public class FlinkJobsMonitor implements InitializingBean {
   /**
    * 获取所有配置的报警渠道
    */
-  private List<AlertChannel> getPipelineAlertChannels(String pipelineName) {
-
+  private Pair<List<AlertChannel>, DefaultDataXProcessorManipulate.MonitorForEventsManager> getPipelineAlertChannels(String pipelineName) {
     DefaultDataXProcessorManipulate.DataXProcessorTemplateManipulateStore
       manipulateStore = DefaultDataXProcessorManipulate.getManipulateStore(pipelineName);
-    DefaultDataXProcessorManipulate manipuldate
-      = manipulateStore.getManipuldate(IdentityName.create(DefaultDataXProcessorManipulate.MonitorForEventsManager.KEY_ALERT));
-    if (manipuldate == null) {
-      return Collections.emptyList();
-    }
     DefaultDataXProcessorManipulate.MonitorForEventsManager monitorManager
-      = (DefaultDataXProcessorManipulate.MonitorForEventsManager) manipuldate;
-    if (!monitorManager.isActivate()) {
-      return Collections.emptyList();
+      = manipulateStore.getAlertManager();
+    if (monitorManager == null) {
+      return Pair.of(Collections.emptyList(), null);
     }
-    return monitorManager.getAlertChannels();
+    if (!monitorManager.isActivate()) {
+      return Pair.of(Collections.emptyList(), monitorManager);
+    }
+    return Pair.of(monitorManager.getAlertChannels(), monitorManager);
   }
 
   public static List<String> loadExistRunningIncrPipeline() {
@@ -257,8 +337,18 @@ public class FlinkJobsMonitor implements InitializingBean {
 
     List<FlinkJobDeploymentDetails> result = Lists.newArrayList();
     for (String pipelineName : loadExistRunningIncrPipeline()) {
-      IndexIncrStatus indexIncrStatus = getIndexIncrStatus(IControlMsgHandler.namedContext(pipelineName), false);
-      result.add(indexIncrStatus.getFlinkJobDetail());
+      IndexIncrStatus incrStatus = new IndexIncrStatus();
+      IndexIncrStatus indexIncrStatus
+        = getIndexIncrStatus(IControlMsgHandler.namedContext(pipelineName), incrStatus, false);
+
+      if (indexIncrStatus.getFlinkJobDetail() == null) {
+        ErrorValue errCode = ErrorValue.create(
+          TisException.ErrorCode.FLINK_INSTANCE_LOSS_OF_CONTACT, IFullBuildContext.KEY_APP_NAME, pipelineName);
+        indexIncrStatus.setFlinkJobDetail(createNoneDeployment(errCode));
+      }
+
+      result.add(Objects.requireNonNull(
+        indexIncrStatus.getFlinkJobDetail(), "pipelineName:" + pipelineName + " relevant FlinkJobDetail can not be null"));
     }
 
     return result; // 暂时返回空列表

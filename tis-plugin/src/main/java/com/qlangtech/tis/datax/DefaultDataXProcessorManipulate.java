@@ -40,6 +40,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -87,18 +88,32 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
             return manipuldateStore.get(id);
         }
 
+        public DefaultDataXProcessorManipulate.MonitorForEventsManager getAlertManager() {
+            DefaultDataXProcessorManipulate manipuldate
+                    = this.getManipuldate(IdentityName.create(DefaultDataXProcessorManipulate.MonitorForEventsManager.KEY_ALERT));
+            return (DefaultDataXProcessorManipulate.MonitorForEventsManager) manipuldate;
+//            if (manipuldate == null) {
+//                return Collections.emptyList();
+//            }
+//            DefaultDataXProcessorManipulate.MonitorForEventsManager monitorManager
+//                    = (DefaultDataXProcessorManipulate.MonitorForEventsManager) manipuldate;
+        }
+
         public void replace(DefaultDataXProcessorManipulate replace) {
-            manipuldateStore.put(replace, replace);
+            manipuldateStore.put(IdentityName.create(replace), replace);
         }
 
         public void remove(IdentityName replace) {
-            manipuldateStore.remove(replace);
+            manipuldateStore.remove(IdentityName.create(replace));
         }
     }
 
-    public interface MonitorForEventsManager {
+    public interface MonitorForEventsManager extends IManipulateStatus {
         String KEY_ALERT = "alert";
+
         public boolean isActivate();
+
+        public void addSendCount();
 
         public List<AlertChannel> getAlertChannels();
     }

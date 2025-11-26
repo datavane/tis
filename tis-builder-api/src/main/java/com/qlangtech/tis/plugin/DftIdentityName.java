@@ -36,4 +36,16 @@ class DftIdentityName implements IdentityName {
     public String identityValue() {
         return this.value;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DftIdentityName)) return false;
+        DftIdentityName that = (DftIdentityName) o;
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
+    }
 }

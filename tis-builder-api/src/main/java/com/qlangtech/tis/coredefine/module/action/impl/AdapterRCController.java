@@ -66,7 +66,7 @@ public class AdapterRCController implements IRCController {
     }
 
     @Override
-    public void checkUseable(TargetResName collection
+    public void checkUseable(TargetResName collection, boolean deploying
     ) {
         throw new UnsupportedOperationException();
     }

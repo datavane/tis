@@ -26,7 +26,8 @@
 
 
   <task:scheduled-tasks>
-    <task:scheduled ref="flinkJobsMonitor" method="executeTask" fixed-rate="30000"/>
+    <!--两分钟执行一次-->
+    <task:scheduled ref="flinkJobsMonitor" method="executeTask" fixed-rate="120000"/>
   </task:scheduled-tasks>
 
   <bean id="flinkJobsMonitor" class="com.qlangtech.tis.alert.FlinkJobsMonitor"/>

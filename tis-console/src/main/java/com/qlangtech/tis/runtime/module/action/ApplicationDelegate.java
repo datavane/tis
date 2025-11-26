@@ -53,7 +53,6 @@ public class ApplicationDelegate {
       return null;
     }
     return Descriptor.getManipulateMetas(false, manipulates);
-
   }
 
   public Date getLastProcessTime() {

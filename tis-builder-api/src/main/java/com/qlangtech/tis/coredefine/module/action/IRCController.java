@@ -30,10 +30,14 @@ import com.qlangtech.tis.trigger.jst.ILogListener;
  */
 public interface IRCController {
 
+
     /**
      * 连接是否可用进行校验，如果连接不可用直接抛出TisException
+     *
+     * @param collection
+     * @param deploying  标记是否是在部署流程中，部署流程中还需要对job的slot数目进行校验
      */
-    void checkUseable(TargetResName collection);
+    void checkUseable(TargetResName collection, boolean deploying);
 
     /**
      * 实例是否已经创建

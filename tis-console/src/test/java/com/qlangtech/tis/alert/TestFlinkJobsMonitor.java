@@ -16,21 +16,18 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.config.flink;
+package com.qlangtech.tis.alert;
+
+import junit.framework.TestCase;
 
 /**
- * @author: 百岁（baisui@qlangtech.com）
- * @create: 2024-01-07 12:56
- **/
-class Dft implements IFlinkClusterConfig {
-    private final JobManagerAddress managerAddress;
-
-    public Dft(JobManagerAddress managerAddress) {
-        this.managerAddress = managerAddress;
-    }
-
-    @Override
-    public JobManagerAddress getJobManagerAddress() {
-        return managerAddress;
-    }
+ *
+ * @author 百岁 (baisui@qlangtech.com)
+ * @date 2025/11/25
+ */
+public class TestFlinkJobsMonitor extends TestCase {
+  public void testExecuteTask() {
+    FlinkJobsMonitor monitor = new FlinkJobsMonitor();
+    monitor.executeTask();
+  }
 }

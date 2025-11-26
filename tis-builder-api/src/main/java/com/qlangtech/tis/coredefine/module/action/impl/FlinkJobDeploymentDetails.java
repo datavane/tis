@@ -21,6 +21,9 @@ package com.qlangtech.tis.coredefine.module.action.impl;
 import com.qlangtech.tis.config.flink.IFlinkClusterConfig;
 import com.qlangtech.tis.coredefine.module.action.IDeploymentDetail;
 import com.qlangtech.tis.coredefine.module.action.IFlinkIncrJobStatus;
+import com.qlangtech.tis.datax.DataXName;
+
+import java.util.Objects;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -29,8 +32,8 @@ import com.qlangtech.tis.coredefine.module.action.IFlinkIncrJobStatus;
 public abstract class FlinkJobDeploymentDetails implements IDeploymentDetail {
 
 
-    public static FlinkJobDeploymentDetails noneState(IFlinkClusterConfig clusterCfg, IFlinkIncrJobStatus incrJobStatus) {
-        return new NoneStateDetail(clusterCfg, incrJobStatus);
+    public static FlinkJobDeploymentDetails noneState(DataXName dataXName, IFlinkClusterConfig clusterCfg, IFlinkIncrJobStatus incrJobStatus) {
+        return new NoneStateDetail(dataXName, clusterCfg, incrJobStatus);
     }
 
     private final IFlinkClusterConfig clusterCfg;
@@ -65,8 +68,11 @@ public abstract class FlinkJobDeploymentDetails implements IDeploymentDetail {
     }
 
     private static class NoneStateDetail extends FlinkJobDeploymentDetails {
-        public NoneStateDetail(IFlinkClusterConfig clusterCfg, IFlinkIncrJobStatus incrJobStatus) {
+        private final DataXName dataXName;
+
+        public NoneStateDetail(DataXName dataXName, IFlinkClusterConfig clusterCfg, IFlinkIncrJobStatus incrJobStatus) {
             super(clusterCfg, incrJobStatus);
+            this.dataXName = Objects.requireNonNull(dataXName, "dataXName can not be null");
         }
 
         @Override
@@ -76,7 +82,7 @@ public abstract class FlinkJobDeploymentDetails implements IDeploymentDetail {
 
         @Override
         public String getJobName() {
-            return null;
+            return dataXName.getPipelineName();
         }
 
         @Override

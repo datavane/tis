@@ -52,10 +52,10 @@ public class LarkAlertChannel extends AlertChannel {
     @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.url})
     public String webhookUrl;
 
-    @FormField(ordinal = 2, type = FormFieldType.PASSWORD, validate = {})
+    @FormField(ordinal = 2, type = FormFieldType.PASSWORD, validate = {Validator.require})
     public String secret;
 
-    @FormField(ordinal = 3, type = FormFieldType.ENUM, validate = {})
+    @FormField(ordinal = 3, type = FormFieldType.ENUM, validate = {Validator.require})
     public Boolean atAll = false;
 
     @Override
@@ -164,11 +164,16 @@ public class LarkAlertChannel extends AlertChannel {
     }
 
     @TISExtension
-    public static class DefaultDescriptor extends AlertChannelDescDesc {
+    public static class DefaultDescriptor extends AlertChannelDescDesc<LarkAlertChannel> {
 
         @Override
         public EndType getEndType() {
             return EndType.Lark;
+        }
+
+        @Override
+        protected String verifySuccessMessage(LarkAlertChannel alertChannel) {
+            return "已经成功发送消息到飞书";
         }
     }
 }
