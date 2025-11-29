@@ -44,7 +44,7 @@
 
 
     <properties>
-        <revision>4.3.0</revision>
+        <revision>5.0.0-SNAPSHOT</revision>
         <testcontainers.version>1.15.3</testcontainers.version>
         <flink.version>tis-1.20.1</flink.version>
         <alibaba.datax.version>${project.version}</alibaba.datax.version>

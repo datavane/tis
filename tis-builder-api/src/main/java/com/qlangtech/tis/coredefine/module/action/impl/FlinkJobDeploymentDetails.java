@@ -44,7 +44,7 @@ public abstract class FlinkJobDeploymentDetails implements IDeploymentDetail {
     public abstract String getJobName();
 
     public final String getJobManagerUrl() {
-        return this.clusterCfg.getJobManagerAddress().getUrl() + "/#/job/" + this.getJobId() + "/overview";
+        return this.clusterCfg.getJobManagerAddress().getUrl() + "/#/job/running/" + this.getJobId() + "/overview";
     }
 
     public abstract boolean isRunning();

@@ -90,7 +90,7 @@ public class IndexCollectionConfig extends ParamsConfig {
 
         @Override
         public String helpPath() {
-            return "docs/guide/metric-collect-frequency";
+            return "docs/guide/rate-controller";
         }
 
         public boolean validateDuration(IFieldErrorHandler msgHandler, Context context, String fieldName, String value) {

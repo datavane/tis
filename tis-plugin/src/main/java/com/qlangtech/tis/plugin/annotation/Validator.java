@@ -53,7 +53,12 @@ public enum Validator {
     email((msgHandler, context, fieldKey, fieldData) -> {
         return validatePattern(msgHandler, context, rule(ValidatorCommons.EMAIL_PATTERN, ValidatorCommons.MSG_EMAIL_ERROR)
                 , fieldKey, fieldData);
-    }), forbid_start_with_number((msgHandler, context, fieldKey, fieldData) -> {
+    }),
+    mobile((msgHandler, context, fieldKey, fieldData) -> {
+        return validatePattern(msgHandler, context, rule(ValidatorCommons.MOBILE_PATTERN, ValidatorCommons.MSG_MOBILE_ERROR)
+                , fieldKey, fieldData);
+    }),
+    forbid_start_with_number((msgHandler, context, fieldKey, fieldData) -> {
         // 禁止以数字开头
         return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_FORBID_START_WITH_NUMBER,
                 ValidatorCommons.MSG_FORBID_START_WITH_NUMBER), fieldKey, fieldData);

@@ -72,6 +72,9 @@ public interface ValidatorCommons {
     // 基础的正则表达式
     Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     String MSG_EMAIL_ERROR = "必须符合Email格式，" + EMAIL_PATTERN.pattern();
+
+    Pattern MOBILE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
+    String MSG_MOBILE_ERROR = "必须符合手机格式，" + MOBILE_PATTERN.pattern();
     /**
      * 非数字开头
      */

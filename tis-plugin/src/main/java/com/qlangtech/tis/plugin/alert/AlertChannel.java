@@ -19,6 +19,7 @@
 package com.qlangtech.tis.plugin.alert;
 
 import com.alibaba.citrus.turbine.Context;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
@@ -30,6 +31,7 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +73,14 @@ public abstract class AlertChannel extends ParamsConfig {
     @Override
     public AlertChannel createConfigInstance() {
         return this;
+    }
+
+    protected static List<String> getMobile(String value) {
+        if (StringUtils.isNotEmpty(value)) {
+            String[] mobiles = value.split(",");
+            return Lists.newArrayList(mobiles);
+        }
+        return Collections.emptyList();
     }
 
     /**
