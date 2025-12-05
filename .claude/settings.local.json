@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Read(//opt/misc/flink-cdc/flink-cdc-connect/flink-cdc-source-connectors/flink-connector-dameng-cdc/**)",
+      "Read(//opt/misc/flink-cdc/**)",
+      "Bash(cat:*)",
+      "Bash(mvn clean compile:*)",
+      "Bash(tee:*)",
+      "Read(//opt/misc/debezium/**)",
+      "Read(//Users/mozhenghua/**)"
     ],
     "deny": [],
     "ask": []

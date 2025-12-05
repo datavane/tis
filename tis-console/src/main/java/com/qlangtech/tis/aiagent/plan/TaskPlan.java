@@ -39,6 +39,7 @@ import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,8 +78,8 @@ public class TaskPlan {
   }
 
   private static void setPluginMeta(Context ctx) {
-    ctx.put(UploadPluginMeta.KEY_PLUGIN_META, UploadPluginMeta.create(HeteroEnum.APP_SOURCE)
-      .putExtraParams(DBIdentity.KEY_UPDATE, Boolean.FALSE.toString()));
+    ctx.put(UploadPluginMeta.KEY_PLUGIN_META,
+      UploadPluginMeta.create(HeteroEnum.APP_SOURCE).putExtraParams(DBIdentity.KEY_UPDATE, Boolean.FALSE.toString()));
   }
 
   /**
@@ -91,10 +92,9 @@ public class TaskPlan {
 
   private void checkDescribableImplHasSet(Map<Class<? extends Describable>, DescribableImpl> extendPoints) {
     for (DescribableImpl dImpl : extendPoints.values()) {
-      if (CollectionUtils.isEmpty(dImpl.getImpls())) {
-        throw TisException.create(dImpl.getExtendPoint().getSimpleName()
-            + "：" + dImpl.getEndType().map(String::valueOf).orElse(StringUtils.EMPTY) + "，请确认对应的端目前是否支持")
-          .setPayloadLink(new PayloadLink("TIS支持的端类型", "https://tis.pub/docs/plugin/source-sink/"));
+      if (!dImpl.isIncrStreamEndType() && CollectionUtils.isEmpty(dImpl.getImpls())) {
+        // 批量必须要有端类型实现插件，增量可以没有
+        throw TisException.create(dImpl.getExtendPoint().getSimpleName() + "：" + dImpl.getEndType().map(String::valueOf).orElse(StringUtils.EMPTY) + "，请确认对应的端目前是否支持").setPayloadLink(new PayloadLink("TIS支持的端类型", "https://tis.pub/docs/plugin/source-sink/"));
       }
     }
   }
@@ -108,7 +108,8 @@ public class TaskPlan {
   private final LLMProvider llmProvider;
   private final IControlMsgHandler controlMsgHandler;
 
-  public TaskPlan(SourceDataEndCfg sourceEnd, DataEndCfg targetEnd, LLMProvider llmProvider, IControlMsgHandler controlMsgHandler) {
+  public TaskPlan(SourceDataEndCfg sourceEnd, DataEndCfg targetEnd, LLMProvider llmProvider,
+                  IControlMsgHandler controlMsgHandler) {
     this.steps = new ArrayList<>();
     this.createTime = System.currentTimeMillis();
     this.llmProvider = Objects.requireNonNull(llmProvider, "llmProvider can not be null");
@@ -117,12 +118,13 @@ public class TaskPlan {
     this.controlMsgHandler = Objects.requireNonNull(controlMsgHandler, "controlMsgHandler can not be null");
 
 
-    this.processorExtendPoints = new DescribableImpl(IAppSource.class, Optional.empty())
-      .addImpl("com.qlangtech.tis.plugin.datax.DefaultDataxProcessor");
+    this.processorExtendPoints = new DescribableImpl(IAppSource.class, Optional.empty()).addImpl("com.qlangtech.tis"
+      + ".plugin.datax.DefaultDataxProcessor");
 
     ImmutableMap.Builder<Class<? extends Describable>, DescribableImpl> mapBuilder = new ImmutableMap.Builder<>();
     mapBuilder.put(DataxReader.class, new DescribableImpl(DataxReader.class, Optional.of(sourceEnd.getType())));
-    mapBuilder.put(MQListenerFactory.class, new DescribableImpl(MQListenerFactory.class, Optional.of(sourceEnd.getType())));
+    mapBuilder.put(MQListenerFactory.class, new DescribableImpl(MQListenerFactory.class,
+      Optional.of(sourceEnd.getType())));
 
     this.readerExtendPoints = mapBuilder.build();
 
@@ -192,9 +194,7 @@ public class TaskPlan {
   }
 
   public int getCompletedSteps() {
-    return (int) steps.stream()
-      .filter(step -> step.getStatus() == TaskStep.Status.COMPLETED)
-      .count();
+    return (int) steps.stream().filter(step -> step.getStatus() == TaskStep.Status.COMPLETED).count();
   }
 
   /**
@@ -236,7 +236,7 @@ public class TaskPlan {
   }
 
   public static class SourceDataEndCfg extends DataEndCfg {
-    private List<String> selectedTabs;
+    private String extraSelectedTabInfo;
     /**
      * 对应管道的profile
      */
@@ -255,12 +255,12 @@ public class TaskPlan {
       super(type);
     }
 
-    public List<String> getSelectedTabs() {
-      return this.selectedTabs;
+    public String getExtraSelectedTabInfo() {
+      return this.extraSelectedTabInfo;
     }
 
-    public void setSelectedTabs(List<String> selectedTabs) {
-      this.selectedTabs = selectedTabs;
+    public void setExtraSelectedTabInfo(String info) {
+      this.extraSelectedTabInfo = info;
     }
 
     public void setExecuteBatch(boolean val) {
@@ -287,6 +287,10 @@ public class TaskPlan {
     public void setProcessor(IAppSource processor) {
       this.processor = processor;
     }
+
+//    public List<String> getSelectedTabs() {
+//      return null;
+//    }
   }
 
 }

@@ -55,12 +55,11 @@ public class AttrValMap {
     private static final ThreadLocal<Descriptor> currentRootPluginValidator = new ThreadLocal<>();
 
     public static void setCurrentRootPluginValidator(Descriptor descriptor) {
-        currentRootPluginValidator.set(descriptor);
+        currentRootPluginValidator.set(Objects.requireNonNull(descriptor, "descriptor can not be null"));
     }
 
     public static Descriptor getCurrentRootPluginValidator() {
-        return Objects.requireNonNull(currentRootPluginValidator.get()
-                , "currentRootPluginValidator must be present");
+        return Objects.requireNonNull(currentRootPluginValidator.get(), "currentRootPluginValidator must be present");
     }
 
     public static void removeCurrentRootPluginValidator() {
@@ -81,7 +80,8 @@ public class AttrValMap {
     }
 
     public static List<AttrValMap> describableAttrValMapList(JSONArray itemsArray,
-                                                             Optional<SubFormFilter> subFormFilter, PropValRewrite propValRewrite) {
+                                                             Optional<SubFormFilter> subFormFilter,
+                                                             PropValRewrite propValRewrite) {
         List<AttrValMap> describableAttrValMapList = Lists.newArrayList();
         AttrValMap describableAttrValMap = null;
         JSONObject itemObj = null;
@@ -100,12 +100,10 @@ public class AttrValMap {
 
 
     public static AttrValMap parseDescribableMap(Optional<SubFormFilter> subFormFilter,
-                                                 com.alibaba.fastjson.JSONObject jsonObject, PropValRewrite propValRewrite) {
-        String impl = null;
-        Descriptor descriptor;
-        impl = Objects.requireNonNull(jsonObject, "jsonObject can not be null")
-                .getString(PLUGIN_EXTENSION_IMPL);
-        descriptor = TIS.get().getDescriptor(impl);
+                                                 com.alibaba.fastjson.JSONObject jsonObject,
+                                                 PropValRewrite propValRewrite) {
+        String impl = Objects.requireNonNull(jsonObject, "jsonObject can not be null").getString(PLUGIN_EXTENSION_IMPL);
+        Descriptor descriptor = TIS.get().getDescriptor(impl);
         if (descriptor == null) {
             throw new IllegalStateException("impl:" + impl + " can not find relevant ");
         }
@@ -114,8 +112,8 @@ public class AttrValMap {
         return new AttrValMap(attrValMap, subFormFilter, descriptor, propValRewrite);
     }
 
-    private AttrValMap(
-            AttrVals attrValMap, Optional<SubFormFilter> subFormFilter, Descriptor descriptor, PropValRewrite propValRewrite) {
+    private AttrValMap(AttrVals attrValMap, Optional<SubFormFilter> subFormFilter, Descriptor descriptor,
+                       PropValRewrite propValRewrite) {
         this.attrValMap = attrValMap;
         this.descriptor = descriptor;
         //  this.msgHandler = msgHandler;
@@ -138,9 +136,7 @@ public class AttrValMap {
     }
 
     private Object getPKVal() {
-        return this.getAttrVals()
-                .getPrimaryVal(Objects.requireNonNull(this.descriptor, "descriptor can not be null")
-                        .getIdentityField().propertyName());
+        return this.getAttrVals().getPrimaryVal(Objects.requireNonNull(this.descriptor, "descriptor can not be null").getIdentityField().propertyName());
     }
 
     /**
@@ -167,9 +163,12 @@ public class AttrValMap {
                 // 说明是describle类型的
                 JSONObject pluginBody = propVal.getJSONObject(KEY_DESC_VAL);
                 JSONObject pluginVals = new JSONObject();
-                JSONObject rawVals = pluginBody.getJSONObject(PLUGIN_EXTENSION_VALS);
-                for (Map.Entry<String, Object> entry : rawVals.entrySet()) {
-                    convertFieldVal(pluginVals, entry.getKey(), (JSON) entry.getValue());
+                //"field:" + field + ",prop:" + PLUGIN_EXTENSION_VALS + " relevant val can not be null"
+                JSONObject rawVals = (pluginBody.getJSONObject(PLUGIN_EXTENSION_VALS));
+                if (rawVals != null) {
+                    for (Map.Entry<String, Object> entry : rawVals.entrySet()) {
+                        convertFieldVal(pluginVals, entry.getKey(), (JSON) entry.getValue());
+                    }
                 }
                 pluginBody.put(PLUGIN_EXTENSION_VALS, pluginVals);
                 vals.put(field, pluginBody);
@@ -182,7 +181,8 @@ public class AttrValMap {
     }
 
 
-    public Descriptor.PluginValidateResult validate(IControlMsgHandler msgHandler, Context context, FormVaildateType verify, Optional<PostFormVals> parentFormVals) {
+    public Descriptor.PluginValidateResult validate(IControlMsgHandler msgHandler, Context context,
+                                                    FormVaildateType verify, Optional<PostFormVals> parentFormVals) {
         return this.validate(msgHandler, context, Optional.empty(), verify, parentFormVals);
     }
 
@@ -193,10 +193,11 @@ public class AttrValMap {
      * @param verify  是否进行业务逻辑校验
      * @return true：校验没有错误 false：校验有错误
      */
-    public Descriptor.PluginValidateResult validate(
-            IControlMsgHandler msgHandler, Context context
-            , Optional<PluginFormProperties> propertyTypes, FormVaildateType verify, Optional<PostFormVals> parentFormVals) {
-        return this.descriptor.verify(msgHandler, context, verify, attrValMap, propertyTypes, subFormFilter, this.propValRewrite, parentFormVals);
+    public Descriptor.PluginValidateResult validate(IControlMsgHandler msgHandler, Context context,
+                                                    Optional<PluginFormProperties> propertyTypes,
+                                                    FormVaildateType verify, Optional<PostFormVals> parentFormVals) {
+        return this.descriptor.verify(msgHandler, context, verify, attrValMap, propertyTypes, subFormFilter,
+                this.propValRewrite, parentFormVals);
     }
 
     public Descriptor.ParseDescribable createDescribable(IControlMsgHandler pluginContext, Context context) {
@@ -208,8 +209,10 @@ public class AttrValMap {
      *
      * @return
      */
-    public Descriptor.ParseDescribable createDescribable(IControlMsgHandler pluginContext, Context context, Optional<PluginFormProperties> formProperties) {
-        return this.descriptor.parseDescribable(pluginContext, context, this.attrValMap, (formProperties), this.subFormFilter, this.propValRewrite);
+    public Descriptor.ParseDescribable createDescribable(IControlMsgHandler pluginContext, Context context,
+                                                         Optional<PluginFormProperties> formProperties) {
+        return this.descriptor.parseDescribable(pluginContext, context, this.attrValMap, (formProperties),
+                this.subFormFilter, this.propValRewrite);
     }
 
     public int size() {

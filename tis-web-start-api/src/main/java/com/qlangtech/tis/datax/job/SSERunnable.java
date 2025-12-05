@@ -141,6 +141,12 @@ public interface SSERunnable extends Runnable, IJobFeedback {
         // 显示先前正在安装的插件的安装进度
         AI_AGNET_PLUGIN_INSTALL_STATUS("ai_agent_plugin_install_status"),
         /**
+         * 当执行tdfs（非rdbms）同步mysql（rdbms）类型的场景
+         * 只有在reader为非rdbms，writer为rdbms的情况下进入该component设置
+         * ColsMetaSetter
+         */
+        AI_AGNET_TDFS_COLS_META_SETTER("ai_agent_tdfs_cols_meta_setter"),
+        /**
          * 让用户选择不同的Descriptor（例如：MySQL-v5、MySQL-v8之一）
          */
         AI_AGNET_SELECTION_REQUEST("ai_agent_selection_request"),

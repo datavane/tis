@@ -39,6 +39,7 @@ import com.qlangtech.tis.plugin.llm.log.DefaultExecuteLog;
 import com.qlangtech.tis.plugin.llm.log.ExecuteLog;
 import com.qlangtech.tis.plugin.llm.log.NoneExecuteLog;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -53,6 +54,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 阿里通义千问大模型Provider实现<br/>
@@ -84,7 +86,10 @@ public class QWenLLMProvider extends LLMProvider {
     @FormField(type = FormFieldType.INT_NUMBER, ordinal = 3, validate = {Validator.require, Validator.integer})
     public Integer maxTokens;
 
-    @FormField(type = FormFieldType.ENUM, advance = true, ordinal = 4, validate = {Validator.require})
+    /**
+     *阿里云各种模型 https://bailian.console.aliyun.com/?spm=5176.29619931.J_XNqYbJaEnpB5_cCJf7e6D.1.544a10d7BmxbRi&tab=doc#/doc/?type=model&url=2987148
+     */
+    @FormField(type = FormFieldType.ENUM, ordinal = 4, validate = {Validator.require})
     public String model;
 
     @FormField(type = FormFieldType.DECIMAL_NUMBER, advance = true, ordinal = 5, validate = {Validator.require})
@@ -95,6 +100,9 @@ public class QWenLLMProvider extends LLMProvider {
 
     @FormField(type = FormFieldType.DURATION_OF_SECOND, advance = true, ordinal = 7, validate = {Validator.require, Validator.integer})
     public Duration readTimeout;
+
+    @FormField(type = FormFieldType.INT_NUMBER, advance = true, ordinal = 8, validate = {Validator.require, Validator.integer})
+    public Integer maxRetry;
 
     /**
      * 是否开启流式输出
@@ -157,6 +165,11 @@ public class QWenLLMProvider extends LLMProvider {
                 @Override
                 public ContentType getContentType() {
                     return ContentType.JSON;
+                }
+
+                @Override
+                public int getMaxRetry() {
+                    return Objects.requireNonNull(maxRetry, "maxRetry can not be null");
                 }
 
                 @Override
@@ -260,7 +273,7 @@ public class QWenLLMProvider extends LLMProvider {
         // 增强prompt，要求返回JSON格式
         String enhancedPrompt = prompt.getPrompt();
         if (StringUtils.isNotEmpty(jsonSchema)) {
-            enhancedPrompt += "\n\n请严格按照以下JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + jsonSchema;
+            enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + jsonSchema;
             enhancedPrompt += "\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。";
         }
 
@@ -374,6 +387,20 @@ public class QWenLLMProvider extends LLMProvider {
             }
 
             return super.verify(msgHandler, context, postFormVals);
+        }
+
+
+        public boolean validateMaxRetry(IFieldErrorHandler msgHandler, Context context, String fieldName, String value) {
+            int retryCount = Integer.parseInt(value);
+            if (retryCount < 1) {
+                msgHandler.addFieldError(context, fieldName, "不能小于1");
+                return false;
+            }
+            if (retryCount > 3) {
+                msgHandler.addFieldError(context, fieldName, "不能大于3");
+                return false;
+            }
+            return true;
         }
 
         @Override

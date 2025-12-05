@@ -16,36 +16,34 @@
  * limitations under the License.
  */
 
-package com.qlangtech.tis.aiagent.core;
+package com.qlangtech.tis.aiagent.sessiondata;
 
-import java.util.List;
-import java.util.Objects;
+import com.qlangtech.tis.aiagent.core.ISessionData;
+import com.qlangtech.tis.plugin.IdentityName;
 
 /**
+ * tdfs 同步到 mysql 分布式文件系统，需要确定tdfs端的列类型
  *
  * @author 百岁 (baisui@qlangtech.com)
- * @date 2025/10/24
+ * @date 2025/12/3
  */
-public class TableSelectApplySessionData implements ISessionData {
-  /**
-   * 表选择确认，为true则说明表学则流程已经成功了
-   */
-  private boolean tableSelectConfirm;
-  private List<String> selectedTabs;
+public class ColsMetaSetterSessionData implements ISessionData {
+  private boolean hasValidSet;
+  private final IdentityName pipeline;
 
-  public boolean isTableSelectConfirm() {
-    return tableSelectConfirm;
+  public ColsMetaSetterSessionData(IdentityName pipeline) {
+    this.pipeline = pipeline;
   }
 
-  public void setTableSelectConfirm(boolean tableSelectConfirm) {
-    this.tableSelectConfirm = tableSelectConfirm;
+  public boolean isHasValidSet() {
+    return hasValidSet;
   }
 
-  public void setTableSelected(List<String> selectedTabs) {
-    this.selectedTabs = Objects.requireNonNull(selectedTabs, "selectedTabs can not be null");
+  public IdentityName getPipeline() {
+    return pipeline;
   }
 
-  public List<String> getSelectedTabs() {
-    return this.selectedTabs;
+  public void setHasValidSet(boolean hasValidSet) {
+    this.hasValidSet = hasValidSet;
   }
 }

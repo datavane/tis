@@ -67,6 +67,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.plugin.IEndTypeGetter.EndType.KEY_END_TYPE;
 import static com.qlangtech.tis.util.HeteroEnum.DATASOURCE;
 
 /**
@@ -488,7 +489,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             option.put(KEY_DISABLE_PLUGIN_INSTALL, false);
             option.put("extendpoint", this.getHetero().getExtensionPoint().getName());
             endType.ifPresent((et) -> {
-                option.put("endType", et.getVal());
+                option.put(KEY_END_TYPE, et.getVal());
             });
             option.put(KEY_INSTALLED, this.getInstalledPluginDescriptor() != null);
             Descriptor<?> installedDesc = this.getInstalledPluginDescriptor();

@@ -18,7 +18,6 @@
 package com.qlangtech.tis.coredefine.module.action;
 
 import com.alibaba.citrus.turbine.Context;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.IPluginEnum;
@@ -27,9 +26,13 @@ import com.qlangtech.tis.aiagent.core.PluginPropsComplement;
 import com.qlangtech.tis.aiagent.core.RequestKey;
 import com.qlangtech.tis.aiagent.core.SelectionOptions;
 import com.qlangtech.tis.aiagent.core.TISPlanAndExecuteAgent;
-import com.qlangtech.tis.aiagent.core.TableSelectApplySessionData;
+import com.qlangtech.tis.aiagent.sessiondata.ColsMetaSetterSessionData;
+import com.qlangtech.tis.aiagent.sessiondata.TableSelectApplySessionData;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.template.TaskTemplateRegistry;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.TableAliasMapper;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
@@ -37,10 +40,7 @@ import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.common.UserProfile;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
-import com.qlangtech.tis.util.AdapterPluginContext;
 import com.qlangtech.tis.util.AttrValMap;
-import com.qlangtech.tis.util.DescribableJSON;
-import com.qlangtech.tis.util.ItemsSaveResult;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
@@ -278,8 +278,8 @@ public class ChatPipelineAction extends BasicModule {
     // 保存AgentContext到session中，供submitSelection使用
     session.setAgentContext(agentContext);
 
-
-    final LLMProvider llmProvider = LLMProvider.load(this, "default");
+    UserProfile userProfile = Objects.requireNonNull(UserProfile.load(this, true));
+    final LLMProvider llmProvider = userProfile.getLlmProvider();// LLMProvider.load(this, "default");
     // 异步执行Agent任务
     String finalSessionId = sessionId;
 
@@ -348,6 +348,25 @@ public class ChatPipelineAction extends BasicModule {
     JSONObject result = new JSONObject();
     result.put("success", true);
     this.setBizResult(context, result);
+  }
+
+  /**
+   * 确认tdfs的列已经设置
+   *
+   * @param context
+   */
+  @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
+  public void doCheckTdfsColsMetaSetterDialog(Context context) {
+    JSONObject jsonContent = this.getJSONPostContent();
+    RequestKey requestId = RequestKey.create(jsonContent.getString(KEY_REQUEST_ID));
+    ChatSession session = getChatSession(jsonContent);
+    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(), "agentContext can not be null");
+    ColsMetaSetterSessionData colsMetaSetter = agentContext.getSessionData(requestId);
+    IDataxProcessor processor = DataxProcessor.load(this, colsMetaSetter.getPipeline().identityValue());
+    TableAliasMapper tabAlias = processor.getTabAlias(this);
+    colsMetaSetter.setHasValidSet(tabAlias != TableAliasMapper.Null);
+    agentContext.notifyUserSelectionSubmitted(requestId);
+    this.setBizResult(context, colsMetaSetter.isHasValidSet());
   }
 
   /**

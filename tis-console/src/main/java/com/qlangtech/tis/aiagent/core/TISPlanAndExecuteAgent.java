@@ -95,8 +95,8 @@ public class TISPlanAndExecuteAgent {
       return;
     }
 
-    context.sendMessage(String.format("我已经理解您的需求：从%s同步到%s。现在开始执行...",
-      plan.getSourceEnd().getType(), plan.getTargetEnd().getType()));
+    context.sendMessage(String.format("我已经理解您的需求：从%s同步到%s。现在开始执行...", plan.getSourceEnd().getType(),
+            plan.getTargetEnd().getType()));
 
     // 2. 执行任务计划
     executePlan(plan);
@@ -113,8 +113,9 @@ public class TISPlanAndExecuteAgent {
       String systemPrompt = buildSystemPrompt();
       String prompt = buildUserPrompt(userInput);
 
-      LLMProvider.LLMResponse response = llmProvider.chatJson(Objects.requireNonNull(context, "context can not be null")
-        , new UserPrompt("您好！我正在分析您的需求...", prompt), Collections.singletonList(systemPrompt), getPlanSchema());
+      LLMProvider.LLMResponse response = llmProvider.chatJson(Objects.requireNonNull(context,
+              "context can not be " + "null"), new UserPrompt("您好！我正在分析您的需求...", prompt),
+              Collections.singletonList(systemPrompt), getPlanSchema());
 
       if (!response.isSuccess()) {
         throw new IllegalStateException("LLM call failed: " + response.getErrorMessage());
@@ -161,10 +162,7 @@ public class TISPlanAndExecuteAgent {
 
         // 检查是否需要用户确认
         if (step.isRequireUserConfirm()) {
-          context.requestUserInput(
-            String.format("是否执行：%s？请输入yes或no", step.getName()),
-            "confirm_" + step.getStepId()
-          );
+          context.requestUserInput(String.format("是否执行：%s？请输入yes或no", step.getName()), "confirm_" + step.getStepId());
 
           // 等待用户响应（实际实现需要异步处理）
           String userResponse = waitForUserInput("confirm_" + step.getStepId(), 60);
@@ -201,8 +199,8 @@ public class TISPlanAndExecuteAgent {
         TisException tisException = null;
         if ((tisException = ExceptionUtils.throwableOfThrowable(e, TisException.class)) != null) {
           Optional<PayloadLink> payloadLink = tisException.getPayloadLink();
-          PayloadLink[] links = Objects.requireNonNull(payloadLink, "payloadLink can not be null")
-            .map((l) -> new PayloadLink[]{l}).orElse(new PayloadLink[0]);
+          PayloadLink[] links =
+                  Objects.requireNonNull(payloadLink, "payloadLink can not be null").map((l) -> new PayloadLink[]{l}).orElse(new PayloadLink[0]);
           context.sendError(String.format(errMsgTpl, step.getName(), tisException.getMessage()), links);
         } else {
           context.sendError(String.format(errMsgTpl, step.getName(), e.getMessage()));
@@ -229,11 +227,11 @@ public class TISPlanAndExecuteAgent {
 
     // try {
     return step.execute(plan, step, context);
-//    } catch (Exception e) {
-//      //  logger.error("Step execution exception: " + step.getName(), e);
-//      // return false;
-//      throw new IllegalStateException("Step execution exception: " + step.getName(), e);
-//    }
+    //    } catch (Exception e) {
+    //      //  logger.error("Step execution exception: " + step.getName(), e);
+    //      // return false;
+    //      throw new IllegalStateException("Step execution exception: " + step.getName(), e);
+    //    }
   }
 
   /**
@@ -257,13 +255,17 @@ public class TISPlanAndExecuteAgent {
   private String buildSystemPrompt() {
 
     Set<IEndTypeGetter.EndType> dataEnds = IEndTypeGetter.EndType.getDataEnds();
-    String supportedDataEnds
-      = dataEnds.stream().map((end) -> String.valueOf(end)).collect(Collectors.joining("，"));
+    String supportedDataEnds = dataEnds.stream().map((end) -> {
+      Optional<String> desc = end.getDesc();
+      StringBuilder endDesc = new StringBuilder(String.valueOf(end));
+      desc.ifPresent((d) -> {
+        endDesc.append("(").append(d).append(")");
+      });
+      return endDesc.toString();
+    }).collect(Collectors.joining("，"));
 
-    return "你是TIS数据集成平台的智能助手。你的任务是帮助用户创建数据同步管道。\n" +
-      "TIS支持多种数据源，枚举端类型为：" + supportedDataEnds + "，" +
-      "请根据用户的描述，识别源端和目标端的类型。现在智能平台接受用户提交任务，需要识别任务意图对应输出json结果中的'" + KEY_INTENTION
-      + "'字段，他是一个枚举类型，支持的值为：" + Arrays.stream(AgentTaskIntention.values()).map(String::valueOf).collect(Collectors.joining(","));
+    return "你是TIS数据集成平台的智能助手。你的任务是帮助用户创建数据同步管道。\n" + "TIS支持多种数据源，枚举端类型为：" + supportedDataEnds + "，" +
+            "请根据用户的描述，识别源端和目标端的类型。现在智能平台接受用户提交任务，需要识别任务意图对应输出json结果中的'" + KEY_INTENTION + "'字段，他是一个枚举类型，支持的值为：" + Arrays.stream(AgentTaskIntention.values()).map(String::valueOf).collect(Collectors.joining(","));
   }
 
   /**
@@ -278,14 +280,17 @@ public class TISPlanAndExecuteAgent {
    */
   private String getPlanSchema() {
 
-    return "{\n" +
-      "  \"" + KEY_INTENTION + "\":\"string类型\",\n" +
-      "  \"" + KEY_SOURCE + "\": {\"" + KEY_TYPE + "\":\"string,值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" + KEY_EXTRACT_INFO + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取源端相关的描述信息\",\"" + SUB_PROP_FIELD_NAME + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取源端相关的表名称，使用逗号(‘,’)分隔,如不能抽取得到则设置为空字符串\"} ,\n" +
-      "  \"" + KEY_TARGET + "\": {\"" + KEY_TYPE + "\":\"string,值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" + KEY_EXTRACT_INFO + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取目标端相关的描述信息\"} ,\n" +
-      "  \"" + KEY_EXECUTE_OPTION_CONFIG + "\": {\n" +
-      "    \"" + KEY_EXECUTE_BATCH + "\": \"类型为boolean，表明数据管道创建完成之后是否立即触发全量数据同步，默认为false\",\n" +
-      "    \"" + KEY_EXECUTE_INCR + "\": \"类型为boolean，表明数据管道创建完成后是否立即启动增量事实同步，默认为false\"\n" +
-      "  }\n" +
-      "}";
+    return "{\n" + "  \"" + KEY_INTENTION + "\":\"string类型\",\n" + "  \"" + KEY_SOURCE + "\": {\"" + KEY_TYPE +
+            "\":\"string,值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" + KEY_EXTRACT_INFO + "\":\"类型为string" +
+            "，从用户提供的数据通道任务描述信息中抽取源端相关的描述信息\",\"" //
+      + SUB_PROP_FIELD_NAME //
+      + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取源端相关的信息（如：‘除AA、BB表以外的所有表’，‘前缀为user的表’，‘AA，BB’）,如不能抽取得到则设置为空字符串\"} ,\n" //
+      + "  \"" //
+      + KEY_TARGET + "\": {\"" + KEY_TYPE + "\":\"string," //
+      + "值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" //
+      + KEY_EXTRACT_INFO + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取目标端相关的描述信息\"} ,"  //
+      + "\n" + "  \"" + KEY_EXECUTE_OPTION_CONFIG + "\": {\n" + "    \""  //
+      + KEY_EXECUTE_BATCH + "\": \"类型为boolean" + "，表明数据管道创建完成之后是否立即触发全量数据同步，默认为false\",\n"  //
+      + "    \"" + KEY_EXECUTE_INCR + "\": \"类型为boolean" + "，表明数据管道创建完成后是否立即启动增量事实同步，默认为false\"\n" + "  }\n" + "}";
   }
 }

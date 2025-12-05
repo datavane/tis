@@ -81,7 +81,7 @@ public abstract class LLMProvider extends ParamsConfig {
         //PartialSettedPluginContext pluginContext = new PartialSettedPluginContext();
         List<ParamsConfig> providers = loadAllProvidersBindWithUser(pluginContext);
         for (ParamsConfig config : providers) {
-            if (StringUtils.equals(config.identityValue(), config.identityValue())) {
+            if (StringUtils.equals(config.identityValue(), identityName)) {
                 return (LLMProvider) config;
             }
         }

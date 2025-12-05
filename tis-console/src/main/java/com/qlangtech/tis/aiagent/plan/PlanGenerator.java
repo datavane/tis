@@ -81,19 +81,16 @@ public class PlanGenerator {
 
     // IEndTypeGetter.EndType.valueOf(source.getString(PlanGenerator.KEY_TYPE))
     // 查看需要抽取什么表
-    TaskPlan.SourceDataEndCfg sourceEnd
-      = new TaskPlan.SourceDataEndCfg(parseEndType(source));
+    TaskPlan.SourceDataEndCfg sourceEnd = new TaskPlan.SourceDataEndCfg(parseEndType(source));
     sourceEnd.setRelevantDesc(source.getString(PlanGenerator.KEY_EXTRACT_INFO));
-    String[] extractTabs = StringUtils.split(source.getString(SUB_PROP_FIELD_NAME), ",");
-    sourceEnd.setSelectedTabs(Lists.newArrayList(extractTabs));
+    sourceEnd.setExtraSelectedTabInfo(source.getString(SUB_PROP_FIELD_NAME));
 
     if (options != null) {
       sourceEnd.setExecuteBatch(options.getBooleanValue(KEY_EXECUTE_BATCH));
       sourceEnd.setExecuteIncr(options.getBooleanValue(KEY_EXECUTE_INCR));
     }
 
-    TaskPlan.DataEndCfg targetEnd
-      = new TaskPlan.DataEndCfg(parseEndType(target));
+    TaskPlan.DataEndCfg targetEnd = new TaskPlan.DataEndCfg(parseEndType(target));
     targetEnd.setRelevantDesc(target.getString(PlanGenerator.KEY_EXTRACT_INFO));
 
     TaskPlan plan = new TaskPlan(sourceEnd, targetEnd, this.llmProvider, this.controlMsgHandler);
@@ -101,14 +98,14 @@ public class PlanGenerator {
 
     //  String sourceType = ;
     //String targetType = llmAnalysis.getString("target_type");
-//    plan.setSourceEnd(sourceEnd);
-//    plan.setTargetEnd(targetEnd);
+    //    plan.setSourceEnd(sourceEnd);
+    //    plan.setTargetEnd(targetEnd);
 
     // 根据源端和目标端类型，生成对应的执行步骤
-//    if (plan.getSourceEnd().getType() == IEndTypeGetter.EndType.MySQL
-//      && plan.getTargetEnd().getType() == IEndTypeGetter.EndType.Paimon) {
-//      generateMySQLToPaimonPlan(plan, llmAnalysis.getJSONObject("options"));
-//    } else {
+    //    if (plan.getSourceEnd().getType() == IEndTypeGetter.EndType.MySQL
+    //      && plan.getTargetEnd().getType() == IEndTypeGetter.EndType.Paimon) {
+    //      generateMySQLToPaimonPlan(plan, llmAnalysis.getJSONObject("options"));
+    //    } else {
     // 其他类型的同步计划
     generateGenericPlan(plan, llmAnalysis);
     //}
@@ -118,8 +115,7 @@ public class PlanGenerator {
 
   private static IEndTypeGetter.EndType parseEndType(JSONObject target) {
     String type = target.getString(PlanGenerator.KEY_TYPE);
-    IEndTypeGetter.EndType endType
-      = IEndTypeGetter.EndType.parse(type, false, false);
+    IEndTypeGetter.EndType endType = IEndTypeGetter.EndType.parse(type, false, false);
     if (endType == null) {
       throw TisException.create("TIS目前不支持端类型：'" + type + "' ");
     }
@@ -130,9 +126,9 @@ public class PlanGenerator {
    * 生成MySQL到Paimon的同步计划
    */
   private void generateMySQLToPaimonPlan(TaskPlan plan, JSONObject options) {
-//    JSONObject sourceConfig = llmAnalysis.getJSONObject("source_config");
-//    JSONObject targetConfig = llmAnalysis.getJSONObject("target_config");
-//    JSONObject options = llmAnalysis.getJSONObject("options");
+    //    JSONObject sourceConfig = llmAnalysis.getJSONObject("source_config");
+    //    JSONObject targetConfig = llmAnalysis.getJSONObject("target_config");
+    //    JSONObject options = llmAnalysis.getJSONObject("options");
 
     // Step 1: 检查并安装插件
     TaskStep installStep = new TaskStep("检查并安装必要插件", TaskStep.StepType.PLUGIN_INSTALL);
@@ -145,11 +141,11 @@ public class PlanGenerator {
     mysqlDsStep.setDescription("配置MySQL数据源连接信息");
 
     JSONObject mysqlDsConfig = new JSONObject();
-//    mysqlDsConfig.put("host", sourceConfig.getString("host"));
-//    mysqlDsConfig.put("port", sourceConfig.getIntValue("port"));
-//    mysqlDsConfig.put("username", sourceConfig.getString("username"));
-//    mysqlDsConfig.put("password", sourceConfig.getString("password"));
-//    mysqlDsConfig.put("database", sourceConfig.getString("database"));
+    //    mysqlDsConfig.put("host", sourceConfig.getString("host"));
+    //    mysqlDsConfig.put("port", sourceConfig.getIntValue("port"));
+    //    mysqlDsConfig.put("username", sourceConfig.getString("username"));
+    //    mysqlDsConfig.put("password", sourceConfig.getString("password"));
+    //    mysqlDsConfig.put("database", sourceConfig.getString("database"));
     mysqlDsStep.setPluginConfig(mysqlDsConfig);
     plan.addStep(mysqlDsStep);
 
@@ -159,9 +155,9 @@ public class PlanGenerator {
     mysqlReaderStep.setDescription("配置MySQL数据读取器");
 
     JSONObject readerConfig = new JSONObject();
-//    readerConfig.put("dbName", sourceConfig.getString("database"));
-//    readerConfig.put("splitPk", false);
-//    readerConfig.put("fetchSize", 2000);
+    //    readerConfig.put("dbName", sourceConfig.getString("database"));
+    //    readerConfig.put("splitPk", false);
+    //    readerConfig.put("fetchSize", 2000);
     mysqlReaderStep.setPluginConfig(readerConfig);
     plan.addStep(mysqlReaderStep);
 
@@ -177,8 +173,8 @@ public class PlanGenerator {
     hiveDsStep.setDescription("配置Hive MetaStore连接");
 
     JSONObject hiveConfig = new JSONObject();
-//    hiveConfig.put("host", targetConfig.getString("host"));
-//    hiveConfig.put("database", targetConfig.getString("database"));
+    //    hiveConfig.put("host", targetConfig.getString("host"));
+    //    hiveConfig.put("database", targetConfig.getString("database"));
     hiveDsStep.setPluginConfig(hiveConfig);
     plan.addStep(hiveDsStep);
 
@@ -211,7 +207,8 @@ public class PlanGenerator {
 
       // 创建Paimon实时写入
       TaskStep paimonIncrStep = new TaskStep("配置Paimon实时写入", TaskStep.StepType.PLUGIN_CREATE);
-      paimonIncrStep.setPluginImpl("com.qlangtech.tis.plugins.incr.flink.pipeline.paimon.sink.PaimonPipelineSinkFactory");
+      paimonIncrStep.setPluginImpl("com.qlangtech.tis.plugins.incr.flink.pipeline.paimon.sink"
+        + ".PaimonPipelineSinkFactory");
       paimonIncrStep.setDescription("配置Paimon实时数据写入");
       plan.addStep(paimonIncrStep);
 
@@ -241,22 +238,22 @@ public class PlanGenerator {
     plan.addStep(executeStep);
 
     //mysql_to_doris_16
-//    TaskPlan.SourceDataEndCfg sourceEnd = plan.getSourceEnd();
-//    DataxProcessor processor = IAppSource.load(null, DataXName.createDataXPipeline("mysql_to_doris_18"));
-//    sourceEnd.setProcessor(processor);
-//    IDataXEndTypeGetter endMeta = new IDataXEndTypeGetter() {
-//      @Override
-//      public boolean isSupportIncr() {
-//        return true;
-//      }
-//
-//      @Override
-//      public boolean isSupportBatch() {
-//        return true;
-//      }
-//    };
-//    sourceEnd.setEndTypeMeta(endMeta);
-//    plan.getTargetEnd().setEndTypeMeta(endMeta);
+    //    TaskPlan.SourceDataEndCfg sourceEnd = plan.getSourceEnd();
+    //    DataxProcessor processor = IAppSource.load(null, DataXName.createDataXPipeline("mysql_to_doris_18"));
+    //    sourceEnd.setProcessor(processor);
+    //    IDataXEndTypeGetter endMeta = new IDataXEndTypeGetter() {
+    //      @Override
+    //      public boolean isSupportIncr() {
+    //        return true;
+    //      }
+    //
+    //      @Override
+    //      public boolean isSupportBatch() {
+    //        return true;
+    //      }
+    //    };
+    //    sourceEnd.setEndTypeMeta(endMeta);
+    //    plan.getTargetEnd().setEndTypeMeta(endMeta);
 
     TaskStep incrStep = new TaskStep("增量实时数据同步启动", TaskStep.StepType.EXECUTE_INCR);
     incrStep.setDescription("构建增量实时数据同步通道");

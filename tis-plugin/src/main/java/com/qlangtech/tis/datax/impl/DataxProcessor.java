@@ -187,23 +187,23 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         if (this._tableMaps == null) {
 
             List<TableAlias> aliases = TableAlias.load(pluginCtx, this.identityValue());
-            if (CollectionUtils.isEmpty(aliases)) {
-
-                IDataxReader reader = this.getReader(pluginCtx);
-                List<ISelectedTab> tabs = reader.getSelectedTabs();
-                Map<String, TableAlias> mapper = Maps.newHashMap();
-                for (ISelectedTab tab : tabs) {
-                    mapper.put(tab.getName(), new TableMap(tab));
-                }
-                this._tableMaps = mapper;
-            } else {
+//            if (CollectionUtils.isEmpty(aliases)) {
+//
+//                IDataxReader reader = this.getReader(pluginCtx);
+//                List<ISelectedTab> tabs = reader.getSelectedTabs();
+//                Map<String, TableAlias> mapper = Maps.newHashMap();
+//                for (ISelectedTab tab : tabs) {
+//                    mapper.put(tab.getName(), new TableMap(tab));
+//                }
+//                this._tableMaps = mapper;
+//            } else {
                 this._tableMaps = aliases.stream().collect(Collectors.toMap((m) -> {
                     if (StringUtils.isEmpty(m.getFrom())) {
                         throw new IllegalArgumentException("table mapper from can not be empty");
                     }
                     return m.getFrom();
                 }, (m) -> m));
-            }
+            //}
         }
         return this._tableMaps;
     }

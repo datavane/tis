@@ -41,8 +41,9 @@ public abstract class TableInDB {
 
     public final boolean isMatch(DBIdentity queryDBSourceId) {
         return dbSourceId.isEquals(queryDBSourceId);
-//        return StringUtils.equals(Objects.requireNonNull(queryDBSourceId.identityValue(), "dbFactoryId can not be null")
-//                , this.dbSourceId.identityValue());
+        //        return StringUtils.equals(Objects.requireNonNull(queryDBSourceId.identityValue(), "dbFactoryId can
+        //        not be null")
+        //                , this.dbSourceId.identityValue());
     }
 
     public static TableInDB create(DBIdentity id) {
@@ -62,13 +63,19 @@ public abstract class TableInDB {
      */
     public abstract Function<String, String> getPhysicsTabName2LogicNameConvertor();
 
+    /**
+     * 逻辑表名集合
+     *
+     * @return
+     */
     public abstract List<String> getTabs();
 
     public abstract boolean contains(String tableName);
 
     public abstract boolean isEmpty();
 
-    public abstract DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity, boolean shallRewrite2RegexPattern);
+    public abstract DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity,
+                                                    boolean shallRewrite2RegexPattern);
 
     public static class DefaultTableNameConvert implements Function<String, String>, Serializable {
         @Override
@@ -91,11 +98,11 @@ public abstract class TableInDB {
 
 
         @Override
-        public DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity, boolean shallRewrite2RegexPattern) {
-            return DataXJobInfo.create(tabEntity.getFileName(), tabEntity
-                    , this.tabs.contains(tabEntity.getSourceTableName())
-                            ? Collections.singletonList(tabEntity.getSourceTableName())
-                            : Collections.emptyList());
+        public DataXJobInfo createDataXJobInfo(DataXJobSubmit.TableDataXEntity tabEntity,
+                                               boolean shallRewrite2RegexPattern) {
+            return DataXJobInfo.create(tabEntity.getFileName(), tabEntity,
+                    this.tabs.contains(tabEntity.getSourceTableName()) ?
+                            Collections.singletonList(tabEntity.getSourceTableName()) : Collections.emptyList());
         }
 
         @Override

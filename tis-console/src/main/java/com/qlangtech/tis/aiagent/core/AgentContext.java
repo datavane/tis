@@ -22,6 +22,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
+import com.qlangtech.tis.aiagent.sessiondata.ColsMetaSetterSessionData;
+import com.qlangtech.tis.aiagent.sessiondata.TableSelectApplySessionData;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
@@ -37,7 +39,7 @@ import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroList;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
@@ -49,9 +51,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
-
-import static com.qlangtech.tis.manage.common.IAjaxResult.KEY_ERROR_FIELDS;
-import static com.qlangtech.tis.manage.common.IAjaxResult.KEY_ERROR_MSG;
 
 /**
  * Agent执行上下文，管理会话状态和SSE通信
@@ -128,6 +127,28 @@ public class AgentContext implements IAgentContext {
     }
   }
 
+  /**
+   * 当执行tdfs（非rdbms）同步mysql（rdbms）类型的场景
+   * 只有在reader为非rdbms，writer为rdbms的情况下进入该component设置
+   */
+  public void sendOpenColsMetaSetter(RequestKey requestId
+    , IdentityName pipeline, AjaxValve.ActionExecResult execResult, Map<String, Object> colsMetaViewBiz) {
+    if (MapUtils.isEmpty(colsMetaViewBiz)) {
+      throw new IllegalArgumentException("param colsMetaViewBiz can not be empty");
+    }
+    if (!cancelled && sseWriter != null) {
+      JSONObject data = new JSONObject();
+      data.put(KEY_REQUEST_ID, requestId.getSessionKey());
+      data.put(KEY_CONTENT_DETAIL, execResult.createErrors());
+      data.put("colsMetaViewBiz", colsMetaViewBiz);
+      data.put(StoreResourceType.DATAX_NAME, pipeline.identityValue());
+
+      this.setSessionData(requestId, new ColsMetaSetterSessionData(pipeline));
+      sendSSEEvent(
+        SSERunnable.SSEEventType.AI_AGNET_TDFS_COLS_META_SETTER
+        , JsonUtil.toString(data, false));
+    }
+  }
 
   /**
    * 向客户端发送输入选择表请求
@@ -162,6 +183,7 @@ public class AgentContext implements IAgentContext {
       this.sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_SELECT_TABLE, data);
     }
   }
+
 
   /**
    * 发送JSON数据到客户端（用于插件配置）
@@ -200,13 +222,7 @@ public class AgentContext implements IAgentContext {
        */
       this.setSessionData(requestId, new PluginPropsComplement(valMap));
 
-      JSONObject errors = new JSONObject();
-      if (CollectionUtils.isNotEmpty(validateResult.getErrorMsgs())) {
-        errors.put(KEY_ERROR_MSG, AjaxValve.errorMsgListConvert2JsonArray(validateResult.getErrorMsgs()));
-      }
-      if (CollectionUtils.isNotEmpty(validateResult.getPluginErrorList())) {
-        errors.put(KEY_ERROR_FIELDS, AjaxValve.pluginErrorListConvert2JsonArray(validateResult.getPluginErrorList()));
-      }
+      JSONObject errors = validateResult.createErrors();//
       data.put(KEY_CONTENT_DETAIL, errors);
 
       sendSSEEvent(SSERunnable.SSEEventType.AI_AGNET_PLUGIN, data);

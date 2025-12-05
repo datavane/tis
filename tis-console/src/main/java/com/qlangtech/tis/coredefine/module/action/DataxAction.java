@@ -1313,13 +1313,17 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetWriterColsMeta(Context context) {
     final String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName);
+   // DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName);
 
-//    if (processMeta.isReaderRDBMS()) {
-//      throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
-//    }
     IDataxProcessor processor = DataxProcessor.load(this, dataxName);
-    TableAliasMapper tabAlias = processor.getTabAlias(this);
+    IDataxProcessor.TableMap tabMapper = getTableMapper(this, processor);
+
+    this.setBizResult(context, DataTypeMeta.createViewBiz(IMultiItemsView.unknow(), tabMapper));
+  }
+
+  public static IDataxProcessor.TableMap getTableMapper(
+    IPluginContext pluginCtx, IDataxProcessor processor) {
+    TableAliasMapper tabAlias = processor.getTabAlias(pluginCtx);
     Optional<TableAlias> findMapper = tabAlias.findFirst();
     IDataxProcessor.TableMap tabMapper = null;
     if (findMapper.isPresent()) {
@@ -1331,12 +1335,11 @@ public class DataxAction extends BasicModule {
       m.setTo(tabMapper.getTo());
       tabMapper = m;
     } else {
-      List<ISelectedTab> tabs = processMeta.getReader().getSelectedTabs();
+      List<ISelectedTab> tabs = processor.getReader(pluginCtx).getSelectedTabs();// processMeta.getReader().getSelectedTabs();
       int selectedTabsSize = tabs.size();
       if (selectedTabsSize != 1) {
         throw new IllegalStateException("dataX reader getSelectedTabs size must be 1 ,but now is :" + selectedTabsSize);
       }
-
       for (ISelectedTab selectedTab : tabs) {
         tabMapper = new IDataxProcessor.TableMap(selectedTab);
         tabMapper.setFrom(selectedTab.getName());
@@ -1344,8 +1347,7 @@ public class DataxAction extends BasicModule {
         break;
       }
     }
-
-    this.setBizResult(context, DataTypeMeta.createViewBiz(IMultiItemsView.unknow(), tabMapper));
+    return tabMapper;
   }
 
   @Func(value = PermissionConstant.APP_ADD)
@@ -1393,14 +1395,20 @@ public class DataxAction extends BasicModule {
     final String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
     DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName);
     if ((processMeta.isReaderRDBMS())) {
-      throw new IllegalStateException("can not process the flow with:" + processMeta.toString());
+      throw new IllegalStateException("can not process the flow with:" + String.valueOf(processMeta));
     }
-    List<CMeta> writerCols = Lists.newArrayList();
-    IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(new DefaultTab(dataxName, writerCols));
+
     // tableMapper.setSourceCols(writerCols);
     ////////////////////
+    validateAndSaveTableMapper(this, context, dataxName, this.getJSONPostContent());
+  }
+
+  public static boolean validateAndSaveTableMapper(BasicModule delegate, Context context, String dataxName, JSONObject parseJsonPost) {
+
+    List<CMeta> writerCols = Lists.newArrayList();
+    IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(new DefaultTab(dataxName, writerCols));
     // final String keyColsMeta = "colsMeta";
-    IControlMsgHandler handler = new DelegateControl4JsonPostMsgHandler(this, this.parseJsonPost());
+    IControlMsgHandler handler = new DelegateControl4JsonPostMsgHandler(delegate, parseJsonPost);
     if (!Validator.validate(handler, context, Validator.fieldsValidator( //
       "writerTargetTabName" //
       , new Validator.FieldValidators(Validator.require, Validator.db_col_name) {
@@ -1437,18 +1445,18 @@ public class DataxAction extends BasicModule {
             context, fieldKey /*MultiItemsViewType.keyColsMeta*/, targetCols);
 
           if (!postMCols.pkHasSelected) {
-            addErrorMessage(context, "请至少选择一个主键列");
+            delegate.addErrorMessage(context, "请至少选择一个主键列");
             postMCols.validateFaild = true;
           }
           writerCols.addAll(postMCols.writerCols);
           return !postMCols.validateFaild;
         }
       }))) {
-      return;
+      return false;
     }
 
-
-    TableAlias.saveTableMapper(this, dataxName, Collections.singletonList(tableMapper));
+    TableAlias.saveTableMapper(delegate, dataxName, Collections.singletonList(tableMapper));
+    return true;
   }
 
 

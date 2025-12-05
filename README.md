@@ -126,6 +126,7 @@ TIS基于数据库元数据信息自动生成Flink-SQL脚本,您没看错全部�
    2. [tis-plugins-commercial](https://github.com/qlangtech/tis-plugins-commercial)
    3. SqlServer Connector [qlangtech/tis-sqlserver-plugin](https://github.com/qlangtech/tis-sqlserver-plugin)
    4. Paimon Connector [qlangtech/tis-paimon-plugin](https://github.com/qlangtech/tis-paimon-plugin)
+   5. DaMeng Connector [qlangtech/tis-dameng-plugin](https://github.com/qlangtech/tis-dameng-plugin)
 - TIS 插件元数据生成工具 [https://github.com/qlangtech/update-center2](https://github.com/qlangtech/update-center2)
 - DataX [https://github.com/qlangtech/DataX](https://github.com/qlangtech/DataX)
 - Flink Extend [https://github.com/qlangtech/flink](https://github.com/qlangtech/flink)

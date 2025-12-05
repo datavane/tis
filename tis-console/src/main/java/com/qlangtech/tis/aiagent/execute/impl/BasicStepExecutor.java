@@ -19,6 +19,7 @@
 package com.qlangtech.tis.aiagent.execute.impl;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -35,6 +36,7 @@ import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
 import com.qlangtech.tis.aiagent.plan.TaskPlan;
+import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.coredefine.module.action.PluginAction;
 import com.qlangtech.tis.coredefine.module.action.PluginFilter;
 import com.qlangtech.tis.coredefine.module.action.PluginWillInstall;
@@ -42,6 +44,7 @@ import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
@@ -62,8 +65,11 @@ import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
+import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
+import com.qlangtech.tis.runtime.module.misc.impl.ListDetailedItemsErrors;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
+import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSONForAIPromote;
 import com.qlangtech.tis.util.DescriptorsJSONResult;
 import com.qlangtech.tis.util.HeteroEnum;
@@ -129,7 +135,6 @@ public abstract class BasicStepExecutor implements StepExecutor {
     DescriptorsJSONForAIPromote forAIPromote = desc.getValue();
     DescribableImpl propImplInfo = null;
     Descriptor implDesc = null;
-    // Map<String, PluginExtraProps.FieldRefCreateor> propsImplRefs = null;
     Map<Class<? extends Descriptor>, DescribableImpl> fieldDescRegister = forAIPromote.getFieldDescRegister();
 
     Map<String, IdentityName> propsImplRefsVals = null;
@@ -145,20 +150,19 @@ public abstract class BasicStepExecutor implements StepExecutor {
 
     for (Map.Entry<String, JSONObject> entry : desc.getLeft().getDescriptorsResult().entrySet()) {
       // 需要遍历他的所有属性如果有需要创建的属性插件需要先创建
-      JSONObject pluginPostBody
-        = extractUserInput2Json(context, userInput, endType, Objects.requireNonNull(entry.getValue()), llmProvider);
+      JSONObject pluginPostBody = extractUserInput2Json(context, userInput, endType,
+              Objects.requireNonNull(entry.getValue()), llmProvider);
       AttrValMap attrValMap = parseDescribableMap(Optional.empty(), pluginPostBody);
 
       if (attrValMap.descriptor.getIdentityField(false) != null) {
         PropertyType pk = attrValMap.descriptor.getIdentityField();
-        if (attrValMap.isPrimaryFieldEmpty() || primaryValRewrite.isDuplicateInExistEntities(pk
-          , Objects.requireNonNull(attrValMap.getPrimaryFieldVal(), "PrimaryFieldVal can not be empty"))) {
+        if (attrValMap.isPrimaryFieldEmpty() || primaryValRewrite.isDuplicateInExistEntities(pk,
+                Objects.requireNonNull(attrValMap.getPrimaryFieldVal(), "PrimaryFieldVal can not be empty"))) {
           // 1. 没有主键的情况下，由agent自主生成主键值
           // 2. 识别到用户提交的主键的情况下，需要判断是否和已经有的主键列表冲突，如果冲突也需要重新生成
           IdentityName primaryFieldVal = primaryValRewrite.newCreate(pk);
           if (primaryFieldVal != null) {
-            attrValMap
-              .getAttrVals().setPrimaryVal(pk.propertyName(), primaryFieldVal.identityValue());
+            attrValMap.getAttrVals().setPrimaryVal(pk.propertyName(), primaryFieldVal.identityValue());
           }
         }
       }
@@ -166,18 +170,18 @@ public abstract class BasicStepExecutor implements StepExecutor {
       for (Map.Entry<String, IdentityName> refProp : propsImplRefsVals.entrySet()) {
         final String propName = refProp.getKey();
         IdentityName refPropVal = refProp.getValue();
-        attrValMap
-          .getAttrVals().setPrimaryVal(propName
-            , Objects.requireNonNull(refPropVal, "refPropVal can not be null").identityValue());
+        attrValMap.getAttrVals().setPrimaryVal(propName, Objects.requireNonNull(refPropVal,
+                "refPropVal can not be " + "null").identityValue());
       }
 
 
       return attrValMap;
     }
 
-    throw new IllegalStateException("can not create AttrValMap , desc.getLeft().getDescriptorsResult() size:"
-      + desc.getLeft().getDescriptorsResult().size());
+    throw new IllegalStateException("can not create AttrValMap , desc.getLeft().getDescriptorsResult() size:" + desc.getLeft().getDescriptorsResult().size());
   }
+
+  private static final String SYSTEM_ASSIST_ROLE = "您是TIS数据集成平台的智能助手。";
 
   /**
    * 通过userInput 和 descriptorJson 生成提交的json内容
@@ -188,27 +192,96 @@ public abstract class BasicStepExecutor implements StepExecutor {
    * @param llmProvider
    * @return
    */
-  public JSONObject extractUserInput2Json(IAgentContext context, UserPrompt userInput
-    , Optional<IEndTypeGetter.EndType> endType, JSONObject descriptorJson, LLMProvider llmProvider) {
+  public JSONObject extractUserInput2Json(IAgentContext context, UserPrompt userInput,
+                                          Optional<IEndTypeGetter.EndType> endType, JSONObject descriptorJson,
+                                          LLMProvider llmProvider) {
     String prompt = "用户输入内容：" + userInput.getPrompt() + "\n 参照json结构说明，如下：\n" + JsonUtil.toString(descriptorJson, true);
-    final String systemPrompt = "你是TIS数据集成平台的智能助手。你的任务是帮助用户创建数据同步管道。\n" +
-      endType.map((end) -> "当前处理的数据端是针对：" + String.valueOf(end)).orElse(StringUtils.EMPTY) + "\n" +
-      "现在需要通过用户提交的内容，结合提系统提供的json结构说明，解析出结构化的json作为输出内容";
+    final String systemPrompt =
+            SYSTEM_ASSIST_ROLE + "你的任务是帮助用户创建数据同步管道。\n" + endType.map((end) -> "当前处理的数据端是针对：" + String.valueOf(end)).orElse(StringUtils.EMPTY) + "\n" + "现在需要通过用户提交的内容，结合提系统提供的json结构说明，解析出结构化的json作为输出内容";
 
     JSONObject pluginPostBody = null;
     final String jsonSchema = "\n\n请严格按照系统提示中输出json的Schema格式返回结果";
-    try (InputStream sysPromote = PluginInstanceCreateExecutor.class.getResourceAsStream("describle_plugin_json_create_deamo.md")) {
-      LLMProvider.LLMResponse llmResponse = llmProvider.chatJson(context, userInput.setNewPrompt(prompt)
-        , Lists.newArrayList(systemPrompt
-          , IOUtils.toString(Objects.requireNonNull(sysPromote, "sysPromote can not be null"), TisUTF8.get())), jsonSchema);
+    try (InputStream sysPromote = PluginInstanceCreateExecutor.class.getResourceAsStream(
+            "describle_plugin_json_create_deamo.md")) {
+      LLMProvider.LLMResponse llmResponse = llmProvider.chatJson(context, userInput.setNewPrompt(prompt),
+              Lists.newArrayList(systemPrompt, IOUtils.toString(Objects.requireNonNull(sysPromote,
+                      "sysPromote can " + "not" + " be " + "null"), TisUTF8.get())), jsonSchema);
       return pluginPostBody = llmResponse.getJsonContent();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  private Map<String, IdentityName> setPropsImplRefsVals(TaskPlan plan, AgentContext context
-    , UserPrompt userInput, Optional<IEndTypeGetter.EndType> endType, Descriptor implDesc) throws Exception {
+  public static class ExtractTargetTableInfoResult {
+    //      "targetTables":["table1","table2"]
+    //        "lostTables":["table3","table4"]
+    // 目标表
+    private final List<String> targetTables;
+    // 缺失的表
+    private final List<String> lostTables;
+
+    public ExtractTargetTableInfoResult(List<String> targetTables, List<String> lostTables) {
+      this.targetTables = targetTables;
+      this.lostTables = lostTables;
+    }
+
+    public List<String> getTargetTables() {
+      return targetTables;
+    }
+
+    public List<String> getLostTables() {
+      return lostTables;
+    }
+  }
+
+  public ExtractTargetTableInfoResult //
+  extractTargetTableInfo(IAgentContext context, String extraTableInfo, List<String> extisTables,
+                         LLMProvider llmProvider) {
+    if (StringUtils.isEmpty(extraTableInfo)) {
+      throw new IllegalArgumentException("param userInput can not be empty");
+    }
+
+
+    try (InputStream prompt = PluginInstanceCreateExecutor.class.getResourceAsStream(
+            "describe_table_extraction_prompt.md")) {
+
+      String promptTpl = IOUtils.toString(Objects.requireNonNull(prompt, "prompt can not be null"), TisUTF8.get());
+
+      promptTpl = StringUtils.replace(promptTpl, "${extraTableInfo}", extraTableInfo);
+      promptTpl = StringUtils.replace(promptTpl, "${existTables}", String.join(",", extisTables));
+
+      UserPrompt userPrompt = new UserPrompt("解析源端目标表列表", promptTpl);
+      LLMProvider.LLMResponse llmResponse = llmProvider.chatJson(context, userPrompt,
+              Lists.newArrayList(SYSTEM_ASSIST_ROLE), null);
+      JSONObject json = llmResponse.getJsonContent();
+
+      JSONArray targetTables = json.getJSONArray("targetTables");
+      JSONArray lostTables = json.getJSONArray("lostTables");
+
+      return new ExtractTargetTableInfoResult( //
+        targetTables.toJavaList(String.class) //
+        , lostTables.toJavaList(String.class));
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+
+  }
+
+
+  /**
+   * 生成依赖应用，例如MysqlDataXReader中依赖的 mysqlDataSource
+   *
+   * @param plan
+   * @param context
+   * @param userInput
+   * @param endType
+   * @param implDesc
+   * @return
+   * @throws Exception
+   */
+  private Map<String, IdentityName> setPropsImplRefsVals(TaskPlan plan, AgentContext context, UserPrompt userInput,
+                                                         Optional<IEndTypeGetter.EndType> endType,
+                                                         Descriptor implDesc) throws Exception {
     Map<String, IdentityName> propsImplRefsVals = Maps.newHashMap();
     Map<String, PluginExtraProps.FieldRefCreateor> propsImplRefs = implDesc.getPropsImplRefs();
     Descriptor installedPluginDescriptor;
@@ -226,15 +299,14 @@ public abstract class BasicStepExecutor implements StepExecutor {
 
       List<PluginExtraProps.CandidatePlugin> candidatePlugins = refCreateor.getCandidatePlugins();
       // 已经存在的opts，需要根据用户提交的信息内容判断是否可以选择已经有的opts
-      if (CollectionUtils.isEmpty(candidatePlugins)
-        && refCreateor.getAssistType() == PluginExtraProps.RouterAssistType.hyperlink) {
+      if (CollectionUtils.isEmpty(candidatePlugins) && refCreateor.getAssistType() == PluginExtraProps.RouterAssistType.hyperlink) {
         // 说明是类似 DefaultDataxProcessor的dptId这样的属性，那必须要有一个默认值
         List<Option> valOpts = refCreateor.getValOptions();
         for (Option opt : valOpts) {
           propsImplRefsVals.put(e.getKey(), IdentityName.create(String.valueOf(opt.getValue())));
           continue fieldValCreate;
         }
-        throw new IllegalStateException("impl:" + implDesc.getId() + " of prop " + e.getKey() + " relevant opt vals can nto be empty");
+        throw new IllegalStateException("impl:" + implDesc.getId() + " of prop " + e.getKey() + " relevant opt vals " + "can nto be empty");
       }
 
       //
@@ -257,19 +329,39 @@ public abstract class BasicStepExecutor implements StepExecutor {
         candidatePlugin = this.selectTargetPluginDescriptor(context, e, endType, candidatePlugins);
       }
 
-      List<Option> existOpts = refCreateor.getValOptions();
-      // 开始实例化插件
-      AttrValMap pluginVals = createInnerPluginInstance(plan, context, userInput.setAbstract("解析'" + candidatePlugin.getTargetItemDesc() + "'插件内容"), refCreateor
-        , Objects.requireNonNull(candidatePlugin
-          , "candidatePlugin can not be null for field:" + e.getKey()));
+      // 开始实例化插件，内部有校验
+      AttrValMap pluginVals = createInnerPluginInstance(plan //
+        , context, userInput.setAbstract("解析'" + candidatePlugin.getTargetItemDesc() + "'插件内容"), refCreateor,
+              Objects.requireNonNull(candidatePlugin, "candidatePlugin can not be null for field:" + e.getKey()));
 
       /**
        * 找历史记录中是否有相同的实例，避免重复创建相同的实例
        */
+      List<Option> existOpts = refCreateor.getValOptions();
+      if (!pluginVals.isPrimaryFieldEmpty()) {
+        /**
+         * 这种情况是用户明确在提交的文本中说明需要使用的对象实例名称，例如,以下文本中明确说明‘shop’数据库实例
+         * <pre>
+         *   我有一个本地文件需要导入到mysql数据库中，文件路径为：/opt/misc/dfs/totalpayinfo__47a61b2a_7e96_409d_8769_0143423bebba.csv，文件格式为csv，mysql库使用名称为‘shop’的数据库源作为目标端导入对象
+         * </pre>
+         */
+        IdentityName findId = IdentityName.create(pluginVals.getPrimaryFieldVal());
+        if (existOpts.stream().anyMatch((opt) -> opt.equalWithId(findId))) {
+          // 创建的实例对应的对象实例已经存在，不用再创建，重用就行了
+          context.sendMessage("找到既存" + candidatePlugin.getDisplayName() + "类型的实例：'" + findId.identityValue() +
+                  "'，直接复用它就行");
+          propsImplRefsVals.put(e.getKey(), findId);
+          continue fieldValCreate;
+        }
+      }
+
+      pluginVals = this.validateAttrValMap(plan, context, candidatePlugin.getHetero(), pluginVals, Optional.empty());
+
       Optional<Describable> existPlugin = this.findExistPlugin(candidatePlugin, pluginVals, existOpts);
       if (existPlugin.isPresent()) {
         IdentityName foundExist = (IdentityName) existPlugin.get();
-        context.sendMessage("找到既存" + candidatePlugin.getDisplayName() + "类型的实例：'" + foundExist.identityValue() + "'与您提交内容一致");
+        context.sendMessage("找到既存" + candidatePlugin.getDisplayName() + "类型的实例：'" + foundExist.identityValue() +
+                "'与您提交内容一致，直接复用它就行");
         propsImplRefsVals.put(e.getKey(), ((IdentityName) existPlugin.get()));
         continue fieldValCreate;
       }
@@ -282,20 +374,20 @@ public abstract class BasicStepExecutor implements StepExecutor {
       PluginItems pItems = null;
       switch (refCreateor.getAssistType()) {
         case paramCfg: {
-          pItems = new PluginItems(pluginCtx, ctx, ParamsConfigPluginStore.createParamsConfig(pluginEnum, candidatePlugin));
+          pItems = new PluginItems(pluginCtx, ctx, ParamsConfigPluginStore.createParamsConfig(pluginEnum,
+                  candidatePlugin));
           break;
         }
         case dbQuickManager: {
-          pluginCtx = IPluginContext.namedContext(new DataXName(pluginRef.identityValue(), StoreResourceType.DataBase))
-            .setTargetRuntimeContext((IPluginContext) plan.getControlMsgHandler());
-          pItems = new PluginItems(pluginCtx, ctx, PostedDSProp.createPluginMeta(DBIdentity.parseId(pluginRef.identityValue()), false)
-            .putExtraParams(DBIdentity.KEY_TYPE, DbScope.DETAILED.getToken()));
+          pluginCtx = IPluginContext.namedContext(new DataXName(pluginRef.identityValue(),
+                  StoreResourceType.DataBase)).setTargetRuntimeContext((IPluginContext) plan.getControlMsgHandler());
+          pItems = new PluginItems(pluginCtx, ctx,
+                  PostedDSProp.createPluginMeta(DBIdentity.parseId(pluginRef.identityValue()), false).putExtraParams(DBIdentity.KEY_TYPE, DbScope.DETAILED.getToken()));
           break;
         }
         default: {
           final String primaryFieldKey = pluginVals.descriptor.getIdentityField().propertyName();
-          throw new IllegalStateException("illegal assistType:" + refCreateor.getAssistType()
-            + "for field:" + primaryFieldKey + " of plugin:" + pluginVals.descriptor.getId());
+          throw new IllegalStateException("illegal assistType:" + refCreateor.getAssistType() + "for field:" + primaryFieldKey + " of plugin:" + pluginVals.descriptor.getId());
         }
       }
       pItems.items = Collections.singletonList(pluginVals);
@@ -312,8 +404,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
     return propsImplRefsVals;
   }
 
-  private <OPTION extends IdentityName> Optional<Describable> findExistPlugin(
-    PluginExtraProps.CandidatePlugin candidatePlugin, AttrValMap pluginVals, List<OPTION> existOpts) throws Exception {
+  private <OPTION extends IdentityName> Optional<Describable> findExistPlugin(PluginExtraProps.CandidatePlugin candidatePlugin, AttrValMap pluginVals, List<OPTION> existOpts) throws Exception {
     // 遍历已经存在的所有实例
     IPluginEnum hetero = candidatePlugin.getHetero();
     for (IdentityName option : existOpts) {
@@ -329,8 +420,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
       PluginEqualResult equalResult = null;
       if ((equalResult = isPluginEqual(plugin, pluginVals.getAttrVals())).isEqual()) {
         if (!(plugin instanceof IdentityName)) {
-          throw new IllegalStateException("plugin:"
-            + plugin.getClass().getName() + " must be type of " + IdentityName.class.getSimpleName());
+          throw new IllegalStateException("plugin:" + plugin.getClass().getName() + " must be type of " + IdentityName.class.getSimpleName());
         }
         return Optional.of(plugin);
       }
@@ -345,76 +435,74 @@ public abstract class BasicStepExecutor implements StepExecutor {
     Descriptor desc = Objects.requireNonNull(plugin, "plugin can not be null").getDescriptor();
     PluginFormProperties propertyTypes = desc.getPluginFormPropertyTypes();
 
-    return Objects.requireNonNull(propertyTypes, "propertyTypes can not be null")
-      .accept(new PluginFormProperties.IVisitor() {
-        @Override
-        public PluginEqualResult visit(RootFormProperties props) {
-          try {
-            PropertyType pt = null;
-            String fieldName = null;
-            JSONObject describle = null;
-            for (Map.Entry<String, PropertyType> entry : props.getSortedUseableProperties()) {
-              pt = entry.getValue();
-              fieldName = entry.getKey();
-              Object exist = null;
-              if (pt.isIdentity()) {
-                continue;
+    return Objects.requireNonNull(propertyTypes, "propertyTypes can not be null").accept(new PluginFormProperties.IVisitor() {
+      @Override
+      public PluginEqualResult visit(RootFormProperties props) {
+        try {
+          PropertyType pt = null;
+          String fieldName = null;
+          JSONObject describle = null;
+          for (Map.Entry<String, PropertyType> entry : props.getSortedUseableProperties()) {
+            pt = entry.getValue();
+            fieldName = entry.getKey();
+            Object exist = null;
+            if (pt.isIdentity()) {
+              continue;
+            }
+            exist = pt.getFrontendOutput(plugin);
+
+            if (pt.isDescribable()) {
+              // 检查 pluginVals 中是否存在该字段
+              describle = pluginVals.getAttrVal(fieldName);
+              if (describle == null) {
+                // throw new IllegalStateException("fieldName:" + fieldName + " relevant describle can not be null");
+                return notEqual("fieldName:" + fieldName + " relevant describle is null");
               }
-              exist = pt.getFrontendOutput(plugin);
 
-              if (pt.isDescribable()) {
-                // 检查 pluginVals 中是否存在该字段
-                describle = pluginVals.getAttrVal(fieldName);
-                if (describle == null) {
-                  // throw new IllegalStateException("fieldName:" + fieldName + " relevant describle can not be null");
-                  return notEqual("fieldName:" + fieldName + " relevant describle is null");
-                }
-
-                Object vals = Objects.requireNonNull(describle.getJSONObject(KEY_DESC_VAL)
-                  , "key:" + KEY_DESC_VAL + " relevant json can not be null").get(PLUGIN_EXTENSION_VALS);
-                if (vals == null) {
-                  // 如果 exist 也是 null，则认为相等
-                  if (exist == null) {
-                    continue;
-                  }
-                  return notEqual("fieldName:" + fieldName + " vals is null but exist vals is not null");
-                }
-
+              Object vals = Objects.requireNonNull(describle.getJSONObject(KEY_DESC_VAL),
+                      "key:" + KEY_DESC_VAL + " " + "relevant json can not be null").get(PLUGIN_EXTENSION_VALS);
+              if (vals == null) {
+                // 如果 exist 也是 null，则认为相等
                 if (exist == null) {
-                  return notEqual("fieldName:" + fieldName + " relevant exist vals is  null");
-                }
-
-                PluginEqualResult compareResult = null;
-                if (!(compareResult = isPluginEqual((Describable) exist, AttrVals.parseAttrValMap(vals))).equal) {
-                  return notEqual("desc field:" + fieldName + "," + compareResult.unEqualLogger)
-                    .setStack(compareResult.stack);
-                }
-
-              } else {
-                Object primaryVal = pluginVals.getPrimaryVal(fieldName);
-                if (primaryVal == null && exist == null) {
                   continue;
                 }
-                if (primaryVal == null ^ exist == null) {
-                  return notEqual("fieldName:" + fieldName + ",primaryVal(" + primaryVal + ") == null ^ exist(\"" + exist + "\") == null");
-                }
-                if (!StringUtils.equals(String.valueOf(exist), String.valueOf(primaryVal))) {
-                  return notEqual("fieldName:" + fieldName + ",exist(" + exist + ") != " + primaryVal);
-                }
+                return notEqual("fieldName:" + fieldName + " vals is null but exist vals is not null");
+              }
+
+              if (exist == null) {
+                return notEqual("fieldName:" + fieldName + " relevant exist vals is  null");
+              }
+
+              PluginEqualResult compareResult = null;
+              if (!(compareResult = isPluginEqual((Describable) exist, AttrVals.parseAttrValMap(vals))).equal) {
+                return notEqual("desc field:" + fieldName + "," + compareResult.unEqualLogger).setStack(compareResult.stack);
+              }
+
+            } else {
+              Object primaryVal = pluginVals.getPrimaryVal(fieldName);
+              if (primaryVal == null && exist == null) {
+                continue;
+              }
+              if (primaryVal == null ^ exist == null) {
+                return notEqual("fieldName:" + fieldName + ",primaryVal(" + primaryVal + ") == null ^ exist(\"" + exist + "\") == null");
+              }
+              if (!StringUtils.equals(String.valueOf(exist), String.valueOf(primaryVal))) {
+                return notEqual("fieldName:" + fieldName + ",exist(" + exist + ") != " + primaryVal);
               }
             }
-            return new PluginEqualResult(true, null);
-          } catch (Exception e) {
-            throw new RuntimeException(e);
           }
+          return new PluginEqualResult(true, null);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
         }
+      }
 
-        @Override
-        public Void visit(BaseSubFormProperties props) {
-          // 对于子表单属性，暂时不支持比较
-          throw new UnsupportedOperationException();
-        }
-      });
+      @Override
+      public Void visit(BaseSubFormProperties props) {
+        // 对于子表单属性，暂时不支持比较
+        throw new UnsupportedOperationException();
+      }
+    });
   }
 
   /**
@@ -427,15 +515,16 @@ public abstract class BasicStepExecutor implements StepExecutor {
    * @return
    * @throws Exception
    */
-  private AttrValMap createInnerPluginInstance(TaskPlan plan, AgentContext context, UserPrompt userInput
-    , PluginExtraProps.FieldRefCreateor refCreateor //
+  private AttrValMap createInnerPluginInstance(TaskPlan plan, AgentContext context, UserPrompt userInput,
+                                               PluginExtraProps.FieldRefCreateor refCreateor //
     , PluginExtraProps.CandidatePlugin candidate) throws Exception {
     Descriptor installedPluginDescriptor = candidate.getInstalledPluginDescriptor();
-    AttrValMap valMap = createPluginInstance(plan, context, userInput, Optional.empty()
-      , new DescribableImpl(candidate.getHetero().getExtensionPoint(), Optional.empty())
-        .setDescriptor(
-          Objects.requireNonNull(installedPluginDescriptor
-            , "candidate:" + candidate + ",installedPluginDescriptor can not be null")), candidate.getHetero()
+    AttrValMap valMap = createPluginInstance(plan, context, userInput, Optional.empty(),
+            new DescribableImpl(candidate.getHetero().getExtensionPoint() //
+        , Optional.empty()).setDescriptor( //
+        Objects.requireNonNull(installedPluginDescriptor, "candidate:" + candidate + ",installedPluginDescriptor " +
+                "can not be null"))  //
+      , candidate.getHetero() //
       , (propType) -> {
         if (!propType.isIdentity()) {
           throw new IllegalStateException("propType:" + propType.propertyName() + " must be primary field");
@@ -443,8 +532,8 @@ public abstract class BasicStepExecutor implements StepExecutor {
         List<Option> existOpts = refCreateor.getValOptions();
         return candidate.createNewPrimaryFieldValue(existOpts);
       });
-//    Context ctx = new DefaultContext();
-    return validateAttrValMap(plan, context, candidate.getHetero(), valMap, Optional.empty());
+    return valMap;
+    // return validateAttrValMap(plan, context, candidate.getHetero(), valMap, Optional.empty());
   }
 
   /**
@@ -455,8 +544,8 @@ public abstract class BasicStepExecutor implements StepExecutor {
    * @param candidatePlugins
    * @return
    */
-  private PluginExtraProps.CandidatePlugin selectTargetPluginDescriptor(AgentContext context
-    , Map.Entry<String, PluginExtraProps.FieldRefCreateor> e //
+  private PluginExtraProps.CandidatePlugin selectTargetPluginDescriptor(AgentContext context, Map.Entry<String,
+                                                                                PluginExtraProps.FieldRefCreateor> e //
     , Optional<IEndTypeGetter.EndType> endType, List<PluginExtraProps.CandidatePlugin> candidatePlugins) {
 
     /**
@@ -481,11 +570,9 @@ public abstract class BasicStepExecutor implements StepExecutor {
    * @param candidatePlugins 候选插件列表
    * @return 用户选择的插件，如果取消或超时返回null
    */
-  private PluginExtraProps.CandidatePlugin selectPlugin(
-    AgentContext context,
-    String fieldName,
-    Optional<IEndTypeGetter.EndType> endType,
-    List<PluginExtraProps.CandidatePlugin> candidatePlugins) {
+  private PluginExtraProps.CandidatePlugin selectPlugin(AgentContext context, String fieldName,
+                                                        Optional<IEndTypeGetter.EndType> endType,
+                                                        List<PluginExtraProps.CandidatePlugin> candidatePlugins) {
 
     if (CollectionUtils.isEmpty(candidatePlugins)) {
       throw new IllegalArgumentException("candidatePlugins can not be empty");
@@ -494,8 +581,8 @@ public abstract class BasicStepExecutor implements StepExecutor {
     RequestKey requestId = RequestKey.create();// "plugin_select_" + System.currentTimeMillis();
 
 
-    String prompt = String.format("请选择 %s 字段的插件实现", fieldName);
-//    context.sendMessage(prompt);
+    String prompt = String.format("请选择 %s 字段的插件实现版本", fieldName);
+    //    context.sendMessage(prompt);
     /************************************************************************
      * 向客户端发送需要用户确认的请求
      ************************************************************************/
@@ -509,12 +596,13 @@ public abstract class BasicStepExecutor implements StepExecutor {
     });
     if (selectedIndex != null) {
       PluginExtraProps.CandidatePlugin selected = selectedIndex.getSelectPluginDesc();
-//    if (selectedIndex >= 0 && selectedIndex < candidatePlugins.size()) {
-//      PluginExtraProps.CandidatePlugin selected = candidatePlugins.get(selectedIndex);
-//      if (selected.getInstalledPluginDescriptor(true) == null) {
-//        throw new IllegalStateException(selected.getDisplayName()
-//          + " of extendpoint:" + selected.getHetero().getExtensionPoint().getName() + " have not been installed");
-//      }
+      //    if (selectedIndex >= 0 && selectedIndex < candidatePlugins.size()) {
+      //      PluginExtraProps.CandidatePlugin selected = candidatePlugins.get(selectedIndex);
+      //      if (selected.getInstalledPluginDescriptor(true) == null) {
+      //        throw new IllegalStateException(selected.getDisplayName()
+      //          + " of extendpoint:" + selected.getHetero().getExtensionPoint().getName() + " have not been
+      //          installed");
+      //      }
 
       context.sendMessage(String.format("已选择: %s", selected.getDisplayName()));
       return selected;
@@ -524,27 +612,29 @@ public abstract class BasicStepExecutor implements StepExecutor {
     return null;
   }
 
-  protected AttrValMap validateAttrValMap(TaskPlan plan, AgentContext context
-    , IPluginEnum pluginEnum, AttrValMap valMap, Optional<DataXName> pipelineName) throws Exception {
+  protected AttrValMap validateAttrValMap(TaskPlan plan, AgentContext context, IPluginEnum pluginEnum,
+                                          AttrValMap valMap, Optional<DataXName> pipelineName) throws Exception {
     /**
      * 需要对valMap进行校验
      */
     final Context ctx = plan.getRuntimeContext(true);
     FormVaildateType verify = FormVaildateType.create(true);
     FormVaildateType validate = FormVaildateType.create(false);
+
+    AttrValMap.setCurrentRootPluginValidator(valMap.descriptor);
     Descriptor.PluginValidateResult.setValidateItemPos(ctx, 0, 0);
 
     PartialSettedPluginContext msgHandler = createPluginContext(plan, pipelineName.orElse(null));
 
-    boolean faild = false;
+    boolean validateFaild = false;
     try {
-      if (!valMap.validate(msgHandler, ctx, verify, Optional.empty()).isValid()
+      if (!valMap.validate(msgHandler, ctx, verify, Optional.empty()).isValid() //
         || !valMap.validate(msgHandler, ctx, validate, Optional.empty()).isValid()) {
         // error
-        faild = true;
+        validateFaild = true;
       }
     } catch (Exception e) {
-      faild = true;
+      validateFaild = true;
       TisException expt = null;
       if ((expt = ExceptionUtils.throwableOfType(e, TisException.class)) != null) {
         msgHandler.addErrorMessage(ctx, expt.getMessage());
@@ -553,8 +643,49 @@ public abstract class BasicStepExecutor implements StepExecutor {
       }
     }
 
-    if (faild) {
-      AjaxValve.ActionExecResult validateResult = new AjaxValve.ActionExecResult(ctx).invoke();
+    if (validateFaild) {
+      AjaxValve.ActionExecResult validateResult = AjaxValve.ActionExecResult.create(ctx);
+
+      ListDetailedItemsErrors itemErrors = validateResult.getItemErrors();
+      if (itemErrors != null) {
+        // 处理Flink 本地环境还没有部署，需要部署Flink 实例的流程
+        Map<String, /*** fieldname*/IPropertyType> propertyTypes = valMap.descriptor.getPropertyTypes();
+        AttrVals attrVals = valMap.getAttrVals();
+        for (DefaultFieldErrorHandler.FieldError fieldError : itemErrors.fieldsErrorList) {
+          PropertyType pt = (PropertyType) Objects.requireNonNull( //
+            propertyTypes.get(fieldError.getFieldName()), "prop" + ":" + fieldError.getFieldName() + " relevant " +
+                          "PropertyType can not be null");
+
+
+          String pluginImpl = PropertyType.getPluginImpl(attrVals.getAttrVal(fieldError.getFieldName()));
+
+
+          if (pt.isDescribable()) {
+            Descriptor fieldDesc = TIS.get().getDescriptor(pluginImpl);
+            Optional<DescribableJSON<ParamsConfig>> aiAssistSupport = fieldDesc.getAIAssistSupport();
+            if (aiAssistSupport.isPresent()) {
+              RequestKey requestId = RequestKey.create();
+
+              DescribableJSON<ParamsConfig> aiAssistDescribableJSON = aiAssistSupport.get();
+              context.sendPluginConfig(requestId, AjaxValve.ActionExecResult.create(plan.getRuntimeContext(true)),
+                      HeteroEnum.PARAMS_CONFIG, aiAssistDescribableJSON.descriptor.getId(),
+                      aiAssistDescribableJSON.getPostAttribute());
+              /***
+               * 等到用户选择
+               ***/
+              PluginPropsComplement pluginProps = context.waitForUserPost(requestId, (pp) -> {
+                return pp != null && pp.getPluginValMap() != null;
+              });
+            }
+
+            //            RequestKey requestId, AjaxValve.ActionExecResult validateResult
+            //    , IPluginEnum pluginEnum, String pluginImpl, AttrValMap valMap
+
+
+          }
+        }
+      }
+
 
       final RequestKey requestId = RequestKey.create();
       /***
@@ -565,8 +696,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
       /***
        * 等到用户选择
        ***/
-      PluginPropsComplement pluginProps
-        = context.waitForUserPost(requestId, (pp) -> {
+      PluginPropsComplement pluginProps = context.waitForUserPost(requestId, (pp) -> {
         return pp != null && pp.getPluginValMap() != null;
       });
       return Objects.requireNonNull(pluginProps, "validate pluginProps can not be null").getPluginValMap();
@@ -574,15 +704,16 @@ public abstract class BasicStepExecutor implements StepExecutor {
     return valMap;
   }
 
-  protected <PLUGIN extends Describable> PLUGIN createPluginAndStore(HeteroEnum hetero
-    , TaskPlan plan, AgentContext context
-    , Context ctx, PartialSettedPluginContext pluginCtx, UploadPluginMeta pluginMetaMeta, AttrValMap pluginVals) throws Exception {
+  protected <PLUGIN extends Describable> PLUGIN  //
+  createPluginAndStore( //
+                        HeteroEnum hetero, TaskPlan plan, AgentContext context, Context ctx,
+                        PartialSettedPluginContext pluginCtx, UploadPluginMeta pluginMetaMeta, AttrValMap pluginVals) throws Exception {
 
     /**
      * 先进行校验
      */
-    pluginVals = validateAttrValMap(plan, context, hetero
-      , pluginVals, Optional.ofNullable(pluginMetaMeta.getDataXName(false)));
+    pluginVals = validateAttrValMap(plan, context, hetero, pluginVals,
+            Optional.ofNullable(pluginMetaMeta.getDataXName(false)));
     Descriptor.ParseDescribable newPlugin = pluginVals.createDescribable(pluginCtx, ctx);
     IPluginStore pluginStore = hetero.getPluginStore(pluginCtx, pluginMetaMeta);
     pluginStore.setPlugins(pluginCtx, Optional.empty(), Collections.singletonList(newPlugin));
@@ -596,11 +727,11 @@ public abstract class BasicStepExecutor implements StepExecutor {
     } else {
       pluginContext = new PartialSettedPluginContext();
     }
-    return
-      pluginContext.setTargetRuntimeContext((IPluginContext) plan.getControlMsgHandler());
+    return pluginContext.setTargetRuntimeContext((IPluginContext) plan.getControlMsgHandler());
   }
 
-  protected void checkInstallPlugin(AgentContext context, Set<Pair<IEndTypeGetter.EndType, Collection<DescribableImpl>>> installImpls) {
+  protected void checkInstallPlugin(AgentContext context, Set<Pair<IEndTypeGetter.EndType,
+          Collection<DescribableImpl>>> installImpls) {
     checkInstallPlugin(context, installImpls, (beforeInstall) -> {
     });
   }
@@ -611,7 +742,8 @@ public abstract class BasicStepExecutor implements StepExecutor {
    * @param installImpls
    * @param beforeInstall
    */
-  protected void checkInstallPlugin(AgentContext context, Set<Pair<IEndTypeGetter.EndType, Collection<DescribableImpl>>> installImpls, Consumer<Set<PluginWillInstall>> beforeInstall) {
+  protected void checkInstallPlugin(AgentContext context, Set<Pair<IEndTypeGetter.EndType,
+          Collection<DescribableImpl>>> installImpls, Consumer<Set<PluginWillInstall>> beforeInstall) {
     UpdateCenter center = TIS.get().getUpdateCenter();
     final List<UpdateSite.Plugin> availables = center.getPlugins(UpdateSite::getAllPlugins);
     try {
@@ -657,8 +789,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
         beWait.set(false);
         waitInstallComplete.shutdown();
         if (!success) {
-          throw TisException.create("install plugins:"
-            + pluginsInstall.stream().map(PluginWillInstall::getName).collect(Collectors.joining(",")) + " faild");
+          throw TisException.create("install plugins:" + pluginsInstall.stream().map(PluginWillInstall::getName).collect(Collectors.joining(",")) + " faild");
         }
       }
     } catch (TisException e) {
@@ -668,18 +799,17 @@ public abstract class BasicStepExecutor implements StepExecutor {
     }
   }
 
-  private Set<PluginWillInstall> parsePluginWillInstalls(
-    IEndTypeGetter.EndType endType, Collection<DescribableImpl> extendPoints, List<UpdateSite.Plugin> availables) {
+  private Set<PluginWillInstall> parsePluginWillInstalls(IEndTypeGetter.EndType endType,
+                                                         Collection<DescribableImpl> extendPoints,
+                                                         List<UpdateSite.Plugin> availables) {
     if (endType == null) {
       throw new IllegalArgumentException("param endType can not be null");
     }
     Set<PluginWillInstall> pluginsInstall = Sets.newHashSet();
 
-    PluginFilter filter = PluginFilter.create(
-      endType.getVal(), extendPoints);
+    PluginFilter filter = PluginFilter.create(endType.getVal(), extendPoints);
 
-    List<UpdateSite.Plugin> filterAvailables
-      = availables.stream().filter((plugin) -> {
+    List<UpdateSite.Plugin> filterAvailables = availables.stream().filter((plugin) -> {
       return !(filter.filter(Optional.empty(), plugin));
     }).collect(Collectors.toList());
 

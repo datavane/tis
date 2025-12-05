@@ -40,7 +40,9 @@ import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta;
 import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.trigger.util.UnCacheString;
+import com.qlangtech.tis.util.AttrValMap;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.Converter;
 import org.apache.commons.lang.StringUtils;
@@ -61,6 +63,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.extension.Descriptor.KEY_DESC_VAL;
 import static com.qlangtech.tis.manage.common.Option.KEY_LABEL;
 
 /**
@@ -147,8 +150,8 @@ public class PropertyType implements IPropertyType {
 
     public List<Option> getEnumPropOptions() {
         List<Option> opts = Lists.newArrayList();
-        Object enumPp = Objects.requireNonNull(this.getExtraProps(), "extraProps can not be null, for property:"
-                + this.f.getName()).get(Descriptor.KEY_ENUM_PROP);
+        Object enumPp = Objects.requireNonNull(this.getExtraProps(),
+                "extraProps can not be null, for property:" + this.f.getName()).get(Descriptor.KEY_ENUM_PROP);
         if (enumPp == null) {
             throw new IllegalStateException("enumPp can not be empty");
         }
@@ -177,11 +180,7 @@ public class PropertyType implements IPropertyType {
         if (dftVal != null) {
             final Class dftValClazz = dftVal.getClass();
 
-            if (!(dftValClazz == String.class
-                    || dftValClazz == UnCacheString.class
-                    || Number.class.isAssignableFrom(dftValClazz)
-                    || dftValClazz == Boolean.class
-                    || dftValClazz.isEnum())) {
+            if (!(dftValClazz == String.class || dftValClazz == UnCacheString.class || Number.class.isAssignableFrom(dftValClazz) || dftValClazz == Boolean.class || dftValClazz.isEnum())) {
                 throw new IllegalStateException("default value must be type of String or primitive,but now is type:" + dftVal.getClass());
             }
             props.put(PluginExtraProps.KEY_DFTVAL_PROP, dftVal);
@@ -192,13 +191,11 @@ public class PropertyType implements IPropertyType {
         if (StringUtils.isEmpty(label)) {
             throw new IllegalArgumentException("param label can not be null");
         }
-        Objects.requireNonNull(props, "props can not be null")
-                .put(KEY_LABEL, label);
+        Objects.requireNonNull(props, "props can not be null").put(KEY_LABEL, label);
     }
 
     public static void setDisabled(JSONObject props) {
-        Objects.requireNonNull(props, "props can not be null")
-                .put(PluginExtraProps.KEY_DISABLE, true);
+        Objects.requireNonNull(props, "props can not be null").put(PluginExtraProps.KEY_DISABLE, true);
     }
 
     @Override
@@ -219,9 +216,7 @@ public class PropertyType implements IPropertyType {
      * @param clazz
      * @return
      */
-    public static Map<String, /*** fieldname */IPropertyType>
-    buildPropertyTypes(Optional<ElementPluginDesc> descriptor,
-                       final Class<? extends Describable> clazz) {
+    public static Map<String, /*** fieldname */IPropertyType> buildPropertyTypes(Optional<ElementPluginDesc> descriptor, final Class<? extends Describable> clazz) {
         try {
             Map<String, IPropertyType> propMapper = new HashMap<>();
 
@@ -250,15 +245,17 @@ public class PropertyType implements IPropertyType {
 
                                 final Descriptor subFormDesc =
                                         Objects.requireNonNull(TIS.get().getDescriptor(subFromDescClass),
-                                                "subFromDescClass:" + subFromDescClass + " relevant descriptor can not be null");
+                                                "subFromDescClass:" + subFromDescClass + " relevant descriptor can " + "not be null");
 
-                                propMapper.put(f.getName(), new SuFormProperties(clazz, f, subFormFields, subFormDesc,
-                                        filterFieldProp(buildPropertyTypes(ElementPluginDesc.create(subFormDesc), subFromDescClass))));
+                                propMapper.put(f.getName(), new SuFormProperties(clazz, f, subFormFields, subFormDesc
+                                        , filterFieldProp(buildPropertyTypes(ElementPluginDesc.create(subFormDesc),
+                                        subFromDescClass))));
                             } else if ((formField = f.getAnnotation(FormField.class)) != null) {
 
                                 PluginExtraProps.Props fieldExtraProps = null;
                                 final PropertyType ptype = new PropertyType(clazz, f, formField);
-                                if (extraProps.isPresent() && (fieldExtraProps = extraProps.get().getProp(f.getName())) != null) {
+                                if (extraProps.isPresent() && (fieldExtraProps =
+                                        extraProps.get().getProp(f.getName())) != null) {
 
                                     ptype.setExtraProp(fieldExtraProps);
                                     String placeholder = fieldExtraProps.getPlaceholder();
@@ -284,7 +281,8 @@ public class PropertyType implements IPropertyType {
                                                 pt.getEnumFieldMode().createDefaultValProcess(targetClass, f) :
                                                 Function.identity();
 
-                                        setDefaultVal(GroovyShellEvaluate.scriptEval(String.valueOf(dftVal), process), props);
+                                        setDefaultVal(GroovyShellEvaluate.scriptEval(String.valueOf(dftVal), process)
+                                                , props);
                                     }
 
                                     if (placeholder != null && StringUtils.startsWith(placeholder,
@@ -352,7 +350,8 @@ public class PropertyType implements IPropertyType {
         if (anEnum != null && anEnum instanceof String) {
             try {
                 GroovyShellUtil.descriptorThreadLocal.set(descriptor);
-                fieldExtraProps.getProps().put(Descriptor.KEY_ENUM_PROP, GroovyShellEvaluate.scriptEval((String) anEnum, process));
+                fieldExtraProps.getProps().put(Descriptor.KEY_ENUM_PROP,
+                        GroovyShellEvaluate.scriptEval((String) anEnum, process));
             } finally {
                 GroovyShellUtil.descriptorThreadLocal.remove();
             }
@@ -413,8 +412,7 @@ public class PropertyType implements IPropertyType {
 
     @JSONField(serialize = false)
     public EnumFieldMode getEnumFieldMode() {
-        if (this.formField.type() != FormFieldType.ENUM
-                && this.formField.type() != FormFieldType.SELECTABLE) {
+        if (this.formField.type() != FormFieldType.ENUM && this.formField.type() != FormFieldType.SELECTABLE) {
             return null;
         }
         return EnumFieldMode.parse(this.extraProp != null ? getExtraProps().getString("enumMode") : null);
@@ -455,9 +453,8 @@ public class PropertyType implements IPropertyType {
         if (this.validators == null) {
             Set<Validator> result = Sets.newHashSet();
 
-            Map<Validator, PluginExtraProps.Props.ValidatorCfg> validators
-                    = (extraProp == null ? Collections.emptyList() : (this.extraProp.getExtraValidators()))
-                    .stream().collect(Collectors.toMap((v) -> ((PluginExtraProps.Props.ValidatorCfg) v).validator, (v) -> (PluginExtraProps.Props.ValidatorCfg) v));
+            Map<Validator, PluginExtraProps.Props.ValidatorCfg> validators = (extraProp == null ?
+                    Collections.emptyList() : (this.extraProp.getExtraValidators())).stream().collect(Collectors.toMap((v) -> ((PluginExtraProps.Props.ValidatorCfg) v).validator, (v) -> (PluginExtraProps.Props.ValidatorCfg) v));
 
             PluginExtraProps.Props.ValidatorCfg validatorCfg = null;
             for (Validator v : formField.validate()) {
@@ -529,7 +526,8 @@ public class PropertyType implements IPropertyType {
         try {
             Object val = this.f.get(instance);
             if (this.formField.type() == FormFieldType.MULTI_SELECTABLE) {
-                return this.getMultiItemsViewType().serialize2Frontend(this.isCollectionType() ? val : Collections.singletonList(val));
+                return this.getMultiItemsViewType().serialize2Frontend(this.isCollectionType() ? val :
+                        Collections.singletonList(val));
             }
             return serialize2Frontend ? serialize2FrontendOutput(val) : val;
             //  return this.formField.type().valProcessor.serialize2Output(this, val);
@@ -563,8 +561,8 @@ public class PropertyType implements IPropertyType {
         try {
             this.f.set(instance, this.formField.type().valProcessor.processInput(instance, fieldVal));
         } catch (Throwable e) {
-            throw new RuntimeException("\ntarget instance:" + instance.getClass()
-                    + "\nfield:" + this.f.getName() + ("\nprop class:" + val.getClass()), e);
+            throw new RuntimeException("\ntarget instance:" + instance.getClass() + "\nfield:" + this.f.getName() + (
+                    "\nprop class:" + val.getClass()), e);
         }
     }
 
@@ -617,15 +615,22 @@ public class PropertyType implements IPropertyType {
     }
 
     public boolean isDescribable() {
-        // }
         return Describable.class.isAssignableFrom(fieldClazz);
+    }
+
+    public static String getPluginImpl(JSONObject valJ) {
+        JSONObject descVal = valJ.getJSONObject(KEY_DESC_VAL);
+        final String impl = Objects.requireNonNull(descVal,
+                        "prop:" + KEY_DESC_VAL + " json:" + JsonUtil.toString(valJ)) //
+                .getString(AttrValMap.PLUGIN_EXTENSION_IMPL);
+        return impl;
     }
 
     public Descriptor getItemTypeDescriptorOrDie() {
         Class it = getItemType();
         if (it == null) {
-            throw new AssertionError(fieldClazz + " is not an array/collection type in " + displayName + ". See " + "https"
-                    + "://wiki.jenkins-ci.org/display/JENKINS/My+class+is+missing+descriptor");
+            throw new AssertionError(fieldClazz + " is not an array/collection type in " + displayName + ". See " +
+                    "https" + "://wiki.jenkins-ci.org/display/JENKINS/My+class+is+missing+descriptor");
         }
         Descriptor d = TIS.get().getDescriptor(it);
         if (d == null)
@@ -651,8 +656,7 @@ public class PropertyType implements IPropertyType {
                 String script = "	package " + pkg + " ;\n"  //
                         + "import java.util.function.Function;\n" //
                         + "import java.util.List;\n" //
-                        + "import " + com.qlangtech.tis.extension.Descriptor.class.getName() + ";\n"
-                        + "class " + className + " implements Function<List<? extends Descriptor>,List<? extends " //
+                        + "import " + com.qlangtech.tis.extension.Descriptor.class.getName() + ";\n" + "class " + className + " implements Function<List<? extends Descriptor>,List<? extends " //
                         + "Descriptor>> { \n" //
                         + "	@Override \n" //
                         + "	public List<? extends Descriptor> apply" //

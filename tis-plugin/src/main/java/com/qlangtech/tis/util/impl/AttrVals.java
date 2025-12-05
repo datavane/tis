@@ -27,9 +27,12 @@ import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -42,6 +45,7 @@ public class AttrVals implements AttrValMap.IAttrVals {
     public AttrVals(Map<String, JSON> attrValMap) {
         this.attrValMap = attrValMap;
     }
+
 
     public static AttrVals parseAttrValMap(Object vals) {
         Map<String, JSON> attrValMap = Maps.newHashMap();
@@ -81,6 +85,15 @@ public class AttrVals implements AttrValMap.IAttrVals {
         return result;
     }
 
+    public AttrVals createNew(BiFunction<String, JSON, JSON> mapper) {
+        Map<String, JSON> vals = new HashMap<>();
+        this.vistAttrValMap((key, val) -> {
+            vals.put(key, mapper.apply(key, val));
+        });
+        return new AttrVals(vals);
+    }
+
+
     public JSONObject getAttrVal(String fieldName) {
         JSON prop = this.attrValMap.get(fieldName);
         if (prop != null && !(prop instanceof JSONObject)) {
@@ -106,9 +119,7 @@ public class AttrVals implements AttrValMap.IAttrVals {
             throw new IllegalArgumentException("field:" + fieldName + " relevant val can not be null");
         }
         JSONObject attrVal = getAttrVal(fieldName);
-        Objects.requireNonNull(attrVal
-                        , "field:" + fieldName + " relevatn attrVal can not be null")
-                .put(Descriptor.KEY_primaryVal, val);
+        Objects.requireNonNull(attrVal, "field:" + fieldName + " relevatn attrVal can not be null").put(Descriptor.KEY_primaryVal, val);
     }
 
     /**
@@ -149,10 +160,9 @@ public class AttrVals implements AttrValMap.IAttrVals {
     }
 
     public void vistAttrValMap(BiConsumer<String, JSON> tabValConsumer) {
-        this.attrValMap.entrySet()
-                .stream().forEach((entry -> {
-                    tabValConsumer.accept(entry.getKey(), entry.getValue());
-                }));
+        this.attrValMap.entrySet().stream().forEach((entry -> {
+            tabValConsumer.accept(entry.getKey(), entry.getValue());
+        }));
     }
 
 

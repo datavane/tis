@@ -67,13 +67,13 @@ public class PipelineIncrExecutor extends BasicStepExecutor {
     TaskPlan.DataEndCfg targetEnd = plan.getTargetEnd();
     IAppSource processor = sourceEnd.getProcessor();
     DataXName pipelineName = processor.getDataXName();
-    if (!Objects.requireNonNull(sourceEnd.getEndTypeMeta()
-      , "sourceEnd:" + sourceEnd.getType() + " relevant EndTypeMeta can not be null").isSupportIncr()) {
+    if (!Objects.requireNonNull(sourceEnd.getEndTypeMeta(), "sourceEnd:" + sourceEnd.getType() + " relevant "
+      + "EndTypeMeta can not be null").isSupportIncr()) {
       context.sendMessage("源端‘" + sourceEnd.getType() + "’ 类型不支持增量实时数据同步，因此跳过该步骤");
       return true;
     }
-    if (!Objects.requireNonNull(targetEnd.getEndTypeMeta()
-      , "targetEnd:" + targetEnd.getType() + " relevant EndTypeMeta can not be null").isSupportIncr()) {
+    if (!Objects.requireNonNull(targetEnd.getEndTypeMeta(), "targetEnd:" + targetEnd.getType() + " relevant "
+      + "EndTypeMeta can not be null").isSupportIncr()) {
       context.sendMessage("目标端‘" + targetEnd.getType() + "’ 类型不支持增量实时数据同步，因此跳过该步骤");
       return true;
     }
@@ -82,10 +82,8 @@ public class PipelineIncrExecutor extends BasicStepExecutor {
     if (!executeIncr) {
       // 询问用户是否开通
       RequestKey requestId = RequestKey.create();
-      List<PluginExtraProps.CandidatePlugin> opts
-        = Lists.newArrayList(
-        new NormalSelectionOption("是的，现在开始吧")
-        , new NormalSelectionOption("不需要，等等再说"));
+      List<PluginExtraProps.CandidatePlugin> opts = Lists.newArrayList(new NormalSelectionOption("是的，现在开始吧"),
+        new NormalSelectionOption("不需要，等等再说"));
 
       final String prompt = "请选择是否开启增量实时同步通道执行？";
       context.requestUserSelection(requestId, prompt, Optional.empty(), opts);
@@ -113,13 +111,15 @@ public class PipelineIncrExecutor extends BasicStepExecutor {
       DescribableImpl incrSinkImpl = new DescribableImpl(TISSinkFactory.class, Optional.of(incrSinkType));
       // .addImpl("com.qlangtech.plugins.incr.flink.launch.TISFlinkCDCStreamFactory");
 
-      this.checkInstallPlugin(context, Sets.newHashSet(
-        Pair.of(IEndTypeGetter.EndType.Flink, Collections.singletonList(streamFactoryImpl))
-        , Pair.of(incrSourceType, Collections.singletonList(incrSourceImpl))
-        , Pair.of(incrSinkType, Collections.singletonList(incrSinkImpl))));
+      this.checkInstallPlugin(context, Sets.newHashSet(Pair.of(IEndTypeGetter.EndType.Flink,
+        Collections.singletonList(streamFactoryImpl)), Pair.of(incrSourceType,
+        Collections.singletonList(incrSourceImpl)), Pair.of(incrSinkType, Collections.singletonList(incrSinkImpl))));
 
-      AttrValMap pluginVals = createPluginInstance(plan, context
-        , new UserPrompt("正在生成" + IEndTypeGetter.EndType.Flink + "实时管道主体配置...", plan.getUserInput()) //
+      /**
+       * 生成 IncrStreamFactory
+       */
+      AttrValMap pluginVals = createPluginInstance(plan, context,
+        new UserPrompt("正在生成" + IEndTypeGetter.EndType.Flink + "实时管道主体配置...", plan.getUserInput()) //
         , flinkType //
         , streamFactoryImpl, HeteroEnum.INCR_STREAM_CONFIG, new IPrimaryValRewrite() {
           @Override
@@ -132,16 +132,16 @@ public class PipelineIncrExecutor extends BasicStepExecutor {
       UploadPluginMeta processMeta = UploadPluginMeta.appnameMeta(pluginCtx, processor.identityValue());
       Context ctx = plan.getRuntimeContext(true);
 
-      IncrStreamFactory streamFactory
-        = createPluginAndStore(HeteroEnum.INCR_STREAM_CONFIG, plan, context, ctx, pluginCtx, processMeta, pluginVals);
+      IncrStreamFactory streamFactory = createPluginAndStore(HeteroEnum.INCR_STREAM_CONFIG, plan, context, ctx,
+        pluginCtx, processMeta, pluginVals);
 
 
       /**
        * MQListenerFactory
        */
 
-      pluginVals = createPluginInstance(plan, context
-        , new UserPrompt("正在生成" + incrSourceType + "源端实时增量实例主体配置...", plan.getUserInput()) //
+      pluginVals = createPluginInstance(plan, context, new UserPrompt("正在生成" + incrSourceType + "源端实时增量实例主体配置...",
+          plan.getUserInput()) //
         , Optional.of(incrSourceType) //
         , incrSourceImpl, HeteroEnum.MQ, new IPrimaryValRewrite() {
           @Override
@@ -154,8 +154,8 @@ public class PipelineIncrExecutor extends BasicStepExecutor {
       /**
        * TISSinkFactory
        */
-      pluginVals = createPluginInstance(plan, context
-        , new UserPrompt("正在生成" + incrSinkType + "目标端实时增量实例主体配置...", plan.getUserInput()) //
+      pluginVals = createPluginInstance(plan, context, new UserPrompt("正在生成" + incrSinkType + "目标端实时增量实例主体配置...",
+          plan.getUserInput()) //
         , Optional.of(incrSinkType) //
         , incrSinkImpl, TISSinkFactory.sinkFactory, new IPrimaryValRewrite() {
           @Override
@@ -169,14 +169,12 @@ public class PipelineIncrExecutor extends BasicStepExecutor {
       // 执行发布
       JSONObject launchData = new JSONObject();
       launchData.put(StoreResourceType.DATAX_NAME, pipelineName.getPipelineName());
-      context.getSseWriter()
-        .writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_OPEN_LAUNCHING_PROCESS, launchData);
+      context.getSseWriter().writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_OPEN_LAUNCHING_PROCESS, launchData);
       ctx = plan.getRuntimeContext(true);
-      startDeployIncrSyncChannal(
-        context.getSseWriter(), plan.getControlMsgHandler(), ctx, streamFactory, pipelineName);
+      startDeployIncrSyncChannal(context.getSseWriter(), plan.getControlMsgHandler(), ctx, streamFactory, pipelineName);
 
-      context.sendMessage("已经成功部署实时增量实例：" + String.valueOf(pipelineName)
-        , new PayloadLink("查看", "/x/" + pipelineName.getPipelineName() + "/incr_build"));
+      context.sendMessage("已经成功部署实时增量实例：" + String.valueOf(pipelineName), new PayloadLink("查看",
+        "/x/" + pipelineName.getPipelineName() + "/incr_build"));
 
     } catch (Exception e) {
       throw new RuntimeException(e);

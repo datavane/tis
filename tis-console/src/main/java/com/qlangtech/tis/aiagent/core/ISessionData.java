@@ -18,6 +18,8 @@
 
 package com.qlangtech.tis.aiagent.core;
 
+import com.qlangtech.tis.aiagent.sessiondata.TableSelectApplySessionData;
+
 /**
  *
  * @author 百岁 (baisui@qlangtech.com)
@@ -25,6 +27,7 @@ package com.qlangtech.tis.aiagent.core;
  * @see PluginPropsComplement
  * @see SelectionOptions
  * @see TableSelectApplySessionData
+ * @see com.qlangtech.tis.aiagent.sessiondata.ColsMetaSetterSessionData
  */
 public interface ISessionData {
 }

@@ -23,6 +23,8 @@ import com.qlangtech.tis.extension.impl.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -75,6 +77,8 @@ public interface IEndTypeGetter {
     interface IEndType {
         public String getVal();
 
+        public Optional<String> getDesc();
+
         public Icon getIcon();
     }
 
@@ -106,35 +110,36 @@ public interface IEndTypeGetter {
      * 端类型
      */
     enum EndType implements IEndType {
-        Greenplum("greenplum", EndTypeCategory.Data) //
-        , MySQL("mysql", EndTypeCategory.Data, true) //
-        , OceanBase("oceanbase", EndTypeCategory.Data, true) //
-        , Paimon("paimon", EndTypeCategory.Data, true) //
-        , MariaDB("mariaDB", EndTypeCategory.Data, true) //
-        , Postgres("pg", EndTypeCategory.Data, true)//
-        , Oracle("oracle", EndTypeCategory.Data, true) //
-        , ElasticSearch("es", EndTypeCategory.Data, true) //
-        , MongoDB("mongoDB", EndTypeCategory.Data, true) //
-        , StarRocks("starRocks", EndTypeCategory.Data, true)//
-        , Doris("doris", EndTypeCategory.Data, true) //
-        , KingBase("kingbase", EndTypeCategory.Data, true) //
-        , Clickhouse("clickhouse", EndTypeCategory.Data, true) //
-        , Hudi("hudi", EndTypeCategory.Data, true) //
-        , TDFS("t-dfs", EndTypeCategory.Data, true) //
-        , Cassandra("cassandra", EndTypeCategory.Data) //, HDFS("hdfs")
-        , SqlServer("sqlServer", EndTypeCategory.Data, true) //
-        , TiDB("TiDB", EndTypeCategory.Data, true) //
-        , RocketMQ("rocketMq", EndTypeCategory.Data, true) //
-        , Kafka("kafka", EndTypeCategory.Data, true) //
+        // Greenplum("greenplum", EndTypeCategory.Data)
+        MySQL("mysql", EndTypeCategory.Data, true, Optional.of("开源关系型数据库，官网：https://www.mysql.com/")) //
+        , OceanBase("oceanbase", EndTypeCategory.Data, true, Optional.of("阿里巴巴自研分布式数据库，官网：https://www.oceanbase.com/")) //
+        , Paimon("paimon", EndTypeCategory.Data, true, Optional.of("Apache流批统一存储，官网：https://paimon.apache.org/")) //
+        , MariaDB("mariaDB", EndTypeCategory.Data, true, Optional.of("MySQL社区分支，官网：https://mariadb.org/")) //
+        , Postgres("pg", EndTypeCategory.Data, true, Optional.of("PostgreSQL对象关系型数据库，官网：https://www.postgresql.org/"))//
+        , Oracle("oracle", EndTypeCategory.Data, true, Optional.of("甲骨文公司商业数据库，官网：https://www.oracle.com/database/")) //
+        , ElasticSearch("es", EndTypeCategory.Data, true, Optional.of("Elastic搜索分析引擎，官网：https://www.elastic.co/")) //
+        , MongoDB("mongoDB", EndTypeCategory.Data, true, Optional.of("文档型NoSQL数据库，官网：https://www.mongodb.com/")) //
+        , StarRocks("starRocks", EndTypeCategory.Data, true, Optional.of("极速MPP分析数据库，官网：https://www.starrocks.io/"))//
+        , Doris("doris", EndTypeCategory.Data, true, Optional.of("Apache实时分析数据库，官网：https://doris.apache.org/")) //
+        , KingBase("kingbase", EndTypeCategory.Data, true, Optional.of("人大金仓国产数据库，官网：https://www.kingbase.com.cn/")) //
+        , Clickhouse("clickhouse", EndTypeCategory.Data, true, Optional.of("Yandex列式分析数据库，官网：https://clickhouse.com/")) //
+        , Hudi("hudi", EndTypeCategory.Data, true, Optional.of("Apache增量数据湖，官网：https://hudi.apache.org/")) //
+        , TDFS("t-dfs", EndTypeCategory.Data, true, Optional.of("本地文本、阿里云OSS、HDFS、FTP数据（支持text，csv等格式）")) //
+        // , Cassandra("cassandra", EndTypeCategory.Data, true, Optional.of("Apache分布式NoSQL，官网：https://cassandra.apache.org/")) //, HDFS("hdfs")
+        , SqlServer("sqlServer", EndTypeCategory.Data, true, Optional.of("微软关系型数据库，官网：https://www.microsoft.com/sql-server/")) //
+        , TiDB("TiDB", EndTypeCategory.Data, true, Optional.of("PingCAP NewSQL数据库，官网：https://www.pingcap.com/")) //
+        , RocketMQ("rocketMq", EndTypeCategory.Data, true, Optional.of("Apache分布式消息系统，官网：https://rocketmq.apache.org/")) //
+        , Kafka("kafka", EndTypeCategory.Data, true, Optional.of("Apache流处理平台，官网：https://kafka.apache.org/")) //
         //, DataFlow("dataflow", EndTypeCategory.Assist) //
-        , DaMeng("daMeng", EndTypeCategory.Data, true) //
-        , AliyunODPS("aliyunOdps", EndTypeCategory.Data, true) //
-        , HiveMetaStore("hms", EndTypeCategory.Data, true) //
-        , Spark("spark", EndTypeCategory.Data, true) //
-        , RabbitMQ("rabbitmq", EndTypeCategory.Data, true) //
+        , DaMeng("daMeng", EndTypeCategory.Data, true, Optional.of("达梦数据库，https://www.dameng.com/")) //
+        , AliyunODPS("aliyunOdps", EndTypeCategory.Data, true, Optional.of("阿里云MaxCompute，官网：https://www.aliyun.com/product/odps")) //
+        , HiveMetaStore("hms", EndTypeCategory.Data, true, Optional.of("Hive元数据服务，官网：https://hive.apache.org/")) //
+        , Spark("spark", EndTypeCategory.Data, true, Optional.of("Apache统一分析引擎，官网：https://spark.apache.org/")) //
+        , RabbitMQ("rabbitmq", EndTypeCategory.Data, true, Optional.of("Erlang消息队列，官网：https://www.rabbitmq.com/")) //
 
 
-        , PowerJob("powerjob", EndTypeCategory.Assist, true), Flink("flink", EndTypeCategory.Assist, true)//
+        , PowerJob("powerjob", EndTypeCategory.Assist, true) //
+        , Flink("flink", EndTypeCategory.Assist, true)//
         , RateController("rate-controller", EndTypeCategory.Assist, true)//
         , Docker("docker", EndTypeCategory.Assist, true) //
         , K8S("k8s", EndTypeCategory.Assist, true)//
@@ -184,10 +189,12 @@ public interface IEndTypeGetter {
         private final boolean containICON;
         public
         final EndTypeCategory category;
+        private final Optional<String> desc;
 
         private static final DefaultIconReference unknowStorageType = new DefaultIconReference(UnKnowStoreType);
 
         public static String KEY_END_TYPE = "endType";
+        public static String KEY_END_TYPE_DESC = "endTypeDesc";
         public static String KEY_SUPPORT_ICON = "supportIcon";
 
         public static EndType parse(String endType) {
@@ -223,6 +230,10 @@ public interface IEndTypeGetter {
         }
 
 
+        public Optional<String> getDesc() {
+            return Objects.requireNonNull(this.desc, "desc can not be null");
+        }
+
         /**
          * 取得辅助组件类
          *
@@ -243,13 +254,18 @@ public interface IEndTypeGetter {
         }
 
         EndType(String val, EndTypeCategory category) {
-            this(val, category, false);
+            this(val, category, false, Optional.empty());
         }
 
         EndType(String val, EndTypeCategory category, boolean containICON) {
+            this(val, category, containICON, Optional.empty());
+        }
+
+        EndType(String val, EndTypeCategory category, boolean containICON, Optional<String> desc) {
             this.val = val;
             this.containICON = containICON;
             this.category = category;
+            this.desc = desc;
         }
 
 

@@ -67,6 +67,7 @@ import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
+import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.ISelectOptionsGetter;
 import com.qlangtech.tis.util.PluginMeta;
@@ -153,6 +154,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
     /**
+     * AI Agent 使用场景中使用协助输入的场景
+     *
+     * @return 默认查看 BasicStepExecutor.validateAttrValMap() 方法的使用方式
+     */
+    public Optional<DescribableJSON<ParamsConfig>> getAIAssistSupport() {
+        return Optional.empty();
+    }
+
+    /**
      * 插件的帮助文档路径（https://www.tis.pub/下的）
      *
      * @return
@@ -208,9 +218,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 break;
             }
             try {
-                Method validateMethod = clazz.getDeclaredMethod(FormVaildateType.VERIFY.getToken(), IControlMsgHandler.class,
-                        Context.class,
-                        PostFormVals.class);
+                Method validateMethod = clazz.getDeclaredMethod(FormVaildateType.VERIFY.getToken(),
+                        IControlMsgHandler.class, Context.class, PostFormVals.class);
                 this.overWriteValidateMethod = true;//(validateMethod.getDeclaringClass() != Descriptor.class);
                 break;
             } catch (NoSuchMethodException e) {
@@ -233,31 +242,32 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }
             final PropertyType pt = (PropertyType) entry.getValue();
             Optional<PluginExtraProps.FieldRefCreateor> refCreator = pt.getRefCreator();
-            Objects.requireNonNull(refCreator, "field:" + entry.getKey()
-                    + " of plugin:" + this.clazz.getName() + " relevant refCreator can not be null");
+            Objects.requireNonNull(refCreator,
+                    "field:" + entry.getKey() + " of plugin:" + this.clazz.getName() + " " + "relevant refCreator " + "can" + " not be null");
             refCreator.ifPresent((creator) -> {
                 // List<Option> selectableOpts =  creator.getSelectableOpts();
                 //JSONObject extraProps = pt.getExtraProps();
-//                switch (pt.formField.type()) {
-//                    case ENUM: {
-//                        //  extraProps.getJSONArray();
-//                        break;
-//                    }
-//                    case SELECTABLE: {
-//
-//                        break;
-//                    }
-//                    default:
-//                        throw new IllegalStateException();
-//                }
+                //                switch (pt.formField.type()) {
+                //                    case ENUM: {
+                //                        //  extraProps.getJSONArray();
+                //                        break;
+                //                    }
+                //                    case SELECTABLE: {
+                //
+                //                        break;
+                //                    }
+                //                    default:
+                //                        throw new IllegalStateException();
+                //                }
                 //  List<Option> valOptions = null;
 
                 result.put(entry.getKey(), creator);
 
-//                List<PluginExtraProps.CandidatePlugin> candidatePlugins = creator.getCandidatePlugins();
-//                for (PluginExtraProps.CandidatePlugin candidatePlugin : candidatePlugins) {
-//                   // candidatePlugin.
-//                }
+                //                List<PluginExtraProps.CandidatePlugin> candidatePlugins = creator
+                //                .getCandidatePlugins();
+                //                for (PluginExtraProps.CandidatePlugin candidatePlugin : candidatePlugins) {
+                //                   // candidatePlugin.
+                //                }
                 //  result.put(entry.getKey(), );
             });
         }
@@ -265,23 +275,23 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
 
-//    public static class PropsImplRefs {
-//        private final List<PluginExtraProps.CandidatePlugin> candidatePlugins;
-//        private final List<Option> valOptions;
-//
-//        public PropsImplRefs(List<PluginExtraProps.CandidatePlugin> candidatePlugins, List<Option> valOptions) {
-//            this.candidatePlugins = candidatePlugins;
-//            this.valOptions = valOptions;
-//        }
-//
-//        public List<PluginExtraProps.CandidatePlugin> getCandidatePlugins() {
-//            return candidatePlugins;
-//        }
-//
-//        public List<Option> getValOptions() {
-//            return valOptions;
-//        }
-//    }
+    //    public static class PropsImplRefs {
+    //        private final List<PluginExtraProps.CandidatePlugin> candidatePlugins;
+    //        private final List<Option> valOptions;
+    //
+    //        public PropsImplRefs(List<PluginExtraProps.CandidatePlugin> candidatePlugins, List<Option> valOptions) {
+    //            this.candidatePlugins = candidatePlugins;
+    //            this.valOptions = valOptions;
+    //        }
+    //
+    //        public List<PluginExtraProps.CandidatePlugin> getCandidatePlugins() {
+    //            return candidatePlugins;
+    //        }
+    //
+    //        public List<Option> getValOptions() {
+    //            return valOptions;
+    //        }
+    //    }
 
     private HelpPath _helpPath;
 
@@ -304,8 +314,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         if (this instanceof IDescribableManipulate) {
             IDescribableManipulate descManipuldate = ((IDescribableManipulate) this);
             Map<String, Object> manipulate = new HashMap<>();
-            manipulate.put("extendPoint"
-                    , Objects.requireNonNull(descManipuldate.getManipulateExtendPoint()).getName());
+            manipulate.put("extendPoint", Objects.requireNonNull(descManipuldate.getManipulateExtendPoint()).getName());
 
             Optional<IPluginStore> manipulateStore = descManipuldate.getManipulateStore();
             manipulateStore.ifPresent((man) -> {
@@ -326,13 +335,14 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 this._helpPath = HelpPath.create(helpPath);
                 if (StringUtils.isEmpty(helpPath)) {
                     if (this instanceof IEndTypeGetter) {
-                        EndType endType = Objects.requireNonNull(((IEndTypeGetter) this).getEndType(), "endType can not be null");
+                        EndType endType = Objects.requireNonNull(((IEndTypeGetter) this).getEndType(),
+                                "endType can " + "not be null");
                         if (endType.category == EndTypeCategory.Assist) {
-                            helpPath = "docs/integrations/assist/" + endType.name() + "/#" + this.getDisplayNameAsAnchor();
+                            helpPath =
+                                    "docs/integrations/assist/" + endType.name() + "/#" + this.getDisplayNameAsAnchor();
                         } else if (endType.category == EndTypeCategory.Data) {
                             String anchor = null;
-                            if (this instanceof DataSourceFactory.BaseDataSourceFactoryDescriptor
-                                    || this instanceof ParamsConfig.BasicParamsConfigDescriptor) {
+                            if (this instanceof DataSourceFactory.BaseDataSourceFactoryDescriptor || this instanceof ParamsConfig.BasicParamsConfigDescriptor) {
                                 anchor = "数据源配置";
                             } else if (this instanceof BaseDataxReaderDescriptor) {
                                 anchor = "批量读";
@@ -345,7 +355,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                             }
                             helpPath = "docs/integrations/data/" + endType.name() + "/#" + anchor;
                         } else if (endType.category == EndTypeCategory.Transformer) {
-                            helpPath = "docs/integrations/transformer/" + endType.name() + "/#" + this.getDisplayNameAsAnchor();
+                            helpPath =
+                                    "docs/integrations/transformer/" + endType.name() + "/#" + this.getDisplayNameAsAnchor();
                         }
                         this._helpPath = new HelpPath(helpPath);
                     }
@@ -378,16 +389,14 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     public static JSONObject getManipulateMeta(boolean forAIPromote, Describable plugin) {
         if (!(plugin instanceof IdentityName)) {
-            throw new IllegalStateException("plugin must be a IdentityName:"
-                    + ToStringBuilder.reflectionToString(plugin));
+            throw new IllegalStateException("plugin must be a IdentityName:" + ToStringBuilder.reflectionToString(plugin));
         }
         Descriptor desc = Objects.requireNonNull(plugin.getDescriptor(), "desc can not be null");
         JSONObject eprops = new JSONObject();
         IdentityName id = (IdentityName) plugin;
         eprops.put(IdentityName.PLUGIN_IDENTITY_NAME, id.identityValue());
-        eprops.put("descMeta"
-                , DescriptorsJSON.createPluginFormPropertyTypes(
-                        desc, Optional.empty(), forAIPromote).getLeft());
+        eprops.put("descMeta",
+                DescriptorsJSON.createPluginFormPropertyTypes(desc, Optional.empty(), forAIPromote).getLeft());
         if (plugin instanceof IManipulateStatus) {
             IManipulateStatus status = (IManipulateStatus) plugin;
             eprops.put("stateSummary", status.manipulateStatusSummary());
@@ -399,6 +408,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     private Map<String, Object> appendProps(IEndType endType, Map<String, Object> eprops) {
         eprops.put(EndType.KEY_END_TYPE, endType.getVal());
         eprops.put(EndType.KEY_SUPPORT_ICON, endType.getIcon() != null);
+        Optional<String> desc = endType.getDesc();
+        desc.ifPresent((d) -> {
+            eprops.put(EndType.KEY_END_TYPE_DESC, d);
+        });
         return eprops;
     }
 
@@ -540,11 +553,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
                 Objects.requireNonNull(subProps, "prop:" + filter.subFieldName + " relevant subProps can not be null ");
 
-                subPluginFormPropertyTypes = SuFormProperties.copy(
-                        PropertyType.filterFieldProp(this.getPropertyTypes(true, ElementPluginDesc.create(this)))
-                        , this.clazz
-                        , this
-                        , subProps);
+                subPluginFormPropertyTypes =
+                        SuFormProperties.copy(PropertyType.filterFieldProp(this.getPropertyTypes(true,
+                                ElementPluginDesc.create(this))), this.clazz, this, subProps);
 
                 return subPluginFormPropertyTypes.overWriteInstClazz(this.clazz);
             } else {
@@ -558,8 +569,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     if (writerDescriptor != null && writerDescriptor instanceof DataxWriter.IRewriteSuFormProperties) {
                         subPluginFormPropertyTypes =
                                 Objects.requireNonNull(((DataxWriter.IRewriteSuFormProperties) writerDescriptor) //
-                                                .overwriteSubPluginFormPropertyType(subPluginFormPropertyTypes) //
-                                        , "result can not be null " + PluginFormProperties.class.getSimpleName());
+                                        .overwriteSubPluginFormPropertyType(subPluginFormPropertyTypes) //
+                                , "result can not be null " + PluginFormProperties.class.getSimpleName());
                     }
 
                 } catch (Exception e) {
@@ -606,10 +617,12 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return getPropertyTypes(useCache, ElementPluginDesc.create(this));
     }
 
-    private Map<String, /*** fieldname*/IPropertyType> getPropertyTypes(boolean useCache, Optional<ElementPluginDesc> descriptor) {
+    private Map<String, /*** fieldname*/IPropertyType> getPropertyTypes(boolean useCache,
+                                                                        Optional<ElementPluginDesc> descriptor) {
         if (!useCache || propertyTypes == null) {
 
-            Map<String, IPropertyType> tmpPropertyTypes = Collections.unmodifiableMap(PropertyType.buildPropertyTypes(descriptor, clazz));
+            Map<String, IPropertyType> tmpPropertyTypes =
+                    Collections.unmodifiableMap(PropertyType.buildPropertyTypes(descriptor, clazz));
 
             List<PropertyType> identityFields = tmpPropertyTypes.values().stream().filter((p) -> {
                 return (p instanceof PropertyType) && ((PropertyType) p).isIdentity();
@@ -624,8 +637,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             } else {
                 if (identityFields.size() > 0) {
                     throw new IllegalStateException("class:" + this.clazz + " is not type of " + IdentityName.class //
-                            + " but more than one identity col:"
-                            + identityFields.stream().map((c) -> c.displayName).collect(Collectors.joining(",")));
+                            + " but more than one identity col:" + identityFields.stream().map((c) -> c.displayName).collect(Collectors.joining(",")));
                 }
             }
             if (!useCache) {
@@ -674,7 +686,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 @Override
                 public PluginValidateResult visit(RootFormProperties props) {
 
-                    PostFormVals postFormVals = new PostFormVals(Descriptor.this, props, subFormFilter, msgHandler, context, formData);
+                    PostFormVals postFormVals = new PostFormVals(Descriptor.this, props, subFormFilter, msgHandler,
+                            context, formData);
 
                     PluginValidateResult validateResult = new PluginValidateResult(postFormVals,
                             (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX),
@@ -686,17 +699,19 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     return validateResult;
                 }
 
-                private boolean validatePostFormVals(Optional<PostFormVals> parentFormVals, PostFormVals postFormVals,
-                                                     Optional<SubFormFilter> subFormFilter) {
+                private boolean validatePostFormVals(Optional<PostFormVals> parentFormVals, PostFormVals postFormVals
+                        , Optional<SubFormFilter> subFormFilter) {
 
                     if (verify == FormVaildateType.SECOND_VALIDATE) {
-                        if (!secondVerify(msgHandler, context, postFormVals, parentFormVals.orElseThrow(() -> new IllegalStateException("parentFormVals must be present")))) {
+                        if (!secondVerify(msgHandler, context, postFormVals,
+                                parentFormVals.orElseThrow(() -> new IllegalStateException("parentFormVals must be " + "present")))) {
                             return false;
                         }
                     }
 
 
-                    boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, postFormVals, propValRewrite, parentFormVals);
+                    boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, postFormVals,
+                            propValRewrite, parentFormVals);
 
                     if (verify == FormVaildateType.STRICT) {
                         if (valid) {
@@ -712,8 +727,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                             }
                         }
                         if (valid) {
-                            return isValid(msgHandler, context, FormVaildateType.SECOND_VALIDATE
-                                    , subFormFilter, propertyTypes, postFormVals, propValRewrite, Optional.of(postFormVals));
+                            return isValid(msgHandler, context, FormVaildateType.SECOND_VALIDATE, subFormFilter,
+                                    propertyTypes, postFormVals, propValRewrite, Optional.of(postFormVals));
                         }
                     } else {
                         if (valid && verify == FormVaildateType.VERIFY) {
@@ -729,7 +744,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                             }
                         }
                         if (valid && verify == FormVaildateType.VERIFY) {
-                            return isValid(msgHandler, context, FormVaildateType.SECOND_VALIDATE, subFormFilter, propertyTypes, postFormVals, propValRewrite, Optional.of(postFormVals));
+                            return isValid(msgHandler, context, FormVaildateType.SECOND_VALIDATE, subFormFilter,
+                                    propertyTypes, postFormVals, propValRewrite, Optional.of(postFormVals));
                         }
                     }
 
@@ -761,8 +777,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     if (filter.subformDetailView) {
 
                         // 校验的时候子表单是{key1:val1,key2:val2} 的格式
-                        PostFormVals formVals
-                                = new PostFormVals(Descriptor.this, props, subFormFilter, msgHandler, context, formData);
+                        PostFormVals formVals = new PostFormVals(Descriptor.this, props, subFormFilter, msgHandler,
+                                context, formData);
                         // boolean valid = isValid(msgHandler, context, verify, subFormFilter, propertyTypes, formVals);
                         boolean valid = validatePostFormVals(parentFormVals, formVals, subFormFilter);
                         if (!valid) {
@@ -793,29 +809,31 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         }
 
                         // 提交表单的时候子表单是 {idfieldName1:{key1:val1,key2:val2},idfieldName2:{key1:val1,key2:val2}} 这样的格式
-                        SubDetailedPluginValidateResult subDetailedValidateResult = new SubDetailedPluginValidateResult();
+                        SubDetailedPluginValidateResult subDetailedValidateResult =
+                                new SubDetailedPluginValidateResult();
                         props.visitAllSubDetailed(context, formData,
                                 new SuFormProperties.ISubDetailedProcess<PluginValidateResult>() {
-                                    @Override
-                                    public PluginValidateResult process(String subFormId, AttrValMap sform) {
-                                        PluginValidateResult vResult = sform.validate(msgHandler, context, Optional.of(props.convertRootFormProps()), verify, parentFormVals);
-                                        // if (!vResult.isValid()) {
+                            @Override
+                            public PluginValidateResult process(String subFormId, AttrValMap sform) {
+                                PluginValidateResult vResult = sform.validate(msgHandler, context,
+                                        Optional.of(props.convertRootFormProps()), verify, parentFormVals);
+                                // if (!vResult.isValid()) {
 
-                                        subDetailedValidateResult.addSubDetailVaildateResult(subFormId, vResult);
+                                subDetailedValidateResult.addSubDetailVaildateResult(subFormId, vResult);
 
-//                                            return vResult;
-//                                        }
-                                        return (PluginValidateResult) null;
-                                    }
-                                });
+                                //                                            return vResult;
+                                //                                        }
+                                return (PluginValidateResult) null;
+                            }
+                        });
 
                         if (!subDetailedValidateResult.isValid()) {
                             return subDetailedValidateResult;
                         }
 
-//                        if (validateResult != null) {
-//                            return validateResult;
-//                        }
+                        //                        if (validateResult != null) {
+                        //                            return validateResult;
+                        //                        }
                     }
 
 
@@ -857,7 +875,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     private boolean isValid(IControlMsgHandler msgHandler, Context context, FormVaildateType validateType,
                             Optional<SubFormFilter> subFormFilter, PluginFormProperties propertyTypes,
-                            PostFormVals postFormVals, PropValRewrite propValRewrite, Optional<PostFormVals> parentFormVals) {
+                            PostFormVals postFormVals, PropValRewrite propValRewrite,
+                            Optional<PostFormVals> parentFormVals) {
 
         Objects.requireNonNull(postFormVals, "postFormVals can not be null");
         Map<String, JSONObject> formData = postFormVals.rawFormData.asRootFormVals();
@@ -881,8 +900,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }
             if (attrDesc.isDescribable()) {
                 JSONObject descVal = valJ.getJSONObject(KEY_DESC_VAL);
-                impl = Objects.requireNonNull(descVal, "prop:" + KEY_DESC_VAL + " json:" + JsonUtil.toString(valJ))
-                        .getString(AttrValMap.PLUGIN_EXTENSION_IMPL);
+                impl = PropertyType.getPluginImpl(valJ);
+                //   Objects.requireNonNull(descVal, "prop:" + KEY_DESC_VAL + " json:" + JsonUtil.toString(valJ)
+                //   ).getString(AttrValMap.PLUGIN_EXTENSION_IMPL);
                 if (StringUtils.isBlank(impl)) {
                     addFieldRequiredError(msgHandler, context, attr);
                     valid = false;
@@ -972,9 +992,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return valid;
     }
 
-    private List<FormFieldType.SelectedItem> getSelectedMultiItems(
-            IControlMsgHandler msgHandler, Context context,
-            PropertyType attrDesc, JSONObject valJ) {
+    private List<FormFieldType.SelectedItem> getSelectedMultiItems(IControlMsgHandler msgHandler, Context context,
+                                                                   PropertyType attrDesc, JSONObject valJ) {
 
         // 多选类型的 multi select
         JSONObject eprops = valJ.getJSONObject("_eprops");
@@ -1069,7 +1088,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @param parentPostFormVals
      * @return
      */
-    public boolean secondVerify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals, PostFormVals parentPostFormVals) {
+    public boolean secondVerify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals,
+                                PostFormVals parentPostFormVals) {
         return true;
     }
 
@@ -1100,7 +1120,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public ParseDescribable<Describable> newInstance(String appName, //
                                                      FormData formData //
     ) {
-        return newInstance(IControlMsgHandler.namedContext(appName), new DefaultContext(), formData, Optional.empty(), (propType, val) -> val);
+        return newInstance(IControlMsgHandler.namedContext(appName), new DefaultContext(), formData, Optional.empty()
+                , (propType, val) -> val);
     }
 
     public static class FormData extends AttrVals {
@@ -1141,7 +1162,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     public ParseDescribable<Describable> newInstance(IControlMsgHandler pluginContext, Context context, //
                                                      AttrValMap.IAttrVals formData, //
-                                                     Optional<SubFormFilter> subFormFilter, PropValRewrite propValRewrite) {
+                                                     Optional<SubFormFilter> subFormFilter,
+                                                     PropValRewrite propValRewrite) {
         try {
             return parseDescribable(pluginContext, context, formData, Optional.empty(), subFormFilter, propValRewrite);
         } catch (Exception e) {
@@ -1150,9 +1172,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     }
 
 
-    public ParseDescribable<Describable> parseDescribable(IControlMsgHandler pluginContext
-            , Context context, AttrValMap.IAttrVals keyValMap
-            , Optional<PluginFormProperties> pTypes, Optional<SubFormFilter> subFormFilter, PropValRewrite propValRewrite) {
+    public ParseDescribable<Describable> parseDescribable(IControlMsgHandler pluginContext, Context context,
+                                                          AttrValMap.IAttrVals keyValMap,
+                                                          Optional<PluginFormProperties> pTypes,
+                                                          Optional<SubFormFilter> subFormFilter,
+                                                          PropValRewrite propValRewrite) {
 
         PluginFormProperties propertyTypes = getPropertyTypes(pTypes, subFormFilter);
 
@@ -1175,9 +1199,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
             private Describable setParentPluginClass(ParseDescribable<Describable> r) {
                 Describable plugin = r.getInstance();
-//                if (plugin instanceof IParentHostPluginAware) {
-//                    ((IParentHostPluginAware) plugin).setParentHostPluginClass(props.getParentPluginDesc().clazz);
-//                }
+                //                if (plugin instanceof IParentHostPluginAware) {
+                //                    ((IParentHostPluginAware) plugin).setParentHostPluginClass(props
+                //                    .getParentPluginDesc().clazz);
+                //                }
                 return plugin;
             }
 
@@ -1201,7 +1226,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         props.visitAllSubDetailed(null, keyValMap, new SuFormProperties.ISubDetailedProcess<Void>() {
                             public Void process(String subFormId, AttrValMap attrVals) {
 
-                                ParseDescribable<Describable> r = attrVals.createDescribable(pluginContext, context, Optional.of(props.convertRootFormProps()));
+                                ParseDescribable<Describable> r = attrVals.createDescribable(pluginContext, context,
+                                        Optional.of(props.convertRootFormProps()));
                                 Describable plugin = setParentPluginClass(r);
                                 subDetailedList.add(plugin);
                                 return null;
@@ -1217,7 +1243,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         });
     }
 
-    private PluginFormProperties getPropertyTypes(Optional<PluginFormProperties> pTypes, Optional<SubFormFilter> subFormFilter) {
+    private PluginFormProperties getPropertyTypes(Optional<PluginFormProperties> pTypes,
+                                                  Optional<SubFormFilter> subFormFilter) {
         return pTypes.map((pp) -> {
             return (Descriptor.this == pp.getDescriptor()) ? pp : null;
         }).orElseGet(() -> {
@@ -1225,7 +1252,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         });
     }
 
-    private <TARGET extends Describable<TARGET>> TARGET buildPluginInstance(IControlMsgHandler pluginContext, Context context //
+    private <TARGET extends Describable<TARGET>> TARGET buildPluginInstance(IControlMsgHandler pluginContext,
+                                                                            Context context //
             , Map<String, JSONObject> keyValMap //
             , ParseDescribable<TARGET> result, PluginFormProperties propertyTypes, PropValRewrite propValRewrite) {
         TARGET describable = result.getInstance();
@@ -1255,13 +1283,16 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     throw new IllegalStateException("impl:" + impl + " relevant descripotor can not be null");
                 }
                 ParseDescribable vals = descriptor.newInstance(pluginContext, context,
-                        AttrVals.parseAttrValMap(descVal.get(AttrValMap.PLUGIN_EXTENSION_VALS)), Optional.empty(), propValRewrite);
+                        AttrVals.parseAttrValMap(descVal.get(AttrValMap.PLUGIN_EXTENSION_VALS)), Optional.empty(),
+                        propValRewrite);
                 attrDesc.setVal(describable, propValRewrite.rewrite(attrDesc, vals.getInstance()));
             } else {
 
                 if (attrDesc.typeIdentity() == FormFieldType.MULTI_SELECTABLE.getIdentity()) {
-                    List<FormFieldType.SelectedItem> selectedItems = getSelectedMultiItems(pluginContext, context, attrDesc, valJ);
-                    List<IMultiElement> multi = selectedItems.stream().filter((item) -> item.isChecked()).map((item) -> {
+                    List<FormFieldType.SelectedItem> selectedItems = getSelectedMultiItems(pluginContext, context,
+                            attrDesc, valJ);
+                    List<IMultiElement> multi =
+                            selectedItems.stream().filter((item) -> item.isChecked()).map((item) -> {
                         if (item.getCmeta() != null) {
                             return item.getCmeta();
                         } else {
@@ -1438,26 +1469,23 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public final List<SelectOption> getSelectOptions(String name) {
         Callable<List<? extends IdentityName>> opsCallable = selectOptsRegister.get(name);
         if (opsCallable == null) {
-            throw new IllegalStateException("fieldName:" + name + " is select options has not been register,class:"
-                    + this.getClass().getName()
-                    + ",has registed:" + selectOptsRegister.keySet().stream().collect(Collectors.joining(",")));
+            throw new IllegalStateException("fieldName:" + name + " is select options has not been register,class:" + this.getClass().getName() + ",has registed:" + selectOptsRegister.keySet().stream().collect(Collectors.joining(",")));
         }
         try {
             List<? extends IdentityName> opts = opsCallable.call();
             if (opts == null) {
                 return Collections.emptyList();
             }
-//            final EndType[] endType = new EndType[1];
-//            if (this instanceof IEndTypeGetter) {
-//                endType[0] = (((IEndTypeGetter) this).getEndType());
-//            }
+            //            final EndType[] endType = new EndType[1];
+            //            if (this instanceof IEndTypeGetter) {
+            //                endType[0] = (((IEndTypeGetter) this).getEndType());
+            //            }
 
             Map<Class, Optional<EndType>> pluginEndTypeMapper = Maps.newHashMap();
 
             return opts.stream().map((r) -> {
                 Optional<EndType> et = Optional.empty();
-                if (r instanceof Describable
-                        && (et = pluginEndTypeMapper.get(r.getClass())) == null) {
+                if (r instanceof Describable && (et = pluginEndTypeMapper.get(r.getClass())) == null) {
                     EndType endType = null;
                     Descriptor desc = null;
                     if ((desc = ((Describable) r).getDescriptor()) instanceof IEndTypeGetter) {
@@ -1519,8 +1547,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         public <T extends Describable> T newInstance() {
             if (instance == null) {
 
-                ParseDescribable<Describable> plugin = desc.parseDescribable(
-                        msgHandler, this.context, this.rawFormData, Optional.of(this.formProperties), subFormFilter, ((propType, val) -> val));
+                ParseDescribable<Describable> plugin = desc.parseDescribable(msgHandler, this.context,
+                        this.rawFormData, Optional.of(this.formProperties), subFormFilter, ((propType, val) -> val));
                 instance = plugin.getInstance();
             }
             return (T) instance;
@@ -1528,8 +1556,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
         public PostFormVals(Descriptor desc //
                 , IControlMsgHandler msgHandler, Context context, AttrValMap.IAttrVals rawFormData) {
-            this(desc, desc.getPluginFormPropertyTypes(Optional.empty())
-                    , Optional.empty(), msgHandler, context, rawFormData);
+            this(desc, desc.getPluginFormPropertyTypes(Optional.empty()), Optional.empty(), msgHandler, context,
+                    rawFormData);
         }
 
         public PostFormVals(Descriptor desc, PluginFormProperties formProperties //
@@ -1563,17 +1591,20 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @param enums
      * @return
      */
-    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, MarkdownHelperContent helperContent,
+    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal,
+                                                     MarkdownHelperContent helperContent,
                                                      Optional<List<Option>> enums) {
         return addFieldDescriptor(fieldName, dftVal, null, helperContent, enums, false);
     }
 
-    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String label, MarkdownHelperContent helperContent,
+    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String label,
+                                                     MarkdownHelperContent helperContent,
                                                      Optional<List<Option>> enums) {
         return addFieldDescriptor(fieldName, dftVal, label, helperContent, enums, false);
     }
 
-    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String label, MarkdownHelperContent helperContent,
+    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String label,
+                                                     MarkdownHelperContent helperContent,
                                                      Optional<List<Option>> enums, boolean disabled) {
         JSONObject c = new JSONObject();
         PropertyType.setDefaultVal(dftVal, c);

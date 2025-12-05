@@ -15,8 +15,8 @@
   },
   "model": {
     "label": "模型",
-    "dftVal": "qwen-plus",
-    "help": "模型的 ID，支持 qwen-turbo、qwen-plus、qwen-max、qwen-max-longcontext 等",
+    "dftVal": "qwen3-coder-plus",
+    "help": "模型的 ID，支持 qwen-turbo、qwen-plus、qwen-max、qwen-max-longcontext ，qwen3-coder-plus等，推荐使用：qwen3-coder-plus",
     "enum": [
       {
         "val": "qwen-turbo",
@@ -31,6 +31,10 @@
         "label": "通义千问-Max（高质量）"
       },
       {
+        "val": "qwen3-coder-plus",
+        "label": "通义千问-Coder（卓越的代码模型）"
+      },
+      {
         "val": "qwen-max-longcontext",
         "label": "通义千问-Max长文本（支持长上下文）"
       }
@@ -38,7 +42,7 @@
   },
   "maxTokens": {
     "label": "最大Token数",
-    "dftVal": 2048,
+    "dftVal": 4000,
     "help": "最大生成 token 数量，不同模型有不同的限制"
   },
   "temperature": {
@@ -86,5 +90,10 @@
         "label": "否"
       }
     ]
+  },
+  "maxRetry": {
+    "label": "最大尝试次数",
+    "dftVal": 1,
+    "help": "当向服务端提交请求错误，最大尝试次数"
   }
 }

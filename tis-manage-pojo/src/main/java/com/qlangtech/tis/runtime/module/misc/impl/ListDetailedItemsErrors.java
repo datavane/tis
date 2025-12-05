@@ -34,7 +34,7 @@ import java.util.List;
  * @create: 2025-04-06 09:54
  **/
 @JSONType(serializer = ListDetailedItemsErrorsSerializer.class)
-class ListDetailedItemsErrors extends ItemsErrors {
+public class ListDetailedItemsErrors extends ItemsErrors {
     public List<FieldError> fieldsErrorList = Lists.newArrayList();
 
     @Override

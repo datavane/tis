@@ -25,6 +25,8 @@ import com.qlangtech.tis.aiagent.execute.impl.PipelineIncrExecutor;
 import com.qlangtech.tis.aiagent.execute.impl.PipelineSourceSelectTabsExecutor;
 import com.qlangtech.tis.aiagent.execute.impl.PluginDownloadAndInstallExecutor;
 import com.qlangtech.tis.aiagent.execute.impl.PluginInstanceCreateExecutor;
+import com.qlangtech.tis.aiagent.execute.impl.PluginInstanceCreateExecutor4Mock;
+import com.qlangtech.tis.aiagent.execute.impl.PluginInstanceCreateExecutor4Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +50,7 @@ public class TaskStep {
 
   public enum StepType {
     PLUGIN_INSTALL(new PluginDownloadAndInstallExecutor()),
-    PLUGIN_CREATE(new PluginInstanceCreateExecutor()),
+    PLUGIN_CREATE(new PluginInstanceCreateExecutor4Mock()),
     USER_INPUT(null),
     EXECUTE_BATCH(new PipelineBatchExecutor()),
     EXECUTE_INCR(new PipelineIncrExecutor()),

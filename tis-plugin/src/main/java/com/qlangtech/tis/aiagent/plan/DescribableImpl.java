@@ -19,16 +19,20 @@
 package com.qlangtech.tis.aiagent.plan;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  *
@@ -46,11 +50,19 @@ public class DescribableImpl {
     private List<String> impls = Lists.newArrayList();
     private Descriptor _descriptor;
     private final Optional<IEndTypeGetter.EndType> endType;
+    // 是否是增量扩展点，需要考虑到并不是所有的端扩展点都有增量实现TISSinkFactory.class，MQListenerFactory.class
+    private static final Set<Class> incrExtendPoints = Sets.newHashSet(TISSinkFactory.class, MQListenerFactory.class);
+    private final boolean incr;
 
     // private boolean _implPluginHasInstalled;
     public DescribableImpl(Class<? extends Describable> extendPoint, Optional<IEndTypeGetter.EndType> endType) {
         this.extendPoint = extendPoint;
         this.endType = endType;
+        this.incr = incrExtendPoints.contains(extendPoint);
+    }
+
+    public boolean isIncrStreamEndType() {
+        return this.incr;
     }
 
     public Optional<IEndTypeGetter.EndType> getEndType() {

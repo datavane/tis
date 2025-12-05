@@ -72,8 +72,10 @@ public class DefaultExecuteLog implements ExecuteLog {
     public void summary() {
         context.sendLLMStatus(LLMProvider.LLMChatPhase.Complete, null);
         StringBuilder summary = new StringBuilder();
-        summary.append("\nparams--------------------------------------------------------------\n");
+        summary.append("\nparams---------------------------------------------------------------\n");
         summary.append(JsonUtil.toString(postParams, true));
+        summary.append("\nuser prompt----------------------------------------------------------\n");
+        summary.append(prompt.getPrompt());
         summary.append("\nresponse--------------------------------------------------------------\n");
         if (responseJson != null) {
             summary.append(JsonUtil.toString(responseJson, true));

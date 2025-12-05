@@ -79,7 +79,7 @@ public class DeepSeekProvider extends LLMProvider {
     @FormField(type = FormFieldType.INT_NUMBER, ordinal = 3, validate = {Validator.require, Validator.integer})
     public Integer maxTokens;
 
-    @FormField(type = FormFieldType.INPUTTEXT, advance = true, ordinal = 4, validate = {Validator.require})
+    @FormField(type = FormFieldType.INPUTTEXT, ordinal = 4, validate = {Validator.require})
     public String model;
 
     @FormField(type = FormFieldType.INT_NUMBER, advance = true, ordinal = 5, validate = {Validator.require, Validator.integer})
@@ -209,7 +209,9 @@ public class DeepSeekProvider extends LLMProvider {
     public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, String jsonSchema) {
         String enhancedPrompt = prompt.getPrompt();
         if (StringUtils.isNotEmpty(jsonSchema)) {
-            enhancedPrompt += "\n\n请严格按照以下JSON Schema格式返回结果：\n" + jsonSchema;
+           // enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果：\n" + jsonSchema;
+            enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + jsonSchema;
+            enhancedPrompt += "\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。";
         }
         LLMResponse response = chat(context, new UserPrompt(prompt.getAbstractInfo(), enhancedPrompt), systemPrompt, false);
 

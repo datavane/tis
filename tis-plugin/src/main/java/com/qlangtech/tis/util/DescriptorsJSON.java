@@ -34,7 +34,6 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -227,7 +226,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
                     if (extraProps != null) {
                         // 额外属性
-                        final JSONObject ep = extraProps;
+                        final JSONObject ep = processExtraProps( extraProps );
                         //this.processExtraProps(dd, val, val);
                         JSONObject n = val.multiSelectablePropProcess((vt) -> {
                             JSONObject clone = (JSONObject) ep.clone();
@@ -265,7 +264,11 @@ public class DescriptorsJSON<T extends Describable<T>> {
         return descriptors;
     }
 
-//    protected boolean processExtraProps(Descriptor<?> desc, PropertyType propVal,  PropertyType propertyType) {
+    protected JSONObject processExtraProps(JSONObject extraProps) {
+        return extraProps;
+    }
+
+    //    protected boolean processExtraProps(Descriptor<?> desc, PropertyType propVal,  PropertyType propertyType) {
 //        return true;
 //    }
 
