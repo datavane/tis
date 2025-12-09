@@ -395,14 +395,14 @@ public class PropertyType implements IPropertyType {
     public boolean isIdentity() {
         return this.formField.identity();
     }
-
+    @JSONField(serialize = false)
     public JSONObject getExtraProps() {
         if (this.extraProp == null) {
             return null;
         }
         return this.extraProp.getProps();
     }
-
+    @JSONField(serialize = false)
     public Optional<PluginExtraProps.FieldRefCreateor> getRefCreator() {
         if (this.extraProp == null) {
             return Optional.empty();
@@ -447,7 +447,7 @@ public class PropertyType implements IPropertyType {
     }
 
     private Validator[] validators;
-
+    @JSONField(serialize = false)
     public Validator[] getValidator() {
 
         if (this.validators == null) {
@@ -493,6 +493,7 @@ public class PropertyType implements IPropertyType {
     // PropertyType(Method getter) {
     // this(getter.getReturnType(), getter.getGenericReturnType(), getter.toString());
     // }
+    @JSONField(serialize = false)
     public Enum[] getEnumConstants() {
         return (Enum[]) fieldClazz.getEnumConstants();
     }
@@ -500,6 +501,7 @@ public class PropertyType implements IPropertyType {
     /**
      * If the property is a collection/array type, what is an item type?
      */
+    @JSONField(serialize = false)
     public Class getItemType() {
         if (itemType == null)
             itemType = computeItemType();
@@ -610,6 +612,7 @@ public class PropertyType implements IPropertyType {
     /**
      * Returns {@link Descriptor} whose 'clazz' is the same as {@link #getItemType() the item type}.
      */
+    @JSONField(serialize = false)
     public Descriptor getItemTypeDescriptor() {
         return TIS.get().getDescriptor(getItemType());
     }
@@ -626,6 +629,7 @@ public class PropertyType implements IPropertyType {
         return impl;
     }
 
+    @JSONField(serialize = false)
     public Descriptor getItemTypeDescriptorOrDie() {
         Class it = getItemType();
         if (it == null) {
@@ -644,6 +648,7 @@ public class PropertyType implements IPropertyType {
     /**
      * Returns all the descriptors that produce types assignable to the property type.
      */
+    @JSONField(serialize = false)
     public List<? extends Descriptor> getApplicableDescriptors() {
 
         JSONObject eprops = null;
@@ -656,7 +661,9 @@ public class PropertyType implements IPropertyType {
                 String script = "	package " + pkg + " ;\n"  //
                         + "import java.util.function.Function;\n" //
                         + "import java.util.List;\n" //
-                        + "import " + com.qlangtech.tis.extension.Descriptor.class.getName() + ";\n" + "class " + className + " implements Function<List<? extends Descriptor>,List<? extends " //
+                        + "import " + com.qlangtech.tis.extension.Descriptor.class.getName() //
+                        + ";\n" //
+                        + "class " + className + " implements Function<List<? extends Descriptor>,List<? extends " //
                         + "Descriptor>> { \n" //
                         + "	@Override \n" //
                         + "	public List<? extends Descriptor> apply" //
@@ -682,6 +689,7 @@ public class PropertyType implements IPropertyType {
     /**
      * Returns all the descriptors that produce types assignable to the item type for a collection property.
      */
+    @JSONField(serialize = false)
     public List<? extends Descriptor> getApplicableItemDescriptors() {
         Class itemType = getItemType();
         if (itemType == null) {
@@ -690,6 +698,7 @@ public class PropertyType implements IPropertyType {
         return TIS.get().getDescriptorList(itemType);
     }
 
+    @JSONField(serialize = false)
     public ElementCreatorFactory getCMetaCreator() {
         return Objects.requireNonNull(this.multiItemsViewType, "multiItemsViewType can not be null").tupleFactory;
     }

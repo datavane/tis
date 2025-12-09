@@ -74,10 +74,10 @@ public class TestRealTISPlanAndExecuteAgent extends BasicActionTestCase {
     Assert.assertNotNull(proxy);
     AtomicReference<AgentContext> agentContextRef = new AtomicReference<>();
 
-    try (SSEEventWriter printWriter = new SSEEventWriter(
-      new PrintWriter(new OutputStreamWriter(System.out, TisUTF8.get()))
-      , (event, data) -> {
-      AgentContext agentContext = Objects.requireNonNull(agentContextRef.get(), "AgentContext instance can not be null");
+    try (SSEEventWriter printWriter = new SSEEventWriter(new PrintWriter(new OutputStreamWriter(System.out,
+      TisUTF8.get())), (event, data) -> {
+      AgentContext agentContext = Objects.requireNonNull(agentContextRef.get(), "AgentContext instance can not be "
+        + "null");
       final RequestKey requestId = RequestKey.create(data.getString(KEY_REQUEST_ID));
       if (event == SSERunnable.SSEEventType.AI_AGNET_SELECTION_REQUEST) {
 
@@ -86,8 +86,8 @@ public class TestRealTISPlanAndExecuteAgent extends BasicActionTestCase {
         SelectionOptions selection = agentContext.getSessionData(requestId);
         Assert.assertNotNull("selection can not be null", selection);
 
-        Assert.assertNotNull("candidatePlugins size must be 2,mysql-v5,mysql-v8"
-          , selection.getCandidatePlugins().size());
+        Assert.assertNotNull("candidatePlugins size must be 2,mysql-v5,mysql-v8",
+          selection.getCandidatePlugins().size());
 
         agentContext.setSessionData(requestId, new SelectionOptions(0, selection.getCandidatePlugins()));
         agentContext.notifyUserSelectionSubmitted(requestId);
@@ -96,12 +96,15 @@ public class TestRealTISPlanAndExecuteAgent extends BasicActionTestCase {
 
         JSONObject jsonObject = data.getJSONObject(KEY_VALIDATE_PLUGIN_ATTR_VALS);
 
-        // List<AttrValMap> attrVals = AttrValMap.describableAttrValMapList(jsonObject.getJSONArray(HeteroList.KEY_ITEMS), Optional.empty());
+        // List<AttrValMap> attrVals = AttrValMap.describableAttrValMapList(jsonObject.getJSONArray(HeteroList
+        // .KEY_ITEMS), Optional.empty());
         // Assert.assertTrue(CollectionUtils.isNotEmpty(attrVals));
-        PluginPropsComplement pluginPropsComplement = agentContext.getSessionData(requestId);// new PluginPropsComplement();
+        PluginPropsComplement pluginPropsComplement = agentContext.getSessionData(requestId);// new
+        // PluginPropsComplement();
 
         // for (AttrValMap valMap : attrVals) {
-        pluginPropsComplement.setPluginValMap(pluginPropsComplement.getUnComplementValMap());
+        pluginPropsComplement.setPluginValMap(Pair.of(pluginPropsComplement.getPlugin(),
+          pluginPropsComplement.getUnComplementValMap()));
         //}
 
         agentContext.setSessionData(requestId, pluginPropsComplement);
@@ -117,7 +120,8 @@ public class TestRealTISPlanAndExecuteAgent extends BasicActionTestCase {
 
       TISPlanAndExecuteAgent executeAgent = new TISPlanAndExecuteAgent(agentContext, llmProvider, proxy.getRight());
 
-      String taskDesc = "创建MySQL到Doris的数据同步管道，MySQL源端：host=192.168.1.10, port=3306, user=admin, password=pass123, database=orders。Doris目标端：host=192.168.1.20, port=9030, user=root, password=doris123。";
+      String taskDesc = "创建MySQL到Doris的数据同步管道，MySQL源端：host=192.168.1.10, port=3306, user=admin, password=pass123, "
+        + "database=orders。Doris目标端：host=192.168.1.20, port=9030, user=root, password=doris123。";
 
       TaskPlan taskPlan = executeAgent.generatePlan(taskDesc);
       TaskPlan.DataEndCfg sourceEnd = taskPlan.getSourceEnd();
@@ -126,8 +130,8 @@ public class TestRealTISPlanAndExecuteAgent extends BasicActionTestCase {
       Assert.assertEquals(targetEnd.getType(), IEndTypeGetter.EndType.Doris);
       Assert.assertTrue(StringUtils.isNotEmpty(sourceEnd.getRelevantDesc()));
       Assert.assertTrue(StringUtils.isNotEmpty(targetEnd.getRelevantDesc()));
-//      ActionContext.getContext().getServletContext();
-//      ServletActionContext.getActionContext(this.request).withServletContext(this.servletContext);
+      //      ActionContext.getContext().getServletContext();
+      //      ServletActionContext.getActionContext(this.request).withServletContext(this.servletContext);
       executeAgent.execute(taskDesc);
     } catch (Exception e) {
       e.printStackTrace();

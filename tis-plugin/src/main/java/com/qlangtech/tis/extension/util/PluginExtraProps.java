@@ -107,9 +107,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     public static final String KEY_CREATOR_ASSIST_TYPE = "assistType";
 
     public enum RouterAssistType {
-        hyperlink("hyperlink"),
-        dbQuickManager("dbQuickManager"),
-        paramCfg("paramCfg");
+        hyperlink("hyperlink"), dbQuickManager("dbQuickManager"), paramCfg("paramCfg");
         private final String token;
 
         public static RouterAssistType parse(String token) {
@@ -179,9 +177,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
                     pps = new Props(o.getJSONObject(propKey));
 
-//                    pps.getRefCreator().ifPresent((creator) -> {
-//                        Props.validate(creator, propKey, pluginClazz, resourceName, false);
-//                    });
+                    //                    pps.getRefCreator().ifPresent((creator) -> {
+                    //                        Props.validate(creator, propKey, pluginClazz, resourceName, false);
+                    //                    });
 
 
                     StringBuffer asynHelp = null;
@@ -214,23 +212,22 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     public static Optional<PluginExtraProps> load(Optional<ElementPluginDesc> desc, Class<?> clazz) {
 
 
-        PluginExtraProps ep = visitAncestorsClass(clazz
-                , (c, extraProps, finalChild) -> {
-                    Optional<PluginExtraProps> nxtExtraProps = parseExtraProps(c);
-                    if (nxtExtraProps.isPresent()) {
-                        if (extraProps == null) {
-                            extraProps = nxtExtraProps.get();
-                        } else {
-                            extraProps.mergeProps(nxtExtraProps.get());
-                        }
-                    }
-                    if (finalChild && extraProps != null) {
-                        extraProps.forEach((k, prop) -> {
-                            //  prop.setFieldRefCreateor();
-                        });
-                    }
-                    return extraProps;
+        PluginExtraProps ep = visitAncestorsClass(clazz, (c, extraProps, finalChild) -> {
+            Optional<PluginExtraProps> nxtExtraProps = parseExtraProps(c);
+            if (nxtExtraProps.isPresent()) {
+                if (extraProps == null) {
+                    extraProps = nxtExtraProps.get();
+                } else {
+                    extraProps.mergeProps(nxtExtraProps.get());
+                }
+            }
+            if (finalChild && extraProps != null) {
+                extraProps.forEach((k, prop) -> {
+                    //  prop.setFieldRefCreateor();
                 });
+            }
+            return extraProps;
+        });
 
 
         if (ep != null) {
@@ -280,64 +277,66 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         T process(Class<?> clazz, T extraProps, boolean finalChild);
     }
 
-//    private static JSONObject validate(JSONObject props, String propKey, Class<?> pluginClazz, String resourceName,
-//                                       boolean finalValidate) {
-//        String errDesc = createErrorMsg(propKey, pluginClazz, resourceName);
-//        Object creator = props.get(KEY_CREATOR);
-//        if (creator != null) {
-//            if (!(creator instanceof JSONObject)) {
-//                throw new IllegalStateException("prop creator must be type of JSONObject:" + errDesc);
-//            }
-//            if (finalValidate) {
-//                JSONObject creatorJ = (JSONObject) creator;
-//
-//                //  Objects.requireNonNull(creatorJ.get(KEY_ROUTER_LINK), errDesc);
-//                Objects.requireNonNull(creatorJ.get(KEY_LABEL), errDesc);
-//                JSONObject pmeta = null;
-//                JSONArray plugins = creatorJ.getJSONArray(KEY_PLUGIN);
-//                boolean assistTypeEmpty = StringUtils.isEmpty(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE));
-//                if (plugins != null) {
-//                    for (int i = 0; i < plugins.size(); i++) {
-//                        pmeta = plugins.getJSONObject(i);
-//                        if (StringUtils.isBlank(pmeta.getString(KEY_CREATOR_HETERO))
-//                                || StringUtils.isBlank(pmeta.getString(KEY_DESC_NAME))
-//                            // 由于插件中参数不一定是必须的，所以先把以下校验去掉： "extraParam": "append_true"
-//                            //        || StringUtils.isBlank(pmeta.getString("extraParam"))
-//                        ) {
-//                            throw new IllegalStateException("pmeta is illegal:" + pmeta.toJSONString() + "," +
-//                                    "pluginClazz:" + pluginClazz.getName() + ",errDesc:" + errDesc);
-//                        }
-//                        /**
-//                         * 如果assitType 为空，则查看plugin 的KEY_CREATOR_HETERO 如果为 ‘params-cfg’ 则默认ASSIST_TYPE类型为 RouterAssistType.paramCfg
-//                         */
-//                        if (assistTypeEmpty) {
-//                            String hetero = pmeta.getString(KEY_CREATOR_HETERO);
-//                            if (StringUtils.isNotEmpty(hetero)) {
-//                                if (!DATASOURCE.identity.equals(hetero)) {
-//                                    creatorJ.put(KEY_CREATOR_ASSIST_TYPE, RouterAssistType.paramCfg.token);
-//                                    assistTypeEmpty = false;
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                if (assistTypeEmpty && StringUtils.isNotEmpty(creatorJ.getString(KEY_ROUTER_LINK))) {
-//                    creatorJ.put(KEY_CREATOR_ASSIST_TYPE, RouterAssistType.hyperlink.token);
-//                }
-//
-//                /**
-//                 * 校验assistType
-//                 */
-//                try {
-//                    RouterAssistType.parse(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE));
-//                } catch (Exception e) {
-//                    throw new RuntimeException(errDesc, e);
-//                }
-//            }
-//        }
-//        return props;
-//    }
+    //    private static JSONObject validate(JSONObject props, String propKey, Class<?> pluginClazz, String
+    //    resourceName,
+    //                                       boolean finalValidate) {
+    //        String errDesc = createErrorMsg(propKey, pluginClazz, resourceName);
+    //        Object creator = props.get(KEY_CREATOR);
+    //        if (creator != null) {
+    //            if (!(creator instanceof JSONObject)) {
+    //                throw new IllegalStateException("prop creator must be type of JSONObject:" + errDesc);
+    //            }
+    //            if (finalValidate) {
+    //                JSONObject creatorJ = (JSONObject) creator;
+    //
+    //                //  Objects.requireNonNull(creatorJ.get(KEY_ROUTER_LINK), errDesc);
+    //                Objects.requireNonNull(creatorJ.get(KEY_LABEL), errDesc);
+    //                JSONObject pmeta = null;
+    //                JSONArray plugins = creatorJ.getJSONArray(KEY_PLUGIN);
+    //                boolean assistTypeEmpty = StringUtils.isEmpty(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE));
+    //                if (plugins != null) {
+    //                    for (int i = 0; i < plugins.size(); i++) {
+    //                        pmeta = plugins.getJSONObject(i);
+    //                        if (StringUtils.isBlank(pmeta.getString(KEY_CREATOR_HETERO))
+    //                                || StringUtils.isBlank(pmeta.getString(KEY_DESC_NAME))
+    //                            // 由于插件中参数不一定是必须的，所以先把以下校验去掉： "extraParam": "append_true"
+    //                            //        || StringUtils.isBlank(pmeta.getString("extraParam"))
+    //                        ) {
+    //                            throw new IllegalStateException("pmeta is illegal:" + pmeta.toJSONString() + "," +
+    //                                    "pluginClazz:" + pluginClazz.getName() + ",errDesc:" + errDesc);
+    //                        }
+    //                        /**
+    //                         * 如果assitType 为空，则查看plugin 的KEY_CREATOR_HETERO 如果为 ‘params-cfg’ 则默认ASSIST_TYPE类型为
+    //                         RouterAssistType.paramCfg
+    //                         */
+    //                        if (assistTypeEmpty) {
+    //                            String hetero = pmeta.getString(KEY_CREATOR_HETERO);
+    //                            if (StringUtils.isNotEmpty(hetero)) {
+    //                                if (!DATASOURCE.identity.equals(hetero)) {
+    //                                    creatorJ.put(KEY_CREATOR_ASSIST_TYPE, RouterAssistType.paramCfg.token);
+    //                                    assistTypeEmpty = false;
+    //                                }
+    //                            }
+    //                        }
+    //                    }
+    //                }
+    //
+    //                if (assistTypeEmpty && StringUtils.isNotEmpty(creatorJ.getString(KEY_ROUTER_LINK))) {
+    //                    creatorJ.put(KEY_CREATOR_ASSIST_TYPE, RouterAssistType.hyperlink.token);
+    //                }
+    //
+    //                /**
+    //                 * 校验assistType
+    //                 */
+    //                try {
+    //                    RouterAssistType.parse(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE));
+    //                } catch (Exception e) {
+    //                    throw new RuntimeException(errDesc, e);
+    //                }
+    //            }
+    //        }
+    //        return props;
+    //    }
 
     private static String createErrorMsg(String propKey, Class<?> pluginClazz, String resourceName) {
         return String.format("propKey:%s,package:%s,propKey:%s", propKey, pluginClazz.getPackage().getName(),
@@ -380,11 +379,11 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
 
                     Map<String, IPropertyType> pp = ppRef.updateAndGet((pre) -> {
-                        return (pre == null) ? PropertyType.buildPropertyTypes(Optional.empty(), elmtDesc.getElementDesc().clazz) : pre;
+                        return (pre == null) ? PropertyType.buildPropertyTypes(Optional.empty(),
+                                elmtDesc.getElementDesc().clazz) : pre;
                     });
                     if (!pp.containsKey(entry.getKey())) {
-                        throw new IllegalStateException("prop key:" + entry.getKey()
-                                + " relevant prop must exist , " + "exist props keys:" + pp.keySet().stream().collect(Collectors.joining(",")));
+                        throw new IllegalStateException("prop key:" + entry.getKey() + " relevant prop must exist , " + "exist props keys:" + pp.keySet().stream().collect(Collectors.joining(",")));
                     }
                 }
                 this.put(entry.getKey(), entry.getValue());
@@ -479,7 +478,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 throw new IllegalArgumentException("displayName can not be empty");
             }
             this.displayName = displayName;
-           // this.description = displayName;
+            // this.description = displayName;
             this.targetItemDesc = Objects.requireNonNull(targetItemDesc, "targetItemDesc can not be null");
             //  this.targetPluginCategory = StringUtils.defaultIfEmpty(targetPluginCategory, displayName);
             this.hetero = hetero;
@@ -506,8 +505,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             this.description = description;
         }
 
-        public static JSONArray convertOptionsArray(
-                Optional<IEndTypeGetter.EndType> endType, List<CandidatePlugin> candidatePlugins) {
+        public static JSONArray convertOptionsArray(Optional<IEndTypeGetter.EndType> endType,
+                                                    List<CandidatePlugin> candidatePlugins) {
             JSONArray optionsArray = new JSONArray();
             for (int i = 0; i < candidatePlugins.size(); i++) {
                 CandidatePlugin candidate = candidatePlugins.get(i);
@@ -522,34 +521,31 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return optionsArray;
         }
 
-//        private static void setExtraProps(Optional<IEndTypeGetter.EndType> endType, JSONObject option, CandidatePlugin candidate) {
-//            option.put("extendpoint", candidate.getHetero().getExtensionPoint().getName());
-//            endType.ifPresent((et) -> {
-//                option.put("endType", et.getVal());
-//            });
-//            option.put("installed", candidate.getInstalledPluginDescriptor() != null);
-//            Descriptor<?> installedDesc = candidate.getInstalledPluginDescriptor();
-//            if (installedDesc != null) {
-//                option.put("version", installedDesc.getId());
-//            }
-//        }
+        //        private static void setExtraProps(Optional<IEndTypeGetter.EndType> endType, JSONObject option,
+        //        CandidatePlugin candidate) {
+        //            option.put("extendpoint", candidate.getHetero().getExtensionPoint().getName());
+        //            endType.ifPresent((et) -> {
+        //                option.put("endType", et.getVal());
+        //            });
+        //            option.put("installed", candidate.getInstalledPluginDescriptor() != null);
+        //            Descriptor<?> installedDesc = candidate.getInstalledPluginDescriptor();
+        //            if (installedDesc != null) {
+        //                option.put("version", installedDesc.getId());
+        //            }
+        //        }
 
         public void validate(String errDesc, Class<?> pluginClazz) {
-            if (StringUtils.isBlank(this.hetero)
-                    || StringUtils.isBlank(this.displayName)
+            if (StringUtils.isBlank(this.hetero) || StringUtils.isBlank(this.displayName)
                 // 由于插件中参数不一定是必须的，所以先把以下校验去掉： "extraParam": "append_true"
                 //        || StringUtils.isBlank(pmeta.getString("extraParam"))
             ) {
-                throw new IllegalStateException("pmeta is illegal,hetero:" + this.hetero + ",displayName:" + this.displayName + "," +
-                        "pluginClazz:" + pluginClazz.getName() + ",errDesc:" + errDesc);
+                throw new IllegalStateException("pmeta is illegal,hetero:" + this.hetero + ",displayName:" + this.displayName + "," + "pluginClazz:" + pluginClazz.getName() + ",errDesc:" + errDesc);
             }
         }
 
-//        public void setDescriptor(Descriptor descriptor) {
-//            this.descriptor = descriptor;
-//        }
-
-
+        //        public void setDescriptor(Descriptor descriptor) {
+        //            this.descriptor = descriptor;
+        //        }
 
 
         public String getTargetItemDesc() {
@@ -567,39 +563,21 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
          * @return
          */
         public <T extends IdentityName> IdentityName createNewPrimaryFieldValue(List<T> existOpts) {
-//            String descName = StringUtils.lowerCase(this.getDisplayName());
-//            Pattern pattern = Pattern.compile(descName + "-?(\\d+)");
-//            Matcher matcher = null;
-//            int maxSufix = 1;
-//            for (IdentityName opt : existOpts) {
-//                matcher = pattern.matcher(StringUtils.lowerCase(opt.identityValue()));
-//                if (matcher.matches()) {
-//                    int curr;
-//                    if ((curr = Integer.valueOf(matcher.group(1))) >= maxSufix) {
-//                        maxSufix = curr + 1;
-//                    }
-//                }
-//            }
-//            return descName + "-" + maxSufix;
-            return createNewPrimaryFieldValue(this.getDisplayName(), existOpts);
-        }
-
-        public static <T extends IdentityName> IdentityName createNewPrimaryFieldValue(
-                final String displayName, List<T> existOpts) {
-            String descName = StringUtils.lowerCase(displayName);
-            Pattern pattern = Pattern.compile(descName + "_?(\\d+)");
-            Matcher matcher = null;
-            int maxSufix = 1;
-            for (IdentityName opt : existOpts) {
-                matcher = pattern.matcher(StringUtils.lowerCase(opt.identityValue()));
-                if (matcher.matches()) {
-                    int curr;
-                    if ((curr = Integer.valueOf(matcher.group(1))) >= maxSufix) {
-                        maxSufix = curr + 1;
-                    }
-                }
-            }
-            return IdentityName.create(descName + "_" + maxSufix);
+            //            String descName = StringUtils.lowerCase(this.getDisplayName());
+            //            Pattern pattern = Pattern.compile(descName + "-?(\\d+)");
+            //            Matcher matcher = null;
+            //            int maxSufix = 1;
+            //            for (IdentityName opt : existOpts) {
+            //                matcher = pattern.matcher(StringUtils.lowerCase(opt.identityValue()));
+            //                if (matcher.matches()) {
+            //                    int curr;
+            //                    if ((curr = Integer.valueOf(matcher.group(1))) >= maxSufix) {
+            //                        maxSufix = curr + 1;
+            //                    }
+            //                }
+            //            }
+            //            return descName + "-" + maxSufix;
+            return IdentityName.createNewPrimaryFieldValue(this.getDisplayName(), existOpts);
         }
 
         public Descriptor getInstalledPluginDescriptor() {
@@ -622,9 +600,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return descriptor.orElse(null);
         }
 
-//        public void setDisplayName(String displayName) {
-//            this.displayName = displayName;
-//        }
+        //        public void setDisplayName(String displayName) {
+        //            this.displayName = displayName;
+        //        }
 
         public IPluginEnum getHetero() {
             return HeteroEnum.of(this.hetero);
@@ -632,8 +610,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         @Override
         public String toString() {
-            return "displayName='" + displayName + '\'' +
-                    ", hetero='" + hetero + '\'';
+            return "displayName='" + displayName + '\'' + ", hetero='" + hetero + '\'';
         }
     }
 
@@ -642,7 +619,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         public static final String KEY_HELP = "help";
         public static final String KEY_VALIDATOR = "validators";
         public static final String KEY_VIEW_TYPE = "viewtype";
-        private static final String KEY_ASYNC_HELP = "asyncHelp";
+        public static final String KEY_ASYNC_HELP = "asyncHelp";
         private final JSONObject props;
         private MarkdownHelperContent asynHelp;
 
@@ -652,9 +629,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             this.props = props;
         }
 
-//        private void setFieldRefCreateor() {
-//            this._fieldRefCreateor = Optional.ofNullable(createFieldRefCreateor(this.props));
-//        }
+        //        private void setFieldRefCreateor() {
+        //            this._fieldRefCreateor = Optional.ofNullable(createFieldRefCreateor(this.props));
+        //        }
 
         private static FieldRefCreateor createFieldRefCreateor(JSONObject props) {
             FieldRefCreateor createor = null;
@@ -677,7 +654,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                         pmeta = plugins.getJSONObject(i);
 
                         /**
-                         * 如果assitType 为空，则查看plugin 的KEY_CREATOR_HETERO 如果为 ‘params-cfg’ 则默认ASSIST_TYPE类型为 RouterAssistType.paramCfg
+                         * 如果assitType 为空，则查看plugin 的KEY_CREATOR_HETERO 如果为 ‘params-cfg’ 则默认ASSIST_TYPE类型为
+                         * RouterAssistType.paramCfg
                          */
                         if (assistTypeEmpty) {
                             String hetero = pmeta.getString(KEY_CREATOR_HETERO);
@@ -689,11 +667,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                             }
                         }
 
-                        createor.addCandidatePlugin(
-                                new CandidatePlugin( //
-                                        pmeta.getString(KEY_DESC_NAME)//
-                                        , Optional.ofNullable(pmeta.getString(UploadPluginMeta.KEY_TARGET_PLUGIN_DESC))//
-                                        , pmeta.getString(KEY_CREATOR_HETERO)));
+                        createor.addCandidatePlugin(new CandidatePlugin( //
+                                pmeta.getString(KEY_DESC_NAME)//
+                                , Optional.ofNullable(pmeta.getString(UploadPluginMeta.KEY_TARGET_PLUGIN_DESC))//
+                                , pmeta.getString(KEY_CREATOR_HETERO)));
                     }
                 }
 
@@ -727,8 +704,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return createor;
         }
 
-        public static void validate(FieldRefCreateor creatorJ, String propKey, Class<?> pluginClazz, String resourceName,
-                                    boolean finalValidate) {
+        public static void validate(FieldRefCreateor creatorJ, String propKey, Class<?> pluginClazz,
+                                    String resourceName, boolean finalValidate) {
             String errDesc = createErrorMsg(propKey, pluginClazz, resourceName);
 
             if (finalValidate) {
@@ -827,7 +804,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 if (split.length == 1) {
                     return new ValidatorCfg(Validator.parse(String.valueOf(split[0])));
                 } else if (split.length == 2) {
-                    return new ValidatorCfg(Validator.parse(String.valueOf(split[0])), KEY_DISABLE.equalsIgnoreCase(split[1]));
+                    return new ValidatorCfg(Validator.parse(String.valueOf(split[0])),
+                            KEY_DISABLE.equalsIgnoreCase(split[1]));
                 }
 
                 throw new IllegalStateException("in validate token:" + token);

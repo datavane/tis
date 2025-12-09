@@ -34,7 +34,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.extension.Descriptor.KEY_ENUM_PROP;
 import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_ENUM_FILTER;
+import static com.qlangtech.tis.extension.util.PluginExtraProps.Props.KEY_ASYNC_HELP;
 
 /**
  * 生成的json描述信息提供给大模型使用
@@ -69,16 +71,22 @@ public class DescriptorsJSONForAIPromote<T extends Describable<T>> extends Descr
     }
 
     @Override
-    protected JSONObject processExtraProps(JSONObject extraProps) {
+    protected JSONObject processExtraProps(PropertyType propertyType, JSONObject extraProps) {
         JSONObject extra = new JSONObject(extraProps);
         // 噪音，没有用
         extra.remove(KEY_ENUM_FILTER);
+        if (propertyType.isDescribable()) {
+            extra.remove(KEY_ENUM_PROP);
+        }
+        extra.remove(KEY_ENUM_FILTER);
+        extra.remove(KEY_ASYNC_HELP);
+
         return extra;
     }
 
     @Override
-    protected Pair<JSONObject, Descriptor> createFormPropertyTypes(Optional<SubFormFilter> subFormFilter, Descriptor<
-            ?> dd) {
+    protected Pair<JSONObject, Descriptor> //
+    createFormPropertyTypes(Optional<SubFormFilter> subFormFilter, Descriptor<?> dd) {
         Pair<JSONObject, Descriptor> pair = createPluginFormPropertyTypes(dd, subFormFilter, true);
         return pair;
     }
@@ -93,56 +101,32 @@ public class DescriptorsJSONForAIPromote<T extends Describable<T>> extends Descr
         return new DescriptorsJSONForAIPromote(val.getApplicableDescriptors(), false);
     }
 
-    //  @Override
-    //  protected boolean processExtraProps(Descriptor<?> desc, PropertyType propVal, PropertyType ep) {
+    @Override
+    protected JSONObject createAttrVal(String key, PropertyType val) {
+        //  attrVal;
+        // fieldAnnot = val.getFormField();
+        JSONObject attrVal = new JSONObject();
+        attrVal.put("key", key);
+        if (val.isDescribable()) {
+            attrVal.put("describable", true);
+        }
+        if (val.isIdentity()) {
+            // 是否是主键
+            attrVal.put("pk", true);
+        }
 
-    //    Optional<PluginExtraProps.FieldRefCreateor> refCreator = ep.getRefCreator();
-    //    // JSONObject creator = ep.getJSONObject(PluginExtraProps.KEY_CREATOR);
-    //    String descDisplayName = null;
-    //    if (refCreator.isPresent()) {
-    //      PluginExtraProps.FieldRefCreateor creator = refCreator.get();
-    //      List<PluginExtraProps.CandidatePlugin> supportedPlugins = creator.getCandidatePlugins();
-    //      if (CollectionUtils.isNotEmpty(supportedPlugins)) {
-    //        PluginExtraProps.CandidatePlugin supported = null;
-    //
-    //        DescribableImpl descImpl =
-    //          Objects.requireNonNull(descFieldsRegister.get(desc)
-    //            , "desc:" + desc.getId() + " relevant descImpl can not be null");
-    //
-    //        boolean multipOptions = supportedPlugins.size() > 1;
-    //
-    //        aa:
-    //        for (int i = 0; i < supportedPlugins.size(); i++) {
-    //          // TODO 需要让用户确定使用哪种plugin
-    //          supported = supportedPlugins.get(i);
-    //
-    //
-    //          IPluginEnum hetero = supported.getHetero();
-    //          List<Descriptor> descriptors = hetero.descriptors();
-    //          hetero.getExtensionPoint().getName();
-    //          descDisplayName = supported.getDisplayName();
-    //          DescribableImpl describable = new DescribableImpl(hetero.getExtensionPoint());
-    //
-    //          for (Descriptor d : descriptors) {
-    //            if (descDisplayName.equals(d.getDisplayName())) {
-    //              describable.setImpl(d.clazz.getName());
-    //              if (multipOptions) {
-    //                continue aa;
-    //              }
-    //            }
-    //          }
-    //
-    //          // descImpl.addFieldImplRef(propVal.f.getName(), describable);
-    //
-    //        }
-    //        // 说明没有找到合适的引用插件，应该插件还没有安装，需要开启安装流程
-    //
-    //        return false;
-    //      }
-    //    }
+        attrVal.put("type", val.typeIdentity());
+        if (val.isInputRequired()) {
+            attrVal.put("required", true);
+        }
+        return attrVal;
+    }
 
-    //    return true;
-    //  }
+    @Override
+    protected void setContainAdvanceField(JSONObject desJson, boolean containAdvanceField) {
+        // 包含高级字段
+        //  desJson.put("containAdvance", containAdvanceField);
+    }
 
     @Override
     protected JSONObject getFieldExtraProps(PropertyType val) {

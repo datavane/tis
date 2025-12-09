@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
+import static com.qlangtech.tis.maven.plugins.tpi.ICoord.KEY_TPI_FILE_EXTENSION;
+
 /**
  * Build a war/webapp.
  *
@@ -179,7 +181,7 @@ public class TpiMojo extends AbstractTISManifestMojo {
         projectHelper.attachArtifact(project, "jar", null, jarFile);
         // generate war file
         buildExplodedWebapp(getWebappDirectory(), jarFile);
-        File tpiFile = getOutputFile(".tpi");
+        File tpiFile = getOutputFile(KEY_TPI_FILE_EXTENSION);
         getLog().info("Generating tpi " + tpiFile.getAbsolutePath());
         MavenArchiver archiver = new MavenArchiver();
         archiver.setArchiver(hpiArchiver);

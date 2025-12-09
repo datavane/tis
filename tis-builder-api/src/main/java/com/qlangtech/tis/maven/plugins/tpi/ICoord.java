@@ -27,6 +27,8 @@ import java.net.URL;
  * @create: 2022-06-27 11:57
  **/
 public interface ICoord {
+
+    String KEY_TPI_FILE_EXTENSION = ".tpi";
     /**
      * 是否是VIP插件
      */

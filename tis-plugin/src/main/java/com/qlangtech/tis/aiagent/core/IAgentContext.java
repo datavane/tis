@@ -19,6 +19,7 @@
 package com.qlangtech.tis.aiagent.core;
 
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
+import com.qlangtech.tis.lang.PayloadLink;
 
 /**
  *
@@ -31,6 +32,11 @@ public interface IAgentContext {
         return new IAgentContext() {
             @Override
             public void updateTokenUsage(long tokens) {
+
+            }
+
+            @Override
+            public void sendMessage(String message, PayloadLink... link) {
 
             }
 
@@ -50,5 +56,10 @@ public interface IAgentContext {
      * @param detailMsg
      */
     void sendLLMStatus(LLMProvider.LLMChatPhase llmChatPhase, String detailMsg);
+
+    /**
+     * 发送文本消息到客户端
+     */
+    public void sendMessage(String message, PayloadLink... link);
 
 }

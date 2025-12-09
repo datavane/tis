@@ -132,25 +132,26 @@ public class PluginAction extends BasicModule {
   }
 
   private static void notifyPluginUpdate2AssembleNode(String applyParams, String targetResource) {
-//    if (TisAppLaunch.isTestMock()) {
-//      logger.info("skip apply clean " + targetResource + " cache by " + applyParams);
-//      return;
-//    }
-//    long start = System.currentTimeMillis();
-//    try {
-//
-//      URL url = new URL(Config.getAssembleHttpHost() + "/task_status?" + applyParams);
-//      HttpUtils.get(url, new ConfigFileContext.StreamProcess<Void>() {
-//        @Override
-//        public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-//          logger.info("has apply clean " + targetResource + " cache by " + applyParams);
-//
-//          return null;
-//        }
-//      });
-//    } catch (Exception e) {
-//      logger.warn("apply clean " + targetResource + ",consume:" + (System.currentTimeMillis() - start) + "ms, cache " + "faild " + e.getMessage());
-//    }
+    //    if (TisAppLaunch.isTestMock()) {
+    //      logger.info("skip apply clean " + targetResource + " cache by " + applyParams);
+    //      return;
+    //    }
+    //    long start = System.currentTimeMillis();
+    //    try {
+    //
+    //      URL url = new URL(Config.getAssembleHttpHost() + "/task_status?" + applyParams);
+    //      HttpUtils.get(url, new ConfigFileContext.StreamProcess<Void>() {
+    //        @Override
+    //        public Void p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+    //          logger.info("has apply clean " + targetResource + " cache by " + applyParams);
+    //
+    //          return null;
+    //        }
+    //      });
+    //    } catch (Exception e) {
+    //      logger.warn("apply clean " + targetResource + ",consume:" + (System.currentTimeMillis() - start) + "ms,
+    //      cache " + "faild " + e.getMessage());
+    //    }
   }
 
   private static class IconsDefs {
@@ -170,9 +171,9 @@ public class PluginAction extends BasicModule {
       return result;
     }
 
-//    public void add(JSONObject icon) {
-//      iconsDefs.add(icon);
-//    }
+    //    public void add(JSONObject icon) {
+    //      iconsDefs.add(icon);
+    //    }
   }
 
   private static IconsDefs iconsDefsWithCheckSum;
@@ -236,8 +237,8 @@ public class PluginAction extends BasicModule {
 
     String id = this.getString(IdentityName.PLUGIN_IDENTITY_NAME);
     String pluginImpl = this.getString(DescriptorsJSON.KEY_IMPL);
-    Descriptor targetPlugin = Objects.requireNonNull(
-      TIS.get().getDescriptor(pluginImpl), "pluginImpl:" + pluginImpl + " relevant descriptor can not be null");
+    Descriptor targetPlugin = Objects.requireNonNull(TIS.get().getDescriptor(pluginImpl),
+      "pluginImpl:" + pluginImpl + " relevant descriptor can not be null");
     if (!(targetPlugin instanceof IDescribableManipulate)) {
       throw new IllegalStateException("targetPlugin:" + targetPlugin.getClass().getName() + " is not type of " + IDescribableManipulate.class.getSimpleName());
     }
@@ -262,7 +263,7 @@ public class PluginAction extends BasicModule {
         return;
       }
     }
-    throw new IllegalStateException("target " + IdentityName.PLUGIN_IDENTITY_NAME + ":" + id + " relevant item can not be found");
+    throw new IllegalStateException("target " + IdentityName.PLUGIN_IDENTITY_NAME + ":" + id + " relevant item can " + "not be found");
 
   }
 
@@ -272,43 +273,43 @@ public class PluginAction extends BasicModule {
    * @param context
    * @throws Exception
    */
-//  public void doGetOrCreateNotebook(Context context) throws Exception {
-//    DataxProcessor dataxProcessor = IAppSource.load(this, this.getAppDomain().getAppName());
-//    String pluginIdVal = this.getString("pluginIdVal");
-//    if (StringUtils.isEmpty(pluginIdVal)) {
-//      throw new IllegalArgumentException("param pluginIdVal can not be null");
-//    }
-//    Map<String, INotebookable.NotebookEntry> notebooks = dataxProcessor.scanNotebook();
-//    INotebookable.NotebookEntry notebookEntry = notebooks.get(pluginIdVal);
-//    Objects.requireNonNull(notebookEntry, "pluginId:" + pluginIdVal + " relevant notebookEntry can not be null");
-//    this.setBizResult(context, notebookEntry.createOrGetNotebook());
-//  }
+  //  public void doGetOrCreateNotebook(Context context) throws Exception {
+  //    DataxProcessor dataxProcessor = IAppSource.load(this, this.getAppDomain().getAppName());
+  //    String pluginIdVal = this.getString("pluginIdVal");
+  //    if (StringUtils.isEmpty(pluginIdVal)) {
+  //      throw new IllegalArgumentException("param pluginIdVal can not be null");
+  //    }
+  //    Map<String, INotebookable.NotebookEntry> notebooks = dataxProcessor.scanNotebook();
+  //    INotebookable.NotebookEntry notebookEntry = notebooks.get(pluginIdVal);
+  //    Objects.requireNonNull(notebookEntry, "pluginId:" + pluginIdVal + " relevant notebookEntry can not be null");
+  //    this.setBizResult(context, notebookEntry.createOrGetNotebook());
+  //  }
 
   /**
    * @param context
    */
-//  public void doScanNotebooks(Context context) throws Exception {
-//    String dataxName = this.getAppDomain().getAppName();
-//
-//    DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
-//    Map<String, INotebookable.NotebookEntry> notebooks = dataxProcessor.scanNotebook();
-//    String pluginIdVal = null;
-//    DescriptorsJSON descJson = null;
-//    List<Descriptor> descs = Lists.newArrayList();
-//    INotebookable.NotebookEntry note = null;
-//    List<Map<String, Object>> notebookProps = Lists.newArrayList();
-//    Map<String, Object> props = null;
-//    for (Map.Entry<String, INotebookable.NotebookEntry> entry : notebooks.entrySet()) {
-//      pluginIdVal = entry.getKey();
-//      note = entry.getValue();
-//
-//      props = new HashMap<>(note.getDescriptor().getExtractProps());
-//      props.put("pluginId", pluginIdVal);
-//      props.put("displayName", note.getDescriptor().getDisplayName());
-//      notebookProps.add(props);
-//    }
-//    this.setBizResult(context, notebookProps);
-//  }
+  //  public void doScanNotebooks(Context context) throws Exception {
+  //    String dataxName = this.getAppDomain().getAppName();
+  //
+  //    DataxProcessor dataxProcessor = IAppSource.load(this, dataxName);
+  //    Map<String, INotebookable.NotebookEntry> notebooks = dataxProcessor.scanNotebook();
+  //    String pluginIdVal = null;
+  //    DescriptorsJSON descJson = null;
+  //    List<Descriptor> descs = Lists.newArrayList();
+  //    INotebookable.NotebookEntry note = null;
+  //    List<Map<String, Object>> notebookProps = Lists.newArrayList();
+  //    Map<String, Object> props = null;
+  //    for (Map.Entry<String, INotebookable.NotebookEntry> entry : notebooks.entrySet()) {
+  //      pluginIdVal = entry.getKey();
+  //      note = entry.getValue();
+  //
+  //      props = new HashMap<>(note.getDescriptor().getExtractProps());
+  //      props.put("pluginId", pluginIdVal);
+  //      props.put("displayName", note.getDescriptor().getDisplayName());
+  //      notebookProps.add(props);
+  //    }
+  //    this.setBizResult(context, notebookProps);
+  //  }
 
 
   /**
@@ -374,8 +375,8 @@ public class PluginAction extends BasicModule {
     }
 
     PropertyType getFieldPropType() {
-      return (PropertyType) Objects.requireNonNull(getTargetDesc()
-        , "impl:" + this.pluginImpl + " relevant desc can not be null").getPropertyType(this.field);
+      return (PropertyType) Objects.requireNonNull(getTargetDesc(),
+        "impl:" + this.pluginImpl + " relevant desc can " + "not be null").getPropertyType(this.field);
     }
   }
 
@@ -616,7 +617,8 @@ public class PluginAction extends BasicModule {
         return;
       }
     }
-    this.setBizResult(context, Collections.singletonMap("notFoundExtension", result.hetero.getExtensionPoint().getName()));
+    this.setBizResult(context, Collections.singletonMap("notFoundExtension",
+      result.hetero.getExtensionPoint().getName()));
     this.addErrorMessage(context, "displayName:" + result.displayName + " relevant Descriptor can not be null");
 
   }
@@ -743,8 +745,7 @@ public class PluginAction extends BasicModule {
 
     HeteroList hlist = new HeteroList(descriptorsGetter.getPluginMeta());
     if (CollectionUtils.isEmpty(descriptorsGetter.descriptors)) {
-      throw new IllegalStateException(
-        descriptorsGetter.displayName + "," + descriptorsGetter.hetero.identityValue() + " relevant descriptors can not be empty");
+      throw new IllegalStateException(descriptorsGetter.displayName + "," + descriptorsGetter.hetero.identityValue() + " relevant descriptors can not be empty");
     }
     hlist.setDescriptors(descriptorsGetter.descriptors);
     hlist.setExtensionPoint(descriptorsGetter.hetero.getExtensionPoint());
@@ -873,8 +874,7 @@ public class PluginAction extends BasicModule {
     JSONObject postData = this.parseJsonPost();
     String[] forwardParams = getActionForwardParam(postData);
 
-    JSONArray pluginArray = Objects.requireNonNull(
-      postData.getJSONArray("items"), "json prop items can not be null");
+    JSONArray pluginArray = Objects.requireNonNull(postData.getJSONArray("items"), "json prop items can not be null");
     UploadPluginMeta pluginMeta = null;
 
     boolean faild = false;
@@ -888,8 +888,8 @@ public class PluginAction extends BasicModule {
       pluginMeta = plugins.get(pluginIndex);
       JSONArray itemsArray = pluginArray.getJSONArray(pluginIndex);
 
-      pluginItemsParser = getPluginItems(pluginMeta, context, pluginIndex
-        , itemsArray, verifyType, ((propType, val) -> val));
+      pluginItemsParser = getPluginItems(pluginMeta, context, pluginIndex, itemsArray, verifyType,
+        ((propType, val) -> val));
       if (pluginItemsParser.getKey()) {
         faild = true;
       }
@@ -920,8 +920,9 @@ public class PluginAction extends BasicModule {
     }
 
     if (forwardParams != null) {
-      Pair<List<IItemsSaveResult>, IPluginItemsProcessor> itemSaveResult
-        = Pair.of(describables, (IPluginItemsProcessor) pluginItemsParser.getRight());
+      // assert pluginItemsParser != null;
+      Pair<List<IItemsSaveResult>, IPluginItemsProcessor> itemSaveResult = Pair.of(describables,
+        Objects.requireNonNull(pluginItemsParser, "pluginItemsParser can not be null").getRight());
       this.getRequest().setAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT, itemSaveResult);
 
       // getRundata().forwardTo(forwardParams[0], forwardParams[1], forwardParams[2]);
@@ -934,14 +935,13 @@ public class PluginAction extends BasicModule {
     // 成功保存的主键信息返回给客户端
     if (context.get(IMessageHandler.ACTION_BIZ_RESULT) == null) {
       this.setBizResult(context,
-        describables.stream()
-          .flatMap((itemSaveResult) -> itemSaveResult.getIdentityStream()).map((d) -> {
-            if (d instanceof IdentityDesc) {
-              return ((IdentityDesc) d).describePlugin();
-            } else {
-              return (d).identityValue();
-            }
-          }).collect(Collectors.toList()));
+        describables.stream().flatMap((itemSaveResult) -> itemSaveResult.getIdentityStream()).map((d) -> {
+        if (d instanceof IdentityDesc) {
+          return ((IdentityDesc) d).describePlugin();
+        } else {
+          return (d).identityValue();
+        }
+      }).collect(Collectors.toList()));
     }
   }
 
@@ -951,14 +951,23 @@ public class PluginAction extends BasicModule {
   }
 
   private static Pair<List<ItemsSaveResult>, IPluginItemsProcessor> getPluginActionSaveResult(HttpServletRequest request) {
-    Pair<List<ItemsSaveResult>, IPluginItemsProcessor> saveResult =
-      (Pair<List<ItemsSaveResult>, IPluginItemsProcessor>) request.getAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT);
+    Pair<List<ItemsSaveResult>, IPluginItemsProcessor> saveResult = (Pair<List<ItemsSaveResult>,
+      IPluginItemsProcessor>) request.getAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT);
     return Objects.requireNonNull(saveResult, "saveResult can not be null");
   }
 
-  public static List<AttrValMap> getPostItems(HttpServletRequest request) {
+  public static Pair<Describable, AttrValMap> getPostItems(HttpServletRequest request) {
     Pair<List<ItemsSaveResult>, IPluginItemsProcessor> saveResult = getPluginActionSaveResult(request);
-    return saveResult.getValue().getItems();
+    List<ItemsSaveResult> itemsSaveResult = saveResult.getKey();
+    Describable newPlugin = null;
+    for (ItemsSaveResult itemsResult : itemsSaveResult) {
+      for (Describable plugin : itemsResult.describableList) {
+        newPlugin = plugin;
+        break;
+      }
+    }
+    List<AttrValMap> items = saveResult.getValue().getItems();
+    return Pair.of(newPlugin, items.stream().findFirst().orElseThrow());
   }
 
   protected String[] getActionForwardParam(JSONObject postData) {
@@ -983,11 +992,12 @@ public class PluginAction extends BasicModule {
    * @see com.qlangtech.tis.runtime.module.misc.IPostContent impl of
    */
   @Override
-  public final Pair<Boolean, IPluginItemsProcessor> getPluginItems(
-    IUploadPluginMeta pluginMeta, Context context,
-    int pluginIndex, JSONArray itemsArray, FormVaildateType verify, PropValRewrite propValRewrite) {
-    PluginItemsParser pluginItemsParser
-      = PluginItemsParser.parsePluginItems(this, (UploadPluginMeta) pluginMeta, context, pluginIndex, itemsArray, verify, propValRewrite);
+  public final Pair<Boolean, IPluginItemsProcessor> getPluginItems(IUploadPluginMeta pluginMeta, Context context,
+                                                                   int pluginIndex, JSONArray itemsArray,
+                                                                   FormVaildateType verify,
+                                                                   PropValRewrite propValRewrite) {
+    PluginItemsParser pluginItemsParser = PluginItemsParser.parsePluginItems(this, (UploadPluginMeta) pluginMeta,
+      context, pluginIndex, itemsArray, verify, propValRewrite);
     return Pair.of(pluginItemsParser.faild, pluginItemsParser.pluginItems);
 
   }
@@ -1014,8 +1024,9 @@ public class PluginAction extends BasicModule {
     createDatabase(this, dbDesc, dbName, context, shallUpdateDB, this.offlineManager);
   }
 
-  public static DatasourceDb createDatabase(BasicModule module, ParseDescribable<DataSourceFactory> dbDesc
-    , String dbName, Context context, boolean shallUpdateDB, OfflineManager offlineManager) {
+  public static DatasourceDb createDatabase(BasicModule module, ParseDescribable<DataSourceFactory> dbDesc,
+                                            String dbName, Context context, boolean shallUpdateDB,
+                                            OfflineManager offlineManager) {
     if (StringUtils.isEmpty(dbName)) {
       throw new IllegalArgumentException("param dbName can not be empty");
     }
@@ -1059,9 +1070,9 @@ public class PluginAction extends BasicModule {
   }
 
 
-//  @Autowired
-//  public void setOfflineManager(OfflineManager offlineManager) {
-//    this.offlineManager = offlineManager;
-//  }
+  //  @Autowired
+  //  public void setOfflineManager(OfflineManager offlineManager) {
+  //    this.offlineManager = offlineManager;
+  //  }
 
 }

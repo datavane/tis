@@ -20,6 +20,7 @@ package com.qlangtech.tis.manage.common.valve;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import com.opensymphony.xwork2.ActionInvocation;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.IAjaxResult;
@@ -307,6 +308,11 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
       pluginErrorList = (List<List<ItemsErrors>>) context.get(IFieldErrorHandler.ACTION_ERROR_FIELDS);
       bizResult = DefaultMessageHandler.getBizResult(context);// context.get(IMessageHandler.ACTION_BIZ_RESULT);
       errorPageShow = (Boolean) context.get(IMessageHandler.ACTION_ERROR_PAGE_SHOW);
+      return this;
+    }
+
+    public ActionExecResult setErrorMsg(List<String> errorMsgList) {
+      this.errorMsgList = Lists.newArrayList(errorMsgList);
       return this;
     }
   }

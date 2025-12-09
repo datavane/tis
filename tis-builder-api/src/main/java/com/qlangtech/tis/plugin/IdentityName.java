@@ -19,7 +19,10 @@ package com.qlangtech.tis.plugin;
 
 import org.apache.commons.lang.StringUtils;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The plugin global unique identity name
@@ -41,9 +44,34 @@ public interface IdentityName {
         return new DftIdentityName(value.identityValue());
     }
 
+    /**
+     * 创建一个新的实例id名称
+     *
+     * @param idPrefix
+     * @param existOpts
+     * @param <T>
+     * @return
+     */
+    static <T extends IdentityName> IdentityName createNewPrimaryFieldValue(final String idPrefix, List<T> existOpts) {
+        final String descName = StringUtils.replace(StringUtils.lowerCase(idPrefix), "-", "_");
+        Pattern pattern = Pattern.compile(descName + "_?(\\d+)");
+        Matcher matcher = null;
+        int maxSufix = 1;
+        for (IdentityName opt : existOpts) {
+            matcher = pattern.matcher(StringUtils.lowerCase(opt.identityValue()));
+            if (matcher.matches()) {
+                int curr;
+                if ((curr = Integer.valueOf(matcher.group(1))) >= maxSufix) {
+                    maxSufix = curr + 1;
+                }
+            }
+        }
+        return create(descName + "_" + maxSufix);
+    }
+
     default boolean equalWithId(IdentityName identity) {
-        return StringUtils.equals(identityValue()
-                , Objects.requireNonNull(identity, "identity can not be null").identityValue());
+        return StringUtils.equals(identityValue(),
+                Objects.requireNonNull(identity, "identity can not be null").identityValue());
     }
 
 
@@ -54,10 +82,10 @@ public interface IdentityName {
      */
     //default
     String identityValue();// {
-//        Describable plugin = (Describable) this;
-//        Descriptor des = plugin.getDescriptor();
-//        Objects.requireNonNull(des, " Descriptor of Describable instance of " + plugin.getClass().getName());
-//        return des.getIdentityValue(plugin);
+    //        Describable plugin = (Describable) this;
+    //        Descriptor des = plugin.getDescriptor();
+    //        Objects.requireNonNull(des, " Descriptor of Describable instance of " + plugin.getClass().getName());
+    //        return des.getIdentityValue(plugin);
     //}
 
 

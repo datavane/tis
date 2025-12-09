@@ -48,6 +48,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.config.ParamsConfig.CONTEXT_PARAMS_CFG;
+import static com.qlangtech.tis.util.UploadPluginMeta.ATTR_KEY_VALUE_SPLIT;
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_TARGET_PLUGIN_DESC;
 
@@ -62,19 +64,18 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
     private final UploadPluginMeta pluginMeta;
 
     public static UploadPluginMeta createParamsConfigUserIsolation(String paramPluginCategory) {
-        return createParamsConfig(HeteroEnum.PARAMS_CONFIG_USER_ISOLATION, paramPluginCategory);
+        return createParamsConfig(paramPluginCategory);
     }
 
 
-    public static UploadPluginMeta createParamsConfig(IPluginEnum hetero, PluginExtraProps.CandidatePlugin candidatePlugin) {
+    public static UploadPluginMeta createParamsConfig(PluginExtraProps.CandidatePlugin candidatePlugin) {
         // getTargetItemDesc()
-        return createParamsConfig(hetero, candidatePlugin.getTargetItemDesc());
+        return createParamsConfig(candidatePlugin.getTargetItemDesc());
     }
 
-    public static UploadPluginMeta createParamsConfig(IPluginEnum hetero, String paramPluginCategory) {
-        UploadPluginMeta pluginMeta
-                = UploadPluginMeta.parse(hetero.identityValue() + ":" + KEY_REQUIRE
-                + "," + KEY_TARGET_PLUGIN_DESC + "_" + paramPluginCategory);
+    public static UploadPluginMeta createParamsConfig(String paramPluginCategory) {
+        UploadPluginMeta pluginMeta =
+                UploadPluginMeta.parse(CONTEXT_PARAMS_CFG + ":" + KEY_REQUIRE + "," + KEY_TARGET_PLUGIN_DESC + ATTR_KEY_VALUE_SPLIT + paramPluginCategory);
         return pluginMeta;
     }
 
@@ -89,24 +90,21 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
         }
         this.pluginMeta = pluginMeta;
         try {
-            this.childContextDir = ParamsConfig.CONTEXT_PARAMS_CFG + loginUser.map((user) -> "-user-isolation" + File.separator + user.getName()).orElse(StringUtils.EMPTY);
-            paramsCfgDir = new File(TIS.pluginCfgRoot
-                    , this.childContextDir);
+            this.childContextDir =
+                    CONTEXT_PARAMS_CFG + loginUser.map((user) -> "-user-isolation" + File.separator + user.getName()).orElse(StringUtils.EMPTY);
+            paramsCfgDir = new File(TIS.pluginCfgRoot, this.childContextDir);
             FileUtils.forceMkdir(paramsCfgDir);
         } catch (IOException e) {
-            throw new RuntimeException("can not create dir:" + ParamsConfig.CONTEXT_PARAMS_CFG, e);
+            throw new RuntimeException("can not create dir:" + CONTEXT_PARAMS_CFG, e);
         }
     }
 
 
     @Override
     public List<IRepositoryResource> getAll() {
-        ExtensionList<Descriptor<ParamsConfig>> descs
-                = TIS.get().getDescriptorList(ParamsConfig.class);
-        return descs.stream()
-                .map((desc) -> ParamsConfig.getTargetPluginStore(
-                        ParamsConfig.CONTEXT_PARAMS_CFG, desc.getDisplayName(), Optional.empty(), false))
-                .filter((rr) -> rr != null && rr.getTargetFile().exists()).collect(Collectors.toList());
+        ExtensionList<Descriptor<ParamsConfig>> descs = TIS.get().getDescriptorList(ParamsConfig.class);
+        return descs.stream().map((desc) -> ParamsConfig.getTargetPluginStore(CONTEXT_PARAMS_CFG,
+                desc.getDisplayName(), Optional.empty(), false)).filter((rr) -> rr != null && rr.getTargetFile().exists()).collect(Collectors.toList());
     }
 
     @Override
@@ -121,7 +119,8 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
                 return null;
             });
         } else {
-            IPluginStore<ParamsConfig> pluginStore = ParamsConfig.getChildPluginStore(this.childContextDir, targetDesc.pluginStoreGroupPath(this.pluginMeta));
+            IPluginStore<ParamsConfig> pluginStore = ParamsConfig.getChildPluginStore(this.childContextDir,
+                    targetDesc.pluginStoreGroupPath(this.pluginMeta));
             List<ParamsConfig> childs = pluginStore.getPlugins();
             add2Childs(childs, plugins);
         }
@@ -168,12 +167,14 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
     @Override
     public List<Descriptor<ParamsConfig>> allDescriptor() {
 
-        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(this.childContextDir, pluginMeta.getTargetDesc());
+        IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getTargetPluginStore(this.childContextDir,
+                pluginMeta.getTargetDesc());
         List<Descriptor<ParamsConfig>> descriptors = childPluginStore.allDescriptor();
 
         List<Descriptor<ParamsConfig>> descs = Lists.newArrayList();
         for (Descriptor<ParamsConfig> desc : descriptors) {
-            if (StringUtils.equals(((BasicParamsConfigDescriptor) desc).paramsConfigType(), pluginMeta.getTargetDesc().matchTargetPluginDescName)) {
+            if (StringUtils.equals(((BasicParamsConfigDescriptor) desc).paramsConfigType(),
+                    pluginMeta.getTargetDesc().matchTargetPluginDescName)) {
                 descs.add(desc);
             }
         }
@@ -189,8 +190,8 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
     }
 
     @Override
-    public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context
-            , List<Descriptor.ParseDescribable<ParamsConfig>> dlist, boolean update) {
+    public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context,
+                                       List<Descriptor.ParseDescribable<ParamsConfig>> dlist, boolean update) {
 
         Map<String, List<Descriptor.ParseDescribable<ParamsConfig>>> desc2Plugin = Maps.newHashMap();
         String storeGroup = null;
@@ -199,9 +200,9 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
         boolean cfgChanged = false;
         for (Descriptor.ParseDescribable<ParamsConfig> p : dlist) {
             paramCfg = p.getInstance();
-//            paramCfg.identityValue();
+            //            paramCfg.identityValue();
             storeGroup = paramCfg.getStoreGroup();
-//            descName = paramCfg.getDescriptor().getDisplayName();
+            //            descName = paramCfg.getDescriptor().getDisplayName();
             plugins = desc2Plugin.get(storeGroup);
             if (plugins == null) {
                 plugins = Lists.newArrayList();
@@ -211,7 +212,8 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
         }
 
         for (Map.Entry<String, List<Descriptor.ParseDescribable<ParamsConfig>>> entry : desc2Plugin.entrySet()) {
-            IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getChildPluginStore(this.childContextDir, entry.getKey());
+            IPluginStore<ParamsConfig> childPluginStore = ParamsConfig.getChildPluginStore(this.childContextDir,
+                    entry.getKey());
             if (childPluginStore.setPlugins(pluginContext, context, entry.getValue(), true).cfgChanged) {
                 cfgChanged = true;
             }
@@ -234,13 +236,14 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
         return childPluginStore.getTargetFile();
     }
 
-//    private UploadPluginMeta.TargetDesc getTargetDesc() {
-//        UploadPluginMeta.TargetDesc desc = pluginMeta.getTargetDesc();
-//        if (desc == null || StringUtils.isEmpty(desc.matchTargetPluginDescName)) {
-//            throw new IllegalStateException("desc param is not illegal, desc:" + ((desc == null) ? "null" : desc.toString()));
-//        }
-//        return desc;
-//    }
+    //    private UploadPluginMeta.TargetDesc getTargetDesc() {
+    //        UploadPluginMeta.TargetDesc desc = pluginMeta.getTargetDesc();
+    //        if (desc == null || StringUtils.isEmpty(desc.matchTargetPluginDescName)) {
+    //            throw new IllegalStateException("desc param is not illegal, desc:" + ((desc == null) ? "null" :
+    //            desc.toString()));
+    //        }
+    //        return desc;
+    //    }
 
     @Override
     public long getWriteLastModifyTimeStamp() {

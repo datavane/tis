@@ -26,6 +26,7 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang.StringUtils;
@@ -34,6 +35,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static com.qlangtech.tis.util.UploadPluginMeta.ATTR_KEY_VALUE_SPLIT;
+import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
+import static com.qlangtech.tis.util.UploadPluginMeta.KEY_TARGET_PLUGIN_DESC;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -56,16 +61,18 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
         return getItems(pluginDesc, subpath, (p) -> true);
     }
 
-    public static <T extends ParamsConfig> List<T> getItems(String pluginDesc, Optional<String> subpath, Predicate<T> filter) {
+    public static <T extends ParamsConfig> List<T> getItems(String pluginDesc, Optional<String> subpath,
+                                                            Predicate<T> filter) {
         IPluginStore<ParamsConfig> paramsCfgStore = getTargetPluginStore(CONTEXT_PARAMS_CFG, pluginDesc, subpath);
         return paramsCfgStore.getPlugins().stream().map((p) -> (T) p).filter(filter).collect(Collectors.toList());
     }
 
-//    取得所有的配置项
-//    public static <T> List<T> getItems(String pluginDesc) {
-//        List<ParamsConfig> items = getItems(pluginDesc);
-//        return items.stream().filter((r) -> type.isAssignableFrom(r.getClass())).map((r) -> (T) r).collect(Collectors.toList());
-//    }
+    //    取得所有的配置项
+    //    public static <T> List<T> getItems(String pluginDesc) {
+    //        List<ParamsConfig> items = getItems(pluginDesc);
+    //        return items.stream().filter((r) -> type.isAssignableFrom(r.getClass())).map((r) -> (T) r).collect
+    //        (Collectors.toList());
+    //    }
 
     /**
      * 判断该插件是否满足当前上下文条件（例如： IncrRateController利用 identity值进行实例隔离）
@@ -78,29 +85,51 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
         return true;
     }
 
-    public static IPluginStore<ParamsConfig> getTargetPluginStore(UploadPluginMeta.TargetDesc desc) {
+
+    /**
+     *
+     *
+     * @param targetItemDesc 配置类别名称
+     * @return
+     */
+    public static <T extends ParamsConfig> IPluginStore<T> getTargetPluginStore(String targetItemDesc) {
+        if (StringUtils.isEmpty(targetItemDesc)) {
+            throw new IllegalArgumentException("param targetItemDesc can not be empty");
+        }
+        UploadPluginMeta pluginMeta = ParamsConfigPluginStore.createParamsConfig(targetItemDesc);
+//        UploadPluginMeta.parse(CONTEXT_PARAMS_CFG +
+//                ":" + KEY_REQUIRE + "," + KEY_TARGET_PLUGIN_DESC + ATTR_KEY_VALUE_SPLIT + targetItemDesc, true)
+        return getTargetPluginStore(UploadPluginMeta.TargetDesc.create(pluginMeta ));
+
+    }
+
+    public static <T extends ParamsConfig> IPluginStore<T> getTargetPluginStore(UploadPluginMeta.TargetDesc desc) {
         return getTargetPluginStore(CONTEXT_PARAMS_CFG, desc);
     }
 
-    public static IPluginStore<ParamsConfig> getTargetPluginStore(String childContextDir, UploadPluginMeta.TargetDesc desc) {
+    public static <T extends ParamsConfig> IPluginStore<T> getTargetPluginStore(String childContextDir,
+                                                                  UploadPluginMeta.TargetDesc desc) {
         if (desc == null || StringUtils.isEmpty(desc.matchTargetPluginDescName)) {
-            throw new IllegalStateException("desc param is not illegal, desc:" + ((desc == null) ? "null" : desc.toString()));
+            throw new IllegalStateException("desc param is not illegal, desc:" + ((desc == null) ? "null" :
+                    desc.toString()));
         }
         return ParamsConfig.getTargetPluginStore(childContextDir, desc.matchTargetPluginDescName, Optional.empty());
     }
 
-    public static IPluginStore<ParamsConfig> getTargetPluginStore(String childContextDir, String targetPluginDesc, Optional<String> subpath) {
+    public static <T extends ParamsConfig> IPluginStore<T> getTargetPluginStore(String childContextDir, String targetPluginDesc,
+                                                                  Optional<String> subpath) {
         return getTargetPluginStore(childContextDir, targetPluginDesc, subpath, true);
     }
 
-    public static IPluginStore<ParamsConfig> getTargetPluginStore(
-            String childContextDir, String targetPluginDesc, Optional<String> subpath, boolean validateExist) {
+    public static <T extends ParamsConfig> IPluginStore<T> getTargetPluginStore(String childContextDir, String targetPluginDesc,
+                                                                  Optional<String> subpath, boolean validateExist) {
         if (StringUtils.isEmpty(targetPluginDesc)) {
             throw new IllegalStateException("param targetPluginDesc can not be null");
         }
-        IPluginStore<ParamsConfig> childPluginStore = getChildPluginStore(childContextDir, targetPluginDesc, subpath);
+        IPluginStore<T> childPluginStore = getChildPluginStore(childContextDir, targetPluginDesc, subpath);
         if (validateExist && childPluginStore == null) {
-            throw new IllegalStateException("targetPluginDesc:" + targetPluginDesc + " relevant childPluginStore can not be null");
+            throw new IllegalStateException("targetPluginDesc:" + targetPluginDesc + " relevant childPluginStore can "
+                    + "not be null");
         }
         return childPluginStore;
     }
@@ -109,12 +138,14 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
         return getChildPluginStore(childContextDir, childFile, Optional.empty());
     }
 
-    public static IPluginStore<ParamsConfig> getChildPluginStore(String childContextDir, String childFile, Optional<String> subpath) {
+    public static <T extends ParamsConfig> IPluginStore<T> getChildPluginStore(String childContextDir, String childFile,
+                                                                 Optional<String> subpath) {
         if (StringUtils.isEmpty(childFile)) {
             throw new IllegalArgumentException("param childFile can not be empty");
         }
 
-        return TIS.getPluginStore(new KeyedPluginStore.Key(childContextDir, new KeyedPluginStore.KeyVal(childFile, subpath), ParamsConfig.class));
+        return TIS.getPluginStore(new KeyedPluginStore.Key(childContextDir, new KeyedPluginStore.KeyVal(childFile,
+                subpath), ParamsConfig.class));
     }
 
 
@@ -131,7 +162,8 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
      * @param <T>
      * @return
      */
-    public static <T extends ParamsConfig> T getItem(String identityName, String targetPluginDesc, Optional<String> subpath, boolean valiateNull) {
+    public static <T extends ParamsConfig> T getItem(String identityName, String targetPluginDesc,
+                                                     Optional<String> subpath, boolean valiateNull) {
         if (StringUtils.isEmpty(identityName)) {
             throw new IllegalArgumentException("param identityName can not be empty");
         }
@@ -142,8 +174,7 @@ public abstract class ParamsConfig implements Describable<ParamsConfig>, Identit
             }
         }
         if (valiateNull) {
-            throw new IllegalStateException("Name:" + identityName + ",type:" + targetPluginDesc + " can not find relevant config in["
-                    + items.stream().map((r) -> r.identityValue()).collect(Collectors.joining(",")) + "]");
+            throw new IllegalStateException("Name:" + identityName + ",type:" + targetPluginDesc + " can not find " + "relevant config in[" + items.stream().map((r) -> r.identityValue()).collect(Collectors.joining(",")) + "]");
         } else {
             return null;
         }

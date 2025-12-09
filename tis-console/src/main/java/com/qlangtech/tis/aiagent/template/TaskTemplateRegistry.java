@@ -77,7 +77,7 @@ public class TaskTemplateRegistry {
         oracleToDoris.setDescription("创建Oracle到Doris的企业级数据仓库同步管道");
         oracleToDoris.setSourceType("oracle");
         oracleToDoris.setTargetType("doris");
-        oracleToDoris.setSampleText("搭建Oracle到Doris的实时数据同步管道。Oracle数据源配置：主机地址192.168.10.50，端口1521，服务名ORCL，用户名system，密码oracle123，需要同步的Schema为SALES和INVENTORY。Doris目标端配置：FE节点192.168.20.100:9030，BE节点192.168.20.101-103，用户名root，密码doris456，目标数据库warehouse。开启CDC实时捕获，使用Log Mining Strategy为redo_log_catalog模式，Poll Interval设置为500ms。Doris端配置StreamLoad参数，批量大小10000条，自动建表模式选择Unique模型，副本数3，分桶数20。同步完成后自动创建物化视图加速查询。");
+        oracleToDoris.setSampleText("搭建Oracle到Doris的实时数据同步管道。Oracle数据源配置：主机地址192.168.10.50，端口1521，服务名ORCL，用户名system，密码oracle123，需要同步的Schema为SALES。Doris目标端配置：FE节点192.168.20.100:9030，BE节点192.168.20.101-103，用户名root，密码doris456，目标数据库warehouse。开启CDC实时捕获，使用Log Mining Strategy为redo_log_catalog模式，Poll Interval设置为500ms。Doris端配置StreamLoad参数，批量大小10000条，自动建表模式选择Unique模型，副本数3，分桶数20。同步完成后自动创建物化视图加速查询。");
         templates.put(oracleToDoris.getId(), oracleToDoris);
 
         // MySQL to ElasticSearch模板 - 全文搜索场景
@@ -107,7 +107,7 @@ public class TaskTemplateRegistry {
         sqlserverToPG.setDescription("创建SqlServer到PostgreSQL的异构数据库迁移管道");
         sqlserverToPG.setSourceType("sqlserver");
         sqlserverToPG.setTargetType("postgresql");
-        sqlserverToPG.setSampleText("配置SqlServer到PostgreSQL的企业级数据库迁移。SqlServer源端：主机192.168.5.30，端口1433，实例名MSSQLSERVER，数据库ERP_PROD，Schema为dbo，用户sa，密码sqlserver123，启用分库分表支持。PostgreSQL目标端：主机192.168.6.40，端口5432，数据库erp_new，Schema为public，用户postgres，密码pg456。迁移配置：批量读取使用splitPk并行分片，每批fetchSize设为5000。数据类型映射：NVARCHAR转TEXT，DATETIME转TIMESTAMP，BIT转BOOLEAN。实时同步基于Transaction Log，起始选项Initial（全量+增量）。处理特殊字段：IDENTITY列转SERIAL，计算列跳过，空间数据类型使用PostGIS扩展。完成后执行VACUUM ANALYZE优化性能。");
+        sqlserverToPG.setSampleText("配置SqlServer到PostgreSQL的企业级数据库迁移。SqlServer源端：主机192.168.5.30，端口1433，实例名MSSQLSERVER，数据库ERP_PROD，Schema为dbo，用户sa，密码sqlserver123，启用分库分表支持。PostgreSQL目标端：主机192.168.6.40，端口5432，数据库erp_new，Schema为public，用户postgres，密码pg456。迁移配置：批量读取使用splitPk并行分片，每批fetchSize设为5000。实时同步基于Transaction Log，起始选项Initial（全量+增量）。处理特殊字段：IDENTITY列转SERIAL，计算列跳过，空间数据类型使用PostGIS扩展。完成后执行VACUUM ANALYZE优化性能。");
         templates.put(sqlserverToPG.getId(), sqlserverToPG);
 
         // Kafka to Clickhouse模板 - 流式分析场景

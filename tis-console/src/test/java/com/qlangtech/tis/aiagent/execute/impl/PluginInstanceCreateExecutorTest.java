@@ -39,6 +39,7 @@ import com.qlangtech.tis.util.DescriptorsJSONResult;
 
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PartialSettedPluginContext;
+import com.qlangtech.tis.util.impl.PluginEqualResult;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import com.qlangtech.tis.extension.Describable;
@@ -201,7 +202,7 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     replay(plugin, descriptor, formProperties, propType1, propType2);
 
     // 执行测试
-    PluginEqualResult result = executor.isPluginEqual(plugin, pluginVals);
+    PluginEqualResult result = pluginVals.isPluginEqual(plugin);
 
     // 验证结果
     assertTrue("插件属性相等时应该返回true", result.isEqual());
@@ -273,7 +274,7 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     replay(plugin, descriptor, formProperties, propType1, propType2);
 
     // 执行测试
-    boolean result = executor.isPluginEqual(plugin, pluginVals).isEqual();
+    boolean result = pluginVals.isPluginEqual(plugin).isEqual();
 
     // 验证结果
     assertFalse("插件属性不相等时应该返回false", result);
@@ -291,7 +292,7 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     AttrVals pluginVals = new AttrVals(new LinkedHashMap<>());
 
     try {
-      executor.isPluginEqual(null, pluginVals);
+      pluginVals.isPluginEqual(null);
       fail("当插件为null时应该抛出NullPointerException");
     } catch (NullPointerException e) {
       assertEquals("plugin can not be null", e.getMessage());
@@ -312,6 +313,6 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     PluginInstanceCreateExecutor executor = new PluginInstanceCreateExecutor();
 
     Assert.assertTrue("dataSource instance must be equal "
-      , executor.isPluginEqual(orderDb, valMap.getAttrVals()).isEqual());
+      , valMap.getAttrVals().isPluginEqual(orderDb).isEqual());
   }
 }

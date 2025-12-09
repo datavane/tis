@@ -18,7 +18,9 @@
 
 package com.qlangtech.tis.aiagent.core;
 
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.util.AttrValMap;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * 解析完成用户的信息，生成的Describle plugin 某些信息还不够，需要用户继续输入
@@ -28,6 +30,7 @@ import com.qlangtech.tis.util.AttrValMap;
  */
 public class PluginPropsComplement implements ISessionData {
   private AttrValMap pluginValMap;
+  private Describable plugin;
   private final AttrValMap unComplementValMap;
 
   public PluginPropsComplement(AttrValMap unComplementValMap) {
@@ -38,11 +41,16 @@ public class PluginPropsComplement implements ISessionData {
     return this.unComplementValMap;
   }
 
+  public Describable getPlugin() {
+    return plugin;
+  }
+
   public AttrValMap getPluginValMap() {
     return pluginValMap;
   }
 
-  public void setPluginValMap(AttrValMap pluginValMap) {
-    this.pluginValMap = pluginValMap;
+  public void setPluginValMap(Pair<Describable, AttrValMap> postItems) {
+    this.pluginValMap = postItems.getRight();
+    this.plugin = postItems.getKey();
   }
 }

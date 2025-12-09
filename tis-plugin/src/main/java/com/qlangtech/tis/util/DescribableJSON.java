@@ -19,6 +19,7 @@ package com.qlangtech.tis.util;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.annotation.JSONType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.PluginFormProperties;
@@ -26,6 +27,7 @@ import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.trigger.util.UnCacheStringSerializer;
 
 import java.util.Map;
 import java.util.Objects;
@@ -35,9 +37,10 @@ import java.util.Optional;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@JSONType(serializer = DescribableJSONSerializer.class)
 public class DescribableJSON<T extends Describable<T>> {
 
-    private final T instance;
+    public final T instance;
 
     public final Descriptor<T> descriptor;
 
@@ -94,6 +97,14 @@ public class DescribableJSON<T extends Describable<T>> {
         return item;
     }
 
+    public JSONObject buildPostJsonBody() {
+        try {
+            return getPostAttribute().getPostJsonBody();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * 获取用于提交表单的属性值映射
      * 将当前描述对象转换为 AttrValMap 格式，便于表单提交和验证
@@ -102,7 +113,12 @@ public class DescribableJSON<T extends Describable<T>> {
      * @return AttrValMap 对象，包含插件的属性值映射
      * @throws Exception 如果转换过程中发生错误
      */
-    public AttrValMap getPostAttribute() throws Exception {
+    public AttrValMap getPostAttribute()  {
+        // 使用 AttrValMap 的静态方法解析
+        return AttrValMap.parseDescribableMap(Optional.empty(), getPostAttributeJson());
+    }
+
+    public JSONObject getPostAttributeJson() {
         // 获取插件的属性信息
         PluginFormProperties pluginFormPropertyTypes = descriptor.getPluginFormPropertyTypes(Optional.empty());
 
@@ -118,13 +134,9 @@ public class DescribableJSON<T extends Describable<T>> {
         // 转换属性值为 AttrVals 格式
         // 需要将简单值包装成带有 KEY_primaryVal 的格式
         JSONObject wrappedVals = convertToAttrVals(vals);
-
-
-
         postJson.put(AttrValMap.PLUGIN_EXTENSION_VALS, wrappedVals);
 
-        // 使用 AttrValMap 的静态方法解析
-        return AttrValMap.parseDescribableMap(Optional.empty(), postJson);
+        return postJson;
     }
 
     /**
@@ -161,7 +173,8 @@ public class DescribableJSON<T extends Describable<T>> {
 
                         // 创建新的嵌套对象，保持原有的结构
                         JSONObject newNestedObj = new JSONObject();
-                        newNestedObj.put(AttrValMap.PLUGIN_EXTENSION_IMPL, nestedObj.getString(AttrValMap.PLUGIN_EXTENSION_IMPL));
+                        newNestedObj.put(AttrValMap.PLUGIN_EXTENSION_IMPL,
+                                nestedObj.getString(AttrValMap.PLUGIN_EXTENSION_IMPL));
                         newNestedObj.put(AttrValMap.PLUGIN_EXTENSION_VALS, convertedNestedVals);
 
                         // 包装成 KEY_DESC_VAL 格式

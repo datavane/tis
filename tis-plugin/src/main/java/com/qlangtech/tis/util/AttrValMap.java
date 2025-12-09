@@ -24,6 +24,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.impl.PropertyType;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.extension.Descriptor.PostFormVals;
 import com.qlangtech.tis.extension.PluginFormProperties;
@@ -32,6 +34,7 @@ import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.impl.AttrVals;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -121,6 +124,28 @@ public class AttrValMap {
         this.propValRewrite = propValRewrite;
     }
 
+    public boolean strictValidate(PartialSettedPluginContext msgHandler, Context ctx) {
+        FormVaildateType verify = FormVaildateType.create(true);
+        FormVaildateType validate = FormVaildateType.create(false);
+        boolean validateFaild = false;
+        try {
+            if (!this.validate(msgHandler, ctx, verify, Optional.empty()).isValid() //
+                    || !this.validate(msgHandler, ctx, validate, Optional.empty()).isValid()) {
+                // error
+                validateFaild = true;
+            }
+        } catch (Exception e) {
+            validateFaild = true;
+            TisException expt = null;
+            if ((expt = ExceptionUtils.throwableOfType(e, TisException.class)) != null) {
+                msgHandler.addErrorMessage(ctx, expt.getMessage());
+            } else {
+                throw new RuntimeException(e);
+            }
+        }
+        return validateFaild;
+    }
+
     /**
      * 取得主键键值
      *
@@ -131,12 +156,20 @@ public class AttrValMap {
     }
 
     public final boolean isPrimaryFieldEmpty() {
+
         Object val = getPKVal();
         return val == null || StringUtils.isEmpty(String.valueOf(val));
     }
 
     private Object getPKVal() {
-        return this.getAttrVals().getPrimaryVal(Objects.requireNonNull(this.descriptor, "descriptor can not be null").getIdentityField().propertyName());
+
+        PropertyType idField =
+                Objects.requireNonNull(this.descriptor, "descriptor can not be null").getIdentityField(false);
+        if (idField == null) {
+            return null;
+        }
+
+        return this.getAttrVals().getPrimaryVal(idField.propertyName());
     }
 
     /**

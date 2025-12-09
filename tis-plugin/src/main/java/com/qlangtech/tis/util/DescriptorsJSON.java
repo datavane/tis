@@ -50,6 +50,7 @@ import static com.qlangtech.tis.extension.Descriptor.KEY_OPTIONS;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
+ * @see DescriptorsJSONForAIPromote for AI prompt
  */
 public class DescriptorsJSON<T extends Describable<T>> {
 
@@ -125,8 +126,9 @@ public class DescriptorsJSON<T extends Describable<T>> {
      * @param forAIPromote
      * @return
      */
-    public static Pair<JSONObject, Descriptor> createPluginFormPropertyTypes(
-            Descriptor<?> descriptor, Optional<SubFormFilter> subFormFilter, boolean forAIPromote) {
+    public static Pair<JSONObject, Descriptor> createPluginFormPropertyTypes(Descriptor<?> descriptor,
+                                                                             Optional<SubFormFilter> subFormFilter,
+                                                                             boolean forAIPromote) {
         PluginFormProperties pluginFormPropertyTypes = descriptor.getPluginFormPropertyTypes(subFormFilter);
 
         JSONObject desJson = new JSONObject();
@@ -158,12 +160,12 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
         setDescInfo(desc, forAIPromote, desJson);
 
-        desJson.put("veriflable", desc.overWriteValidateMethod);
         if (IdentityName.class.isAssignableFrom(desc.clazz)) {
             desJson.put("pkField", desc.getIdentityField().displayName);
         }
 
         if (!forAIPromote) {
+            desJson.put("veriflable", desc.overWriteValidateMethod);
             Map<String, Object> extractProps = desc.getExtractProps();
             desJson.put("extractProps", extractProps);
         }
@@ -206,27 +208,16 @@ public class DescriptorsJSON<T extends Describable<T>> {
                     if (extraProps != null && extraProps.getBooleanValue(PluginExtraProps.KEY_DISABLE)) {
                         continue;
                     }
-                    // fieldAnnot = val.getFormField();
-                    attrVal = new JSONObject();
-                    attrVal.put("key", key);
-                    // 是否是主键
-                    attrVal.put("pk", val.isIdentity());
-                    attrVal.put("describable", val.isDescribable());
 
-                    attrVal.put("type", val.typeIdentity());
-                    attrVal.put("required", val.isInputRequired());
-                    attrVal.put("ord", val.ordinal());
-
-
-                    // 是否是高级组
                     if (val.advance()) {
                         containAdvanceField = true;
-                        attrVal.put(DescriptorsJSON.KEY_ADVANCE, true);
                     }
+
+                    attrVal = createAttrVal(key, val);
 
                     if (extraProps != null) {
                         // 额外属性
-                        final JSONObject ep = processExtraProps( extraProps );
+                        final JSONObject ep = processExtraProps(val, extraProps);
                         //this.processExtraProps(dd, val, val);
                         JSONObject n = val.multiSelectablePropProcess((vt) -> {
                             JSONObject clone = (JSONObject) ep.clone();
@@ -253,8 +244,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                 }
                 // 对象拥有的属性
                 desJson.put("attrs", attrs);
-                // 包含高级字段
-                desJson.put("containAdvance", containAdvanceField);
+                setContainAdvanceField(desJson, containAdvanceField);
                 // processor.process(attrs.keySet(), d);
                 descriptors.addDesc(desc.getId(), desJson, dd);
             } finally {
@@ -264,20 +254,47 @@ public class DescriptorsJSON<T extends Describable<T>> {
         return descriptors;
     }
 
-    protected JSONObject processExtraProps(JSONObject extraProps) {
+    protected void setContainAdvanceField(JSONObject desJson, boolean containAdvanceField) {
+        // 包含高级字段
+        desJson.put("containAdvance", containAdvanceField);
+    }
+
+    protected JSONObject createAttrVal(String key, PropertyType val) {
+        JSONObject attrVal;
+        // fieldAnnot = val.getFormField();
+        attrVal = new JSONObject();
+        attrVal.put("key", key);
+        // 是否是主键
+        attrVal.put("pk", val.isIdentity());
+        attrVal.put("describable", val.isDescribable());
+
+        attrVal.put("type", val.typeIdentity());
+        attrVal.put("required", val.isInputRequired());
+        attrVal.put("ord", val.ordinal());
+
+
+        // 是否是高级组
+        if (val.advance()) {
+            attrVal.put(DescriptorsJSON.KEY_ADVANCE, true);
+        }
+        return attrVal;
+    }
+
+    protected JSONObject processExtraProps(PropertyType propertyType, JSONObject extraProps) {
         return extraProps;
     }
 
     //    protected boolean processExtraProps(Descriptor<?> desc, PropertyType propVal,  PropertyType propertyType) {
-//        return true;
-//    }
+    //        return true;
+    //    }
 
     protected JSONObject getFieldExtraProps(PropertyType val) {
 
         return val.getExtraProps();
     }
 
-    protected Pair<JSONObject, Descriptor> createFormPropertyTypes(Optional<SubFormFilter> subFormFilter, Descriptor<?> dd) {
+    protected Pair<JSONObject, Descriptor> createFormPropertyTypes(Optional<SubFormFilter> subFormFilter, Descriptor<
+            ?> dd) {
         Pair<JSONObject, Descriptor> pair = createPluginFormPropertyTypes(dd, subFormFilter, false);
         return pair;
     }

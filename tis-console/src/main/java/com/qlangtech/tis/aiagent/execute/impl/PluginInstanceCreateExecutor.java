@@ -25,6 +25,7 @@ import com.qlangtech.tis.aiagent.core.AgentContext;
 import com.qlangtech.tis.aiagent.sessiondata.ColsMetaSetterSessionData;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
 import com.qlangtech.tis.lang.PayloadLink;
 import com.qlangtech.tis.aiagent.core.RequestKey;
@@ -74,7 +75,7 @@ import java.util.stream.Collectors;
 import static com.qlangtech.tis.datax.StoreResourceType.DATAX_NAME;
 import static com.qlangtech.tis.datax.impl.ESTableAlias.MAX_READER_TABLE_SELECT_COUNT;
 import static com.qlangtech.tis.extension.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD;
-import static com.qlangtech.tis.extension.util.PluginExtraProps.CandidatePlugin.createNewPrimaryFieldValue;
+import static com.qlangtech.tis.plugin.IdentityName.createNewPrimaryFieldValue;
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
 import static com.qlangtech.tis.util.UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION;
 import static com.qlangtech.tis.util.UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME;
@@ -97,11 +98,10 @@ public class PluginInstanceCreateExecutor extends BasicStepExecutor {
        */
       AppAndRuntime.setAppAndRuntime(new AppAndRuntime());
 
-      //      // final String prefix = plan.getSourceEnd().getType() + "_to_";
-      //      IdentityName primaryFieldVal = (createNewPrimaryFieldValue(
-      //        prefix + plan.getTargetEnd().getType()
-      //        , pipelineRules.getExistEntities(Optional.of(prefix))));
 
+      /**
+       * dataXProcessor vals
+       */
       AttrValMap pluginVals = createPluginInstance(plan, context, new UserPrompt("正在生成管道主体配置...",
           plan.getUserInput()) //
         , Optional.empty() //
@@ -298,7 +298,20 @@ public class PluginInstanceCreateExecutor extends BasicStepExecutor {
           context.sendMessage("已经识别到导入表：" +  //
             targetTabs.stream().filter((tab) -> count.incrementAndGet() < maxShow).collect(Collectors.joining(",")) //
             + ((count.get() > maxShow) ? "...等" : StringUtils.EMPTY) + "，共" + targetTabs.size() + "张表");
+
+          if (pipeMeta.isWriterRDBMS()) {
+            /**
+             * 与 /Users/mozhenghua/j2ee_solution/project/tis-console/src/base/datax.add.step5.component.ts 文件中第183行逻辑一致
+             */
+            List<TableAlias> tableMaps = Lists.newArrayList();
+            targetTabs.forEach((tab) -> {
+              tableMaps.add(new TableAlias(tab));
+            });
+            TableAlias.saveTableMapper(pluginCtx, primaryFieldVal.identityValue(), tableMaps);
+          }
         }
+
+
       }
       //=====================================================
       endCfg = plan.getTargetEnd();

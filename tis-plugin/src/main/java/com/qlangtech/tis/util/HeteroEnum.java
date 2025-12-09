@@ -187,7 +187,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         public ParamsConfig findPlugin(PluginExtraProps.CandidatePlugin candidatePlugin, IdentityName identity) {
             // return super.findPlugin(identity);
 
-            IPluginStore<ParamsConfig> pluginStore = getPluginStore(null, ParamsConfigPluginStore.createParamsConfig(this, candidatePlugin));
+            IPluginStore<ParamsConfig> pluginStore = getPluginStore(null, ParamsConfigPluginStore.createParamsConfig( candidatePlugin));
             for (ParamsConfig paramCfg : pluginStore.getPlugins()) {
                 if (paramCfg.equalWithId(identity)) {
                     return paramCfg;

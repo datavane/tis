@@ -14,8 +14,6 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
   "pkField": "name",
   "displayName": "MySQL-V8",
   "extendPoint": "com.qlangtech.tis.plugin.ds.BasicDataSourceFactory",
-  "containAdvance": true,
-  "veriflable": true,
   "attrs": [
     {
       "ord": 0,
@@ -36,8 +34,6 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
           "impl": "com.qlangtech.tis.plugin.ds.NoneSplitTableStrategy",
           "displayName": "off",
           "extendPoint": "com.qlangtech.tis.plugin.ds.SplitTableStrategy",
-          "containAdvance": false,
-          "veriflable": false,
           "attrs": [
             {
               "ord": 1,
@@ -57,8 +53,6 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
           "impl": "com.qlangtech.tis.plugin.ds.split.DefaultSplitTableStrategy",
           "displayName": "on",
           "extendPoint": "com.qlangtech.tis.plugin.ds.SplitTableStrategy",
-          "containAdvance": false,
-          "veriflable": false,
           "attrs": [
             {
               "ord": 1,
@@ -197,8 +191,6 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
           "impl": "com.qlangtech.tis.plugin.timezone.CustomizeTISTimeZone",
           "displayName": "customize",
           "extendPoint": "com.qlangtech.tis.plugin.timezone.TISTimeZone",
-          "containAdvance": false,
-          "veriflable": false,
           "attrs": [
             {
               "ord": 1,
@@ -219,8 +211,6 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
           "impl": "com.qlangtech.tis.plugin.timezone.DefaultTISTimeZone",
           "displayName": "default",
           "extendPoint": "com.qlangtech.tis.plugin.timezone.TISTimeZone",
-          "containAdvance": false,
-          "veriflable": false,
           "attrs": [
             {
               "ord": 1,
@@ -331,9 +321,7 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
 2. pkField: `attrs`属性中罗列的列中作为主键的列,
 3. displayName: 插件实例的名称
 4. extendPoint: 插件的扩展点，其实也就是以上impl属性是继承于此
-5. containAdvance: 是否包含高级属性（attrs下的advance属性为true），所谓高级属性是用户在表单输入过程中不需要关注的属性,一般都有默认值
-6. veriflable：当用户填写完表单后，是否支持校验，例如：是否能够正常连接数据库,
-7. `attrs` 数组下元组
+5. `attrs` 数组下元组
    1. ord: 属性的排序，可以当作属性重要性说明，优先级高的该值就小,
    2. eprops：内包含扩展属性
       1. label: 属性label属性 
@@ -343,7 +331,9 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
       5. help：属性的帮助说明信息
    3. describable: 属性值表明是否为一个嵌套的`插件结构`
    4. descriptors：当以上`describable`=true时会有此属性，内部是一个Map数据结构，`Key`为插件插件完整实现类名，Value为内嵌插件结构说明。注意：在最终生成的json结果中，对应属性的`descVal`下的`impl`属性值必须与Map属性下Value对应实例的`impl`属性值严格一致
-   5. pk: 是否为主键，当pk=true时，在用户提交的本文中如没有抽取到对应的内容，输出的`_primaryVal`属性对应的值不要自动生成（切记）
+   5. pk: 是否为主键，当`pk=true`时，在用户提交的本文中根据抽取到对应的内容，作如下处理：
+      * 没有抽取到对应值： 输出的`_primaryVal`属性对应的值不要自动生成（切记）
+      * 抽取到对应的值：输出的`_primaryVal`属性值必须严格匹配正则式： `[A-Z\\da-z_]+` ，如有非法字符须进行**合理替换**以符合正则式，例如：识别得到“mysql-mysql-2”不符合正则式规范，需要进行**合理替换**变成“mysql_mysql_2”就符合正则式规范了
    6. type: 属性值类型，值为int的类型，值对应的类型说明参考：`fieldType值说明`
    7. key: 属性键名称
    8. required: 是否必须输入
@@ -368,8 +358,6 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
 
 # 大模型解析说明
 
-# 大模型解析说明
-
 1. 解析后生成的json内容中，需要有全部attrs数组下元组对应的值
 2. attrs数组下元组：如果不能从用户输入的内容中解析得到对应的值，元组下有`dftVal`（默认值）则就用该值作为输入值，如没有默认值保持输入项值为空即可
 3. **重要警告：在处理`describable`为`true`的属性时，`descVal`下的`impl`属性值必须严格使用`descriptors`中对应的完整类名（key值），绝对不允许使用`displayName`的值。例如：**
@@ -388,56 +376,55 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
    **特别注意：必须使用完整的类名路径，不能使用displayName的简写形式。**
 
    如下输出的json内容中：`vals.splitTableStrategy.descVal.impl`，由于splitTableStrategy的默认值为`off`，所以属性为`com.qlangtech.tis.plugin.ds.NoneSplitTableStrategy`（注意：`off`只是displayName，绝对不能用作impl值）
-     
 
-``` json
-{
-	"impl": "com.qlangtech.tis.plugin.ds.mysql.MySQLV8DataSourceFactory",
-	"vals": {
-		"name": {
-			"_primaryVal": ""
-		},
-		"splitTableStrategy": {
-			"descVal": {
-				"impl": "com.qlangtech.tis.plugin.ds.NoneSplitTableStrategy",
-				"vals": {
-					"host": {
-						"_primaryVal": "192.168.1.10"
-					}
-				}
-			}
-		},
-		"port": {
-			"_primaryVal": 3306
-		},
-		"dbName": {
-			"_primaryVal": "orders"
-		},
-		"userName": {
-			"_primaryVal": "admin"
-		},
-		"password": {
-			"_primaryVal": "pass123"
-		},
-		"timeZone": {
-			"descVal": {
-				"impl": "com.qlangtech.tis.plugin.timezone.DefaultTISTimeZone",
-				"vals": {
-					"timeZone": {
-						"_primaryVal": "Asia/Shanghai"
-					}
-				}
-			}
-		},
-		"encode": {
-			"_primaryVal": ""
-		},
-		"useCompression": {
-			"_primaryVal": true
-		},
-		"extraParams": {
-			"_primaryVal": ""
-		}
-	}
-}
-```
+    ``` json
+    {
+      "impl": "com.qlangtech.tis.plugin.ds.mysql.MySQLV8DataSourceFactory",
+      "vals": {
+        "name": {
+          "_primaryVal": ""
+        },
+        "splitTableStrategy": {
+          "descVal": {
+            "impl": "com.qlangtech.tis.plugin.ds.NoneSplitTableStrategy",
+            "vals": {
+              "host": {
+                "_primaryVal": "192.168.1.10"
+              }
+            }
+          }
+        },
+        "port": {
+          "_primaryVal": 3306
+        },
+        "dbName": {
+          "_primaryVal": "orders"
+        },
+        "userName": {
+          "_primaryVal": "admin"
+        },
+        "password": {
+          "_primaryVal": "pass123"
+        },
+        "timeZone": {
+          "descVal": {
+            "impl": "com.qlangtech.tis.plugin.timezone.DefaultTISTimeZone",
+            "vals": {
+              "timeZone": {
+                "_primaryVal": "Asia/Shanghai"
+              }
+            }
+          }
+        },
+        "encode": {
+          "_primaryVal": ""
+        },
+        "useCompression": {
+          "_primaryVal": true
+        },
+        "extraParams": {
+          "_primaryVal": ""
+        }
+      }
+    }
+    ```

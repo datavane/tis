@@ -35,14 +35,17 @@ import com.qlangtech.tis.datax.TableAliasMapper;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.common.UserProfile;
+import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.util.AttrValMap;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.struts2.ServletActionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,24 +112,24 @@ public class ChatPipelineAction extends BasicModule {
     this.setBizResult(context, response);
   }
 
-//  /**
-//   * 获取任务模板列表
-//   */
-//  @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
-//  public void doGetTemplates(Context context) {
-//    TaskTemplateRegistry registry = new TaskTemplateRegistry();
-//    JSONArray templates = new JSONArray();
-//
-//    for (TaskTemplateRegistry.TaskTemplate template : registry.getAllTemplates()) {
-//      JSONObject templateJson = new JSONObject();
-//      templateJson.put("id", template.getId());
-//      templateJson.put("name", template.getName());
-//      templateJson.put("description", template.getDescription());
-//      templateJson.put("sampleText", template.getSampleText());
-//      templates.add(templateJson);
-//    }
-//    this.setBizResult(context, templates);
-//  }
+  //  /**
+  //   * 获取任务模板列表
+  //   */
+  //  @Func(value = PermissionConstant.AI_AGENT, sideEffect = false)
+  //  public void doGetTemplates(Context context) {
+  //    TaskTemplateRegistry registry = new TaskTemplateRegistry();
+  //    JSONArray templates = new JSONArray();
+  //
+  //    for (TaskTemplateRegistry.TaskTemplate template : registry.getAllTemplates()) {
+  //      JSONObject templateJson = new JSONObject();
+  //      templateJson.put("id", template.getId());
+  //      templateJson.put("name", template.getName());
+  //      templateJson.put("description", template.getDescription());
+  //      templateJson.put("sampleText", template.getSampleText());
+  //      templates.add(templateJson);
+  //    }
+  //    this.setBizResult(context, templates);
+  //  }
 
   /**
    * 创建新的聊天会话
@@ -288,12 +291,12 @@ public class ChatPipelineAction extends BasicModule {
         ServletActionContext.getActionContext(request);
 
         TISPlanAndExecuteAgent agent = new TISPlanAndExecuteAgent(agentContext, llmProvider, this
-//          , new AdapterPluginContext(this) {
-//          @Override
-//          public SSEEventWriter getEventStreamWriter() {
-//            return sseWriter;
-//          }
-//        }
+          //          , new AdapterPluginContext(this) {
+          //          @Override
+          //          public SSEEventWriter getEventStreamWriter() {
+          //            return sseWriter;
+          //          }
+          //        }
         );
         agent.execute(userInput);
 
@@ -302,8 +305,7 @@ public class ChatPipelineAction extends BasicModule {
 
       } catch (Exception e) {
         logger.error("Agent execution failed", e);
-        sseWriter.writeSSEEvent(
-          SSERunnable.SSEEventType.AI_AGNET_ERROR, "{\"error\":\"" + e.getMessage() + "\"}");
+        sseWriter.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_ERROR, "{\"error\":\"" + e.getMessage() + "\"}");
       } finally {
         try {
           sseWriter.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_DONE, "{\"finished\":true}");
@@ -407,8 +409,8 @@ public class ChatPipelineAction extends BasicModule {
     JSONObject jsonContent = this.getJSONPostContent();
     RequestKey requestId = RequestKey.create(jsonContent.getString(KEY_REQUEST_ID));
     ChatSession session = getChatSession(jsonContent);
-    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext()
-      , "sessionId:" + session.getSessionId() + " relevant agentContext can not be null");
+    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(),
+            "sessionId:" + session.getSessionId() + " relevant agentContext can not be null");
     SelectionOptions selectionOptions = agentContext.getSessionData(requestId);
     List<PluginExtraProps.CandidatePlugin> cplugins = selectionOptions.getCandidatePlugins();
     for (PluginExtraProps.CandidatePlugin candidatePlugin : cplugins) {
@@ -435,25 +437,23 @@ public class ChatPipelineAction extends BasicModule {
   /**
    *
    * @param context
-   * @see AgentContext#sendPluginConfig(RequestKey, IPluginEnum, String, AttrValMap)  notify for
+   * @see AgentContext#sendPluginConfig(RequestKey, AjaxValve.ActionExecResult, IPluginEnum, String, AttrValMap)
+   * notify for
    * @see PluginAction#doSavePluginConfig(Context) 通过该方法forward过来
    */
   public void doSubmitPluginPropsComplement(Context context) {
     JSONObject jsonContent = this.getJSONPostContent();
     ChatSession session = getChatSession(jsonContent);
     RequestKey requestId = RequestKey.create(jsonContent.getString(KEY_REQUEST_ID));
-    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext()
-      , "agentContext can not be null,sessionId:" + session.getSessionId());
+    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(), "agentContext can not be null," +
+            "sessionId:" + session.getSessionId());
 
     PluginPropsComplement complement = agentContext.getSessionData(requestId);
-    List<AttrValMap> postItems = PluginAction.getPostItems(this.getRequest());
-    if (CollectionUtils.isEmpty(postItems)) {
-      throw new IllegalStateException("postItems can not be empty");
-    }
-    for (AttrValMap postItem : postItems) {
-      complement.setPluginValMap(postItem);
-      break;
-    }
+    Pair<Describable, AttrValMap> postItems = PluginAction.getPostItems(this.getRequest());
+    //for (AttrValMap postItem : postItems) {
+    complement.setPluginValMap(postItems);
+    //      break;
+    //    }
     agentContext.notifyUserSelectionSubmitted(requestId);
     setBizResult(context, requestId);
   }
@@ -480,8 +480,8 @@ public class ChatPipelineAction extends BasicModule {
 
     ChatSession session = getChatSession(jsonContent);
     // 获取AgentContext
-    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext()
-      , "agentContext can not be null,sessionId:" + sessionId);
+    AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(), "agentContext can not be null," +
+            "sessionId:" + sessionId);
 
     SelectionOptions selectionOptions = agentContext.getSessionData(requestId);
     agentContext.setSessionData(requestId, selectionOptions.setSelectedIndex(selectedIndex));
@@ -489,8 +489,8 @@ public class ChatPipelineAction extends BasicModule {
     // 通知等待线程，用户选择已提交
     agentContext.notifyUserSelectionSubmitted(requestId);
 
-    logger.info("User selection submitted for session={}, requestId={}, selectedIndex={}",
-      sessionId, requestId, selectedIndex);
+    logger.info("User selection submitted for session={}, requestId={}, selectedIndex={}", sessionId, requestId,
+            selectedIndex);
 
     JSONObject result = new JSONObject();
     result.put("success", true);
