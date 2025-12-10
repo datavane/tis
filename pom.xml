@@ -204,7 +204,7 @@
                 <groupId>org.apache.derby</groupId>
                 <artifactId>derby</artifactId>
 <!--                <version>10.9.1.0</version>-->
-                <version>10.16.1.1</version>
+                <version>10.15.2.0</version>
             </dependency>
             <dependency>
                 <groupId>org.easymock</groupId>
