@@ -242,6 +242,7 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
 //    <property name="url" value="jdbc:derby:tis_console;create=true"/>
 //  </bean>
              //   dataSource.setDriverClassName("org.apache.derby.jdbc.EmbeddedDriver");
+
               dataSource.setDriverClassName("org.apache.derby.iapi.jdbc.Driver42");
 
                 // strength=PRIMARY for ingore upper and
