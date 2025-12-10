@@ -66,7 +66,8 @@ public class DeepSeekProvider extends LLMProvider {
     private static final String URL_PATH = "/chat/completions";
     public static final String DEFAULT_MODEL = "deepseek-chat";
 
-    @FormField(identity = true, type = FormFieldType.INPUTTEXT, ordinal = 0, validate = {Validator.require, Validator.identity})
+    @FormField(identity = true, type = FormFieldType.INPUTTEXT, ordinal = 0, validate = {Validator.require,
+            Validator.identity})
     public String name;
 
 
@@ -82,10 +83,12 @@ public class DeepSeekProvider extends LLMProvider {
     @FormField(type = FormFieldType.INPUTTEXT, ordinal = 4, validate = {Validator.require})
     public String model;
 
-    @FormField(type = FormFieldType.INT_NUMBER, advance = true, ordinal = 5, validate = {Validator.require, Validator.integer})
+    @FormField(type = FormFieldType.INT_NUMBER, advance = true, ordinal = 5, validate = {Validator.require,
+            Validator.integer})
     public Integer temperature;
 
-    @FormField(type = FormFieldType.DURATION_OF_SECOND, advance = true, ordinal = 6, validate = {Validator.require, Validator.integer})
+    @FormField(type = FormFieldType.DURATION_OF_SECOND, advance = true, ordinal = 6, validate = {Validator.require,
+            Validator.integer})
     public Duration readTimeout;
 
     /**
@@ -101,9 +104,9 @@ public class DeepSeekProvider extends LLMProvider {
 
 
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary) {
-        ExecuteLog executeLog = this.printLog
-                ? new DefaultExecuteLog(prompt, context, logger)
-                : new NoneExecuteLog();
+        ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);
+        //        ? new DefaultExecuteLog(prompt, context, logger) :
+        //                new NoneExecuteLog(prompt, context);
         try {
             List<HttpUtils.PostParam> postParams = new ArrayList<>();
             postParams.add(new HttpUtils.PostParam("model", getModel()));
@@ -206,14 +209,16 @@ public class DeepSeekProvider extends LLMProvider {
 
 
     @Override
-    public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, String jsonSchema) {
+    public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
+                                String jsonSchema) {
         String enhancedPrompt = prompt.getPrompt();
         if (StringUtils.isNotEmpty(jsonSchema)) {
-           // enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果：\n" + jsonSchema;
+            // enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果：\n" + jsonSchema;
             enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + jsonSchema;
             enhancedPrompt += "\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。";
         }
-        LLMResponse response = chat(context, new UserPrompt(prompt.getAbstractInfo(), enhancedPrompt), systemPrompt, false);
+        LLMResponse response = chat(context, new UserPrompt(prompt.getAbstractInfo(), enhancedPrompt), systemPrompt,
+                false);
 
         try {
             if (response.isSuccess() && response.getContent() != null) {

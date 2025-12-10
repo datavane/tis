@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.qlangtech.tis.aiagent.core.TestTISPlanAndExecuteAgent.createNoneLogger;
 import static org.junit.Assert.*;
 
 /**
@@ -141,8 +142,7 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
     // 验证错误处理
     List<String> errors = testContext.getErrors();
     assertFalse("Should have errors", errors.isEmpty());
-    assertTrue("Should contain error message",
-      errors.stream().anyMatch(e -> e.contains("无法理解您的需求")));
+    assertTrue("Should contain error message", errors.stream().anyMatch(e -> e.contains("无法理解您的需求")));
   }
 
   /**
@@ -190,8 +190,7 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
     startLatch.countDown();
 
     // 等待所有任务完成
-    assertTrue("All tasks should complete within timeout",
-      completeLatch.await(10, TimeUnit.SECONDS));
+    assertTrue("All tasks should complete within timeout", completeLatch.await(10, TimeUnit.SECONDS));
 
     // 验证结果
     assertEquals("All tasks should complete", taskCount, successCount.get() + failureCount.get());
@@ -208,9 +207,9 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
       super(context, llmProvider, controlMsgHandler);
       try {
         // 使用反射注入LLMProvider
-//        java.lang.reflect.Field field = TISPlanAndExecuteAgent.class.getDeclaredField("llmProvider");
-//        field.setAccessible(true);
-//        field.set(this, llmProvider);
+        //        java.lang.reflect.Field field = TISPlanAndExecuteAgent.class.getDeclaredField("llmProvider");
+        //        field.setAccessible(true);
+        //        field.set(this, llmProvider);
 
         // 注入测试用的StepExecutor
         java.lang.reflect.Field executorsField = TISPlanAndExecuteAgent.class.getDeclaredField("executors");
@@ -309,7 +308,7 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
   public static class MockLLMProvider extends LLMProvider {
     @Override
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
-      LLMResponse response = new LLMResponse();
+      LLMResponse response = new LLMResponse(createNoneLogger());
       response.setSuccess(true);
       response.setContent("Mock response");
       // response.setTotalTokens(100);
@@ -317,8 +316,9 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
     }
 
     @Override
-    public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, String jsonSchema) {
-      LLMResponse response = new LLMResponse();
+    public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
+                                String jsonSchema) {
+      LLMResponse response = new LLMResponse(createNoneLogger());
       response.setSuccess(true);
 
       JSONObject json = new JSONObject();
@@ -366,14 +366,15 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
   private static class FailingLLMProvider extends LLMProvider {
     @Override
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
-      LLMResponse response = new LLMResponse();
+      LLMResponse response = new LLMResponse(createNoneLogger());
       response.setSuccess(false);
       response.setErrorMessage("Simulated failure");
       return response;
     }
 
     @Override
-    public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, String jsonSchema) {
+    public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
+                                String jsonSchema) {
       return chat(context, prompt, systemPrompt);
     }
 

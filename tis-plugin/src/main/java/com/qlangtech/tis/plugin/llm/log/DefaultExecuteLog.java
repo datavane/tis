@@ -35,32 +35,27 @@ import java.util.Objects;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/10/27
  */
-public class DefaultExecuteLog implements ExecuteLog {
+public class DefaultExecuteLog extends BasicExecuteLog implements ExecuteLog {
     private List<HttpUtils.PostParam> postParams;
     private JSONObject responseJson;
     private JSONObject errBody;
     private final Logger logger;
-    private final UserPrompt prompt;
-    private final IAgentContext context;
 
-    public DefaultExecuteLog(UserPrompt prompt, IAgentContext context, Logger logger) {
+     DefaultExecuteLog(UserPrompt prompt, IAgentContext context, Logger logger) {
+        super(prompt, context);
         this.logger = Objects.requireNonNull(logger, "logger can not be null");
-        this.prompt = Objects.requireNonNull(prompt, "prompt can not be null");
-        this.context = Objects.requireNonNull(context, "context can not be null");
     }
 
     @Override
     public void setPostParams(List<HttpUtils.PostParam> postParams) {
-        context.sendLLMStatus(LLMProvider.LLMChatPhase.Start, prompt.getAbstractInfo());
+        super.setPostParams(postParams);
         this.postParams = postParams;
     }
 
     @Override
     public void setError(JSONObject errBody) {
+        super.setError(errBody);
         this.errBody = errBody;
-        JSONObject errDetail = errBody.getJSONObject("error");
-        String errMessage = errDetail.getString("message");
-        context.sendLLMStatus(LLMProvider.LLMChatPhase.ERROR, errMessage);
     }
 
     @Override
@@ -70,7 +65,7 @@ public class DefaultExecuteLog implements ExecuteLog {
 
     @Override
     public void summary() {
-        context.sendLLMStatus(LLMProvider.LLMChatPhase.Complete, null);
+        super.summary();
         StringBuilder summary = new StringBuilder();
         summary.append("\nparams---------------------------------------------------------------\n");
         summary.append(JsonUtil.toString(postParams, true));

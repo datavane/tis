@@ -147,9 +147,9 @@ public abstract class LLMProvider extends ParamsConfig {
 
         public final ExecuteLog executeLog;
 
-        public LLMResponse() {
-            this(new NoneExecuteLog());
-        }
+//        public LLMResponse() {
+//            this(new NoneExecuteLog());
+//        }
 
         public LLMResponse(ExecuteLog executeLog) {
             this.executeLog = executeLog;

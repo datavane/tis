@@ -74,7 +74,8 @@ public class QWenLLMProvider extends LLMProvider {
     public static final String DEFAULT_MODEL = "qwen-plus";
     public static final String DEFAULT_BASE_URL = "https://dashscope.aliyuncs.com";
 
-    @FormField(identity = true, type = FormFieldType.INPUTTEXT, ordinal = 0, validate = {Validator.require, Validator.identity})
+    @FormField(identity = true, type = FormFieldType.INPUTTEXT, ordinal = 0, validate = {Validator.require,
+            Validator.identity})
     public String name;
 
     @FormField(type = FormFieldType.INPUTTEXT, ordinal = 1, validate = {Validator.require, Validator.url})
@@ -87,7 +88,8 @@ public class QWenLLMProvider extends LLMProvider {
     public Integer maxTokens;
 
     /**
-     *阿里云各种模型 https://bailian.console.aliyun.com/?spm=5176.29619931.J_XNqYbJaEnpB5_cCJf7e6D.1.544a10d7BmxbRi&tab=doc#/doc/?type=model&url=2987148
+     * 阿里云各种模型 https://bailian.console.aliyun.com/?spm=5176.29619931.J_XNqYbJaEnpB5_cCJf7e6D.1
+     * .544a10d7BmxbRi&tab=doc#/doc/?type=model&url=2987148
      */
     @FormField(type = FormFieldType.ENUM, ordinal = 4, validate = {Validator.require})
     public String model;
@@ -98,10 +100,12 @@ public class QWenLLMProvider extends LLMProvider {
     @FormField(type = FormFieldType.DECIMAL_NUMBER, advance = true, ordinal = 6, validate = {})
     public Float topP;
 
-    @FormField(type = FormFieldType.DURATION_OF_SECOND, advance = true, ordinal = 7, validate = {Validator.require, Validator.integer})
+    @FormField(type = FormFieldType.DURATION_OF_SECOND, advance = true, ordinal = 7, validate = {Validator.require,
+            Validator.integer})
     public Duration readTimeout;
 
-    @FormField(type = FormFieldType.INT_NUMBER, advance = true, ordinal = 8, validate = {Validator.require, Validator.integer})
+    @FormField(type = FormFieldType.INT_NUMBER, advance = true, ordinal = 8, validate = {Validator.require,
+            Validator.integer})
     public Integer maxRetry;
 
     /**
@@ -122,7 +126,8 @@ public class QWenLLMProvider extends LLMProvider {
     }
 
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary) {
-        ExecuteLog executeLog = this.printLog ? new DefaultExecuteLog(prompt, context, logger) : new NoneExecuteLog();
+        ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);// new DefaultExecuteLog
+        // (prompt, context, logger) : new NoneExecuteLog();
         try {
             // 构建请求参数
             List<HttpUtils.PostParam> postParams = new ArrayList<>();
@@ -197,7 +202,8 @@ public class QWenLLMProvider extends LLMProvider {
                                 String errMessage = errDetail.getString("message");
                                 String errCode = errDetail.getString("code");
                                 if (StringUtils.isNotEmpty(errMessage)) {
-                                    throw TisException.create(String.format("QWen API Error [%s]: %s", errCode, errMessage));
+                                    throw TisException.create(String.format("QWen API Error [%s]: %s", errCode,
+                                            errMessage));
                                 }
                             } else if (errBody.containsKey("message")) {
                                 // 直接的错误消息格式
@@ -269,7 +275,8 @@ public class QWenLLMProvider extends LLMProvider {
     }
 
     @Override
-    public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, String jsonSchema) {
+    public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
+                                String jsonSchema) {
         // 增强prompt，要求返回JSON格式
         String enhancedPrompt = prompt.getPrompt();
         if (StringUtils.isNotEmpty(jsonSchema)) {
@@ -390,7 +397,8 @@ public class QWenLLMProvider extends LLMProvider {
         }
 
 
-        public boolean validateMaxRetry(IFieldErrorHandler msgHandler, Context context, String fieldName, String value) {
+        public boolean validateMaxRetry(IFieldErrorHandler msgHandler, Context context, String fieldName,
+                                        String value) {
             int retryCount = Integer.parseInt(value);
             if (retryCount < 1) {
                 msgHandler.addFieldError(context, fieldName, "不能小于1");
