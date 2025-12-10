@@ -248,7 +248,7 @@ public class TISDataSourceFactory implements FactoryBean<BasicDataSource>, Initi
         // dataSource.setDriverClassName("org.apache.derby.iapi.jdbc.Driver42");
 
         // strength=PRIMARY for ingore upper and
-        String connURL = "jdbc:derby:" + dbCfg.dbname + ";territory=en_US;collation=TERRITORY_BASED;strength=PRIMARY;"
+        String connURL = "jdbc:derby:" + dbCfg.dbname + ";territory=en_US;collation=TERRITORY_BASED:PRIMARY;"
           + "create=" + dbAutoCreate;
         dataSource.setUrl(connURL);
 
