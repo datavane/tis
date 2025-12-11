@@ -62,7 +62,8 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-07 16:46
  */
-public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor, IStreamIncrGenerateStrategy, AfterPluginSaved {
+public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor, IStreamIncrGenerateStrategy,
+        AfterPluginSaved {
 
     public static final String DATAX_CFG_DIR_NAME = "dataxCfg";
     public static final String DATAX_CREATE_DDL_DIR_NAME = "createDDL";
@@ -89,9 +90,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     public static IDataxProcessorGetter processorGetter;
 
     public static IDataxProcessor load(IPluginContext pluginContext, DataXName dataXName) {
-        return load(pluginContext
-                , Objects.requireNonNull(dataXName, "dataXName can not be null").getType()
-                , dataXName.getPipelineName());
+        return load(pluginContext, Objects.requireNonNull(dataXName, "dataXName can not be null").getType(),
+                dataXName.getPipelineName());
     }
 
 
@@ -118,8 +118,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
             return (IDataxProcessor) appSource.get();
         } else {
             KeyedPluginStore<IAppSource> store = IAppSource.getPluginStore(pluginContext, resType, dataXName);
-            throw new RuntimeException("targetName:" + dataXName + ",resType:"
-                    + resType + ",store file is not exist:" + store.getTargetFile().getFile());
+            throw new RuntimeException("targetName:" + dataXName + ",resType:" + resType + ",store file is not "
+                    + "exist:" + store.getTargetFile().getFile());
         }
 
     }
@@ -129,11 +129,13 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     }
 
     public static Descriptor<IAppSource> getPluginDescMeta(String targetProcessName) {
-        DescriptorExtensionList<IAppSource, Descriptor<IAppSource>> descs = TIS.get().getDescriptorList(IAppSource.class);
-        Optional<Descriptor<IAppSource>> dataxProcessDescs
-                = descs.stream().filter((des) -> targetProcessName.equals(des.getDisplayName())).findFirst();
+        DescriptorExtensionList<IAppSource, Descriptor<IAppSource>> descs =
+                TIS.get().getDescriptorList(IAppSource.class);
+        Optional<Descriptor<IAppSource>> dataxProcessDescs =
+                descs.stream().filter((des) -> targetProcessName.equals(des.getDisplayName())).findFirst();
         if (!dataxProcessDescs.isPresent()) {
-            throw new IllegalStateException("dataX process descriptor:" + targetProcessName + " relevant descriptor can not be null");
+            throw new IllegalStateException("dataX process descriptor:" + targetProcessName + " relevant descriptor "
+                    + "can not be null");
         }
         return dataxProcessDescs.get();
     }
@@ -142,18 +144,21 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         return getDataXCreateProcessMeta(pluginContext, dataxPipeName, true);
     }
 
-    public static DataXCreateProcessMeta getDataXCreateProcessMeta(IPluginContext pluginContext, String dataxPipeName, boolean writerNullValidate) {
+    public static DataXCreateProcessMeta getDataXCreateProcessMeta(IPluginContext pluginContext, String dataxPipeName
+            , boolean writerNullValidate) {
         DataxWriter writer = DataxWriter.load(pluginContext, dataxPipeName, writerNullValidate);
         DataxWriter.BaseDataxWriterDescriptor writerDesc = null;
         if (!writerNullValidate && writer == null) {
-            writerDesc = (DataxWriter.BaseDataxWriterDescriptor) IDataxProcessor.getWriterDescriptor(pluginContext, dataxPipeName);
+            writerDesc = (DataxWriter.BaseDataxWriterDescriptor) IDataxProcessor.getWriterDescriptor(pluginContext,
+                    dataxPipeName);
         } else {
-            writerDesc = (DataxWriter.BaseDataxWriterDescriptor)
-                    Objects.requireNonNull(writer, "name:" + dataxPipeName + " relevant dataXWriter can not be null").getDescriptor();
+            writerDesc = (DataxWriter.BaseDataxWriterDescriptor) Objects.requireNonNull(writer,
+                    "name:" + dataxPipeName + " relevant dataXWriter can not be null").getDescriptor();
         }
 
         DataxReader dataxReader = DataxReader.load(pluginContext, dataxPipeName);
-        DataxReader.BaseDataxReaderDescriptor readDescriptor = (DataxReader.BaseDataxReaderDescriptor) dataxReader.getDescriptor();
+        DataxReader.BaseDataxReaderDescriptor readDescriptor =
+                (DataxReader.BaseDataxReaderDescriptor) dataxReader.getDescriptor();
 
         boolean dataXReaderRDBMSSwitchOn = false;
         if ((dataxReader instanceof DataXBasicProcessMeta.IRDBMSSupport)) {
@@ -187,22 +192,22 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         if (this._tableMaps == null) {
 
             List<TableAlias> aliases = TableAlias.load(pluginCtx, this.identityValue());
-//            if (CollectionUtils.isEmpty(aliases)) {
-//
-//                IDataxReader reader = this.getReader(pluginCtx);
-//                List<ISelectedTab> tabs = reader.getSelectedTabs();
-//                Map<String, TableAlias> mapper = Maps.newHashMap();
-//                for (ISelectedTab tab : tabs) {
-//                    mapper.put(tab.getName(), new TableMap(tab));
-//                }
-//                this._tableMaps = mapper;
-//            } else {
-                this._tableMaps = aliases.stream().collect(Collectors.toMap((m) -> {
-                    if (StringUtils.isEmpty(m.getFrom())) {
-                        throw new IllegalArgumentException("table mapper from can not be empty");
-                    }
-                    return m.getFrom();
-                }, (m) -> m));
+            //            if (CollectionUtils.isEmpty(aliases)) {
+            //
+            //                IDataxReader reader = this.getReader(pluginCtx);
+            //                List<ISelectedTab> tabs = reader.getSelectedTabs();
+            //                Map<String, TableAlias> mapper = Maps.newHashMap();
+            //                for (ISelectedTab tab : tabs) {
+            //                    mapper.put(tab.getName(), new TableMap(tab));
+            //                }
+            //                this._tableMaps = mapper;
+            //            } else {
+            this._tableMaps = aliases.stream().collect(Collectors.toMap((m) -> {
+                if (StringUtils.isEmpty(m.getFrom())) {
+                    throw new IllegalArgumentException("table mapper from can not be empty");
+                }
+                return m.getFrom();
+            }, (m) -> m));
             //}
         }
         return this._tableMaps;
@@ -215,51 +220,44 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
      */
     @Override
     public TableAliasMapper getTabAlias(IPluginContext pluginCtx) {
-        boolean isReaderUnStructed = false;
+       // boolean isReaderUnStructed = false;
         Map<String, TableAlias> tableMaps = getTableMaps(pluginCtx);
-        if ((this.isRDBMS2RDBMS(pluginCtx))
-                || (isReaderUnStructed = this.isReaderUnStructed(pluginCtx))
-                // 支持ElasticSearch
-                || MapUtils.isNotEmpty(tableMaps)
-        ) {
-
-            if (MapUtils.isEmpty(tableMaps)) {
-                return TableAliasMapper.Null;
-            }
-            return new TableAliasMapper(tableMaps);
-
-        } else {
-
-            if (MapUtils.isEmpty(tableMaps)) {
-                throw new IllegalStateException("tableMaps can not be empty");
-            }
-
-//            IDataxReader reader = this.getReader(pluginCtx);
-//            List<ISelectedTab> tabs = reader.getSelectedTabs();
-//
-//            Map<String, TableAlias> mapper = Maps.newHashMap();
-//            for (ISelectedTab tab : tabs) {
-//                mapper.put(tab.getName(), new TableMap(tab));
-//            }
-            return new TableAliasMapper(tableMaps);
-
-
-        }
+        // return
+        return MapUtils.isEmpty(tableMaps) ? TableAliasMapper.Null : new TableAliasMapper(tableMaps);
+        //        if ((this.isRDBMS2RDBMS(pluginCtx))
+        //                || (isReaderUnStructed = this.isReaderUnStructed(pluginCtx))
+        //                // 支持ElasticSearch
+        //                || MapUtils.isNotEmpty(tableMaps)
+        //        ) {
+        //
+        //            if (MapUtils.isEmpty(tableMaps)) {
+        //                return TableAliasMapper.Null;
+        //            }
+        //            return new TableAliasMapper(tableMaps);
+        //
+        //        } else {
+        //
+        //            if (MapUtils.isEmpty(tableMaps)) {
+        //                throw new IllegalStateException("tableMaps can not be empty");
+        //            }
+        //            return new TableAliasMapper(tableMaps);
+        //        }
 
 
     }
 
     @Override
-    public void saveCreateTableDDL(IPluginContext pluginCtx
-            , StringBuffer createDDL, String sqlFileName, boolean overWrite) throws IOException {
+    public void saveCreateTableDDL(IPluginContext pluginCtx, StringBuffer createDDL, String sqlFileName,
+                                   boolean overWrite) throws IOException {
         File createDDLDir = this.getDataxCreateDDLDir(pluginCtx);
         saveCreateTableDDL(createDDL, createDDLDir, sqlFileName, overWrite);
         // 主要更新一下最后更新时间，这样在执行powerjob任务可以顺利将更新后的ddl文件同步到powerjob的worker节点上去
-        Objects.requireNonNull(this.pluginStore, "pluginStore can be null,shall be set by method  setPluginStore ahead")
-                .writeLastModifyTimeStamp();
+        Objects.requireNonNull(this.pluginStore, "pluginStore can be null,shall be set by method  setPluginStore "
+                + "ahead").writeLastModifyTimeStamp();
     }
 
-    public static void saveCreateTableDDL(StringBuffer createDDL, File createDDLDir, String sqlFileName, boolean overWrite) throws IOException {
+    public static void saveCreateTableDDL(StringBuffer createDDL, File createDDLDir, String sqlFileName,
+                                          boolean overWrite) throws IOException {
         if (StringUtils.isEmpty(sqlFileName)) {
             throw new IllegalArgumentException("param sqlFileName can not be empty");
         }
@@ -305,15 +303,15 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         return DataxWriter.load(pluginCtx, StoreResourceType.DataApp, this.identityValue(), validateNull);
     }
 
-//    /**
-//     * 从Reader和Writer实例中扫面可以作为notebook的实例
-//     *
-//     * @return
-//     * @throws Exception
-//     */
-//    public void setTableMaps(List<TableAlias> tableMaps) {
-//        this.tableMaps = tableMaps;
-//    }
+    //    /**
+    //     * 从Reader和Writer实例中扫面可以作为notebook的实例
+    //     *
+    //     * @return
+    //     * @throws Exception
+    //     */
+    //    public void setTableMaps(List<TableAlias> tableMaps) {
+    //        this.tableMaps = tableMaps;
+    //    }
 
     @Override
     public File getDataxCfgDir(IPluginContext pluginContext) {
@@ -355,7 +353,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
      * @return
      */
     @Override
-    public DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginContext, Optional<JobTrigger> partialTrigger) {
+    public DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginContext,
+                                                               Optional<JobTrigger> partialTrigger) {
         return DataxProcessor.getDataxCfgFileNames(pluginContext, partialTrigger, this);
     }
 
@@ -369,7 +368,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         if (dataxCfgDir.list().length < 1) {
             throw new IllegalStateException("dataxCfgDir is empty can not find any files:" + dataxCfgDir.getAbsolutePath());
         }
-        DataXCfgGenerator.GenerateCfgs genCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(processor, pluginContext, dataxCfgDir, partialTrigger);
+        DataXCfgGenerator.GenerateCfgs genCfgs = DataXCfgGenerator.GenerateCfgs.readFromGen(processor, pluginContext,
+                dataxCfgDir, partialTrigger);
         return genCfgs;
     }
 

@@ -8,7 +8,12 @@
       "Bash(mvn clean compile:*)",
       "Bash(tee:*)",
       "Read(//opt/misc/debezium/**)",
-      "Read(//Users/mozhenghua/**)"
+      "Read(//Users/mozhenghua/**)",
+      "Read(//opt/misc/Datus-agent/datus/**)",
+      "Read(//opt/misc/Datus-agent/docs/develop/**)",
+      "Read(//opt/misc/Datus-agent/conf/**)",
+      "Read(//opt/misc/Datus-agent/**)",
+      "Bash(xargs ls:*)"
     ],
     "deny": [],
     "ask": []

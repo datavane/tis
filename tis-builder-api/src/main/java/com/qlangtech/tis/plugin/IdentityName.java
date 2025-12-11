@@ -53,6 +53,9 @@ public interface IdentityName {
      * @return
      */
     static <T extends IdentityName> IdentityName createNewPrimaryFieldValue(final String idPrefix, List<T> existOpts) {
+        if (StringUtils.isEmpty(idPrefix) || !ValidatorCommons.pattern_identity.matcher(idPrefix).matches()) {
+            throw new IllegalArgumentException("param idPrefix:" + idPrefix + " is not illegal");
+        }
         final String descName = StringUtils.replace(StringUtils.lowerCase(idPrefix), "-", "_");
         Pattern pattern = Pattern.compile(descName + "_?(\\d+)");
         Matcher matcher = null;
