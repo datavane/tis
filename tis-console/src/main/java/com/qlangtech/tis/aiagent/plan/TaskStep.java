@@ -50,7 +50,7 @@ public class TaskStep {
 
   public enum StepType {
     PLUGIN_INSTALL(new PluginDownloadAndInstallExecutor()),
-    //PLUGIN_CREATE(new PluginInstanceCreateExecutor4Mock()),
+   // PLUGIN_CREATE(new PluginInstanceCreateExecutor4Mock()),
     PLUGIN_CREATE(new PluginInstanceCreateExecutor()),
     USER_INPUT(null),
     EXECUTE_BATCH(new PipelineBatchExecutor()),
