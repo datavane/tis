@@ -70,13 +70,14 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
             }
 
             @Override
-            public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context, List<ParseDescribable<T>> dlist, boolean update) {
+            public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context,
+                                               List<ParseDescribable<T>> dlist, boolean update) {
 
                 dlist.stream().forEach((plugin) -> {
                     plugin.getSubFormInstances().forEach((p) -> {
                         if (!(p instanceof ManipuldateProcessor)) {
-                            throw new IllegalStateException("instance of " + p.getClass().getName()
-                                    + " must be type of " + ManipuldateProcessor.class.getSimpleName());
+                            throw new IllegalStateException("instance of " + p.getClass().getName() + " must be type "
+                                    + "of " + ManipuldateProcessor.class.getSimpleName());
                         }
                         ((ManipuldateProcessor) p).manipuldateProcess(pluginContext, context);
                     });
@@ -134,6 +135,16 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
          * Plugin 保存执行回调执行
          */
         void afterSaved(IPluginContext pluginContext, Optional<Context> context);
+    }
+
+    interface AfterPluginDeleted {
+        /**
+         * 插件被删除之后执行
+         *
+         * @param pluginContext
+         * @param context
+         */
+        void afterDeleted(IPluginContext pluginContext, Optional<Context> context);
     }
 
     interface BeforePluginSaved {

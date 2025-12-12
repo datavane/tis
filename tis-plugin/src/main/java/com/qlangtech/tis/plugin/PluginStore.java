@@ -19,6 +19,7 @@ package com.qlangtech.tis.plugin;
 
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.StoreResourceTypeConstants;
@@ -35,6 +36,7 @@ import com.thoughtworks.xstream.core.MapBackedDataHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -100,8 +103,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
      */
     @Override
     public void copyConfigFromRemote() {
-        CenterResource.copyFromRemote2Local(
-                StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG + "/" + Descriptor.getPluginFileName(getSerializeFileName()), true);
+        CenterResource.copyFromRemote2Local(StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG + "/" + Descriptor.getPluginFileName(getSerializeFileName()), true);
     }
 
     /**
@@ -116,8 +118,10 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
 
     @Override
     public final boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         PluginStore<?> that = (PluginStore<?>) o;
         return (this.hashCode() == that.hashCode());
     }
@@ -149,14 +153,13 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             throw new IllegalArgumentException("param of name can not be empty");
         }
         List<T> plugins = this.getPlugins();
-//        if (!IdentityName.class.isAssignableFrom(this.pluginClass)) {
-//
-//        }
+        //        if (!IdentityName.class.isAssignableFrom(this.pluginClass)) {
+        //
+        //        }
         for (T item : plugins) {
 
             if (!(item instanceof IdentityName)) {
-                throw new IllegalStateException("item of " + item.getClass().getSimpleName()
-                        + " must be type of " + IdentityName.class.getSimpleName());
+                throw new IllegalStateException("item of " + item.getClass().getSimpleName() + " must be type of " + IdentityName.class.getSimpleName());
             }
 
             if (StringUtils.equals(name, ((IdentityName) item).identityValue())) {
@@ -165,9 +168,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         }
         if (throwNotFoundErr) {
             final String instanceName = this.pluginClass.getSimpleName();
-            throw new IllegalStateException(instanceName + " has not be initialized,name:" + name + " can not find relevant '" + instanceName
-                    + "' in ["
-                    + plugins.stream().map((r) -> ((IdentityName) r).identityValue()).collect(Collectors.joining(",")) + "]");
+            throw new IllegalStateException(instanceName + " has not be initialized,name:" + name + " can not find " + "relevant '" + instanceName + "' in [" + plugins.stream().map((r) -> ((IdentityName) r).identityValue()).collect(Collectors.joining(",")) + "]");
         } else {
             return null;
         }
@@ -185,17 +186,18 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             return plugin;
         }
         return null;
-//        Optional<T> first = this.getPlugins().stream().findFirst();
-//        if (!first.isPresent()) {
-//            return null;
-//        }
-//        return first.get();
+        //        Optional<T> first = this.getPlugins().stream().findFirst();
+        //        if (!first.isPresent()) {
+        //            return null;
+        //        }
+        //        return first.get();
         // throw new IllegalStateException(" have not find any plugin,plugin size:" + this.getPlugins().size());
     }
 
     /**
      * 当本plugin还没有初始值的时候，可以从一个已经有的plugin把值拷贝过来<br>
-     * 适用场景：全局设置了一个plugin的，collection绑定的plugin没有设置，当在设置collection绑定的plugin时候可以以全局plugin为模版，所以就有一个全局plugin向collection绑定的plugin拷贝属性的过程
+     * 适用场景：全局设置了一个plugin的，collection绑定的plugin没有设置，当在设置collection绑定的plugin时候可以以全局plugin为模版，所以就有一个全局plugin向collection
+     * 绑定的plugin拷贝属性的过程
      *
      * @param other
      */
@@ -206,7 +208,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         if (other.getPlugin() == null) {
             throw new IllegalStateException("from plugin store have not initialized");
         }
-        List<Descriptor.ParseDescribable<T>> dlist = Collections.singletonList(getDescribablesWithMeta(other, other.getPlugin()));
+        List<Descriptor.ParseDescribable<T>> dlist = Collections.singletonList(getDescribablesWithMeta(other,
+                other.getPlugin()));
         this.setPlugins(pluginContext, Optional.empty(), dlist);
     }
 
@@ -219,9 +222,10 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
 
 
     @Override
-    public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context
-            , List<Descriptor.ParseDescribable<T>> dlist) {
-        // as almost the process is process file shall not care of process model whether update or add,bu some times have
+    public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context,
+                                                    List<Descriptor.ParseDescribable<T>> dlist) {
+        // as almost the process is process file shall not care of process model whether update or add,bu some times
+        // have
         // extra process like db process ,shall pass a bool flag form client
         return this.setPlugins(pluginContext, context, dlist, false);
     }
@@ -243,10 +247,10 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             this.identity = identity + "@ver" + ver.incrementAndGet();
         }
 
-//        @Override
-//        public void accept(PluginStore<T> pluginStore) {
-//            throw new UnsupportedOperationException();
-//        }
+        //        @Override
+        //        public void accept(PluginStore<T> pluginStore) {
+        //            throw new UnsupportedOperationException();
+        //        }
 
         @Override
         public boolean isDirty() {
@@ -264,8 +268,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
      * @return 文件更新之前和更新之后是否有变化
      */
     @Override
-    public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context
-            , List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
+    public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context,
+                                                    List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
 
         try {
             Set<PluginMeta> pluginsMeta = Sets.newHashSet();
@@ -274,8 +278,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                 if (!r.subFormFields) {
                     T instance = r.getInstance();
                     if (!this.pluginClass.isAssignableFrom(instance.getClass())) {
-                        throw new IllegalStateException("plugin must be type of "
-                                + this.pluginClass.getName() + ", but now is " + instance.getClass().getName());
+                        throw new IllegalStateException("plugin must be type of " + this.pluginClass.getName() + ", " + "but now is " + instance.getClass().getName());
                     }
                     for (IPluginProcessCallback<T> callback : pluginCreateCallback) {
                         callback.afterDeserialize(this, instance);
@@ -284,10 +287,16 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                 }
                 return (r.getSubFormInstances()).stream();
             }).collect(Collectors.toList());
+
+            Map<String, Pair<AfterPluginDeleted, Boolean/**已经被删除了**/>> beforeUpdateIds = Maps.newHashMap();
             if (this.plugins != null) {
                 this.plugins.forEach((plugin) -> {
                     if (plugin instanceof IPluginStore.RecyclableController) {
                         ((RecyclableController) plugin).signDirty();
+                    }
+                    if (plugin instanceof IdentityName && plugin instanceof AfterPluginDeleted) {
+                        beforeUpdateIds.put(((IdentityName) plugin).identityValue(),
+                                Pair.of((AfterPluginDeleted) plugin, true));
                     }
                 });
             }
@@ -299,6 +308,15 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                 this.plugins.forEach((plugin) -> {
                     if (plugin instanceof BeforePluginSaved) {
                         ((BeforePluginSaved) plugin).beforeSaved(pluginContext, context);
+                    }
+
+                    if (plugin instanceof IdentityName && plugin instanceof AfterPluginDeleted) {
+                        Pair<AfterPluginDeleted, Boolean/**已经被删除了**/> old =
+                                beforeUpdateIds.get(((IdentityName) plugin).identityValue());
+                        if (old != null) {
+                            // 标记没有被删除
+                            old.setValue(false);
+                        }
                     }
                 });
             }
@@ -315,6 +333,14 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                             ((AfterPluginSaved) plugin).afterSaved(pluginContext, context);
                         }
                     });
+                }
+            }
+
+            for (Map.Entry<String, Pair<AfterPluginDeleted, Boolean/**已经被删除了**/>> entry : beforeUpdateIds.entrySet()) {
+                Pair<AfterPluginDeleted, Boolean/**已经被删除了**/> old = entry.getValue();
+                if (old.getValue()) {
+                    // 已经被删除了,则执行afterDeleted逻辑操作
+                    old.getKey().afterDeleted(pluginContext, context);
                 }
             }
 
@@ -345,9 +371,9 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
 
     public long writeLastModifyTimeStamp() {
         File timestamp = getLastModifyTimeStampFile(this.file.getFile());
-//        String millisecTimeStamp = IParamContext.getCurrentMillisecTimeStamp();
-//        FileUtils.writeStringToFile(timestamp, millisecTimeStamp, TisUTF8.get());
-//        return Long.parseLong(millisecTimeStamp);
+        //        String millisecTimeStamp = IParamContext.getCurrentMillisecTimeStamp();
+        //        FileUtils.writeStringToFile(timestamp, millisecTimeStamp, TisUTF8.get());
+        //        return Long.parseLong(millisecTimeStamp);
         return writeLastModifyTimeStamp(timestamp);
     }
 
@@ -368,7 +394,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             if (!timestamp.exists()) {
                 File cfg = this.file.getFile();
                 if (!cfg.exists()) {
-                    //  throw new IllegalArgumentException(timestamp.getName() + " is not exist,but cfg file also not exist:" + cfg.getAbsolutePath());
+                    //  throw new IllegalArgumentException(timestamp.getName() + " is not exist,but cfg file also not
+                    //  exist:" + cfg.getAbsolutePath());
                     return -1;
                 }
                 return writeLastModifyTimeStamp();
@@ -419,10 +446,10 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
             }
             // 远程下载插件
             //List<XStream2.PluginMeta> pluginMetas = componentMeta.synchronizePluginsPackageFromRemote();
-//            if (CollectionUtils.isNotEmpty(pluginMetas)) {
-//                // 本地有插件包被更新了，需要更新一下pluginManager中已经加载了的插件了
-//                // TODO 在运行时有插件被更新了，目前的做法只有靠重启了，将来再来实现运行是热更新插件
-//            }
+            //            if (CollectionUtils.isNotEmpty(pluginMetas)) {
+            //                // 本地有插件包被更新了，需要更新一下pluginManager中已经加载了的插件了
+            //                // TODO 在运行时有插件被更新了，目前的做法只有靠重启了，将来再来实现运行是热更新插件
+            //            }
 
             file.unmarshal(this, dataHolder);
             if (plugins != null) {

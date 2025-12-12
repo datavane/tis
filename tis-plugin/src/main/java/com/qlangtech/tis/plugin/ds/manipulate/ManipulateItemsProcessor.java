@@ -18,9 +18,11 @@
 
 package com.qlangtech.tis.plugin.ds.manipulate;
 
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.util.UploadPluginMeta;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -28,7 +30,7 @@ import java.util.Objects;
  **/
 public class ManipulateItemsProcessor {
     // private final IPluginItemsProcessor itemsProcessor;
-    private final String originIdentityId;
+    private final Optional<DataXName> originIdentityId;
     /**
      * 是否是更新还是添加操作
      */
@@ -44,7 +46,7 @@ public class ManipulateItemsProcessor {
         return deleteProcess;
     }
 
-    public ManipulateItemsProcessor(UploadPluginMeta pluginMeta, String originIdentityId
+    public ManipulateItemsProcessor(UploadPluginMeta pluginMeta, Optional<DataXName> originIdentityId
                                     // ,IPluginItemsProcessor itemsProcessor
             , boolean updateProcess, boolean deleteProcess) {
         // this.itemsProcessor = itemsProcessor;
@@ -58,7 +60,7 @@ public class ManipulateItemsProcessor {
         return this.pluginMeta;
     }
 
-    public String getOriginIdentityId() {
+    public Optional<DataXName> getOriginIdentityId() {
         return originIdentityId;
     }
 

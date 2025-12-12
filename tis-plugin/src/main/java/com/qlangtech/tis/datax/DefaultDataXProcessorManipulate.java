@@ -54,27 +54,27 @@ import java.util.stream.Collectors;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-07-10 20:56
  **/
-public abstract class DefaultDataXProcessorManipulate implements Describable<DefaultDataXProcessorManipulate>, ManipuldateProcessor, IdentityName {
+public abstract class DefaultDataXProcessorManipulate implements Describable<DefaultDataXProcessorManipulate>,
+        ManipuldateProcessor, IdentityName {
 
     @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require,
             Validator.identity})
     public String name;
 
-    private static final ConcurrentMap<String /*PipelineId*/, DataXProcessorTemplateManipulateStore>
-            processorManipulateRegister = Maps.newConcurrentMap();
+    private static final ConcurrentMap<String /*PipelineId*/, DataXProcessorTemplateManipulateStore> processorManipulateRegister = Maps.newConcurrentMap();
 
     public static DataXProcessorTemplateManipulateStore getManipulateStore(String pipelineName) {
         if (StringUtils.isEmpty(pipelineName)) {
             throw new IllegalArgumentException("param pipelineName can not be empty");
         }
-        return processorManipulateRegister.computeIfAbsent(
-                pipelineName, (pipe) -> {
-                    DataXProcessorTemplateManipulateStore store = new DataXProcessorTemplateManipulateStore();
-                    for (DefaultDataXProcessorManipulate manipulate : getPluginStore(null, DataXName.createDataXPipeline(pipe)).getPlugins()) {
-                        store.replace(manipulate);
-                    }
-                    return store;
-                });
+        return processorManipulateRegister.computeIfAbsent(pipelineName, (pipe) -> {
+            DataXProcessorTemplateManipulateStore store = new DataXProcessorTemplateManipulateStore();
+            for (DefaultDataXProcessorManipulate manipulate : getPluginStore(null,
+                    DataXName.createDataXPipeline(pipe)).getPlugins()) {
+                store.replace(manipulate);
+            }
+            return store;
+        });
     }
 
     public static final class DataXProcessorTemplateManipulateStore {
@@ -89,14 +89,14 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
         }
 
         public DefaultDataXProcessorManipulate.MonitorForEventsManager getAlertManager() {
-            DefaultDataXProcessorManipulate manipuldate
-                    = this.getManipuldate(IdentityName.create(DefaultDataXProcessorManipulate.MonitorForEventsManager.KEY_ALERT));
+            DefaultDataXProcessorManipulate manipuldate =
+                    this.getManipuldate(IdentityName.create(DefaultDataXProcessorManipulate.MonitorForEventsManager.KEY_ALERT));
             return (DefaultDataXProcessorManipulate.MonitorForEventsManager) manipuldate;
-//            if (manipuldate == null) {
-//                return Collections.emptyList();
-//            }
-//            DefaultDataXProcessorManipulate.MonitorForEventsManager monitorManager
-//                    = (DefaultDataXProcessorManipulate.MonitorForEventsManager) manipuldate;
+            //            if (manipuldate == null) {
+            //                return Collections.emptyList();
+            //            }
+            //            DefaultDataXProcessorManipulate.MonitorForEventsManager monitorManager
+            //                    = (DefaultDataXProcessorManipulate.MonitorForEventsManager) manipuldate;
         }
 
         public void replace(DefaultDataXProcessorManipulate replace) {
@@ -119,12 +119,13 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
     }
 
 
-    public static IPluginStore<DefaultDataXProcessorManipulate> getPluginStore(
-            IPluginContext context, DataXName appName) {
+    public static IPluginStore<DefaultDataXProcessorManipulate> getPluginStore(IPluginContext context,
+                                                                               DataXName appName) {
         if (appName == null) {
             throw new IllegalArgumentException("param appName can not be empty");
         }
-        KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(context, appName.getType(), appName.getPipelineName(), DefaultDataXProcessorManipulate.class);
+        KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(context, appName.getType(),
+                appName.getPipelineName(), DefaultDataXProcessorManipulate.class);
         IPluginStore<DefaultDataXProcessorManipulate> pluginStore = TIS.getPluginStore(appKey);
         return pluginStore;
     }
@@ -136,7 +137,8 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
 
     @Override
     public final boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass())
+            return false;
         DefaultDataXProcessorManipulate that = (DefaultDataXProcessorManipulate) o;
         return Objects.equals(name, that.name);
     }
@@ -156,20 +158,20 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
             /**
              * 校验
              */
-            ManipulateItemsProcessor itemsProcessor
-                    = ManipuldateUtils.instance(pluginContext, context.orElseThrow(), this.getNewIdentityName()
-                    , (meta) -> {
-                    });
-            if (org.apache.commons.lang.StringUtils.isEmpty(itemsProcessor.getOriginIdentityId())) {
-                throw new IllegalStateException("originId can not be null");
-            }
+            ManipulateItemsProcessor itemsProcessor = ManipuldateUtils.instance(pluginContext, context.orElseThrow(),
+                    this.getNewIdentityName(), (meta) -> {
+            });
+            //            if (org.apache.commons.lang.StringUtils.isEmpty()) {
+            //                throw new IllegalStateException("originId can not be null");
+            //            }
             if (itemsProcessor == null) {
                 return;
             }
             final BasicDesc desc = (BasicDesc) this.getDescriptor();
-            ProcessorManipulateManager<? extends DefaultDataXProcessorManipulate>
-                    store = DefaultDataXProcessorManipulate.loadPlugins(pluginContext
-                    , this.getClass(), DataXName.createDataXPipeline(itemsProcessor.getOriginIdentityId()), desc);
+            ProcessorManipulateManager<? extends DefaultDataXProcessorManipulate> store =
+                    DefaultDataXProcessorManipulate.loadPlugins(pluginContext, this.getClass(),
+                            itemsProcessor.getOriginIdentityId().orElseThrow(() -> new IllegalStateException(
+                                    "originId can not be null")), desc);
             /**
              * 是否需要删除
              */
@@ -196,7 +198,8 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
 
             if (desc.isManipulateStorable()) {
                 /**
-                 *2. 并且将实例持久化在app管道下，当DS端触发会调用 DolphinschedulerDistributedSPIDataXJobSubmit.createPayload()方法获取DS端的WorkflowDAG拓扑视图
+                 *2. 并且将实例持久化在app管道下，当DS端触发会调用 DolphinschedulerDistributedSPIDataXJobSubmit.createPayload()
+                 * 方法获取DS端的WorkflowDAG拓扑视图
                  */
                 store.replace(pluginContext, context, this);
             }
@@ -204,7 +207,8 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
         }
     }
 
-    protected abstract void afterManipuldateProcess(IPluginContext pluginContext, Optional<Context> context, ManipulateItemsProcessor itemsProcessor);
+    protected abstract void afterManipuldateProcess(IPluginContext pluginContext, Optional<Context> context,
+                                                    ManipulateItemsProcessor itemsProcessor);
 
     public static class ProcessorManipulateManager<T extends DefaultDataXProcessorManipulate> {
         private final Class<T> targetClazz;
@@ -214,21 +218,19 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
         private final DataXName pipelineName;
 
 
-        public ProcessorManipulateManager(DataXName pipelineName, Class<T> targetClazz
-                , IPluginStore<DefaultDataXProcessorManipulate> store
-                , List<? extends DefaultDataXProcessorManipulate> plugins, IDescribableManipulate.IManipulateStorable storable) {
+        public ProcessorManipulateManager(DataXName pipelineName, Class<T> targetClazz,
+                                          IPluginStore<DefaultDataXProcessorManipulate> store, List<?
+                        extends DefaultDataXProcessorManipulate> plugins,
+                                          IDescribableManipulate.IManipulateStorable storable) {
             this.targetClazz = targetClazz;
             this.store = store;
             this.plugins = plugins;
             this.storable = storable;
-            this.pipelineName
-                    = Objects.requireNonNull(pipelineName, "pipelineName can not be null");
+            this.pipelineName = Objects.requireNonNull(pipelineName, "pipelineName can not be null");
         }
 
         public List<T> getTargetInstancePlugin() {
-            return plugins.stream()
-                    .filter((p) -> targetClazz.isAssignableFrom(p.getClass()))
-                    .map(targetClazz::cast).collect(Collectors.toList());
+            return plugins.stream().filter((p) -> targetClazz.isAssignableFrom(p.getClass())).map(targetClazz::cast).collect(Collectors.toList());
         }
 
         /**
@@ -236,7 +238,8 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
          *
          * @param beReplace
          */
-        public void replace(IPluginContext pluginContext, Optional<Context> context, DefaultDataXProcessorManipulate beReplace) {
+        public void replace(IPluginContext pluginContext, Optional<Context> context,
+                            DefaultDataXProcessorManipulate beReplace) {
             if (!storable.isManipulateStorable()) {
                 throw new UnsupportedOperationException();
             }
@@ -251,8 +254,9 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
 
         private DataXProcessorTemplateManipulateStore getManipulateStore() {
             return DefaultDataXProcessorManipulate.getManipulateStore(this.pipelineName.getPipelineName());
-//            return processorManipulateRegister.computeIfAbsent(
-//                    this.pipelineName.getPipelineName(), (pipe) -> new DataXProcessorTemplateManipulateStore());
+            //            return processorManipulateRegister.computeIfAbsent(
+            //                    this.pipelineName.getPipelineName(), (pipe) -> new
+            //                    DataXProcessorTemplateManipulateStore());
         }
 
         /**
@@ -273,22 +277,17 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
         }
 
         private List<Descriptor.ParseDescribable<DefaultDataXProcessorManipulate>> getPluginsExclude(IdentityName id) {
-            List<Descriptor.ParseDescribable<DefaultDataXProcessorManipulate>> dlist
-                    = plugins.stream()
-                    .filter((p) ->
-                            !StringUtils.equals(Objects.requireNonNull(id, "param id can not be null").identityValue(), p.identityValue()))
-                    .map((p) ->
-                            new Descriptor.ParseDescribable<DefaultDataXProcessorManipulate>(p)).collect(Collectors.toList());
+            List<Descriptor.ParseDescribable<DefaultDataXProcessorManipulate>> dlist =
+                    plugins.stream().filter((p) -> !StringUtils.equals(Objects.requireNonNull(id, "param id can not "
+                            + "be null").identityValue(), p.identityValue())).map((p) -> new Descriptor.ParseDescribable<DefaultDataXProcessorManipulate>(p)).collect(Collectors.toList());
             return dlist;
         }
     }
 
-    public static <T extends DefaultDataXProcessorManipulate> ProcessorManipulateManager<T>
-    loadPlugins(IPluginContext context, final Class<T> clazz, DataXName pipelineName, IDescribableManipulate.IManipulateStorable storable) {
+    public static <T extends DefaultDataXProcessorManipulate> ProcessorManipulateManager<T> loadPlugins(IPluginContext context, final Class<T> clazz, DataXName pipelineName, IDescribableManipulate.IManipulateStorable storable) {
         IPluginStore<DefaultDataXProcessorManipulate> store = getPluginStore(context, pipelineName);
-        List<? extends DefaultDataXProcessorManipulate> result = store.getPlugins().stream()
-                .map((p) -> p)
-                .collect(Collectors.toList());
+        List<? extends DefaultDataXProcessorManipulate> result =
+                store.getPlugins().stream().map((p) -> p).collect(Collectors.toList());
         return new ProcessorManipulateManager<>(pipelineName, clazz, store, result, storable);// Pair.of(result, store);
     }
 
@@ -296,13 +295,13 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
     public final Descriptor<DefaultDataXProcessorManipulate> getDescriptor() {
         Descriptor<DefaultDataXProcessorManipulate> desc = Describable.super.getDescriptor();
         if (!(desc instanceof DefaultDataXProcessorManipulate.BasicDesc)) {
-            throw new IllegalStateException("descriptor:"
-                    + desc.getClass().getName() + " must extend from " + DefaultDataXProcessorManipulate.BasicDesc.class.getSimpleName());
+            throw new IllegalStateException("descriptor:" + desc.getClass().getName() + " must extend from " + DefaultDataXProcessorManipulate.BasicDesc.class.getSimpleName());
         }
         return desc;
     }
 
-    protected static class BasicDesc extends Descriptor<DefaultDataXProcessorManipulate> implements IEndTypeGetter, IDescribableManipulate.IManipulateStorable {
+    protected static class BasicDesc extends Descriptor<DefaultDataXProcessorManipulate> implements IEndTypeGetter,
+            IDescribableManipulate.IManipulateStorable {
         public BasicDesc() {
             super();
         }

@@ -21,6 +21,7 @@ package com.qlangtech.tis.alert;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.flink.JobManagerAddress;
+import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.action.IFlinkIncrJobStatus;
 import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
 import com.qlangtech.tis.coredefine.module.action.impl.FlinkJobDeploymentDetails;
@@ -113,10 +114,7 @@ public class FlinkJobsMonitor implements InitializingBean {
   }
 
   private static FlinkJobDeploymentDetails createNoneDeployment(ErrorValue errCode) {
-    return FlinkJobDeploymentDetails.noneState(
-      DataXName.createDataXPipeline(errCode.getPayload(IFullBuildContext.KEY_APP_NAME))
-      , () -> Optional.ofNullable((JobManagerAddress) errCode.getPayload(KEY_JOB_MANAGER_ADDRESS))
-        .orElseGet(() -> new JobManagerAddress("127.0.0.1", 8081)), new NoneFlinkIncrJobStatus());
+    return FlinkJobDeploymentDetails.noneState(DataXName.createDataXPipeline(errCode.getPayload(IFullBuildContext.KEY_APP_NAME)), () -> Optional.ofNullable((JobManagerAddress) errCode.getPayload(KEY_JOB_MANAGER_ADDRESS)).orElseGet(() -> new JobManagerAddress("127.0.0.1", 8081)), new NoneFlinkIncrJobStatus());
   }
 
   private static class NoneFlinkIncrJobStatus implements IFlinkIncrJobStatus<Object> {
@@ -193,8 +191,7 @@ public class FlinkJobsMonitor implements InitializingBean {
 
     // 判断是否需要报警
     if (shouldAlert(lastState, currentState)) {
-      logger.info("Job [{}] state changed from [{}] to [{}], triggering alert",
-        jobName, lastState, currentState);
+      logger.info("Job [{}] state changed from [{}] to [{}], triggering alert", jobName, lastState, currentState);
       doAlert(jobInfo);
     }
 
@@ -223,9 +220,7 @@ public class FlinkJobsMonitor implements InitializingBean {
 
     // 只有从RUNNING状态变为FAILED、LOST、CANCELED时才报警
     if (lastState == IFlinkIncrJobStatus.State.RUNNING) {
-      return currentState == IFlinkIncrJobStatus.State.FAILED
-        || currentState == IFlinkIncrJobStatus.State.DISAPPEAR
-        || currentState == IFlinkIncrJobStatus.State.NONE;
+      return currentState == IFlinkIncrJobStatus.State.FAILED || currentState == IFlinkIncrJobStatus.State.DISAPPEAR || currentState == IFlinkIncrJobStatus.State.NONE;
     }
 
     return false;
@@ -241,27 +236,18 @@ public class FlinkJobsMonitor implements InitializingBean {
       Date startTime = jobStartTimes.get(jobInfo.getJobName());
       Date endTime = new Date();
 
-      AlertTemplate alertTemplate = AlertTemplate.builder()
-        .title("TIS Flink Job 告警")
-        .subject(String.format("Flink Job [%s] 状态异常", jobInfo.getJobName()))
-        .jobName(jobInfo.getJobName())
-        .status(String.valueOf(jobInfo.getIncrJobStatus().getState()))
-        .type(1)  // 1-任务状态
-        .startTime(startTime)
-        .endTime(endTime)
-        .duration(startTime, endTime)
-        .link(jobInfo.getJobManagerUrl())
-        .restart(false, 0)
-        .build();
+      AlertTemplate alertTemplate =
+        AlertTemplate.builder().title("TIS Flink Job 告警").subject(String.format("Flink " + "Job [%s] 状态异常",
+            jobInfo.getJobName())).jobName(jobInfo.getJobName()).status(String.valueOf(jobInfo.getIncrJobStatus().getState())).type(1)  // 1-任务状态
+        .startTime(startTime).endTime(endTime).duration(startTime, endTime).link(jobInfo.getJobManagerUrl()).restart(false, 0).build();
 
-      Pair<List<AlertChannel>, DefaultDataXProcessorManipulate.MonitorForEventsManager>
-        pair = this.getPipelineAlertChannels(jobInfo.getJobName());
+      Pair<List<AlertChannel>, DefaultDataXProcessorManipulate.MonitorForEventsManager> pair =
+        this.getPipelineAlertChannels(jobInfo.getJobName());
       // 获取所有配置的报警渠道
       List<AlertChannel> alertChannels = pair.getKey();
 
       if (alertChannels.isEmpty()) {
-        logger.warn("No alert channels configured, skip sending alert for job [{}]",
-          jobInfo.getJobName());
+        logger.warn("No alert channels configured, skip sending alert for job [{}]", jobInfo.getJobName());
         return;
       }
 
@@ -269,13 +255,12 @@ public class FlinkJobsMonitor implements InitializingBean {
       // 通过每个报警渠道发送报警
       for (AlertChannel channel : alertChannels) {
         try {
-          logger.info("Sending alert via channel [{}] for job [{}]",
-            channel.identityValue(), jobInfo.getJobName());
+          logger.info("Sending alert via channel [{}] for job [{}]", channel.identityValue(), jobInfo.getJobName());
           channel.send(alertTemplate);
           hasSuccess = true;
         } catch (Exception e) {
-          logger.error("Failed to send alert via channel [{}] for job [{}]",
-            channel.identityValue(), jobInfo.getJobName(), e);
+          logger.error("Failed to send alert via channel [{}] for job [{}]", channel.identityValue(),
+            jobInfo.getJobName(), e);
         }
       }
       if (hasSuccess) {
@@ -291,10 +276,9 @@ public class FlinkJobsMonitor implements InitializingBean {
    * 获取所有配置的报警渠道
    */
   private Pair<List<AlertChannel>, DefaultDataXProcessorManipulate.MonitorForEventsManager> getPipelineAlertChannels(String pipelineName) {
-    DefaultDataXProcessorManipulate.DataXProcessorTemplateManipulateStore
-      manipulateStore = DefaultDataXProcessorManipulate.getManipulateStore(pipelineName);
-    DefaultDataXProcessorManipulate.MonitorForEventsManager monitorManager
-      = manipulateStore.getAlertManager();
+    DefaultDataXProcessorManipulate.DataXProcessorTemplateManipulateStore manipulateStore =
+      DefaultDataXProcessorManipulate.getManipulateStore(pipelineName);
+    DefaultDataXProcessorManipulate.MonitorForEventsManager monitorManager = manipulateStore.getAlertManager();
     if (monitorManager == null) {
       return Pair.of(Collections.emptyList(), null);
     }
@@ -337,18 +321,24 @@ public class FlinkJobsMonitor implements InitializingBean {
 
     List<FlinkJobDeploymentDetails> result = Lists.newArrayList();
     for (String pipelineName : loadExistRunningIncrPipeline()) {
-      IndexIncrStatus incrStatus = new IndexIncrStatus();
-      IndexIncrStatus indexIncrStatus
-        = getIndexIncrStatus(IControlMsgHandler.namedContext(pipelineName), incrStatus, false);
+
+      IndexIncrStatus indexIncrStatus = null;
+      try {
+        IndexIncrStatus incrStatus = new IndexIncrStatus();
+        indexIncrStatus = CoreAction.getIndexIncrStatus(IControlMsgHandler.namedContext(pipelineName), incrStatus,
+          false);
+      } catch (Throwable e) {
+        throw new RuntimeException("pipe:" + pipelineName, e);
+      }
 
       if (indexIncrStatus.getFlinkJobDetail() == null) {
-        ErrorValue errCode = ErrorValue.create(
-          TisException.ErrorCode.FLINK_INSTANCE_LOSS_OF_CONTACT, IFullBuildContext.KEY_APP_NAME, pipelineName);
+        ErrorValue errCode = ErrorValue.create(TisException.ErrorCode.FLINK_INSTANCE_LOSS_OF_CONTACT,
+          IFullBuildContext.KEY_APP_NAME, pipelineName);
         indexIncrStatus.setFlinkJobDetail(createNoneDeployment(errCode));
       }
 
-      result.add(Objects.requireNonNull(
-        indexIncrStatus.getFlinkJobDetail(), "pipelineName:" + pipelineName + " relevant FlinkJobDetail can not be null"));
+      result.add(Objects.requireNonNull(indexIncrStatus.getFlinkJobDetail(), "pipelineName:" + pipelineName + " " +
+        "relevant FlinkJobDetail can not be null"));
     }
 
     return result; // 暂时返回空列表
@@ -358,27 +348,27 @@ public class FlinkJobsMonitor implements InitializingBean {
    * Flink Job信息类
    * 封装单个Flink Job的状态信息
    */
-//  public static class FlinkJobInfo {
-//    private String jobName;
-//    private IFlinkIncrJobStatus.State state;
-//    private String webUILink;
-//
-//    public FlinkJobInfo(String jobName, IFlinkIncrJobStatus.State state, String webUILink) {
-//      this.jobName = jobName;
-//      this.state = state;
-//      this.webUILink = webUILink;
-//    }
-//
-//    public String getJobName() {
-//      return jobName;
-//    }
-//
-//    public IFlinkIncrJobStatus.State getState() {
-//      return state;
-//    }
-//
-//    public String getWebUILink() {
-//      return webUILink;
-//    }
-//  }
+  //  public static class FlinkJobInfo {
+  //    private String jobName;
+  //    private IFlinkIncrJobStatus.State state;
+  //    private String webUILink;
+  //
+  //    public FlinkJobInfo(String jobName, IFlinkIncrJobStatus.State state, String webUILink) {
+  //      this.jobName = jobName;
+  //      this.state = state;
+  //      this.webUILink = webUILink;
+  //    }
+  //
+  //    public String getJobName() {
+  //      return jobName;
+  //    }
+  //
+  //    public IFlinkIncrJobStatus.State getState() {
+  //      return state;
+  //    }
+  //
+  //    public String getWebUILink() {
+  //      return webUILink;
+  //    }
+  //  }
 }

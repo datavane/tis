@@ -29,7 +29,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.time.Duration;
@@ -60,9 +62,9 @@ public class ConfigFileContext {
 
     public static final String KEY_HEAD_FILES = "dirlist";
 
-//    public static int getPort(RunEnvironment runEnvir) {
-//        return (runEnvir == RunEnvironment.DAILY ? 8080 : 7001);
-//    }
+    //    public static int getPort(RunEnvironment runEnvir) {
+    //        return (runEnvir == RunEnvironment.DAILY ? 8080 : 7001);
+    //    }
 
     private static final int DEFAULT_MAX_CONNECT_RETRY_COUNT = 1;
 
@@ -71,8 +73,12 @@ public class ConfigFileContext {
     public static void main(String[] arg) throws Exception {
     }
 
-    public static byte[] getBytesContent(Integer bizid, Integer appid, Short groupIndex, Short runtimeEnvironment, final PropteryGetter getter, String terminatorRepository, final String md5ValidateCode) throws MalformedURLException, IOException {
-        URL url = new URL(terminatorRepository + "/download/publish/" + bizid + "/" + appid + "/group" + groupIndex + "/r" + runtimeEnvironment + "/" + getter.getFileName());
+    public static byte[] getBytesContent(Integer bizid, Integer appid, Short groupIndex, Short runtimeEnvironment,
+                                         final PropteryGetter getter, String terminatorRepository,
+                                         final String md5ValidateCode) throws MalformedURLException, IOException {
+        URL url =
+                new URL(terminatorRepository + "/download/publish/" + bizid + "/" + appid + "/group" + groupIndex +
+                        "/r" + runtimeEnvironment + "/" + getter.getFileName());
         return processContent(url, new PostFormStreamProcess<byte[]>() {
 
             @Override
@@ -86,7 +92,8 @@ public class ConfigFileContext {
                 List<String> md5 = getHeaderFields.get(KEY_HEAD_FILE_MD5);
                 Optional<String> filemd5 = md5.stream().findFirst();
                 if (!filemd5.isPresent()) {
-                    throw new IllegalStateException("head key:" + KEY_HEAD_FILE_MD5 + " is not exist in response header");
+                    throw new IllegalStateException("head key:" + KEY_HEAD_FILE_MD5 + " is not exist in response " +
+                            "header");
                 }
                 if (!StringUtils.equalsIgnoreCase(remoteMd5, filemd5.get())) {
                     throw new IllegalStateException("filemd5:" + filemd5 + " remoteMd5:" + remoteMd5);
@@ -113,7 +120,8 @@ public class ConfigFileContext {
         return processContent(url, process, HTTPMethod.GET, null, /* content */        retryCount);
     }
 
-    public static <T> T processContent(URL url, StreamProcess<T> process, HTTPMethod method, byte[] content, final int maxRetry) {
+    public static <T> T processContent(URL url, StreamProcess<T> process, HTTPMethod method, byte[] content,
+                                       final int maxRetry) {
         InputStream reader = null;
         int retryCount = 0;
         while (true) {
@@ -134,8 +142,8 @@ public class ConfigFileContext {
                 return process.p(conn, reader);
             } catch (Exception e) {
                 if (++retryCount >= maxRetry) {
-                    throw TisException.create(ErrorValue.create(HTTP_CONNECT_FAILD, Collections.emptyMap())
-                            , "maxRetry:" + maxRetry + ",url:" + url.toString(), e);
+                    throw TisException.create(ErrorValue.create(HTTP_CONNECT_FAILD, Collections.emptyMap()),
+                            "maxRetry:" + maxRetry + ",url:" + url.toString(), e);
                 } else {
                     try {
                         Thread.sleep(3000);
@@ -153,7 +161,8 @@ public class ConfigFileContext {
         }
     }
 
-    private static HttpURLConnection getNetInputStream(URL url, StreamProcess streamProcess, HTTPMethod method, byte[] content) throws IOException {
+    private static HttpURLConnection getNetInputStream(URL url, StreamProcess streamProcess, HTTPMethod method,
+                                                       byte[] content) throws IOException {
         List<Header> heads = streamProcess.getHeaders();
 
         if (HttpUtils.mockConnMaker != null) {
@@ -162,34 +171,87 @@ public class ConfigFileContext {
                 return conn;
             }
         }
-        HttpURLConnection conn = null;
-        HttpURLConnection.setFollowRedirects(false);
-        conn = (HttpURLConnection) url.openConnection();
-        streamProcess.preSet(conn);
-        // 设置15秒超时
-        conn.setConnectTimeout(15 * 1000);
-        conn.setReadTimeout((int) streamProcess.getSocketReadTimeout().toMillis());
-        conn.setRequestMethod(method.name());
-        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2 (.NET CLR 3.5.30729)");
-        for (Header h : heads) {
-            conn.addRequestProperty(h.getKey(), h.getValue());
+
+        try {
+            // Use java.net.http.HttpClient for HTTP requests
+            java.net.http.HttpClient.Builder clientBuilder //
+                    = java.net.http.HttpClient.newBuilder() //
+                    .connectTimeout(Duration.ofSeconds(15)) //
+                    .followRedirects(java.net.http.HttpClient.Redirect.NEVER);
+
+            //            clientBuilder.proxy();
+            //            clientBuilder.authenticator();
+            // Configure proxy using the existing IURLConnectionSender mechanism
+            // The proxy configuration is delegated to get a connection first, then extract proxy info
+            java.net.http.HttpClient client = IURLConnectionSender.setBuilder(clientBuilder,
+                    streamProcess.skipProxy()).build();
+
+            // Build HTTP request
+            java.net.http.HttpRequest.Builder requestBuilder =
+                    java.net.http.HttpRequest.newBuilder().uri(url.toURI()).timeout(streamProcess.getSocketReadTimeout()).header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.2) " + "Gecko/20090729 Firefox/3.5.2 (.NET CLR 3.5.30729)");
+
+            // Add custom headers
+            for (Header h : heads) {
+                requestBuilder.header(h.getKey(), h.getValue());
+            }
+
+            // Set request method and body
+            java.net.http.HttpRequest.BodyPublisher bodyPublisher = content != null ?
+                    java.net.http.HttpRequest.BodyPublishers.ofByteArray(content) :
+                    java.net.http.HttpRequest.BodyPublishers.noBody();
+
+            switch (method) {
+                case GET:
+                    requestBuilder.GET();
+                    break;
+                case POST:
+                    requestBuilder.POST(bodyPublisher);
+                    break;
+                case PUT:
+                    requestBuilder.PUT(bodyPublisher);
+                    break;
+                case DELETE:
+                    requestBuilder.DELETE();
+                    break;
+                case HEAD:
+                    requestBuilder.method("HEAD", java.net.http.HttpRequest.BodyPublishers.noBody());
+                    break;
+                case OPTIONS:
+                    requestBuilder.method("OPTIONS", java.net.http.HttpRequest.BodyPublishers.noBody());
+                    break;
+                case TRACE:
+                    requestBuilder.method("TRACE", java.net.http.HttpRequest.BodyPublishers.noBody());
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported HTTP method: " + method);
+            }
+
+            java.net.http.HttpRequest request = requestBuilder.build();
+
+            // Send request and get response
+            java.net.http.HttpResponse<InputStream> response = client.send(request,
+                    java.net.http.HttpResponse.BodyHandlers.ofInputStream());
+
+            // Check for 404 error
+            if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                throw new IllegalStateException("ERROR_CODE=" + response.statusCode() + "  request faild, revsion " + "center apply url :" + url);
+            }
+
+            // Adapt HttpResponse to HttpURLConnection for backward compatibility
+            return new HttpClientResponseAdapter(response, url);
+
+        } catch (java.net.URISyntaxException e) {
+            throw new IOException("Invalid URL: " + url, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Request interrupted", e);
         }
-        if (content != null) {
-            conn.setDoOutput(true);
-            OutputStream output = conn.getOutputStream();
-            IOUtils.write(content, output);
-            output.flush();
-        }
-        conn.connect();
-        if (conn.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-            throw new IllegalStateException("ERROR_CODE=" + conn.getResponseCode() + "  request faild, revsion center apply url :" + url);
-        }
-        return conn;
     }
 
     public static class StreamErrorProcess {
         public void error(int status, InputStream errstream, IOException e) throws Exception {
-            logger.error("error code:" + status + "\n" + ((errstream != null) ? IOUtils.toString(errstream, TisUTF8.get()) : "errstream is null"));
+            logger.error("error code:" + status + "\n" + ((errstream != null) ? IOUtils.toString(errstream,
+                    TisUTF8.get()) : "errstream is null"));
             throw new Exception(e);
         }
     }
@@ -198,7 +260,8 @@ public class ConfigFileContext {
 
         public static String HEADER_KEY_GET_FILE_META = "get_file_meta";
 
-        protected static final List<Header> HEADER_TEXT_HTML = Lists.newArrayList(new Header("content-type", "text/html"));
+        protected static final List<Header> HEADER_TEXT_HTML = Lists.newArrayList(new Header("content-type",
+                "text" + "/html"));
 
         protected static final List<Header> HEADER_GET_META;
 
@@ -222,12 +285,12 @@ public class ConfigFileContext {
          * @throws IOException
          */
         public void preSet(HttpURLConnection conn) throws IOException {
-//            URL url = new URL(“location address”);
-//            URLConnection uc = url.openConnection();
-//            String userpass = username + ":" + password;
-//            String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
-//            uc.setRequestProperty ("Authorization", basicAuth);
-//            InputStream in = uc.getInputStream();
+            //            URL url = new URL(“location address”);
+            //            URLConnection uc = url.openConnection();
+            //            String userpass = username + ":" + password;
+            //            String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
+            //            uc.setRequestProperty ("Authorization", basicAuth);
+            //            InputStream in = uc.getInputStream();
         }
 
         public T p(HttpURLConnection conn, InputStream stream) throws IOException {
@@ -247,6 +310,15 @@ public class ConfigFileContext {
             return HEADER_TEXT_HTML;
         }
 
+        /**
+         * 是否跳过代理
+         *
+         * @return
+         */
+        public boolean skipProxy() {
+            return false;
+        }
+
         public static final Duration dftSocketReadTimeout = Duration.ofSeconds(15);
 
         /**
@@ -262,13 +334,7 @@ public class ConfigFileContext {
 
     public enum HTTPMethod {
 
-        GET,
-        POST,
-        HEAD,
-        OPTIONS,
-        PUT,
-        DELETE,
-        TRACE
+        GET, POST, HEAD, OPTIONS, PUT, DELETE, TRACE
     }
 
     // //////////////////////////////////////////////////////////////////////////////////
@@ -315,6 +381,62 @@ public class ConfigFileContext {
 
         public String getValue() {
             return value;
+        }
+    }
+
+    /**
+     * Adapter to convert HttpResponse to HttpURLConnection for backward compatibility
+     */
+    private static class HttpClientResponseAdapter extends HttpURLConnection {
+        private final java.net.http.HttpResponse<InputStream> response;
+        private final int responseCode;
+        private final Map<String, List<String>> headerFields;
+
+        public HttpClientResponseAdapter(java.net.http.HttpResponse<InputStream> response, URL url) {
+            super(url);
+            this.response = response;
+            this.responseCode = response.statusCode();
+            this.headerFields = response.headers().map();
+        }
+
+        @Override
+        public void disconnect() {
+            try {
+                response.body().close();
+            } catch (IOException e) {
+                logger.warn("Failed to close response body", e);
+            }
+        }
+
+        @Override
+        public boolean usingProxy() {
+            return false;
+        }
+
+        @Override
+        public void connect() throws IOException {
+            // Already connected
+        }
+
+        @Override
+        public int getResponseCode() throws IOException {
+            return responseCode;
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return response.body();
+        }
+
+        @Override
+        public Map<String, List<String>> getHeaderFields() {
+            return headerFields;
+        }
+
+        @Override
+        public String getHeaderField(String name) {
+            List<String> values = headerFields.get(name);
+            return (values != null && !values.isEmpty()) ? values.get(0) : null;
         }
     }
 }

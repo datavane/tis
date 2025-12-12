@@ -98,8 +98,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
 
 
     public static UploadPluginMeta appnameMeta(IPluginContext pluginContext, String appname) {
-        UploadPluginMeta extMeta = parse(pluginContext,
-                "name:" + StoreResourceType.DATAX_NAME + "_" + appname, true);
+        UploadPluginMeta extMeta = parse(pluginContext, "name:" + StoreResourceType.DATAX_NAME + "_" + appname, true);
         return extMeta;
     }
 
@@ -182,13 +181,12 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         return parse(null, plugins, useCache, true);
     }
 
-    public static List<IUploadPluginMeta> parse(
-            IPluginContext context, String[] plugins, boolean useCache) {
+    public static List<IUploadPluginMeta> parse(IPluginContext context, String[] plugins, boolean useCache) {
         return parse(context, plugins, useCache, true);
     }
 
-    public static List<IUploadPluginMeta> parse(
-            IPluginContext context, String[] plugins, boolean useCache, boolean validatePluginEmpty) {
+    public static List<IUploadPluginMeta> parse(IPluginContext context, String[] plugins, boolean useCache,
+                                                boolean validatePluginEmpty) {
         if (validatePluginEmpty && (plugins == null || plugins.length < 1)) {
             throw new IllegalArgumentException("plugin size:" + plugins.length + " length can not small than 1");
         }
@@ -254,14 +252,14 @@ public class UploadPluginMeta implements IUploadPluginMeta {
             }
 
             /**
-             // 为了在dataX创建流程中，能够在流程中使用IControlMsgHandler.isCollectionAware() 为true ，例如： DataXKafkaReader.createDataXKafkaReader() 方法中
+             // 为了在dataX创建流程中，能够在流程中使用IControlMsgHandler.isCollectionAware() 为true ，例如： DataXKafkaReader
+             .createDataXKafkaReader() 方法中
              // 需要在这里将当前的appAndRuntime 设置到当前的线程上下文中去。
              // 后续 CheckAppDomainExistValve.getAppDomain() 方法执行就能获得有appName aware的实例了
              */
             final DataXName pipe = pmeta.getDataXName(false);
             AppAndRuntime appAndRuntime = AppAndRuntime.getAppAndRuntime();
-            if (pipe != null &&
-                    (appAndRuntime == null || (appAndRuntime.getAppName()) == null)) {
+            if (pipe != null && (appAndRuntime == null || (appAndRuntime.getAppName()) == null)) {
                 appAndRuntime = new AppAndRuntime();
                 appAndRuntime.setRuntime(RunEnvironment.getSysRuntime());
                 appAndRuntime.setAppName(pipe);
@@ -279,12 +277,13 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     }
 
     public Pair<List<DataxReader>, IPluginStore<DataxReader>> getDataxReaders(IPluginContext pluginContext) {
-//        return HeteroEnum.DATAX_READER.getPlugins(pluginContext, UploadPluginMeta.parse(pluginContext,
-//                this.name + ":" + DataxUtils.DATAX_NAME + "_" + this.getDataXName(),
-//                useCache));
+        //        return HeteroEnum.DATAX_READER.getPlugins(pluginContext, UploadPluginMeta.parse(pluginContext,
+        //                this.name + ":" + DataxUtils.DATAX_NAME + "_" + this.getDataXName(),
+        //                useCache));
         // this.getDataXName()
-        IPluginStore<DataxReader> store = (IPluginStore<DataxReader>) HeteroEnum.getDataXReaderAndWriterRelevantPluginStore(
-                pluginContext, true, this);
+        IPluginStore<DataxReader> store =
+                (IPluginStore<DataxReader>) HeteroEnum.getDataXReaderAndWriterRelevantPluginStore(pluginContext, true
+                        , this);
         return Pair.of(store.getPlugins(), store);
 
     }
@@ -322,11 +321,14 @@ public class UploadPluginMeta implements IUploadPluginMeta {
                         return pluginMeta.getDataxReaders(pluginContext).getKey();
                     }
 
-//                    private List<DataxReader> getDataxReaders(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-//                        return DATAX_READER.getPlugins(pluginContext, UploadPluginMeta.parse(pluginContext,
-//                                pluginMeta.name + ":" + DataxUtils.DATAX_NAME + "_" + pluginMeta.getDataXName(),
-//                                useCache));
-//                    }
+                    //                    private List<DataxReader> getDataxReaders(IPluginContext pluginContext,
+                    //                    UploadPluginMeta pluginMeta) {
+                    //                        return DATAX_READER.getPlugins(pluginContext, UploadPluginMeta.parse
+                    //                        (pluginContext,
+                    //                                pluginMeta.name + ":" + DataxUtils.DATAX_NAME + "_" +
+                    //                                pluginMeta.getDataXName(),
+                    //                                useCache));
+                    //                    }
 
                     @Override
                     public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
@@ -390,16 +392,14 @@ public class UploadPluginMeta implements IUploadPluginMeta {
                     // targetDescriptorName
                     , meta.getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_NAME) //
                     // targetDescriptorImpl
-                    , meta.getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION)
-                    , meta.getBoolean(PLUGIN_META_TARGET_PIPELINE_NAME_AWARE)
-            );
+                    , meta.getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION),
+                    meta.getBoolean(PLUGIN_META_TARGET_PIPELINE_NAME_AWARE));
         }
 
         public String pluginStoreGroupPath(UploadPluginMeta meta) {
             StringBuffer result = new StringBuffer(matchTargetPluginDescName);
             if (pipelineNameAware) {
-                result.append(File.separator).append(
-                        Objects.requireNonNull(meta, "meta can not be null").getPluginContext().getCollectionName());
+                result.append(File.separator).append(Objects.requireNonNull(meta, "meta can not be null").getPluginContext().getCollectionName());
             }
             return result.toString();
         }
@@ -467,9 +467,10 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     public DataXName getDataXName() {
         StoreResourceType resType = this.getProcessModel().resType;
         DataXName dataXName = getDataXName(true);
-        if (dataXName.getType() != resType) {
-            throw new IllegalStateException("dataXName.getType():"
-                    + dataXName.getType() + " must be equal with resType:" + resType);
+        if (dataXName.getType() != StoreResourceType.DataBase //
+                && dataXName.getType() != resType) {
+            throw new IllegalStateException("dataXName.getType():" + dataXName.getType() + " must be equal with " +
+                    "resType:" + resType);
         }
         return dataXName;
     }
@@ -500,25 +501,31 @@ public class UploadPluginMeta implements IUploadPluginMeta {
 
         final TargetDesc targetDesc = this.getTargetDesc();
 
-        boolean justGetItemRelevant = this.getBoolean(KEY_JUST_GET_ITEM_RELEVANT);// Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
+        boolean justGetItemRelevant = this.getBoolean(KEY_JUST_GET_ITEM_RELEVANT);// Boolean.parseBoolean(this
+        // .getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
         List<Descriptor<T>> descriptors = hEnum.descriptors(targetDesc, items, justGetItemRelevant);
 
 
-//        if (targetDesc.shallMatchTargetDesc()) {
-//            descriptors =
-//                    descriptors.stream().filter((desc) -> targetDesc.isNameMatch(desc.getDisplayName())).collect(Collectors.toList());
-//        } else {
-//            boolean justGetItemRelevant = Boolean.parseBoolean(this.getExtraParam(KEY_JUST_GET_ITEM_RELEVANT));
-//            if (justGetItemRelevant) {
-//                Set<String> itemRelevantDescNames =
-//                        items.stream().map((i) -> i.getDescriptor().getDisplayName()).collect(Collectors.toSet());
-//                descriptors =
-//                        descriptors.stream().filter((d) -> itemRelevantDescNames.contains(d.getDisplayName())).collect(Collectors.toList());
-//            } else if (StringUtils.isNotEmpty(targetDesc.descDisplayName)) {
-//                descriptors =
-//                        descriptors.stream().filter((d) -> targetDesc.descDisplayName.equals(d.getDisplayName())).collect(Collectors.toList());
-//            }
-//        }
+        //        if (targetDesc.shallMatchTargetDesc()) {
+        //            descriptors =
+        //                    descriptors.stream().filter((desc) -> targetDesc.isNameMatch(desc.getDisplayName()))
+        //                    .collect(Collectors.toList());
+        //        } else {
+        //            boolean justGetItemRelevant = Boolean.parseBoolean(this.getExtraParam
+        //            (KEY_JUST_GET_ITEM_RELEVANT));
+        //            if (justGetItemRelevant) {
+        //                Set<String> itemRelevantDescNames =
+        //                        items.stream().map((i) -> i.getDescriptor().getDisplayName()).collect(Collectors
+        //                        .toSet());
+        //                descriptors =
+        //                        descriptors.stream().filter((d) -> itemRelevantDescNames.contains(d.getDisplayName
+        //                        ())).collect(Collectors.toList());
+        //            } else if (StringUtils.isNotEmpty(targetDesc.descDisplayName)) {
+        //                descriptors =
+        //                        descriptors.stream().filter((d) -> targetDesc.descDisplayName.equals(d
+        //                        .getDisplayName())).collect(Collectors.toList());
+        //            }
+        //        }
         hList.setDescriptors(descriptors);
 
 

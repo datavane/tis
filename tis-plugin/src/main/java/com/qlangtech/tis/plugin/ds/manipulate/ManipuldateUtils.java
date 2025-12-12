@@ -36,6 +36,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -47,17 +48,21 @@ import java.util.function.Consumer;
 public class ManipuldateUtils {
 
 
-    public static ManipulateItemsProcessor instance(IPluginContext pluginContext, Context context, String newIdentityName
-            , Consumer<UploadPluginMeta> pluginMetaConsumer) {
+    public static ManipulateItemsProcessor instance(IPluginContext pluginContext, Context context,
+                                                    String newIdentityName,
+                                                    Consumer<UploadPluginMeta> pluginMetaConsumer) {
         // Objects.requireNonNull(contextb, "param content can not be null");
-        JSONObject postContent = Objects.requireNonNull(pluginContext, "pluginContext can not be null").getJSONPostContent();
-       // JSONObject manipulateTarget = postContent.getJSONObject(IUploadPluginMeta.KEY_JSON_MANIPULATE_TARGET);
+        JSONObject postContent =
+                Objects.requireNonNull(pluginContext, "pluginContext can not be null").getJSONPostContent();
+        // JSONObject manipulateTarget = postContent.getJSONObject(IUploadPluginMeta.KEY_JSON_MANIPULATE_TARGET);
         boolean updateProcess = postContent.getBooleanValue(IUploadPluginMeta.KEY_JSON_MANIPULATE_BOOL_UPDATE_PROCESS);
-        final boolean deleteProcess = postContent.getBooleanValue(IUploadPluginMeta.KEY_JSON_MANIPULATE_BOOL_DELETE_PROCESS);
+        final boolean deleteProcess =
+                postContent.getBooleanValue(IUploadPluginMeta.KEY_JSON_MANIPULATE_BOOL_DELETE_PROCESS);
         final String keyManipulatePluginMeta = "manipulatePluginMeta";
         String pluginType = postContent.getString(keyManipulatePluginMeta);
         if (StringUtils.isEmpty(pluginType)) {
-            throw new IllegalArgumentException("post payload " + keyManipulatePluginMeta + " relevant value can not be null");
+            throw new IllegalArgumentException("post payload " + keyManipulatePluginMeta + " relevant value can not "
+                    + "be null");
         }
         /**
          * 将目标插件的ID修改，进行保存
@@ -70,37 +75,39 @@ public class ManipuldateUtils {
             UploadPluginMeta m = (UploadPluginMeta) meta;
             // 保存pipeline Name用
             // String[] originId = new String[1];
-//            Consumer<String> originIdentityIdConsumer = (originIdentityId) -> {
-//                originId[0] = originIdentityId;
-//            };
+            //            Consumer<String> originIdentityIdConsumer = (originIdentityId) -> {
+            //                originId[0] = originIdentityId;
+            //            };
             // 控制是否重名的业务逻辑校验，update=true则不需要校验
-            meta.putExtraParams(DBIdentity.KEY_UPDATE, Boolean.toString(StringUtils.isEmpty(newIdentityName) || updateProcess));
+            meta.putExtraParams(DBIdentity.KEY_UPDATE,
+                    Boolean.toString(StringUtils.isEmpty(newIdentityName) || updateProcess));
             pluginMetaConsumer.accept(m);
 
             // JSONArray itemsArray = new JSONArray();
             // itemsArray.add(manipulateTarget);
-//            Pair<Boolean, IPluginItemsProcessor> pluginItems
-//                    = pluginContext.getPluginItems(meta, context
-//                    , 0, itemsArray, FormVaildateType.create(false), ((propType, val) -> {
-//                        PropertyType ptype = (PropertyType) propType;
-//                        if (ptype.isIdentity()) {
-//                            //
-//                            originIdentityIdConsumer.accept((String) val);
-//                        }
-//                        // 将原先的主键覆盖掉
-//                        return (ptype.isIdentity() && StringUtils.isNotEmpty(newIdentityName)) ? newIdentityName : val;
-//                    }));
+            //            Pair<Boolean, IPluginItemsProcessor> pluginItems
+            //                    = pluginContext.getPluginItems(meta, context
+            //                    , 0, itemsArray, FormVaildateType.create(false), ((propType, val) -> {
+            //                        PropertyType ptype = (PropertyType) propType;
+            //                        if (ptype.isIdentity()) {
+            //                            //
+            //                            originIdentityIdConsumer.accept((String) val);
+            //                        }
+            //                        // 将原先的主键覆盖掉
+            //                        return (ptype.isIdentity() && StringUtils.isNotEmpty(newIdentityName)) ?
+            //                        newIdentityName : val;
+            //                    }));
 
-//            if (context.hasErrors()) {
-//                return null;
-//            }
+            //            if (context.hasErrors()) {
+            //                return null;
+            //            }
 
-//            if (pluginItems.getKey()) {
-//                throw new IllegalStateException("pluginItems parse faild");
-//            }
+            //            if (pluginItems.getKey()) {
+            //                throw new IllegalStateException("pluginItems parse faild");
+            //            }
             // IPluginItemsProcessor itemsProcessor = pluginItems.getRight();
             return new ManipulateItemsProcessor(m, //
-                    Objects.requireNonNull(m.getDataXName(), "dataXName can not be null").getPipelineName() //, itemsProcessor
+                    Optional.ofNullable(m.getDataXName(false)) //, itemsProcessor
                     , updateProcess, deleteProcess);
         }
 
