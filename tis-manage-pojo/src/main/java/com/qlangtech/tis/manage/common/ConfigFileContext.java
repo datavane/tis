@@ -179,10 +179,7 @@ public class ConfigFileContext {
                     .connectTimeout(Duration.ofSeconds(15)) //
                     .followRedirects(java.net.http.HttpClient.Redirect.NEVER);
 
-            //            clientBuilder.proxy();
-            //            clientBuilder.authenticator();
-            // Configure proxy using the existing IURLConnectionSender mechanism
-            // The proxy configuration is delegated to get a connection first, then extract proxy info
+
             java.net.http.HttpClient client = IURLConnectionSender.setBuilder(clientBuilder,
                     streamProcess.skipProxy()).build();
 

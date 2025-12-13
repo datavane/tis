@@ -65,6 +65,7 @@ import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.Descriptor.KEY_DESC_VAL;
 import static com.qlangtech.tis.manage.common.Option.KEY_LABEL;
+import static com.qlangtech.tis.manage.common.Option.KEY_VALUE;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -88,6 +89,20 @@ public class PropertyType implements IPropertyType {
                 }
             }
         }, List.class);
+    }
+
+    private static final JSONArray bolOps;
+
+    static {
+        bolOps = new JSONArray();
+        JSONObject b = new JSONObject();
+        b.put(KEY_LABEL, "是");
+        b.put(KEY_VALUE, true);
+        bolOps.add(b);
+        b = new JSONObject();
+        b.put(KEY_LABEL, "否");
+        b.put(KEY_VALUE, false);
+        bolOps.add(b);
     }
 
     private final Class ownerClazz;
@@ -293,7 +308,9 @@ public class PropertyType implements IPropertyType {
 
                                     if (descriptor.isPresent() //
                                             && (formField.type() == FormFieldType.ENUM)) {
-                                        resolveEnumProp(descriptor.get().getElementDesc(), fieldExtraProps, (opts) -> {
+
+                                        resolveEnumProp(f, descriptor.get().getElementDesc(), fieldExtraProps,
+                                                (opts) -> {
                                             return Option.toJson((List<Option>) opts);
                                         });
                                     }
@@ -304,7 +321,7 @@ public class PropertyType implements IPropertyType {
                                         final PluginExtraProps.Props feProps = fieldExtraProps;
 
                                         ElementPluginDesc paretPluginRef = descriptor.get();
-                                        resolveEnumProp(paretPluginRef.getElementDesc(), feProps, (cols) -> {
+                                        resolveEnumProp(f, paretPluginRef.getElementDesc(), feProps, (cols) -> {
                                             final List<CMeta> mcols = (List<CMeta>) cols;
 
                                             return ptype.multiSelectablePropProcess((viewType) -> {
@@ -343,8 +360,8 @@ public class PropertyType implements IPropertyType {
         }
     }
 
-    private static JSONArray resolveEnumProp(Descriptor descriptor, PluginExtraProps.Props fieldExtraProps,
-                                             Function<Object, Object> process) {
+    private static JSONArray resolveEnumProp(Field field, Descriptor descriptor,
+                                             PluginExtraProps.Props fieldExtraProps, Function<Object, Object> process) {
         Object anEnum = fieldExtraProps.getProps().get(Descriptor.KEY_ENUM_PROP);
         JSONArray enums = new JSONArray();
         if (anEnum != null && anEnum instanceof String) {
@@ -355,6 +372,9 @@ public class PropertyType implements IPropertyType {
             } finally {
                 GroovyShellUtil.descriptorThreadLocal.remove();
             }
+        } else if (anEnum == null && (field.getType() == boolean.class || field.getType() == Boolean.class)) {
+            fieldExtraProps.getProps().put(Descriptor.KEY_ENUM_PROP, bolOps);
+            // Class.
         }
         return enums;
     }
@@ -395,6 +415,7 @@ public class PropertyType implements IPropertyType {
     public boolean isIdentity() {
         return this.formField.identity();
     }
+
     @JSONField(serialize = false)
     public JSONObject getExtraProps() {
         if (this.extraProp == null) {
@@ -402,6 +423,7 @@ public class PropertyType implements IPropertyType {
         }
         return this.extraProp.getProps();
     }
+
     @JSONField(serialize = false)
     public Optional<PluginExtraProps.FieldRefCreateor> getRefCreator() {
         if (this.extraProp == null) {
@@ -447,6 +469,7 @@ public class PropertyType implements IPropertyType {
     }
 
     private Validator[] validators;
+
     @JSONField(serialize = false)
     public Validator[] getValidator() {
 

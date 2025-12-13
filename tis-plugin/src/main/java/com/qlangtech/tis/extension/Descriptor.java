@@ -1105,6 +1105,21 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return true;
     }
 
+    /**
+     * 用户自定义属性的校验模版
+     *
+     * @param msgHandler
+     * @param context
+     * @param fieldName
+     * @param value
+     * @return
+     */
+    public boolean validateCustomerField( //
+                                          IFieldErrorHandler msgHandler, Context context, String fieldName,
+                                          String value) {
+        return true;
+    }
+
     private void addFieldRequiredError(IFieldErrorHandler msgHandler, Context context, String attrKey) {
         msgHandler.addFieldError(context, attrKey, ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
     }

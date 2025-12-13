@@ -162,6 +162,8 @@ public interface IEndTypeGetter {
         //
         //
 
+        , HttpProxy("http-proxy", EndTypeCategory.Assist, true) //
+
         // 预览按钮
         , UnKnowStoreType("unknowStoreType", EndTypeCategory.Icon, true) //
         , BatchComputing("batch-computing", EndTypeCategory.Icon, true)//

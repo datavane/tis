@@ -196,6 +196,11 @@ public class HttpUtils {
             }
 
             @Override
+            public boolean skipProxy() {
+                return true;
+            }
+
+            @Override
             public void error(int status, InputStream errstream, IOException e) throws Exception {
                 if (errorShortCircuit) {
                     super.error(status, errstream, e);
