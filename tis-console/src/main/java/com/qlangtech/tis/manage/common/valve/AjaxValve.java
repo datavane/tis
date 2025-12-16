@@ -41,6 +41,7 @@ import org.apache.struts2.result.StrutsResultSupport;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -270,10 +271,12 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
     }
 
     public ListDetailedItemsErrors getItemErrors() {
-      List<List<DefaultFieldErrorHandler.ItemsErrors>> pluginErrorList = this.getPluginErrorList();
-      for (List<DefaultFieldErrorHandler.ItemsErrors> el : pluginErrorList) {
-        for (DefaultFieldErrorHandler.ItemsErrors e : el) {
-          return (ListDetailedItemsErrors) e;
+      List<List<DefaultFieldErrorHandler.ItemsErrors>> pluginErrorList = (this.getPluginErrorList());
+      if (CollectionUtils.isNotEmpty(pluginErrorList)) {
+        for (List<DefaultFieldErrorHandler.ItemsErrors> el : pluginErrorList) {
+          for (DefaultFieldErrorHandler.ItemsErrors e : el) {
+            return (ListDetailedItemsErrors) e;
+          }
         }
       }
       return null;

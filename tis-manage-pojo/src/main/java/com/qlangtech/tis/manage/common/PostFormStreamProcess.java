@@ -20,6 +20,7 @@ package com.qlangtech.tis.manage.common;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.manage.common.ConfigFileContext.Header;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
+import org.apache.commons.collections.CollectionUtils;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
@@ -27,6 +28,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 提交html表单
@@ -36,11 +38,14 @@ import java.util.List;
  */
 public abstract class PostFormStreamProcess<T> extends StreamProcess<T> {
 
-    public static final List<Header> HEADERS_application_x_www_form_urlencoded = Collections.singletonList(new Header("content-type", "application/x-www-form-urlencoded"));
+    public static final List<Header> HEADERS_application_x_www_form_urlencoded =
+            Collections.singletonList(new Header("content-type", "application/x-www-form-urlencoded"));
 
-    public static final List<Header> HEADERS_multipart_byteranges = Collections.singletonList(new Header("content-type", "multipart/byteranges"));
+    public static final List<Header> HEADERS_multipart_byteranges = Collections.singletonList(new Header("content" +
+            "-type", "multipart/byteranges"));
 
-    public static final List<Header> HEADERS_CONTENT_TYPE_JSON = Collections.singletonList(new ConfigFileContext.Header("Content-Type", "application/json"));
+    public static final List<Header> HEADERS_CONTENT_TYPE_JSON =
+            Collections.singletonList(new ConfigFileContext.Header("Content-Type", "application/json"));
 
     public static final List<Header> HEADER_TEXT_HTML = Lists.newArrayList(new Header("content-type", "text/html"));
 
@@ -48,10 +53,34 @@ public abstract class PostFormStreamProcess<T> extends StreamProcess<T> {
         return ContentType.Application_x_www_form_urlencoded;
     }
 
+    private final List<Header> appendHeaders;
+
+    public PostFormStreamProcess(List<Header> appendHeaders) {
+        this.appendHeaders = appendHeaders;
+    }
+
+    public PostFormStreamProcess() {
+        this(Collections.emptyList());
+    }
+
+    public PostFormStreamProcess(Header appendHeader) {
+        this(Collections.singletonList(appendHeader));
+    }
+
     @Override
-    public List<Header> getHeaders() {
+    public final List<Header> getHeaders() {
         // return HEADERS_application_x_www_form_urlencoded;
-        return getContentType().headers;
+
+        if (CollectionUtils.isEmpty(appendHeaders)) {
+            return getContentType().headers;
+        } else {
+            List<ConfigFileContext.Header> hds = Lists.newArrayList(getContentType().headers);
+            hds.addAll(appendHeaders);
+            return hds;
+        }
+
+
+        // return getContentType().headers;
     }
 
     public int getMaxRetry() {
@@ -61,24 +90,32 @@ public abstract class PostFormStreamProcess<T> extends StreamProcess<T> {
     public enum ContentType {
 
         Multipart_byteranges(HEADERS_multipart_byteranges, (params) -> {
-            try {
-                StringBuilder content = new StringBuilder();
-                if (params != null) {
-                    for (HttpUtils.PostParam p : params) {
-                        content.append(p.getKey()).append("=").append(URLEncoder.encode(p.getValue(), TisUTF8.getName())).append("&");
+            // try {
+            // StringBuilder content = new StringBuilder();
+            if (CollectionUtils.isNotEmpty(params)) {
+
+                return params.stream().map((param) -> {
+                    try {
+                        return param.getKey() + "=" + URLEncoder.encode(param.getValue(), TisUTF8.getName());
+                    } catch (UnsupportedEncodingException e) {
+                        throw new RuntimeException(e);
                     }
-                }
-                return content.toString().getBytes(Charset.forName(TisUTF8.getName()));
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
+                }).collect(Collectors.joining("&")).getBytes(Charset.forName(TisUTF8.getName()));
+
+                //                    for (HttpUtils.PostParam p : params) {
+                //                        content.append(p.getKey()).append("=").append(URLEncoder.encode(p.getValue(),
+                //                                TisUTF8.getName())).append("&");
+                //                    }
             }
-        }),
-        //
-        TEXT_HTML(HEADER_TEXT_HTML, Multipart_byteranges.paramSerialize),
-        //
+            return null;
+            //  return content.toString().getBytes(Charset.forName(TisUTF8.getName()));
+            //            } catch (UnsupportedEncodingException e) {
+            //                throw new RuntimeException(e);
+            //            }
+        }), //
+        TEXT_HTML(HEADER_TEXT_HTML, Multipart_byteranges.paramSerialize), //
         Application_x_www_form_urlencoded(//
-                HEADERS_application_x_www_form_urlencoded, Multipart_byteranges.paramSerialize),
-        //
+                HEADERS_application_x_www_form_urlencoded, Multipart_byteranges.paramSerialize), //
         JSON(HEADERS_CONTENT_TYPE_JSON, (params) -> {
             JSONObject json = new JSONObject();
             for (HttpUtils.PostParam param : params) {

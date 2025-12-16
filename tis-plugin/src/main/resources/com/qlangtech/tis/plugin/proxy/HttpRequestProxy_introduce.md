@@ -6,6 +6,18 @@ HttpRequestProxy 是TIS系统的HTTP代理配置插件，用于统一管理系�
 
 在企业内网环境中，出于安全考虑，服务器通常无法直接访问互联网。此时，TIS在执行数据同步任务时，如果需要访问外部API接口、下载资源文件或者连接云端数据源，就必须通过企业的代理服务器进行中转。本插件正是为解决这一需求而设计的。
 
+## 📊 常用代理软件对比概览
+| 软件名称 | 官网地址 | 类型 | 主要特点 | 适合场景 | 许可证 |
+|---------|----------|------|---------|---------|--------|
+| **Squid** | [http://www.squid-cache.org/](http://www.squid-cache.org/) | 开源 | 功能全面，支持缓存、认证 | 大中型企业、ISP | GPL |
+| **Nginx** | [https://nginx.org/](https://nginx.org/) | 开源 | 高性能，反向代理/负载均衡 | Web服务器兼代理 | BSD |
+| **Apache Traffic Server** | [https://trafficserver.apache.org/](https://trafficserver.apache.org/) | 开源 | 高性能，云原生友好 | 大型互联网企业 | Apache 2.0 |
+| **CCProxy** | [http://www.ccproxy.com/](http://www.ccproxy.com/) | 商业 | 中文界面，易用性强 | 中小企业、教育机构 | 商业 |
+| **WinGate** | [https://www.wingate.com/](https://www.wingate.com/) | 商业 | 功能集成，Windows友好 | Windows环境企业 | 商业 |
+| **3proxy** | [https://3proxy.ru/](https://3proxy.ru/) | 开源 | 轻量级，跨平台 | 小型企业、嵌入式 | BSD |
+| **Tinyproxy** | [https://tinyproxy.github.io/](https://tinyproxy.github.io/) | 开源 | 极简设计，低内存占用 | 小型企业或部门级代理 | GPL |
+| **Polipo** | [https://www.pps.univ-paris-diderot.fr/~jch/software/polipo/](https://www.pps.univ-paris-diderot.fr/~jch/software/polipo/) | 开源 | 智能Web缓存，流量压缩 | 开发环境、个人使用 | MIT |
+
 ## 核心作用
 
 - **统一代理管理**：为TIS系统的所有外部HTTP请求配置统一的代理服务器，无需在每个功能模块或数据源连接中单独设置，大幅简化配置工作，降低出错风险

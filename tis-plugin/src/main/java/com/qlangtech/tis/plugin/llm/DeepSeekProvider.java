@@ -131,7 +131,8 @@ public class DeepSeekProvider extends LLMProvider {
 
             executeLog.setPostParams(postParams);
 
-            return HttpUtils.post(new URL(getApiUrl()), postParams, new PostFormStreamProcess<LLMResponse>() {
+            return HttpUtils.post(new URL(getApiUrl()), postParams //
+                    , new PostFormStreamProcess<LLMResponse>(new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey())) {
                 @Override
                 public ContentType getContentType() {
                     return ContentType.JSON;
@@ -191,12 +192,12 @@ public class DeepSeekProvider extends LLMProvider {
                     return response;
                 }
 
-                @Override
-                public List<ConfigFileContext.Header> getHeaders() {
-                    List<ConfigFileContext.Header> headers = new ArrayList<>(super.getHeaders());
-                    headers.add(new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey()));
-                    return headers;
-                }
+//                @Override
+//                public List<ConfigFileContext.Header> getHeaders() {
+//                    List<ConfigFileContext.Header> headers = new ArrayList<>(super.getHeaders());
+//                    headers.add(new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey()));
+//                    return headers;
+//                }
             });
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);

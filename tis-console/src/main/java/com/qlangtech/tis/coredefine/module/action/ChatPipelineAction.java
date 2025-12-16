@@ -365,7 +365,7 @@ public class ChatPipelineAction extends BasicModule {
     AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(), "agentContext can not be null");
     ColsMetaSetterSessionData colsMetaSetter = agentContext.getSessionData(requestId);
     IDataxProcessor processor = DataxProcessor.load(this, colsMetaSetter.getPipeline().identityValue());
-    TableAliasMapper tabAlias = processor.getTabAlias(this);
+    TableAliasMapper tabAlias = processor.getTabAlias(this, false);
     colsMetaSetter.setHasValidSet(tabAlias != TableAliasMapper.Null);
     agentContext.notifyUserSelectionSubmitted(requestId);
     this.setBizResult(context, colsMetaSetter.isHasValidSet());
@@ -410,7 +410,7 @@ public class ChatPipelineAction extends BasicModule {
     RequestKey requestId = RequestKey.create(jsonContent.getString(KEY_REQUEST_ID));
     ChatSession session = getChatSession(jsonContent);
     AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(),
-            "sessionId:" + session.getSessionId() + " relevant agentContext can not be null");
+      "sessionId:" + session.getSessionId() + " relevant agentContext can not be null");
     SelectionOptions selectionOptions = agentContext.getSessionData(requestId);
     List<PluginExtraProps.CandidatePlugin> cplugins = selectionOptions.getCandidatePlugins();
     for (PluginExtraProps.CandidatePlugin candidatePlugin : cplugins) {
@@ -446,7 +446,7 @@ public class ChatPipelineAction extends BasicModule {
     ChatSession session = getChatSession(jsonContent);
     RequestKey requestId = RequestKey.create(jsonContent.getString(KEY_REQUEST_ID));
     AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(), "agentContext can not be null," +
-            "sessionId:" + session.getSessionId());
+      "sessionId:" + session.getSessionId());
 
     PluginPropsComplement complement = agentContext.getSessionData(requestId);
     Pair<Describable, AttrValMap> postItems = PluginAction.getPostItems(this.getRequest());
@@ -481,7 +481,7 @@ public class ChatPipelineAction extends BasicModule {
     ChatSession session = getChatSession(jsonContent);
     // 获取AgentContext
     AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(), "agentContext can not be null," +
-            "sessionId:" + sessionId);
+      "sessionId:" + sessionId);
 
     SelectionOptions selectionOptions = agentContext.getSessionData(requestId);
     agentContext.setSessionData(requestId, selectionOptions.setSelectedIndex(selectedIndex));
@@ -490,7 +490,7 @@ public class ChatPipelineAction extends BasicModule {
     agentContext.notifyUserSelectionSubmitted(requestId);
 
     logger.info("User selection submitted for session={}, requestId={}, selectedIndex={}", sessionId, requestId,
-            selectedIndex);
+      selectedIndex);
 
     JSONObject result = new JSONObject();
     result.put("success", true);

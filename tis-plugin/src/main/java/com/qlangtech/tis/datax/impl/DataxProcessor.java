@@ -42,7 +42,6 @@ import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import com.qlangtech.tis.util.IPluginContext;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -70,6 +69,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 
     private transient Map<String, TableAlias> _tableMaps;
     private transient PluginStore<IAppSource> pluginStore;
+    private transient TableAliasMapper dftTableAliasMapper;
 
     public interface IDataxProcessorGetter {
         DataxProcessor get(String dataXName);
@@ -79,6 +79,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     @Override
     public void afterSaved(IPluginContext pluginContext, Optional<Context> context) {
         this._tableMaps = null;
+        this.dftTableAliasMapper = null;
     }
 
     @Override
@@ -118,8 +119,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
             return (IDataxProcessor) appSource.get();
         } else {
             KeyedPluginStore<IAppSource> store = IAppSource.getPluginStore(pluginContext, resType, dataXName);
-            throw new RuntimeException("targetName:" + dataXName + ",resType:" + resType + ",store file is not "
-                    + "exist:" + store.getTargetFile().getFile());
+            throw new RuntimeException("targetName:" + dataXName + ",resType:" + resType + ",store file is not " +
+                    "exist:" + store.getTargetFile().getFile());
         }
 
     }
@@ -134,8 +135,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         Optional<Descriptor<IAppSource>> dataxProcessDescs =
                 descs.stream().filter((des) -> targetProcessName.equals(des.getDisplayName())).findFirst();
         if (!dataxProcessDescs.isPresent()) {
-            throw new IllegalStateException("dataX process descriptor:" + targetProcessName + " relevant descriptor "
-                    + "can not be null");
+            throw new IllegalStateException("dataX process descriptor:" + targetProcessName + " relevant descriptor " + "can not be null");
         }
         return dataxProcessDescs.get();
     }
@@ -185,7 +185,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     }
 
     public TableAliasMapper getTabAlias() {
-        return this.getTabAlias(null);
+        return this.getTabAlias(null, true);
     }
 
     private Map<String, TableAlias> getTableMaps(IPluginContext pluginCtx) {
@@ -219,11 +219,11 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
      * @return
      */
     @Override
-    public TableAliasMapper getTabAlias(IPluginContext pluginCtx) {
-       // boolean isReaderUnStructed = false;
+    public TableAliasMapper getTabAlias(IPluginContext pluginCtx, boolean withDft) {
+        // boolean isReaderUnStructed = false;
         Map<String, TableAlias> tableMaps = getTableMaps(pluginCtx);
         // return
-        return MapUtils.isEmpty(tableMaps) ? TableAliasMapper.Null : new TableAliasMapper(tableMaps);
+        return MapUtils.isEmpty(tableMaps) ? getDefault(pluginCtx, withDft) : new TableAliasMapper(tableMaps);
         //        if ((this.isRDBMS2RDBMS(pluginCtx))
         //                || (isReaderUnStructed = this.isReaderUnStructed(pluginCtx))
         //                // 支持ElasticSearch
@@ -246,14 +246,33 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 
     }
 
+    private TableAliasMapper getDefault(IPluginContext pluginCtx, boolean withDft) {
+
+        if (this.dftTableAliasMapper == null) {
+            if (withDft) {
+                this.dftTableAliasMapper = TableAliasMapper.Null;
+                IDataxReader reader = this.getReader(pluginCtx);
+                List<ISelectedTab> tabs = reader.getUnfilledSelectedTabs();
+                Map<String, TableAlias> mapper = Maps.newHashMap();
+                for (ISelectedTab tab : tabs) {
+                    mapper.put(tab.getName(), new TableMap(tab));
+                }
+                this.dftTableAliasMapper = new TableAliasMapper(mapper);
+            } else {
+                return TableAliasMapper.Null;
+            }
+        }
+        return this.dftTableAliasMapper;
+    }
+
     @Override
     public void saveCreateTableDDL(IPluginContext pluginCtx, StringBuffer createDDL, String sqlFileName,
                                    boolean overWrite) throws IOException {
         File createDDLDir = this.getDataxCreateDDLDir(pluginCtx);
         saveCreateTableDDL(createDDL, createDDLDir, sqlFileName, overWrite);
         // 主要更新一下最后更新时间，这样在执行powerjob任务可以顺利将更新后的ddl文件同步到powerjob的worker节点上去
-        Objects.requireNonNull(this.pluginStore, "pluginStore can be null,shall be set by method  setPluginStore "
-                + "ahead").writeLastModifyTimeStamp();
+        Objects.requireNonNull(this.pluginStore, "pluginStore can be null,shall be set by method  setPluginStore " +
+                "ahead").writeLastModifyTimeStamp();
     }
 
     public static void saveCreateTableDDL(StringBuffer createDDL, File createDDLDir, String sqlFileName,

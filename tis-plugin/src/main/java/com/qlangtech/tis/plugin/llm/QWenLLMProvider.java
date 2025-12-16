@@ -22,6 +22,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
@@ -166,7 +167,11 @@ public class QWenLLMProvider extends LLMProvider {
 
             executeLog.setPostParams(postParams);
 
-            return HttpUtils.post(new URL(getApiUrl()), postParams, new PostFormStreamProcess<LLMResponse>() {
+            return HttpUtils.post(new URL(getApiUrl()), postParams,
+                    new PostFormStreamProcess<LLMResponse>( //
+                            Lists.newArrayList((new ConfigFileContext.Header(
+                            "Authorization", "Bearer " + getApiKey())), (new ConfigFileContext.Header("Content-Type",
+                            "application/json")))) {
                 @Override
                 public ContentType getContentType() {
                     return ContentType.JSON;
@@ -256,14 +261,14 @@ public class QWenLLMProvider extends LLMProvider {
                     return response;
                 }
 
-                @Override
-                public List<ConfigFileContext.Header> getHeaders() {
-                    List<ConfigFileContext.Header> headers = new ArrayList<>(super.getHeaders());
-                    // 通义千问使用 Bearer Token 认证
-                    headers.add(new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey()));
-                    headers.add(new ConfigFileContext.Header("Content-Type", "application/json"));
-                    return headers;
-                }
+//                @Override
+//                public List<ConfigFileContext.Header> getHeaders() {
+//                    List<ConfigFileContext.Header> headers = new ArrayList<>(super.getHeaders());
+//                    // 通义千问使用 Bearer Token 认证
+//                    headers.add(new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey()));
+//                    headers.add(new ConfigFileContext.Header("Content-Type", "application/json"));
+//                    return headers;
+//                }
             });
         } catch (MalformedURLException e) {
             throw new RuntimeException("Invalid URL: " + getApiUrl(), e);

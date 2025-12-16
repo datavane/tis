@@ -163,6 +163,7 @@ public interface IEndTypeGetter {
         //
 
         , HttpProxy("http-proxy", EndTypeCategory.Assist, true) //
+        , Aliyun("aliyun", EndTypeCategory.Assist, true) //
 
         // 预览按钮
         , UnKnowStoreType("unknowStoreType", EndTypeCategory.Icon, true) //

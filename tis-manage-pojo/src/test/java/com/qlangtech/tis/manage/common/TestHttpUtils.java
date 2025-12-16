@@ -18,7 +18,10 @@
 
 package com.qlangtech.tis.manage.common;
 
+import com.qlangtech.tis.cloud.ITISCoordinator;
 import junit.framework.TestCase;
+
+import java.net.URL;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -26,4 +29,12 @@ import junit.framework.TestCase;
  **/
 public class TestHttpUtils extends TestCase {
 
+    public void testPost(){
+       // URL url, List<HttpUtils.PostParam > params, PostFormStreamProcess<T> process, ConfigFileContext.HTTPMethod
+       // httpMethod
+//        final String assembleNodeAddress = getAssembleNodeAddress(ITISCoordinator.create());
+//        HttpUtils.process()
+
+     //   TriggerBuildResult.
+    }
 }

@@ -93,12 +93,12 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
     }
 
     default JSONObject createNode() {
-//        JSONObject initNode = new JSONObject();
-//        initNode.put(StoreResourceType.DATAX_NAME, this.identityValue());
-//        initNode.put(IFullBuildContext.KEY_APP_NAME, this.identityValue());
-//        // 是否是dataflow的处理类型
-//        initNode.put(StoreResourceType.KEY_STORE_RESOURCE_TYPE, this.getResType().getType());
-//        return initNode;
+        //        JSONObject initNode = new JSONObject();
+        //        initNode.put(StoreResourceType.DATAX_NAME, this.identityValue());
+        //        initNode.put(IFullBuildContext.KEY_APP_NAME, this.identityValue());
+        //        // 是否是dataflow的处理类型
+        //        initNode.put(StoreResourceType.KEY_STORE_RESOURCE_TYPE, this.getResType().getType());
+        //        return initNode;
         return createNode(this.identityValue(), this.getResType());
     }
 
@@ -107,8 +107,8 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
      * @param tableName
      * @return
      */
-    Pair<List<RecordTransformerRules>, IPluginStore>
-    getRecordTransformerRulesAndPluginStore(IPluginContext pluginCtx, String tableName);
+    Pair<List<RecordTransformerRules>, IPluginStore> getRecordTransformerRulesAndPluginStore(IPluginContext pluginCtx
+            , String tableName);
 
 
     default SynResTarget getResTarget() {
@@ -122,9 +122,9 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
         }
     }
 
-//    default DataXName getDataXName() {
-//        return new DataXName(this.identityValue(), this.getResType());
-//    }
+    //    default DataXName getDataXName() {
+    //        return new DataXName(this.identityValue(), this.getResType());
+    //    }
 
     static File getDataXWorkDir(IPluginContext pluginContext, String appName) {
         KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(pluginContext, appName);
@@ -136,16 +136,16 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
     ) throws Exception {
         DataXName dataXName = pluginMeta.getDataXName(false);
         if (dataXName != null) {
-//            Descriptor descriptor = TIS.get().getDescriptor(FileUtils.readFileToString(getWriterDescFile(pluginMeta.getPluginContext(), dataXName), TisUTF8.get()));
-//            return descriptor;
+            //            Descriptor descriptor = TIS.get().getDescriptor(FileUtils.readFileToString
+            //            (getWriterDescFile(pluginMeta.getPluginContext(), dataXName), TisUTF8.get()));
+            //            return descriptor;
             return getWriterDescriptor(pluginMeta.getPluginContext(), dataXName.getPipelineName());
         } else {
             return null;
         }
     }
 
-    static Descriptor getWriterDescriptor(IPluginContext pluginContext, String dataXName
-    ) {
+    static Descriptor getWriterDescriptor(IPluginContext pluginContext, String dataXName) {
         try {
             Objects.requireNonNull(pluginContext, "pluginContext can not be null");
             if (StringUtils.isEmpty(dataXName)) {
@@ -171,7 +171,8 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
     public default void makeTempDir(String execId) throws Exception {
 
         File workingDir = getDataXWorkDir((IPluginContext) null);
-        FileUtils.copyDirectory(workingDir, new File(workingDir.getParentFile(), KeyedPluginStore.TMP_DIR_NAME + workingDir.getName() + "-" + execId));
+        FileUtils.copyDirectory(workingDir, new File(workingDir.getParentFile(),
+                KeyedPluginStore.TMP_DIR_NAME + workingDir.getName() + "-" + execId));
     }
 
 
@@ -238,7 +239,8 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
      * @param sqlFileName
      * @param overWrite
      */
-    public void saveCreateTableDDL(IPluginContext pluginCtx, StringBuffer createDDL, String sqlFileName, boolean overWrite) throws IOException;
+    public void saveCreateTableDDL(IPluginContext pluginCtx, StringBuffer createDDL, String sqlFileName,
+                                   boolean overWrite) throws IOException;
 
     public File getDataXWorkDir(IPluginContext pluginContext);
 
@@ -255,16 +257,17 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
 
     public boolean isWriterSupportMultiTableInReader(IPluginContext pluginCtx);
 
-//    public default DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginCtx) {
-//        return getDataxCfgFileNames(pluginCtx, Optional.empty());
-//    }
+    //    public default DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginCtx) {
+    //        return getDataxCfgFileNames(pluginCtx, Optional.empty());
+    //    }
 
     /**
      * dataX配置文件列表
      *
      * @return
      */
-    public DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginCtx, Optional<JobTrigger> partialTrigger);
+    public DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginCtx,
+                                                               Optional<JobTrigger> partialTrigger);
 
     /**
      * 表映射
@@ -272,7 +275,14 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
      *
      * @return key: fromTabName
      */
-    public TableAliasMapper getTabAlias(IPluginContext pluginCtx);
+
+    /**
+     *
+     * @param pluginCtx
+     * @param withDft   发现没有定义alias，就用selecttable的tableName填充
+     * @return
+     */
+    public TableAliasMapper getTabAlias(IPluginContext pluginCtx, boolean withDft);
 
     /**
      * 是否支持批量执行
@@ -283,7 +293,8 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
     default boolean isSupportBatch(IPluginContext pluginCtx) {
         List<IDataxReader> readers = this.getReaders(pluginCtx);
         DataxWriter writer = (DataxWriter) this.getWriter(pluginCtx);
-        DataxWriter.BaseDataxWriterDescriptor writerDesc = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
+        DataxWriter.BaseDataxWriterDescriptor writerDesc =
+                (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();
         return isSupportBatch(readers) && writerDesc.isSupportBatch();
     }
 
@@ -300,7 +311,8 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
      * @param groupedChildTask
      * @return
      */
-    Set<TransformerInfo> getTransformerInfo(IPluginContext pluginCtx, Map<String, List<DBDataXChildTask>> groupedChildTask);
+    Set<TransformerInfo> getTransformerInfo(IPluginContext pluginCtx,
+                                            Map<String, List<DBDataXChildTask>> groupedChildTask);
 
     /**
      * 标示DataXWriter会自己创建IDataxProcessor.TableMap实例，使用这个标示必须满足isSupportMultiTable为false，具体例子可以看DataXMongodbWriter
@@ -347,8 +359,8 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
 
         public TableMap(Optional<String> tabName, final List<CMeta> cmetas) {
             List<CMeta> cMetas = rewriteCols(cmetas);
-            List<String> pks = cMetas.stream()
-                    .filter((c) -> c.isPk()).map((c) -> c.getName()).collect(Collectors.toUnmodifiableList());
+            List<String> pks =
+                    cMetas.stream().filter((c) -> c.isPk()).map((c) -> c.getName()).collect(Collectors.toUnmodifiableList());
             this.tab = (new ISelectedTab() {
                 @Override
                 public String getName() {
@@ -428,9 +440,9 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
         public int hashCode() {
             return Objects.hashCode(this.getFrom());
         }
-//        public void setSourceCols(List<ISelectedTab.ColMeta> sourceCols) {
-//            this.sourceCols = sourceCols;
-//        }
+        //        public void setSourceCols(List<ISelectedTab.ColMeta> sourceCols) {
+        //            this.sourceCols = sourceCols;
+        //        }
 
     }
 
@@ -438,16 +450,18 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
         private final List<String> cols;
         private final IDBReservedKeys dbReservedKeys;
 
-        public static TabCols create(
-                IDBReservedKeys dbReservedKeys, TableMap tm, Optional<RecordTransformerRules> transformerRules) {
+        public static TabCols create(IDBReservedKeys dbReservedKeys, TableMap tm,
+                                     Optional<RecordTransformerRules> transformerRules) {
 
             List<IColMetaGetter> cols = tm.appendTransformerRuleCols(transformerRules);
-//            transformerRules.map((rule) -> {
-//                TransformerOverwriteCols<OutputParameter> outputParameters = rule.overwriteCols(tm.getSourceCols());
-//                return outputParameters.getCols().stream().map((c) -> (IColMetaGetter) c).collect(Collectors.toList());
-//            }).orElseGet(() -> {
-//                return tm.getSourceCols().stream().map((c) -> c).collect(Collectors.toList());
-//            });
+            //            transformerRules.map((rule) -> {
+            //                TransformerOverwriteCols<OutputParameter> outputParameters = rule.overwriteCols(tm
+            //                .getSourceCols());
+            //                return outputParameters.getCols().stream().map((c) -> (IColMetaGetter) c).collect
+            //                (Collectors.toList());
+            //            }).orElseGet(() -> {
+            //                return tm.getSourceCols().stream().map((c) -> c).collect(Collectors.toList());
+            //            });
 
             return new TabCols(dbReservedKeys, cols.stream().map((c) -> c.getName()).collect(Collectors.toList()));
         }

@@ -250,8 +250,8 @@ public class DataXCfgGenerator implements IDataXNameAware {
         IDataxWriter writer = dataxProcessor.getWriter(this.pluginCtx);
         DataxWriter.BaseDataxWriterDescriptor writerDescriptor = writer.getWriterDescriptor();
         SourceColMetaGetter colMetaGetter = null;
-        TableAliasMapper tabAlias = Objects.requireNonNull(dataxProcessor.getTabAlias(this.pluginCtx), "tabAlias can "
-                + "not be null");
+//        TableAliasMapper tabAlias = Objects.requireNonNull(dataxProcessor.getTabAlias(this.pluginCtx), "tabAlias can "
+//                + "not be null");
         Set<String> createDDLFiles = Sets.newHashSet();
         List<String> existDDLFiles = getExistDDLFiles();
 
@@ -320,7 +320,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
         public TableMapCreator() {
             this.unStructedReader = dataxProcessor.isReaderUnStructed(pluginCtx);
             this.writer = dataxProcessor.getWriter(pluginCtx);
-            this.tabAlias = Objects.requireNonNull(dataxProcessor.getTabAlias(pluginCtx), "tabAlias can not be null");
+            this.tabAlias = Objects.requireNonNull(dataxProcessor.getTabAlias(pluginCtx,false), "tabAlias can not be null");
 
 
             Map<IDataxReader, Map<String, ISelectedTab>> selectedTabsRef = new HashMap<>();

@@ -362,18 +362,19 @@ public class PropertyType implements IPropertyType {
 
     private static JSONArray resolveEnumProp(Field field, Descriptor descriptor,
                                              PluginExtraProps.Props fieldExtraProps, Function<Object, Object> process) {
-        Object anEnum = fieldExtraProps.getProps().get(Descriptor.KEY_ENUM_PROP);
+        JSONObject props =  fieldExtraProps.getProps();
+        Object anEnum = props.get(Descriptor.KEY_ENUM_PROP);
         JSONArray enums = new JSONArray();
         if (anEnum != null && anEnum instanceof String) {
             try {
                 GroovyShellUtil.descriptorThreadLocal.set(descriptor);
-                fieldExtraProps.getProps().put(Descriptor.KEY_ENUM_PROP,
+                props.put(Descriptor.KEY_ENUM_PROP,
                         GroovyShellEvaluate.scriptEval((String) anEnum, process));
             } finally {
                 GroovyShellUtil.descriptorThreadLocal.remove();
             }
         } else if (anEnum == null && (field.getType() == boolean.class || field.getType() == Boolean.class)) {
-            fieldExtraProps.getProps().put(Descriptor.KEY_ENUM_PROP, bolOps);
+            props.put(Descriptor.KEY_ENUM_PROP, bolOps);
             // Class.
         }
         return enums;

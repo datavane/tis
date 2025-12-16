@@ -75,7 +75,8 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 
 
     public StreamComponentCodeGeneratorFlink(DataXName collectionName, long timestamp,
-                                             List<FacadeContext> daoFacadeList, IBasicAppSource streamIncrGenerateStrategy) {
+                                             List<FacadeContext> daoFacadeList,
+                                             IBasicAppSource streamIncrGenerateStrategy) {
         super(collectionName, timestamp);
         Objects.requireNonNull(streamIncrGenerateStrategy, "streamIncrGenerateStrategy can not be null");
         // this.erRules = ERRules.getErRule(topology.getName());
@@ -91,12 +92,13 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 
                 List<TableAlias> aliases = Lists.newArrayList();
 
-                TableAliasMapper tabAlias = processor.getTabAlias(null);
+                TableAliasMapper tabAlias = processor.getTabAlias(null, true);
                 tabAlias.forEach((key, alia) -> {
                     aliases.add(alia);
                 });
                 if (CollectionUtils.isEmpty(aliases)) {
-                    throw new IllegalStateException("pipeline:" + processor.identityValue() + " relevant aliases can not be empty");
+                    throw new IllegalStateException("pipeline:" + processor.identityValue() + " relevant aliases can "
+                            + "not be empty");
                 }
                 return aliases;
             }
@@ -121,336 +123,383 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
      */
     public void build() throws Exception {
         // final PrintStream traversesAllNodeOut = new PrintStream(new File("./traversesAllNode.txt"));
-        MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap,
-                getTabTriggerLinker(), getERRule(), this.daoFacadeList, this.streamIncrGenerateStrategy);
+        MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, getTabTriggerLinker(),
+                getERRule(), this.daoFacadeList, this.streamIncrGenerateStrategy);
 
         mergeGenerate(streamIncrGenerateStrategy.decorateMergeData(mergeData));
         try {
-//            Map<IEntityNameGetter, List<IValChain>> tabTriggers = this.streamIncrGenerateStrategy.getTabTriggerLinker();
-//            IERRules erR = streamIncrGenerateStrategy.getERRule();
+            //            Map<IEntityNameGetter, List<IValChain>> tabTriggers = this.streamIncrGenerateStrategy
+            //            .getTabTriggerLinker();
+            //            IERRules erR = streamIncrGenerateStrategy.getERRule();
 
-//            PropGetter last = null;
-//            PropGetter first = null;
-//            Optional<TableRelation> firstParent = null;
+            //            PropGetter last = null;
+            //            PropGetter first = null;
+            //            Optional<TableRelation> firstParent = null;
             // Map<IEntityNameGetter, List<IValChain>> tabTriggers = getTabTriggerLinker();
 
             //  FuncFormat aliasListBuffer = new FuncFormat();
 
 
             // for (Map.Entry<IEntityNameGetter, List<IValChain>> e : tabTriggers.entrySet()) {
-//                final EntityName entityName = e.getKey().getEntityName();
-//                final Set<String> relevantCols = e.getValue().stream()
-//                        .map((rr) -> rr.last().getOutputColName().getName()).collect(Collectors.toSet());
-//
-//                //>>>>>>>>>>>>>
-//                // 包括主表的和子表的
-//                final Set<String> linkCols = Sets.newHashSet();
-//                final List<TableRelation> allParent = erR.getAllParent(entityName);
-//                for (TableRelation r : allParent) {
-//                    linkCols.addAll(r.getJoinerKeys().stream().map((j) -> j.getChildKey()).collect(Collectors.toList()));
-//                }
-//
-//                final List<TableRelation> allChild = erR.getChildTabReference(entityName);
-//                for (TableRelation r : allChild) {
-//                    linkCols.addAll(r.getJoinerKeys().stream().map((j) -> j.getParentKey()).collect(Collectors.toList()));
-//                }
-//                //<<<<<<<<<<<<<<
-//
-//                traversesAllNodeOut.println("<<<<<<<%%%%%%%%export:" + entityName);
-//
-//                aliasListBuffer.append("val ").append(entityName.getJavaEntityName())
-//                        .append("Builder:AliasList.Builder = builder.add(\"").append(entityName.getTabName())
-//                        .append("\")");
-//                final boolean isTriggerIgnore = erR.isTriggerIgnore(entityName);
-//                if (isTriggerIgnore) {
-//                    aliasListBuffer.append(".setIgnoreIncrTrigger()");
-//                }
-//
-//                // 设置是否是主键
-//                boolean isPrimaryTable = false;
-//                Optional<TableMeta> primaryFind = erR.getPrimaryTab(entityName);
-//                PrimaryTableMeta ptab = null;
-//                if (primaryFind.isPresent()) {
-//                    isPrimaryTable = true;
-//                    ptab = (PrimaryTableMeta) primaryFind.get();
-//                    aliasListBuffer.append(".setPrimaryTableOfIndex()");
-//                }
-//
-//                aliasListBuffer.returnLine();
-//
-//                if (!isPrimaryTable) {
-//                    // 设置主键
-//                    aliasListBuffer
-//                            .methodBody(entityName.javaPropTableName() + "ColEnum.getPKs().forEach((r) =>", (r) -> {
-//                                r.startLine(entityName.getJavaEntityName()).append("Builder.add(r.getName().PK())");
-//                            }).append(")");
-//                }
-//
-//
-//                aliasListBuffer.startLine(entityName.getJavaEntityName()).append("Builder.add(").append(" // ").returnLine();
-//
-//                boolean timestampVerColumnProcessed = false;
-//                // 判断out的列是否已经输出
-//                Set<String> outCol = Sets.newHashSet();
-//                boolean firstAdd = true;
-//                boolean hasSetTimestampVerColumn;
-//                if (!(hasSetTimestampVerColumn = erR.hasSetTimestampVerColumn(entityName))) {
-//                    if (erR.getTimeCharacteristic() != TimeCharacteristic.ProcessTime) {
-//                        throw new IllegalStateException("table:" + entityName.getTabName()
-//                                + "either have not set timestampVer col name or global timeCharacteristic is not 'ProcessTime'");
-//                    }
-//                    firstAdd = false;
-//                    aliasListBuffer.append("(\"processTime\").processTimeVer()").returnLine();
-//                }
-//
-//                for (IValChain tupleLink : e.getValue()) {
-//                    first = tupleLink.first();
-//                    last = tupleLink.last();
-//                    traversesAllNodeOut.println("last:" + (last == null ? "null" : last.getIdentityName()));
-//                    traversesAllNodeOut.println("first:" + (first == null ? "null" : first.getIdentityName()));
-//                    traversesAllNodeOut.println(Joiner.on("\n-->").join(tupleLink.mapChainValve((r/* PropGetter */) -> {
-//                        return r.getIdentityName();
-//                    }).iterator()));
-//
-//                    traversesAllNodeOut.println("-------------------------------");
-//
-//                    boolean haveAdd = outCol.add(first.getOutputColName().getAliasName());
-//
-//                    if (!firstAdd) {
-//                        aliasListBuffer.startLine(",");
-//                    } else {
-//                        firstAdd = false;
-//                    }
-//
-//
-//                    if (tupleLink.useAliasOutputName()) {
-//                        aliasListBuffer.append("(\"").append(last.getOutputColName().getName()).append("\", \"")
-//                                .append(first.getOutputColName().getAliasName()).append("\")");
-//                    } else {
-//                        aliasListBuffer.append("(\"").append(last.getOutputColName().getName()).append("\")");
-//                    }
-//
-//                    // 如果是主表就在通过单独的列meta配置中的信息来设置主键，在实际例子中发现表中使用了联合主键，在运行的时候会出错
-//                    if (isPrimaryTable && ptab.isPK(last.getOutputColName().getName())) {
-//                        aliasListBuffer.append(".PK()");
-//                    }
-//
-//                    if (hasSetTimestampVerColumn && erR.isTimestampVerColumn(entityName, last.getOutputColName().getName())) {
-//                        // 时间戳字段
-//                        aliasListBuffer.append(".timestampVer()");
-//                        timestampVerColumnProcessed = true;
-//                    }
-//
-//                    if (!haveAdd) {
-//                        aliasListBuffer.append(".notCopy()");
-//
-//                    } else if (tupleLink.hasFuncTuple()) {
-//
-//                        AtomicBoolean shallCallableProcess = new AtomicBoolean(false);
-//
-//                        final FunctionVisitor.IToString shallCallableProcessToken = new FunctionVisitor.IToString() {
-//                            @Override
-//                            public String toString() {
-//                                return shallCallableProcess.get() ? "c" : "t";
-//                            }
-//                        };
-//
-//                        final FunctionVisitor.IToString fieldValue = new FunctionVisitor.IToString() {
-//                            @Override
-//                            public String toString() {
-//                                return shallCallableProcess.get() ? StringUtils.EMPTY : ", fieldValue";
-//                            }
-//                        };
-//
-//                        aliasListBuffer.append(".").append(shallCallableProcessToken).append("(")//
-//                                .append("(" + FunctionVisitor.ROW_KEY).append(fieldValue).append(")")
-//                                .methodBody(false, " => ", (rr) -> {
-//                                    final AtomicInteger index = new AtomicInteger();
-//                                    final AtomicReference<String> preGroupAggrgationName = new AtomicReference<>();
-//                                    tupleLink.chainStream()
-//                                            .filter((r) -> r.getTupleCreator() != null
-//                                                    && r.getTupleCreator() instanceof FunctionDataTupleCreator)
-//                                            .forEach((r) -> {
-//                                                final FunctionDataTupleCreator tuple = (FunctionDataTupleCreator) r
-//                                                        .getTupleCreator();
-//                                                final PropGetter propGetter = r;
-//                                                MapDataMethodCreator mapDataMethodCreator = null;
-//                                                Optional<TisGroupBy> group = tuple.getGroupBy();
-//                                                if (propGetter.shallCallableProcess()) {
-//                                                    shallCallableProcess.set(true);
-//                                                }
-//                                                if (index.getAndIncrement() < 1) {
-//
-//                                                    if (r.isGroupByFunction()) {
-//                                                        TisGroupBy groups = group.get();
-//                                                        mapDataMethodCreator = addMapDataMethodCreator(entityName, groups, relevantCols);
-//
-//                                                        rr.startLine("val ").append(groups.getGroupAggrgationName())
-//                                                                .append(":Map[GroupKey /*")
-//                                                                .append(groups.getGroupsLiteria())
-//                                                                .append("*/, GroupValues]  = ")
-//                                                                .append(mapDataMethodCreator.getMapDataMethodName())
-//                                                                .append("(").append(FunctionVisitor.ROW_KEY).append(")")
-//                                                                .returnLine().returnLine();
-//
-//                                                        preGroupAggrgationName.set(groups.getGroupAggrgationName());
-//
-//                                                        generateCreateGroupResultScript(rr, propGetter, groups);
-//
-//                                                    } else {
-//                                                        // 不需要反查维表执行函数
-//                                                        // 测试
-//                                                        generateFunctionCallScript(rr, propGetter);
-//                                                    }
-//
-//                                                } else {
-//                                                    if (r.isGroupByFunction()) {
-//                                                        TisGroupBy groups = group.get();
-//
-//                                                        rr.append("val ").append(groups.getGroupAggrgationName())
-//                                                                .append(": Map[GroupKey /* ")
-//                                                                .append(groups.getGroupsLiteria())
-//                                                                .append(" */, GroupValues] ").append(" = reduceData(")
-//                                                                .append(preGroupAggrgationName.get()).append(", " + groups.getGroupKeyAsParamsLiteria() + ")\n");
-//
-//                                                        generateCreateGroupResultScript(rr, propGetter, groups);
-//
-//                                                        preGroupAggrgationName.set(groups.getGroupsLiteria());
-//                                                    } else {
-//
-//                                                        generateFunctionCallScript(rr, propGetter);
-//                                                    }
-//
-//                                                }
-//
-//                                            });
-//
-//                                }).append(")/*end .t()*/");
-//
-//                    }
-//                }
-//
-//                for (String linkKey : linkCols) {
-//                    if (!relevantCols.contains(linkKey)) {
-//                        if (!firstAdd) {
-//                            aliasListBuffer.appendLine(",");
-//                        } else {
-//                            firstAdd = false;
-//                            aliasListBuffer.returnLine();
-//                        }
-//                        aliasListBuffer.append("(\"")
-//                                .append(linkKey).append("\").notCopy()  ");
-//
-//                        if (erR.isTimestampVerColumn(entityName, linkKey)) {
-//                            aliasListBuffer.append(".timestampVer()");
-//                            timestampVerColumnProcessed = true;
-//                        }
-//
-//                        aliasListBuffer.append("// FK or primay key");
-//                    }
-//                }
-//
-//
-//                // timestampVer标记没有添加，且本表不要监听增量消息
-//                if (hasSetTimestampVerColumn && !timestampVerColumnProcessed && !erR.isTriggerIgnore(entityName)) {
-//                    if (!firstAdd) {
-//                        aliasListBuffer.appendLine(",");
-//                    } else {
-//                        firstAdd = false;
-//                        aliasListBuffer.returnLine();
-//                    }
-//                    aliasListBuffer.append("(\"")
-//                            .append(erR.getTimestampVerColumn(entityName)).append("\").notCopy().timestampVer() //gencode9 ");
-//                }
-//
-//                //>>>>>>>>>>>>>
-//                aliasListBuffer.appendLine(");\n");
-//                traversesAllNodeOut.println("======================================>>>>>>>>>");
-//
-//                //>>>>>>>>>>>>>
-//                for (TableRelation r : allParent) {
-//
-//                    aliasListBuffer.append(entityName.getJavaEntityName())
-//                            .append("Builder.addParentTabRef(").append(r.getParent().parseEntityName().createNewLiteriaToken())
-//                            .append(",").append(JoinerKey.createListNewLiteria(r.getJoinerKeys())).append(")").returnLine();
-//                }
-//
-//                for (TableRelation r : allChild) {
-//                    aliasListBuffer.append(entityName.getJavaEntityName())
-//                            .append("Builder.addChildTabRef(").append(r.getChild().parseEntityName().createNewLiteriaToken())
-//                            .append(",").append(JoinerKey.createListNewLiteria(r.getJoinerKeys())).append(")").returnLine();
-//                }
-//                //<<<<<<<<<<<<<<
-//
-//                if (!this.excludeFacadeDAOSupport) {
-//
-//                    aliasListBuffer.append(entityName.getJavaEntityName())
-//                            .append("Builder.setGetterRowsFromOuterPersistence(/*gencode5*/")
-//                            .methodBody(" (rowTabName, rvals, pk ) =>", (f) -> {
-//                                Set<String> selectCols = Sets.union(relevantCols, linkCols);
-//                                if (primaryFind.isPresent()) {
-//                                    // 主索引表
-//                                    PrimaryTableMeta ptabMeta = (PrimaryTableMeta) primaryFind.get();
-//
-//                                    f.appendLine(entityName.buildDefineRowMapListLiteria());
-//                                    f.appendLine(entityName.buildDefineCriteriaEqualLiteria());
-//
-//                                    List<PrimaryLinkKey> primaryKeyNames = ptabMeta.getPrimaryKeyNames();
-//                                    for (PrimaryLinkKey linkKey : primaryKeyNames) {
-//                                        if (!linkKey.isPk()) {
-//                                            TisGroupBy.TisColumn routerKey = new TisGroupBy.TisColumn(linkKey.getName());
-//                                            f.appendLine(routerKey.buildDefineGetPkRouterVar());
-//                                        }
-//                                    }
-//                                    f.appendLine(entityName.buildCreateCriteriaLiteria());
-//                                    for (PrimaryLinkKey linkKey : primaryKeyNames) {
-//                                        if (linkKey.isPk()) {
-//                                            TisGroupBy.TisColumn pk = new TisGroupBy.TisColumn(linkKey.getName());
-//                                            f.append(pk.buildPropCriteriaEqualLiteria("pk.getValue()"));
-//                                        } else {
-//                                            TisGroupBy.TisColumn pk = new TisGroupBy.TisColumn(linkKey.getName());
-//                                            f.append(pk.buildPropCriteriaEqualLiteria());
-//                                        }
-//                                    }
-//                                    f.appendLine(entityName.buildAddSelectorColsLiteria(selectCols));
-//                                    f.appendLine(entityName.buildExecuteQueryDAOLiteria());
-//                                    f.appendLine(entityName.entities());
-//                                } else {
-//                                    if (allChild.size() > 0) {
-//                                        f.appendLine(entityName.buildDefineRowMapListLiteria());
-//                                        f.appendLine(entityName.buildDefineCriteriaEqualLiteria()).returnLine();
-//                                        f.appendLine(entityName.buildAddSelectorColsLiteria(selectCols));
-//                                        f.methodBody("rowTabName match ", (ff) -> {
-//                                            for (TableRelation rel : allChild) {
-//                                                EntityName childEntity = rel.getChild().parseEntityName();
-//
-//                                                ff.methodBody("case \"" + childEntity.getTabName() + "\" =>", (fff) -> {
-//                                                    fff.appendLine(entityName.buildCreateCriteriaLiteria());
-//                                                    for (JoinerKey jk : rel.getJoinerKeys()) {
-//                                                        TisGroupBy.TisColumn k = new TisGroupBy.TisColumn(jk.getParentKey());
-//                                                        fff.append(k.buildPropCriteriaEqualLiteria("rvals.getColumn(\"" + jk.getChildKey() + "\")"));
-//                                                    }
-//                                                    fff.returnLine();
-//
-//                                                    fff.appendLine(entityName.buildExecuteQueryDAOLiteria());
-//                                                    fff.appendLine(entityName.entities());
-//                                                });
-//                                            }
-//                                            ff.appendLine("case unexpected => null");
-//                                        });
-//                                    } else {
-//                                        f.appendLine(" null");
-//                                    }
-//                                }
-//                            }).appendLine(") // end setGetterRowsFromOuterPersistence").returnLine().returnLine();
-//                }
+            //                final EntityName entityName = e.getKey().getEntityName();
+            //                final Set<String> relevantCols = e.getValue().stream()
+            //                        .map((rr) -> rr.last().getOutputColName().getName()).collect(Collectors.toSet());
+            //
+            //                //>>>>>>>>>>>>>
+            //                // 包括主表的和子表的
+            //                final Set<String> linkCols = Sets.newHashSet();
+            //                final List<TableRelation> allParent = erR.getAllParent(entityName);
+            //                for (TableRelation r : allParent) {
+            //                    linkCols.addAll(r.getJoinerKeys().stream().map((j) -> j.getChildKey()).collect
+            //                    (Collectors.toList()));
+            //                }
+            //
+            //                final List<TableRelation> allChild = erR.getChildTabReference(entityName);
+            //                for (TableRelation r : allChild) {
+            //                    linkCols.addAll(r.getJoinerKeys().stream().map((j) -> j.getParentKey()).collect
+            //                    (Collectors.toList()));
+            //                }
+            //                //<<<<<<<<<<<<<<
+            //
+            //                traversesAllNodeOut.println("<<<<<<<%%%%%%%%export:" + entityName);
+            //
+            //                aliasListBuffer.append("val ").append(entityName.getJavaEntityName())
+            //                        .append("Builder:AliasList.Builder = builder.add(\"").append(entityName
+            //                        .getTabName())
+            //                        .append("\")");
+            //                final boolean isTriggerIgnore = erR.isTriggerIgnore(entityName);
+            //                if (isTriggerIgnore) {
+            //                    aliasListBuffer.append(".setIgnoreIncrTrigger()");
+            //                }
+            //
+            //                // 设置是否是主键
+            //                boolean isPrimaryTable = false;
+            //                Optional<TableMeta> primaryFind = erR.getPrimaryTab(entityName);
+            //                PrimaryTableMeta ptab = null;
+            //                if (primaryFind.isPresent()) {
+            //                    isPrimaryTable = true;
+            //                    ptab = (PrimaryTableMeta) primaryFind.get();
+            //                    aliasListBuffer.append(".setPrimaryTableOfIndex()");
+            //                }
+            //
+            //                aliasListBuffer.returnLine();
+            //
+            //                if (!isPrimaryTable) {
+            //                    // 设置主键
+            //                    aliasListBuffer
+            //                            .methodBody(entityName.javaPropTableName() + "ColEnum.getPKs().forEach((r)
+            //                            =>", (r) -> {
+            //                                r.startLine(entityName.getJavaEntityName()).append("Builder.add(r
+            //                                .getName().PK())");
+            //                            }).append(")");
+            //                }
+            //
+            //
+            //                aliasListBuffer.startLine(entityName.getJavaEntityName()).append("Builder.add(").append
+            //                (" // ").returnLine();
+            //
+            //                boolean timestampVerColumnProcessed = false;
+            //                // 判断out的列是否已经输出
+            //                Set<String> outCol = Sets.newHashSet();
+            //                boolean firstAdd = true;
+            //                boolean hasSetTimestampVerColumn;
+            //                if (!(hasSetTimestampVerColumn = erR.hasSetTimestampVerColumn(entityName))) {
+            //                    if (erR.getTimeCharacteristic() != TimeCharacteristic.ProcessTime) {
+            //                        throw new IllegalStateException("table:" + entityName.getTabName()
+            //                                + "either have not set timestampVer col name or global
+            //                                timeCharacteristic is not 'ProcessTime'");
+            //                    }
+            //                    firstAdd = false;
+            //                    aliasListBuffer.append("(\"processTime\").processTimeVer()").returnLine();
+            //                }
+            //
+            //                for (IValChain tupleLink : e.getValue()) {
+            //                    first = tupleLink.first();
+            //                    last = tupleLink.last();
+            //                    traversesAllNodeOut.println("last:" + (last == null ? "null" : last.getIdentityName
+            //                    ()));
+            //                    traversesAllNodeOut.println("first:" + (first == null ? "null" : first
+            //                    .getIdentityName()));
+            //                    traversesAllNodeOut.println(Joiner.on("\n-->").join(tupleLink.mapChainValve((r/*
+            //                    PropGetter */) -> {
+            //                        return r.getIdentityName();
+            //                    }).iterator()));
+            //
+            //                    traversesAllNodeOut.println("-------------------------------");
+            //
+            //                    boolean haveAdd = outCol.add(first.getOutputColName().getAliasName());
+            //
+            //                    if (!firstAdd) {
+            //                        aliasListBuffer.startLine(",");
+            //                    } else {
+            //                        firstAdd = false;
+            //                    }
+            //
+            //
+            //                    if (tupleLink.useAliasOutputName()) {
+            //                        aliasListBuffer.append("(\"").append(last.getOutputColName().getName()).append
+            //                        ("\", \"")
+            //                                .append(first.getOutputColName().getAliasName()).append("\")");
+            //                    } else {
+            //                        aliasListBuffer.append("(\"").append(last.getOutputColName().getName()).append
+            //                        ("\")");
+            //                    }
+            //
+            //                    // 如果是主表就在通过单独的列meta配置中的信息来设置主键，在实际例子中发现表中使用了联合主键，在运行的时候会出错
+            //                    if (isPrimaryTable && ptab.isPK(last.getOutputColName().getName())) {
+            //                        aliasListBuffer.append(".PK()");
+            //                    }
+            //
+            //                    if (hasSetTimestampVerColumn && erR.isTimestampVerColumn(entityName, last
+            //                    .getOutputColName().getName())) {
+            //                        // 时间戳字段
+            //                        aliasListBuffer.append(".timestampVer()");
+            //                        timestampVerColumnProcessed = true;
+            //                    }
+            //
+            //                    if (!haveAdd) {
+            //                        aliasListBuffer.append(".notCopy()");
+            //
+            //                    } else if (tupleLink.hasFuncTuple()) {
+            //
+            //                        AtomicBoolean shallCallableProcess = new AtomicBoolean(false);
+            //
+            //                        final FunctionVisitor.IToString shallCallableProcessToken = new FunctionVisitor
+            //                        .IToString() {
+            //                            @Override
+            //                            public String toString() {
+            //                                return shallCallableProcess.get() ? "c" : "t";
+            //                            }
+            //                        };
+            //
+            //                        final FunctionVisitor.IToString fieldValue = new FunctionVisitor.IToString() {
+            //                            @Override
+            //                            public String toString() {
+            //                                return shallCallableProcess.get() ? StringUtils.EMPTY : ", fieldValue";
+            //                            }
+            //                        };
+            //
+            //                        aliasListBuffer.append(".").append(shallCallableProcessToken).append("(")//
+            //                                .append("(" + FunctionVisitor.ROW_KEY).append(fieldValue).append(")")
+            //                                .methodBody(false, " => ", (rr) -> {
+            //                                    final AtomicInteger index = new AtomicInteger();
+            //                                    final AtomicReference<String> preGroupAggrgationName = new
+            //                                    AtomicReference<>();
+            //                                    tupleLink.chainStream()
+            //                                            .filter((r) -> r.getTupleCreator() != null
+            //                                                    && r.getTupleCreator() instanceof
+            //                                                    FunctionDataTupleCreator)
+            //                                            .forEach((r) -> {
+            //                                                final FunctionDataTupleCreator tuple =
+            //                                                (FunctionDataTupleCreator) r
+            //                                                        .getTupleCreator();
+            //                                                final PropGetter propGetter = r;
+            //                                                MapDataMethodCreator mapDataMethodCreator = null;
+            //                                                Optional<TisGroupBy> group = tuple.getGroupBy();
+            //                                                if (propGetter.shallCallableProcess()) {
+            //                                                    shallCallableProcess.set(true);
+            //                                                }
+            //                                                if (index.getAndIncrement() < 1) {
+            //
+            //                                                    if (r.isGroupByFunction()) {
+            //                                                        TisGroupBy groups = group.get();
+            //                                                        mapDataMethodCreator = addMapDataMethodCreator
+            //                                                        (entityName, groups, relevantCols);
+            //
+            //                                                        rr.startLine("val ").append(groups
+            //                                                        .getGroupAggrgationName())
+            //                                                                .append(":Map[GroupKey /*")
+            //                                                                .append(groups.getGroupsLiteria())
+            //                                                                .append("*/, GroupValues]  = ")
+            //                                                                .append(mapDataMethodCreator
+            //                                                                .getMapDataMethodName())
+            //                                                                .append("(").append(FunctionVisitor
+            //                                                                .ROW_KEY).append(")")
+            //                                                                .returnLine().returnLine();
+            //
+            //                                                        preGroupAggrgationName.set(groups
+            //                                                        .getGroupAggrgationName());
+            //
+            //                                                        generateCreateGroupResultScript(rr, propGetter,
+            //                                                        groups);
+            //
+            //                                                    } else {
+            //                                                        // 不需要反查维表执行函数
+            //                                                        // 测试
+            //                                                        generateFunctionCallScript(rr, propGetter);
+            //                                                    }
+            //
+            //                                                } else {
+            //                                                    if (r.isGroupByFunction()) {
+            //                                                        TisGroupBy groups = group.get();
+            //
+            //                                                        rr.append("val ").append(groups
+            //                                                        .getGroupAggrgationName())
+            //                                                                .append(": Map[GroupKey /* ")
+            //                                                                .append(groups.getGroupsLiteria())
+            //                                                                .append(" */, GroupValues] ").append("
+            //                                                                = reduceData(")
+            //                                                                .append(preGroupAggrgationName.get())
+            //                                                                .append(", " + groups
+            //                                                                .getGroupKeyAsParamsLiteria() + ")\n");
+            //
+            //                                                        generateCreateGroupResultScript(rr, propGetter,
+            //                                                        groups);
+            //
+            //                                                        preGroupAggrgationName.set(groups
+            //                                                        .getGroupsLiteria());
+            //                                                    } else {
+            //
+            //                                                        generateFunctionCallScript(rr, propGetter);
+            //                                                    }
+            //
+            //                                                }
+            //
+            //                                            });
+            //
+            //                                }).append(")/*end .t()*/");
+            //
+            //                    }
+            //                }
+            //
+            //                for (String linkKey : linkCols) {
+            //                    if (!relevantCols.contains(linkKey)) {
+            //                        if (!firstAdd) {
+            //                            aliasListBuffer.appendLine(",");
+            //                        } else {
+            //                            firstAdd = false;
+            //                            aliasListBuffer.returnLine();
+            //                        }
+            //                        aliasListBuffer.append("(\"")
+            //                                .append(linkKey).append("\").notCopy()  ");
+            //
+            //                        if (erR.isTimestampVerColumn(entityName, linkKey)) {
+            //                            aliasListBuffer.append(".timestampVer()");
+            //                            timestampVerColumnProcessed = true;
+            //                        }
+            //
+            //                        aliasListBuffer.append("// FK or primay key");
+            //                    }
+            //                }
+            //
+            //
+            //                // timestampVer标记没有添加，且本表不要监听增量消息
+            //                if (hasSetTimestampVerColumn && !timestampVerColumnProcessed && !erR.isTriggerIgnore
+            //                (entityName)) {
+            //                    if (!firstAdd) {
+            //                        aliasListBuffer.appendLine(",");
+            //                    } else {
+            //                        firstAdd = false;
+            //                        aliasListBuffer.returnLine();
+            //                    }
+            //                    aliasListBuffer.append("(\"")
+            //                            .append(erR.getTimestampVerColumn(entityName)).append("\").notCopy()
+            //                            .timestampVer() //gencode9 ");
+            //                }
+            //
+            //                //>>>>>>>>>>>>>
+            //                aliasListBuffer.appendLine(");\n");
+            //                traversesAllNodeOut.println("======================================>>>>>>>>>");
+            //
+            //                //>>>>>>>>>>>>>
+            //                for (TableRelation r : allParent) {
+            //
+            //                    aliasListBuffer.append(entityName.getJavaEntityName())
+            //                            .append("Builder.addParentTabRef(").append(r.getParent().parseEntityName()
+            //                            .createNewLiteriaToken())
+            //                            .append(",").append(JoinerKey.createListNewLiteria(r.getJoinerKeys()))
+            //                            .append(")").returnLine();
+            //                }
+            //
+            //                for (TableRelation r : allChild) {
+            //                    aliasListBuffer.append(entityName.getJavaEntityName())
+            //                            .append("Builder.addChildTabRef(").append(r.getChild().parseEntityName()
+            //                            .createNewLiteriaToken())
+            //                            .append(",").append(JoinerKey.createListNewLiteria(r.getJoinerKeys()))
+            //                            .append(")").returnLine();
+            //                }
+            //                //<<<<<<<<<<<<<<
+            //
+            //                if (!this.excludeFacadeDAOSupport) {
+            //
+            //                    aliasListBuffer.append(entityName.getJavaEntityName())
+            //                            .append("Builder.setGetterRowsFromOuterPersistence(/*gencode5*/")
+            //                            .methodBody(" (rowTabName, rvals, pk ) =>", (f) -> {
+            //                                Set<String> selectCols = Sets.union(relevantCols, linkCols);
+            //                                if (primaryFind.isPresent()) {
+            //                                    // 主索引表
+            //                                    PrimaryTableMeta ptabMeta = (PrimaryTableMeta) primaryFind.get();
+            //
+            //                                    f.appendLine(entityName.buildDefineRowMapListLiteria());
+            //                                    f.appendLine(entityName.buildDefineCriteriaEqualLiteria());
+            //
+            //                                    List<PrimaryLinkKey> primaryKeyNames = ptabMeta.getPrimaryKeyNames();
+            //                                    for (PrimaryLinkKey linkKey : primaryKeyNames) {
+            //                                        if (!linkKey.isPk()) {
+            //                                            TisGroupBy.TisColumn routerKey = new TisGroupBy.TisColumn
+            //                                            (linkKey.getName());
+            //                                            f.appendLine(routerKey.buildDefineGetPkRouterVar());
+            //                                        }
+            //                                    }
+            //                                    f.appendLine(entityName.buildCreateCriteriaLiteria());
+            //                                    for (PrimaryLinkKey linkKey : primaryKeyNames) {
+            //                                        if (linkKey.isPk()) {
+            //                                            TisGroupBy.TisColumn pk = new TisGroupBy.TisColumn(linkKey
+            //                                            .getName());
+            //                                            f.append(pk.buildPropCriteriaEqualLiteria("pk.getValue()"));
+            //                                        } else {
+            //                                            TisGroupBy.TisColumn pk = new TisGroupBy.TisColumn(linkKey
+            //                                            .getName());
+            //                                            f.append(pk.buildPropCriteriaEqualLiteria());
+            //                                        }
+            //                                    }
+            //                                    f.appendLine(entityName.buildAddSelectorColsLiteria(selectCols));
+            //                                    f.appendLine(entityName.buildExecuteQueryDAOLiteria());
+            //                                    f.appendLine(entityName.entities());
+            //                                } else {
+            //                                    if (allChild.size() > 0) {
+            //                                        f.appendLine(entityName.buildDefineRowMapListLiteria());
+            //                                        f.appendLine(entityName.buildDefineCriteriaEqualLiteria())
+            //                                        .returnLine();
+            //                                        f.appendLine(entityName.buildAddSelectorColsLiteria(selectCols));
+            //                                        f.methodBody("rowTabName match ", (ff) -> {
+            //                                            for (TableRelation rel : allChild) {
+            //                                                EntityName childEntity = rel.getChild().parseEntityName();
+            //
+            //                                                ff.methodBody("case \"" + childEntity.getTabName() +
+            //                                                "\" =>", (fff) -> {
+            //                                                    fff.appendLine(entityName
+            //                                                    .buildCreateCriteriaLiteria());
+            //                                                    for (JoinerKey jk : rel.getJoinerKeys()) {
+            //                                                        TisGroupBy.TisColumn k = new TisGroupBy
+            //                                                        .TisColumn(jk.getParentKey());
+            //                                                        fff.append(k.buildPropCriteriaEqualLiteria
+            //                                                        ("rvals.getColumn(\"" + jk.getChildKey() + "\")
+            //                                                        "));
+            //                                                    }
+            //                                                    fff.returnLine();
+            //
+            //                                                    fff.appendLine(entityName
+            //                                                    .buildExecuteQueryDAOLiteria());
+            //                                                    fff.appendLine(entityName.entities());
+            //                                                });
+            //                                            }
+            //                                            ff.appendLine("case unexpected => null");
+            //                                        });
+            //                                    } else {
+            //                                        f.appendLine(" null");
+            //                                    }
+            //                                }
+            //                            }).appendLine(") // end setGetterRowsFromOuterPersistence").returnLine()
+            //                            .returnLine();
+            //                }
             // }
 
 
         } finally {
-//            IOUtils.closeQuietly(traversesAllNodeOut, (ex) -> {
-//                logger.error(ex.getMessage(), ex);
-//            });
+            //            IOUtils.closeQuietly(traversesAllNodeOut, (ex) -> {
+            //                logger.error(ex.getMessage(), ex);
+            //            });
         }
 
     }
@@ -461,22 +510,19 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
     public void generateConfigFiles() throws Exception {
 
 
-        MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, Collections.emptyList()
-                , getERRule(), this.daoFacadeList, this.streamIncrGenerateStrategy);
+        MergeData mergeData = new MergeData(this.collectionName, mapDataMethodCreatorMap, Collections.emptyList(),
+                getERRule(), this.daoFacadeList, this.streamIncrGenerateStrategy);
 
-        File parentDir =
-                new File(getSpringConfigFilesDir()
-                        , "com/qlangtech/tis/realtime/transfer/" + this.collectionName);
+        File parentDir = new File(getSpringConfigFilesDir(),
+                "com/qlangtech/tis/realtime/transfer/" + this.collectionName);
 
         FileUtils.forceMkdir(parentDir);
 
-        this.mergeGenerate(mergeData
-                , IStreamIncrGenerateStrategy.IStreamTemplateResource.createClasspathResource("app-context.xml.vm", true)
-                , new File(parentDir, "app-context.xml"));
+        this.mergeGenerate(mergeData, IStreamIncrGenerateStrategy.IStreamTemplateResource.createClasspathResource(
+                "app-context.xml.vm", true), new File(parentDir, "app-context.xml"));
 
-        this.mergeGenerate(mergeData
-                , IStreamIncrGenerateStrategy.IStreamTemplateResource.createClasspathResource("field-transfer.xml.vm", true)
-                , new File(parentDir, "field-transfer.xml"));
+        this.mergeGenerate(mergeData, IStreamIncrGenerateStrategy.IStreamTemplateResource.createClasspathResource(
+                "field-transfer.xml.vm", true), new File(parentDir, "field-transfer.xml"));
     }
 
     /**
@@ -485,7 +531,8 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
      * @return
      */
     public File getSpringConfigFilesDir() {
-        return new File(StreamContextConstant.getStreamScriptRootDir(this.collectionName, this.timestamp), "scriptconfig");
+        return new File(StreamContextConstant.getStreamScriptRootDir(this.collectionName, this.timestamp),
+                "scriptconfig");
     }
 
     private final Map<EntityName, MapDataMethodCreator> mapDataMethodCreatorMap = Maps.newHashMap();
@@ -503,8 +550,7 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
         return creator;
     }
 
-    private void generateCreateGroupResultScript(FuncFormat rr, final PropGetter propGetter,
-                                                 TisGroupBy groups) {
+    private void generateCreateGroupResultScript(FuncFormat rr, final PropGetter propGetter, TisGroupBy groups) {
         if (propGetter.isLastFunctInChain()) {
             rr.startLine("var result:Any = null");
         }
@@ -578,50 +624,50 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
     }
 
     private void mergeGenerate(IStreamIncrGenerateStrategy.IStreamTemplateData mergeData) throws IOException {
-        IStreamIncrGenerateStrategy.IStreamTemplateResource tplResource
-                = this.streamIncrGenerateStrategy.getFlinkStreamGenerateTplResource();
+        IStreamIncrGenerateStrategy.IStreamTemplateResource tplResource =
+                this.streamIncrGenerateStrategy.getFlinkStreamGenerateTplResource();
         Objects.requireNonNull(tplResource, "tplResource can not be null");
-//        if (StringUtils.isEmpty(tplFileName)) {
-//            throw new IllegalStateException("tplFileName can not be empty");
-//        }
+        //        if (StringUtils.isEmpty(tplFileName)) {
+        //            throw new IllegalStateException("tplFileName can not be empty");
+        //        }
 
-        this.mergeGenerate(mergeData
-                , tplResource
-                , getIncrScriptMainFile());
+        this.mergeGenerate(mergeData, tplResource, getIncrScriptMainFile());
 
-//        OutputStreamWriter writer = null;
-//        // Reader tplReader = null;
-//        try {
-//
-//            VelocityContext context = createContext(mergeData);
-//
-//            FileUtils.forceMkdir(this.incrScriptDir);
-//
-//            //File parent = getScalaStreamScriptDir(this.collectionName, this.timestamp);
-//
-//
-//            File f = getIncrScriptMainFile();// new File(this.incrScriptDir, (mergeData.getJavaName()) + "Listener.scala");
-//            //  System.out.println(f.getAbsolutePath());
-//
-//            writer = new OutputStreamWriter(FileUtils.openOutputStream(f), "utf8");
-//
-//
-//            Template tpl = velocityEngine.getTemplate("/com/qlangtech/tis/classtpl/mq_listener_scala.vm", "utf8");
-//            tpl.merge(context, writer);
-//            // velocityEngine.evaluate(context, writer, "listener", tplReader);
-//
-//            writer.flush();
-//
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        } finally {
-//            IOUtils.closeQuietly(writer);
-//            //IOUtils.closeQuietly(tplReader);
-//        }
+        //        OutputStreamWriter writer = null;
+        //        // Reader tplReader = null;
+        //        try {
+        //
+        //            VelocityContext context = createContext(mergeData);
+        //
+        //            FileUtils.forceMkdir(this.incrScriptDir);
+        //
+        //            //File parent = getScalaStreamScriptDir(this.collectionName, this.timestamp);
+        //
+        //
+        //            File f = getIncrScriptMainFile();// new File(this.incrScriptDir, (mergeData.getJavaName()) +
+        //            "Listener.scala");
+        //            //  System.out.println(f.getAbsolutePath());
+        //
+        //            writer = new OutputStreamWriter(FileUtils.openOutputStream(f), "utf8");
+        //
+        //
+        //            Template tpl = velocityEngine.getTemplate("/com/qlangtech/tis/classtpl/mq_listener_scala.vm",
+        //            "utf8");
+        //            tpl.merge(context, writer);
+        //            // velocityEngine.evaluate(context, writer, "listener", tplReader);
+        //
+        //            writer.flush();
+        //
+        //        } catch (Exception e) {
+        //            throw new RuntimeException(e);
+        //        } finally {
+        //            IOUtils.closeQuietly(writer);
+        //            //IOUtils.closeQuietly(tplReader);
+        //        }
     }
 
-    private void mergeGenerate(IStreamIncrGenerateStrategy.IStreamTemplateData mergeData
-            , IStreamIncrGenerateStrategy.IStreamTemplateResource tplResource, File createdFile) {
+    private void mergeGenerate(IStreamIncrGenerateStrategy.IStreamTemplateData mergeData,
+                               IStreamIncrGenerateStrategy.IStreamTemplateResource tplResource, File createdFile) {
         OutputStreamWriter writer = null;
         try {
             VelocityContext context = this.createContext(mergeData);
@@ -632,11 +678,13 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 
             if (tplResource instanceof IStreamIncrGenerateStrategy.StringTemplateResource) {
 
-                try (Reader reader = ((IStreamIncrGenerateStrategy.StringTemplateResource) tplResource).getContentReader()) {
+                try (Reader reader =
+                             ((IStreamIncrGenerateStrategy.StringTemplateResource) tplResource).getContentReader()) {
                     velocityEngine.evaluate(context, writer, "tis", reader);
                 }
             } else if (tplResource instanceof IStreamIncrGenerateStrategy.ClasspathTemplateResource) {
-                Template tpl = velocityEngine.getTemplate(((IStreamIncrGenerateStrategy.ClasspathTemplateResource) tplResource).getTplPath(), TisUTF8.getName());
+                Template tpl =
+                        velocityEngine.getTemplate(((IStreamIncrGenerateStrategy.ClasspathTemplateResource) tplResource).getTplPath(), TisUTF8.getName());
                 //tpl = new Template();
                 tpl.merge(context, writer);
             }
@@ -672,9 +720,9 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
     }
 
 
-//    public TableTupleCreator parseFinalSqlTaskNode() throws Exception {
-//        return topology.parseFinalSqlTaskNode();
-//    }
+    //    public TableTupleCreator parseFinalSqlTaskNode() throws Exception {
+    //        return topology.parseFinalSqlTaskNode();
+    //    }
 
 
     // public void testRootNode() throws Exception {

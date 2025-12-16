@@ -160,22 +160,26 @@ public class DataxAction extends BasicModule {
   public void doDeletePowerJobWorkflow(Context context) throws Exception {
     Long pjWorkflowId = this.getLong("id");
     Optional<IDataXPowerJobSubmit> powerJobSubmit = DataXJobSubmit.getPowerJobSubmit();
-    IDataXPowerJobSubmit jobSubmit = powerJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must be present"));
+    IDataXPowerJobSubmit jobSubmit = powerJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must "
+      + "be present"));
     jobSubmit.deleteWorkflow(this, context, pjWorkflowId);
   }
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doGetAllPowerjobWorkflowRecord(Context context) throws Exception {
 
-    // Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit.getDataXTriggerType());
+    // Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit
+    // .getDataXTriggerType());
 
     Optional<IDataXPowerJobSubmit> powerJobSubmit = DataXJobSubmit.getPowerJobSubmit();
 
-    IDataXPowerJobSubmit jobSubmit = powerJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must be present"));
+    IDataXPowerJobSubmit jobSubmit = powerJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must "
+      + "be present"));
     Map<String, Object> criteria = Maps.newHashMap();
 
     Pager pager = createPager();
-    Pair<Integer, List<Object>> workflows = jobSubmit.fetchAllInstance(criteria, pager.getCurPage(), pager.getRowsPerPage());
+    Pair<Integer, List<Object>> workflows = jobSubmit.fetchAllInstance(criteria, pager.getCurPage(),
+      pager.getRowsPerPage());
     pager.setTotalCount(workflows.getKey());
     this.setBizResult(context, new PaginationResult(pager, workflows.getRight()));
   }
@@ -184,13 +188,11 @@ public class DataxAction extends BasicModule {
   public void doTriggerFullbuildTask(Context context) throws Exception {
 
     // 在powerjob 系统中 定时任务触发，已经生成wfInstanceId
-    Optional<Long> powerJobWorkflowInstanceId
-      = Optional.ofNullable(this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, null));
+    Optional<Long> powerJobWorkflowInstanceId =
+      Optional.ofNullable(this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, null));
 
-    DataXJobSubmit.InstanceType triggerType
-      = Optional.ofNullable(this.getString(InstanceType.KEY_TYPE))
-      .map((type) -> InstanceType.parse(type))
-      .orElseGet(() -> DataXJobSubmit.getDataXTriggerType());
+    DataXJobSubmit.InstanceType triggerType =
+      Optional.ofNullable(this.getString(InstanceType.KEY_TYPE)).map((type) -> InstanceType.parse(type)).orElseGet(() -> DataXJobSubmit.getDataXTriggerType());
 
     DataXName dataX = this.getCollectionName();
 
@@ -201,8 +203,8 @@ public class DataxAction extends BasicModule {
       return;
     }
 
-    WorkFlowBuildHistory latestWorkflowHistory
-      = this.getDaoContext().getLatestSuccessWorkflowHistory(SynResTarget.pipeline(dataXProcessor.identityValue()));
+    WorkFlowBuildHistory latestWorkflowHistory =
+      this.getDaoContext().getLatestSuccessWorkflowHistory(SynResTarget.pipeline(dataXProcessor.identityValue()));
 
     Optional<JobTrigger> partialTrigger = JobTrigger.getPartialTriggerFromContext(context);
     DataXCfgGenerator.GenerateCfgs cfgFileNames = dataXProcessor.getDataxCfgFileNames(null, partialTrigger);
@@ -218,14 +220,14 @@ public class DataxAction extends BasicModule {
     }
     DataXJobSubmit jobSubmit = dataXJobSubmit.get();
     logger.info("jobSubmit " + jobSubmit.getType() + " the submit instance type of :" + jobSubmit.getClass().getName());
-//    List<HttpUtils.PostParam> params = Lists.newArrayList();
-//    params.add(new HttpUtils.PostParam(TriggerBuildResult.KEY_APPNAME, this.getCollectionName()));
+    //    List<HttpUtils.PostParam> params = Lists.newArrayList();
+    //    params.add(new HttpUtils.PostParam(TriggerBuildResult.KEY_APPNAME, this.getCollectionName()));
     //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getName()));
     //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.JOIN.getName()));
 
     // this.setBizResult(context, TriggerBuildResult.triggerBuild(this, context, params));
-    this.setBizResult(context, jobSubmit.triggerJob(
-      this, context, this.getCollectionName(), powerJobWorkflowInstanceId, Optional.ofNullable(latestWorkflowHistory)));
+    this.setBizResult(context, jobSubmit.triggerJob(this, context, this.getCollectionName(),
+      powerJobWorkflowInstanceId, Optional.ofNullable(latestWorkflowHistory)));
   }
 
 
@@ -340,33 +342,33 @@ public class DataxAction extends BasicModule {
     long start = System.currentTimeMillis();
     long end = System.currentTimeMillis();
     // PrintWriter printWriter = response.getWriter();
-//    while ((end - start) < timeout) {
-//      //https://stackoverflow.com/questions/28673371/eventsource-onmessage-is-not-working-where-onopen-and-onerror-works-proper
-//
-//
-//      printWriter.println("event: message");
-//      printWriter.println("data: {\"name\":\"" + new Date().toString() + "\"}");
-//      printWriter.println(); // note the additional line being written to the stream..
-//
-//      printWriter.println("event: other");
-//      printWriter.println("data: {name:'baisui'}");
-//      printWriter.println(); // note the additional line being written to the stream..
-//      printWriter.flush();
-//
-//      try {
-//        Thread.currentThread().sleep(1000);
-//      } catch (InterruptedException e) {
-//        e.printStackTrace();
-//      }
-//      end = System.currentTimeMillis();
-//    }
+    //    while ((end - start) < timeout) {
+    //      //https://stackoverflow.com/questions/28673371/eventsource-onmessage-is-not-working-where-onopen-and-onerror-works-proper
+    //
+    //
+    //      printWriter.println("event: message");
+    //      printWriter.println("data: {\"name\":\"" + new Date().toString() + "\"}");
+    //      printWriter.println(); // note the additional line being written to the stream..
+    //
+    //      printWriter.println("event: other");
+    //      printWriter.println("data: {name:'baisui'}");
+    //      printWriter.println(); // note the additional line being written to the stream..
+    //      printWriter.flush();
+    //
+    //      try {
+    //        Thread.currentThread().sleep(1000);
+    //      } catch (InterruptedException e) {
+    //        e.printStackTrace();
+    //      }
+    //      end = System.currentTimeMillis();
+    //    }
 
     printWriter.writeSSEEvent(SSERunnable.SSEEventType.TASK_LOG, "xxxxxxxxxxxxxxxxx");
 
-//    printWriter.println("event: message");
-//    printWriter.println("data: xxxxxxxxxxxxxxxxx");
-//    printWriter.println(); // note the additional line being written to the stream..
-//    printWriter.flush();
+    //    printWriter.println("event: message");
+    //    printWriter.println("data: xxxxxxxxxxxxxxxxx");
+    //    printWriter.println(); // note the additional line being written to the stream..
+    //    printWriter.flush();
 
     System.out.println("Exiting handleSSE()-suscribe" + Thread.currentThread().getName());
 
@@ -387,8 +389,8 @@ public class DataxAction extends BasicModule {
     }), null);
 
     List<ExecuteStep> executeSteps = Collections.singletonList(execStep);
-    DefaultSSERunnable launchProcess = new DefaultSSERunnable(
-      writer, new ExecuteSteps("调整Pod数量", dataxJobWorker, executeSteps), () -> {
+    DefaultSSERunnable launchProcess = new DefaultSSERunnable(writer, new ExecuteSteps("调整Pod数量", dataxJobWorker,
+      executeSteps), () -> {
       try {
         Thread.sleep(4000l);
       } catch (InterruptedException e) {
@@ -418,8 +420,8 @@ public class DataxAction extends BasicModule {
   }
 
   private K8SWorkerCptType getPowerJobCptType() {
-    return this.getBoolean(KEY_USING_POWERJOB_USE_EXIST_CLUSTER)
-      ? K8SWorkerCptType.UsingExistCluster : K8SWorkerCptType.Server;
+    return this.getBoolean(KEY_USING_POWERJOB_USE_EXIST_CLUSTER) ? K8SWorkerCptType.UsingExistCluster :
+      K8SWorkerCptType.Server;
   }
 
   public void relaunchK8SCluster(Context context, K8SWorkerCptType cptType) throws Exception {
@@ -447,13 +449,14 @@ public class DataxAction extends BasicModule {
   public void doGetDataxWorkerConfig(Context context) throws Exception {
     // DataxWorkerDTO
 
-//    DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME);
-//    DataxUtils.DATAX_NAME
-//    UploadPluginMeta pluginMeta = UploadPluginMeta.parse(HeteroEnum.DATAX_WORKER.identity + ":" + UploadPluginMeta.KEY_REQUIRE);
-//
-//    HeteroList<DataXJobWorker> heteroList = pluginMeta.getHeteroList(this);
-//
-//    ;
+    //    DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(DataXJobWorker.K8S_DATAX_INSTANCE_NAME);
+    //    DataxUtils.DATAX_NAME
+    //    UploadPluginMeta pluginMeta = UploadPluginMeta.parse(HeteroEnum.DATAX_WORKER.identity + ":" +
+    //    UploadPluginMeta.KEY_REQUIRE);
+    //
+    //    HeteroList<DataXJobWorker> heteroList = pluginMeta.getHeteroList(this);
+    //
+    //    ;
 
 
     Optional<ServerLaunchToken> launchToken = DataXJobWorker.getLaunchToken(getK8SJobWorkerTargetName());
@@ -464,22 +467,22 @@ public class DataxAction extends BasicModule {
 
     if (lt.workerCptType == K8SWorkerCptType.Server) {
 
-      DataXJobWorker pjServer
-        = DataXJobWorker.getJobWorker(TargetResName.K8S_DATAX_INSTANCE_NAME, Optional.of(K8SWorkerCptType.Server));
-      DataXJobWorker pjWorker
-        = DataXJobWorker.getJobWorker(TargetResName.K8S_DATAX_INSTANCE_NAME, Optional.of(K8SWorkerCptType.Worker));
-      dataXWorker.put("powderJobServerRCSpec"
-        , IncrUtils.serializeSpec(IncrSpecResult.create(pjServer.getReplicasSpec(), pjServer.getHpa())));
-      dataXWorker.put("powderJobWorkerRCSpec"
-        , IncrUtils.serializeSpec(IncrSpecResult.create(pjWorker.getReplicasSpec(), pjWorker.getHpa())));
+      DataXJobWorker pjServer = DataXJobWorker.getJobWorker(TargetResName.K8S_DATAX_INSTANCE_NAME,
+        Optional.of(K8SWorkerCptType.Server));
+      DataXJobWorker pjWorker = DataXJobWorker.getJobWorker(TargetResName.K8S_DATAX_INSTANCE_NAME,
+        Optional.of(K8SWorkerCptType.Worker));
+      dataXWorker.put("powderJobServerRCSpec",
+        IncrUtils.serializeSpec(IncrSpecResult.create(pjServer.getReplicasSpec(), pjServer.getHpa())));
+      dataXWorker.put("powderJobWorkerRCSpec",
+        IncrUtils.serializeSpec(IncrSpecResult.create(pjWorker.getReplicasSpec(), pjWorker.getHpa())));
     }
 
 
-//    dataXWorker.put("processMeta", null);
-//    dataXWorker.put("powderJobServerHetero", null);
-//    dataXWorker.put("powderJobUseExistClusterHetero", null);
-//    dataXWorker.put("powderJobWorkerHetero", null);
-//    dataXWorker.put("powderjobJobTplHetero", null);
+    //    dataXWorker.put("processMeta", null);
+    //    dataXWorker.put("powderJobServerHetero", null);
+    //    dataXWorker.put("powderJobUseExistClusterHetero", null);
+    //    dataXWorker.put("powderJobWorkerHetero", null);
+    //    dataXWorker.put("powderjobJobTplHetero", null);
 
     this.setBizResult(context, dataXWorker);
 
@@ -507,25 +510,24 @@ public class DataxAction extends BasicModule {
   public void launchK8SCluster(Context context, K8SWorkerCptType cptType) throws Exception {
     DataXJobWorker dataxJobWorker = getDataXJobWorker(cptType);
 
-//    if (dataxJobWorker.inService()) {
-//      throw new IllegalStateException("dataxJobWorker is in serivce ,can not launch repeat");
-//    }
+    //    if (dataxJobWorker.inService()) {
+    //      throw new IllegalStateException("dataxJobWorker is in serivce ,can not launch repeat");
+    //    }
     boolean orchestrate = DataXJobWorker.isOrchestrate(dataxJobWorker);
     if (orchestrate) {
       SSEEventWriter httpResponseWriter = getEventStreamWriter();
-      this.launchDataxWorker(context, httpResponseWriter, dataxJobWorker, DataXJobWorker.getOrchestrate(dataxJobWorker));
+      this.launchDataxWorker(context, httpResponseWriter, dataxJobWorker,
+        DataXJobWorker.getOrchestrate(dataxJobWorker));
     } else {
-      throw new NotImplementedException("to do for " + K8SWorkerCptType.UsingExistCluster
-        + ",worker:" + dataxJobWorker.getClass().getName());
+      throw new NotImplementedException("to do for " + K8SWorkerCptType.UsingExistCluster + ",worker:" + dataxJobWorker.getClass().getName());
     }
   }
 
 
-  private void launchDataxWorker(Context context
-    , SSEEventWriter httpResponseWriter
-    , DataXJobWorker dataxJobWorker, ILaunchingOrchestrate orchestrate) throws Exception {
-    DefaultSSERunnable launchProcess
-      = new DefaultSSERunnable(httpResponseWriter, orchestrate.createExecuteSteps(dataxJobWorker), () -> {
+  private void launchDataxWorker(Context context, SSEEventWriter httpResponseWriter, DataXJobWorker dataxJobWorker,
+                                 ILaunchingOrchestrate orchestrate) throws Exception {
+    DefaultSSERunnable launchProcess = new DefaultSSERunnable(httpResponseWriter,
+      orchestrate.createExecuteSteps(dataxJobWorker), () -> {
       try {
         Thread.sleep(4000l);
       } catch (InterruptedException e) {
@@ -584,8 +586,8 @@ public class DataxAction extends BasicModule {
 
     boolean addJobTplOverwritePlugin = this.getBoolean("addJobTplOverwritePlugin");
     if (addJobTplOverwritePlugin) {
-      pluginDescMeta.addTypedPlugins(DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite
-        , HeteroEnum.appJobWorkerTplReWriter.getPlugins(this, null));
+      pluginDescMeta.addTypedPlugins(DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite,
+        HeteroEnum.appJobWorkerTplReWriter.getPlugins(this, null));
     }
 
     this.setBizResult(context, pluginDescMeta);
@@ -612,8 +614,8 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetFlinkSession(Context context) {
     final TargetResName targetName = getK8SJobWorkerTargetName(false);
-    Optional<ServerLaunchToken> launchToken
-      = Optional.of(ServerLaunchToken.createFlinkClusterToken().token(FlinkClusterType.K8SSession, targetName));
+    Optional<ServerLaunchToken> launchToken =
+      Optional.of(ServerLaunchToken.createFlinkClusterToken().token(FlinkClusterType.K8SSession, targetName));
     getJobWoker(context, targetName, launchToken);
   }
 
@@ -632,7 +634,8 @@ public class DataxAction extends BasicModule {
     }
     DataXJobWorker jobWorker = DataXJobWorker.getJobWorker(targetName, launchToken.map((t) -> t.getWorkerCptType()));
     boolean disableRcdeployment = this.getBoolean("disableRcdeployment");
-    jobWorkerStatus.setState((jobWorker != null && jobWorker.inService()) ? IFlinkIncrJobStatus.State.RUNNING : IFlinkIncrJobStatus.State.NONE);
+    jobWorkerStatus.setState((jobWorker != null && jobWorker.inService()) ? IFlinkIncrJobStatus.State.RUNNING :
+      IFlinkIncrJobStatus.State.NONE);
     if (jobWorkerStatus.getState() == IFlinkIncrJobStatus.State.RUNNING && !disableRcdeployment) {
       jobWorkerStatus.setPayloads(jobWorker.getPayloadInfo());
       jobWorkerStatus.setRcDeployments(jobWorker.getRCDeployments());
@@ -689,14 +692,15 @@ public class DataxAction extends BasicModule {
     for (UploadPluginMeta meta : metas) {
       powerjobCptType = DataXJobWorker.K8SWorkerCptType.parse(meta.getDataXName().getPipelineName());
     }
-    // DataXJobWorker.PowerjobCptType powerjobCptType = DataXJobWorker.PowerjobCptType.parse(this.getString("powerjobCptType"));
+    // DataXJobWorker.PowerjobCptType powerjobCptType = DataXJobWorker.PowerjobCptType.parse(this.getString
+    // ("powerjobCptType"));
     saveWorker(context, resName, Optional.of(powerjobCptType));
   }
 
-//  @Func(value = PermissionConstant.DATAX_MANAGE)
-//  public void doSaveFlinkWorker(Context context) {
-//    saveWorker(context, DataXJobWorker.K8S_FLINK_CLUSTER_NAME, Optional.empty());
-//  }
+  //  @Func(value = PermissionConstant.DATAX_MANAGE)
+  //  public void doSaveFlinkWorker(Context context) {
+  //    saveWorker(context, DataXJobWorker.K8S_FLINK_CLUSTER_NAME, Optional.empty());
+  //  }
 
   private void saveWorker(Context context, TargetResName resName, Optional<DataXJobWorker.K8SWorkerCptType> cptType) {
     JSONObject postContent = this.parseJsonPost();
@@ -934,10 +938,8 @@ public class DataxAction extends BasicModule {
       }
 
       DataXCfgGenerator.GenerateCfgs generateCfgs = null;
-      pluginContext.setBizResult(context
-        , getExist
-          ? cfgGenerator.getExistCfg(dataxCfgDir)
-          : (generateCfgs = cfgGenerator.startGenerateCfg(dataxCfgDir)));
+      pluginContext.setBizResult(context, getExist ? cfgGenerator.getExistCfg(dataxCfgDir) : (generateCfgs =
+        cfgGenerator.startGenerateCfg(dataxCfgDir)));
 
       if (!getExist) {
         Objects.requireNonNull(generateCfgs, "generateCfgs can not be null");
@@ -980,12 +982,13 @@ public class DataxAction extends BasicModule {
 
     this.setBizResult(context, cfgGenerator.startGenerateCfg(new DataXCfgGenerator.IGenerateScriptFile() {
       @Override
-      public void generateScriptFile(SourceColMetaGetter colMetaGetter
-        , IDataxReader reader, IDataxWriter writer, DataxWriter.BaseDataxWriterDescriptor writerDescriptor, IDataxReaderContext readerContext,
-                                     Set<String> createDDLFiles, Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
+      public void generateScriptFile(SourceColMetaGetter colMetaGetter, IDataxReader reader, IDataxWriter writer,
+                                     DataxWriter.BaseDataxWriterDescriptor writerDescriptor,
+                                     IDataxReaderContext readerContext, Set<String> createDDLFiles,
+                                     Optional<IDataxProcessor.TableMap> tableMapper) throws IOException {
 
-        DataXCfgGenerator.generateTabCreateDDL(DataxAction.this, dataxProcessor, colMetaGetter, writer, readerContext,
-          createDDLFiles, tableMapper, true);
+        DataXCfgGenerator.generateTabCreateDDL(DataxAction.this, dataxProcessor, colMetaGetter, writer, readerContext
+          , createDDLFiles, tableMapper, true);
       }
     }));
   }
@@ -1083,10 +1086,11 @@ public class DataxAction extends BasicModule {
     Optional<IDataXPowerJobSubmit> dataXJobSubmit //
       = DataXJobSubmit.getPowerJobSubmit();
 
-    IDataXPowerJobSubmit jobSubmit = dataXJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must be present"));
+    IDataXPowerJobSubmit jobSubmit = dataXJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must "
+      + "be present"));
 
-    DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(
-      null, StoreResourceType.DataApp, this.getAppDomain().getAppName());
+    DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(null, StoreResourceType.DataApp,
+      this.getAppDomain().getAppName());
     // 这里可以在pwoerjob 中创建workflow任务
     this.setBizResult(context, jobSubmit.saveJob(this, context, dataxProcessor));
   }
@@ -1269,16 +1273,17 @@ public class DataxAction extends BasicModule {
       DataxProcessor dataxSource = dataXAppSource.get();
       IDataxWriter dataXWriter = dataxSource.getWriter(this, true);
       if (dataXWriter instanceof IInitWriterTableExecutor) {
-        mapperTabPrefixAutoTabCreator = ((IInitWriterTableExecutor) dataXWriter).getAutoCreateTableCanNotBeNull();//.getMapperTabPrefix();
+        mapperTabPrefixAutoTabCreator = ((IInitWriterTableExecutor) dataXWriter).getAutoCreateTableCanNotBeNull();//
+        // .getMapperTabPrefix();
       }
-      tabMaps = dataxSource.getTabAlias(this);
+      tabMaps = dataxSource.getTabAlias(this, true);
     }
     if (tabMaps == null) {
       throw new IllegalStateException("tableMaps can not be null");
     }
 
     if (!dataxReader.hasMulitTable()) {
-      throw new IllegalStateException("reader (" + dataxReader.getClass().getSimpleName() + ") has not set table at least");
+      throw new IllegalStateException("reader (" + dataxReader.getClass().getSimpleName() + ") has not set table at " + "least");
     }
     List<TableAlias> tmapList = Lists.newArrayList();
     for (ISelectedTab selectedTab : dataxReader.getSelectedTabs()) {
@@ -1313,7 +1318,7 @@ public class DataxAction extends BasicModule {
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetWriterColsMeta(Context context) {
     final String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-   // DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName);
+    // DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this, dataxName);
 
     IDataxProcessor processor = DataxProcessor.load(this, dataxName);
     IDataxProcessor.TableMap tabMapper = getTableMapper(this, processor);
@@ -1321,9 +1326,8 @@ public class DataxAction extends BasicModule {
     this.setBizResult(context, DataTypeMeta.createViewBiz(IMultiItemsView.unknow(), tabMapper));
   }
 
-  public static IDataxProcessor.TableMap getTableMapper(
-    IPluginContext pluginCtx, IDataxProcessor processor) {
-    TableAliasMapper tabAlias = processor.getTabAlias(pluginCtx);
+  public static IDataxProcessor.TableMap getTableMapper(IPluginContext pluginCtx, IDataxProcessor processor) {
+    TableAliasMapper tabAlias = processor.getTabAlias(pluginCtx, false);
     Optional<TableAlias> findMapper = tabAlias.findFirst();
     IDataxProcessor.TableMap tabMapper = null;
     if (findMapper.isPresent()) {
@@ -1335,7 +1339,8 @@ public class DataxAction extends BasicModule {
       m.setTo(tabMapper.getTo());
       tabMapper = m;
     } else {
-      List<ISelectedTab> tabs = processor.getReader(pluginCtx).getSelectedTabs();// processMeta.getReader().getSelectedTabs();
+      List<ISelectedTab> tabs = processor.getReader(pluginCtx).getSelectedTabs();// processMeta.getReader()
+      // .getSelectedTabs();
       int selectedTabsSize = tabs.size();
       if (selectedTabsSize != 1) {
         throw new IllegalStateException("dataX reader getSelectedTabs size must be 1 ,but now is :" + selectedTabsSize);
@@ -1403,7 +1408,8 @@ public class DataxAction extends BasicModule {
     validateAndSaveTableMapper(this, context, dataxName, this.getJSONPostContent());
   }
 
-  public static boolean validateAndSaveTableMapper(BasicModule delegate, Context context, String dataxName, JSONObject parseJsonPost) {
+  public static boolean validateAndSaveTableMapper(BasicModule delegate, Context context, String dataxName,
+                                                   JSONObject parseJsonPost) {
 
     List<CMeta> writerCols = Lists.newArrayList();
     IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(new DefaultTab(dataxName, writerCols));
@@ -1441,8 +1447,8 @@ public class DataxAction extends BasicModule {
             return false;
           }
 
-          CMeta.ParsePostMCols postMCols = (new IdlistElementCreatorFactory()).parsePostMCols(null, (IControlMsgHandler) msgHandler,
-            context, fieldKey /*MultiItemsViewType.keyColsMeta*/, targetCols);
+          CMeta.ParsePostMCols postMCols = (new IdlistElementCreatorFactory()).parsePostMCols(null,
+            (IControlMsgHandler) msgHandler, context, fieldKey /*MultiItemsViewType.keyColsMeta*/, targetCols);
 
           if (!postMCols.pkHasSelected) {
             delegate.addErrorMessage(context, "请至少选择一个主键列");

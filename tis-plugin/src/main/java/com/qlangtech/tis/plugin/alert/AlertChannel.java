@@ -104,7 +104,7 @@ public abstract class AlertChannel extends ParamsConfig {
         try {
             URL url = new URL(urlString);
 
-            HttpUtils.post(url, postParams, new PostFormStreamProcess<Void>() {
+            HttpUtils.post(url, postParams, new PostFormStreamProcess<Void>(appendHeaders) {
                 @Override
                 public ContentType getContentType() {
                     return ContentType.JSON;
@@ -118,16 +118,16 @@ public abstract class AlertChannel extends ParamsConfig {
                     return null;
                 }
 
-                @Override
-                public List<ConfigFileContext.Header> getHeaders() {
-                    if (CollectionUtils.isEmpty(appendHeaders)) {
-                        return super.getHeaders();
-                    }
-                    List<ConfigFileContext.Header> headers = new ArrayList<>(super.getHeaders());
-                    //headers.add(new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey()));
-                    headers.addAll(appendHeaders);
-                    return headers;
-                }
+//                @Override
+//                public List<ConfigFileContext.Header> getHeaders() {
+//                    if (CollectionUtils.isEmpty(appendHeaders)) {
+//                        return super.getHeaders();
+//                    }
+//                    List<ConfigFileContext.Header> headers = new ArrayList<>(super.getHeaders());
+//                    //headers.add(new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey()));
+//                    headers.addAll(appendHeaders);
+//                    return headers;
+//                }
             });
 
         } catch (MalformedURLException e) {

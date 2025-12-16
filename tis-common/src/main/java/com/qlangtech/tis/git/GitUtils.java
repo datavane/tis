@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.git;
 
@@ -49,10 +49,10 @@ import java.util.*;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class GitUtils
-{
+public class GitUtils {
 
-    private static final ConfigFileContext.Header PRIVATE_TOKEN = new ConfigFileContext.Header("PRIVATE-TOKEN", "XqxWfcskmh9TskxGpEac");
+    private static final ConfigFileContext.Header PRIVATE_TOKEN = new ConfigFileContext.Header("PRIVATE-TOKEN",
+            "XqxWfcskmh9TskxGpEac");
 
     private static final ConfigFileContext.Header DELETE_METHOD = new ConfigFileContext.Header("method", "DELETE");
 
@@ -202,7 +202,8 @@ public class GitUtils
         if (StringUtils.isEmpty(db.getDbName())) {
             throw new IllegalArgumentException("param dbName can not be null");
         }
-        this.processFile(path, GitBranchInfo.$(GitBranch.DEVELOP), db.createDBConfigDesc(), commitLog, DATASOURCE_PROJECT_ID, isNew ? HTTPMethod.POST : HTTPMethod.PUT);
+        this.processFile(path, GitBranchInfo.$(GitBranch.DEVELOP), db.createDBConfigDesc(), commitLog,
+                DATASOURCE_PROJECT_ID, isNew ? HTTPMethod.POST : HTTPMethod.PUT);
     }
 
 
@@ -229,7 +230,8 @@ public class GitUtils
         if (StringUtils.isEmpty(dbName)) {
             throw new IllegalArgumentException("param dbName can not be null");
         }
-        this.createFile(getDBConfigPath(dbName, DbScope.DETAILED), GitBranchInfo.$(GitBranch.MASTER), db.createDBConfigDesc(), commitLog, DATASOURCE_PROJECT_ID, true);
+        this.createFile(getDBConfigPath(dbName, DbScope.DETAILED), GitBranchInfo.$(GitBranch.MASTER),
+                db.createDBConfigDesc(), commitLog, DATASOURCE_PROJECT_ID, true);
     }
 
 
@@ -257,7 +259,8 @@ public class GitUtils
     }
 
     public void deleteWorkflow(String name, GitUser user) {
-        this.deleteFile(name, GitBranchInfo.$(GitBranch.MASTER), user, "delete workflow " + name, WORKFLOW_GIT_PROJECT_ID);
+        this.deleteFile(name, GitBranchInfo.$(GitBranch.MASTER), user, "delete workflow " + name,
+                WORKFLOW_GIT_PROJECT_ID);
     }
 
     public static class JoinRule {
@@ -284,7 +287,8 @@ public class GitUtils
         // HttpUtils.delete(urlStromg, params, gitPostStreamProcess);
     }
 
-    private void createFile(String path, GitBranchInfo branch, String content, String commitLog, int projectId, boolean create) {
+    private void createFile(String path, GitBranchInfo branch, String content, String commitLog, int projectId,
+                            boolean create) {
         processFile(path, branch, content, commitLog, projectId, (create ? HTTPMethod.POST : HTTPMethod.PUT));
     }
 
@@ -298,7 +302,8 @@ public class GitUtils
      * @param commitLog
      * @param projectId
      */
-    private void processFile(String path, GitBranchInfo branch, String content, String commitLog, int projectId, HTTPMethod httpMethod) {
+    private void processFile(String path, GitBranchInfo branch, String content, String commitLog, int projectId,
+                             HTTPMethod httpMethod) {
         try {
             File targetFile = new File(this.dbRootDir, path);
             FileUtils.writeStringToFile(targetFile, content, TisUTF8.get(), false);
@@ -309,7 +314,8 @@ public class GitUtils
         // try {
         // URL urlString;
         // try {
-        // urlString = new URL(GIT_HOST + "/api/v4/projects/" + projectId + "/repository/files/" + this.urlEncode(path));
+        // urlString = new URL(GIT_HOST + "/api/v4/projects/" + projectId + "/repository/files/" + this.urlEncode
+        // (path));
         // } catch (MalformedURLException e1) {
         // throw new RuntimeException(e1);
         // }
@@ -319,7 +325,8 @@ public class GitUtils
         // params.add(new PostParam("encoding", "base64"));
         // params.add(new PostParam("author_email", "baisui@2dfire.com"));
         // params.add(new PostParam("author_name", "baisui"));
-        // params.add(new PostParam("content", Base64.getEncoder().encodeToString(content.getBytes(Charset.forName("utf8")))));
+        // params.add(new PostParam("content", Base64.getEncoder().encodeToString(content.getBytes(Charset.forName
+        // ("utf8")))));
         // params.add(new PostParam("commit_message", commitLog));
         // String result = HttpUtils.process(urlString, params, gitPostStreamProcess, httpMethod);
         // } catch (Exception e) {
@@ -358,20 +365,21 @@ public class GitUtils
     }
 
 
-//    public void deleteDb(String dbName, GitUser user) {
-//        File targetDir = new File(this.dbRootDir, getDBConfigParentPath(dbName));
-//        try {
-//            FileUtils.forceDelete(targetDir);
-//        } catch (IOException e) {
-//            throw new RuntimeException(targetDir.getAbsolutePath(), e);
-//        }
-//        // this.deleteFile(name + "/db_config", GitBranchInfo.$(GitBranch.MASTER), user, "delete db " + name, DATASOURCE_PROJECT_ID);
-//    }
+    //    public void deleteDb(String dbName, GitUser user) {
+    //        File targetDir = new File(this.dbRootDir, getDBConfigParentPath(dbName));
+    //        try {
+    //            FileUtils.forceDelete(targetDir);
+    //        } catch (IOException e) {
+    //            throw new RuntimeException(targetDir.getAbsolutePath(), e);
+    //        }
+    //        // this.deleteFile(name + "/db_config", GitBranchInfo.$(GitBranch.MASTER), user, "delete db " + name,
+    //        DATASOURCE_PROJECT_ID);
+    //    }
 
 
-//    public void deleteDbOnline(String name, GitUser user) {
-//        this.deleteDb(name, user);
-//    }
+    //    public void deleteDbOnline(String name, GitUser user) {
+    //        this.deleteDb(name, user);
+    //    }
 
     private void deleteTable(String dbName, String tableLogicName, boolean isDaily, GitUser user) {
         String path = TAB_CONFIG_ROOT_DIR + "/" + dbName + "/" + tableLogicName;
@@ -408,7 +416,8 @@ public class GitUtils
     }
 
     private void getChildren() {
-        final String urlString = GIT_HOST + "/api/v4/projects/1281/repository/tree?path=" + ("server") + "&ref_name=master";
+        final String urlString = GIT_HOST + "/api/v4/projects/1281/repository/tree?path=" + ("server") + "&ref_name"
+                + "=master";
         HttpUtils.processContent(urlString, new GitStreamProcess<String>() {
 
             @Override
@@ -549,7 +558,8 @@ public class GitUtils
             return Collections.emptyList();
         }
         return Lists.newArrayList(path.list());
-        // String url = String.format(GIT_HOST + "/api/v4/projects/%d/repository/tree?ref=%s&path=%s&recursive=false", projectId,
+        // String url = String.format(GIT_HOST + "/api/v4/projects/%d/repository/tree?ref=%s&path=%s&recursive=false
+        // ", projectId,
         // branch.getBranch(), urlEncode(filePath));
         // return HttpUtils.processContent(url, new GitStreamProcess<List<String>>() {
         //
@@ -583,17 +593,17 @@ public class GitUtils
     }
 
 
-//    public DBConfig getDbLinkMetaData(String dbName, DbScope dbScope) {
-////        DBConfig dbConfig = getDbConfig(dbName, dbScope);
-////        return dbConfig;
-//        throw new UnsupportedOperationException("dbName:" + dbName + ",dbScope:" + dbScope);
-//    }
+    //    public DBConfig getDbLinkMetaData(String dbName, DbScope dbScope) {
+
+    ////        DBConfig dbConfig = getDbConfig(dbName, dbScope);
+    ////        return dbConfig;
+    //        throw new UnsupportedOperationException("dbName:" + dbName + ",dbScope:" + dbScope);
+    //    }
 
     // public DBConfig getDbLinkMetaData(String dbName, RunEnvironment runtime) {
     // DBConfig dbConfig = getDbConfig(dbName, runtime, DbScope.DETAILED);
     // return dbConfig;
     // }
-
     public List<String> listDbConfigPath(String dbname) {
         // GitBranch branch = (runtime == RunEnvironment.DAILY) ? GitBranch.DEVELOP : GitBranch.MASTER;
         GitBranch branch = GitBranch.MASTER;
@@ -629,33 +639,35 @@ public class GitUtils
         return f;
     }
 
-//    @Override
-//    public DBConfig getDbConfig(String dbName, DbScope dbScope) {
-//        boolean targetFacade = (dbScope == DbScope.FACADE);
-//        FileContent f = getDbConfigFile(dbName, dbScope);
-//        if (!f.exist()) {
-//            throw new IllegalStateException("db:" + dbName + " can not fetch relevant db config,target file:" + f);
-//        }
-//        DBTokenizer tokenizer = new DBTokenizer(f.getContent());
-//        tokenizer.parse();
-//        DBConfigParser parser = new DBConfigParser(tokenizer.getTokenBuffer());
-//        DBConfig db = parser.startParser();
-//        if (targetFacade) {
-//            AtomicInteger hostCount = new AtomicInteger();
-//            AtomicReference<String> jdbcUrlRef = new AtomicReference<>();
-//            if (!db.vistDbURL(false, (r, jdbcUrl) -> {
-//                jdbcUrlRef.set(jdbcUrl);
-//                hostCount.incrementAndGet();
-//            }, dbScope == DbScope.FACADE, new AdapterMessageHandler(), new DefaultContext())) {
-//                throw new IllegalStateException("jdbcURL is illegal:" + jdbcUrlRef.get());
-//            }
-//            if (hostCount.get() != 1) {
-//                throw new IllegalStateException("facade db:" + dbName + " relevant hostCount can not big than 1,but now:" + hostCount);
-//            }
-//        }
-//        db.setPassword(Secret.decrypt(db.getPassword(), cryptKey));
-//        return db;
-//    }
+    //    @Override
+    //    public DBConfig getDbConfig(String dbName, DbScope dbScope) {
+    //        boolean targetFacade = (dbScope == DbScope.FACADE);
+    //        FileContent f = getDbConfigFile(dbName, dbScope);
+    //        if (!f.exist()) {
+    //            throw new IllegalStateException("db:" + dbName + " can not fetch relevant db config,target file:" +
+    //            f);
+    //        }
+    //        DBTokenizer tokenizer = new DBTokenizer(f.getContent());
+    //        tokenizer.parse();
+    //        DBConfigParser parser = new DBConfigParser(tokenizer.getTokenBuffer());
+    //        DBConfig db = parser.startParser();
+    //        if (targetFacade) {
+    //            AtomicInteger hostCount = new AtomicInteger();
+    //            AtomicReference<String> jdbcUrlRef = new AtomicReference<>();
+    //            if (!db.vistDbURL(false, (r, jdbcUrl) -> {
+    //                jdbcUrlRef.set(jdbcUrl);
+    //                hostCount.incrementAndGet();
+    //            }, dbScope == DbScope.FACADE, new AdapterMessageHandler(), new DefaultContext())) {
+    //                throw new IllegalStateException("jdbcURL is illegal:" + jdbcUrlRef.get());
+    //            }
+    //            if (hostCount.get() != 1) {
+    //                throw new IllegalStateException("facade db:" + dbName + " relevant hostCount can not big than
+    //                1,but now:" + hostCount);
+    //            }
+    //        }
+    //        db.setPassword(Secret.decrypt(db.getPassword(), cryptKey));
+    //        return db;
+    //    }
 
     private JSONObject getGitJson(int gitProjectId, String gitPath) {
         return getGitJson(gitProjectId, gitPath, GitBranchInfo.$(GitBranch.DEVELOP));
@@ -731,7 +743,8 @@ public class GitUtils
     }
 
     public GitCommitVersionDiff getGitCommitVersionDiff(String fromVersion, String toVersion, int projectId) throws Exception {
-        String urlString = String.format(GIT_HOST + "/api/v4/projects/%d/repository/compare?&from=%s&to=%s", projectId, fromVersion, toVersion);
+        String urlString = String.format(GIT_HOST + "/api/v4/projects/%d/repository/compare?&from=%s&to=%s",
+                projectId, fromVersion, toVersion);
         JSONObject jsonObject = new JSONObject(getGitUrlContent(urlString));
         GitCommitVersionDiff diff = new GitCommitVersionDiff();
         diff.setCommit(new GitRepositoryCommitPojo(jsonObject.getJSONObject("commit")));
@@ -770,7 +783,8 @@ public class GitUtils
      * @param branchName
      */
     private void deleteBranch(int projectId, String branchName) {
-        String urlString = String.format(GIT_HOST + "/api/v4/projects/%d/repository/branches/%s", projectId, branchName);
+        String urlString = String.format(GIT_HOST + "/api/v4/projects/%d/repository/branches/%s", projectId,
+                branchName);
         String result = HttpUtils.delete(urlString, null, gitPostStreamProcess);
         System.out.println(result);
     }
@@ -792,7 +806,8 @@ public class GitUtils
      * @param targetBranch master
      * @param title        跟sourceBranch一样
      */
-    private JSONObject createMergeRequest(int projectId, String sourceBranch, String targetBranch, String title, String description) {
+    private JSONObject createMergeRequest(int projectId, String sourceBranch, String targetBranch, String title,
+                                          String description) {
         String urlString = String.format(GIT_HOST + "/api/v4/projects/%d/merge_requests", projectId);
         List<PostParam> params = new ArrayList<>();
         params.add(new PostParam("source_branch", sourceBranch));
@@ -814,7 +829,8 @@ public class GitUtils
      * @param mergeCommitMessage
      */
     private void acceptMergeRequest(int projectId, int mergeRequestId, String mergeCommitMessage) {
-        final String urlString = String.format(GIT_HOST + "/api/v4/projects/%d/merge_request/%d/merge", projectId, mergeRequestId);
+        final String urlString = String.format(GIT_HOST + "/api/v4/projects/%d/merge_request/%d/merge", projectId,
+                mergeRequestId);
         List<PostParam> params = new ArrayList<>();
         if (!StringUtils.isBlank(mergeCommitMessage)) {
             params.add(new PostParam("merge_commit_message", mergeCommitMessage));
@@ -842,7 +858,8 @@ public class GitUtils
      */
     public void mergeWorkflowChange(String branchName) {
         // 1 先创建一个merge请求
-        JSONObject result = this.createMergeRequest(WORKFLOW_GIT_PROJECT_ID, branchName, "master", branchName, "merge" + " workflow " + branchName);
+        JSONObject result = this.createMergeRequest(WORKFLOW_GIT_PROJECT_ID, branchName, "master", branchName, "merge"
+                + " workflow " + branchName);
         // 2 再接受这个merge请求
         int requestId = result.getInt("id");
         try {
@@ -931,15 +948,18 @@ public class GitUtils
     }
 
     private abstract static class GitPostStreamProcess<T> extends PostFormStreamProcess<T> {
-
-        @Override
-        public final List<ConfigFileContext.Header> getHeaders() {
-            List<ConfigFileContext.Header> heads = new ArrayList<>();
-            heads.add(PRIVATE_TOKEN);
-            heads.addAll(super.getHeaders());
-            return heads;
-            // return createHeaders(super.getHeaders());
+        public GitPostStreamProcess() {
+            super(Collections.singletonList(PRIVATE_TOKEN));
         }
+
+        //        @Override
+        //        public final List<ConfigFileContext.Header> getHeaders() {
+        //            List<ConfigFileContext.Header> heads = new ArrayList<>();
+        //            heads.add(PRIVATE_TOKEN);
+        //            heads.addAll(super.getHeaders());
+        //            return heads;
+        //            // return createHeaders(super.getHeaders());
+        //        }
     }
 
     private abstract static class GitStreamProcess<T> extends StreamProcess<T> {

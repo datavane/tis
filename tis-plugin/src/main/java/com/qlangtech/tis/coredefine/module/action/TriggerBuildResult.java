@@ -19,6 +19,7 @@
 package com.qlangtech.tis.coredefine.module.action;
 
 import com.alibaba.citrus.turbine.Context;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.job.common.JobCommon;
@@ -58,68 +59,68 @@ public class TriggerBuildResult {
         this.success = success;
     }
 
-    public static TriggerBuildResult triggerBuild(
-            IControlMsgHandler module, final Context context, List<HttpUtils.PostParam> appendParams) throws MalformedURLException {
+    public static TriggerBuildResult triggerBuild(IControlMsgHandler module, final Context context,
+                                                  List<HttpUtils.PostParam> appendParams) throws MalformedURLException {
         return triggerBuild(module, context, ConfigFileContext.HTTPMethod.POST, appendParams, Collections.emptyList());
     }
 
     public static String getAssembleNodeAddress(ITISCoordinator coordinator) {
         // 增量状态收集节点
-        final String incrStateCollectAddress =
-                ZkUtils.getFirstChildValue(
-                        coordinator,
-                        ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
-                        true);
-        return "http://" + StringUtils.substringBefore(incrStateCollectAddress, ":")
-                + ":" + (TisSubModule.TIS_ASSEMBLE.getLaunchPort()) + TisSubModule.TIS_ASSEMBLE.servletContext;
+        final String incrStateCollectAddress = ZkUtils.getFirstChildValue(coordinator,
+                ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, true);
+        return "http://" + StringUtils.substringBefore(incrStateCollectAddress, ":") + ":" + (TisSubModule.TIS_ASSEMBLE.getLaunchPort()) + TisSubModule.TIS_ASSEMBLE.servletContext;
     }
 
-    public static TriggerBuildResult triggerBuild(
-            IControlMsgHandler module, final Context context, ConfigFileContext.HTTPMethod httpMethod, List<HttpUtils.PostParam> appendParams
-            , List<ConfigFileContext.Header> headers) throws MalformedURLException {
+    public static TriggerBuildResult triggerBuild(IControlMsgHandler module, final Context context,
+                                                  ConfigFileContext.HTTPMethod httpMethod,
+                                                  List<HttpUtils.PostParam> appendParams,
+                                                  List<ConfigFileContext.Header> headers) throws MalformedURLException {
         final String assembleNodeAddress = getAssembleNodeAddress(ITISCoordinator.create());
 
-        TriggerBuildResult triggerResult
-                = HttpUtils.process(new URL(assembleNodeAddress + TRIGGER_FULL_BUILD_COLLECTION_PATH)
-                , appendParams, new PostFormStreamProcess<TriggerBuildResult>() {
-                    @Override
-                    public List<ConfigFileContext.Header> getHeaders() {
-                        return headers;
-                    }
+        TriggerBuildResult triggerResult =
+                HttpUtils.process(new URL(assembleNodeAddress + TRIGGER_FULL_BUILD_COLLECTION_PATH), appendParams,
+                        new PostFormStreamProcess<TriggerBuildResult>(headers) {
 
-                    @Override
-                    public ContentType getContentType() {
-                        return ContentType.Application_x_www_form_urlencoded;
-                    }
+            //            @Override
+            //            public List<ConfigFileContext.Header> getHeaders() {
+            //                List<ConfigFileContext.Header> hds = Lists.newArrayList(super.getHeaders());
+            //                hds.addAll(headers);
+            //                return hds;
+            //            }
 
-                    @Override
-                    public TriggerBuildResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-                        TriggerBuildResult triggerResult = null;
-                        try {
-                            JSONTokener token = new JSONTokener(stream);
-                            JSONObject result = new JSONObject(token);
-                            final String successKey = "success";
-                            if (result.isNull(successKey)) {
-                                return new TriggerBuildResult(false);
-                            }
-                            triggerResult = new TriggerBuildResult(true);
-                            if (!result.isNull(bizKey)) {
-                                JSONObject o = result.getJSONObject(bizKey);
-                                if (!o.isNull(JobCommon.KEY_TASK_ID)) {
-                                    triggerResult.taskid = Integer.parseInt(o.getString(JobCommon.KEY_TASK_ID));
-                                }
-                                module.setBizResult(context, o);
-                            }
-                            if (result.getBoolean(successKey)) {
-                                return triggerResult;
-                            }
-                            module.addErrorMessage(context, result.getString("msg"));
-                            return new TriggerBuildResult(false);
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
+            @Override
+            public ContentType getContentType() {
+                return ContentType.Application_x_www_form_urlencoded;
+            }
+
+            @Override
+            public TriggerBuildResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+                TriggerBuildResult triggerResult = null;
+                try {
+                    JSONTokener token = new JSONTokener(stream);
+                    JSONObject result = new JSONObject(token);
+                    final String successKey = "success";
+                    if (result.isNull(successKey)) {
+                        return new TriggerBuildResult(false);
+                    }
+                    triggerResult = new TriggerBuildResult(true);
+                    if (!result.isNull(bizKey)) {
+                        JSONObject o = result.getJSONObject(bizKey);
+                        if (!o.isNull(JobCommon.KEY_TASK_ID)) {
+                            triggerResult.taskid = Integer.parseInt(o.getString(JobCommon.KEY_TASK_ID));
                         }
+                        module.setBizResult(context, o);
                     }
-                }, httpMethod);
+                    if (result.getBoolean(successKey)) {
+                        return triggerResult;
+                    }
+                    module.addErrorMessage(context, result.getString("msg"));
+                    return new TriggerBuildResult(false);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }, httpMethod);
         return triggerResult;
     }
 
