@@ -870,6 +870,7 @@ public class PluginAction extends BasicModule {
     if (this.getBoolean("errors_page_show")) {
       this.errorsPageShow(context);
     }
+   // Thread.sleep(6000);
     List<UploadPluginMeta> plugins = getPluginMeta();
     JSONObject postData = this.parseJsonPost();
     String[] forwardParams = getActionForwardParam(postData);

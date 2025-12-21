@@ -32,6 +32,7 @@ import com.qlangtech.tis.fullbuild.taskflow.TaskAndMilestone;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.sql.parser.DAGSessionSpec;
+import com.qlangtech.tis.util.IPluginContext;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.jvnet.hudson.reactor.ReactorListener;
 import org.jvnet.hudson.reactor.Task;
@@ -73,6 +74,10 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         execChainContext.setTskTriggers(tskTriggers);
         GenerateCfgs cfgFileNames
                 = appSource.getDataxCfgFileNames(null, com.qlangtech.tis.plugin.trigger.JobTrigger.getTriggerFromHttpParam(execChainContext));
+        // 避免 tdfs->mysql过程中 由于执行 IPluginContext.getThreadLocalInstance() 而报错
+        IPluginContext.setPluginContext( //
+                IPluginContext.namedContext(new DataXName(appSource.identityValue(),appSource.getResType())));
+
         DAGSessionSpec sessionSpec = DAGSessionSpec.createDAGSessionSpec(
                 execChainContext, statusRpc, appSource,cfgFileNames ,submit).getLeft();
         List<IRemoteTaskTrigger> triggers = DagTaskUtils.createTasks(execChainContext, this, sessionSpec, tskTriggers);

@@ -18,6 +18,7 @@ package com.qlangtech.tis.plugin;
  *   limitations under the License.
  */
 
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.StoreResourceType;
 
 /**
@@ -27,7 +28,7 @@ import com.qlangtech.tis.datax.StoreResourceType;
 public interface StoreResourceTypeGetter {
     /**
      * 资源类型
-     *
+     * @see DataXName
      * @return
      */
     StoreResourceType getResType();

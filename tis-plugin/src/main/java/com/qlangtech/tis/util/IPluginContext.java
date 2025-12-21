@@ -47,7 +47,7 @@ import java.util.Optional;
  */
 public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostContent {
 
-    static final ThreadLocal<IPluginContext> pluginContextThreadLocal = new ThreadLocal<>();
+    ThreadLocal<IPluginContext> pluginContextThreadLocal = new ThreadLocal<>();
 
     public static void setPluginContext(IPluginContext pluginContext) {
         pluginContextThreadLocal.set(pluginContext);
@@ -55,7 +55,8 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostC
 
 
     public static IPluginContext getThreadLocalInstance() {
-        return pluginContextThreadLocal.get();
+        return Objects.requireNonNull(pluginContextThreadLocal.get(),
+                "instance of " + IPluginContext.class.getSimpleName() + " can not be null");
     }
 
 
@@ -107,7 +108,8 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostC
      * @param dbName
      * @param context
      */
-    void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB);
+    void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context,
+               boolean shallUpdateDB);
 
 
 }

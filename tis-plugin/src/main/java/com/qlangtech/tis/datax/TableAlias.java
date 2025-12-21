@@ -180,7 +180,7 @@ public class TableAlias implements Describable<TableAlias> {
 
     @Override
     public String toString() {
-        return "TableMap{" +
+        return "TableAlias{" +
                 "from='" + from + '\'' +
                 ", to='" + to + '\'' +
                 '}';

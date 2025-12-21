@@ -33,6 +33,7 @@ import com.qlangtech.tis.manage.spring.aop.AuthorityCheckAdvice;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.ds.JDBCConnection;
 import com.qlangtech.tis.plugin.ds.JDBCConnectionPool;
+import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.utils.FreshmanReadmeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.ServletActionContext;
@@ -136,6 +137,7 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
       SuFormProperties.subFormGetterProcessThreadLocal.remove();
       GroovyShellUtil.pluginThreadLocal.remove();
       UpdateSite.pluginArtsThreadlocal.remove();
+      IPluginContext.pluginContextThreadLocal.remove();
     }
   }
 }

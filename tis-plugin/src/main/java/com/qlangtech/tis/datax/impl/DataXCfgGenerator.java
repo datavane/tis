@@ -121,13 +121,11 @@ public class DataXCfgGenerator implements IDataXNameAware {
         this.tableMapCreator = new TableMapCreator();
     }
 
-    protected String getTemplateContent(IDataxReaderContext readerContext, IDataxReader reader, IDataxWriter writer, Optional<RecordTransformerRules> transformerRules) {
+    protected String getTemplateContent(IDataxReaderContext readerContext //
+            , IDataxReader reader, IDataxWriter writer, Optional<RecordTransformerRules> transformerRules) {
         final String tpl = globalCfg.getTemplate();
 
-        // List<IDataxReader> readers = dataxProcessor.getReaders(pluginCtx);
-        //        for (IDataxReader reader : readers) {
-        //IDataxReader reader = dataxProcessor.getReader(pluginCtx);
-        // IDataxWriter writer = dataxProcessor.getWriter(pluginCtx);
+
         if (StringUtils.isEmpty(reader.getTemplate())) {
             throw new IllegalStateException("readerTpl of '" + reader.getDataxMeta().getName() + "' can not be null");
         }
@@ -140,8 +138,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
 
         readerTpl.append(",\n\t\"")
                 .append(TransformerConstant.JOB_TRANSFORMER).append("\":\t\t\n {\"").append(TransformerConstant.JOB_TRANSFORMER_NAME)
-                //.append("\":\"").append(readerContext.getSourceEntityName()).append("\",\n\"") getSourceEntityName() 方法返回的有转义符
-                .append("\":\"").append(readerContext.getSourceTableName()).append("\",\n\"") // getSourceTableName() 方法返回的没有转义符
+                .append("\":\"").append(readerContext.getSourceTableName()).append("\",\n\"")
                 .append(TransformerConstant.JOB_TRANSFORMER_RELEVANT_KEYS).append("\":").append("[");
         if (transformerRules.isPresent()) {
             readerTpl.append(transformerRules.get().relevantColKeys().stream().map((col) -> "\"" + col + "\"").collect(Collectors.joining(",")));
@@ -149,15 +146,9 @@ public class DataXCfgGenerator implements IDataXNameAware {
         readerTpl.append("]").append("}");
 
 
-//        readerTpl.append(",\n\t\"")
-//                .append(ISelectedTab.KEY_SELECTED_TAB).append("\":\t \"").append(readerContext.getSourceTableName()).append("\"");
-
         String template = StringUtils.replace(tpl, "<!--reader-->", readerTpl.toString());
         template = StringUtils.replace(template, "<!--writer-->", writerTpl);
         return template;
-        // }
-
-
     }
 
 

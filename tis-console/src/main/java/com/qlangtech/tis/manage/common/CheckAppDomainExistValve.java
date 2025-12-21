@@ -29,7 +29,6 @@ import org.apache.struts2.ServletActionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Objects;
 
 /**
  * 校验用户当前 应用是否选择了
@@ -78,8 +77,6 @@ public class CheckAppDomainExistValve {
     try {
       if ((environment.getAppName()) == null) {
         // 只选择了环境 参数
-        // appDomain = new AppDomainInfo(-1, -1, Integer
-        // .parseInt(match.group(2)), context);
         appDomain = AppDomainInfo.createAppNotAware(environment.getRuntime());
       } else {
         DataXName dataXName = environment.getAppName();
@@ -110,49 +107,11 @@ public class CheckAppDomainExistValve {
         // Integer bizid, Integer appid, RunEnvironment runEnvironment, Application app
         appDomain = new AppDomainInfo(app.getDptId(), app.getAppId(), // getRuntime(match),
           runtime, app);
-        // appDomain.setAppName(appname);
         break;
       }
       return appDomain;
     }
     return null;
-    // // ApplicationCriteria criteria = new ApplicationCriteria();
-    // // criteria.createCriteria().andProjectNameEqualTo(
-    // // // match.group(1)
-    // // appname);// .andNotDelete();
-    // AppDomainInfo appDomain = null;
-    // IAppsFetcher appFetcher = UserUtils.getAppsFetcher(request, context);
-    //
-    // List<Application> applist = appFetcher.getApps(new CriteriaSetter() {
-    // @Override
-    // public void set(Criteria criteria) {
-    // criteria.andProjectNameEqualTo(appname);
-    // }
-    // });
-    //
-    // // List<Application> applist = applicationDAO.selectByExample(criteria,
-    // // 1,
-    // // 100);
-    //
-    // // AppsFetcher.create();
-    //
-    // for (Application app : applist) {
-    // // appDomain = new AppDomainInfo(app, Integer
-    // // .parseInt(match.group(2)), applicationDAO);
-    //
-    // // 如果应用的部门为空则说明不是一个合法的部门
-    // if (app.getDptId() == null || app.getDptId() < 1) {
-    // return CheckAppDomainExistValve.createNull();
-    // }
-    //
-    // appDomain = new AppDomainInfo(app.getDptId(), app.getAppId(), runtime,
-    // // getRuntime(match),
-    // context);
-    //
-    // appDomain.setAutoDeploy(app.getIsAutoDeploy());
-    // break;
-    // }
-    // return appDomain;
   }
 
   private static final AppDomainInfo NULL = new NullAppDomainInfo(null);
@@ -189,7 +148,6 @@ public class CheckAppDomainExistValve {
 
     @Override
     public RunEnvironment getRunEnvironment() {
-      // throw new UnsupportedOperationException();
       return RunEnvironment.DAILY;
     }
   }

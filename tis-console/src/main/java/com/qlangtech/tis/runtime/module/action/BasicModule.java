@@ -210,7 +210,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
       executeMethod.invoke(this, context);
       return getReturnCode();
     } finally {
-      IPluginContext.pluginContextThreadLocal.remove();
+     // IPluginContext.pluginContextThreadLocal.remove();
     }
   }
 

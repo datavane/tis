@@ -38,6 +38,7 @@ import com.qlangtech.tis.plugin.license.TISLicense.HasExpire;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.IPluginContext;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.crypto.Cipher;
@@ -62,6 +63,7 @@ public class TISLicense extends ParamsConfig implements BeforePluginSaved, After
     public static final String KEY_EMAIL = "email";
     public static final String KEY_MOBILE = "mobile";
     public static final String KEY_IDENTITY = "licenseId";
+    public static final String KEY_TIS_IDENTITY = "tis-license-id" ;
     public static final String KEY_FIELD_ACTIVATION_CODE = "activationCode";
     public static final String KEY_DISPLAY_NAME = "License";
 
@@ -111,8 +113,8 @@ public class TISLicense extends ParamsConfig implements BeforePluginSaved, After
             throw new RuntimeException(e);
         }
         if (hasExpire != null && !hasExpire.hasNotExpire) {
-            throw TisException.create(ErrorValue.create(ErrorCode.LICENSE_INVALID, new HashMap<>())
-                    , "License period of validity till:" + hasExpire.expireDate);
+            throw TisException.create(ErrorValue.create(ErrorCode.LICENSE_INVALID, new HashMap<>()), "License period "
+                    + "of validity till:" + hasExpire.expireDate);
         }
     }
 
@@ -154,13 +156,14 @@ public class TISLicense extends ParamsConfig implements BeforePluginSaved, After
     public HasExpire hasExpire() throws Exception {
 
         if (hasExpire == null) {
-            final byte[] content = decryptData(
-                    Base64.getDecoder().decode(this.activationCode)
-                    , this.loadPublicKey().getKey());
-            HashMap<String, String> deserialize = JsonUtil.deserialize(new String(content, TisUTF8.get()), new HashMap<String, String>());
+            final byte[] content = decryptData(Base64.getDecoder().decode(this.activationCode),
+                    this.loadPublicKey().getKey());
+            HashMap<String, String> deserialize = JsonUtil.deserialize(new String(content, TisUTF8.get()),
+                    new HashMap<String, String>());
             long epochMilli = Long.parseLong(deserialize.get(KEY_EXPIRE_DATE));
             final TimeFormat format = TimeFormat.yyyy_MM_dd;
-            hasExpire = new HasExpire(LocalDate.now().isBefore(format.ofInstant(epochMilli).toLocalDate()), format.format(epochMilli));
+            hasExpire = new HasExpire(LocalDate.now().isBefore(format.ofInstant(epochMilli).toLocalDate()),
+                    format.format(epochMilli));
             hasExpire.setEmail(deserialize.get(KEY_EMAIL));
             hasExpire.setMobile(deserialize.get(KEY_MOBILE));
             hasExpire.setLicenseId(deserialize.get(KEY_IDENTITY));
@@ -220,12 +223,12 @@ public class TISLicense extends ParamsConfig implements BeforePluginSaved, After
         }
     }
 
-//    private PublicKey getPublicKey() throws Exception {
-//        byte[] decodedPublicKey = this.loadPublicKey();
-//        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decodedPublicKey);
-//        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-//        return keyFactory.generatePublic(keySpec);
-//    }
+    //    private PublicKey getPublicKey() throws Exception {
+    //        byte[] decodedPublicKey = this.loadPublicKey();
+    //        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decodedPublicKey);
+    //        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+    //        return keyFactory.generatePublic(keySpec);
+    //    }
 
     private static byte[] decryptData(byte[] encryptedData, PublicKey publicKey) throws Exception {
         Cipher cipher = Cipher.getInstance("RSA");

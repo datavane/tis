@@ -185,7 +185,7 @@ public interface IEndTypeGetter {
         , SubString("substr", EndTypeCategory.Transformer, true) //
         , AutoGen("auto-generate", EndTypeCategory.Transformer, true) //
         , Copy("clone", EndTypeCategory.Transformer, true) //
-
+        , Constant("constant", EndTypeCategory.Transformer, true) //
         , License("license", EndTypeCategory.Icon, true);
 
         private final String val;

@@ -123,11 +123,6 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
                     ? overwriteColsWithContextParams
                     : transformerBuilder.tranformerColsWithoutContextParams();
             return outParams.stream().map((param) -> param).collect(Collectors.toList());
-
-//            OverwriteCols overwriteCols = transformerRules.get().overwriteCols(this.getCols());
-//            if (readerSource.isPresent()) {
-//                cols = overwriteCols.appendSourceContextParams((DataSourceMeta) readerSource.get()).getCols();
-//            }
         } else {
             cols = this.getCols().stream().collect(Collectors.toList());
         }
@@ -147,7 +142,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
 
     public List<String> getColKeys() {
-        return getCols().stream().map((c) -> c.getName()).collect(Collectors.toUnmodifiableList()); //this.cols.stream().filter((c) -> !c.isDisable()).map((c) -> c.getName()).collect(Collectors.toList());
+        return getCols().stream().map((c) -> c.getName()).collect(Collectors.toUnmodifiableList());
     }
 
     public final List<CMeta> getCols() {
@@ -165,7 +160,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
             }
             result.add(cmeta);
         }
-        return result;// this.cols.stream().filter((c) -> !c.isDisable()).collect(Collectors.toList());
+        return result;
     }
 
     /**
@@ -188,8 +183,6 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     public static List<CMeta> getSelectedCols() {
         return getContextTableColsStream().getSelectedCols();
     }
-
-    // private transient List<CMeta> shadowCols = null;
 
     public SelectedTab(String name) {
         this.name = name;
@@ -324,44 +317,12 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     public static ThreadCacheTableCols getContextTableColsStream() {
         SuFormProperties.SuFormGetterContext context = SuFormProperties.subFormGetterProcessThreadLocal.get();
         if (context == null || context.plugin == null) {
-//            List<ColumnMetaData> empt = Collections.emptyList();
-//            return new ThreadCacheTableCols(null, null, (target) -> Collections.emptyList(), empt);// empt.stream();
             return ThreadCacheTableCols.createEmptyTableCols();
         }
         IDataxReader plugin = Objects.requireNonNull(context.plugin, "context.plugin can not be null");
 
         return plugin.getContextTableColsStream(context);
-//        if (!(plugin instanceof DataSourceMeta)) {
-//            throw new IllegalStateException("plugin must be type of " + DataSourceMeta.class.getName() + ", now type "
-//                    + "of " + plugin.getClass().getName());
-//        }
-//        DataSourceMeta dsMeta = plugin;
-//        ThreadCacheTableCols cols = context.getContextAttr(KEY_TABLE_COLS, (key) -> {
-//            try {
-//                return new ThreadCacheTableCols(plugin, () -> {
-//                    //plugin.getSelectedTab()
-//                    // 从临时文件中将已经选中的列取出来
-//                    SelectedTab selectedTab = SelectedTab.loadFromTmp(
-//                            Objects.requireNonNull(context.store, "store can not be null"), context.getSubFormIdentityField());
-//                    List<SelectedTab> filledSelectedTab = plugin.fillSelectedTabMeta(Collections.singletonList(selectedTab));
-//                    for (SelectedTab tab : filledSelectedTab) {
-//                        for (CMeta cmeta : tab.getCols()) {
-//                            if (cmeta.getType() == null) {
-//                                throw new IllegalStateException("table:" + context.getSubFormIdentityField()
-//                                        + ",col:" + cmeta.getName() + " relevant type can not be null");
-//                            }
-//                        }
-//                        return tab.getCols();
-//                    }
-//                    throw new IllegalStateException("can not arrive here");
-//                }, dsMeta.getTableMetadata(false //
-//                        , Objects.requireNonNull(context.param, "param can not be null").getPluginContext()
-//                        , EntityName.parse(context.getSubFormIdentityField())));
-//            } catch (TableNotFoundException e) {
-//                throw new RuntimeException(e);
-//            }
-//        });
-//        return cols;// func.apply(cols);
+
     }
 
 
@@ -397,13 +358,6 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
         @Override
         protected final boolean validateAll(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
-
-            //   SelectedTab tab = ;// this.newInstance(null, postFormVals.rawFormData, Optional.empty());
-            //SelectedTab tab = plugin.getInstance();
-            //            if (tab.cols.isEmpty()) {
-            //                msgHandler.addFieldError(context, SelectedTab.KEY_FIELD_COLS, "请选择");
-            //                return false;
-            //            }
             return this.validateAll(msgHandler, context, (SelectedTab) postFormVals.newInstance());
         }
 
@@ -522,7 +476,6 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     }
 
     public static XmlFile getTmpTableStoreFile(IPluginStoreSave pluginStore, String tabName) {
-        // XmlFile targetFile = pluginStore.getTargetFile();
         String pluginFileName = Descriptor.getPluginFileName(tabName);
         File tabTmp = new File(pluginStore.getTargetFileParentDir()
                 , ".tmp" + File.separator + "tabs" + File.separator + pluginFileName);

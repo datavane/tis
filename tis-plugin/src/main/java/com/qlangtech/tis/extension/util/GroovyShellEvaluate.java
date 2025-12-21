@@ -39,31 +39,6 @@ public class GroovyShellEvaluate {
         }
         isInConsoleModule = loaded;
     }
-//    private static GroovyShellEvaluateService getEvaluateService(){
-//
-//        ServiceLoader<GroovyShellEvaluateService> evaluateServiceLoader = ServiceLoader.load(GroovyShellEvaluateService.class);
-//
-//        for(GroovyShellEvaluateService eservie : evaluateServiceLoader){
-//              return eservie;
-//        }
-//        return new GroovyShellEvaluateService() {
-//            @Override
-//            public <T> T createParamizerScript(Class parentClazz, String className, String script) {
-//                return null;
-//            }
-//
-//            @Override
-//            public Object scriptEval(String script, Function<Object, Object>... process) {
-//                return null;
-//            }
-//
-//            @Override
-//            public <T> T eval(String javaScript) {
-//                return null;
-//            }
-//        };
-//    }
-
     public static <T> T createParamizerScript(Class parentClazz, String className, String script) {
         try {
             String pkg = parentClazz.getPackage().getName();

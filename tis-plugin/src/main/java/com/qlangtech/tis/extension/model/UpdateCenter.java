@@ -672,8 +672,8 @@ public class UpdateCenter implements Saveable {
                     List<Header> headers = super.getHeaders();
                     if (license != null) {
                         headers = Lists.newArrayList(headers);
-                        headers.add(new Header(TISLicense.KEY_IDENTITY, license.licenseId));
-                        headers.add(new Header(TISLicense.KEY_MOBILE, license.mobile));
+                        headers.add(new Header(TISLicense.KEY_TIS_IDENTITY, license.licenseId));
+                        headers.add(new Header(TISLicense.KEY_EMAIL, license.email));
                     }
                     return headers;
                 }
