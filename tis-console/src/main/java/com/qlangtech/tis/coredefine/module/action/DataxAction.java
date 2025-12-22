@@ -1276,7 +1276,7 @@ public class DataxAction extends BasicModule {
         mapperTabPrefixAutoTabCreator = ((IInitWriterTableExecutor) dataXWriter).getAutoCreateTableCanNotBeNull();//
         // .getMapperTabPrefix();
       }
-      tabMaps = dataxSource.getTabAlias(this, true);
+      tabMaps = dataxSource.getTabAlias(this, false);
     }
     if (tabMaps == null) {
       throw new IllegalStateException("tableMaps can not be null");

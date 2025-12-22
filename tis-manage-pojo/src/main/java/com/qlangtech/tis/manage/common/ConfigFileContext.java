@@ -33,6 +33,7 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
+import java.net.http.HttpRequest;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.Base64;
@@ -186,7 +187,7 @@ public class ConfigFileContext {
             // Build HTTP request
             java.net.http.HttpRequest.Builder requestBuilder =
                     java.net.http.HttpRequest.newBuilder().uri(url.toURI()).timeout(streamProcess.getSocketReadTimeout()).header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.2) " + "Gecko/20090729 Firefox/3.5.2 (.NET CLR 3.5.30729)");
-
+            //streamProcess.preSet();
             // Add custom headers
             for (Header h : heads) {
                 requestBuilder.header(h.getKey(), h.getValue());
@@ -252,7 +253,15 @@ public class ConfigFileContext {
             throw new Exception(e);
         }
     }
-
+    public static Header setAuthorizationHeader(String userName, String password) {
+        if (StringUtils.isEmpty(userName)) {
+            throw new IllegalArgumentException("username can not be empty");
+        }
+        String userpass = userName + ":" + StringUtils.trimToEmpty(password);
+        String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
+        //  requestBuilder.header();
+        return new Header("Authorization", basicAuth);
+    }
     public abstract static class StreamProcess<T> extends StreamErrorProcess {
 
         public static String HEADER_KEY_GET_FILE_META = "get_file_meta";
@@ -269,26 +278,22 @@ public class ConfigFileContext {
             HEADER_GET_META = Collections.unmodifiableList(tmpList);
         }
 
-        protected static void setAuthorization(HttpURLConnection conn, String userName, String password) {
-            String userpass = userName + ":" + StringUtils.trimToEmpty(password);
-            String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
-            conn.setRequestProperty("Authorization", basicAuth);
-        }
 
-        /**
-         * 可以做在提交之前 先设置用户名密码之类的
-         *
-         * @param conn
-         * @throws IOException
-         */
-        public void preSet(HttpURLConnection conn) throws IOException {
-            //            URL url = new URL(“location address”);
-            //            URLConnection uc = url.openConnection();
-            //            String userpass = username + ":" + password;
-            //            String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
-            //            uc.setRequestProperty ("Authorization", basicAuth);
-            //            InputStream in = uc.getInputStream();
-        }
+
+        //        /**
+        //         * 可以做在提交之前 先设置用户名密码之类的
+        //         *
+        //         * @param conn
+        //         * @throws IOException
+        //         */
+        //   public void preSet(HttpURLConnection conn) throws IOException {
+        //            URL url = new URL(“location address”);
+        //            URLConnection uc = url.openConnection();
+        //            String userpass = username + ":" + password;
+        //            String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
+        //            uc.setRequestProperty ("Authorization", basicAuth);
+        //            InputStream in = uc.getInputStream();
+        // }
 
         public T p(HttpURLConnection conn, InputStream stream) throws IOException {
             return p(conn.getResponseCode(), stream, conn.getHeaderFields());

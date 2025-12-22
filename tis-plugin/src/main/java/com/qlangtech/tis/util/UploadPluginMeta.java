@@ -29,6 +29,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
 import com.qlangtech.tis.manage.common.AppAndRuntime;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
@@ -43,6 +44,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.qlangtech.tis.plugin.IEndTypeGetter.EndType.KEY_END_TYPE;
 
 /**
  * 解析提交的plugin元数据信息，如果plugin为"xxxplugin:require" 则是在告诉服务端，该plugin必须要有输入内容，该plugin不可缺省
@@ -384,6 +387,8 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         public final String impl;
         public final String matchTargetPluginDescName;
         private final boolean pipelineNameAware;
+        // 目标端类型
+        private final Optional<IEndTypeGetter.EndType> endType;
 
         public static final TargetDesc create(UploadPluginMeta meta) {
             return new TargetDesc(
@@ -393,7 +398,8 @@ public class UploadPluginMeta implements IUploadPluginMeta {
                     , meta.getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_NAME) //
                     // targetDescriptorImpl
                     , meta.getExtraParam(PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION),
-                    meta.getBoolean(PLUGIN_META_TARGET_PIPELINE_NAME_AWARE));
+                    meta.getBoolean(PLUGIN_META_TARGET_PIPELINE_NAME_AWARE),
+                    Optional.ofNullable(IEndTypeGetter.EndType.parse(meta.getExtraParam(KEY_END_TYPE), true, false)));
         }
 
         public String pluginStoreGroupPath(UploadPluginMeta meta) {
@@ -410,11 +416,13 @@ public class UploadPluginMeta implements IUploadPluginMeta {
             return parentDesc;
         }
 
-        private TargetDesc(String matchTargetPluginDescName, String name, String impl, boolean pipelineNameAware) {
+        private TargetDesc(String matchTargetPluginDescName, String name, String impl, boolean pipelineNameAware,
+                           Optional<IEndTypeGetter.EndType> endType) {
             this.matchTargetPluginDescName = matchTargetPluginDescName;
             this.descDisplayName = name;
             this.impl = impl;
             this.pipelineNameAware = pipelineNameAware;
+            this.endType = endType;
         }
 
         public boolean shallMatchTargetDesc() {
@@ -506,6 +514,15 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         List<Descriptor<T>> descriptors = hEnum.descriptors(targetDesc, items, justGetItemRelevant);
 
 
+        hList.setDescriptors(targetDesc.endType.map((end) -> {
+            return descriptors.stream().filter((desc) -> {
+                if (desc instanceof IEndTypeGetter) {
+                    return ((IEndTypeGetter) desc).getEndType() == end;
+                }
+                return false;
+            }).collect(Collectors.toList());
+        }).orElse(descriptors));
+
         //        if (targetDesc.shallMatchTargetDesc()) {
         //            descriptors =
         //                    descriptors.stream().filter((desc) -> targetDesc.isNameMatch(desc.getDisplayName()))
@@ -526,7 +543,6 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         //                        .getDisplayName())).collect(Collectors.toList());
         //            }
         //        }
-        hList.setDescriptors(descriptors);
 
 
         return hList;

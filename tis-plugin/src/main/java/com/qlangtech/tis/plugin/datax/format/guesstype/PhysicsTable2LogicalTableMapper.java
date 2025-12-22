@@ -21,6 +21,7 @@ package com.qlangtech.tis.plugin.datax.format.guesstype;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
@@ -33,13 +34,12 @@ import java.util.Objects;
  * @see FocusWildcardTabName
  * @see KafkaLogicalTableName
  */
-public class PhysicsTable2LogicalTableMapper {
+public class PhysicsTable2LogicalTableMapper implements Serializable {
     private final Map<String/**物理表名*/, KafkaLogicalTableName> physicsTable2LogicalTable = Maps.newHashMap();
     private final TargetTabsEntities targetTabsEntities;
 
     public PhysicsTable2LogicalTableMapper(TargetTabsEntities targetTabsEntities) {
-        this.targetTabsEntities = Objects.requireNonNull(targetTabsEntities
-                , "targetTabsEntities can not be null");
+        this.targetTabsEntities = Objects.requireNonNull(targetTabsEntities, "targetTabsEntities can not be null");
     }
 
     /**
@@ -56,8 +56,8 @@ public class PhysicsTable2LogicalTableMapper {
         if (logicalTabName == null) {
             physicsTable2LogicalTable.put(tabName
                     // 从注册表中查看对应的逻辑表应该叫什么名字
-                    , Objects.requireNonNull(targetTabsEntities.parseLogicalTable(tabName)
-                            , "logicalTabName can not be null"));
+                    , logicalTabName = Objects.requireNonNull(targetTabsEntities.parseLogicalTable(tabName),
+                            "logicalTabName can not be null"));
         }
         return logicalTabName;
     }

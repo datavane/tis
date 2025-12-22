@@ -21,6 +21,7 @@ package com.qlangtech.tis.plugin.datax.format.guesstype;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,7 +31,7 @@ import java.util.regex.Pattern;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/11/13
  */
-public class FocusWildcardTabName {
+public class FocusWildcardTabName implements Serializable {
     /**
      * 整个字符串不能有空格，字符‘*’只能在字符串的最后出现（最多出现一次，也可以不出现），给一个例子：
      * t*est*        不匹配

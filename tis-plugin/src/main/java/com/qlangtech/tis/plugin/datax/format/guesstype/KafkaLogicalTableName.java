@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.datax.format.guesstype;
 
 import com.google.common.collect.Sets;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.Set;
 
@@ -28,7 +29,7 @@ import java.util.Set;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/11/13
  */
-public class KafkaLogicalTableName {
+public class KafkaLogicalTableName implements Serializable {
     private final String logicalTableName;
 
     /**

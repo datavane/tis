@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/11/12
  */
-public class TargetTabsEntities {
+public class TargetTabsEntities implements Serializable {
     private final List<FocusWildcardTabName> focusTabs;
     private final Map<FocusWildcardTabName, KafkaLogicalTableName> logical2PhyicalTabRegister = Maps.newHashMap();
 
@@ -53,8 +54,8 @@ public class TargetTabsEntities {
         }).map(FocusWildcardTabName::new).collect(Collectors.toList());
         int reduceSize;
         if ((reduceSize = Sets.newHashSet(this.focusTabs).size()) < this.focusTabs.size()) {
-            throw new IllegalStateException("reduced this.focusTabs size:"
-                    + reduceSize + " small than focusTabs size:" + this.focusTabs.size());
+            throw new IllegalStateException("reduced this.focusTabs size:" + reduceSize + " small than focusTabs "
+                    + "size:" + this.focusTabs.size());
         }
 
     }
@@ -87,7 +88,8 @@ public class TargetTabsEntities {
                 return logicalTableName;
             }
         }
-        throw new IllegalStateException("tabName:" + physicalTableName + " relevant kafkaLogicalTableName can not be null,this.focusTabs:"
-                + this.focusTabs.stream().map(String::valueOf).collect(Collectors.joining(",")));
+        throw new IllegalStateException("tabName:" + physicalTableName + " relevant kafkaLogicalTableName can not be "
+                + "null,this.focusTabs:" + this.focusTabs.stream().map(String::valueOf).collect(Collectors.joining(","
+        )));
     }
 }

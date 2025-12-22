@@ -248,19 +248,19 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 
     private TableAliasMapper getDefault(IPluginContext pluginCtx, boolean withDft) {
 
+        if (!withDft) {
+            return TableAliasMapper.Null;
+        }
+
         if (this.dftTableAliasMapper == null) {
-            if (withDft) {
-                this.dftTableAliasMapper = TableAliasMapper.Null;
-                IDataxReader reader = this.getReader(pluginCtx);
-                List<ISelectedTab> tabs = reader.getUnfilledSelectedTabs();
-                Map<String, TableAlias> mapper = Maps.newHashMap();
-                for (ISelectedTab tab : tabs) {
-                    mapper.put(tab.getName(), new TableMap(tab));
-                }
-                this.dftTableAliasMapper = new TableAliasMapper(mapper);
-            } else {
-                return TableAliasMapper.Null;
+            this.dftTableAliasMapper = TableAliasMapper.Null;
+            IDataxReader reader = this.getReader(pluginCtx);
+            List<ISelectedTab> tabs = reader.getUnfilledSelectedTabs();
+            Map<String, TableAlias> mapper = Maps.newHashMap();
+            for (ISelectedTab tab : tabs) {
+                mapper.put(tab.getName(), new TableMap(tab));
             }
+            this.dftTableAliasMapper = new TableAliasMapper(mapper);
         }
         return this.dftTableAliasMapper;
     }

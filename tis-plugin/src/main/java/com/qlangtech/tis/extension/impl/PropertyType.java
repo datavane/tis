@@ -246,8 +246,10 @@ public class PropertyType implements IPropertyType {
                     //   ptype = null;
 
                     Class<? extends Describable> subFromDescClass = null;
+                    Field targetField = null;
                     try {
                         for (Field f : targetClass.getDeclaredFields()) {
+                            targetField = f;
                             if (!Modifier.isPublic(f.getModifiers()) || Modifier.isStatic(f.getModifiers())) {
                                 continue;
                             }
@@ -289,7 +291,7 @@ public class PropertyType implements IPropertyType {
                                     }
 
                                     if (dftVal != null && StringUtils.startsWith(String.valueOf(dftVal),
-                                            IMessageHandler.TSEARCH_PACKAGE)) {
+                                            IMessageHandler.TSEARCH_PACKAGE) && !(dftVal instanceof UnCacheString)) {
                                         final PropertyType pt = ptype;
 
                                         Function<Object, Object> process = pt.getEnumFieldMode() != null ?
@@ -346,7 +348,7 @@ public class PropertyType implements IPropertyType {
                             }
                         }
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        throw new RuntimeException("field:" + targetField.getName() + " of targetClass:" + targetClass.getName(), e);
                     }
                     return null;
                 }
@@ -362,14 +364,13 @@ public class PropertyType implements IPropertyType {
 
     private static JSONArray resolveEnumProp(Field field, Descriptor descriptor,
                                              PluginExtraProps.Props fieldExtraProps, Function<Object, Object> process) {
-        JSONObject props =  fieldExtraProps.getProps();
+        JSONObject props = fieldExtraProps.getProps();
         Object anEnum = props.get(Descriptor.KEY_ENUM_PROP);
         JSONArray enums = new JSONArray();
         if (anEnum != null && anEnum instanceof String) {
             try {
                 GroovyShellUtil.descriptorThreadLocal.set(descriptor);
-                props.put(Descriptor.KEY_ENUM_PROP,
-                        GroovyShellEvaluate.scriptEval((String) anEnum, process));
+                props.put(Descriptor.KEY_ENUM_PROP, GroovyShellEvaluate.scriptEval((String) anEnum, process));
             } finally {
                 GroovyShellUtil.descriptorThreadLocal.remove();
             }
