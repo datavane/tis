@@ -44,7 +44,7 @@
 
 
     <properties>
-        <revision>4.3.0</revision>
+        <revision>5.0.0-SNAPSHOT</revision>
         <testcontainers.version>1.15.3</testcontainers.version>
         <flink.version>tis-1.20.1</flink.version>
         <alibaba.datax.version>${project.version}</alibaba.datax.version>
@@ -69,6 +69,7 @@
         <avro.version>1.11.0</avro.version>
         <mockito.version>3.4.6</mockito.version>
         <mockito-scala.version>1.17.14</mockito-scala.version>
+        <derby.version>10.15.2.0</derby.version>
     </properties>
 
 
@@ -203,7 +204,13 @@
                 <!--running DB in embedded model https://db.apache.org/derby/docs/10.15/getstart/index.html-->
                 <groupId>org.apache.derby</groupId>
                 <artifactId>derby</artifactId>
-                <version>10.9.1.0</version>
+<!--                <version>10.9.1.0</version>-->
+                <version>${derby.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.derby</groupId>
+                <artifactId>derbytools</artifactId>
+                <version>${derby.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.easymock</groupId>
