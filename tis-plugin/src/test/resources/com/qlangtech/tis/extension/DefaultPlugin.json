@@ -4,5 +4,8 @@
   },
   "password": {
     "validators": "require"
+  },
+  "fieldForShortAsynHelp": {
+
   }
 }

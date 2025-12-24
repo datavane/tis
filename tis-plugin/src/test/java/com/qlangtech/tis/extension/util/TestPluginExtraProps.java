@@ -49,16 +49,16 @@ import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_CREATOR_ASSI
  */
 public class TestPluginExtraProps extends TestCase {
 
-//    public void testParsePostMCols() {
-//
-//        ElementCreatorFactory elementCreator = new TestElementCreatorFactory();
-//        IControlMsgHandler msgHandler = null;
-//        Context context = null;
-//        String keyColsMeta = null;
-//        JSONArray targetCols = null;
-//        IPropertyType propertyType = null;
-//        elementCreator.parsePostMCols(propertyType, msgHandler, context, keyColsMeta, targetCols);
-//    }
+    //    public void testParsePostMCols() {
+    //
+    //        ElementCreatorFactory elementCreator = new TestElementCreatorFactory();
+    //        IControlMsgHandler msgHandler = null;
+    //        Context context = null;
+    //        String keyColsMeta = null;
+    //        JSONArray targetCols = null;
+    //        IPropertyType propertyType = null;
+    //        elementCreator.parsePostMCols(propertyType, msgHandler, context, keyColsMeta, targetCols);
+    //    }
 
     private static class TestElementCreatorFactory implements ElementCreatorFactory<CMeta> {
         @Override
@@ -72,13 +72,14 @@ public class TestPluginExtraProps extends TestCase {
         }
 
         @Override
-        public ParsePostMCols<CMeta> parsePostMCols(IPropertyType propertyType, IControlMsgHandler msgHandler, Context context, String keyColsMeta, JSONArray targetCols) {
+        public ParsePostMCols<CMeta> parsePostMCols(IPropertyType propertyType, IControlMsgHandler msgHandler,
+                                                    Context context, String keyColsMeta, JSONArray targetCols) {
             throw new UnsupportedOperationException();
         }
-//        @Override
-//        public CMeta create(JSONObject targetCol) {
-//            return new CMeta();
-//        }
+        //        @Override
+        //        public CMeta create(JSONObject targetCol) {
+        //            return new CMeta();
+        //        }
     }
 
 
@@ -106,15 +107,16 @@ public class TestPluginExtraProps extends TestCase {
         assertEquals(RouterAssistType.hyperlink, RouterAssistType.parse(creator.getString(KEY_CREATOR_ASSIST_TYPE)));
     }
 
-//    public void testCreatorWithError() throws Exception {
-//
-//        try {
-//            Optional<PluginExtraProps> ep = PluginExtraProps.load(WithCreatorError.class);
-//            fail("must have faild");
-//        } catch (Exception e) {
-//            assertEquals("propKey:dbName,package:com.qlangtech.tis.extension.util,propKey:WithCreatorError.json", e.getMessage());
-//        }
-//    }
+    //    public void testCreatorWithError() throws Exception {
+    //
+    //        try {
+    //            Optional<PluginExtraProps> ep = PluginExtraProps.load(WithCreatorError.class);
+    //            fail("must have faild");
+    //        } catch (Exception e) {
+    //            assertEquals("propKey:dbName,package:com.qlangtech.tis.extension.util,propKey:WithCreatorError
+    //            .json", e.getMessage());
+    //        }
+    //    }
 
     public void testCreatorWithMerge() throws Exception {
         Optional<PluginExtraProps> ep = PluginExtraProps.load(WithCreatorErrorOk.class);
@@ -145,11 +147,11 @@ public class TestPluginExtraProps extends TestCase {
             assertEquals(m, e, a);
         });
 
-//        {
-//            "hetero": "params-cfg",
-//                "descName": "DataX-global",
-//                "extraParam": "append_true"
-//        }
+        //        {
+        //            "hetero": "params-cfg",
+        //                "descName": "DataX-global",
+        //                "extraParam": "append_true"
+        //        }
 
     }
 
@@ -157,8 +159,7 @@ public class TestPluginExtraProps extends TestCase {
 
         DefaultPlugin plugin = new DefaultPlugin();
         Optional<ElementPluginDesc> pluginDesc = ElementPluginDesc.create(plugin.getDescriptor());
-        Optional<PluginExtraProps> extraProps
-                = PluginExtraProps.load(pluginDesc, DefaultPlugin.class);
+        Optional<PluginExtraProps> extraProps = PluginExtraProps.load(pluginDesc, DefaultPlugin.class);
 
         Assert.assertTrue(extraProps.isPresent());
 
@@ -179,11 +180,13 @@ public class TestPluginExtraProps extends TestCase {
         try {
             DefaultPlugin plugin = new DefaultPlugin();
             DefaultPlugin.DefaultDescriptor desc = (DefaultPlugin.DefaultDescriptor) plugin.getDescriptor();
-            desc.addFieldDescriptor("xxx", DefaultPlugin.DFT_NAME_VALUE, new MarkdownHelperContent(DefaultPlugin.FILED_NAME_DESCRIPTION));
+            desc.addFieldDescriptor("xxx", DefaultPlugin.DFT_NAME_VALUE,
+                    new MarkdownHelperContent(PluginExtraProps.AsynPropHelp.create(DefaultPlugin.FILED_NAME_DESCRIPTION)));
             PluginExtraProps.load(ElementPluginDesc.create(desc), DefaultPlugin.class);
             Assert.fail("must be faild");
         } catch (Exception e) {
-            Assert.assertEquals("prop key:xxx relevant prop must exist , exist props keys:password,nestProp,name,cols", e.getMessage());
+            Assert.assertEquals("prop key:xxx relevant prop must exist , exist props keys:password,nestProp,name,"
+                    + "cols", e.getMessage());
         }
     }
 
@@ -192,47 +195,34 @@ public class TestPluginExtraProps extends TestCase {
      */
     public void testCreateNewPrimaryFieldValue() {
         // 测试用例1：空的选项列表
-        PluginExtraProps.CandidatePlugin candidate = new PluginExtraProps.CandidatePlugin(
-            "MySQLReader", Optional.empty(), "datax-reader"
-        );
-        
+        PluginExtraProps.CandidatePlugin candidate = new PluginExtraProps.CandidatePlugin("MySQLReader",
+                Optional.empty(), "datax-reader");
+
         List<Option> emptyOpts = Collections.emptyList();
         String result = candidate.createNewPrimaryFieldValue(emptyOpts).identityValue();
         assertEquals("mysqlreader_1", result);
-        
+
         // 测试用例2：存在部分匹配的选项
-        List<Option> existingOpts = Arrays.asList(
-            new Option("第一个MySQL读取器", "mysqlreader-1"),
-            new Option("第三个MySQL读取器", "mysqlreader-3"),
-            new Option("其他插件", "other-plugin")
-        );
+        List<Option> existingOpts = Arrays.asList(new Option("第一个MySQL读取器", "mysqlreader-1"), new Option("第三个MySQL"
+                + "读取器", "mysqlreader-3"), new Option("其他插件", "other-plugin"));
         result = candidate.createNewPrimaryFieldValue(existingOpts).identityValue();
         assertEquals("mysqlreader_4", result);
-        
+
         // 测试用例3：存在连续的选项
-        List<Option> continuousOpts = Arrays.asList(
-            new Option("第一个MySQL读取器", "mysqlreader1"),
-            new Option("第二个MySQL读取器", "mysqlreader2"),
-            new Option("第三个MySQL读取器", "mysqlreader3")
-        );
+        List<Option> continuousOpts = Arrays.asList(new Option("第一个MySQL读取器", "mysqlreader1"), new Option("第二个MySQL"
+                + "读取器", "mysqlreader2"), new Option("第三个MySQL读取器", "mysqlreader3"));
         result = candidate.createNewPrimaryFieldValue(continuousOpts).identityValue();
         assertEquals("mysqlreader_4", result);
-        
+
         // 测试用例4：不规则的命名模式
-        List<Option> irregularOpts = Arrays.asList(
-            new Option("大写的MySQL读取器", "MYSQLREADER-10"),
-            new Option("小写的MySQL读取器", "mysqlreader5"),
-            new Option("不相关的插件", "unrelated")
-        );
+        List<Option> irregularOpts = Arrays.asList(new Option("大写的MySQL读取器", "MYSQLREADER-10"), new Option("小写的MySQL"
+                + "读取器", "mysqlreader5"), new Option("不相关的插件", "unrelated"));
         result = candidate.createNewPrimaryFieldValue(irregularOpts).identityValue();
         assertEquals("mysqlreader_11", result);
-        
+
         // 测试用例5：包含非数字后缀的选项
-        List<Option> mixedOpts = Arrays.asList(
-            new Option("非数字后缀", "mysqlreader-abc"),
-            new Option("数字后缀", "mysqlreader-2"),
-            new Option("空后缀", "mysqlreader-")
-        );
+        List<Option> mixedOpts = Arrays.asList(new Option("非数字后缀", "mysqlreader-abc"), new Option("数字后缀",
+                "mysqlreader-2"), new Option("空后缀", "mysqlreader-"));
         result = candidate.createNewPrimaryFieldValue(mixedOpts).identityValue();
         assertEquals("mysqlreader_3", result);
     }
@@ -242,37 +232,28 @@ public class TestPluginExtraProps extends TestCase {
      */
     public void testCreateNewPrimaryFieldValueWithDifferentNames() {
         // 测试复合名称的插件
-        PluginExtraProps.CandidatePlugin esCandidate = new PluginExtraProps.CandidatePlugin(
-            "ElasticSearchWriter", Optional.empty(), "datax-writer"
-        );
-        
-        List<Option> esOpts = Arrays.asList(
-            new Option("ES写入器1", "elasticsearchwriter-1"),
-            new Option("ES写入器2", "elasticsearchwriter-2")
-        );
+        PluginExtraProps.CandidatePlugin esCandidate = new PluginExtraProps.CandidatePlugin("ElasticSearchWriter",
+                Optional.empty(), "datax-writer");
+
+        List<Option> esOpts = Arrays.asList(new Option("ES写入器1", "elasticsearchwriter-1"), new Option("ES写入器2",
+                "elasticsearchwriter-2"));
         String result = esCandidate.createNewPrimaryFieldValue(esOpts).identityValue();
         assertEquals("elasticsearchwriter_3", result);
-        
+
         // 测试单个字符的插件名
-        PluginExtraProps.CandidatePlugin singleCharCandidate = new PluginExtraProps.CandidatePlugin(
-            "A", Optional.empty(), "test"
-        );
-        
-        List<Option> singleCharOpts = Arrays.asList(
-            new Option("单字符插件", "a-5")
-        );
+        PluginExtraProps.CandidatePlugin singleCharCandidate = new PluginExtraProps.CandidatePlugin("A",
+                Optional.empty(), "test");
+
+        List<Option> singleCharOpts = Arrays.asList(new Option("单字符插件", "a-5"));
         result = singleCharCandidate.createNewPrimaryFieldValue(singleCharOpts).identityValue();
         assertEquals("a_6", result);
-        
+
         // 测试包含数字的插件名
-        PluginExtraProps.CandidatePlugin numericCandidate = new PluginExtraProps.CandidatePlugin(
-            "Plugin2Test", Optional.empty(), "test"
-        );
-        
-        List<Option> numericOpts = Arrays.asList(
-            new Option("数字插件1", "plugin2test-1"),
-            new Option("数字插件3", "plugin2test-3")
-        );
+        PluginExtraProps.CandidatePlugin numericCandidate = new PluginExtraProps.CandidatePlugin("Plugin2Test",
+                Optional.empty(), "test");
+
+        List<Option> numericOpts = Arrays.asList(new Option("数字插件1", "plugin2test-1"), new Option("数字插件3",
+                "plugin2test-3"));
         result = numericCandidate.createNewPrimaryFieldValue(numericOpts).identityValue();
         assertEquals("plugin2test_4", result);
     }
@@ -281,29 +262,22 @@ public class TestPluginExtraProps extends TestCase {
      * 测试边界情况
      */
     public void testCreateNewPrimaryFieldValueEdgeCases() {
-        PluginExtraProps.CandidatePlugin candidate = new PluginExtraProps.CandidatePlugin(
-            "TestPlugin", Optional.empty(), "test"
-        );
-        
+        PluginExtraProps.CandidatePlugin candidate = new PluginExtraProps.CandidatePlugin("TestPlugin",
+                Optional.empty(), "test");
+
         // 测试大数字后缀
-        List<Option> largeNumberOpts = Arrays.asList(
-            new Option("大数字插件", "testplugin-999")
-        );
+        List<Option> largeNumberOpts = Arrays.asList(new Option("大数字插件", "testplugin-999"));
         String result = candidate.createNewPrimaryFieldValue(largeNumberOpts).identityValue();
         assertEquals("testplugin_1000", result);
-        
+
         // 测试零后缀
-        List<Option> zeroOpts = Arrays.asList(
-            new Option("零后缀插件", "testplugin-0")
-        );
+        List<Option> zeroOpts = Arrays.asList(new Option("零后缀插件", "testplugin-0"));
         result = candidate.createNewPrimaryFieldValue(zeroOpts).identityValue();
         assertEquals("testplugin_1", result);
-        
+
         // 测试负数后缀（应该被忽略）
-        List<Option> negativeOpts = Arrays.asList(
-            new Option("负数后缀插件", "testplugin--1"),
-            new Option("正常插件", "testplugin-1")
-        );
+        List<Option> negativeOpts = Arrays.asList(new Option("负数后缀插件", "testplugin--1"), new Option("正常插件",
+                "testplugin-1"));
         result = candidate.createNewPrimaryFieldValue(negativeOpts).identityValue();
         assertEquals("testplugin_2", result);
     }

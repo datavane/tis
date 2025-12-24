@@ -33,7 +33,6 @@ public final class CustomerGroovyClassLoader extends GroovyClassLoader {
         super(new ClassLoader(parent) {
                   @Override
                   protected Class<?> findClass(String name) throws ClassNotFoundException {
-                      // return super.findClass(name);
                       return TIS.get().getPluginManager().uberClassLoader.findClass(name);
                   }
               }

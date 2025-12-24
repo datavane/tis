@@ -30,6 +30,7 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.extension.util.MultiItemsViewType;
+import com.qlangtech.tis.extension.util.OverwriteProps;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.annotation.FormField;
@@ -95,15 +96,14 @@ public class PropertyType implements IPropertyType {
 
     static {
         bolOps = new JSONArray();
-        JSONObject b = new JSONObject();
-        b.put(KEY_LABEL, "是");
-        b.put(KEY_VALUE, true);
-        bolOps.add(b);
-        b = new JSONObject();
-        b.put(KEY_LABEL, "否");
-        b.put(KEY_VALUE, false);
-        bolOps.add(b);
+        OverwriteProps.ENUM_BOOLEAN.forEach((option) -> {
+            JSONObject b = new JSONObject();
+            b.put(KEY_LABEL, option.getName());
+            b.put(KEY_VALUE, option.getValue());
+            bolOps.add(b);
+        });
     }
+
 
     private final Class ownerClazz;
     // private final Optional<Descriptor.ElementPluginDesc> parentPluginDesc;
@@ -211,6 +211,10 @@ public class PropertyType implements IPropertyType {
 
     public static void setDisabled(JSONObject props) {
         Objects.requireNonNull(props, "props can not be null").put(PluginExtraProps.KEY_DISABLE, true);
+    }
+
+    public static void setReadOnly(JSONObject props) {
+        Objects.requireNonNull(props, "props can not be null").put(PluginExtraProps.KEY_READONLY, true);
     }
 
     @Override
@@ -375,6 +379,8 @@ public class PropertyType implements IPropertyType {
                 GroovyShellUtil.descriptorThreadLocal.remove();
             }
         } else if (anEnum == null && (field.getType() == boolean.class || field.getType() == Boolean.class)) {
+
+
             props.put(Descriptor.KEY_ENUM_PROP, bolOps);
             // Class.
         }

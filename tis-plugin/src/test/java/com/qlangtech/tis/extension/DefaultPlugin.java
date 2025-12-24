@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.DefaultPluginNest.DefaultExportPortProvider;
 import com.qlangtech.tis.extension.util.AbstractPropAssist.MarkdownHelperContent;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -48,6 +49,10 @@ public class DefaultPlugin implements Describable<DefaultPlugin> {
     @FormField()
     public DefaultPluginNest nestProp;
 
+
+    @FormField(ordinal = 7, type = FormFieldType.INPUTTEXT, validate = {Validator.none_blank})
+    public String fieldForShortAsynHelp;
+
     static int turn;
 
     public static String getColsDefaultVal() {
@@ -59,16 +64,17 @@ public class DefaultPlugin implements Describable<DefaultPlugin> {
         return cols.toJSONString(); // "cols_default_val_turn_" + turn++;
     }
 
-//    @Override
-//    public Descriptor<DefaultPlugin> getDescriptor() {
-//        Descriptor<DefaultPlugin> descriptor = TIS.get().getDescriptor(this.getClass());
-//        return descriptor;
-//    }
+    //    @Override
+    //    public Descriptor<DefaultPlugin> getDescriptor() {
+    //        Descriptor<DefaultPlugin> descriptor = TIS.get().getDescriptor(this.getClass());
+    //        return descriptor;
+    //    }
 
     @TISExtension
     public static class DefaultDescriptor extends Descriptor<DefaultPlugin> implements DefaultExportPortProvider {
         public DefaultDescriptor() {
-            this.addFieldDescriptor("name", DFT_NAME_VALUE, new MarkdownHelperContent(FILED_NAME_DESCRIPTION));
+            this.addFieldDescriptor("name", DFT_NAME_VALUE,
+                    new MarkdownHelperContent(PluginExtraProps.AsynPropHelp.create(FILED_NAME_DESCRIPTION)));
             //  this.addFieldDescriptor("nestProp.exportPort", DFT_NEST_PROP_VAL, null);
             // this.addFieldDescriptor("xxx", DFT_NAME_VALUE, FILED_NAME_DESCRIPTION);
         }

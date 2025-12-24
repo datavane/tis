@@ -31,8 +31,7 @@ import java.util.function.Function;
  **/
 public class OverwriteProps {
 
-    public static List<Option> ENUM_BOOLEAN
-            = Lists.newArrayList(new Option("是", true), new Option("否", false));
+    public static List<Option> ENUM_BOOLEAN = Lists.newArrayList(new Option("是", true), new Option("否", false));
 
     public static OverwriteProps dft(Object dftVal) {
         return (new OverwriteProps()).setDftVal(dftVal);
@@ -77,7 +76,10 @@ public class OverwriteProps {
     public Optional<String> appendHelper = Optional.empty();
     private Object dftVal;
     private Object placeholder;
+    // 直接在UI界面略去
     private Boolean disabled;
+    // 显示为只读类型
+    private boolean readOnly;
     public Function<String, String> labelRewrite = (label) -> label;
 
 
@@ -94,8 +96,23 @@ public class OverwriteProps {
         return this;
     }
 
+    /**
+     * 设置为只读
+     *
+     * @param readOnly
+     * @return
+     */
+    public OverwriteProps setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
+        return this;
+    }
+
     public boolean getDisabled() {
         return disabled != null && disabled;
+    }
+
+    public final boolean isReadOnly() {
+        return this.readOnly;
     }
 
     public OverwriteProps setEnumOpts(List<Option> optsOp) {

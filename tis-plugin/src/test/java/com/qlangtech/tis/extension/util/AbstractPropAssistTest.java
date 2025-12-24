@@ -30,15 +30,15 @@ import junit.framework.TestCase;
 public class AbstractPropAssistTest extends TestCase {
 
     public void testHelperContent() {
-        MarkdownHelperContent helperContent = new MarkdownHelperContent("xxxx\n\n\n\n\n\n\n\nppp\n");
+        MarkdownHelperContent helperContent = new MarkdownHelperContent(PluginExtraProps.AsynPropHelp.create( "xxxx\n\n\n\n\n\n\n\nppp\n"));
         String expect = "xxxx\n\nppp";
         Assert.assertEquals("shall be equal.", expect, helperContent.getContent().toString());
 
-        helperContent.append(new MarkdownHelperContent("kkkkk"));
+        helperContent.append(new MarkdownHelperContent( PluginExtraProps.AsynPropHelp.create( "kkkkk")));
 
         Assert.assertEquals(expect + "\n\nkkkkk", helperContent.getContent().toString());
 
-        helperContent.append(new MarkdownHelperContent("\nqqq"));
+        helperContent.append(new MarkdownHelperContent( PluginExtraProps.AsynPropHelp.create( "\nqqq")));
 
         Assert.assertEquals(expect + "\n\nkkkkk\n\nqqq", helperContent.getContent().toString());
     }

@@ -119,8 +119,6 @@ public class MultiItemsViewType implements IMultiItemsView {
     public List<String> getElementPropertyKeys() {
         if (elementPropertyKeys == null) {
             try {
-//                BeanUtilsBean.getInstance().getPropertyUtils()
-//                PropertyUtilsBean
                 PropertyDescriptor[] propertyDescs = BeanUtilsBean2.getInstance().getPropertyUtils().getPropertyDescriptors(tupleFactory.createDefault(new JSONObject()));
                 elementPropertyKeys = Lists.newArrayList();
                 for (PropertyDescriptor desc : propertyDescs) {
@@ -130,9 +128,6 @@ public class MultiItemsViewType implements IMultiItemsView {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-//            elementPropertyKeys = tupleFactory.map((factory) -> {
-//
-//            }).orElseGet(() -> new ArrayList<>());
         }
         return elementPropertyKeys;
     }
@@ -140,9 +135,6 @@ public class MultiItemsViewType implements IMultiItemsView {
     @Override
     public ViewContent getViewContent() {
         return tupleFactory.getViewContentType();
-//        return tupleFactory.orElseThrow(() -> {
-//            return new IllegalStateException("tupleFactory shall not be empty");
-//        }).getViewContentType();
     }
 
 
@@ -174,7 +166,6 @@ public class MultiItemsViewType implements IMultiItemsView {
             JSONArray enums = eprops.getJSONArray(Descriptor.KEY_ENUM_PROP);
             if (enums == null) {
                 enums = new JSONArray();
-                //   throw new IllegalStateException("enums of prop can not be null");
             }
             JSONObject select = null;
             int selected = 0;
@@ -196,7 +187,7 @@ public class MultiItemsViewType implements IMultiItemsView {
                 selectedItems.add(item);
             }
             return selectedItems;
-        } // start bizSerializeFrontend
+        } //
                 , (obj) -> {
             List<CMeta> mulitOpt = (List<CMeta>) obj;
             return mulitOpt.stream().map((c) -> c.getName()).collect(Collectors.toList());
@@ -204,17 +195,14 @@ public class MultiItemsViewType implements IMultiItemsView {
                 , (attrDesc, msgHandler, context, eprops) -> {
 
             ElementCreatorFactory elementCreator = attrDesc.getCMetaCreator();
-
-            // String keyColsMeta = StringUtils.EMPTY;
             JSONArray mcols = Objects.requireNonNull(eprops, "eprops can not be null").getJSONObject(Descriptor.KEY_ENUM_PROP).getJSONArray("_mcols");
             CMeta.ParsePostMCols<?> parsePostMCols = elementCreator.parsePostMCols(attrDesc, msgHandler, context, attrDesc.f.getName(), mcols);
             if (parsePostMCols.validateFaild) {
                 return Collections.emptyList();
             }
-            //List<FormFieldType.SelectedItem>
             return parsePostMCols.writerCols.stream() //
                     .map((cmeta) -> new FormFieldType.SelectedItem(cmeta)).collect(Collectors.toList());
-        } // start bizSerializeFrontend
+        } //
                 , (obj) -> {
             return (List<IMultiElement>) obj;
         });

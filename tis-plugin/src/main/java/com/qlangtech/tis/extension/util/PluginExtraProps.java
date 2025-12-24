@@ -62,6 +62,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -81,6 +83,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     private static final Logger logger = LoggerFactory.getLogger(PluginExtraProps.class);
 
     public static final String KEY_DFTVAL_PROP = "dftVal";
+    public static final String KEY_READONLY = "readonly";
     public static final String KEY_PLACEHOLDER_PROP = "placeholder";
     /**
      * for: FormFieldType.DateTime
@@ -139,28 +142,22 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         }
 
         final String mdRes = pluginClazz.getSimpleName() + subformFieldName + ".md";
-        final Map<String, StringBuffer> propHelps = Maps.newHashMap();
-        IOUtils.loadResourceFromClasspath(pluginClazz, mdRes, false, (input) -> {
-            LineIterator lines = org.apache.commons.io.IOUtils.lineIterator(input, TisUTF8.get());
-            String line = null;
-            StringBuffer propHelp = null;
-            int indexOf;
-            while (lines.hasNext()) {
-                line = lines.nextLine();
-
-                if ((indexOf = StringUtils.indexOf(line, "##")) > -1) {
-                    propHelp = new StringBuffer();
-                    String fieldKey = StringUtils.trimToNull(StringUtils.substring(line, indexOf + 2));
-                    if (propHelps.put(fieldKey, propHelp) != null) {
-                        throw new IllegalStateException("field:" + fieldKey + " relevant propHelp can not be add " +
-                                "twice");
-                    }
-                } else {
-                    Objects.requireNonNull(propHelp, "propHelp can not be null,file:" + mdRes);
-                    propHelp.append(line).append("\n");
-                }
+        // 简单配置资源
+        final String shortMdRes = pluginClazz.getSimpleName() + subformFieldName + "-short.md";
+        final Map<String, AsynPropHelp> asynPropHelps = Maps.newHashMap();
+        createAsynPropHelps(pluginClazz, mdRes, (fieldKey, propHelp) -> {
+            if (asynPropHelps.put(fieldKey, new AsynPropHelp(propHelp)) != null) {
+                throw new IllegalStateException("field:" + fieldKey + " relevant propHelp can not be add twice");
             }
-            return null;
+        });
+
+        createAsynPropHelps(pluginClazz, shortMdRes, (fieldKey, propHelp) -> {
+            AsynPropHelp asynHelp = asynPropHelps.get(fieldKey);
+            if (asynHelp == null) {
+                throw new IllegalStateException("field:" + fieldKey + " relevant propHelp can not be null,must " +
+                        "contain field in " + mdRes + " ahead, class:" + pluginClazz.getName());
+            }
+            asynHelp.setAbstracted(propHelp);
         });
 
         final String resourceName = pluginClazz.getSimpleName() + subformFieldName + ".json";
@@ -182,9 +179,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                     //                    });
 
 
-                    StringBuffer asynHelp = null;
-                    if ((asynHelp = propHelps.get(propKey)) != null) {
-                        pps.tagAsynHelp(new MarkdownHelperContent(asynHelp.toString()));
+                    AsynPropHelp asynHelp = null;
+                    if ((asynHelp = asynPropHelps.get(propKey)) != null) {
+                        pps.tagAsynHelp(new MarkdownHelperContent(asynHelp));
                     }
                     props.put(propKey, pps);
                 }
@@ -195,6 +192,35 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         }
 
 
+    }
+
+    private static void createAsynPropHelps(Class<?> pluginClazz, String mdRes,
+                                            BiConsumer<String, StringBuffer> asynPropHelps) {
+        IOUtils.loadResourceFromClasspath(pluginClazz, mdRes, false, (input) -> {
+            LineIterator lines = org.apache.commons.io.IOUtils.lineIterator(input, TisUTF8.get());
+            String line = null;
+            StringBuffer propHelp = null;
+            int indexOf;
+            boolean firstLine = false;
+            while (lines.hasNext()) {
+                line = lines.nextLine();
+
+                if ((indexOf = StringUtils.indexOf(line, "##")) > -1) {
+                    propHelp = new StringBuffer();
+                    String fieldKey = StringUtils.trimToNull(StringUtils.substring(line, indexOf + 2));
+                    firstLine = true;
+                    asynPropHelps.accept(fieldKey, propHelp);
+                } else {
+                    Objects.requireNonNull(propHelp, "propHelp can not be null,file:" + mdRes);
+                    if (!firstLine) {
+                        propHelp.append("\n");
+                    }
+                    propHelp.append(line);
+                    firstLine = false;
+                }
+            }
+            return null;
+        });
     }
 
     public static Optional<PluginExtraProps> load(Class<?> clazz) {
@@ -762,6 +788,11 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         }
 
         @JSONField(serialize = false)
+        public MarkdownHelperContent asynHelp() {
+            return this.asynHelp;
+        }
+
+        @JSONField(serialize = false)
         public String getLable() {
             return (String) props.get("label");
         }
@@ -938,6 +969,34 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                     to.put(key, val);
                 }
             });
+        }
+    }
+
+    /**
+     * 属性markdown格式的帮助信息
+     */
+    public static class AsynPropHelp {
+        private final StringBuffer detailed;
+        private StringBuffer abstracted;
+
+        public static AsynPropHelp create(String detailed) {
+            return new AsynPropHelp(new StringBuffer(detailed));
+        }
+
+        public AsynPropHelp(StringBuffer detailed) {
+            this.detailed = Objects.requireNonNull(detailed, "detailed can not be null");
+        }
+
+        public String getDetailed() {
+            return detailed.toString();
+        }
+
+        public StringBuffer getAbstracted() {
+            return this.abstracted;
+        }
+
+        public void setAbstracted(StringBuffer abstracted) {
+            this.abstracted = abstracted;
         }
     }
 

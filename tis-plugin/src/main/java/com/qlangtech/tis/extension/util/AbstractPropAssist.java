@@ -49,9 +49,9 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
         this.descriptor = descriptor;
     }
 
-//    protected void addFieldDescriptor(String fieldName, FIELD configOption) {
-//        addFieldDescriptor(fieldName, configOption, new OverwriteProps());
-//    }
+    //    protected void addFieldDescriptor(String fieldName, FIELD configOption) {
+    //        addFieldDescriptor(fieldName, configOption, new OverwriteProps());
+    //    }
 
     private Map<String, IPropertyType> getProps() {
         if (props == null) {
@@ -114,13 +114,13 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
                 if (StringUtils.isEmpty(opt.getFieldName())) {
                     throw new IllegalStateException("fieldKey can not be empty");
                 }
-                property = Objects.requireNonNull((PropertyType) getProps().get(opt.getFieldName())
-                        , "key:" + opt.getFieldName() + " relevant props can not be null");
+                property = Objects.requireNonNull((PropertyType) getProps().get(opt.getFieldName()),
+                        "key:" + opt.getFieldName() + " relevant props can not be null");
                 val = property.getVal(false, instance);
 
                 if (val == null) {
                     if (property.isInputRequired()) {
-                        throw new IllegalStateException("property:" + property.displayName + " is required but now is null");
+                        throw new IllegalStateException("property:" + property.displayName + " is required but now " + "is" + " null");
                     }
                     continue;
                 }
@@ -226,31 +226,38 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
 
         Object dftVal = overwriteProps.processDftVal(getDefaultValue(configOption));
 
-        PropertyType propertyType = Objects.requireNonNull((PropertyType) getProps().get(fieldName)
-                , "fieldName:" + fieldName + " relevant propertyType can not be null");
+        PropertyType propertyType = Objects.requireNonNull((PropertyType) getProps().get(fieldName),
+                "fieldName:" + fieldName + " relevant propertyType can not be null");
         dftVal = propertyType.serialize2FrontendOutput(dftVal);
 
-//        StringBuffer helperContent = new StringBuffer(desc);
-//        if (overwriteProps.appendHelper.isPresent()) {
-//            helperContent.append("\n").append(overwriteProps.appendHelper.get());
-//        }
-//
-//        ;
+        //        StringBuffer helperContent = new StringBuffer(desc);
+        //        if (overwriteProps.appendHelper.isPresent()) {
+        //            helperContent.append("\n").append(overwriteProps.appendHelper.get());
+        //        }
+        //
+        //        ;
 
         final List<Option> opts = getOptEnums(configOption);
 
-        descriptor.addFieldDescriptor(fieldName, dftVal
-                , overwriteProps.labelRewrite.apply(getDisplayName(configOption)), desc.append(overwriteProps)
-                , overwriteProps.opts.isPresent() ? overwriteProps.opts : Optional.ofNullable(opts));
+        descriptor.addFieldDescriptor(fieldName, dftVal,
+                overwriteProps.labelRewrite.apply(getDisplayName(configOption)), desc.append(overwriteProps),
+                overwriteProps.opts.isPresent() ? overwriteProps.opts : Optional.ofNullable(opts));
     }
 
     public static class MarkdownHelperContent {
         private final StringBuffer content;
         int lastLineEmptyCount = 0;
         boolean hasAddLine = false;
-        public MarkdownHelperContent(String content) {
+        private final PluginExtraProps.AsynPropHelp asynProp;
+
+        public MarkdownHelperContent(PluginExtraProps.AsynPropHelp content) {
             this.content = new StringBuffer();
-            this.appendContent(content);
+            this.appendContent(Objects.requireNonNull(content, "content can not be null").getDetailed());
+            this.asynProp = content;
+        }
+
+        public MarkdownHelperContent(MarkdownHelperContent content) {
+            this(new PluginExtraProps.AsynPropHelp(content.getContent()));
         }
 
         /**
@@ -282,9 +289,6 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
             return this;
         }
 
-        public MarkdownHelperContent(MarkdownHelperContent content) {
-            this(content.getContent().toString());
-        }
 
         public MarkdownHelperContent append(OverwriteProps overwriteProps) {
             if (overwriteProps.appendHelper.isPresent()) {
@@ -296,6 +300,7 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
 
         /**
          * 确保每次添加内容，上下content 之间都添加一个空行（因为是markdown文本内容，不然不会换行）
+         *
          * @param content
          * @return
          */
@@ -309,6 +314,15 @@ public abstract class AbstractPropAssist<T extends Describable, FIELD> {
 
         public StringBuffer getContent() {
             return this.content;
+        }
+
+
+        public StringBuffer getContentForAI() {
+            StringBuffer shortContent = null;
+            if ((shortContent = this.asynProp.getAbstracted()) != null) {
+                return shortContent;
+            }
+            return getContent();
         }
 
         public boolean isNotEmpty() {

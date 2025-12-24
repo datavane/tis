@@ -31,6 +31,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -133,7 +134,8 @@ public class DescriptorsJSONForAIPromote<T extends Describable<T>> extends Descr
         PluginExtraProps.Props extraProp = val.extraProp;
         if (extraProp != null && extraProp.isAsynHelp()) {
             JSONObject props = new JSONObject(val.getExtraProps());
-            props.put(PluginExtraProps.Props.KEY_HELP, extraProp.getAsynHelp());
+            props.put(PluginExtraProps.Props.KEY_HELP, Objects.requireNonNull(extraProp.asynHelp(), "asynHelp can not"
+                    + " be null").getContentForAI());
             return props;
         }
         return val.getExtraProps();

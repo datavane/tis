@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
+import static com.qlangtech.tis.extension.Descriptor.KEY_EPROPS;
 import static com.qlangtech.tis.extension.Descriptor.KEY_OPTIONS;
 
 /**
@@ -225,7 +226,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                             return clone;
                         });
                         val.appendExternalProp(ep);
-                        attrVal.put("eprops", n != null ? n : ep);
+                        attrVal.put(KEY_EPROPS, n != null ? n : ep);
                     }
 
                     if (val.typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {

@@ -42,6 +42,7 @@ import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.AbstractPropAssist.MarkdownHelperContent;
+import com.qlangtech.tis.extension.util.OverwriteProps;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
@@ -122,6 +123,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public static final String KEY_DESC_VAL = "descVal";
 
     public static final String KEY_OPTIONS = "options";
+
+    public static final String KEY_EPROPS = "eprops";
 
     private static final String KEY_VALIDATE_METHOD_PREFIX = "validate";
     private static final Pattern validateMethodPattern = Pattern.compile(KEY_VALIDATE_METHOD_PREFIX + "(.+?)");
@@ -1596,7 +1599,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public PluginExtraProps fieldExtraDescs = new PluginExtraProps();
 
     public void addFieldDescriptor(String fieldName, Object dftVal, MarkdownHelperContent helperContent) {
-        this.addFieldDescriptor(fieldName, dftVal, null, helperContent, Optional.empty(), false);
+        this.addFieldDescriptor(fieldName, dftVal, null, helperContent, Optional.empty(), false, false);
     }
 
     /**
@@ -1609,18 +1612,26 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal,
                                                      MarkdownHelperContent helperContent,
                                                      Optional<List<Option>> enums) {
-        return addFieldDescriptor(fieldName, dftVal, null, helperContent, enums, false);
+        return addFieldDescriptor(fieldName, dftVal, null, helperContent, enums, false, false);
     }
 
     public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String label,
                                                      MarkdownHelperContent helperContent,
                                                      Optional<List<Option>> enums) {
-        return addFieldDescriptor(fieldName, dftVal, label, helperContent, enums, false);
+        return addFieldDescriptor(fieldName, dftVal, label, helperContent, enums, false, false);
     }
 
     public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String label,
                                                      MarkdownHelperContent helperContent,
-                                                     Optional<List<Option>> enums, boolean disabled) {
+                                                     Optional<List<Option>> enums, OverwriteProps overwriteProps) {
+        return addFieldDescriptor(fieldName, dftVal, label, helperContent, enums, overwriteProps.getDisabled(),
+                overwriteProps.isReadOnly());
+    }
+
+
+    public PluginExtraProps.Props addFieldDescriptor(String fieldName, Object dftVal, String label,
+                                                     MarkdownHelperContent helperContent,
+                                                     Optional<List<Option>> enums, boolean disabled, boolean readonly) {
         JSONObject c = new JSONObject();
         PropertyType.setDefaultVal(dftVal, c);
         if (StringUtils.isNotEmpty(label)) {
@@ -1628,6 +1639,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
         if (disabled) {
             PropertyType.setDisabled(c);
+        }
+        if (readonly) {
+            PropertyType.setReadOnly(c);
         }
         PluginExtraProps.Props props = new PluginExtraProps.Props(c);
         if (helperContent.isNotEmpty()) {

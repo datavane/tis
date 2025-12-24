@@ -43,7 +43,7 @@ public class NullColumn extends Column {
 
     @Override
     public String asString() {
-        throw new UnsupportedOperationException();
+      return null;
     }
 
     @Override
