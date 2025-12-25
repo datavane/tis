@@ -238,7 +238,7 @@ public class PluginAction extends BasicModule {
     String id = this.getString(IdentityName.PLUGIN_IDENTITY_NAME);
     String pluginImpl = this.getString(DescriptorsJSON.KEY_IMPL);
     Descriptor targetPlugin = Objects.requireNonNull(TIS.get().getDescriptor(pluginImpl),
-      "pluginImpl:" + pluginImpl + " relevant descriptor can not be null");
+            "pluginImpl:" + pluginImpl + " relevant descriptor can not be null");
     if (!(targetPlugin instanceof IDescribableManipulate)) {
       throw new IllegalStateException("targetPlugin:" + targetPlugin.getClass().getName() + " is not type of " + IDescribableManipulate.class.getSimpleName());
     }
@@ -354,7 +354,7 @@ public class PluginAction extends BasicModule {
     List<SelectOption> options = null;
     if (descField.getFieldPropType().typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
       options = DescriptorsJSON.getSelectOptions(descField.getTargetDesc(), descField.getFieldPropType(),
-        descField.field);
+              descField.field);
       this.setBizResult(context, options);
     } else if (descField.getFieldPropType().typeIdentity() == FormFieldType.ENUM.getIdentity()) {
       this.setBizResult(context, descField.getFieldPropType().getExtraProps().getJSONArray(Descriptor.KEY_ENUM_PROP));
@@ -376,7 +376,7 @@ public class PluginAction extends BasicModule {
 
     PropertyType getFieldPropType() {
       return (PropertyType) Objects.requireNonNull(getTargetDesc(),
-        "impl:" + this.pluginImpl + " relevant desc can " + "not be null").getPropertyType(this.field);
+              "impl:" + this.pluginImpl + " relevant desc can " + "not be null").getPropertyType(this.field);
     }
   }
 
@@ -402,7 +402,7 @@ public class PluginAction extends BasicModule {
     Props props = descField.getFieldPropType().extraProp;
     if (!props.isAsynHelp()) {
       throw new IllegalStateException("plugin:" + descField.pluginImpl + ",field:" + descField.field + " is not " +
-        "support async help content fecthing");
+              "support async help content fecthing");
     }
     this.setBizResult(context, props.getAsynHelp());
   }
@@ -618,7 +618,7 @@ public class PluginAction extends BasicModule {
       }
     }
     this.setBizResult(context, Collections.singletonMap("notFoundExtension",
-      result.hetero.getExtensionPoint().getName()));
+            result.hetero.getExtensionPoint().getName()));
     this.addErrorMessage(context, "displayName:" + result.displayName + " relevant Descriptor can not be null");
 
   }
@@ -692,7 +692,7 @@ public class PluginAction extends BasicModule {
 
     for (String extend : extendpoints) {
       this.setBizResult(context,
-        new DescriptorsJSON(TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend))).getDescriptorsJSON());
+              new DescriptorsJSON(TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend))).getDescriptorsJSON());
       return;
     }
 
@@ -717,7 +717,7 @@ public class PluginAction extends BasicModule {
       public List<? extends Descriptor> visit(RootFormProperties props) {
 
         PropertyType descProp = Objects.requireNonNull(props.propertiesType.get(field), "field:" + field + " relevant"
-          + " propDesc can not be null");
+                + " propDesc can not be null");
         if (descProp.isDescribable()) {
           return descProp.getApplicableDescriptors();
         }
@@ -756,8 +756,10 @@ public class PluginAction extends BasicModule {
     return hlist;
   }
 
+  //private static DataxReader testDataXReader;
+
   /**
-   * 取得Descs列表
+   * 取得Descs列表, update_center中生成文档示例UI界面用
    *
    * @param context
    * @throws Exception
@@ -772,12 +774,19 @@ public class PluginAction extends BasicModule {
     HeteroList hList = null;
     // List<Descriptor> descs = new ArrayList<>();
     Descriptor desc = null;
+
+    DataxReader.DataSourceMetaPlugin sourceMetaPlugin = new DataxReader.DataSourceMetaPlugin();
+    UploadPluginMeta pluginMeta = UploadPluginMeta.parse("test_plugin:" + KEY_REQUIRE);
+    SuFormProperties.setSuFormGetterContext(sourceMetaPlugin, pluginMeta, DataxReader.DataSourceMetaPlugin.tabName) //
+      .setTest(true);
+
+
     for (String extImpl : descsImpl) {
       desc = TIS.get().getDescriptor(extImpl);
       if (desc == null) {
         throw new IllegalStateException("extImpl:" + extImpl + " relevant desc can not be null");
       }
-      hList = new HeteroList(UploadPluginMeta.parse("test_plugin:" + KEY_REQUIRE));
+      hList = new HeteroList(pluginMeta);
       hList.setDescriptors(Collections.singletonList(desc));
       hList.setSelectable(Selectable.Single);
       hList.setCaption(desc.clazz.getSimpleName());
@@ -811,7 +820,7 @@ public class PluginAction extends BasicModule {
       for (DataxReader plugin : plugins.getKey()) {
 
         SuFormProperties.setSuFormGetterContext(plugin, plugins.getRight(), meta,
-          this.getString(SuFormGetterContext.FIELD_SUBFORM_ID));
+                this.getString(SuFormGetterContext.FIELD_SUBFORM_ID));
 
         hList = meta.getHeteroList(this);
 
@@ -870,7 +879,7 @@ public class PluginAction extends BasicModule {
     if (this.getBoolean("errors_page_show")) {
       this.errorsPageShow(context);
     }
-   // Thread.sleep(6000);
+    // Thread.sleep(6000);
     List<UploadPluginMeta> plugins = getPluginMeta();
     JSONObject postData = this.parseJsonPost();
     String[] forwardParams = getActionForwardParam(postData);
@@ -890,7 +899,7 @@ public class PluginAction extends BasicModule {
       JSONArray itemsArray = pluginArray.getJSONArray(pluginIndex);
 
       pluginItemsParser = getPluginItems(pluginMeta, context, pluginIndex, itemsArray, verifyType,
-        ((propType, val) -> val));
+              ((propType, val) -> val));
       if (pluginItemsParser.getKey()) {
         faild = true;
       }
@@ -923,7 +932,7 @@ public class PluginAction extends BasicModule {
     if (forwardParams != null) {
       // assert pluginItemsParser != null;
       Pair<List<IItemsSaveResult>, IPluginItemsProcessor> itemSaveResult = Pair.of(describables,
-        Objects.requireNonNull(pluginItemsParser, "pluginItemsParser can not be null").getRight());
+              Objects.requireNonNull(pluginItemsParser, "pluginItemsParser can not be null").getRight());
       this.getRequest().setAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT, itemSaveResult);
 
       // getRundata().forwardTo(forwardParams[0], forwardParams[1], forwardParams[2]);
@@ -936,7 +945,7 @@ public class PluginAction extends BasicModule {
     // 成功保存的主键信息返回给客户端
     if (context.get(IMessageHandler.ACTION_BIZ_RESULT) == null) {
       this.setBizResult(context,
-        describables.stream().flatMap((itemSaveResult) -> itemSaveResult.getIdentityStream()).map((d) -> {
+              describables.stream().flatMap((itemSaveResult) -> itemSaveResult.getIdentityStream()).map((d) -> {
         if (d instanceof IdentityDesc) {
           return ((IdentityDesc) d).describePlugin();
         } else {
@@ -953,7 +962,7 @@ public class PluginAction extends BasicModule {
 
   private static Pair<List<ItemsSaveResult>, IPluginItemsProcessor> getPluginActionSaveResult(HttpServletRequest request) {
     Pair<List<ItemsSaveResult>, IPluginItemsProcessor> saveResult = (Pair<List<ItemsSaveResult>,
-      IPluginItemsProcessor>) request.getAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT);
+            IPluginItemsProcessor>) request.getAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT);
     return Objects.requireNonNull(saveResult, "saveResult can not be null");
   }
 
@@ -998,7 +1007,7 @@ public class PluginAction extends BasicModule {
                                                                    FormVaildateType verify,
                                                                    PropValRewrite propValRewrite) {
     PluginItemsParser pluginItemsParser = PluginItemsParser.parsePluginItems(this, (UploadPluginMeta) pluginMeta,
-      context, pluginIndex, itemsArray, verify, propValRewrite);
+            context, pluginIndex, itemsArray, verify, propValRewrite);
     return Pair.of(pluginItemsParser.faild, pluginItemsParser.pluginItems);
 
   }

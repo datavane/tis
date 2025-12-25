@@ -99,10 +99,8 @@ public interface IEndTypeGetter {
     }
 
     enum EndTypeCategory {
-        Data,
-        Assist,
-        Transformer,
-        // 图标
+        Data, Assist, // 报警类别
+        Alert, Transformer, // 图标
         Icon
     }
 
@@ -112,7 +110,8 @@ public interface IEndTypeGetter {
     enum EndType implements IEndType {
         // Greenplum("greenplum", EndTypeCategory.Data)
         MySQL("mysql", EndTypeCategory.Data, true, Optional.of("开源关系型数据库，官网：https://www.mysql.com/")) //
-        , OceanBase("oceanbase", EndTypeCategory.Data, true, Optional.of("阿里巴巴自研分布式数据库，官网：https://www.oceanbase.com/")) //
+        , OceanBase("oceanbase", EndTypeCategory.Data, true,
+                Optional.of("阿里巴巴自研分布式数据库，官网：https://www.oceanbase.com/")) //
         , Paimon("paimon", EndTypeCategory.Data, true, Optional.of("Apache流批统一存储，官网：https://paimon.apache.org/")) //
         , MariaDB("mariaDB", EndTypeCategory.Data, true, Optional.of("MySQL社区分支，官网：https://mariadb.org/")) //
         , Postgres("pg", EndTypeCategory.Data, true, Optional.of("PostgreSQL对象关系型数据库，官网：https://www.postgresql.org/"))//
@@ -122,17 +121,22 @@ public interface IEndTypeGetter {
         , StarRocks("starRocks", EndTypeCategory.Data, true, Optional.of("极速MPP分析数据库，官网：https://www.starrocks.io/"))//
         , Doris("doris", EndTypeCategory.Data, true, Optional.of("Apache实时分析数据库，官网：https://doris.apache.org/")) //
         , KingBase("kingbase", EndTypeCategory.Data, true, Optional.of("人大金仓国产数据库，官网：https://www.kingbase.com.cn/")) //
-        , Clickhouse("clickhouse", EndTypeCategory.Data, true, Optional.of("Yandex列式分析数据库，官网：https://clickhouse.com/")) //
+        , Clickhouse("clickhouse", EndTypeCategory.Data, true,
+                Optional.of("Yandex列式分析数据库，官网：https://clickhouse.com/")) //
         , Hudi("hudi", EndTypeCategory.Data, true, Optional.of("Apache增量数据湖，官网：https://hudi.apache.org/")) //
         , TDFS("t-dfs", EndTypeCategory.Data, true, Optional.of("本地文本、阿里云OSS、HDFS、FTP数据（支持text，csv等格式）")) //
-        // , Cassandra("cassandra", EndTypeCategory.Data, true, Optional.of("Apache分布式NoSQL，官网：https://cassandra.apache.org/")) //, HDFS("hdfs")
-        , SqlServer("sqlServer", EndTypeCategory.Data, true, Optional.of("微软关系型数据库，官网：https://www.microsoft.com/sql-server/")) //
+        // , Cassandra("cassandra", EndTypeCategory.Data, true, Optional.of("Apache分布式NoSQL，官网：https://cassandra.apache.org/"))
+        // , HDFS("hdfs")
+        , SqlServer("sqlServer", EndTypeCategory.Data, true, Optional.of("微软关系型数据库，官网：https://www.microsoft"
+                + ".com/sql-server/")) //
         , TiDB("TiDB", EndTypeCategory.Data, true, Optional.of("PingCAP NewSQL数据库，官网：https://www.pingcap.com/")) //
-        , RocketMQ("rocketMq", EndTypeCategory.Data, true, Optional.of("Apache分布式消息系统，官网：https://rocketmq.apache.org/")) //
+        , RocketMQ("rocketMq", EndTypeCategory.Data, true, Optional.of("Apache分布式消息系统，官网：https://rocketmq.apache"
+                + ".org/")) //
         , Kafka("kafka", EndTypeCategory.Data, true, Optional.of("Apache流处理平台，官网：https://kafka.apache.org/")) //
         //, DataFlow("dataflow", EndTypeCategory.Assist) //
         , DaMeng("daMeng", EndTypeCategory.Data, true, Optional.of("达梦数据库，https://www.dameng.com/")) //
-        , AliyunODPS("aliyunOdps", EndTypeCategory.Data, true, Optional.of("阿里云MaxCompute，官网：https://www.aliyun.com/product/odps")) //
+        , AliyunODPS("aliyunOdps", EndTypeCategory.Data, true, Optional.of("阿里云MaxCompute，官网：https://www.aliyun"
+                + ".com/product/odps")) //
         , HiveMetaStore("hms", EndTypeCategory.Data, true, Optional.of("Hive元数据服务，官网：https://hive.apache.org/")) //
         , Spark("spark", EndTypeCategory.Data, true, Optional.of("Apache统一分析引擎，官网：https://spark.apache.org/")) //
         , RabbitMQ("rabbitmq", EndTypeCategory.Data, true, Optional.of("Erlang消息队列，官网：https://www.rabbitmq.com/")) //
@@ -152,13 +156,13 @@ public interface IEndTypeGetter {
         /**
          * alter channel
          */
-        , DingTalk("dingding", EndTypeCategory.Assist, true) //
-        , WeCom("weCom", EndTypeCategory.Assist, true) //
+        , DingTalk("dingding", EndTypeCategory.Alert, true) //
+        , WeCom("weCom", EndTypeCategory.Alert, true) //
         // 飞书
-        , Lark("lark", EndTypeCategory.Assist, true) //
-        , Email("email", EndTypeCategory.Assist, true) //
-        , Http("http", EndTypeCategory.Assist, true) //
-        , Alert("tis-alert", EndTypeCategory.Assist, true) //
+        , Lark("lark", EndTypeCategory.Alert, true) //
+        , Email("email", EndTypeCategory.Alert, true) //
+        , Http("http", EndTypeCategory.Alert, true) //
+        , Alert("tis-alert", EndTypeCategory.Alert, true) //
         //
         //
 
@@ -190,8 +194,7 @@ public interface IEndTypeGetter {
 
         private final String val;
         private final boolean containICON;
-        public
-        final EndTypeCategory category;
+        public final EndTypeCategory category;
         private final Optional<String> desc;
 
         private static final DefaultIconReference unknowStorageType = new DefaultIconReference(UnKnowStoreType);
@@ -219,6 +222,7 @@ public interface IEndTypeGetter {
         private static Set<EndType> _dataEnds;
         private static Set<EndType> _assistTypes;
         private static Set<EndType> _transformerTypes;
+        private static Set<EndType> _alertTypes;
 
         public static Set<EndType> getDataEnds() {
             if (_dataEnds == null) {
@@ -228,8 +232,7 @@ public interface IEndTypeGetter {
         }
 
         private static Set<EndType> filterTypes2Set(EndTypeCategory data) {
-            return Arrays.stream(EndType.values())
-                    .filter((end) -> end.category == data).collect(Collectors.toSet());
+            return Arrays.stream(EndType.values()).filter((end) -> end.category == data).collect(Collectors.toSet());
         }
 
 
@@ -247,6 +250,13 @@ public interface IEndTypeGetter {
                 _assistTypes = filterTypes2Set(EndTypeCategory.Assist);
             }
             return _assistTypes;
+        }
+
+        public static Set<EndType> getAlertTypes() {
+            if (_alertTypes == null) {
+                _alertTypes = filterTypes2Set(EndTypeCategory.Alert);
+            }
+            return _alertTypes;
         }
 
         public static Set<EndType> getTransformerTypes() {
@@ -291,8 +301,8 @@ public interface IEndTypeGetter {
 
                 icon = new Icon() {
                     private String loadIconWithSuffix(String theme, boolean throwErr) {
-                        return IOUtils.loadResourceFromClasspath(IEndTypeGetter.class
-                                , "endtype/icon/" + val + "/" + theme + ".svg", throwErr);
+                        return IOUtils.loadResourceFromClasspath(IEndTypeGetter.class,
+                                "endtype/icon/" + val + "/" + theme + ".svg", throwErr);
                     }
 
                     @Override
@@ -328,12 +338,12 @@ public interface IEndTypeGetter {
         public String outlineType();
 
         public boolean setRes(JSONObject icon, boolean fillStyle);//{
-//            if (isRef) {
-//                icon.put("ref", ((IconReference) i).endType().getVal());
-//            } else {
-//                icon.put("icon", i.fillType());
-//            }
-//        }
+        //            if (isRef) {
+        //                icon.put("ref", ((IconReference) i).endType().getVal());
+        //            } else {
+        //                icon.put("icon", i.fillType());
+        //            }
+        //        }
     }
 
     public interface IconReference {

@@ -124,7 +124,7 @@ public interface IDataxReader extends DataSourceMeta, IDataXPluginMeta
 
     public default ThreadCacheTableCols getContextTableColsStream(
             SuFormProperties.SuFormGetterContext context, Function<EntityName, List<CMeta>> selectedCols) {
-        if (context == null || context.plugin == null) {
+        if (context == null || context.isTest() || context.plugin == null) {
             return ThreadCacheTableCols.createEmptyTableCols();
         }
         IDataxReader plugin = this;

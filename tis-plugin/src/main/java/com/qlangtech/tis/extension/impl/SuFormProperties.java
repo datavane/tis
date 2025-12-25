@@ -52,29 +52,33 @@ public class SuFormProperties extends BaseSubFormProperties {
 
     public static final ThreadLocal<SuFormGetterContext> subFormGetterProcessThreadLocal =
             ThreadLocal.withInitial(() -> {
-                return new SuFormGetterContext();
-            });
+        return new SuFormGetterContext();
+    });
 
     public static SuFormGetterContext setSuFormGetterContext(Describable plugin, UploadPluginMeta pluginMeta,
                                                              String subFormDetailId) {
         return setSuFormGetterContext(plugin, null, pluginMeta, subFormDetailId);
     }
 
-    public static SuFormGetterContext setSuFormGetterContext(Describable plugin, IPluginStore<DataxReader> store, UploadPluginMeta pluginMeta,
-                                                             String subFormDetailId) {
+    public static SuFormGetterContext setSuFormGetterContext(Describable plugin, IPluginStore<DataxReader> store,
+                                                             UploadPluginMeta pluginMeta, String subFormDetailId) {
         if (StringUtils.isEmpty(subFormDetailId)) {
             throw new IllegalArgumentException("param subFormDetailId can not be empty");
         }
+        if (plugin == null) {
+            throw new IllegalArgumentException("param plugin can not be empty");
+        }
         SuFormProperties.SuFormGetterContext subFormContext = subFormGetterProcessThreadLocal.get();
-
         if (plugin instanceof IDataxReader) {
             subFormContext.plugin = (IDataxReader) plugin;
         } else {
             throw new IllegalStateException("plugin" + plugin.getClass().getName() + " must be type of " + IDataxReader.class);
         }
+
         pluginMeta.putExtraParams(SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE, subFormDetailId);
         subFormContext.store = store;
         subFormContext.param = pluginMeta;
+        subFormContext.setTest(pluginMeta.isTest());
         return subFormContext;
     }
 
@@ -95,8 +99,8 @@ public class SuFormProperties extends BaseSubFormProperties {
 
     @Override
     public PropertyType getPropertyType(String fieldName) {
-        PropertyType propertyType = Objects.requireNonNull(this.fieldsType.get(fieldName)
-                , "fieldName:" + fieldName + " relevant property can not be null");
+        PropertyType propertyType = Objects.requireNonNull(this.fieldsType.get(fieldName),
+                "fieldName:" + fieldName + " relevant property can not be null");
         return propertyType;
     }
 
@@ -144,8 +148,9 @@ public class SuFormProperties extends BaseSubFormProperties {
      * @param subFormFieldsDescriptor Example: SelectedTable.DefaultDescriptor
      * @param fieldsType              Example: SelectedTable.DefaultDescriptor 对应plugin的 props
      */
-    public SuFormProperties(Class<? extends Describable> parentClazz, Field subFormField, SubForm subFormFieldsAnnotation,
-                            Descriptor subFormFieldsDescriptor, Map<String, PropertyType> fieldsType) {
+    public SuFormProperties(Class<? extends Describable> parentClazz, Field subFormField,
+                            SubForm subFormFieldsAnnotation, Descriptor subFormFieldsDescriptor, Map<String,
+                    PropertyType> fieldsType) {
         super(subFormField, subFormFieldsAnnotation != null ? subFormFieldsAnnotation.desClazz() : null,
                 subFormFieldsDescriptor);
         Objects.requireNonNull(fieldsType, "fieldsType can not be null");
@@ -162,8 +167,8 @@ public class SuFormProperties extends BaseSubFormProperties {
                 if (SelectedTab.KEY_SOURCE_PROPS.equals(fieldKey)) {
                     return;
                 }
-                PropertyType pt = Objects.requireNonNull(fieldsType.get(fieldKey),
-                        "fieldKey:" + fieldKey + " relevant PropertyType can not be null");
+                PropertyType pt = Objects.requireNonNull(fieldsType.get(fieldKey), "fieldKey:" + fieldKey + " " +
+                        "relevant PropertyType can not be null");
                 if (pt.formField.type() == FormFieldType.MULTI_SELECTABLE) {
                     pt.setMultiItemsViewType(MultiItemsViewType.createMultiItemsViewType(pt, val));
                 }
@@ -188,9 +193,9 @@ public class SuFormProperties extends BaseSubFormProperties {
     }
 
 
-//    public Optional<Descriptor.ElementPluginDesc> createElementPluginDesc(Descriptor<?> newSubDescriptor) {
-//        return Optional.of(new Descriptor.ElementPluginDesc(newSubDescriptor));
-//    }
+    //    public Optional<Descriptor.ElementPluginDesc> createElementPluginDesc(Descriptor<?> newSubDescriptor) {
+    //        return Optional.of(new Descriptor.ElementPluginDesc(newSubDescriptor));
+    //    }
 
 
     private String getIdListGetScript() {
@@ -254,18 +259,16 @@ public class SuFormProperties extends BaseSubFormProperties {
                         String className =
                                 this.parentClazz.getSimpleName() + "_SubFormIdListGetter_" + subFormField.getName();
                         String pkg = this.parentClazz.getPackage().getName();
-                        String script =
-                                "	package " + pkg + " ;" //
-                                        + "import java.util.Map;" //
-                                        + "import com.qlangtech.tis.coredefine.module.action.DataxAction; " //
-                                        + "import com.qlangtech.tis.util.DescriptorsJSON.IPropGetter; " //
-                                        + "import com.qlangtech.tis.extension.IPropertyType; " //
-                                        + "import com.qlangtech.tis.extension.SubFormFilter;\n"
-                                        + "class " + className + " implements IPropGetter {" //
-                                        + "	" //
-                                        + "@Override" //
-                                        + "	public Object build(SubFormFilter filter)" + " " //
-                                        + "{" + this.getIdListGetScript() + "	}" + "}";
+                        String script = "	package " + pkg + " ;" //
+                                + "import java.util.Map;" //
+                                + "import com.qlangtech.tis.coredefine.module.action.DataxAction; " //
+                                + "import com.qlangtech.tis.util.DescriptorsJSON.IPropGetter; " //
+                                + "import com.qlangtech.tis.extension.IPropertyType; " //
+                                + "import com.qlangtech.tis.extension.SubFormFilter;\n" + "class " + className + " " + "implements IPropGetter {" //
+                                + "	" //
+                                + "@Override" //
+                                + "	public Object build(SubFormFilter filter)" + " " //
+                                + "{" + this.getIdListGetScript() + "	}" + "}";
                         //                        //this.getIdListGetScript()
                         //                        loader.loadMyClass(className, script);
                         //                        Class<?> groovyClass = loader.loadClass(pkg + "." + className);
@@ -332,6 +335,10 @@ public class SuFormProperties extends BaseSubFormProperties {
         public IDataxReader plugin;
         public UploadPluginMeta param;
         public IPluginStore<DataxReader> store;
+        /**
+         * 标记当前在测试环境，因此去列的相关元数据操作就可以跳过了
+         */
+        private boolean test;
 
         private ConcurrentHashMap<String, Object> props = new ConcurrentHashMap<>();
 
@@ -342,9 +349,17 @@ public class SuFormProperties extends BaseSubFormProperties {
         public String getSubFormIdentityField() {
             String id = param.getExtraParam(SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE);
             if (StringUtils.isEmpty(id)) {
-                throw new IllegalStateException(SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE + " " + "can not be empty");
+                throw new IllegalStateException(SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE + " " + "can not " + "be" + " empty");
             }
             return id;
+        }
+
+        public void setTest(boolean test) {
+            this.test = test;
+        }
+
+        public boolean isTest() {
+            return test;
         }
     }
 }

@@ -49,8 +49,8 @@ public class JdbcPropertyElementSelectFromExistFieldCreatorFactory extends JdbcP
         List<CMeta> colsCandidate = super.getColsCandidate();
 
         ThreadCacheTableCols threadCacheTabCols = SelectedTab.getContextTableColsStream();
-        IDataxReader reader = threadCacheTabCols.plugin;
-        Map<String, ContextParamConfig> dbContextParams = reader.getDBContextParams();
+
+        Map<String, ContextParamConfig> dbContextParams = threadCacheTabCols.getDBContextParams();
         if (MapUtils.isNotEmpty(dbContextParams)) {
             colsCandidate = Lists.newArrayList(colsCandidate);
             for (Map.Entry<String, ContextParamConfig> entry : dbContextParams.entrySet()) {

@@ -36,6 +36,7 @@ import com.qlangtech.tis.plugin.ds.ViewContent;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.util.AttrValMap;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -66,8 +67,11 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
 
     public static void setSelectedTab(JSONObject biz) {
         SuFormProperties.SuFormGetterContext context = SuFormProperties.subFormGetterProcessThreadLocal.get();
-        if (context == null || context.plugin == null) {
+        if (context == null) {
             throw new IllegalStateException(" can not get threadLocal bind instance subFormGetterProcessThreadLocal");
+        }
+        if (StringUtils.isEmpty(context.getSubFormIdentityField())) {
+            throw new IllegalStateException(" subFormIdentityField in subFormGetterProcessThreadLocal can not be empty");
         }
         biz.put(SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE, context.getSubFormIdentityField());
     }
@@ -79,8 +83,8 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
 
 
     @Override
-    public ParsePostMCols<RecordTransformer> parsePostMCols(IPropertyType propertyType,
-                                                            IControlMsgHandler msgHandler, Context context, String _keyColsMeta, JSONArray targetCols) {
+    public ParsePostMCols<RecordTransformer> parsePostMCols(IPropertyType propertyType, IControlMsgHandler msgHandler
+            , Context context, String _keyColsMeta, JSONArray targetCols) {
         final String keyColsMeta = "rules";
         final String keyTarget = "target";
         final String keyUdf = "udf";
@@ -104,9 +108,8 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
 
 
             if (udfObj == null) {
-                msgHandler.addFieldError(context
-                        , IFieldErrorHandler.joinField(keyColsMeta, Collections.singletonList(index), keyUdf)
-                        , ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
+                msgHandler.addFieldError(context, IFieldErrorHandler.joinField(keyColsMeta,
+                        Collections.singletonList(index), keyUdf), ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
                 postMCols.validateFaild = true;
             }
             if (udfObj == null) {
@@ -116,9 +119,8 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
             for (Map.Entry<String, List<Integer>> entry : duplicateCols.entrySet()) {
                 if (entry.getValue().size() > 1) {
                     for (Integer colIndex : entry.getValue()) {
-                        msgHandler.addFieldError(context
-                                , IFieldErrorHandler.joinField(keyColsMeta, Collections.singletonList(colIndex), keyTarget)
-                                , "名称不能重复");
+                        msgHandler.addFieldError(context, IFieldErrorHandler.joinField(keyColsMeta,
+                                Collections.singletonList(colIndex), keyTarget), "名称不能重复");
                     }
                     postMCols.validateFaild = true;
                     return postMCols;

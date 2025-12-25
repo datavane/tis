@@ -25,7 +25,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
+import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.datax.IGroupChildTaskIterator;
 import com.qlangtech.tis.datax.IStreamTableMeta;
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.extension.Describable;
@@ -48,6 +50,7 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableNotFoundException;
@@ -71,6 +74,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -620,6 +624,78 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
          */
         public boolean isRDBMSChangeableInLifetime() {
             return false;
+        }
+    }
+
+    /**
+     * 为测试用
+     */
+    public static class DataSourceMetaPlugin
+            implements Describable<DataSourceMetaPlugin>, IDataxReader {
+
+        public static final String tabName = "order";
+        static List<ColumnMetaData> cols = Lists.newArrayList();
+        static final ColumnMetaData orderId;
+
+        static {
+            orderId = new ColumnMetaData(0, "order_id", DataType.createVarChar(10), true);
+            cols.add(orderId);
+
+            ColumnMetaData col = new ColumnMetaData(1, "name", DataType.createVarChar(10), false);
+            cols.add(col);
+        }
+
+        @Override
+        public boolean isSupportBatch() {
+            return true;
+        }
+
+        @Override
+        public List<ColumnMetaData> getTableMetadata(boolean inSink, IPluginContext pluginContext, EntityName table) throws TableNotFoundException {
+            Assert.assertEquals(tabName, table.getTableName());
+            //  List<ColumnMetaData> cols = Lists.newArrayList();
+            //  int index, String key, DataType type, boolean pk
+            return cols;
+        }
+
+
+        @Override
+        public List<SelectedTab> getSelectedTabs() {
+
+            SelectedTab tab = new SelectedTab();
+            tab.name = tabName;
+            tab.cols = Lists.newArrayList(ColumnMetaData.convert(orderId));
+            return Collections.singletonList(tab);
+        }
+
+        @Override
+        public <T extends ISelectedTab> List<T> getUnfilledSelectedTabs() {
+            return (List<T>) getSelectedTabs();
+        }
+
+        @Override
+        public IGroupChildTaskIterator getSubTasks(Predicate<ISelectedTab> filter) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getTemplate() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public IStreamTableMeta getStreamTableMeta(TableAlias tableAlias) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void startScanDependency() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void refresh() {
+            throw new UnsupportedOperationException();
         }
     }
 }

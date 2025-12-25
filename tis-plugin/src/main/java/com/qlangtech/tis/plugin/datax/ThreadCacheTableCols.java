@@ -21,10 +21,12 @@ package com.qlangtech.tis.plugin.datax;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.ContextParamConfig;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -39,12 +41,13 @@ public class ThreadCacheTableCols {
     private final Function<EntityName, List<CMeta>> selectedColsSupplier;
     private List<CMeta> selectedCols;
     private final List<ColumnMetaData> selectableCols;
-    public IDataxReader plugin;
+    private IDataxReader plugin;
     private final EntityName targetTable;
     // private final Function<List<ColumnMetaData>, Stream<ColumnMetaData>> selectableColsStreamFunc;
 
     public static ThreadCacheTableCols createEmptyTableCols() {
         List<ColumnMetaData> empt = Collections.emptyList();
+
         return new ThreadCacheTableCols(null, null, (target) -> Collections.emptyList(), empt) {
             @Override
             public List<CMeta> getSelectedCols() {
@@ -52,7 +55,13 @@ public class ThreadCacheTableCols {
             }
 
             @Override
-            public Stream<ColumnMetaData> getStreamedSelectableCols(Function<List<ColumnMetaData>, Stream<ColumnMetaData>> selectableColsStreamFunc) {
+            public Map<String, ContextParamConfig> getDBContextParams() {
+                return ContextParamConfig.defaultContextParams();
+            }
+
+            @Override
+            public Stream<ColumnMetaData> getStreamedSelectableCols(Function<List<ColumnMetaData>,
+                    Stream<ColumnMetaData>> selectableColsStreamFunc) {
                 return Stream.empty();
             }
         };//
@@ -62,16 +71,22 @@ public class ThreadCacheTableCols {
      * @param selectedCols   已经选中的列
      * @param selectableCols
      */
-    public ThreadCacheTableCols(IDataxReader plugin, EntityName targetTable, Function<EntityName, List<CMeta>> selectedCols, List<ColumnMetaData> selectableCols) {
+    public ThreadCacheTableCols(IDataxReader plugin, EntityName targetTable,
+                                Function<EntityName, List<CMeta>> selectedCols, List<ColumnMetaData> selectableCols) {
         this.selectedColsSupplier = selectedCols;
         this.selectableCols = selectableCols;
         this.plugin = plugin;
         this.targetTable = targetTable;
     }
 
+    public Map<String, ContextParamConfig> getDBContextParams() {
+        return plugin.getDBContextParams();
+    }
+
     public List<CMeta> getSelectedCols() {
         if (selectedCols == null) {
-            selectedCols = selectedColsSupplier.apply(Objects.requireNonNull(targetTable, "targetTable can not be null"));
+            selectedCols = selectedColsSupplier.apply(Objects.requireNonNull(targetTable,
+                    "targetTable can not be " + "null"));
         }
         return selectedCols;
     }

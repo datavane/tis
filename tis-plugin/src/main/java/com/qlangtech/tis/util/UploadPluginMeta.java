@@ -472,6 +472,14 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         return null;
     }
 
+    /**
+     *
+     * @return
+     */
+    public boolean isTest() {
+        return Boolean.parseBoolean(this.getExtraParam("test"));
+    }
+
     public DataXName getDataXName() {
         StoreResourceType resType = this.getProcessModel().resType;
         DataXName dataXName = getDataXName(true);
