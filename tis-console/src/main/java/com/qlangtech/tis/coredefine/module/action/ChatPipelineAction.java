@@ -37,6 +37,7 @@ import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.common.UserProfile;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
@@ -305,7 +306,9 @@ public class ChatPipelineAction extends BasicModule {
 
       } catch (Exception e) {
         logger.error("Agent execution failed", e);
-        sseWriter.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_ERROR, "{\"error\":\"" + e.getMessage() + "\"}");
+       // sseWriter.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_ERROR, "{\"error\":\"" + e.getMessage() + "\"}");
+        TisException.ErrMsg errMsg = TisException.getErrMsg(e);
+        session.getAgentContext().sendError(errMsg.getMessage());
       } finally {
         try {
           sseWriter.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_DONE, "{\"finished\":true}");

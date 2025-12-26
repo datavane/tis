@@ -1,0 +1,1 @@
+{  "readTimeout": {    "label": "读取超时",    "dftVal": "com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess.dftSocketReadTimeout.getSeconds()",    "help": "Socket 读取数据超时时间（秒）"  },  "maxRetry": {    "label": "最大尝试",    "dftVal": 2,    "help": "REST API 最大重复尝试次数"  }}

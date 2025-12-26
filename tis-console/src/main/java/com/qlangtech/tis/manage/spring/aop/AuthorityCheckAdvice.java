@@ -113,7 +113,7 @@ public class AuthorityCheckAdvice extends MethodFilterInterceptor {
     BasicModule action = (BasicModule) invocation.getAction();
     ActionProxy proxy = invocation.getProxy();
     String namespace = proxy.getNamespace();
-    return action instanceof LoginAction || StringUtils.startsWith(namespace, "/config");
+    return action instanceof UserAction || action instanceof LoginAction || StringUtils.startsWith(namespace, "/config");
   }
 
   public static boolean inNotForwardProcess() {

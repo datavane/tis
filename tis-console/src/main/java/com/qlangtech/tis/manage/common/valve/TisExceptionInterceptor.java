@@ -89,7 +89,7 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
     AjaxValve.ActionExecResult execResult = null;
     try (JDBCConnectionPool jdbcConnectionPool = JDBCConnectionPool.create()) {
 
-      if (!FreshmanReadmeToken.hasReadFreshManReadme()
+      if ( !FreshmanReadmeToken.hasReadFreshManReadme()
         && !AuthorityCheckAdvice.isProcessLoginOrInConfigNamespace(invocation)) {
         throw TisException.create(
           ErrorValue.create(ErrorCode.TIS_FRESHMAN_README_HAVE_NOT_READ

@@ -71,11 +71,6 @@
       }
     ]
   },
-  "readTimeout": {
-    "label": "读取超时",
-    "dftVal": "com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess.dftSocketReadTimeout.getSeconds()",
-    "help": "Socket 读取数据超时时间（秒）"
-  },
   "printLog": {
     "label": "打印日志",
     "dftVal": false,

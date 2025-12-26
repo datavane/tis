@@ -87,14 +87,16 @@ public class DeepSeekProvider extends LLMProvider {
             Validator.integer})
     public Integer temperature;
 
-    @FormField(type = FormFieldType.DURATION_OF_SECOND, advance = true, ordinal = 6, validate = {Validator.require,
-            Validator.integer})
-    public Duration readTimeout;
+//    @FormField(type = FormFieldType.DURATION_OF_SECOND, advance = true, ordinal = 6, validate = {Validator.require,
+//            Validator.integer})
+//    public Duration readTimeout;
+
+
 
     /**
      * 是否打印日志
      */
-    @FormField(type = FormFieldType.ENUM, advance = true, ordinal = 7, validate = {Validator.require})
+    @FormField(type = FormFieldType.ENUM, advance = true, ordinal = 8, validate = {Validator.require})
     public Boolean printLog;
 
     @Override
@@ -132,73 +134,82 @@ public class DeepSeekProvider extends LLMProvider {
             executeLog.setPostParams(postParams);
 
             return HttpUtils.post(new URL(getApiUrl()), postParams //
-                    , new PostFormStreamProcess<LLMResponse>(new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey())) {
-                @Override
-                public ContentType getContentType() {
-                    return ContentType.JSON;
-                }
+                    , new PostFormStreamProcess<LLMResponse>(new ConfigFileContext.Header("Authorization",
+                            "Bearer " + getApiKey())) {
+                        @Override
+                        public ContentType getContentType() {
+                            return ContentType.JSON;
+                        }
 
-                @Override
-                public Duration getSocketReadTimeout() {
-                    return readTimeout;
-                }
+                        @Override
+                        public int getMaxRetry() {
+                            return maxRetry;
+                        }
 
-                @Override
-                public void error(int status, InputStream errstream, IOException e) {
-                    if (errstream != null) {
-                        try {
-                            JSONObject errBody = JSONObject.parseObject(IOUtils.toString(errstream, TisUTF8.get()));
-                            executeLog.setError(errBody);
-                            JSONObject errDetail = errBody.getJSONObject("error");
-                            String errMessage = errDetail.getString("message");
-                            if (StringUtils.isNotEmpty(errMessage)) {
-                                throw TisException.create(errMessage);
+                        @Override
+                        public Duration getSocketReadTimeout() {
+                            return readTimeout;
+                        }
+
+                        @Override
+                        public void error(int status, InputStream errstream, IOException e) {
+                            if (errstream != null) {
+                                try {
+                                    JSONObject errBody = JSONObject.parseObject(IOUtils.toString(errstream,
+                                            TisUTF8.get()));
+                                    executeLog.setError(errBody);
+                                    JSONObject errDetail = errBody.getJSONObject("error");
+                                    String errMessage = errDetail.getString("message");
+                                    if (StringUtils.isNotEmpty(errMessage)) {
+                                        throw TisException.create(errMessage);
+                                    }
+                                } catch (IOException ex) {
+                                    throw new RuntimeException(e);
+                                }
+                            } else {
+                                throw new RuntimeException(e);
                             }
-                        } catch (IOException ex) {
-                            throw new RuntimeException(e);
                         }
-                    } else {
-                        throw new RuntimeException(e);
-                    }
-                }
 
-                @Override
-                public LLMResponse p(int status, InputStream stream, Map headerFields) throws IOException {
-                    LLMResponse response = new LLMResponse(executeLog);
-                    String responseStr = IOUtils.toString(stream, TisUTF8.get());
+                        @Override
+                        public LLMResponse p(int status, InputStream stream, Map headerFields) throws IOException {
+                            LLMResponse response = new LLMResponse(executeLog);
+                            String responseStr = IOUtils.toString(stream, TisUTF8.get());
 
-                    JSONObject responseJson = JSON.parseObject(responseStr);
-                    executeLog.setResponse(responseJson);
+                            JSONObject responseJson = JSON.parseObject(responseStr);
+                            executeLog.setResponse(responseJson);
 
-                    if (responseJson.containsKey("choices")) {
-                        JSONArray choices = responseJson.getJSONArray("choices");
-                        if (!choices.isEmpty()) {
-                            JSONObject choice = choices.getJSONObject(0);
-                            JSONObject message = choice.getJSONObject("message");
-                            response.setContent(message.getString("content"));
-                            response.setSuccess(true);
+                            if (responseJson.containsKey("choices")) {
+                                JSONArray choices = responseJson.getJSONArray("choices");
+                                if (!choices.isEmpty()) {
+                                    JSONObject choice = choices.getJSONObject(0);
+                                    JSONObject message = choice.getJSONObject("message");
+                                    response.setContent(message.getString("content"));
+                                    response.setSuccess(true);
+                                }
+                            }
+
+                            if (responseJson.containsKey("usage")) {
+                                JSONObject usage = responseJson.getJSONObject("usage");
+                                response.setPromptTokens(usage.getLongValue("prompt_tokens"));
+                                response.setCompletionTokens(usage.getLongValue("completion_tokens"));
+                                // response.setTotalTokens();
+                                context.updateTokenUsage(usage.getLongValue("total_tokens"));
+                            }
+
+                            response.setModel(getModel());
+                            return response;
                         }
-                    }
 
-                    if (responseJson.containsKey("usage")) {
-                        JSONObject usage = responseJson.getJSONObject("usage");
-                        response.setPromptTokens(usage.getLongValue("prompt_tokens"));
-                        response.setCompletionTokens(usage.getLongValue("completion_tokens"));
-                        // response.setTotalTokens();
-                        context.updateTokenUsage(usage.getLongValue("total_tokens"));
-                    }
-
-                    response.setModel(getModel());
-                    return response;
-                }
-
-//                @Override
-//                public List<ConfigFileContext.Header> getHeaders() {
-//                    List<ConfigFileContext.Header> headers = new ArrayList<>(super.getHeaders());
-//                    headers.add(new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey()));
-//                    return headers;
-//                }
-            });
+                        //                @Override
+                        //                public List<ConfigFileContext.Header> getHeaders() {
+                        //                    List<ConfigFileContext.Header> headers = new ArrayList<>(super
+                        //                    .getHeaders());
+                        //                    headers.add(new ConfigFileContext.Header("Authorization", "Bearer " +
+                        //                    getApiKey()));
+                        //                    return headers;
+                        //                }
+                    });
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         } finally {

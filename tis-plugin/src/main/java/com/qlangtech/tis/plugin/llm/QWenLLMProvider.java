@@ -101,13 +101,6 @@ public class QWenLLMProvider extends LLMProvider {
     @FormField(type = FormFieldType.DECIMAL_NUMBER, advance = true, ordinal = 6, validate = {})
     public Float topP;
 
-    @FormField(type = FormFieldType.DURATION_OF_SECOND, advance = true, ordinal = 7, validate = {Validator.require,
-            Validator.integer})
-    public Duration readTimeout;
-
-    @FormField(type = FormFieldType.INT_NUMBER, advance = true, ordinal = 8, validate = {Validator.require,
-            Validator.integer})
-    public Integer maxRetry;
 
     /**
      * 是否开启流式输出
@@ -167,11 +160,9 @@ public class QWenLLMProvider extends LLMProvider {
 
             executeLog.setPostParams(postParams);
 
-            return HttpUtils.post(new URL(getApiUrl()), postParams,
-                    new PostFormStreamProcess<LLMResponse>( //
-                            Lists.newArrayList((new ConfigFileContext.Header(
-                            "Authorization", "Bearer " + getApiKey())), (new ConfigFileContext.Header("Content-Type",
-                            "application/json")))) {
+            return HttpUtils.post(new URL(getApiUrl()), postParams, new PostFormStreamProcess<LLMResponse>( //
+                    Lists.newArrayList((new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey())) //
+                            , (new ConfigFileContext.Header("Content-Type", "application/json")))) {
                 @Override
                 public ContentType getContentType() {
                     return ContentType.JSON;
@@ -261,14 +252,15 @@ public class QWenLLMProvider extends LLMProvider {
                     return response;
                 }
 
-//                @Override
-//                public List<ConfigFileContext.Header> getHeaders() {
-//                    List<ConfigFileContext.Header> headers = new ArrayList<>(super.getHeaders());
-//                    // 通义千问使用 Bearer Token 认证
-//                    headers.add(new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey()));
-//                    headers.add(new ConfigFileContext.Header("Content-Type", "application/json"));
-//                    return headers;
-//                }
+                //                @Override
+                //                public List<ConfigFileContext.Header> getHeaders() {
+                //                    List<ConfigFileContext.Header> headers = new ArrayList<>(super.getHeaders());
+                //                    // 通义千问使用 Bearer Token 认证
+                //                    headers.add(new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey
+                //                    ()));
+                //                    headers.add(new ConfigFileContext.Header("Content-Type", "application/json"));
+                //                    return headers;
+                //                }
             });
         } catch (MalformedURLException e) {
             throw new RuntimeException("Invalid URL: " + getApiUrl(), e);

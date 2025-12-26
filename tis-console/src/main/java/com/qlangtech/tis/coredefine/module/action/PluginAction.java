@@ -154,29 +154,9 @@ public class PluginAction extends BasicModule {
     //    }
   }
 
-  private static class IconsDefs {
-    final JSONArray iconsDefs;
-    final String checkToken;
 
-    public IconsDefs(JSONArray iconsDefs) {
-      this.iconsDefs = iconsDefs;
-      this.checkToken = DigestUtils.md5Hex(JsonUtil.toString(iconsDefs));
-    }
 
-    public JSONObject getIcons(String verToken) {
-      JSONObject result = new JSONObject();
-      String oldCheckToken = this.checkToken;
-      result.put("verToken", oldCheckToken);
-      result.put("iconsDefs", oldCheckToken.equals(verToken) ? new JSONArray() : iconsDefs);
-      return result;
-    }
 
-    //    public void add(JSONObject icon) {
-    //      iconsDefs.add(icon);
-    //    }
-  }
-
-  private static IconsDefs iconsDefsWithCheckSum;
 
   /**
    * 取得端类型相对应的插件列表
@@ -188,44 +168,6 @@ public class PluginAction extends BasicModule {
 
   }
 
-  public void doGetEndtypeIcons(Context context) throws Exception {
-
-    if (iconsDefsWithCheckSum == null) {
-      JSONArray iconsDefs = new JSONArray();
-      JSONObject icon = null;
-      Icon i = null;
-
-      for (EndType type : EndType.values()) {
-
-        i = type.getIcon();
-        if (i == null) {
-          continue;
-        }
-        // boolean isRef = (i instanceof IconReference);
-
-        icon = new JSONObject();
-        icon.put("name", type.getVal());
-        icon.put("theme", "fill");
-        i.setRes(icon, true);
-        iconsDefs.add(icon);
-
-
-        icon = new JSONObject();
-        icon.put("name", type.getVal());
-        icon.put("theme", "outline");
-        // icon.put("icon", i.outlineType());
-        if (i.setRes(icon, false)) {
-        }
-        iconsDefs.add(icon);
-      }
-
-      iconsDefsWithCheckSum = new IconsDefs(iconsDefs);
-    }
-
-    String verToken = this.getString("vertoken");
-
-    this.setBizResult(context, iconsDefsWithCheckSum.getIcons(verToken));
-  }
 
   /**
    * 取得 plugin的manipuldate plugin item

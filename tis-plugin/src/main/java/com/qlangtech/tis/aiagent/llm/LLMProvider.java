@@ -21,6 +21,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.manage.common.ILoginUser;
+import com.qlangtech.tis.plugin.annotation.FormField;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.llm.DeepSeekProvider;
 import com.qlangtech.tis.plugin.llm.log.NoneExecuteLog;
@@ -30,6 +33,7 @@ import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,6 +49,14 @@ public abstract class LLMProvider extends ParamsConfig {
     }
 
     protected static final String KEY_DISPLAY_NAME = "LLM";
+
+    @FormField(type = FormFieldType.DURATION_OF_SECOND, advance = true, ordinal = 7, validate = {Validator.require,
+            Validator.integer})
+    public Duration readTimeout;
+
+    @FormField(type = FormFieldType.INT_NUMBER, advance = true, ordinal = 8, validate = {Validator.require,
+            Validator.integer})
+    public Integer maxRetry;
 
 
     public static List<ParamsConfig> getExistProviders() {

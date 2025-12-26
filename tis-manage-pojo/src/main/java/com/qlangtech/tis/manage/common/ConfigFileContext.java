@@ -144,7 +144,7 @@ public class ConfigFileContext {
             } catch (Exception e) {
                 if (++retryCount >= maxRetry) {
                     throw TisException.create(ErrorValue.create(HTTP_CONNECT_FAILD, Collections.emptyMap()),
-                            "maxRetry:" + maxRetry + ",url:" + url.toString(), e);
+                            "maxRetry:" + maxRetry + ",url:" + url.toString() + "," + e.getMessage(), e);
                 } else {
                     try {
                         Thread.sleep(3000);
@@ -253,6 +253,7 @@ public class ConfigFileContext {
             throw new Exception(e);
         }
     }
+
     public static Header setAuthorizationHeader(String userName, String password) {
         if (StringUtils.isEmpty(userName)) {
             throw new IllegalArgumentException("username can not be empty");
@@ -262,6 +263,7 @@ public class ConfigFileContext {
         //  requestBuilder.header();
         return new Header("Authorization", basicAuth);
     }
+
     public abstract static class StreamProcess<T> extends StreamErrorProcess {
 
         public static String HEADER_KEY_GET_FILE_META = "get_file_meta";
@@ -277,7 +279,6 @@ public class ConfigFileContext {
             tmpList.add(new Header(HEADER_KEY_GET_FILE_META, String.valueOf(true)));
             HEADER_GET_META = Collections.unmodifiableList(tmpList);
         }
-
 
 
         //        /**
@@ -321,7 +322,7 @@ public class ConfigFileContext {
             return false;
         }
 
-        public static final Duration dftSocketReadTimeout = Duration.ofSeconds(15);
+        public static final Duration dftSocketReadTimeout = Duration.ofSeconds(40);
 
         /**
          * socket read 超时时间 <br>
