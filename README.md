@@ -8,12 +8,12 @@
 
 TIS为您提供企业级数据集成服务，**基于批(DataX)，流(Flink-CDC、Chunjun)一体，提供简单易用的操作界面，降低用户实施端到端数据同步的实施门槛，缩短任务配置时间，避免配置过程中出错，使数据同步变得简单、有趣且容易上手** [详细介绍](https://tis.pub/docs/)
 
-### v5.0.0 推出新功能 
+### :fire: v5.0.0 推出新功能 
 
-* :fire: 提供Pipeline AI Agent - 让数据管道听懂人话
-    * 告别复杂配置,自然语言描述需求即可创建管道
-    * 智能插件检测与自动安装,LLM辅助参数生成
-    * 支持DeepSeek/通义千问等国产模型,成本低至几毛钱 [立即了解](https://tis.pub/docs/guide/pipeline-ai-agent)
+提供Pipeline AI Agent - 让数据管道听懂人话
+  * 告别复杂配置,自然语言描述需求即可创建管道
+  * 智能插件检测与自动安装,LLM辅助参数生成
+  * 支持DeepSeek/通义千问等国产模型,成本低至几毛钱 [立即了解](https://tis.pub/docs/guide/pipeline-ai-agent)
 
 ![tis](docs/ai-agent-pipeline.png)
 
