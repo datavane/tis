@@ -18,9 +18,10 @@ TIS为您提供企业级数据集成服务，**基于批(DataX)，流(Flink-CDC�
 
 ##  发布：
 
-最新版本：v4.3.0（2025/8/19) https://github.com/datavane/tis/releases/tag/v4.3.0
+最新版本：v5.0.0（2025/12/29) https://github.com/datavane/tis/releases/tag/v5.0.0
 
 **历史发布**：
+* v4.3.0（2025/8/19) https://github.com/datavane/tis/releases/tag/v4.3.0
 * v4.2.1 发布（2025/5/1）：https://github.com/datavane/tis/releases/tag/v4.2.1
 * v4.1.0 发布（2025/2/2）：https://github.com/datavane/tis/releases/tag/v4.1.0
 * v4.0.1 发布（2024/10/19）：https://github.com/datavane/tis/releases/tag/V4.0.1
@@ -40,6 +41,13 @@ TIS为您提供企业级数据集成服务，**基于批(DataX)，流(Flink-CDC�
 
   TIS的安装还是和传统软件安装一样，只需要三个步骤：一、下载tar包，二、解压tar包，三、启动TIS。是的，就这么简单。另外还支持多种部署模式（Docker、Docker-Compose、Kubernetes）。
 
+* :fire: 提供Pipeline AI Agent - 让数据管道听懂人话
+   * 告别复杂配置,自然语言描述需求即可创建管道
+   * 智能插件检测与自动安装,LLM辅助参数生成
+   * 支持DeepSeek/通义千问等国产模型,成本低至几毛钱
+  
+   [立即了解](https://tis.pub/docs/guide/pipeline-ai-agent)
+  
 * :rocket:强大的扩展性
 
   TIS 继承了Jenkin 的设计思想，使用微前端技术，重新构建了一套前端框架，前端页面可以自动渲染。
@@ -81,6 +89,10 @@ TIS为您提供企业级数据集成服务，**基于批(DataX)，流(Flink-CDC�
     * [MySQL导入Clickhouse](https://www.bilibili.com/video/BV1x64y1B7V8/)
     * [MySQL同步StarRocks](https://www.bilibili.com/video/BV19o4y1M7eq/)
     * MySQL同步Doris [>批量同步](https://www.bilibili.com/video/BV1eh4y1o7yQ) [>实时同步](https://www.bilibili.com/video/BV1nX4y1h7SW)
+### 利用 AI Agent 创建数据管道
+
+![tis](docs/ai-agent-pipeline.png)
+
 ### 批量导入流程设置
 
 选择Reader/Writer插件类型
