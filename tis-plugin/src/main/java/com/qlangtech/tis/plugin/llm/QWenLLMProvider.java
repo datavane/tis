@@ -24,6 +24,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
+import com.qlangtech.tis.aiagent.llm.JsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.extension.TISExtension;
@@ -41,6 +42,7 @@ import com.qlangtech.tis.plugin.llm.log.ExecuteLog;
 import com.qlangtech.tis.plugin.llm.log.NoneExecuteLog;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -116,10 +118,11 @@ public class QWenLLMProvider extends LLMProvider {
 
     @Override
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
-        return chat(context, prompt, systemPrompt, true);
+        return chat(context, prompt, systemPrompt, true, JsonSchema.off());
     }
 
-    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary) {
+    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary,
+                            JsonSchema jsonOutput) {
         ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);// new DefaultExecuteLog
         // (prompt, context, logger) : new NoneExecuteLog();
         try {
@@ -147,6 +150,23 @@ public class QWenLLMProvider extends LLMProvider {
             // 设置其他参数
             postParams.add(new HttpUtils.PostParam("temperature", temperature));
             postParams.add(new HttpUtils.PostParam("max_tokens", getMaxTokens()));
+
+            if (jsonOutput.isContainSchema()) {
+                JSONObject responseFormat = new JSONObject();
+                /**
+                 * 返回内容的格式。可选值：
+                 *
+                 * {"type": "text"}：输出文字回复；
+                 * {"type": "json_object"}：输出标准格式的JSON字符串。
+                 * {"type": "json_schema","json_schema": {...} }：输出指定格式的JSON字符串。
+                 * 相关文档：结构化输出。
+                 * 若指定为{"type": "json_object"}，需在提示词中明确指示模型输出JSON，如：“请按照json格式输出”，否则会报错。
+                 * 支持的模型参见结构化输出。
+                 */
+                responseFormat.put("type", "json_object");
+                // responseFormat.put("json_schema", jsonOutput.schema());
+                postParams.add(new HttpUtils.PostParam("response_format", responseFormat));
+            }
 
             if (topP != null) {
                 postParams.add(new HttpUtils.PostParam("top_p", topP));
@@ -273,15 +293,15 @@ public class QWenLLMProvider extends LLMProvider {
 
     @Override
     public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
-                                String jsonSchema) {
+                                JsonSchema jsonSchema) {
         // 增强prompt，要求返回JSON格式
         String enhancedPrompt = prompt.getPrompt();
-        if (StringUtils.isNotEmpty(jsonSchema)) {
-            enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + jsonSchema;
+        if (jsonSchema.isContainSchema()) {
+            enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + JsonUtil.toString(jsonSchema.schema(), false);
             enhancedPrompt += "\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。";
         }
 
-        LLMResponse response = chat(context, prompt.setNewPrompt(enhancedPrompt), systemPrompt, false);
+        LLMResponse response = chat(context, prompt.setNewPrompt(enhancedPrompt), systemPrompt, false, jsonSchema);
 
         try {
             if (response.isSuccess() && response.getContent() != null) {

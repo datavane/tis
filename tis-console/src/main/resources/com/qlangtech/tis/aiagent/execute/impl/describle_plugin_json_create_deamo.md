@@ -333,7 +333,7 @@ MySQL源端：host=192.168.1.10,port=3306,user=admin,password=pass123,database=o
    4. descriptors：当以上`describable`=true时会有此属性，内部是一个Map数据结构，`Key`为插件插件完整实现类名，Value为内嵌插件结构说明。注意：在最终生成的json结果中，对应属性的`descVal`下的`impl`属性值必须与Map属性下Value对应实例的`impl`属性值严格一致
    5. pk: 是否为主键，当`pk=true`时，在用户提交的本文中根据抽取到对应的内容，作如下处理：
       * 没有抽取到对应值： 输出的`_primaryVal`属性对应的值不要自动生成（切记）
-      * 抽取到对应的值：输出的`_primaryVal`属性值必须严格匹配正则式： `[A-Z\\da-z_]+` ，如有非法字符须进行**合理替换**以符合正则式，例如：识别得到“mysql-mysql-2”不符合正则式规范，需要进行**合理替换**变成“mysql_mysql_2”就符合正则式规范了
+      * 抽取到对应的值：输出的`_primaryVal`属性值必须严格匹配正则式： `[A-Z\\da-z_]+` ，如有非法字符须进行**合理替换**以符合正则式，例如：识别得到“mysql-mysql-2”不符合正则式规范，**必须**进行**合理替换**变成“mysql_mysql_2”
    6. type: 属性值类型，值为int的类型，值对应的类型说明参考：`fieldType值说明`
    7. key: 属性键名称
    8. required: 是否必须输入

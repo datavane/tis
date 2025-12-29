@@ -365,7 +365,205 @@ public class CapabilityComposer {
 }
 ```
 
-#### 1.6 关系总结
+#### 1.6 基于知识图谱的能力组合增强
+
+通过知识图谱可以更智能地验证能力组合的可行性，并找到最优的执行路径：
+
+```java
+/**
+ * 基于知识图谱的能力组合器
+ */
+public class GraphEnhancedCapabilityComposer extends CapabilityComposer {
+
+    @Autowired
+    private GraphDatabaseService graphDB;
+
+    /**
+     * 验证能力组合的可行性
+     * 通过图谱检查能力之间是否存在冲突
+     */
+    @Override
+    protected void validateCapabilityCompatibility(
+            List<AtomicCapability> capabilities) {
+
+        List<String> capabilityIds = capabilities.stream()
+            .map(AtomicCapability::getCapabilityId)
+            .collect(Collectors.toList());
+
+        String query = """
+            MATCH (c1:Capability)-[conflict:CONFLICTS_WITH]->(c2:Capability)
+            WHERE c1.id IN $capIds AND c2.id IN $capIds
+            RETURN c1.name as capability1,
+                   c2.name as capability2,
+                   conflict.reason as reason
+            """;
+
+        Result result = graphDB.execute(query, Map.of("capIds", capabilityIds));
+
+        if (result.hasNext()) {
+            StringBuilder conflicts = new StringBuilder();
+            while (result.hasNext()) {
+                Map<String, Object> row = result.next();
+                conflicts.append(String.format("%s conflicts with %s: %s\n",
+                    row.get("capability1"),
+                    row.get("capability2"),
+                    row.get("reason")));
+            }
+            throw new IncompatibleCapabilitiesException(conflicts.toString());
+        }
+    }
+
+    /**
+     * 使用图算法找到能力的最优组合路径
+     */
+    public List<AtomicCapability> findOptimalCapabilityPath(
+            UserIntent intent) {
+
+        String query = """
+            // 定义起点和终点能力
+            MATCH (start:Capability {type: 'READ'})
+            MATCH (end:Capability {type: 'WRITE'})
+
+            // 根据处理类型过滤相关的能力路径
+            MATCH (pattern:ProcessPattern {type: $processingType})
+                  -[:REQUIRES|SUGGESTS*1..3]->(cap:Capability)
+
+            // 使用Dijkstra算法找最优路径
+            CALL gds.shortestPath.dijkstra.stream({
+                sourceNode: id(start),
+                targetNode: id(end),
+                nodeQuery: 'MATCH (n:Capability) RETURN id(n) as id',
+                relationshipQuery: '''
+                    MATCH (c1:Capability)-[r:LEADS_TO]->(c2:Capability)
+                    RETURN id(c1) as source, id(c2) as target, r.cost as cost
+                ''',
+                relationshipWeightProperty: 'cost'
+            })
+            YIELD path, totalCost
+
+            // 返回路径上的能力
+            RETURN [node in nodes(path) | node.id] as capabilityPath,
+                   totalCost
+            ORDER BY totalCost ASC
+            LIMIT 1
+            """;
+
+        Result result = graphDB.execute(query, Map.of(
+            "processingType", intent.getProcessingType().name()
+        ));
+
+        if (result.hasNext()) {
+            Map<String, Object> row = result.next();
+            List<String> capabilityIds = (List<String>) row.get("capabilityPath");
+            return capabilityIds.stream()
+                .map(this::loadCapabilityById)
+                .collect(Collectors.toList());
+        }
+
+        // 如果没有找到路径，使用默认的能力识别逻辑
+        return super.identifyRequiredCapabilities(intent);
+    }
+
+    /**
+     * 检查能力组合是否满足所有约束条件
+     */
+    public boolean validateConstraints(
+            List<AtomicCapability> capabilities,
+            UserIntent intent) {
+
+        String query = """
+            // 检查每个能力的前置条件是否满足
+            UNWIND $capabilityIds as capId
+            MATCH (cap:Capability {id: capId})
+
+            OPTIONAL MATCH (cap)-[:HAS_PRECONDITION]->(pre:Constraint)
+            WITH cap, collect(pre) as preconditions
+
+            // 验证前置条件
+            RETURN cap.id as capabilityId,
+                   cap.name as capabilityName,
+                   preconditions,
+                   size([p in preconditions WHERE p.satisfied = false]) as unsatisfiedCount
+            """;
+
+        List<String> capIds = capabilities.stream()
+            .map(AtomicCapability::getCapabilityId)
+            .collect(Collectors.toList());
+
+        Result result = graphDB.execute(query, Map.of("capabilityIds", capIds));
+
+        while (result.hasNext()) {
+            Map<String, Object> row = result.next();
+            long unsatisfied = (Long) row.get("unsatisfiedCount");
+            if (unsatisfied > 0) {
+                logger.warn("Capability {} has unsatisfied preconditions",
+                    row.get("capabilityName"));
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * 基于图谱推荐补充能力
+     */
+    public List<AtomicCapability> recommendAdditionalCapabilities(
+            List<AtomicCapability> currentCapabilities,
+            UserIntent intent) {
+
+        List<String> currentCapIds = currentCapabilities.stream()
+            .map(AtomicCapability::getCapabilityId)
+            .collect(Collectors.toList());
+
+        String query = """
+            // 查找当前能力经常与哪些其他能力一起使用
+            MATCH (current:Capability)
+            WHERE current.id IN $currentCapIds
+
+            MATCH (current)<-[:USED_CAPABILITY]-(case:SuccessCase)
+                  -[:USED_CAPABILITY]->(other:Capability)
+            WHERE NOT other.id IN $currentCapIds
+              AND case.processingType = $processingType
+
+            // 计算共现频率
+            WITH other, count(case) as cooccurrence
+            WHERE cooccurrence >= 3
+
+            RETURN other.id as capabilityId,
+                   other.name as capabilityName,
+                   cooccurrence,
+                   other.priority as priority
+            ORDER BY cooccurrence DESC, priority DESC
+            LIMIT 5
+            """;
+
+        Result result = graphDB.execute(query, Map.of(
+            "currentCapIds", currentCapIds,
+            "processingType", intent.getProcessingType().name()
+        ));
+
+        List<AtomicCapability> recommendations = new ArrayList<>();
+        while (result.hasNext()) {
+            Map<String, Object> row = result.next();
+            String capId = (String) row.get("capabilityId");
+            recommendations.add(loadCapabilityById(capId));
+        }
+
+        return recommendations;
+    }
+}
+```
+
+**知识图谱增强能力组合的优势：**
+
+1. **冲突检测**：自动检测能力之间的不兼容性，避免无效组合
+2. **路径优化**：使用图算法（Dijkstra）找到成本最低的能力组合路径
+3. **约束验证**：确保所有前置条件和后置条件都得到满足
+4. **智能推荐**：基于历史成功案例推荐补充能力
+5. **动态适应**：随着案例积累，组合策略自动优化
+
+#### 1.7 关系总结
 
 ```java
 /**
@@ -452,6 +650,300 @@ public class IntentAnalyzer {
 }
 ```
 
+#### 2.1 知识图谱增强的意图理解（推荐）
+
+通过引入知识图谱，可以显著提升意图理解的准确性和智能化水平。采用**检索增强生成（RAG）**模式，结合领域知识进行语义推理：
+
+```java
+/**
+ * 知识图谱增强的意图分析器
+ * 采用RAG（Retrieval-Augmented Generation）模式
+ */
+public class KnowledgeGraphEnhancedIntentAnalyzer extends IntentAnalyzer {
+
+    @Autowired
+    private GraphDatabaseService graphDB;
+
+    @Autowired
+    private LLMProvider llmProvider;
+
+    @Autowired
+    private EntityExtractor entityExtractor;
+
+    @Override
+    public UserIntent analyze(String userRequest) {
+        // Step 1: 实体抽取 - 从用户问题中提取关键实体
+        List<Entity> entities = entityExtractor.extract(userRequest);
+
+        // Step 2: 知识图谱召回 - 检索相关三元组
+        List<Triple> relevantTriples = retrieveFromKnowledgeGraph(entities);
+
+        // Step 3: 上下文构建 - 将三元组转化为自然语言上下文
+        String domainContext = buildContextFromTriples(relevantTriples);
+
+        // Step 4: LLM推理 - 结合领域知识进行意图理解
+        String prompt = buildEnhancedPrompt(userRequest, domainContext);
+        String llmResponse = llmProvider.generate(prompt);
+
+        // Step 5: 结果解析 - 构建结构化的UserIntent
+        UserIntent intent = parseIntentFromLLM(llmResponse);
+
+        // Step 6: 图谱验证与补全 - 通过图谱推理验证并补充隐含需求
+        intent = validateAndEnrichIntent(intent);
+
+        return intent;
+    }
+
+    /**
+     * 从知识图谱中检索相关知识
+     * 采用多跳查询获取完整的上下文信息
+     */
+    private List<Triple> retrieveFromKnowledgeGraph(List<Entity> entities) {
+        String query = """
+            // 一跳查询：直接相关的关系
+            MATCH (e:Entity)-[r]->(target)
+            WHERE e.name IN $entityNames
+            RETURN e.name as subject, type(r) as predicate, target.name as object, 1 as hop
+
+            UNION
+
+            MATCH (source)-[r]->(e:Entity)
+            WHERE e.name IN $entityNames
+            RETURN source.name as subject, type(r) as predicate, e.name as object, 1 as hop
+
+            UNION
+
+            // 二跳查询：获取更丰富的上下文
+            MATCH (e1:Entity)-[r1]->(middle)-[r2]->(e2)
+            WHERE e1.name IN $entityNames OR e2.name IN $entityNames
+            RETURN e1.name as subject,
+                   type(r1)+' -> '+middle.name+' -> '+type(r2) as predicate,
+                   e2.name as object, 2 as hop
+            ORDER BY hop ASC
+            LIMIT 100
+            """;
+
+        Map<String, Object> params = Map.of(
+            "entityNames",
+            entities.stream().map(Entity::getName).collect(Collectors.toList())
+        );
+
+        return executeGraphQuery(query, params);
+    }
+
+    /**
+     * 将三元组转化为自然语言上下文
+     */
+    private String buildContextFromTriples(List<Triple> triples) {
+        StringBuilder context = new StringBuilder();
+        context.append("## 领域知识（从知识图谱检索）\n\n");
+
+        // 按主题分组
+        Map<String, List<Triple>> groupedBySubject = triples.stream()
+            .collect(Collectors.groupingBy(Triple::getSubject));
+
+        for (Map.Entry<String, List<Triple>> entry : groupedBySubject.entrySet()) {
+            String subject = entry.getKey();
+            List<Triple> subjectTriples = entry.getValue();
+
+            context.append(String.format("### %s\n", subject));
+            for (Triple triple : subjectTriples) {
+                context.append(String.format("- %s %s %s\n",
+                    triple.getSubject(),
+                    triple.getPredicate(),
+                    triple.getObject()));
+            }
+            context.append("\n");
+        }
+
+        return context.toString();
+    }
+
+    /**
+     * 构建增强的Prompt
+     */
+    private String buildEnhancedPrompt(String userRequest, String graphContext) {
+        return String.format("""
+            你是TIS数据集成平台的AI助手，需要理解用户的数据集成需求。
+
+            ## 用户请求
+            %s
+
+            %s
+
+            ## 任务
+            请分析用户意图，输出JSON格式的结构化信息，包括：
+            1. dataSources: 数据源列表，格式为 [{type, connection, table}]
+            2. processingType: 处理类型（ETL/Streaming/CDC/Migration等）
+            3. qualityRules: 需要的质量规则列表
+            4. transformations: 数据转换需求
+            5. executionMode: 执行模式（Batch/Realtime）
+            6. implicitRequirements: 通过领域知识推理得出的隐含需求
+            7. suggestedCapabilities: 建议使用的能力
+            8. confidence: 意图理解的置信度（0-1）
+
+            请基于提供的领域知识进行推理，输出严格的JSON格式。
+            如果用户请求中有歧义，请在implicitRequirements中说明你的假设。
+            """, userRequest, graphContext);
+    }
+
+    /**
+     * 从LLM响应中解析UserIntent
+     */
+    private UserIntent parseIntentFromLLM(String llmResponse) {
+        try {
+            JSONObject json = JSON.parseObject(llmResponse);
+
+            UserIntent intent = new UserIntent();
+            intent.setDataSources(parseDataSources(json.getJSONArray("dataSources")));
+            intent.setProcessingType(ProcessingType.valueOf(json.getString("processingType")));
+            intent.setQualityRules(parseQualityRules(json.getJSONArray("qualityRules")));
+            intent.setTransformations(parseTransformations(json.getJSONArray("transformations")));
+            intent.setExecutionMode(ExecutionMode.valueOf(json.getString("executionMode")));
+            intent.setImplicitRequirements(parseList(json.getJSONArray("implicitRequirements")));
+            intent.setSuggestedCapabilities(parseList(json.getJSONArray("suggestedCapabilities")));
+            intent.setConfidence(json.getDoubleValue("confidence"));
+
+            return intent;
+        } catch (Exception e) {
+            throw new IntentParsingException("Failed to parse LLM response", e);
+        }
+    }
+
+    /**
+     * 通过图谱推理验证并补充意图
+     */
+    private UserIntent validateAndEnrichIntent(UserIntent intent) {
+        // 1. 推理隐含的能力需求
+        List<String> inferredCapabilities = inferCapabilitiesFromGraph(intent);
+        intent.addSuggestedCapabilities(inferredCapabilities);
+
+        // 2. 检查数据源组合的常见模式
+        List<String> commonPatterns = findCommonPatterns(intent.getDataSources());
+        if (!commonPatterns.isEmpty()) {
+            intent.addMetadata("commonPatterns", commonPatterns);
+        }
+
+        // 3. 推荐质量规则
+        if (intent.getQualityRules().isEmpty()) {
+            List<QualityRule> recommendedRules = recommendQualityRules(intent);
+            intent.setSuggestedQualityRules(recommendedRules);
+        }
+
+        return intent;
+    }
+
+    /**
+     * 从图谱推理所需能力
+     */
+    private List<String> inferCapabilitiesFromGraph(UserIntent intent) {
+        String query = """
+            MATCH (source:DataSource {name: $sourceName})
+                  -[:COMMON_PATTERN]->(pattern:ProcessPattern)
+                  -[:REQUIRES|SUGGESTS]->(capability:Capability)
+            WHERE pattern.type = $processingType
+            RETURN DISTINCT capability.id as capabilityId,
+                   capability.name as capabilityName,
+                   type(pattern-[rel]->capability) as relationType
+            ORDER BY
+                CASE WHEN type(pattern-[rel]->capability) = 'REQUIRES' THEN 1 ELSE 2 END
+            """;
+
+        Map<String, Object> params = Map.of(
+            "sourceName", intent.getDataSources().get(0).getType(),
+            "processingType", intent.getProcessingType().name()
+        );
+
+        Result result = graphDB.execute(query, params);
+        List<String> capabilities = new ArrayList<>();
+
+        while (result.hasNext()) {
+            Map<String, Object> row = result.next();
+            capabilities.add((String) row.get("capabilityId"));
+        }
+
+        return capabilities;
+    }
+
+    /**
+     * 查找常见的处理模式
+     */
+    private List<String> findCommonPatterns(List<DataSource> dataSources) {
+        if (dataSources.size() < 2) {
+            return Collections.emptyList();
+        }
+
+        String sourceType = dataSources.get(0).getType();
+        String targetType = dataSources.get(1).getType();
+
+        String query = """
+            MATCH (source:DataSource {name: $sourceType})
+                  -[:COMMON_PATTERN]->(pattern:ProcessPattern)
+                  <-[:COMMON_PATTERN]-(target:DataSource {name: $targetType})
+            RETURN pattern.name as patternName,
+                   pattern.description as description,
+                   pattern.successRate as successRate
+            ORDER BY pattern.successRate DESC
+            LIMIT 5
+            """;
+
+        Map<String, Object> params = Map.of(
+            "sourceType", sourceType,
+            "targetType", targetType
+        );
+
+        Result result = graphDB.execute(query, params);
+        List<String> patterns = new ArrayList<>();
+
+        while (result.hasNext()) {
+            Map<String, Object> row = result.next();
+            patterns.add((String) row.get("patternName"));
+        }
+
+        return patterns;
+    }
+
+    /**
+     * 推荐质量规则
+     */
+    private List<QualityRule> recommendQualityRules(UserIntent intent) {
+        String query = """
+            MATCH (pattern:ProcessPattern {type: $processingType})
+                  -[:SUGGESTS]->(rule:QualityRule)
+            RETURN rule.id as ruleId,
+                   rule.name as ruleName,
+                   rule.description as description,
+                   rule.priority as priority
+            ORDER BY rule.priority DESC
+            LIMIT 10
+            """;
+
+        Map<String, Object> params = Map.of(
+            "processingType", intent.getProcessingType().name()
+        );
+
+        Result result = graphDB.execute(query, params);
+        List<QualityRule> rules = new ArrayList<>();
+
+        while (result.hasNext()) {
+            Map<String, Object> row = result.next();
+            QualityRule rule = createQualityRuleFromGraph(row);
+            rules.add(rule);
+        }
+
+        return rules;
+    }
+}
+```
+
+**知识图谱增强带来的优势：**
+
+1. **语义消歧**：理解"同步"、"导入"、"迁移"等同义词都指向数据集成场景
+2. **隐含需求推理**：从"MySQL到ES"推理出需要JDBC配置、字段类型映射等
+3. **最佳实践推荐**：基于历史成功案例推荐常用的质量规则和配置
+4. **上下文补全**：通过多跳图查询获取完整的领域知识上下文
+5. **验证与纠错**：检测用户意图中的不合理配置并给出建议
+
 ### 3. 插件能力注册表
 
 建立完整的系统能力清单，让AI Agent了解所有可用资源：
@@ -486,6 +978,367 @@ public class PluginCapabilityRegistry {
     }
 }
 ```
+
+#### 3.1 知识图谱增强的能力注册表（强烈推荐）
+
+通过将插件能力存储在知识图谱中，可以实现更智能的能力发现和匹配：
+
+```java
+/**
+ * 基于知识图谱的插件能力注册表
+ * 这是知识图谱应用的最佳场景之一
+ */
+public class GraphBasedCapabilityRegistry extends PluginCapabilityRegistry {
+
+    @Autowired
+    private GraphDatabaseService graphDB;
+
+    @Autowired
+    private PluginRegistry pluginRegistry;
+
+    /**
+     * 初始化时将插件信息同步到知识图谱
+     */
+    @Override
+    @PostConstruct
+    public void initializeRegistry() {
+        super.initializeRegistry();
+
+        // 将插件能力信息同步到图数据库
+        syncPluginsToGraph();
+    }
+
+    /**
+     * 将插件信息同步到知识图谱
+     */
+    private void syncPluginsToGraph() {
+        for (Plugin plugin : pluginRegistry.getAllPlugins()) {
+            String query = """
+                MERGE (p:Plugin {id: $pluginId})
+                SET p.name = $pluginName,
+                    p.version = $version,
+                    p.category = $category,
+                    p.enabled = $enabled
+
+                WITH p
+                UNWIND $supportedDataSources as dsName
+                MERGE (ds:DataSource {name: dsName})
+                MERGE (ds)-[:SUPPORTED_BY]->(p)
+
+                WITH p
+                UNWIND $capabilities as capName
+                MERGE (cap:Capability {name: capName})
+                MERGE (p)-[:HAS_CAPABILITY]->(cap)
+
+                WITH p
+                FOREACH (dep IN $dependencies |
+                    MERGE (depPlugin:Plugin {id: dep})
+                    MERGE (p)-[:DEPENDS_ON]->(depPlugin)
+                )
+                """;
+
+            Map<String, Object> params = Map.of(
+                "pluginId", plugin.getId(),
+                "pluginName", plugin.getName(),
+                "version", plugin.getVersion(),
+                "category", plugin.getCategory(),
+                "enabled", plugin.isEnabled(),
+                "supportedDataSources", plugin.getSupportedDataSources(),
+                "capabilities", plugin.getCapabilities(),
+                "dependencies", plugin.getDependencies()
+            );
+
+            graphDB.execute(query, params);
+        }
+    }
+
+    /**
+     * 通过图查询找到最匹配的插件组合
+     * 考虑兼容性、成功率、性能等多维度因素
+     */
+    @Override
+    public List<PluginCapability> findCapabilitiesForIntent(UserIntent intent) {
+        String sourceType = intent.getDataSources().get(0).getType();
+        String targetType = intent.getDataSources().size() > 1 ?
+            intent.getDataSources().get(1).getType() : null;
+        String processingType = intent.getProcessingType().name();
+
+        String query = """
+            // 查找支持源数据源的Reader插件
+            MATCH (source:DataSource {name: $sourceType})
+                  -[:SUPPORTED_BY]->(reader:Plugin)
+                  -[:HAS_CAPABILITY]->(readCap:Capability)
+            WHERE readCap.type = 'READ' AND reader.enabled = true
+
+            // 如果有目标数据源，查找Writer插件
+            OPTIONAL MATCH (target:DataSource {name: $targetType})
+                  -[:SUPPORTED_BY]->(writer:Plugin)
+                  -[:HAS_CAPABILITY]->(writeCap:Capability)
+            WHERE writeCap.type = 'WRITE' AND writer.enabled = true
+
+            // 检查兼容性
+            OPTIONAL MATCH (reader)-[compat:COMPATIBLE_WITH]->(writer)
+
+            // 查找历史成功案例数量
+            OPTIONAL MATCH (reader)<-[:USED_PLUGIN]-(successCase:SuccessCase)
+                          -[:USED_PLUGIN]->(writer)
+            WHERE successCase.processingType = $processingType
+
+            // 返回结果，按成功率排序
+            RETURN reader,
+                   writer,
+                   count(DISTINCT successCase) as successCount,
+                   compat.score as compatScore,
+                   reader.performanceScore as readerPerf,
+                   COALESCE(writer.performanceScore, 0) as writerPerf
+            ORDER BY successCount DESC, compatScore DESC, readerPerf DESC
+            LIMIT 10
+            """;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("sourceType", sourceType);
+        params.put("targetType", targetType);
+        params.put("processingType", processingType);
+
+        Result result = graphDB.execute(query, params);
+        return convertToPluginCapabilities(result);
+    }
+
+    /**
+     * 推理所需的能力组合
+     */
+    public List<AtomicCapability> inferRequiredCapabilities(UserIntent intent) {
+        String query = """
+            MATCH (pattern:ProcessPattern {type: $processingType})
+                  -[rel:REQUIRES|SUGGESTS]->(cap:Capability)
+
+            // 检查当前系统是否有支持该能力的插件
+            OPTIONAL MATCH (cap)<-[:HAS_CAPABILITY]-(plugin:Plugin)
+            WHERE plugin.enabled = true
+
+            RETURN cap.id as capabilityId,
+                   cap.name as capabilityName,
+                   cap.description as description,
+                   type(rel) as relationType,
+                   count(plugin) as availablePlugins,
+                   CASE WHEN type(rel) = 'REQUIRES' THEN 1 ELSE 2 END as priority
+            ORDER BY priority ASC, availablePlugins DESC
+            """;
+
+        Map<String, Object> params = Map.of(
+            "processingType", intent.getProcessingType().name()
+        );
+
+        Result result = graphDB.execute(query, params);
+        List<AtomicCapability> capabilities = new ArrayList<>();
+
+        while (result.hasNext()) {
+            Map<String, Object> row = result.next();
+            String capabilityId = (String) row.get("capabilityId");
+            long availablePlugins = (Long) row.get("availablePlugins");
+
+            if (availablePlugins == 0) {
+                // 没有可用插件，记录警告
+                logger.warn("Required capability {} has no available plugins",
+                    row.get("capabilityName"));
+            }
+
+            AtomicCapability capability = createCapability(capabilityId);
+            capabilities.add(capability);
+        }
+
+        return capabilities;
+    }
+
+    /**
+     * 检查系统是否具备处理该意图的能力
+     * 通过图谱进行深度验证
+     */
+    @Override
+    public boolean canHandle(UserIntent intent) {
+        String query = """
+            MATCH (pattern:ProcessPattern {type: $processingType})
+                  -[:REQUIRES]->(requiredCap:Capability)
+
+            // 检查是否所有必需的能力都有可用插件
+            OPTIONAL MATCH (requiredCap)<-[:HAS_CAPABILITY]-(plugin:Plugin)
+            WHERE plugin.enabled = true
+
+            WITH requiredCap, count(plugin) as availableCount
+            WHERE availableCount = 0
+
+            RETURN count(requiredCap) as missingCapabilities
+            """;
+
+        Map<String, Object> params = Map.of(
+            "processingType", intent.getProcessingType().name()
+        );
+
+        Result result = graphDB.execute(query, params);
+        if (result.hasNext()) {
+            long missingCount = (Long) result.next().get("missingCapabilities");
+            return missingCount == 0;
+        }
+
+        return false;
+    }
+
+    /**
+     * 查找插件的最佳组合路径
+     * 使用图算法找到从源到目标的最优路径
+     */
+    public List<PluginCapability> findOptimalPluginPath(
+            DataSource source,
+            DataSource target,
+            UserIntent intent) {
+
+        String query = """
+            MATCH (src:DataSource {name: $sourceName})
+            MATCH (tgt:DataSource {name: $targetName})
+
+            // 使用Dijkstra算法找最短路径
+            CALL gds.shortestPath.dijkstra.stream({
+                sourceNode: id(src),
+                targetNode: id(tgt),
+                relationshipWeightProperty: 'cost'
+            })
+            YIELD nodeIds, costs, path
+
+            // 获取路径上的所有插件
+            UNWIND nodes(path) as node
+            WITH node WHERE node:Plugin
+            RETURN collect(node) as pluginsInPath,
+                   sum(costs) as totalCost
+            ORDER BY totalCost ASC
+            LIMIT 1
+            """;
+
+        Map<String, Object> params = Map.of(
+            "sourceName", source.getType(),
+            "targetName", target.getType()
+        );
+
+        Result result = graphDB.execute(query, params);
+        return convertToPluginCapabilities(result);
+    }
+
+    /**
+     * 根据性能指标和成功率推荐最佳插件
+     */
+    public PluginCapability recommendBestPlugin(
+            String capabilityType,
+            UserIntent intent) {
+
+        String query = """
+            MATCH (cap:Capability {type: $capabilityType})
+                  <-[:HAS_CAPABILITY]-(plugin:Plugin)
+            WHERE plugin.enabled = true
+
+            // 计算综合评分
+            OPTIONAL MATCH (plugin)<-[:USED_PLUGIN]-(case:SuccessCase)
+            WHERE case.processingType = $processingType
+
+            WITH plugin,
+                 count(case) as successCount,
+                 plugin.performanceScore as perfScore,
+                 plugin.reliabilityScore as reliScore
+
+            // 综合评分：成功案例数 * 0.4 + 性能 * 0.3 + 可靠性 * 0.3
+            RETURN plugin,
+                   (successCount * 0.4 + perfScore * 0.3 + reliScore * 0.3) as score
+            ORDER BY score DESC
+            LIMIT 1
+            """;
+
+        Map<String, Object> params = Map.of(
+            "capabilityType", capabilityType,
+            "processingType", intent.getProcessingType().name()
+        );
+
+        Result result = graphDB.execute(query, params);
+        if (result.hasNext()) {
+            Map<String, Object> row = result.next();
+            return convertToPluginCapability((Node) row.get("plugin"));
+        }
+
+        return null;
+    }
+
+    /**
+     * 检查插件之间的冲突
+     */
+    public List<String> checkPluginConflicts(List<PluginCapability> plugins) {
+        List<String> pluginIds = plugins.stream()
+            .map(PluginCapability::getPluginId)
+            .collect(Collectors.toList());
+
+        String query = """
+            MATCH (p1:Plugin)-[conflict:CONFLICTS_WITH]->(p2:Plugin)
+            WHERE p1.id IN $pluginIds AND p2.id IN $pluginIds
+            RETURN p1.name as plugin1,
+                   p2.name as plugin2,
+                   conflict.reason as reason
+            """;
+
+        Map<String, Object> params = Map.of("pluginIds", pluginIds);
+
+        Result result = graphDB.execute(query, params);
+        List<String> conflicts = new ArrayList<>();
+
+        while (result.hasNext()) {
+            Map<String, Object> row = result.next();
+            conflicts.add(String.format("%s conflicts with %s: %s",
+                row.get("plugin1"),
+                row.get("plugin2"),
+                row.get("reason")));
+        }
+
+        return conflicts;
+    }
+
+    /**
+     * 分析插件依赖关系
+     */
+    public Map<String, List<String>> analyzePluginDependencies(
+            List<PluginCapability> selectedPlugins) {
+
+        List<String> pluginIds = selectedPlugins.stream()
+            .map(PluginCapability::getPluginId)
+            .collect(Collectors.toList());
+
+        String query = """
+            MATCH (p:Plugin)-[:DEPENDS_ON*1..3]->(dep:Plugin)
+            WHERE p.id IN $pluginIds
+            RETURN p.id as pluginId,
+                   collect(DISTINCT dep.id) as dependencies
+            """;
+
+        Map<String, Object> params = Map.of("pluginIds", pluginIds);
+
+        Result result = graphDB.execute(query, params);
+        Map<String, List<String>> dependencyMap = new HashMap<>();
+
+        while (result.hasNext()) {
+            Map<String, Object> row = result.next();
+            dependencyMap.put(
+                (String) row.get("pluginId"),
+                (List<String>) row.get("dependencies")
+            );
+        }
+
+        return dependencyMap;
+    }
+}
+```
+
+**基于知识图谱的能力注册表优势：**
+
+1. **智能插件匹配**：通过图查询综合考虑兼容性、成功率、性能等多维度因素
+2. **路径优化**：使用图算法（Dijkstra）找到最优的插件组合路径
+3. **冲突检测**：自动检测插件之间的不兼容性
+4. **依赖分析**：追踪多层依赖关系，确保所有依赖插件都可用
+5. **动态推荐**：基于历史成功案例动态推荐最佳插件
+6. **可扩展性**：新增插件时自动建立与现有插件的关系
 
 ### 4. 动态模板系统
 
@@ -1921,7 +2774,784 @@ public class PipelineDSLParser {
 }
 ```
 
-### 6. 自学习引擎
+### 6. 知识图谱应用架构
+
+知识图谱是TIS AI Agent智能化的核心支撑，本节详细阐述知识图谱的本体模型、Schema设计及在各个组件中的应用。
+
+#### 6.1 本体模型设计
+
+TIS数据集成领域的本体模型包含以下核心概念层次：
+
+**实体类型（Entity Types）**
+
+```java
+/**
+ * 知识图谱中的实体类型定义
+ */
+public enum EntityType {
+    DATA_SOURCE("数据源"),           // MySQL, PostgreSQL, Kafka, ES等
+    PLUGIN("插件"),                  // mysql-reader, es-writer等
+    CAPABILITY("能力"),              // Read, Write, Transform等
+    PROCESS_PATTERN("处理模式"),     // ETL, CDC, Streaming等
+    QUALITY_RULE("质量规则"),        // Completeness, Frequency等
+    SUCCESS_CASE("成功案例"),        // 历史执行记录
+    TRANSFORM_RULE("转换规则"),      // 字段映射、类型转换等
+    TERM("术语"),                    // 同义词、领域术语等
+    CONSTRAINT("约束"),              // 前置条件、后置条件等
+    ;
+
+    private final String description;
+
+    EntityType(String description) {
+        this.description = description;
+    }
+}
+```
+
+**关系类型（Relationship Types）**
+
+```java
+/**
+ * 知识图谱中的关系类型定义
+ */
+public enum RelationType {
+    // 支持关系
+    SUPPORTED_BY("支持"),           // DataSource -[:SUPPORTED_BY]-> Plugin
+    HAS_CAPABILITY("具有能力"),     // Plugin -[:HAS_CAPABILITY]-> Capability
+
+    // 依赖关系
+    DEPENDS_ON("依赖"),             // Plugin -[:DEPENDS_ON]-> Plugin
+    REQUIRES("需要"),               // ProcessPattern -[:REQUIRES]-> Capability
+    SUGGESTS("建议"),               // ProcessPattern -[:SUGGESTS]-> Capability
+
+    // 兼容性关系
+    COMPATIBLE_WITH("兼容"),        // Plugin -[:COMPATIBLE_WITH]-> Plugin
+    CONFLICTS_WITH("冲突"),         // Plugin -[:CONFLICTS_WITH]-> Plugin
+
+    // 模式关系
+    COMMON_PATTERN("常见模式"),     // DataSource -[:COMMON_PATTERN]-> ProcessPattern
+    APPLIES_TO("适用于"),           // QualityRule -[:APPLIES_TO]-> ProcessPattern
+
+    // 语义关系
+    SYNONYM("同义词"),              // Term -[:SYNONYM]-> Term
+    IS_A("继承"),                   // MySQL -[:IS_A]-> RelationalDatabase
+    HAS_PROPERTY("具有属性"),       // DataSource -[:HAS_PROPERTY]-> Property
+
+    // 案例关系
+    USED_PLUGIN("使用插件"),        // SuccessCase -[:USED_PLUGIN]-> Plugin
+    FROM_SOURCE("来源"),            // SuccessCase -[:FROM_SOURCE]-> DataSource
+    TO_TARGET("目标"),              // SuccessCase -[:TO_TARGET]-> DataSource
+
+    // 转换关系
+    MAPS_TO("映射到"),              // Term -[:MAPS_TO]-> ProcessPattern
+    TRANSFORMS_TO("转换为"),        // DataType -[:TRANSFORMS_TO]-> DataType
+    ;
+
+    private final String description;
+
+    RelationType(String description) {
+        this.description = description;
+    }
+}
+```
+
+#### 6.2 知识图谱Schema定义
+
+使用Cypher语言定义完整的图谱Schema：
+
+```cypher
+// ============================================
+// 1. 约束和索引
+// ============================================
+
+// 唯一性约束
+CREATE CONSTRAINT datasource_name IF NOT EXISTS
+FOR (ds:DataSource) REQUIRE ds.name IS UNIQUE;
+
+CREATE CONSTRAINT plugin_id IF NOT EXISTS
+FOR (p:Plugin) REQUIRE p.id IS UNIQUE;
+
+CREATE CONSTRAINT capability_id IF NOT EXISTS
+FOR (c:Capability) REQUIRE c.id IS UNIQUE;
+
+// 性能索引
+CREATE INDEX datasource_type IF NOT EXISTS
+FOR (ds:DataSource) ON (ds.type);
+
+CREATE INDEX plugin_category IF NOT EXISTS
+FOR (p:Plugin) ON (p.category);
+
+CREATE INDEX capability_type IF NOT EXISTS
+FOR (c:Capability) ON (c.type);
+
+// ============================================
+// 2. 数据源本体
+// ============================================
+
+// 关系型数据库
+CREATE (mysql:DataSource {
+    name: 'MySQL',
+    type: 'Relational',
+    category: 'JDBC',
+    jdbcDriver: 'com.mysql.cj.jdbc.Driver',
+    defaultPort: 3306
+})
+
+CREATE (postgres:DataSource {
+    name: 'PostgreSQL',
+    type: 'Relational',
+    category: 'JDBC',
+    jdbcDriver: 'org.postgresql.Driver',
+    defaultPort: 5432
+})
+
+// NoSQL数据库
+CREATE (es:DataSource {
+    name: 'ElasticSearch',
+    type: 'Search',
+    category: 'NoSQL',
+    protocol: 'HTTP',
+    defaultPort: 9200
+})
+
+CREATE (mongo:DataSource {
+    name: 'MongoDB',
+    type: 'Document',
+    category: 'NoSQL',
+    defaultPort: 27017
+})
+
+// 消息队列
+CREATE (kafka:DataSource {
+    name: 'Kafka',
+    type: 'Stream',
+    category: 'MessageQueue',
+    protocol: 'TCP',
+    defaultPort: 9092
+})
+
+// 继承关系
+CREATE (relationalDB:Category {name: 'RelationalDatabase', type: 'Category'})
+CREATE (mysql)-[:IS_A]->(relationalDB)
+CREATE (postgres)-[:IS_A]->(relationalDB)
+
+// ============================================
+// 3. 插件本体
+// ============================================
+
+CREATE (mysqlReader:Plugin {
+    id: 'mysql-reader',
+    name: 'MySQL Reader',
+    version: '2.1.0',
+    category: 'Reader',
+    enabled: true,
+    performanceScore: 0.85,
+    reliabilityScore: 0.90
+})
+
+CREATE (esWriter:Plugin {
+    id: 'es-writer',
+    name: 'ElasticSearch Writer',
+    version: '3.0.0',
+    category: 'Writer',
+    enabled: true,
+    performanceScore: 0.88,
+    reliabilityScore: 0.92
+})
+
+CREATE (flinkCdcMysql:Plugin {
+    id: 'flink-cdc-mysql',
+    name: 'Flink CDC MySQL',
+    version: '2.3.0',
+    category: 'StreamingReader',
+    enabled: true,
+    performanceScore: 0.90,
+    reliabilityScore: 0.85
+})
+
+// ============================================
+// 4. 能力本体
+// ============================================
+
+CREATE (readCap:Capability {
+    id: 'data_read',
+    name: '数据读取',
+    type: 'READ',
+    description: '从数据源读取数据'
+})
+
+CREATE (writeCap:Capability {
+    id: 'data_write',
+    name: '数据写入',
+    type: 'WRITE',
+    description: '向数据源写入数据'
+})
+
+CREATE (transformCap:Capability {
+    id: 'data_transform',
+    name: '数据转换',
+    type: 'TRANSFORM',
+    description: '转换数据格式和内容'
+})
+
+CREATE (qualityCap:Capability {
+    id: 'quality_check',
+    name: '质量检测',
+    type: 'QUALITY',
+    description: '检测数据质量'
+})
+
+CREATE (cdcCap:Capability {
+    id: 'change_data_capture',
+    name: '变更数据捕获',
+    type: 'CDC',
+    description: '实时捕获数据变更'
+})
+
+// ============================================
+// 5. 处理模式本体
+// ============================================
+
+CREATE (etl:ProcessPattern {
+    id: 'etl',
+    name: 'ETL',
+    type: 'Batch',
+    description: '批量ETL处理',
+    successRate: 0.95
+})
+
+CREATE (cdc:ProcessPattern {
+    id: 'cdc',
+    name: 'CDC',
+    type: 'Realtime',
+    description: '变更数据捕获',
+    successRate: 0.88
+})
+
+CREATE (streaming:ProcessPattern {
+    id: 'streaming',
+    name: 'Streaming',
+    type: 'Realtime',
+    description: '实时流处理',
+    successRate: 0.82
+})
+
+// ============================================
+// 6. 质量规则本体
+// ============================================
+
+CREATE (freqCheck:QualityRule {
+    id: 'frequency_check',
+    name: '频率检测',
+    type: 'Frequency',
+    description: '检测时间窗口内的频率',
+    priority: 1
+})
+
+CREATE (cardCheck:QualityRule {
+    id: 'cardinality_check',
+    name: '基数检测',
+    type: 'Cardinality',
+    description: '检测唯一值数量',
+    priority: 2
+})
+
+CREATE (completenessCheck:QualityRule {
+    id: 'completeness_check',
+    name: '完整性检测',
+    type: 'Completeness',
+    description: '检测必填字段的完整性',
+    priority: 1
+})
+
+// ============================================
+// 7. 建立关系
+// ============================================
+
+// 数据源与插件的支持关系
+CREATE (mysql)-[:SUPPORTED_BY]->(mysqlReader)
+CREATE (mysql)-[:SUPPORTED_BY]->(flinkCdcMysql)
+CREATE (es)-[:SUPPORTED_BY]->(esWriter)
+
+// 插件与能力的关系
+CREATE (mysqlReader)-[:HAS_CAPABILITY]->(readCap)
+CREATE (flinkCdcMysql)-[:HAS_CAPABILITY]->(readCap)
+CREATE (flinkCdcMysql)-[:HAS_CAPABILITY]->(cdcCap)
+CREATE (esWriter)-[:HAS_CAPABILITY]->(writeCap)
+
+// 处理模式与能力的关系
+CREATE (etl)-[:REQUIRES]->(readCap)
+CREATE (etl)-[:REQUIRES]->(writeCap)
+CREATE (etl)-[:SUGGESTS]->(transformCap)
+CREATE (etl)-[:SUGGESTS]->(qualityCap)
+
+CREATE (cdc)-[:REQUIRES]->(cdcCap)
+CREATE (cdc)-[:REQUIRES]->(writeCap)
+CREATE (cdc)-[:SUGGESTS]->(qualityCap)
+
+CREATE (streaming)-[:REQUIRES]->(readCap)
+CREATE (streaming)-[:REQUIRES]->(writeCap)
+CREATE (streaming)-[:SUGGESTS]->(qualityCap)
+
+// 数据源与处理模式的关系
+CREATE (mysql)-[:COMMON_PATTERN {successRate: 0.95}]->(etl)
+CREATE (mysql)-[:COMMON_PATTERN {successRate: 0.88}]->(cdc)
+CREATE (kafka)-[:COMMON_PATTERN {successRate: 0.90}]->(streaming)
+
+// 质量规则的适用场景
+CREATE (freqCheck)-[:APPLIES_TO]->(streaming)
+CREATE (cardCheck)-[:APPLIES_TO]->(streaming)
+CREATE (completenessCheck)-[:APPLIES_TO]->(etl)
+
+// 插件兼容性
+CREATE (mysqlReader)-[:COMPATIBLE_WITH {score: 0.95}]->(esWriter)
+CREATE (flinkCdcMysql)-[:COMPATIBLE_WITH {score: 0.92}]->(esWriter)
+
+// 同义词关系
+CREATE (syncTerm:Term {name: '同步'})
+CREATE (importTerm:Term {name: '导入'})
+CREATE (migrationTerm:Term {name: '迁移'})
+CREATE (etlTerm:Term {name: 'ETL'})
+
+CREATE (syncTerm)-[:SYNONYM]->(importTerm)
+CREATE (importTerm)-[:SYNONYM]->(migrationTerm)
+CREATE (syncTerm)-[:MAPS_TO]->(etl)
+CREATE (importTerm)-[:MAPS_TO]->(etl)
+CREATE (migrationTerm)-[:MAPS_TO]->(etl)
+CREATE (etlTerm)-[:MAPS_TO]->(etl)
+```
+
+#### 6.3 图数据库集成组件
+
+提供统一的图数据库访问接口，支持多种图数据库：
+
+```java
+/**
+ * 图数据库服务接口
+ */
+public interface GraphDatabaseService {
+
+    /**
+     * 执行Cypher查询
+     */
+    Result execute(String query, Map<String, Object> parameters);
+
+    /**
+     * 执行批量查询
+     */
+    List<Result> executeBatch(List<String> queries);
+
+    /**
+     * 开启事务
+     */
+    Transaction beginTransaction();
+
+    /**
+     * 获取节点
+     */
+    Node getNode(long nodeId);
+
+    /**
+     * 创建节点
+     */
+    Node createNode(Map<String, Object> properties, String... labels);
+
+    /**
+     * 创建关系
+     */
+    Relationship createRelationship(
+        Node startNode,
+        Node endNode,
+        String relationshipType,
+        Map<String, Object> properties
+    );
+}
+
+/**
+ * Neo4j实现
+ */
+@Service
+public class Neo4jGraphDatabaseService implements GraphDatabaseService {
+
+    @Autowired
+    private Driver neo4jDriver;
+
+    @Override
+    public Result execute(String query, Map<String, Object> parameters) {
+        try (Session session = neo4jDriver.session()) {
+            org.neo4j.driver.Result result = session.run(query, parameters);
+            return convertToResult(result);
+        }
+    }
+
+    @Override
+    public Transaction beginTransaction() {
+        Session session = neo4jDriver.session();
+        org.neo4j.driver.Transaction tx = session.beginTransaction();
+        return new Neo4jTransaction(tx, session);
+    }
+
+    // 其他方法实现...
+}
+
+/**
+ * 知识图谱仓库 - 提供高层次的图操作API
+ */
+@Repository
+public class KnowledgeGraphRepository {
+
+    @Autowired
+    private GraphDatabaseService graphDB;
+
+    /**
+     * 添加数据源到图谱
+     */
+    public void addDataSource(DataSource dataSource) {
+        String query = """
+            MERGE (ds:DataSource {name: $name})
+            SET ds.type = $type,
+                ds.category = $category,
+                ds.defaultPort = $port,
+                ds.protocol = $protocol
+            """;
+
+        Map<String, Object> params = Map.of(
+            "name", dataSource.getName(),
+            "type", dataSource.getType(),
+            "category", dataSource.getCategory(),
+            "port", dataSource.getDefaultPort(),
+            "protocol", dataSource.getProtocol()
+        );
+
+        graphDB.execute(query, params);
+    }
+
+    /**
+     * 添加插件到图谱
+     */
+    public void addPlugin(Plugin plugin) {
+        String query = """
+            MERGE (p:Plugin {id: $id})
+            SET p.name = $name,
+                p.version = $version,
+                p.category = $category,
+                p.enabled = $enabled,
+                p.performanceScore = $perfScore,
+                p.reliabilityScore = $reliScore
+            """;
+
+        Map<String, Object> params = Map.of(
+            "id", plugin.getId(),
+            "name", plugin.getName(),
+            "version", plugin.getVersion(),
+            "category", plugin.getCategory(),
+            "enabled", plugin.isEnabled(),
+            "perfScore", plugin.getPerformanceScore(),
+            "reliScore", plugin.getReliabilityScore()
+        );
+
+        graphDB.execute(query, params);
+    }
+
+    /**
+     * 建立数据源与插件的支持关系
+     */
+    public void linkDataSourceToPlugin(String dataSourceName, String pluginId) {
+        String query = """
+            MATCH (ds:DataSource {name: $dsName})
+            MATCH (p:Plugin {id: $pluginId})
+            MERGE (ds)-[:SUPPORTED_BY]->(p)
+            """;
+
+        graphDB.execute(query, Map.of(
+            "dsName", dataSourceName,
+            "pluginId", pluginId
+        ));
+    }
+
+    /**
+     * 记录成功案例
+     */
+    public void recordSuccessCase(SuccessCase successCase) {
+        String query = """
+            CREATE (sc:SuccessCase {
+                id: $caseId,
+                timestamp: $timestamp,
+                processingType: $processingType,
+                duration: $duration,
+                recordCount: $recordCount
+            })
+
+            WITH sc
+            MATCH (source:DataSource {name: $sourceName})
+            MATCH (target:DataSource {name: $targetName})
+            CREATE (sc)-[:FROM_SOURCE]->(source)
+            CREATE (sc)-[:TO_TARGET]->(target)
+
+            WITH sc
+            UNWIND $pluginIds as pluginId
+            MATCH (p:Plugin {id: pluginId})
+            CREATE (sc)-[:USED_PLUGIN]->(p)
+
+            RETURN sc
+            """;
+
+        Map<String, Object> params = Map.of(
+            "caseId", successCase.getId(),
+            "timestamp", successCase.getTimestamp(),
+            "processingType", successCase.getProcessingType(),
+            "duration", successCase.getDuration(),
+            "recordCount", successCase.getRecordCount(),
+            "sourceName", successCase.getSourceName(),
+            "targetName", successCase.getTargetName(),
+            "pluginIds", successCase.getPluginIds()
+        );
+
+        graphDB.execute(query, params);
+    }
+
+    /**
+     * 查找相似案例
+     */
+    public List<SuccessCase> findSimilarCases(
+            String sourceType,
+            String targetType,
+            String processingType,
+            double similarityThreshold) {
+
+        String query = """
+            MATCH (sc:SuccessCase)-[:FROM_SOURCE]->(source:DataSource {name: $sourceType})
+            MATCH (sc)-[:TO_TARGET]->(target:DataSource {name: $targetType})
+            WHERE sc.processingType = $processingType
+
+            // 计算案例质量分数
+            WITH sc,
+                 sc.duration as duration,
+                 sc.recordCount as recordCount
+            ORDER BY recordCount DESC, duration ASC
+            LIMIT 20
+
+            RETURN sc, duration, recordCount
+            """;
+
+        Result result = graphDB.execute(query, Map.of(
+            "sourceType", sourceType,
+            "targetType", targetType,
+            "processingType", processingType
+        ));
+
+        return convertToSuccessCases(result);
+    }
+}
+```
+
+#### 6.4 知识图谱初始化
+
+系统启动时自动初始化知识图谱：
+
+```java
+/**
+ * 知识图谱初始化器
+ */
+@Component
+public class KnowledgeGraphInitializer {
+
+    @Autowired
+    private KnowledgeGraphRepository graphRepo;
+
+    @Autowired
+    private PluginRegistry pluginRegistry;
+
+    @Autowired
+    private DataSourceRegistry dataSourceRegistry;
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void initializeKnowledgeGraph() {
+        logger.info("Initializing knowledge graph...");
+
+        try {
+            // 1. 清空现有数据（可选，仅用于开发环境）
+            if (isDevMode()) {
+                clearGraph();
+            }
+
+            // 2. 初始化数据源本体
+            initializeDataSources();
+
+            // 3. 初始化插件本体
+            initializePlugins();
+
+            // 4. 建立数据源与插件的关系
+            linkDataSourcesAndPlugins();
+
+            // 5. 初始化处理模式
+            initializeProcessPatterns();
+
+            // 6. 初始化质量规则
+            initializeQualityRules();
+
+            // 7. 初始化同义词和术语
+            initializeTerminology();
+
+            logger.info("Knowledge graph initialized successfully");
+        } catch (Exception e) {
+            logger.error("Failed to initialize knowledge graph", e);
+            throw new KnowledgeGraphInitializationException(
+                "Knowledge graph initialization failed", e);
+        }
+    }
+
+    private void initializeDataSources() {
+        List<DataSource> dataSources = dataSourceRegistry.getAllDataSources();
+
+        for (DataSource ds : dataSources) {
+            graphRepo.addDataSource(ds);
+        }
+
+        logger.info("Initialized {} data sources", dataSources.size());
+    }
+
+    private void initializePlugins() {
+        List<Plugin> plugins = pluginRegistry.getAllPlugins();
+
+        for (Plugin plugin : plugins) {
+            graphRepo.addPlugin(plugin);
+
+            // 添加插件的能力
+            for (String capability : plugin.getCapabilities()) {
+                graphRepo.linkPluginToCapability(plugin.getId(), capability);
+            }
+        }
+
+        logger.info("Initialized {} plugins", plugins.size());
+    }
+
+    private void linkDataSourcesAndPlugins() {
+        // 通过插件的元数据建立关系
+        List<Plugin> plugins = pluginRegistry.getAllPlugins();
+
+        for (Plugin plugin : plugins) {
+            for (String dataSourceName : plugin.getSupportedDataSources()) {
+                graphRepo.linkDataSourceToPlugin(dataSourceName, plugin.getId());
+            }
+        }
+    }
+
+    // 其他初始化方法...
+}
+```
+
+#### 6.5 实体抽取器
+
+从用户输入中抽取关键实体：
+
+```java
+/**
+ * 实体抽取器 - 从用户输入中识别领域实体
+ */
+@Component
+public class EntityExtractor {
+
+    @Autowired
+    private KnowledgeGraphRepository graphRepo;
+
+    /**
+     * 从用户请求中抽取实体
+     */
+    public List<Entity> extract(String userRequest) {
+        List<Entity> entities = new ArrayList<>();
+
+        // 1. 基于字典的实体识别
+        entities.addAll(extractByDictionary(userRequest));
+
+        // 2. 基于模式的实体识别
+        entities.addAll(extractByPattern(userRequest));
+
+        // 3. 去重和合并
+        return deduplicateAndMerge(entities);
+    }
+
+    /**
+     * 基于字典的实体识别
+     */
+    private List<Entity> extractByDictionary(String text) {
+        List<Entity> entities = new ArrayList<>();
+
+        // 从知识图谱获取所有已知实体名称
+        List<String> knownEntities = graphRepo.getAllEntityNames();
+
+        for (String entityName : knownEntities) {
+            if (text.contains(entityName)) {
+                Entity entity = new Entity();
+                entity.setName(entityName);
+                entity.setType(inferEntityType(entityName));
+                entity.setConfidence(1.0);
+                entities.add(entity);
+            }
+        }
+
+        return entities;
+    }
+
+    /**
+     * 基于模式的实体识别
+     */
+    private List<Entity> extractByPattern(String text) {
+        List<Entity> entities = new ArrayList<>();
+
+        // JDBC URL模式
+        Pattern jdbcPattern = Pattern.compile(
+            "jdbc:([a-z]+)://([^:/]+):?(\\d+)?/([a-zA-Z0-9_]+)"
+        );
+        Matcher matcher = jdbcPattern.matcher(text);
+        if (matcher.find()) {
+            String dbType = matcher.group(1);
+            entities.add(new Entity(
+                capitalizeFirst(dbType),
+                EntityType.DATA_SOURCE,
+                0.9
+            ));
+        }
+
+        // 表名模式
+        Pattern tablePattern = Pattern.compile(
+            "表\\s*[：:]?\\s*([a-zA-Z0-9_]+)"
+        );
+        matcher = tablePattern.matcher(text);
+        while (matcher.find()) {
+            entities.add(new Entity(
+                matcher.group(1),
+                EntityType.TABLE,
+                0.8
+            ));
+        }
+
+        return entities;
+    }
+
+    private EntityType inferEntityType(String entityName) {
+        // 通过查询图谱推断实体类型
+        String query = """
+            MATCH (n)
+            WHERE n.name = $name OR n.id = $name
+            RETURN labels(n)[0] as entityType
+            LIMIT 1
+            """;
+
+        Result result = graphRepo.executeQuery(query, Map.of("name", entityName));
+        if (result.hasNext()) {
+            String typeStr = (String) result.next().get("entityType");
+            return EntityType.valueOf(typeStr.toUpperCase());
+        }
+
+        return EntityType.UNKNOWN;
+    }
+}
+```
+
+这个知识图谱架构为TIS AI Agent提供了强大的知识支撑，使其能够进行智能推理、案例匹配和最佳实践推荐。
+
+### 7. 自学习引擎
 
 建立学习机制，持续改进Agent能力：
 
@@ -1975,6 +3605,340 @@ public class AgentLearningEngine {
     }
 }
 ```
+
+#### 7.1 基于知识图谱的智能学习引擎（强烈推荐）
+
+通过知识图谱存储和检索历史案例，可以实现更智能的案例匹配和学习：
+
+```java
+/**
+ * 基于知识图谱的学习引擎
+ */
+public class GraphBasedLearningEngine extends AgentLearningEngine {
+
+    @Autowired
+    private KnowledgeGraphRepository graphRepo;
+
+    @Autowired
+    private GraphDatabaseService graphDB;
+
+    /**
+     * 记录成功案例到知识图谱
+     */
+    @Override
+    public void recordSuccessfulExecution(
+            UserIntent intent,
+            TaskPlan plan,
+            ExecutionResult result) {
+
+        // 调用父类方法保存到传统数据库
+        super.recordSuccessfulExecution(intent, plan, result);
+
+        // 额外保存到知识图谱
+        saveToKnowledgeGraph(intent, plan, result);
+    }
+
+    /**
+     * 将成功案例保存到知识图谱
+     */
+    private void saveToKnowledgeGraph(
+            UserIntent intent,
+            TaskPlan plan,
+            ExecutionResult result) {
+
+        String query = """
+            CREATE (sc:SuccessCase {
+                id: $caseId,
+                timestamp: $timestamp,
+                processingType: $processingType,
+                duration: $duration,
+                recordCount: $recordCount,
+                throughput: $throughput,
+                successRate: $successRate
+            })
+
+            // 关联数据源
+            WITH sc
+            MATCH (source:DataSource {name: $sourceName})
+            MATCH (target:DataSource {name: $targetName})
+            CREATE (sc)-[:FROM_SOURCE]->(source)
+            CREATE (sc)-[:TO_TARGET]->(target)
+
+            // 关联使用的插件
+            WITH sc
+            UNWIND $pluginIds as pluginId
+            MATCH (p:Plugin {id: pluginId})
+            CREATE (sc)-[:USED_PLUGIN]->(p)
+
+            // 关联使用的能力
+            WITH sc
+            UNWIND $capabilityIds as capId
+            MATCH (cap:Capability {id: capId})
+            CREATE (sc)-[:USED_CAPABILITY]->(cap)
+
+            // 关联处理模式
+            WITH sc
+            MATCH (pattern:ProcessPattern {type: $processingType})
+            CREATE (sc)-[:FOLLOWS_PATTERN]->(pattern)
+
+            // 更新模式的成功率
+            WITH pattern, sc
+            SET pattern.totalCases = COALESCE(pattern.totalCases, 0) + 1,
+                pattern.successRate = (
+                    COALESCE(pattern.successRate * pattern.totalCases, 0) + $successRate
+                ) / (pattern.totalCases + 1)
+
+            RETURN sc
+            """;
+
+        Map<String, Object> params = Map.of(
+            "caseId", UUID.randomUUID().toString(),
+            "timestamp", result.getTimestamp(),
+            "processingType", intent.getProcessingType().name(),
+            "duration", result.getDuration(),
+            "recordCount", result.getRecordCount(),
+            "throughput", result.getThroughput(),
+            "successRate", result.getSuccessRate(),
+            "sourceName", intent.getDataSources().get(0).getType(),
+            "targetName", intent.getDataSources().get(1).getType(),
+            "pluginIds", plan.getUsedPluginIds(),
+            "capabilityIds", plan.getUsedCapabilityIds()
+        );
+
+        graphDB.execute(query, params);
+    }
+
+    /**
+     * 通过图相似度查找相似案例
+     * 使用多维度相似度计算
+     */
+    @Override
+    public Optional<TaskPlan> findSimilarPlan(UserIntent newIntent) {
+        List<SuccessCase> graphCases = findSimilarCasesFromGraph(newIntent);
+
+        if (!graphCases.isEmpty()) {
+            SuccessCase bestCase = selectBestCase(graphCases);
+            return Optional.of(adaptPlan(bestCase.getPlan(), newIntent));
+        }
+
+        // 如果图谱中没有找到，回退到传统方法
+        return super.findSimilarPlan(newIntent);
+    }
+
+    /**
+     * 从知识图谱查找相似案例
+     * 综合考虑数据源、处理类型、能力等多个维度
+     */
+    private List<SuccessCase> findSimilarCasesFromGraph(UserIntent intent) {
+        String query = """
+            // 匹配数据源组合相同的案例
+            MATCH (sc:SuccessCase)-[:FROM_SOURCE]->(source:DataSource {name: $sourceName})
+            MATCH (sc)-[:TO_TARGET]->(target:DataSource {name: $targetName})
+            WHERE sc.processingType = $processingType
+
+            // 计算能力相似度
+            OPTIONAL MATCH (sc)-[:USED_CAPABILITY]->(cap:Capability)
+            WHERE cap.id IN $requiredCapabilities
+            WITH sc,
+                 count(DISTINCT cap) as matchedCapabilities,
+                 $requiredCapCount as requiredCapCount
+
+            // 计算综合相似度分数
+            WITH sc,
+                 CASE
+                     WHEN requiredCapCount > 0
+                     THEN toFloat(matchedCapabilities) / requiredCapCount
+                     ELSE 0.5
+                 END as capabilitySimilarity,
+                 sc.successRate as successRate,
+                 sc.throughput as throughput
+
+            // 综合评分：相似度 * 0.5 + 成功率 * 0.3 + 吞吐量归一化 * 0.2
+            WITH sc,
+                 capabilitySimilarity * 0.5 +
+                 successRate * 0.3 +
+                 (throughput / 10000.0) * 0.2 as totalScore
+
+            WHERE capabilitySimilarity >= 0.6
+
+            RETURN sc,
+                   capabilitySimilarity,
+                   totalScore
+            ORDER BY totalScore DESC
+            LIMIT 10
+            """;
+
+        List<String> requiredCaps = intent.getSuggestedCapabilities();
+
+        Map<String, Object> params = Map.of(
+            "sourceName", intent.getDataSources().get(0).getType(),
+            "targetName", intent.getDataSources().get(1).getType(),
+            "processingType", intent.getProcessingType().name(),
+            "requiredCapabilities", requiredCaps,
+            "requiredCapCount", requiredCaps.size()
+        );
+
+        Result result = graphDB.execute(query, params);
+        return convertToSuccessCases(result);
+    }
+
+    /**
+     * 从失败中学习 - 更新图谱中的关系权重
+     */
+    @Override
+    public void recordFailure(UserIntent intent, TaskPlan plan, Exception error) {
+        super.recordFailure(intent, plan, error);
+
+        // 更新图谱中的失败统计
+        String query = """
+            CREATE (fc:FailureCase {
+                id: $caseId,
+                timestamp: $timestamp,
+                processingType: $processingType,
+                errorType: $errorType,
+                errorMessage: $errorMessage
+            })
+
+            // 关联失败的插件组合
+            WITH fc
+            UNWIND $pluginIds as pluginId
+            MATCH (p:Plugin {id: pluginId})
+            CREATE (fc)-[:FAILED_WITH_PLUGIN]->(p)
+
+            // 如果是插件冲突导致的失败，创建冲突关系
+            WITH fc, $pluginIds as pIds
+            WHERE size(pIds) >= 2 AND $errorType = 'PLUGIN_CONFLICT'
+            MATCH (p1:Plugin {id: pIds[0]})
+            MATCH (p2:Plugin {id: pIds[1]})
+            MERGE (p1)-[conflict:CONFLICTS_WITH]->(p2)
+            ON CREATE SET conflict.count = 1,
+                          conflict.reason = $errorMessage
+            ON MATCH SET conflict.count = conflict.count + 1
+
+            RETURN fc
+            """;
+
+        Map<String, Object> params = Map.of(
+            "caseId", UUID.randomUUID().toString(),
+            "timestamp", System.currentTimeMillis(),
+            "processingType", intent.getProcessingType().name(),
+            "errorType", classifyError(error),
+            "errorMessage", error.getMessage(),
+            "pluginIds", plan.getUsedPluginIds()
+        );
+
+        graphDB.execute(query, params);
+    }
+
+    /**
+     * 分析趋势和模式
+     */
+    public Map<String, Object> analyzeTrends(String processingType) {
+        String query = """
+            MATCH (sc:SuccessCase {processingType: $processingType})
+            WHERE sc.timestamp > $startTime
+
+            // 按时间窗口聚合
+            WITH sc,
+                 sc.timestamp - (sc.timestamp % $windowSize) as timeWindow
+
+            // 统计每个时间窗口的指标
+            WITH timeWindow,
+                 avg(sc.duration) as avgDuration,
+                 avg(sc.throughput) as avgThroughput,
+                 avg(sc.successRate) as avgSuccessRate,
+                 count(sc) as caseCount
+
+            RETURN timeWindow,
+                   avgDuration,
+                   avgThroughput,
+                   avgSuccessRate,
+                   caseCount
+            ORDER BY timeWindow DESC
+            LIMIT 30
+            """;
+
+        long oneMonthAgo = System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000);
+        long oneDayMillis = 24 * 60 * 60 * 1000;
+
+        Result result = graphDB.execute(query, Map.of(
+            "processingType", processingType,
+            "startTime", oneMonthAgo,
+            "windowSize", oneDayMillis
+        ));
+
+        return convertToTrendData(result);
+    }
+
+    /**
+     * 推荐优化建议
+     */
+    public List<OptimizationSuggestion> getOptimizationSuggestions(
+            UserIntent intent) {
+
+        String query = """
+            // 找到当前配置
+            MATCH (currentSource:DataSource {name: $sourceName})
+                  -[:SUPPORTED_BY]->(currentPlugin:Plugin)
+
+            // 查找性能更好的替代插件
+            MATCH (currentSource)-[:SUPPORTED_BY]->(altPlugin:Plugin)
+                  -[:HAS_CAPABILITY]->(cap:Capability)
+            WHERE altPlugin.id <> currentPlugin.id
+              AND altPlugin.enabled = true
+
+            // 比较历史性能
+            OPTIONAL MATCH (altCase:SuccessCase)-[:USED_PLUGIN]->(altPlugin)
+            WHERE altCase.processingType = $processingType
+
+            OPTIONAL MATCH (currentCase:SuccessCase)-[:USED_PLUGIN]->(currentPlugin)
+            WHERE currentCase.processingType = $processingType
+
+            WITH altPlugin,
+                 avg(altCase.throughput) as altThroughput,
+                 avg(currentCase.throughput) as currentThroughput
+
+            WHERE altThroughput > currentThroughput * 1.2
+
+            RETURN altPlugin.id as pluginId,
+                   altPlugin.name as pluginName,
+                   altThroughput,
+                   currentThroughput,
+                   (altThroughput - currentThroughput) / currentThroughput as improvement
+            ORDER BY improvement DESC
+            LIMIT 5
+            """;
+
+        Result result = graphDB.execute(query, Map.of(
+            "sourceName", intent.getDataSources().get(0).getType(),
+            "processingType", intent.getProcessingType().name()
+        ));
+
+        return convertToSuggestions(result);
+    }
+
+    private String classifyError(Exception error) {
+        String errorClass = error.getClass().getSimpleName();
+        if (errorClass.contains("Conflict")) {
+            return "PLUGIN_CONFLICT";
+        } else if (errorClass.contains("Connection")) {
+            return "CONNECTION_ERROR";
+        } else if (errorClass.contains("Timeout")) {
+            return "TIMEOUT";
+        }
+        return "UNKNOWN";
+    }
+}
+```
+
+**基于知识图谱的学习引擎优势：**
+
+1. **多维度相似度**：综合考虑数据源、能力、性能等多个维度进行案例匹配
+2. **实时更新**：每次执行都更新图谱，模式和关系权重动态调整
+3. **趋势分析**：基于时间窗口聚合分析性能趋势
+4. **智能推荐**：基于历史数据推荐性能更优的插件组合
+5. **失败学习**：自动识别并记录冲突关系，避免重复错误
+6. **知识传播**：通过图的连通性，知识可以在不同场景间传播
 
 ### 7. 增强的PlanGenerator实现
 
@@ -2157,6 +4121,9 @@ public class SimpleAgent {
 - [ ] 5个预定义的执行计划模板
 - [ ] 简单的参数提取
 - [ ] 基本的执行框架
+- [ ] **（知识图谱）搭建Neo4j环境，完成基础连接**
+- [ ] **（知识图谱）定义核心本体模型（10-15个数据源，5-8个能力）**
+- [ ] **（知识图谱）实现图数据库基础操作接口**
 
 ### Phase 1：模板系统（1个月）
 
@@ -2184,6 +4151,11 @@ public class TemplateBasedAgent {
 - [ ] 支持模板参数化配置
 - [ ] 实现 PluginCapabilityRegistry
 - [ ] 基础的错误处理机制
+- [ ] **（知识图谱）初始化知识图谱Schema**
+- [ ] **（知识图谱）实现基础的三元组检索功能**
+- [ ] **（知识图谱）将现有插件元数据同步到图谱**
+- [ ] **（知识图谱）实现GraphBasedCapabilityRegistry MVP**
+- [ ] **（知识图谱）集成HanLP进行实体抽取**
 
 ### Phase 2：能力组合（2个月）
 
@@ -2208,6 +4180,12 @@ public class ComposableAgent {
 - [ ] 实现数据质量检测能力
 - [ ] 添加条件执行逻辑
 - [ ] 支持任务并行执行
+- [ ] **（知识图谱）实现KnowledgeGraphEnhancedIntentAnalyzer**
+- [ ] **（知识图谱）集成RAG流程到意图理解**
+- [ ] **（知识图谱）实现GraphEnhancedCapabilityComposer**
+- [ ] **（知识图谱）使用Dijkstra算法进行路径优化**
+- [ ] **（知识图谱）实现能力冲突检测**
+- [ ] **（知识图谱）扩展图谱覆盖到30+数据源**
 
 ### Phase 3：智能优化（3个月）
 
@@ -2240,6 +4218,13 @@ public class LearningAgent {
 - [ ] 优化插件选择算法
 - [ ] 完善 DSL 功能
 - [ ] 性能优化和缓存机制
+- [ ] **（知识图谱）实现GraphBasedLearningEngine**
+- [ ] **（知识图谱）建立成功/失败案例的图谱存储**
+- [ ] **（知识图谱）实现基于图相似度的案例匹配**
+- [ ] **（知识图谱）开发趋势分析和优化建议功能**
+- [ ] **（知识图谱）实现图谱自动更新机制**
+- [ ] **（知识图谱）性能优化：查询缓存、索引优化**
+- [ ] **（知识图谱）接入Neo4j GDS图算法库**
 
 ### Phase 4：生产就绪（4-6个月）
 
@@ -2253,6 +4238,12 @@ public class LearningAgent {
 - [ ] 性能调优
 - [ ] 完整的测试覆盖
 - [ ] 用户文档和 API 文档
+- [ ] **（知识图谱）图谱高可用部署（Neo4j集群）**
+- [ ] **（知识图谱）图谱备份和恢复策略**
+- [ ] **（知识图谱）图谱数据质量监控**
+- [ ] **（知识图谱）图谱查询性能监控和告警**
+- [ ] **（知识图谱）开发图谱可视化工具**
+- [ ] **（知识图谱）完善图谱文档和最佳实践**
 
 ### Phase 5：持续演进（长期）
 
@@ -2264,6 +4255,57 @@ public class LearningAgent {
 - [ ] 支持更多数据源
 - [ ] 提升并发处理能力
 - [ ] 探索新的 AI 技术应用
+- [ ] **（知识图谱）持续扩展本体覆盖范围**
+- [ ] **（知识图谱）引入图神经网络（GNN）进行高级推理**
+- [ ] **（知识图谱）探索多模态知识图谱（文本+代码+配置）**
+- [ ] **（知识图谱）实现跨项目的知识共享机制**
+- [ ] **（知识图谱）研究联邦学习在图谱更新中的应用**
+
+### 知识图谱专项里程碑
+
+为了确保知识图谱能力的顺利实施，制定专项里程碑：
+
+**M1：图谱基础设施（Week 1-2）**
+- 完成Neo4j安装和配置
+- 建立开发/测试/生产环境
+- 实现GraphDatabaseService接口
+- 完成基础CRUD操作测试
+
+**M2：本体建模（Week 3-4）**
+- 完成核心实体和关系类型定义
+- 创建Cypher schema脚本
+- 导入初始数据（10-15个数据源）
+- 验证图谱查询性能
+
+**M3：RAG集成（Week 5-8）**
+- 实现EntityExtractor
+- 开发三元组检索逻辑
+- 集成到IntentAnalyzer
+- A/B测试对比传统方法
+
+**M4：能力增强（Week 9-12）**
+- 实现GraphBasedCapabilityRegistry
+- 开发GraphEnhancedCapabilityComposer
+- 集成图算法（Dijkstra）
+- 性能基准测试
+
+**M5：学习引擎（Week 13-16）**
+- 实现GraphBasedLearningEngine
+- 建立案例存储机制
+- 开发相似度匹配算法
+- 实现趋势分析功能
+
+**M6：生产优化（Week 17-20）**
+- 查询性能优化
+- 实现缓存策略
+- 高可用部署
+- 监控告警系统
+
+**M7：持续改进（Long-term）**
+- 扩展本体覆盖
+- 优化推理算法
+- 引入新技术
+- 知识质量提升
 
 ## 核心开发原则
 
@@ -2372,6 +4414,151 @@ Team 4: 学习机制 + 优化算法
 ### 机器学习框架
 - DL4J：Java原生深度学习框架
 - Smile：统计机器学习库
+
+### 图数据库技术栈（新增）
+
+**推荐方案：Neo4j**
+
+```java
+// Maven依赖
+<dependency>
+    <groupId>org.neo4j.driver</groupId>
+    <artifactId>neo4j-java-driver</artifactId>
+    <version>5.15.0</version>
+</dependency>
+
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-neo4j</artifactId>
+</dependency>
+```
+
+**Neo4j特点：**
+- 成熟稳定，社区活跃
+- Cypher查询语言表达力强
+- 内置图算法库（Neo4j GDS）
+- 性能优异，支持数十亿节点
+- 可视化工具完善（Neo4j Browser）
+- 支持企业级高可用部署
+
+**配置示例：**
+
+```yaml
+spring:
+  neo4j:
+    uri: bolt://localhost:7687
+    authentication:
+      username: neo4j
+      password: your-password
+    connection:
+      pool:
+        max-size: 50
+```
+
+**备选方案对比：**
+
+| 数据库 | 优势 | 劣势 | 适用场景 |
+|--------|------|------|----------|
+| **Neo4j** | 成熟稳定、查询性能好、生态完善 | 企业版收费 | **推荐首选** |
+| JanusGraph | 开源免费、支持大规模图 | 社区不够活跃 | 超大规模场景 |
+| ArangoDB | 多模型支持、灵活 | 图算法较少 | 需要文档+图的场景 |
+| OrientDB | 集成度高、国产化友好 | 文档较少 | 对国产化有要求 |
+
+### 图计算框架
+
+**Neo4j Graph Data Science (GDS)**
+
+```java
+// Maven依赖
+<dependency>
+    <groupId>org.neo4j.gds</groupId>
+    <artifactId>neo4j-graph-data-science</artifactId>
+    <version>2.5.0</version>
+</dependency>
+```
+
+**常用图算法：**
+- **路径查找**：Dijkstra、A*、Yen's K-Shortest Paths
+- **中心性**：PageRank、Betweenness Centrality
+- **社区检测**：Louvain、Label Propagation
+- **相似度**：Node Similarity、Jaccard Index
+- **链接预测**：Adamic Adar、Common Neighbors
+
+**使用示例：**
+
+```cypher
+// 使用Dijkstra算法找最短路径
+CALL gds.shortestPath.dijkstra.stream({
+    sourceNode: id(startNode),
+    targetNode: id(endNode),
+    relationshipWeightProperty: 'cost'
+})
+YIELD path, totalCost
+RETURN path, totalCost
+```
+
+### 备选图计算框架
+
+- **Apache TinkerPop/Gremlin**：通用图遍历语言
+- **Apache Giraph**：适合超大规模图计算
+- **GraphX (Spark)**：与Spark生态集成
+
+### 实体抽取和NER
+
+**推荐方案：HanLP + 自定义词典**
+
+```java
+<dependency>
+    <groupId>com.hankcs</groupId>
+    <artifactId>hanlp</artifactId>
+    <version>portable-1.8.4</version>
+</dependency>
+```
+
+**集成示例：**
+
+```java
+@Component
+public class EntityExtractor {
+
+    private StandardTokenizer tokenizer = new StandardTokenizer();
+
+    public List<Entity> extract(String text) {
+        List<Term> terms = tokenizer.segment(text);
+
+        return terms.stream()
+            .filter(term -> isEntity(term))
+            .map(this::convertToEntity)
+            .collect(Collectors.toList());
+    }
+
+    private boolean isEntity(Term term) {
+        // 识别数据源名称、插件名等实体
+        return term.nature == Nature.nz || // 专有名词
+               term.nature == Nature.nt;   // 术语
+    }
+}
+```
+
+### 向量数据库（可选，用于语义搜索）
+
+如果需要基于语义相似度进行意图匹配，可以引入向量数据库：
+
+**推荐方案：Milvus或Qdrant**
+
+```java
+// Milvus Java SDK
+<dependency>
+    <groupId>io.milvus</groupId>
+    <artifactId>milvus-sdk-java</artifactId>
+    <version>2.3.4</version>
+</dependency>
+```
+
+**使用场景：**
+- 用户问题的语义相似度匹配
+- 基于embedding的案例检索
+- 跨语言的意图理解
 
 ## 关键优势
 

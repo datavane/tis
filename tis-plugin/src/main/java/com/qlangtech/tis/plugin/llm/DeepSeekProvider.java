@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
+import com.qlangtech.tis.aiagent.llm.JsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.extension.TISExtension;
@@ -56,6 +57,7 @@ import java.util.Map;
 /**
  * DeepSeek大模型Provider实现
  * https://api-docs.deepseek.com/zh-cn/api/create-completion
+ * https://api-docs.deepseek.com/zh-cn/api/create-chat-completion
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/9/17
@@ -87,10 +89,10 @@ public class DeepSeekProvider extends LLMProvider {
             Validator.integer})
     public Integer temperature;
 
-//    @FormField(type = FormFieldType.DURATION_OF_SECOND, advance = true, ordinal = 6, validate = {Validator.require,
-//            Validator.integer})
-//    public Duration readTimeout;
-
+    //    @FormField(type = FormFieldType.DURATION_OF_SECOND, advance = true, ordinal = 6, validate = {Validator
+    //    .require,
+    //            Validator.integer})
+    //    public Duration readTimeout;
 
 
     /**
@@ -101,19 +103,28 @@ public class DeepSeekProvider extends LLMProvider {
 
     @Override
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
-        return chat(context, prompt, systemPrompt, true);
+        return chat(context, prompt, systemPrompt, true, JsonSchema.off());
     }
 
 
-    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary) {
+    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary,
+                            JsonSchema jsonOutput) {
         ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);
-        //        ? new DefaultExecuteLog(prompt, context, logger) :
-        //                new NoneExecuteLog(prompt, context);
         try {
             List<HttpUtils.PostParam> postParams = new ArrayList<>();
             postParams.add(new HttpUtils.PostParam("model", getModel()));
             postParams.add(new HttpUtils.PostParam("temperature", temperature));
             postParams.add(new HttpUtils.PostParam("max_tokens", getMaxTokens()));
+
+            if (jsonOutput.isContainSchema()) {
+                JSONObject responseFormat = new JSONObject();
+                responseFormat.put("type", "json_object");
+                postParams.add(new HttpUtils.PostParam("response_format", responseFormat));
+            }
+            JSONObject thinking = new JSONObject();
+            thinking.put("type", "disabled");
+            postParams.add(new HttpUtils.PostParam("thinking", thinking));
+
 
             JSONArray messages = new JSONArray();
             if (CollectionUtils.isNotEmpty(systemPrompt)) {
@@ -158,16 +169,22 @@ public class DeepSeekProvider extends LLMProvider {
                                     JSONObject errBody = JSONObject.parseObject(IOUtils.toString(errstream,
                                             TisUTF8.get()));
                                     executeLog.setError(errBody);
-                                    JSONObject errDetail = errBody.getJSONObject("error");
-                                    String errMessage = errDetail.getString("message");
-                                    if (StringUtils.isNotEmpty(errMessage)) {
-                                        throw TisException.create(errMessage);
-                                    }
+                                    checkInValidError(errBody);
                                 } catch (IOException ex) {
                                     throw new RuntimeException(e);
                                 }
                             } else {
                                 throw new RuntimeException(e);
+                            }
+                        }
+
+                        private void checkInValidError(JSONObject responseJson) {
+                            if (responseJson.containsKey("error")) {
+                                JSONObject errDetail = responseJson.getJSONObject("error");
+                                String errMessage = errDetail.getString("message");
+                                if (StringUtils.isNotEmpty(errMessage)) {
+                                    throw TisException.create(errMessage);
+                                }
                             }
                         }
 
@@ -178,6 +195,15 @@ public class DeepSeekProvider extends LLMProvider {
 
                             JSONObject responseJson = JSON.parseObject(responseStr);
                             executeLog.setResponse(responseJson);
+
+                            /**
+                             * <pre>
+                             * {"error":{"code":"invalid_request_error"
+                             * ,"message":"Prompt must contain the word 'json' in some form to use 'response_format' of type 'json_object'."
+                             * ,"type":"invalid_request_error"}}
+                             * </pre>
+                             */
+                            checkInValidError(responseJson);
 
                             if (responseJson.containsKey("choices")) {
                                 JSONArray choices = responseJson.getJSONArray("choices");
@@ -222,15 +248,15 @@ public class DeepSeekProvider extends LLMProvider {
 
     @Override
     public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
-                                String jsonSchema) {
+                                JsonSchema jsonSchema) {
         String enhancedPrompt = prompt.getPrompt();
-        if (StringUtils.isNotEmpty(jsonSchema)) {
+        if (jsonSchema.isContainSchema()) {
             // enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果：\n" + jsonSchema;
-            enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + jsonSchema;
+            enhancedPrompt += "\n\n请严格按照以下JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + jsonSchema.schema();
             enhancedPrompt += "\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。";
         }
         LLMResponse response = chat(context, new UserPrompt(prompt.getAbstractInfo(), enhancedPrompt), systemPrompt,
-                false);
+                false, jsonSchema);
 
         try {
             if (response.isSuccess() && response.getContent() != null) {

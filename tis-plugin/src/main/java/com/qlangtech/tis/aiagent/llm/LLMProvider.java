@@ -73,8 +73,7 @@ public abstract class LLMProvider extends ParamsConfig {
      */
     private static List<ParamsConfig> loadAllProvidersBindWithUser(IPluginContext context) {
         UploadPluginMeta pluginMeta = ParamsConfigPluginStore.createParamsConfigUserIsolation(KEY_DISPLAY_NAME);
-        List<ParamsConfig> llmProviders
-                = HeteroEnum.PARAMS_CONFIG_USER_ISOLATION.getPlugins(context, pluginMeta);
+        List<ParamsConfig> llmProviders = HeteroEnum.PARAMS_CONFIG_USER_ISOLATION.getPlugins(context, pluginMeta);
         return llmProviders;
     }
 
@@ -131,7 +130,8 @@ public abstract class LLMProvider extends ParamsConfig {
      * @return 生成的JSON对象和token使用情况
      * @see DeepSeekProvider#chatJson(String, List, String)
      */
-    public abstract LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, String jsonSchema);
+    public abstract LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
+                                         JsonSchema jsonSchema);
 
     /**
      * 获取提供商名称
@@ -142,6 +142,8 @@ public abstract class LLMProvider extends ParamsConfig {
      * 检查是否可用
      */
     public abstract boolean isAvailable();
+
+
 
 
     /**
@@ -159,9 +161,9 @@ public abstract class LLMProvider extends ParamsConfig {
 
         public final ExecuteLog executeLog;
 
-//        public LLMResponse() {
-//            this(new NoneExecuteLog());
-//        }
+        //        public LLMResponse() {
+        //            this(new NoneExecuteLog());
+        //        }
 
         public LLMResponse(ExecuteLog executeLog) {
             this.executeLog = executeLog;
@@ -199,13 +201,13 @@ public abstract class LLMProvider extends ParamsConfig {
             this.completionTokens = completionTokens;
         }
 
-//        public long getTotalTokens() {
-//            return totalTokens;
-//        }
-//
-//        public void setTotalTokens(long totalTokens) {
-//            this.totalTokens = totalTokens;
-//        }
+        //        public long getTotalTokens() {
+        //            return totalTokens;
+        //        }
+        //
+        //        public void setTotalTokens(long totalTokens) {
+        //            this.totalTokens = totalTokens;
+        //        }
 
         public String getModel() {
             return model;

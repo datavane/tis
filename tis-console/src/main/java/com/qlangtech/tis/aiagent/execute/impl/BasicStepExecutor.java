@@ -32,6 +32,7 @@ import com.qlangtech.tis.aiagent.core.PluginPropsComplement;
 import com.qlangtech.tis.aiagent.core.RequestKey;
 import com.qlangtech.tis.aiagent.core.SelectionOptions;
 import com.qlangtech.tis.aiagent.execute.StepExecutor;
+import com.qlangtech.tis.aiagent.llm.JsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
@@ -149,24 +150,28 @@ public abstract class BasicStepExecutor implements StepExecutor {
         Objects.requireNonNull(entry.getValue()), llmProvider);
       AttrValMap attrValMap = parseDescribableMap(Optional.empty(), pluginPostBody);
 
-      if (attrValMap.descriptor.getIdentityField(false) != null) {
-        PropertyType pk = attrValMap.descriptor.getIdentityField();
-        if (attrValMap.isPrimaryFieldEmpty() || primaryValRewrite.isDuplicateInExistEntities(pk,
-          Objects.requireNonNull(attrValMap.getPrimaryFieldVal(), "PrimaryFieldVal can not be empty"))) {
-          // 1. 没有主键的情况下，由agent自主生成主键值
-          // 2. 识别到用户提交的主键的情况下，需要判断是否和已经有的主键列表冲突，如果冲突也需要重新生成
-          IdentityName primaryFieldVal = primaryValRewrite.newCreate(pk);
-          if (primaryFieldVal != null) {
-            attrValMap.getAttrVals().setPrimaryVal(pk.propertyName(), primaryFieldVal.identityValue());
+      try {
+        if (attrValMap.descriptor.getIdentityField(false) != null) {
+          PropertyType pk = attrValMap.descriptor.getIdentityField();
+          if (attrValMap.isPrimaryFieldEmpty() || primaryValRewrite.isDuplicateInExistEntities(pk,
+            Objects.requireNonNull(attrValMap.getPrimaryFieldVal(), "PrimaryFieldVal can not be empty"))) {
+            // 1. 没有主键的情况下，由agent自主生成主键值
+            // 2. 识别到用户提交的主键的情况下，需要判断是否和已经有的主键列表冲突，如果冲突也需要重新生成
+            IdentityName primaryFieldVal = primaryValRewrite.newCreate(pk);
+            if (primaryFieldVal != null) {
+              attrValMap.getAttrVals().setPrimaryVal(pk.propertyName(), primaryFieldVal.identityValue());
+            }
           }
         }
-      }
 
-      for (Map.Entry<String, IdentityName> refProp : propsImplRefsVals.entrySet()) {
-        final String propName = refProp.getKey();
-        IdentityName refPropVal = refProp.getValue();
-        attrValMap.getAttrVals().setPrimaryVal(propName, Objects.requireNonNull(refPropVal,
-          "refPropVal can not be " + "null").identityValue());
+        for (Map.Entry<String, IdentityName> refProp : propsImplRefsVals.entrySet()) {
+          final String propName = refProp.getKey();
+          IdentityName refPropVal = refProp.getValue();
+          attrValMap.getAttrVals().setPrimaryVal(propName, Objects.requireNonNull(refPropVal, "refPropVal can not be "
+            + "null").identityValue());
+        }
+      } catch (Exception e) {
+        throw new RuntimeException("descriptor:" + attrValMap.descriptor.getId(), e);
       }
 
 
@@ -190,17 +195,20 @@ public abstract class BasicStepExecutor implements StepExecutor {
   public JSONObject extractUserInput2Json(IAgentContext context, UserPrompt userInput,
                                           Optional<IEndTypeGetter.EndType> endType, JSONObject descriptorJson,
                                           LLMProvider llmProvider) {
-    String prompt = "用户输入内容：" + userInput.getPrompt() + "\n 参照json结构说明，如下：\n" + JsonUtil.toString(descriptorJson, true);
-    final String systemPrompt =
-      SYSTEM_ASSIST_ROLE + "你的任务是帮助用户创建数据同步管道。\n" + endType.map((end) -> "当前处理的数据端是针对：" + String.valueOf(end)).orElse(StringUtils.EMPTY) + "\n" + "现在需要通过用户提交的内容，结合提系统提供的json结构说明，解析出结构化的json作为输出内容";
+    final String prompt = "用户输入内容：" + userInput.getPrompt();// + "\n 按照提示词要求生成JSON结构的输出";//，如下：\n" + JsonUtil.toString
+    // (descriptorJson, true);
+    final String systemPrompt = SYSTEM_ASSIST_ROLE + "你的任务是帮助用户创建数据同步管道。\n"  //
+      + endType.map((end) -> "当前处理的数据端是针对：" //
+      + String.valueOf(end)).orElse(StringUtils.EMPTY) //
+      + "\n" + "现在需要通过用户提交的内容，结合提系统提供的json结构说明，解析出结构化的json作为输出内容";
 
     JSONObject pluginPostBody = null;
-    final String jsonSchema = "\n\n请严格按照系统提示中输出json的Schema格式返回结果";
+    //final String jsonSchema = "\n\n请严格按照系统提示中输出json的Schema格式返回结果";
     try (InputStream sysPromote = PluginInstanceCreateExecutor.class.getResourceAsStream(
       "describle_plugin_json_create_deamo.md")) {
       LLMProvider.LLMResponse llmResponse = llmProvider.chatJson(context, userInput.setNewPrompt(prompt),
-        Lists.newArrayList(systemPrompt, IOUtils.toString(Objects.requireNonNull(sysPromote, "sysPromote can " + "not"
-          + " be " + "null"), TisUTF8.get())), jsonSchema);
+        Lists.newArrayList(systemPrompt, IOUtils.toString(Objects.requireNonNull(sysPromote //
+        , "sysPromote can not be null"), TisUTF8.get())), JsonSchema.create(descriptorJson));
       return pluginPostBody = llmResponse.getJsonContent();
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -247,7 +255,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
 
       UserPrompt userPrompt = new UserPrompt("解析源端目标表列表", promptTpl);
       LLMProvider.LLMResponse llmResponse = llmProvider.chatJson(context, userPrompt,
-        Lists.newArrayList(SYSTEM_ASSIST_ROLE), null);
+        Lists.newArrayList(SYSTEM_ASSIST_ROLE), JsonSchema.off());
       JSONObject json = llmResponse.getJsonContent();
 
       JSONArray targetTables = json.getJSONArray("targetTables");

@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.manage.common.ConfigFileContext.Header;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import org.apache.commons.collections.CollectionUtils;
-import org.json.JSONObject;
+import com.alibaba.fastjson.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
