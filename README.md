@@ -50,10 +50,6 @@ TIS为您提供企业级数据集成服务，**基于批(DataX)，流(Flink-CDC�
 
   TIS的安装还是和传统软件安装一样，只需要三个步骤：一、下载tar包，二、解压tar包，三、启动TIS。是的，就这么简单。另外还支持多种部署模式（Docker、Docker-Compose、Kubernetes）。
 
-
-  
-   
-  
 * :rocket:强大的扩展性
 
   TIS 继承了Jenkin 的设计思想，使用微前端技术，重新构建了一套前端框架，前端页面可以自动渲染。
@@ -73,15 +69,14 @@ TIS为您提供企业级数据集成服务，**基于批(DataX)，流(Flink-CDC�
   借鉴了 DataOps、DataPipeline 理念，对各各执行流程建模。不需要了解底层模块的实现原理，基本实现傻瓜化方式操作。
 
 
-## 支持的读写组件 [详细](https://tis.pub/docs/plugin/source-sink/)
-|Reader|Writer|
-|--|--|
-|<img src="docs/logo/cassandra.svg" width="40" /><img src="docs/logo/ftp.svg" width="40" />  <img src="docs/logo/hdfs.svg" width="40" /> <img src="docs/logo/mongodb.svg" width="40" />  <img src="docs/logo/mysql.svg" width="40" /> <img src="docs/logo/oracle.svg" width="40" />  <img src="docs/logo/oss.svg" width="40" />  <img src="docs/logo/postgresql.svg" width="40" /> <img src="docs/logo/sqlserver.svg" width="40" /> <img src="docs/logo/tidb.svg" width="40" /> | <img src="docs/logo/mysql.svg" width="40" /> <img src="docs/logo/doris.svg" width="40" /> <img src="docs/logo/spark.svg" width="40" /><img src="docs/logo/starrocks.svg" width="40" /><img src="docs/logo/cassandra.svg" width="40" /> <img src="docs/logo/postgresql.svg" width="40" /><img src="docs/logo/hive.svg" width="40" /><img src="docs/logo/clickhouse.svg" width="40" /><img src="docs/logo/ftp.svg" width="40" /><img src="docs/logo/oracle.svg" width="40" /> <img src="docs/logo/hdfs.svg" width="40" /><img src="docs/logo/es.svg" width="40" /> |
+## 支持的读写组件 
 
+[https://tis.pub/docs/plugin/source-sink/](https://tis.pub/docs/plugin/source-sink/)
 
 
 ## 功能一瞥
 - 示例
+    * 
     * [基于TIS快速实现MySQL到StarRocks的实时数据同步方案](https://tis.pub/docs/example/mysql-sync-starrocks)
     * [多源同步Doris方案](https://tis.pub/docs/example/mysql-sync-doris)
     * [将数据变更同步到Kafka](https://tis.pub/docs/example/sink-2-kafka)

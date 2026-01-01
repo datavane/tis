@@ -1,0 +1,947 @@
+> 仔细又回顾了这次为TIS实现的 pipeline ai agent功能，文档是：/Users/mozhenghua/j2ee_solution/project/tis-solr/design/chat-pipeline-design.md，review了一下在用户提交任务请求后通过TISPlanAndExecuteAgent 的 generatePlan()
+方法生成的TaskPlan 然后再分步骤地执行 com.qlangtech.tis.aiagent.plan.TaskStep，这个过程中并没有使用标准的 Plan-and-Execute模式来实现，因为并没有让大模型来帮助生成执行计划，执行计划是在本地的代码里写死的。是这样吧 
+
+⏺ 完全正确！百岁，你的理解非常准确。我通过查看代码证实了你的分析：
+
+  当前实现的实际情况
+
+  1. LLM的作用仅限于意图解析：
+    - 在 TISPlanAndExecuteAgent.generatePlan() 中（TISPlanAndExecuteAgent.java:111-141），LLM只是用来分析用户输入，提取出：
+        - 任务意图（intention）
+      - 源端类型和相关信息（source）
+      - 目标端类型和相关信息（target）
+      - 执行选项（options）
+  2. 执行计划是本地代码硬编码的：
+    - 在 PlanGenerator.generateGenericPlan() 中（PlanGenerator.java:225-261），执行步骤是固定的：
+    TaskStep installStep = new TaskStep("检查并安装必要插件", TaskStep.StepType.PLUGIN_INSTALL);
+  plan.addStep(installStep);
+
+  TaskStep readerStep = new TaskStep("创建数据源Reader、Writer插件实例", TaskStep.StepType.PLUGIN_CREATE);
+  plan.addStep(readerStep);
+
+  TaskStep executeStep = new TaskStep("执行数据同步", TaskStep.StepType.EXECUTE_BATCH);
+  plan.addStep(executeStep);
+
+  TaskStep incrStep = new TaskStep("增量实时数据同步启动", TaskStep.StepType.EXECUTE_INCR);
+  plan.addStep(incrStep);
+  3. 步骤执行器也是预定义的：
+    - 在 TaskStep.StepType 枚举中（TaskStep.java:51-70），每个步骤类型对应的执行器都是固定的：
+    PLUGIN_INSTALL(new PluginDownloadAndInstallExecutor()),
+  PLUGIN_CREATE(new PluginInstanceCreateExecutor()),
+  EXECUTE_BATCH(new PipelineBatchExecutor()),
+  EXECUTE_INCR(new PipelineIncrExecutor()),
+  SELECT_TABLES(new PipelineSourceSelectTabsExecutor());
+
+  与标准 Plan-and-Execute 模式的差异
+
+  标准 Plan-and-Execute 模式应该是：
+  - LLM 根据用户需求动态生成执行计划的所有步骤
+  - 执行过程中遇到问题时，LLM 可以重新规划后续步骤
+  - 计划本身是灵活的、由AI生成的
+
+  当前实现实际上是：
+  - LLM 仅做意图识别和参数提取
+  - 执行计划按照固定模板生成（类似于"模板方法模式"）
+  - 不同的源端/目标端组合可能使用不同的固定模板（如 generateMySQLToPaimonPlan()）
+
+  这种实现方式更像是基于模板的工作流引擎 + LLM参数提取，而不是真正的 Plan-and-Execute Agent。
+
+  你想讨论一下是否需要改进成真正的 Plan-and-Execute 模式吗？或者当前这种模板化的方式对于TIS的场景已经足够了?
+
+> 那确实想知道如何践行 Plan-and-Execute 模式？ 请给我提示 
+
+  📊 当前实现 vs 标准 Plan-and-Execute 模式
+
+  当前实现的问题
+
+  1. LLM角色受限
+  - 当前：LLM 只做意图识别和参数提取（在 TISPlanAndExecuteAgent.generatePlan() 中）
+  - 缺失：LLM 没有参与执行计划的生成
+
+  2. 执行计划硬编码
+  - 当前：在 PlanGenerator.generateGenericPlan() 中固定了步骤序列
+  TaskStep installStep = new TaskStep("检查并安装必要插件", TaskStep.StepType.PLUGIN_INSTALL);
+  TaskStep readerStep = new TaskStep("创建数据源Reader、Writer插件实例", TaskStep.StepType.PLUGIN_CREATE);
+  TaskStep executeStep = new TaskStep("执行数据同步", TaskStep.StepType.EXECUTE_BATCH);
+  TaskStep incrStep = new TaskStep("增量实时数据同步启动", TaskStep.StepType.EXECUTE_INCR);
+  - 缺失：无法根据不同场景动态调整步骤
+
+  3. 缺乏动态规划能力
+  - 当前：执行过程中遇到错误只能停止或继续
+  - 缺失：无法根据执行反馈重新规划后续步骤
+
+  ---
+  ✨ 标准 Plan-and-Execute 模式的核心原理
+
+  标准的 Plan-and-Execute Agent 模式（如 LangChain 的实现）包含以下关键组件：
+
+  1. Planner（规划器）
+
+  用户输入 → LLM → 生成步骤列表
+  - 由 LLM 根据用户需求动态生成执行步骤
+  - 每个步骤包含：步骤描述、需要的工具、预期输出
+  - 步骤不是硬编码的，而是 LLM 推理出来的
+
+  2. Executor（执行器）
+
+  步骤列表 → 逐步执行 → 收集反馈
+  - 按顺序执行每个步骤
+  - 每步执行后收集结果反馈
+  - 将反馈传递给 Re-planner
+
+  3. Re-planner（重规划器）
+
+  执行反馈 → LLM → 调整剩余步骤
+  - 根据执行反馈，LLM 决定是否需要调整计划
+  - 可以添加新步骤、跳过步骤、修改步骤参数
+  - 实现动态适应能力
+
+  4. 工作流程
+
+  1. 用户输入 → Planner → 生成初始计划
+  2. Executor → 执行第1步 → 收集结果
+  3. Re-planner → 根据结果评估 → 是否需要调整计划？
+     - 如需要：调整剩余步骤
+     - 如不需要：继续执行下一步
+  4. 重复步骤2-3，直到所有步骤完成
+  5. 返回最终结果给用户
+
+  ---
+  🎯 改进方案：真正践行 Plan-and-Execute
+
+  方案一：完全动态规划（推荐）
+
+  核心改造点
+
+  1. 让 LLM 生成执行计划
+
+  在 PlanGenerator.generatePlan() 中，不再硬编码步骤，而是让 LLM 生成：
+
+  // 修改后的 PlanGenerator
+  public TaskPlan generatePlan(String userInput, JSONObject llmAnalysis) {
+      // 第一次调用 LLM：意图识别（已有）
+      // ...现有的意图识别代码...
+
+      // 第二次调用 LLM：生成执行计划
+      String planningPrompt = buildPlanningPrompt(userInput, sourceEnd, targetEnd);
+      LLMResponse planResponse = llmProvider.chatJson(
+          context,
+          new UserPrompt("正在为您规划执行步骤...", planningPrompt),
+          Collections.singletonList(systemPrompt),
+          JsonSchema.create(getPlanStepsSchema())  // 新的 Schema
+      );
+
+      // 解析 LLM 返回的步骤列表
+      JSONArray stepsArray = planResponse.getJsonContent().getJSONArray("steps");
+      List<TaskStep> steps = parseStepsFromLLM(stepsArray);
+
+      plan.setSteps(steps);
+      return plan;
+  }
+
+  2. 设计 LLM 规划提示词
+
+  private String buildPlanningPrompt(String userInput, 
+                                     SourceDataEndCfg sourceEnd, 
+                                     DataEndCfg targetEnd) {
+      return String.format(
+          "用户需求：%s\n\n" +
+          "源端类型：%s\n" +
+          "目标端类型：%s\n\n" +
+          "可用的步骤类型：\n" +
+          "- PLUGIN_INSTALL: 检查并安装插件\n" +
+          "- PLUGIN_CREATE: 创建插件实例\n" +
+          "- SELECT_TABLES: 选择要同步的表\n" +
+          "- EXECUTE_BATCH: 执行批量数据同步\n" +
+          "- EXECUTE_INCR: 启动增量实时同步\n\n" +
+          "请根据用户需求，生成详细的执行步骤列表。每个步骤需要包含：\n" +
+          "1. 步骤名称\n" +
+          "2. 步骤类型（从上述可用类型中选择）\n" +
+          "3. 步骤描述\n" +
+          "4. 是否需要用户确认\n" +
+          "5. 步骤参数（如果需要）",
+          userInput, sourceEnd.getType(), targetEnd.getType()
+      );
+  }
+
+  3. 定义步骤 JSON Schema
+
+  private String getPlanStepsSchema() {
+      return "{\n" +
+          "  \"steps\": [\n" +
+          "    {\n" +
+          "      \"stepName\": \"步骤名称，string类型\",\n" +
+          "      \"stepType\": \"步骤类型，枚举值：PLUGIN_INSTALL|PLUGIN_CREATE|SELECT_TABLES|EXECUTE_BATCH|EXECUTE_INCR\",\n" +
+          "      \"description\": \"步骤描述，string类型\",\n" +
+          "      \"requireUserConfirm\": \"是否需要用户确认，boolean类型\",\n" +
+          "      \"parameters\": \"步骤参数，JSONObject类型，可选\"\n" +
+          "    }\n" +
+          "  ]\n" +
+          "}";
+  }
+
+  4. 添加重规划机制
+
+  在 TISPlanAndExecuteAgent.executePlan() 中添加：
+
+  private void executePlan(TaskPlan plan) {
+      int currentStep = 0;
+
+      while (currentStep < plan.getSteps().size()) {
+          if (context.isCancelled()) {
+              context.sendMessage("任务已被取消");
+              break;
+          }
+
+          TaskStep step = plan.getSteps().get(currentStep);
+          context.sendProgress(step.getName(), currentStep + 1, plan.getTotalSteps());
+
+          try {
+              // 执行步骤
+              ExecutionResult result = executeStepWithResult(plan, step);
+
+              // 如果执行失败或遇到预期外的情况
+              if (!result.isSuccess() || result.needsReplanning()) {
+                  // 调用 LLM 重新规划
+                  List<TaskStep> updatedSteps = replanRemainingSteps(
+                      plan,
+                      currentStep,
+                      result.getFeedback()
+                  );
+
+                  // 更新剩余步骤
+                  updateRemainingSteps(plan, currentStep, updatedSteps);
+              }
+
+              step.markAsCompleted();
+              currentStep++;
+
+          } catch (Exception e) {
+              // 遇到异常，尝试重新规划
+              List<TaskStep> recoverySteps = replanForError(plan, currentStep, e);
+              if (recoverySteps != null) {
+                  updateRemainingSteps(plan, currentStep, recoverySteps);
+              } else {
+                  break; // 无法恢复，停止执行
+              }
+          }
+      }
+  }
+
+  // 重新规划剩余步骤
+  private List<TaskStep> replanRemainingSteps(TaskPlan plan, 
+                                              int currentStepIndex, 
+                                              String feedback) {
+      String replanPrompt = buildReplanPrompt(plan, currentStepIndex, feedback);
+
+      LLMResponse response = llmProvider.chatJson(
+          context,
+          new UserPrompt("正在根据执行情况重新规划...", replanPrompt),
+          Collections.singletonList(buildSystemPrompt()),
+          JsonSchema.create(getPlanStepsSchema())
+      );
+
+      JSONArray stepsArray = response.getJsonContent().getJSONArray("steps");
+      return parseStepsFromLLM(stepsArray);
+  }
+
+  5. 执行结果反馈类
+
+  public class ExecutionResult {
+      private boolean success;
+      private String feedback;
+      private boolean needsReplanning;
+      private JSONObject outputData;
+
+      // getters and setters
+  }
+
+  ---
+  方案二：混合模式（渐进式改进）
+
+  如果完全动态规划的成本太高，可以采用混合模式：
+
+  1. 保留模板化的主流程
+  2. 在关键决策点调用 LLM
+    - 例如：选择哪些表需要同步时
+    - 例如：遇到错误时如何恢复
+  3. 逐步增加 LLM 的参与度
+
+  private void generateGenericPlan(TaskPlan plan, JSONObject llmAnalysis) {
+      // 基础步骤仍使用模板
+      TaskStep installStep = new TaskStep("检查并安装必要插件", TaskStep.StepType.PLUGIN_INSTALL);
+      plan.addStep(installStep);
+
+      TaskStep readerStep = new TaskStep("创建数据源Reader、Writer插件实例", TaskStep.StepType.PLUGIN_CREATE);
+      plan.addStep(readerStep);
+
+      // 关键决策点：是否需要执行批量同步？由 LLM 决定
+      if (shouldExecuteBatch(plan, llmAnalysis)) {
+          TaskStep executeStep = new TaskStep("执行数据同步", TaskStep.StepType.EXECUTE_BATCH);
+          plan.addStep(executeStep);
+      }
+
+      // 关键决策点：是否需要增量同步？由 LLM 决定
+      if (shouldExecuteIncr(plan, llmAnalysis)) {
+          TaskStep incrStep = new TaskStep("增量实时数据同步启动", TaskStep.StepType.EXECUTE_INCR);
+          plan.addStep(incrStep);
+      }
+  }
+
+  private boolean shouldExecuteBatch(TaskPlan plan, JSONObject llmAnalysis) {
+      // 调用 LLM 判断
+      String prompt = "根据用户需求：" + plan.getUserInput() +
+                     "\n是否需要立即执行批量数据同步？";
+      // ... 调用 LLM 返回 true/false
+  }
+
+  ---
+  📝 具体实施步骤建议
+
+  阶段一：准备工作（1-2天）
+
+  1. 设计 LLM 规划提示词模板
+  2. 定义执行步骤的 JSON Schema
+  3. 创建 ExecutionResult 和相关数据结构
+
+  阶段二：实现动态规划（3-5天）
+
+  1. 修改 PlanGenerator.generatePlan() 让 LLM 生成步骤
+  2. 实现 parseStepsFromLLM() 解析 LLM 返回的步骤
+  3. 添加步骤验证逻辑，确保 LLM 生成的步骤合法
+
+  阶段三：实现重规划机制（3-5天）
+
+  1. 修改 executePlan() 支持动态调整步骤
+  2. 实现 replanRemainingSteps() 重规划逻辑
+  3. 实现错误恢复机制 replanForError()
+
+  阶段四：测试与优化（3-5天）
+
+  1. 测试各种场景下的规划质量
+  2. 优化提示词，提高 LLM 规划的准确性
+  3. 添加规划结果的可视化展示
+
+  阶段五：渐进式推广（持续）
+
+  1. 先在简单场景下使用动态规划
+  2. 收集反馈，优化提示词
+  3. 逐步扩展到更复杂的场景
+
+  ---
+  ⚖️ 两种方案对比
+
+  | 维度       | 方案一：完全动态规划      | 方案二：混合模式     |
+  |----------|-----------------|--------------|
+  | 灵活性      | ⭐⭐⭐⭐⭐ 完全动态      | ⭐⭐⭐ 部分动态     |
+  | 实现成本     | ⭐⭐ 较高           | ⭐⭐⭐⭐ 较低      |
+  | 可控性      | ⭐⭐⭐ LLM 生成，需要验证 | ⭐⭐⭐⭐⭐ 核心逻辑可控 |
+  | 错误恢复能力   | ⭐⭐⭐⭐⭐ 强         | ⭐⭐⭐ 中等       |
+  | Token 消耗 | ⭐⭐ 较高（多次调用LLM）  | ⭐⭐⭐⭐ 较低      |
+  | 适用场景     | 复杂、多变的数据同步场景    | 固定模式为主的场景    |
+
+  ---
+  💡 我的建议
+
+  基于 TIS 的实际情况，我建议：
+
+  1. 短期：采用方案二（混合模式）
+    - 保留现有的模板化流程作为基础
+    - 在关键决策点引入 LLM（如：是否执行批量同步、是否启动增量同步）
+    - 添加错误时的重规划机制
+  2. 中长期：逐步向**方案一（完全动态规划）**演进
+    - 积累足够的 LLM 规划样本和反馈
+    - 优化提示词模板
+    - 最终实现完全由 LLM 驱动的执行计划生成
+
+  这样既能快速见到成效，又能逐步提升系统的智能化水平，降低风险。
+
+  你觉得这两个方案怎么样？想先尝试哪一个？
+  ⎿  User rejected Claude's plan:
+     ╭─────────────────────────────────────────────────────────────────────────────╮
+     │ Plan-and-Execute 模式改进方案                                               │
+     │                                                                             │
+     │ 目标                                                                        │
+     │                                                                             │
+     │ 将当前基于模板的执行计划生成，改造为真正的 LLM 驱动的 Plan-and-Execute 模式 │
+     │                                                                             │
+     │ 改造方案（混合模式 - 推荐）                                                 │
+     │                                                                             │
+     │ 1. 修改 PlanGenerator 类                                                    │
+     │                                                                             │
+     │ - 在 generatePlan() 方法中添加第二次 LLM 调用                               │
+     │ - 让 LLM 根据源端/目标端类型生成具体的执行步骤列表                          │
+     │ - 定义步骤生成的 JSON Schema                                                │
+     │                                                                             │
+     │ 2. 实现动态步骤解析                                                         │
+     │                                                                             │
+     │ - 创建 parseStepsFromLLM() 方法解析 LLM 返回的步骤                          │
+     │ - 添加步骤验证逻辑，确保生成的步骤类型合法                                  │
+     │ - 支持步骤参数的动态配置                                                    │
+     │                                                                             │
+     │ 3. 添加重规划机制                                                           │
+     │                                                                             │
+     │ - 在 TISPlanAndExecuteAgent.executePlan() 中添加执行反馈收集                │
+     │ - 实现 replanRemainingSteps() 方法，根据执行结果动态调整后续步骤            │
+     │ - 创建 ExecutionResult 类封装执行结果和反馈信息                             │
+     │                                                                             │
+     │ 4. 优化错误恢复                                                             │
+     │                                                                             │
+     │ - 实现 replanForError() 方法，遇到异常时调用 LLM 生成恢复步骤               │
+     │ - 支持步骤的插入、跳过、修改                                                │
+     │                                                                             │
+     │ 5. 提示词工程                                                               │
+     │                                                                             │
+     │ - 设计规划提示词模板 buildPlanningPrompt()                                  │
+     │ - 设计重规划提示词模板 buildReplanPrompt()                                  │
+     │ - 定义步骤 Schema getPlanStepsSchema()                                      │
+     │                                                                             │
+     │ 实施步骤                                                                    │
+     │                                                                             │
+     │ 1. 设计并测试 LLM 规划提示词                                                │
+     │ 2. 修改 PlanGenerator 支持动态步骤生成                                      │
+     │ 3. 实现步骤解析和验证逻辑                                                   │
+     │ 4. 添加重规划机制到执行流程                                                 │
+     │ 5. 测试和优化提示词效果                                                     │
+     │                                                                             │
+     │ 此方案保留现有模板流程作为后备，逐步引入 LLM 动态规划能力，风险可控。       │
+     ╰─────────────────────────────────────────────────────────────────────────────╯
+
+> 我想先看看  buildPlanningPrompt() 生成的内容 
+
+⏺ 好的，百岁！让我给你展示一个具体的 buildPlanningPrompt() 方法实现及其生成的内容。
+
+⏺ Search(pattern: "class.*EndType", glob: "**/IEndTypeGetter.java", output_mode: "content")
+  ⎿  Found 0 lines 
+
+⏺ 好的，让我给你展示一个完整的 buildPlanningPrompt() 实现示例和它生成的内容。
+
+  方法实现示例
+
+  /**
+   * 构建规划提示词
+   * 让 LLM 根据用户需求生成执行步骤列表
+   */
+  private String buildPlanningPrompt(String userInput, 
+                                     TaskPlan.SourceDataEndCfg sourceEnd, 
+                                     TaskPlan.DataEndCfg targetEnd) {
+
+      // 获取可用的步骤类型说明
+      String availableStepTypes = buildAvailableStepTypesDescription();
+
+      // 获取源端和目标端的能力描述
+      String sourceCapabilities = buildEndCapabilities(sourceEnd);
+      String targetCapabilities = buildEndCapabilities(targetEnd);
+
+      // 构建提示词
+      StringBuilder prompt = new StringBuilder();
+
+      prompt.append("# 任务背景\n");
+      prompt.append("用户需求：").append(userInput).append("\n\n");
+
+      prompt.append("# 数据源端信息\n");
+      prompt.append("类型：").append(sourceEnd.getType()).append("\n");
+      prompt.append("描述：").append(sourceEnd.getRelevantDesc()).append("\n");
+      prompt.append("能力：").append(sourceCapabilities).append("\n");
+      if (StringUtils.isNotEmpty(sourceEnd.getExtraSelectedTabInfo())) {
+          prompt.append("表选择要求：").append(sourceEnd.getExtraSelectedTabInfo()).append("\n");
+      }
+      prompt.append("\n");
+
+      prompt.append("# 数据目标端信息\n");
+      prompt.append("类型：").append(targetEnd.getType()).append("\n");
+      prompt.append("描述：").append(targetEnd.getRelevantDesc()).append("\n");
+      prompt.append("能力：").append(targetCapabilities).append("\n\n");
+
+      prompt.append("# 可用的执行步骤类型\n");
+      prompt.append(availableStepTypes).append("\n\n");
+
+      prompt.append("# 规划要求\n");
+      prompt.append("请根据以上信息，为用户生成一个详细的执行步骤计划。要求：\n");
+      prompt.append("1. 步骤应该符合 TIS 数据集成平台的最佳实践\n");
+      prompt.append("2. 步骤顺序必须合理（例如：先安装插件，再创建实例，最后执行同步）\n");
+      prompt.append("3. 每个步骤需要明确的名称和描述\n");
+      prompt.append("4. 根据源端和目标端的能力，决定是否包含批量同步或增量同步步骤\n");
+      prompt.append("5. 如果用户明确提到了表选择要求，必须包含 SELECT_TABLES 步骤\n");
+      prompt.append("6. 步骤总数建议在 3-8 个之间，避免过于冗长\n\n");
+
+      prompt.append("# 输出格式\n");
+      prompt.append("请严格按照以下 JSON Schema 格式输出步骤列表。\n");
+
+      return prompt.toString();
+  }
+
+  /**
+   * 构建可用步骤类型的说明
+   */
+  private String buildAvailableStepTypesDescription() {
+      return
+          "## PLUGIN_INSTALL - 插件安装检查\n" +
+          "说明：检查并安装必要的 Reader 和 Writer 插件\n" +
+          "使用场景：几乎所有数据同步任务的第一步\n" +
+          "是否必需：是\n\n" +
+
+          "## PLUGIN_CREATE - 插件实例创建\n" +
+          "说明：创建数据源、Reader、Writer 等插件的实例，配置连接信息和参数\n" +
+          "使用场景：所有数据同步任务都需要\n" +
+          "是否必需：是\n\n" +
+
+          "## SELECT_TABLES - 选择同步表\n" +
+          "说明：从源端数据库中选择需要同步的表\n" +
+          "使用场景：当源端是关系型数据库（MySQL、PostgreSQL、Oracle等）时\n" +
+          "是否必需：仅关系型数据库需要\n\n" +
+
+          "## EXECUTE_BATCH - 批量数据同步\n" +
+          "说明：执行全量历史数据的批量同步\n" +
+          "使用场景：用户需要同步历史存量数据时\n" +
+          "是否必需：根据用户需求决定\n\n" +
+
+          "## EXECUTE_INCR - 增量实时同步\n" +
+          "说明：启动增量实时数据同步，捕获源端的实时变更\n" +
+          "使用场景：用户需要实时数据同步，且源端和目标端都支持增量同步时\n" +
+          "是否必需：根据用户需求和端能力决定\n";
+  }
+
+  /**
+   * 构建端的能力描述
+   */
+  private String buildEndCapabilities(TaskPlan.DataEndCfg endCfg) {
+      IDataXEndTypeGetter endTypeMeta = endCfg.getEndTypeMeta();
+      if (endTypeMeta == null) {
+          return "未知";
+      }
+
+      List<String> capabilities = new ArrayList<>();
+      if (endTypeMeta.isSupportBatch()) {
+          capabilities.add("支持批量同步");
+      }
+      if (endTypeMeta.isSupportIncr()) {
+          capabilities.add("支持增量同步");
+      }
+
+      return String.join("、", capabilities);
+  }
+
+  ---
+  生成内容示例
+
+  场景1：MySQL 到 Doris 的数据同步
+
+  用户输入：
+  帮我创建一个从 MySQL 数据库同步到 Doris 的数据管道，需要同步 base、order、user 这三张表，并且立即执行全量同步
+
+  生成的提示词：
+
+  # 任务背景
+  用户需求：帮我创建一个从 MySQL 数据库同步到 Doris 的数据管道，需要同步 base、order、user 这三张表，并且立即执行全量同步
+
+  # 数据源端信息
+  类型：MySQL
+  描述：从 MySQL 数据库中读取数据，包含连接配置、表选择、字段映射等功能
+  能力：支持批量同步、支持增量同步
+  表选择要求：base、order、user
+
+  # 数据目标端信息
+  类型：Doris
+  描述：将数据写入到 Doris 数据仓库中
+  能力：支持批量同步、支持增量同步
+
+  # 可用的执行步骤类型
+
+  ## PLUGIN_INSTALL - 插件安装检查
+  说明：检查并安装必要的 Reader 和 Writer 插件
+  使用场景：几乎所有数据同步任务的第一步
+  是否必需：是
+
+  ## PLUGIN_CREATE - 插件实例创建
+  说明：创建数据源、Reader、Writer 等插件的实例，配置连接信息和参数
+  使用场景：所有数据同步任务都需要
+  是否必需：是
+
+  ## SELECT_TABLES - 选择同步表
+  说明：从源端数据库中选择需要同步的表
+  使用场景：当源端是关系型数据库（MySQL、PostgreSQL、Oracle等）时
+  是否必需：仅关系型数据库需要
+
+  ## EXECUTE_BATCH - 批量数据同步
+  说明：执行全量历史数据的批量同步
+  使用场景：用户需要同步历史存量数据时
+  是否必需：根据用户需求决定
+
+  ## EXECUTE_INCR - 增量实时同步
+  说明：启动增量实时数据同步，捕获源端的实时变更
+  使用场景：用户需要实时数据同步，且源端和目标端都支持增量同步时
+  是否必需：根据用户需求和端能力决定
+
+  # 规划要求
+  请根据以上信息，为用户生成一个详细的执行步骤计划。要求：
+  1. 步骤应该符合 TIS 数据集成平台的最佳实践
+  2. 步骤顺序必须合理（例如：先安装插件，再创建实例，最后执行同步）
+  3. 每个步骤需要明确的名称和描述
+  4. 根据源端和目标端的能力，决定是否包含批量同步或增量同步步骤
+  5. 如果用户明确提到了表选择要求，必须包含 SELECT_TABLES 步骤
+  6. 步骤总数建议在 3-8 个之间，避免过于冗长
+
+  # 输出格式
+  请严格按照以下 JSON Schema 格式输出步骤列表。
+
+  ---
+  场景2：PostgreSQL 到 StarRocks，只要增量同步
+
+  用户输入：
+  搭建 PostgreSQL 到 StarRocks 的实时数据同步通道，只需要增量同步，不需要全量数据
+
+  生成的提示词：
+
+  # 任务背景
+  用户需求：搭建 PostgreSQL 到 StarRocks 的实时数据同步通道，只需要增量同步，不需要全量数据
+
+  # 数据源端信息
+  类型：PostgreSQL
+  描述：从 PostgreSQL 数据库中读取数据，支持 CDC 捕获实时变更
+  能力：支持批量同步、支持增量同步
+
+  # 数据目标端信息
+  类型：StarRocks
+  描述：将数据写入到 StarRocks 分析型数据库中
+  能力：支持批量同步、支持增量同步
+
+  # 可用的执行步骤类型
+
+  ## PLUGIN_INSTALL - 插件安装检查
+  说明：检查并安装必要的 Reader 和 Writer 插件
+  使用场景：几乎所有数据同步任务的第一步
+  是否必需：是
+
+  ## PLUGIN_CREATE - 插件实例创建
+  说明：创建数据源、Reader、Writer 等插件的实例，配置连接信息和参数
+  使用场景：所有数据同步任务都需要
+  是否必需：是
+
+  ## SELECT_TABLES - 选择同步表
+  说明：从源端数据库中选择需要同步的表
+  使用场景：当源端是关系型数据库（MySQL、PostgreSQL、Oracle等）时
+  是否必需：仅关系型数据库需要
+
+  ## EXECUTE_BATCH - 批量数据同步
+  说明：执行全量历史数据的批量同步
+  使用场景：用户需要同步历史存量数据时
+  是否必需：根据用户需求决定
+
+  ## EXECUTE_INCR - 增量实时同步
+  说明：启动增量实时数据同步，捕获源端的实时变更
+  使用场景：用户需要实时数据同步，且源端和目标端都支持增量同步时
+  是否必需：根据用户需求和端能力决定
+
+  # 规划要求
+  请根据以上信息，为用户生成一个详细的执行步骤计划。要求：
+  1. 步骤应该符合 TIS 数据集成平台的最佳实践
+  2. 步骤顺序必须合理（例如：先安装插件，再创建实例，最后执行同步）
+  3. 每个步骤需要明确的名称和描述
+  4. 根据源端和目标端的能力，决定是否包含批量同步或增量同步步骤
+  5. 如果用户明确提到了表选择要求，必须包含 SELECT_TABLES 步骤
+  6. 步骤总数建议在 3-8 个之间，避免过于冗长
+
+  # 输出格式
+  请严格按照以下 JSON Schema 格式输出步骤列表。
+
+  ---
+  LLM 预期返回的 JSON 示例
+
+  基于场景1的提示词，LLM 应该返回类似这样的 JSON：
+
+  {
+    "steps": [
+      {
+        "stepName": "检查并安装 MySQL Reader 和 Doris Writer 插件",
+        "stepType": "PLUGIN_INSTALL",
+        "description": "检查系统中是否已安装 MySQL Reader 和 Doris Writer 插件，如未安装则自动下载安装",
+        "requireUserConfirm": false,
+        "parameters": null
+      },
+      {
+        "stepName": "创建 MySQL 到 Doris 数据管道实例",
+        "stepType": "PLUGIN_CREATE",
+        "description": "创建数据管道主体，配置 MySQL 数据源连接信息和 Doris 目标端配置",
+        "requireUserConfirm": false,
+        "parameters": null
+      },
+      {
+        "stepName": "选择同步表：base、order、user",
+        "stepType": "SELECT_TABLES",
+        "description": "从 MySQL 数据库中选择 base、order、user 三张表作为同步对象",
+        "requireUserConfirm": true,
+        "parameters": {
+          "tables": ["base", "order", "user"]
+        }
+      },
+      {
+        "stepName": "执行全量数据同步",
+        "stepType": "EXECUTE_BATCH",
+        "description": "启动批量同步任务，将 base、order、user 表的历史存量数据同步到 Doris",
+        "requireUserConfirm": false,
+        "parameters": null
+      }
+    ]
+  }
+
+  ---
+  关键观察点
+
+  1. 提示词结构化清晰：分为任务背景、源端信息、目标端信息、可用步骤、规划要求等部分
+  2. 包含上下文信息：端类型、能力、用户的特殊要求（如表选择）
+  3. 给出明确指导：告诉 LLM 什么情况下应该选择哪种步骤类型
+  4. 约束输出格式：要求步骤数量在合理范围内，避免过度细化
+
+  这样的提示词设计能够让 LLM 生成符合 TIS 平台规范的执行计划，同时保持足够的灵活性来应对不同的用户需求。
+
+  你觉得这个提示词设计怎么样？有什么需要调整的地方吗？
+
+> 我在思考，使用plan-and-execute 和我当前项目中才用的任务模版的方式有什么优势吗？ 
+
+⏺ 非常好的问题，百岁！这确实是需要深入思考的核心问题。让我从多个维度帮你分析一下 Plan-and-Execute 模式和当前任务模板方式的优劣势。
+
+  📊 两种方式的对比分析
+
+  当前任务模板方式的特点
+
+  优势：
+
+  1. 可控性强
+    - 执行流程完全由代码控制，可预测性高
+    - 不会出现 LLM 生成不合理步骤的情况
+    - 调试和排错容易
+  2. 性能好
+    - 不需要多次调用 LLM 生成计划
+    - 执行速度快，Token 消耗少
+    - 成本可控
+  3. 质量稳定
+    - 基于最佳实践固化的流程
+    - 不会因为 LLM 的不稳定输出导致失败
+    - 用户体验一致
+  4. 维护简单
+    - 代码逻辑清晰，易于理解
+    - 修改模板直接改代码即可
+    - 不需要调试复杂的提示词
+
+  劣势：
+
+  1. 灵活性不足
+    - 遇到特殊场景需要修改代码
+    - 无法根据用户的具体描述动态调整
+    - 新增数据源组合需要编写新模板
+  2. 扩展成本高
+    - 每种源端-目标端组合可能需要单独的模板
+    - 维护多个模板的代码量大
+    - 特殊需求需要开发支持
+
+  ---
+  Plan-and-Execute 模式的特点
+
+  优势：
+
+  1. 灵活性强
+    - 可以根据用户的自然语言描述动态生成计划
+    - 自动适应不同的源端-目标端组合
+    - 无需为每种组合编写代码
+  2. 智能决策
+    - 可以根据上下文判断是否需要某些步骤
+    - 例如：用户明确说"只要增量同步"，则不生成批量同步步骤
+    - 可以根据表的数量、大小等因素调整策略
+  3. 错误恢复能力
+    - 执行失败时可以重新规划
+    - 可以根据错误信息调整后续步骤
+    - 更像人类专家的处理方式
+  4. 易于扩展
+    - 新增数据源支持时，只需更新提示词
+    - 不需要为每个组合编写代码
+    - 降低长期维护成本
+
+  劣势：
+
+  1. 不可控性
+    - LLM 可能生成不合理的计划
+    - 需要大量的验证逻辑
+    - 可能出现意外的步骤顺序
+  2. 成本高
+    - 每次规划都需要调用 LLM
+    - Token 消耗增加
+    - 执行速度变慢
+  3. 质量不稳定
+    - LLM 的输出可能不一致
+    - 需要大量测试和优化提示词
+    - 可能影响用户体验
+  4. 复杂度高
+    - 需要设计复杂的提示词
+    - 需要处理 LLM 输出的各种边界情况
+    - 调试困难
+
+  ---
+  🎯 在 TIS 场景下的具体分析
+
+  让我分析一下 TIS 数据集成平台的特点，看看哪种方式更合适：
+
+  TIS 的业务特点
+
+  1. 数据源组合多样
+    - 支持 MySQL、PostgreSQL、Oracle、Doris、StarRocks、Paimon 等数十种数据源
+    - 理论上有 N×N 种组合（如果有 20 种源端，就有 400 种组合）
+    - 每种组合的最佳实践可能不同
+  2. 任务模式相对固定
+    - 大部分任务都是：安装插件 → 创建实例 → 选表 → 同步
+    - 核心流程变化不大
+    - 主要差异在参数配置，而非步骤顺序
+  3. 用户类型
+    - 大部分用户对数据集成有基本了解
+    - 希望快速完成任务，不希望过多交互
+    - 对稳定性和可靠性要求高
+
+  ---
+  💡 我的深度分析和建议
+
+  关键洞察
+
+  基于以上分析，我认为：
+
+  对于 TIS 来说，当前的任务模板方式可能更合适，原因如下：
+
+  1. TIS 的数据同步流程相对标准化
+    - 虽然数据源组合多，但核心步骤是固定的
+    - 差异主要在插件选择和参数配置上
+    - 这些差异可以通过 LLM 生成插件配置来解决（你已经实现了）
+  2. Plan-and-Execute 的优势在 TIS 场景下不明显
+    - 步骤顺序基本不会变：安装 → 配置 → 执行
+    - 用户很少有"跳过某个步骤"的需求
+    - 错误恢复更多是参数调整，而非步骤重组
+  3. 当前方式已经足够智能
+    - LLM 已经参与了最复杂的部分：插件配置生成
+    - 这是最需要"智能"的环节
+    - 步骤编排相对简单，不需要额外的智能
+
+  ---
+  但是，有一些场景确实可以受益于 Plan-and-Execute
+
+  让我举几个具体例子：
+
+  场景1：复杂的数据转换需求
+
+  用户需求：
+  从 MySQL 同步到 Doris，但是我需要先对数据进行清洗和转换，
+  然后再写入 Doris，中间可能需要经过一个临时的 Hive 表
+
+  模板方式：
+  - 需要编写专门的"多阶段数据流"模板
+  - 或者告诉用户"不支持，请手动配置"
+
+  Plan-and-Execute 方式：
+  - LLM 可以生成：创建 MySQL Reader → 创建 Hive Writer → 执行第一阶段同步 → 创建 Hive Reader → 创建 Doris Writer → 执行第二阶段同步
+  - 自动适应复杂需求
+
+  ---
+  场景2：部分表需要特殊处理
+
+  用户需求：
+  从 PostgreSQL 同步到 StarRocks，大部分表直接同步就行，
+  但是 order_detail 表数据量很大，我希望先做分区，
+  然后再分批同步，user 表需要脱敏处理
+
+  模板方式：
+  - 难以支持这种"部分表特殊处理"的需求
+  - 需要用户手动分多次操作
+
+  Plan-and-Execute 方式：
+  - LLM 可以为不同的表生成不同的处理步骤
+  - 自动插入分区配置、脱敏处理等步骤
+
+  ---
+  场景3：错误恢复和重试
+
+  用户需求：
+  同步过程中某张表失败了，是因为目标表不存在
+
+  模板方式：
+  - 停止执行，提示用户错误
+  - 用户需要手动解决问题，然后重新开始
+
+  Plan-and-Execute 方式：
+  - LLM 可以分析错误，生成恢复步骤：
+    a. 创建目标表
+    b. 重新同步失败的表
+    c. 继续剩余的表
+  - 更智能的错误处理
+
+  ---
+  🎲 折中方案：渐进式增强
+
+  基于以上分析，我建议采用渐进式增强的策略：
+
+  阶段1：保持当前模板方式作为主流程（推荐）
+
+  private void generateGenericPlan(TaskPlan plan, JSONObject llmAnalysis) {
+      // 基础步骤仍使用模板（稳定、高效）
+      plan.addStep(new TaskStep("检查并安装必要插件", TaskStep.StepType.PLUGIN_INSTALL));
+      plan.addStep(new TaskStep("创建数据源Reader、Writer插件实例", TaskStep.StepType.PLUGIN_CREATE));
+      plan.addStep(new TaskStep("执行数据同步", TaskStep.StepType.EXECUTE_BATCH));
+
+      // 根据用户明确的需求决定
+      if (sourceEnd.isExecuteIncr()) {
+          plan.addStep(new TaskStep("增量实时数据同步启动", TaskStep.StepType.EXECUTE_INCR));
+      }
+  }
+
+  阶段2：在特定决策点使用 LLM（渐进式引入）
+
+  只在确实需要"智能决策"的地方调用 LLM：
+
+  // 例如：智能判断是否需要分批同步
+  if (needsBatchStrategy(plan)) {
+      String prompt = "表 " + tableName + " 有 " + rowCount + " 行数据，是否需要分批同步？";
+      boolean useBatch = llm.askYesNo(prompt);
+      if (useBatch) {
+          plan.addStep(createBatchSyncStep());
+      }
+  }
+
+  阶段3：为高级用户提供"专家模式"
+
+  // 在 UI 上提供开关
+  if (userPreferences.isExpertMode()) {
+      // 使用完整的 Plan-and-Execute 模式
+      return generateDynamicPlan(userInput);
+  } else {
+      // 使用稳定的模板模式
+      return generateGenericPlan(llmAnalysis);
+  }
+
+  ---
+  📋 总结：是否值得改造？
+
+  我的建议：短期内不需要全面改造，但可以在边界场景引入
+
+  理由：
+
+  1. 当前方式已经很好
+    - 核心流程稳定
+    - LLM 已经参与了最需要智能的部分（配置生成）
+    - 用户体验良好
+  2. Plan-and-Execute 的收益不明显
+    - TIS 的步骤编排相对简单
+    - 大部分场景不需要动态调整步骤
+    - 引入 Plan-and-Execute 会增加复杂度和成本
+  3. 但保留扩展空间
+    - 对于复杂场景（多阶段、特殊处理），可以提供"高级模式"
+    - 在错误恢复时，可以使用 LLM 生成修复建议
+    - 作为高级功能提供给需要的用户
+
+  具体建议
+
+  1. 保持当前模板方式作为默认
+  2. 识别 3-5 个确实需要动态规划的场景（如上述的场景1、2、3）
+  3. 为这些场景提供"智能模式"，让用户选择启用
+  4. 收集用户反馈，逐步扩大 Plan-and-Execute 的应用范围
+
+  ---
+  你觉得这个分析怎么样？是否同意当前的模板方式对于 TIS 的大部分场景已经足够好了？还是你看到了一些我没有考虑到的使用场景？
+
+
+

@@ -3441,9 +3441,337 @@ public class KnowledgeGraphInitializer {
 }
 ```
 
-#### 6.5 实体抽取器
+#### 6.5 实体抽取方案对比与选择
 
-从用户输入中抽取关键实体：
+在知识图谱增强的意图理解中，实体抽取是关键的第一步（Line 676: `List<Entity> entities = entityExtractor.extract(userRequest)`）。TIS支持多种实体抽取方案，每种方案都有其适用场景。
+
+##### 6.5.1 方案对比
+
+| 维度 | 方案A：本地预训练模型 | 方案B：远程大模型（推荐） | 方案C：混合方案 |
+|------|---------------------|------------------------|---------------|
+| **准确率** | ⭐⭐⭐ 依赖训练数据质量 | ⭐⭐⭐⭐⭐ 通用能力强，理解上下文 | ⭐⭐⭐⭐⭐ 结合两者优势 |
+| **领域适配** | ⭐⭐ 需要领域数据微调 | ⭐⭐⭐⭐ 通过提示词即可适配 | ⭐⭐⭐⭐ 提示词+词典双保险 |
+| **部署成本** | ⭐⭐ 需要模型文件和推理环境 | ⭐⭐⭐⭐⭐ 无需本地部署 | ⭐⭐⭐⭐ 仅需API调用 |
+| **响应速度** | ⭐⭐⭐⭐⭐ 本地推理快（<100ms） | ⭐⭐⭐ 网络调用有延迟（~500ms） | ⭐⭐⭐⭐ 缓存优化后接近本地 |
+| **维护成本** | ⭐⭐ 需要定期更新模型 | ⭐⭐⭐⭐⭐ 无需维护 | ⭐⭐⭐ 仅维护词典 |
+| **灵活性** | ⭐⭐ 固定抽取规则 | ⭐⭐⭐⭐⭐ 可动态调整抽取策略 | ⭐⭐⭐⭐ 灵活性高 |
+| **同义词处理** | ⭐⭐ 需要维护同义词词典 | ⭐⭐⭐⭐⭐ 自动理解同义词（pg→PostgreSQL） | ⭐⭐⭐⭐⭐ 双重保障 |
+| **Token消耗** | ⭐⭐⭐⭐⭐ 无消耗 | ⭐⭐⭐ 每次调用消耗Token | ⭐⭐⭐ 降级时节省成本 |
+| **推荐指数** | ⭐⭐⭐ 适合离线场景 | ⭐⭐⭐⭐⭐ 适合实时交互 | ⭐⭐⭐⭐ 生产环境最佳 |
+
+**推荐策略：**
+- **开发/测试环境**：使用方案B（远程大模型），快速迭代
+- **生产环境**：使用方案C（混合方案），兼顾性能和可用性
+- **离线批处理**：使用方案A（本地模型），降低成本
+
+##### 6.5.2 推荐方案：基于大模型的实体抽取器
+
+**核心优势：**
+1. **自动同义词标准化**：自动识别 `pg/postgres` → `PostgreSQL`，`ck/clickhouse` → `ClickHouse`
+2. **上下文理解**：理解"实时的"表示Streaming模式，"同步"表示ETL模式
+3. **零维护成本**：无需训练模型或维护复杂的NER规则
+4. **动态扩展**：新增数据源类型时，只需更新提示词即可
+
+**实现代码：**
+
+```java
+/**
+ * 基于大模型的实体抽取器
+ * 解决同义词匹配问题的关键组件
+ */
+@Component
+public class LLMBasedEntityExtractor implements EntityExtractor {
+
+    @Autowired
+    private LLMProvider llmProvider;
+
+    @Autowired
+    private AgentContext context;
+
+    @Override
+    public List<Entity> extract(String userRequest) {
+        // 构建实体抽取的提示词
+        String prompt = buildEntityExtractionPrompt(userRequest);
+
+        // 定义输出的 JSON Schema
+        JsonSchema schema = JsonSchema.create(getEntityExtractionSchema());
+
+        // 调用大模型
+        LLMProvider.LLMResponse response = llmProvider.chatJson(
+            context,
+            new UserPrompt("Identifying entities in your request...", prompt),
+            Collections.singletonList(buildSystemPrompt()),
+            schema
+        );
+
+        if (!response.isSuccess()) {
+            throw new IllegalStateException("LLM entity extraction failed: "
+                + response.getErrorMessage());
+        }
+
+        // 解析大模型返回的实体列表
+        JSONObject result = response.getJsonContent();
+        return parseEntities(result.getJSONArray("entities"));
+    }
+
+    /**
+     * 构建实体抽取提示词
+     * 关键：提供详细的同义词映射表
+     */
+    private String buildEntityExtractionPrompt(String userRequest) {
+        return String.format("""
+            ## Task
+            Extract key entities from the user's data integration request.
+
+            ## User Input
+            %s
+
+            ## Entity Types to Identify
+
+            ### 1. DataSource Entity (数据源实体)
+            Identify database types with their aliases:
+
+            **Relational Databases:**
+            - MySQL → normalizedName: "MySQL"
+              Aliases: mysql, MySQL
+            - PostgreSQL → normalizedName: "PostgreSQL"
+              Aliases: pg, postgres, postgresql, pgsql
+            - Oracle → normalizedName: "Oracle"
+              Aliases: oracle, ora
+            - SQLServer → normalizedName: "SQLServer"
+              Aliases: mssql, sqlserver, sql-server
+
+            **NoSQL Databases:**
+            - ElasticSearch → normalizedName: "ElasticSearch"
+              Aliases: es, elastic, elasticsearch
+            - MongoDB → normalizedName: "MongoDB"
+              Aliases: mongo, mongodb
+            - Redis → normalizedName: "Redis"
+              Aliases: redis
+            - ClickHouse → normalizedName: "ClickHouse"
+              Aliases: ck, clickhouse
+
+            **Big Data:**
+            - Doris → normalizedName: "Doris"
+              Aliases: doris, apache-doris
+            - StarRocks → normalizedName: "StarRocks"
+              Aliases: sr, starrocks
+            - Hive → normalizedName: "Hive"
+              Aliases: hive
+            - Paimon → normalizedName: "Paimon"
+              Aliases: paimon
+
+            **Message Queue:**
+            - Kafka → normalizedName: "Kafka"
+              Aliases: kafka
+
+            ### 2. Table Entity (表实体)
+            - Table names: e.g., user, order, base
+            - Table patterns: e.g., user* (prefix match), *_log (suffix match)
+            - Exclude phrases: e.g., "除AA、BB表以外" should be extracted as exclusion pattern
+
+            ### 3. Operation Type (操作类型)
+            - 同步/导入/迁移 → normalizedName: "ETL"
+            - 实时同步/流处理 → normalizedName: "Streaming"
+            - 增量同步/CDC → normalizedName: "CDC"
+
+            ### 4. Configuration Parameters (配置参数)
+            - Connection info: host, port, database
+            - Performance params: batch size, concurrency
+
+            ## Extraction Requirements
+            1. Identify ALL relevant entities including synonyms and abbreviations
+            2. Standardize entity names to their normalizedName (CRITICAL for synonym matching)
+            3. Mark confidence level for each entity (0-1)
+            4. Extract relationships between entities (e.g., "MySQL → Doris" indicates source and target)
+            5. If entity is ambiguous, list all possible interpretations
+
+            ## Output Format
+            Strictly follow the JSON Schema output format.
+            """, userRequest);
+    }
+
+    /**
+     * 系统提示词
+     */
+    private String buildSystemPrompt() {
+        return """
+            You are an entity recognition expert for the TIS data integration platform.
+            You are proficient in identifying various databases, data sources, and their aliases/abbreviations.
+            Your task is to accurately identify entities from user input and standardize them to
+            the formats that TIS platform can recognize.
+
+            IMPORTANT: Always use the normalized standard names (e.g., PostgreSQL not pg)
+            in the 'normalizedName' field to ensure knowledge graph matching.
+            """;
+    }
+
+    /**
+     * 定义实体抽取的 JSON Schema
+     */
+    private String getEntityExtractionSchema() {
+        return """
+            {
+              "entities": [
+                {
+                  "name": "Entity name as it appears in user input, string type",
+                  "type": "Entity type, enum: DataSource|Table|Operation|Parameter",
+                  "originalText": "Original text from user input, string type",
+                  "normalizedName": "Standardized name (e.g., pg→PostgreSQL), string type, REQUIRED",
+                  "aliases": "List of synonyms, array type, optional",
+                  "confidence": "Recognition confidence, number type, 0-1",
+                  "attributes": "Entity attributes, object type, optional"
+                }
+              ],
+              "relations": [
+                {
+                  "source": "Source entity name, string type",
+                  "relation": "Relation type, e.g., source_to_target, belongs_to",
+                  "target": "Target entity name, string type"
+                }
+              ]
+            }
+            """;
+    }
+
+    /**
+     * 解析大模型返回的实体
+     * 关键：使用 normalizedName 字段作为标准名称
+     */
+    private List<Entity> parseEntities(JSONArray entitiesArray) {
+        List<Entity> entities = new ArrayList<>();
+
+        for (int i = 0; i < entitiesArray.size(); i++) {
+            JSONObject entityJson = entitiesArray.getJSONObject(i);
+
+            Entity entity = new Entity();
+            // 使用标准化名称，解决同义词匹配问题
+            entity.setName(entityJson.getString("normalizedName"));
+            entity.setType(EntityType.valueOf(entityJson.getString("type")));
+            entity.setOriginalText(entityJson.getString("originalText"));
+            entity.setConfidence(entityJson.getDoubleValue("confidence"));
+
+            // 保存别名信息，用于知识图谱多重匹配
+            if (entityJson.containsKey("aliases")) {
+                entity.setAliases(entityJson.getJSONArray("aliases")
+                    .toJavaList(String.class));
+            }
+
+            // 保存属性
+            if (entityJson.containsKey("attributes")) {
+                entity.setAttributes(entityJson.getJSONObject("attributes"));
+            }
+
+            entities.add(entity);
+        }
+
+        return entities;
+    }
+}
+```
+
+**使用示例：**
+
+```java
+// 示例1：简称识别
+// 用户输入："从pg的user表同步到ck，要实时的"
+// LLM输出：
+{
+  "entities": [
+    {
+      "name": "pg",
+      "type": "DataSource",
+      "originalText": "pg",
+      "normalizedName": "PostgreSQL",  // 自动标准化！
+      "aliases": ["pg", "postgres", "postgresql"],
+      "confidence": 0.95
+    },
+    {
+      "name": "user",
+      "type": "Table",
+      "originalText": "user表",
+      "normalizedName": "user",
+      "confidence": 1.0
+    },
+    {
+      "name": "ck",
+      "type": "DataSource",
+      "originalText": "ck",
+      "normalizedName": "ClickHouse",  // 自动标准化！
+      "aliases": ["ck", "clickhouse"],
+      "confidence": 0.95
+    },
+    {
+      "name": "实时",
+      "type": "Operation",
+      "originalText": "实时的",
+      "normalizedName": "Streaming",  // 语义理解！
+      "confidence": 0.9
+    }
+  ],
+  "relations": [
+    {
+      "source": "PostgreSQL",
+      "relation": "source_to_target",
+      "target": "ClickHouse"
+    }
+  ]
+}
+
+// 示例2：复杂表选择
+// 用户输入："MySQL中除了AA、BB表以外的所有表导入到Doris"
+// LLM输出：
+{
+  "entities": [
+    {
+      "name": "MySQL",
+      "type": "DataSource",
+      "originalText": "MySQL",
+      "normalizedName": "MySQL",
+      "confidence": 1.0
+    },
+    {
+      "name": "exclude_pattern",
+      "type": "Table",
+      "originalText": "除了AA、BB表以外的所有表",
+      "normalizedName": "*",
+      "attributes": {
+        "exclude": ["AA", "BB"],
+        "pattern": "all_except"
+      },
+      "confidence": 0.9
+    },
+    {
+      "name": "Doris",
+      "type": "DataSource",
+      "originalText": "Doris",
+      "normalizedName": "Doris",
+      "confidence": 1.0
+    },
+    {
+      "name": "导入",
+      "type": "Operation",
+      "originalText": "导入",
+      "normalizedName": "ETL",
+      "confidence": 0.95
+    }
+  ]
+}
+```
+
+**关键优势对比：**
+
+| 场景 | 传统NER方法 | 大模型方法 |
+|------|-----------|-----------|
+| "pg" → "PostgreSQL" | ❌ 需要维护同义词词典 | ✅ 自动理解和标准化 |
+| "实时的" → "Streaming" | ❌ 无法理解语义 | ✅ 语义理解 |
+| "除AA、BB表以外" | ❌ 难以提取复杂模式 | ✅ 提取为结构化属性 |
+| 新数据源支持 | ❌ 需要重新训练模型 | ✅ 更新提示词即可 |
+| 多语言混用 | ❌ 需要多个模型 | ✅ 统一处理 |
+
+##### 6.5.3 备选方案：基于字典和模式的实体抽取器
+
+对于不希望依赖外部LLM服务的场景，TIS提供基于字典和正则表达式的传统实体抽取方法：
 
 ```java
 /**
@@ -3548,6 +3876,320 @@ public class EntityExtractor {
     }
 }
 ```
+
+##### 6.5.4 推荐方案：混合降级策略
+
+在生产环境中，推荐采用混合方案，以LLM为主，字典匹配为备用，实现智能降级：
+
+```java
+/**
+ * 混合实体抽取器 - 智能降级策略
+ * 优先使用LLM，当LLM不可用时自动降级到字典匹配
+ */
+@Component
+public class HybridEntityExtractor implements EntityExtractor {
+
+    @Autowired
+    private LLMBasedEntityExtractor llmExtractor;
+
+    @Autowired
+    private DictionaryBasedEntityExtractor dictExtractor;
+
+    @Autowired(required = false)
+    private LLMHealthChecker healthChecker;
+
+    private static final Logger logger = LoggerFactory.getLogger(HybridEntityExtractor.class);
+
+    // 缓存配置
+    private final Cache<String, List<Entity>> extractionCache = CacheBuilder.newBuilder()
+        .maximumSize(1000)
+        .expireAfterWrite(10, TimeUnit.MINUTES)
+        .build();
+
+    // 降级统计
+    private final AtomicInteger llmSuccessCount = new AtomicInteger(0);
+    private final AtomicInteger fallbackCount = new AtomicInteger(0);
+
+    @Override
+    public List<Entity> extract(String userRequest) {
+        // 1. 检查缓存
+        List<Entity> cached = extractionCache.getIfPresent(userRequest);
+        if (cached != null) {
+            logger.debug("Entity extraction cache hit for request: {}", userRequest);
+            return cached;
+        }
+
+        List<Entity> entities;
+
+        // 2. 尝试使用LLM抽取
+        try {
+            // 健康检查（可选）
+            if (healthChecker != null && !healthChecker.isLLMAvailable()) {
+                logger.warn("LLM health check failed, fallback to dictionary extraction");
+                entities = fallbackToDictionary(userRequest);
+            } else {
+                entities = llmExtractor.extract(userRequest);
+                llmSuccessCount.incrementAndGet();
+                logger.debug("LLM entity extraction succeeded");
+            }
+
+        } catch (LLMTimeoutException e) {
+            logger.warn("LLM timeout after {}ms, fallback to dictionary extraction",
+                e.getTimeoutMillis());
+            entities = fallbackToDictionary(userRequest);
+
+        } catch (LLMUnavailableException e) {
+            logger.warn("LLM service unavailable: {}, fallback to dictionary extraction",
+                e.getMessage());
+            entities = fallbackToDictionary(userRequest);
+
+        } catch (LLMQuotaExceededException e) {
+            logger.warn("LLM quota exceeded, fallback to dictionary extraction");
+            entities = fallbackToDictionary(userRequest);
+
+        } catch (Exception e) {
+            logger.error("LLM entity extraction failed with unexpected error, fallback", e);
+            entities = fallbackToDictionary(userRequest);
+        }
+
+        // 3. 结果增强：合并两种方法的结果
+        if (shouldEnhanceWithDictionary(entities)) {
+            List<Entity> dictEntities = dictExtractor.extract(userRequest);
+            entities = mergeResults(entities, dictEntities);
+            logger.debug("Enhanced LLM results with dictionary extraction");
+        }
+
+        // 4. 缓存结果
+        extractionCache.put(userRequest, entities);
+
+        return entities;
+    }
+
+    /**
+     * 降级到字典匹配方法
+     */
+    private List<Entity> fallbackToDictionary(String userRequest) {
+        fallbackCount.incrementAndGet();
+        logFallbackStatistics();
+        return dictExtractor.extract(userRequest);
+    }
+
+    /**
+     * 判断是否需要用字典方法增强LLM结果
+     */
+    private boolean shouldEnhanceWithDictionary(List<Entity> llmEntities) {
+        // 如果LLM没有识别到任何实体，或者置信度都很低
+        if (llmEntities.isEmpty()) {
+            return true;
+        }
+
+        double avgConfidence = llmEntities.stream()
+            .mapToDouble(Entity::getConfidence)
+            .average()
+            .orElse(0.0);
+
+        return avgConfidence < 0.7; // 平均置信度低于70%时启用增强
+    }
+
+    /**
+     * 合并LLM和字典抽取的结果
+     */
+    private List<Entity> mergeResults(List<Entity> llmEntities, List<Entity> dictEntities) {
+        Map<String, Entity> mergedMap = new HashMap<>();
+
+        // 优先保留LLM结果（因为LLM能做标准化）
+        for (Entity entity : llmEntities) {
+            mergedMap.put(entity.getName().toLowerCase(), entity);
+        }
+
+        // 补充字典结果中LLM没有识别到的实体
+        for (Entity dictEntity : dictEntities) {
+            String key = dictEntity.getName().toLowerCase();
+            if (!mergedMap.containsKey(key)) {
+                mergedMap.put(key, dictEntity);
+            }
+        }
+
+        return new ArrayList<>(mergedMap.values());
+    }
+
+    /**
+     * 记录降级统计信息
+     */
+    private void logFallbackStatistics() {
+        int success = llmSuccessCount.get();
+        int fallback = fallbackCount.get();
+        int total = success + fallback;
+
+        if (total > 0 && total % 100 == 0) {
+            double fallbackRate = (double) fallback / total * 100;
+            logger.info("Entity extraction statistics - Total: {}, LLM: {}, Fallback: {} ({:.2f}%)",
+                total, success, fallback, fallbackRate);
+
+            // 如果降级率过高，发出告警
+            if (fallbackRate > 30) {
+                logger.warn("High fallback rate detected: {:.2f}%, please check LLM service",
+                    fallbackRate);
+            }
+        }
+    }
+
+    /**
+     * 获取降级统计信息
+     */
+    public FallbackStatistics getStatistics() {
+        return new FallbackStatistics(
+            llmSuccessCount.get(),
+            fallbackCount.get()
+        );
+    }
+
+    /**
+     * 降级统计数据类
+     */
+    public static class FallbackStatistics {
+        private final int llmSuccessCount;
+        private final int fallbackCount;
+
+        public FallbackStatistics(int llmSuccessCount, int fallbackCount) {
+            this.llmSuccessCount = llmSuccessCount;
+            this.fallbackCount = fallbackCount;
+        }
+
+        public double getFallbackRate() {
+            int total = llmSuccessCount + fallbackCount;
+            return total > 0 ? (double) fallbackCount / total : 0.0;
+        }
+
+        public int getTotalCount() {
+            return llmSuccessCount + fallbackCount;
+        }
+
+        // Getters
+        public int getLlmSuccessCount() { return llmSuccessCount; }
+        public int getFallbackCount() { return fallbackCount; }
+    }
+}
+
+/**
+ * LLM健康检查器（可选组件）
+ */
+@Component
+public class LLMHealthChecker {
+
+    @Autowired
+    private LLMProvider llmProvider;
+
+    private volatile boolean lastCheckResult = true;
+    private volatile long lastCheckTime = 0;
+    private static final long CHECK_INTERVAL = 60_000; // 1分钟检查一次
+
+    /**
+     * 检查LLM服务是否可用
+     */
+    public boolean isLLMAvailable() {
+        long now = System.currentTimeMillis();
+
+        // 如果距离上次检查不到1分钟，直接返回缓存结果
+        if (now - lastCheckTime < CHECK_INTERVAL) {
+            return lastCheckResult;
+        }
+
+        try {
+            // 发送一个简单的测试请求
+            LLMProvider.LLMResponse response = llmProvider.chat(
+                "test",
+                new UserPrompt("Health check", "Echo: OK"),
+                Collections.emptyList(),
+                2000 // 2秒超时
+            );
+
+            lastCheckResult = response.isSuccess();
+            lastCheckTime = now;
+            return lastCheckResult;
+
+        } catch (Exception e) {
+            lastCheckResult = false;
+            lastCheckTime = now;
+            return false;
+        }
+    }
+}
+
+/**
+ * LLM异常定义
+ */
+public class LLMTimeoutException extends RuntimeException {
+    private final long timeoutMillis;
+
+    public LLMTimeoutException(long timeoutMillis) {
+        super("LLM request timeout after " + timeoutMillis + "ms");
+        this.timeoutMillis = timeoutMillis;
+    }
+
+    public long getTimeoutMillis() {
+        return timeoutMillis;
+    }
+}
+
+public class LLMUnavailableException extends RuntimeException {
+    public LLMUnavailableException(String message) {
+        super(message);
+    }
+
+    public LLMUnavailableException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}
+
+public class LLMQuotaExceededException extends RuntimeException {
+    public LLMQuotaExceededException(String message) {
+        super(message);
+    }
+}
+```
+
+**混合方案的优势：**
+
+1. **高可用性**：LLM服务异常时自动降级，不影响系统运行
+2. **性能优化**：通过缓存机制减少重复调用
+3. **智能增强**：低置信度时自动合并字典结果
+4. **可观测性**：统计降级率，及时发现LLM服务问题
+5. **灵活配置**：可通过健康检查提前预测并避免超时
+
+**配置示例：**
+
+```yaml
+tis:
+  ai-agent:
+    entity-extraction:
+      # 实体抽取器类型：llm, dictionary, hybrid
+      type: hybrid
+
+      # LLM配置
+      llm:
+        timeout: 5000  # 超时时间(ms)
+        retry: 2       # 重试次数
+
+      # 缓存配置
+      cache:
+        enabled: true
+        max-size: 1000
+        expire-minutes: 10
+
+      # 降级配置
+      fallback:
+        enabled: true
+        health-check: true
+        alert-threshold: 30  # 降级率超过30%时告警
+```
+
+**使用建议：**
+
+- **生产环境**：使用混合方案，确保高可用性
+- **开发/测试环境**：直接使用LLM方案，快速迭代
+- **离线环境**：使用字典方案，完全本地化部署
+- **成本敏感场景**：配置降级策略，控制LLM调用次数
 
 这个知识图谱架构为TIS AI Agent提供了强大的知识支撑，使其能够进行智能推理、案例匹配和最佳实践推荐。
 
@@ -4403,9 +5045,32 @@ Team 4: 学习机制 + 优化算法
 ## 技术选型建议
 
 ### NLP技术栈
-- 中文分词：jieba、HanLP
-- 意图识别：使用预训练模型如BERT进行fine-tuning
-- 实体抽取：CRF、BiLSTM-CRF
+
+**实体抽取（推荐方案）**
+
+- **主要方案：远程大模型（LLM）**
+  - 优势：自动同义词标准化、零维护成本、高准确率
+  - 适用场景：生产环境、开发测试环境
+  - 实现：通过LLMProvider调用远程API（DeepSeek、通义千问等）
+  - 参考实现：`LLMBasedEntityExtractor`（见第6.5.2节）
+
+- **备选方案：HanLP + 自定义词典**
+  - 优势：完全本地化、无网络依赖
+  - 适用场景：离线环境、对外部依赖有限制的场景
+  - 实现：基于HanLP的NER + 领域词典扩展
+  - 参考实现：`DictionaryBasedEntityExtractor`（见第6.5.3节）
+
+- **推荐方案：混合降级策略**
+  - 优势：高可用性、智能降级
+  - 适用场景：生产环境首选
+  - 实现：LLM为主 + 字典为备用
+  - 参考实现：`HybridEntityExtractor`（见第6.5.4节）
+
+**其他NLP组件**
+
+- 中文分词：jieba、HanLP（用于辅助文本预处理）
+- 意图识别：通过LLM直接完成，无需单独的意图分类模型
+- 同义词处理：由LLM在实体抽取阶段自动完成标准化
 
 ### 规则引擎
 - Drools：用于复杂规则管理
