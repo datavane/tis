@@ -51,9 +51,9 @@ import static com.qlangtech.tis.extension.Descriptor.KEY_OPTIONS;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
- * @see DescriptorsJSONForAIPromote for AI prompt
+ * @see DescriptorsJSONForAIPrompt for AI prompt
  */
-public class DescriptorsJSON<T extends Describable<T>> {
+public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends DescriptorsJSON.AttrVal> {
 
     //public static final int FORM_START_LEVEL = 1;
 
@@ -63,19 +63,21 @@ public class DescriptorsJSON<T extends Describable<T>> {
     public static final String KEY_IMPL_URL = "implUrl";
     public static final String KEY_ADVANCE = "advance";
 
+    public static final String KEY_SCHEMA_FIELDS_ATTRS = "attrs";
+
     private final Collection<Descriptor<T>> descriptors;
     /**
      * 由于describe 可以嵌套，此标志位可以判断 是否是根元素
      */
-    private final boolean rootDesc;
+    protected final boolean rootDesc;
 
 
-    public static DescriptorsJSONResult desc(String requestDescId) {
-        return new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON();
+    public static DescriptorsMeta desc(String requestDescId) {
+        return new DefaultDescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON();
     }
 
-    public static DescriptorsJSONResult desc(Descriptor desc) {
-        return new DescriptorsJSON(desc).getDescriptorsJSON();
+    public static DescriptorsMeta desc(Descriptor desc) {
+        return new DefaultDescriptorsJSON(desc).getDescriptorsJSON();
     }
 
     public DescriptorsJSON(Collection<Descriptor<T>> descriptors) {
@@ -116,7 +118,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
     }
 
-    public DescriptorsJSONResult getDescriptorsJSON() {
+    public DescriptorsMeta getDescriptorsJSON() {
         return getDescriptorsJSON(Optional.empty());
     }
 
@@ -175,14 +177,14 @@ public class DescriptorsJSON<T extends Describable<T>> {
     }
 
 
-    public DescriptorsJSONResult getDescriptorsJSON(Optional<SubFormFilter> subFormFilter) {
+    public DescriptorsMeta getDescriptorsJSON(Optional<SubFormFilter> subFormFilter) {
         JSONArray attrs;
         String key;
         PropertyType val;
-        JSONObject extraProps = null;
 
-        JSONObject attrVal;
-        DescriptorsJSONResult descriptors = new DescriptorsJSONResult(this.rootDesc);
+
+        AttrVal attrVal = null;
+        DescriptorsMeta descriptorsMeta = this.createDescriptorsMeta();
         // Map<String, Object> extractProps;
 
         List<Descriptor<?>> acceptDescs = getAcceptDescs(subFormFilter);
@@ -204,7 +206,7 @@ public class DescriptorsJSON<T extends Describable<T>> {
                 for (Map.Entry<String, PropertyType> pp : entries) {
                     key = pp.getKey();
                     val = pp.getValue();
-                    extraProps = getFieldExtraProps(val);
+                    JSONObject extraProps = getFieldExtraProps(val);
 
                     if (extraProps != null && extraProps.getBooleanValue(PluginExtraProps.KEY_DISABLE)) {
                         continue;
@@ -234,7 +236,8 @@ public class DescriptorsJSON<T extends Describable<T>> {
                     }
                     if (val.isDescribable()) {
                         DescriptorsJSON des2Json = createInnerDescrible(val);
-                        attrVal.put("descriptors", des2Json.getDescriptorsJSON());
+
+                        attrVal.putDescriptors(des2Json);
                         Annotation extensible = val.fieldClazz.getAnnotation(TISExtensible.class);
                         // 可以运行时添加插件
                         attrVal.put("extensible", (extensible != null));
@@ -244,15 +247,19 @@ public class DescriptorsJSON<T extends Describable<T>> {
                     attrs.add(attrVal);
                 }
                 // 对象拥有的属性
-                desJson.put("attrs", attrs);
+                desJson.put(KEY_SCHEMA_FIELDS_ATTRS, attrs);
                 setContainAdvanceField(desJson, containAdvanceField);
-                // processor.process(attrs.keySet(), d);
-                descriptors.addDesc(desc.getId(), desJson, dd);
+                descriptorsMeta.addDesc(desc.getId(), desJson, dd);
             } finally {
 
             }
         }
-        return descriptors;
+        return descriptorsMeta;
+    }
+
+    protected DescriptorsMeta createDescriptorsMeta() {
+        DescriptorsMeta descriptorsMeta = new DescriptorsMeta(this.rootDesc);
+        return descriptorsMeta;
     }
 
     protected void setContainAdvanceField(JSONObject desJson, boolean containAdvanceField) {
@@ -260,49 +267,30 @@ public class DescriptorsJSON<T extends Describable<T>> {
         desJson.put("containAdvance", containAdvanceField);
     }
 
-    protected JSONObject createAttrVal(String key, PropertyType val) {
-        JSONObject attrVal;
-        // fieldAnnot = val.getFormField();
-        attrVal = new JSONObject();
-        attrVal.put("key", key);
-        // 是否是主键
-        attrVal.put("pk", val.isIdentity());
-        attrVal.put("describable", val.isDescribable());
+    protected abstract ATTR_VAL createAttrVal(String key, PropertyType val);
 
-        attrVal.put("type", val.typeIdentity());
-        attrVal.put("required", val.isInputRequired());
-        attrVal.put("ord", val.ordinal());
-
-
-        // 是否是高级组
-        if (val.advance()) {
-            attrVal.put(DescriptorsJSON.KEY_ADVANCE, true);
-        }
-        return attrVal;
-    }
 
     protected JSONObject processExtraProps(PropertyType propertyType, JSONObject extraProps) {
         return extraProps;
     }
 
-    //    protected boolean processExtraProps(Descriptor<?> desc, PropertyType propVal,  PropertyType propertyType) {
-    //        return true;
-    //    }
 
     protected JSONObject getFieldExtraProps(PropertyType val) {
 
         return val.getExtraProps();
     }
 
-    protected Pair<JSONObject, Descriptor> createFormPropertyTypes(Optional<SubFormFilter> subFormFilter, Descriptor<
-            ?> dd) {
+    protected Pair<JSONObject, Descriptor> createFormPropertyTypes( //
+                                                                    Optional<SubFormFilter> subFormFilter,
+                                                                    Descriptor<?> dd) {
         Pair<JSONObject, Descriptor> pair = createPluginFormPropertyTypes(dd, subFormFilter, false);
         return pair;
     }
 
-    protected DescriptorsJSON createInnerDescrible(PropertyType val) {
-        return new DescriptorsJSON(val.getApplicableDescriptors(), false);
-    }
+    protected abstract DescriptorsJSON<T, ATTR_VAL> createInnerDescrible(PropertyType val);
+    //    {
+    //        return new DescriptorsJSON(val.getApplicableDescriptors(), false);
+    //    }
 
     private List<Descriptor<?>> getAcceptDescs(Optional<SubFormFilter> subFormFilter) {
         PluginFormProperties pluginFormPropertyTypes = null;
@@ -339,14 +327,14 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
     public static List<Descriptor.SelectOption> getSelectOptions(Descriptor descriptor, PropertyType propType,
                                                                  String fieldKey) {
-        ISelectOptionsGetter optionsCreator = null;
+      //   optionsCreator = null;
         if (propType.typeIdentity() != FormFieldType.SELECTABLE.getIdentity()) {
             throw new IllegalStateException("propType must be:" + FormFieldType.SELECTABLE + " but now is:" + propType.typeIdentity());
         }
         if (!(descriptor instanceof ISelectOptionsGetter)) {
             throw new IllegalStateException("descriptor:" + descriptor.getClass() + " has a selectable field:" + fieldKey + " descriptor must be an instance of 'ISelectOptionsGetter'");
         }
-        optionsCreator = descriptor;
+        ISelectOptionsGetter  optionsCreator = descriptor;
         List<Descriptor.SelectOption> selectOptions = optionsCreator.getSelectOptions(fieldKey);
 
         return selectOptions;
@@ -354,5 +342,12 @@ public class DescriptorsJSON<T extends Describable<T>> {
 
     public interface IPropGetter {
         public Object build(SubFormFilter filter);
+    }
+
+    public static abstract class AttrVal {
+
+        public abstract void put(String key, Object val);
+
+        public abstract void putDescriptors(DescriptorsJSON des2Json);
     }
 }

@@ -19,6 +19,7 @@
 package com.qlangtech.tis.util.plugin;
 
 import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.plugin.impl.EnumProp2;
 import junit.framework.TestCase;
@@ -35,7 +36,7 @@ public class TestContainEnumsFieldPlugin extends TestCase {
 
     public void testEnumsFields() {
         ContainEnumsFieldPlugin enumsFieldContainPlugin = new ContainEnumsFieldPlugin();
-        DescriptorsJSON descJson = new DescriptorsJSON(enumsFieldContainPlugin.getDescriptor());
+        DefaultDescriptorsJSON descJson = new DefaultDescriptorsJSON(enumsFieldContainPlugin.getDescriptor());
 
         JsonUtil.assertJSONEqual(ContainEnumsFieldPlugin.class, "enums-field-contain-descriptor-enum-prop1.json"
                 , descJson.getDescriptorsJSON(), (m, e, a) -> {

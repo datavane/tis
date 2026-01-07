@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
+import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.aiagent.plan.TaskPlan;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.coredefine.module.action.ChatPipelineAction;
@@ -30,19 +31,15 @@ import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
-import com.qlangtech.tis.util.AttrValMap;
-import com.qlangtech.tis.util.HeteroList;
+import com.qlangtech.tis.plugin.llm.log.ExecuteLog;
 import com.qlangtech.tis.util.PartialSettedPluginContext;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -121,7 +118,7 @@ public class TestRealTISPlanAndExecuteAgent extends BasicActionTestCase {
       TISPlanAndExecuteAgent executeAgent = new TISPlanAndExecuteAgent(agentContext, llmProvider, proxy.getRight());
 
       String taskDesc = "创建MySQL到Doris的数据同步管道，MySQL源端：host=192.168.1.10, port=3306, user=admin, password=pass123, "
-        + "database=orders。Doris目标端：host=192.168.1.20, port=9030, user=root, password=doris123。";
+        + "database=orders。Doris目标端：host=192.168.1.20, port=9030, user=root, password=doris123。需要同步源端库中的以`order`作为前缀的表";
 
       TaskPlan taskPlan = executeAgent.generatePlan(taskDesc);
       TaskPlan.DataEndCfg sourceEnd = taskPlan.getSourceEnd();
@@ -140,10 +137,12 @@ public class TestRealTISPlanAndExecuteAgent extends BasicActionTestCase {
 
 
   }
-
+  public static ExecuteLog createNoneLogger() {
+    return ExecuteLog.create(false, new UserPrompt("abstractInfo", "test"), IAgentContext.createNull(), null);
+  }
   @NotNull
   public static LLMProvider getLlmProvider() {
     PartialSettedPluginContext context = new PartialSettedPluginContext();
-    return LLMProvider.load(context.setLoginUser(() -> "admin"), "default");
+    return LLMProvider.load(context.setLoginUser(() -> "admin"), "qwen1");
   }
 }

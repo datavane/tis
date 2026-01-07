@@ -22,8 +22,9 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.datax.job.DataXJobWorker.K8SWorkerCptType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
-import com.qlangtech.tis.util.DescriptorsJSONResult;
+import com.qlangtech.tis.util.DescriptorsMeta;
 
 import java.util.Collection;
 import java.util.List;
@@ -41,7 +42,7 @@ public class PluginDescMeta<T extends Describable<T>> {
   private final Map<K8SWorkerCptType, List<T>> plugins = Maps.newHashMap();
 
   public PluginDescMeta(Collection<Descriptor<T>> descList) {
-    this.pluginDesc = new DescriptorsJSON(descList);
+    this.pluginDesc = new DefaultDescriptorsJSON(descList);
   }
 
   /**
@@ -63,7 +64,7 @@ public class PluginDescMeta<T extends Describable<T>> {
     return this.plugins.entrySet().stream().collect(Collectors.toMap((e) -> e.getKey().token, (e) -> e.getValue().size()));
   }
 
-  public DescriptorsJSONResult getPluginDesc() {
+  public DescriptorsMeta getPluginDesc() {
     return pluginDesc.getDescriptorsJSON();
   }
 }

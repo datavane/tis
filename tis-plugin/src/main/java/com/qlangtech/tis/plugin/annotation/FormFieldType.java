@@ -19,6 +19,7 @@ package com.qlangtech.tis.plugin.annotation;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.aiagent.llm.JsonSchema;
 import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.SubFormFilter;
@@ -56,17 +57,17 @@ public enum FormFieldType {
     /**
      * 多选字段,目标属性样例：'List<String> cols'
      */
-    MULTI_SELECTABLE(8),
+    MULTI_SELECTABLE(8, JsonSchema.FieldType.Array),
 
-    INPUTTEXT(1),
+    INPUTTEXT(1, JsonSchema.FieldType.String),
     /**
      * 有多个选项可以选择
      */
-    SELECTABLE(6),
+    SELECTABLE(6, JsonSchema.FieldType.String),
     /**
      * 密码
      */
-    PASSWORD(7), // 支持文件上传
+    PASSWORD(7, JsonSchema.FieldType.String), // 支持文件上传
     FILE(9, new IPropValProcessor() {
         @Override
         public Object processInput(Object instance, PropVal pval) throws Exception {
@@ -97,9 +98,9 @@ public enum FormFieldType {
 
 
         }
-    }) //
-    , TEXTAREA(2) //
-    , DATE(3) //
+    }, JsonSchema.FieldType.String) //
+    , TEXTAREA(2, JsonSchema.FieldType.String) //
+    , DATE(3, JsonSchema.FieldType.String) //
     , JDBCColumn(11, new IPropValProcessor() {
         @Override
         public Object processInput(Object instance, PropVal val) throws Exception {
@@ -112,17 +113,17 @@ public enum FormFieldType {
             // return IPropValProcessor.super.serialize2Output(pt, val);
             return null;
         }
-    }),
+    }, JsonSchema.FieldType.String),
     /**
      * 输入一个数字
      */
-    INT_NUMBER(4) //
+    INT_NUMBER(4, JsonSchema.FieldType.Integer) //
     , ENUM(5, new IPropValProcessor() {
         @Override
         public Object processInput(Object instance, PropVal val) throws Exception {
             return IPropValProcessor.super.processInput(instance, val);
         }
-    }) //
+    }, JsonSchema.FieldType.String) //
     , DateTime(10, new IPropValProcessor() {
         final DateTimeFormatter isoFormat = DateTimeFormatter.ISO_DATE_TIME;
 
@@ -157,9 +158,8 @@ public enum FormFieldType {
             }
             return LocalDateTime.ofInstant(ist, TimeFormat.sysZoneId).format(isoFormat);
         }
-    }
-    ) //
-    , DECIMAL_NUMBER(4)
+    }, JsonSchema.FieldType.String) //
+    , DECIMAL_NUMBER(4, JsonSchema.FieldType.Number)
     /**
      * 时间长度duration
      */
@@ -175,7 +175,7 @@ public enum FormFieldType {
         }
     }, (fieldProps) -> {
         fieldProps.put(IPropertyType.KEY_UNIT, "Second");
-    }) //
+    }, JsonSchema.FieldType.Integer) //
     , DURATION_OF_MINUTE(CONST_UNIT_INTEGER_FIELD, new DurationValProcessor() {
         @Override
         protected Duration deserialize(long val) {
@@ -188,7 +188,7 @@ public enum FormFieldType {
         }
     }, (fieldProps) -> {
         fieldProps.put(IPropertyType.KEY_UNIT, "Minute");
-    }) //
+    }, JsonSchema.FieldType.Integer) //
     , DURATION_OF_HOUR(CONST_UNIT_INTEGER_FIELD, new DurationValProcessor() {
         @Override
         protected Duration deserialize(long val) {
@@ -201,7 +201,7 @@ public enum FormFieldType {
         }
     }, (fieldProps) -> {
         fieldProps.put(IPropertyType.KEY_UNIT, "Hour");
-    }) //
+    }, JsonSchema.FieldType.Integer) //
     , MEMORY_SIZE_OF_BYTE(CONST_UNIT_INTEGER_FIELD, new MemorySizeValProcessor() {
         @Override
         protected MemorySize deserialize(long val) {
@@ -212,7 +212,7 @@ public enum FormFieldType {
         protected long serialize(MemorySize val) {
             return val.getBytes();
         }
-    }, new MemoryAppendExternalProps(MemoryUnit.BYTES)) //
+    }, new MemoryAppendExternalProps(MemoryUnit.BYTES), JsonSchema.FieldType.Integer) //
     , MEMORY_SIZE_OF_KIBI(CONST_UNIT_INTEGER_FIELD, new MemorySizeValProcessor() {
         @Override
         protected MemorySize deserialize(long val) {
@@ -223,7 +223,7 @@ public enum FormFieldType {
         protected long serialize(MemorySize val) {
             return val.getKibiBytes();
         }
-    }, new MemoryAppendExternalProps(MemoryUnit.KILO_BYTES)) //
+    }, new MemoryAppendExternalProps(MemoryUnit.KILO_BYTES), JsonSchema.FieldType.Integer) //
     , MEMORY_SIZE_OF_MEGA(CONST_UNIT_INTEGER_FIELD, new MemorySizeValProcessor() {
         @Override
         protected MemorySize deserialize(long val) {
@@ -234,7 +234,7 @@ public enum FormFieldType {
         protected long serialize(MemorySize val) {
             return val.getMebiBytes();
         }
-    }, new MemoryAppendExternalProps(MemoryUnit.MEGA_BYTES));
+    }, new MemoryAppendExternalProps(MemoryUnit.MEGA_BYTES), JsonSchema.FieldType.Integer);
 
     private static class MemoryAppendExternalProps implements Consumer<JSONObject> {
         private final MemoryUnit memoryUnit;
@@ -253,8 +253,7 @@ public enum FormFieldType {
         @Override
         public final Object processInput(Object instance, PropVal val) throws Exception {
             if (MemorySize.class != val.getTargetClazz()) {
-                throw new IllegalStateException("field class must be type:"
-                        + Duration.class + " but now is " + val.getTargetClazz().getSimpleName());
+                throw new IllegalStateException("field class must be type:" + Duration.class + " but now is " + val.getTargetClazz().getSimpleName());
             }
             Number rawVal = (Number) val.rawVal();
             return deserialize(rawVal.longValue());
@@ -264,8 +263,7 @@ public enum FormFieldType {
         public final Object serialize2Output(PropertyType pt, Object val) throws Exception {
             Class targetClazz = pt.fieldClazz;
             if (MemorySize.class != targetClazz) {
-                throw new IllegalStateException("field class must be type:"
-                        + Duration.class + " but now is " + targetClazz.getSimpleName());
+                throw new IllegalStateException("field class must be type:" + Duration.class + " but now is " + targetClazz.getSimpleName());
             }
             return serialize((MemorySize) val);
         }
@@ -280,8 +278,7 @@ public enum FormFieldType {
         @Override
         public final Object processInput(Object instance, PropVal val) throws Exception {
             if (Duration.class != val.getTargetClazz()) {
-                throw new IllegalStateException("field class must be type:"
-                        + Duration.class + " but now is " + val.getTargetClazz().getSimpleName());
+                throw new IllegalStateException("field class must be type:" + Duration.class + " but now is " + val.getTargetClazz().getSimpleName());
             }
             Number rawVal = (Number) val.rawVal();
             // return Duration.ofSeconds(rawVal.longValue());
@@ -296,8 +293,7 @@ public enum FormFieldType {
         public final Object serialize2Output(PropertyType pt, Object val) throws Exception {
             Class targetClazz = pt.fieldClazz;
             if (Duration.class != targetClazz) {
-                throw new IllegalStateException("field class must be type:"
-                        + Duration.class + " but now is " + targetClazz.getSimpleName());
+                throw new IllegalStateException("field class must be type:" + Duration.class + " but now is " + targetClazz.getSimpleName());
             }
             return serialize((Duration) val);
             // return ((Duration) val).toSeconds();
@@ -314,22 +310,25 @@ public enum FormFieldType {
     private final int identity;
     public final IPropValProcessor valProcessor;
     public final Consumer<JSONObject> appendExternalProps;
+    public final JsonSchema.FieldType schemaFieldType;
 
-    FormFieldType(int val) {
+    FormFieldType(int val, JsonSchema.FieldType schemaFieldType) {
         this(val, new IPropValProcessor() {
         }, (fieldProps) -> {
-        });
+        }, schemaFieldType);
     }
 
-    FormFieldType(int val, IPropValProcessor valProcessor) {
+    FormFieldType(int val, IPropValProcessor valProcessor, JsonSchema.FieldType schemaFieldType) {
         this(val, valProcessor, (fieldProps) -> {
-        });
+        }, schemaFieldType);
     }
 
-    FormFieldType(int val, IPropValProcessor valProcessor, Consumer<JSONObject> appendExternalProps) {
+    FormFieldType(int val, IPropValProcessor valProcessor, Consumer<JSONObject> appendExternalProps,
+                  JsonSchema.FieldType schemaFieldType) {
         this.identity = val;
         this.valProcessor = valProcessor;
         this.appendExternalProps = appendExternalProps;
+        this.schemaFieldType = schemaFieldType;
     }
 
     public int getIdentity() {

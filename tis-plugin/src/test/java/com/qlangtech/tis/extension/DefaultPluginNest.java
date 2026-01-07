@@ -21,7 +21,7 @@ package com.qlangtech.tis.extension;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.util.DescriptorsJSONResult;
+import com.qlangtech.tis.util.DescriptorsMeta;
 
 import java.util.function.Supplier;
 
@@ -34,7 +34,7 @@ public class DefaultPluginNest implements Describable<DefaultPluginNest> {
     public Integer exportPort;
 
     public static Integer dftExportPort() {
-        return ((DefaultExportPortProvider) DescriptorsJSONResult.getRootDescInstance()).get();
+        return ((DefaultExportPortProvider) DescriptorsMeta.getRootDescInstance()).get();
     }
 
     interface DefaultExportPortProvider extends Supplier<Integer> {

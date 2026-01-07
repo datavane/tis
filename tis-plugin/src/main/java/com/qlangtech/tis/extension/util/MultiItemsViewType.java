@@ -44,6 +44,8 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.manage.common.Option.KEY_VALUE;
+
 /**
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/10/15
@@ -174,7 +176,7 @@ public class MultiItemsViewType implements IMultiItemsView {
             Object val = null;
             for (int i = 0; i < enums.size(); i++) {
                 select = enums.getJSONObject(i);
-                val = select.get("val");
+                val = select.get(Option.KEY_VALUE);
                 if (val.getClass() != String.class) {
                     throw new IllegalStateException("val:" + val + " must be type of String,but now is " + val.getClass());
                 }

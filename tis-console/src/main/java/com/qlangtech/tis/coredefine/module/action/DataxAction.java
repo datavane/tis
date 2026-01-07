@@ -110,9 +110,10 @@ import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JsonPostMsgHandler;
 import com.qlangtech.tis.solrdao.ISchema;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
-import com.qlangtech.tis.util.DescriptorsJSONResult;
+import com.qlangtech.tis.util.DescriptorsMeta;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.HeteroList;
 import com.qlangtech.tis.util.IPluginContext;
@@ -297,7 +298,7 @@ public class DataxAction extends BasicModule {
     DataxWriter writer = pmodel.loadWriter(this, writerDesc, dataxName);
 
     Map<String, Object> pluginInfo = Maps.newHashMap();
-    DescriptorsJSONResult writeDesc = null;
+    DescriptorsMeta writeDesc = null;
     if (writer != null) {
       pluginInfo.put("item", (new DescribableJSON(writer)).getItemJson());
       writeDesc = DescriptorsJSON.desc(writer.getDescriptor());
@@ -1565,20 +1566,20 @@ public class DataxAction extends BasicModule {
     public DataxPluginDescMeta(DescriptorExtensionList<DataxReader, Descriptor<DataxReader>> readerTypes,
                                List<Descriptor<DataxWriter>> writerTypes) {
       super(readerTypes);
-      this.writerTypesDesc = new DescriptorsJSON(writerTypes);
+      this.writerTypesDesc = new DefaultDescriptorsJSON(writerTypes);
     }
 
     @JSONField(serialize = false)
-    public DescriptorsJSONResult getPluginDesc() {
+    public DescriptorsMeta getPluginDesc() {
       throw new UnsupportedOperationException();
     }
 
-    public DescriptorsJSONResult getReaderDesc() {
+    public DescriptorsMeta getReaderDesc() {
       return pluginDesc.getDescriptorsJSON();
     }
 
 
-    public DescriptorsJSONResult getWriterDesc() {
+    public DescriptorsMeta getWriterDesc() {
       return writerTypesDesc.getDescriptorsJSON();
     }
   }

@@ -69,6 +69,7 @@ import com.qlangtech.tis.runtime.module.misc.BasicRundata;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
+import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
@@ -200,7 +201,7 @@ public class PluginAction extends BasicModule {
         pluginJSON = new DescribableJSON(man);
         Map<String, Object> manipuldateItem = Maps.newHashMap();
         manipuldateItem.put("item", pluginJSON.getItemJson());
-        manipuldateItem.put("desc", (new DescriptorsJSON<>(pluginJSON.descriptor)).getDescriptorsJSON());
+        manipuldateItem.put("desc", (new DefaultDescriptorsJSON(pluginJSON.descriptor)).getDescriptorsJSON());
         this.setBizResult(context, manipuldateItem);
         return;
       }
@@ -555,7 +556,7 @@ public class PluginAction extends BasicModule {
 
     for (Descriptor desc : result.descriptors) {
       if (StringUtils.equals(desc.getDisplayName(), result.displayName)) {
-        this.setBizResult(context, new DescriptorsJSON(desc).getDescriptorsJSON());
+        this.setBizResult(context, new DefaultDescriptorsJSON(desc).getDescriptorsJSON());
         return;
       }
     }
@@ -634,7 +635,7 @@ public class PluginAction extends BasicModule {
 
     for (String extend : extendpoints) {
       this.setBizResult(context,
-              new DescriptorsJSON(TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend))).getDescriptorsJSON());
+              new DefaultDescriptorsJSON(TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend))).getDescriptorsJSON());
       return;
     }
 
@@ -667,7 +668,7 @@ public class PluginAction extends BasicModule {
       }
     });
 
-    this.setBizResult(context, new DescriptorsJSON(descs).getDescriptorsJSON());
+    this.setBizResult(context, new DefaultDescriptorsJSON(descs).getDescriptorsJSON());
   }
 
   /**

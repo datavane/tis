@@ -26,8 +26,8 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import com.qlangtech.tis.util.DescriptorsJSONForAIPromote;
-import com.qlangtech.tis.util.DescriptorsJSONResult;
+import com.qlangtech.tis.util.DescriptorsJSONForAIPrompt;
+import com.qlangtech.tis.util.DescriptorsMeta;
 import org.easymock.EasyMockSupport;
 import org.easymock.IMocksControl;
 import org.junit.Before;
@@ -87,7 +87,7 @@ public class TestPluginDownloadAndInstallExecutor extends EasyMockSupport {
   @Test
   public void testExecute() {
 
-    DescriptorsJSONResult desc = DescriptorsJSONForAIPromote.desc("com.qlangtech.tis.plugin.paimon.datax.DataxPaimonWriter");
+    DescriptorsMeta desc = DescriptorsJSONForAIPrompt.desc("com.qlangtech.tis.plugin.paimon.datax.DataxPaimonWriter");
     System.out.println(JsonUtil.toString(desc.getDescriptorsResult(), true));
 //    for (Map.Entry<String, JSONObject> entry : desc.getDescriptorsResult().entrySet()) {
 //

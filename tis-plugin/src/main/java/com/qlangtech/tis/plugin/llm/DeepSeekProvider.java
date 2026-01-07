@@ -35,9 +35,7 @@ import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.llm.log.DefaultExecuteLog;
 import com.qlangtech.tis.plugin.llm.log.ExecuteLog;
-import com.qlangtech.tis.plugin.llm.log.NoneExecuteLog;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
@@ -252,7 +250,7 @@ public class DeepSeekProvider extends LLMProvider {
         String enhancedPrompt = prompt.getPrompt();
         if (jsonSchema.isContainSchema()) {
             // enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果：\n" + jsonSchema;
-            enhancedPrompt += "\n\n请严格按照以下JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + jsonSchema.schema();
+            enhancedPrompt += "\n\n请严格按照以下JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + jsonSchema.root();
             enhancedPrompt += "\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。";
         }
         LLMResponse response = chat(context, new UserPrompt(prompt.getAbstractInfo(), enhancedPrompt), systemPrompt,

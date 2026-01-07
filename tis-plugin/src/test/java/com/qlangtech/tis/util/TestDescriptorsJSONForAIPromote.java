@@ -20,12 +20,12 @@ package com.qlangtech.tis.util;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.aiagent.llm.JsonSchema;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.DefaultPlugin;
-import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.SubFormFilter;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import junit.framework.TestCase;
@@ -66,9 +66,38 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      */
     public void testConstructorWithSingleDescriptor() {
 
-        DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON =
-                new DescriptorsJSONForAIPromote<>(defaultDescriptor, describableImpl);
+        DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON =
+                new DescriptorsJSONForAIPrompt<>(defaultDescriptor, describableImpl);
         assertNotNull(descriptorsJSON);
+    }
+
+    public void testConstructorWithMySQL8() {
+        //String pluginId = "com.qlangtech.tis.plugin.ds.mysql.MySQLV8DataSourceFactory";
+        String pluginId = "com.qlangtech.tis.plugin.datax.DataxMySQLWriter";
+        Descriptor descriptor = TIS.get().getDescriptor(pluginId);
+        DescriptorsJSONForAIPrompt descriptorsJSON =
+                new DescriptorsJSONForAIPrompt<>(Collections.singletonList(descriptor), true);
+
+        DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta result =
+                (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) descriptorsJSON.getDescriptorsJSON();
+        JsonSchema jsonSchema = result.descSchemaRegister.get(pluginId);
+        //
+
+        System.out.println(JsonUtil.toString(jsonSchema.root(), true));
+        System.out.println("=========================");
+        for (Option option : jsonSchema.getFieldsDesc()) {
+            System.out.println(option.getName());
+            if (option.getValue() instanceof Map) {
+                for (Map.Entry<String, List<Option>> entry :
+                        ((Map<String, List<Option>>) option.getValue()).entrySet()) {
+                    System.out.println(" " + entry.getKey());
+                    for (Option child : entry.getValue()) {
+                        System.out.println("\t" + child.getName());
+                    }
+
+                }
+            }
+        }
     }
 
     /**
@@ -78,12 +107,11 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
         List<Descriptor<DefaultPlugin>> descriptors = Arrays.asList((Descriptor<DefaultPlugin>) defaultDescriptor);
 
         // 测试 rootDesc = true
-        DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON = new DescriptorsJSONForAIPromote<>(descriptors,
-                true);
+        DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON = new DescriptorsJSONForAIPrompt<>(descriptors, true);
         assertNotNull(descriptorsJSON);
 
         // 测试 rootDesc = false
-        descriptorsJSON = new DescriptorsJSONForAIPromote<>(descriptors, false);
+        descriptorsJSON = new DescriptorsJSONForAIPrompt<>(descriptors, false);
         assertNotNull(descriptorsJSON);
     }
 
@@ -92,10 +120,11 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      * 验证AI模式下不包含文档URL
      */
     public void testGetDescriptorsJSON() {
-        DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON =
-                new DescriptorsJSONForAIPromote<>(defaultDescriptor, describableImpl);
+        DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON =
+                new DescriptorsJSONForAIPrompt<>(defaultDescriptor, describableImpl);
 
-        DescriptorsJSONResult result = descriptorsJSON.getDescriptorsJSON();
+        DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta result =
+                (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) descriptorsJSON.getDescriptorsJSON();
 
         assertNotNull(result);
         assertNotNull(result.getDescriptorsResult());
@@ -124,6 +153,11 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
 
         String serializeJson = JsonUtil.toString(result, true);
         System.out.println(serializeJson);
+
+        JsonSchema pluginMetaSchema = result.descSchemaRegister.get(descriptorId);
+        assertNotNull("descriptorId:" + descriptorId + " relevant pluginMetaSchema can not be null", pluginMetaSchema);
+        List<Option> fieldsDesc = pluginMetaSchema.getFieldsDesc();
+        assertFalse(fieldsDesc.isEmpty());
     }
 
 
@@ -132,10 +166,10 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      * DefaultPlugin 包含 name, password, cols, nestProp 字段
      */
     public void testFieldParsing() {
-        DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON =
-                new DescriptorsJSONForAIPromote<>(defaultDescriptor, describableImpl);
+        DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON =
+                new DescriptorsJSONForAIPrompt<>(defaultDescriptor, describableImpl);
 
-        DescriptorsJSONResult result = descriptorsJSON.getDescriptorsJSON();
+        DescriptorsMeta result = descriptorsJSON.getDescriptorsJSON();
 
         String descriptorId = defaultDescriptor.getId();
         JSONObject descJson = (JSONObject) result.getDescriptorsResult().get(descriptorId);
@@ -240,10 +274,9 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
         List<Descriptor<DefaultPlugin>> descriptors = Arrays.asList((Descriptor<DefaultPlugin>) defaultDescriptor,
                 (Descriptor<DefaultPlugin>) descriptor2);
 
-        DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON = new DescriptorsJSONForAIPromote<>(descriptors,
-                true);
+        DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON = new DescriptorsJSONForAIPrompt<>(descriptors, true);
 
-        DescriptorsJSONResult result = descriptorsJSON.getDescriptorsJSON();
+        DescriptorsMeta result = descriptorsJSON.getDescriptorsJSON();
 
         assertNotNull(result);
         // 由于两个描述符ID相同，实际上只会有一个
@@ -261,15 +294,14 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      * 验证 DescriptorsJSONForAIPromote 正确继承了 DescriptorsJSON
      */
     public void testInheritance() {
-        DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON =
-                new DescriptorsJSONForAIPromote<>(defaultDescriptor, describableImpl);
+        DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON =
+                new DescriptorsJSONForAIPrompt<>(defaultDescriptor, describableImpl);
 
         // 验证是 DescriptorsJSON 的子类
         assertTrue("Should be instance of DescriptorsJSON", descriptorsJSON instanceof DescriptorsJSON);
 
         // 验证类型参数
-        assertTrue("Should be parameterized with DefaultPlugin",
-                descriptorsJSON instanceof DescriptorsJSONForAIPromote);
+        assertTrue("Should be parameterized with DefaultPlugin", descriptorsJSON instanceof DescriptorsJSONForAIPrompt);
     }
 
     /**
@@ -278,13 +310,13 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      */
     public void testCompareWithRegularDescriptorsJSON() {
         // 创建普通的 DescriptorsJSON
-        DescriptorsJSON<DefaultPlugin> regularJSON = new DescriptorsJSON<>(defaultDescriptor);
-        DescriptorsJSONResult regularResult = regularJSON.getDescriptorsJSON();
+        DefaultDescriptorsJSON<DefaultPlugin> regularJSON = new DefaultDescriptorsJSON(defaultDescriptor);
+        DescriptorsMeta regularResult = regularJSON.getDescriptorsJSON();
 
         // 创建 AI 模式的 DescriptorsJSONForAIPromote
-        DescriptorsJSONForAIPromote<DefaultPlugin> aiJSON = new DescriptorsJSONForAIPromote<>(defaultDescriptor,
+        DescriptorsJSONForAIPrompt<DefaultPlugin> aiJSON = new DescriptorsJSONForAIPrompt<>(defaultDescriptor,
                 describableImpl);
-        DescriptorsJSONResult aiResult = aiJSON.getDescriptorsJSON();
+        DescriptorsMeta aiResult = aiJSON.getDescriptorsJSON();
 
         String descriptorId = defaultDescriptor.getId();
 
@@ -309,9 +341,9 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
     public void testEmptyDescriptorList() {
         List<Descriptor<DefaultPlugin>> emptyList = Collections.emptyList();
 
-        DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON = new DescriptorsJSONForAIPromote<>(emptyList, true);
+        DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON = new DescriptorsJSONForAIPrompt<>(emptyList, true);
 
-        DescriptorsJSONResult result = descriptorsJSON.getDescriptorsJSON();
+        DescriptorsMeta result = descriptorsJSON.getDescriptorsJSON();
 
         assertNotNull(result);
         assertNotNull(result.getDescriptorsResult());
@@ -323,10 +355,10 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      * DefaultPlugin.DefaultDescriptor 设置了 name 字段的默认值
      */
     public void testDefaultValues() {
-        DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON =
-                new DescriptorsJSONForAIPromote<>(defaultDescriptor, describableImpl);
+        DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON =
+                new DescriptorsJSONForAIPrompt<>(defaultDescriptor, describableImpl);
 
-        DescriptorsJSONResult result = descriptorsJSON.getDescriptorsJSON();
+        DescriptorsMeta result = descriptorsJSON.getDescriptorsJSON();
 
         String descriptorId = defaultDescriptor.getId();
         JSONObject descJson = (JSONObject) result.getDescriptorsResult().get(descriptorId);
@@ -342,10 +374,10 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      * 测试扩展点信息
      */
     public void testExtendPoint() {
-        DescriptorsJSONForAIPromote<DefaultPlugin> descriptorsJSON =
-                new DescriptorsJSONForAIPromote<>(defaultDescriptor, describableImpl);
+        DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON =
+                new DescriptorsJSONForAIPrompt<>(defaultDescriptor, describableImpl);
 
-        DescriptorsJSONResult result = descriptorsJSON.getDescriptorsJSON();
+        DescriptorsMeta result = descriptorsJSON.getDescriptorsJSON();
 
         String descriptorId = defaultDescriptor.getId();
         JSONObject descJson = (JSONObject) result.getDescriptorsResult().get(descriptorId);

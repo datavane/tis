@@ -24,7 +24,6 @@ import com.alibaba.fastjson.serializer.ObjectSerializer;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.fastjson2.JSONWriter;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
@@ -42,12 +41,12 @@ public class DescriptorsJSONResultSerializer implements ObjectSerializer {
     @Override
     public void write(JSONWriter jsonWriter, Object object, Object fieldName, Type fieldType, long features) {
         boolean prettyFormat = SerializerFeature.isEnabled((int) features, SerializerFeature.PrettyFormat);
-        DescriptorsJSONResult value = (DescriptorsJSONResult) object;
+        DescriptorsMeta value = (DescriptorsMeta) object;
         Objects.requireNonNull(value, "callable of " + fieldName + " can not be null");
         jsonWriter.writeRaw(toJSONString(value, prettyFormat));
     }
 
-    public String toJSONString(DescriptorsJSONResult value, boolean prettyFormat) {
+    public String toJSONString(DescriptorsMeta value, boolean prettyFormat) {
         JSONObject o = new JSONObject();
         final int fieldSize = value.descs.size();
         StringBuilder json = new StringBuilder();
@@ -59,7 +58,7 @@ public class DescriptorsJSONResultSerializer implements ObjectSerializer {
         for (Map.Entry<String, Pair<JSONObject, Object>> entry : value.descs.entrySet()) {
             try {
                 if (value.rootDesc) {
-                    DescriptorsJSONResult.rootDescriptorLocal.set(entry.getValue().getValue());
+                    DescriptorsMeta.rootDescriptorLocal.set(entry.getValue().getValue());
                 }
                 json.append("\t\"").append(entry.getKey()).append("\":")
                         .append(JsonUtil.toString(entry.getValue().getLeft(), prettyFormat));
@@ -70,7 +69,7 @@ public class DescriptorsJSONResultSerializer implements ObjectSerializer {
                 throw new IllegalStateException(entry.getKey() + " " + entry.getValue().getValue().getClass(), e);
             } finally {
                 if (value.rootDesc) {
-                    DescriptorsJSONResult.rootDescriptorLocal.remove();
+                    DescriptorsMeta.rootDescriptorLocal.remove();
                 }
             }
         }

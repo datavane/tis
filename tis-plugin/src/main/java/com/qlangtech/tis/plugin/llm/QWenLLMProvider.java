@@ -31,18 +31,16 @@ import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.PostFormStreamProcess;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.llm.log.DefaultExecuteLog;
 import com.qlangtech.tis.plugin.llm.log.ExecuteLog;
-import com.qlangtech.tis.plugin.llm.log.NoneExecuteLog;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
-import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -58,6 +56,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static com.qlangtech.tis.aiagent.llm.JsonSchema.SCHEMA_VALUE_CONST;
+import static com.qlangtech.tis.aiagent.llm.JsonSchema.SCHEMA_VALUE_DEFAULT;
+import static com.qlangtech.tis.aiagent.llm.JsonSchema.SCHEMA_VALUE_ENUM;
+import static com.qlangtech.tis.aiagent.llm.JsonSchema.SCHEMA_VALUE_PATTERN;
+import static com.qlangtech.tis.extension.Descriptor.KEY_primaryVal;
 
 /**
  * 阿里通义千问大模型Provider实现<br/>
@@ -163,8 +167,8 @@ public class QWenLLMProvider extends LLMProvider {
                  * 若指定为{"type": "json_object"}，需在提示词中明确指示模型输出JSON，如：“请按照json格式输出”，否则会报错。
                  * 支持的模型参见结构化输出。
                  */
-                responseFormat.put("type", "json_object");
-                // responseFormat.put("json_schema", jsonOutput.schema());
+                responseFormat.put("type", "json_schema");
+                responseFormat.put("json_schema", jsonOutput.root());
                 postParams.add(new HttpUtils.PostParam("response_format", responseFormat));
             }
 
@@ -295,13 +299,41 @@ public class QWenLLMProvider extends LLMProvider {
     public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
                                 JsonSchema jsonSchema) {
         // 增强prompt，要求返回JSON格式
-        String enhancedPrompt = prompt.getPrompt();
+        StringBuilder enhancedPrompt = new StringBuilder(prompt.getPrompt());
         if (jsonSchema.isContainSchema()) {
-            enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + JsonUtil.toString(jsonSchema.schema(), false);
-            enhancedPrompt += "\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。";
+            // enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + JsonUtil.toString(jsonSchema
+            // .schema(), false);
+            enhancedPrompt.append("\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。");
+            enhancedPrompt.append("\n请务必严格按照 'response_format' 中定义的 JSON Schema " +
+                    "格式输出，不要输出任何其他内容或格式。以下是对'response_format'中相关字段的说明：");
+            //            public static final String SCHEMA_VALUE_ENUM = "enum";
+            //            public static final String SCHEMA_VALUE_PATTERN = "pattern";
+
+            jsonSchema.appendFieldDescToPrompt(enhancedPrompt);
+            //  SCHEMA_VALUE_CONST
+            enhancedPrompt.append("\n\n**注意**：分析用户输入内容必须遵守如下纪律：");
+            enhancedPrompt.append("\n**默认值处理**：");
+            enhancedPrompt.append("\n   - 对于 `"+KEY_primaryVal+"` 字段：");
+            enhancedPrompt.append("\n     a) 如果用户提供了对应信息 → 按 schema 要求处理（如替换非法字符以符合 `"+SCHEMA_VALUE_PATTERN+"`）；");
+            enhancedPrompt.append("\n     b) 如果用户**未提供**，但相应属性中定义了 `"+SCHEMA_VALUE_DEFAULT+"`属性 → **必须使用该 "+SCHEMA_VALUE_DEFAULT+" 值**作为`"+KEY_primaryVal+"`属性值；");
+            enhancedPrompt.append("\n     c) 如果用户未提供，且 相应属性 中**无 "+SCHEMA_VALUE_DEFAULT+"** → 填入空字符串 `\"\"`。");
+
+            //            enhancedPrompt.append("\n  1. `").append(KEY_primaryVal).append("`对应的属性如定义了" + "`").append
+            //            (SCHEMA_VALUE_CONST).append("`则`").append(KEY_primaryVal).append("`对应的值**必须**取值为`").append
+            //            (SCHEMA_VALUE_CONST).append("`对应的值");
+            //            enhancedPrompt.append("\n  2. 不能分析得到对应'response_format'中`").append(KEY_primaryVal).append
+            //            ("`对应的值，必须使用json"
+            //                    + " " + "schema中相应属性：`").append(SCHEMA_VALUE_DEFAULT).append("`对应值，如该属性没有定义，则`")
+            //                    .append(KEY_primaryVal).append("`对应的值设置为空(\"\")即可");
+            //            enhancedPrompt.append("\n  3.`").append(KEY_primaryVal).append("`对应属性如定义了`").append
+            //            (SCHEMA_VALUE_ENUM).append("`则对应的值**必须为**`").append(SCHEMA_VALUE_ENUM).append("`定义的值之一");
+            //            enhancedPrompt.append("\n  4.`").append(KEY_primaryVal).append("`对应属性如定义了`").append
+            //            (SCHEMA_VALUE_PATTERN).append("`则对应的值**必须符合**`").append(SCHEMA_VALUE_PATTERN).append
+            //            ("`定义的模式规范");
         }
 
-        LLMResponse response = chat(context, prompt.setNewPrompt(enhancedPrompt), systemPrompt, false, jsonSchema);
+        LLMResponse response = chat(context, prompt.setNewPrompt(enhancedPrompt.toString()), systemPrompt, false,
+                jsonSchema);
 
         try {
             if (response.isSuccess() && response.getContent() != null) {

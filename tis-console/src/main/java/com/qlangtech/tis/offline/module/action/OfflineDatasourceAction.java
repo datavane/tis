@@ -77,6 +77,7 @@ import com.qlangtech.tis.sql.parser.exception.TisSqlFormatException;
 import com.qlangtech.tis.sql.parser.meta.*;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroList;
 import com.qlangtech.tis.util.IPluginContext;
@@ -1181,7 +1182,7 @@ public class OfflineDatasourceAction extends BasicModule {
     Map<String, Object> bizResult = Maps.newHashMap();
     Map<String, JSONObject> tabDesc = Maps.newHashMap();
     for (DataxReader reader : readers) {
-      DescriptorsJSON desc2Json = new DescriptorsJSON(reader.getDescriptor());
+      DescriptorsJSON desc2Json = new DefaultDescriptorsJSON(reader.getDescriptor());
       pluginFormPropertyTypes = reader.getDescriptor().getPluginFormPropertyTypes(pluginMeta.getSubFormFilter());
       allNewTabs.addAll(reader.createDefaultTables(this, selectedTabs, pluginMeta, (entry) -> {
         tabDesc.put(entry.getKey(),

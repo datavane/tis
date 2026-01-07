@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * @seee DescriptorsJSON
  **/
 @JSONType(serializer = DescriptorsJSONResultSerializer.class)
-public class DescriptorsJSONResult {
+public class DescriptorsMeta {
     public static final ThreadLocal<Object> rootDescriptorLocal = new ThreadLocal<Object>();
 
     public static <T> T getRootDescInstance() {
@@ -50,7 +50,7 @@ public class DescriptorsJSONResult {
      *
      * @param rootDesc
      */
-    public DescriptorsJSONResult(boolean rootDesc) {
+    public DescriptorsMeta(boolean rootDesc) {
         this.rootDesc = rootDesc;
     }
 
@@ -72,8 +72,7 @@ public class DescriptorsJSONResult {
 
     public Map<String, JSONObject> getDescriptorsResult() {
         return this.descs.entrySet().stream()
-                .collect(Collectors.toMap(
-                        (e) -> e.getKey(), (e) -> e.getValue().getLeft()));
+                .collect(Collectors.toMap(Map.Entry::getKey, (e) -> e.getValue().getLeft()));
     }
 
 

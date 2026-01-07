@@ -24,6 +24,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
 import com.qlangtech.tis.aiagent.core.TestRealTISPlanAndExecuteAgent;
+import com.qlangtech.tis.aiagent.llm.JsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
@@ -34,8 +35,8 @@ import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescribableJSON;
-import com.qlangtech.tis.util.DescriptorsJSONForAIPromote;
-import com.qlangtech.tis.util.DescriptorsJSONResult;
+import com.qlangtech.tis.util.DescriptorsJSONForAIPrompt;
+import com.qlangtech.tis.util.DescriptorsMeta;
 
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PartialSettedPluginContext;
@@ -67,6 +68,12 @@ import static org.easymock.EasyMock.*;
 public class PluginInstanceCreateExecutorTest extends TestCase {
 
   @Test
+  public void testExtractUserInput2JsonFromDataXWriter() {
+
+  }
+
+
+  @Test
   public void testExtractUserInput2Json() {
     //  HeteroEnum.DATASOURCE.getPlugins();
     PluginInstanceCreateExecutor instanceCreateExecutor = new PluginInstanceCreateExecutor();
@@ -75,15 +82,16 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
 
     DescribableImpl impl = new DescribableImpl(DataSourceFactory.class, Optional.empty());
     impl.addImpl("com.qlangtech.tis.plugin.ds.mysql.MySQLV5DataSourceFactory");
-    Pair<DescriptorsJSONResult, DescriptorsJSONForAIPromote> desc = DescriptorsJSONForAIPromote.desc(impl);
+    Pair<DescriptorsMeta, DescriptorsJSONForAIPrompt> desc = DescriptorsJSONForAIPrompt.desc(impl);
     LLMProvider llmProvider = TestRealTISPlanAndExecuteAgent.getLlmProvider();
-    for (Map.Entry<String, JSONObject> entry : desc.getLeft().getDescriptorsResult().entrySet()) {
+    DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta descriptorsMeta =  (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) desc.getLeft();
+    for (Map.Entry<String, JsonSchema> entry : descriptorsMeta.descSchemaRegister.entrySet()) {
       // 需要遍历他的所有属性如果有需要创建的属性插件需要先创建
       JSONObject jsonObject
         = instanceCreateExecutor.extractUserInput2Json(IAgentContext.createNull(),
         new UserPrompt("解析数据源配置", userInput), endType, Objects.requireNonNull(entry.getValue()), llmProvider);
 
-      Objects.requireNonNull(jsonObject);
+      Objects.requireNonNull(jsonObject,"jsonObject can not be null");
 
       Descriptor targetDesc = impl.getImplDesc();
 
@@ -112,28 +120,6 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
       Assert.assertFalse(validateResult.isValid());
 
       validateResult = attrValMap.validate(msgHandler, context, FormVaildateType.create(false), Optional.empty());
-
-      //  attrValMap.createDescribable()
-      //
-//      AttrVals formData = null; //
-//      Optional<PluginFormProperties> pTypes = Optional.empty(); //
-//      Optional<SubFormFilter> subFormFilter = Optional.empty();
-//
-//      Optional<Descriptor.PostFormVals> parentFormVals = Optional.empty();
-//      targetDesc.verify(msgHandler, context, verify, );
-//
-//
-//      UploadPluginMeta pluginMeta = UploadPluginMeta.parse("test");
-//
-//      int pluginIndex = 0;
-//      JSONArray itemsArray = new JSONArray();
-//      itemsArray.add(jsonObject);
-//      boolean verify = true;
-//      PropValRewrite propValRewrite = PropValRewrite.dftRewrite();//
-//
-//      PluginItemsParser.parsePluginItems(msgHandler, msgHandler, pluginMeta, context, pluginIndex, itemsArray, verify, propValRewrite);
-
-
     }
 
 

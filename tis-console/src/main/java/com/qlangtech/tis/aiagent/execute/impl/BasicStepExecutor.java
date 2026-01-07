@@ -65,11 +65,10 @@ import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.ListDetailedItemsErrors;
-import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescribableJSON;
-import com.qlangtech.tis.util.DescriptorsJSONForAIPromote;
-import com.qlangtech.tis.util.DescriptorsJSONResult;
+import com.qlangtech.tis.util.DescriptorsJSONForAIPrompt;
+import com.qlangtech.tis.util.DescriptorsMeta;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.ItemsSaveResult;
@@ -126,9 +125,9 @@ public abstract class BasicStepExecutor implements StepExecutor {
   protected AttrValMap createPluginInstance(TaskPlan plan, AgentContext context, UserPrompt userInput //
     , Optional<IEndTypeGetter.EndType> endType, DescribableImpl pluginImpl //
     , IPluginEnum heteroEnum, IPrimaryValRewrite primaryValRewrite) throws Exception {
-    Pair<DescriptorsJSONResult, DescriptorsJSONForAIPromote> desc = DescriptorsJSONForAIPromote.desc(pluginImpl);
+    Pair<DescriptorsMeta, DescriptorsJSONForAIPrompt> desc = DescriptorsJSONForAIPrompt.desc(pluginImpl);
 
-    DescriptorsJSONForAIPromote forAIPromote = desc.getValue();
+    DescriptorsJSONForAIPrompt forAIPromote = desc.getValue();
     DescribableImpl propImplInfo = null;
     Descriptor implDesc = null;
     Map<Class<? extends Descriptor>, DescribableImpl> fieldDescRegister = forAIPromote.getFieldDescRegister();
@@ -143,11 +142,15 @@ public abstract class BasicStepExecutor implements StepExecutor {
     }
     Objects.requireNonNull(propsImplRefsVals, "propsImplRefsVals can not be null");
     LLMProvider llmProvider = plan.getLLMProvider();
+    DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta descriptorsMeta =  (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta)desc.getLeft();
 
-    for (Map.Entry<String, JSONObject> entry : desc.getLeft().getDescriptorsResult().entrySet()) {
+
+
+    for (Map.Entry<String, JsonSchema> entry : descriptorsMeta.descSchemaRegister.entrySet()) {
       // 需要遍历他的所有属性如果有需要创建的属性插件需要先创建
       JSONObject pluginPostBody = extractUserInput2Json(context, userInput, endType,
         Objects.requireNonNull(entry.getValue()), llmProvider);
+
       AttrValMap attrValMap = parseDescribableMap(Optional.empty(), pluginPostBody);
 
       try {
@@ -193,10 +196,9 @@ public abstract class BasicStepExecutor implements StepExecutor {
    * @return
    */
   public JSONObject extractUserInput2Json(IAgentContext context, UserPrompt userInput,
-                                          Optional<IEndTypeGetter.EndType> endType, JSONObject descriptorJson,
+                                          Optional<IEndTypeGetter.EndType> endType, JsonSchema descriptorJson,
                                           LLMProvider llmProvider) {
-    final String prompt = "用户输入内容：" + userInput.getPrompt();// + "\n 按照提示词要求生成JSON结构的输出";//，如下：\n" + JsonUtil.toString
-    // (descriptorJson, true);
+    final String prompt = "用户输入内容：" + userInput.getPrompt();
     final String systemPrompt = SYSTEM_ASSIST_ROLE + "你的任务是帮助用户创建数据同步管道。\n"  //
       + endType.map((end) -> "当前处理的数据端是针对：" //
       + String.valueOf(end)).orElse(StringUtils.EMPTY) //
@@ -204,15 +206,35 @@ public abstract class BasicStepExecutor implements StepExecutor {
 
     JSONObject pluginPostBody = null;
     //final String jsonSchema = "\n\n请严格按照系统提示中输出json的Schema格式返回结果";
-    try (InputStream sysPromote = PluginInstanceCreateExecutor.class.getResourceAsStream(
-      "describle_plugin_json_create_deamo.md")) {
-      LLMProvider.LLMResponse llmResponse = llmProvider.chatJson(context, userInput.setNewPrompt(prompt),
-        Lists.newArrayList(systemPrompt, IOUtils.toString(Objects.requireNonNull(sysPromote //
-        , "sysPromote can not be null"), TisUTF8.get())), JsonSchema.create(descriptorJson));
+//    try (InputStream sysPromote = PluginInstanceCreateExecutor.class.getResourceAsStream(
+//      "describle_plugin_json_create_deamo.md")) {
+//      LLMProvider.LLMResponse llmResponse = llmProvider.chatJson(
+//        context // 1
+//        , userInput.setNewPrompt(prompt) // 2
+//        , Lists.newArrayList(systemPrompt, IOUtils.toString(Objects.requireNonNull(sysPromote //
+//        , "sysPromote can not be null"), TisUTF8.get())) // 3. systemPrompt:List<String>
+//        , descriptorJson // 4. JsonSchema
+//      );
+//      return pluginPostBody = llmResponse.getJsonContent();
+//    } catch (Exception e) {
+//      throw new RuntimeException(e);
+//    }
+
+
+//    try (InputStream sysPromote = PluginInstanceCreateExecutor.class.getResourceAsStream(
+//      "describle_plugin_json_create_deamo.md")) {
+      LLMProvider.LLMResponse llmResponse = llmProvider.chatJson(
+        context // 1
+        , userInput.setNewPrompt(prompt) // 2
+        , Lists.newArrayList(systemPrompt) // 3. systemPrompt:List<String>
+        , descriptorJson // 4. JsonSchema
+      );
+    //
+    // System.out.println("CompletionTokens:"+ llmResponse.getCompletionTokens());
       return pluginPostBody = llmResponse.getJsonContent();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+//    } catch (Exception e) {
+//      throw new RuntimeException(e);
+//    }
   }
 
   public static class ExtractTargetTableInfoResult {

@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.plugin.ds;
 
+import com.qlangtech.tis.extension.AIPromptEnhance;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.annotation.FormField;
@@ -38,8 +39,10 @@ import java.util.List;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-12-17 21:24
  **/
+
 public class NoneSplitTableStrategy extends SplitTableStrategy {
 
+    @AIPromptEnhance(prompt = "单数据源地址（仅当未启用分表时使用）。注意：此字段与分表策略中的 nodeDesc 完全无关。")
     @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.hostWithoutPort})
     public String host;
 

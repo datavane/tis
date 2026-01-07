@@ -154,7 +154,7 @@ public class HeteroList<T extends Describable<T>> {
 
 
         Optional<SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
-        DescriptorsJSON desc2Json = new DescriptorsJSON(this.descriptors, true);
+        DescriptorsJSON desc2Json = new DefaultDescriptorsJSON(this.descriptors, true);
 
 
         if (this.getItems().size() == 1) {

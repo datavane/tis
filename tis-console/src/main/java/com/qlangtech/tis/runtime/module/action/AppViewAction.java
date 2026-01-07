@@ -19,8 +19,6 @@ package com.qlangtech.tis.runtime.module.action;
 
 import com.alibaba.citrus.turbine.Context;
 import com.koubei.web.tag.pager.Pager;
-import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.datax.DefaultDataXProcessorManipulate;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
@@ -28,8 +26,6 @@ import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria.Criteria;
 import com.qlangtech.tis.manage.common.UserUtils;
 import com.qlangtech.tis.manage.common.apps.IAppsFetcher;
 import com.qlangtech.tis.manage.spring.aop.Func;
-import com.qlangtech.tis.util.DescriptorsJSON;
-import com.qlangtech.tis.util.DescriptorsJSONResult;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;

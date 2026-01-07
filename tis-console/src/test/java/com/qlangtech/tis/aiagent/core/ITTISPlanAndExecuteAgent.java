@@ -40,7 +40,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.qlangtech.tis.aiagent.core.TestTISPlanAndExecuteAgent.createNoneLogger;
+
+import static com.qlangtech.tis.aiagent.core.TestRealTISPlanAndExecuteAgent.createNoneLogger;
 import static org.junit.Assert.*;
 
 /**

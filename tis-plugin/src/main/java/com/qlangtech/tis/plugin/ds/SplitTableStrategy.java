@@ -21,6 +21,7 @@ package com.qlangtech.tis.plugin.ds;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.extension.AIPromptEnhance;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.TISExtensible;
 import com.qlangtech.tis.plugin.ds.SplitableTableInDB.SplitableDB;
@@ -42,8 +43,10 @@ import java.util.regex.Pattern;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-12-17 21:20
+ * @see NoneSplitTableStrategy
  **/
 @TISExtensible
+@AIPromptEnhance(prompt = "若用户未提及分表、多节点、表后缀等关键词，默认选择 id = 'off'")
 public abstract class SplitTableStrategy implements Describable<SplitTableStrategy>, Serializable {
     public static final Pattern PATTERN_PHYSICS_TABLE = Pattern.compile("(\\S+?)(_\\d+)?");
 

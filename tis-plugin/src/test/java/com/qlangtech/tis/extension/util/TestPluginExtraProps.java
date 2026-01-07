@@ -32,6 +32,7 @@ import com.qlangtech.tis.plugin.ds.CMeta.ParsePostMCols;
 import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
+import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import junit.framework.TestCase;
 
@@ -171,7 +172,7 @@ public class TestPluginExtraProps extends TestCase {
         Assert.assertEquals(DefaultPlugin.FILED_NAME_DESCRIPTION, nameProp.getAsynHelp());
         Assert.assertEquals(DefaultPlugin.DFT_NAME_VALUE, nameProp.getDftVal());
 
-        DescriptorsJSON descJSON = new DescriptorsJSON(pluginDesc.get().getElementDesc());
+        DefaultDescriptorsJSON descJSON = new DefaultDescriptorsJSON(pluginDesc.get().getElementDesc());
         System.out.println(JsonUtil.toString(descJSON.getDescriptorsJSON()));
 
     }

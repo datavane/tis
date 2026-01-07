@@ -36,6 +36,7 @@ import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
+import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroList;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -174,7 +175,7 @@ public class AgentContext implements IAgentContext {
       }
 
       data.put(KEY_CONTENT_DETAIL, reasonDetail);
-      data.put("dataXReaderDesc", new DescriptorsJSON(dataXReaderImpl.getImplDesc()).getDescriptorsJSON());
+      data.put("dataXReaderDesc", new DefaultDescriptorsJSON(dataXReaderImpl.getImplDesc()).getDescriptorsJSON());
       /**
        * 向缓存中写入初始数据
        */

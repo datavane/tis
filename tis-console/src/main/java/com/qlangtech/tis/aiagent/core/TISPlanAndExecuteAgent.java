@@ -21,6 +21,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.llm.JsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
+import com.qlangtech.tis.aiagent.plan.AgentTaskIntention;
 import com.qlangtech.tis.aiagent.plan.PlanGenerator;
 import com.qlangtech.tis.aiagent.plan.TaskPlan;
 import com.qlangtech.tis.aiagent.plan.TaskStep;
@@ -40,8 +41,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import com.qlangtech.tis.aiagent.plan.AgentTaskIntention;
 
 import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_EXECUTE_BATCH;
 import static com.qlangtech.tis.aiagent.plan.PlanGenerator.KEY_EXECUTE_INCR;
@@ -113,10 +112,11 @@ public class TISPlanAndExecuteAgent {
       // 使用LLM分析用户输入
       String systemPrompt = buildSystemPrompt();
       String prompt = buildUserPrompt(userInput);
+      prompt += "";
 
       LLMProvider.LLMResponse response = llmProvider.chatJson(Objects.requireNonNull(context,
         "context can not be " + "null"), new UserPrompt("您好！我正在分析您的需求...", prompt),
-        Collections.singletonList(systemPrompt), JsonSchema.create(JSONObject.parseObject(getPlanSchema())));
+        Collections.singletonList(systemPrompt), getPlanSchema());
 
       if (!response.isSuccess()) {
         throw new IllegalStateException("LLM call failed: " + response.getErrorMessage());
@@ -266,7 +266,7 @@ public class TISPlanAndExecuteAgent {
     }).collect(Collectors.joining("，"));
 
     return "你是TIS数据集成平台的智能助手。你的任务是帮助用户创建数据同步管道。\n" + "TIS支持多种数据源，枚举端类型为：" + supportedDataEnds + "，" +
-      "请根据用户的描述，识别源端和目标端的类型。现在智能平台接受用户提交任务，需要识别任务意图对应输出json结果中的'" + KEY_INTENTION + "'字段，他是一个枚举类型，支持的值为：" + Arrays.stream(AgentTaskIntention.values()).map(String::valueOf).collect(Collectors.joining(","));
+      "请根据用户的描述，识别源端和目标端的类型。现在智能平台接受用户提交任务，需要识别任务意图对应输出json结果中的'" + KEY_INTENTION + "'字段，他是一个枚举类型，支持的值为：" + Arrays.stream(AgentTaskIntention.values()).map(String::valueOf).collect(Collectors.joining(",")) + "\n\n重要：用户请求的分析结果必须严格按照用户请求中 'response_format' 参数所指定的 JSON Schema 结构进行输出。不得添加、删除或修改任何字段名称。输出的 JSON 必须与 Schema 完全匹配。";
   }
 
   /**
@@ -279,19 +279,78 @@ public class TISPlanAndExecuteAgent {
   /**
    * 获取计划JSON Schema
    */
-  private String getPlanSchema() {
+  private JsonSchema getPlanSchema() {
 
-    return "{\n" + "  \"" + KEY_INTENTION + "\":\"string类型\",\n" + "  \"" + KEY_SOURCE + "\": {\"" + KEY_TYPE +
-      "\":\"string,值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" + KEY_EXTRACT_INFO + "\":\"类型为string" +
-      "，从用户提供的数据通道任务描述信息中抽取源端相关的描述信息\",\"" //
-      + SUB_PROP_FIELD_NAME //
-      + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取源端相关的信息（如：‘除AA、BB表以外的所有表’，‘前缀为user的表’，‘AA，BB’）,如不能抽取得到则设置为空字符串\"} ,\n" //
-      + "  \"" //
-      + KEY_TARGET + "\": {\"" + KEY_TYPE + "\":\"string," //
-      + "值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" //
-      + KEY_EXTRACT_INFO + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取目标端相关的描述信息\"} ,"  //
-      + "\n" + "  \"" + KEY_EXECUTE_OPTION_CONFIG + "\": {\n" + "    \""  //
-      + KEY_EXECUTE_BATCH + "\": \"类型为boolean" + "，表明数据管道创建完成之后是否立即触发全量数据同步，默认为false\",\n"  //
-      + "    \"" + KEY_EXECUTE_INCR + "\": \"类型为boolean" + "，表明数据管道创建完成后是否立即启动增量事实同步，默认为false\"\n" + "  }\n" + "}";
+    //    String schemaExample =
+    //      "{\n" + "  \"" + KEY_INTENTION + "\":\"string类型\",\n" + "  \"" + KEY_SOURCE + "\": {\"" + KEY_TYPE +
+    //        "\":\"string,值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" + KEY_EXTRACT_INFO + "\":\"类型为string" +
+    //        "，从用户提供的数据通道任务描述信息中抽取源端相关的描述信息\",\"" //
+    //      + SUB_PROP_FIELD_NAME //
+    //      + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取源端相关的信息（如：‘除AA、BB表以外的所有表’，‘前缀为user的表’，‘AA，BB’）,如不能抽取得到则设置为空字符串\"} ,
+    //      \n" //
+    //      + "  \"" //
+    //      + KEY_TARGET + "\": {\"" + KEY_TYPE + "\":\"string," //
+    //      + "值必须为系统提示词中枚举到的端类型关键词，大小写必须一致\",\"" //
+    //      + KEY_EXTRACT_INFO + "\":\"类型为string，从用户提供的数据通道任务描述信息中抽取目标端相关的描述信息\"} ,"  //
+    //      + "\n" + "  \"" + KEY_EXECUTE_OPTION_CONFIG + "\": {\n" + "    \""  //
+    //      + KEY_EXECUTE_BATCH + "\": \"类型为boolean" + "，表明数据管道创建完成之后是否立即触发全量数据同步，默认为false\",\n"  //
+    //      + "    \"" + KEY_EXECUTE_INCR + "\": \"类型为boolean" + "，表明数据管道创建完成后是否立即启动增量事实同步，默认为false\"\n" + "  }\n" +
+    //      "}";
+
+
+    JsonSchema.Builder builder = JsonSchema.Builder.create("CreatePipelineRequest", Optional.empty());
+    builder.addProperty(KEY_INTENTION, JsonSchema.FieldType.String, "是一个枚举类型").setValEnums(AgentTaskIntention.CreatePipeline, AgentTaskIntention.Other);
+
+    builder.addObjectProperty(KEY_SOURCE, (innerBuilder) -> {
+      innerBuilder.addProperty(KEY_TYPE, JsonSchema.FieldType.String, "值必须为系统提示词中枚举到的端类型关键词，大小写必须一致");
+      innerBuilder.addProperty(KEY_EXTRACT_INFO, JsonSchema.FieldType.String, "从用户提供的数据通道任务描述信息中抽取源端相关的描述信息(不需要结构化数据，如：json或xml)");
+      innerBuilder.addProperty(SUB_PROP_FIELD_NAME, JsonSchema.FieldType.String,
+        "从用户提供的数据通道任务描述信息中抽取源端相关的信息（如：‘除AA" + "、BB表以外的所有表’，‘前缀为user" + "的表’，‘AA，BB’）,如不能抽取得到则设置为空字符串");
+      //  innerBuilder.setRequiredFields(KEY_TYPE, KEY_EXTRACT_INFO, SUB_PROP_FIELD_NAME);
+    });
+    builder.addObjectProperty(KEY_TARGET, (inner) -> {
+      inner.addProperty(KEY_TYPE, JsonSchema.FieldType.String, "值必须为系统提示词中枚举到的端类型关键词，大小写必须一致");
+      inner.addProperty(KEY_EXTRACT_INFO, JsonSchema.FieldType.String, "从用户提供的数据通道任务描述信息中抽取目标端相关的描述信息(不需要结构化数据，如：json或xml)");
+      //inner.setRequiredFields(KEY_TYPE, KEY_EXTRACT_INFO);
+    });
+
+    builder.addObjectProperty(KEY_EXECUTE_OPTION_CONFIG, (inner) -> {
+      inner.addProperty(KEY_EXECUTE_INCR, JsonSchema.FieldType.Boolean, "表明数据管道创建完成后是否立即启动增量实时同步").setDefault(false);
+      inner.addProperty(KEY_EXECUTE_BATCH, JsonSchema.FieldType.Boolean, "表明数据管道创建完成后是否立即启动批量同步").setDefault(false);
+      // inner.setRequiredFields(KEY_EXECUTE_INCR,KEY_EXECUTE_BATCH);
+    });
+    return builder.build();
+
+
+    //    //    JSONObject schema = new JSONObject();
+    //    //    schema.put("name", );
+    //    //    JSONObject schemaProperties = new JSONObject();
+    //    //    schemaProperties.put(SCHEMA_TYPE, "object");
+    //    JSONObject properties = new JSONObject();
+    //
+    //    JSONObject property = new JSONObject();
+    //    property.put(SCHEMA_TYPE, "string");
+    //    property.put(SCHEMA_DESC,
+    //      "是一个枚举类型，支持的值为：" + Arrays.stream(AgentTaskIntention.values()).map(String::valueOf).collect(Collectors
+    //      .joining(
+    //        ",")));
+    //    properties.put(KEY_INTENTION, property);
+    //
+    //    property = new JSONObject();
+    //    property.put(SCHEMA_TYPE, "object");
+    //    property.put() JSONArray requriredProps = new JSONArray();
+    //    requriredProps.add(KEY_TYPE);
+    //    requriredProps.add(KEY_EXTRACT_INFO);
+    //    requriredProps.add(SUB_PROP_FIELD_NAME);
+    //    property.put(SCHEMA_RERUIRED, requriredProps);
+    //    // property.put(SCHEMA_DESC,"是一个枚举类型，支持的值为：" + Arrays.stream(AgentTaskIntention.values()).map(String::valueOf)
+    //    // .collect(Collectors.joining(",")));
+    //    properties.put(KEY_INTENTION, property);
+    //
+    //
+    //    schemaProperties.put("properties", properties);
+    //    schema.put("schema", schemaProperties);
+    //
+    //    return JsonSchema.create(schema);
   }
 }

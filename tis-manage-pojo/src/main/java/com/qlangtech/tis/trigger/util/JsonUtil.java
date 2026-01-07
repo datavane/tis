@@ -22,7 +22,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.impl.IOUtils;
-import com.qlangtech.tis.util.DescriptorsJSONResult;
+import com.qlangtech.tis.util.DescriptorsMeta;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -214,7 +214,7 @@ public class JsonUtil {
         return toString(json, TisAppLaunch.isTestMock());
     }
 
-    public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, DescriptorsJSONResult actual, IAssert azzert) {
+    public static void assertJSONEqual(Class<?> invokeClass, String assertFileName, DescriptorsMeta actual, IAssert azzert) {
         assertJSONEqual(invokeClass, assertFileName, JsonUtil.toString(actual, true), azzert);
     }
 

@@ -121,6 +121,7 @@ public class PropertyType implements IPropertyType {
 
     @Override
     public String propertyName() {
+        //f.getType()
         return this.f.getName();
     }
 
@@ -164,11 +165,19 @@ public class PropertyType implements IPropertyType {
     }
 
     public List<Option> getEnumPropOptions() {
+        return this.getEnumPropOptions(true);
+    }
+
+    public List<Option> getEnumPropOptions(boolean validateNull) {
         List<Option> opts = Lists.newArrayList();
         Object enumPp = Objects.requireNonNull(this.getExtraProps(),
                 "extraProps can not be null, for property:" + this.f.getName()).get(Descriptor.KEY_ENUM_PROP);
         if (enumPp == null) {
-            throw new IllegalStateException("enumPp can not be empty");
+            if (validateNull) {
+                throw new IllegalStateException("enumPp can not be empty");
+            } else {
+                return Collections.emptyList();
+            }
         }
         JSONArray enums = null;
         if (enumPp instanceof JSONArray) {

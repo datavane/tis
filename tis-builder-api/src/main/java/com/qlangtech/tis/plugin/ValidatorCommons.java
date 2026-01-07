@@ -29,7 +29,8 @@ public interface ValidatorCommons {
 
     //   Pattern PATTERN_URL = Pattern.compile("(https?|hdfs)://" + _host + "(:\\d+)?");
 
-    Pattern PATTERN_URL = Pattern.compile("^(https?|hdfs):\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$");
+    Pattern PATTERN_URL = Pattern.compile("^(https?|hdfs):\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\"
+            + ".[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$");
 
     Pattern PATTERN_NONE_BLANK = Pattern.compile("([^\\s]+)");
     String MSG_NONE_BLANK_ERROR = "内容不能包含空格";
@@ -50,6 +51,11 @@ public interface ValidatorCommons {
     //Pattern pattern_identity = Pattern.compile("[a-z]{1}[\\da-z_\\-]+");
 
     Pattern pattern_identity = Pattern.compile("[A-Z\\da-z_\\-]+");
+
+    /**
+     * 更严格不能有减号
+     */
+    Pattern pattern_identity_strict = Pattern.compile("[A-Z\\da-z_]+");
 
     Pattern pattern_integer = Pattern.compile("-?[1-9]{1}[\\d]{0,}|0");
 

@@ -39,74 +39,105 @@ import java.util.stream.Collectors;
  */
 public enum Validator {
 
-    require((msgHandler, context, fieldKey, fieldData) -> {
-        if (StringUtils.isBlank(fieldData)) {
-            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
-            return false;
+    //    require((msgHandler, context, fieldKey, fieldData) -> {
+    //        if (StringUtils.isBlank(fieldData)) {
+    //            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
+    //            return false;
+    //        }
+    //        return true;
+    //    }), user_name((msgHandler, context, fieldKey, fieldData) -> {
+    //
+    //        return validatePattern(msgHandler, context, rule(ValidatorCommons.pattern_user_name,
+    //                ValidatorCommons.MSG_USER_NAME_ERROR), fieldKey, fieldData);
+    //    }), email((msgHandler, context, fieldKey, fieldData) -> {
+    //        return validatePattern(msgHandler, context, rule(ValidatorCommons.EMAIL_PATTERN,
+    //                ValidatorCommons.MSG_EMAIL_ERROR), fieldKey, fieldData);
+    //    }), mobile((msgHandler, context, fieldKey, fieldData) -> {
+    //        return validatePattern(msgHandler, context, rule(ValidatorCommons.MOBILE_PATTERN,
+    //                ValidatorCommons.MSG_MOBILE_ERROR), fieldKey, fieldData);
+    //    }), forbid_start_with_number((msgHandler, context, fieldKey, fieldData) -> {
+    //        // 禁止以数字开头
+    //        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_FORBID_START_WITH_NUMBER,
+    //                ValidatorCommons.MSG_FORBID_START_WITH_NUMBER), fieldKey, fieldData);
+    //    }), identity((msgHandler, context, fieldKey, fieldData) -> {
+    //
+    //        boolean valid = validatePattern(msgHandler, context, rule(ValidatorCommons.pattern_identity,
+    //                ValidatorCommons.MSG_IDENTITY_ERROR), fieldKey, fieldData);
+    //        if (valid) {
+    //            return forbid_start_with_number.validate(msgHandler, context, fieldKey, fieldData);
+    //        } else {
+    //            return false;
+    //        }
+    //    }), //
+    //    integer((msgHandler, context, fieldKey, fieldData) -> {
+    //
+    //        return validatePattern(msgHandler, context, rule(ValidatorCommons.pattern_integer,
+    //                ValidatorCommons.MSG_INTEGER_ERROR), fieldKey, fieldData);
+    //    }), //
+    //    host((msgHandler, context, fieldKey, fieldData) -> {
+    //
+    //        return validatePattern(msgHandler, context, rule(ValidatorCommons.host_pattern,
+    //                ValidatorCommons.MSG_HOST_IP_ERROR), fieldKey, fieldData);
+    //    }),
+    //
+    //    hostWithoutPort((msgHandler, context, fieldKey, fieldData) -> {
+    //        return validatePattern(msgHandler, context, rule(ValidatorCommons.host_without_port_pattern,
+    //                ValidatorCommons.MSG_HOST_IP_WITHOUT_PORT_ERROR), fieldKey, fieldData);
+    //    }),
+    //
+    //    url((msgHandler, context, fieldKey, fieldData) -> {
+    //
+    //        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_URL,
+    //                ValidatorCommons.MSG_URL_ERROR), fieldKey, fieldData);
+    //
+    //    }), db_col_name((msgHandler, context, fieldKey, fieldData) -> {
+    //
+    //        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_DB_COL_NAME,
+    //                ValidatorCommons.MSG_DB_COL_NAME_ERROR), fieldKey, fieldData);
+    //    }), relative_path((msgHandler, context, fieldKey, fieldData) -> {
+    //        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_RELATIVE_PATH,
+    //                ValidatorCommons.MSG_RELATIVE_PATH_ERROR), fieldKey, fieldData);
+    //    }), absolute_path((msgHandler, context, fieldKey, fieldData) -> {
+    //        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_ABSOLUTE_PATH,
+    //                ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR), fieldKey, fieldData);
+    //    }), none_blank((msgHandler, context, fieldKey, fieldData) -> {
+    //        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_NONE_BLANK,
+    //                ValidatorCommons.MSG_NONE_BLANK_ERROR), fieldKey, fieldData);
+    //    });
+
+    //(msgHandler, context, fieldKey, fieldData) -> {
+    //        if (StringUtils.isBlank(fieldData)) {
+    //            msgHandler.addFieldError(context, fieldKey, ValidatorCommons.MSG_EMPTY_INPUT_ERROR);
+    //            return false;
+    //        }
+    //        return true;
+    //    }
+
+    require(new ValidateRule(false, null, ValidatorCommons.MSG_EMPTY_INPUT_ERROR) {
+        @Override
+        public boolean isValid(String fieldData) {
+            return StringUtils.isNotBlank(fieldData);
         }
-        return true;
-    }), user_name((msgHandler, context, fieldKey, fieldData) -> {
-
-        return validatePattern(msgHandler, context, rule(ValidatorCommons.pattern_user_name,
-                ValidatorCommons.MSG_USER_NAME_ERROR), fieldKey, fieldData);
-    }),
-    email((msgHandler, context, fieldKey, fieldData) -> {
-        return validatePattern(msgHandler, context, rule(ValidatorCommons.EMAIL_PATTERN, ValidatorCommons.MSG_EMAIL_ERROR)
-                , fieldKey, fieldData);
-    }),
-    mobile((msgHandler, context, fieldKey, fieldData) -> {
-        return validatePattern(msgHandler, context, rule(ValidatorCommons.MOBILE_PATTERN, ValidatorCommons.MSG_MOBILE_ERROR)
-                , fieldKey, fieldData);
-    }),
-    forbid_start_with_number((msgHandler, context, fieldKey, fieldData) -> {
-        // 禁止以数字开头
-        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_FORBID_START_WITH_NUMBER,
-                ValidatorCommons.MSG_FORBID_START_WITH_NUMBER), fieldKey, fieldData);
-    }), identity((msgHandler, context, fieldKey, fieldData) -> {
-
-        boolean valid = validatePattern(msgHandler, context, rule(ValidatorCommons.pattern_identity,
-                ValidatorCommons.MSG_IDENTITY_ERROR), fieldKey, fieldData);
-        if (valid) {
-            return forbid_start_with_number.validate(msgHandler, context, fieldKey, fieldData);
-        } else {
-            return false;
-        }
-    }), //
-    integer((msgHandler, context, fieldKey, fieldData) -> {
-
-        return validatePattern(msgHandler, context, rule(ValidatorCommons.pattern_integer,
-                ValidatorCommons.MSG_INTEGER_ERROR), fieldKey, fieldData);
-    }), //
-    host((msgHandler, context, fieldKey, fieldData) -> {
-
-        return validatePattern(msgHandler, context, rule(ValidatorCommons.host_pattern,
-                ValidatorCommons.MSG_HOST_IP_ERROR), fieldKey, fieldData);
-    }),
-
-    hostWithoutPort((msgHandler, context, fieldKey, fieldData) -> {
-        return validatePattern(msgHandler, context, rule(ValidatorCommons.host_without_port_pattern,
-                ValidatorCommons.MSG_HOST_IP_WITHOUT_PORT_ERROR), fieldKey, fieldData);
-    }),
-
-    url((msgHandler, context, fieldKey, fieldData) -> {
-
-        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_URL,
-                ValidatorCommons.MSG_URL_ERROR), fieldKey, fieldData);
-
-    }), db_col_name((msgHandler, context, fieldKey, fieldData) -> {
-
-        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_DB_COL_NAME,
-                ValidatorCommons.MSG_DB_COL_NAME_ERROR), fieldKey, fieldData);
-    }), relative_path((msgHandler, context, fieldKey, fieldData) -> {
-        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_RELATIVE_PATH,
-                ValidatorCommons.MSG_RELATIVE_PATH_ERROR), fieldKey, fieldData);
-    }), absolute_path((msgHandler, context, fieldKey, fieldData) -> {
-        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_ABSOLUTE_PATH,
-                ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR), fieldKey, fieldData);
-    }), none_blank((msgHandler, context, fieldKey, fieldData) -> {
-        return validatePattern(msgHandler, context, rule(ValidatorCommons.PATTERN_NONE_BLANK,
-                ValidatorCommons.MSG_NONE_BLANK_ERROR), fieldKey, fieldData);
-    });
+    }) //
+    , user_name(rule(ValidatorCommons.pattern_user_name, ValidatorCommons.MSG_USER_NAME_ERROR)) //
+    , email(rule(ValidatorCommons.EMAIL_PATTERN, ValidatorCommons.MSG_EMAIL_ERROR)) //
+    , mobile(rule(ValidatorCommons.MOBILE_PATTERN, ValidatorCommons.MSG_MOBILE_ERROR)) //
+    , forbid_start_with_number(rule(ValidatorCommons.PATTERN_FORBID_START_WITH_NUMBER,
+            ValidatorCommons.MSG_FORBID_START_WITH_NUMBER)) //
+    , identity(rule(ValidatorCommons.pattern_identity, ValidatorCommons.MSG_IDENTITY_ERROR),
+            rule(ValidatorCommons.PATTERN_FORBID_START_WITH_NUMBER, ValidatorCommons.MSG_FORBID_START_WITH_NUMBER)) //
+    // 更严格不能有减号
+    , identity_strict(rule(ValidatorCommons.pattern_identity_strict, ValidatorCommons.MSG_IDENTITY_ERROR),
+            rule(ValidatorCommons.PATTERN_FORBID_START_WITH_NUMBER, ValidatorCommons.MSG_FORBID_START_WITH_NUMBER)), //
+    integer(rule(ValidatorCommons.pattern_integer, ValidatorCommons.MSG_INTEGER_ERROR)), //
+    host(rule(ValidatorCommons.host_pattern, ValidatorCommons.MSG_HOST_IP_ERROR))//
+    , hostWithoutPort(rule(ValidatorCommons.host_without_port_pattern,
+            ValidatorCommons.MSG_HOST_IP_WITHOUT_PORT_ERROR)), //
+    url(rule(ValidatorCommons.PATTERN_URL, ValidatorCommons.MSG_URL_ERROR)) //
+    , db_col_name(rule(ValidatorCommons.PATTERN_DB_COL_NAME, ValidatorCommons.MSG_DB_COL_NAME_ERROR)) //
+    , relative_path(rule(ValidatorCommons.PATTERN_RELATIVE_PATH, ValidatorCommons.MSG_RELATIVE_PATH_ERROR)) //
+    , absolute_path(rule(ValidatorCommons.PATTERN_ABSOLUTE_PATH, ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR)) //
+    , none_blank(rule(false, ValidatorCommons.PATTERN_NONE_BLANK, ValidatorCommons.MSG_NONE_BLANK_ERROR));
 
     public static void main(String[] args) {
         int index = 1;
@@ -116,38 +147,51 @@ public enum Validator {
 
     }
 
+    private Validator(ValidateRule... rules) {
+        this.rules = Objects.requireNonNull(rules, "rules can not be null");
+        this.fieldValidator = (msgHandler, context, fieldKey, fieldData) -> {
+            for (ValidateRule rule : rules) {
+                if (!validatePattern(msgHandler, context, rule, fieldKey, fieldData)) {
+                    return false;
+                }
+            }
+            return true;
+        };
+    }
+
     public static Validator parse(String token) {
         return Objects.requireNonNull(Validator.valueOf(token));
     }
 
     public static ValidateRule rule(Pattern p, String errMsg) {
-        return new ValidateRule(p, errMsg);
+        return rule(true, p, errMsg);
+    }
+
+    public static ValidateRule rule(boolean guardNotBlank, Pattern p, String errMsg) {
+        return new ValidateRule(guardNotBlank, p, errMsg);
     }
 
     public static boolean validatePattern(IFieldErrorHandler msgHandler, Context context, ValidateRule validateRule,
                                           String fieldKey, String fieldData) {
-        if (StringUtils.isEmpty(fieldData)) {
+        if (validateRule.isGuardNotBlank() && StringUtils.isEmpty(fieldData)) {
             return true;
         }
-        Matcher matcher = validateRule.pattern.matcher(fieldData);
-        if (!matcher.matches()) {
+
+        if (!validateRule.isValid(fieldData)) {
             msgHandler.addFieldError(context, fieldKey, validateRule.errorMsg);
             return false;
         }
+
+        //        Matcher matcher = validateRule.pattern.matcher(fieldData);
+        //        if (!matcher.matches()) {
+        //            msgHandler.addFieldError(context, fieldKey, validateRule.errorMsg);
+        //            return false;
+        //        }
         return true;
     }
 
-    private static class ValidateRule {
-        private final Pattern pattern;
-        private final String errorMsg;
-
-        public ValidateRule(Pattern pattern, String errorMsg) {
-            this.pattern = pattern;
-            this.errorMsg = errorMsg;
-        }
-    }
-
     private final IFieldValidator fieldValidator;
+    public final ValidateRule[] rules;
 
     public IFieldValidator getFieldValidator() {
         return this.fieldValidator;
@@ -373,8 +417,5 @@ public enum Validator {
         }
     }
 
-    Validator(IFieldValidator fv) {
-        this.fieldValidator = fv;
-    }
 
 }

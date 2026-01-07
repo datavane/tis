@@ -22,7 +22,7 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
-import com.qlangtech.tis.util.DescriptorsJSONResult;
+import com.qlangtech.tis.util.DescriptorsMeta;
 import junit.framework.TestCase;
 
 /**
@@ -39,7 +39,7 @@ public class TestDescriptor extends TestCase {
         DefaultPlugin dftPlugin = new DefaultPlugin();
         // DescriptorsJSON descJson = new DescriptorsJSON(dftPlugin.getDescriptor());
 
-        DescriptorsJSONResult desc = DescriptorsJSON.desc(dftPlugin.getDescriptor());
+        DescriptorsMeta desc = DescriptorsJSON.desc(dftPlugin.getDescriptor());
         //descJson.getDescriptorsJSON();
 
         JsonUtil.assertJSONEqual(DefaultPlugin.class, "default-plugin-descriptor-turn-1.json"
