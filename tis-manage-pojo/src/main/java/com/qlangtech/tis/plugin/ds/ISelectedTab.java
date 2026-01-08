@@ -44,6 +44,10 @@ public interface ISelectedTab extends ISelectedTabMeta, ISourceTable {
         throw new UnsupportedOperationException();
     }
 
+    default String getAlias() {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     default String getSourceTableName() {
         return this.getName();
@@ -74,8 +78,7 @@ public interface ISelectedTab extends ISelectedTabMeta, ISourceTable {
      * @param includeContextParams 是否需要包含 //用于生成基于reader的环境绑定参数用，当用于reader端需要有值，用于writer端应该为Optional.empty()
      * @return
      */
-    default List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, boolean includeContextParams
-    ) {
+    default List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, boolean includeContextParams) {
         throw new UnsupportedOperationException();
     }
 

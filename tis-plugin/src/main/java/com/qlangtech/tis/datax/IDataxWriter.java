@@ -19,10 +19,13 @@ package com.qlangtech.tis.datax;
 
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.fullbuild.indexbuild.IPartionableWarehouse;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IRepositoryResourceScannable;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
+import com.qlangtech.tis.plugin.datax.common.AutoCreateTable;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.IInitWriterTableExecutor;
 
 import java.util.Map;
 import java.util.Optional;
@@ -39,6 +42,16 @@ public interface IDataxWriter extends IDataXPluginMeta, IRepositoryResourceScann
         }
         return (IPartionableWarehouse) writer;
     }
+
+    default Optional<AutoCreateTable> getWriterTableExecutor() {
+        IDataxWriter dataXWriter = this;
+        if (dataXWriter instanceof IInitWriterTableExecutor) {
+            return Optional.of(((IInitWriterTableExecutor) dataXWriter).getAutoCreateTableCanNotBeNull());//
+            // .getMapperTabPrefix();
+        }
+        return Optional.empty();
+    }
+
 
     public static IDataXBatchPost castBatchPost(IDataxWriter dataxWriter) {
         if (!(dataxWriter instanceof IDataXBatchPost)) {
@@ -65,7 +78,8 @@ public interface IDataxWriter extends IDataXPluginMeta, IRepositoryResourceScann
      *
      * @return
      */
-    IDataxContext getSubTask(Optional<IDataxProcessor.TableMap> tableMap, Optional<RecordTransformerRules> transformerRules);
+    IDataxContext getSubTask(Optional<IDataxProcessor.TableMap> tableMap,
+                             Optional<RecordTransformerRules> transformerRules);
 
     /**
      * 用户已经把自动生成ddl 脚本的开关给关闭了
@@ -85,8 +99,9 @@ public interface IDataxWriter extends IDataXPluginMeta, IRepositoryResourceScann
      * @param transformers
      * @return
      */
-    default CreateTableSqlBuilder.CreateDDL generateCreateDDL(
-            SourceColMetaGetter colMetaGetter , IDataxProcessor.TableMap tableMapper, Optional<RecordTransformerRules> transformers) {
+    default CreateTableSqlBuilder.CreateDDL generateCreateDDL(SourceColMetaGetter colMetaGetter,
+                                                              IDataxProcessor.TableMap tableMapper,
+                                                              Optional<RecordTransformerRules> transformers) {
         throw new UnsupportedOperationException();
     }
 }

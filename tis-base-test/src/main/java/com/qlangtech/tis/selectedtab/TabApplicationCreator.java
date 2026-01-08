@@ -25,6 +25,7 @@ import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataXReaderColType;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class TabApplicationCreator {
@@ -50,7 +51,7 @@ public class TabApplicationCreator {
             p.accept(sourceCols);
         }
         tab.cols.addAll(sourceCols);
-        IDataxProcessor.TableMap tableMap = new IDataxProcessor.TableMap(tab);
+        IDataxProcessor.TableMap tableMap = new IDataxProcessor.TableMap(Optional.empty(),tab);
         tableMap.setFrom(tableName);
         tableMap.setTo("application_alias");
         //tableMap.setSourceCols(sourceCols);

@@ -69,7 +69,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 
     private transient Map<String, TableAlias> _tableMaps;
     private transient PluginStore<IAppSource> pluginStore;
-    private transient TableAliasMapper dftTableAliasMapper;
+  //  private transient TableAliasMapper dftTableAliasMapper;
 
     public interface IDataxProcessorGetter {
         DataxProcessor get(String dataXName);
@@ -79,7 +79,7 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     @Override
     public void afterSaved(IPluginContext pluginContext, Optional<Context> context) {
         this._tableMaps = null;
-        this.dftTableAliasMapper = null;
+      //  this.dftTableAliasMapper = null;
     }
 
     @Override
@@ -189,27 +189,17 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
     }
 
     private Map<String, TableAlias> getTableMaps(IPluginContext pluginCtx) {
-        if (this._tableMaps == null) {
-
-            List<TableAlias> aliases = TableAlias.load(pluginCtx, this.identityValue());
-            //            if (CollectionUtils.isEmpty(aliases)) {
-            //
-            //                IDataxReader reader = this.getReader(pluginCtx);
-            //                List<ISelectedTab> tabs = reader.getSelectedTabs();
-            //                Map<String, TableAlias> mapper = Maps.newHashMap();
-            //                for (ISelectedTab tab : tabs) {
-            //                    mapper.put(tab.getName(), new TableMap(tab));
-            //                }
-            //                this._tableMaps = mapper;
-            //            } else {
-            this._tableMaps = aliases.stream().collect(Collectors.toMap((m) -> {
-                if (StringUtils.isEmpty(m.getFrom())) {
-                    throw new IllegalArgumentException("table mapper from can not be empty");
-                }
-                return m.getFrom();
-            }, (m) -> m));
-            //}
-        }
+//        if (this._tableMaps == null) {
+//
+//            List<TableAlias> aliases = TableAlias.load(pluginCtx, this.identityValue());
+//            this._tableMaps = aliases.stream().collect(Collectors.toMap((m) -> {
+//                if (StringUtils.isEmpty(m.getFrom())) {
+//                    throw new IllegalArgumentException("table mapper from can not be empty");
+//                }
+//                return m.getFrom();
+//            }, (m) -> m));
+//            //}
+//        }
         return this._tableMaps;
     }
 
@@ -223,7 +213,8 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
         // boolean isReaderUnStructed = false;
         Map<String, TableAlias> tableMaps = getTableMaps(pluginCtx);
         // return
-        return MapUtils.isEmpty(tableMaps) ? getDefault(pluginCtx, withDft) : new TableAliasMapper(tableMaps);
+        return // MapUtils.isEmpty(tableMaps) ? getDefault(pluginCtx, withDft) :
+                new TableAliasMapper(tableMaps);
         //        if ((this.isRDBMS2RDBMS(pluginCtx))
         //                || (isReaderUnStructed = this.isReaderUnStructed(pluginCtx))
         //                // 支持ElasticSearch
@@ -246,24 +237,25 @@ public abstract class DataxProcessor implements IBasicAppSource, IDataxProcessor
 
     }
 
-    private TableAliasMapper getDefault(IPluginContext pluginCtx, boolean withDft) {
-
-        if (!withDft) {
-            return TableAliasMapper.Null;
-        }
-
-        if (this.dftTableAliasMapper == null) {
-            this.dftTableAliasMapper = TableAliasMapper.Null;
-            IDataxReader reader = this.getReader(pluginCtx);
-            List<ISelectedTab> tabs = reader.getUnfilledSelectedTabs();
-            Map<String, TableAlias> mapper = Maps.newHashMap();
-            for (ISelectedTab tab : tabs) {
-                mapper.put(tab.getName(), new TableMap(tab));
-            }
-            this.dftTableAliasMapper = new TableAliasMapper(mapper);
-        }
-        return this.dftTableAliasMapper;
-    }
+//    private TableAliasMapper getDefault(IPluginContext pluginCtx, boolean withDft) {
+//
+//        if (!withDft) {
+//            return TableAliasMapper.Null;
+//        }
+//
+//        if (this.dftTableAliasMapper == null) {
+//            this.dftTableAliasMapper = TableAliasMapper.Null;
+//            IDataxReader reader = this.getReader(pluginCtx);
+//            List<ISelectedTab> tabs = reader.getUnfilledSelectedTabs();
+//            Map<String, TableAlias> mapper = Maps.newHashMap();
+//            for (ISelectedTab tab : tabs) {
+//
+//                mapper.put(tab.getName(), new TableMap(tab));
+//            }
+//            this.dftTableAliasMapper = new TableAliasMapper(mapper);
+//        }
+//        return this.dftTableAliasMapper;
+//    }
 
     @Override
     public void saveCreateTableDDL(IPluginContext pluginCtx, StringBuffer createDDL, String sqlFileName,

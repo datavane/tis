@@ -59,10 +59,10 @@ public class TableAliasMapper {
      *
      * @return key: fromTabName
      */
-    private final Map<String, TableAlias> mapper;
+  //  private final Map<String, TableAlias> mapper;
 
     public TableAliasMapper(Map<String, TableAlias> mapper) {
-        this.mapper = mapper;
+     //   this.mapper = mapper;
     }
 
     public boolean isNull() {
@@ -70,45 +70,52 @@ public class TableAliasMapper {
     }
 
     public void forEach(BiConsumer<String, TableAlias> action) {
-        mapper.forEach(action);
+      //  mapper.forEach(action);
     }
 
     public TableAlias get(String name) {
-        return this.mapper.get(name);
+       // return this.mapper.get(name);
+        throw new UnsupportedOperationException();
     }
 
     public TableAlias getWithCheckNotNull(String name) {
-        TableAlias alia = this.mapper.get(name);
-        Objects.requireNonNull(alia
-                , "tab:" + name + " relevant alias can not be null");
-        return alia;
+//        TableAlias alia = this.mapper.get(name);
+//        Objects.requireNonNull(alia
+//                , "tab:" + name + " relevant alias can not be null");
+//        return alia;
+        throw new UnsupportedOperationException();
     }
 
     public TableAlias get(ISelectedTab tab) {
-        return this.get(tab.getName());
+       // return this.get(tab.getName());
+        throw new UnsupportedOperationException();
     }
 
     public Optional<TableAlias> findFirst() {
-        return mapper.values().stream().findFirst();
+      //  return mapper.values().stream().findFirst();
+        throw new UnsupportedOperationException();
     }
 
     public boolean isSingle() {
-        return this.mapper.size() == 1;
+      //  return this.mapper.size() == 1;
+        throw new UnsupportedOperationException();
     }
 
     public Optional<IDataxProcessor.TableMap> getFirstTableMap() {
-        Optional<IDataxProcessor.TableMap> first
-                = this.mapper.values().stream().filter((t) -> t instanceof IDataxProcessor.TableMap)
-                .map((t) -> (IDataxProcessor.TableMap) t).findFirst();
-        return first;
+//        Optional<IDataxProcessor.TableMap> first
+//                = this.mapper.values().stream().filter((t) -> t instanceof IDataxProcessor.TableMap)
+//                .map((t) -> (IDataxProcessor.TableMap) t).findFirst();
+//        return first;
+        throw new UnsupportedOperationException();
     }
 
 
     public int size() {
-        return this.mapper.size();
+        throw new UnsupportedOperationException();
     }
 
     public String getFromTabDesc() {
-        return this.mapper.keySet().stream().collect(Collectors.joining(","));
+      //  return this.mapper.keySet().stream().collect(Collectors.joining(","));
+        throw new UnsupportedOperationException();
     }
 }

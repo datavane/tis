@@ -62,59 +62,57 @@ public class TableAlias implements Describable<TableAlias> {
         return new KeyedPluginStore.AppKey(context, StoreResourceType.DataApp, appName, TableAlias.class);
     }
 
-    /**
-     * 保存
-     *
-     * @param context
-     * @param appName
-     * @param tableMaps
-     */
-    public static void save(IPluginContext context, String appName, List<TableAlias> tableMaps) {
-        try {
-            createAppSourceKey(context, appName).getSotreFile().write(tableMaps, Collections.emptySet());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    /**
+//     * 保存
+//     *
+//     * @param context
+//     * @param appName
+//     * @param tableMaps
+//     */
+//    public static void save(IPluginContext context, String appName, List<TableAlias> tableMaps) {
+//        try {
+//            createAppSourceKey(context, appName).getSotreFile().write(tableMaps, Collections.emptySet());
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
-    /**
-     * 加载
-     *
-     * @param context
-     * @param appName
-     * @return
-     */
-    public static List<TableAlias> load(IPluginContext context, String appName) {
-        if (testTabAlias != null) {
-            return testTabAlias;
-        }
-        try {
-            XmlFile sotreFile = createAppSourceKey(context, appName).getSotreFile();
-            if (!sotreFile.exists()) {
-                return Collections.emptyList();
-            }
-            return (List<TableAlias>) sotreFile.unmarshal(null);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    /**
+//     * 加载
+//     *
+//     * @param context
+//     * @param appName
+//     * @return
+//     */
+//    public static List<TableAlias> load(IPluginContext context, String appName) {
+//        if (testTabAlias != null) {
+//            return testTabAlias;
+//        }
+//        try {
+//            XmlFile sotreFile = createAppSourceKey(context, appName).getSotreFile();
+//            if (!sotreFile.exists()) {
+//                return Collections.emptyList();
+//            }
+//            return (List<TableAlias>) sotreFile.unmarshal(null);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     public TableAlias() {
     }
 
-    public static void saveTableMapper(IPluginContext pluginContext, String dataxName, List<TableAlias> tableMaps) {
-
-      if (StringUtils.isBlank(dataxName)) {
-        throw new IllegalArgumentException("param dataxName can not be null");
-      }
-
-      save(pluginContext, dataxName, tableMaps);
-
-      DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(pluginContext, dataxName);
-      dataxProcessor.afterSaved(pluginContext, Optional.empty());
-  //    dataxProcessor.setTableMaps(tableMaps);
-  //    IAppSource.save(pluginContext, dataxName, dataxProcessor);
-    }
+//    public static void saveTableMapper(IPluginContext pluginContext, String dataxName, List<TableAlias> tableMaps) {
+//
+//      if (StringUtils.isBlank(dataxName)) {
+//        throw new IllegalArgumentException("param dataxName can not be null");
+//      }
+//
+//      save(pluginContext, dataxName, tableMaps);
+//
+//      DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(pluginContext, dataxName);
+//      dataxProcessor.afterSaved(pluginContext, Optional.empty());
+//    }
 
     public <T extends TableAlias> T setShallNotRewriteTargetTableName() {
         this.shallNotRewriteTargetTableName = true;

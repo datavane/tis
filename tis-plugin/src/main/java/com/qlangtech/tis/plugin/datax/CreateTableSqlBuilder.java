@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.datax;
 
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder.ColWrapper;
+import com.qlangtech.tis.plugin.datax.common.AutoCreateTable;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
 import com.qlangtech.tis.plugin.ds.DataType;
@@ -39,8 +40,8 @@ public abstract class CreateTableSqlBuilder<T extends ColWrapper> extends Abstra
 
     public BlockScriptBuffer script;
 
-    public CreateTableSqlBuilder(IDataxProcessor.TableMap tableMapper
-            , DataSourceMeta dsMeta, Optional<RecordTransformerRules> transformers) {
+    public CreateTableSqlBuilder(IDataxProcessor.TableMap tableMapper, DataSourceMeta dsMeta,
+                                 Optional<RecordTransformerRules> transformers) {
         super(tableMapper, dsMeta, transformers);
         this.script = new BlockScriptBuffer();
     }
@@ -56,8 +57,7 @@ public abstract class CreateTableSqlBuilder<T extends ColWrapper> extends Abstra
     @Override
     public CreateDDL build() {
         CreateTableName tabNameBuilder = getCreateTableName();
-        script.append(tabNameBuilder.createTablePredicate())
-                .append(" ").append((tabNameBuilder.getEntityName())).append("\n");
+        script.append(tabNameBuilder.createTablePredicate()).append(" ").append((tabNameBuilder.getEntityName())).append("\n");
         script.append("(\n");
 
 

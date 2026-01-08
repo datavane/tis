@@ -17,9 +17,11 @@
  */
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.plugin.datax.common.AutoCreateTable;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -51,26 +53,28 @@ public interface IDataxReaderContext extends IDataxContext {
     String getSourceTableName();
 
 
-    default IDataxProcessor.TableMap createTableMap(TableAliasMapper tabAlias, Map<String, ISelectedTab> selectedTabs
-    ) {
+    default IDataxProcessor.TableMap createTableMap(Optional<AutoCreateTable> tabCreator,
+                                                    Map<String, ISelectedTab> selectedTabs) {
 
-        TableAlias tableAlias = tabAlias.get(this.getSourceTableName());
-        if (tableAlias == null) {
-//            throw new IllegalStateException("sourceTable:" + this.getSourceTableName() + " can not find " +
-//                    "relevant 'tableAlias' keys:[" + tabAlias.getFromTabDesc() + "]");
-            tableAlias = new TableAlias(this.getSourceTableName());
-        }
         ISelectedTab selectedTab = selectedTabs.get(this.getSourceTableName());
         if (selectedTab == null) {
-            throw new IllegalStateException("sourceTable:" + this.getSourceTableName() + " can not find " +
-                    "relevant '" + ISelectedTab.class.getSimpleName() + "' keys:[" + String.join(",",
+            throw new IllegalStateException("sourceTable:" + this.getSourceTableName() + " can not find " + "relevant"
+                    + " '" + ISelectedTab.class.getSimpleName() + "' keys:[" + String.join(",",
                     selectedTabs.keySet()) + "]");
         }
-        IDataxProcessor.TableMap tableMap = createTableMap(tableAlias, selectedTab);
-        return tableMap;
+
+        //        TableAlias tableAlias = tabAlias.get(this.getSourceTableName());
+        //        if (tableAlias == null) {
+        ////            throw new IllegalStateException("sourceTable:" + this.getSourceTableName() + " can not find " +
+        ////                    "relevant 'tableAlias' keys:[" + tabAlias.getFromTabDesc() + "]");
+        //            tableAlias = new TableAlias(this.getSourceTableName());
+        //        }
+
+        return createTableMap(tabCreator, selectedTab);
+        // return tableMap;
     }
 
-    default IDataxProcessor.TableMap createTableMap(TableAlias tableAlias, ISelectedTab selectedTab) {
-        return new IDataxProcessor.TableMap(tableAlias, selectedTab);
+    default IDataxProcessor.TableMap createTableMap(Optional<AutoCreateTable> tabCreator, ISelectedTab selectedTab) {
+        return new IDataxProcessor.TableMap(tabCreator, selectedTab);
     }
 }

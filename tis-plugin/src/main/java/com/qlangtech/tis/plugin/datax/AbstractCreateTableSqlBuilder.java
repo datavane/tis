@@ -21,6 +21,7 @@ package com.qlangtech.tis.plugin.datax;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxProcessor.TableMap;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder.ColWrapper;
+import com.qlangtech.tis.plugin.datax.common.AutoCreateTable;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataSourceMeta;
@@ -40,7 +41,8 @@ import java.util.stream.Collectors;
  * @create: 2023-05-07 12:35
  **/
 public abstract class AbstractCreateTableSqlBuilder<T extends ColWrapper> {
-    static final Pattern PatternCreateTable = Pattern.compile("([cC][rR][eE][aA][tT][eE]\\s+[tT][aA][bB][lL][eE])\\s+?(\\S+)\\s*\\(");
+    static final Pattern PatternCreateTable = Pattern.compile("([cC][rR][eE][aA][tT][eE]\\s+[tT][aA][bB][lL][eE])" +
+            "\\s+?(\\S+)\\s*\\(");
 
     protected final String targetTableName;
     protected final List<T> cols;
@@ -49,21 +51,23 @@ public abstract class AbstractCreateTableSqlBuilder<T extends ColWrapper> {
     protected final DataSourceMeta dsMeta;
     private final Optional<RecordTransformerRules> transformers;
 
-    public AbstractCreateTableSqlBuilder(
-            IDataxProcessor.TableMap tableMapper, DataSourceMeta dsMeta, Optional<RecordTransformerRules> transformers) {
+    public AbstractCreateTableSqlBuilder(IDataxProcessor.TableMap tableMapper, DataSourceMeta dsMeta,
+                                         Optional<RecordTransformerRules> transformers) {
         this.targetTableName = createTargetTableName(tableMapper);//.getTo();
         this.transformers = Objects.requireNonNull(transformers, "param transformers can not be null");
 
         this.pks = tableMapper.getSourceTab().getPrimaryKeys();
 
-        List<IColMetaGetter> sourceCols = tableMapper.getSourceCols().stream().map((c) -> c).collect(Collectors.toList());
+        List<IColMetaGetter> sourceCols =
+                tableMapper.getSourceCols().stream().map((c) -> c).collect(Collectors.toList());
 
         if (transformers.isPresent()) {
             RecordTransformerRules transformerRules = transformers.get();
             sourceCols = transformerRules.overwriteCols(sourceCols).getColsWithoutVirtualInfo();
         }
 
-        this.cols = Collections.unmodifiableList(sourceCols.stream().map((c) -> createColWrapper(c)).collect(Collectors.toList()));
+        this.cols =
+                Collections.unmodifiableList(sourceCols.stream().map((c) -> createColWrapper(c)).collect(Collectors.toList()));
 
         maxColNameLength = 0;
         for (T col : this.getCols()) {
@@ -139,13 +143,11 @@ public abstract class AbstractCreateTableSqlBuilder<T extends ColWrapper> {
 
         public String getSelectAllScript() {
             List<IColMetaGetter> cols = builder.getCols();
-            return "SELECT " + cols.stream().map((c) -> builder.wrapWithEscape(c.getName()))
-                    .collect(Collectors.joining(",")) + " FROM " + (builder.getCreateTableName().getEntityName());
+            return "SELECT " + cols.stream().map((c) -> builder.wrapWithEscape(c.getName())).collect(Collectors.joining(",")) + " FROM " + (builder.getCreateTableName().getEntityName());
         }
 
         public String getCountSelectScript(Optional<String> whereCriteria) {
-            return "SELECT count(1) FROM " + (builder.getCreateTableName().getEntityName())
-                    + whereCriteria.map((where) -> " WHERE " + where).orElse(StringUtils.EMPTY);
+            return "SELECT count(1) FROM " + (builder.getCreateTableName().getEntityName()) + whereCriteria.map((where) -> " WHERE " + where).orElse(StringUtils.EMPTY);
         }
     }
 

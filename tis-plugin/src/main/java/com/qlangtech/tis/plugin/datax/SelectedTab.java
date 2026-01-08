@@ -98,6 +98,10 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
     public String name;
 
+    // 表别名,可以为空
+    @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT, validate = {Validator.db_col_name})
+    public String alias;
+
     @FormField(ordinal = 3, type = FormFieldType.ENUM, validate = {Validator.require})
     public List<String> primaryKeys;
 
@@ -110,18 +114,18 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         IPluginContext context = (IPluginContext) pluginCtx;
         DataXName dataX = context.getCollectionName();
 
-        Optional<RecordTransformerRules> transformerRules
-                = RecordTransformerRules.loadTransformerRules(context, DataxProcessor.load(context, dataX), this.getName());
+        Optional<RecordTransformerRules> transformerRules = RecordTransformerRules.loadTransformerRules(context,
+                DataxProcessor.load(context, dataX), this.getName());
         List<IColMetaGetter> cols = null;
         if (transformerRules.isPresent()) {
-            ITransformerBuildInfo transformerBuilder = transformerRules.get().createTransformerBuildInfo((IPluginContext) pluginCtx, this);
+            ITransformerBuildInfo transformerBuilder =
+                    transformerRules.get().createTransformerBuildInfo((IPluginContext) pluginCtx, this);
 
-            List<OutputParameter> overwriteColsWithContextParams
-                    = transformerBuilder.overwriteColsWithContextParams(this.getCols());
+            List<OutputParameter> overwriteColsWithContextParams =
+                    transformerBuilder.overwriteColsWithContextParams(this.getCols());
 
-            List<OutputParameter> outParams = includeContextParams
-                    ? overwriteColsWithContextParams
-                    : transformerBuilder.tranformerColsWithoutContextParams();
+            List<OutputParameter> outParams = includeContextParams ? overwriteColsWithContextParams :
+                    transformerBuilder.tranformerColsWithoutContextParams();
             return outParams.stream().map((param) -> param).collect(Collectors.toList());
         } else {
             cols = this.getCols().stream().collect(Collectors.toList());
@@ -277,8 +281,14 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         this.where = where;
     }
 
+    @Override
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public final String getAlias() {
+        return StringUtils.defaultString(this.alias, this.getName());
     }
 
     public boolean isAllCols() {
@@ -337,8 +347,8 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         }
 
         @Override
-        public boolean validate(IFieldErrorHandler msgHandler, Optional<SubFormFilter> subFormFilter,
-                                Context context, String fieldName, List<FormFieldType.SelectedItem> items) {
+        public boolean validate(IFieldErrorHandler msgHandler, Optional<SubFormFilter> subFormFilter, Context context
+                , String fieldName, List<FormFieldType.SelectedItem> items) {
 
             if (SelectedTab.KEY_FIELD_COLS.equals(fieldName)) {
                 int selectCount = 0;
@@ -363,8 +373,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
         @Override
         public boolean validateSubFormItems(IControlMsgHandler msgHandler, Context context,
-                                            BaseSubFormProperties props, SubFormFilter filter,
-                                            AttrVals formData) {
+                                            BaseSubFormProperties props, SubFormFilter filter, AttrVals formData) {
 
             formData.vistAttrValMap((tab, item) -> {
                 if (item instanceof JSONObject) {
@@ -477,8 +486,8 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
     public static XmlFile getTmpTableStoreFile(IPluginStoreSave pluginStore, String tabName) {
         String pluginFileName = Descriptor.getPluginFileName(tabName);
-        File tabTmp = new File(pluginStore.getTargetFileParentDir()
-                , ".tmp" + File.separator + "tabs" + File.separator + pluginFileName);
+        File tabTmp = new File(pluginStore.getTargetFileParentDir(),
+                ".tmp" + File.separator + "tabs" + File.separator + pluginFileName);
         XmlFile xml = new XmlFile(tabTmp, pluginFileName);
         return xml;
     }

@@ -1,4 +1,8 @@
 {
+  "alias": {
+    "label": "表别名",
+    "help": "可以为表名设置一个别名，这样同步到目标端的表名会以此别名作为表名"
+  },
   "where": {
     "placeholder": "1=1",
     "help": "筛选条件，MysqlReader根据指定的column、table、where条件拼接SQL，并根据这个SQL进行数据抽取。在实际业务场景中，往往会选择当天的数据进行同步，可以将where条件指定为gmt_create > $bizdate 。注意：不可以将where条件指定为limit 10，limit不是SQL的合法where子句。\n where条件可以有效地进行业务增量同步。如果不填写where语句，包括不提供where的key或者value，DataX均视作同步全量数据。"

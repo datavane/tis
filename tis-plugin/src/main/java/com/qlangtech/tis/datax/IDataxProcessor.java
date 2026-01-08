@@ -34,6 +34,7 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceTypeGetter;
+import com.qlangtech.tis.plugin.datax.common.AutoCreateTable;
 import com.qlangtech.tis.plugin.datax.transformer.OutputParameter;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules.TransformerOverwriteCols;
@@ -342,16 +343,17 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
             return cols;
         }
 
-        public TableMap(TableAlias tabAlia, ISelectedTab tab) {
-            this(tab);
-            this.setTo(tabAlia.getTo());
-            this.setFrom(tabAlia.getFrom());
+        public TableMap(Optional<AutoCreateTable> tabCreator, ISelectedTab tab) {
+            super(tab.getName());
+            this.setTo(tabCreator.map((creator) -> creator.appendTabPrefix(tab.getAlias())).orElse(tab.getAlias()));
+            this.tab = tab;
+            // this.setFrom(tab.getName());
         }
 
-        public TableMap(ISelectedTab tab) {
-            super(tab.getName());
-            this.tab = tab;
-        }
+        //        public TableMap(ISelectedTab tab) {
+        //            super(tab.getName());
+        //            this.tab = tab;
+        //        }
 
         public TableMap(final List<CMeta> cmetas) {
             this(Optional.empty(), cmetas);

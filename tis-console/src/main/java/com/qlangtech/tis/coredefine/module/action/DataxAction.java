@@ -980,7 +980,7 @@ public class DataxAction extends BasicModule {
     if (!writerDesc.isSupportTabCreate()) {
       throw new IllegalStateException("writerDesc:" + writerDesc.getDisplayName() + " is not support generate Table " + "create DDL");
     }
-
+    writer.getWriterTableExecutor();
     this.setBizResult(context, cfgGenerator.startGenerateCfg(new DataXCfgGenerator.IGenerateScriptFile() {
       @Override
       public void generateScriptFile(SourceColMetaGetter colMetaGetter, IDataxReader reader, IDataxWriter writer,
@@ -1176,40 +1176,38 @@ public class DataxAction extends BasicModule {
    *
    * @param context
    */
-  @Func(value = PermissionConstant.DATAX_MANAGE)
-  public void doSaveTableMapper(Context context) {
-    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    // 表别名列表
-    JSONArray tabAliasList = this.parseJsonArrayPost();
-    Objects.requireNonNull(tabAliasList, "tabAliasList can not be null");
-
-    JSONObject alias = null;
-    TableAlias tabAlias = null;
-    List<TableAlias> tableMaps = Lists.newArrayList();
-
-
-    String mapperToVal = null;
-    for (int i = 0; i < tabAliasList.size(); i++) {
-      alias = tabAliasList.getJSONObject(i);
-      tabAlias = new TableAlias();
-      tabAlias.setFrom(alias.getString("from"));
-      mapperToVal = alias.getString("to");
-      String mapper2FieldKey = "tabMapperTo[" + i + "]";
-      if (Validator.require.validate(this, context, mapper2FieldKey, mapperToVal)) {
-        Validator.db_col_name.validate(this, context, mapper2FieldKey, mapperToVal);
-      }
-      tabAlias.setTo(mapperToVal);
-      tableMaps.add(tabAlias);
-    }
-
-    if (context.hasErrors()) {
-      return;
-    }
-
-    TableAlias.saveTableMapper(this, dataxName, tableMaps);
-
-  }
-
+  //  @Func(value = PermissionConstant.DATAX_MANAGE)
+  //  public void doSaveTableMapper(Context context) {
+  //    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
+  //    // 表别名列表
+  //    JSONArray tabAliasList = this.parseJsonArrayPost();
+  //    Objects.requireNonNull(tabAliasList, "tabAliasList can not be null");
+  //
+  //    JSONObject alias = null;
+  //    TableAlias tabAlias = null;
+  //    List<TableAlias> tableMaps = Lists.newArrayList();
+  //
+  //
+  //    String mapperToVal = null;
+  //    for (int i = 0; i < tabAliasList.size(); i++) {
+  //      alias = tabAliasList.getJSONObject(i);
+  //      tabAlias = new TableAlias();
+  //      tabAlias.setFrom(alias.getString("from"));
+  //      mapperToVal = alias.getString("to");
+  //      String mapper2FieldKey = "tabMapperTo[" + i + "]";
+  //      if (Validator.require.validate(this, context, mapper2FieldKey, mapperToVal)) {
+  //        Validator.db_col_name.validate(this, context, mapper2FieldKey, mapperToVal);
+  //      }
+  //      tabAlias.setTo(mapperToVal);
+  //      tableMaps.add(tabAlias);
+  //    }
+  //
+  //    if (context.hasErrors()) {
+  //      return;
+  //    }
+  //
+  //    TableAlias.saveTableMapper(this, dataxName, tableMaps);
+  //}
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doPreviewTableRows(Context context) {
     String targetTab = this.getString("table");
@@ -1253,55 +1251,56 @@ public class DataxAction extends BasicModule {
     this.setBizResult(context, preview);
   }
 
-  /**
-   * 取得表映射
-   *
-   * @param context
-   */
-  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
-  public void doGetTableMapper(Context context) {
-    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-    boolean forceInit = this.getBoolean("forceInit");
-    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(this, dataxName);
-    DataxReader dataxReader = readerStore.getPlugin();
-    Objects.requireNonNull(dataxReader, "dataReader:" + dataxName + " relevant instance can not be null");
+    /**
+     * 取得表映射
+     *
+     * @param context
+     */
+    @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
+    public void doGetTableMapper(Context context) {
+      String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
+      boolean forceInit = this.getBoolean("forceInit");
+      KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(this, dataxName);
+      DataxReader dataxReader = readerStore.getPlugin();
+      Objects.requireNonNull(dataxReader, "dataReader:" + dataxName + " relevant instance can not be null");
 
-    TableAlias tableAlias;
-    Optional<DataxProcessor> dataXAppSource = IAppSource.loadNullable(this, DataXName.createDataXPipeline(dataxName));
-    TableAliasMapper tabMaps = null;//Collections.emptyMap();
-    AutoCreateTable mapperTabPrefixAutoTabCreator = null;
-    if (dataXAppSource.isPresent()) {
-      DataxProcessor dataxSource = dataXAppSource.get();
-      IDataxWriter dataXWriter = dataxSource.getWriter(this, true);
-      if (dataXWriter instanceof IInitWriterTableExecutor) {
-        mapperTabPrefixAutoTabCreator = ((IInitWriterTableExecutor) dataXWriter).getAutoCreateTableCanNotBeNull();//
-        // .getMapperTabPrefix();
+//      TableAlias tableAlias;
+//      Optional<DataxProcessor> dataXAppSource = IAppSource.loadNullable(this, DataXName.createDataXPipeline
+//      (dataxName));
+    //  TableAliasMapper tabMaps = null;//Collections.emptyMap();
+//      AutoCreateTable mapperTabPrefixAutoTabCreator = null;
+//      if (dataXAppSource.isPresent()) {
+//        DataxProcessor dataxSource = dataXAppSource.get();
+//        IDataxWriter dataXWriter = dataxSource.getWriter(this, true);
+//        if (dataXWriter instanceof IInitWriterTableExecutor) {
+//          mapperTabPrefixAutoTabCreator = ((IInitWriterTableExecutor) dataXWriter).getAutoCreateTableCanNotBeNull();
+//        }
+//        tabMaps = dataxSource.getTabAlias(this, false);
+//      }
+//      if (tabMaps == null) {
+//        throw new IllegalStateException("tableMaps can not be null");
+//      }
+
+      if (!dataxReader.hasMulitTable()) {
+        throw new IllegalStateException("reader (" + dataxReader.getClass().getSimpleName() + ") has not set table at " + "least");
       }
-      tabMaps = dataxSource.getTabAlias(this, false);
-    }
-    if (tabMaps == null) {
-      throw new IllegalStateException("tableMaps can not be null");
-    }
-
-    if (!dataxReader.hasMulitTable()) {
-      throw new IllegalStateException("reader (" + dataxReader.getClass().getSimpleName() + ") has not set table at " + "least");
-    }
-    List<TableAlias> tmapList = Lists.newArrayList();
-    for (ISelectedTab selectedTab : dataxReader.getSelectedTabs()) {
-      tableAlias = tabMaps.get(selectedTab);
-      if (forceInit || tableAlias == null) {
-        tableAlias = (tableAlias == null) ? new TableAlias(selectedTab.getName()) : tableAlias;
-        if (mapperTabPrefixAutoTabCreator != null) {
-          tableAlias.setTo(mapperTabPrefixAutoTabCreator.appendTabPrefix(EntityName.parse(selectedTab.getName()).getTabName()));
-        }
-        tmapList.add(tableAlias);
-      } else {
-        tmapList.add(tableAlias);
+      List<TableAlias> tmapList = Lists.newArrayList();
+      for (ISelectedTab selectedTab : dataxReader.getSelectedTabs()) {
+//        tableAlias = tabMaps.get(selectedTab);
+//        if (forceInit || tableAlias == null) {
+//          tableAlias = (tableAlias == null) ? new TableAlias(selectedTab.getName()) : tableAlias;
+//          if (mapperTabPrefixAutoTabCreator != null) {
+//            tableAlias.setTo(mapperTabPrefixAutoTabCreator.appendTabPrefix(EntityName.parse(selectedTab.getName())
+//            .getTabName()));
+//          }
+//          tmapList.add(tableAlias);
+//        } else {
+          tmapList.add(new TableAlias(selectedTab.getName()));
+        //}
       }
-    }
-    this.setBizResult(context, tmapList);
+      this.setBizResult(context, tmapList);
 
-  }
+    }
 
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetReaderWriterMeta(Context context) {
@@ -1329,6 +1328,7 @@ public class DataxAction extends BasicModule {
 
   public static IDataxProcessor.TableMap getTableMapper(IPluginContext pluginCtx, IDataxProcessor processor) {
     TableAliasMapper tabAlias = processor.getTabAlias(pluginCtx, false);
+    IDataxWriter writer = processor.getWriter(pluginCtx);
     Optional<TableAlias> findMapper = tabAlias.findFirst();
     IDataxProcessor.TableMap tabMapper = null;
     if (findMapper.isPresent()) {
@@ -1347,9 +1347,9 @@ public class DataxAction extends BasicModule {
         throw new IllegalStateException("dataX reader getSelectedTabs size must be 1 ,but now is :" + selectedTabsSize);
       }
       for (ISelectedTab selectedTab : tabs) {
-        tabMapper = new IDataxProcessor.TableMap(selectedTab);
+        tabMapper = new IDataxProcessor.TableMap(writer.getWriterTableExecutor(), selectedTab);
         tabMapper.setFrom(selectedTab.getName());
-        tabMapper.setTo(selectedTab.getName());
+        // tabMapper.setTo(selectedTab.getName());
         break;
       }
     }
@@ -1384,12 +1384,13 @@ public class DataxAction extends BasicModule {
     DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this,
       confiemModel.getDataxName());
     List<ISelectedTab> selectedTabs = processMeta.getReader().getSelectedTabs();
+    // TODO: ESTableAlias 需要选择其他地方进行保存 2026/01/07
     ESTableAlias esTableAlias = new ESTableAlias(schemaContent);
     esTableAlias.setFrom(selectedTabs.stream().findFirst().get().getName());
     esTableAlias.setTo(((ISearchEngineTypeTransfer) processMeta.getWriter()).getIndexName());
     //  esTableAlias.setSchemaContent(schemaContent);
 
-    TableAlias.saveTableMapper(this, confiemModel.getDataxName(), Collections.singletonList(esTableAlias));
+    //  TableAlias.saveTableMapper(this, confiemModel.getDataxName(), Collections.singletonList(esTableAlias));
   }
 
 
@@ -1413,7 +1414,8 @@ public class DataxAction extends BasicModule {
                                                    JSONObject parseJsonPost) {
 
     List<CMeta> writerCols = Lists.newArrayList();
-    IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(new DefaultTab(dataxName, writerCols));
+    IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(Optional.empty(), new DefaultTab(dataxName,
+      writerCols));
     // final String keyColsMeta = "colsMeta";
     IControlMsgHandler handler = new DelegateControl4JsonPostMsgHandler(delegate, parseJsonPost);
     if (!Validator.validate(handler, context, Validator.fieldsValidator( //
@@ -1462,7 +1464,7 @@ public class DataxAction extends BasicModule {
       return false;
     }
 
-    TableAlias.saveTableMapper(delegate, dataxName, Collections.singletonList(tableMapper));
+    //  TableAlias.saveTableMapper(delegate, dataxName, Collections.singletonList(tableMapper));
     return true;
   }
 

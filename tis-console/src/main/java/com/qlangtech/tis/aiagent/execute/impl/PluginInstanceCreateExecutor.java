@@ -292,23 +292,23 @@ public class PluginInstanceCreateExecutor extends BasicStepExecutor {
         }
 
         if (selectApplySessionData != null) {
-          AtomicInteger count = new AtomicInteger();
-          List<String> targetTabs = selectApplySessionData.getSelectedTabs();
-          final int maxShow = 5;
-          context.sendMessage("已经识别到导入表：" +  //
-            targetTabs.stream().filter((tab) -> count.incrementAndGet() < maxShow).collect(Collectors.joining(",")) //
-            + ((count.get() > maxShow) ? "...等" : StringUtils.EMPTY) + "，共" + targetTabs.size() + "张表");
-
-          if (pipeMeta.isWriterRDBMS()) {
-            /**
-             * 与 /Users/mozhenghua/j2ee_solution/project/tis-console/src/base/datax.add.step5.component.ts 文件中第183行逻辑一致
-             */
-            List<TableAlias> tableMaps = Lists.newArrayList();
-            targetTabs.forEach((tab) -> {
-              tableMaps.add(new TableAlias(tab));
-            });
-            TableAlias.saveTableMapper(pluginCtx, primaryFieldVal.identityValue(), tableMaps);
-          }
+//          AtomicInteger count = new AtomicInteger();
+//          List<String> targetTabs = selectApplySessionData.getSelectedTabs();
+//          final int maxShow = 5;
+//          context.sendMessage("已经识别到导入表：" +  //
+//            targetTabs.stream().filter((tab) -> count.incrementAndGet() < maxShow).collect(Collectors.joining(",")) //
+//            + ((count.get() > maxShow) ? "...等" : StringUtils.EMPTY) + "，共" + targetTabs.size() + "张表");
+//
+//          if (pipeMeta.isWriterRDBMS()) {
+//            /**
+//             * 与 /Users/mozhenghua/j2ee_solution/project/tis-console/src/base/datax.add.step5.component.ts 文件中第183行逻辑一致
+//             */
+//            List<TableAlias> tableMaps = Lists.newArrayList();
+//            targetTabs.forEach((tab) -> {
+//              tableMaps.add(new TableAlias(tab));
+//            });
+//            TableAlias.saveTableMapper(pluginCtx, primaryFieldVal.identityValue(), tableMaps);
+//          }
         }
 
 

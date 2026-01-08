@@ -82,7 +82,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
                 (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) descriptorsJSON.getDescriptorsJSON();
         JsonSchema jsonSchema = result.descSchemaRegister.get(pluginId);
         //
-
+        jsonSchema.appendFieldDescToPrompt();
         System.out.println(JsonUtil.toString(jsonSchema.root(), true));
         System.out.println("=========================");
         for (Option option : jsonSchema.getFieldsDesc()) {

@@ -47,6 +47,7 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder;
+import com.qlangtech.tis.plugin.datax.common.AutoCreateTable;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
@@ -319,7 +320,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
                 Map<String, ISelectedTab> readerSelectedTabs = null;
                 if ((readerSelectedTabs = selectedTabsRef.get(reader)) == null) {
                     readerSelectedTabs =
-                            reader.getSelectedTabs().stream().collect(Collectors.toMap((t) -> t.getName(), (t) -> t));
+                            reader.getSelectedTabs().stream().collect(Collectors.toMap(ISelectedTab::getName, (t) -> t));
                     selectedTabsRef.put(reader, readerSelectedTabs);
                 }
                 return readerSelectedTabs;
@@ -368,12 +369,13 @@ public class DataXCfgGenerator implements IDataXNameAware {
 
             } else if (dataxProcessor.isRDBMS2UnStructed(pluginCtx)) {
                 // example: mysql -> oss
-                TableMap m = createTableMap(tabAlias, selectedTabsCall.apply(reader), readerContext);
+
+                TableMap m = createTableMap( writer.getWriterTableExecutor(), selectedTabsCall.apply(reader), readerContext);
 
                 tableMapper = Optional.of(m);
             } else if (dataxProcessor.isRDBMS2RDBMS(pluginCtx)) {
                 // example: mysql -> mysql
-                tableMapper = Optional.of(createTableMap(tabAlias, selectedTabsCall.apply(reader), readerContext));
+                tableMapper = Optional.of(createTableMap( writer.getWriterTableExecutor(), selectedTabsCall.apply(reader), readerContext));
             } else {
                 // example:oss -> oss
                 // tableMapper = Optional.of(createTableMap(tabAlias, selectedTabsCall.call(), readerContext));
@@ -628,9 +630,9 @@ public class DataXCfgGenerator implements IDataXNameAware {
     }
 
     private IDataxProcessor.TableMap createTableMap(
-            TableAliasMapper tabAlias, Map<String, ISelectedTab> selectedTabs
+            Optional<AutoCreateTable> tabCreator, Map<String, ISelectedTab> selectedTabs
             , IDataxReaderContext readerContext) {
-        return readerContext.createTableMap(tabAlias, selectedTabs);
+        return readerContext.createTableMap(tabCreator, selectedTabs);
     }
 
 
