@@ -49,10 +49,15 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostC
 
     ThreadLocal<IPluginContext> pluginContextThreadLocal = new ThreadLocal<>();
 
-    public static void setPluginContext(IPluginContext pluginContext) {
+    public static IPluginContext setPluginContext(IPluginContext pluginContext) {
         pluginContextThreadLocal.set(pluginContext);
+        return pluginContext;
     }
 
+
+    public default Context getContext() {
+        throw new UnsupportedOperationException();
+    }
 
     public static IPluginContext getThreadLocalInstance() {
         return Objects.requireNonNull(pluginContextThreadLocal.get(),
@@ -68,16 +73,17 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostC
         return namedContext(DataXName.createDataXPipeline(collectionName), Optional.empty());
     }
 
-    public static PartialSettedPluginContext namedContext(String collectionName, Optional<String> execId) {
-        return namedContext(collectionName, execId);
-    }
+    //    public static PartialSettedPluginContext namedContext(String collectionName, Optional<String> execId) {
+    //        return namedContext(collectionName, execId);
+    //    }
 
     public static PartialSettedPluginContext namedContext(DataXName collectionName, Optional<String> execId) {
         if ((collectionName) == null) {
             throw new IllegalArgumentException("param collectionName can not be empty");
         }
         PartialSettedPluginContext context = new PartialSettedPluginContext();
-        return context.setCollectionName(collectionName).setExecId(execId);
+        setPluginContext((context.setCollectionName(collectionName).setExecId(execId)));
+        return context;
     }
 
 

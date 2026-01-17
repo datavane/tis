@@ -41,8 +41,8 @@ import com.qlangtech.tis.datax.IDataxReaderContext;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
 import com.qlangtech.tis.datax.SourceColMetaGetter;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.TableAlias;
-import com.qlangtech.tis.datax.TableAliasMapper;
 import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -87,17 +87,17 @@ import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.annotation.IFieldValidator;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
-import com.qlangtech.tis.plugin.datax.common.AutoCreateTable;
+import com.qlangtech.tis.plugin.datax.transformer.OutputParameter;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta.IMultiItemsView;
 import com.qlangtech.tis.plugin.ds.DefaultTab;
-import com.qlangtech.tis.plugin.ds.IInitWriterTableExecutor;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.IdlistElementCreatorFactory;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
@@ -109,7 +109,6 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DelegateControl4JsonPostMsgHandler;
 import com.qlangtech.tis.solrdao.ISchema;
-import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
@@ -1251,56 +1250,58 @@ public class DataxAction extends BasicModule {
     this.setBizResult(context, preview);
   }
 
-    /**
-     * 取得表映射
-     *
-     * @param context
-     */
-    @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
-    public void doGetTableMapper(Context context) {
-      String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
-      boolean forceInit = this.getBoolean("forceInit");
-      KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(this, dataxName);
-      DataxReader dataxReader = readerStore.getPlugin();
-      Objects.requireNonNull(dataxReader, "dataReader:" + dataxName + " relevant instance can not be null");
+  /**
+   * 取得表映射
+   *
+   * @param context
+   */
+  @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
+  public void doGetTableMapper(Context context) {
+    String dataxName = this.getString(PARAM_KEY_DATAX_NAME);
+    boolean forceInit = this.getBoolean("forceInit");
+    KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(this, dataxName);
+    DataxReader dataxReader = readerStore.getPlugin();
+    Objects.requireNonNull(dataxReader, "dataReader:" + dataxName + " relevant instance can not be null");
 
-//      TableAlias tableAlias;
-//      Optional<DataxProcessor> dataXAppSource = IAppSource.loadNullable(this, DataXName.createDataXPipeline
-//      (dataxName));
+    //      TableAlias tableAlias;
+    //      Optional<DataxProcessor> dataXAppSource = IAppSource.loadNullable(this, DataXName.createDataXPipeline
+    //      (dataxName));
     //  TableAliasMapper tabMaps = null;//Collections.emptyMap();
-//      AutoCreateTable mapperTabPrefixAutoTabCreator = null;
-//      if (dataXAppSource.isPresent()) {
-//        DataxProcessor dataxSource = dataXAppSource.get();
-//        IDataxWriter dataXWriter = dataxSource.getWriter(this, true);
-//        if (dataXWriter instanceof IInitWriterTableExecutor) {
-//          mapperTabPrefixAutoTabCreator = ((IInitWriterTableExecutor) dataXWriter).getAutoCreateTableCanNotBeNull();
-//        }
-//        tabMaps = dataxSource.getTabAlias(this, false);
-//      }
-//      if (tabMaps == null) {
-//        throw new IllegalStateException("tableMaps can not be null");
-//      }
+    //      AutoCreateTable mapperTabPrefixAutoTabCreator = null;
+    //      if (dataXAppSource.isPresent()) {
+    //        DataxProcessor dataxSource = dataXAppSource.get();
+    //        IDataxWriter dataXWriter = dataxSource.getWriter(this, true);
+    //        if (dataXWriter instanceof IInitWriterTableExecutor) {
+    //          mapperTabPrefixAutoTabCreator = ((IInitWriterTableExecutor) dataXWriter)
+    //          .getAutoCreateTableCanNotBeNull();
+    //        }
+    //        tabMaps = dataxSource.getTabAlias(this, false);
+    //      }
+    //      if (tabMaps == null) {
+    //        throw new IllegalStateException("tableMaps can not be null");
+    //      }
 
-      if (!dataxReader.hasMulitTable()) {
-        throw new IllegalStateException("reader (" + dataxReader.getClass().getSimpleName() + ") has not set table at " + "least");
-      }
-      List<TableAlias> tmapList = Lists.newArrayList();
-      for (ISelectedTab selectedTab : dataxReader.getSelectedTabs()) {
-//        tableAlias = tabMaps.get(selectedTab);
-//        if (forceInit || tableAlias == null) {
-//          tableAlias = (tableAlias == null) ? new TableAlias(selectedTab.getName()) : tableAlias;
-//          if (mapperTabPrefixAutoTabCreator != null) {
-//            tableAlias.setTo(mapperTabPrefixAutoTabCreator.appendTabPrefix(EntityName.parse(selectedTab.getName())
-//            .getTabName()));
-//          }
-//          tmapList.add(tableAlias);
-//        } else {
-          tmapList.add(new TableAlias(selectedTab.getName()));
-        //}
-      }
-      this.setBizResult(context, tmapList);
-
+    if (!dataxReader.hasMulitTable()) {
+      throw new IllegalStateException("reader (" + dataxReader.getClass().getSimpleName() + ") has not set table at " + "least");
     }
+    List<TableAlias> tmapList = Lists.newArrayList();
+    for (ISelectedTab selectedTab : dataxReader.getSelectedTabs()) {
+      //        tableAlias = tabMaps.get(selectedTab);
+      //        if (forceInit || tableAlias == null) {
+      //          tableAlias = (tableAlias == null) ? new TableAlias(selectedTab.getName()) : tableAlias;
+      //          if (mapperTabPrefixAutoTabCreator != null) {
+      //            tableAlias.setTo(mapperTabPrefixAutoTabCreator.appendTabPrefix(EntityName.parse(selectedTab
+      //            .getName())
+      //            .getTabName()));
+      //          }
+      //          tmapList.add(tableAlias);
+      //        } else {
+      tmapList.add(new TableAlias(selectedTab.getName()));
+      //}
+    }
+    this.setBizResult(context, tmapList);
+
+  }
 
   @Func(value = PermissionConstant.DATAX_MANAGE, sideEffect = false)
   public void doGetReaderWriterMeta(Context context) {
@@ -1327,18 +1328,34 @@ public class DataxAction extends BasicModule {
   }
 
   public static IDataxProcessor.TableMap getTableMapper(IPluginContext pluginCtx, IDataxProcessor processor) {
-    TableAliasMapper tabAlias = processor.getTabAlias(pluginCtx, false);
-    IDataxWriter writer = processor.getWriter(pluginCtx);
-    Optional<TableAlias> findMapper = tabAlias.findFirst();
-    IDataxProcessor.TableMap tabMapper = null;
-    if (findMapper.isPresent()) {
-      tabMapper = (IDataxProcessor.TableMap) findMapper.get();
-      List<CMeta> sourceCols = tabMapper.getSourceCols();
 
-      IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(sourceCols);
-      m.setFrom(tabMapper.getFrom());
-      m.setTo(tabMapper.getTo());
-      tabMapper = m;
+    IDataxReader reader = processor.getReader(pluginCtx);
+    // IDataxWriter writer = processor.getWriter(pluginCtx);
+    List<ISelectedTab> unfilledSelectedTabs = reader.getUnfilledSelectedTabs();
+
+    //    TableAliasMapper tabAlias = processor.getTabAlias(pluginCtx, false);
+    //    IDataxWriter writer = processor.getWriter(pluginCtx);
+    //    Optional<TableAlias> findMapper = tabAlias.findFirst();
+    IDataxProcessor.TableMap tabMapper = null;
+    if (CollectionUtils.isNotEmpty(unfilledSelectedTabs)) {
+      // if (findMapper.isPresent()) {
+      Optional<IDataxProcessor.TableMap> firstTableMap = processor.getFirstTableMap(pluginCtx, false);
+      tabMapper = firstTableMap.orElse(null);
+      //      for (ISelectedTab selectedTab : unfilledSelectedTabs) {
+      //        tabMapper = new IDataxProcessor.TableMap(writer.getWriterTableExecutor(), selectedTab);//
+      //        (IDataxProcessor
+      //        // .TableMap) findMapper.get();
+      //      }
+
+      Objects.requireNonNull(tabMapper,
+        "tabMapper can not be null,unfilledSelectedTabs.size()=" + unfilledSelectedTabs.size());
+      //      tabMapper = (IDataxProcessor.TableMap) findMapper.get();
+      //      List<CMeta> sourceCols = tabMapper.getSourceCols();
+      //
+      //      IDataxProcessor.TableMap m = new IDataxProcessor.TableMap(sourceCols);
+      //      m.setFrom(tabMapper.getFrom());
+      //      m.setTo(tabMapper.getTo());
+      //      tabMapper = m;
     } else {
       List<ISelectedTab> tabs = processor.getReader(pluginCtx).getSelectedTabs();// processMeta.getReader()
       // .getSelectedTabs();
@@ -1347,7 +1364,8 @@ public class DataxAction extends BasicModule {
         throw new IllegalStateException("dataX reader getSelectedTabs size must be 1 ,but now is :" + selectedTabsSize);
       }
       for (ISelectedTab selectedTab : tabs) {
-        tabMapper = new IDataxProcessor.TableMap(writer.getWriterTableExecutor(), selectedTab);
+        // writer.getWriterTableExecutor()
+        tabMapper = new IDataxProcessor.TableMap(Optional.empty(), selectedTab);
         tabMapper.setFrom(selectedTab.getName());
         // tabMapper.setTo(selectedTab.getName());
         break;
@@ -1383,14 +1401,41 @@ public class DataxAction extends BasicModule {
 
     DataxProcessor.DataXCreateProcessMeta processMeta = DataxProcessor.getDataXCreateProcessMeta(this,
       confiemModel.getDataxName());
-    List<ISelectedTab> selectedTabs = processMeta.getReader().getSelectedTabs();
-    // TODO: ESTableAlias 需要选择其他地方进行保存 2026/01/07
-    ESTableAlias esTableAlias = new ESTableAlias(schemaContent);
-    esTableAlias.setFrom(selectedTabs.stream().findFirst().get().getName());
-    esTableAlias.setTo(((ISearchEngineTypeTransfer) processMeta.getWriter()).getIndexName());
-    //  esTableAlias.setSchemaContent(schemaContent);
+    List<ISelectedTab> selectedTabs = processMeta.getReader().getUnfilledSelectedTabs();
 
-    //  TableAlias.saveTableMapper(this, confiemModel.getDataxName(), Collections.singletonList(esTableAlias));
+    // TODO: ESTableAlias 需要选择其他地方进行保存 2026/01/07
+    for (ISelectedTab tab : selectedTabs) {
+
+
+      Optional<RecordTransformerRules> transformerRules = RecordTransformerRules.loadTransformerRules(this,
+        getCollectionName(), tab.getName());
+
+      ESTableAlias esTableAlias = ESTableAlias.create(transformerRules, schemaContent);
+
+
+//      ESTableAlias esTableAlias = new ESTableAlias();
+//      esTableAlias.schemaContent = schemaContent;
+//      esTableAlias.cols = ESTableAlias.parseSourceCols(schemaContent);
+//      transformerRules.ifPresent((rule) -> {
+//        // 需要将虚拟列过滤掉
+//        Set<String> virtualCols =
+//          rule.relevantTypedOutterColKeys().stream().filter(OutputParameter::isVirtual).map(OutputParameter::getName).collect(Collectors.toSet());
+//        esTableAlias.cols =
+//          esTableAlias.cols.stream().filter((col) -> !virtualCols.contains(col.getName())).collect(Collectors.toList());
+//      });
+//
+//      esTableAlias.primaryKeys =
+//        esTableAlias.cols.stream().filter(CMeta::isPk).map(CMeta::getName).collect(Collectors.toList());
+      esTableAlias.name = (tab.getName());
+      esTableAlias.alias = (((ISearchEngineTypeTransfer) processMeta.getWriter()).getIndexName());
+      //  esTableAlias.setSchemaContent(schemaContent);
+      SelectedTab.saveSelectedTabs(this, context, processMeta.getReader().getDescriptor(),
+        confiemModel.getDataxName(), Collections.singletonList(esTableAlias));
+      //  TableAlias.saveTableMapper(this, confiemModel.getDataxName(), Collections.singletonList(esTableAlias));
+      return;
+    }
+
+    throw new IllegalStateException("selectedTabs.size() must be big than 0");
   }
 
 
@@ -1413,9 +1458,12 @@ public class DataxAction extends BasicModule {
   public static boolean validateAndSaveTableMapper(BasicModule delegate, Context context, String dataxName,
                                                    JSONObject parseJsonPost) {
 
+
     List<CMeta> writerCols = Lists.newArrayList();
-    IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(Optional.empty(), new DefaultTab(dataxName,
-      writerCols));
+    SelectedTab selectedTab = new SelectedTab();
+
+    selectedTab.cols = writerCols;
+    IDataxProcessor.TableMap tableMapper = new IDataxProcessor.TableMap(Optional.empty(), selectedTab);
     // final String keyColsMeta = "colsMeta";
     IControlMsgHandler handler = new DelegateControl4JsonPostMsgHandler(delegate, parseJsonPost);
     if (!Validator.validate(handler, context, Validator.fieldsValidator( //
@@ -1429,6 +1477,7 @@ public class DataxAction extends BasicModule {
         @Override
         public void setFieldVal(String val) {
           tableMapper.setFrom(val);
+          selectedTab.name = val;
         }
       }, MultiItemsViewType.keyColsMeta //
       , new Validator.FieldValidators(Validator.require) {
@@ -1463,8 +1512,8 @@ public class DataxAction extends BasicModule {
       }))) {
       return false;
     }
-
-    //  TableAlias.saveTableMapper(delegate, dataxName, Collections.singletonList(tableMapper));
+    selectedTab.primaryKeys = writerCols.stream().filter(CMeta::isPk).map(CMeta::getName).collect(Collectors.toList());
+    TableAlias.saveTableMapper(delegate, context, dataxName, Collections.singletonList(tableMapper));
     return true;
   }
 

@@ -366,14 +366,13 @@ public enum FormFieldType {
 
     public static class SelectedItem extends Option {
         // 是否选中了
-        private boolean checked;
+        // private boolean checked;
 
         private IMultiElement cmeta;
 
         public SelectedItem(String name, String value, boolean checked) {
             super(name, value);
-
-            this.checked = checked;
+            this.setChecked(checked);
         }
 
         public SelectedItem(IMultiElement cmeta) {
@@ -386,9 +385,9 @@ public enum FormFieldType {
             return cmeta;
         }
 
-        public boolean isChecked() {
-            return checked;
-        }
+//        public boolean isChecked() {
+//            return checked;
+//        }
     }
 
     public interface IPropValProcessor {

@@ -60,7 +60,8 @@ public final class DefaultFilter implements Filter {
   private static AppAndRuntime getRuntime(TISHttpServletRequestWrapper request) {
     final String key = "request" + ChangeDomainAction.COOKIE_SELECT_APP;
     if (request.getAttribute(key) == null) {
-      AppAndRuntime appAndRuntime = new AppAndRuntime();
+
+      AppAndRuntime appAndRuntime = new AppAndRuntime(request.getParameterMap());
 
       String appName = StringUtils.defaultString(
         request.getHeader(TriggerBuildResult.KEY_APPNAME)

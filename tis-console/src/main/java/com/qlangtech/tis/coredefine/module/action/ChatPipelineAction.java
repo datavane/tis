@@ -26,12 +26,12 @@ import com.qlangtech.tis.aiagent.core.PluginPropsComplement;
 import com.qlangtech.tis.aiagent.core.RequestKey;
 import com.qlangtech.tis.aiagent.core.SelectionOptions;
 import com.qlangtech.tis.aiagent.core.TISPlanAndExecuteAgent;
+import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.sessiondata.ColsMetaSetterSessionData;
 import com.qlangtech.tis.aiagent.sessiondata.TableSelectApplySessionData;
-import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.template.TaskTemplateRegistry;
 import com.qlangtech.tis.datax.IDataxProcessor;
-import com.qlangtech.tis.datax.TableAliasMapper;
+import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
@@ -42,6 +42,7 @@ import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.common.UserProfile;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.util.AttrValMap;
 import org.apache.commons.collections.CollectionUtils;
@@ -306,7 +307,7 @@ public class ChatPipelineAction extends BasicModule {
 
       } catch (Exception e) {
         logger.error("Agent execution failed", e);
-       // sseWriter.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_ERROR, "{\"error\":\"" + e.getMessage() + "\"}");
+        // sseWriter.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_ERROR, "{\"error\":\"" + e.getMessage() + "\"}");
         TisException.ErrMsg errMsg = TisException.getErrMsg(e);
         session.getAgentContext().sendError(errMsg.getMessage());
       } finally {
@@ -368,8 +369,15 @@ public class ChatPipelineAction extends BasicModule {
     AgentContext agentContext = Objects.requireNonNull(session.getAgentContext(), "agentContext can not be null");
     ColsMetaSetterSessionData colsMetaSetter = agentContext.getSessionData(requestId);
     IDataxProcessor processor = DataxProcessor.load(this, colsMetaSetter.getPipeline().identityValue());
-    TableAliasMapper tabAlias = processor.getTabAlias(this, false);
-    colsMetaSetter.setHasValidSet(tabAlias != TableAliasMapper.Null);
+
+    IDataxReader reader = processor.getReader(this);
+    List<ISelectedTab> unfilledSelectedTabs = reader.getUnfilledSelectedTabs();
+
+    //TableAliasMapper tabAlias = processor.getTabAlias(this, false);
+    //colsMetaSetter.setHasValidSet(tabAlias != TableAliasMapper.Null);
+
+    colsMetaSetter.setHasValidSet(CollectionUtils.isNotEmpty(unfilledSelectedTabs));
+
     agentContext.notifyUserSelectionSubmitted(requestId);
     this.setBizResult(context, colsMetaSetter.isHasValidSet());
   }

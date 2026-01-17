@@ -263,7 +263,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
             final DataXName pipe = pmeta.getDataXName(false);
             AppAndRuntime appAndRuntime = AppAndRuntime.getAppAndRuntime();
             if (pipe != null && (appAndRuntime == null || (appAndRuntime.getAppName()) == null)) {
-                appAndRuntime = new AppAndRuntime();
+                appAndRuntime = new AppAndRuntime(Collections.emptyMap());
                 appAndRuntime.setRuntime(RunEnvironment.getSysRuntime());
                 appAndRuntime.setAppName(pipe);
                 // StoreResourceType type = pipe.getType();

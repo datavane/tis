@@ -23,6 +23,8 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.MultiStepsSupportHost;
+import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.TISExtensible;
@@ -52,6 +54,7 @@ import static com.qlangtech.tis.extension.Descriptor.KEY_OPTIONS;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  * @see DescriptorsJSONForAIPrompt for AI prompt
+ * @see DefaultDescriptorsJSON for front end form show
  */
 public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends DescriptorsJSON.AttrVal> {
 
@@ -139,7 +142,38 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
         final Descriptor desc = pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
             @Override
             public Descriptor visit(RootFormProperties props) {
+                multiStepsPropsSet(props);
                 return descriptor;
+            }
+
+            private void multiStepsPropsSet(RootFormProperties props) {
+                if (props.isSupportMultiStep()) {
+                    JSONObject multiStepsCfg = new JSONObject();
+                    JSONArray steps = new JSONArray();
+                    JSONObject step = null;
+
+                    for (OneStepOfMultiSteps.BasicDesc stepDesc : props.getStepDescriptionList()) {
+                        step = new JSONObject();
+                        step.put("stepName", stepDesc.getDisplayName());
+                        step.put("stepDescription", stepDesc.getStepDescription());
+                        steps.add(step);
+                    }
+                    multiStepsCfg.put("multiSteps", steps);
+
+                    for (OneStepOfMultiSteps.BasicDesc stepDesc : props.getStepDescriptionList()) {
+                        DescriptorsJSON des2Json = forAIPromote ?
+                                new DescriptorsJSONForAIPrompt(Collections.singleton(stepDesc), true) :
+                                new DefaultDescriptorsJSON(stepDesc);
+                        multiStepsCfg.put("firstStepDesc", des2Json.getDescriptorsJSON());
+                        break;
+                    }
+                    JSONObject stepContext = new JSONObject();
+                    ((MultiStepsSupportHost) descriptor).appendExternalProps(stepContext);
+                    // 保证在整个step运行过程中通过客户端SavePluginEvent.postPayload都会提交到服务端的属性
+                    multiStepsCfg.put("context", stepContext);
+                    // 支持多步骤实现插件配置
+                    desJson.put("multiStepsCfg", multiStepsCfg);
+                }
             }
 
             @Override
@@ -181,11 +215,9 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
         JSONArray attrs;
         String key;
         PropertyType val;
-
-
         AttrVal attrVal = null;
+
         DescriptorsMeta descriptorsMeta = this.createDescriptorsMeta();
-        // Map<String, Object> extractProps;
 
         List<Descriptor<?>> acceptDescs = getAcceptDescs(subFormFilter);
 
@@ -221,7 +253,6 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
                     if (extraProps != null) {
                         // 额外属性
                         final JSONObject ep = processExtraProps(val, extraProps);
-                        //this.processExtraProps(dd, val, val);
                         JSONObject n = val.multiSelectablePropProcess((vt) -> {
                             JSONObject clone = (JSONObject) ep.clone();
                             clone.put(PluginExtraProps.Props.KEY_VIEW_TYPE, vt.getViewTypeToken());
@@ -235,7 +266,7 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
                         attrVal.put(KEY_OPTIONS, getSelectOptions(desc, val, key));
                     }
                     if (val.isDescribable()) {
-                        DescriptorsJSON des2Json = createInnerDescrible(val);
+                        DescriptorsJSON des2Json = createInnerDescrible(val.getApplicableDescriptors());
 
                         attrVal.putDescriptors(des2Json);
                         Annotation extensible = val.fieldClazz.getAnnotation(TISExtensible.class);
@@ -287,10 +318,8 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
         return pair;
     }
 
-    protected abstract DescriptorsJSON<T, ATTR_VAL> createInnerDescrible(PropertyType val);
-    //    {
-    //        return new DescriptorsJSON(val.getApplicableDescriptors(), false);
-    //    }
+    protected abstract DescriptorsJSON<T, ATTR_VAL> createInnerDescrible(List<? extends Descriptor> descriptors);
+
 
     private List<Descriptor<?>> getAcceptDescs(Optional<SubFormFilter> subFormFilter) {
         PluginFormProperties pluginFormPropertyTypes = null;
@@ -327,14 +356,13 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
 
     public static List<Descriptor.SelectOption> getSelectOptions(Descriptor descriptor, PropertyType propType,
                                                                  String fieldKey) {
-      //   optionsCreator = null;
         if (propType.typeIdentity() != FormFieldType.SELECTABLE.getIdentity()) {
             throw new IllegalStateException("propType must be:" + FormFieldType.SELECTABLE + " but now is:" + propType.typeIdentity());
         }
         if (!(descriptor instanceof ISelectOptionsGetter)) {
             throw new IllegalStateException("descriptor:" + descriptor.getClass() + " has a selectable field:" + fieldKey + " descriptor must be an instance of 'ISelectOptionsGetter'");
         }
-        ISelectOptionsGetter  optionsCreator = descriptor;
+        ISelectOptionsGetter optionsCreator = descriptor;
         List<Descriptor.SelectOption> selectOptions = optionsCreator.getSelectOptions(fieldKey);
 
         return selectOptions;

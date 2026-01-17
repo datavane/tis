@@ -45,7 +45,7 @@ public interface ISelectedTab extends ISelectedTabMeta, ISourceTable {
     }
 
     default String getAlias() {
-        throw new UnsupportedOperationException();
+        return this.getName();
     }
 
     @Override

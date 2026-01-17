@@ -21,6 +21,7 @@ package com.qlangtech.tis.datax;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.datax.impl.DataxWriter;
+import com.qlangtech.tis.datax.impl.ESTableAlias;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.solrdao.ISchema;
 import com.qlangtech.tis.solrdao.ISchemaField;
@@ -71,18 +72,16 @@ public interface ISearchEngineTypeTransfer {
      *
      * @param pluginCtx
      * @param esTab
-     * @param tableAlias
      * @return
      */
-    public boolean hasDifferWithSource(IPluginContext pluginCtx, ISelectedTab esTab, TableAlias tableAlias);
+    public boolean hasDifferWithSource(IPluginContext pluginCtx, ESTableAlias esTab);
 
     /**
      * @param esTab
-     * @param tableAlias
      * @param schemaContentConsumer
      * @return
      */
-    public ISchema projectionFromExpertModel(IPluginContext pluginCtx, ISelectedTab esTab, TableAlias tableAlias, Consumer<byte[]> schemaContentConsumer);
+    public ISchema projectionFromExpertModel(IPluginContext pluginCtx, ESTableAlias esTab, Consumer<byte[]> schemaContentConsumer);
 
     public default ISchema projectionFromExpertModel(JSONObject body) {
         return projectionFromExpertModel(body, (field) -> true);

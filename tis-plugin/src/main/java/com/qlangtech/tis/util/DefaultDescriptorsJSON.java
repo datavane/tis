@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -113,7 +114,7 @@ public class DefaultDescriptorsJSON<T extends Describable<T>> extends Descriptor
     }
 
     @Override
-    protected DescriptorsJSON<T, JSONAttrVal> createInnerDescrible(PropertyType val) {
-        return new DefaultDescriptorsJSON(val.getApplicableDescriptors(), false);
+    protected DescriptorsJSON<T, JSONAttrVal> createInnerDescrible(List<? extends Descriptor> descriptors) {
+        return new DefaultDescriptorsJSON(descriptors, false);
     }
 }

@@ -21,6 +21,7 @@ package com.qlangtech.tis.manage.common;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -44,6 +45,26 @@ public class AppAndRuntime {
         if (newAppAndRuntimeConsumer != null) {
             newAppAndRuntimeConsumer.accept(appAndRuntime);
         }
+    }
+
+    private final Map<String, String[]> httpParams;
+
+    public AppAndRuntime(Map<String, String[]> httpParams) {
+        this.httpParams = httpParams;
+    }
+
+    public String[] getHttpParams(String key) {
+        return this.httpParams.get(key);
+    }
+
+    public String getHttpParam(String key) {
+        String[] vals = getHttpParams(key);
+        if (vals != null) {
+            for (String val : vals) {
+                return val;
+            }
+        }
+        return null;
     }
 
     public void setAppName(DataXName appName) {

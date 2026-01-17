@@ -19,6 +19,7 @@ package com.qlangtech.tis.sql.parser.stream.generate;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.sql.parser.er.IERRules;
 import com.qlangtech.tis.sql.parser.er.PrimaryTableMeta;
@@ -45,7 +46,7 @@ public class MergeData implements IStreamIncrGenerateStrategy.IStreamTemplateDat
 
     //  private final FuncFormat aliasListBuilder;
 
-    private final List<TableAlias> tabTriggers;
+    private final List<IDataxProcessor.TableMap> tabTriggers;
 
     private final List<FacadeContext> facadeContextList;
 
@@ -67,7 +68,7 @@ public class MergeData implements IStreamIncrGenerateStrategy.IStreamTemplateDat
     public MergeData(
             String collection, Map<EntityName, MapDataMethodCreator> mapDataMethodCreatorMap
             //, FuncFormat aliasListBuilder
-            , List<TableAlias> tabTriggers
+            , List<IDataxProcessor.TableMap> tabTriggers
             , IERRules erRules
             , List<FacadeContext> facadeContextList
             , IStreamIncrGenerateStrategy streamIncrGenerateStrategy) {
@@ -189,7 +190,7 @@ public class MergeData implements IStreamIncrGenerateStrategy.IStreamTemplateDat
     }
 
     @Override
-    public List<TableAlias> getDumpTables() {
+    public List<IDataxProcessor.TableMap> getDumpTables() {
         if (CollectionUtils.isEmpty(this.tabTriggers)) {
             throw new IllegalStateException("tabTriggers can not be empty");
         }

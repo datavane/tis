@@ -19,12 +19,16 @@
 package com.qlangtech.tis.plugin.ds;
 
 /**
- *
+ * <a href="https://www.processon.com/diagraming/69689f89faec1a656012e77d">...</a>
  */
 public enum ViewContent {
     TransformerRules("transformerRules"),
     MongoCols("mongoCols"),
     JdbcTypeProps("jdbcTypeProps"),
+    /**
+     * 两个表执行join操作
+     */
+    TableJoinMatchCondition("tableJoinMatchCondition"),
     Unknow("unknow");
     private String token;
 

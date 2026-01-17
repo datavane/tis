@@ -208,7 +208,8 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         }
 
         @Override
-        protected <T extends Describable<T>> List<Descriptor<T>> filterDescriptors(UploadPluginMeta.TargetDesc targetDesc, List<T> items, boolean justGetItemRelevant, List<Descriptor<T>> descriptors) {
+        protected <T extends Describable<T>> List<Descriptor<T>> filterDescriptors( //
+                UploadPluginMeta.TargetDesc targetDesc, List<T> items, boolean justGetItemRelevant, List<Descriptor<T>> descriptors) {
             return descriptors;
         }
 

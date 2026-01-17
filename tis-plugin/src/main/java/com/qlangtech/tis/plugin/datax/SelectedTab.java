@@ -22,6 +22,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.datax.core.job.ITransformerBuildInfo;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
@@ -57,7 +58,9 @@ import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.util.impl.AttrVals;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -66,6 +69,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +80,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.qlangtech.tis.datax.StoreResourceType.DATAX_NAME;
+import static com.qlangtech.tis.datax.impl.ESTableAlias.MAX_READER_TABLE_SELECT_COUNT;
+import static com.qlangtech.tis.extension.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD;
 import static com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler.joinField;
+import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
+import static com.qlangtech.tis.util.UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION;
+import static com.qlangtech.tis.util.UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME;
 
 /**
  * @author: baisui 百岁
@@ -94,6 +104,34 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     private transient SelectedTabExtend incrSinkProps;
     public transient SelectedTabExtend sourceProps;
 
+    public static UploadPluginMeta getSelectedTabsUploadPluginMeta(IPluginContext pluginCtx, Descriptor descriptor,
+                                                                   String pipelineName) {
+        UploadPluginMeta selectedTabsMeta = UploadPluginMeta.parse(pluginCtx,
+                HeteroEnum.DATAX_READER.identity + ":" + KEY_REQUIRE + "," + PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_" //
+                + descriptor.getId() + "," + PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_" //
+                + descriptor.getDisplayName() + "," //
+                + PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," //
+                + DATAX_NAME + "_" + pipelineName//
+                + "," + MAX_READER_TABLE_SELECT_COUNT + "_999", false);
+        return selectedTabsMeta;
+    }
+
+    public static <T extends DataxReader> void saveSelectedTabs(IPluginContext pluginCtx, Context ctx,
+                                                                Descriptor<T> descriptor, String pipelineName,
+                                                                List<ISelectedTab> tabs) {
+        UploadPluginMeta selectedTabsMeta = getSelectedTabsUploadPluginMeta(pluginCtx, descriptor, pipelineName);
+
+        Assert.assertTrue("subFormFilter must be present", selectedTabsMeta.getSubFormFilter().isPresent());
+        List<Descriptor.ParseDescribable> selectedTabs = Lists.newArrayList();
+        selectedTabs.add(new Descriptor.ParseDescribable(tabs));
+        if (CollectionUtils.isEmpty(selectedTabs)) {
+            throw new IllegalStateException("selectedTabs can not be null");
+        }
+        IPluginStore tabsStore = HeteroEnum.getDataXReaderAndWriterStore(pluginCtx, true, selectedTabsMeta,
+                selectedTabsMeta.getSubFormFilter());
+        tabsStore.setPlugins(pluginCtx, Optional.of(ctx), selectedTabs);
+    }
+
     // 表名称
     @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
     public String name;
@@ -108,6 +146,12 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     // 用户可以自己设置where条件
     @FormField(ordinal = 100, type = FormFieldType.INPUTTEXT)
     public String where;
+
+    /**
+     * candidate cols fetch by static method: getColsCandidate
+     */
+    @FormField(ordinal = 200, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
+    public List<CMeta> cols = Lists.newArrayList();
 
     @Override
     public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, boolean includeContextParams) {
@@ -126,9 +170,16 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
 
             List<OutputParameter> outParams = includeContextParams ? overwriteColsWithContextParams :
                     transformerBuilder.tranformerColsWithoutContextParams();
-            return outParams.stream().map((param) -> param).collect(Collectors.toList());
+
+            Map<String, CMeta> tabCols = this.getCols().stream().collect(Collectors.toMap(CMeta::getName,
+                    (col) -> col));
+
+            return outParams.stream().map((param) -> {
+                CMeta tabCol = tabCols.get(param.getName());
+                return IColMetaGetter.create(param.getName(), param.getType(), tabCol != null && tabCol.isPk());
+            }).collect(Collectors.toList());
         } else {
-            cols = this.getCols().stream().collect(Collectors.toList());
+            cols = new ArrayList<>(this.getCols());
         }
         return cols;
     }
@@ -138,11 +189,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
         return this.primaryKeys;
     }
 
-    /**
-     * candidate cols fetch by static method: getColsCandidate
-     */
-    @FormField(ordinal = 200, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
-    public List<CMeta> cols = Lists.newArrayList();
+
 
 
     public List<String> getColKeys() {

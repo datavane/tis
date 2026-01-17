@@ -1,0 +1,1 @@
+{  "schemaContent": {    "readonly": true,    "label": "Schema",    "rows": 2,    "help": "高级Elastic Schema",    "style": "codemirror",    "mode": "application/ld+json"  }}

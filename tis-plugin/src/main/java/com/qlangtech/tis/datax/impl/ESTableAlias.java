@@ -22,47 +22,80 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.annotation.FormField;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.plugin.datax.transformer.OutputParameter;
+import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-06-16 16:41
  **/
-public class ESTableAlias extends IDataxProcessor.TableMap {
+public class ESTableAlias extends SelectedTab {
     public static final String KEY_COLUMN = "column";
     public static final String MAX_READER_TABLE_SELECT_COUNT = "maxReaderTableCount";
 
     // json 格式
-    private final String schemaContent;
+    @FormField(ordinal = 9999, advance = true, type = FormFieldType.TEXTAREA, validate = {})
+    public String schemaContent;
+    // private final List<String> pks;
 
-    public ESTableAlias(String schemaContent) {
-        super(parseSourceCols(schemaContent));
-        this.schemaContent = schemaContent;
+    public static ESTableAlias create(Optional<RecordTransformerRules> transformerRules, String schemaContent) {
+        ESTableAlias esTableAlias = new ESTableAlias();
+        esTableAlias.schemaContent = schemaContent;
+        esTableAlias.cols = ESTableAlias.parseSourceCols(schemaContent);
+        transformerRules.ifPresent((rule) -> {
+            // 需要将虚拟列过滤掉
+            Set<String> virtualCols =
+                    rule.relevantTypedOutterColKeys().stream().filter(OutputParameter::isVirtual).map(OutputParameter::getName).collect(Collectors.toSet());
+            esTableAlias.cols =
+                    esTableAlias.cols.stream().filter((col) -> !virtualCols.contains(col.getName())).collect(Collectors.toList());
+        });
+
+        esTableAlias.primaryKeys =
+                esTableAlias.cols.stream().filter(CMeta::isPk).map(CMeta::getName).collect(Collectors.toList());
+        return esTableAlias;
     }
 
+    //    public ESTableAlias() {
+    //
+    //    }
+
+    //    public ESTableAlias(String schemaContent) {
+    //        super("esTabName");
+    //        this.cols = parseSourceCols(schemaContent);
+    //        this.primaryKeys = this.cols.stream().filter(CMeta::isPk).map(CMeta::getName).collect(Collectors.toList
+    //        ());
+    //        this.schemaContent = schemaContent;
+    //    }
+
+    public static final DefaultDescriptor desc = new DefaultDescriptor();
+
     @Override
+    public final Descriptor<SelectedTab> getDescriptor() {
+        return desc;
+    }
+
+    //  @Override
     protected List<CMeta> rewriteCols(final List<CMeta> cmetas) {
         return cmetas;
-    }
-
-    @Override
-    public List<String> getPrimaryKeys() {
-        return getSourceCols().stream()
-                .filter((col) -> col.isPk())
-                .map((col) -> col.getName())
-                .collect(Collectors.toList());
     }
 
     // private List<CMeta> colsMeta;
 
     // @Override
-    private static List<CMeta> parseSourceCols(String schemaContent) {
+    public static List<CMeta> parseSourceCols(String schemaContent) {
 
         // if (colsMeta == null) {
         List<CMeta> colsMeta = Lists.newArrayList();
@@ -102,7 +135,11 @@ public class ESTableAlias extends IDataxProcessor.TableMap {
         return this.schemaContent;
     }
 
-//    public void setSchemaContent(String schemaContent) {
-//        this.schemaContent = schemaContent;
-//    }
+
+    @TISExtension
+    public static class DefaultDescriptor extends SelectedTab.DefaultDescriptor {
+        public DefaultDescriptor() {
+            super();
+        }
+    }
 }

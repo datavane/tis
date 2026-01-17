@@ -29,9 +29,8 @@ import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.ISearchEngineTypeTransfer;
 import com.qlangtech.tis.datax.StoreResourceType;
-import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
-import com.qlangtech.tis.datax.impl.DataxReader;
+import com.qlangtech.tis.datax.impl.ESTableAlias;
 import com.qlangtech.tis.fullbuild.indexbuild.LuceneVersion;
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.PermissionConstant;
@@ -139,38 +138,37 @@ public class SchemaAction extends BasicModule {
     //  ESField field = null;
 
     ISearchEngineTypeTransfer typeTransfer = ISearchEngineTypeTransfer.load(this, dataxName);
-    DataxReader dataxReader = DataxReader.load(this, dataxName);
-    ISelectedTab esTab = null;
-    for (ISelectedTab tab : dataxReader.getSelectedTabs()) {
-      esTab = tab;
-      break;
-    }
-    Objects.requireNonNull(esTab, "esTab can not be null");
+    //  DataxReader dataxReader = DataxReader.load(this, dataxName);
+    //    ISelectedTab esTab = null;
+    //    for (ISelectedTab tab : dataxReader.getSelectedTabs()) {
+    //      esTab = tab;
+    //      break;
+    //    }
+    //    Objects.requireNonNull(esTab, "esTab can not be null");
+    IDataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);
+    Optional<IDataxProcessor.TableMap> firstTableMap = dataxProcessor.getFirstTableMap(this);
+    IDataxProcessor.TableMap tableMap //
+      = firstTableMap.orElseThrow(() -> new IllegalStateException("dataxName:" + dataxName + " relevant "
+            + "firstTableMap" + " can not be null"));
+    ISelectedTab sourceTab = tableMap.getSourceTab();
+    if (stepType.update && (sourceTab instanceof ESTableAlias)) {
 
-    // ESField field = null;
-    if (stepType.update) {
-      IDataxProcessor dataxProcessor = DataxProcessor.load(this, dataxName);
-
-      Optional<TableAlias> f = dataxProcessor.getTabAlias(this, false).findFirst();
-      if (f.isPresent()) {
-        TableAlias tabMapper = f.get();
-        if (StringUtils.equals(tabMapper.getFrom(), esTab.getName()) && !typeTransfer.hasDifferWithSource(this, esTab
-          , tabMapper)) {
-          writerStructFields(context, esTab, tabMapper, typeTransfer);
-          return;
-        } else {
-          // 更新时，源表改变了重新初始化
-          writeStructFields(context, typeTransfer, esTab);
-          return;
-        }
+      ESTableAlias esTab = (ESTableAlias) sourceTab;
+      if (StringUtils.equals(esTab.name, esTab.alias) && !typeTransfer.hasDifferWithSource(this, esTab)) {
+        writerStructFields(context, esTab, typeTransfer);
+        return;
+      } else {
+        // 更新时，源表改变了重新初始化
+        writeStructFields(context, typeTransfer, esTab);
+        return;
       }
 
     } else {
-      writeStructFields(context, typeTransfer, esTab);
+      writeStructFields(context, typeTransfer, sourceTab);
       return;
     }
 
-    throw new IllegalStateException("have not find any tab in DataXReader");
+ //   throw new IllegalStateException("have not find any tab in DataXReader");
   }
 
   private void writeStructFields(Context context, ISearchEngineTypeTransfer typeTransfer, ISelectedTab esTab) {
@@ -259,7 +257,7 @@ public class SchemaAction extends BasicModule {
     UploadResource schemaRes = getAppSchema(module, tplApp);
     // 需要将原始fields节点去掉
     SchemaResult schemaResult = SchemaResult.parseSchemaResult(module, context, schemaRes.getContent(), false,
-      (fieldType) -> false);
+            (fieldType) -> false);
     if (!schemaResult.isSuccess()) {
       return schemaResult;
     }
@@ -305,7 +303,7 @@ public class SchemaAction extends BasicModule {
 
   private enum StepType {
     CreateDatax("createDatax", false), UpdateDataxWriter("UpdateDataxWriter", true), UpdateDataxReader(
-      "UpdateDataxReader", true);
+            "UpdateDataxReader", true);
     private String literia;
     private final boolean update;
 
@@ -379,12 +377,12 @@ public class SchemaAction extends BasicModule {
     Savefilecontent meta = form.getMeta();
 
     String schema = this.createSchema(SchemaAction.createSchemaPlugin(this.getCollectionName()),
-      form.getVisualizingForm(), context);
+            form.getVisualizingForm(), context);
     SchemaAction.CreateSnapshotResult createResult //
       = createNewSnapshot(context, createSchemaPlugin(this.getCollectionName()),
-      this.getSnapshotViewDAO().getView(meta.getSnapshotid()), ConfigFileReader.FILE_SCHEMA,
-      schema.getBytes(TisUTF8.get()), this, this, meta.getMemo(), Long.parseLong(this.getUser().getId()),
-      this.getLoginUserName());
+            this.getSnapshotViewDAO().getView(meta.getSnapshotid()), ConfigFileReader.FILE_SCHEMA,
+            schema.getBytes(TisUTF8.get()), this, this, meta.getMemo(), Long.parseLong(this.getUser().getId()),
+            this.getLoginUserName());
 
     if (!createResult.isSuccess()) {
       return;
@@ -479,15 +477,14 @@ public class SchemaAction extends BasicModule {
     com.alibaba.fastjson.JSONObject body = this.parseJsonPost();
 
     ISearchEngineTypeTransfer typeTransfer = ISearchEngineTypeTransfer.load(this,
-      body.getString(StoreResourceType.DATAX_NAME));
+            body.getString(StoreResourceType.DATAX_NAME));
     writerStructFields(context, body, typeTransfer);
   }
 
-  private void writerStructFields(Context context, ISelectedTab esTab, TableAlias tableAlias,
-                                  ISearchEngineTypeTransfer typeTransfer) {
+  private void writerStructFields(Context context, ESTableAlias esTab, ISearchEngineTypeTransfer typeTransfer) {
 
     SchemaMetaContent schemaContent = new SchemaMetaContent();
-    schemaContent.parseResult = typeTransfer.projectionFromExpertModel(this, esTab, tableAlias, (content) -> {
+    schemaContent.parseResult = typeTransfer.projectionFromExpertModel(this, esTab, (content) -> {
       schemaContent.content = content;
     });
     this.setBizResult(context, schemaContent.toJSON());
@@ -521,8 +518,8 @@ public class SchemaAction extends BasicModule {
   private boolean getStructSchema(Context context, Application app, ISchemaJsonVisitor... schemaVisitor) throws Exception {
     UploadResource schemaRes = getAppSchema(this, app);
     return this.getStructSchema(context,
-      SchemaAction.createSchemaPlugin(DataXName.createDataXPipeline(app.getProjectName())), schemaRes.getContent(),
-      schemaVisitor);
+            SchemaAction.createSchemaPlugin(DataXName.createDataXPipeline(app.getProjectName())),
+            schemaRes.getContent(), schemaVisitor);
   }
 
   /**
@@ -610,7 +607,7 @@ public class SchemaAction extends BasicModule {
   public void doGetFieldsBySnapshotId(Context context) throws Exception {
 
     SchemaResult schema = parseSchemaResultWithPluginCfg(this.getCollectionName(), this, context,
-      SaveFileContentAction.getResContent(this, context));
+            SaveFileContentAction.getResContent(this, context));
 
     this.setBizResult(context, schema.toJSON());
   }
@@ -627,7 +624,7 @@ public class SchemaAction extends BasicModule {
     final List<FieldTypeFactory> plugins = fieldTypePluginStore.getPlugins();
 
     final Set<String> loadedFieldTypePlugins =
-      plugins.stream().filter(p -> p.forStringTokenizer()).map((p) -> p.identityValue()).collect(Collectors.toSet());
+            plugins.stream().filter(p -> p.forStringTokenizer()).map((p) -> p.identityValue()).collect(Collectors.toSet());
 
     return new ISchemaPluginContext() {
       @Override
@@ -655,7 +652,7 @@ public class SchemaAction extends BasicModule {
 
 
     SchemaResult schemaResult = SchemaResult.parseSchemaResult(msgHandler, context, resContent, false, schemaPlugin,
-      (cols, sResult) -> {
+            (cols, sResult) -> {
       boolean pluginTypeAdded;
       String identityNameVal = null;
       List<FieldTypeFactory> fieldTypeFactories = schemaPlugin.getFieldTypeFactories();
@@ -663,7 +660,7 @@ public class SchemaAction extends BasicModule {
         identityNameVal = plugin.identityValue();
         if (!(pluginTypeAdded = sResult.containType(identityNameVal))) {
           sResult.addFieldType(identityNameVal, SolrFieldsParser.parseFieldType(identityNameVal, identityNameVal,
-            plugin.forStringTokenizer()));
+                  plugin.forStringTokenizer()));
         }
         pluginTypeAddedMap.put(identityNameVal, pluginTypeAdded);
       }
@@ -678,7 +675,7 @@ public class SchemaAction extends BasicModule {
           //          fieldTypeFactory can not be null");
           // fieldTypeFactory.
           modifier.addModify(String.format("/types/fieldType[@name='%s']/@class", entry.getKey()),
-            "plugin:" + entry.getKey());
+                  "plugin:" + entry.getKey());
           //precisionStep="0" positionIncrementGap="0"
           //modifier.addModify(String.format("/types/fieldType[@name='%s']/@precisionStep", entry.getKey()), "0");
           modifier.addModify(String.format("/types/fieldType[@name='%s']/@positionIncrementGap", entry.getKey()), "0");
@@ -726,7 +723,7 @@ public class SchemaAction extends BasicModule {
    * @throws UnsupportedEncodingException
    */
   protected SchemaResult getPostedSchema(Context context, boolean shallvalidate) throws Exception,
-    UnsupportedEncodingException {
+          UnsupportedEncodingException {
     // 页面中是由xml内容直接提交的
     boolean xmlPost = true;
     String schema = null;
@@ -737,7 +734,7 @@ public class SchemaAction extends BasicModule {
     }
     // 校验提交的内容是否合法
     SchemaResult result = SchemaResult.parseSchemaResult(this, context, schema.getBytes(getEncode()), shallvalidate,
-      schemaPlugin);
+            schemaPlugin);
     return result;
   }
 
@@ -810,7 +807,7 @@ public class SchemaAction extends BasicModule {
         pluginName = type.getPluginName();
         fieldTypeFactory = schemaPlugin.findFieldTypeFactory(pluginName);
         Objects.requireNonNull(fieldTypeFactory, "pluginName:" + pluginName + " relevant fieldTypeFactory can not be "
-          + "null");
+                + "null");
         fieldTypeFactory.process(document2, modifier);
       }
 
@@ -861,7 +858,7 @@ public class SchemaAction extends BasicModule {
     }
     if (field.isDynamic()) {
       modifySchemaProperty(String.format("/fields/dynamicField[@name='%s']/@%s", field.getName(), key), value,
-        modifier);
+              modifier);
     } else {
       modifySchemaProperty(String.format("/fields/field[@name='%s']/@%s", field.getName(), key), value, modifier);
     }
@@ -904,8 +901,8 @@ public class SchemaAction extends BasicModule {
     private Savefilecontent meta;
 
     public UploadSchemaWithRawContentForm getVisualizingForm() {
-      Objects.requireNonNull(this.visualizingForm, "visualizingForm of type UploadSchemaWithRawContentForm can not be"
-        + " null");
+      Objects.requireNonNull(this.visualizingForm,
+              "visualizingForm of type UploadSchemaWithRawContentForm can not " + "be" + " null");
       return visualizingForm;
     }
 
@@ -967,7 +964,7 @@ public class SchemaAction extends BasicModule {
 
   protected SchemaResult parseSchema(Context context, ISchemaPluginContext schemaPlugin,
                                      CreateIndexConfirmModel confiemModel) throws Exception,
-    UnsupportedEncodingException {
+          UnsupportedEncodingException {
     String schemaContent = null;
     SchemaResult schemaParse = null;
     if (!confiemModel.isExpertModel()) {
@@ -984,7 +981,7 @@ public class SchemaAction extends BasicModule {
       schemaContent = confiemModel.getExpert().getXml();
     }
     schemaParse = SchemaResult.parseSchemaResult(this, context, schemaContent.getBytes(getEncode()), true,
-      schemaPlugin);
+            schemaPlugin);
     return schemaParse;
   }
 
@@ -1010,8 +1007,8 @@ public class SchemaAction extends BasicModule {
     Long usrId = Long.parseLong(user.getId());
     // Long(this.getCurrentIsv().getId());
     CreateSnapshotResult result = createNewSnapshot(context, schemaPlugin,
-      this.getSnapshotViewDAO().getView(publishSnapshotId), ConfigFileReader.FILE_SCHEMA, content, this,
-      new IMessageHandler() {
+            this.getSnapshotViewDAO().getView(publishSnapshotId), ConfigFileReader.FILE_SCHEMA, content, this,
+            new IMessageHandler() {
 
       @Override
       public void errorsPageShow(Context context) {
@@ -1066,8 +1063,8 @@ public class SchemaAction extends BasicModule {
     ConfigFileValidateResult validateResult = fileGetter.validate(schemaPlugin, resource);
     // 校验文件格式是否正确，通用用DTD来校验
     if (!validateResult.isValid()) {
-      messageHandler.addErrorMessage(context, "更新流程中用DTD来校验XML的合法性，请先在文档头部添加<br/>“&lt;!DOCTYPE schema SYSTEM &quot;"
-        + "solrres://tisrepository/dtd/solrschema.dtd&quot;&gt;”<br/>");
+      messageHandler.addErrorMessage(context,
+              "更新流程中用DTD来校验XML的合法性，请先在文档头部添加<br/>“&lt;!DOCTYPE schema SYSTEM &quot;" + "solrres://tisrepository/dtd" + "/solrschema.dtd&quot;&gt;”<br/>");
       messageHandler.addErrorMessage(context, validateResult.getValidateResult());
       throw new SchemaFileInvalidException(validateResult.getValidateResult());
     }
@@ -1086,7 +1083,7 @@ public class SchemaAction extends BasicModule {
       // 创建一条资源记录
       try {
         Integer newResId = createNewResource(context, schemaPlugin, uploadContent, md5, fileGetter, messageHandler,
-          runContext);
+                runContext);
         final Snapshot snapshot = fileGetter.createNewSnapshot(newResId, domain.getSnapshot());
         snapshot.setMemo(memo);
         createResult.setNewSnapshotId(createNewSnapshot(snapshot, memo, runContext, userId, userName));

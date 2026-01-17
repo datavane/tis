@@ -63,8 +63,7 @@ public class TisException extends RuntimeException {
         public String[] apply(BasicRundata rundata) {
             String targetName = rundata.getStringParam(IFullBuildContext.KEY_TARGET_NAME);
             if (StringUtils.isEmpty(targetName)) {
-                throw new IllegalArgumentException("request param "
-                        + IFullBuildContext.KEY_TARGET_NAME + " can not be null");
+                throw new IllegalArgumentException("request param " + IFullBuildContext.KEY_TARGET_NAME + " can not " + "be null");
             }
             return new String[]{"coredefine", "datax_action", "remove_datax_worker"};
         }
@@ -79,22 +78,18 @@ public class TisException extends RuntimeException {
          */
         HTTP_CONNECT_FAILD((rundata) -> {
             throw new UnsupportedOperationException();
-        }),
-        // 证书失效
+        }), // 证书失效
         LICENSE_INVALID((rundata) -> {
             return null;
-        }),
-        FLINK_INSTANCE_LOSS_OF_CONTACT((rundata) -> {
+        }), FLINK_INSTANCE_LOSS_OF_CONTACT((rundata) -> {
             // example: coredefine:datax_action:save_datax_worker
             // event_submit_do_incr_delete core_action
             String appName = rundata.getStringParam(IFullBuildContext.KEY_APP_NAME);
             if (StringUtils.isEmpty(appName)) {
-                throw new IllegalArgumentException("request param "
-                        + IFullBuildContext.KEY_APP_NAME + " can not be null");
+                throw new IllegalArgumentException("request param " + IFullBuildContext.KEY_APP_NAME + " can not be " + "null");
             }
             return new String[]{"coredefine", "core_action", "incr_delete"};
-        }),
-        FLINK_SESSION_CLUSTER_LOSS_OF_CONTACT(new RemoveDataxWorkerForward()),
+        }), FLINK_SESSION_CLUSTER_LOSS_OF_CONTACT(new RemoveDataxWorkerForward()),
         /**
          * TIS 刚打开时候还没有阅读新人指南
          */
@@ -104,14 +99,13 @@ public class TisException extends RuntimeException {
             // 永远也不回被打开了
             FreshmanReadmeToken.setFreshManReadmeHasRead(remindMeLater);
             return null;
-        }),
-        POWER_JOB_CLUSTER_LOSS_OF_CONTACT(new RemoveDataxWorkerForward() {
+        }), POWER_JOB_CLUSTER_LOSS_OF_CONTACT(new RemoveDataxWorkerForward() {
             @Override
             public String[] apply(BasicRundata rundata) {
                 String[] forwardParams = super.apply(rundata);
                 if (!TargetResName.K8S_DATAX_INSTANCE_NAME.equalWithName(rundata.getStringParam(IFullBuildContext.KEY_TARGET_NAME))) {
-                    throw new IllegalArgumentException("request param:" + IFullBuildContext.KEY_TARGET_NAME
-                            + " relevant val must be equal to:" + TargetResName.K8S_DATAX_INSTANCE_NAME.getName());
+                    throw new IllegalArgumentException("request param:" + IFullBuildContext.KEY_TARGET_NAME + " " +
+                            "relevant val must be equal to:" + TargetResName.K8S_DATAX_INSTANCE_NAME.getName());
                 }
                 return forwardParams;
             }
@@ -140,8 +134,8 @@ public class TisException extends RuntimeException {
         TisException except = find(throwable);
         if (except == null) {
             Throwable cause = throwable.getCause();
-            return new ErrMsg(org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage(throwable)
-                    , cause != null ? cause : throwable, Optional.empty());
+            return new ErrMsg(org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage(throwable),
+                    cause != null ? cause : throwable, Optional.empty());
         } else {
             return new ErrMsg(except.getMessage(), except, except.errCode);
         }
@@ -264,8 +258,8 @@ public class TisException extends RuntimeException {
         }
 
         public long getCreateTime() {
-//            return LocalDateTime.parse(String.valueOf(this.logFileName), IParamContext.yyyyMMddHHmmssMMM)
-//                    .toEpochSecond(ZoneOffset.UTC);
+            //            return LocalDateTime.parse(String.valueOf(this.logFileName), IParamContext.yyyyMMddHHmmssMMM)
+            //                    .toEpochSecond(ZoneOffset.UTC);
             try {
                 return formatOfyyyyMMddHHmmssMMM.get().parse(String.valueOf(this.logFileName)).getTime();
             } catch (ParseException e) {
@@ -317,15 +311,30 @@ public class TisException extends RuntimeException {
 
     private static final Pattern p = Pattern.compile("\\d{" + IParamContext.yyyyMMddHHmmssMMMPattern.length() + "}");
 
+    /**
+     * 删除错误日志信息
+     *
+     * @param logFileName
+     * @throws IOException
+     */
+    public static void deleteErrorLog(long logFileName) throws IOException {
+        File errLogFile = new File(getErrLogDir(), String.valueOf(logFileName));
+        if (!errLogFile.exists()) {
+            throw new IllegalStateException("errLogFile:" + errLogFile.getAbsolutePath() + " is not exist");
+        }
+        if (errLogFile.isDirectory()) {
+            throw new IllegalStateException("errLogFile:" + errLogFile.getAbsolutePath() + " must be a file");
+        }
+        FileUtils.forceDelete(errLogFile);
+    }
+
     public static List<ErrMsg> getErrorLogs() {
         File errLogDir = getErrLogDir();
         String[] logs = errLogDir.list();
         if (logs == null) {
             return Collections.emptyList();
         }
-        List<ErrMsg> result = Lists.newArrayList(Arrays.stream(logs).filter((l) ->
-                p.matcher(l).matches()
-        ).map((l) -> {
+        List<ErrMsg> result = Lists.newArrayList(Arrays.stream(logs).filter((l) -> p.matcher(l).matches()).map((l) -> {
             ErrMsg errMsg = new ErrMsg(null, null, Optional.empty());
             errMsg.logFileName = Long.parseLong(l);
             return errMsg;

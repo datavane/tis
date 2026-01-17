@@ -18,6 +18,7 @@ package com.qlangtech.tis.async.message.client.consumer;
  * limitations under the License.
  */
 
+import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.realtime.transfer.DTO;
@@ -35,11 +36,11 @@ import java.util.stream.Collectors;
  **/
 public class Tab2OutputTag<DTOStream> implements Serializable {
 
-    private final Map<TableAlias, DTOStream> mapper;
+    private final Map<IDataxProcessor.TableMap, DTOStream> mapper;
     private transient Map<String, DTOStream> sinkMapper;
     private transient Map<String, DTOStream> sourceMapper;
 
-    public Tab2OutputTag(Map<TableAlias, DTOStream> mapper) {
+    public Tab2OutputTag(Map<IDataxProcessor.TableMap, DTOStream> mapper) {
         this.mapper = mapper;
     }
 
@@ -47,18 +48,16 @@ public class Tab2OutputTag<DTOStream> implements Serializable {
         return this.getSourceMapper().get(tab.getName());
     }
 
-    public Set<Map.Entry<TableAlias, DTOStream>> entrySet() {
+    public Set<Map.Entry<IDataxProcessor.TableMap, DTOStream>> entrySet() {
         return this.mapper.entrySet();
     }
 
     public <TAG> Map<String, TAG> createTab2OutputTag(Function<DTOStream, TAG> tagCreator) {
-        return this.entrySet().stream()
-                .collect(Collectors.toMap( //
-                        (e) -> {
-                            EntityName entity = EntityName.parse(e.getKey().getFrom());
-                            return entity.getTabName();
-                        }
-                        , (e) -> tagCreator.apply(e.getValue())));
+        return this.entrySet().stream().collect(Collectors.toMap( //
+                (e) -> {
+                    EntityName entity = EntityName.parse(e.getKey().getFrom());
+                    return entity.getTabName();
+                }, (e) -> tagCreator.apply(e.getValue())));
     }
 
     public Map<String, DTOStream> getSinkMapper() {
@@ -69,8 +68,10 @@ public class Tab2OutputTag<DTOStream> implements Serializable {
     }
 
     private Map<String, DTOStream> getMapper(boolean from) {
-        Set<Map.Entry<TableAlias, DTOStream>> entries = this.mapper.entrySet();
-        return entries.stream().collect(Collectors.toMap((e) -> from ? e.getKey().getFrom() : e.getKey().getTo(), (e) -> e.getValue()));
+        Set<Map.Entry<IDataxProcessor.TableMap, DTOStream>> entries = this.mapper.entrySet();
+        return entries.stream().collect(Collectors.toMap( //
+                (e) -> from ? e.getKey().getFrom() : e.getKey().getTo() //
+                , (e) -> e.getValue()));
     }
 
     public Map<String, DTOStream> getSourceMapper() {

@@ -19,12 +19,15 @@ package com.qlangtech.tis.manage.common;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.plugin.IdentityName;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -34,33 +37,36 @@ public class Option implements IdentityName {
 
     public static final String KEY_VALUE = "val";
     public static final String KEY_LABEL = "label";
+    public static final String keyChecked = "checked";
 
     public static Option create(JSONObject option) {
-        return new Option(Objects.requireNonNull(option, "option can not be null")
-                .getString(Option.KEY_LABEL)
-                , option.getString(Option.KEY_VALUE));
+        return new Option(Objects.requireNonNull(option, "option can not be null").getString(Option.KEY_LABEL),
+                option.getString(Option.KEY_VALUE));
     }
 
     public static JSONArray toJson(List<?> options) {
-        // Option
-
-
         JSONArray enums = new JSONArray();
         if (options != null) {
-            options.stream().map((o) -> {
-                if (o instanceof Option) {
-                    return o;
-                } else if (o instanceof IdentityName) {
-                    return new Option(((IdentityName) o).identityValue());
-                } else {
-                    throw new IllegalStateException("illegal type:" + o.getClass());
+            Stream<Option> optStream = options.stream().map(new Function<Object, Option>() {
+                @Override
+                public Option apply(Object o) {
+                    if (o instanceof Option) {
+                        return (Option) o;
+                    } else if (o instanceof IdentityName) {
+                        return new Option(((IdentityName) o).identityValue());
+                    } else {
+                        throw new IllegalStateException("illegal type:" + o.getClass());
+                    }
                 }
-            }).forEach((key) -> {
+            });
+            optStream.forEach((opt) -> {
                 JSONObject o = new JSONObject();
-                o.put(KEY_LABEL, ((Option) key).getName());
-                o.put(KEY_VALUE, ((Option) key).getValue());
+                o.put(KEY_LABEL, opt.getName());
+                o.put(KEY_VALUE, opt.getValue());
+                if (opt.isChecked() != null) {
+                    o.put(keyChecked, opt.isChecked());
+                }
                 enums.add(o);
-                //return key;
             });
         }
         return enums;
@@ -69,6 +75,8 @@ public class Option implements IdentityName {
     private final String name;
 
     private final Object value;
+
+    private Boolean checked;
 
     /**
      * @param name  label
@@ -95,5 +103,15 @@ public class Option implements IdentityName {
 
     public Object getValue() {
         return value;
+    }
+
+    @JSONField(serialize = false)
+    public Boolean isChecked() {
+        return checked;
+    }
+
+    public Option setChecked(Boolean checked) {
+        this.checked = checked;
+        return this;
     }
 }

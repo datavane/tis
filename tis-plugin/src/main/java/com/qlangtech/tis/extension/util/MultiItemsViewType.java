@@ -164,7 +164,7 @@ public class MultiItemsViewType implements IMultiItemsView {
     public enum ViewFormatType {
         IdList("idlist" //
                 , (attrDesc, msgHandler, context, eprops) -> {
-            final String keyChecked = "checked";
+
             JSONArray enums = eprops.getJSONArray(Descriptor.KEY_ENUM_PROP);
             if (enums == null) {
                 enums = new JSONArray();
@@ -182,7 +182,7 @@ public class MultiItemsViewType implements IMultiItemsView {
                 }
                 item = new FormFieldType.SelectedItem(select.getString(Option.KEY_LABEL) //
                         , String.valueOf(val) //
-                        , select.containsKey(keyChecked) && select.getBoolean(keyChecked));
+                        , select.containsKey(Option.keyChecked) && select.getBoolean(Option.keyChecked));
                 if (item.isChecked()) {
                     selected++;
                 }

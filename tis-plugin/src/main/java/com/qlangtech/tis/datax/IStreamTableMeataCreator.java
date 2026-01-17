@@ -34,10 +34,10 @@ public interface IStreamTableMeataCreator
     /**
      * 比表写入相关的元数据信息
      *
-     * @param tableAlias
+     * @param tableMap
      * @return
      */
-    public IStreamTableMeta getStreamTableMeta(TableAlias tableAlias);
+    public IStreamTableMeta getStreamTableMeta(IDataxProcessor.TableMap tableMap);
 
 
     interface ISourceStreamMetaCreator extends IStreamTableMeataCreator {

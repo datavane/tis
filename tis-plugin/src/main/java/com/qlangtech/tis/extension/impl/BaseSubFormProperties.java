@@ -92,7 +92,8 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
     }
 
     public RootFormProperties convertRootFormProps() {
-        return new RootFormProperties(this.subFormFieldsDescriptor, this.getKVTuples().stream().collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue())));
+        return new RootFormProperties(this.subFormFieldsDescriptor,
+                this.getKVTuples().stream().collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue())));
     }
 
 
@@ -138,13 +139,12 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
             // 在pipeline创建阶段，当用户先选择 mysql-> doris 类型的同步，选择完表，然后又回退到端类型选择页面，重新选择了 mysql-> mysql，再进入下一步选择页面节点机会出错
             boolean containNotEqualClassForItem = false;
             for (IdentityName itme : subItems) {
-                if (itme.getClass() != this.instClazz) {
+                if (!this.instClazz.isAssignableFrom(itme.getClass())) {
                     containNotEqualClassForItem = true;
                 }
             }
-            return containNotEqualClassForItem
-                    ? subItems.stream().filter((subitem) -> subitem.getClass() == instClazz).collect(Collectors.toList())
-                    : subItems;
+            return containNotEqualClassForItem ?
+                    subItems.stream().filter((subitem) -> instClazz.isAssignableFrom( subitem.getClass())).collect(Collectors.toList()) : subItems;
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -194,9 +194,8 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
     }
 
 
-    public final <T> T visitAllSubDetailed(
-            Context context,
-            AttrValMap.IAttrVals formData, ISubDetailedProcess<T> subDetailedProcess) {
+    public final <T> T visitAllSubDetailed(Context context, AttrValMap.IAttrVals formData,
+                                           ISubDetailedProcess<T> subDetailedProcess) {
         String subFormId = null;
         //JSONObject subformData = null;
         AttrValMap attrVals = null;

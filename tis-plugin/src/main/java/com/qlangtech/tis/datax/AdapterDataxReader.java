@@ -118,7 +118,7 @@ public class AdapterDataxReader implements IDataxReader {
     }
 
     @Override
-    public IStreamTableMeta getStreamTableMeta(TableAlias tableAlias) {
-        return reader.getStreamTableMeta(tableAlias);
+    public IStreamTableMeta getStreamTableMeta(IDataxProcessor.TableMap sourceTabName) {
+        return reader.getStreamTableMeta(sourceTabName);
     }
 }

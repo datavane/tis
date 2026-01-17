@@ -151,7 +151,8 @@ import static com.qlangtech.tis.util.UploadPluginMeta.KEY_SKIP_PLUGINS_SAVE;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2014年4月18日下午7:58:02
  */
-public abstract class BasicModule extends ActionSupport implements RunContext, IControlMsgHandler, IPluginContext, IERRulesGetter {
+public abstract class BasicModule extends ActionSupport implements RunContext, IControlMsgHandler, IPluginContext,
+  IERRulesGetter {
 
   public static final long serialVersionUID = 1L;
   public static final String KEY_PLUGIN = "plugin";
@@ -178,8 +179,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   protected List<UploadPluginMeta> getPluginMeta(boolean validatePluginEmpty) {
     final boolean useCache = Boolean.parseBoolean(this.getString("use_cache", "true"));
     // return UploadPluginMeta.parse(this, this.getStringArray("plugin"), useCache);
-    return parsePluginMeta(this.getStringArray(KEY_PLUGIN), useCache, validatePluginEmpty)
-      .stream().map((meta) -> (UploadPluginMeta) meta).collect(Collectors.toList());
+    return parsePluginMeta(this.getStringArray(KEY_PLUGIN), useCache, validatePluginEmpty).stream().map((meta) -> (UploadPluginMeta) meta).collect(Collectors.toList());
   }
 
   @Override
@@ -200,17 +200,19 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   @Override
   public String execute() throws Exception {
+    Method executeMethod = getExecuteMethod();
+    final long current = System.currentTimeMillis();
     try {
       IPluginContext.setPluginContext(this);
       this.getRequest().getSession();
       CheckAppDomainExistValve.getAppDomain(this);
       // 解析这个方法 event_submit_do_buildjob_by_server
-      Method executeMethod = getExecuteMethod();
-      logger.info(this.getClass().getName() + ":" + executeMethod.getName());
       executeMethod.invoke(this, context);
       return getReturnCode();
     } finally {
-     // IPluginContext.pluginContextThreadLocal.remove();
+      long consume = System.currentTimeMillis() - current;
+      logger.info(this.getClass().getName() + ":" + executeMethod.getName() + ((consume > 200) ?
+        ",cost:" + consume + " ms" : StringUtils.EMPTY));
     }
   }
 
@@ -262,23 +264,23 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return false;
   }
 
-//  @Override
-//  public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc //
-//    , String dbName, Context context, boolean shallUpdateDB) {
-//    throw new UnsupportedOperationException(this.getClass().getName());
-//  }
+  //  @Override
+  //  public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc //
+  //    , String dbName, Context context, boolean shallUpdateDB) {
+  //    throw new UnsupportedOperationException(this.getClass().getName());
+  //  }
 
 
   @Override
-  public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {
+  public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context,
+                    boolean shallUpdateDB) {
     // CollectionAction.this.
     DatasourceDbCriteria criteria = new DatasourceDbCriteria();
     criteria.createCriteria().andNameEqualTo(dbName);
     int exist = this.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);
     // 如果数据库已经存在则直接跳过
     if (exist > 0) {
-      for (DatasourceDb db : this.getWorkflowDAOFacade()
-        .getDatasourceDbDAO().selectByExample(criteria)) {
+      for (DatasourceDb db : this.getWorkflowDAOFacade().getDatasourceDbDAO().selectByExample(criteria)) {
         this.setBizResult(context, offlineManager.getDbConfig(this, db));
         return;
       }
@@ -298,9 +300,9 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   public boolean isCollectionAware() {
 
     AppDomainInfo appDoamin = this.getAppDomain();
-//    if (appDoamin.getAppType() == AppType.DataXPipe) {
-//
-//    }
+    //    if (appDoamin.getAppType() == AppType.DataXPipe) {
+    //
+    //    }
     return !(appDoamin instanceof AppDomainInfo.EnvironmentAppDomainInfo);
   }
 
@@ -318,8 +320,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   public DataXName getCollectionName() {
     String collection = this.getAppDomain().getAppName();
 
-    if (StringUtils.isNotEmpty(collection)
-      && DataXJobWorker.notMatchK8SDataXAndFlinkCluster(new TargetResName(collection))) {
+    if (StringUtils.isNotEmpty(collection) && DataXJobWorker.notMatchK8SDataXAndFlinkCluster(new TargetResName(collection))) {
 
       List<UploadPluginMeta> metas = getPluginMeta(false);
       for (UploadPluginMeta pm : metas) {
@@ -395,17 +396,17 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return executeMethod;
   }
 
-//  /**
-//   * @return
-//   */
-//  public DocCollection getIndex() {
-//    String index = this.getAppDomain().getAppName();
-//    if (StringUtils.isEmpty(index)) {
-//      throw new IllegalStateException("index name can not be null");
-//    }
-//    ClusterState.CollectionRef ref = this.getZkStateReader().getClusterState().getCollectionRef(index);
-//    return ref.get();
-//  }
+  //  /**
+  //   * @return
+  //   */
+  //  public DocCollection getIndex() {
+  //    String index = this.getAppDomain().getAppName();
+  //    if (StringUtils.isEmpty(index)) {
+  //      throw new IllegalStateException("index name can not be null");
+  //    }
+  //    ClusterState.CollectionRef ref = this.getZkStateReader().getClusterState().getCollectionRef(index);
+  //    return ref.get();
+  //  }
 
 
   protected boolean isIndexExist() {
@@ -415,9 +416,9 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
       throw new IllegalStateException("param 'collection' can not be null");
     }
     this.getApplicationDAO().updateLastProcessTime(collection);
-//    if (app.getAppType() == AppType.SolrIndex) {
-//      return this.getSolrZkClient().exists("/collections/" + collection + "/state.json", true);
-//    }
+    //    if (app.getAppType() == AppType.SolrIndex) {
+    //      return this.getSolrZkClient().exists("/collections/" + collection + "/state.json", true);
+    //    }
     return true;
   }
 
@@ -436,36 +437,36 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
       return key_FORWARD;
     }
     final String moduleName = this.getClass().getSimpleName();
-//    ActionContext actionContext = ServletActionContext.getActionContext(this.getRequest());
-//    ActionMapping mapping = ServletActionContext.getActionMapping();
-//    if (mapping == null) {
-//      return moduleName;
-//    }
+    //    ActionContext actionContext = ServletActionContext.getActionContext(this.getRequest());
+    //    ActionMapping mapping = ServletActionContext.getActionMapping();
+    //    if (mapping == null) {
+    //      return moduleName;
+    //    }
 
-//    if (org.apache.commons.lang3.StringUtils.endsWith(proxy.getNamespace(), TisActionMapper.ACTION_TOKEN)) {
-//      return NONE;
-//    }
+    //    if (org.apache.commons.lang3.StringUtils.endsWith(proxy.getNamespace(), TisActionMapper.ACTION_TOKEN)) {
+    //      return NONE;
+    //    }
 
-//    if ("action".equalsIgnoreCase(mapping.getExtension())) {
+    //    if ("action".equalsIgnoreCase(mapping.getExtension())) {
     // return NONE;
-//    }
-//    // 当前是否是action执行
-//    if (isActionSubmit(mapping)) {
-//      // moduleName + "_action";
-//      return key_FORWARD;
-//    }
+    //    }
+    //    // 当前是否是action执行
+    //    if (isActionSubmit(mapping)) {
+    //      // moduleName + "_action";
+    //      return key_FORWARD;
+    //    }
     //  return moduleName + (StringUtils.equals("ajax", mapping.getExtension()) ? "_ajax" : StringUtils.EMPTY);
 
     return moduleName + "_ajax";// : StringUtils.EMPTY);
   }
 
-//  public static boolean isScreenApply() {
-//    return "screen".equals(StringUtils.substringAfter(getActionProxy().getNamespace(), "#"));
-//  }
+  //  public static boolean isScreenApply() {
+  //    return "screen".equals(StringUtils.substringAfter(getActionProxy().getNamespace(), "#"));
+  //  }
 
   public static final boolean isActionSubmit(ActionMapping mapping) {
-    return "action".equals(StringUtils.substringAfter(getActionProxy().getNamespace(), "#"))
-      && !(StringUtils.equals("ajax", mapping.getExtension()));
+    return "action".equals(StringUtils.substringAfter(getActionProxy().getNamespace(), "#")) && !(StringUtils.equals(
+      "ajax", mapping.getExtension()));
   }
 
   public static final String TERMINATOR_FORWARD = "terminatorForward";
@@ -491,13 +492,13 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
         return ServletActionContext.getRequest();
       }
 
-//      public void forwardTo(String target) {
-//        // 设置跳转到的地方可以是 action 或者 vm
-//        // getRequest().setAttribute(TERMINATOR_FORWARD,
-//        // new Forward(null, target));
-//        forwardTo(null, target);
-//        return;
-//      }
+      //      public void forwardTo(String target) {
+      //        // 设置跳转到的地方可以是 action 或者 vm
+      //        // getRequest().setAttribute(TERMINATOR_FORWARD,
+      //        // new Forward(null, target));
+      //        forwardTo(null, target);
+      //        return;
+      //      }
 
       @Override
       public void forwardTo(String namespace, String target, String method) {
@@ -578,8 +579,8 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(null, StoreResourceType.DataApp, dataxName);
     Application app = dataxProcessor.buildApp();
 
-    SchemaAction.CreateAppResult createAppResult
-      = this.createNewApp(context, app, dataxProcessor, false, (newAppId) -> {
+    SchemaAction.CreateAppResult createAppResult = this.createNewApp(context, app, dataxProcessor, false,
+      (newAppId) -> {
       SchemaAction.CreateAppResult appResult = new SchemaAction.CreateAppResult();
       appResult.setSuccess(true);
       appResult.setNewAppId(newAppId);
@@ -652,12 +653,12 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
       return (List<T>) appDAO.selectByExample(criteria);
     }
 
-// @Override
-//    public List<Application> getExistEntities(Optional<String> namePrefix) {
-//      ApplicationCriteria criteria = new ApplicationCriteria();
-//      criteria.createCriteria();
-//      return appDAO.selectByExample(criteria);
-//    }
+    // @Override
+    //    public List<Application> getExistEntities(Optional<String> namePrefix) {
+    //      ApplicationCriteria criteria = new ApplicationCriteria();
+    //      criteria.createCriteria();
+    //      return appDAO.selectByExample(criteria);
+    //    }
   }
 
   /**
@@ -812,7 +813,8 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return createSnapshot(this);
   }
 
-  public static IAppsFetcher getAppsFetcher(HttpServletRequest request, boolean maxMatch, IUser user, RunContext context) {
+  public static IAppsFetcher getAppsFetcher(HttpServletRequest request, boolean maxMatch, IUser user,
+                                            RunContext context) {
     if (maxMatch) {
       return AppsFetcher.create(user, context, true);
     }
@@ -1297,7 +1299,8 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     if (StringUtils.isEmpty(appdomain.getAppName())) {
       throw new IllegalStateException("app name can not be null");
     }
-    ServerGroup group = this.getServerGroupDAO().load(appdomain.getAppName(), (short) 0, appdomain.getRunEnvironment().getId());
+    ServerGroup group = this.getServerGroupDAO().load(appdomain.getAppName(), (short) 0,
+      appdomain.getRunEnvironment().getId());
     return group;
   }
 
@@ -1343,7 +1346,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     LuceneVersion version = LuceneVersion.LUCENE_7;
     Application tplApp = module.getApplicationDAO().selectByName(version.getTemplateIndexName());
     if (tplApp == null) {
-      throw new IllegalStateException("tpl version:" + version + ", index:" + version.getTemplateIndexName() + ", relevant app can not be null");
+      throw new IllegalStateException("tpl version:" + version + ", index:" + version.getTemplateIndexName() + ", " + "relevant app can not be null");
     }
     return tplApp;
   }
@@ -1386,7 +1389,8 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     }
   }
 
-  protected Context getContext() {
+  @Override
+  public Context getContext() {
     return context;
   }
 
@@ -1463,8 +1467,10 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     task.setState((byte) ExecResult.DOING.getValue());
     // Integer buildHistoryId = null;
     // 从什么阶段开始执行
-    FullbuildPhase fromPhase = executeRanage.getStart();// FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getValue()));
-    FullbuildPhase endPhase = executeRanage.getEnd();// FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END, FullbuildPhase.IndexBackFlow.getValue()));
+    FullbuildPhase fromPhase = executeRanage.getStart();// FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START,
+    // FullbuildPhase.FullDump.getValue()));
+    FullbuildPhase endPhase = executeRanage.getEnd();// FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END,
+    // FullbuildPhase.IndexBackFlow.getValue()));
     if (app == null) {
       if (endPhase.bigThan(FullbuildPhase.JOIN)) {
         endPhase = FullbuildPhase.JOIN;

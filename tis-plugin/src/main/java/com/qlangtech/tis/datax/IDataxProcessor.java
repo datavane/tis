@@ -46,6 +46,7 @@ import com.qlangtech.tis.plugin.trigger.JobTrigger;
 import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -58,6 +59,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -270,6 +272,44 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
     public DataXCfgGenerator.GenerateCfgs getDataxCfgFileNames(IPluginContext pluginCtx,
                                                                Optional<JobTrigger> partialTrigger);
 
+    default Optional<TableMap> getFirstTableMap(IPluginContext pluginContext) {
+        return getFirstTableMap(pluginContext, true);
+    }
+
+    default Optional<TableMap> getFirstTableMap(IPluginContext pluginContext, boolean shallAppendGlobalPrefix) {
+        IDataxReader reader = this.getReader(pluginContext);
+        if (CollectionUtils.isEmpty(reader.getUnfilledSelectedTabs())) {
+            return Optional.empty();
+        }
+        for (ISelectedTab tab : reader.getUnfilledSelectedTabs()) {
+            return Optional.of(new TableMap(shallAppendGlobalPrefix ?
+                    this.getWriter(pluginContext).getWriterTableExecutor() : Optional.empty(), tab));
+        }
+        return Optional.empty();
+    }
+
+    default void visitAllTableMap(IPluginContext pluginContext, Consumer<TableMap> tableMapProcessor) {
+        IDataxReader reader = this.getReader(pluginContext);
+        IDataxWriter writer = this.getWriter(pluginContext);
+        for (ISelectedTab tab : reader.getUnfilledSelectedTabs()) {
+            tableMapProcessor.accept(new TableMap(writer.getWriterTableExecutor(), tab));
+        }
+    }
+
+    default TableMap findTableMap(IPluginContext pluginContext, String sourceTabName) {
+        IDataxReader reader = this.getReader(pluginContext);
+        IDataxWriter writer = this.getWriter(pluginContext);
+        List<ISelectedTab> unfilledSelectedTabs = reader.getUnfilledSelectedTabs();
+        for (ISelectedTab tab : unfilledSelectedTabs) {
+            if (StringUtils.equals(tab.getName(), sourceTabName)) {
+                return new TableMap(writer.getWriterTableExecutor(), tab);
+            }
+        }
+        throw new IllegalStateException("sourceTabName:" + sourceTabName + " can not find target TableMap in:" //
+                + unfilledSelectedTabs.stream().map(ISelectedTab::getName).collect(Collectors.joining(",")));
+    }
+
+
     /**
      * 表映射
      * Map<String, TableAlias>
@@ -283,7 +323,7 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
      * @param withDft   发现没有定义alias，就用selecttable的tableName填充
      * @return
      */
-    public TableAliasMapper getTabAlias(IPluginContext pluginCtx, boolean withDft);
+    //  public TableAliasMapper getTabAlias(IPluginContext pluginCtx, boolean withDft);
 
     /**
      * 是否支持批量执行
@@ -324,8 +364,12 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
     /**
      * 类似MySQL(A库)导入MySQL(B库) A库中的一张a表可能对应的B库的表为aa表名称会不一致，
      */
-    public class TableMap extends TableAlias {
+    public class TableMap //extends TableAlias
+    {
         private final ISelectedTab tab;
+
+        private String from;
+        private String to;
 
         /**
          * 将transformer 规则添加到列末尾
@@ -343,21 +387,66 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
             return cols;
         }
 
+        // 不需要改写表名（例如加前缀‘ods_’）这样的操作，分析流中join中间表是不需要重命名的
+        private boolean shallNotRewriteTargetTableName;
+
+        public TableMap setShallNotRewriteTargetTableName() {
+            this.shallNotRewriteTargetTableName = true;
+            return this;
+        }
+
+        /**
+         * 加前缀别名
+         *
+         * @param autoCreateTable
+         * @return
+         */
+        public String createTargetTableName(com.qlangtech.tis.plugin.datax.common.AutoCreateTable autoCreateTable) {
+            if (this.shallNotRewriteTargetTableName) {
+                return this.getFrom();
+            }
+            // From 和 To 相等的情况下 可以加前缀
+            return this.isFromEqualTo() //
+                    ? autoCreateTable.appendTabPrefix(this.getFrom()) : this.getTo();
+        }
+
+        private boolean isFromEqualTo() {
+            return StringUtils.equals(this.from, this.to);
+        }
+
         public TableMap(Optional<AutoCreateTable> tabCreator, ISelectedTab tab) {
-            super(tab.getName());
+            //  super(tab.getName());
+
+            this.from = tab.getName();
+            // 如果使用oracle的表，表名中可能出现点，所以要将它去掉
+            int indexOfCommon = StringUtils.indexOf(from, ".");
+            this.to = indexOfCommon > -1 ? StringUtils.substring(from, indexOfCommon + 1) : from;
+
             this.setTo(tabCreator.map((creator) -> creator.appendTabPrefix(tab.getAlias())).orElse(tab.getAlias()));
             this.tab = tab;
             // this.setFrom(tab.getName());
         }
 
-        //        public TableMap(ISelectedTab tab) {
-        //            super(tab.getName());
-        //            this.tab = tab;
-        //        }
-
         public TableMap(final List<CMeta> cmetas) {
             this(Optional.empty(), cmetas);
         }
+
+        public String getFrom() {
+            return from;
+        }
+
+        public void setFrom(String from) {
+            this.from = from;
+        }
+
+        public String getTo() {
+            return to;
+        }
+
+        public void setTo(String to) {
+            this.to = to;
+        }
+
 
         public TableMap(Optional<String> tabName, final List<CMeta> cmetas) {
             List<CMeta> cMetas = rewriteCols(cmetas);
@@ -446,6 +535,13 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
         //            this.sourceCols = sourceCols;
         //        }
 
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof TableMap))
+                return false;
+            TableMap tableMap = (TableMap) o;
+            return Objects.equals(from, tableMap.from);
+        }
     }
 
     public class TabCols {

@@ -78,7 +78,7 @@ public abstract class EnvironmentBindService<T> {
   public T getInstance() {
     AppAndRuntime appAndRuntime = AppAndRuntime.getAppAndRuntime();
     if (appAndRuntime == null) {
-      appAndRuntime = new AppAndRuntime();
+      appAndRuntime = new AppAndRuntime(Collections.emptyMap());
       appAndRuntime.setRuntime(DefaultFilter.getRuntime());
     }
     RunEnvironment runtime = appAndRuntime.getRuntime();

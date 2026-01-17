@@ -223,14 +223,14 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
 
     @Override
     protected JSONObject processExtraProps(PropertyType propertyType, JSONObject extraProps) {
-//        JSONObject extra = new JSONObject(extraProps);
-//        // 噪音，没有用
-//        extra.remove(KEY_ENUM_FILTER);
-//        if (propertyType.isDescribable()) {
-//            extra.remove(KEY_ENUM_PROP);
-//        }
-//        extra.remove(KEY_ENUM_FILTER);
-//        extra.remove(KEY_ASYNC_HELP);
+        //        JSONObject extra = new JSONObject(extraProps);
+        //        // 噪音，没有用
+        //        extra.remove(KEY_ENUM_FILTER);
+        //        if (propertyType.isDescribable()) {
+        //            extra.remove(KEY_ENUM_PROP);
+        //        }
+        //        extra.remove(KEY_ENUM_FILTER);
+        //        extra.remove(KEY_ASYNC_HELP);
 
         return extraProps;
     }
@@ -250,8 +250,9 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
     }
 
     @Override
-    protected DescriptorsJSON<T, DescriptorsJSONForAIPrompt.AISchemaAttrVal> createInnerDescrible(PropertyType val) {
-        return new DescriptorsJSONForAIPrompt(val.getApplicableDescriptors(), false);
+    protected DescriptorsJSON<T, DescriptorsJSONForAIPrompt.AISchemaAttrVal> createInnerDescrible(List<?
+            extends Descriptor> descriptors) {
+        return new DescriptorsJSONForAIPrompt(descriptors, false);
     }
 
     @Override

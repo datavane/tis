@@ -51,6 +51,7 @@ import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.TableInDB;
@@ -76,6 +77,7 @@ import static com.qlangtech.tis.datax.StoreResourceType.DATAX_NAME;
 import static com.qlangtech.tis.datax.impl.ESTableAlias.MAX_READER_TABLE_SELECT_COUNT;
 import static com.qlangtech.tis.extension.SubFormFilter.PLUGIN_META_SUB_FORM_FIELD;
 import static com.qlangtech.tis.plugin.IdentityName.createNewPrimaryFieldValue;
+import static com.qlangtech.tis.plugin.datax.SelectedTab.getSelectedTabsUploadPluginMeta;
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
 import static com.qlangtech.tis.util.UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION;
 import static com.qlangtech.tis.util.UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME;
@@ -96,7 +98,7 @@ public class PluginInstanceCreateExecutor extends BasicStepExecutor {
       /**
        * support for DefaultDataxProcessor$DescriptorImpl.getManipulateStore()
        */
-      AppAndRuntime.setAppAndRuntime(new AppAndRuntime());
+      AppAndRuntime.setAppAndRuntime(new AppAndRuntime(Collections.emptyMap()));
 
 
       /**
@@ -171,15 +173,16 @@ public class PluginInstanceCreateExecutor extends BasicStepExecutor {
           /**********************************************************
            * 选择表
            **********************************************************/
-          UploadPluginMeta selectedTabsMeta = UploadPluginMeta.parse(pluginCtx, HeteroEnum.DATAX_READER.identity +
-            ":" + KEY_REQUIRE + "," + PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_" //
-            + dataXReaderImpl.getImplDesc().getId() + "," + PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_" //
-            + dataXReaderImpl.getImplDesc().getDisplayName() + "," //
-            + PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," //
-            + DATAX_NAME + "_" + primaryFieldVal.identityValue()//
-            + "," + MAX_READER_TABLE_SELECT_COUNT + "_999", false);
+          //          UploadPluginMeta selectedTabsMeta = UploadPluginMeta.parse(pluginCtx, HeteroEnum.DATAX_READER
+          //          .identity +
+          //            ":" + KEY_REQUIRE + "," + PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_" //
+          //            + dataXReaderImpl.getImplDesc().getId() + "," + PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_" //
+          //            + dataXReaderImpl.getImplDesc().getDisplayName() + "," //
+          //            + PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," //
+          //            + DATAX_NAME + "_" + primaryFieldVal.identityValue()//
+          //            + "," + MAX_READER_TABLE_SELECT_COUNT + "_999", false);
 
-          Assert.assertTrue("subFormFilter must be present", selectedTabsMeta.getSubFormFilter().isPresent());
+          //  Assert.assertTrue("subFormFilter must be present", selectedTabsMeta.getSubFormFilter().isPresent());
 
 
           // 当用户明确说明需要同步哪些表
@@ -246,8 +249,11 @@ public class PluginInstanceCreateExecutor extends BasicStepExecutor {
             List<ISelectedTab> tabs = Collections.emptyList();
             List<String> notFoundTabs = Collections.emptyList();
             try {
+              getSelectedTabsUploadPluginMeta(pluginCtx, dataXReaderImpl.getImplDesc(),
+                primaryFieldVal.identityValue());
               tabs = dataXReader.createDefaultTables(pluginCtx, extractTargetTableInfoResult.getTargetTables(),
-                selectedTabsMeta, (entry) -> {
+                SelectedTab.getSelectedTabsUploadPluginMeta(pluginCtx, dataXReaderImpl.getImplDesc(),
+                  primaryFieldVal.identityValue()), (entry) -> {
               }, false);
             } catch (Exception e) {
               int expIdx;
@@ -274,14 +280,19 @@ public class PluginInstanceCreateExecutor extends BasicStepExecutor {
                 + tabs.stream().map((tab) -> "'" + tab + "'").collect(Collectors.joining(",")) + "有出入,请设置",
                 primaryFieldVal, dataXReaderImpl);
             } else {
-              List<Descriptor.ParseDescribable> selectedTabs = Lists.newArrayList();
-              selectedTabs.add(new Descriptor.ParseDescribable(tabs));
-              if (CollectionUtils.isEmpty(selectedTabs)) {
-                throw new IllegalStateException("selectedTabs can not be null");
-              }
-              IPluginStore tabsStore = HeteroEnum.getDataXReaderAndWriterStore(pluginCtx, true, selectedTabsMeta,
-                selectedTabsMeta.getSubFormFilter());
-              tabsStore.setPlugins(pluginCtx, Optional.of(ctx), selectedTabs);
+              //              List<Descriptor.ParseDescribable> selectedTabs = Lists.newArrayList();
+              //              selectedTabs.add(new Descriptor.ParseDescribable(tabs));
+              //              if (CollectionUtils.isEmpty(selectedTabs)) {
+              //                throw new IllegalStateException("selectedTabs can not be null");
+              //              }
+              //              IPluginStore tabsStore = HeteroEnum.getDataXReaderAndWriterStore(pluginCtx, true,
+              //              selectedTabsMeta,
+              //                selectedTabsMeta.getSubFormFilter());
+              //              tabsStore.setPlugins(pluginCtx, Optional.of(ctx), selectedTabs);
+
+              SelectedTab.saveSelectedTabs(pluginCtx, ctx, dataXReaderImpl.getImplDesc(),
+                primaryFieldVal.identityValue(), tabs);
+
               selectApplySessionData = new TableSelectApplySessionData();
               selectApplySessionData.setTableSelectConfirm(true);
               selectApplySessionData.setTableSelected(extractTargetTableInfoResult.getTargetTables());
@@ -292,23 +303,25 @@ public class PluginInstanceCreateExecutor extends BasicStepExecutor {
         }
 
         if (selectApplySessionData != null) {
-//          AtomicInteger count = new AtomicInteger();
-//          List<String> targetTabs = selectApplySessionData.getSelectedTabs();
-//          final int maxShow = 5;
-//          context.sendMessage("已经识别到导入表：" +  //
-//            targetTabs.stream().filter((tab) -> count.incrementAndGet() < maxShow).collect(Collectors.joining(",")) //
-//            + ((count.get() > maxShow) ? "...等" : StringUtils.EMPTY) + "，共" + targetTabs.size() + "张表");
-//
-//          if (pipeMeta.isWriterRDBMS()) {
-//            /**
-//             * 与 /Users/mozhenghua/j2ee_solution/project/tis-console/src/base/datax.add.step5.component.ts 文件中第183行逻辑一致
-//             */
-//            List<TableAlias> tableMaps = Lists.newArrayList();
-//            targetTabs.forEach((tab) -> {
-//              tableMaps.add(new TableAlias(tab));
-//            });
-//            TableAlias.saveTableMapper(pluginCtx, primaryFieldVal.identityValue(), tableMaps);
-//          }
+          //          AtomicInteger count = new AtomicInteger();
+          //          List<String> targetTabs = selectApplySessionData.getSelectedTabs();
+          //          final int maxShow = 5;
+          //          context.sendMessage("已经识别到导入表：" +  //
+          //            targetTabs.stream().filter((tab) -> count.incrementAndGet() < maxShow).collect(Collectors
+          //            .joining(",")) //
+          //            + ((count.get() > maxShow) ? "...等" : StringUtils.EMPTY) + "，共" + targetTabs.size() + "张表");
+          //
+          //          if (pipeMeta.isWriterRDBMS()) {
+          //            /**
+          //             * 与 /Users/mozhenghua/j2ee_solution/project/tis-console/src/base/datax.add.step5.component
+          //             .ts 文件中第183行逻辑一致
+          //             */
+          //            List<TableAlias> tableMaps = Lists.newArrayList();
+          //            targetTabs.forEach((tab) -> {
+          //              tableMaps.add(new TableAlias(tab));
+          //            });
+          //            TableAlias.saveTableMapper(pluginCtx, primaryFieldVal.identityValue(), tableMaps);
+          //          }
         }
 
 

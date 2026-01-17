@@ -155,7 +155,7 @@ public abstract class TISSinkFactory implements Describable<TISSinkFactory>, Key
      * @param dataxProcessor
      * @return
      */
-    public abstract <SinkFunc> Map<TableAlias, SinkFunc> createSinkFunction(
+    public abstract <SinkFunc> Map<IDataxProcessor.TableMap, SinkFunc> createSinkFunction(
             IDataxProcessor dataxProcessor, IFlinkColCreator<?> flinkColCreator);
 
 

@@ -18,15 +18,16 @@
 
 package com.qlangtech.tis.sql.parser.stream.generate;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.datax.DataXName;
-import com.qlangtech.tis.datax.TableAlias;
-import com.qlangtech.tis.datax.TableAliasMapper;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
 import com.qlangtech.tis.sql.parser.TisGroupBy;
 import com.qlangtech.tis.sql.parser.er.ERRules;
@@ -54,8 +55,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 //java runtime compiler: https://blog.csdn.net/lmy86263/article/details/59742557
 
@@ -85,17 +92,24 @@ public class StreamComponentCodeGeneratorFlink extends StreamCodeContext {
 
     }
 
-    private List<TableAlias> getTabTriggerLinker() {
-        return streamIncrGenerateStrategy.accept(new IBasicAppSource.IAppSourceVisitor<List<TableAlias>>() {
+    private List<IDataxProcessor.TableMap> getTabTriggerLinker() {
+        return streamIncrGenerateStrategy.accept(new IBasicAppSource.IAppSourceVisitor<List<IDataxProcessor.TableMap>>() {
             @Override
-            public List<TableAlias> visit(DataxProcessor processor) {
+            public List<IDataxProcessor.TableMap> visit(DataxProcessor processor) {
 
-                List<TableAlias> aliases = Lists.newArrayList();
+               // processor.getTabAlias();
 
-                TableAliasMapper tabAlias = processor.getTabAlias(null, true);
-                tabAlias.forEach((key, alia) -> {
-                    aliases.add(alia);
-                });
+                IDataxReader reader = processor.getReader(null);
+                IDataxWriter writer = processor.getWriter(null, true);
+
+                List<ISelectedTab> unfilledSelectedTabs = reader.getUnfilledSelectedTabs();
+
+                List<IDataxProcessor.TableMap> aliases =
+                        unfilledSelectedTabs.stream().map((tab) -> new IDataxProcessor.TableMap(writer.getWriterTableExecutor(), tab)).collect(Collectors.toList());
+//                TableAliasMapper tabAlias = processor.getTabAlias(null, true);
+//                tabAlias.forEach((key, alia) -> {
+//                    aliases.add(alia);
+//                });
                 if (CollectionUtils.isEmpty(aliases)) {
                     throw new IllegalStateException("pipeline:" + processor.identityValue() + " relevant aliases can "
                             + "not be empty");

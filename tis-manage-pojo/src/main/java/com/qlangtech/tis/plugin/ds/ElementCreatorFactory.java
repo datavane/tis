@@ -26,6 +26,10 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 
 import java.util.function.BiConsumer;
 
+/**
+ * <a href="https://www.processon.com/diagraming/69689f89faec1a656012e77d">...</a>
+ * @param <T>
+ */
 public interface ElementCreatorFactory<T extends IMultiElement> {
 
 

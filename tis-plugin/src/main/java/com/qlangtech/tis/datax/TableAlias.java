@@ -1,11 +1,14 @@
 package com.qlangtech.tis.datax;
 
+import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.StringUtils;
 
@@ -13,6 +16,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -62,57 +66,63 @@ public class TableAlias implements Describable<TableAlias> {
         return new KeyedPluginStore.AppKey(context, StoreResourceType.DataApp, appName, TableAlias.class);
     }
 
-//    /**
-//     * 保存
-//     *
-//     * @param context
-//     * @param appName
-//     * @param tableMaps
-//     */
-//    public static void save(IPluginContext context, String appName, List<TableAlias> tableMaps) {
-//        try {
-//            createAppSourceKey(context, appName).getSotreFile().write(tableMaps, Collections.emptySet());
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+    //    /**
+    //     * 保存
+    //     *
+    //     * @param context
+    //     * @param appName
+    //     * @param tableMaps
+    //     */
+    //    public static void save(IPluginContext context, String appName, List<IDataxProcessor.TableMap> tableMaps) {
+    //        try {
+    //            createAppSourceKey(context, appName).getSotreFile().write(tableMaps, Collections.emptySet());
+    //        } catch (IOException e) {
+    //            throw new RuntimeException(e);
+    //        }
+    //    }
 
-//    /**
-//     * 加载
-//     *
-//     * @param context
-//     * @param appName
-//     * @return
-//     */
-//    public static List<TableAlias> load(IPluginContext context, String appName) {
-//        if (testTabAlias != null) {
-//            return testTabAlias;
-//        }
-//        try {
-//            XmlFile sotreFile = createAppSourceKey(context, appName).getSotreFile();
-//            if (!sotreFile.exists()) {
-//                return Collections.emptyList();
-//            }
-//            return (List<TableAlias>) sotreFile.unmarshal(null);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+    //    /**
+    //     * 加载
+    //     *
+    //     * @param context
+    //     * @param appName
+    //     * @return
+    //     */
+    //    public static List<TableAlias> load(IPluginContext context, String appName) {
+    //        if (testTabAlias != null) {
+    //            return testTabAlias;
+    //        }
+    //        try {
+    //            XmlFile sotreFile = createAppSourceKey(context, appName).getSotreFile();
+    //            if (!sotreFile.exists()) {
+    //                return Collections.emptyList();
+    //            }
+    //            return (List<TableAlias>) sotreFile.unmarshal(null);
+    //        } catch (IOException e) {
+    //            throw new RuntimeException(e);
+    //        }
+    //    }
 
     public TableAlias() {
     }
 
-//    public static void saveTableMapper(IPluginContext pluginContext, String dataxName, List<TableAlias> tableMaps) {
-//
-//      if (StringUtils.isBlank(dataxName)) {
-//        throw new IllegalArgumentException("param dataxName can not be null");
-//      }
-//
-//      save(pluginContext, dataxName, tableMaps);
-//
-//      DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(pluginContext, dataxName);
-//      dataxProcessor.afterSaved(pluginContext, Optional.empty());
-//    }
+    public static void saveTableMapper(IPluginContext pluginContext, Context context, String dataxName,
+                                       List<IDataxProcessor.TableMap> tableMaps) {
+
+        if (StringUtils.isBlank(dataxName)) {
+            throw new IllegalArgumentException("param dataxName can not be null");
+        }
+
+        DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(pluginContext, dataxName);
+
+        //save(pluginContext, dataxName, tableMaps);
+        SelectedTab.saveSelectedTabs(pluginContext, context,
+                ((DataxReader) dataxProcessor.getReader(pluginContext)).getDescriptor(), dataxName,
+                tableMaps.stream().map(IDataxProcessor.TableMap::getSourceTab).collect(Collectors.toList()));
+
+
+        dataxProcessor.afterSaved(pluginContext, Optional.empty());
+    }
 
     public <T extends TableAlias> T setShallNotRewriteTargetTableName() {
         this.shallNotRewriteTargetTableName = true;
@@ -178,9 +188,6 @@ public class TableAlias implements Describable<TableAlias> {
 
     @Override
     public String toString() {
-        return "TableAlias{" +
-                "from='" + from + '\'' +
-                ", to='" + to + '\'' +
-                '}';
+        return "TableAlias{" + "from='" + from + '\'' + ", to='" + to + '\'' + '}';
     }
 }

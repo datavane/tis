@@ -21,10 +21,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.MultiStepsSupportHost;
+import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.util.DescribableJSON;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -38,9 +41,26 @@ public class RootFormProperties extends PluginFormProperties {
     public final Map<String, /*** fieldname*/PropertyType> propertiesType;
     private final Descriptor descriptor;
 
+    private final boolean isSupportMultiStep;
+
     public RootFormProperties(Descriptor descriptor, Map<String, PropertyType> propertiesType) {
         this.propertiesType = Objects.requireNonNull(propertiesType, "param propertiesType can not be null");
         this.descriptor = descriptor;
+        this.isSupportMultiStep = descriptor instanceof MultiStepsSupportHost;
+    }
+
+    /**
+     * 是否支持多步骤配置插件
+     *
+     * @return
+     * @see MultiStepsSupportHost  Descriptor需要实现该接口
+     */
+    public boolean isSupportMultiStep() {
+        return isSupportMultiStep;
+    }
+
+    public final List<OneStepOfMultiSteps.BasicDesc> getStepDescriptionList() {
+        return ((MultiStepsSupportHost) descriptor).getStepDescriptionList();
     }
 
     @Override
