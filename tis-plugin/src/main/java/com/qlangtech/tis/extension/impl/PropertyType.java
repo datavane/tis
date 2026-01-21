@@ -174,7 +174,7 @@ public class PropertyType implements IPropertyType {
                 "extraProps can not be null, for property:" + this.f.getName()).get(Descriptor.KEY_ENUM_PROP);
         if (enumPp == null) {
             if (validateNull) {
-                throw new IllegalStateException("enumPp can not be empty");
+                throw new IllegalStateException("field:" + this.f.getName() + " enum property can not be empty");
             } else {
                 return Collections.emptyList();
             }

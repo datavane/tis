@@ -28,10 +28,15 @@ import java.util.function.BiConsumer;
 
 /**
  * <a href="https://www.processon.com/diagraming/69689f89faec1a656012e77d">...</a>
+ *
  * @param <T>
  */
 public interface ElementCreatorFactory<T extends IMultiElement> {
 
+
+    public default String getTuplesKey() {
+        return "_mcols";
+    }
 
     /**
      * 多选列前置校验
@@ -42,17 +47,16 @@ public interface ElementCreatorFactory<T extends IMultiElement> {
      * @param targetCols
      * @return
      */
-    public CMeta.ParsePostMCols<T> parsePostMCols(IPropertyType propertyType,
-                                                  IControlMsgHandler msgHandler, Context context, String keyColsMeta,
-                                                  JSONArray targetCols);
+    public CMeta.ParsePostMCols<T> parsePostMCols(IPropertyType propertyType, IControlMsgHandler msgHandler,
+                                                  Context context, String keyColsMeta, JSONArray targetCols);
 
     default ViewContent getViewContentType() {
         return ViewContent.MongoCols;
     }
 
-//    default T createDefault() {
-//        return this.createDefault(new JSONObject());
-//    }
+    //    default T createDefault() {
+    //        return this.createDefault(new JSONObject());
+    //    }
 
     // CMeta
     T createDefault(JSONObject targetCol);

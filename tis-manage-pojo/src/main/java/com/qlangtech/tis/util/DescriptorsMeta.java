@@ -40,7 +40,7 @@ public class DescriptorsMeta {
         return (T) Objects.requireNonNull(rootDescriptorLocal.get(), "rootDescriptorLocal element can not be null");
     }
 
-    Map<String, Pair<JSONObject, Object>> descs = Maps.newHashMap();
+    Map<String /*impl*/, Pair<JSONObject, Object>> descs = Maps.newHashMap();
     /**
      * 由于describe 可以嵌套，此标志位可以判断 是否是根元素
      */
@@ -66,13 +66,12 @@ public class DescriptorsMeta {
 
 
     public JSONObject getJSONObject(String descId) {
-        return Objects.requireNonNull(descs.get(descId)
-                , "descId:" + descId + " relevant desc can not be null").getLeft();
+        return Objects.requireNonNull(descs.get(descId), "descId:" + descId + " relevant desc can not be null").getLeft();
     }
 
     public Map<String, JSONObject> getDescriptorsResult() {
-        return this.descs.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, (e) -> e.getValue().getLeft()));
+        return this.descs.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+                (e) -> e.getValue().getLeft()));
     }
 
 

@@ -23,12 +23,13 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.MultiStepsSupportHost;
+import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
 import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.TISExtensible;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
+import com.qlangtech.tis.extension.impl.MultiStepsHostPluginFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
@@ -36,6 +37,7 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.CompanionPluginFactory;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -142,38 +144,50 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
         final Descriptor desc = pluginFormPropertyTypes.accept(new SubFormFieldVisitor(subFormFilter) {
             @Override
             public Descriptor visit(RootFormProperties props) {
+                return descriptor;
+            }
+
+            @Override
+            public Descriptor visitMultiStepsHost(MultiStepsHostPluginFormProperties props) {
                 multiStepsPropsSet(props);
                 return descriptor;
             }
 
-            private void multiStepsPropsSet(RootFormProperties props) {
-                if (props.isSupportMultiStep()) {
-                    JSONObject multiStepsCfg = new JSONObject();
-                    JSONArray steps = new JSONArray();
-                    JSONObject step = null;
+            private void multiStepsPropsSet(MultiStepsHostPluginFormProperties props) {
 
-                    for (OneStepOfMultiSteps.BasicDesc stepDesc : props.getStepDescriptionList()) {
-                        step = new JSONObject();
-                        step.put("stepName", stepDesc.getDisplayName());
-                        step.put("stepDescription", stepDesc.getStepDescription());
-                        steps.add(step);
-                    }
-                    multiStepsCfg.put("multiSteps", steps);
-
-                    for (OneStepOfMultiSteps.BasicDesc stepDesc : props.getStepDescriptionList()) {
-                        DescriptorsJSON des2Json = forAIPromote ?
-                                new DescriptorsJSONForAIPrompt(Collections.singleton(stepDesc), true) :
-                                new DefaultDescriptorsJSON(stepDesc);
-                        multiStepsCfg.put("firstStepDesc", des2Json.getDescriptorsJSON());
-                        break;
-                    }
-                    JSONObject stepContext = new JSONObject();
-                    ((MultiStepsSupportHost) descriptor).appendExternalProps(stepContext);
-                    // 保证在整个step运行过程中通过客户端SavePluginEvent.postPayload都会提交到服务端的属性
-                    multiStepsCfg.put("context", stepContext);
-                    // 支持多步骤实现插件配置
-                    desJson.put("multiStepsCfg", multiStepsCfg);
+                JSONObject multiStepsCfg = new JSONObject();
+                JSONArray steps = new JSONArray();
+                JSONObject step = null;
+                if (CollectionUtils.isEmpty(props.getStepDescriptionList())) {
+                    throw new IllegalStateException("StepDescriptionList can not be empty");
                 }
+                for (OneStepOfMultiSteps.BasicDesc stepDesc : props.getStepDescriptionList()) {
+                    step = new JSONObject();
+                    step.put("stepName", stepDesc.getDisplayName());
+                    step.put("stepDescription", stepDesc.getStepDescription());
+                    steps.add(step);
+                }
+                multiStepsCfg.put("multiSteps", steps);
+
+                // JSONArray allStepsDesc = new JSONArray();
+                for (OneStepOfMultiSteps.BasicDesc stepDesc : props.getStepDescriptionList()) {
+                    DescriptorsJSON des2Json = forAIPromote ?
+                            new DescriptorsJSONForAIPrompt(Collections.singleton(stepDesc), true) :
+                            new DefaultDescriptorsJSON(stepDesc);
+                    multiStepsCfg.put("firstStepDesc", des2Json.getDescriptorsJSON());
+                    //allStepsDesc.add(des2Json.getDescriptorsJSON());
+                    break;
+                }
+
+                //multiStepsCfg.put("allStepsDesc", allStepsDesc);
+
+                JSONObject stepContext = new JSONObject();
+                ((MultiStepsSupportHostDescriptor) descriptor).appendExternalProps(stepContext);
+                // 保证在整个step运行过程中通过客户端SavePluginEvent.postPayload都会提交到服务端的属性
+                multiStepsCfg.put("context", stepContext);
+                // 支持多步骤实现插件配置
+                desJson.put("multiStepsCfg", multiStepsCfg);
+
             }
 
             @Override

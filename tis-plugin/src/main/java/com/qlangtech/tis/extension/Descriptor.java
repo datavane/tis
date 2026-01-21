@@ -36,6 +36,7 @@ import com.qlangtech.tis.datax.impl.DataxWriter.BaseDataxWriterDescriptor;
 import com.qlangtech.tis.extension.impl.AdapterPluginFormProperties;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.EnumFieldMode;
+import com.qlangtech.tis.extension.impl.MultiStepsHostPluginFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
@@ -98,6 +99,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.extension.MultiStepsSupportHost.KEY_MULTI_STEPS_SAVED_ITEMS;
 import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX;
 import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX;
 import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.popFieldStack;
@@ -609,6 +611,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }
         }
 
+        if(this instanceof MultiStepsSupportHostDescriptor){
+            return new MultiStepsHostPluginFormProperties(this);
+        }
+
         return new RootFormProperties(this, PropertyType.filterFieldProp(getPropertyTypes()));
     }
 
@@ -686,6 +692,19 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             PluginFormProperties propertyTypes = getPropertyTypes(pTypes, subFormFilter);
 
             return propertyTypes.accept(new PluginFormProperties.IVisitor() {
+
+                @Override
+                public PluginValidateResult visitMultiStepsHost(MultiStepsHostPluginFormProperties props) {
+                    PostFormVals postFormVals = new PostFormVals(Descriptor.this, props, subFormFilter, msgHandler,
+                            context, formData);
+                    PluginValidateResult validateResult = new PluginValidateResult(postFormVals,
+                            (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX),
+                            (Integer) context.get(DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX));
+                    validateResult.valid = true;
+                    validateResult.setDescriptor(Descriptor.this);
+                    return validateResult;
+                }
+
                 @Override
                 public PluginValidateResult visit(RootFormProperties props) {
 
@@ -1200,6 +1219,25 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
         return propertyTypes.accept(new PluginFormProperties.IVisitor() {
             @Override
+            public ParseDescribable<Describable> visitMultiStepsHost(MultiStepsHostPluginFormProperties props) {
+                try {
+                    ParseDescribable<Describable> result = new ParseDescribable<>(clazz.newInstance());
+                    Map<String, JSONArray> subFormDetails = keyValMap.asSubFormDetails();
+                    JSONArray multiStepsSavedItems = subFormDetails.get(KEY_MULTI_STEPS_SAVED_ITEMS);
+                    if (CollectionUtils.isEmpty(multiStepsSavedItems)) {
+                        throw new IllegalStateException("multiStepsSavedItems can not be empty");
+                    }
+                    OneStepOfMultiSteps[] multiSteps = OneStepOfMultiSteps.parseStepsPlugin(pluginContext, context,
+                            multiStepsSavedItems);
+                    MultiStepsSupportHost hostPlugin = (MultiStepsSupportHost) result.getInstance();
+                    hostPlugin.setSteps(multiSteps);
+                    return result;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            @Override
             public ParseDescribable<Describable> visit(RootFormProperties props) {
                 return createPluginInstance();
             }
@@ -1217,10 +1255,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
             private Describable setParentPluginClass(ParseDescribable<Describable> r) {
                 Describable plugin = r.getInstance();
-                //                if (plugin instanceof IParentHostPluginAware) {
-                //                    ((IParentHostPluginAware) plugin).setParentHostPluginClass(props
-                //                    .getParentPluginDesc().clazz);
-                //                }
                 return plugin;
             }
 

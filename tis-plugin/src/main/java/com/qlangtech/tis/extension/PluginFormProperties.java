@@ -21,6 +21,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
+import com.qlangtech.tis.extension.impl.MultiStepsHostPluginFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
@@ -70,6 +71,18 @@ public abstract class PluginFormProperties {
 
     public interface IVisitor {
         default <T> T visit(RootFormProperties props) {
+            //throw new UnsupportedOperationException("process RootFormProperties");
+            return null;
+        }
+
+        /**
+         * 访问多步执行配置插件实例
+         *
+         * @param props
+         * @param <T>
+         * @return
+         */
+        default <T> T visitMultiStepsHost(MultiStepsHostPluginFormProperties props) {
             //throw new UnsupportedOperationException("process RootFormProperties");
             return null;
         }

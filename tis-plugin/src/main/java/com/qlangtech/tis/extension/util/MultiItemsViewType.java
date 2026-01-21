@@ -62,25 +62,24 @@ public class MultiItemsViewType implements IMultiItemsView {
     }
 
     public static MultiItemsViewType createMultiItemsViewType(PropertyType propertyType) {
-        return createMultiItemsViewType(propertyType
-                , Objects.requireNonNull(propertyType.extraProp, "propertyType.extraProp can not be null"));
+        return createMultiItemsViewType(propertyType, Objects.requireNonNull(propertyType.extraProp,
+                "propertyType" + ".extraProp can not be null"));
     }
 
     public static MultiItemsViewType createMultiItemsViewType(PropertyType propertyType, PluginExtraProps.Props props) {
-//        if (this.multiItemsViewType == null) {
+        //        if (this.multiItemsViewType == null) {
         // PluginExtraProps.Props props = propertyType.extraProp;
         ElementCreatorFactory elementCreator = null;
-        ViewFormatType formatType
-                = ViewFormatType.parse(
-                getStrProp(Objects.requireNonNull(props, "props can not be null"), PluginExtraProps.Props.KEY_VIEW_TYPE));
+        ViewFormatType formatType = ViewFormatType.parse(getStrProp(Objects.requireNonNull(props,
+                "props can not be " + "null"), PluginExtraProps.Props.KEY_VIEW_TYPE));
         try {
             String selectElementCreator = getStrProp(props, CMeta.KEY_ELEMENT_CREATOR_FACTORY);
             if (StringUtils.isEmpty(selectElementCreator)) {
                 if (formatType == ViewFormatType.IdList) {
                     elementCreator = new IdlistElementCreatorFactory();
                 } else {
-                    throw new IllegalStateException("param " + CMeta.KEY_ELEMENT_CREATOR_FACTORY
-                            + " can not be empty,formatType:" + formatType + ",property:" + propertyType.f);
+                    throw new IllegalStateException("param " + CMeta.KEY_ELEMENT_CREATOR_FACTORY + " can not be " +
+                            "empty,formatType:" + formatType + ",property:" + propertyType.f);
                 }
             } else {
                 elementCreator = ((ElementCreatorFactory) //
@@ -105,9 +104,8 @@ public class MultiItemsViewType implements IMultiItemsView {
         this.propertyType = propertyType;
     }
 
-    public List<FormFieldType.SelectedItem> getPostSelectedItems(PropertyType attrDesc,
-                                                                 IControlMsgHandler msgHandler, Context context,
-                                                                 JSONObject eprops) {
+    public List<FormFieldType.SelectedItem> getPostSelectedItems(PropertyType attrDesc, IControlMsgHandler msgHandler
+            , Context context, JSONObject eprops) {
         return this.viewType.getPostSelectedItems(attrDesc, msgHandler, context, eprops);
     }
 
@@ -121,7 +119,8 @@ public class MultiItemsViewType implements IMultiItemsView {
     public List<String> getElementPropertyKeys() {
         if (elementPropertyKeys == null) {
             try {
-                PropertyDescriptor[] propertyDescs = BeanUtilsBean2.getInstance().getPropertyUtils().getPropertyDescriptors(tupleFactory.createDefault(new JSONObject()));
+                PropertyDescriptor[] propertyDescs =
+                        BeanUtilsBean2.getInstance().getPropertyUtils().getPropertyDescriptors(tupleFactory.createDefault(new JSONObject()));
                 elementPropertyKeys = Lists.newArrayList();
                 for (PropertyDescriptor desc : propertyDescs) {
                     elementPropertyKeys.add(desc.getName());
@@ -146,10 +145,7 @@ public class MultiItemsViewType implements IMultiItemsView {
 
     @Override
     public String toString() {
-        return "{" +
-                "viewType=" + viewType +
-                ", tupleFactory=" + tupleFactory.getClass().getSimpleName() +
-                '}';
+        return "{" + "viewType=" + viewType + ", tupleFactory=" + tupleFactory.getClass().getSimpleName() + '}';
     }
 
     /**
@@ -197,8 +193,11 @@ public class MultiItemsViewType implements IMultiItemsView {
                 , (attrDesc, msgHandler, context, eprops) -> {
 
             ElementCreatorFactory elementCreator = attrDesc.getCMetaCreator();
-            JSONArray mcols = Objects.requireNonNull(eprops, "eprops can not be null").getJSONObject(Descriptor.KEY_ENUM_PROP).getJSONArray("_mcols");
-            CMeta.ParsePostMCols<?> parsePostMCols = elementCreator.parsePostMCols(attrDesc, msgHandler, context, attrDesc.f.getName(), mcols);
+            JSONArray mcols = Objects.requireNonNull(eprops, "eprops can not be null")//
+                    .getJSONObject(Descriptor.KEY_ENUM_PROP) //
+                    .getJSONArray(elementCreator.getTuplesKey());
+            CMeta.ParsePostMCols<?> parsePostMCols = elementCreator.parsePostMCols(attrDesc, msgHandler, context,
+                    attrDesc.f.getName(), mcols);
             if (parsePostMCols.validateFaild) {
                 return Collections.emptyList();
             }

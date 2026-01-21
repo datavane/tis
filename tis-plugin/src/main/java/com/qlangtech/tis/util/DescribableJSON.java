@@ -25,6 +25,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
+import com.qlangtech.tis.extension.impl.MultiStepsHostPluginFormProperties;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.trigger.util.UnCacheStringSerializer;
@@ -70,6 +71,10 @@ public class DescribableJSON<T extends Describable<T>> {
 
         DescriptorsJSON.setDescInfo(pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
             @Override
+            public Descriptor visitMultiStepsHost(MultiStepsHostPluginFormProperties props) {
+                return descriptor;
+            }
+            @Override
             public Descriptor visit(RootFormProperties props) {
                 return descriptor;
             }
@@ -113,7 +118,7 @@ public class DescribableJSON<T extends Describable<T>> {
      * @return AttrValMap 对象，包含插件的属性值映射
      * @throws Exception 如果转换过程中发生错误
      */
-    public AttrValMap getPostAttribute()  {
+    public AttrValMap getPostAttribute() {
         // 使用 AttrValMap 的静态方法解析
         return AttrValMap.parseDescribableMap(Optional.empty(), getPostAttributeJson());
     }

@@ -108,7 +108,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             if (StringUtils.isEmpty(tableName)) {
                 throw new IllegalStateException("extra param " + SuFormProperties.SuFormGetterContext.FIELD_SUBFORM_ID + " can not be empty");
             }
-            return HeteroEnum.createDataXReaderAndWriterRelevant(pluginContext, pluginMeta, new DBOrAppRelevantCreator<IPluginStore>() {
+            return HeteroEnum.createDataXReaderAndWriterRelevant(pluginContext, pluginMeta, new DBOrAppRelevantCreator<>() {
                 @Override
                 public IPluginStore dbRelevant(IPluginContext pluginContext, String saveDbName) {
                     Key key = TransformerRuleKey.createStoreKey(pluginContext, StoreResourceType.DataBase, saveDbName, tableName);
