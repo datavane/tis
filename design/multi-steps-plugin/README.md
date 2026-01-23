@@ -519,6 +519,214 @@ public static wrapDescriptors(descriptors: Map<string, Descriptor>) {
 | `plugins/tis-transformer/src/main/java/com/qlangtech/tis/plugin/datax/transformer/impl/joiner/JoinerSelectTable.java` | 第二步：选择表 |
 | `plugins/tis-transformer/src/main/java/com/qlangtech/tis/plugin/datax/transformer/impl/joiner/JoinerSetMatchConditionAndCols.java` | 第三步：设置匹配条件和列 |
 
+## 编辑模式
+
+### 概述
+
+编辑模式允许用户编辑已经配置好的多步骤插件实例。与创建模式不同,编辑模式会:
+1. 自动跳转到最后一步,方便用户快速修改最常用的配置
+2. 允许用户后退到前面的步骤进行修改
+3. 保留所有步骤的历史配置数据
+
+### 工作原理
+
+#### 1. 前端标识编辑模式
+
+通过 `editMode` 标志区分创建和编辑两种场景:
+
+```typescript
+// 添加新插件: editMode = false
+TransformerRulesComponent.openTransformerRuleDialog(this, desc, undefined, false);
+
+// 编辑已有插件: editMode = true
+TransformerRulesComponent.openTransformerRuleDialog(this, udfItem.dspt, udfItem, true);
+```
+
+#### 2. 后端推送所有步骤的 Descriptor
+
+在编辑模式下,后端会通过 `MultiStepsHostPluginFormProperties.getInstancePropsJson()` 方法推送所有步骤的 descriptor:
+
+```java
+// 调用每个步骤的 processCurrentStep() 方法,确保上下文正确设置
+for (OneStepOfMultiSteps childStep : multiSteps) {
+    childStep.processCurrentStep(threadLocalInstance, context, allSteps);
+}
+
+// 生成所有步骤的 descriptor 并推送到前端
+DescriptorsJSON des2Json = new DefaultDescriptorsJSON(this.getStepDescriptionList());
+vals.put("allStepDesc", des2Json.getDescriptorsJSON());
+```
+
+**关键点**:
+- `allStepDesc`: 包含所有步骤的 descriptor Map
+- `processCurrentStep()`: 确保每个步骤的上下文数据正确设置
+
+#### 3. 前端重建步骤数据
+
+前端接收到 `allStepDesc` 后,会重新包装每个步骤的 Item:
+
+```typescript
+// tis.plugin.ts:1174-1189
+let allStepDesc: Map<string, Descriptor> = ovals["allStepDesc"];
+if(allStepDesc){
+    // 包装 descriptor
+    allStepDesc = Descriptor.wrapDescriptors(allStepDesc);
+
+    // 为每个 item 关联其 descriptor
+    let wrappedStepItems: Item[] = [];
+    for (let item of stepItems) {
+        let d = allStepDesc.get(item.impl);
+        wrappedStepItems.push(d.wrapItemVals(item));
+    }
+    newVals[KEY_MULTI_STEPS_SAVED_ITEMS] = wrappedStepItems;
+}
+```
+
+#### 4. 前端重建 stepSavedPlugin Map
+
+`plugins.component.ts` 中的 `rebuildStepSavedPlugin()` 方法负责重建步骤历史:
+
+```typescript
+private static rebuildStepSavedPlugin(opts: OpenPluginDialogOptions, pluginTp: PluginType): Map<number, HistorySavedStep> {
+    let stepSavedPlugin: Map<number, HistorySavedStep> = new Map();
+
+    if (opts.item && opts.item.vals && opts.item.vals[KEY_MULTI_STEPS_SAVED_ITEMS]) {
+        let savedItems: Item[] = opts.item.vals[KEY_MULTI_STEPS_SAVED_ITEMS] as Item[];
+
+        for (let idx = 0; idx < savedItems.length; idx++) {
+            let item = savedItems[idx];
+            let hl = new HeteroList();
+            hl.pluginCategory = pluginTp;
+            hl.items = [item];
+
+            let historyStep = new HistorySavedStep([hl], (idx + 1) === savedItems.length);
+
+            // 包装 descriptor
+            let d = new Map();
+            d.set(item.impl, item.dspt);
+            historyStep.wrapper(d);
+
+            stepSavedPlugin.set(idx, historyStep);
+        }
+    }
+
+    return stepSavedPlugin;
+}
+```
+
+#### 5. 自动跳转到最后一步
+
+`PluginsMultiStepsComponent.ngOnInit()` 方法在编辑模式下自动跳转到最后一步:
+
+```typescript
+ngOnInit() {
+    super.ngOnInit();
+    if (this.editMode) {
+        let newCurrent: number = (this.hostDesc.steps.length - 1);
+        let historyStep: HistorySavedStep = this.stepSavedPlugin.get(newCurrent);
+
+        // 空值检查
+        if (!historyStep) {
+            console.error(`History step not found for index ${newCurrent}`);
+            return;
+        }
+
+        // 设置当前步骤为最后一步
+        this.hlist = historyStep.hlist;
+        this.currentStep = newCurrent;
+        this.isFinalPhase = historyStep.finalStep;
+    }
+}
+```
+
+### 编辑模式数据流程图
+
+```
+用户操作                前端                                后端
+   │                     │                                   │
+   │  1. 点击"编辑"按钮   │                                   │
+   ├──────────────────>│                                   │
+   │                     │  2. 请求插件实例数据(editMode=true) │
+   │                     ├──────────────────────────────────>│
+   │                     │                                   │ 3. 调用 getInstancePropsJson()
+   │                     │                                   │    - 调用每个步骤的 processCurrentStep()
+   │                     │                                   │    - 生成 allStepDesc
+   │                     │                                   │
+   │                     │<──────────────────────────────────┤ 4. 返回:
+   │                     │                                   │    - multiStepsSavedItems (所有步骤数据)
+   │                     │                                   │    - allStepDesc (所有步骤的 descriptor)
+   │                     │                                   │
+   │                     │ 5. 重建 stepSavedPlugin Map       │
+   │                     │    - 为每个步骤创建 HistorySavedStep │
+   │                     │    - 包装 descriptor              │
+   │                     │                                   │
+   │                     │ 6. 自动跳转到最后一步              │
+   │                     │    - currentStep = steps.length - 1 │
+   │                     │    - 显示最后一步的表单            │
+   │                     │                                   │
+   │  7. 用户修改配置     │                                   │
+   ├──────────────────>│                                   │
+   │                     │                                   │
+   │  8. 点击"后退"       │                                   │
+   ├──────────────────>│                                   │
+   │                     │ 9. 从 stepSavedPlugin 恢复前一步   │
+   │                     │                                   │
+   │  10. 点击"提交"      │                                   │
+   ├──────────────────>│                                   │
+   │                     │ 11. 提交所有步骤数据               │
+   │                     ├──────────────────────────────────>│
+   │                     │                                   │ 12. 保存更新
+   │                     │<──────────────────────────────────┤
+   │  13. 显示成功提示    │                                   │
+   │<────────────────────┤                                   │
+```
+
+### 关键实现细节
+
+#### 1. processCurrentStep() 方法的作用
+
+`OneStepOfMultiSteps.processCurrentStep()` 方法在编辑模式下被调用,用于:
+- 设置步骤的上下文数据
+- 将当前步骤实例放入 Context,供其他步骤访问
+- 确保 descriptor 生成时能获取到正确的上下文
+
+```java
+public void processCurrentStep(IPluginContext pluginContext, Context currentCtx,
+                               OneStepOfMultiSteps[] preSavedStepPlugins) {
+    this.processPreSaved(pluginContext, currentCtx, preSavedStepPlugins);
+    // 将当前步骤实例放入上下文,供下一步使用
+    currentCtx.put(this.getClass().getName(), this);
+}
+```
+
+#### 2. allStepDesc 的重要性
+
+`allStepDesc` 包含所有步骤的 descriptor,这对于编辑模式至关重要:
+- 前端需要知道每个步骤的表单结构
+- 前端需要正确显示每个步骤的 UI
+- 前端需要验证每个步骤的数据
+
+#### 3. 空值检查的必要性
+
+在 `ngOnInit()` 中添加空值检查,防止数据不完整导致的错误:
+```typescript
+if (!historyStep) {
+    console.error(`History step not found for index ${newCurrent}`);
+    return;
+}
+```
+
+### 编辑模式 vs 创建模式对比
+
+| 特性 | 创建模式 | 编辑模式 |
+|------|---------|---------|
+| 初始步骤 | 第一步 (index=0) | 最后一步 (index=steps.length-1) |
+| stepSavedPlugin | 空 Map | 包含所有历史步骤 |
+| allStepDesc | 不需要 | 必须提供 |
+| editMode 标志 | false | true |
+| 后退按钮 | 仅在非第一步显示 | 始终显示 |
+| 用户体验 | 逐步引导 | 快速修改 |
+
 ## 常见问题
 
 ### Q1: 如何添加新的步骤？
@@ -563,4 +771,5 @@ public List<TableJoinMatchCondition> matchCondition;
 ## 版本历史
 
 - **v1.0** (2026-01-21): 初始版本，支持基本的多步骤配置功能
+- **v1.1** (2026-01-23): 添加编辑模式支持，编辑时自动跳转到最后一步
 - 作者：百岁 (baisui@qlangtech.com)

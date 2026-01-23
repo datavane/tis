@@ -32,6 +32,7 @@ import com.qlangtech.tis.extension.Describable.IRefreshable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
 import com.qlangtech.tis.extension.Descriptor.SelectOption;
+import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.extension.IDescribableManipulate;
 import com.qlangtech.tis.extension.PluginFormProperties;
@@ -72,6 +73,8 @@ import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.DescriptorsJSONForAIPrompt;
+import com.qlangtech.tis.util.DescriptorsMeta;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.HeteroList;
 import com.qlangtech.tis.util.IItemsSaveResult;
@@ -88,6 +91,7 @@ import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.struts2.convention.annotation.InterceptorRef;
@@ -108,6 +112,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.extension.MultiStepsSupportHost.KEY_MULTI_STEPS_SAVED_ITEMS;
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
 
 /**
@@ -156,9 +161,6 @@ public class PluginAction extends BasicModule {
   }
 
 
-
-
-
   /**
    * 取得端类型相对应的插件列表
    *
@@ -181,7 +183,7 @@ public class PluginAction extends BasicModule {
     String id = this.getString(IdentityName.PLUGIN_IDENTITY_NAME);
     String pluginImpl = this.getString(DescriptorsJSON.KEY_IMPL);
     Descriptor targetPlugin = Objects.requireNonNull(TIS.get().getDescriptor(pluginImpl),
-            "pluginImpl:" + pluginImpl + " relevant descriptor can not be null");
+      "pluginImpl:" + pluginImpl + " relevant descriptor can not be null");
     if (!(targetPlugin instanceof IDescribableManipulate)) {
       throw new IllegalStateException("targetPlugin:" + targetPlugin.getClass().getName() + " is not type of " + IDescribableManipulate.class.getSimpleName());
     }
@@ -297,7 +299,7 @@ public class PluginAction extends BasicModule {
     List<SelectOption> options = null;
     if (descField.getFieldPropType().typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
       options = DescriptorsJSON.getSelectOptions(descField.getTargetDesc(), descField.getFieldPropType(),
-              descField.field);
+        descField.field);
       this.setBizResult(context, options);
     } else if (descField.getFieldPropType().typeIdentity() == FormFieldType.ENUM.getIdentity()) {
       this.setBizResult(context, descField.getFieldPropType().getExtraProps().getJSONArray(Descriptor.KEY_ENUM_PROP));
@@ -319,7 +321,7 @@ public class PluginAction extends BasicModule {
 
     PropertyType getFieldPropType() {
       return (PropertyType) Objects.requireNonNull(getTargetDesc(),
-              "impl:" + this.pluginImpl + " relevant desc can " + "not be null").getPropertyType(this.field);
+        "impl:" + this.pluginImpl + " relevant desc can " + "not be null").getPropertyType(this.field);
     }
   }
 
@@ -345,7 +347,7 @@ public class PluginAction extends BasicModule {
     Props props = descField.getFieldPropType().extraProp;
     if (!props.isAsynHelp()) {
       throw new IllegalStateException("plugin:" + descField.pluginImpl + ",field:" + descField.field + " is not " +
-              "support async help content fecthing");
+        "support async help content fecthing");
     }
     this.setBizResult(context, props.getAsynHelp());
   }
@@ -561,7 +563,7 @@ public class PluginAction extends BasicModule {
       }
     }
     this.setBizResult(context, Collections.singletonMap("notFoundExtension",
-            result.hetero.getExtensionPoint().getName()));
+      result.hetero.getExtensionPoint().getName()));
     this.addErrorMessage(context, "displayName:" + result.displayName + " relevant Descriptor can not be null");
 
   }
@@ -635,7 +637,7 @@ public class PluginAction extends BasicModule {
 
     for (String extend : extendpoints) {
       this.setBizResult(context,
-              new DefaultDescriptorsJSON(TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend))).getDescriptorsJSON());
+        new DefaultDescriptorsJSON(TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend))).getDescriptorsJSON());
       return;
     }
 
@@ -660,7 +662,7 @@ public class PluginAction extends BasicModule {
       public List<? extends Descriptor> visit(RootFormProperties props) {
 
         PropertyType descProp = Objects.requireNonNull(props.propertiesType.get(field), "field:" + field + " relevant"
-                + " propDesc can not be null");
+          + " propDesc can not be null");
         if (descProp.isDescribable()) {
           return descProp.getApplicableDescriptors();
         }
@@ -742,6 +744,35 @@ public class PluginAction extends BasicModule {
   }
 
   /**
+   * 取得所有host插件内嵌的子插件的desc
+   *
+   * @param context
+   * @throws Exception
+   */
+//  public void doGetAllHostChildStepDesc(Context context) throws Exception {
+//    //  KEY_MULTI_STEPS_SAVED_ITEMS
+//    JSONObject postContent = this.getJSONPostContent();
+//
+//    OneStepOfMultiSteps[] multiSteps = OneStepOfMultiSteps.parseStepsPlugin(this, context,
+//      postContent.getJSONArray(KEY_MULTI_STEPS_SAVED_ITEMS));
+//
+//    if (ArrayUtils.isEmpty(multiSteps)) {
+//      throw new IllegalStateException("multiSteps can not be null");
+//    }
+//
+//    OneStepOfMultiSteps[] allSteps = new OneStepOfMultiSteps[multiSteps.length];
+//    ArrayUtils.arraycopy(multiSteps, 0, allSteps, 0, multiSteps.length);
+//    for (OneStepOfMultiSteps childStep : multiSteps) {
+//      childStep.processCurrentStep(this, context, allSteps);
+//    }
+//    List<DescriptorsMeta> stepDescMeta = Lists.newArrayList();
+//    for (OneStepOfMultiSteps childStep : multiSteps) {
+//      stepDescMeta.add(new DefaultDescriptorsJSON(childStep.getDescriptor()).getDescriptorsJSON());
+//    }
+//    this.setBizResult(context, stepDescMeta);
+//  }
+
+  /**
    * plugin form 的子表单的某条详细记录被点击
    * subform_detailed_click
    *
@@ -763,7 +794,7 @@ public class PluginAction extends BasicModule {
       for (DataxReader plugin : plugins.getKey()) {
 
         SuFormProperties.setSuFormGetterContext(plugin, plugins.getRight(), meta,
-                this.getString(SuFormGetterContext.FIELD_SUBFORM_ID));
+          this.getString(SuFormGetterContext.FIELD_SUBFORM_ID));
 
         hList = meta.getHeteroList(this);
 
@@ -842,7 +873,7 @@ public class PluginAction extends BasicModule {
       JSONArray itemsArray = pluginArray.getJSONArray(pluginIndex);
 
       pluginItemsParser = getPluginItems(pluginMeta, context, pluginIndex, itemsArray, verifyType,
-              ((propType, val) -> val));
+        ((propType, val) -> val));
       if (pluginItemsParser.getKey()) {
         faild = true;
       }
@@ -875,7 +906,7 @@ public class PluginAction extends BasicModule {
     if (forwardParams != null) {
       // assert pluginItemsParser != null;
       Pair<List<IItemsSaveResult>, IPluginItemsProcessor> itemSaveResult = Pair.of(describables,
-              Objects.requireNonNull(pluginItemsParser, "pluginItemsParser can not be null").getRight());
+        Objects.requireNonNull(pluginItemsParser, "pluginItemsParser can not be null").getRight());
       this.getRequest().setAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT, itemSaveResult);
 
       // getRundata().forwardTo(forwardParams[0], forwardParams[1], forwardParams[2]);
@@ -888,7 +919,7 @@ public class PluginAction extends BasicModule {
     // 成功保存的主键信息返回给客户端
     if (context.get(IMessageHandler.ACTION_BIZ_RESULT) == null) {
       this.setBizResult(context,
-              describables.stream().flatMap((itemSaveResult) -> itemSaveResult.getIdentityStream()).map((d) -> {
+        describables.stream().flatMap((itemSaveResult) -> itemSaveResult.getIdentityStream()).map((d) -> {
         if (d instanceof IdentityDesc) {
           return ((IdentityDesc) d).describePlugin();
         } else {
@@ -905,7 +936,7 @@ public class PluginAction extends BasicModule {
 
   private static Pair<List<ItemsSaveResult>, IPluginItemsProcessor> getPluginActionSaveResult(HttpServletRequest request) {
     Pair<List<ItemsSaveResult>, IPluginItemsProcessor> saveResult = (Pair<List<ItemsSaveResult>,
-            IPluginItemsProcessor>) request.getAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT);
+      IPluginItemsProcessor>) request.getAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT);
     return Objects.requireNonNull(saveResult, "saveResult can not be null");
   }
 
@@ -950,7 +981,7 @@ public class PluginAction extends BasicModule {
                                                                    FormVaildateType verify,
                                                                    PropValRewrite propValRewrite) {
     PluginItemsParser pluginItemsParser = PluginItemsParser.parsePluginItems(this, (UploadPluginMeta) pluginMeta,
-            context, pluginIndex, itemsArray, verify, propValRewrite);
+      context, pluginIndex, itemsArray, verify, propValRewrite);
     return Pair.of(pluginItemsParser.faild, pluginItemsParser.pluginItems);
 
   }

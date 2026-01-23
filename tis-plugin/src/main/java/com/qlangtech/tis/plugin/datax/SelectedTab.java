@@ -70,6 +70,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -220,9 +221,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
      * @return
      */
     public static List<CMeta> getColsCandidate() {
-        List<CMeta> selectableCols = getContextTableCols((cols) -> {
-            return cols.stream();
-        });
+        List<CMeta> selectableCols = getContextTableCols(Collection::stream);
         return selectableCols;
     }
 

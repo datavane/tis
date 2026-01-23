@@ -426,6 +426,7 @@ public final void manipuldateProcess(IPluginContext pluginContext, Optional<Cont
 
 开发完成后，按以下清单测试：
 
+### 创建模式测试
 - [ ] 第一步可以正常显示和保存
 - [ ] 第二步可以访问第一步的数据
 - [ ] 第三步可以访问前面步骤的数据
@@ -433,9 +434,140 @@ public final void manipuldateProcess(IPluginContext pluginContext, Optional<Cont
 - [ ] 后退后修改数据，再前进，数据正确更新
 - [ ] 最后一步可以成功提交
 - [ ] 提交后可以正确保存到数据库
-- [ ] 重新打开可以看到之前保存的配置
 - [ ] 表单验证正常工作
 - [ ] 错误提示清晰明确
+
+### 编辑模式测试
+- [ ] 点击"编辑"按钮后，自动跳转到最后一步
+- [ ] 最后一步显示之前保存的配置数据
+- [ ] 可以修改最后一步的配置
+- [ ] 可以后退到前面的步骤查看/修改
+- [ ] 后退后的步骤显示正确的历史数据
+- [ ] 修改任意步骤后，可以前进到后续步骤
+- [ ] 提交后更新成功
+- [ ] 重新打开编辑，仍然跳转到最后一步
+- [ ] 所有步骤的 descriptor 正确加载
+- [ ] 表单验证在编辑模式下正常工作
+
+## 编辑模式开发注意事项
+
+### 1. 确保 processCurrentStep() 方法正确实现
+
+编辑模式依赖 `processCurrentStep()` 方法来设置上下文:
+
+```java
+@Override
+protected void processPreSaved(IPluginContext pluginContext, Context currentCtx,
+                               OneStepOfMultiSteps[] preSavedStepPlugins) {
+    // 从前置步骤获取数据
+    if (preSavedStepPlugins.length > 0) {
+        JoinerSelectDataSource dataSource = (JoinerSelectDataSource) preSavedStepPlugins[0];
+        // 使用 dataSource 的数据
+    }
+
+    // 设置当前步骤的数据到 Context
+    currentCtx.put("myKey", myData);
+}
+```
+
+### 2. 前端调用时传递 editMode 标志
+
+```typescript
+// 添加新插件
+TransformerRulesComponent.openTransformerRuleDialog(this, desc, undefined, false);
+
+// 编辑已有插件
+TransformerRulesComponent.openTransformerRuleDialog(this, udfItem.dspt, udfItem, true);
+```
+
+### 3. 测试编辑模式的常见场景
+
+1. **场景1：只修改最后一步**
+   - 打开编辑 → 修改最后一步 → 提交
+   - 验证：只有最后一步的数据被更新
+
+2. **场景2：修改中间步骤**
+   - 打开编辑 → 后退到第二步 → 修改 → 前进到第三步 → 提交
+   - 验证：第二步和第三步的数据都被更新
+
+3. **场景3：修改第一步**
+   - 打开编辑 → 后退到第一步 → 修改 → 逐步前进 → 提交
+   - 验证：所有步骤的数据都被更新
+
+### 4. 调试技巧
+
+#### 前端调试
+
+在 `PluginsMultiStepsComponent.ngOnInit()` 中添加日志:
+
+```typescript
+ngOnInit() {
+    super.ngOnInit();
+    console.log('editMode:', this.editMode);
+    console.log('stepSavedPlugin:', this.stepSavedPlugin);
+
+    if (this.editMode) {
+        let newCurrent: number = (this.hostDesc.steps.length - 1);
+        console.log('Jumping to step:', newCurrent);
+        // ...
+    }
+}
+```
+
+#### 后端调试
+
+在 `MultiStepsHostPluginFormProperties.getInstancePropsJson()` 中添加日志:
+
+```java
+@Override
+public JSON getInstancePropsJson(Object instance) {
+    try {
+        // ...
+        for (OneStepOfMultiSteps childStep : multiSteps) {
+            System.out.println("Processing step: " + childStep.getClass().getSimpleName());
+            childStep.processCurrentStep(threadLocalInstance, context, allSteps);
+        }
+        // ...
+    } catch (Exception e) {
+        e.printStackTrace();
+        throw new RuntimeException(e);
+    }
+}
+```
+
+### 5. 常见编辑模式错误
+
+#### 错误1：编辑时显示第一步而不是最后一步
+
+**原因**：
+- `editMode` 标志没有正确传递
+- `stepSavedPlugin` Map 为空
+
+**解决方案**：
+1. 检查 `openTransformerRuleDialog()` 调用时是否传递了 `editMode=true`
+2. 检查 `rebuildStepSavedPlugin()` 方法是否正确执行
+3. 在浏览器控制台查看 `editMode` 和 `stepSavedPlugin` 的值
+
+#### 错误2：编辑时表单数据为空
+
+**原因**：
+- 后端没有返回 `allStepDesc`
+- 前端没有正确包装 descriptor
+
+**解决方案**：
+1. 检查后端 `getInstancePropsJson()` 是否调用了 `processCurrentStep()`
+2. 检查前端 `tis.plugin.ts` 中的 `wrapItemVals()` 逻辑
+3. 在网络请求中查看返回的 JSON 数据
+
+#### 错误3：后退到前面步骤时数据丢失
+
+**原因**：
+- `HistorySavedStep` 没有正确保存
+- `wrapper()` 方法没有被调用
+
+**解决方案**：
+1. 检查 `rebuildStepSavedPlugin()` 中是否调用了 `historyStep.wrapper(d)`
+2. 确认每个步骤的 `item.dspt` 不为 null
 
 ## 性能优化建议
 

@@ -84,8 +84,7 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
     public final Descriptor<OneStepOfMultiSteps> getDescriptor() {
         Descriptor<OneStepOfMultiSteps> descriptor = Describable.super.getDescriptor();
         if (!BasicDesc.class.isAssignableFrom(descriptor.getClass())) {
-            throw new IllegalStateException("descriptor:" + descriptor.getClass().getName()
-                    + " must extend from " + BasicDesc.class.getName());
+            throw new IllegalStateException("descriptor:" + descriptor.getClass().getName() + " must extend from " + BasicDesc.class.getName());
         }
         return descriptor;
     }
@@ -111,8 +110,8 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
         OneStepOfMultiSteps[] preSavedStepPlugins = new OneStepOfMultiSteps[preStepSavedPlugin.size()];
         for (int i = 0; i < preStepSavedPlugin.size(); i++) {
             JSONObject item = preStepSavedPlugin.getJSONObject(i);
-            preSavedStepPlugins[i] = (OneStepOfMultiSteps) AttrValMap.parseDescribableMap(Optional.empty(), item)
-                    .createDescribable(pluginContext, context).getInstance();
+            preSavedStepPlugins[i] =
+                    (OneStepOfMultiSteps) AttrValMap.parseDescribableMap(Optional.empty(), item).createDescribable(pluginContext, context).getInstance();
         }
         return preSavedStepPlugins;
     }
@@ -150,8 +149,7 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
             pluginContext.setBizResult(currentCtx, result);
 
         } catch (Exception e) {
-            throw new MultiStepPluginException.StepProcessingException(
-                    "step: " + this.getClass().getSimpleName(), e);
+            throw new MultiStepPluginException.StepProcessingException("step: " + this.getClass().getSimpleName(), e);
         }
     }
 
@@ -197,12 +195,12 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
      * 处理当前步骤
      * 调用子类的业务逻辑处理方法，并将当前实例保存到Context中
      *
-     * @param pluginContext         插件上下文
-     * @param currentCtx            当前上下文
-     * @param preSavedStepPlugins   前置步骤插件实例数组
+     * @param pluginContext       插件上下文
+     * @param currentCtx          当前上下文
+     * @param preSavedStepPlugins 前置步骤插件实例数组
      */
-    private void processCurrentStep(IPluginContext pluginContext, Context currentCtx,
-                                    OneStepOfMultiSteps[] preSavedStepPlugins) {
+    public void processCurrentStep(IPluginContext pluginContext, Context currentCtx,
+                                   OneStepOfMultiSteps[] preSavedStepPlugins) {
         this.processPreSaved(pluginContext, currentCtx, preSavedStepPlugins);
         // 将当前步骤实例放入上下文，供下一步使用
         currentCtx.put(this.getClass().getName(), this);
@@ -260,9 +258,9 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
      *   <li>将数据放入Context供下一步使用</li>
      * </ul>
      *
-     * @param pluginContext         插件上下文
-     * @param currentCtx            当前上下文
-     * @param preSavedStepPlugins   前置步骤插件实例数组
+     * @param pluginContext       插件上下文
+     * @param currentCtx          当前上下文
+     * @param preSavedStepPlugins 前置步骤插件实例数组
      */
     protected void processPreSaved(IPluginContext pluginContext, Context currentCtx,
                                    OneStepOfMultiSteps[] preSavedStepPlugins) {

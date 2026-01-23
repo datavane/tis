@@ -611,7 +611,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }
         }
 
-        if(this instanceof MultiStepsSupportHostDescriptor){
+        if (this instanceof MultiStepsSupportHostDescriptor) {
             return new MultiStepsHostPluginFormProperties(this);
         }
 

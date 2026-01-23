@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.util;
 
+import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
@@ -168,6 +169,16 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
                     steps.add(step);
                 }
                 multiStepsCfg.put("multiSteps", steps);
+
+//                IPluginContext threadLocalInstance = IPluginContext.getThreadLocalInstance();
+//                Context context = threadLocalInstance.getContext();
+//                if (MultiStepsHostPluginFormProperties.containUpdateMultiStepsContext(context)) {
+//                    // 说明当前是更新状态，之前已经执行过 @MultiStepsHostPluginFormProperties.getInstancePropsJson() 方法了
+//                    DescriptorsJSON des2Json = forAIPromote ?
+//                            new DescriptorsJSONForAIPrompt(props.getStepDescriptionList(), true) :
+//                            new DefaultDescriptorsJSON(props.getStepDescriptionList());
+//                    multiStepsCfg.put("allStepDesc", des2Json.getDescriptorsJSON());
+//                }
 
                 // JSONArray allStepsDesc = new JSONArray();
                 for (OneStepOfMultiSteps.BasicDesc stepDesc : props.getStepDescriptionList()) {
