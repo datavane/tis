@@ -291,7 +291,8 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
     default void visitAllTableMap(IPluginContext pluginContext, Consumer<TableMap> tableMapProcessor) {
         IDataxReader reader = this.getReader(pluginContext);
         IDataxWriter writer = this.getWriter(pluginContext);
-        for (ISelectedTab tab : reader.getUnfilledSelectedTabs()) {
+        //  for (ISelectedTab tab : reader.getUnfilledSelectedTabs()) {
+        for (ISelectedTab tab : reader.getSelectedTabs()) {
             tableMapProcessor.accept(new TableMap(writer.getWriterTableExecutor(), tab));
         }
     }

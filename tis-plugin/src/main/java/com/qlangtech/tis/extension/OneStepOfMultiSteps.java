@@ -30,6 +30,7 @@ import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.collections.CollectionUtils;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -41,7 +42,7 @@ import java.util.Optional;
  */
 @JSONType(serializer = OneStepOfMultiStepsJsonSerializer.class)
 public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiSteps>,
-        IPluginStore.ManipuldateProcessor {
+        IPluginStore.ManipuldateProcessor, Serializable {
 
     public enum Step {
         Step1(0), Step2(1), Step3(2), Step4(3), Step5(4), Step6(5), Step7(6);
