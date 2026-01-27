@@ -171,7 +171,7 @@ public class TableJoinFilterConditionCreatorFactory implements ElementCreatorFac
         }
     }
     @JSONType(serializer = EnumTypeJsonSerializer.class)
-    public enum Operator implements EnumTypeJson<Operator>  {
+    public enum Operator implements EnumTypeJson<Operator> , Serializable  {
         EQUAL("=", "等于"),
         NOT_EQUAL("<>", "不等于"),
         GREATER_THAN(">", "大于"),
@@ -209,7 +209,7 @@ public class TableJoinFilterConditionCreatorFactory implements ElementCreatorFac
         }
     }
     @JSONType(serializer = EnumTypeJsonSerializer.class)
-    public enum ValueType implements EnumTypeJson<ValueType> {
+    public enum ValueType implements EnumTypeJson<ValueType>, Serializable {
         STRING("string", "字符串"),
         NUMBER("number", "数字"),
         BOOLEAN("boolean", "布尔");
