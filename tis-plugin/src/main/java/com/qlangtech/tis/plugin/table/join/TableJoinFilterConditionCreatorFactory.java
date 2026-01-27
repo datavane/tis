@@ -37,6 +37,7 @@ import com.qlangtech.tis.runtime.module.misc.impl.BasicDelegateMsgHandler;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -138,7 +139,7 @@ public class TableJoinFilterConditionCreatorFactory implements ElementCreatorFac
         return true;
     }
     @JSONType(serializer = EnumTypeJsonSerializer.class)
-    public enum TableType implements EnumTypeJson<TableType> {
+    public enum TableType implements EnumTypeJson<TableType>, Serializable {
         Primary("primary", "主表"), Dimension("dimension", "维表");
         private String token;
         private String literia;
@@ -170,7 +171,7 @@ public class TableJoinFilterConditionCreatorFactory implements ElementCreatorFac
         }
     }
     @JSONType(serializer = EnumTypeJsonSerializer.class)
-    public enum Operator implements EnumTypeJson<Operator> {
+    public enum Operator implements EnumTypeJson<Operator>  {
         EQUAL("=", "等于"),
         NOT_EQUAL("<>", "不等于"),
         GREATER_THAN(">", "大于"),

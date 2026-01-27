@@ -19,6 +19,8 @@ package com.qlangtech.tis.plugin.table.join;
 
 import com.qlangtech.tis.plugin.ds.IMultiElement;
 
+import java.io.Serializable;
+
 /**
  * Table JOIN filter condition
  * Used to add constant filters in ON clause, e.g.: A.valid='1' AND B.valid='1'
@@ -26,7 +28,7 @@ import com.qlangtech.tis.plugin.ds.IMultiElement;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/01/23
  */
-public class TableJoinFilterCondition implements IMultiElement {
+public class TableJoinFilterCondition implements IMultiElement, Serializable {
 
     // Table type: primary or dimension
     private TableJoinFilterConditionCreatorFactory.TableType tableType;
