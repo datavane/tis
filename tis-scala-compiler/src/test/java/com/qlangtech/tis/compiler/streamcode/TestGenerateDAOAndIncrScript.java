@@ -93,6 +93,11 @@ public class TestGenerateDAOAndIncrScript extends TestCase {
         }
 
         @Override
+        public BasicPipelineValidator getPipelineValidator(BizLogic logicType) {
+            return null;
+        }
+
+        @Override
         public String getString(String key) {
             return null;
         }

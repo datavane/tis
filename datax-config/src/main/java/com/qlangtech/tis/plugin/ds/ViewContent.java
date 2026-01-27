@@ -29,6 +29,10 @@ public enum ViewContent {
      * 两个表执行join操作
      */
     TableJoinMatchCondition("tableJoinMatchCondition"),
+    /**
+     * 表JOIN时的过滤条件
+     */
+    TableJoinFilterCondition("tableJoinFilterCondition"),
     Unknow("unknow");
     private String token;
 

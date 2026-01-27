@@ -52,6 +52,7 @@ import com.qlangtech.tis.plugin.ds.TestDataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.TestSplitableTableInDB;
 import com.qlangtech.tis.plugin.ds.TestTableInDB;
 import com.qlangtech.tis.plugin.k8s.TestK8sImage;
+import com.qlangtech.tis.plugin.table.join.TableJoinFilterConditionTest;
 import com.qlangtech.tis.util.TestAttrValMap;
 import com.qlangtech.tis.util.TestDescriptorsJSONForAIPromote;
 import com.qlangtech.tis.util.TestHeteroList;
@@ -111,6 +112,7 @@ public class TestAll extends TestCase {
        // suite.addTestSuite(TestCopyValUDF.class);
         suite.addTestSuite(TestDescriptorsJSONForAIPromote.class);
         suite.addTestSuite(TestTargetTabsEntities.class);
+        suite.addTestSuite(TableJoinFilterConditionTest.class);
         return suite;
     }
 }

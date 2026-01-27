@@ -21,6 +21,7 @@ package com.qlangtech.tis.datax.impl;
 import com.qlangtech.tis.BasicTestCase;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.common.utils.Assert;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
@@ -44,32 +45,33 @@ public class TestDataxReader extends BasicTestCase {
         TIS.dataXReaderPluginStore.clear();
     }
 
-//    public void testUpdateDataxReader() {
-//        KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataXName);
-//
-//        DataxReader dataxReader = readerStore.getPlugin();
-//        assertNotNull(dataxReader);
-//
-//
-//        SuFormProperties props = EasyMock.createMock("subformProp", SuFormProperties.class);
-//
-//        EasyMock.expect(props.getSubFormFieldName()).andReturn("selectedTabs");
-//
-//        DataxReader.SubFieldFormAppKey<DataxReader> subFieldKey
-//                = new DataxReader.SubFieldFormAppKey<>(null, false, dataXName, props, DataxReader.class);
-//        KeyedPluginStore<DataxReader> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
-//
-//        List<Descriptor.ParseDescribable<DataxReader>> dlist = Lists.newArrayList();
-//        DataxReader subformReader =
-//        dlist.add(new Descriptor.ParseDescribable());
-//        subFieldStore.setPlugins(null, Optional.empty(), dlist);
-//
-//    }
+    //    public void testUpdateDataxReader() {
+    //        KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataXName);
+    //
+    //        DataxReader dataxReader = readerStore.getPlugin();
+    //        assertNotNull(dataxReader);
+    //
+    //
+    //        SuFormProperties props = EasyMock.createMock("subformProp", SuFormProperties.class);
+    //
+    //        EasyMock.expect(props.getSubFormFieldName()).andReturn("selectedTabs");
+    //
+    //        DataxReader.SubFieldFormAppKey<DataxReader> subFieldKey
+    //                = new DataxReader.SubFieldFormAppKey<>(null, false, dataXName, props, DataxReader.class);
+    //        KeyedPluginStore<DataxReader> subFieldStore = KeyedPluginStore.getPluginStore(subFieldKey);
+    //
+    //        List<Descriptor.ParseDescribable<DataxReader>> dlist = Lists.newArrayList();
+    //        DataxReader subformReader =
+    //        dlist.add(new Descriptor.ParseDescribable());
+    //        subFieldStore.setPlugins(null, Optional.empty(), dlist);
+    //
+    //    }
 
     public void testLoad() {
         String pipeline = "kafka_mysql";
-        DataxReader dataxReader = DataxReader.load(IPluginContext.namedContext(
-                pipeline, Optional.of("1cda99cd-e4a5-06d1-44af-21b5cd47b01c")), pipeline);
+        DataxReader dataxReader =
+                DataxReader.load(IPluginContext.namedContext(DataXName.createDataXPipeline(pipeline), Optional.of(
+                        "1cda99cd-e4a5-06d1-44af-21b5cd47b01c")), pipeline);
         Assert.assertNotNull(dataxReader);
     }
 
@@ -89,7 +91,8 @@ public class TestDataxReader extends BasicTestCase {
         //
         String execId = "7b069200-9845-d60b-cef0-408c6940ffda";
         EasyMock.expect(pluginContext.getExecId()).andReturn(execId).times(2);
-        EasyMock.expect(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).andReturn("/x/" + dataXName + "/update").times(2);
+        EasyMock.expect(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).andReturn("/x/" + dataXName +
+                "/update").times(2);
         EasyMock.expect(pluginContext.isCollectionAware()).andReturn(true).times(2);
 
         EasyMock.replay(pluginContext);
@@ -105,8 +108,7 @@ public class TestDataxReader extends BasicTestCase {
         for (ISelectedTab tab : selectedTabs) {
             assertTrue(tab.getCols().size() > 0);
             for (CMeta col : tab.getCols()) {
-                assertNotNull("tab:" + tab.getName() + ",col:"
-                        + col.getName() + " can not be null", col.getType());
+                assertNotNull("tab:" + tab.getName() + ",col:" + col.getName() + " can not be null", col.getType());
             }
         }
         EasyMock.verify(pluginContext);

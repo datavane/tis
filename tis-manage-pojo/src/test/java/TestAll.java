@@ -24,6 +24,7 @@ import com.qlangtech.tis.runtime.module.misc.impl.TestDefaultFieldErrorHandler;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import com.qlangtech.tis.runtime.module.misc.TestEnumTypeJsonSerializer;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -37,6 +38,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestCenterResource.class);
         suite.addTestSuite(TestDefaultFieldErrorHandler.class);
         suite.addTestSuite(TestValidatorCommons.class);
+        suite.addTestSuite(TestEnumTypeJsonSerializer.class);
         return suite;
     }
 
