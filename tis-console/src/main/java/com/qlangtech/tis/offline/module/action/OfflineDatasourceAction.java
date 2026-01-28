@@ -1088,7 +1088,7 @@ public class OfflineDatasourceAction extends BasicModule {
     List<UploadPluginMeta> pluginMeta = Collections.emptyList();
     String[] pmeta = this.getStringArray(KEY_PLUGIN);
     if (pmeta != null && pmeta.length > 0) {
-      pluginMeta = getPluginMeta();
+      pluginMeta = getPluginMeta(false);
     }
     Set<String> filterDescDisplayNames = pluginMeta.stream().map((pm) -> pm.getTargetDesc().matchTargetPluginDescName).collect(Collectors.toSet());
     DescriptorExtensionList<DataSourceFactory, Descriptor<DataSourceFactory>> dbDescs =

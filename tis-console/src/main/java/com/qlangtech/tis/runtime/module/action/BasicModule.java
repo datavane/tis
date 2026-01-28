@@ -24,6 +24,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.parser.Feature;
+import com.google.common.collect.Lists;
 import com.koubei.web.tag.pager.LinkBuilder;
 import com.koubei.web.tag.pager.Pager;
 import com.opensymphony.xwork2.ActionContext;
@@ -179,7 +180,14 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   protected List<UploadPluginMeta> getPluginMeta(boolean validatePluginEmpty) {
     final boolean useCache = Boolean.parseBoolean(this.getString("use_cache", "true"));
     // return UploadPluginMeta.parse(this, this.getStringArray("plugin"), useCache);
-    return parsePluginMeta(this.getStringArray(KEY_PLUGIN), useCache, validatePluginEmpty).stream().map((meta) -> (UploadPluginMeta) meta).collect(Collectors.toList());
+    String[] pluginsParam = this.getStringArray(KEY_PLUGIN);
+    List<String> plugins = Lists.newArrayList();
+    for (String plugin : pluginsParam) {
+      if (StringUtils.isNotBlank(plugin)) {
+        plugins.add(plugin);
+      }
+    }
+    return parsePluginMeta(plugins.toArray(String[]::new), useCache, validatePluginEmpty).stream().map((meta) -> (UploadPluginMeta) meta).collect(Collectors.toList());
   }
 
   @Override

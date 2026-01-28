@@ -134,8 +134,8 @@ public class PluginItems implements IPluginItemsProcessor {
           AttrValMap.setCurrentRootPluginValidator(attrValMap.descriptor);
           Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
 
-          if (!(validateResult = attrValMap.validate((IControlMsgHandler) module
-            , context, Objects.requireNonNull(verify, "verify can not be null") //
+          if (!(validateResult = attrValMap.validate((IControlMsgHandler) module, context,
+            Objects.requireNonNull(verify, "verify can not be null") //
             , Optional.empty())).isValid()) {
             parseResult.faild = true;
           } else {
@@ -179,7 +179,8 @@ public class PluginItems implements IPluginItemsProcessor {
     }
 
     Descriptor descriptor = GroovyShellUtil.descriptorThreadLocal.get();
-    if (listen2SaveEvent && dbUpdateEventObservers.add(Objects.requireNonNull(descriptor, "descriptor can not be null"))) {
+    if (listen2SaveEvent && dbUpdateEventObservers.add(Objects.requireNonNull(descriptor, "descriptor can not be " +
+      "null"))) {
       // 当有数据源更新时需要将descriptor的属性重新更新一下
       addPluginItemsSaveObserver(new PluginItemsSaveObserver() {
         @Override
@@ -191,19 +192,28 @@ public class PluginItems implements IPluginItemsProcessor {
       });
     }
 
-
-    IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(actionContext.getServletContext(), IWorkflowDAOFacade.class);
+    IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(actionContext.getServletContext(),
+      IWorkflowDAOFacade.class);
     Objects.requireNonNull(wfFacade, "wfFacade can not be null");
-    DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
-    List<String> extendClazzs = Lists.newArrayList(); // Lists.newArrayList(extendClass).stre;
-    for (String type : extendClass) {
-      extendClazzs.add(StringUtils.lowerCase(type));
-    }
-    dbCriteria.createCriteria().andExtendClassIn(extendClazzs);
+    DatasourceDbCriteria dbCriteria = createDatasourceDbCriteria(extendClass);
     List<com.qlangtech.tis.workflow.pojo.DatasourceDb> dbs = wfFacade.getDatasourceDbDAO().selectByExample(dbCriteria);
     List<Descriptor<DataSourceFactory>> dsDescs = HeteroEnum.DATASOURCE.descriptors();
     return dbs.stream().map((db) -> new DBIdentity(db, dsDescs)).collect(Collectors.toList());
     // return dbs.stream().map((db) -> new Option(db.getName(), db.getName())).collect(Collectors.toList());
+  }
+
+  private static DatasourceDbCriteria createDatasourceDbCriteria(String[] extendClass) {
+    DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
+    List<String> extendClazzs = Lists.newArrayList(); // Lists.newArrayList(extendClass).stre;
+    for (String type : extendClass) {
+      if ("all".equalsIgnoreCase(type)) {
+        return dbCriteria;
+      } else {
+        extendClazzs.add(StringUtils.lowerCase(type));
+      }
+    }
+    dbCriteria.createCriteria().andExtendClassIn(extendClazzs);
+    return dbCriteria;
   }
 
   private static class DBIdentity implements IdentityName, IEndTypeGetter {
@@ -260,8 +270,7 @@ public class PluginItems implements IPluginItemsProcessor {
     if (OfflineDatasourceAction.existDbs != null) {
       return OfflineDatasourceAction.existDbs;
     }
-    return loadExistDbs(true, extendClass)
-      .stream().map((db) -> new Option(db.identityValue(), db.identityValue())).collect(Collectors.toList());
+    return loadExistDbs(true, extendClass).stream().map((db) -> new Option(db.identityValue(), db.identityValue())).collect(Collectors.toList());
   }
 
   private IPluginStoreSave<?> getStore(List<Descriptor.ParseDescribable<?>> dlist) {
@@ -298,7 +307,8 @@ public class PluginItems implements IPluginItemsProcessor {
         private PostedDSProp createPostedDSProp(UploadPluginMeta pluginMeta) {
           for (Descriptor.ParseDescribable<?> plugin : dlist) {
             if (StringUtils.isEmpty(pluginMeta.getExtraParam(com.qlangtech.tis.plugin.ds.DBIdentity.KEY_DB_NAME))) {
-              pluginMeta.putExtraParams(com.qlangtech.tis.plugin.ds.DBIdentity.KEY_DB_NAME, ((IdentityName) plugin.getInstance()).identityValue());
+              pluginMeta.putExtraParams(com.qlangtech.tis.plugin.ds.DBIdentity.KEY_DB_NAME,
+                ((IdentityName) plugin.getInstance()).identityValue());
             }
             return PostedDSProp.parse(pluginMeta);
           }
@@ -307,14 +317,17 @@ public class PluginItems implements IPluginItemsProcessor {
         }
 
         @Override
-        public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context, List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
+        public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context,
+                                           List<Descriptor.ParseDescribable<DataSourceFactory>> dlist, boolean update) {
           SetPluginsResult finalResult = new SetPluginsResult(true, false);
           for (Descriptor.ParseDescribable<DataSourceFactory> plugin : dlist) {
-//            if (StringUtils.isEmpty(pluginMeta.getExtraParam(PostedDSProp.KEY_DB_NAME))) {
-//              pluginMeta.putExtraParams(PostedDSProp.KEY_DB_NAME, ((IdentityName) plugin.getInstance()).identityValue());
-//            }
+            //            if (StringUtils.isEmpty(pluginMeta.getExtraParam(PostedDSProp.KEY_DB_NAME))) {
+            //              pluginMeta.putExtraParams(PostedDSProp.KEY_DB_NAME, ((IdentityName) plugin.getInstance())
+            //              .identityValue());
+            //            }
 
-            SetPluginsResult result = pluginStore.setPlugins(pluginContext, context, Collections.singletonList(plugin), dbExtraProps.isUpdate());
+            SetPluginsResult result = pluginStore.setPlugins(pluginContext, context,
+              Collections.singletonList(plugin), dbExtraProps.isUpdate());
             if (!result.success) {
               return result;
             }
@@ -327,13 +340,12 @@ public class PluginItems implements IPluginItemsProcessor {
       };
     } else if (heteroEnum == HeteroEnum.DATAX_WRITER || heteroEnum == HeteroEnum.DATAX_READER) {
 
-      store = HeteroEnum.getDataXReaderAndWriterStore(this.pluginContext
-        , this.heteroEnum == HeteroEnum.DATAX_READER, this.pluginMeta, pluginMeta.getSubFormFilter());
+      store = HeteroEnum.getDataXReaderAndWriterStore(this.pluginContext, this.heteroEnum == HeteroEnum.DATAX_READER,
+        this.pluginMeta, pluginMeta.getSubFormFilter());
 
     } else if (heteroEnum == HeteroEnum.uploadCustomizedTPI) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
-    } else if (heteroEnum == HeteroEnum.PARAMS_CONFIG
-      || heteroEnum == HeteroEnum.PARAMS_CONFIG_USER_ISOLATION) {
+    } else if (heteroEnum == HeteroEnum.PARAMS_CONFIG || heteroEnum == HeteroEnum.PARAMS_CONFIG_USER_ISOLATION) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.K8S_DEFAULT_IMAGES) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
@@ -393,8 +405,7 @@ public class PluginItems implements IPluginItemsProcessor {
      * @return
      */
     public <T> List<T> listPlugins() {
-      return convert(this.appendHistorical).stream()
-        .flatMap((d) -> d.getSubFormInstances().stream()).map((d) -> (T) d).collect(Collectors.toList());
+      return convert(this.appendHistorical).stream().flatMap((d) -> d.getSubFormInstances().stream()).map((d) -> (T) d).collect(Collectors.toList());
     }
 
     public PluginWithStore() {
@@ -435,7 +446,8 @@ public class PluginItems implements IPluginItemsProcessor {
   }
 
   private void notifyNewPluginSaved(List<Describable> describableList, boolean cfgChanged) {
-    observable.notifyObservers(new PluginItemsSaveEvent(this.pluginContext, this.heteroEnum, describableList, cfgChanged));
+    observable.notifyObservers(new PluginItemsSaveEvent(this.pluginContext, this.heteroEnum, describableList,
+      cfgChanged));
   }
 
   private List<Descriptor.ParseDescribable<?>> getPlugins(List<Describable> describableList) {
@@ -477,15 +489,15 @@ public class PluginItems implements IPluginItemsProcessor {
     return dlist.stream().map((r) -> (Descriptor.ParseDescribable<T>) r).collect(Collectors.toList());
   }
 
-//  @Override
-//  public String cerateOrGetNotebook(IControlMsgHandler msgHandler, Context context) throws Exception {
-//
-//    for (AttrValMap vals : this.items) {
-//      return vals.createOrGetNotebook(msgHandler, context);
-//    }
-//
-//    throw new IllegalStateException("items size:" + this.items.size());
-//  }
+  //  @Override
+  //  public String cerateOrGetNotebook(IControlMsgHandler msgHandler, Context context) throws Exception {
+  //
+  //    for (AttrValMap vals : this.items) {
+  //      return vals.createOrGetNotebook(msgHandler, context);
+  //    }
+  //
+  //    throw new IllegalStateException("items size:" + this.items.size());
+  //  }
 
   public static class PluginItemsSaveObservable extends Observable {
 
@@ -519,7 +531,8 @@ public class PluginItems implements IPluginItemsProcessor {
 
     public final boolean cfgChanged;
 
-    public PluginItemsSaveEvent(IPluginContext collectionName, IPluginEnum heteroEnum, List<Describable> dlist, boolean cfgChanged) {
+    public PluginItemsSaveEvent(IPluginContext collectionName, IPluginEnum heteroEnum, List<Describable> dlist,
+                                boolean cfgChanged) {
       this.collectionName = collectionName;
       this.heteroEnum = heteroEnum;
       this.dlist = dlist;

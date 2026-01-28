@@ -49,17 +49,17 @@ tis-realtime-flink (报警渠道实现)
 │                     Spring Container                        │
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │         FlinkJobsMonitor (@Scheduled)                 │  │
-│  │  - 每5秒执行executeTask()                             │  │
-│  │  - 同步遍历所有Flink Job                              │  │
-│  │  - 检测状态变化(FAILED/LOST/CANCELED)                 │  │
+│  │  - 每5秒执行executeTask()                              │  │
+│  │  - 同步遍历所有Flink Job                                │  │
+│  │  - 检测状态变化(FAILED/LOST/CANCELED)                   │  │
 │  └──────────────────┬────────────────────────────────────┘  │
 │                     │ 状态异常                               │
-│                     ↓                                        │
+│                     ↓                                       │
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │              doAlert(AlertTemplate)                   │  │
-│  │  1. 创建AlertTemplate对象                             │  │
-│  │  2. 获取所有已配置的alertChannel插件                   │  │
-│  │  3. 遍历调用每个channel.send(template)                │  │
+│  │  1. 创建AlertTemplate对象                              │  │
+│  │  2. 获取所有已配置的alertChannel插件                     │  │
+│  │  3. 遍历调用每个channel.send(template)                  │  │
 │  └──────────────────┬────────────────────────────────────┘  │
 └────────────────────┼────────────────────────────────────────┘
                      │
@@ -69,9 +69,9 @@ tis-realtime-flink (报警渠道实现)
 │ alertChannel插件 │    │ alertChannel插件 │
 │  (Emailalert)   │    │  (DingTalkalert)│
 │                 │    │                 │
-│ 1. 渲染Velocity │    │ 1. 渲染Velocity │
-│    模板         │    │    模板         │
-│ 2. 发送邮件     │    │ 2. 调用钉钉API  │
+│ 1. 渲染Velocity │     │ 1. 渲染Velocity │
+│    模板         │     │    模板         │
+│ 2. 发送邮件      │     │ 2. 调用钉钉API  │
 └─────────────────┘    └─────────────────┘
 ```
 
