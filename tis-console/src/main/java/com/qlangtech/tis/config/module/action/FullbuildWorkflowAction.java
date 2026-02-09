@@ -26,10 +26,12 @@ import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.exec.AbstractExecContext;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
+import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.DataXPipelineExecContext;
 import com.qlangtech.tis.exec.impl.WorkflowExecContext;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.job.common.JobCommon;
+import com.qlangtech.tis.job.common.JobParams;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.CreateNewTaskResult;
@@ -40,12 +42,14 @@ import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.rate.IncrRateController;
 import com.qlangtech.tis.realtime.yarn.rpc.IncrRateControllerCfgDTO;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
+import com.qlangtech.tis.workflow.pojo.DagNodeExecution;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Date;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -76,7 +80,7 @@ public class FullbuildWorkflowAction extends BasicModule {
    */
   public void doInitializeTriggerTask(Context context) {
     // 校验参数必须有
-    this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID);
+    //this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID);
     Rundata rundata = this.getRundata();
     if (this.getBoolean(TIS_WORK_FLOW_CHANNEL)) {
       rundata.forwardTo("offline", "offline_datasource_action", "execute_workflow");
@@ -96,8 +100,8 @@ public class FullbuildWorkflowAction extends BasicModule {
     if (rateController == null) {
       return;
     }
-    if (lastModified != null
-      && lastModified >= Objects.requireNonNull(rateController.lastModified, "lastModified can not be null")) {
+    if (lastModified != null && lastModified >= Objects.requireNonNull(rateController.lastModified,
+      "lastModified " + "can" + " not be null")) {
       return;
     }
     IncrRateControllerCfgDTO controllerCfgDTO = rateController.createIncrRateControllerCfgDTO();
@@ -118,7 +122,10 @@ public class FullbuildWorkflowAction extends BasicModule {
     // appname 可以为空
     String appname = this.getString(IFullBuildContext.KEY_APP_NAME);
     Integer workflowId = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID, null, false);
-
+    File dagSpecPath = new File(this.getString(IFullBuildContext.KEY_DAG_SPEC_PATH));
+    if (!dagSpecPath.exists()) {
+      throw new IllegalStateException("specPath:" + dagSpecPath.getAbsolutePath() + " must exist");
+    }
     AbstractExecContext execContext = null;
     if (StringUtils.isEmpty(appname)) {
       if (workflowId == null) {
@@ -131,40 +138,93 @@ public class FullbuildWorkflowAction extends BasicModule {
 
     // execContext.setWorkflowId(workflowId);
 
-    execContext.setExecutePhaseRange(new ExecutePhaseRange(
-      FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getValue()))
-      , FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END, FullbuildPhase.IndexBackFlow.getValue()))));
-    CreateNewTaskResult newTaskResult = this.createNewDataXTask(execContext, triggerType);
+    execContext.setExecutePhaseRange(new ExecutePhaseRange(FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START,
+      FullbuildPhase.FullDump.getValue())), FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END,
+      FullbuildPhase.IndexBackFlow.getValue()))));
+
+
+    CreateNewTaskResult newTaskResult = this.createNewDataXTask(execContext, triggerType, dagSpecPath);
     // 生成一个新的taskid
     this.setBizResult(context, newTaskResult);
   }
 
+  /**
+   * @param context
+   * @see IExecChainContext#loadWorkFlowBuildHistory(Integer)
+   */
+  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
+  public void doLoadTask(Context context) {
+    Integer taskId = this.getInt(JobParams.KEY_TASK_ID);
+    WorkFlowBuildHistory buildHistory = getHistoryDAO().loadFromWriteDB(taskId);
+    if (buildHistory == null) {
+      throw new IllegalStateException("taskId:" + taskId + " relevant buildHistory can not be null");
+    }
+    this.setBizResult(context, buildHistory);
+  }
 
-//  /**
-//   * 取得最近一次成功执行的workflowhistory
-//   *
-//   * @param context
-//   */
-//  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
-//  public void doGetLatestSuccessWorkflow(Context context) {
-//    try {
-//      String appName = this.getString(IFullBuildContext.KEY_APP_NAME);
-//      if (StringUtils.isEmpty(appName)) {
-//        throw new IllegalArgumentException("param appName can not be null");
-//      }
-//
-//
-//      WorkFlowBuildHistory latestSuccessWorkflowHistory = this.getLatestSuccessWorkflowHistory(SynResTarget.pipeline(appName));
-//      if (latestSuccessWorkflowHistory != null) {
-//        this.setBizResult(context, latestSuccessWorkflowHistory);
-//        return;
-//      }
-//      this.addErrorMessage(context, "can not find build history by appname:" + appName);
-//    } finally {
+  /**
+   * 更新执行记录
+   *
+   * @param context
+   */
+  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
+  public void doUpdateTask(Context context) {
+    JSONObject postBody = this.parseJsonPost();
+    WorkFlowBuildHistory buildHistory = postBody.getObject(IExecChainContext.KEY_HISTORY_TASK,
+      WorkFlowBuildHistory.class);
+    if (buildHistory == null) {
+      throw new IllegalStateException("buildHistory can not be null");
+    }
+    this.setBizResult(context, getHistoryDAO().updateByPrimaryKeySelective(buildHistory));
+  }
+
+  /**
+   * 更新执行记录
+   *
+   * @param context
+   */
+  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
+  public void doInsertNodeExec(Context context) {
+    JSONObject postBody = this.parseJsonPost();
+    DagNodeExecution nodeExec = postBody.getObject(IExecChainContext.KEY_NODE_EXEC, DagNodeExecution.class);
+    if (nodeExec == null) {
+      throw new IllegalStateException("nodeExec can not be null");
+    }
+//    if (nodeExec.getId() == null) {
+//      throw new IllegalStateException("nodeExec id can not be null");
 //    }
-//  }
+    this.setBizResult(context //
+      , this.getWorkflowDAOFacade().getDagNodeExecutionDAO().insertSelective(nodeExec));
+  }
+
+
+  //  /**
+  //   * 取得最近一次成功执行的workflowhistory
+  //   *
+  //   * @param context
+  //   */
+  //  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
+  //  public void doGetLatestSuccessWorkflow(Context context) {
+  //    try {
+  //      String appName = this.getString(IFullBuildContext.KEY_APP_NAME);
+  //      if (StringUtils.isEmpty(appName)) {
+  //        throw new IllegalArgumentException("param appName can not be null");
+  //      }
+  //
+  //
+  //      WorkFlowBuildHistory latestSuccessWorkflowHistory = this.getLatestSuccessWorkflowHistory(SynResTarget
+  //      .pipeline(appName));
+  //      if (latestSuccessWorkflowHistory != null) {
+  //        this.setBizResult(context, latestSuccessWorkflowHistory);
+  //        return;
+  //      }
+  //      this.addErrorMessage(context, "can not find build history by appname:" + appName);
+  //    } finally {
+  //    }
+  //  }
 
   @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
+
   public void doGetWf(Context context) {
     Integer taskId = this.getInt(JobCommon.KEY_TASK_ID);
     this.setBizResult(context, this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().loadFromWriteDB(taskId));
@@ -215,9 +275,7 @@ public class FullbuildWorkflowAction extends BasicModule {
     JSONObject status = JSON.parseObject(history.getAsynSubTaskStatus());
     JSONObject tskStat = status.getJSONObject(jobName);
     if (tskStat == null) {
-      throw new IllegalStateException("jobName:" + jobName
-        + " relevant status is not in history,now exist keys:"
-        + status.keySet().stream().collect(Collectors.joining(",")));
+      throw new IllegalStateException("jobName:" + jobName + " relevant status is not in history,now exist keys:" + status.keySet().stream().collect(Collectors.joining(",")));
     }
     tskStat.put(IParamContext.KEY_ASYN_JOB_COMPLETE, true);
     tskStat.put(IParamContext.KEY_ASYN_JOB_SUCCESS, execSuccess);
@@ -255,7 +313,8 @@ public class FullbuildWorkflowAction extends BasicModule {
 
     if (getHistoryDAO().updateByExampleSelective(updateHistory, hq) < 1) {
 
-      //  System.out.println("old lastVer:" + history.getLastVer() + ",new UpdateVersion:" + updateHistory.getLastVer());
+      //  System.out.println("old lastVer:" + history.getLastVer() + ",new UpdateVersion:" + updateHistory.getLastVer
+      //  ());
       updateAsynTaskState(taskid, jobName, execSuccess, ++tryCount);
     }
   }
@@ -320,22 +379,22 @@ public class FullbuildWorkflowAction extends BasicModule {
   }
 
 
-//  private DatasourceTable getTable(String tabName) {
-//    DatasourceTableCriteria query = new DatasourceTableCriteria();
-//    query.createCriteria().andNameEqualTo(tabName);
-//    List<DatasourceTable> tabList = this.getWorkflowDAOFacade().getDatasourceTableDAO().selectByExample(query);
-//    return tabList.stream().findFirst().get();
-//  }
+  //  private DatasourceTable getTable(String tabName) {
+  //    DatasourceTableCriteria query = new DatasourceTableCriteria();
+  //    query.createCriteria().andNameEqualTo(tabName);
+  //    List<DatasourceTable> tabList = this.getWorkflowDAOFacade().getDatasourceTableDAO().selectByExample(query);
+  //    return tabList.stream().findFirst().get();
+  //  }
 
-//  public static GitUtils.GitBranchInfo getBranch(WorkFlow workFlow) {
-//    RunEnvironment runtime = RunEnvironment.getSysRuntime();
-//    if (runtime == RunEnvironment.ONLINE) {
-//      return GitBranchInfo.$(GitUtils.GitBranch.MASTER);
-//    } else {
-//      // : GitBranchInfo.$(workFlow.getName());
-//      return GitBranchInfo.$(GitUtils.GitBranch.DEVELOP);
-//    }
-//  }
+  //  public static GitUtils.GitBranchInfo getBranch(WorkFlow workFlow) {
+  //    RunEnvironment runtime = RunEnvironment.getSysRuntime();
+  //    if (runtime == RunEnvironment.ONLINE) {
+  //      return GitBranchInfo.$(GitUtils.GitBranch.MASTER);
+  //    } else {
+  //      // : GitBranchInfo.$(workFlow.getName());
+  //      return GitBranchInfo.$(GitUtils.GitBranch.DEVELOP);
+  //    }
+  //  }
 
   public static class ValidTableDump {
 

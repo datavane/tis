@@ -22,6 +22,7 @@ import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.AbstractExecContext;
 import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.order.center.IParamContext;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Objects;
@@ -34,7 +35,6 @@ public class DataXPipelineExecContext extends AbstractExecContext {
 
 
     private final String dataXName;
-
 
     public DataXPipelineExecContext(String dataXName, Long triggerTimestamp) {
         super(triggerTimestamp);
@@ -56,17 +56,17 @@ public class DataXPipelineExecContext extends AbstractExecContext {
     public IDataxProcessor getProcessor() {
 
         StoreResourceType resType = Objects.requireNonNull(getResType(), "resType can not be null");
-//        switch (resType) {
-//            case DataApp:
+        //        switch (resType) {
+        //            case DataApp:
         return DataxProcessor.load(null, resType, this.dataXName);
-//            case DataFlow:
-//                if (StringUtils.isEmpty(this.getWorkflowName())) {
-//                    throw new IllegalStateException("proper workflowName can not be empty");
-//                }
-//                return DataxProcessor.load(null, resType, this.getWorkflowName());
-//            default:
-//                throw new IllegalStateException("illegal resType:" + resType);
-//        }
+        //            case DataFlow:
+        //                if (StringUtils.isEmpty(this.getWorkflowName())) {
+        //                    throw new IllegalStateException("proper workflowName can not be empty");
+        //                }
+        //                return DataxProcessor.load(null, resType, this.getWorkflowName());
+        //            default:
+        //                throw new IllegalStateException("illegal resType:" + resType);
+        //        }
     }
 
     @Override
@@ -82,25 +82,24 @@ public class DataXPipelineExecContext extends AbstractExecContext {
     @Override
     public String identityValue() {
         StoreResourceType resType = Objects.requireNonNull(getResType(), "resType can not be null");
-//        switch (resType) {
-//            case DataApp:
+        //        switch (resType) {
+        //            case DataApp:
         return resType.getType() + "_" + this.getIndexName();
-//            case DataFlow:
-//                if (StringUtils.isEmpty(this.getWorkflowName())) {
-//                    throw new IllegalStateException("proper workflowName can not be empty");
-//                }
-//                return resType.getType() + "_" + this.getWorkflowName();
-//            default:
-//                throw new IllegalStateException("illegal resType:" + resType);
-//        }
+        //            case DataFlow:
+        //                if (StringUtils.isEmpty(this.getWorkflowName())) {
+        //                    throw new IllegalStateException("proper workflowName can not be empty");
+        //                }
+        //                return resType.getType() + "_" + this.getWorkflowName();
+        //            default:
+        //                throw new IllegalStateException("illegal resType:" + resType);
+        //        }
     }
 
 
-//    public void setWorkflowName(String workflowName) {
-//       // this.workflowName = workflowName;
-//        throw new UnsupportedOperationException();
-//    }
-
+    @Override
+    public String getString(String key) {
+        return null;
+    }
 
     @Override
     public String getIndexName() {

@@ -24,18 +24,17 @@ import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.compiler.streamcode.IDBTableNamesGetter;
 import com.qlangtech.tis.datax.DataXJobSubmitParams;
 import com.qlangtech.tis.datax.IDataxWriter;
+import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
-import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
-import com.qlangtech.tis.fullbuild.taskflow.AdapterTask;
 import com.qlangtech.tis.fullbuild.taskflow.DataflowTask;
 import com.qlangtech.tis.fullbuild.taskflow.IFlatTableBuilder;
-import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
 import com.qlangtech.tis.fullbuild.taskflow.TaskAndMilestone;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IDataFlowAppSource;
@@ -43,8 +42,6 @@ import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.plugin.PluginStore;
-import com.qlangtech.tis.datax.StoreResourceType;
-import com.qlangtech.tis.datax.StoreResourceTypeConstants;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.IDataSourceFactoryGetter;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
@@ -64,11 +61,6 @@ import com.qlangtech.tis.sql.parser.tuple.creator.IValChain;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TaskNodeTraversesCreatorVisitor;
 import com.qlangtech.tis.workflow.pojo.WorkFlow;
-import org.apache.commons.lang.StringUtils;
-import org.jvnet.hudson.reactor.Milestone;
-import org.jvnet.hudson.reactor.MilestoneImpl;
-import org.jvnet.hudson.reactor.ReactorListener;
-import org.jvnet.hudson.reactor.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,7 +99,7 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
     public void setPluginStore(PluginStore<IAppSource> pluginStore) {
 
     }
-// protected static final ExecutorService executorService = Executors.newCachedThreadPool();
+    // protected static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     //  protected static final ExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
@@ -124,27 +116,27 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
         this.dsGetter = (IDataSourceFactoryGetter) writer;
     }
 
-    public static ExecutorService createExecutorService(IExecChainContext execChainContext) {
-        final DataXJobSubmitParams submitParams = DataXJobSubmitParams.getDftIfEmpty();
-        int nThreads = submitParams.pipelineParallelism;
-        return new ThreadPoolExecutor(
-                nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(submitParams.maxJobs),
-                new ThreadFactory() {
-                    @Override
-                    public Thread newThread(Runnable r) {
-                        Thread t = new Thread(() -> {
-                            execChainContext.rebindLoggingMDCParams();
-                            r.run();
-                        });
-                        t.setUncaughtExceptionHandler((thread, ex) -> {
-                            logger.error("DataX Name:" + execChainContext.getIndexName()
-                                    + ",taskid:" + execChainContext.getTaskId() + " has been canceled", ex);
-                        });
-                        return t;
-                    }
-                });
-    }
+    //    public static ExecutorService createExecutorService(IExecChainContext execChainContext) {
+    //        final DataXJobSubmitParams submitParams = DataXJobSubmitParams.getDftIfEmpty();
+    //        int nThreads = submitParams.pipelineParallelism;
+    //        return new ThreadPoolExecutor(
+    //                nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
+    //                new LinkedBlockingQueue<>(submitParams.maxJobs),
+    //                new ThreadFactory() {
+    //                    @Override
+    //                    public Thread newThread(Runnable r) {
+    //                        Thread t = new Thread(() -> {
+    //                            execChainContext.rebindLoggingMDCParams();
+    //                            r.run();
+    //                        });
+    //                        t.setUncaughtExceptionHandler((thread, ex) -> {
+    //                            logger.error("DataX Name:" + execChainContext.getIndexName()
+    //                                    + ",taskid:" + execChainContext.getTaskId() + " has been canceled", ex);
+    //                        });
+    //                        return t;
+    //                    }
+    //                });
+    //    }
 
     @Override
     public StoreResourceType getResType() {
@@ -225,8 +217,10 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
     }
 
     @Override
-    public ExecuteResult getProcessDataResults(IExecChainContext execChainContext
-            , ISingleTableDumpFactory singleTableDumpFactory, IDataProcessFeedback dataProcessFeedback, ITaskPhaseInfo taskPhaseInfo) throws Exception {
+    public ExecuteResult getProcessDataResults(IExecChainContext execChainContext,
+                                               ISingleTableDumpFactory singleTableDumpFactory,
+                                               IDataProcessFeedback dataProcessFeedback,
+                                               ITaskPhaseInfo taskPhaseInfo) throws Exception {
         // 执行工作流数据结构
         SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(dataflowName);
         DAGSessionSpec dagSessionSpec = (DAGSessionSpec) topology.getDAGSessionSpec();
@@ -236,31 +230,28 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
         StringBuffer dumps = new StringBuffer("dependency table:\n");
         dumps.append("\t\t=======================\n");
         for (DependencyNode t : tables) {
-            dumps.append("\t\t").append(t.getDbName()).append(".").append(t.getName())
-                    .append("[").append(t.getTabid()).append(",").append("] \n");
+            dumps.append("\t\t").append(t.getDbName()).append(".").append(t.getName()).append("[").append(t.getTabid()).append(",").append("] \n");
         }
         dumps.append("\t\t=======================\n");
         logger.info(dumps.toString());
         // 将所有的表的状态先初始化出来
         DumpPhaseStatus dumpPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.FullDump);
-        final ExecutorService executorService = createExecutorService(execChainContext);
-        RemoteTaskTriggers trigger = new RemoteTaskTriggers(executorService);
+        // final ExecutorService executorService = createExecutorService(execChainContext);
+        RemoteTaskTriggers trigger = new RemoteTaskTriggers();
         execChainContext.setTskTriggers(trigger);
 
         for (DependencyNode dump : topology.getDumpNodes()) {
             singleTableDumpFactory.createSingleTableDump(trigger, dump, false, /* isHasValidTableDump */
-                    "tableDump.getPt()", execChainContext.getZkClient()
-                    , execChainContext, dumpPhaseStatus, taskPhaseInfo, dagSessionSpec);
+                    "tableDump.getPt()", execChainContext.getZkClient(), execChainContext, dumpPhaseStatus,
+                    taskPhaseInfo, dagSessionSpec);
         }
 
         DagTaskUtils.createTasks(execChainContext, taskPhaseInfo, dagSessionSpec, trigger);
 
         JoinPhaseStatus joinPhaseStatus = taskPhaseInfo.getPhaseStatus(execChainContext, FullbuildPhase.JOIN);
 
-        Supplier<IPrimaryTabFinder> primaryTabFinder
-                = () -> DataFlowAppSource.this.containErRules()
-                ? DataFlowAppSource.this.getErRules()
-                : new IPrimaryTabFinder() {
+        Supplier<IPrimaryTabFinder> primaryTabFinder = () -> DataFlowAppSource.this.containErRules() ?
+                DataFlowAppSource.this.getErRules() : new IPrimaryTabFinder() {
         };
 
         return flatTableBuilder.startTask((context) -> {
@@ -271,133 +262,143 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
                  * 构建宽表构建任务节点
                  * ************************************
                  */
-                process = flatTableBuilder.createTask(pnode, false
-                        , execChainContext, context, joinPhaseStatus.getTaskStatus(pnode.getExportName())
-                        , this.dsGetter, primaryTabFinder);
+                process = flatTableBuilder.createTask(pnode, false, execChainContext, context,
+                        joinPhaseStatus.getTaskStatus(pnode.getExportName()), this.dsGetter, primaryTabFinder);
 
                 dagSessionSpec.put(pnode.getId(), new TaskAndMilestone(process));
             }
-            final ExecuteResult faildResult = executeDAG(executorService, execChainContext, topology, dataProcessFeedback, dagSessionSpec.getTaskMap());
+            final ExecuteResult faildResult = executeDAG(execChainContext, topology, dataProcessFeedback,
+                    dagSessionSpec.getTaskMap());
             return faildResult;
         });
     }
 
 
-    private ExecuteResult executeDAG(ExecutorService executorService, IExecChainContext execChainContext, SqlTaskNodeMeta.SqlDataFlowTopology topology, IDataProcessFeedback dataProcessFeedback
-            , Map<String, TaskAndMilestone> taskMap) {
-        final ExecuteResult[] faildResult = new ExecuteResult[1];
-
-        try {
-            TISReactor reactor = new TISReactor(execChainContext, taskMap);
-            StringBuffer dagSessionSpec = topology.getDAGSessionSpec().buildSpec();
-            logger.info("dagSessionSpec:" + dagSessionSpec);
-
-            //  final PrintWriter w = new PrintWriter(sw, true);
-            ReactorListener listener = new ReactorListener() {
-                @Override
-                public void onAttained(Milestone milestone) {
-                    MilestoneImpl m = (MilestoneImpl) milestone;
-                    String mId = m.toString();
-                    if (!StringUtils.startsWith(mId, TaskAndMilestone.MILESTONE_PREFIX)) {
-                        AdapterTask.createTaskWorkStatus(execChainContext).put(mId, true);
-                    }
-                }
-
-                // TODO: Does it really needs handlers to be synchronized?
-                @Override
-                public synchronized void onTaskCompleted(Task t) {
-                    processTaskResult(execChainContext, (TISReactor.TaskImpl) t, dataProcessFeedback, new ITaskResultProcessor() {
-                        @Override
-                        public void process(DumpPhaseStatus dumpPhase, TISReactor.TaskImpl task) {
-                        }
-
-                        @Override
-                        public void process(JoinPhaseStatus joinPhase, TISReactor.TaskImpl task) {
-                        }
-                    });
-                }
-
-                @Override
-                public synchronized void onTaskFailed(Task t, Throwable err, boolean fatal) {
-                    // w.println("Failed " + t.getDisplayName() + " with " + err);
-                    processTaskResult(execChainContext, (TISReactor.TaskImpl) t, dataProcessFeedback, new ITaskResultProcessor() {
-                        @Override
-                        public void process(DumpPhaseStatus dumpPhase, TISReactor.TaskImpl task) {
-                            dataProcessFeedback.reportDumpTableStatusError(execChainContext, dumpPhase, task);
-                        }
-
-                        @Override
-                        public void process(JoinPhaseStatus joinPhase, TISReactor.TaskImpl task) {
-                            JoinPhaseStatus.JoinTaskStatus stat = joinPhase.getTaskStatus(task.getIdentityName());
-                            // statReceiver.reportBuildIndexStatErr(execContext.getTaskId(),task.getIdentityName());
-                            stat.setWaiting(false);
-                            stat.setFaild(true);
-                            stat.setComplete(true);
-                        }
-                    });
-                }
-            };
-
-
-            // 执行DAG地调度
-            reactor.execute(executorService, reactor.buildSession(dagSessionSpec.toString()), listener, new ReactorListener() {
-
-                @Override
-                public void onTaskCompleted(Task t) {
-                    // dumpPhaseStatus.isComplete();
-                    // joinPhaseStatus.isComplete();
-                }
-
-                @Override
-                public void onTaskFailed(Task t, Throwable err, boolean fatal) {
-                    logger.error(t.getDisplayName(), err);
-                    faildResult[0] = ExecuteResult.createFaild().setMessage("status.runningStatus.isComplete():" + err.getMessage());
-                }
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            executorService.shutdown();
-        }
-        return faildResult[0];
+    private ExecuteResult executeDAG(IExecChainContext execChainContext, SqlTaskNodeMeta.SqlDataFlowTopology topology
+            , IDataProcessFeedback dataProcessFeedback, Map<String, TaskAndMilestone> taskMap) {
+        throw new UnsupportedOperationException();
+        //        final ExecuteResult[] faildResult = new ExecuteResult[1];
+        //
+        //        try {
+        //            TISReactor reactor = new TISReactor(execChainContext, taskMap);
+        //            StringBuffer dagSessionSpec = topology.getDAGSessionSpec().buildSpec();
+        //            logger.info("dagSessionSpec:" + dagSessionSpec);
+        //
+        //            //  final PrintWriter w = new PrintWriter(sw, true);
+        //            ReactorListener listener = new ReactorListener() {
+        //                @Override
+        //                public void onAttained(Milestone milestone) {
+        //                    MilestoneImpl m = (MilestoneImpl) milestone;
+        //                    String mId = m.toString();
+        //                    if (!StringUtils.startsWith(mId, TaskAndMilestone.MILESTONE_PREFIX)) {
+        //                        AdapterTask.createTaskWorkStatus(execChainContext).put(mId, true);
+        //                    }
+        //                }
+        //
+        //                // TODO: Does it really needs handlers to be synchronized?
+        //                @Override
+        //                public synchronized void onTaskCompleted(Task t) {
+        //                    processTaskResult(execChainContext, (TISReactor.TaskImpl) t, dataProcessFeedback, new
+        //                    ITaskResultProcessor() {
+        //                        @Override
+        //                        public void process(DumpPhaseStatus dumpPhase, TISReactor.TaskImpl task) {
+        //                        }
+        //
+        //                        @Override
+        //                        public void process(JoinPhaseStatus joinPhase, TISReactor.TaskImpl task) {
+        //                        }
+        //                    });
+        //                }
+        //
+        //                @Override
+        //                public synchronized void onTaskFailed(Task t, Throwable err, boolean fatal) {
+        //                    // w.println("Failed " + t.getDisplayName() + " with " + err);
+        //                    processTaskResult(execChainContext, (TISReactor.TaskImpl) t, dataProcessFeedback, new
+        //                    ITaskResultProcessor() {
+        //                        @Override
+        //                        public void process(DumpPhaseStatus dumpPhase, TISReactor.TaskImpl task) {
+        //                            dataProcessFeedback.reportDumpTableStatusError(execChainContext, dumpPhase, task);
+        //                        }
+        //
+        //                        @Override
+        //                        public void process(JoinPhaseStatus joinPhase, TISReactor.TaskImpl task) {
+        //                            JoinPhaseStatus.JoinTaskStatus stat = joinPhase.getTaskStatus(task
+        //                            .getIdentityName());
+        //                            // statReceiver.reportBuildIndexStatErr(execContext.getTaskId(),task
+        //                            .getIdentityName());
+        //                            stat.setWaiting(false);
+        //                            stat.setFaild(true);
+        //                            stat.setComplete(true);
+        //                        }
+        //                    });
+        //                }
+        //            };
+        //
+        //
+        //            // 执行DAG地调度
+        //            reactor.execute(executorService, reactor.buildSession(dagSessionSpec.toString()), listener, new
+        //            ReactorListener() {
+        //
+        //                @Override
+        //                public void onTaskCompleted(Task t) {
+        //                    // dumpPhaseStatus.isComplete();
+        //                    // joinPhaseStatus.isComplete();
+        //                }
+        //
+        //                @Override
+        //                public void onTaskFailed(Task t, Throwable err, boolean fatal) {
+        //                    logger.error(t.getDisplayName(), err);
+        //                    faildResult[0] = ExecuteResult.createFaild().setMessage("status.runningStatus
+        //                    .isComplete():" + err.getMessage());
+        //                }
+        //            });
+        //        } catch (Exception e) {
+        //            throw new RuntimeException(e);
+        //        } finally {
+        //            executorService.shutdown();
+        //        }
+        //        return faildResult[0];
     }
 
-    private void processTaskResult(IExecChainContext execContext, TISReactor.TaskImpl t, IDataProcessFeedback dataProcessFeedback, ITaskResultProcessor resultProcessor) {
-        TISReactor.TaskImpl task = t;
-        PhaseStatusCollection pstats = dataProcessFeedback.getPhaseStatusSet(execContext);// TrackableExecuteInterceptor.taskPhaseReference.get(execContext.getTaskId());
-        if (pstats != null) {
-            switch (task.getPhase()) {
-                case FullDump:
-                    // pstats.getDumpPhase()
-                    // IncrStatusUmbilicalProtocolImpl statReceiver = IncrStatusUmbilicalProtocolImpl.getInstance();
-                    // statReceiver.reportDumpTableStatusError(execContext.getTaskId(), task.getIdentityName());
-                    pstats.getDumpPhase().isComplete();
-                    resultProcessor.process(pstats.getDumpPhase(), task);
-                    return;
-                case JOIN:
-                    // JoinPhaseStatus.JoinTaskStatus stat
-                    // = pstats.getJoinPhase().getTaskStatus(task.getIdentityName());
-                    // //statReceiver.reportBuildIndexStatErr(execContext.getTaskId(),task.getIdentityName());
-                    // stat.setWaiting(false);
-                    // stat.setFaild(true);
-                    // stat.setComplete(true);
-                    pstats.getJoinPhase().isComplete();
-                    resultProcessor.process(pstats.getJoinPhase(), task);
-                    return;
-                default:
-                    throw new IllegalStateException("taskphase:" + task.getPhase() + " is illegal");
-            }
-        }
-    }
+    //    private void processTaskResult(IExecChainContext execContext, TISReactor.TaskImpl t, IDataProcessFeedback
+    //    dataProcessFeedback, ITaskResultProcessor resultProcessor) {
+    //        TISReactor.TaskImpl task = t;
+    //        PhaseStatusCollection pstats = dataProcessFeedback.getPhaseStatusSet(execContext);//
+    //        TrackableExecuteInterceptor.taskPhaseReference.get(execContext.getTaskId());
+    //        if (pstats != null) {
+    //            switch (task.getPhase()) {
+    //                case FullDump:
+    //                    // pstats.getDumpPhase()
+    //                    // IncrStatusUmbilicalProtocolImpl statReceiver = IncrStatusUmbilicalProtocolImpl
+    //                    .getInstance();
+    //                    // statReceiver.reportDumpTableStatusError(execContext.getTaskId(), task.getIdentityName());
+    //                    pstats.getDumpPhase().isComplete();
+    //                    resultProcessor.process(pstats.getDumpPhase(), task);
+    //                    return;
+    //                case JOIN:
+    //                    // JoinPhaseStatus.JoinTaskStatus stat
+    //                    // = pstats.getJoinPhase().getTaskStatus(task.getIdentityName());
+    //                    // //statReceiver.reportBuildIndexStatErr(execContext.getTaskId(),task.getIdentityName());
+    //                    // stat.setWaiting(false);
+    //                    // stat.setFaild(true);
+    //                    // stat.setComplete(true);
+    //                    pstats.getJoinPhase().isComplete();
+    //                    resultProcessor.process(pstats.getJoinPhase(), task);
+    //                    return;
+    //                default:
+    //                    throw new IllegalStateException("taskphase:" + task.getPhase() + " is illegal");
+    //            }
+    //        }
+    //    }
 
     // @Override
-//    public IERRules getERRule() {
-//        try {
-//            return this.getErRules();
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+    //    public IERRules getERRule() {
+    //        try {
+    //            return this.getErRules();
+    //        } catch (Exception e) {
+    //            throw new RuntimeException(e);
+    //        }
+    //    }
 
     /**
      * 取得依赖的db->table映射关系
@@ -434,12 +435,12 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
 
     }
 
-    interface ITaskResultProcessor {
-
-        void process(DumpPhaseStatus dumpPhase, TISReactor.TaskImpl task);
-
-        void process(JoinPhaseStatus joinPhase, TISReactor.TaskImpl task);
-    }
+    //    interface ITaskResultProcessor {
+    //
+    //        void process(DumpPhaseStatus dumpPhase, TISReactor.TaskImpl task);
+    //
+    //        void process(JoinPhaseStatus joinPhase, TISReactor.TaskImpl task);
+    //    }
 
     @Override
     public IPrimaryTabFinder getPrimaryTabFinder() {
@@ -513,7 +514,8 @@ public class DataFlowAppSource implements ISolrAppSource, IDataFlowAppSource {
                     ERRules erRules = erRule.get();
                     List<PrimaryTableMeta> pTabs = erRules.getPrimaryTabs();
                     Optional<PrimaryTableMeta> prTableMeta = pTabs.stream().findFirst();
-                    if (!TableMeta.hasValidPrimayTableSharedKey(prTableMeta.isPresent() ? Optional.of(prTableMeta.get()) : Optional.empty())) {
+                    if (!TableMeta.hasValidPrimayTableSharedKey(prTableMeta.isPresent() ?
+                            Optional.of(prTableMeta.get()) : Optional.empty())) {
                         module.addErrorMessage(context, "请为数据流:[" + dataflowName + "]定义ERRule 选择主表并且设置分区键");
                         return false;
                     }

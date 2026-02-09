@@ -86,11 +86,11 @@ public class RpcServiceReference implements IPartialGrpcServiceFacade {
         return t;
     }
 
-    public void reportDumpJobStatus(
-            boolean faild, boolean complete, boolean waiting
-            , Integer taskId, String jobName, int readRows, int allRows) {
+    public void reportDumpJobStatus(boolean faild, boolean complete, boolean waiting, Integer taskId, String jobName,
+                                    int readRows, int allRows) {
         RpcServiceReference svc = this;
-        DumpPhaseStatus.TableDumpStatus dumpStatus = new DumpPhaseStatus.TableDumpStatus(jobName, taskId);
+        DumpPhaseStatus.TableDumpStatus dumpStatus = new DumpPhaseStatus.TableDumpStatus(jobName,
+                Objects.requireNonNull(taskId, "taskId can not be null"));
         dumpStatus.setFaild(faild);
         dumpStatus.setComplete(complete);
         dumpStatus.setWaiting(waiting);
@@ -101,12 +101,12 @@ public class RpcServiceReference implements IPartialGrpcServiceFacade {
 
     @Override
     public <STREAM_OBSERVER> STREAM_OBSERVER registerMonitorEvent(ILogListener logListener) {
-//        try {
-//            return this.get().registerMonitorEvent(logListener);
-//        } catch (GrpcConnectionException e) {
-//            this.reConnect();
-//            return mockSvc.registerMonitorEvent(logListener);
-//        }
+        //        try {
+        //            return this.get().registerMonitorEvent(logListener);
+        //        } catch (GrpcConnectionException e) {
+        //            this.reConnect();
+        //            return mockSvc.registerMonitorEvent(logListener);
+        //        }
         return invokeRpc((svc) -> {
             return svc.registerMonitorEvent(logListener);
         });
@@ -114,8 +114,8 @@ public class RpcServiceReference implements IPartialGrpcServiceFacade {
 
     private <T> T invokeRpc(Function<ITISRpcService, T> func) {
         try {
-            return func.apply(Objects.requireNonNull(this.get()
-                    , "instance of " + ITISRpcService.class.getSimpleName() + " can not be null"));
+            return func.apply(Objects.requireNonNull(this.get(),
+                    "instance of " + ITISRpcService.class.getSimpleName() + " can not be null"));
         } catch (GrpcConnectionException e) {
             logger.warn(e.getMessage(), e);
             this.reConnect();
@@ -129,7 +129,7 @@ public class RpcServiceReference implements IPartialGrpcServiceFacade {
             return svc.buildPhraseStatus(taskid);
         });
     }
-//IPartialGrpcServiceFacade impl below
+    //IPartialGrpcServiceFacade impl below
 
     @Override
     public PingResult ping() {
@@ -207,8 +207,8 @@ public class RpcServiceReference implements IPartialGrpcServiceFacade {
             return null;
         });
     }
-//    @Override
-//    public void append(Map<String, String> headers, LogLevel level, String body) {
-//        get().append(headers, level, body);
-//    }
+    //    @Override
+    //    public void append(Map<String, String> headers, LogLevel level, String body) {
+    //        get().append(headers, level, body);
+    //    }
 }

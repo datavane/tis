@@ -3,10 +3,6 @@
     "help": "设置一个有意义的名称作为标识",
     "dftVal": "local_submit_params"
   },
-  "maxJobs": {
-    "help": "单个管道最大DataX同步任务数量，超过该任务数量管道触发执行时会报错",
-    "dftVal": "com.qlangtech.tis.datax.DataXJobSubmitParams.dftMaxJobs()"
-  },
   "pipelineParallelism": {
     "label": "管道任务并发数",
     "help": "在单个管道同步过程中允许任务并发数目",
@@ -25,6 +21,6 @@
   "taskExpireHours": {
     "label": "任务超时时间",
     "help": "执行单个DataX 表任务执行超时时间。超过设置的超时时间，TIS会主动将任务关闭。单位：小时",
-    "dftVal": 6
+    "dftVal": 10
   }
 }

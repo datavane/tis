@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.datax.DataXName;
+import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.extension.Describable;
@@ -118,8 +119,9 @@ public class TaskPlan {
     this.controlMsgHandler = Objects.requireNonNull(controlMsgHandler, "controlMsgHandler can not be null");
 
 
-    this.processorExtendPoints = new DescribableImpl(IAppSource.class, Optional.empty()).addImpl("com.qlangtech.tis"
-      + ".plugin.datax.DefaultDataxProcessor");
+    this.processorExtendPoints =
+      new DescribableImpl(IAppSource.class, Optional.empty()).addImpl("com.qlangtech.tis" + ".plugin.datax" +
+        ".DefaultDataxProcessor");
 
     ImmutableMap.Builder<Class<? extends Describable>, DescribableImpl> mapBuilder = new ImmutableMap.Builder<>();
     mapBuilder.put(DataxReader.class, new DescribableImpl(DataxReader.class, Optional.of(sourceEnd.getType())));
@@ -279,6 +281,10 @@ public class TaskPlan {
       return this.executeIncr;
     }
 
+    public DataXName getDataXName() {
+      return ((IDataxProcessor) this.processor).getDataXName();
+    }
+
 
     public IAppSource getProcessor() {
       return this.processor;
@@ -288,9 +294,9 @@ public class TaskPlan {
       this.processor = processor;
     }
 
-//    public List<String> getSelectedTabs() {
-//      return null;
-//    }
+    //    public List<String> getSelectedTabs() {
+    //      return null;
+    //    }
   }
 
 }

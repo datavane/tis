@@ -86,7 +86,7 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
         EasyMock.expect(execContext.getAttribute(AdapterTask.KEY_TASK_WORK_STATUS)).andReturn(new HashMap<String, Boolean>()).anyTimes();
 
 
-        execContext.rebindLoggingMDCParams();
+       // execContext.rebindLoggingMDCParams();
         EasyMock.expectLastCall().anyTimes();
 
         EasyMock.expect(execContext.getSpecifiedLocalLoggerPath()).andReturn(null).times(2);

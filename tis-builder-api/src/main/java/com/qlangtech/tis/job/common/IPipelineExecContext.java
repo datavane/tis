@@ -23,7 +23,7 @@ package com.qlangtech.tis.job.common;
  * @create: 2023-04-10 18:53
  **/
 public interface IPipelineExecContext {
-    public int getTaskId();
+    public Integer getTaskId();
 
     public String getIndexName();
 

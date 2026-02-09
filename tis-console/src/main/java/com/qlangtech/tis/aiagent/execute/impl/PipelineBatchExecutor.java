@@ -21,6 +21,7 @@ package com.qlangtech.tis.aiagent.execute.impl;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.aiagent.core.AgentContext;
+import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.lang.PayloadLink;
 import com.qlangtech.tis.aiagent.core.RequestKey;
 import com.qlangtech.tis.aiagent.core.SelectionOptions;
@@ -50,23 +51,21 @@ public class PipelineBatchExecutor implements StepExecutor {
 
     TaskPlan.SourceDataEndCfg sourceEnd = plan.getSourceEnd();
     TaskPlan.DataEndCfg targetEnd = plan.getTargetEnd();
-    if (!Objects.requireNonNull(sourceEnd.getEndTypeMeta()
-      , "sourceEnd:" + sourceEnd.getType() + " relevant EndTypeMeta can not be null").isSupportBatch()) {
+    if (!Objects.requireNonNull(sourceEnd.getEndTypeMeta(), "sourceEnd:" + sourceEnd.getType() + " relevant "
+      + "EndTypeMeta can not be null").isSupportBatch()) {
       context.sendMessage("源端‘" + sourceEnd.getType() + "’类型不支持批量数据同步，因此跳过该步骤");
       return true;
     }
-    if (!Objects.requireNonNull(targetEnd.getEndTypeMeta()
-      , "targetEnd:" + targetEnd.getType() + " relevant EndTypeMeta can not be null").isSupportBatch()) {
+    if (!Objects.requireNonNull(targetEnd.getEndTypeMeta(), "targetEnd:" + targetEnd.getType() + " relevant "
+      + "EndTypeMeta can not be null").isSupportBatch()) {
       context.sendMessage("目标端‘" + targetEnd.getType() + "’类型不支持批量数据同步，因此跳过该步骤");
       return true;
     }
     boolean executeBatch = sourceEnd.isExecuteBatch();
     if (!executeBatch) {
       RequestKey requestId = RequestKey.create();
-      List<PluginExtraProps.CandidatePlugin> opts
-        = Lists.newArrayList(
-        new NormalSelectionOption("是的，立即触发")
-        , new NormalSelectionOption("不，先不触发，等等再说"));
+      List<PluginExtraProps.CandidatePlugin> opts = Lists.newArrayList(new NormalSelectionOption("是的，立即触发"),
+        new NormalSelectionOption("不，先不触发，等等再说"));
 
       final String prompt = "请选择是否立即触发全量历史数据同步？";
       context.requestUserSelection(requestId, prompt, Optional.empty(), opts);
@@ -90,16 +89,19 @@ public class PipelineBatchExecutor implements StepExecutor {
     Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, triggerType);
 
     if (!dataXJobSubmit.isPresent()) {
-      throw new IllegalStateException("triggerType:" + triggerType + " have not been installed,please install it ahead");
+      throw new IllegalStateException("triggerType:" + triggerType + " have not been installed,please install it "
+        + "ahead");
     }
-    DataXName dataXName = sourceEnd.getProcessor().getDataXName();
+    DataXName dataXName =  sourceEnd.getDataXName();// ((IDataxProcessor) .getProcessor()).getDataXName();
     PartialSettedPluginContext pluginContext = createPluginContext(plan, dataXName);
     Context runtimeContext = plan.getRuntimeContext(true);
-    TriggerBuildResult triggerResult = dataXJobSubmit.get().triggerJob(pluginContext
-      , runtimeContext, dataXName, Optional.empty(), Optional.empty());
+    TriggerBuildResult triggerResult = null;
+    // TODO: 变成使用http触发
+    //      dataXJobSubmit.get().triggerJob(
+    //       dataXName, Optional.empty());
     if (triggerResult.success) {
-      context.sendMessage("已经成功触发'" + String.valueOf(dataXName) + "'全量历史数据同步执行。"
-        , new PayloadLink("查看任务执行状态", "/x/" + String.valueOf(dataXName) + "/app_build_history/" + triggerResult.getTaskid()));
+      context.sendMessage("已经成功触发'" + String.valueOf(dataXName) + "'全量历史数据同步执行。", new PayloadLink("查看任务执行状态",
+        "/x/" + String.valueOf(dataXName) + "/app_build_history/" + triggerResult.getTaskid()));
     } else {
       context.sendError("触发'" + String.valueOf(dataXName) + "'全量历史数据同步失败。");
     }

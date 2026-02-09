@@ -21,6 +21,8 @@ package com.qlangtech.tis.exec.datax;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataXBatchPost;
+import com.qlangtech.tis.datax.IDataXJobInfo;
+import com.qlangtech.tis.datax.LifeCycleHook;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.exec.ExecuteResult;
@@ -28,6 +30,7 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteDumpTaskTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
@@ -106,8 +109,8 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
                     EasyMock.expect(paramContext.getString(IFullBuildContext.KEY_APP_NAME)).andReturn(AP_NAME).anyTimes();
                     DefaultChainContext execContext = new DefaultChainContext(paramContext);
                     execContext.setAttribute(JobCommon.KEY_TASK_ID, testTaskId);
-                    execContext.setMdcParamContext(() -> {
-                    });
+                    //                    execContext.setMdcParamContext(() -> {
+                    //                    });
                     contexts[0] = execContext;
                     return execContext;
                 });
@@ -135,8 +138,8 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
     public void testExecute() throws Exception {
 
 
-        IRemoteTaskTrigger jobTrigger
-                = mock(dataCfgTaskName + "_" + IRemoteTaskTrigger.class.getSimpleName(), IRemoteTaskTrigger.class);
+        IRemoteDumpTaskTrigger jobTrigger = mock(dataCfgTaskName + "_" + IRemoteTaskTrigger.class.getSimpleName(),
+                IRemoteDumpTaskTrigger.class);
         //
 
         final String preExecuteTaskName = IDataXBatchPost.getPreExecuteTaskName(EntityName.parse(tableName));
@@ -176,7 +179,8 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
 
         JoinPhaseStatus joinStatus = taskPhaseRef.getJoinPhase();
         Assert.assertNotNull(joinStatus);
-        JoinPhaseStatus.JoinTaskStatus tableProcess = joinStatus.getTaskStatus(IDataXBatchPost.KEY_POST + tableName);
+        JoinPhaseStatus.JoinTaskStatus tableProcess =
+                joinStatus.getTaskStatus(LifeCycleHook.Post.getToken() + tableName);
         Assert.assertNotNull(tableProcess);
 
         Assert.assertTrue(tableProcess.isComplete());
@@ -184,7 +188,7 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
         Assert.assertFalse(tableProcess.isWaiting());
         Assert.assertFalse(tableProcess.isFaild());
 
-        Assert.assertEquals(IDataXBatchPost.KEY_POST + tableName, tableProcess.getName());
+        Assert.assertEquals(LifeCycleHook.Post.getToken() + tableName, tableProcess.getName());
 
         /**
          * 开始校验
@@ -193,7 +197,7 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
     }
 
     public void testExecuteWithExcpetionWhenSubmitJob() throws Exception {
-        IRemoteTaskTrigger jobTrigger = mockDataXExecTaskTrigger();
+        IRemoteDumpTaskTrigger jobTrigger = mockDataXExecTaskTrigger();
         //  RunningStatus runningStatus = RunningStatus.SUCCESS;
         // EasyMock.expect(jobTrigger.getRunningStatus()).andReturn(runningStatus);
 
@@ -206,7 +210,7 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
     }
 
     public void testExecuteWithGetRunningStatusFaild() throws Exception {
-        IRemoteTaskTrigger jobTrigger = mockDataXExecTaskTrigger();
+        IRemoteDumpTaskTrigger jobTrigger = mockDataXExecTaskTrigger();
         // EasyMock.expectLastCall().andThrow(new RuntimeException("throw a exception"));
         // RunningStatus runningStatus = RunningStatus.FAILD;
         // EasyMock.expect(jobTrigger.getRunningStatus()).andReturn(runningStatus).anyTimes();
@@ -216,7 +220,7 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
 
     }
 
-    private void executeJobTrigger(IRemoteTaskTrigger jobTrigger, boolean finalSuccess) throws Exception {
+    private void executeJobTrigger(IRemoteDumpTaskTrigger jobTrigger, boolean finalSuccess) throws Exception {
         executeJobTrigger(jobTrigger, finalSuccess, () -> {
             MockDataxProcessor dataxProcessor = new MockDataxProcessor();
 
@@ -226,11 +230,13 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
         });
     }
 
-    private void executeJobTrigger(IRemoteTaskTrigger jobTrigger, boolean finalSuccess, Supplier<IExecChainContext> execChainContextSupplier) throws Exception {
+    private void executeJobTrigger(IRemoteDumpTaskTrigger jobTrigger, boolean finalSuccess,
+                                   Supplier<IExecChainContext> execChainContextSupplier) throws Exception {
 
         TrackableExecuteInterceptor.initialTaskPhase(testTaskId);
 
-        DataXJobSubmit.mockGetter = () -> new TestIndexSwapTaskflowLauncherWithDataXTrigger.MockDataXJobSubmit(jobTrigger);
+        DataXJobSubmit.mockGetter =
+                () -> new TestIndexSwapTaskflowLauncherWithDataXTrigger.MockDataXJobSubmit(jobTrigger);
 
         DataXExecuteInterceptor executeInterceptor = new DataXExecuteInterceptor();
 
@@ -251,11 +257,12 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
 
         executeInterceptor.getPhaseStatus(execChainContext, FullbuildPhase.FullDump);
 
-        assertEquals("execute must be " + (finalSuccess ? "success" : "faild"), finalSuccess, executeResult.isSuccess());
+        assertEquals("execute must be " + (finalSuccess ? "success" : "faild"), finalSuccess,
+                executeResult.isSuccess());
         this.verifyAll();
     }
 
-    class CancelableJobTrigger implements IRemoteTaskTrigger {
+    class CancelableJobTrigger implements IRemoteDumpTaskTrigger {
         boolean hasCancel = false;
 
         @Override
@@ -276,9 +283,11 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
         public void cancel() {
             hasCancel = true;
         }
+
+        @Override
+        public IDataXJobInfo getDataXTaskMessage() {
+            return null;
+        }
     }
-
-    ;
-
 
 }

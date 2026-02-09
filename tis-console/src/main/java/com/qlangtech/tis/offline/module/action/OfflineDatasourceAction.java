@@ -1360,11 +1360,11 @@ public class OfflineDatasourceAction extends BasicModule {
     DataXJobSubmit jobSubmit = DataXJobSubmit.getDataXJobSubmit();
 
     // 在powerjob 系统中 定时任务触发，已经生成wfInstanceId
-    Optional<Long> powerJobWorkflowInstanceId
-      = Optional.ofNullable(this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, null));
+//    Optional<Long> powerJobWorkflowInstanceId
+//      = Optional.ofNullable(this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, null));
 
     TriggerBuildResult buildResult = jobSubmit.triggerWorkflowJob(
-      this, context, df, dryRun, powerJobWorkflowInstanceId, Optional.ofNullable(latestSuccessWorkflowHistory));
+      this, context, df, dryRun,  Optional.ofNullable(latestSuccessWorkflowHistory));
     if (buildResult.success) {
       // throw new IllegalStateException("dataflowid:" + id + " trigger faild");
       if (buildResult.getTaskid() < 1) {

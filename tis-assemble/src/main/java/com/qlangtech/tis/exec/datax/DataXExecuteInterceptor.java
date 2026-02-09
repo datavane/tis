@@ -18,8 +18,10 @@
 
 package com.qlangtech.tis.exec.datax;
 
+import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.*;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator.GenerateCfgs;
 import com.qlangtech.tis.exec.ExecuteResult;
@@ -27,12 +29,17 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
-import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
+//import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
+import com.qlangtech.tis.fullbuild.phasestatus.IPhaseStatusCollection;
+import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.taskflow.TaskAndMilestone;
+import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.DagTaskUtils;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.sql.parser.DAGSessionSpec;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.PartialSettedPluginContext;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import org.jvnet.hudson.reactor.ReactorListener;
 import org.jvnet.hudson.reactor.Task;
@@ -55,96 +62,28 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
     @Override
     protected ExecuteResult execute(IExecChainContext execChainContext) throws Exception {
 
-        RpcServiceReference statusRpc = getDataXExecReporter();
-
         IDataxProcessor appSource = execChainContext.getProcessor();
-
 
         DataXJobSubmit.InstanceType expectDataXJobSumit = getDataXTriggerType();
         Optional<DataXJobSubmit> jobSubmit = DataXJobSubmit.getDataXJobSubmit(execChainContext, expectDataXJobSumit);
         // 如果分布式worker ready的话
-        if (!jobSubmit.isPresent()) {
+        if (jobSubmit.isEmpty()) {
             throw new IllegalStateException("can not find expect jobSubmit by type:" + expectDataXJobSumit);
         }
+        DataXName pipelineName = new DataXName(appSource.identityValue(), appSource.getResType());
 
         DataXJobSubmit submit = jobSubmit.get();
+        PhaseStatusCollection lastHistory = execChainContext.loadPhaseStatusFromLatest();
 
-        final ExecutorService executorService = DataFlowAppSource.createExecutorService(execChainContext);
-        RemoteTaskTriggers tskTriggers = new RemoteTaskTriggers(executorService);
-        execChainContext.setTskTriggers(tskTriggers);
-        GenerateCfgs cfgFileNames
-                = appSource.getDataxCfgFileNames(null, com.qlangtech.tis.plugin.trigger.JobTrigger.getTriggerFromHttpParam(execChainContext));
-        // 避免 tdfs->mysql过程中 由于执行 IPluginContext.getThreadLocalInstance() 而报错
-        IPluginContext.setPluginContext( //
-                IPluginContext.namedContext(new DataXName(appSource.identityValue(),appSource.getResType())));
+        TriggerBuildResult triggerBuildResult = submit.triggerJob(pipelineName, Optional.ofNullable(lastHistory));
+        execChainContext.setAttribute(JobCommon.KEY_TASK_ID, Objects.requireNonNull(triggerBuildResult.taskid,
+                "taskid can not be null"));
 
-        DAGSessionSpec sessionSpec = DAGSessionSpec.createDAGSessionSpec(
-                execChainContext, statusRpc, appSource,cfgFileNames ,submit).getLeft();
-        List<IRemoteTaskTrigger> triggers = DagTaskUtils.createTasks(execChainContext, this, sessionSpec, tskTriggers);
-
-        final DataXJobSubmit.IDataXJobContext dataXJobContext = submit.createJobContext(execChainContext);
-        Objects.requireNonNull(dataXJobContext, "dataXJobContext can not be null");
-
-        try {
-            final StringBuffer dagSessionSpec = sessionSpec.buildSpec();
-            logger.info("dataX:{} of dagSessionSpec:{}", execChainContext.getIndexName(), dagSessionSpec);
-            ExecuteResult[] faildResult = new ExecuteResult[]{ExecuteResult.createSuccess()};
-
-
-            this.executeDAG(executorService, execChainContext, dagSessionSpec, sessionSpec.getTaskMap(), new ReactorListener() {
-
-                @Override
-                public void onTaskCompleted(Task t) {
-                    // dumpPhaseStatus.isComplete();
-                    // joinPhaseStatus.isComplete();
-                }
-
-                @Override
-                public void onTaskFailed(Task t, Throwable err, boolean fatal) {
-                    logger.error(t.getDisplayName(), err);
-                    faildResult[0] = ExecuteResult.createFaild().setMessage("status.runningStatus.isComplete():" + err.getMessage());
-                    if (err instanceof InterruptedException) {
-                        logger.warn("DataX Name:{},taskid:{} has been canceled"
-                                , execChainContext.getIndexName(), execChainContext.getTaskId());
-                        // this job has been cancel, trigger from TisServlet.doDelete()
-                        for (IRemoteTaskTrigger tt : triggers) {
-                            try {
-                                tt.cancel();
-                            } catch (Throwable ex) {
-                            }
-                        }
-                    }
-                }
-            });
-
-            for (IRemoteTaskTrigger trigger : triggers) {
-                if (trigger.isAsyn()) {
-                    execChainContext.addAsynSubJob(new IExecChainContext.AsynSubJob(trigger.getAsynJobName()));
-                }
-            }
-            return faildResult[0];
-        } finally {
-            try {
-                dataXJobContext.destroy();
-            } catch (Throwable e) {
-                logger.error(e.getMessage(), e);
-            }
-            executorService.shutdown();
-        }
+        return ExecuteResult.createSuccess();
     }
 
 
-    private void executeDAG(ExecutorService executorService, IExecChainContext execChainContext, StringBuffer dagSessionSpec
-            , Map<String, TaskAndMilestone> taskMap, ReactorListener reactorListener) {
-        try {
-            TISReactor reactor = new TISReactor(execChainContext, taskMap);
-            logger.info("dagSessionSpec:" + dagSessionSpec);
-            // 执行DAG地调度
-            reactor.execute(executorService, reactor.buildSession(dagSessionSpec), reactorListener);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+
 
 
     private DataXJobSubmit.InstanceType getDataXTriggerType() {

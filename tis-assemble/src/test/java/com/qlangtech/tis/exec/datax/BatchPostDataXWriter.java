@@ -24,13 +24,12 @@ import com.qlangtech.tis.datax.IDataXBatchPost;
 import com.qlangtech.tis.datax.IDataXGenerateCfgs;
 import com.qlangtech.tis.datax.IDataxContext;
 import com.qlangtech.tis.datax.IDataxProcessor;
-import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
+import com.qlangtech.tis.datax.LifeCycleHook;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPostTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPreviousTrigger;
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
@@ -55,7 +54,7 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
 
     @Override
     public EntityName parseEntity(ISelectedTab tab) {
-       // return EntityName.parse(tab.getName());
+        // return EntityName.parse(tab.getName());
         return tab.getEntityName();
     }
 
@@ -80,7 +79,7 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
     }
 
     @Override
-    public IRemoteTaskPreviousTrigger createPreExecuteTask(IExecChainContext execContext, EntityName entity ,ISelectedTab tab) {
+    public IRemoteTaskPreviousTrigger createPreExecuteTask(IExecChainContext execContext,EntityName entity, ISelectedTab tab) {
         return new IRemoteTaskPreviousTrigger() {
             @Override
             public String getTaskName() {
@@ -95,18 +94,19 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
     }
 
     @Override
-    public IRemoteTaskPostTrigger createPostTask(IExecChainContext execContext, final EntityName entity,ISelectedTab tab ,IDataXGenerateCfgs cfgFileNames) {
+    public IRemoteTaskPostTrigger createPostTask(IExecChainContext execContext,final EntityName entity, ISelectedTab tab,
+                                                 IDataXGenerateCfgs cfgFileNames) {
         return new IRemoteTaskPostTrigger() {
             @Override
             public String getTaskName() {
-                return KEY_POST + entity.getTabName();
+                return LifeCycleHook.Post.getToken() + entity.getTabName();
             }
 
-//            @Override
-//            public List<String> getTaskDependencies() {
-//                execGetTaskDependencies = true;
-//                return taskDependencies;
-//            }
+            //            @Override
+            //            public List<String> getTaskDependencies() {
+            //                execGetTaskDependencies = true;
+            //                return taskDependencies;
+            //            }
 
             @Override
             public void run() {
@@ -121,7 +121,8 @@ public class BatchPostDataXWriter extends DataxWriter implements IDataXBatchPost
     }
 
     @Override
-    public IDataxContext getSubTask(Optional<IDataxProcessor.TableMap> tableMap, Optional<RecordTransformerRules> transformerRules) {
+    public IDataxContext getSubTask(Optional<IDataxProcessor.TableMap> tableMap,
+                                    Optional<RecordTransformerRules> transformerRules) {
         throw new UnsupportedOperationException();
     }
 }

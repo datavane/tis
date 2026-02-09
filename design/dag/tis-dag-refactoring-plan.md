@@ -30,7 +30,7 @@ TIS当前使用的任务调度机制基于Jenkins的`task-reactor`库:
 ### 1.3 改造目标
 
 1. **定时调度**: 支持DAG任务定时执行,可配置Cron表达式
-2. **弹性伸缩**: 利用Akka框架实现单机到分布式的无缝切换,提高吞吐能力
+2. **弹性伸缩**: 统一集群架构,支持从单节点到多节点的零配置扩展
 3. **故障容错**: DAG节点支持失败跳过或终止后续任务的策略配置
 4. **可视化监控**: 实时查看DAG等待队列和执行队列的任务状态
 
@@ -55,15 +55,17 @@ TIS当前使用的任务调度机制基于Jenkins的`task-reactor`库:
 
 **选择理由**:
 - ✅ Actor模型: 天然支持异步消息驱动,适合任务调度
-- ✅ 弹性架构: 单机/集群模式配置化切换
+- ✅ 统一架构: 单节点集群到多节点集群无缝扩展
 - ✅ 容错机制: 内置Supervisor策略,支持故障自动恢复
 - ✅ 高性能: 轻量级Actor,支持百万级并发
+- ✅ 零配置扩展: 新节点自动加入,无需重启现有服务
 
 **使用场景**:
 - 任务调度协调
 - 任务分发路由
 - 任务执行隔离
 - 集群成员管理
+- 动态扩容缩容
 
 ### 2.3 技术栈总览
 
@@ -187,46 +189,62 @@ TIS当前使用的任务调度机制基于Jenkins的`task-reactor`库:
         工作流完成 (SUCCEED/FAILED)
 ```
 
-#### 3.2.3 单机到集群切换流程
+#### 3.2.3 集群扩展流程
 
+TIS DAG调度系统采用统一的集群架构,从单节点到多节点的扩展无需修改配置或重启服务。
+
+**单节点部署**:
 ```
-应用启动
+启动TIS
     │
     ▼
-读取配置 (tis.dag.cluster.enabled)
+加载application.conf
     │
-    ├─▶ false: 初始化单机模式
-    │       │
-    │       ▼
-    │   创建本地Actor System
-    │       │
-    │       ▼
-    │   创建RoundRobinPool (本地线程池)
-    │       │
-    │       ▼
-    │   任务在本地执行
+    ▼
+创建ActorSystem (TIS-DAG-Cluster)
     │
-    └─▶ true: 初始化集群模式
-            │
-            ▼
-        创建Cluster Actor System
-            │
-            ▼
-        配置seed nodes (集群发现)
-            │
-            ▼
-        创建ClusterRouterPool (跨节点路由)
-            │
-            ▼
-        任务分发到集群Worker节点
-            │
-            ▼
-        监听节点上下线事件
-            │
-            ├─▶ MemberUp: 重新平衡任务
-            │
-            └─▶ MemberDown: 恢复失败任务
+    ▼
+seed-nodes指向自己
+    │
+    ▼
+形成单节点集群
+    │
+    ▼
+ClusterRouterPool在本地路由任务
 ```
+
+**扩展到多节点**:
+```
+启动新节点
+    │
+    ▼
+配置AKKA_SEED_NODES指向第一个节点
+    │
+    ▼
+连接到seed node
+    │
+    ▼
+自动加入集群
+    │
+    ▼
+ClusterRouterPool自动包含新节点
+    │
+    ▼
+任务开始分发到新节点
+    │
+    ▼
+监听节点上下线事件
+    │
+    ├─▶ MemberUp: 重新平衡任务
+    │
+    └─▶ MemberDown: 恢复失败任务
+```
+
+**关键特性**:
+- 无需重启现有节点
+- 无需修改配置文件
+- 新节点自动发现和加入
+- 任务自动负载均衡
 
 ## 四、数据库设计
 
@@ -303,7 +321,7 @@ CREATE TABLE dag_node_execution (
     skip_when_failed TINYINT(1) DEFAULT 0 COMMENT '失败时是否跳过',
     enable TINYINT(1) DEFAULT 1 COMMENT '节点是否启用',
     retry_times INT DEFAULT 0 COMMENT '重试次数',
-    worker_address VARCHAR(128) COMMENT '执行节点地址(集群模式)',
+    worker_address VARCHAR(128) COMMENT '执行节点地址',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_wf_instance(workflow_instance_id),
@@ -316,7 +334,7 @@ CREATE TABLE dag_node_execution (
 **设计说明**:
 - 细粒度记录每个节点的执行信息
 - 支持按状态查询,便于监控等待队列和执行队列
-- `worker_address`用于集群模式下跟踪任务执行位置,便于故障恢复
+- `worker_address`用于跟踪任务执行位置,便于故障恢复
 
 ### 4.4 DAO层接口
 
@@ -382,7 +400,7 @@ public interface IDAGNodeExecutionDAO {
     List<DAGNodeExecution> selectWaitingNodes(Integer wfInstanceId);
 
     /**
-     * 查询指定Worker上运行的任务(集群模式)
+     * 查询指定Worker上运行的任务
      */
     List<DAGNodeExecution> selectRunningNodesByWorker(String workerAddress);
 }
@@ -1041,8 +1059,7 @@ public class NodeDispatcherActor extends AbstractActor {
 
     /**
      * 初始化路由器
-     * - 单机模式: RoundRobinPool
-     * - 集群模式: ClusterRouterPool
+     * 统一使用ClusterRouterPool,单节点集群时自动退化为本地路由
      */
     @Override
     public void preStart() {
@@ -1060,33 +1077,24 @@ public class NodeDispatcherActor extends AbstractActor {
     private void handleDispatchTask(DispatchTask msg);
 
     /**
-     * 创建路由器
+     * 创建任务路由器
+     * 使用ClusterRouterPool支持单节点和多节点场景
      */
     private ActorRef createTaskRouter() {
-        if (isSingleMode()) {
-            // 单机: 本地池化
-            return getContext().actorOf(
-                new RoundRobinPool(Runtime.getRuntime().availableProcessors() * 2)
-                    .props(Props.create(TaskWorkerActor.class)),
-                "task-worker-pool"
-            );
-        } else {
-            // 集群: 跨节点路由
-            return getContext().actorOf(
-                new ClusterRouterPool(
-                    new RoundRobinPool(10),
-                    new ClusterRouterPoolSettings(100, 10, true, "worker")
-                ).props(Props.create(TaskWorkerActor.class)),
-                "task-worker-cluster-pool"
-            );
-        }
+        return getContext().actorOf(
+            new ClusterRouterPool(
+                new RoundRobinPool(10),
+                new ClusterRouterPoolSettings(100, 10, true, "worker")
+            ).props(Props.create(TaskWorkerActor.class)),
+            "task-worker-cluster-pool"
+        );
     }
 }
 ```
 
 **路由策略**:
-- 单机: `RoundRobinPool` - 轮询本地Worker
-- 集群: `ClusterRouterPool` - 跨节点轮询
+- 统一使用 `ClusterRouterPool` 跨节点轮询
+- 单节点集群时自动退化为本地路由
 
 #### 5.3.3 TaskWorkerActor
 
@@ -1255,49 +1263,14 @@ public class ClusterManagerActor extends AbstractActor {
 
 ### 5.4 配置文件设计
 
-#### 5.4.1 单机模式配置
+#### 5.4.1 统一集群配置
 
-**application-standalone.conf**:
-
-```hocon
-tis.dag {
-  cluster.enabled = false
-
-  actor {
-    worker-pool-size = 16  # 本地Worker线程池大小
-    task-timeout = 3600000  # 任务超时时间(毫秒)
-  }
-}
-
-akka {
-  actor {
-    provider = "local"
-  }
-
-  loggers = ["akka.event.slf4j.Slf4jLogger"]
-  loglevel = "INFO"
-}
-```
-
-#### 5.4.2 集群模式配置
-
-**application-cluster.conf**:
+**application.conf**:
 
 ```hocon
 tis.dag {
-  cluster.enabled = true
-
-  cluster {
-    seed-nodes = [
-      "akka://TIS-DAG-Cluster@192.168.1.10:2551",
-      "akka://TIS-DAG-Cluster@192.168.1.11:2551",
-      "akka://TIS-DAG-Cluster@192.168.1.12:2551"
-    ]
-    roles = ["worker"]
-  }
-
   actor {
-    worker-pool-size = 10  # 每个节点的Worker数量
+    worker-pool-size = 10
     task-timeout = 3600000
   }
 }
@@ -1316,52 +1289,124 @@ akka {
   }
 
   remote.artery {
-    canonical.hostname = ${AKKA_HOST}
-    canonical.port = ${AKKA_PORT}
+    canonical.hostname = ${?AKKA_HOST}
+    canonical.hostname = "127.0.0.1"  # 默认本机
+    canonical.port = ${?AKKA_PORT}
+    canonical.port = 2551  # 默认端口
   }
 
   cluster {
-    seed-nodes = ${tis.dag.cluster.seed-nodes}
-    roles = ${tis.dag.cluster.roles}
+    # 通过环境变量配置seed-nodes,默认指向自己
+    seed-nodes = ${?AKKA_SEED_NODES}
+    seed-nodes = [
+      "akka://TIS-DAG-Cluster@"${akka.remote.artery.canonical.hostname}":"${akka.remote.artery.canonical.port}
+    ]
 
-    # 故障检测
+    roles = ["worker"]
+
     failure-detector {
       threshold = 8.0
       acceptable-heartbeat-pause = 3s
       heartbeat-interval = 1s
     }
   }
+
+  loggers = ["akka.event.slf4j.Slf4jLogger"]
+  loglevel = "INFO"
 }
 ```
 
-#### 5.4.3 配置加载逻辑
+**配置说明**:
+- `AKKA_HOST`: 当前节点的IP地址,默认127.0.0.1
+- `AKKA_PORT`: 当前节点的端口,默认2551
+- `AKKA_SEED_NODES`: seed节点地址,默认指向自己(形成单节点集群)
+
+**单节点部署**:
+```bash
+# 使用默认配置启动,自动形成单节点集群
+java -jar tis-web-start.jar
+```
+
+**多节点部署**:
+```bash
+# 第一个节点(seed node)
+java -DAKKA_HOST=192.168.1.10 -DAKKA_PORT=2551 -jar tis-web-start.jar
+
+# 第二个节点
+java -DAKKA_HOST=192.168.1.11 -DAKKA_PORT=2551 \
+     -DAKKA_SEED_NODES="akka://TIS-DAG-Cluster@192.168.1.10:2551" \
+     -jar tis-web-start.jar
+```
+
+#### 5.4.2 配置加载逻辑
 
 ```java
 public class DAGActorSystemManager {
 
-    public void initAdaptiveMode() {
-        boolean clusterEnabled = ConfigUtils.getBoolean("tis.dag.cluster.enabled", false);
-
-        if (clusterEnabled) {
-            Config config = ConfigFactory.load("application-cluster.conf");
-            system = ActorSystem.create("TIS-DAG-Cluster", config);
-        } else {
-            Config config = ConfigFactory.load("application-standalone.conf");
-            system = ActorSystem.create("TIS-DAG-System", config);
-        }
+    public void init() {
+        // 统一使用集群配置,无需判断模式
+        Config config = ConfigFactory.load();
+        system = ActorSystem.create("TIS-DAG-Cluster", config);
 
         // 创建顶层Actor
         system.actorOf(Props.create(DAGSchedulerActor.class), "dag-scheduler");
         system.actorOf(Props.create(DAGMonitorActor.class), "dag-monitor");
-
-        if (clusterEnabled) {
-            system.actorOf(Props.create(ClusterManagerActor.class), "cluster-manager");
-        }
+        system.actorOf(Props.create(ClusterManagerActor.class), "cluster-manager");
     }
 }
 ```
 
 ### 5.5 动态扩容和集群管理
+
+### 5.5 动态扩容和集群管理
+
+#### 5.5.0 单机到多节点的无缝扩展
+
+**核心理念**: TIS DAG调度系统统一使用Akka Cluster架构,单机部署时就是一个单节点集群。
+
+**单机部署(单节点集群)**:
+
+启动第一个节点时,无需任何特殊配置:
+
+```bash
+# 使用默认配置启动
+java -jar tis-web-start.jar
+
+# 或显式指定(可选)
+java -DAKKA_HOST=192.168.1.10 \
+     -DAKKA_PORT=2551 \
+     -jar tis-web-start.jar
+```
+
+此时:
+- seed-nodes默认指向自己
+- 形成单节点集群
+- 所有任务在本地执行
+- ClusterRouterPool自动退化为本地路由
+
+**扩展到多节点(零配置)**:
+
+需要扩展时,在新机器上启动节点,只需指向第一个节点:
+
+```bash
+# 新节点启动
+java -DAKKA_HOST=192.168.1.11 \
+     -DAKKA_PORT=2551 \
+     -DAKKA_SEED_NODES="akka://TIS-DAG-Cluster@192.168.1.10:2551" \
+     -jar tis-web-start.jar
+```
+
+**关键优势**:
+- 第一个节点无需重启
+- 第一个节点无需修改配置
+- 新节点自动加入集群
+- 任务自动分发到新节点
+- 可以随时添加更多节点
+
+**配置说明**:
+- `AKKA_HOST`: 当前节点的IP地址
+- `AKKA_PORT`: 当前节点的端口(默认2551)
+- `AKKA_SEED_NODES`: 第一个节点的地址(仅新节点需要)
 
 #### 5.5.1 运行时动态添加Worker节点
 
@@ -1385,85 +1430,20 @@ Seed Nodes(种子节点)不是集群中唯一可以存在的节点,它们的作�
 
 **场景**: TIS运行期间,任务积压严重,需要临时增加3个Worker节点提高吞吐率
 
-**步骤1: 准备新Worker节点配置**
+**步骤1: 启动新Worker节点**
 
-创建专用的Worker配置文件 `application-worker.conf`:
-
-```hocon
-# 新Worker节点专用配置
-tis.dag {
-  cluster.enabled = true
-
-  cluster {
-    # 使用与现有集群相同的seed nodes配置
-    seed-nodes = [
-      "akka://TIS-DAG-Cluster@tis-node-1:2551",
-      "akka://TIS-DAG-Cluster@tis-node-2:2551",
-      "akka://TIS-DAG-Cluster@tis-node-3:2551"
-    ]
-    # 标记为worker角色
-    roles = ["worker"]
-  }
-
-  actor {
-    worker-pool-size = 10
-    task-timeout = 3600000
-  }
-}
-
-akka {
-  actor {
-    provider = "cluster"
-
-    serializers {
-      kryo = "io.altoo.akka.serialization.kryo.KryoSerializer"
-    }
-
-    serialization-bindings {
-      "com.qlangtech.tis.dag.message.TaskMessage" = kryo
-    }
-  }
-
-  remote.artery {
-    # 新节点的地址(通过环境变量注入)
-    canonical.hostname = ${AKKA_HOST}
-    canonical.port = ${AKKA_PORT}
-  }
-
-  cluster {
-    seed-nodes = ${tis.dag.cluster.seed-nodes}
-    roles = ${tis.dag.cluster.roles}
-
-    # 种子节点连接超时
-    seed-node-timeout = 5s
-
-    # 允许弱连接成员快速加入(加快扩容速度)
-    allow-weakly-up-members = on
-
-    # 故障检测(适当放宽,避免误判)
-    failure-detector {
-      threshold = 12.0
-      acceptable-heartbeat-pause = 5s
-      heartbeat-interval = 1s
-    }
-  }
-}
-```
-
-**步骤2: 启动新Worker节点**
+使用统一配置,通过环境变量指定seed node:
 
 ```bash
-# 在新服务器上启动TIS(Worker模式)
+# 在新服务器上启动TIS Worker节点
 export AKKA_HOST=192.168.1.100  # 新节点IP
 export AKKA_PORT=2551
+export AKKA_SEED_NODES="akka://TIS-DAG-Cluster@192.168.1.10:2551"
 
-java -jar \
-  -Dconfig.file=application-worker.conf \
-  -Xmx4g \
-  tis-web-start.jar
+java -jar -Xmx4g tis-web-start.jar
 ```
 
-**步骤3: 自动加入流程**
+**步骤2: 自动加入流程**
 
 ```
 新Worker节点启动
@@ -1472,16 +1452,13 @@ java -jar \
 读取seed-nodes配置
     │
     ▼
-尝试连接任意一个seed node
-    │
-    ▼
-通过seed node获取当前集群成员列表
+尝试连接seed node
     │
     ▼
 发送Join消息到集群
     │
     ▼
-Seed nodes验证并接受加入请求
+Seed node验证并接受加入请求
     │
     ▼
 集群广播MemberUp事件
@@ -1496,7 +1473,7 @@ ClusterRouterPool自动将新节点纳入路由
 新Worker开始接收任务分发
 ```
 
-**步骤4: 验证节点加入成功**
+**步骤3: 验证节点加入成功**
 
 ```bash
 # 查询集群状态
@@ -1557,10 +1534,10 @@ public class DAGActorSystemManager {
     private Cluster cluster;
 
     /**
-     * 初始化集群模式
+     * 初始化集群
      */
     public void initClusterMode() {
-        Config config = ConfigFactory.load("application-cluster.conf");
+        Config config = ConfigFactory.load();
         system = ActorSystem.create("TIS-DAG-Cluster", config);
         cluster = Cluster.get(system);
 
@@ -2170,6 +2147,233 @@ systemctl restart tis-worker
   - 使用Kubernetes Deployment管理Worker Nodes
   - 配置resource limits防止资源竞争
 ```
+
+### 5.6 部署指南
+
+#### 5.6.1 单机部署
+
+**场景**: 开发环境或小规模生产环境
+
+**步骤**:
+1. 部署TIS到服务器
+2. 使用默认配置启动:
+   ```bash
+   java -jar tis-web-start.jar
+   ```
+3. 系统自动形成单节点集群
+
+**特点**:
+- 无需配置seed-nodes
+- 所有任务在本地执行
+- 适合任务量较小的场景
+
+#### 5.6.2 多节点部署
+
+**场景**: 生产环境,需要高可用和高吞吐
+
+**步骤**:
+
+1. **部署第一个节点(Seed Node)**:
+   ```bash
+   # 在192.168.1.10上
+   java -DAKKA_HOST=192.168.1.10 \
+        -DAKKA_PORT=2551 \
+        -jar tis-web-start.jar
+   ```
+
+2. **部署第二个节点**:
+   ```bash
+   # 在192.168.1.11上
+   java -DAKKA_HOST=192.168.1.11 \
+        -DAKKA_PORT=2551 \
+        -DAKKA_SEED_NODES="akka://TIS-DAG-Cluster@192.168.1.10:2551" \
+        -jar tis-web-start.jar
+   ```
+
+3. **部署第三个节点**:
+   ```bash
+   # 在192.168.1.12上
+   java -DAKKA_HOST=192.168.1.12 \
+        -DAKKA_PORT=2551 \
+        -DAKKA_SEED_NODES="akka://TIS-DAG-Cluster@192.168.1.10:2551" \
+        -jar tis-web-start.jar
+   ```
+
+**建议**:
+- 生产环境至少部署3个节点
+- 第一个节点应该是稳定的长期运行节点
+- 所有新节点的seed-nodes都指向第一个节点
+
+#### 5.6.3 使用启动脚本
+
+创建统一的启动脚本 `start-tis-node.sh`:
+
+```bash
+#!/bin/bash
+
+# TIS节点启动脚本
+# 用法:
+#   单节点: ./start-tis-node.sh
+#   多节点: ./start-tis-node.sh <seed-node-address>
+
+AKKA_HOST=${AKKA_HOST:-$(hostname -i)}
+AKKA_PORT=${AKKA_PORT:-2551}
+
+if [ -n "$1" ]; then
+    # 多节点: 指定了seed node
+    export AKKA_SEED_NODES="$1"
+    echo "Starting TIS node in cluster mode..."
+    echo "  Host: $AKKA_HOST:$AKKA_PORT"
+    echo "  Seed: $AKKA_SEED_NODES"
+else
+    # 单节点: 自己作为seed node
+    echo "Starting TIS node in standalone mode..."
+    echo "  Host: $AKKA_HOST:$AKKA_PORT"
+fi
+
+java -DAKKA_HOST=$AKKA_HOST \
+     -DAKKA_PORT=$AKKA_PORT \
+     -Xmx4g \
+     -jar tis-web-start.jar
+```
+
+**使用示例**:
+
+```bash
+# 第一个节点(单机或集群的seed node)
+./start-tis-node.sh
+
+# 后续节点
+./start-tis-node.sh "akka://TIS-DAG-Cluster@192.168.1.10:2551"
+```
+
+#### 5.6.4 Docker部署
+
+**Dockerfile**:
+```dockerfile
+FROM openjdk:11-jre-slim
+
+WORKDIR /app
+COPY tis-web-start.jar /app/
+
+ENV AKKA_HOST=0.0.0.0
+ENV AKKA_PORT=2551
+
+EXPOSE 8080 2551
+
+ENTRYPOINT ["java", "-jar", "tis-web-start.jar"]
+```
+
+**Docker Compose部署**:
+
+```yaml
+version: '3.8'
+
+services:
+  tis-node-1:
+    build: .
+    hostname: tis-node-1
+    environment:
+      - AKKA_HOST=tis-node-1
+      - AKKA_PORT=2551
+    ports:
+      - "8080:8080"
+      - "2551:2551"
+    networks:
+      - tis-cluster
+
+  tis-node-2:
+    build: .
+    hostname: tis-node-2
+    environment:
+      - AKKA_HOST=tis-node-2
+      - AKKA_PORT=2551
+      - AKKA_SEED_NODES=akka://TIS-DAG-Cluster@tis-node-1:2551
+    networks:
+      - tis-cluster
+    depends_on:
+      - tis-node-1
+
+  tis-node-3:
+    build: .
+    hostname: tis-node-3
+    environment:
+      - AKKA_HOST=tis-node-3
+      - AKKA_PORT=2551
+      - AKKA_SEED_NODES=akka://TIS-DAG-Cluster@tis-node-1:2551
+    networks:
+      - tis-cluster
+    depends_on:
+      - tis-node-1
+
+networks:
+  tis-cluster:
+    driver: bridge
+```
+
+**启动集群**:
+```bash
+docker-compose up -d
+```
+
+#### 5.6.5 Kubernetes部署
+
+**StatefulSet配置**:
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tis-dag-cluster
+spec:
+  serviceName: tis-dag
+  replicas: 3
+  selector:
+    matchLabels:
+      app: tis-dag
+  template:
+    metadata:
+      labels:
+        app: tis-dag
+    spec:
+      containers:
+      - name: tis
+        image: tis-dag:latest
+        env:
+        - name: AKKA_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: AKKA_PORT
+          value: "2551"
+        - name: AKKA_SEED_NODES
+          value: "akka://TIS-DAG-Cluster@tis-dag-cluster-0.tis-dag:2551"
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 2551
+          name: akka-remote
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tis-dag
+spec:
+  clusterIP: None
+  selector:
+    app: tis-dag
+  ports:
+  - port: 2551
+    name: akka-remote
+  - port: 8080
+    name: http
+```
+
+**特点**:
+- 使用StatefulSet保证稳定的网络标识
+- 第一个Pod (tis-dag-cluster-0) 作为seed node
+- 其他Pod自动连接到seed node
+- 支持动态扩缩容
 
 ## 六、PowerJob核心类集成
 
@@ -3161,7 +3365,7 @@ useEffect(() => {
 
 **任务清单**:
 1. ✅ 提取PowerJob核心类到TIS项目
-2. ✅ 创建Akka配置文件(单机/集群)
+2. ✅ 创建Akka统一集群配置文件
 3. ✅ 实现DAGActorSystemManager
 4. ✅ 实现DAGSchedulerActor(基础版)
 5. ✅ 实现NodeDispatcherActor
@@ -3223,16 +3427,16 @@ useEffect(() => {
 - 前端可视化DAG拓扑图
 - 实时显示等待队列和执行队列
 
-#### **第五阶段: 集群模式和故障恢复 (2周)**
+#### **第五阶段: 集群扩展和故障恢复 (2周)**
 
-**目标**: 实现集群模式和高可用
+**目标**: 实现集群扩展和高可用
 
 **任务清单**:
 1. ✅ 实现ClusterManagerActor
 2. ✅ 配置ClusterRouterPool
 3. ✅ 实现节点故障检测
 4. ✅ 实现任务自动恢复
-5. ✅ 集群模式压测
+5. ✅ 集群扩展压测
 6. ✅ 故障演练测试
 
 **交付物**:
@@ -3264,7 +3468,7 @@ Week 1-2  : 第一阶段 - Akka执行层框架
 Week 3    : 第二阶段 - 持久化集成
 Week 4    : 第三阶段 - 定时调度
 Week 5-6  : 第四阶段 - 监控可视化
-Week 7-8  : 第五阶段 - 集群模式
+Week 7-8  : 第五阶段 - 集群扩展
 Week 9-10 : 第六阶段 - 灰度上线
 
 总计: 10周 (约2.5个月)
@@ -3277,7 +3481,7 @@ Week 9-10 : 第六阶段 - 灰度上线
 | Akka学习曲线陡峭 | 中 | 中 | 提前学习,参考官方文档和示例 |
 | PowerJob类集成不兼容 | 低 | 高 | 充分测试,必要时修改源码 |
 | 现有任务迁移复杂 | 中 | 中 | 编写自动迁移脚本,分批迁移 |
-| 集群模式稳定性问题 | 中 | 高 | 充分压测,灰度上线 |
+| 集群扩展稳定性问题 | 中 | 高 | 充分压测,灰度上线 |
 | 性能不达预期 | 低 | 中 | 性能监控,及时优化 |
 
 ### 9.4 依赖管理

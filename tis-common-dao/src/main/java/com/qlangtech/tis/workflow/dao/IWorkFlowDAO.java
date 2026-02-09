@@ -54,4 +54,12 @@ public interface IWorkFlowDAO {
     int updateByExample(WorkFlow record, WorkFlowCriteria example);
 
     WorkFlow loadFromWriteDB(Integer id);
+
+    /**
+     * 查询所有启用定时调度的工作流
+     * 用于定时调度器启动时加载所有需要调度的工作流
+     *
+     * @return 启用定时调度的工作流列表
+     */
+    List<WorkFlow> selectScheduledWorkflows();
 }

@@ -37,9 +37,6 @@ import java.util.function.BiFunction;
  **/
 public interface IDataXBatchPost {
 
-    String KEY_POST = "post_";
-    String KEY_PREP = "prep_";
-
     /**
      * @param appSource
      * @param entry
@@ -47,36 +44,25 @@ public interface IDataXBatchPost {
      * @return preExec = null;
      * *             IRemoteTaskPostTrigger postTaskTrigger
      */
-    static Pair<IRemoteTaskPreviousTrigger, IRemoteTaskPostTrigger> process(IDataxProcessor appSource, ISelectedTab entry
-            , BiFunction<IDataXBatchPost, EntityName, Pair<IRemoteTaskPreviousTrigger, IRemoteTaskPostTrigger>> consumer) {
+    static Pair<IRemoteTaskPreviousTrigger, IRemoteTaskPostTrigger> process(IDataxProcessor appSource,
+                                                                            ISelectedTab entry,
+                                                                            BiFunction<IDataXBatchPost, EntityName,
+                                                                                    Pair<IRemoteTaskPreviousTrigger,
+                                                                                            IRemoteTaskPostTrigger>> consumer) {
         if (entry == null) {
             throw new IllegalArgumentException("param entry can not be null");
         }
-        IDataxWriter writer = Objects.requireNonNull(
-                appSource, "appSource can not be null").getWriter(null, true);
+        IDataxWriter writer = Objects.requireNonNull(appSource, "appSource can not be null").getWriter(null, true);
         //execChainContext.getString()
         if (writer instanceof IDataXBatchPost) {
 
             IDataXBatchPost batchPostTask = (IDataXBatchPost) writer;
             final EntityName entryName = batchPostTask.parseEntity(entry);// EntityName.parse(entry.getName());
-            return Objects.requireNonNull(consumer, "consumer can not be null")
-                    .apply(batchPostTask, Objects.requireNonNull(entryName, "entryName can not be null"));
+            return Objects.requireNonNull(consumer, "consumer can not be null").apply(batchPostTask,
+                    Objects.requireNonNull(entryName, "entryName can not be null"));
         }
 
         return Pair.of(null, null);
-    }
-
-    public enum LifeCycleHook {
-        Prep(KEY_PREP), Post(KEY_POST);
-        private final String token;
-
-        private LifeCycleHook(String token) {
-            this.token = token;
-        }
-
-        public String getToken() {
-            return this.token;
-        }
     }
 
     public EntityName parseEntity(ISelectedTab tab);
@@ -89,7 +75,7 @@ public interface IDataXBatchPost {
     ExecutePhaseRange getPhaseRange();
 
     public static String getPreExecuteTaskName(EntityName tab) {
-        return KEY_PREP + tab.getTabName();
+        return LifeCycleHook.Prep.getToken() + tab.getTabName();
     }
 
     /**
@@ -99,7 +85,8 @@ public interface IDataXBatchPost {
      * @param tab
      * @return
      */
-    public IRemoteTaskPreviousTrigger createPreExecuteTask(IExecChainContext execContext, EntityName entity, ISelectedTab tab);
+    public IRemoteTaskPreviousTrigger createPreExecuteTask(IExecChainContext execContext, EntityName entity,
+                                                           ISelectedTab tab);
 
     /**
      * 在dump任务之后执行，例如：将dump到hdfs上的数据同步到数据湖中去
@@ -108,6 +95,7 @@ public interface IDataXBatchPost {
      * @param tab
      * @return
      */
-    public IRemoteTaskPostTrigger createPostTask(IExecChainContext execContext, EntityName entity, ISelectedTab tab, IDataXGenerateCfgs cfgFileNames);
+    public IRemoteTaskPostTrigger createPostTask(IExecChainContext execContext, EntityName entity, ISelectedTab tab,
+                                                 IDataXGenerateCfgs cfgFileNames);
 
 }

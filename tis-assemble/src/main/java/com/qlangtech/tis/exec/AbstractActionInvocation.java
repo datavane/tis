@@ -62,8 +62,8 @@ public class AbstractActionInvocation implements ActionInvocation {
         } else {
             throw new UnsupportedOperationException();
         }
-        Integer taskid = chainContext.getTaskId();
-        TrackableExecuteInterceptor.initialTaskPhase(taskid);
+//        Integer taskid = chainContext.getTaskId();
+//        TrackableExecuteInterceptor.initialTaskPhase(taskid);
         return createInvocation(chainContext, ints);
     }
 

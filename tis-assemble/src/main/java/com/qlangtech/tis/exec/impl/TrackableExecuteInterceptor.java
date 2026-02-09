@@ -114,15 +114,15 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
     @Override
     public final ExecuteResult intercept(ActionInvocation invocation) throws Exception {
         IExecChainContext execChainContext = invocation.getContext();
-        int taskid = execChainContext.getTaskId();
-        log.info("phase:" + FullbuildPhase.desc(this.getPhase()) + " start ,taskid:" + taskid);
+        //int taskid = execChainContext.getTaskId();
+       // log.info("phase:" + FullbuildPhase.desc(this.getPhase()) + " start ,taskid:" + );
         // 开始执行一个新的phase需要通知console
         // final int phaseId = createNewPhase(taskid, FullbuildPhase.getFirst(this.getPhase()));
         ExecuteResult result = null;
         try {
             result = this.execute(execChainContext);
             if (!result.isSuccess()) {
-                log.error("taskid:" + taskid + ",phase:" + FullbuildPhase.desc(this.getPhase()) + " faild,reason:" + result.getMessage());
+                log.error( "phase:" + FullbuildPhase.desc(this.getPhase()) + " faild,reason:" + result.getMessage());
             }
         } catch (Exception e) {
             // }

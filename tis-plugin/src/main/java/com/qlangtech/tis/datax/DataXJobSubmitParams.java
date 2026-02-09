@@ -32,6 +32,7 @@ import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,14 +47,15 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
     private static final String LOCAL_DATAX_SUBMIT_PARAMS = "DataXSubmitParams";
     private static final String FIELD_NAME = "name";
 
-    @FormField(ordinal = 0, identity = true, type = FormFieldType.INPUTTEXT, validate = {Validator.require, Validator.identity})
+    @FormField(ordinal = 0, identity = true, type = FormFieldType.INPUTTEXT, validate = {Validator.require,
+            Validator.identity})
     public String name;
 
-    /**
-     * 一个数据管道中最多的任务
-     */
-    @FormField(ordinal = 1, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
-    public Integer maxJobs;
+//    /**
+//     * 一个数据管道中最多的任务
+//     */
+//    @FormField(ordinal = 1, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
+//    public Integer maxJobs;
 
     /**
      * 单个管道中的并行度,需要满足： pipelineParallelism <= vmParallelism
@@ -69,11 +71,15 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
     /**
      * 最大执行任务时间，如果超过需要主动将任务关闭甚至Kill掉
      */
-    @FormField(ordinal = 4, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
-    public Integer taskExpireHours;
+    @FormField(ordinal = 4, type = FormFieldType.DURATION_OF_HOUR, validate = {Validator.require, Validator.integer})
+    public Duration taskExpireHours;
 
     @FormField(ordinal = 5, validate = {Validator.require})
     public MemorySpecification memorySpec;
+
+    public Duration getTaskExpireHours() {
+        return taskExpireHours;
+    }
 
     /**
      * 取得内存规格参数
@@ -82,10 +88,11 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
      */
     public String getJavaMemorySpec() {
         return Objects.requireNonNull(memorySpec).getJavaMemorySpec();
-//        ReplicasSpec replicSpec = new ReplicasSpec();
-//        replicSpec.setMemoryLimit(Specification.parse(this.memoryLimit + Specification.MEMORY_UNIT_MEGABYTE));
-//        replicSpec.setMemoryRequest(Specification.parse(this.memoryRequest + Specification.MEMORY_UNIT_MEGABYTE));
-//        return replicSpec.toJavaMemorySpec(Optional.empty());
+        //        ReplicasSpec replicSpec = new ReplicasSpec();
+        //        replicSpec.setMemoryLimit(Specification.parse(this.memoryLimit + Specification.MEMORY_UNIT_MEGABYTE));
+        //        replicSpec.setMemoryRequest(Specification.parse(this.memoryRequest + Specification
+        //        .MEMORY_UNIT_MEGABYTE));
+        //        return replicSpec.toJavaMemorySpec(Optional.empty());
     }
 
     private transient ArrayBlockingQueue<Long> availableAreaController;
@@ -102,8 +109,8 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
         this.availableAreaController = null;
     }
 
-    public final void execParallelTask(String dataxName, ParallelTaskRunnable runnable)
-            throws IOException, InterruptedException, DataXJobSingleProcessorException {
+    public final void execParallelTask(String dataxName, ParallelTaskRunnable runnable) throws IOException,
+            InterruptedException, DataXJobSingleProcessorException {
         ArrayBlockingQueue<Long> parallelismController = this.getAvailableAreaController();
         Objects.requireNonNull(parallelismController);
         if (parallelismController.offer(System.currentTimeMillis(), 1, TimeUnit.HOURS)) {
@@ -114,8 +121,8 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
             }
         } else {
             // 等待提交任务超时
-            throw new DataXJobSingleProcessorException("dataX:" + dataxName + ",job submit timeout,wait "
-                    + "for 1 hours");
+            throw new DataXJobSingleProcessorException("dataX:" + dataxName + ",job submit timeout,wait " + "for 1 "
+                    + "hours");
         }
     }
 
@@ -127,8 +134,7 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
 
 
     public interface ParallelTaskRunnable {
-        void run() throws IOException,
-                InterruptedException, DataXJobSingleProcessorException;
+        void run() throws IOException, InterruptedException, DataXJobSingleProcessorException;
     }
 
     public static DataXJobSubmitParams getDftIfEmpty() {
@@ -136,19 +142,15 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
             DataXJobSubmitParams dft = new DataXJobSubmitParams() {
             };
             dft.name = "default";
-            dft.maxJobs = DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB;
+           // dft.maxJobs = DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB;
             dft.vmParallelism = DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
             dft.pipelineParallelism = DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
             dft.memorySpec = new DefaultMemorySpecification();
-            dft.taskExpireHours = 10;
-//            dft.memoryLimit = MEMORY_REQUEST_DEFAULT;
-//            dft.memoryRequest = MEMORY_REQUEST_DEFAULT;
+            dft.taskExpireHours = Duration.ofHours(10);
+            //            dft.memoryLimit = MEMORY_REQUEST_DEFAULT;
+            //            dft.memoryRequest = MEMORY_REQUEST_DEFAULT;
             return dft;
         });
-    }
-
-    public static Integer dftMaxJobs() {
-        return DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB;
     }
 
     public static Integer dftParallelism() {
@@ -195,7 +197,8 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
         private static final String FIELD_VM_PARALLELISM = "vmParallelism";
 
 
-        public boolean validateTaskExpireHours(IFieldErrorHandler msgHandler, Context context, String fieldName, String value) {
+        public boolean validateTaskExpireHours(IFieldErrorHandler msgHandler, Context context, String fieldName,
+                                               String value) {
             Integer hours = Integer.parseInt(value);
             if (hours < 1) {
                 msgHandler.addFieldError(context, fieldName, "不能小于1");
@@ -222,31 +225,37 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
             }
             boolean validateFaild = false;
 
-            if (submitParams.maxJobs < DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB) {
-                msgHandler.addFieldError(context, "maxJobs", "不能小于" + DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB);
-                validateFaild = true;
-            }
-//            if (submitParams.memoryLimit < MemorySpecification.MEMORY_REQUEST_DEFAULT) {
-//                msgHandler.addFieldError(context, MemorySpecification.FIELD_MEMORY_LIMIT, "不能小于" + MemorySpecification.MEMORY_REQUEST_DEFAULT);
+//            if (submitParams.maxJobs < DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB) {
+//                msgHandler.addFieldError(context, "maxJobs", "不能小于" + DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB);
 //                validateFaild = true;
 //            }
-//            if (submitParams.memoryRequest < MemorySpecification.MEMORY_REQUEST_DEFAULT) {
-//                msgHandler.addFieldError(context, MemorySpecification.FIELD_MEMORY_REQUEST, "不能小于" + MemorySpecification.MEMORY_REQUEST_DEFAULT);
-//                validateFaild = true;
-//            }
-//            if (!validateFaild && (submitParams.memoryLimit < submitParams.memoryRequest)) {
-//                msgHandler.addFieldError(context, MemorySpecification.FIELD_MEMORY_REQUEST, "不能小于" + submitParams.memoryLimit);
-//                msgHandler.addFieldError(context, MemorySpecification.FIELD_MEMORY_LIMIT, "不能大于" + submitParams.memoryRequest);
-//                validateFaild = true;
-//            }
+            //            if (submitParams.memoryLimit < MemorySpecification.MEMORY_REQUEST_DEFAULT) {
+            //                msgHandler.addFieldError(context, MemorySpecification.FIELD_MEMORY_LIMIT, "不能小于" +
+            //                MemorySpecification.MEMORY_REQUEST_DEFAULT);
+            //                validateFaild = true;
+            //            }
+            //            if (submitParams.memoryRequest < MemorySpecification.MEMORY_REQUEST_DEFAULT) {
+            //                msgHandler.addFieldError(context, MemorySpecification.FIELD_MEMORY_REQUEST, "不能小于" +
+            //                MemorySpecification.MEMORY_REQUEST_DEFAULT);
+            //                validateFaild = true;
+            //            }
+            //            if (!validateFaild && (submitParams.memoryLimit < submitParams.memoryRequest)) {
+            //                msgHandler.addFieldError(context, MemorySpecification.FIELD_MEMORY_REQUEST, "不能小于" +
+            //                submitParams.memoryLimit);
+            //                msgHandler.addFieldError(context, MemorySpecification.FIELD_MEMORY_LIMIT, "不能大于" +
+            //                submitParams.memoryRequest);
+            //                validateFaild = true;
+            //            }
             //parallelism====================================
             if (submitParams.pipelineParallelism < DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM) {
-                msgHandler.addFieldError(context, FIELD_PIPELINE_PARALLELISM, "不能小于" + DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM);
+                msgHandler.addFieldError(context, FIELD_PIPELINE_PARALLELISM,
+                        "不能小于" + DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM);
                 validateFaild = true;
             }
 
             if (submitParams.vmParallelism < DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM) {
-                msgHandler.addFieldError(context, FIELD_VM_PARALLELISM, "不能小于" + DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM);
+                msgHandler.addFieldError(context, FIELD_VM_PARALLELISM,
+                        "不能小于" + DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM);
                 validateFaild = true;
             }
 

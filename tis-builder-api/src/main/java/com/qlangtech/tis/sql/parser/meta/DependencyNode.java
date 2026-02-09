@@ -17,12 +17,8 @@
  */
 package com.qlangtech.tis.sql.parser.meta;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.lang.StringUtils;
-
-import java.util.List;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

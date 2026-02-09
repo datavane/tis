@@ -32,6 +32,7 @@ import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.TransformerInfo;
 import com.qlangtech.tis.exec.IExecChainContext;
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteDumpTaskTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.datax.StoreResourceType;
@@ -85,8 +86,8 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
         return dataxReader;
     }
 
-    protected IRemoteTaskTrigger mockDataXExecTaskTrigger() {
-        IRemoteTaskTrigger jobTrigger = mock("remoteJobTrigger", IRemoteTaskTrigger.class);
+    protected IRemoteDumpTaskTrigger mockDataXExecTaskTrigger() {
+        IRemoteDumpTaskTrigger jobTrigger = mock("remoteJobTrigger", IRemoteDumpTaskTrigger.class);
         EasyMock.expect(jobTrigger.getTaskName()).andReturn(dataCfgFileName).anyTimes();
 
         //
@@ -99,7 +100,7 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
 
     protected IExecChainContext mockExecChainContext(IDataxProcessor dataxProcessor) {
         IExecChainContext execChainContext = mock("execChainContext", IExecChainContext.class);
-        execChainContext.rebindLoggingMDCParams();
+       // execChainContext.rebindLoggingMDCParams();
         EasyMock.expectLastCall().anyTimes();
         EasyMock.expect(execChainContext.getPartitionTimestampWithMillis()).andReturn(TimeFormat.getCurrentTimeStamp()).anyTimes();
         EasyMock.expect(execChainContext.hasIndexName()).andReturn(true).anyTimes();

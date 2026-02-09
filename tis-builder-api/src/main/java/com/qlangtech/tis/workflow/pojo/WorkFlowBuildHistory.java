@@ -71,6 +71,21 @@ public class WorkFlowBuildHistory implements Serializable, IBuildHistory {
 
     private Date opTime;
 
+    /**
+     * DAG 运行时状态 JSON，包含所有节点执行状态
+     */
+    private String dagRuntime;
+
+    /**
+     * 工作流上下文，节点间数据共享
+     */
+    private String wfContext;
+
+    /**
+     * 实例状态：WAITING/RUNNING/SUCCEED/FAILED/STOPPED
+     */
+    private String instanceStatus;
+
     private static final long serialVersionUID = 1L;
 
     @Override
@@ -229,5 +244,29 @@ public class WorkFlowBuildHistory implements Serializable, IBuildHistory {
 
     public void setEndPhase(Integer endPhase) {
         this.endPhase = endPhase;
+    }
+
+    public String getDagRuntime() {
+        return dagRuntime;
+    }
+
+    public void setDagRuntime(String dagRuntime) {
+        this.dagRuntime = dagRuntime;
+    }
+
+    public String getWfContext() {
+        return wfContext;
+    }
+
+    public void setWfContext(String wfContext) {
+        this.wfContext = wfContext;
+    }
+
+    public String getInstanceStatus() {
+        return instanceStatus;
+    }
+
+    public void setInstanceStatus(String instanceStatus) {
+        this.instanceStatus = instanceStatus == null ? null : instanceStatus.trim();
     }
 }

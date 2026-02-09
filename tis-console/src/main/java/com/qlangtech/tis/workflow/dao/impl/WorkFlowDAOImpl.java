@@ -115,7 +115,25 @@ public class WorkFlowDAOImpl extends BasicDAO<WorkFlow, WorkFlowCriteria> implem
         return record;
     }
 
-    private static class UpdateByExampleParms extends WorkFlowCriteria {
+    /**
+     * 查询所有启用定时调度的工作流
+     *
+     * 实现说明：
+     * 1. 调用 MyBatis 映射文件中的 selectScheduledWorkflows 方法
+     * 2. 查询 enable_schedule = 1 且 schedule_cron 不为空的工作流
+     * 3. 用于定时调度器启动时加载所有需要调度的工作流
+     *
+     * 伪代码：
+     * return this.list("work_flow.selectScheduledWorkflows", null);
+     */
+    @Override
+    public List<WorkFlow> selectScheduledWorkflows() {
+        // TODO: 实现查询启用定时调度的工作流
+        // 调用 MyBatis 映射文件中的 selectScheduledWorkflows
+        return List.of();
+    }
+
+  private static class UpdateByExampleParms extends WorkFlowCriteria {
 
         private Object record;
 

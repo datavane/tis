@@ -445,8 +445,8 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
 //            String pt = format.format(new Date());
 //            chainContext.setPs(pt);
 //        }
-        chainContext.setMdcParamContext(() -> {
-        });
+//        chainContext.setMdcParamContext(() -> {
+//        });
         return chainContext;
     }
 

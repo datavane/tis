@@ -25,6 +25,7 @@ import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.exec.IExecChainContext;
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteDumpTaskTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncherWithDataXTrigger;
@@ -82,7 +83,7 @@ public class TestDataXExecuteInterceptorForMethodBuildTaskTriggers extends Basic
         EasyMock.expect(chainContext.getAttribute(EasyMock.eq(DataXJobSubmit.KEY_DATAX_READERS), EasyMock.anyObject()))
                 .andReturn(Lists.newArrayList(dataXReader));
 
-        IRemoteTaskTrigger dumpTrigger = this.mockDataXExecTaskTrigger();
+        IRemoteDumpTaskTrigger dumpTrigger = this.mockDataXExecTaskTrigger();
 
         DataXJobSubmit submit = new TestIndexSwapTaskflowLauncherWithDataXTrigger.MockDataXJobSubmit(dumpTrigger);
         AtomicReference<ITISRpcService> ref = new AtomicReference<>();
@@ -96,7 +97,7 @@ public class TestDataXExecuteInterceptorForMethodBuildTaskTriggers extends Basic
         DAGSessionSpec dagSessionSpec = new DAGSessionSpec();
         replay();
 
-        RemoteTaskTriggers triggers = new RemoteTaskTriggers(null);
+        RemoteTaskTriggers triggers = new RemoteTaskTriggers();
         chainContext.setTskTriggers(triggers);
         DataXCfgGenerator.GenerateCfgs generateCfgs = dataXProcessor.getDataxCfgFileNames(null, Optional.empty());
         DAGSessionSpec.buildTaskTriggers(chainContext, dataXProcessor, submit, statusRpc, tab, tab.getName(), dagSessionSpec, generateCfgs);

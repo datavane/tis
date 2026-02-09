@@ -50,4 +50,30 @@ public interface IWorkFlowBuildHistoryDAO {
     int updateByExample(WorkFlowBuildHistory record, WorkFlowBuildHistoryCriteria example);
 
     WorkFlowBuildHistory loadFromWriteDB(Integer id);
+
+    /**
+     * 从写库加载工作流实例（加行锁）
+     * 用于并发控制，防止多个线程同时修改同一个工作流实例
+     *
+     * @param id 工作流实例 ID
+     * @return 工作流实例
+     */
+    WorkFlowBuildHistory loadFromWriteDBWithLock(Integer id);
+
+    /**
+     * 查询卡住的工作流实例
+     * 用于故障恢复，查找长时间处于 RUNNING 状态的实例
+     *
+     * @param timeoutMinutes 超时时间（分钟）
+     * @return 卡住的工作流实例列表
+     */
+    List<WorkFlowBuildHistory> selectStuckInstances(int timeoutMinutes);
+
+    /**
+     * 更新工作流实例状态
+     *
+     * @param record 工作流实例
+     * @return 更新行数
+     */
+    int updateByPrimaryKeySelective(WorkFlowBuildHistory record);
 }

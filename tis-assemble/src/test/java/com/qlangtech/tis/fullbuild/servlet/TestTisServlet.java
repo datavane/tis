@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.fullbuild.servlet;
 
@@ -25,6 +25,8 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
 
+import java.io.File;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-06 15:39
@@ -35,12 +37,13 @@ public class TestTisServlet extends TestCase {
      */
     public void testCreateNewTask() {
 
-        HttpUtils.addMockApply(0, "do_create_new_task"
-                , "create_new_task_single_table_index_build_response.json", TestTisServlet.class);
+        HttpUtils.addMockApply(0, "do_create_new_task", "create_new_task_single_table_index_build_response.json",
+                TestTisServlet.class);
 
         String collectionName = "search4employee4local";
         Integer taskid = 800;
         String historyId = "666";
+        File dagSpecPath = new File("/opt/data/tis/cfg_repo/tis_plugin_config/ap/mysql_mysql/dag-spec.json");
         TisServlet tisServlet = new TisServlet();
         IExecChainContext execChainContext = EasyMock.createMock("execChainContext", IExecChainContext.class);
 
@@ -51,7 +54,7 @@ public class TestTisServlet extends TestCase {
         EasyMock.expect(execChainContext.getIndexName()).andReturn(collectionName);
         EasyMock.expect(execChainContext.getString(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID)).andReturn(historyId);
         EasyMock.replay(execChainContext);
-        Integer newTask = IExecChainContext.createNewTask(execChainContext);
+        Integer newTask = IExecChainContext.createNewTask(execChainContext, dagSpecPath);
         assertEquals(taskid, newTask);
 
         EasyMock.verify(execChainContext);

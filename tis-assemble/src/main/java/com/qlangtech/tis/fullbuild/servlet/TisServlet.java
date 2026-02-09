@@ -58,7 +58,9 @@ import java.util.concurrent.*;
  * tableJoin&ps=20160622110738'<br>
  * curl 'http://localhost:8080/trigger?component.start=indexBackflow&ps=
  * 20160623001000&appname=search4_fat_instance' <br>
- * curl 'http://localhost:8080/tis-assemble/trigger?component.start=indexBuild&ps=20200525134425&appname=search4totalpay&workflow_id=45&workflow_name=totalpay&index_shard_count=1&history.task.id=1'
+ * curl 'http://localhost:8080/tis-assemble/trigger?component
+ * .start=indexBuild&ps=20200525134425&appname=search4totalpay&workflow_id=45&workflow_name=totalpay
+ * &index_shard_count=1&history.task.id=1'
  * <br>
  *
  * @author 百岁（baisui@qlangtech.com）
@@ -75,30 +77,31 @@ public class TisServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        this.indexSwapTaskflowLauncher = IndexSwapTaskflowLauncher.getIndexSwapTaskflowLauncher(config.getServletContext());
-//        ComponentMeta assembleComponent = TIS.getAssembleComponent();
-//        assembleComponent.synchronizePluginsFromRemoteRepository();
+        this.indexSwapTaskflowLauncher =
+                IndexSwapTaskflowLauncher.getIndexSwapTaskflowLauncher(config.getServletContext());
+        //        ComponentMeta assembleComponent = TIS.getAssembleComponent();
+        //        assembleComponent.synchronizePluginsFromRemoteRepository();
         logger.info("synchronize Plugins FromRemoteRepository success");
     }
 
-    static final ExecutorService executeService = Executors.newCachedThreadPool(new ThreadFactory() {
-
-        int index = 0;
-
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread t = new Thread(r);
-            t.setName("triggerTask#" + (index++));
-            t.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-
-                @Override
-                public void uncaughtException(Thread t, Throwable e) {
-                    logger.error(e.getMessage(), e);
-                }
-            });
-            return t;
-        }
-    });
+    //    static final ExecutorService executeService = Executors.newCachedThreadPool(new ThreadFactory() {
+    //
+    //        int index = 0;
+    //
+    //        @Override
+    //        public Thread newThread(Runnable r) {
+    //            Thread t = new Thread(r);
+    //            t.setName("triggerTask#" + (index++));
+    //            t.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+    //
+    //                @Override
+    //                public void uncaughtException(Thread t, Throwable e) {
+    //                    logger.error(e.getMessage(), e);
+    //                }
+    //            });
+    //            return t;
+    //        }
+    //    });
 
     static final Map<String, ExecuteLock> idles = new HashMap<String, ExecuteLock>();
 
@@ -179,112 +182,114 @@ public class TisServlet extends HttpServlet {
             }
             final ExecuteLock lock = mdcContext.getExecLock();
             // getLog().info("start to execute index swap work flow");
-            final CountDownLatch countDown = new CountDownLatch(1);
+            //  final CountDownLatch countDown = new CountDownLatch(1);
 
             DefaultChainContext chainContext = new DefaultChainContext(execContext);
-            chainContext.setMdcParamContext(mdcContext);
+            // chainContext.setMdcParamContext(mdcContext);
             chainContext.setAppSourcePipelineController(IncrStatusUmbilicalProtocolImpl.getInstance());
 
-
-            final ExecuteLock.TaskFuture future = new ExecuteLock.TaskFuture(chainContext);
-
-            future.setFuture(executeService.submit(() -> {
-                // MDC.put("app", indexName);
-                getLog().info("index swap start to work");
-                try {
-                    while (true) {
-                        try {
-                            if (lock.lock()) {
-                                final Integer newTaskId = IExecChainContext.createNewTask(chainContext);
-                                future.setTaskId(newTaskId);
-                                try {
-                                    String msg = "trigger task" + mdcContext.getExecLockKey() + " successful";
-                                    getLog().info(msg);
-                                    mdcContext.resetParam(newTaskId);
-                                    writeResult(true, msg, res, new KV(JobCommon.KEY_TASK_ID, String.valueOf(newTaskId)));
-
-                                    countDown.countDown();
-                                    /************************************************************
-                                     * 开始执行内部任务
-                                     ************************************************************/
-                                    ExecResult execResult = startWork(chainContext).isSuccess() ? ExecResult.SUCCESS : ExecResult.FAILD;
-
-                                    TaskSoapUtils.createTaskComplete(newTaskId, chainContext, execResult);
-                                } catch (InterruptedException e) {
-                                    // 说明当前任务被 终止了
-                                    logger.info("taskid:{} has been canceled", newTaskId);
-                                    return;
-                                } catch (Throwable e) {
-                                    TaskSoapUtils.createTaskComplete(newTaskId, chainContext, ExecResult.FAILD);
-                                    getLog().error(e.getMessage(), e);
-                                    throw new RuntimeException(e);
-                                } finally {
-                                    lock.clearLockFutureQueue();
-                                }
-                            } else {
-                                if (lock.isExpire()) {
-                                    getLog().warn("this lock has expire,this lock will cancel");
-                                    // 执行已經超時
-                                    lock.clearLockFutureQueue();
-                                    // while (lock.futureQueue.size() >= 1)
-                                    // {
-                                    // lock.futureQueue.poll().cancel(true);
-                                    // }
-                                    getLog().warn("this lock[" + lock.getTaskOwnerUniqueName() + "] has expire,has unlocked");
-                                    continue;
-                                } else {
-                                    String msg = "pre task[" + lock.getTaskOwnerUniqueName() + "] is executing ,so this commit will be ignore";
-                                    getLog().warn(msg);
-                                    writeResult(false, msg, res);
-                                }
-                                countDown.countDown();
-                            }
-                            // }
-                            break;
-                        } catch (Throwable e) {
-                            getLog().error(e.getMessage(), e);
-                            try {
-                                if (countDown.getCount() > 0) {
-                                    writeResult(false, ExceptionUtils.getMessage(e), res);
-                                }
-                            } catch (Exception e1) {
-                            } finally {
-                                try {
-                                    countDown.countDown();
-                                } catch (Throwable ee) {
-                                }
-                            }
-                            break;
-                        }
-                    }
-                } finally {
-                    mdcContext.removeParam();
-                }
-                // end run
-            }));
-
-            mdcContext.getExecLock().addTaskFuture(future);
-
+            // final Integer newTaskId = 0;// IExecChainContext.createNewTask(chainContext);
+            //future.setTaskId(newTaskId);
             try {
-                countDown.await(30, TimeUnit.SECONDS);
+                String msg = "trigger task" + mdcContext.getExecLockKey() + " successful";
+                getLog().info(msg);
+                // mdcContext.resetParam(newTaskId);
+
+
+                //  countDown.countDown();
+                /************************************************************
+                 * 开始执行内部任务
+                 ************************************************************/
+                ExecResult execResult = startWork(chainContext).isSuccess() ? ExecResult.SUCCESS : ExecResult.FAILD;
+                writeResult(true, msg, res, new KV(JobCommon.KEY_TASK_ID, String.valueOf(chainContext.getTaskId())));
+
             } catch (InterruptedException e) {
+                // 说明当前任务被 终止了
+                //logger.info("taskid:{} has been canceled", newTaskId);
+                return;
+            } catch (Throwable e) {
+                // TaskSoapUtils.createTaskComplete(newTaskId, chainContext, ExecResult.FAILD);
+                getLog().error(e.getMessage(), e);
+                throw new RuntimeException(e);
+            } finally {
+                lock.clearLockFutureQueue();
             }
+
+
+            // final ExecuteLock.TaskFuture future = new ExecuteLock.TaskFuture(chainContext);
+
+            //            future.setFuture(executeService.submit(() -> {
+            //                // MDC.put("app", indexName);
+            //                getLog().info("index swap start to work");
+            //                try {
+            //                    while (true) {
+            //                        try {
+            //                            if (lock.lock())  else {
+            //                                if (lock.isExpire()) {
+            //                                    getLog().warn("this lock has expire,this lock will cancel");
+            //                                    // 执行已經超時
+            //                                    lock.clearLockFutureQueue();
+            //                                    // while (lock.futureQueue.size() >= 1)
+            //                                    // {
+            //                                    // lock.futureQueue.poll().cancel(true);
+            //                                    // }
+            //                                    getLog().warn("this lock[" + lock.getTaskOwnerUniqueName() + "] has
+            //                                    expire,has unlocked");
+            //                                    continue;
+            //                                } else {
+            //                                    String msg = "pre task[" + lock.getTaskOwnerUniqueName() + "] is
+            //                                    executing ,so this commit will be ignore";
+            //                                    getLog().warn(msg);
+            //                                    writeResult(false, msg, res);
+            //                                }
+            //                              //  countDown.countDown();
+            //                            }
+            //                            // }
+            //                            break;
+            //                        } catch (Throwable e) {
+            //                            getLog().error(e.getMessage(), e);
+            //                            try {
+            //                                if (countDown.getCount() > 0) {
+            //                                    writeResult(false, ExceptionUtils.getMessage(e), res);
+            //                                }
+            //                            } catch (Exception e1) {
+            //                            } finally {
+            //                                try {
+            //                                    countDown.countDown();
+            //                                } catch (Throwable ee) {
+            //                                }
+            //                            }
+            //                            break;
+            //                        }
+            //                    }
+            //                } finally {
+            //                    mdcContext.removeParam();
+            //                }
+            //                // end run
+            //            }));
+
+            // mdcContext.getExecLock().addTaskFuture(future);
+
+            //            try {
+            //                countDown.await(30, TimeUnit.SECONDS);
+            //            } catch (InterruptedException e) {
+            //            }
         } finally {
             mdcContext.removeParam();
         }
     }
 
-//    protected final void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-//        super.service(req, res);
-//    }
+    //    protected final void service(HttpServletRequest req, HttpServletResponse res) throws ServletException,
+    //    IOException {
+    //        super.service(req, res);
+    //    }
 
     private MDCParamContext getMDCParam(final HttpExecContext execContext, HttpServletResponse res) {
         final String indexName = execContext.getString(IFullBuildContext.KEY_APP_NAME);
         if (StringUtils.isNotEmpty(indexName)) {
             MDC.put(JobParams.KEY_COLLECTION, indexName);
             return /*StringUtils.startsWith(indexName, TISCollectionUtils.NAME_PREFIX)*/ false ?
-                    new FullPhraseMDCParamContext(indexName, res)
-                    : new DataXMDCParamContext(indexName, res);
+                    new FullPhraseMDCParamContext(indexName, res) : new DataXMDCParamContext(indexName, res);
         }
         Long wfid = execContext.getLong(IFullBuildContext.KEY_WORKFLOW_ID);
         MDC.put(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(wfid));

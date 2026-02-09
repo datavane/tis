@@ -28,6 +28,7 @@
   -->
   <bean id="datasourceTableDAO" class="com.qlangtech.tis.workflow.dao.impl.DatasourceTableDAOImpl" parent="comDfireTisWorkflowDAO" />
   <bean id="datasourceDbDAO" class="com.qlangtech.tis.workflow.dao.impl.DatasourceDbDAOImpl" parent="comDfireTisWorkflowDAO" />
+  <bean id="dagNodeExecutionDAO" class="com.qlangtech.tis.workflow.dao.impl.DAGNodeExecutionDAOImpl" parent="comDfireTisWorkflowDAO" />
 
   <bean id="comDfireTisWorkflowDAO" class="org.springframework.orm.ibatis.support.SqlMapClientDaoSupport" abstract="true" >
     <property name="dataSource" ref="clusterStatusDatasource" />
@@ -42,5 +43,6 @@
     <constructor-arg index="1" ref="workFlowBuildHistoryDAO" />
     <constructor-arg index="2" ref="datasourceTableDAO" />
     <constructor-arg index="3" ref="datasourceDbDAO" />
+    <constructor-arg index="4" ref="dagNodeExecutionDAO" />
   </bean>
 </beans>

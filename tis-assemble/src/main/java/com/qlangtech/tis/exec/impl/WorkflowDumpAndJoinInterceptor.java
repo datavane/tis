@@ -32,7 +32,7 @@ import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
-import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
+
 import com.qlangtech.tis.manage.ISolrAppSource;
 import com.qlangtech.tis.manage.impl.DataFlowAppSource;
 import com.qlangtech.tis.datax.StoreResourceType;
@@ -104,10 +104,10 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
                     @Override
                     public void reportDumpTableStatusError(IExecChainContext execContext, DumpPhaseStatus dumpPhase, Task task) {
 
-                        TISReactor.TaskImpl tsk = (TISReactor.TaskImpl) task;
-                        DumpPhaseStatus.TableDumpStatus dumpStatus = dumpPhase.getTable(tsk.getIdentityName());
-                        dataXExecReporter.reportDumpJobStatus(true, true
-                                , false, dumpPhase.getTaskId(), tsk.getDisplayName(), dumpStatus.getReadRows(), dumpStatus.getAllRows());
+//                        TISReactor.TaskImpl tsk = (TISReactor.TaskImpl) task;
+//                        DumpPhaseStatus.TableDumpStatus dumpStatus = dumpPhase.getTable(tsk.getIdentityName());
+//                        dataXExecReporter.reportDumpJobStatus(true, true
+//                                , false, dumpPhase.getTaskId(), tsk.getDisplayName(), dumpStatus.getReadRows(), dumpStatus.getAllRows());
                     }
                 }, this
         );

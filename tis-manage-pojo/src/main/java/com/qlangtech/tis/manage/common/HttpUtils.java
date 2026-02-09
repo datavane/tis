@@ -139,9 +139,9 @@ public class HttpUtils {
         return process(url, params, process, HTTPMethod.POST);
     }
 
-    public static <T> T process(URL url, List<PostParam> params, PostFormStreamProcess<T> process, HTTPMethod httpMethod) {
-        return ConfigFileContext.processContent(
-                url, process, httpMethod,
+    public static <T> T process(URL url, List<PostParam> params, PostFormStreamProcess<T> process,
+                                HTTPMethod httpMethod) {
+        return ConfigFileContext.processContent(url, process, httpMethod,
                 process.getContentType().serializeParams(params), process.getMaxRetry());
     }
 
@@ -171,11 +171,19 @@ public class HttpUtils {
     }
 
     public static <T> AjaxResult<T> soapRemote(final String url, Class<T> clazz) {
-        return soapRemote(url, Collections.emptyList(), clazz, true);
+        return soapRemote(url, Collections.emptyList(),
+                PostFormStreamProcess.ContentType.Application_x_www_form_urlencoded, clazz, true);
     }
 
     public static <T> AjaxResult<T> soapRemote(final String url, List<PostParam> params, Class<T> clazz) {
-        return soapRemote(url, params, clazz, true);
+        return soapRemote(url, params, PostFormStreamProcess.ContentType.Application_x_www_form_urlencoded, clazz,
+                true);
+    }
+
+    public static <T> AjaxResult<T> soapRemote(final String url, List<PostParam> params //
+            , Class<T> clazz, boolean errorShortCircuit) {
+        return soapRemote(url, params, PostFormStreamProcess.ContentType.Application_x_www_form_urlencoded, clazz,
+                errorShortCircuit);
     }
 
     /**
@@ -187,12 +195,14 @@ public class HttpUtils {
      * @param errorShortCircuit
      * @return
      */
-    public static <T> AjaxResult<T> soapRemote(final String url, List<PostParam> params, Class<T> clazz, boolean errorShortCircuit) {
+    public static <T> AjaxResult<T> soapRemote(final String url, List<PostParam> params //
+            , PostFormStreamProcess.ContentType contentType, Class<T> clazz, boolean errorShortCircuit) {
         return HttpUtils.post(url, params, new PostFormStreamProcess<AjaxResult<T>>() {
 
             @Override
             public ContentType getContentType() {
-                return ContentType.Application_x_www_form_urlencoded;
+                return Objects.requireNonNull(contentType, "contentType can not be null");// ContentType
+                // .Application_x_www_form_urlencoded;
             }
 
             @Override
@@ -229,9 +239,7 @@ public class HttpUtils {
                             return (String) rr;
                         } else if (rr instanceof com.alibaba.fastjson.JSONObject) {
                             com.alibaba.fastjson.JSONObject err = (com.alibaba.fastjson.JSONObject) rr;
-                            return err.entrySet().stream()
-                                    .map((entry) -> entry.getKey() + "->" + entry.getValue())
-                                    .collect(Collectors.joining("\n"));
+                            return err.entrySet().stream().map((entry) -> entry.getKey() + "->" + entry.getValue()).collect(Collectors.joining("\n"));
                         }
                         throw new IllegalStateException("illegal type:" + rr.getClass().getName());
                     }).collect(Collectors.toList());
@@ -294,8 +302,10 @@ public class HttpUtils {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
             MockMatchKey that = (MockMatchKey) o;
             return Objects.equals(matchTxt, that.matchTxt);
         }
@@ -316,7 +326,8 @@ public class HttpUtils {
         }
 
         @Override
-        public MockHttpURLConnection create(URL url, List<ConfigFileContext.Header> heads, HTTPMethod method, byte[] content) {
+        public MockHttpURLConnection create(URL url, List<ConfigFileContext.Header> heads, HTTPMethod method,
+                                            byte[] content) {
             MockMatchKey matchKey = null;
             for (Map.Entry<MockMatchKey, CacheMockRes> entry : resourceStore.entrySet()) {
                 matchKey = entry.getKey();
@@ -337,8 +348,8 @@ public class HttpUtils {
             return null;
         }
 
-        protected MockHttpURLConnection createConnection(URL url, List<ConfigFileContext.Header> heads
-                , HTTPMethod method, byte[] content, IClasspathRes cpRes) {
+        protected MockHttpURLConnection createConnection(URL url, List<ConfigFileContext.Header> heads,
+                                                         HTTPMethod method, byte[] content, IClasspathRes cpRes) {
             return new MockHttpURLConnection(cpRes.getResourceAsStream(url), cpRes.headerFields());
         }
     }
@@ -412,7 +423,8 @@ public class HttpUtils {
     public static abstract class LatestUpdateTimestampClasspathRes implements IClasspathRes {
         @Override
         public Map<String, List<String>> headerFields() {
-            return ImmutableMap.of(ConfigFileContext.KEY_HEAD_LAST_UPDATE, Lists.newArrayList(String.valueOf(System.currentTimeMillis())));
+            return ImmutableMap.of(ConfigFileContext.KEY_HEAD_LAST_UPDATE,
+                    Lists.newArrayList(String.valueOf(System.currentTimeMillis())));
         }
     }
 }

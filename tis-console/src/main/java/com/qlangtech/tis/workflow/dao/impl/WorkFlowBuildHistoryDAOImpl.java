@@ -103,7 +103,65 @@ public class WorkFlowBuildHistoryDAOImpl extends BasicDAO<WorkFlowBuildHistory, 
         return record;
     }
 
-    private static class UpdateByExampleParms extends WorkFlowBuildHistoryCriteria {
+    /**
+     * 从写库加载工作流实例（加行锁）
+     *
+     * 实现说明：
+     * 1. 调用 MyBatis 映射文件中的 loadFromWriteDBWithLock 方法
+     * 2. 该方法执行 SELECT ... FOR UPDATE 语句，对记录加行锁
+     * 3. 用于并发控制，防止多个线程同时修改同一个工作流实例
+     *
+     * 伪代码：
+     * WorkFlowBuildHistory key = new WorkFlowBuildHistory();
+     * key.setId(id);
+     * return (WorkFlowBuildHistory) this.loadFromWriterDB("work_flow_build_history.loadFromWriteDBWithLock", key);
+     */
+    @Override
+    public WorkFlowBuildHistory loadFromWriteDBWithLock(Integer id) {
+        // TODO: 实现从写库加载并加行锁
+        // 参考 loadFromWriteDB() 方法，但使用 loadFromWriteDBWithLock 映射
+        return null;
+    }
+
+    /**
+     * 查询卡住的工作流实例
+     *
+     * 实现说明：
+     * 1. 调用 MyBatis 映射文件中的 selectStuckInstances 方法
+     * 2. 查询状态为 RUNNING 且超过指定时间未更新的实例
+     * 3. 用于故障恢复，识别长时间运行的异常实例
+     *
+     * 伪代码：
+     * Map<String, Object> params = new HashMap<>();
+     * params.put("timeoutMinutes", timeoutMinutes);
+     * return this.list("work_flow_build_history.selectStuckInstances", params);
+     */
+    @Override
+    public List<WorkFlowBuildHistory> selectStuckInstances(int timeoutMinutes) {
+        // TODO: 实现查询卡住的工作流实例
+        // 传入 timeoutMinutes 参数，调用 MyBatis 映射
+        return List.of();
+    }
+
+    /**
+     * 选择性更新工作流实例
+     *
+     * 实现说明：
+     * 1. 调用 MyBatis 映射文件中的 updateByPrimaryKeySelective 方法
+     * 2. 只更新 record 中非 null 的字段
+     * 3. 自动更新 op_time 为当前时间
+     *
+     * 伪代码：
+     * return this.updateRecords("work_flow_build_history.updateByPrimaryKeySelective", record);
+     */
+    @Override
+    public int updateByPrimaryKeySelective(WorkFlowBuildHistory record) {
+        // TODO: 实现选择性更新
+        // 参考 updateByExampleSelective() 方法，但使用主键更新
+        return 0;
+    }
+
+  private static class UpdateByExampleParms extends WorkFlowBuildHistoryCriteria {
 
         private Object record;
 

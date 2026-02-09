@@ -34,6 +34,7 @@ import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria.Criteria;
 import com.qlangtech.tis.workflow.pojo.WorkFlowCriteria;
 import org.apache.commons.lang.NotImplementedException;
 
+import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
@@ -48,9 +49,10 @@ public interface ICommonDAOContext {
 
     public default WorkFlowBuildHistory getLatestSuccessWorkflowHistory(SynResTarget resTarget) {
         Objects.requireNonNull(resTarget, "param resTarget can not be null");
-//        if (!resTarget.isPipeline()) {
-//            throw new NotImplementedException("resTarget:" + resTarget.getName() + " tranform workflow type has not been implemented");
-//        }
+        //        if (!resTarget.isPipeline()) {
+        //            throw new NotImplementedException("resTarget:" + resTarget.getName() + " tranform workflow type
+        //            has not been implemented");
+        //        }
         WorkFlowBuildHistoryCriteria historyCriteria = new WorkFlowBuildHistoryCriteria();
         historyCriteria.setOrderByClause("id desc");
         Criteria criteria = historyCriteria.createCriteria().andStateEqualTo((byte) ExecResult.SUCCESS.getValue());
@@ -70,14 +72,15 @@ public interface ICommonDAOContext {
                     hasSetWfId = true;
                 }
                 if (!hasSetWfId) {
-                    throw new IllegalStateException("has not set workflow Id workFlows.size:" + workFlows.size() + ",workflowName:" + resTarget.getName());
+                    throw new IllegalStateException("has not set workflow Id workFlows.size:" + workFlows.size() + ","
+                            + "workflowName:" + resTarget.getName());
                 }
             }
             criteria.andWorkFlowIdEqualTo(workflowId);
         }
 
-        List<WorkFlowBuildHistory> histories
-                = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByExample(historyCriteria, 1, 1);
+        List<WorkFlowBuildHistory> histories =
+                this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByExample(historyCriteria, 1, 1);
 
         for (WorkFlowBuildHistory buildHistory : histories) {
             return buildHistory;
@@ -93,7 +96,8 @@ public interface ICommonDAOContext {
      * @param triggerType
      * @return
      */
-    public CreateNewTaskResult createNewDataXTask(IExecChainContext chainContext, TriggerType triggerType);
+    public CreateNewTaskResult createNewDataXTask(IExecChainContext chainContext, TriggerType triggerType,
+                                                  File dagSpecPath);
 
     default IWorkFlowBuildHistoryDAO getTaskBuildHistoryDAO() {
         return this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();

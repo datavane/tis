@@ -130,6 +130,7 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -1449,7 +1450,8 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   }
 
   @Override
-  public CreateNewTaskResult createNewDataXTask(IExecChainContext chainContext, TriggerType triggerType) {
+  public CreateNewTaskResult createNewDataXTask(IExecChainContext chainContext, TriggerType triggerType,
+                                                File dagSpecPath) {
     // final TriggerType triggerType = TriggerType.parse(this.getInt(IFullBuildContext.KEY_TRIGGER_TYPE));
     Application app = null;
     ExecutePhaseRange executeRanage = chainContext.getExecutePhaseRange();
@@ -1471,14 +1473,13 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     task.setCreateTime(new Date());
     task.setStartTime(new Date());
     task.setWorkFlowId(workflowId);
+    task.setDagRuntime(dagSpecPath.getAbsolutePath());
     task.setTriggerType(triggerType.getValue());
     task.setState((byte) ExecResult.DOING.getValue());
     // Integer buildHistoryId = null;
     // 从什么阶段开始执行
-    FullbuildPhase fromPhase = executeRanage.getStart();// FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START,
-    // FullbuildPhase.FullDump.getValue()));
-    FullbuildPhase endPhase = executeRanage.getEnd();// FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END,
-    // FullbuildPhase.IndexBackFlow.getValue()));
+    FullbuildPhase fromPhase = executeRanage.getStart();
+    FullbuildPhase endPhase = executeRanage.getEnd();
     if (app == null) {
       if (endPhase.bigThan(FullbuildPhase.JOIN)) {
         endPhase = FullbuildPhase.JOIN;

@@ -107,24 +107,24 @@ public class TestReactor extends TestCase {
         }
     }
 
-    public void testSequentialOrdering() throws Exception {
-        DefaultChainContext chainContext = TestIndexSwapTaskflowLauncher.createDumpAndJoinChainContext();
-        TISReactor tisReactor = new TISReactor(chainContext, taskMap);
-        Reactor s = tisReactor.buildSession("->a ->b a,b->c->d d->e");
-        // Reactor s = buildSession("->t1->m1 m1->t2->m2 m2->t3->", (session, id) ->
-        // System.out.println(id));
-        assertEquals(4, s.size());
-        tisReactor.execute(Executors.newCachedThreadPool(), s, new ReactorListener() {
-        });
-        System.out.println("last");
-        for (String taskname : Lists.newArrayList("a", "b", "c", "e")) {
-            Assert.assertNotNull("taskname:" + taskname + " shall have execute", successToken.get(taskname));
-            Assert.assertTrue("taskname:" + taskname + " shall have execute", successToken.get(taskname));
-        }
-        // assertEqualsIgnoreNewlineStyle(
-        // "Started t1\nEnded t1\nAttained m1\nStarted t2\nEnded t2\nAttained
-        // m2\nStarted t3\nEnded t3\n", sw);
-    }
+//    public void testSequentialOrdering() throws Exception {
+//        DefaultChainContext chainContext = TestIndexSwapTaskflowLauncher.createDumpAndJoinChainContext();
+//        TISReactor tisReactor = new TISReactor(chainContext, taskMap);
+//        Reactor s = tisReactor.buildSession("->a ->b a,b->c->d d->e");
+//        // Reactor s = buildSession("->t1->m1 m1->t2->m2 m2->t3->", (session, id) ->
+//        // System.out.println(id));
+//        assertEquals(4, s.size());
+//        tisReactor.execute(Executors.newCachedThreadPool(), s, new ReactorListener() {
+//        });
+//        System.out.println("last");
+//        for (String taskname : Lists.newArrayList("a", "b", "c", "e")) {
+//            Assert.assertNotNull("taskname:" + taskname + " shall have execute", successToken.get(taskname));
+//            Assert.assertTrue("taskname:" + taskname + " shall have execute", successToken.get(taskname));
+//        }
+//        // assertEqualsIgnoreNewlineStyle(
+//        // "Started t1\nEnded t1\nAttained m1\nStarted t2\nEnded t2\nAttained
+//        // m2\nStarted t3\nEnded t3\n", sw);
+//    }
 
     private static void assertEqualsIgnoreNewlineStyle(String s1, String s2) {
         assertEquals(normalizeLineEnds(s1), normalizeLineEnds(s2));

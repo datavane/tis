@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qlangtech.tis.workflow.dao.IWorkFlowBuildHistoryDAO">
+
+    <!-- 从写库加载工作流实例（加行锁） -->
+    <select id="loadFromWriteDBWithLock" resultType="com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory">
+        SELECT
+            id,
+            workflow_id,
+            dag_runtime,
+            wf_context,
+            instance_status,
+            create_time,
+            op_time,
+            start_time,
+            end_time,
+            state
+        FROM workflow_build_history
+        WHERE id = #{id}
+        FOR UPDATE
+    </select>
+
+    <!-- 查询卡住的工作流实例 -->
+    <select id="selectStuckInstances" resultType="com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory">
+        SELECT
+            id,
+            workflow_id,
+            dag_runtime,
+            wf_context,
+            instance_status,
+            create_time,
+            op_time,
+            start_time,
+            end_time,
+            state
+        FROM workflow_build_history
+        WHERE instance_status = 'RUNNING'
+        AND op_time &lt; DATE_SUB(NOW(), INTERVAL #{timeoutMinutes} MINUTE)
+        ORDER BY op_time
+    </select>
+
+    <!-- 更新工作流实例 -->
+    <update id="updateByPrimaryKeySelective" parameterType="com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory">
+        UPDATE workflow_build_history
+        <set>
+            <if test="workflowId != null">
+                workflow_id = #{workflowId},
+            </if>
+            <if test="dagRuntime != null">
+                dag_runtime = #{dagRuntime},
+            </if>
+            <if test="wfContext != null">
+                wf_context = #{wfContext},
+            </if>
+            <if test="instanceStatus != null">
+                instance_status = #{instanceStatus},
+            </if>
+            <if test="state != null">
+                state = #{state},
+            </if>
+            <if test="startTime != null">
+                start_time = #{startTime},
+            </if>
+            <if test="endTime != null">
+                end_time = #{endTime},
+            </if>
+            op_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -96,7 +96,8 @@ public class TaskSoapUtils {
                 StringUtils.EMPTY, StringUtils.EMPTY});
     }
 
-    public static void createTaskComplete(int taskid, IExecChainContext chainContext, ExecResult execResult) {
+    public static void createTaskComplete(int taskid //, IExecChainContext chainContext
+            , ExecResult execResult) {
         if (execResult == null) {
             throw new IllegalArgumentException("param execResult can not be null");
         }
@@ -110,11 +111,11 @@ public class TaskSoapUtils {
                 new PostParam("execresult", String.valueOf(execResult.getValue())), //
                 new PostParam(JobCommon.KEY_TASK_ID, String.valueOf(taskid)));
 
-        if (chainContext.containAsynJob()) {
-            for (IExecChainContext.AsynSubJob asynJob : chainContext.getAsynSubJobs()) {
-                params.add(new PostParam(IParamContext.KEY_ASYN_JOB_NAME, asynJob.jobName));
-            }
-        }
+//        if (chainContext.containAsynJob()) {
+//            for (IExecChainContext.AsynSubJob asynJob : chainContext.getAsynSubJobs()) {
+//                params.add(new PostParam(IParamContext.KEY_ASYN_JOB_NAME, asynJob.jobName));
+//            }
+//        }
 
         soapRemote(url, params, CreateNewTaskResult.class);
     }

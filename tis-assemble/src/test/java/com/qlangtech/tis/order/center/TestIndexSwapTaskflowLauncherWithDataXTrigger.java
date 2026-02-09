@@ -19,24 +19,21 @@
 package com.qlangtech.tis.order.center;
 
 import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.build.task.IBuildHistory;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
-import com.qlangtech.tis.dao.ICommonDAOContext;
-import com.qlangtech.tis.datax.CuratorDataXTaskMessage;
+import com.qlangtech.tis.datax.DataXTaskJobName;
 import com.qlangtech.tis.datax.DataXJobInfo;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.DataXName;
-import com.qlangtech.tis.datax.IDataXBatchPost;
 import com.qlangtech.tis.datax.IDataxProcessor;
-import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
+import com.qlangtech.tis.fullbuild.indexbuild.IRemoteDumpTaskTrigger;
+import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.taskflow.TestParamContext;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
@@ -45,10 +42,8 @@ import com.qlangtech.tis.workflow.pojo.IWorkflow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import junit.framework.Assert;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -67,7 +62,7 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
 
     @After
     public void tearDown() throws Exception {
-//        super.tearDown();
+        //        super.tearDown();
         DataXJobSubmit.mockGetter = null;
     }
 
@@ -95,16 +90,16 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
 
         chainContext.setAttribute(JobCommon.KEY_TASK_ID, TASK_ID);
 
-        chainContext.setMdcParamContext(() -> {
-        });
+//        chainContext.setMdcParamContext(() -> {
+//        });
         return chainContext;
     }
 
     public static class MockDataXJobSubmit extends DataXJobSubmit {
 
-        private final IRemoteTaskTrigger jobTrigger;
+        private final IRemoteDumpTaskTrigger jobTrigger;
 
-        public MockDataXJobSubmit(IRemoteTaskTrigger jobTrigger) {
+        public MockDataXJobSubmit(IRemoteDumpTaskTrigger jobTrigger) {
             this.jobTrigger = jobTrigger;
         }
 
@@ -114,8 +109,9 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
         }
 
         @Override
-        public TriggerBuildResult triggerWorkflowJob(IControlMsgHandler module, Context context
-                , IWorkflow workflow, Boolean dryRun, Optional<Long> powerJobWorkflowInstanceIdOpt, Optional<WorkFlowBuildHistory> latestSuccessWorkflowHistory) {
+        public TriggerBuildResult triggerWorkflowJob(IControlMsgHandler module, Context context, IWorkflow workflow,
+                                                     Boolean dryRun,
+                                                     Optional<WorkFlowBuildHistory> latestSuccessWorkflowHistory) {
             throw new UnsupportedOperationException();
         }
 
@@ -125,53 +121,54 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
             throw new UnsupportedOperationException();
         }
 
-//        @Override
-//        public <T> T saveJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor) {
-//             throw new UnsupportedOperationException();
-//        }
+        //        @Override
+        //        public <T> T saveJob(IControlMsgHandler module, Context context, DataxProcessor dataxProcessor) {
+        //             throw new UnsupportedOperationException();
+        //        }
 
         @Override
-        public TriggerBuildResult triggerJob(IControlMsgHandler module, Context context, DataXName appName
-                , Optional<Long> workflowInstanceIdOpt, Optional<WorkFlowBuildHistory> latestWorkflowHistory) {
+        public TriggerBuildResult triggerJob(DataXName appName
+                                             //, Optional<Long> workflowInstanceIdOpt
+                , Optional<PhaseStatusCollection> latestWorkflowHistory) {
             return null;
         }
 
         @Override
-        public IRemoteTaskTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc
-                , DataXJobInfo jobName, IDataxProcessor dataxProcessor, CuratorDataXTaskMessage dataXJobDTO) {
+        public IRemoteDumpTaskTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc,
+                                                     DataXJobInfo jobName, IDataxProcessor dataxProcessor) {
 
 
             return jobTrigger;
-//            return new IRemoteJobTrigger() {
-//                @Override
-//                public void submitJob() {
-//
-//                }
-//
-//                @Override
-//                public RunningStatus getRunningStatus() {
-//                    return new RunningStatus(1, true, true);
-//                }
-//            };
+            //            return new IRemoteJobTrigger() {
+            //                @Override
+            //                public void submitJob() {
+            //
+            //                }
+            //
+            //                @Override
+            //                public RunningStatus getRunningStatus() {
+            //                    return new RunningStatus(1, true, true);
+            //                }
+            //            };
         }
 
         @Override
         public IDataXJobContext createJobContext(final IExecChainContext parentContext) {
             return IDataXJobContext.create(parentContext);
-//                    new IDataXJobContext() {
-////                @Override
-////                IJoinTaskContext getTaskContext();
-//
-//                @Override
-//                public IJoinTaskContext getTaskContext() {
-//                    return parentContext;
-//                }
-//
-//                @Override
-//                public void destroy() {
-//
-//                }
-//            };
+            //                    new IDataXJobContext() {
+            ////                @Override
+            ////                IJoinTaskContext getTaskContext();
+            //
+            //                @Override
+            //                public IJoinTaskContext getTaskContext() {
+            //                    return parentContext;
+            //                }
+            //
+            //                @Override
+            //                public void destroy() {
+            //
+            //                }
+            //            };
         }
 
 

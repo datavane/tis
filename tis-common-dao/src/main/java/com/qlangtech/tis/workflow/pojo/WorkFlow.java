@@ -49,6 +49,21 @@ public class WorkFlow implements Serializable, IWorkflow {
 
     private Date opTime;
 
+    /**
+     * DAG 定义文件路径（相对于 ${TIS_HOME}/workflow/）
+     */
+    private String dagSpecPath;
+
+    /**
+     * 定时调度 Cron 表达式
+     */
+    private String scheduleCron;
+
+    /**
+     * 是否启用定时调度
+     */
+    private Boolean enableSchedule;
+
     private static final long serialVersionUID = 1L;
 
     public Integer getId() {
@@ -115,5 +130,29 @@ public class WorkFlow implements Serializable, IWorkflow {
 
     public void setOpTime(Date opTime) {
         this.opTime = opTime;
+    }
+
+    public String getDagSpecPath() {
+        return dagSpecPath;
+    }
+
+    public void setDagSpecPath(String dagSpecPath) {
+        this.dagSpecPath = dagSpecPath == null ? null : dagSpecPath.trim();
+    }
+
+    public String getScheduleCron() {
+        return scheduleCron;
+    }
+
+    public void setScheduleCron(String scheduleCron) {
+        this.scheduleCron = scheduleCron == null ? null : scheduleCron.trim();
+    }
+
+    public Boolean getEnableSchedule() {
+        return enableSchedule;
+    }
+
+    public void setEnableSchedule(Boolean enableSchedule) {
+        this.enableSchedule = enableSchedule;
     }
 }

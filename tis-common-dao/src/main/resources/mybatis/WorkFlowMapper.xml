@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qlangtech.tis.workflow.dao.IWorkFlowDAO">
+
+    <!-- 查询所有启用定时调度的工作流 -->
+    <select id="selectScheduledWorkflows" resultType="com.qlangtech.tis.workflow.pojo.WorkFlow">
+        SELECT
+            id,
+            name,
+            dag_spec_path,
+            schedule_cron,
+            enable_schedule,
+            create_time,
+            op_time
+        FROM workflow
+        WHERE enable_schedule = 1
+        AND schedule_cron IS NOT NULL
+        AND schedule_cron != ''
+        ORDER BY id
+    </select>
+
+</mapper>

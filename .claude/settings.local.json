@@ -13,7 +13,13 @@
       "Read(//opt/misc/Datus-agent/docs/develop/**)",
       "Read(//opt/misc/Datus-agent/conf/**)",
       "Read(//opt/misc/Datus-agent/**)",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "Bash(openspec instructions design --change \"tis-dag-unified-cluster-refactoring\" --json)",
+      "Bash(openspec status --change \"tis-dag-unified-cluster-refactoring\" --json)",
+      "Bash(openspec instructions specs --change \"tis-dag-unified-cluster-refactoring\" --json)",
+      "Bash(openspec status --change \"tis-dag-unified-cluster-refactoring\")",
+      "Bash(openspec instructions tasks --change \"tis-dag-unified-cluster-refactoring\" --json)",
+      "Bash(openspec instructions apply --change \"tis-dag-unified-cluster-refactoring\" --json)"
     ],
     "deny": [],
     "ask": []

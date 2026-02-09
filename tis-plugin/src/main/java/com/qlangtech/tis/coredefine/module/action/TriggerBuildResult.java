@@ -50,7 +50,7 @@ public class TriggerBuildResult {
     private static final String bizKey = "biz";
     public boolean success;
 
-    public int taskid;
+    public Integer taskid;
 
     public TriggerBuildResult() {
     }
@@ -124,7 +124,7 @@ public class TriggerBuildResult {
         return triggerResult;
     }
 
-    public int getTaskid() {
+    public Integer getTaskid() {
         return taskid;
     }
 }

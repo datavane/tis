@@ -29,7 +29,7 @@ import com.facebook.presto.sql.tree.Statement;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.datax.TimeFormat;
+import com.qlangtech.tis.datax.LifeCycleHook;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.IPartionableWarehouse;
@@ -37,7 +37,12 @@ import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
-import com.qlangtech.tis.plugin.ds.*;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
+import com.qlangtech.tis.plugin.ds.DBIdentity;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.plugin.ds.DataType;
+import com.qlangtech.tis.plugin.ds.JDBCTypes;
+import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.powerjob.IDAGSessionSpec;
 import com.qlangtech.tis.powerjob.IDataFlowTopology;
 import com.qlangtech.tis.sql.parser.er.ERRules;
@@ -50,7 +55,6 @@ import com.qlangtech.tis.sql.parser.meta.Position;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
 import com.qlangtech.tis.sql.parser.utils.DefaultDumpNodeMapContext;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
@@ -70,10 +74,21 @@ import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.Writer;
 import java.lang.reflect.Method;
-import java.sql.Types;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -100,8 +115,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             dumperOptions.setSplitLines(true);
             dumperOptions.setLineBreak(LineBreak.UNIX);
             dumperOptions.setWidth(1000000);
-            Yaml y = new Yaml(new Constructor(new LoaderOptions())
-                    , new Representer(dumperOptions) {
+            Yaml y = new Yaml(new Constructor(new LoaderOptions()), new Representer(dumperOptions) {
 
                 @Override
                 protected Node representScalar(Tag tag, String value, ScalarStyle style) {
@@ -113,7 +127,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 }
 
                 @Override
-                protected NodeTuple representJavaBeanProperty(Object javaBean, Property property, Object propertyValue, Tag customTag) {
+                protected NodeTuple representJavaBeanProperty(Object javaBean, Property property,
+                                                              Object propertyValue, Tag customTag) {
                     if (propertyValue == null) {
                         return null;
                     }
@@ -163,11 +178,12 @@ public class SqlTaskNodeMeta implements ISqlTask {
         try {
             String pt = "20200703113848";
             ITabPartition p = () -> pt;
-            Map<IDumpTable, ITabPartition> tabPartition = dependencyNodes.stream().collect(Collectors.toMap((r) -> EntityName.parse(r.getName()), (r) -> p));
+            Map<IDumpTable, ITabPartition> tabPartition =
+                    dependencyNodes.stream().collect(Collectors.toMap((r) -> EntityName.parse(r.getName()), (r) -> p));
             taskNodeMeta.setDependencies(dependencyNodes);
-            taskNodeMeta.getRewriteSql("testTaskName", new MockDumpPartition(tabPartition)
-                    , IPartionableWarehouse.createForNoWriterForTableName(), () -> new IPrimaryTabFinder() {
-                    }, tskContext, false);
+            taskNodeMeta.getRewriteSql("testTaskName", new MockDumpPartition(tabPartition),
+                    IPartionableWarehouse.createForNoWriterForTableName(), () -> new IPrimaryTabFinder() {
+            }, tskContext, false);
             return Optional.empty();
         } catch (Throwable e) {
             int indexOf;
@@ -175,7 +191,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 TisSqlFormatException ex = (TisSqlFormatException) ExceptionUtils.getThrowables(e)[indexOf];
                 //System.out.println(ex.summary());
                 return Optional.of(ex);
-                //  assertEquals("base ref:gg can not find relevant table entity in map,mapSize:1,exist:[g:tis.commodity_goods],位置，行:1,列:44", ex.summary());
+                //  assertEquals("base ref:gg can not find relevant table entity in map,mapSize:1,exist:[g:tis
+                //  .commodity_goods],位置，行:1,列:44", ex.summary());
             } else {
                 throw e;
             }
@@ -216,7 +233,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
         } catch (TisSqlFormatException e) {
             throw e;
         } catch (Exception e) {
-            // String dp = dumpPartition.toString(); //dumpPartition.entrySet().stream().map((ee) -> "[" + ee.getKey() + "->" + ee.getValue().getPt() + "]").collect(Collectors.joining(","));
+            // String dp = dumpPartition.toString(); //dumpPartition.entrySet().stream().map((ee) -> "[" + ee.getKey
+            // () + "->" + ee.getValue().getPt() + "]").collect(Collectors.joining(","));
             throw new IllegalStateException(e);
         }
         return new RewriteSql(this.getSql(), builder.toString(), rewriter.outputCols, null);
@@ -245,7 +263,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             }
 
             @Override
-            public int getTaskId() {
+            public Integer getTaskId() {
                 return 0;
             }
 
@@ -308,15 +326,17 @@ public class SqlTaskNodeMeta implements ISqlTask {
     }
 
     @Override
-    public RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition, IPartionableWarehouse dumpTableNameRewriter
-            , Supplier<IPrimaryTabFinder> erRules, IJoinTaskContext joinContext, boolean isFinalNode) {
+    public RewriteSql getRewriteSql(String taskName, TabPartitions dumpPartition,
+                                    IPartionableWarehouse dumpTableNameRewriter, Supplier<IPrimaryTabFinder> erRules,
+                                    IJoinTaskContext joinContext, boolean isFinalNode) {
         if (dumpPartition.size() < 1) {
             throw new IllegalStateException("taskName:" + taskName + " dumpPartition set size can not small than 1");
         }
         Optional<List<Expression>> parameters = Optional.empty();
 
         SqlStringBuilder builder = new SqlStringBuilder();
-        SqlRewriter rewriter = new SqlRewriter(builder, dumpPartition, this.dependencies, erRules, parameters, isFinalNode, joinContext, dumpTableNameRewriter);
+        SqlRewriter rewriter = new SqlRewriter(builder, dumpPartition, this.dependencies, erRules, parameters,
+                isFinalNode, joinContext, dumpTableNameRewriter);
         // 执行rewrite
         try {
             Statement state = getSqlStatement();
@@ -325,14 +345,14 @@ public class SqlTaskNodeMeta implements ISqlTask {
             throw e;
         } catch (Exception e) {
             String dp = dumpPartition.toString();
-            throw new IllegalStateException("task:" + taskName + ",isfinalNode:"
-                    + isFinalNode + ",dump tabs pt:" + dp + "\n" + e.getMessage(), e);
+            throw new IllegalStateException("task:" + taskName + ",isfinalNode:" + isFinalNode + ",dump tabs pt:" + dp + "\n" + e.getMessage(), e);
         }
         SqlRewriter.AliasTable primaryTable = rewriter.getPrimayTable();
         if (primaryTable == null) {
             throw new IllegalStateException("task:" + taskName + " has not find primary table");
         }
-        return new RewriteSql(this.getSql(), builder.toString(), IDumpTable.appendPreservedPsCols(rewriter.outputCols), rewriter.getPrimayTable());
+        return new RewriteSql(this.getSql(), builder.toString(),
+                IDumpTable.appendPreservedPsCols(rewriter.outputCols), rewriter.getPrimayTable());
     }
 
     private Statement getSqlStatement() {
@@ -340,7 +360,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
         try {
             return sqlParser.createStatement(sql, new ParsingOptions());
         } catch (ParsingException e) {
-            throw new TisSqlFormatException(e.getErrorMessage(), Optional.of(sql), Optional.of(new NodeLocation(e.getLineNumber(), e.getColumnNumber())));
+            throw new TisSqlFormatException(e.getErrorMessage(), Optional.of(sql),
+                    Optional.of(new NodeLocation(e.getLineNumber(), e.getColumnNumber())));
         }
     }
 
@@ -385,13 +406,12 @@ public class SqlTaskNodeMeta implements ISqlTask {
             throw new IllegalStateException("parent not exist:" + parent.getAbsolutePath());
         }
         if (topology.profile == null || StringUtils.isEmpty(topology.getName()) || topology.getTimestamp() < 1 || topology.getDataflowId() < 1) {
-            throw new IllegalArgumentException("param topology's prop name timestamp or dataflowid neither can be null");
+            throw new IllegalArgumentException("param topology's prop name timestamp or dataflowid neither can be " + "null");
         }
         Pattern PatternjoinNode = Pattern.compile("[\\da-z]+\\-[\\da-z]+\\-[\\da-z]+\\-[\\da-z]+\\-[\\da-z]+\\.yaml");
         // 用来处理被删除的节点，如果某个节点被删除的话对应的AtomicBoolean flag 就为false
-        Map<String, AtomicBoolean> oldNodeFileStats
-                = Arrays.stream(parent.list((dir, name) -> PatternjoinNode.matcher(name).matches()))
-                .collect(Collectors.toMap((filename) -> filename, (filename) -> new AtomicBoolean()));
+        Map<String, AtomicBoolean> oldNodeFileStats =
+                Arrays.stream(parent.list((dir, name) -> PatternjoinNode.matcher(name).matches())).collect(Collectors.toMap((filename) -> filename, (filename) -> new AtomicBoolean()));
 
 
         for (ISqlTask process : topology.getParseNodes()) {
@@ -400,7 +420,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
             if (hasProcess != null) {
                 hasProcess.set(true);
             }
-            try (OutputStreamWriter output = new OutputStreamWriter(FileUtils.openOutputStream(new File(parent, nodeFileName)))) {
+            try (OutputStreamWriter output = new OutputStreamWriter(FileUtils.openOutputStream(new File(parent,
+                    nodeFileName)))) {
                 persistSqlTask(output, process);
             }
         }
@@ -410,10 +431,12 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 FileUtils.deleteQuietly(new File(parent, e.getKey()));
             }
         });
-        try (OutputStreamWriter output = new OutputStreamWriter(FileUtils.openOutputStream(new File(parent, FILE_NAME_DEPENDENCY_TABS)))) {
+        try (OutputStreamWriter output = new OutputStreamWriter(FileUtils.openOutputStream(new File(parent,
+                FILE_NAME_DEPENDENCY_TABS)))) {
             yaml.get().dump(new DumpNodes(topology.getDumpNodes()), output);
         }
-        try (OutputStreamWriter output = new OutputStreamWriter(FileUtils.openOutputStream(new File(parent, FILE_NAME_PROFILE)), TisUTF8.get())) {
+        try (OutputStreamWriter output = new OutputStreamWriter(FileUtils.openOutputStream(new File(parent,
+                FILE_NAME_PROFILE)), TisUTF8.get())) {
             JSONObject profile = new JSONObject();
             profile.put(KEY_PROFILE_TIMESTAMP, topology.getTimestamp());
             profile.put(KEY_PROFILE_TOPOLOGY, topology.getName());
@@ -429,11 +452,11 @@ public class SqlTaskNodeMeta implements ISqlTask {
         if (StringUtils.isEmpty(process.getId())) {
             throw new IllegalStateException(process.getExportName() + " relevant node property id can not be null ");
         }
-//        nodeFileName = (process.getId() + ".yaml");
-//        hasProcess = oldNodeFileStats.get(nodeFileName);
-//        if (hasProcess != null) {
-//            hasProcess.set(true);
-//        }
+        //        nodeFileName = (process.getId() + ".yaml");
+        //        hasProcess = oldNodeFileStats.get(nodeFileName);
+        //        if (hasProcess != null) {
+        //            hasProcess.set(true);
+        //        }
 
         yaml.get().dump(process, writer);
         //  }
@@ -663,7 +686,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
             return this.dumpNodesMap;
         }
 
-        private DAGSessionSpec sessionSpec;
+        private IDAGSessionSpec sessionSpec;
 
 
         @JSONField(serialize = false)
@@ -672,22 +695,42 @@ public class SqlTaskNodeMeta implements ISqlTask {
             if (this.sessionSpec != null) {
                 return this.sessionSpec;
             }
-            this.sessionSpec = new DAGSessionSpec();
+            this.sessionSpec = createDAGSessionSpec();
             // join = null;
             //  StringBuffer dagSessionSpec = new StringBuffer();
             // ->a ->b a,b->c
             for (DependencyNode dump : this.getDumpNodes()) {
                 //    dagSessionSpec.append("->").append(dump.getId()).append(" ");
-                sessionSpec.getDpt(dump.getId());
+                sessionSpec.getDpt(dump.getId(), LifeCycleHook.Dump);
             }
             for (SqlTaskNodeMeta pnode : this.getNodeMetas()) {
-                DAGSessionSpec join = (DAGSessionSpec) sessionSpec.getDpt(pnode.getId());
+                IDAGSessionSpec join = sessionSpec.getDpt(pnode.getId(), LifeCycleHook.Process);
                 pnode.getDependencies().forEach((node) -> {
-                    join.addDpt((DAGSessionSpec) sessionSpec.getDpt(node.getId()));
+                    NodeType nodeType = node.parseNodeType();
+                    LifeCycleHook execRole = null;
+                    switch (nodeType) {
+                        case DUMP: {
+                            execRole = LifeCycleHook.Dump;
+                            break;
+                        }
+                        case UNION_SQL:
+                        case JOINER_SQL: {
+                            execRole = LifeCycleHook.Process;
+                            break;
+                        }
+                        default:
+                            throw new IllegalStateException("illegal nodeType:" + nodeType);
+                    }
+
+                    join.addDpt(sessionSpec.getDpt(node.getId(), execRole));
                 });
             }
             return sessionSpec;
             //  return dagSessionSpec.toString();
+        }
+
+        private IDAGSessionSpec createDAGSessionSpec() {
+            throw new UnsupportedOperationException();
         }
 
 
@@ -718,9 +761,11 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
         public List<SqlTaskNode> parseTaskNodes() throws Exception {
             if (this.allNodes == null) {
-                final DefaultDumpNodeMapContext dumpNodsContext = new DefaultDumpNodeMapContext(this.createDumpNodesMap());
+                final DefaultDumpNodeMapContext dumpNodsContext =
+                        new DefaultDumpNodeMapContext(this.createDumpNodesMap());
                 this.allNodes = this.getNodeMetas().stream().map((m) -> {
-                    SqlTaskNode node = new SqlTaskNode(EntityName.parse(m.getExportName()), m.getNodeType(), dumpNodsContext);
+                    SqlTaskNode node = new SqlTaskNode(EntityName.parse(m.getExportName()), m.getNodeType(),
+                            dumpNodsContext);
                     node.setContent(m.getSql());
                     return node;
                 }).collect(Collectors.toList());
@@ -739,7 +784,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
             if (this.isSingleTableModel()) {
                 DependencyNode dumpNode = this.getDumpNodes().get(0);
-                DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(dumpNode.getDbName())));
+                DataSourceFactory dbPlugin =
+                        TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(dumpNode.getDbName())));
                 List<ColumnMetaData> cols = dbPlugin.getTableMetadata(false, null, dumpNode.parseEntityName());
                 return cols;
             }
@@ -756,16 +802,17 @@ public class SqlTaskNodeMeta implements ISqlTask {
         private SqlTaskNode getFinalTaskNode() throws Exception {
 
             if (isSingleTableModel()) {
-                final DefaultDumpNodeMapContext dumpNodsContext = new DefaultDumpNodeMapContext(this.createDumpNodesMap());
+                final DefaultDumpNodeMapContext dumpNodsContext =
+                        new DefaultDumpNodeMapContext(this.createDumpNodesMap());
                 DependencyNode dumpNode = getFirstDumpNode();
-                SqlTaskNode taskNode = new SqlTaskNode(EntityName.create(dumpNode.getDbName(), dumpNode.getName()), NodeType.JOINER_SQL, dumpNodsContext);
-                DataSourceFactory dbPlugin = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(dumpNode.getDbName())));
+                SqlTaskNode taskNode = new SqlTaskNode(EntityName.create(dumpNode.getDbName(), dumpNode.getName()),
+                        NodeType.JOINER_SQL, dumpNodsContext);
+                DataSourceFactory dbPlugin =
+                        TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(dumpNode.getDbName())));
                 // List<ColumnMetaData> tableMetadata = ;
                 //TISTable tab = dbPlugin.loadTableMeta(dumpNode.getName());
-                taskNode.setContent(ColumnMetaData.buildExtractSQL(
-                        dumpNode.getName()
-                        , true
-                        , dbPlugin.getTableMetadata(false, null, dumpNode.parseEntityName())).toString());
+                taskNode.setContent(ColumnMetaData.buildExtractSQL(dumpNode.getName(), true,
+                        dbPlugin.getTableMetadata(false, null, dumpNode.parseEntityName())).toString());
                 return taskNode;
             } else {
 
@@ -776,7 +823,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
                 Optional<SqlTaskNode> f = //
                         taskNodes.stream().filter((n) -> finalNodeName.equals(n.getExportName().getTabName())).findFirst();
                 if (!f.isPresent()) {
-                    String setStr = taskNodes.stream().map((n) -> n.getExportName().getJavaEntityName()).collect(Collectors.joining(","));
+                    String setStr =
+                            taskNodes.stream().map((n) -> n.getExportName().getJavaEntityName()).collect(Collectors.joining(","));
                     throw new IllegalStateException("finalNodeName:" + finalNodeName + " can not find node in[" + setStr + "]");
                 }
                 /**
@@ -791,15 +839,15 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
         public DependencyNode getFirstDumpNode() {
             return null;
-//            Optional<DependencyNode> singleDumpNode = this.getDumpNodes().stream().findFirst();
-//            if (!singleDumpNode.isPresent()) {
-//                throw new IllegalStateException(this.getName() + " has not set dump node");
-//            }
-//            return singleDumpNode.get();
+            //            Optional<DependencyNode> singleDumpNode = this.getDumpNodes().stream().findFirst();
+            //            if (!singleDumpNode.isPresent()) {
+            //                throw new IllegalStateException(this.getName() + " has not set dump node");
+            //            }
+            //            return singleDumpNode.get();
         }
 
 
-        /////////////////////////////////////////
+        /// //////////////////////////////////////
 
         public SqlDataFlowTopology() {
             super();
@@ -841,22 +889,24 @@ public class SqlTaskNodeMeta implements ISqlTask {
         @JSONField(serialize = false)
         public SqlTaskNodeMeta getFinalNode() throws Exception {
             // if (this.isSingleTableModel()) {
-//                Optional<DependencyNode> singleDumpNode = this.getDumpNodes().stream().findFirst();
-//                if (!singleDumpNode.isPresent()) {
-//                    throw new IllegalStateException(this.getName() + " has not set dump node");
-//                }
-//                SqlTaskNodeMeta nodeMeta = new SqlTaskNodeMeta();
-//                DependencyNode dumpNode = singleDumpNode.get();
-//                nodeMeta.setType(NodeType.DUMP.getType());
-//                nodeMeta.setSql(dumpNode.getExtraSql());
-//                nodeMeta.setExportName(EntityName.create(dumpNode.getDbName(), dumpNode.getName()).toString());
-//                return nodeMeta;
+            //                Optional<DependencyNode> singleDumpNode = this.getDumpNodes().stream().findFirst();
+            //                if (!singleDumpNode.isPresent()) {
+            //                    throw new IllegalStateException(this.getName() + " has not set dump node");
+            //                }
+            //                SqlTaskNodeMeta nodeMeta = new SqlTaskNodeMeta();
+            //                DependencyNode dumpNode = singleDumpNode.get();
+            //                nodeMeta.setType(NodeType.DUMP.getType());
+            //                nodeMeta.setSql(dumpNode.getExtraSql());
+            //                nodeMeta.setExportName(EntityName.create(dumpNode.getDbName(), dumpNode.getName())
+            //                .toString());
+            //                return nodeMeta;
             //  } else {
             Collection<SqlTaskNodeMeta> finalNodes = getFinalNodes().values();
             if (finalNodes.size() != 1) {
                 throw new IllegalStateException(//
                         "finalNodes size must be 1,but now is:" + finalNodes.size() + ",nodes:[" + //
-                                finalNodes.stream().map((r) -> r.getExportName()).collect(Collectors.joining(",")) + "]");
+                                finalNodes.stream().map((r) -> r.getExportName()).collect(Collectors.joining(",")) +
+                                "]");
             }
             Optional<SqlTaskNodeMeta> taskNode = finalNodes.stream().findFirst();
             if (!taskNode.isPresent()) {
@@ -993,7 +1043,8 @@ public class SqlTaskNodeMeta implements ISqlTask {
 
         public String transfer(String base, String field, ColumnTransfer transfer) {
             try {
-                Method method = HiveColTransfer.class.getMethod(transfer.getTransfer(), String.class, String.class, ColumnTransfer.class);
+                Method method = HiveColTransfer.class.getMethod(transfer.getTransfer(), String.class, String.class,
+                        ColumnTransfer.class);
                 return (String) method.invoke(instance, base, field, transfer);
             } catch (Exception e) {
                 throw new RuntimeException("base:" + base + ",field:" + field + "," + transfer.toString(), e);
@@ -1052,7 +1103,7 @@ public class SqlTaskNodeMeta implements ISqlTask {
         }
 
         @Override
-        public int getTaskId() {
+        public Integer getTaskId() {
             return 0;
         }
 
@@ -1112,31 +1163,31 @@ public class SqlTaskNodeMeta implements ISqlTask {
         }
     }
 
-//    /**
-//     * @author: 百岁（baisui@qlangtech.com）
-//     * @create: 2023-03-02 13:39
-//     **/
-//    public static class DependNode {
-//        private final String id;
-//        private final String name;
-//
-//        public DependNode(String id, String name) {
-//            if (org.apache.commons.lang3.StringUtils.isEmpty(id)) {
-//                throw new IllegalArgumentException("param id can not be null");
-//            }
-//            if (org.apache.commons.lang3.StringUtils.isEmpty(name)) {
-//                throw new IllegalArgumentException("param name can not be null");
-//            }
-//            this.id = id;
-//            this.name = name;
-//        }
-//
-//        public String getId() {
-//            return this.id;
-//        }
-//
-//        public String getName() {
-//            return this.name;
-//        }
-//    }
+    //    /**
+    //     * @author: 百岁（baisui@qlangtech.com）
+    //     * @create: 2023-03-02 13:39
+    //     **/
+    //    public static class DependNode {
+    //        private final String id;
+    //        private final String name;
+    //
+    //        public DependNode(String id, String name) {
+    //            if (org.apache.commons.lang3.StringUtils.isEmpty(id)) {
+    //                throw new IllegalArgumentException("param id can not be null");
+    //            }
+    //            if (org.apache.commons.lang3.StringUtils.isEmpty(name)) {
+    //                throw new IllegalArgumentException("param name can not be null");
+    //            }
+    //            this.id = id;
+    //            this.name = name;
+    //        }
+    //
+    //        public String getId() {
+    //            return this.id;
+    //        }
+    //
+    //        public String getName() {
+    //            return this.name;
+    //        }
+    //    }
 }

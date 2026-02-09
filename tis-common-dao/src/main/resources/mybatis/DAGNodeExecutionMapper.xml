@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qlangtech.tis.workflow.dao.IDAGNodeExecutionDAO">
+
+    <!-- 插入节点执行记录 -->
+    <insert id="insert" parameterType="com.qlangtech.tis.workflow.pojo.DagNodeExecution" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO dag_node_execution (
+            workflow_instance_id,
+            node_id,
+            node_name,
+            node_type,
+            task_name,
+            status,
+            result,
+            start_time,
+            finished_time,
+            skip_when_failed,
+            enable,
+            retry_times,
+            worker_address
+        ) VALUES (
+            #{workflowInstanceId},
+            #{nodeId},
+            #{nodeName},
+            #{nodeType},
+            #{taskName},
+            #{status},
+            #{result},
+            #{startTime},
+            #{finishedTime},
+            #{skipWhenFailed},
+            #{enable},
+            #{retryTimes},
+            #{workerAddress}
+        )
+    </insert>
+
+    <!-- 根据工作流实例 ID 查询所有节点 -->
+    <select id="selectByWorkflowInstanceId" resultType="com.qlangtech.tis.workflow.pojo.DagNodeExecution">
+        SELECT
+            id,
+            workflow_instance_id,
+            node_id,
+            node_name,
+            node_type,
+            task_name,
+            status,
+            result,
+            start_time,
+            finished_time,
+            skip_when_failed,
+            enable,
+            retry_times,
+            worker_address,
+            create_time,
+            update_time
+        FROM dag_node_execution
+        WHERE workflow_instance_id = #{wfInstanceId}
+        ORDER BY node_id
+    </select>
+
+    <!-- 根据节点 ID 查询 -->
+    <select id="selectByNodeId" resultType="com.qlangtech.tis.workflow.pojo.DagNodeExecution">
+        SELECT
+            id,
+            workflow_instance_id,
+            node_id,
+            node_name,
+            node_type,
+            task_name,
+            status,
+            result,
+            start_time,
+            finished_time,
+            skip_when_failed,
+            enable,
+            retry_times,
+            worker_address,
+            create_time,
+            update_time
+        FROM dag_node_execution
+        WHERE workflow_instance_id = #{wfInstanceId}
+        AND node_id = #{nodeId}
+    </select>
+
+    <!-- 更新节点状态 -->
+    <update id="updateStatus">
+        UPDATE dag_node_execution
+        SET status = #{status},
+            result = #{result},
+            finished_time = #{finishedTime},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 查询运行中的节点 -->
+    <select id="selectRunningNodes" resultType="com.qlangtech.tis.workflow.pojo.DagNodeExecution">
+        SELECT
+            id,
+            workflow_instance_id,
+            node_id,
+            node_name,
+            node_type,
+            task_name,
+            status,
+            result,
+            start_time,
+            finished_time,
+            skip_when_failed,
+            enable,
+            retry_times,
+            worker_address,
+            create_time,
+            update_time
+        FROM dag_node_execution
+        WHERE workflow_instance_id = #{wfInstanceId}
+        AND status = 'RUNNING'
+        ORDER BY start_time
+    </select>
+
+    <!-- 查询等待中的节点 -->
+    <select id="selectWaitingNodes" resultType="com.qlangtech.tis.workflow.pojo.DagNodeExecution">
+        SELECT
+            id,
+            workflow_instance_id,
+            node_id,
+            node_name,
+            node_type,
+            task_name,
+            status,
+            result,
+            start_time,
+            finished_time,
+            skip_when_failed,
+            enable,
+            retry_times,
+            worker_address,
+            create_time,
+            update_time
+        FROM dag_node_execution
+        WHERE workflow_instance_id = #{wfInstanceId}
+        AND status = 'WAITING'
+        ORDER BY node_id
+    </select>
+
+    <!-- 查询指定 Worker 上运行的任务 -->
+    <select id="selectRunningNodesByWorker" resultType="com.qlangtech.tis.workflow.pojo.DagNodeExecution">
+        SELECT
+            id,
+            workflow_instance_id,
+            node_id,
+            node_name,
+            node_type,
+            task_name,
+            status,
+            result,
+            start_time,
+            finished_time,
+            skip_when_failed,
+            enable,
+            retry_times,
+            worker_address,
+            create_time,
+            update_time
+        FROM dag_node_execution
+        WHERE worker_address = #{workerAddress}
+        AND status = 'RUNNING'
+        ORDER BY start_time
+    </select>
+
+    <!-- 更新节点执行记录 -->
+    <update id="updateByPrimaryKeySelective" parameterType="com.qlangtech.tis.workflow.pojo.DagNodeExecution">
+        UPDATE dag_node_execution
+        <set>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="result != null">
+                result = #{result},
+            </if>
+            <if test="startTime != null">
+                start_time = #{startTime},
+            </if>
+            <if test="finishedTime != null">
+                finished_time = #{finishedTime},
+            </if>
+            <if test="retryTimes != null">
+                retry_times = #{retryTimes},
+            </if>
+            <if test="workerAddress != null">
+                worker_address = #{workerAddress},
+            </if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>

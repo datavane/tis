@@ -21,7 +21,6 @@ package com.qlangtech.tis.plugin.datax.meta;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPreviousTrigger;
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.tdfs.TDFSLinker;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
@@ -37,12 +36,12 @@ public abstract class MetaDataWriter implements Describable<MetaDataWriter> {
      * 创建元数据写入异步任务
      *
      * @param dfsLinker
-     * @param execContext
      * @param tab
      * @return
      */
-    public abstract IRemoteTaskPreviousTrigger createMetaDataWriteTask(
-            TDFSLinker dfsLinker, IExecChainContext execContext, EntityName entity, ISelectedTab tab);
+    public abstract IRemoteTaskPreviousTrigger createMetaDataWriteTask(TDFSLinker dfsLinker,
+                                                                       IExecChainContext execContext,
+                                                                       EntityName entity, ISelectedTab tab);
 
     /**
      * 得到存放元数据文件的路径

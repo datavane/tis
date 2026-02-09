@@ -29,11 +29,11 @@ public interface IDataXTaskRelevant extends ISpecifiedLocalLogger {
     String KEY_TIS_DATAX_WORK_DIR = "tisDataXWorkDir";
     String KEY_TIS_DATAX_EXECUTOR = "tis-datax-executor";
 
-    public Integer getTaskId();
+    //public Integer getTaskId();
 
     public String getJobName();
 
-    public String getDataXName();
+    public DataXName getDataXName();
 
 
 

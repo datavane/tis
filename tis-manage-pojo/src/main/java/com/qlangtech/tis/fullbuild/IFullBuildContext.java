@@ -32,6 +32,7 @@ public interface IFullBuildContext {
     String KEY_APP_SHARD_COUNT_SINGLE = "1";
 
     String KEY_APP_NAME = "appname";
+    String KEY_DAG_SPEC_PATH = "dagSpecPath";
     //
     /**
      * 全量构建中执行部份表对象同步流程

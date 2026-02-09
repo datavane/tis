@@ -26,7 +26,6 @@ import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxWriter;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.StoreResourceTypeConstants;
-import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.manage.IAppSource;
@@ -44,7 +43,6 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 

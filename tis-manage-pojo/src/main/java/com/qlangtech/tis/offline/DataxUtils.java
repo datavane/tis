@@ -32,7 +32,7 @@ public class DataxUtils {
      * // @see DataXJobSingleProcessorExecutor 中进行消费dataX执行command，测试中使用
      */
     public static Consumer<String> localDataXCommandConsumer;
-    public static final String POWERJOB_WORKFLOW_INSTANCE_ID = "powerJobWorkflowInstanceId";
+  //  public static final String POWERJOB_WORKFLOW_INSTANCE_ID = "powerJobWorkflowInstanceId";
 
 //    /**
 //     * 触发执行是否是 TIS workflow 类型的

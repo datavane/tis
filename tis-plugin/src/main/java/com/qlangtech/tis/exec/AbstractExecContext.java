@@ -87,21 +87,22 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
      * @return
      * @see IExecChainContext#createInstanceParams Params set in this method
      */
-    public static PluginAndCfgsSnapshot resolveCfgsSnapshotConsumer(
-            StoreResourceType resourceType, JSONObject instanceParams) {
+    public static PluginAndCfgsSnapshot resolveCfgsSnapshotConsumer(StoreResourceType resourceType,
+                                                                    JSONObject instanceParams) {
         String pluginCfgsMetas = instanceParams.getString(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS);
         String appName = instanceParams.getString(JobParams.KEY_COLLECTION);
         if (StringUtils.isEmpty(pluginCfgsMetas)) {
-            throw new IllegalStateException("property:"
-                    + PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS + " of instanceParams can not be null");
+            throw new IllegalStateException("property:" + PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS + " of "
+                    + "instanceParams can not be null");
         }
 
-        //  StoreResourceType resType = StoreResourceType.parse(instanceParams.getString(StoreResourceType.KEY_STORE_RESOURCE_TYPE));
+        //  StoreResourceType resType = StoreResourceType.parse(instanceParams.getString(StoreResourceType
+        //  .KEY_STORE_RESOURCE_TYPE));
 
         final Base64 base64 = new Base64();
         try (InputStream manifestJar = new ByteArrayInputStream(base64.decode(pluginCfgsMetas))) {
-            return PluginAndCfgsSnapshot.getRepositoryCfgsSnapshot(
-                    appName, Objects.requireNonNull(resourceType, "resourceType can not be null"), manifestJar);
+            return PluginAndCfgsSnapshot.getRepositoryCfgsSnapshot(appName, Objects.requireNonNull(resourceType,
+                    "resourceType can not be null"), manifestJar);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -187,8 +188,10 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
      * @param instanceParams
      * @return
      */
-    static AbstractExecContext deserializeInstanceParams(TriggersConfig triggerCfg, JSONObject instanceParams, boolean resolveCfgsSnapshotConsumer //
-            , Consumer<AbstractExecContext> execChainContextConsumer, Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
+    static AbstractExecContext deserializeInstanceParams(TriggersConfig triggerCfg, JSONObject instanceParams,
+                                                         boolean resolveCfgsSnapshotConsumer //
+            , Consumer<AbstractExecContext> execChainContextConsumer,
+                                                         Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
         Integer taskId = Objects.requireNonNull(instanceParams.getInteger(JobParams.KEY_TASK_ID),
                 JobParams.KEY_TASK_ID + " can not be null," + JsonUtil.toString(instanceParams));
         boolean dryRun = instanceParams.getBooleanValue(IFullBuildContext.DRY_RUN);
@@ -226,19 +229,22 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
 
         if (resolveCfgsSnapshotConsumer) {
 
-//            String pluginCfgsMetas = instanceParams.getString(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS);
-//
-//            if (StringUtils.isEmpty(pluginCfgsMetas)) {
-//                throw new IllegalStateException("property:"
-//                        + PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS + " of instanceParams can not be null");
-//            }
-//
-//            final Base64 base64 = new Base64();
-//            try (InputStream manifestJar = new ByteArrayInputStream(base64.decode(pluginCfgsMetas))) {
-//                cfgsSnapshotConsumer.accept(PluginAndCfgsSnapshot.getRepositoryCfgsSnapshot(appName, manifestJar));
-//            } catch (Exception e) {
-//                throw new RuntimeException(e);
-//            }
+            //            String pluginCfgsMetas = instanceParams.getString(PluginAndCfgsSnapshotUtils
+            //            .KEY_PLUGIN_CFGS_METAS);
+            //
+            //            if (StringUtils.isEmpty(pluginCfgsMetas)) {
+            //                throw new IllegalStateException("property:"
+            //                        + PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS + " of instanceParams can
+            //                        not be null");
+            //            }
+            //
+            //            final Base64 base64 = new Base64();
+            //            try (InputStream manifestJar = new ByteArrayInputStream(base64.decode(pluginCfgsMetas))) {
+            //                cfgsSnapshotConsumer.accept(PluginAndCfgsSnapshot.getRepositoryCfgsSnapshot(appName,
+            //                manifestJar));
+            //            } catch (Exception e) {
+            //                throw new RuntimeException(e);
+            //            }
 
             cfgsSnapshotConsumer.accept(resolveCfgsSnapshotConsumer(triggerCfg.getResType(), instanceParams));
         }
@@ -256,10 +262,10 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public void rebindLoggingMDCParams() {
-        throw new UnsupportedOperationException();
-    }
+    //    @Override
+    //    public void rebindLoggingMDCParams() {
+    //        throw new UnsupportedOperationException();
+    //    }
 
 
     @Override
@@ -299,7 +305,7 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
     }
 
     @Override
-    public int getTaskId() {
+    public Integer getTaskId() {
         Integer taskId = Objects.requireNonNull(getAttribute(JobCommon.KEY_TASK_ID),
                 JobCommon.KEY_TASK_ID + " can " + "not be null");
         return taskId;
@@ -312,21 +318,6 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
     @Override
     public PhaseStatusCollection loadPhaseStatusFromLatest() {
         return this.latestPhaseStatusCollection;
-    }
-
-    @Override
-    public void addAsynSubJob(AsynSubJob jobName) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<AsynSubJob> getAsynSubJobs() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean containAsynJob() {
-        throw new UnsupportedOperationException();
     }
 
 

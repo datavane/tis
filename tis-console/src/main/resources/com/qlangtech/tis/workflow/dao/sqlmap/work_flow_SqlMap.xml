@@ -28,6 +28,9 @@
     <result column="in_change" property="inChange" jdbcType="TINYINT" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="op_time" property="opTime" jdbcType="TIMESTAMP" />
+    <result column="dag_spec_path" property="dagSpecPath" jdbcType="VARCHAR" />
+    <result column="schedule_cron" property="scheduleCron" jdbcType="VARCHAR" />
+    <result column="enable_schedule" property="enableSchedule" jdbcType="BIT" />
   </resultMap>
     <resultMap id="ibatorgenerated_MinResultMap" class="com.qlangtech.tis.workflow.pojo.WorkFlow" >
     <result column="id" property="id" jdbcType="INTEGER" />
@@ -59,7 +62,7 @@
     </iterate>
   </sql>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlowCriteria" >
-    select aa.id, name, op_user_id, op_user_name, git_path, in_change, create_time, op_time
+    select aa.id, name, op_user_id, op_user_name, git_path, in_change, create_time, op_time, dag_spec_path, schedule_cron, enable_schedule
      from ( select id from work_flow
     <isParameterPresent >
       <include refid="work_flow.ibatorgenerated_Example_Where_Clause" />
@@ -76,7 +79,8 @@
         <include refid="work_flow.ibatorgenerated_Example_Where_Clause" />
     </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlow" >
-    select id, name, op_user_id, op_user_name, git_path, in_change, create_time, op_time
+    select id, name, op_user_id, op_user_name, git_path, in_change, create_time, op_time,dag_spec_path,
+    schedule_cron, enable_schedule
     from work_flow
     where id = #id:INTEGER#
   </select>
@@ -90,9 +94,10 @@
   </delete>
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlow" >
     insert into work_flow (id, name, op_user_id, op_user_name, git_path, in_change, create_time,
-      op_time)
+      op_time, dag_spec_path, schedule_cron, enable_schedule)
     values (#id:INTEGER#, #name:VARCHAR#, #opUserId:INTEGER#, #opUserName:VARCHAR#,
-      #gitPath:VARCHAR#, #inChange:TINYINT#, #createTime:TIMESTAMP#, #opTime:TIMESTAMP#)
+      #gitPath:VARCHAR#, #inChange:TINYINT#, #createTime:TIMESTAMP#, #opTime:TIMESTAMP#,  #dagSpecPath:VARCHAR#,
+    #scheduleCron:VARCHAR#, #enableSchedule:BIT# )
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlow" >
     insert into work_flow
@@ -121,6 +126,15 @@
       <isNotNull prepend="," property="opTime" >
         op_time
       </isNotNull>
+      <isNotNull prepend="," property="dagSpecPath" >
+        dag_spec_path
+      </isNotNull>
+      <isNotNull prepend="," property="scheduleCron" >
+        schedule_cron
+      </isNotNull>
+      <isNotNull prepend="," property="enableSchedule" >
+        enable_schedule
+      </isNotNull>
       )
     </dynamic>
     values
@@ -148,6 +162,15 @@
       </isNotNull>
       <isNotNull prepend="," property="opTime" >
         #opTime:TIMESTAMP#
+      </isNotNull>
+      <isNotNull prepend="," property="dagSpecPath" >
+        #dagSpecPath:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="scheduleCron" >
+        #scheduleCron:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="enableSchedule" >
+        #enableSchedule:BIT#
       </isNotNull>
       )
     </dynamic>
@@ -183,6 +206,15 @@
       <isNotNull prepend="," property="record.opTime" >
         op_time = #record.opTime:TIMESTAMP#
       </isNotNull>
+      <isNotNull prepend="," property="record.dagSpecPath" >
+        dag_spec_path = #record.dagSpecPath:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.scheduleCron" >
+        schedule_cron = #record.scheduleCron:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="record.enableSchedule" >
+        enable_schedule = #record.enableSchedule:BIT#
+      </isNotNull>
     </dynamic>
     <isParameterPresent >
       <include refid="work_flow.ibatorgenerated_Example_Where_Clause" />
@@ -197,7 +229,10 @@
       git_path = #record.gitPath:VARCHAR#,
       in_change = #record.inChange:TINYINT#,
       create_time = #record.createTime:TIMESTAMP#,
-      op_time = #record.opTime:TIMESTAMP#
+      op_time = #record.opTime:TIMESTAMP#,
+      dag_spec_path = #record.dagSpecPath:VARCHAR#,
+      schedule_cron = #record.scheduleCron:VARCHAR#,
+      enable_schedule = #record.enableSchedule:BIT#
     <isParameterPresent >
       <include refid="work_flow.ibatorgenerated_Example_Where_Clause" />
     </isParameterPresent>

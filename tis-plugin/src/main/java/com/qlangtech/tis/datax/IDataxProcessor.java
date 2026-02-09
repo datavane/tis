@@ -70,6 +70,10 @@ import java.util.stream.Collectors;
  */
 public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, IRefreshable {
 
+    public default DataXName getDataXName() {
+        return new DataXName(this.identityValue(), this.getResType());
+    }
+
     static File getWriterDescFile(IPluginContext pluginContext, String dataXName) {
         File workDir = getDataXWorkDir(pluginContext, dataXName);
         return new File(workDir, "writerDesc");

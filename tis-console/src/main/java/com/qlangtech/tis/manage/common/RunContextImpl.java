@@ -37,6 +37,8 @@ import com.qlangtech.tis.manage.biz.dal.dao.IUploadResourceDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IUsrDptRelationDAO;
 import com.qlangtech.tis.manage.spring.ZooKeeperGetter;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
+
+import java.io.File;
 //import org.apache.solr.common.cloud.TISZkStateReader;
 
 /**
@@ -129,7 +131,7 @@ public class RunContextImpl implements RunContext {
 //  }
 
   @Override
-  public CreateNewTaskResult createNewDataXTask(IExecChainContext chainContext, TriggerType triggerType) {
+  public CreateNewTaskResult createNewDataXTask(IExecChainContext chainContext, TriggerType triggerType, File dagSpecPath) {
     throw new UnsupportedOperationException();
   }
 

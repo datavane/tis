@@ -73,6 +73,7 @@ import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.ManageUtils;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.Option;
@@ -133,6 +134,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -188,11 +190,11 @@ public class DataxAction extends BasicModule {
   public void doTriggerFullbuildTask(Context context) throws Exception {
 
     // 在powerjob 系统中 定时任务触发，已经生成wfInstanceId
-    Optional<Long> powerJobWorkflowInstanceId =
-      Optional.ofNullable(this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, null));
+    //    Optional<Long> powerJobWorkflowInstanceId =
+    //      Optional.ofNullable(this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, null));
 
     DataXJobSubmit.InstanceType triggerType =
-      Optional.ofNullable(this.getString(InstanceType.KEY_TYPE)).map((type) -> InstanceType.parse(type)).orElseGet(() -> DataXJobSubmit.getDataXTriggerType());
+      Optional.ofNullable(this.getString(InstanceType.KEY_TYPE)).map(InstanceType::parse).orElseGet(DataXJobSubmit::getDataXTriggerType);
 
     DataXName dataX = this.getCollectionName();
 
@@ -212,22 +214,48 @@ public class DataxAction extends BasicModule {
       return;
     }
 
-    Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, triggerType);
-    if (!dataXJobSubmit.isPresent()) {
-      this.setBizResult(context, Collections.singletonMap("installLocal", true));
-      this.addErrorMessage(context, "还没有安装本地触发类型的执行器:" + triggerType + ",请先安装");
-      return;
-    }
-    DataXJobSubmit jobSubmit = dataXJobSubmit.get();
-    logger.info("jobSubmit " + jobSubmit.getType() + " the submit instance type of :" + jobSubmit.getClass().getName());
+    //    Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, triggerType);
+    //    if (dataXJobSubmit.isEmpty()) {
+    //      this.setBizResult(context, Collections.singletonMap("installLocal", true));
+    //      this.addErrorMessage(context, "还没有安装本地触发类型的执行器:" + triggerType + ",请先安装");
+    //      return;
+    //    }
+    //DataXJobSubmit jobSubmit = dataXJobSubmit.get();
+    // logger.info("jobSubmit " + jobSubmit.getType() + " the submit instance type of :" + jobSubmit.getClass()
+    // .getName());
     //    List<HttpUtils.PostParam> params = Lists.newArrayList();
     //    params.add(new HttpUtils.PostParam(TriggerBuildResult.KEY_APPNAME, this.getCollectionName()));
     //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_START, FullbuildPhase.FullDump.getName()));
     //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.JOIN.getName()));
 
     // this.setBizResult(context, TriggerBuildResult.triggerBuild(this, context, params));
-    this.setBizResult(context, jobSubmit.triggerJob(this, context, this.getCollectionName(),
-      powerJobWorkflowInstanceId, Optional.ofNullable(latestWorkflowHistory)));
+    this.setBizResult(context, this.triggerJob(this, context, this.getCollectionName(),
+      Optional.ofNullable(latestWorkflowHistory)));
+  }
+
+
+  private TriggerBuildResult triggerJob(IControlMsgHandler module, Context context, DataXName appName,
+                                        Optional<WorkFlowBuildHistory> latestWorkflowHistory) {
+    if (appName == null) {
+      throw new IllegalArgumentException("param appName can not be empty");
+    }
+    //        if (powerJobWorkflowInstanceIdOpt.isPresent()) {
+    //            throw new IllegalStateException("powerJobWorkflowInstanceIdOpt contain is not support,workflowId:"
+    //                    + powerJobWorkflowInstanceIdOpt.get());
+    //        }
+    try {
+      List<HttpUtils.PostParam> params = Lists.newArrayList();
+      params.add(new HttpUtils.PostParam(TriggerBuildResult.KEY_APPNAME, appName.getPipelineName()));
+
+      Optional<JobTrigger> partialTrigger = JobTrigger.getPartialTriggerFromContext(context);
+      partialTrigger.ifPresent((partial) -> {
+        params.add(partial.getHttpPostSelectedTabsAsParam());
+      });
+      JobTrigger.addLatestWorkflowHistoryAsParam(params, latestWorkflowHistory);
+      return TriggerBuildResult.triggerBuild(module, context, params);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
   }
 
 
@@ -245,7 +273,6 @@ public class DataxAction extends BasicModule {
     ProcessModel pmodel = ProcessModel.parse(this.getString(StoreResourceType.KEY_PROCESS_MODEL));
     IDataxProcessor dataxProcessor = (IDataxProcessor) pmodel.loadDataXProcessor(this, dataXName);
 
-    // DataxProcessor dataxProcessor = DataxProcessor.load(this,); IAppSource.load(this, dataXName);
     String createFileName = post.getString("fileName");
     dataxProcessor.saveCreateTableDDL(this, new StringBuffer(createTableDDL), createFileName, true);
     this.addActionMessage(context, "已经成功更新建表DDL脚本 " + createFileName);
@@ -1413,19 +1440,21 @@ public class DataxAction extends BasicModule {
       ESTableAlias esTableAlias = ESTableAlias.create(transformerRules, schemaContent);
 
 
-//      ESTableAlias esTableAlias = new ESTableAlias();
-//      esTableAlias.schemaContent = schemaContent;
-//      esTableAlias.cols = ESTableAlias.parseSourceCols(schemaContent);
-//      transformerRules.ifPresent((rule) -> {
-//        // 需要将虚拟列过滤掉
-//        Set<String> virtualCols =
-//          rule.relevantTypedOutterColKeys().stream().filter(OutputParameter::isVirtual).map(OutputParameter::getName).collect(Collectors.toSet());
-//        esTableAlias.cols =
-//          esTableAlias.cols.stream().filter((col) -> !virtualCols.contains(col.getName())).collect(Collectors.toList());
-//      });
-//
-//      esTableAlias.primaryKeys =
-//        esTableAlias.cols.stream().filter(CMeta::isPk).map(CMeta::getName).collect(Collectors.toList());
+      //      ESTableAlias esTableAlias = new ESTableAlias();
+      //      esTableAlias.schemaContent = schemaContent;
+      //      esTableAlias.cols = ESTableAlias.parseSourceCols(schemaContent);
+      //      transformerRules.ifPresent((rule) -> {
+      //        // 需要将虚拟列过滤掉
+      //        Set<String> virtualCols =
+      //          rule.relevantTypedOutterColKeys().stream().filter(OutputParameter::isVirtual).map
+      //          (OutputParameter::getName).collect(Collectors.toSet());
+      //        esTableAlias.cols =
+      //          esTableAlias.cols.stream().filter((col) -> !virtualCols.contains(col.getName())).collect(Collectors
+      //          .toList());
+      //      });
+      //
+      //      esTableAlias.primaryKeys =
+      //        esTableAlias.cols.stream().filter(CMeta::isPk).map(CMeta::getName).collect(Collectors.toList());
       esTableAlias.name = (tab.getName());
       esTableAlias.alias = (((ISearchEngineTypeTransfer) processMeta.getWriter()).getIndexName());
       //  esTableAlias.setSchemaContent(schemaContent);

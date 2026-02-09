@@ -42,7 +42,7 @@ public interface JobCommon extends JobParams {
     public static void setMDC(int taskId, String pipelineName) {
         setMDC(new IPipelineExecContext() {
             @Override
-            public int getTaskId() {
+            public Integer getTaskId() {
                 return taskId;
             }
 

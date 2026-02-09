@@ -66,7 +66,7 @@ public class PipelineIncrExecutor extends BasicStepExecutor {
     TaskPlan.SourceDataEndCfg sourceEnd = plan.getSourceEnd();
     TaskPlan.DataEndCfg targetEnd = plan.getTargetEnd();
     IAppSource processor = sourceEnd.getProcessor();
-    DataXName pipelineName = processor.getDataXName();
+    DataXName pipelineName =sourceEnd.getDataXName();
     if (!Objects.requireNonNull(sourceEnd.getEndTypeMeta(), "sourceEnd:" + sourceEnd.getType() + " relevant "
       + "EndTypeMeta can not be null").isSupportIncr()) {
       context.sendMessage("源端‘" + sourceEnd.getType() + "’ 类型不支持增量实时数据同步，因此跳过该步骤");
@@ -128,7 +128,7 @@ public class PipelineIncrExecutor extends BasicStepExecutor {
           }
         });
 
-      PartialSettedPluginContext pluginCtx = createPluginContext(plan, processor.getDataXName());
+      PartialSettedPluginContext pluginCtx = createPluginContext(plan, pipelineName);
       UploadPluginMeta processMeta = UploadPluginMeta.appnameMeta(pluginCtx, processor.identityValue());
       Context ctx = plan.getRuntimeContext(true);
 

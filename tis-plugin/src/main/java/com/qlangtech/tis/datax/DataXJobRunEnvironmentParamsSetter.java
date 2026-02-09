@@ -39,20 +39,18 @@ public interface DataXJobRunEnvironmentParamsSetter {
     }
 
     public static DataXJobRunEnvironmentParamsSetter.ExtraJavaSystemPramsSuppiler createSysPramsSuppiler() {
-        DataXJobRunEnvironmentParamsSetter.ExtraJavaSystemPramsSuppiler systemPramsSuppiler =
-                new DataXJobRunEnvironmentParamsSetter.ExtraJavaSystemPramsSuppiler(false) {
-                    @Override
-                    public List<String> get() {
-                        List<String> params = Lists.newArrayList(super.get());
-                        params.add("-D" + Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS + "=true");
-                        params.add("-D" + Config.KEY_ASSEMBLE_HOST + "=" + Config.getAssembleHost());
-                        params.add("-D" + Config.KEY_TIS_HOST + "=" + Config.getTisHost());
-                        params.add("-D" + Config.KEY_RUNTIME + "=" + RunEnvironment.getSysRuntime().getKeyName());
-                        //  params.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=50005");
-                        return params;
-                    }
-                };
-        return systemPramsSuppiler;
+        return new ExtraJavaSystemPramsSuppiler(false) {
+            @Override
+            public List<String> get() {
+                List<String> params = Lists.newArrayList(super.get());
+                params.add("-D" + Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS + "=true");
+                params.add("-D" + Config.KEY_ASSEMBLE_HOST + "=" + Config.getAssembleHost());
+                params.add("-D" + Config.KEY_TIS_HOST + "=" + Config.getTisHost());
+                params.add("-D" + Config.KEY_RUNTIME + "=" + RunEnvironment.getSysRuntime().getKeyName());
+                //  params.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=50005");
+                return params;
+            }
+        };
     }
 
     public void setClasspath(String classpath);

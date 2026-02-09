@@ -19,6 +19,9 @@ package com.qlangtech.tis.order.center;
 
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
+
+import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.DataXJobSubmitAkkaClusterSupport;
 import com.qlangtech.tis.exec.AbstractActionInvocation;
 import com.qlangtech.tis.exec.ActionInvocation;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
@@ -64,6 +67,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
     public static final String KEY_INDEX_SWAP_TASK_FLOW_LAUNCHER = "IndexSwapTaskflowLauncher";
     private ITISCoordinator zkClient;
 
+
     static {
     }
 
@@ -73,7 +77,8 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
 
 
     public static IndexSwapTaskflowLauncher getIndexSwapTaskflowLauncher(ServletContext context) {
-        IndexSwapTaskflowLauncher result = (IndexSwapTaskflowLauncher) context.getAttribute(KEY_INDEX_SWAP_TASK_FLOW_LAUNCHER);
+        IndexSwapTaskflowLauncher result =
+                (IndexSwapTaskflowLauncher) context.getAttribute(KEY_INDEX_SWAP_TASK_FLOW_LAUNCHER);
         if (result == null) {
             throw new IllegalStateException("IndexSwapTaskflowLauncher can not be null in servletContext");
         }
@@ -82,6 +87,9 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
+        logger.info("IndexSwapTaskflowLauncher shutting down...");
+
+        logger.info("IndexSwapTaskflowLauncher shutdown completed");
     }
 
 
@@ -109,9 +117,17 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
             this.incrChannels = initIncrTransferStateCollect();
             // FlumeApplication.startFlume();
             sce.getServletContext().setAttribute(KEY_INDEX_SWAP_TASK_FLOW_LAUNCHER, this);
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        DataXJobSubmit dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit();
+        if (!(dataXJobSubmit instanceof DataXJobSubmitAkkaClusterSupport)) {
+            throw new IllegalStateException("dataXJobSubmit:" + dataXJobSubmit.getClass().getName() + " must be type "
+                    + "of " + DataXJobSubmitAkkaClusterSupport.class.getSimpleName());
+        }
+        ((DataXJobSubmitAkkaClusterSupport) dataXJobSubmit).launchAkkaCluster();
     }
 
     public void afterPropertiesSet() throws Exception {
@@ -159,7 +175,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
      */
     @SuppressWarnings("all")
     public ExecuteResult startWork(DefaultChainContext chainContext) throws Exception {
-        chainContext.rebindLoggingMDCParams();
+        //chainContext.rebindLoggingMDCParams();
         ActionInvocation invoke = null;
         ExecutePhaseRange range = chainContext.getExecutePhaseRange();
         logger.info("start component:" + range.getStart() + ",end component:" + range.getEnd());
@@ -219,8 +235,8 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
                 if (result == null) {
                     result = new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange());
                 }
-                IFlush2Local flush2Local = IFlush2LocalFactory.createNew(IndexSwapTaskflowLauncher.class.getClassLoader(), localFile)
-                        .orElseThrow(() -> new IllegalStateException("flush2Local must be present"));
+                IFlush2Local flush2Local =
+                        IFlush2LocalFactory.createNew(IndexSwapTaskflowLauncher.class.getClassLoader(), localFile).orElseThrow(() -> new IllegalStateException("flush2Local must be present"));
                 phaseStatus = flush2Local.loadPhase(); // BasicPhaseStatus.statusWriter.loadPhase(localFile);
                 switch (phase) {
                     case FullDump:
@@ -241,4 +257,57 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         }
         return result;
     }
+
+    //    /**
+    //     * 初始化 TIS Actor System
+    //     *
+    //     * 实现步骤：
+    //     * 1. 获取 Spring ApplicationContext
+    //     * 2. 从 Spring 容器中获取 DAO 依赖
+    //     * 3. 创建 TISActorSystem 实例
+    //     * 4. 初始化 Actor System
+    //     * 5. 将实例保存到 ServletContext（供其他组件使用）
+    //     *
+    //     * @param sce ServletContextEvent
+    //     */
+    //    private void initializeTISActorSystem(ServletContextEvent sce) {
+    //        logger.info("Initializing TIS Actor System...");
+    //
+    //        try {
+    //            // 1. 获取 Spring ApplicationContext
+    //            WebApplicationContext applicationContext =
+    //                WebApplicationContextUtils.getWebApplicationContext(sce.getServletContext());
+    //
+    //            if (applicationContext == null) {
+    //                logger.warn("Spring ApplicationContext not available, skipping Actor System initialization");
+    //                return;
+    //            }
+    //
+    //            // 2. 从 Spring 容器中获取 DAO 依赖
+    //            IWorkFlowBuildHistoryDAO workflowBuildHistoryDAO =
+    //                applicationContext.getBean(IWorkFlowBuildHistoryDAO.class);
+    //            IDAGNodeExecutionDAO dagNodeExecutionDAO =
+    //                applicationContext.getBean(IDAGNodeExecutionDAO.class);
+    //
+    //            if (workflowBuildHistoryDAO == null || dagNodeExecutionDAO == null) {
+    //                logger.warn("Required DAO beans not found, skipping Actor System initialization");
+    //                return;
+    //            }
+    //
+    //            // 3. 创建 TISActorSystem 实例
+    //            tisActorSystem = new TISActorSystem(workflowBuildHistoryDAO, dagNodeExecutionDAO);
+    //
+    //            // 4. 初始化 Actor System
+    //            tisActorSystem.initialize();
+    //
+    //            // 5. 将实例保存到 ServletContext（供其他组件使用）
+    //            sce.getServletContext().setAttribute(TISActorSystemHolder.ATTR_TIS_ACTOR_SYSTEM, tisActorSystem);
+    //
+    //            logger.info("TIS Actor System initialized successfully");
+    //
+    //        } catch (Exception e) {
+    //            logger.error("Failed to initialize TIS Actor System", e);
+    //            // 不抛出异常，允许 TIS 继续启动（Actor System 是可选功能）
+    //        }
+    //    }
 }

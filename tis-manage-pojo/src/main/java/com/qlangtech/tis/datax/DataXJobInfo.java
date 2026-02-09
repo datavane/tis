@@ -31,12 +31,12 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-12-24 10:48
  **/
-public class DataXJobInfo {
+public class DataXJobInfo implements IDataXJobInfo {
 
-//    public static final AtomicReference<File> dataXExecutorDir
-//            = new AtomicReference<>(TisAppLaunch.isTestMock()
-//            ? new File(".")
-//            : new File("/opt/tis/" + IDataXTaskRelevant.KEY_TIS_DATAX_EXECUTOR));
+    //    public static final AtomicReference<File> dataXExecutorDir
+    //            = new AtomicReference<>(TisAppLaunch.isTestMock()
+    //            ? new File(".")
+    //            : new File("/opt/tis/" + IDataXTaskRelevant.KEY_TIS_DATAX_EXECUTOR));
 
     public static final AtomicReference<File> dataXExecutorDir = new AtomicReference<>(new File("."));
 
@@ -57,7 +57,8 @@ public class DataXJobInfo {
     public static DataXJobInfo parse(String jobInfo) {
         String[] split = StringUtils.split(jobInfo, FILENAME_SPLIT_CHAR);
         if (split.length > 2) {
-            return currJobInfo = new DataXJobInfo(split[0], DBIdentity.parseId(split[1]), Optional.of(StringUtils.split(split[2], TAB_SPLIT_CHAR)));
+            return currJobInfo = new DataXJobInfo(split[0], DBIdentity.parseId(split[1]),
+                    Optional.of(StringUtils.split(split[2], TAB_SPLIT_CHAR)));
         } else if (split.length == 2) {
             return currJobInfo = new DataXJobInfo(split[0], DBIdentity.parseId(split[1]), Optional.empty());
         } else {
@@ -66,10 +67,8 @@ public class DataXJobInfo {
     }
 
     public static DataXJobInfo create(String jobFileName, DBIdentity dbFactoryId, List<String> targetTabs) {
-        return currJobInfo = new DataXJobInfo(jobFileName, dbFactoryId
-                , (targetTabs == null || targetTabs.isEmpty())
-                ? Optional.empty()
-                : Optional.of(targetTabs.toArray(new String[targetTabs.size()])));
+        return currJobInfo = new DataXJobInfo(jobFileName, dbFactoryId, (targetTabs == null || targetTabs.isEmpty())
+                ? Optional.empty() : Optional.of(targetTabs.toArray(new String[targetTabs.size()])));
     }
 
     public static DataXJobInfo getCurrent() {
@@ -132,4 +131,8 @@ public class DataXJobInfo {
     }
 
 
+    @Override
+    public String getJobFileName() {
+        return this.jobFileName;
+    }
 }

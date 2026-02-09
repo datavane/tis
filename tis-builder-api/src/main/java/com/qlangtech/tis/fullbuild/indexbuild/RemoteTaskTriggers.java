@@ -34,10 +34,10 @@ import java.util.stream.Stream;
 public class RemoteTaskTriggers {
     private final List<IRemoteTaskTrigger> dumpPhaseTasks = new ArrayList<>();
     private final List<IRemoteTaskTrigger> joinPhaseTasks = new ArrayList<>();
-    private final ExecutorService executorService;
+   // private final ExecutorService executorService;
 
-    public RemoteTaskTriggers(ExecutorService executorService) {
-        this.executorService = executorService;
+    public RemoteTaskTriggers() {
+      //  this.executorService = executorService;
     }
 
     public void addDumpPhaseTask(IRemoteTaskTrigger dumpTsk) {
@@ -50,7 +50,8 @@ public class RemoteTaskTriggers {
 
 
     public Map<String, IRemoteTaskTrigger> getTriggerDict() {
-        return Stream.concat(dumpPhaseTasks.stream(), joinPhaseTasks.stream()).collect(Collectors.toMap((t) -> t.getTaskName(), (t) -> t));
+        return Stream.concat(dumpPhaseTasks.stream(), joinPhaseTasks.stream()) //
+                .collect(Collectors.toMap(IRemoteTaskTrigger::getTaskName, (t) -> t));
     }
 
 
@@ -66,20 +67,20 @@ public class RemoteTaskTriggers {
         Stream.concat(dumpPhaseTasks.stream(), joinPhaseTasks.stream()).forEach((trigger) -> {
             trigger.cancel();
         });
-        executorService.shutdownNow();
-        try {
-            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
-                // Cancel currently executing tasks
-                executorService.shutdownNow();
-//                // Wait a while for tasks to respond to being cancelled
-//                if (!executorService.awaitTermination(60, TimeUnit.SECONDS))
-//                    System.err.println("Pool did not terminate");
-            }
-        } catch (InterruptedException ie) {
-            // (Re-)Cancel if current thread also interrupted
-            executorService.shutdownNow();
-            // Preserve interrupt status
-            Thread.currentThread().interrupt();
-        }
+//        executorService.shutdownNow();
+//        try {
+//            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+//                // Cancel currently executing tasks
+//                executorService.shutdownNow();
+////                // Wait a while for tasks to respond to being cancelled
+////                if (!executorService.awaitTermination(60, TimeUnit.SECONDS))
+////                    System.err.println("Pool did not terminate");
+//            }
+//        } catch (InterruptedException ie) {
+//            // (Re-)Cancel if current thread also interrupted
+//            executorService.shutdownNow();
+//            // Preserve interrupt status
+//            Thread.currentThread().interrupt();
+//        }
     }
 }

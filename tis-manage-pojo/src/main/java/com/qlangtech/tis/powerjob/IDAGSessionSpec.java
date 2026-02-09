@@ -18,6 +18,9 @@
 
 package com.qlangtech.tis.powerjob;
 
+import com.qlangtech.tis.datax.LifeCycleHook;
+import com.qlangtech.tis.powerjob.model.PEWorkflowDAG;
+import com.qlangtech.tis.powerjob.model.WorkflowNodeType;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.function.Consumer;
@@ -33,7 +36,25 @@ public interface IDAGSessionSpec {
 
     public StringBuffer buildSpec();
 
-    public IDAGSessionSpec getDpt(String id);
+    default IDAGSessionSpec getDpt(String id, LifeCycleHook execRole) {
+        return getDpt(id, WorkflowNodeType.TASK, execRole, (node) -> {
+        });
+    }
+
+    default IDAGSessionSpec getDpt(String id, LifeCycleHook execRole,
+                                   Consumer<PEWorkflowDAG.Node> newAddedNodeConsumer) {
+        return getDpt(id, WorkflowNodeType.TASK, execRole, newAddedNodeConsumer);
+    }
+
+    default IDAGSessionSpec getDpt(String id, WorkflowNodeType nodeType, LifeCycleHook execRole) {
+        return getDpt(id, nodeType, execRole, (node) -> {
+        });
+    }
+
+    public IDAGSessionSpec getDpt(String id, WorkflowNodeType nodeType, LifeCycleHook execRole,
+                                  Consumer<PEWorkflowDAG.Node> newAddedNodeConsumer);
 
     public IDAGSessionSpec setMilestone();
+
+    void addDpt(IDAGSessionSpec dpt);
 }

@@ -18,12 +18,8 @@
 
 package com.qlangtech.tis.powerjob;
 
-import com.google.common.collect.Lists;
-import com.qlangtech.tis.datax.CuratorDataXTaskMessage;
 import com.qlangtech.tis.datax.StoreResourceType;
 import org.apache.commons.lang.StringUtils;
-
-import java.util.List;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -45,19 +41,19 @@ public class SelectedTabTriggersConfig extends TriggersConfig {
 
     public String preTrigger;
     public String postTrigger;
-    private List<CuratorDataXTaskMessage> splitTabsCfg = Lists.newArrayList();
+    //private List<DataXTaskJobName> splitTabsCfg = Lists.newArrayList();
 
     public String getTabName() {
         return this.tabName;
     }
 
-    public List<CuratorDataXTaskMessage> getSplitTabsCfg() {
-        return this.splitTabsCfg;
-    }
-
-    public void addSplitCfg(CuratorDataXTaskMessage tskMsg) {
-        splitTabsCfg.add(tskMsg);
-    }
+//    public List<DataXTaskJobName> getSplitTabsCfg() {
+//        return this.splitTabsCfg;
+//    }
+//
+//    public void addSplitCfg(DataXTaskJobName tskMsg) {
+//        splitTabsCfg.add(tskMsg);
+//    }
 
     public String getPreTrigger() {
         return preTrigger;

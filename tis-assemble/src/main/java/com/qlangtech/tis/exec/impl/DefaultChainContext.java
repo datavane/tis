@@ -88,10 +88,10 @@ public class DefaultChainContext implements IExecChainContext {
         DataXJobSubmitParams submitParams = DataXJobSubmitParams.getDftIfEmpty();
         return submitParams.getJavaMemorySpec();
     }
-//    @Override
-//    public TableDumpFactory getTableDumpFactory() {
-//        throw new UnsupportedOperationException();
-//    }
+    //    @Override
+    //    public TableDumpFactory getTableDumpFactory() {
+    //        throw new UnsupportedOperationException();
+    //    }
 
     /**
      * 设置最近一次成功执行的历史记录Id
@@ -106,12 +106,12 @@ public class DefaultChainContext implements IExecChainContext {
 
     //   private TableDumpFactory fs2Table;
 
-    private IRebindableMDC mdcParamContext;
+    // private IRebindableMDC mdcParamContext;
 
     // private IndexBuilderTriggerFactory indexBuilderTriggerFactory;
     private IAppSourcePipelineController appSourcePipelineController;
 
-    public final List<AsynSubJob> asynSubJobs = Lists.newCopyOnWriteArrayList();
+  //  public final List<AsynSubJob> asynSubJobs = Lists.newCopyOnWriteArrayList();
     private RemoteTaskTriggers tskTriggers;
 
     @Override
@@ -141,22 +141,22 @@ public class DefaultChainContext implements IExecChainContext {
         return this.tskTriggers;
     }
 
+//    @Override
+//    public List<AsynSubJob> getAsynSubJobs() {
+//        return this.asynSubJobs;
+//    }
+//
+//    public void addAsynSubJob(AsynSubJob jobName) {
+//        this.asynSubJobs.add(jobName);
+//    }
+//
+//    public boolean containAsynJob() {
+//        return !this.asynSubJobs.isEmpty();
+//    }
+
+
     @Override
-    public List<AsynSubJob> getAsynSubJobs() {
-        return this.asynSubJobs;
-    }
-
-    public void addAsynSubJob(AsynSubJob jobName) {
-        this.asynSubJobs.add(jobName);
-    }
-
-    public boolean containAsynJob() {
-        return !this.asynSubJobs.isEmpty();
-    }
-
-
-    @Override
-    public int getTaskId() {
+    public Integer getTaskId() {
         Integer taskid = this.getAttribute(JobCommon.KEY_TASK_ID);
         Objects.requireNonNull(taskid, "taskid can not be null");
         return taskid;
@@ -166,21 +166,21 @@ public class DefaultChainContext implements IExecChainContext {
     public boolean isDryRun() {
         return httpExecContext.getBoolean(IFullBuildContext.DRY_RUN);
     }
-//    @Override
-//    public IndexBuilderTriggerFactory getIndexBuilderFactory() {
-//        return this.indexBuilderTriggerFactory;
-//    }
-//
-//    public void setIndexBuilderTriggerFactory(IndexBuilderTriggerFactory indexBuilderTriggerFactory) {
-//        if (indexBuilderTriggerFactory != null) {
-//            this.indexBuilderTriggerFactory = indexBuilderTriggerFactory;
-//            this.setIndexBuildFileSystem(indexBuilderTriggerFactory.getFileSystem());
-//        }
-//    }
-
-    public void setMdcParamContext(IRebindableMDC mdcParamContext) {
-        this.mdcParamContext = mdcParamContext;
-    }
+    //    @Override
+    //    public IndexBuilderTriggerFactory getIndexBuilderFactory() {
+    //        return this.indexBuilderTriggerFactory;
+    //    }
+    //
+    //    public void setIndexBuilderTriggerFactory(IndexBuilderTriggerFactory indexBuilderTriggerFactory) {
+    //        if (indexBuilderTriggerFactory != null) {
+    //            this.indexBuilderTriggerFactory = indexBuilderTriggerFactory;
+    //            this.setIndexBuildFileSystem(indexBuilderTriggerFactory.getFileSystem());
+    //        }
+    //    }
+    //
+    //    public void setMdcParamContext(IRebindableMDC mdcParamContext) {
+    //        this.mdcParamContext = mdcParamContext;
+    //    }
 
     public int getIndexShardCount() {
         try {
@@ -190,22 +190,22 @@ public class DefaultChainContext implements IExecChainContext {
         }
     }
 
-    @Override
-    public void rebindLoggingMDCParams() {
-        if (mdcParamContext == null) {
-            throw new IllegalStateException("must execute method 'setMdcParamContext'");
-        }
-        mdcParamContext.rebind();
-    }
+    //    @Override
+    //    public void rebindLoggingMDCParams() {
+    //        if (mdcParamContext == null) {
+    //            throw new IllegalStateException("must execute method 'setMdcParamContext'");
+    //        }
+    //        mdcParamContext.rebind();
+    //    }
 
-//    public void setTableDumpFactory(TableDumpFactory factory) {
-//        this.fs2Table = factory;
-//    }
+    //    public void setTableDumpFactory(TableDumpFactory factory) {
+    //        this.fs2Table = factory;
+    //    }
 
-//    @Override
-//    public IIndexMetaData getIndexMetaData() {
-//        return this.indexMetaData;
-//    }
+    //    @Override
+    //    public IIndexMetaData getIndexMetaData() {
+    //        return this.indexMetaData;
+    //    }
 
     //public void setIndexMetaData(IIndexMetaData indexMetaData) {
     //   this.indexMetaData = indexMetaData;
@@ -214,9 +214,11 @@ public class DefaultChainContext implements IExecChainContext {
     @Override
     public ExecutePhaseRange getExecutePhaseRange() {
         if (this.executePhaseRange == null) {
-            String start = this.getString(COMPONENT_START);//StringUtils.defaultIfEmpty(this.getString(COMPONENT_START), FullbuildPhase.FullDump.getName());
+            String start = this.getString(COMPONENT_START);//StringUtils.defaultIfEmpty(this.getString
+            // (COMPONENT_START), FullbuildPhase.FullDump.getName());
             if (StringUtils.isNotEmpty(start)) {
-                String end = StringUtils.defaultIfEmpty(this.getString(COMPONENT_END), FullbuildPhase.IndexBackFlow.getName());
+                String end = StringUtils.defaultIfEmpty(this.getString(COMPONENT_END),
+                        FullbuildPhase.IndexBackFlow.getName());
                 this.executePhaseRange = new ExecutePhaseRange(FullbuildPhase.parse(start), FullbuildPhase.parse(end));
             } else {
                 IDataxProcessor appSource = this.getProcessor();
@@ -286,7 +288,12 @@ public class DefaultChainContext implements IExecChainContext {
     private final Map<String, Object> attribute = new HashMap<>();
 
     public void setAttribute(String key, Object v) {
+        if (JobCommon.KEY_TASK_ID.equals(key)) {
+            final Integer taskid = (Integer) v;
+            TrackableExecuteInterceptor.initialTaskPhase(taskid);
+        }
         this.attribute.put(key, v);
+
     }
 
     @Override
@@ -307,9 +314,9 @@ public class DefaultChainContext implements IExecChainContext {
         return (T) this.attribute.get(key);
     }
 
-//    public void setZkStateReader(ZkStateReader zkStateReader) {
-//        this.zkStateReader = zkStateReader;
-//    }
+    //    public void setZkStateReader(ZkStateReader zkStateReader) {
+    //        this.zkStateReader = zkStateReader;
+    //    }
 
     @Override
     public ITISCoordinator getZkClient() {
@@ -351,11 +358,11 @@ public class DefaultChainContext implements IExecChainContext {
 
     @Override
     public long getPartitionTimestampWithMillis() {
-//        String ps = StringUtils.defaultIfEmpty(getString(KEY_PARTITION), this.ps);
-//        if (!ps.startsWith("20")) {
-//            throw new IllegalArgumentException("ps:" + ps + " shall start with 201");
-//        }
-//        return ps;
+        //        String ps = StringUtils.defaultIfEmpty(getString(KEY_PARTITION), this.ps);
+        //        if (!ps.startsWith("20")) {
+        //            throw new IllegalArgumentException("ps:" + ps + " shall start with 201");
+        //        }
+        //        return ps;
         //  throw new UnsupportedOperationException();
         return ps;
     }
@@ -402,16 +409,17 @@ public class DefaultChainContext implements IExecChainContext {
     public static PhaseStatusCollection loadPhaseStatusFromLatest(Optional<Integer> latestWFSuccessTaskId) {
         //FIXME 这段代码在执行workflow时候应该会不兼容，届时再调整
         // Optional<WorkFlowBuildHistory> latestWFSuccessTask = DagTaskUtils.getLatestWFSuccessTaskId(appName);
-        return latestWFSuccessTaskId.map((historyId) -> IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(historyId)).orElse(null);
+        return latestWFSuccessTaskId.map(IndexSwapTaskflowLauncher::loadPhaseStatusFromLocal).orElse(null);
 
-//        if (!latestWFSuccessTask.isPresent()) {
-//            return null;
-//        }
-//        WorkFlowBuildHistory h = latestWFSuccessTask.get();
-//        PhaseStatusCollection phaseStatusCollection = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(h.getId());
-//        if (phaseStatusCollection == null) {
-//            return null;
-//        }
-//        return phaseStatusCollection;
+        //        if (!latestWFSuccessTask.isPresent()) {
+        //            return null;
+        //        }
+        //        WorkFlowBuildHistory h = latestWFSuccessTask.get();
+        //        PhaseStatusCollection phaseStatusCollection = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(h
+        //        .getId());
+        //        if (phaseStatusCollection == null) {
+        //            return null;
+        //        }
+        //        return phaseStatusCollection;
     }
 }
