@@ -144,12 +144,12 @@ public class WorkflowDAGUtils {
                 dag.getNodes().stream().collect(Collectors.toMap(PEWorkflowDAG.Node::getNodeId, node -> node));
 
         // 3. 遍历所有节点，找出就绪节点
+        // 禁用节点在 initializeDAGRuntime 中已被标记为 SUCCEED，不会处于 WAITING 状态，无需额外处理
         List<PEWorkflowDAG.Node> readyNodes = new ArrayList<>();
-        List<PEWorkflowDAG.Node> skipNodes = new ArrayList<>();
 
         for (PEWorkflowDAG.Node node : dag.getNodes()) {
-            // 跳过已完成的节点
-            if (isCompletedStatus(node.getStatus())) {
+            // 只处理 WAITING 状态的节点（其他状态都跳过）
+            if (node.getStatus() != InstanceStatus.WAITING) {
                 continue;
             }
 
@@ -158,17 +158,7 @@ public class WorkflowDAGUtils {
                 continue;
             }
 
-            // 区分禁用节点和正常节点
-            if (node.getEnable() != null && !node.getEnable()) {
-                skipNodes.add(node);
-            } else {
-                readyNodes.add(node);
-            }
-        }
-
-        // 4. 处理禁用节点（标记为已完成，以便解锁后续节点）
-        for (PEWorkflowDAG.Node skipNode : skipNodes) {
-            skipNode.setStatus(InstanceStatus.CANCELED);
+            readyNodes.add(node);
         }
 
         return readyNodes;
@@ -268,6 +258,7 @@ public class WorkflowDAGUtils {
     private static boolean isCompletedStatus(InstanceStatus status) {
         return InstanceStatus.SUCCEED == Objects.requireNonNull(status, "status can not be null")  //
                 || status == InstanceStatus.FAILED  //
-                || status == InstanceStatus.CANCELED;
+                || status == InstanceStatus.CANCELED  //
+                || status == InstanceStatus.STOPPED;
     }
 }

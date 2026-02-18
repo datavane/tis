@@ -35,8 +35,8 @@ public class WorkflowExecContext extends AbstractExecContext {
     private String workflowName;
 
 
-    public WorkflowExecContext(Integer workflowId, long triggerTimestamp) {
-        super(triggerTimestamp);
+    public WorkflowExecContext(Integer workflowId, Long triggerTimestamp) {
+        super(Objects.requireNonNull(triggerTimestamp, "triggerTimestamp can not be null"));
         this.workflowId = workflowId;
     }
 
@@ -63,32 +63,32 @@ public class WorkflowExecContext extends AbstractExecContext {
     @Override
     public IDataxProcessor getProcessor() {
 
-//        StoreResourceType resType = Objects.requireNonNull(getResType(), "resType can not be null");
-//        switch (resType) {
-//            case DataApp:
-//                return DataxProcessor.load(null, resType, this.dataXName);
+        //        StoreResourceType resType = Objects.requireNonNull(getResType(), "resType can not be null");
+        //        switch (resType) {
+        //            case DataApp:
+        //                return DataxProcessor.load(null, resType, this.dataXName);
         //    case DataFlow:
         if (StringUtils.isEmpty(this.getWorkflowName())) {
             throw new IllegalStateException("proper workflowName can not be empty");
         }
         return DataxProcessor.load(null, this.getResType(), this.getWorkflowName());
-//            default:
-//                throw new IllegalStateException("illegal resType:" + resType);
+        //            default:
+        //                throw new IllegalStateException("illegal resType:" + resType);
     }
 
     @Override
     public String identityValue() {
         StoreResourceType resType = Objects.requireNonNull(getResType(), "resType can not be null");
-//        switch (resType) {
-//            case DataApp:
-//                return resType.getType() + "_" + this.getIndexName();
-//            case DataFlow:
+        //        switch (resType) {
+        //            case DataApp:
+        //                return resType.getType() + "_" + this.getIndexName();
+        //            case DataFlow:
         if (StringUtils.isEmpty(this.getWorkflowName())) {
             throw new IllegalStateException("proper workflowName can not be empty");
         }
         return resType.getType() + "_" + this.getWorkflowName();
-//            default:
-//                throw new IllegalStateException("illegal resType:" + resType);
+        //            default:
+        //                throw new IllegalStateException("illegal resType:" + resType);
     }
 
 

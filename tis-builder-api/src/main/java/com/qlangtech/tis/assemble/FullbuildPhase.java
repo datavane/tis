@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.assemble;
 
@@ -29,10 +29,13 @@ import java.util.stream.Collectors;
  */
 public enum FullbuildPhase {
 
-    FullDump(1, "dump", "数据导出"), JOIN(2, "join", "宽表构建"), BUILD(3, "indexBuild", "索引构建"), IndexBackFlow(4, "indexBackflow", "索引回流");
+    FullDump(1, "dump", "数据导出") //
+    , JOIN(2, "join", "数据处理"); //
+    // , BUILD(3, "indexBuild", "索引构建")
+    // , IndexBackFlow(4, "indexBackflow", "索引回流");
 
     public static String desc(Collection<FullbuildPhase> phaseSet) {
-        return "[" + phaseSet.stream().map(r -> r.getName()).collect(Collectors.joining(",")) + "]";
+        return "[" + phaseSet.stream().map(FullbuildPhase::getName).collect(Collectors.joining(",")) + "]";
     }
 
     public static FullbuildPhase getFirst(Collection<FullbuildPhase> phaseSet) {
@@ -79,10 +82,10 @@ public enum FullbuildPhase {
             return FullDump;
         } else if (JOIN.name.equals(value)) {
             return JOIN;
-        } else if (BUILD.name.equals(value)) {
-            return BUILD;
-        } else if (IndexBackFlow.name.equals(value)) {
-            return IndexBackFlow;
+//        } else if (BUILD.name.equals(value)) {
+//            return BUILD;
+//        } else if (IndexBackFlow.name.equals(value)) {
+//            return IndexBackFlow;
         } else {
             throw new IllegalStateException("value " + value + " is not illegal");
         }
@@ -93,10 +96,10 @@ public enum FullbuildPhase {
             return FullDump;
         } else if (value == JOIN.value) {
             return JOIN;
-        } else if (value == BUILD.value) {
-            return BUILD;
-        } else if (IndexBackFlow.value == value) {
-            return IndexBackFlow;
+//        } else if (value == BUILD.value) {
+//            return BUILD;
+//        } else if (IndexBackFlow.value == value) {
+//            return IndexBackFlow;
         } else {
             throw new IllegalStateException("value " + value + " is not illegal");
         }

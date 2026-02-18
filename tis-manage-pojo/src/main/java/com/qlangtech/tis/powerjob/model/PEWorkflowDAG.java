@@ -2,11 +2,14 @@ package com.qlangtech.tis.powerjob.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.qlangtech.tis.datax.DataXJobInfo;
 import com.qlangtech.tis.datax.LifeCycleHook;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.qlangtech.tis.datax.DataXJobInfo.KEY_ALL_ROWS_APPROXIMATELY;
 
 /**
  * PowerJob Workflow DAG 数据模型（点线表示法）
@@ -19,6 +22,7 @@ import java.util.List;
  */
 public class PEWorkflowDAG implements Serializable {
 
+    public static final String KEY_DAG = "dag";
     private static final long serialVersionUID = 1L;
 
     /**
@@ -78,7 +82,7 @@ public class PEWorkflowDAG implements Serializable {
         /**
          * 节点状态：1=WAITING, 2=RUNNING, 3=SUCCEED, 4=FAILED, 5=CANCELED
          */
-        @JSONField(serialize = false)
+        @JSONField(serialize = true)
         private InstanceStatus status;
 
         /**
@@ -159,6 +163,23 @@ public class PEWorkflowDAG implements Serializable {
             this.nodeParams = nodeParams;
         }
 
+        public DataXJobInfo getDataXJobInfo() {
+            if (this.getExecRole() != LifeCycleHook.Dump) {
+                throw new IllegalStateException("role must be " + LifeCycleHook.Dump + " but now is " + this.getExecRole());
+            }
+            return DataXJobInfo.parse(this.getNodeParams().getString(DataXJobInfo.KEY_DATAX_JOB_INFO_SERIALIZE_INFO));
+        }
+
+        public void checkIfDumpNode() {
+            if (this.getExecRole() == LifeCycleHook.Dump) {
+                getDataXJobInfo();
+                if (this.getNodeParams().get(KEY_ALL_ROWS_APPROXIMATELY) == null) {
+                    throw new IllegalStateException("key:" + KEY_ALL_ROWS_APPROXIMATELY + " can not be null");
+                }
+            }
+        }
+
+
         public <T> T getNodeParam(String propKey) {
             if (this.getNodeParams() == null) {
                 return null;
@@ -222,7 +243,7 @@ public class PEWorkflowDAG implements Serializable {
 
         @Override
         public String toString() {
-            return "(" + nodeId + ", '" + nodeName + '\'' + ')';
+            return "(" + nodeId + ", '" + nodeName + "'," + status + ')';
         }
     }
 

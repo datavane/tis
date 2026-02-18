@@ -98,7 +98,7 @@ public class WorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor 
                 new ISolrAppSource.IDataProcessFeedback() {
                     @Override
                     public PhaseStatusCollection getPhaseStatusSet(IExecChainContext execContext) {
-                        return TrackableExecuteInterceptor.getTaskPhaseReference(execContext.getTaskId());
+                        return PhaseStatusCollection.getTaskPhaseReference(execContext.getTaskId());
                     }
 
                     @Override

@@ -105,7 +105,7 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
         EasyMock.expect(execChainContext.getPartitionTimestampWithMillis()).andReturn(TimeFormat.getCurrentTimeStamp()).anyTimes();
         EasyMock.expect(execChainContext.hasIndexName()).andReturn(true).anyTimes();
         EasyMock.expect(execChainContext.getIndexName()).andReturn(AP_NAME).anyTimes();
-        EasyMock.expect(execChainContext.loadPhaseStatusFromLatest()).andReturn(null);
+      //  EasyMock.expect(execChainContext.loadPhaseStatusFromLatest()).andReturn(null);
         EasyMock.expect(execChainContext.getTaskId()).andReturn(testTaskId).anyTimes();
         //  getTaskId
 

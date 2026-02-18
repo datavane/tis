@@ -54,13 +54,13 @@ public interface IJoinTaskContext extends IParamContext, IPipelineExecContext {
      */
     public IAppSourcePipelineController getPipelineController();
 
-    /**
-     * 取得最近一次成功执行的状态，例如，dataX 执行任务是为了取到本次执行任务的总记录数可以在执行中计算进步百分比
-     *
-     * @return 可以为空
-     */
-    default <T extends IPhaseStatusCollection> T loadPhaseStatusFromLatest() {
-        throw new UnsupportedOperationException();
-    }
+    //    /**
+    //     * 取得最近一次成功执行的状态，例如，dataX 执行任务是为了取到本次执行任务的总记录数可以在执行中计算进步百分比
+    //     *
+    //     * @return 可以为空
+    //     */
+    //    default <T extends IPhaseStatusCollection> T loadPhaseStatusFromLatest() {
+    //        throw new UnsupportedOperationException();
+    //    }
 
 }

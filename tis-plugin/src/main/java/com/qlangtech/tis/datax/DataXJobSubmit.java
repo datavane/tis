@@ -229,43 +229,45 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
     public abstract InstanceType getType();
 
 
-    //    public DataXTaskJobName getDataXJobDTO(IDataXJobContext jobContext, DataXJobInfo dataXJobInfo,
-    //                                           IDataxProcessor processor) {
-    //
-    //        IJoinTaskContext taskContext = jobContext.getTaskContext();
-    //        if (processor.getResType() == null) {
-    //            throw new NullPointerException("dataXJobDTO.getResType() can not be null");
-    //        }
-    //        DataXTaskJobName msg = new DataXTaskJobName();
-    ////        if (taskContext.hasIndexName()) {
-    ////            msg.setDataXName(taskContext.getIndexName());
-    ////        } else {
-    ////            msg.setDataXName(processor.identityValue());
-    ////        }
-    ////        msg.setTaskSerializeNum(jobContext.getTaskSerializeNum());
-    ////        msg.setJobId(taskContext.getTaskId());
-    //        msg.setJobName(dataXJobInfo.serialize());
-    ////        msg.setExecTimeStamp(taskContext.getPartitionTimestampWithMillis());
-    ////        msg.setResType(processor.getResType());
-    //
-    //        if (jobContext.getSpecifiedLocalLoggerPath() != null) {
-    //           // msg.setLocalLoggerPath(jobContext.getSpecifiedLocalLoggerPath().getAbsolutePath());
-    //        }
-    //        //msg.setDisableGrpcRemoteServerConnect(jobContext.isDisableGrpcRemoteServerConnect());
-    //
-    //        PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest();
-    //        logger.info("preTaskStatus is{} null", preTaskStatus != null ? " not" : StringUtils.EMPTY);
-    //        DumpPhaseStatus.TableDumpStatus dataXJob = null;
-    //        if (preTaskStatus != null && (dataXJob = preTaskStatus.getDumpPhase().getTable(dataXJobInfo
-    //        .jobFileName)) != null && dataXJob.getAllRows() > 0) {
-    //          //  msg.setAllRowsApproximately(dataXJob.getReadRows());
-    //        } else {
-    //          //  msg.setAllRowsApproximately(-1);
-    //        }
-    //        logger.info("job:{} relevant DataXJob:{}", dataXJobInfo.jobFileName, dataXJob != null ?
-    //                "{" + dataXJob.getReadRows() + "}" : " is null");
-    //        return msg;
-    //    }
+    public final CuratorDataXTaskMessage getDataXJobDTO(IDataXJobContext jobContext, DataXJobInfo dataXJobInfo,
+                                                        IDataxProcessor processor, Integer allRowsApproximately) {
+
+        IJoinTaskContext taskContext = jobContext.getTaskContext();
+        if (processor.getResType() == null) {
+            throw new NullPointerException("dataXJobDTO.getResType() can not be null");
+        }
+        CuratorDataXTaskMessage msg = new CuratorDataXTaskMessage();
+        msg.setDataXName(processor.getDataXName());
+        //        if (taskContext.hasIndexName()) {
+        //            msg.setDataXName(DataXName.createDataXPipeline(taskContext.getIndexName()));
+        //        } else {
+        //            msg.setDataXName(processor.getDataXName());
+        //        }
+        msg.setTaskSerializeNum(jobContext.getTaskSerializeNum());
+        //        msg.setJobId(taskContext.getTaskId());
+        msg.setJobName(dataXJobInfo.serialize());
+        msg.setExecEpochMilli(taskContext.getPartitionTimestampWithMillis());
+        //        msg.setResType(processor.getResType());
+
+        if (jobContext.getSpecifiedLocalLoggerPath() != null) {
+            // msg.setLocalLoggerPath(jobContext.getSpecifiedLocalLoggerPath().getAbsolutePath());
+        }
+        msg.setDisableGrpcRemoteServerConnect(jobContext.isDisableGrpcRemoteServerConnect());
+
+        // PhaseStatusCollection preTaskStatus = taskContext.loadPhaseStatusFromLatest();
+        //logger.info("preTaskStatus is{} null", preTaskStatus != null ? " not" : StringUtils.EMPTY);
+        // DumpPhaseStatus.TableDumpStatus dataXJob = null;
+        //        if (preTaskStatus != null //
+        //                && (dataXJob = preTaskStatus.getDumpPhase().getTable(dataXJobInfo.getJobFileName())) !=
+        //                null //
+        //                && dataXJob.getAllRows() > 0) {
+        //            msg.setAllRowsApproximately(dataXJob.getReadRows());
+        //        } else {
+        msg.setAllRowsApproximately(allRowsApproximately);
+
+        logger.info("job:{} allRowsApproximately:{}", dataXJobInfo.getJobFileName(), allRowsApproximately);
+        return msg;
+    }
 
     /**
      * 从TIS Console组件中触发构建全量任务
@@ -273,13 +275,14 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
      * //@param module
      * //@param context
      *
-     * @param appName               //@param powerJobWorkflowInstanceIdOpt 如果是手动触发则为空,
-     *                              如果是定时触发的，例如在powerjob系统中已经生成了powerjob 的workflowInstanceId
-     * @param latestWorkflowHistory 最近一次成功执行的历史记录
+     * @param appName //@param powerJobWorkflowInstanceIdOpt 如果是手动触发则为空,
+     *                如果是定时触发的，例如在powerjob系统中已经生成了powerjob 的workflowInstanceId
+     *                // @param latestWorkflowHistory 最近一次成功执行的历史记录
      * @return
      */
-    public abstract TriggerBuildResult triggerJob(DataXName appName,
-                                                  Optional<PhaseStatusCollection> latestWorkflowHistory);
+    public abstract TriggerBuildResult triggerJob(IExecChainContext execChainContext, DataXName appName
+                                                  //  , Optional<PhaseStatusCollection> latestWorkflowHistory
+    );
 
     /**
      * 触发workflow执行
@@ -313,9 +316,7 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
      * @return
      */
     public final IRemoteDumpTaskTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc,
-                                                       IDataxProcessor processor, TableDataXEntity tabDataXEntity //,
-                                                       // List<String> dependencyTasks
-    ) {
+                                                       IDataxProcessor processor, TableDataXEntity tabDataXEntity) {
         final DataXJobInfo jobName = getDataXJobInfo(tabDataXEntity, taskContext, processor);
         //        if (this.getType() == InstanceType.DISTRIBUTE) {
         //            //TODO: 获取DataXProcess 相关元数据 用于远程分布式执行任务
@@ -326,12 +327,12 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
         //        }
 
         //  DataXTaskJobName dataXJobDTO = getDataXJobDTO(taskContext, jobName, processor);
-
-        return createDataXJob(taskContext, statusRpc, jobName, processor);
+        CuratorDataXTaskMessage msg = null;
+        return createDataXJob(taskContext, statusRpc, jobName, processor, msg);
     }
 
     public abstract IRemoteDumpTaskTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc
-            , DataXJobInfo jobName, IDataxProcessor dataxProcessor);
+            , DataXJobInfo jobName, IDataxProcessor dataxProcessor, CuratorDataXTaskMessage msg);
 
 
     private DataXJobInfo getDataXJobInfo(final TableDataXEntity tabDataXEntity, IDataXJobContext taskContext,

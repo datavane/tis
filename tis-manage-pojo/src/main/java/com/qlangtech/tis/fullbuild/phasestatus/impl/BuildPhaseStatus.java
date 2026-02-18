@@ -54,7 +54,8 @@ public class BuildPhaseStatus extends BasicPhaseStatus<BuildSharedPhaseStatus> {
 
     @Override
     protected FullbuildPhase getPhase() {
-        return FullbuildPhase.BUILD;
+      //  return FullbuildPhase.BUILD;
+        throw new UnsupportedOperationException();
     }
 
     @Override

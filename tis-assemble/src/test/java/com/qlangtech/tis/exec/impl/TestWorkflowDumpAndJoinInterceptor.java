@@ -35,7 +35,6 @@ import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.taskflow.AdapterTask;
 import com.qlangtech.tis.offline.DataxUtils;
-import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 import com.qlangtech.tis.test.TISTestCase;
@@ -102,8 +101,8 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
         EasyMock.expect(execContext.getTaskId()).andReturn(taskId).anyTimes();
         EasyMock.expect(execContext.getWorkflowName()).andReturn(wfName);
         EasyMock.expect(execContext.getPartitionTimestampWithMillis()).andReturn(TimeFormat.getCurrentTimeStamp()).anyTimes();
-        EasyMock.expect(execContext.loadPhaseStatusFromLatest())
-                .andReturn(IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(taskId)).anyTimes();
+//        EasyMock.expect(execContext.loadPhaseStatusFromLatest())
+//                .andReturn(TrackableExecuteInterceptor.getTaskPhaseReference(taskId)).anyTimes();
 
 
         this.replay();

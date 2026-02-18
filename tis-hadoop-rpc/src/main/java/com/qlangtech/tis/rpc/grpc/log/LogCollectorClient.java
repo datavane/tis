@@ -366,34 +366,34 @@ public class LogCollectorClient implements ILogReporter {
                 sm.put(k, s);
             });
         }
-        if (executePhaseRange.contains(FullbuildPhase.BUILD) && buildPhase != null) {
-            BuildPhaseStatus build = result.getBuildPhase();
-            buildPhase.getNodeBuildStatusMap().forEach((k, v) -> {
-                com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus s
-                        = new com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus();
-                s.setAllBuildSize(v.getAllBuildSize());
-                s.setBuildReaded(v.getBuildReaded());
-                s.setTaskid(v.getTaskid());
-                s.setSharedName(v.getSharedName());
-                s.setComplete(v.getComplete());
-                s.setFaild(v.getFaild());
-                s.setWaiting(v.getWaiting());
-                build.nodeBuildStatus.put(k, s);
-            });
-        }
-        if (executePhaseRange.contains(FullbuildPhase.IndexBackFlow) && backflow != null) {
-            IndexBackFlowPhaseStatus bf = result.getIndexBackFlowPhaseStatus();
-            backflow.getNodesStatusMap().forEach((k, v) -> {
-                IndexBackFlowPhaseStatus.NodeBackflowStatus s
-                        = new IndexBackFlowPhaseStatus.NodeBackflowStatus(v.getNodeName());
-                s.setAllSize((int) v.getAllSize());
-                s.setReaded((int) v.getReaded());
-                s.setComplete(v.getComplete());
-                s.setFaild(v.getFaild());
-                s.setWaiting(v.getWaiting());
-                bf.nodesStatus.put(k, s);
-            });
-        }
+//        if (executePhaseRange.contains(FullbuildPhase.BUILD) && buildPhase != null) {
+//            BuildPhaseStatus build = result.getBuildPhase();
+//            buildPhase.getNodeBuildStatusMap().forEach((k, v) -> {
+//                com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus s
+//                        = new com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus();
+//                s.setAllBuildSize(v.getAllBuildSize());
+//                s.setBuildReaded(v.getBuildReaded());
+//                s.setTaskid(v.getTaskid());
+//                s.setSharedName(v.getSharedName());
+//                s.setComplete(v.getComplete());
+//                s.setFaild(v.getFaild());
+//                s.setWaiting(v.getWaiting());
+//                build.nodeBuildStatus.put(k, s);
+//            });
+//        }
+//        if (executePhaseRange.contains(FullbuildPhase.IndexBackFlow) && backflow != null) {
+//            IndexBackFlowPhaseStatus bf = result.getIndexBackFlowPhaseStatus();
+//            backflow.getNodesStatusMap().forEach((k, v) -> {
+//                IndexBackFlowPhaseStatus.NodeBackflowStatus s
+//                        = new IndexBackFlowPhaseStatus.NodeBackflowStatus(v.getNodeName());
+//                s.setAllSize((int) v.getAllSize());
+//                s.setReaded((int) v.getReaded());
+//                s.setComplete(v.getComplete());
+//                s.setFaild(v.getFaild());
+//                s.setWaiting(v.getWaiting());
+//                bf.nodesStatus.put(k, s);
+//            });
+//        }
         return result;
     }
 

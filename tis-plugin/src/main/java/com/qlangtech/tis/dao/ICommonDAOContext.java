@@ -37,6 +37,7 @@ import org.apache.commons.lang.NotImplementedException;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author 百岁 (baisui@qlangtech.com)
@@ -97,7 +98,7 @@ public interface ICommonDAOContext {
      * @return
      */
     public CreateNewTaskResult createNewDataXTask(IExecChainContext chainContext, TriggerType triggerType,
-                                                  File dagSpecPath);
+                                                  File dagSpecPath, Optional<WorkFlowBuildHistory> preWorkflowHistory);
 
     default IWorkFlowBuildHistoryDAO getTaskBuildHistoryDAO() {
         return this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO();

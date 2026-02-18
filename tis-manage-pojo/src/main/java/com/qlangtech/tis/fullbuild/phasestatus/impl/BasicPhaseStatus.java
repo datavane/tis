@@ -47,9 +47,17 @@ public abstract class BasicPhaseStatus<T extends IChildProcessStatus> implements
      */
     private transient final RateLimiter intervalWriteLimit = RateLimiter.create(0.1);
 
-    public static File getFullBuildPhaseLocalFile(int taskid, FullbuildPhase phase) {
-        return new File(Config.getMetaCfgDir(), "df-logs/" + taskid + "/"
-                + Objects.requireNonNull(phase, "param phase can not be null").getName());
+    public static File getFullBuildPhaseLocalFile(Integer taskid, FullbuildPhase phase) {
+        //        return new File(Config.getMetaCfgDir(), "df-logs/" + taskid + "/" + Objects.requireNonNull(phase,
+        //        "param " +
+        //                "phase can not be null").getName());
+
+        return new File(getFullBuildPhaseLocalDir(taskid), Objects.requireNonNull(phase, "param " + "phase can not be"
+                + " null").getName());
+    }
+
+    public static File getFullBuildPhaseLocalDir(Integer taskid) {
+        return new File(Config.getMetaCfgDir(), "df-logs/" + taskid);
     }
 
     protected abstract FullbuildPhase getPhase();
@@ -60,7 +68,8 @@ public abstract class BasicPhaseStatus<T extends IChildProcessStatus> implements
         }
         // 如果全部都complete了不能open
         // 找正在运行的
-        Optional<? extends AbstractChildProcessStatus> find = childs.stream().filter((r) -> !r.isComplete() && !r.isWaiting()).findFirst();
+        Optional<? extends AbstractChildProcessStatus> find =
+                childs.stream().filter((r) -> !r.isComplete() && !r.isWaiting()).findFirst();
         return (childs.size() > 0 && find.isPresent());
     }
 
@@ -79,24 +88,23 @@ public abstract class BasicPhaseStatus<T extends IChildProcessStatus> implements
 
     public BasicPhaseStatus(int taskid) {
         this.taskid = taskid;
-        this.statusWriter = IFlush2LocalFactory.createNew(
-                Thread.currentThread().getContextClassLoader(), getFullBuildPhaseLocalFile(taskid, this.getPhase()))
-                .orElse(null);
+        this.statusWriter = IFlush2LocalFactory.createNew(Thread.currentThread().getContextClassLoader(),
+                getFullBuildPhaseLocalFile(taskid, this.getPhase())).orElse(null);
 
 
-//                new IFlush2Local() {
-//            @Override
-//            public void write( BasicPhaseStatus status) throws Exception {
-//                XmlFile xmlFile = new XmlFile(localFile);
-//                xmlFile.write(status, Collections.emptySet());
-//            }
-//
-//            @Override
-//            public BasicPhaseStatus loadPhase(File localFile) throws Exception {
-//                XmlFile xmlFile = new XmlFile(localFile);
-//                return (BasicPhaseStatus) xmlFile.read();
-//            }
-//        };
+        //                new IFlush2Local() {
+        //            @Override
+        //            public void write( BasicPhaseStatus status) throws Exception {
+        //                XmlFile xmlFile = new XmlFile(localFile);
+        //                xmlFile.write(status, Collections.emptySet());
+        //            }
+        //
+        //            @Override
+        //            public BasicPhaseStatus loadPhase(File localFile) throws Exception {
+        //                XmlFile xmlFile = new XmlFile(localFile);
+        //                return (BasicPhaseStatus) xmlFile.read();
+        //            }
+        //        };
     }
 
     // 在客户端是否详细展示

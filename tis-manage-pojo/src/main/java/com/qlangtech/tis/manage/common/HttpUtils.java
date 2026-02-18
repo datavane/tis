@@ -28,11 +28,14 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.ajax.AjaxResult;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.datax.DataXName;
+import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.ConfigFileContext.HTTPMethod;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.realtime.yarn.rpc.IncrRateControllerCfgDTO;
+import com.qlangtech.tis.runtime.module.action.IParamGetter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -56,7 +59,20 @@ import java.util.stream.Stream;
  */
 public class HttpUtils {
 
+    public static final String KEY_FULLBUILD_WORKFLOW_ACTION = "fullbuild_workflow_action";
+
     private static final Logger logger = LoggerFactory.getLogger(HttpUtils.class);
+
+    public static List<PostParam> dataXToParams(DataXName dataXName) {
+        return Lists.newArrayList( //
+                new HttpUtils.PostParam(StoreResourceType.KEY_STORE_RESOURCE_TYPE, dataXName.getType().getType()) //
+                , new HttpUtils.PostParam(IFullBuildContext.KEY_APP_NAME, dataXName.getPipelineName()));
+    }
+
+    public static DataXName createDataXName(IParamGetter paramGetter) {
+        return new DataXName(paramGetter.getString(IFullBuildContext.KEY_APP_NAME),
+                StoreResourceType.parse(paramGetter.getString(StoreResourceType.KEY_STORE_RESOURCE_TYPE)));
+    }
 
     public interface IMsgProcess {
         public void err(String content);
@@ -186,6 +202,11 @@ public class HttpUtils {
                 errorShortCircuit);
     }
 
+    public static <T> AjaxResult<T> postJSON(final String url, List<PostParam> params //
+            , Class<T> clazz, boolean errorShortCircuit) {
+        return soapRemote(url, params, PostFormStreamProcess.ContentType.JSON, clazz, errorShortCircuit);
+    }
+
     /**
      * 向console节点发送http请求，并且按照console节点返回信息的格式反序列化
      *
@@ -195,7 +216,7 @@ public class HttpUtils {
      * @param errorShortCircuit
      * @return
      */
-    public static <T> AjaxResult<T> soapRemote(final String url, List<PostParam> params //
+    private static <T> AjaxResult<T> soapRemote(final String url, List<PostParam> params //
             , PostFormStreamProcess.ContentType contentType, Class<T> clazz, boolean errorShortCircuit) {
         return HttpUtils.post(url, params, new PostFormStreamProcess<AjaxResult<T>>() {
 

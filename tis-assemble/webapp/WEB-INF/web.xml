@@ -42,6 +42,17 @@
         <servlet-name>tisServlet</servlet-name>
         <servlet-class>com.qlangtech.tis.fullbuild.servlet.TisServlet</servlet-class>
     </servlet>
+
+
+    <servlet>
+        <servlet-name>dagServlet</servlet-name>
+        <servlet-class>com.qlangtech.tis.fullbuild.servlet.DAGWorkflowServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>dagServlet</servlet-name>
+        <url-pattern>/dag</url-pattern>
+    </servlet-mapping>
     <!--
     <servlet>
         <servlet-name>jointaskintrospectservlet</servlet-name>

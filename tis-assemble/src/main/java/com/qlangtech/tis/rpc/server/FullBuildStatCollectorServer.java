@@ -24,7 +24,6 @@ import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.log.RealtimeLoggerCollectorAppender;
-import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.rpc.grpc.log.LogCollectorClient;
 import com.qlangtech.tis.rpc.grpc.log.stream.LogCollectorGrpc;
 import com.qlangtech.tis.rpc.grpc.log.stream.PBuildPhaseStatusParam;
@@ -95,7 +94,7 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
 
     @Override
     public void loadPhaseStatus(PBuildPhaseStatusParam request, StreamObserver<PPhaseStatusCollection> responseObserver) {
-        PhaseStatusCollection statusCollection = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal((int) request.getTaskid());
+        PhaseStatusCollection statusCollection = PhaseStatusCollection.getTaskPhaseReference((int) request.getTaskid());
         logger.info("taskId:{} load relevant status from local persist is null:{}", request.getTaskid(), statusCollection != null);
         responseObserver.onNext((statusCollection != null) ? LogCollectorClient.convertPP(statusCollection) : null);
         responseObserver.onCompleted();
@@ -279,13 +278,13 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
         List<Supplier<FullbuildPhase>> phaseJudgemment = Lists.newArrayList();
         phaseJudgemment.add(() -> request.getDumpPhase().getTablesDumpCount() > 0 ? FullbuildPhase.FullDump : null);
         phaseJudgemment.add(() -> request.getJoinPhase().getTaskStatusCount() > 0 ? FullbuildPhase.JOIN : null);
-        phaseJudgemment.add(() -> request.getBuildPhase().getNodeBuildStatusCount() > 0 ? FullbuildPhase.BUILD : null);
-        phaseJudgemment.add(() -> request.getIndexBackFlowPhaseStatus().getNodesStatusCount() > 0 ? FullbuildPhase.IndexBackFlow : null);
+//        phaseJudgemment.add(() -> request.getBuildPhase().getNodeBuildStatusCount() > 0 ? FullbuildPhase.BUILD : null);
+//        phaseJudgemment.add(() -> request.getIndexBackFlowPhaseStatus().getNodesStatusCount() > 0 ? FullbuildPhase.IndexBackFlow : null);
 
         ExecutePhaseRange phaseRange = createPhaseRange(phaseJudgemment);
         PhaseStatusCollection statusCollection = LogCollectorClient.convert(request, phaseRange);
         statusCollection.flushStatus2Local();
-        TrackableExecuteInterceptor.initialTaskPhase(statusCollection);
+        PhaseStatusCollection.initialTaskPhase(statusCollection);
 
         responseObserver.onNext(com.qlangtech.tis.rpc.grpc.log.common.Empty.newBuilder().build());
         responseObserver.onCompleted();
@@ -327,9 +326,9 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
                 serverCallStreamObserver.request(1);
                 PhaseStatusCollection phaseStatusSet = null;
                 do {
-                    phaseStatusSet = TrackableExecuteInterceptor.getTaskPhaseReference(taskid);
+                    phaseStatusSet = PhaseStatusCollection.getTaskPhaseReference(taskid);
                     if (phaseStatusSet == null) {
-                        phaseStatusSet = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(taskid);
+                        phaseStatusSet = PhaseStatusCollection.getTaskPhaseReference(taskid);
                     }
                 } while (serverCallStreamObserver.isReady() && isStatusNotPresent(phaseStatusSet));
                 logger.info("ready to send taskid:" + taskid + "relevant stat info");

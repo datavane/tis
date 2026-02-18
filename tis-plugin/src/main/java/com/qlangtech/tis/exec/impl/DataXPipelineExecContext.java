@@ -37,12 +37,11 @@ public class DataXPipelineExecContext extends AbstractExecContext {
     private final String dataXName;
 
     public DataXPipelineExecContext(String dataXName, Long triggerTimestamp) {
-        super(triggerTimestamp);
+        super(Objects.requireNonNull(triggerTimestamp, "triggerTimestamp can not be null"));
         if (StringUtils.isEmpty(dataXName)) {
             throw new IllegalArgumentException("param dataXName can not be null");
         }
         this.dataXName = dataXName;
-
     }
 
 

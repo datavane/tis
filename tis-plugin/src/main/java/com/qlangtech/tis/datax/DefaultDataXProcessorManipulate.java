@@ -63,6 +63,16 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
 
     private static final ConcurrentMap<String /*PipelineId*/, DataXProcessorTemplateManipulateStore> processorManipulateRegister = Maps.newConcurrentMap();
 
+    /**
+     * Get the in-memory manipulate registry for all loaded pipelines.
+     * Used by DAGSchedulerActor to discover pipelines with cron schedules.
+     *
+     * @return unmodifiable view of the manipulate registry
+     */
+    public static Map<String, DataXProcessorTemplateManipulateStore> getManipulateRegistry() {
+        return Collections.unmodifiableMap(processorManipulateRegister);
+    }
+
     public static DataXProcessorTemplateManipulateStore getManipulateStore(String pipelineName) {
         if (StringUtils.isEmpty(pipelineName)) {
             throw new IllegalArgumentException("param pipelineName can not be empty");

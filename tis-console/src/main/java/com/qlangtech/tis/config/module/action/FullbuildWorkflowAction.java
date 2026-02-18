@@ -18,12 +18,14 @@
 package com.qlangtech.tis.config.module.action;
 
 import com.alibaba.citrus.turbine.Context;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.datax.DataXName;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.StoreResourceType;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.AbstractExecContext;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext;
@@ -35,16 +37,19 @@ import com.qlangtech.tis.job.common.JobParams;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.common.CreateNewTaskResult;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.spring.aop.Func;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.plugin.rate.IncrRateController;
+import com.qlangtech.tis.powerjob.model.PEWorkflowDAG;
 import com.qlangtech.tis.realtime.yarn.rpc.IncrRateControllerCfgDTO;
+import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.workflow.pojo.DagNodeExecution;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
+import com.qlangtech.tis.workflow.pojo.WorkflowDAGFileManager;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +57,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Date;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -71,12 +76,27 @@ public class FullbuildWorkflowAction extends BasicModule {
    */
   private static final long VALID_TIME = 4 * 60 * 60 * 1000;
 
+
+  /**
+   *
+   * @param context
+   */
+  public void doHasRunningWorkflowInstance(Context context) {
+    DataXName dataXName = HttpUtils.createDataXName(this);
+    WorkFlowBuildHistoryCriteria criteria = new WorkFlowBuildHistoryCriteria();
+    criteria.createCriteria() //
+      .andAppNameEqualTo(dataXName.getPipelineName()) //
+      .andStateEqualTo((byte) ExecResult.DOING.getValue());
+    this.setBizResult(context //
+      , this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().countByExample(criteria) > 0);
+  }
+
   /**
    * 接收Powerjob发送过来的初始化触发任务，主要目标在TIS中进行必要的初始化工作
    *
    * @param context
-   * @see com.qlangtech.tis.coredefine.module.action.DataxAction
-   * @see OfflineDatasourceAction
+   * @see com.qlangtech.tis.coredefine.module.action.DataxAction#doTriggerFullbuildTask(Context)
+   * @see OfflineDatasourceAction#doExecuteWorkflow(Context)
    */
   public void doInitializeTriggerTask(Context context) {
     // 校验参数必须有
@@ -118,7 +138,7 @@ public class FullbuildWorkflowAction extends BasicModule {
   public void doCreateNewTask(Context context) {
 
     final TriggerType triggerType = TriggerType.parse(this.getInt(IFullBuildContext.KEY_TRIGGER_TYPE));
-    Application app = null;
+    // Application app = null;
     // appname 可以为空
     String appname = this.getString(IFullBuildContext.KEY_APP_NAME);
     Integer workflowId = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID, null, false);
@@ -126,24 +146,28 @@ public class FullbuildWorkflowAction extends BasicModule {
     if (!dagSpecPath.exists()) {
       throw new IllegalStateException("specPath:" + dagSpecPath.getAbsolutePath() + " must exist");
     }
+    SynResTarget resTarget = null;
     AbstractExecContext execContext = null;
     if (StringUtils.isEmpty(appname)) {
       if (workflowId == null) {
         throw new IllegalStateException("workflowId can not be null");
       }
+      resTarget = SynResTarget.transform(workflowId, "transformer");
       execContext = new WorkflowExecContext(workflowId, 0l);
     } else {
+      resTarget = SynResTarget.pipeline(appname);
       execContext = new DataXPipelineExecContext(appname, 0l);
     }
 
-    // execContext.setWorkflowId(workflowId);
+    WorkFlowBuildHistory latestWorkflowHistory = this.getDaoContext().getLatestSuccessWorkflowHistory(resTarget);
+    execContext.setExecutePhaseRange( //
+      new ExecutePhaseRange(FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START,
+        FullbuildPhase.FullDump.getValue())), FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END,
+        FullbuildPhase.JOIN.getValue()))));
 
-    execContext.setExecutePhaseRange(new ExecutePhaseRange(FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START,
-      FullbuildPhase.FullDump.getValue())), FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END,
-      FullbuildPhase.IndexBackFlow.getValue()))));
 
-
-    CreateNewTaskResult newTaskResult = this.createNewDataXTask(execContext, triggerType, dagSpecPath);
+    CreateNewTaskResult newTaskResult = this.createNewDataXTask(execContext, triggerType, dagSpecPath,
+      Optional.of(latestWorkflowHistory));
     // 生成一个新的taskid
     this.setBizResult(context, newTaskResult);
   }
@@ -190,9 +214,9 @@ public class FullbuildWorkflowAction extends BasicModule {
     if (nodeExec == null) {
       throw new IllegalStateException("nodeExec can not be null");
     }
-//    if (nodeExec.getId() == null) {
-//      throw new IllegalStateException("nodeExec id can not be null");
-//    }
+    //    if (nodeExec.getId() == null) {
+    //      throw new IllegalStateException("nodeExec id can not be null");
+    //    }
     this.setBizResult(context //
       , this.getWorkflowDAOFacade().getDagNodeExecutionDAO().insertSelective(nodeExec));
   }
@@ -238,12 +262,20 @@ public class FullbuildWorkflowAction extends BasicModule {
    */
   @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
   public void doTaskComplete(Context context) {
-    Integer taskid = this.getInt(JobCommon.KEY_TASK_ID);
+    JSONObject postContent = this.getJSONPostContent();
+    Integer taskid = postContent.getInteger(JobCommon.KEY_TASK_ID);
     // 执行结果
-    ExecResult execResult = ExecResult.parse(this.getInt(IParamContext.KEY_EXEC_RESULT));
-    String[] asynJobsName = this.getStringArray(IParamContext.KEY_ASYN_JOB_NAME);
+    ExecResult execResult = ExecResult.parse(postContent.getInteger(IParamContext.KEY_EXEC_RESULT));
+    PEWorkflowDAG workflowDAG = postContent.getObject(PEWorkflowDAG.KEY_DAG, PEWorkflowDAG.class);
+    //String[] asynJobsName = this.getStringArray(IParamContext.KEY_ASYN_JOB_NAME);
+    WorkFlowBuildHistory buildHistory = updateWfHistory(taskid, execResult);
+    if (StringUtils.isEmpty(buildHistory.getAppName())) {
+      throw new IllegalStateException("pipeline name can not be null");
+    }
+    IDataxProcessor processor //
+      = DataxProcessor.load(null, DataXName.createDataXPipeline(buildHistory.getAppName()));
+    WorkflowDAGFileManager.saveTaskDAGStatus(processor, taskid, workflowDAG);
 
-    updateWfHistory(taskid, execResult, asynJobsName, 0);
   }
 
   /**
@@ -251,96 +283,96 @@ public class FullbuildWorkflowAction extends BasicModule {
    *
    * @param context
    */
-  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
-  public void doFeedbackAsynTaskStatus(Context context) {
-    Integer taskid = this.getInt(JobCommon.KEY_TASK_ID);
-    String jobName = this.getString(IParamContext.KEY_ASYN_JOB_NAME);
-    boolean execSuccess = this.getBoolean(IParamContext.KEY_ASYN_JOB_SUCCESS);
+//  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
+//  public void doFeedbackAsynTaskStatus(Context context) {
+//    Integer taskid = this.getInt(JobCommon.KEY_TASK_ID);
+//    String jobName = this.getString(IParamContext.KEY_ASYN_JOB_NAME);
+//    boolean execSuccess = this.getBoolean(IParamContext.KEY_ASYN_JOB_SUCCESS);
+//
+//    // this.updateAsynTaskState(taskid, jobName, execSuccess, 0);
+//    this.setBizResult(context, new CreateNewTaskResult(taskid, null));
+//  }
 
-    this.updateAsynTaskState(taskid, jobName, execSuccess, 0);
-    this.setBizResult(context, new CreateNewTaskResult(taskid, null));
-  }
+  //public static int MAX_CAS_RETRY_COUNT = 5;
 
-  public static int MAX_CAS_RETRY_COUNT = 5;
+  //  private void updateAsynTaskState(Integer taskid, String jobName, boolean execSuccess, int tryCount) {
+  //    validateMaxCasRetryCount(taskid, tryCount);
+  //    final WorkFlowBuildHistory history = getBuildHistory(taskid);
+  //
+  //    if (ExecResult.ASYN_DOING != ExecResult.parse(history.getState())) {
+  //      updateAsynTaskState(taskid, jobName, execSuccess, ++tryCount);
+  //      return;
+  //    }
+  //
+  //    JSONObject status = JSON.parseObject(history.getAsynSubTaskStatus());
+  //    JSONObject tskStat = status.getJSONObject(jobName);
+  //    if (tskStat == null) {
+  //      throw new IllegalStateException("jobName:" + jobName + " relevant status is not in history,now exist keys:"
+  //      + status.keySet().stream().collect(Collectors.joining(",")));
+  //    }
+  //    tskStat.put(IParamContext.KEY_ASYN_JOB_COMPLETE, true);
+  //    tskStat.put(IParamContext.KEY_ASYN_JOB_SUCCESS, execSuccess);
+  //    status.put(jobName, tskStat);
+  //    boolean[] allComplete = new boolean[]{true};
+  //    boolean[] faild = new boolean[]{false};
+  //    status.forEach((key, val) -> {
+  //      JSONObject s = (JSONObject) val;
+  //      if (s.getBoolean(IParamContext.KEY_ASYN_JOB_COMPLETE)) {
+  //        if (!s.getBoolean(IParamContext.KEY_ASYN_JOB_SUCCESS)) {
+  //          faild[0] = true;
+  //        }
+  //      } else {
+  //        allComplete[0] = false;
+  //      }
+  //    });
+  //
+  //    WorkFlowBuildHistory updateHistory = new WorkFlowBuildHistory();
+  //    updateHistory.setAsynSubTaskStatus(status.toJSONString());
+  //    updateHistory.setLastVer(history.getLastVer() + 1);
+  //    ExecResult execResult = null;
+  //    if (faild[0]) {
+  //      // 有任务失败了
+  //      execResult = ExecResult.FAILD;
+  //    } else if (allComplete[0]) {
+  //      execResult = ExecResult.SUCCESS;
+  //    }
+  //
+  //    if (execResult != null) {
+  //      updateHistory.setState((byte) execResult.getValue());
+  //      updateHistory.setEndTime(new Date());
+  //    }
+  //    WorkFlowBuildHistoryCriteria hq = new WorkFlowBuildHistoryCriteria();
+  //    hq.createCriteria().andIdEqualTo(taskid).andLastVerEqualTo(history.getLastVer());
+  //
+  //    if (getHistoryDAO().updateByExampleSelective(updateHistory, hq) < 1) {
+  //
+  //      //  System.out.println("old lastVer:" + history.getLastVer() + ",new UpdateVersion:" + updateHistory
+  //      .getLastVer
+  //      //  ());
+  //      updateAsynTaskState(taskid, jobName, execSuccess, ++tryCount);
+  //    }
+  //  }
 
-  private void updateAsynTaskState(Integer taskid, String jobName, boolean execSuccess, int tryCount) {
-    validateMaxCasRetryCount(taskid, tryCount);
-    final WorkFlowBuildHistory history = getBuildHistory(taskid);
-
-    if (ExecResult.ASYN_DOING != ExecResult.parse(history.getState())) {
-      updateAsynTaskState(taskid, jobName, execSuccess, ++tryCount);
-      return;
-    }
-
-    JSONObject status = JSON.parseObject(history.getAsynSubTaskStatus());
-    JSONObject tskStat = status.getJSONObject(jobName);
-    if (tskStat == null) {
-      throw new IllegalStateException("jobName:" + jobName + " relevant status is not in history,now exist keys:" + status.keySet().stream().collect(Collectors.joining(",")));
-    }
-    tskStat.put(IParamContext.KEY_ASYN_JOB_COMPLETE, true);
-    tskStat.put(IParamContext.KEY_ASYN_JOB_SUCCESS, execSuccess);
-    status.put(jobName, tskStat);
-    boolean[] allComplete = new boolean[]{true};
-    boolean[] faild = new boolean[]{false};
-    status.forEach((key, val) -> {
-      JSONObject s = (JSONObject) val;
-      if (s.getBoolean(IParamContext.KEY_ASYN_JOB_COMPLETE)) {
-        if (!s.getBoolean(IParamContext.KEY_ASYN_JOB_SUCCESS)) {
-          faild[0] = true;
-        }
-      } else {
-        allComplete[0] = false;
-      }
-    });
-
-    WorkFlowBuildHistory updateHistory = new WorkFlowBuildHistory();
-    updateHistory.setAsynSubTaskStatus(status.toJSONString());
-    updateHistory.setLastVer(history.getLastVer() + 1);
-    ExecResult execResult = null;
-    if (faild[0]) {
-      // 有任务失败了
-      execResult = ExecResult.FAILD;
-    } else if (allComplete[0]) {
-      execResult = ExecResult.SUCCESS;
-    }
-
-    if (execResult != null) {
-      updateHistory.setState((byte) execResult.getValue());
-      updateHistory.setEndTime(new Date());
-    }
-    WorkFlowBuildHistoryCriteria hq = new WorkFlowBuildHistoryCriteria();
-    hq.createCriteria().andIdEqualTo(taskid).andLastVerEqualTo(history.getLastVer());
-
-    if (getHistoryDAO().updateByExampleSelective(updateHistory, hq) < 1) {
-
-      //  System.out.println("old lastVer:" + history.getLastVer() + ",new UpdateVersion:" + updateHistory.getLastVer
-      //  ());
-      updateAsynTaskState(taskid, jobName, execSuccess, ++tryCount);
-    }
-  }
-
-  private void validateMaxCasRetryCount(Integer taskid, int tryCount) {
-    try {
-      if (tryCount > 0) {
-        Thread.sleep(200);
-      }
-    } catch (Throwable e) {
-    }
-    if (tryCount > MAX_CAS_RETRY_COUNT) {
-      throw new IllegalStateException("taskId:" + taskid + " exceed max try count " + MAX_CAS_RETRY_COUNT);
-    }
-  }
+  //  private void validateMaxCasRetryCount(Integer taskid, int tryCount) {
+  //    try {
+  //      if (tryCount > 0) {
+  //        Thread.sleep(200);
+  //      }
+  //    } catch (Throwable e) {
+  //    }
+  //    if (tryCount > MAX_CAS_RETRY_COUNT) {
+  //      throw new IllegalStateException("taskId:" + taskid + " exceed max try count " + MAX_CAS_RETRY_COUNT);
+  //    }
+  //  }
 
   /**
    * CAS更新，尝试4次
    *
    * @param taskid
    * @param execResult
-   * @param asynJobsName
-   * @param tryCount
    */
-  private void updateWfHistory(Integer taskid, final ExecResult execResult, String[] asynJobsName, int tryCount) {
-    validateMaxCasRetryCount(taskid, tryCount);
+  private WorkFlowBuildHistory updateWfHistory(Integer taskid, final ExecResult execResult) {
+    // validateMaxCasRetryCount(taskid, tryCount);
 
     WorkFlowBuildHistory history = getBuildHistory(taskid);
     WorkFlowBuildHistoryCriteria hq = new WorkFlowBuildHistoryCriteria();
@@ -349,25 +381,32 @@ public class FullbuildWorkflowAction extends BasicModule {
     WorkFlowBuildHistory upHistory = new WorkFlowBuildHistory();
     upHistory.setLastVer(history.getLastVer() + 1);
 
-    JSONObject jobState = null;
-    if (asynJobsName != null && asynJobsName.length > 0) {
-      JSONObject asynSubTaskStatus = new JSONObject();
-      for (String jobName : asynJobsName) {
-        jobState = new JSONObject();
-        jobState.put(IParamContext.KEY_ASYN_JOB_COMPLETE, false);
-        jobState.put(IParamContext.KEY_ASYN_JOB_SUCCESS, false);
-        asynSubTaskStatus.put(jobName, jobState);
-      }
-      upHistory.setState((byte) ExecResult.ASYN_DOING.getValue());
-      upHistory.setAsynSubTaskStatus(asynSubTaskStatus.toJSONString());
-    } else {
-      upHistory.setState((byte) execResult.getValue());
-      upHistory.setEndTime(new Date());
-    }
+    //JSONObject jobState = null;
+    //    if (asynJobsName != null && asynJobsName.length > 0) {
+    //      JSONObject asynSubTaskStatus = new JSONObject();
+    //      for (String jobName : asynJobsName) {
+    //        jobState = new JSONObject();
+    //        jobState.put(IParamContext.KEY_ASYN_JOB_COMPLETE, false);
+    //        jobState.put(IParamContext.KEY_ASYN_JOB_SUCCESS, false);
+    //        asynSubTaskStatus.put(jobName, jobState);
+    //      }
+    //      upHistory.setState((byte) ExecResult.ASYN_DOING.getValue());
+    //      upHistory.setAsynSubTaskStatus(asynSubTaskStatus.toJSONString());
+    //    } else {
+    upHistory.setState((byte) execResult.getValue());
+    upHistory.setEndTime(new Date());
+    //}
 
     if (getHistoryDAO().updateByExampleSelective(upHistory, hq) < 1) {
-      updateWfHistory(taskid, execResult, asynJobsName, ++tryCount);
+      // updateWfHistory(taskid, execResult, asynJobsName, ++tryCount);
+      throw new IllegalStateException("have not successful update workflow history");
     }
+
+    history.setLastVer(upHistory.getLastVer());
+    history.setState(upHistory.getState());
+    history.setEndTime(upHistory.getEndTime());
+
+    return history;
   }
 
   private WorkFlowBuildHistory getBuildHistory(Integer taskid) {

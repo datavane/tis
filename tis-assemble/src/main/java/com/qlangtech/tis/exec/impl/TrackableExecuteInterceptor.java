@@ -17,14 +17,23 @@
  */
 package com.qlangtech.tis.exec.impl;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.qlangtech.tis.ajax.AjaxResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.exec.*;
 import com.qlangtech.tis.exec.datax.DataXAssembleSvcCompsite;
+import com.qlangtech.tis.fullbuild.phasestatus.IFlush2Local;
+import com.qlangtech.tis.fullbuild.phasestatus.IFlush2LocalFactory;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BasicPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.IndexBackFlowPhaseStatus;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
+import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.realtime.yarn.rpc.IncrStatusUmbilicalProtocol;
 import com.qlangtech.tis.realtime.yarn.rpc.impl.AdapterStatusUmbilicalProtocol;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
@@ -34,10 +43,10 @@ import com.tis.hadoop.rpc.StatusRpcClientFactory.AssembleSvcCompsite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.File;
 import java.util.Objects;
-import java.util.WeakHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -50,40 +59,61 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
 
     private static final Logger log = LoggerFactory.getLogger(TrackableExecuteInterceptor.class);
 
-    private static final Map<Integer, PhaseStatusCollection> /*** taskid*/
-            taskPhaseReference = new WeakHashMap<>();
 
-    public static PhaseStatusCollection initialTaskPhase(Integer taskid) {
-        PhaseStatusCollection statusCollection
-                = new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange());
-        return initialTaskPhase(statusCollection);
-    }
+    //    /**
+    //     * @param taskid
+    //     * @return
+    //     * @throws Exception
+    //     */
+    //    private static PhaseStatusCollection loadPhaseStatusFromLocal(int taskid) {
+    //        PhaseStatusCollection result = null;
+    //        FullbuildPhase[] phases = FullbuildPhase.values();
+    //        try {
+    //            File localFile = null;
+    //            BasicPhaseStatus phaseStatus;
+    //            for (FullbuildPhase phase : phases) {
+    //                localFile = BasicPhaseStatus.getFullBuildPhaseLocalFile(taskid, phase);
+    //                if (!localFile.exists()) {
+    //                    return result;
+    //                }
+    //                if (result == null) {
+    //                    result = new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange());
+    //                }
+    //                IFlush2Local flush2Local =
+    //                        IFlush2LocalFactory.createNew(IndexSwapTaskflowLauncher.class.getClassLoader(),
+    //                        localFile).orElseThrow(() -> new IllegalStateException("flush2Local must be present"));
+    //                phaseStatus = flush2Local.loadPhase(); // BasicPhaseStatus.statusWriter.loadPhase(localFile);
+    //                switch (phase) {
+    //                    case FullDump:
+    //                        result.setDumpPhase((DumpPhaseStatus) phaseStatus);
+    //                        break;
+    //                    case JOIN:
+    //                        result.setJoinPhase((JoinPhaseStatus) phaseStatus);
+    //                        break;
 
-    public static PhaseStatusCollection initialTaskPhase(PhaseStatusCollection statusCollection) {
-        taskPhaseReference.put(statusCollection.getTaskid(), statusCollection);
-        return statusCollection;
-    }
-
-    public static PhaseStatusCollection getTaskPhaseReference(Integer taskId) {
-        PhaseStatusCollection status = taskPhaseReference.get(taskId);
-        // Objects.requireNonNull(status, "taskId:" + taskId + " relevant status can not be null");
-        return status;
-    }
-
+    /// /                    case BUILD:
+    /// /                        result.setBuildPhase((BuildPhaseStatus) phaseStatus);
+    /// /                        break;
+    /// /                    case IndexBackFlow:
+    /// /                        result.setIndexBackFlowPhaseStatus((IndexBackFlowPhaseStatus) phaseStatus);
+    //                }
+    //            }
+    //        } catch (Exception e) {
+    //            throw new RuntimeException("taskid:" + taskid, e);
+    //        }
+    //        return result;
+    //    }
     protected RpcServiceReference getDataXExecReporter() {
         IncrStatusUmbilicalProtocolImpl statusServer = IncrStatusUmbilicalProtocolImpl.getInstance();
         IncrStatusUmbilicalProtocol statReceiveSvc = new AdapterStatusUmbilicalProtocol() {
             @Override
             public void reportDumpTableStatus(DumpPhaseStatus.TableDumpStatus tableDumpStatus) {
-//                statusServer.reportDumpTableStatus(tableDumpStatus.getTaskid(), tableDumpStatus.isComplete()
-//                        , tableDumpStatus.isWaiting(), tableDumpStatus.isFaild(), tableDumpStatus.getName());
-
                 statusServer.reportDumpTableStatus(tableDumpStatus);
             }
         };
         AtomicReference<ITISRpcService> ref = new AtomicReference<>();
         ref.set(new DataXAssembleSvcCompsite(statReceiveSvc));
-        return new RpcServiceReference(ref, AssembleSvcCompsite.MOCK_PRC ,() -> {
+        return new RpcServiceReference(ref, AssembleSvcCompsite.MOCK_PRC, () -> {
         });
     }
 
@@ -95,17 +125,18 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
     @Override
     @SuppressWarnings("all")
     public <T extends BasicPhaseStatus<?>> T getPhaseStatus(IExecChainContext execContext, FullbuildPhase phase) {
-        PhaseStatusCollection phaseStatusCollection = taskPhaseReference.get(execContext.getTaskId());
+        PhaseStatusCollection phaseStatusCollection =
+                PhaseStatusCollection.getTaskPhaseReference(execContext.getTaskId());
         Objects.requireNonNull(phaseStatusCollection, "phaseStatusCollection can not be null");
         switch (phase) {
             case FullDump:
                 return (T) phaseStatusCollection.getDumpPhase();
             case JOIN:
                 return (T) phaseStatusCollection.getJoinPhase();
-            case BUILD:
-                return (T) phaseStatusCollection.getBuildPhase();
-            case IndexBackFlow:
-                return (T) phaseStatusCollection.getIndexBackFlowPhaseStatus();
+            //                case BUILD:
+            //                    return (T) phaseStatusCollection.getBuildPhase();
+            //                case IndexBackFlow:
+            //                    return (T) phaseStatusCollection.getIndexBackFlowPhaseStatus();
             default:
                 throw new IllegalStateException(phase + " is illegal has not any match status");
         }
@@ -114,25 +145,19 @@ public abstract class TrackableExecuteInterceptor implements IExecuteInterceptor
     @Override
     public final ExecuteResult intercept(ActionInvocation invocation) throws Exception {
         IExecChainContext execChainContext = invocation.getContext();
-        //int taskid = execChainContext.getTaskId();
-       // log.info("phase:" + FullbuildPhase.desc(this.getPhase()) + " start ,taskid:" + );
-        // 开始执行一个新的phase需要通知console
-        // final int phaseId = createNewPhase(taskid, FullbuildPhase.getFirst(this.getPhase()));
         ExecuteResult result = null;
         try {
             result = this.execute(execChainContext);
             if (!result.isSuccess()) {
-                log.error( "phase:" + FullbuildPhase.desc(this.getPhase()) + " faild,reason:" + result.getMessage());
+                log.error("phase:" + FullbuildPhase.desc(this.getPhase()) + " faild,reason:" + result.getMessage());
             }
         } catch (Exception e) {
-            // }
             throw e;
         }
         if (result.isSuccess()) {
             return invocation.invoke();
         } else {
             log.error("full build job is failed");
-            // StringUtils.EMPTY);
             return result;
         }
     }

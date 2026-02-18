@@ -62,7 +62,7 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
     private ITISCoordinator coordinator;
     private ExecutePhaseRange executePhaseRange;
     private boolean dryRun;
-    private PhaseStatusCollection latestPhaseStatusCollection;
+   // private PhaseStatusCollection latestPhaseStatusCollection;
     // private StoreResourceType resType;
     private File specifiedLocalLoggerPath;
     /**
@@ -71,6 +71,9 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
     private boolean disableGrpcRemoteServerConnect;
 
     private final long ps;
+
+    public static void deserializeInstanceParams(TriggersConfig triggerCfg, JSONObject instanceParams, boolean resolveCfgsSnapshotConsumer, Consumer<AbstractExecContext> execChainContextConsumer, Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
+    }
 
     @Override
     public long getPartitionTimestampWithMillis() {
@@ -87,25 +90,8 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
      * @return
      * @see IExecChainContext#createInstanceParams Params set in this method
      */
-    public static PluginAndCfgsSnapshot resolveCfgsSnapshotConsumer(StoreResourceType resourceType,
-                                                                    JSONObject instanceParams) {
-        String pluginCfgsMetas = instanceParams.getString(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS);
-        String appName = instanceParams.getString(JobParams.KEY_COLLECTION);
-        if (StringUtils.isEmpty(pluginCfgsMetas)) {
-            throw new IllegalStateException("property:" + PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS + " of "
-                    + "instanceParams can not be null");
-        }
-
-        //  StoreResourceType resType = StoreResourceType.parse(instanceParams.getString(StoreResourceType
-        //  .KEY_STORE_RESOURCE_TYPE));
-
-        final Base64 base64 = new Base64();
-        try (InputStream manifestJar = new ByteArrayInputStream(base64.decode(pluginCfgsMetas))) {
-            return PluginAndCfgsSnapshot.getRepositoryCfgsSnapshot(appName, Objects.requireNonNull(resourceType,
-                    "resourceType can not be null"), manifestJar);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public static PluginAndCfgsSnapshot resolveCfgsSnapshotConsumer(StoreResourceType resourceType, JSONObject instanceParams) {
+        return null;
     }
 
     public void putTablePt(IDumpTable table, ITabPartition pt) {
@@ -182,75 +168,7 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
         this.javaMemSpec = javaMemSpec;
     }
 
-    /**
-     * 反序列化
-     *
-     * @param instanceParams
-     * @return
-     */
-    static AbstractExecContext deserializeInstanceParams(TriggersConfig triggerCfg, JSONObject instanceParams,
-                                                         boolean resolveCfgsSnapshotConsumer //
-            , Consumer<AbstractExecContext> execChainContextConsumer,
-                                                         Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
-        Integer taskId = Objects.requireNonNull(instanceParams.getInteger(JobParams.KEY_TASK_ID),
-                JobParams.KEY_TASK_ID + " can not be null," + JsonUtil.toString(instanceParams));
-        boolean dryRun = instanceParams.getBooleanValue(IFullBuildContext.DRY_RUN);
 
-        final String javaMemSpec = instanceParams.getString(JobParams.KEY_JAVA_MEMORY_SPEC);
-
-        Long triggerTimestamp = instanceParams.getLong(DataxUtils.EXEC_TIMESTAMP);
-
-
-        AbstractExecContext execChainContext = null;
-        switch (triggerCfg.getResType()) {
-            case DataFlow:
-                WorkflowExecContext wfContext = new WorkflowExecContext(0, triggerTimestamp);
-                wfContext.setWorkflowName(triggerCfg.getDataXName());
-                execChainContext = wfContext;
-                break;
-            case DataApp:
-                String appName = instanceParams.getString(JobParams.KEY_COLLECTION);
-                execChainContext = new DataXPipelineExecContext(appName, triggerTimestamp);
-                break;
-            default:
-                throw new IllegalStateException("illegal resType:" + triggerCfg.getResType());
-        }
-
-
-        execChainContext.setJavaMemSpec(javaMemSpec);
-        execChainContext.setCoordinator(ITISCoordinator.create());
-        execChainContext.setDryRun(dryRun);
-        execChainContext.setAttribute(JobCommon.KEY_TASK_ID, taskId);
-
-        execChainContextConsumer.accept(execChainContext);
-
-
-        // execChainContext.setLatestPhaseStatusCollection( );
-
-        if (resolveCfgsSnapshotConsumer) {
-
-            //            String pluginCfgsMetas = instanceParams.getString(PluginAndCfgsSnapshotUtils
-            //            .KEY_PLUGIN_CFGS_METAS);
-            //
-            //            if (StringUtils.isEmpty(pluginCfgsMetas)) {
-            //                throw new IllegalStateException("property:"
-            //                        + PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS + " of instanceParams can
-            //                        not be null");
-            //            }
-            //
-            //            final Base64 base64 = new Base64();
-            //            try (InputStream manifestJar = new ByteArrayInputStream(base64.decode(pluginCfgsMetas))) {
-            //                cfgsSnapshotConsumer.accept(PluginAndCfgsSnapshot.getRepositoryCfgsSnapshot(appName,
-            //                manifestJar));
-            //            } catch (Exception e) {
-            //                throw new RuntimeException(e);
-            //            }
-
-            cfgsSnapshotConsumer.accept(resolveCfgsSnapshotConsumer(triggerCfg.getResType(), instanceParams));
-        }
-
-        return execChainContext;
-    }
 
     @Override
     public ExecutePhaseRange getExecutePhaseRange() {
@@ -311,14 +229,14 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
         return taskId;
     }
 
-    public void setLatestPhaseStatusCollection(PhaseStatusCollection latestPhaseStatusCollection) {
-        this.latestPhaseStatusCollection = latestPhaseStatusCollection;
-    }
-
-    @Override
-    public PhaseStatusCollection loadPhaseStatusFromLatest() {
-        return this.latestPhaseStatusCollection;
-    }
+//    public void setLatestPhaseStatusCollection(PhaseStatusCollection latestPhaseStatusCollection) {
+//        this.latestPhaseStatusCollection = latestPhaseStatusCollection;
+//    }
+//
+//    @Override
+//    public PhaseStatusCollection loadPhaseStatusFromLatest() {
+//        return this.latestPhaseStatusCollection;
+//    }
 
 
     @Override

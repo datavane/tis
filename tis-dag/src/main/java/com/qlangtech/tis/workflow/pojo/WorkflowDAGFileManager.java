@@ -19,8 +19,10 @@
 package com.qlangtech.tis.workflow.pojo;
 
 import com.alibaba.fastjson.JSON;
-import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.datax.DataXName;
+import com.qlangtech.tis.datax.IDataxProcessor;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
+import com.qlangtech.tis.fullbuild.phasestatus.impl.BasicPhaseStatus;
 import com.qlangtech.tis.powerjob.model.PEWorkflowDAG;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -28,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -40,6 +43,44 @@ import java.util.Objects;
  * @date 2026-01-29
  */
 public class WorkflowDAGFileManager {
+
+    /**
+     * 从本地加载,每次执行全量build，最终会生成一个dag执行状态在Full-Build-Phase-Local-Dir
+     *
+     * @param dataXName
+     * @return
+     */
+    public static PEWorkflowDAG loadDAG(DataXName dataXName, Integer taskId) throws FileNotFoundException {
+        // IDataxProcessor processor = DataxProcessor.load(null, dataXName);
+        File fullBuildPhaseLocalDir = BasicPhaseStatus.getFullBuildPhaseLocalDir(taskId);
+        WorkflowDAGFileManager fileManager //
+                = new WorkflowDAGFileManager(fullBuildPhaseLocalDir, true);
+        return fileManager.loadDagSpec(DAG_SPEC_FILENAME);
+    }
+
+    public static File saveTaskDAGStatus(IDataxProcessor dataxProcessor, Integer taskId, PEWorkflowDAG dag) {
+        File fullBuildPhaseLocalDir = BasicPhaseStatus.getFullBuildPhaseLocalDir(taskId);
+        WorkflowDAGFileManager fileManager //
+                = new WorkflowDAGFileManager(fullBuildPhaseLocalDir, true);
+        return fileManager.saveDagSpec(dataxProcessor.getDataXName().getPipelineName(), dag);
+        //FileUtils.write(dagSpecPath, JsonUtil.toString(dag, true), TisUTF8.get(), false);
+
+    }
+
+    /**
+     * 保存DAG
+     *
+     * @param dataxProcessor
+     * @param dag
+     * @return
+     */
+    public static File saveDAG(IDataxProcessor dataxProcessor, PEWorkflowDAG dag) {
+        WorkflowDAGFileManager fileManager //
+                = new WorkflowDAGFileManager(dataxProcessor.getDataXWorkDir(null), true);
+        return fileManager.saveDagSpec(dataxProcessor.getDataXName().getPipelineName(), dag);
+        //FileUtils.write(dagSpecPath, JsonUtil.toString(dag, true), TisUTF8.get(), false);
+
+    }
 
     private static final Logger logger = LoggerFactory.getLogger(WorkflowDAGFileManager.class);
 
@@ -150,23 +191,38 @@ public class WorkflowDAGFileManager {
     }
 
     /**
+     *
+     *
+     * @param taskId
+     * @return
+     */
+    //    public PEWorkflowDAG loadDagStatus(Integer taskId) {
+    //        File fullBuildPhaseLocalDir = BasicPhaseStatus.getFullBuildPhaseLocalDir(taskId);
+    //        return this.loadDagSpec(fullBuildPhaseLocalDir, DAG_SPEC_FILENAME);
+    //    }
+
+    /**
      * 从文件系统加载 DAG 定义
      *
      * @param dagSpecPath 相对路径（如：workflow-name/dag-spec.json）
      * @return DAG 定义
      */
-    public PEWorkflowDAG loadDagSpec(String dagSpecPath) {
+    public PEWorkflowDAG loadDagSpec(String dagSpecPath) throws FileNotFoundException {
         if (StringUtils.isEmpty(dagSpecPath)) {
             throw new IllegalArgumentException("dagSpecPath cannot be empty");
         }
 
+        return this.loadDagSpec(workflowBaseDir, dagSpecPath);
+    }
+
+    private PEWorkflowDAG loadDagSpec(File baseDir, String dagSpecPath) throws FileNotFoundException {
+
+        File dagFile = new File(Objects.requireNonNull(baseDir, "baseDir can not be null"), dagSpecPath);
+
+        if (!dagFile.exists()) {
+            throw new FileNotFoundException("DAG spec file not found: " + dagFile.getAbsolutePath());
+        }
         try {
-            File dagFile = new File(workflowBaseDir, dagSpecPath);
-
-            if (!dagFile.exists()) {
-                throw new IllegalStateException("DAG spec file not found: " + dagFile.getAbsolutePath());
-            }
-
             String jsonContent = FileUtils.readFileToString(dagFile, StandardCharsets.UTF_8);
 
             PEWorkflowDAG dag = JSON.parseObject(jsonContent, PEWorkflowDAG.class);

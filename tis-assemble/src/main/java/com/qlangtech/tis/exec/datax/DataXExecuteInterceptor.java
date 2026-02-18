@@ -18,36 +18,23 @@
 
 package com.qlangtech.tis.exec.datax;
 
-import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
-import com.qlangtech.tis.datax.*;
-import com.qlangtech.tis.datax.impl.DataXCfgGenerator.GenerateCfgs;
+import com.qlangtech.tis.datax.DataXJobSubmit;
+import com.qlangtech.tis.datax.DataXName;
+import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.exec.impl.TrackableExecuteInterceptor;
-import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskTrigger;
-import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
-//import com.qlangtech.tis.fullbuild.taskflow.TISReactor;
-import com.qlangtech.tis.fullbuild.phasestatus.IPhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
-import com.qlangtech.tis.fullbuild.taskflow.TaskAndMilestone;
 import com.qlangtech.tis.job.common.JobCommon;
-import com.qlangtech.tis.manage.common.DagTaskUtils;
-import com.qlangtech.tis.manage.impl.DataFlowAppSource;
-import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
-import com.qlangtech.tis.sql.parser.DAGSessionSpec;
-import com.qlangtech.tis.util.IPluginContext;
-import com.qlangtech.tis.util.PartialSettedPluginContext;
-import com.tis.hadoop.rpc.RpcServiceReference;
-import org.jvnet.hudson.reactor.ReactorListener;
-import org.jvnet.hudson.reactor.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.concurrent.ExecutorService;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * DataX 执行器
@@ -73,17 +60,16 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         DataXName pipelineName = new DataXName(appSource.identityValue(), appSource.getResType());
 
         DataXJobSubmit submit = jobSubmit.get();
-        PhaseStatusCollection lastHistory = execChainContext.loadPhaseStatusFromLatest();
+        // PhaseStatusCollection lastHistory = execChainContext.loadPhaseStatusFromLatest();
 
-        TriggerBuildResult triggerBuildResult = submit.triggerJob(pipelineName, Optional.ofNullable(lastHistory));
+        TriggerBuildResult triggerBuildResult = submit.triggerJob(execChainContext, pipelineName
+                //     , Optional.ofNullable(lastHistory)
+        );
         execChainContext.setAttribute(JobCommon.KEY_TASK_ID, Objects.requireNonNull(triggerBuildResult.taskid,
                 "taskid can not be null"));
 
         return ExecuteResult.createSuccess();
     }
-
-
-
 
 
     private DataXJobSubmit.InstanceType getDataXTriggerType() {

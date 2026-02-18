@@ -32,7 +32,7 @@ public class ExecutePhaseRange {
     private final FullbuildPhase end;
 
     public static final ExecutePhaseRange fullRange() {
-        return new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.IndexBackFlow);
+        return new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.JOIN);
     }
 
     public ExecutePhaseRange(FullbuildPhase start, FullbuildPhase end) {

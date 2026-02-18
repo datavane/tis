@@ -22,7 +22,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.build.task.IBuildHistory;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
-import com.qlangtech.tis.datax.DataXTaskJobName;
+import com.qlangtech.tis.datax.CuratorDataXTaskMessage;
 import com.qlangtech.tis.datax.DataXJobInfo;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.DataXName;
@@ -90,8 +90,8 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
 
         chainContext.setAttribute(JobCommon.KEY_TASK_ID, TASK_ID);
 
-//        chainContext.setMdcParamContext(() -> {
-//        });
+        //        chainContext.setMdcParamContext(() -> {
+        //        });
         return chainContext;
     }
 
@@ -127,48 +127,20 @@ public class TestIndexSwapTaskflowLauncherWithDataXTrigger extends TISTestCase {
         //        }
 
         @Override
-        public TriggerBuildResult triggerJob(DataXName appName
-                                             //, Optional<Long> workflowInstanceIdOpt
-                , Optional<PhaseStatusCollection> latestWorkflowHistory) {
+        public TriggerBuildResult triggerJob(IExecChainContext execChainContext,DataXName appName) {
             return null;
         }
 
         @Override
         public IRemoteDumpTaskTrigger createDataXJob(IDataXJobContext taskContext, RpcServiceReference statusRpc,
-                                                     DataXJobInfo jobName, IDataxProcessor dataxProcessor) {
-
-
+                                                     DataXJobInfo jobName, IDataxProcessor dataxProcessor,
+                                                     CuratorDataXTaskMessage msg) {
             return jobTrigger;
-            //            return new IRemoteJobTrigger() {
-            //                @Override
-            //                public void submitJob() {
-            //
-            //                }
-            //
-            //                @Override
-            //                public RunningStatus getRunningStatus() {
-            //                    return new RunningStatus(1, true, true);
-            //                }
-            //            };
         }
 
         @Override
         public IDataXJobContext createJobContext(final IExecChainContext parentContext) {
             return IDataXJobContext.create(parentContext);
-            //                    new IDataXJobContext() {
-            ////                @Override
-            ////                IJoinTaskContext getTaskContext();
-            //
-            //                @Override
-            //                public IJoinTaskContext getTaskContext() {
-            //                    return parentContext;
-            //                }
-            //
-            //                @Override
-            //                public void destroy() {
-            //
-            //                }
-            //            };
         }
 
 

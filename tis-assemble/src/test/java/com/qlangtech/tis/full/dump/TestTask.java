@@ -39,12 +39,12 @@ public class TestTask extends TestCase {
             newTaskParam.setAppname(indexname);
         }
         newTaskParam.setWorkflowid(15);
-        ExecutePhaseRange execRange = new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.IndexBackFlow);
+        ExecutePhaseRange execRange = new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.JOIN);
         // (FullbuildPhase.FullDump);
         newTaskParam.setExecuteRanage(execRange);
         // newTaskParam.setToPhase(FullbuildPhase.IndexBackFlow);
         newTaskParam.setTriggerType(TriggerType.MANUAL);
-        Integer taskid = IExecChainContext.createNewTask(newTaskParam);
+        Integer taskid = IExecChainContext.createNewTask(newTaskParam).getTaskid();
         System.out.println(taskid);
     }
 }

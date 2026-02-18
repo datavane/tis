@@ -9,7 +9,6 @@ import com.qlangtech.tis.datax.DBDataXChildTask;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataXBatchPost;
 import com.qlangtech.tis.datax.IDataXGenerateCfgs;
-import com.qlangtech.tis.datax.IDataXJobInfo;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxWriter;
@@ -41,6 +40,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static com.qlangtech.tis.datax.DataXJobInfo.KEY_DATAX_JOB_INFO_SERIALIZE_INFO;
 
 /**
  * DAG 会话规范
@@ -152,8 +153,11 @@ public class DAGSessionSpec implements IDAGSessionSpec {
 
             IDAGSessionSpec childDumpSpec = getDumpSpec(postSpec[0], dumpSpec).getDpt( //
                     Objects.requireNonNull(jobTrigger, "jobTrigger can not be null").getTaskName(),
-                    LifeCycleHook.Dump,
-                    (node) -> node.setNodeParams(IDataXJobInfo.serialize(jobTrigger.getDataXTaskMessage())));
+                    LifeCycleHook.Dump, (node) -> {
+                        JSONObject params = new JSONObject();
+                        params.put(KEY_DATAX_JOB_INFO_SERIALIZE_INFO, jobTrigger.getDataXTaskMessage().serialize());
+                        node.setNodeParams(params);
+                    });
 
             if (preAndPost.getKey() != null) {
                 childDumpSpec.getDpt(preAndPost.getKey().getTaskName(), LifeCycleHook.Post);

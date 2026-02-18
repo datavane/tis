@@ -64,4 +64,8 @@ public enum ExecResult {
     public int getValue() {
         return this.value;
     }
+
+    public byte getByteVal() {
+        return (byte) this.value;
+    }
 }

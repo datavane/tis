@@ -17,7 +17,6 @@
  */
 package com.qlangtech.tis.order.center;
 
-import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 
 import com.qlangtech.tis.datax.DataXJobSubmit;
@@ -27,14 +26,6 @@ import com.qlangtech.tis.exec.ActionInvocation;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
-import com.qlangtech.tis.fullbuild.phasestatus.IFlush2Local;
-import com.qlangtech.tis.fullbuild.phasestatus.IFlush2LocalFactory;
-import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.BasicPhaseStatus;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildPhaseStatus;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.IndexBackFlowPhaseStatus;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.realtime.transfer.IOnsListenerStatus;
 import com.qlangtech.tis.rpc.server.DefaultLoggerAppenderServiceImpl;
 import com.qlangtech.tis.rpc.server.FullBuildStatCollectorServer;
@@ -50,7 +41,6 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -214,48 +204,6 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
 
     @Override
     public void destroy() {
-    }
-
-    /**
-     * @param taskid
-     * @return
-     * @throws Exception
-     */
-    public static PhaseStatusCollection loadPhaseStatusFromLocal(int taskid) {
-        PhaseStatusCollection result = null;
-        FullbuildPhase[] phases = FullbuildPhase.values();
-        try {
-            File localFile = null;
-            BasicPhaseStatus phaseStatus;
-            for (FullbuildPhase phase : phases) {
-                localFile = BasicPhaseStatus.getFullBuildPhaseLocalFile(taskid, phase);
-                if (!localFile.exists()) {
-                    return result;
-                }
-                if (result == null) {
-                    result = new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange());
-                }
-                IFlush2Local flush2Local =
-                        IFlush2LocalFactory.createNew(IndexSwapTaskflowLauncher.class.getClassLoader(), localFile).orElseThrow(() -> new IllegalStateException("flush2Local must be present"));
-                phaseStatus = flush2Local.loadPhase(); // BasicPhaseStatus.statusWriter.loadPhase(localFile);
-                switch (phase) {
-                    case FullDump:
-                        result.setDumpPhase((DumpPhaseStatus) phaseStatus);
-                        break;
-                    case JOIN:
-                        result.setJoinPhase((JoinPhaseStatus) phaseStatus);
-                        break;
-                    case BUILD:
-                        result.setBuildPhase((BuildPhaseStatus) phaseStatus);
-                        break;
-                    case IndexBackFlow:
-                        result.setIndexBackFlowPhaseStatus((IndexBackFlowPhaseStatus) phaseStatus);
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("taskid:" + taskid, e);
-        }
-        return result;
     }
 
     //    /**

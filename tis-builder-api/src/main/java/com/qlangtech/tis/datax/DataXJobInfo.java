@@ -1,14 +1,3 @@
-package com.qlangtech.tis.datax;
-
-import com.qlangtech.tis.plugin.ds.DBIdentity;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.File;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -27,12 +16,25 @@ import java.util.concurrent.atomic.AtomicReference;
  * limitations under the License.
  */
 
+package com.qlangtech.tis.datax;
+
+import com.qlangtech.tis.plugin.ds.DBIdentity;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.File;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-12-24 10:48
  **/
-public class DataXJobInfo implements IDataXJobInfo {
+public class DataXJobInfo {
 
+    public static final String KEY_ALL_ROWS_APPROXIMATELY = "allRowsApproximately";
+    public static final String KEY_DATAX_JOB_INFO_SERIALIZE_INFO = "dataXJobInfo";
     //    public static final AtomicReference<File> dataXExecutorDir
     //            = new AtomicReference<>(TisAppLaunch.isTestMock()
     //            ? new File(".")
@@ -46,7 +48,7 @@ public class DataXJobInfo implements IDataXJobInfo {
     private static DataXJobInfo currJobInfo;
 
 
-    public final String jobFileName;
+    private final String jobFileName;
     /**
      * 对应的分表集合
      */
@@ -55,6 +57,9 @@ public class DataXJobInfo implements IDataXJobInfo {
     private final DBIdentity dbFactoryId;
 
     public static DataXJobInfo parse(String jobInfo) {
+        if (StringUtils.isEmpty(jobInfo)) {
+            throw new IllegalArgumentException("param jobInfo can not be empty");
+        }
         String[] split = StringUtils.split(jobInfo, FILENAME_SPLIT_CHAR);
         if (split.length > 2) {
             return currJobInfo = new DataXJobInfo(split[0], DBIdentity.parseId(split[1]),
@@ -131,7 +136,6 @@ public class DataXJobInfo implements IDataXJobInfo {
     }
 
 
-    @Override
     public String getJobFileName() {
         return this.jobFileName;
     }

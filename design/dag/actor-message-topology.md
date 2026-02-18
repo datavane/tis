@@ -593,7 +593,7 @@ ActorRef router = getContext().actorOf(
 - `com.qlangtech.tis.manage.TISActorSystemHolder`
 
 ### 客户端使用
-- `com.qlangtech.tis.config.module.action.WorkflowAction`
+- `com.qlangtech.tis.coredefine.module.action.WorkflowAction`
 
 ---
 

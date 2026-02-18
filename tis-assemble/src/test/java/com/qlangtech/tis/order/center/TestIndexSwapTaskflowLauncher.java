@@ -125,7 +125,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
         status.flushStatus2Local();
 
 
-        PhaseStatusCollection loadStatus = IndexSwapTaskflowLauncher.loadPhaseStatusFromLocal(TASK_ID);
+        PhaseStatusCollection loadStatus = TrackableExecuteInterceptor.getTaskPhaseReference(TASK_ID);
         Assert.assertNotNull(loadStatus);
 
         DumpPhaseStatus actualDump = loadStatus.getDumpPhase();

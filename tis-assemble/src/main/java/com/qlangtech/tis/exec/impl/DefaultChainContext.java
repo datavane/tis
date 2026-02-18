@@ -17,7 +17,6 @@
  */
 package com.qlangtech.tis.exec.impl;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.cloud.ITISCoordinator;
@@ -25,6 +24,7 @@ import com.qlangtech.tis.datax.DataXJobSubmitParams;
 import com.qlangtech.tis.datax.IDataXBatchPost;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxWriter;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecChainContextUtils;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
@@ -33,18 +33,14 @@ import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
-import com.qlangtech.tis.fullbuild.servlet.IRebindableMDC;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.order.center.IParamContext;
-import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
-import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -60,7 +56,7 @@ public class DefaultChainContext implements IExecChainContext {
 
     private final long ps;
 
-    private Optional<Integer> latestWFSuccessTaskId = Optional.empty();
+   // private Optional<Integer> latestWFSuccessTaskId = Optional.empty();
 
     private ITISCoordinator zkClient;
 
@@ -76,10 +72,10 @@ public class DefaultChainContext implements IExecChainContext {
         // DateTimeFormatter yyyyMMddHHmmss = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         this.ps = DataxUtils.currentTimeStamp();
         this.httpExecContext = execContext;
-        String latestWorkflowHistoryId = execContext.getString(KEY_LASTEST_WORKFLOW_HISTORY_ID);
-        if (StringUtils.isNotEmpty(latestWorkflowHistoryId)) {
-            this.setLatestWFSuccessTaskId(Integer.parseInt(latestWorkflowHistoryId));
-        }
+//        String latestWorkflowHistoryId = execContext.getString(KEY_LASTEST_WORKFLOW_HISTORY_ID);
+//        if (StringUtils.isNotEmpty(latestWorkflowHistoryId)) {
+//            this.setLatestWFSuccessTaskId(Integer.parseInt(latestWorkflowHistoryId));
+//        }
         ExecChainContextUtils.setDependencyTablesPartitions(this, new TabPartitions(Maps.newHashMap()));
     }
 
@@ -93,14 +89,14 @@ public class DefaultChainContext implements IExecChainContext {
     //        throw new UnsupportedOperationException();
     //    }
 
-    /**
-     * 设置最近一次成功执行的历史记录Id
-     *
-     * @param latestWFSuccessTaskId
-     */
-    public void setLatestWFSuccessTaskId(Integer latestWFSuccessTaskId) {
-        this.latestWFSuccessTaskId = Optional.of(latestWFSuccessTaskId);
-    }
+//    /**
+//     * 设置最近一次成功执行的历史记录Id
+//     *
+//     * @param latestWFSuccessTaskId
+//     */
+//    public void setLatestWFSuccessTaskId(Integer latestWFSuccessTaskId) {
+//        this.latestWFSuccessTaskId = Optional.of(latestWFSuccessTaskId);
+//    }
 
     //private IIndexMetaData indexMetaData;
 
@@ -218,7 +214,7 @@ public class DefaultChainContext implements IExecChainContext {
             // (COMPONENT_START), FullbuildPhase.FullDump.getName());
             if (StringUtils.isNotEmpty(start)) {
                 String end = StringUtils.defaultIfEmpty(this.getString(COMPONENT_END),
-                        FullbuildPhase.IndexBackFlow.getName());
+                        FullbuildPhase.JOIN.getName());
                 this.executePhaseRange = new ExecutePhaseRange(FullbuildPhase.parse(start), FullbuildPhase.parse(end));
             } else {
                 IDataxProcessor appSource = this.getProcessor();
@@ -290,7 +286,7 @@ public class DefaultChainContext implements IExecChainContext {
     public void setAttribute(String key, Object v) {
         if (JobCommon.KEY_TASK_ID.equals(key)) {
             final Integer taskid = (Integer) v;
-            TrackableExecuteInterceptor.initialTaskPhase(taskid);
+            PhaseStatusCollection.initialTaskPhase(taskid);
         }
         this.attribute.put(key, v);
 
@@ -394,10 +390,10 @@ public class DefaultChainContext implements IExecChainContext {
         this.appSourcePipelineController = appSourcePipelineController;
     }
 
-    @Override
-    public PhaseStatusCollection loadPhaseStatusFromLatest() {
-        return loadPhaseStatusFromLatest(this.latestWFSuccessTaskId);
-    }
+//    @Override
+//    public PhaseStatusCollection loadPhaseStatusFromLatest() {
+//        return loadPhaseStatusFromLatest(this.latestWFSuccessTaskId);
+//    }
 
     /**
      * 取得pipeline最近一次成功的执行状态
@@ -409,7 +405,7 @@ public class DefaultChainContext implements IExecChainContext {
     public static PhaseStatusCollection loadPhaseStatusFromLatest(Optional<Integer> latestWFSuccessTaskId) {
         //FIXME 这段代码在执行workflow时候应该会不兼容，届时再调整
         // Optional<WorkFlowBuildHistory> latestWFSuccessTask = DagTaskUtils.getLatestWFSuccessTaskId(appName);
-        return latestWFSuccessTaskId.map(IndexSwapTaskflowLauncher::loadPhaseStatusFromLocal).orElse(null);
+        return latestWFSuccessTaskId.map(PhaseStatusCollection::getTaskPhaseReference).orElse(null);
 
         //        if (!latestWFSuccessTask.isPresent()) {
         //            return null;

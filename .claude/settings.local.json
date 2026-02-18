@@ -19,7 +19,9 @@
       "Bash(openspec instructions specs --change \"tis-dag-unified-cluster-refactoring\" --json)",
       "Bash(openspec status --change \"tis-dag-unified-cluster-refactoring\")",
       "Bash(openspec instructions tasks --change \"tis-dag-unified-cluster-refactoring\" --json)",
-      "Bash(openspec instructions apply --change \"tis-dag-unified-cluster-refactoring\" --json)"
+      "Bash(openspec instructions apply --change \"tis-dag-unified-cluster-refactoring\" --json)",
+      "Bash(mvn compile -pl tis-dag -am -Dmaven.test.skip=true -o)",
+      "Bash(mvn install -pl tis-plugin -am -Dmaven.test.skip=true -o)"
     ],
     "deny": [],
     "ask": []

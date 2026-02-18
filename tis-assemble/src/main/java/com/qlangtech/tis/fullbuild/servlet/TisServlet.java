@@ -160,7 +160,7 @@ public class TisServlet extends HttpServlet {
             }
         }
 
-        PhaseStatusCollection phaseStatusCollection = TrackableExecuteInterceptor.getTaskPhaseReference(taskId);
+        PhaseStatusCollection phaseStatusCollection = PhaseStatusCollection.getTaskPhaseReference(taskId);
         if (phaseStatusCollection != null) {
             // 这样会将当前状态写入本地磁盘
             phaseStatusCollection.flushStatus2Local();

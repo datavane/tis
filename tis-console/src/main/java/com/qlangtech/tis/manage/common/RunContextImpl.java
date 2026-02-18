@@ -37,8 +37,11 @@ import com.qlangtech.tis.manage.biz.dal.dao.IUploadResourceDAO;
 import com.qlangtech.tis.manage.biz.dal.dao.IUsrDptRelationDAO;
 import com.qlangtech.tis.manage.spring.ZooKeeperGetter;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
+import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 
 import java.io.File;
+import java.util.Objects;
+import java.util.Optional;
 //import org.apache.solr.common.cloud.TISZkStateReader;
 
 /**
@@ -84,23 +87,22 @@ public class RunContextImpl implements RunContext {
 
   private IBizFuncAuthorityDAO bizFuncAuthorityDAO;
 
-  public RunContextImpl(
-    IApplicationDAO applicationDAO, // AdminUserService
-    IGroupInfoDAO groupInfoDAO, // AdminUserService
-    IServerDAO serverDAO, // AdminUserService
-    IServerGroupDAO serverGroupDAO, // AdminUserService
-    ISnapshotDAO snapshotDAO, // AdminUserService
-    ISnapshotViewDAO snapshotViewDAO, // OrgService orgService,
-    IUploadResourceDAO uploadResourceDAO, // RpcCoreManage rpcCoreManage,
-    IBizFuncAuthorityDAO bizFuncAuthorityDAO, // RpcCoreManage rpcCoreManage,
-    IUsrDptRelationDAO usrDptRelationDAO, // RpcCoreManage rpcCoreManage,
-    IDepartmentDAO departmentDAO, // RpcCoreManage rpcCoreManage,
-    IAppTriggerJobRelationDAO appTriggerJobRelationDAO, // IIsvDAO isvDAO,
-    IFuncDAO funcDAO, // IIsvDAO isvDAO,
-    IFuncRoleRelationDAO funcRoleRelationDAO, // IIsvDAO isvDAO,
-    IRoleDAO roleDAO, // IIsvDAO isvDAO,
-    IResourceParametersDAO resourceParametersDAO, // IIsvDAO isvDAO,
-    ZooKeeperGetter zooKeeperGetter //
+  public RunContextImpl(IApplicationDAO applicationDAO, // AdminUserService
+                        IGroupInfoDAO groupInfoDAO, // AdminUserService
+                        IServerDAO serverDAO, // AdminUserService
+                        IServerGroupDAO serverGroupDAO, // AdminUserService
+                        ISnapshotDAO snapshotDAO, // AdminUserService
+                        ISnapshotViewDAO snapshotViewDAO, // OrgService orgService,
+                        IUploadResourceDAO uploadResourceDAO, // RpcCoreManage rpcCoreManage,
+                        IBizFuncAuthorityDAO bizFuncAuthorityDAO, // RpcCoreManage rpcCoreManage,
+                        IUsrDptRelationDAO usrDptRelationDAO, // RpcCoreManage rpcCoreManage,
+                        IDepartmentDAO departmentDAO, // RpcCoreManage rpcCoreManage,
+                        IAppTriggerJobRelationDAO appTriggerJobRelationDAO, // IIsvDAO isvDAO,
+                        IFuncDAO funcDAO, // IIsvDAO isvDAO,
+                        IFuncRoleRelationDAO funcRoleRelationDAO, // IIsvDAO isvDAO,
+                        IRoleDAO roleDAO, // IIsvDAO isvDAO,
+                        IResourceParametersDAO resourceParametersDAO, // IIsvDAO isvDAO,
+                        ZooKeeperGetter zooKeeperGetter //
     , IWorkflowDAOFacade workflowDAOFacade) {
     super();
 
@@ -125,13 +127,14 @@ public class RunContextImpl implements RunContext {
     this.comDfireTisWorkflowDAOFacade = workflowDAOFacade;
   }
 
-//  @Override
-//  public TISZkStateReader getZkStateReader() {
-//    return this.clusterStateReader.getInstance();
-//  }
+  //  @Override
+  //  public TISZkStateReader getZkStateReader() {
+  //    return this.clusterStateReader.getInstance();
+  //  }
 
   @Override
-  public CreateNewTaskResult createNewDataXTask(IExecChainContext chainContext, TriggerType triggerType, File dagSpecPath) {
+  public CreateNewTaskResult createNewDataXTask(IExecChainContext chainContext, TriggerType triggerType,
+                                                File dagSpecPath, Optional<WorkFlowBuildHistory> pre) {
     throw new UnsupportedOperationException();
   }
 

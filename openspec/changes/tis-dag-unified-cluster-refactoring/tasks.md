@@ -90,7 +90,8 @@ DAO 接口和映射文件:
 
 <!--
 Actor 消息类:
-  - DAGSchedulerActor 消息：StartWorkflow、NodeCompleted、NodeTimeout、UpdateContext、CancelWorkflow
+  - WorkflowInstanceActor 消息：StartWorkflow、NodeCompleted、NodeTimeout、UpdateContext、CancelWorkflow
+  - DAGSchedulerActor 消息：LoadSchedules、ScheduleTriggered、RegisterSchedule、UnregisterSchedule
   - NodeDispatcherActor 消息：DispatchTask、TaskExecutionMessage
   - DAGMonitorActor 消息：QueryWorkflowStatus、QueryWaitingQueue、QueryRunningQueue
   - 响应消息：WorkflowRuntimeStatus、NodeStatus
@@ -98,7 +99,8 @@ Actor 消息类:
 -->
 
 - [x] 5.1 创建消息包 com.qlangtech.tis.dag.actor.message
-- [x] 5.2 定义 DAGSchedulerActor 消息：StartWorkflow、NodeCompleted、NodeTimeout、UpdateContext、CancelWorkflow
+- [x] 5.2 定义 WorkflowInstanceActor 消息：StartWorkflow、NodeCompleted、NodeTimeout、UpdateContext、CancelWorkflow
+- [x] 5.2b 定义 DAGSchedulerActor 调度管理消息：LoadSchedules、ScheduleTriggered、RegisterSchedule、UnregisterSchedule
 - [x] 5.3 定义 NodeDispatcherActor 消息：DispatchTask、TaskExecutionMessage
 - [x] 5.4 定义 DAGMonitorActor 消息：QueryWorkflowStatus、QueryWaitingQueue、QueryRunningQueue
 - [x] 5.5 定义响应消息：WorkflowRuntimeStatus、NodeStatus 等
@@ -109,21 +111,43 @@ Actor 消息类:
 <!--
 DAGSchedulerActor 类:
   - com.qlangtech.tis.dag.actor.DAGSchedulerActor
-  - 核心职责：工作流生命周期管理、DAG 流转控制
-  - 已实现方法框架：handleStartWorkflow、handleNodeCompleted、handleNodeTimeout、handleUpdateContext、handleCancelWorkflow
-  - 包含详细的实现说明和伪代码，待具体实现
+  - 核心职责变更：从工作流生命周期管理 → 定时调度管理器
+  - 启动后加载所有 BatchJobCrontab 插件实例，根据 cron 配置创建定时任务
+  - 当 cron 触发时，发送 StartWorkflow 消息给 WorkflowInstanceActor（通过 Cluster Sharding 路由）
+  - TIS 重启后自动恢复所有已启用的定时调度
+  - 工作流生命周期管理由 WorkflowInstanceActor 负责（见 Section 6b）
 -->
 
-- [x] 6.1 创建 DAGSchedulerActor 类（com.qlangtech.tis.dag.actor）
-- [x] 6.2 实现 handleStartWorkflow() 方法：加载 DAG、计算初始就绪节点、分发任务
-- [x] 6.3 实现 handleNodeCompleted() 方法：更新节点状态、检查失败策略、计算新就绪节点
-- [x] 6.4 实现 handleNodeTimeout() 方法：标记节点失败、触发重试或跳过
-- [x] 6.5 实现 handleUpdateContext() 方法：合并上下文数据、持久化
-- [x] 6.6 实现 handleCancelWorkflow() 方法：停止所有运行中的节点
-- [x] 6.7 实现控制节点处理逻辑：同步执行、动态禁用分支
-- [x] 6.8 实现工作流完成判断逻辑
-- [x] 6.9 实现数据库行锁并发控制
-- [ ] 6.10 编写单元测试验证各种场景
+- [x] 6.1 创建 DAGSchedulerActor 类（定时调度管理器，com.qlangtech.tis.dag.actor）
+- [x] 6.2 实现 handleLoadSchedules()：启动时加载所有 BatchJobCrontab 实例，创建定时任务
+- [x] 6.3 实现 handleScheduleTriggered()：cron 触发后发 StartWorkflow 给 WorkflowInstanceActor
+- [x] 6.4 实现 handleRegisterSchedule()：注册新的定时调度
+- [x] 6.5 实现 handleUnregisterSchedule()：移除定时调度
+- [x] 6.6 实现跳过已在运行的工作流逻辑
+- [x] 6.7 实现 TIS 重启后自动恢复调度
+- [x] 6.8 实现数据库行锁并发控制
+- [ ] 6.9 编写单元测试验证各种场景
+
+## 6b. WorkflowInstanceActor 实现（工作流生命周期管理）
+
+<!--
+WorkflowInstanceActor 类:
+  - com.qlangtech.tis.dag.actor.WorkflowInstanceActor
+  - 核心职责：每个 workflow 实例对应一个 Actor，负责完整生命周期管理
+  - 通过 Cluster Sharding 实现分布式部署，基于 workflowInstanceId 分片路由
+  - 缓存 WorkFlowBuildHistory 和 DAG 定义，避免重复数据库查询
+-->
+
+- [x] 6b.1 创建 WorkflowInstanceActor 类（com.qlangtech.tis.dag.actor）
+- [x] 6b.2 实现 handleStartWorkflow()：加载 DAG、计算初始就绪节点、分发任务
+- [x] 6b.3 实现 handleNodeCompleted()：更新节点状态、检查失败策略、计算新就绪节点
+- [x] 6b.4 实现 handleNodeTimeout()：标记节点失败、触发重试或跳过
+- [x] 6b.5 实现 handleUpdateContext()：合并上下文数据、持久化
+- [x] 6b.6 实现 handleCancelWorkflow()：停止所有运行中的节点
+- [x] 6b.7 实现控制节点处理逻辑：同步执行、动态禁用分支
+- [x] 6b.8 实现工作流完成判断逻辑
+- [x] 6b.9 实现 Cluster Sharding 配置（WorkflowInstanceMessageExtractor）
+- [ ] 6b.10 编写单元测试验证各种场景
 
 ## 7. NodeDispatcherActor 实现
 
@@ -176,21 +200,29 @@ NodeDispatcherActor 类:
 - [x] 11.1 创建 TISActorSystem 类（com.qlangtech.tis.dag）
 - [x] 11.2 实现 Actor System 初始化逻辑：加载 application.conf
 - [x] 11.3 实现单节点和多节点配置自动适配（读取 AKKA_SEED_NODES 环境变量）
-- [x] 11.4 创建所有核心 Actor：DAGSchedulerActor、DAGMonitorActor、ClusterManagerActor
+- [x] 11.4 创建所有核心 Actor：DAGSchedulerActor（调度管理）、DAGMonitorActor、ClusterManagerActor + WorkflowInstanceActor（Cluster Sharding）
 - [x] 11.5 实现 Actor System 优雅关闭
 - [x] 11.6 集成到 TIS 启动流程
 - [ ] 11.7 编写集成测试验证 Actor System 启动和关闭
 
-## 12. Quartz 定时调度集成
+## 12. BatchJobCrontab 定时调度配置
 
-- [x] 12.1 创建 Quartz 配置类：初始化 Scheduler、配置持久化
-- [x] 12.2 创建 WorkflowScheduleJob 类：实现 Quartz Job 接口
-- [x] 12.3 实现 WorkflowScheduleManager 类：管理调度任务的添加、修改、删除
-- [x] 12.4 实现 registerSchedule() 方法：注册定时调度任务
-- [x] 12.5 实现 unregisterSchedule() 方法：移除定时调度任务
-- [x] 12.6 实现 updateSchedule() 方法：更新 Cron 表达式
-- [x] 12.7 实现启动时加载所有启用定时调度的工作流
-- [x] 12.8 实现跳过已在运行的工作流逻辑
+<!--
+BatchJobCrontab 插件类:
+  - com.qlangtech.tis.dag.BatchJobCrontab
+  - 继承 DefaultDataXProcessorManipulate，是 TIS 原生插件扩展点
+  - 通过 TIS 表单系统管理 crontab 表达式和启用开关
+  - DAGSchedulerActor 负责加载 BatchJobCrontab 实例并创建定时任务
+-->
+
+- [x] 12.1 创建 BatchJobCrontab 插件类（extends DefaultDataXProcessorManipulate）
+- [x] 12.2 实现 crontab 表单字段定义（crontab、turnOn）
+- [x] 12.3 实现 BatchJobCrontab.DftDesc 描述器（@TISExtension）
+- [x] 12.4 实现 verify() 表单验证（CronScheduleBuilder 校验）
+- [x] 12.5 实现 manipulateStatusSummary() 运行状态展示
+- [x] 12.6 实现 describePlugin() 元数据描述
+- [x] 12.7 实现 EndType.Crontab 图标资源
+- [x] 12.8 实现与 DAGSchedulerActor 的集成（加载/注册/移除）
 - [ ] 12.9 编写单元测试验证调度功能
 
 ## 13. Web API 实现
@@ -317,10 +349,11 @@ NodeDispatcherActor 类:
 
 - [ ] 19.1 编写 PowerJob DAG 算法测试：环检测、就绪节点计算、拓扑排序
 - [ ] 19.2 编写 WorkflowDAGFileManager 测试：文件读写、并发安全
-- [ ] 19.3 编写 DAGSchedulerActor 测试：各种消息处理场景
+- [ ] 19.3 编写 DAGSchedulerActor 调度管理测试
+- [ ] 19.3b 编写 WorkflowInstanceActor 测试：各种消息处理场景
 - [ ] 19.4 编写 NodeDispatcherActor 测试：任务分发和超时
 - [ ] 19.5 编写 TaskWorkerActor 测试：任务执行和异常处理
-- [ ] 19.6 编写 Quartz 调度测试：定时触发、跳过运行中的工作流
+- [ ] 19.6 编写 BatchJobCrontab 插件测试：表单验证、调度触发
 - [ ] 19.7 编写完整工作流执行集成测试：从触发到完成
 - [ ] 19.8 编写集群扩展测试：单节点到多节点
 - [ ] 19.9 编写故障恢复测试：节点宕机、网络分区

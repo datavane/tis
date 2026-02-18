@@ -84,15 +84,13 @@ public class WorkFlowBuildHistory implements Serializable, IBuildHistory {
     /**
      * 实例状态：WAITING/RUNNING/SUCCEED/FAILED/STOPPED
      */
-    private String instanceStatus;
+   // private String instanceStatus;
 
     private static final long serialVersionUID = 1L;
 
     @Override
     public Integer getTaskId() {
         return this.id;
-
-
     }
 
     public static long getSerialVersionUID() {
@@ -262,11 +260,12 @@ public class WorkFlowBuildHistory implements Serializable, IBuildHistory {
         this.wfContext = wfContext;
     }
 
-    public String getInstanceStatus() {
-        return instanceStatus;
-    }
-
-    public void setInstanceStatus(String instanceStatus) {
-        this.instanceStatus = instanceStatus == null ? null : instanceStatus.trim();
-    }
+    // InstanceStatus.STOPPED
+//    public String getInstanceStatus() {
+//        return instanceStatus;
+//    }
+//
+//    public void setInstanceStatus(String instanceStatus) {
+//        this.instanceStatus = instanceStatus == null ? null : instanceStatus.trim();
+//    }
 }

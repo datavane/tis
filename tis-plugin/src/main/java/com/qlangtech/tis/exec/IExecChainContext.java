@@ -23,6 +23,7 @@ import com.qlangtech.tis.ajax.AjaxResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.cloud.ITISCoordinator;
+import com.qlangtech.tis.coredefine.module.action.DistributeJobTriggerBuildResult;
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.DataXJobSubmit.InstanceType;
 import com.qlangtech.tis.datax.DataXName;
@@ -43,7 +44,6 @@ import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IJoinTaskContext;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshotUtils;
-import com.qlangtech.tis.powerjob.TriggersConfig;
 import com.qlangtech.tis.workflow.pojo.DagNodeExecution;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.codec.binary.Base64;
@@ -58,7 +58,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
+
+import static com.qlangtech.tis.manage.common.HttpUtils.KEY_FULLBUILD_WORKFLOW_ACTION;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -74,7 +75,7 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
             "/config.ajax?action={0}&event_submit_{1}=true");
 
 
-    static Integer createNewTask(IExecChainContext chainContext, File dagSpecPath) {
+    static CreateNewTaskResult createNewTask(IExecChainContext chainContext, File dagSpecPath) {
         return createNewTask(chainContext, TriggerType.MANUAL, dagSpecPath);
     }
 
@@ -84,7 +85,8 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
      * @param chainContext
      * @return taskid
      */
-    static Integer createNewTask(IExecChainContext chainContext, TriggerType triggerType, File dagSpecPath) {
+    static CreateNewTaskResult createNewTask(IExecChainContext chainContext, TriggerType triggerType,
+                                             File dagSpecPath) {
         Integer workflowId = chainContext.getWorkflowId();
         NewTaskParam newTaskParam = new NewTaskParam();
         ExecutePhaseRange executeRanage = chainContext.getExecutePhaseRange();
@@ -107,10 +109,11 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
         /**=============================================
          * 提交task请求
          =============================================*/
-        Integer taskid = createNewTask(newTaskParam);
-        logger.info("create new taskid:" + taskid);
-        chainContext.setAttribute(JobCommon.KEY_TASK_ID, taskid);
-        return taskid;
+        CreateNewTaskResult createResult = createNewTask(newTaskParam);
+        logger.info("create new taskid:" + createResult.getTaskid());
+        chainContext.setAttribute(JobCommon.KEY_TASK_ID, createResult.getTaskid());
+        chainContext.setAttribute(JobCommon.KEY_PREVIOUS_TASK_ID, createResult.getPreTaskId());
+        return createResult;
     }
 
     /**
@@ -119,7 +122,7 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
      * @param newTaskParam taskid
      * @return
      */
-    static Integer createNewTask(NewTaskParam newTaskParam) {
+    static CreateNewTaskResult createNewTask(NewTaskParam newTaskParam) {
         String url = WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[]{"fullbuild_workflow_action",
                 "do_create_new_task"});
         AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote(url, newTaskParam.params(),
@@ -127,7 +130,26 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
         if (!result.isSuccess()) {
             throw new IllegalStateException("error:" + String.join(",", result.getErrormsg()));
         }
-        return result.getBizresult().getTaskid();
+        return result.getBizresult();
+    }
+
+    /**
+     * 是否有正在运行的实例
+     *
+     * @param dataXName
+     * @return
+     */
+    public static Boolean hasRunningWorkflowInstance(DataXName dataXName) {
+        List<HttpUtils.PostParam> params = HttpUtils.dataXToParams(dataXName);
+        AjaxResult<Boolean> result //
+                =
+                HttpUtils.soapRemote(WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[]{KEY_FULLBUILD_WORKFLOW_ACTION, "do_has_running_workflow_instance"}) //
+                , params //
+                , Boolean.class);
+        if (!result.isSuccess()) {
+            throw new IllegalStateException("error:" + String.join(",", result.getErrormsg()));
+        }
+        return result.getBizresult();
     }
 
     /**
@@ -140,8 +162,8 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
 
         HttpUtils.PostParam taskIdParam = new HttpUtils.PostParam(JobParams.KEY_TASK_ID, taskId);
         AjaxResult<WorkFlowBuildHistory> result //
-                = HttpUtils.soapRemote(WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[]{"fullbuild_workflow_action"
-                , "do_load_task"}), Collections.singletonList(taskIdParam), WorkFlowBuildHistory.class);
+                =
+                HttpUtils.soapRemote(WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[]{KEY_FULLBUILD_WORKFLOW_ACTION, "do_load_task"}), Collections.singletonList(taskIdParam), WorkFlowBuildHistory.class);
         if (!result.isSuccess()) {
             throw new IllegalStateException("error:" + String.join(",", result.getErrormsg()));
         }
@@ -160,9 +182,9 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
         }
         HttpUtils.PostParam taskHistoryParam = new HttpUtils.PostParam(KEY_HISTORY_TASK, history);
         AjaxResult<Integer> result //
-                = HttpUtils.soapRemote(WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[]{"fullbuild_workflow_action"
-                , "do_update_task"}), Collections.singletonList(taskHistoryParam),
-                PostFormStreamProcess.ContentType.JSON, Integer.class, true);
+                =
+                HttpUtils.postJSON(WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[]{KEY_FULLBUILD_WORKFLOW_ACTION,
+                        "do_update_task"}), Collections.singletonList(taskHistoryParam), Integer.class, true);
         if (!result.isSuccess()) {
             throw new IllegalStateException("error:" + String.join(",", result.getErrormsg()));
         }
@@ -182,9 +204,9 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
         //        }
         HttpUtils.PostParam nodeExecParam = new HttpUtils.PostParam(KEY_NODE_EXEC, nodeExec);
         AjaxResult<Integer> result //
-                = HttpUtils.soapRemote(WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[]{"fullbuild_workflow_action"
-                , "do_insert_node_exec"}), Collections.singletonList(nodeExecParam),
-                PostFormStreamProcess.ContentType.JSON, Integer.class, true);
+                =
+                HttpUtils.postJSON(WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[]{KEY_FULLBUILD_WORKFLOW_ACTION,
+                        "do_insert_node_exec"}), Collections.singletonList(nodeExecParam), Integer.class, true);
         if (!result.isSuccess()) {
             throw new IllegalStateException("error:" + String.join(",", result.getErrormsg()));
         }
@@ -192,23 +214,23 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
     }
 
 
-    //    /**
-    //     * 创建一个新的同步任务
-    //     *
-    //     * @param triggerNewTaskParam
-    //     * @return
-    //     */
-    //    static DistributeJobTriggerBuildResult triggerNewTask(TriggerNewTaskParam triggerNewTaskParam) {
-    //        String url = WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[]{"fullbuild_workflow_action",
-    //                "do_initialize_trigger_task"});
-    //        AjaxResult<DistributeJobTriggerBuildResult> result = HttpUtils.soapRemote(url, triggerNewTaskParam
-    //        .params(),
-    //                DistributeJobTriggerBuildResult.class);
-    //        if (!result.isSuccess()) {
-    //            throw new IllegalStateException("error:" + String.join(",", result.getErrormsg()));
-    //        }
-    //        return result.getBizresult();
-    //    }
+    /**
+     * 创建一个新的同步任务
+     *
+     * @param triggerNewTaskParam
+     * @return
+     */
+    static DistributeJobTriggerBuildResult triggerNewTask(TriggerNewTaskParam triggerNewTaskParam) {
+        String url = WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[]{KEY_FULLBUILD_WORKFLOW_ACTION,
+                "do_initialize_trigger_task"});
+
+        AjaxResult<DistributeJobTriggerBuildResult> result = HttpUtils.soapRemote(url, triggerNewTaskParam.params(),
+                DistributeJobTriggerBuildResult.class);
+        if (!result.isSuccess()) {
+            throw new IllegalStateException("error:" + String.join(",", result.getErrormsg()));
+        }
+        return result.getBizresult();
+    }
 
 
     static JSONObject createInstanceParams( //
@@ -223,33 +245,25 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
         instanceParams.put(IFullBuildContext.DRY_RUN, dryRun);
 
         instanceParams.put(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS, pluginCfgsMetas.orElseGet(() -> {
-            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                // 将数据通道的依赖插件以及配置信息添加到instanceParams中
-                PluginAndCfgsSnapshotUtils.writeManifest2OutputStream(outputStream,
-                        PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs(processor));
-                final Base64 base64 = new Base64();
-                return base64.encodeAsString(outputStream.toByteArray());
-                // instanceParams.put(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS, base64.encodeAsString
-                // (outputStream.toByteArray()));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            return manifestOfDataX(processor);
         }));
         return instanceParams;
     }
 
-    public static AbstractExecContext deserializeInstanceParams(TriggersConfig triggerCfg, JSONObject instanceParams,
-                                                                Consumer<AbstractExecContext> execChainContextConsumer, Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
-        return AbstractExecContext.deserializeInstanceParams(triggerCfg, instanceParams, true,
-                execChainContextConsumer, cfgsSnapshotConsumer);
+    public static String manifestOfDataX(IDataxProcessor processor) {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            // 将数据通道的依赖插件以及配置信息添加到instanceParams中
+            PluginAndCfgsSnapshotUtils.writeManifest2OutputStream(outputStream,
+                    PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs(processor));
+            final Base64 base64 = new Base64();
+            return base64.encodeAsString(outputStream.toByteArray());
+            // instanceParams.put(PluginAndCfgsSnapshotUtils.KEY_PLUGIN_CFGS_METAS, base64.encodeAsString
+            // (outputStream.toByteArray()));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static AbstractExecContext deserializeInstanceParams(TriggersConfig triggerCfg, JSONObject instanceParams) {
-        return AbstractExecContext.deserializeInstanceParams(triggerCfg, instanceParams, false, (execChainContext) -> {
-        }, (snapshot) -> {
-            throw new UnsupportedOperationException("shall not be execute");
-        });
-    }
 
     default DataXName getDataXName() {
         return this.getProcessor().getDataXName();
@@ -301,32 +315,27 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
 
     class TriggerNewTaskParam {
         // private final Long powerJobWorkflowInstanceId;
-        private final String appname;
-        private final StoreResourceType resourceType;
+        private final DataXName dataXName;
         private final InstanceType instanceTriggerType;
 
         /**
          * // @param powerJobWorkflowInstanceId
          *
-         * @param appname      可能是dataX pipeline 名称，也可能是 tis DataFlow名称
-         * @param resourceType 是否是DataXFlow名称
+         * @param dataXName 可能是dataX pipeline 名称，也可能是 tis DataFlow名称
          */
         public TriggerNewTaskParam(
                 //  Long powerJobWorkflowInstanceId
-                InstanceType instanceTriggerType, String appname, StoreResourceType resourceType) {
+                InstanceType instanceTriggerType, DataXName dataXName) {
             //this.powerJobWorkflowInstanceId = Objects.requireNonNull(powerJobWorkflowInstanceId);
             this.instanceTriggerType = Objects.requireNonNull(instanceTriggerType,
                     "param instanceTriggerType can " + "not" + " be null");
-            this.appname = Objects.requireNonNull(appname, "appname can not be null");
-            this.resourceType = Objects.requireNonNull(resourceType, "resourceType can not be null");
+            this.dataXName = Objects.requireNonNull(dataXName, "dataXName can not be null");
         }
 
         public List<HttpUtils.PostParam> params() {
-            return Lists.newArrayList(new HttpUtils.PostParam(InstanceType.KEY_TYPE,
-                            this.instanceTriggerType.literia),
-                    new HttpUtils.PostParam(StoreResourceType.KEY_STORE_RESOURCE_TYPE, resourceType.getType())
-                    // , new HttpUtils.PostParam(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, powerJobWorkflowInstanceId)
-                    , new HttpUtils.PostParam(TriggerBuildResult.KEY_APPNAME, appname));
+            List<HttpUtils.PostParam> postParams = HttpUtils.dataXToParams(this.dataXName);
+            postParams.add(new HttpUtils.PostParam(InstanceType.KEY_TYPE, this.instanceTriggerType.literia));
+            return postParams;
         }
     }
 

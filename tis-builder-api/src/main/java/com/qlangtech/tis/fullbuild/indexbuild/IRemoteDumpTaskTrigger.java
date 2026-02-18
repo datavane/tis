@@ -19,12 +19,12 @@ package com.qlangtech.tis.fullbuild.indexbuild;
 
 //import com.qlangtech.tis.datax.DataXTaskJobName;
 
-import com.qlangtech.tis.datax.IDataXJobInfo;
+import com.qlangtech.tis.datax.DataXJobInfo;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
 public interface IRemoteDumpTaskTrigger extends IRemoteTaskTrigger {
-    IDataXJobInfo getDataXTaskMessage();
+    DataXJobInfo getDataXTaskMessage();
 }

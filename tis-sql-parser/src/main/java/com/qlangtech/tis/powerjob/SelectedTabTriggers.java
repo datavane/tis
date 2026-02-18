@@ -212,7 +212,7 @@ public class SelectedTabTriggers {
 
         @Override
         public String getTaskName() {
-            return dataXJobInfo.jobFileName;
+            return dataXJobInfo.getJobFileName();
         }
 
         //        public String getTskMsgSerialize() {

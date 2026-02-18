@@ -19,9 +19,9 @@
 package com.qlangtech.tis.exec.datax;
 
 import com.qlangtech.tis.assemble.FullbuildPhase;
+import com.qlangtech.tis.datax.DataXJobInfo;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.IDataXBatchPost;
-import com.qlangtech.tis.datax.IDataXJobInfo;
 import com.qlangtech.tis.datax.LifeCycleHook;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxWriter;
@@ -285,7 +285,7 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
         }
 
         @Override
-        public IDataXJobInfo getDataXTaskMessage() {
+        public DataXJobInfo getDataXTaskMessage() {
             return null;
         }
     }

@@ -1,5 +1,7 @@
 package com.qlangtech.tis.powerjob.model;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * Workflow 实例状态枚举
  *
@@ -36,7 +38,12 @@ public enum InstanceStatus {
     /**
      * 人工停止
      */
-    STOPPED(6, "STOPPED");
+    STOPPED(6, "STOPPED"),
+
+    /**
+     * 已加入队列等待执行
+     */
+    QUEUED(7, "QUEUED");
 
     private final int v;
     private final String desc;
@@ -52,6 +59,15 @@ public enum InstanceStatus {
 
     public String getDesc() {
         return desc;
+    }
+
+    public static InstanceStatus of(String desc) {
+        for (InstanceStatus status : values()) {
+            if (StringUtils.equals(status.desc, desc)) {
+                return status;
+            }
+        }
+        throw new IllegalArgumentException("invalid InstanceStatus value: " + desc);
     }
 
     public static InstanceStatus of(int v) {

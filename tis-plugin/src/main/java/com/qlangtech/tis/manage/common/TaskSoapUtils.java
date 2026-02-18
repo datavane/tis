@@ -26,14 +26,17 @@ import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
 import com.qlangtech.tis.order.center.IParamContext;
+import com.qlangtech.tis.powerjob.model.PEWorkflowDAG;
 import com.qlangtech.tis.realtime.yarn.rpc.IncrRateControllerCfgDTO;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import org.apache.commons.lang.StringUtils;
 
+import static com.qlangtech.tis.manage.common.HttpUtils.postJSON;
 import static com.qlangtech.tis.manage.common.HttpUtils.soapRemote;
 
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Objects;
 
 import com.qlangtech.tis.exec.IExecChainContext;
 import org.slf4j.Logger;
@@ -47,8 +50,8 @@ public class TaskSoapUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(TaskSoapUtils.class);
     public static final MessageFormat WORKFLOW_CONFIG_URL_FORMAT =
-            new MessageFormat(Config.getConfigRepositoryHost() + "/config/config.ajax?action={0}&event_submit_{1"
-                    + "}=true&handler={2}{3}");
+            new MessageFormat(Config.getConfigRepositoryHost() + "/config/config.ajax?action={0}&event_submit_{1" +
+                    "}=true&handler={2}{3}");
 
     /**
      * @param dataXName
@@ -75,49 +78,39 @@ public class TaskSoapUtils {
         return result.getBizresult();
     }
 
-    public static void feedbackAsynTaskStatus(int taskid, String subTaskName, boolean success) {
-        String url = createFullbuild_workflow_actionURL("do_feedback_asyn_task_status");
-
-        //        WORKFLOW_CONFIG_URL_FORMAT
-        //                .format(new Object[]{"fullbuild_workflow_action", "do_feedback_asyn_task_status",
-        //                StringUtils.EMPTY,
-        //                        StringUtils.EMPTY});
-        List<PostParam> params = Lists.newArrayList();
-        params.add(new PostParam(IParamContext.KEY_REQUEST_DISABLE_TRANSACTION, true));
-        params.add(new PostParam(JobCommon.KEY_TASK_ID, taskid));
-        params.add(new PostParam(IParamContext.KEY_ASYN_JOB_NAME, subTaskName));
-        params.add(new PostParam(IParamContext.KEY_ASYN_JOB_SUCCESS, success));
-
-        soapRemote(url, params, CreateNewTaskResult.class, false);
-    }
+    //    public static void feedbackAsynTaskStatus(int taskid, String subTaskName, boolean success) {
+    //        String url = createFullbuild_workflow_actionURL("do_feedback_asyn_task_status");
+    //
+    //        //        WORKFLOW_CONFIG_URL_FORMAT
+    //        //                .format(new Object[]{"fullbuild_workflow_action", "do_feedback_asyn_task_status",
+    //        //                StringUtils.EMPTY,
+    //        //                        StringUtils.EMPTY});
+    //        List<PostParam> params = Lists.newArrayList();
+    //        params.add(new PostParam(IParamContext.KEY_REQUEST_DISABLE_TRANSACTION, true));
+    //        params.add(new PostParam(JobCommon.KEY_TASK_ID, taskid));
+    //        params.add(new PostParam(IParamContext.KEY_ASYN_JOB_NAME, subTaskName));
+    //        params.add(new PostParam(IParamContext.KEY_ASYN_JOB_SUCCESS, success));
+    //
+    //        soapRemote(url, params, CreateNewTaskResult.class, false);
+    //    }
 
     private static String createFullbuild_workflow_actionURL(String methodName) {
         return WORKFLOW_CONFIG_URL_FORMAT.format(new Object[]{"fullbuild_workflow_action", methodName,
                 StringUtils.EMPTY, StringUtils.EMPTY});
     }
 
-    public static void createTaskComplete(int taskid //, IExecChainContext chainContext
-            , ExecResult execResult) {
+    public static void createTaskComplete(int taskid, ExecResult execResult, PEWorkflowDAG dag) {
         if (execResult == null) {
             throw new IllegalArgumentException("param execResult can not be null");
         }
         String url = createFullbuild_workflow_actionURL("do_task_complete");
-        //                WORKFLOW_CONFIG_URL_FORMAT
-        //                .format(new Object[]{"fullbuild_workflow_action", "do_task_complete", StringUtils.EMPTY, /*
-        //                advance_query_result */
-        //                        StringUtils.EMPTY});
-        //
+
         List<PostParam> params = Lists.newArrayList(//
                 new PostParam("execresult", String.valueOf(execResult.getValue())), //
-                new PostParam(JobCommon.KEY_TASK_ID, String.valueOf(taskid)));
+                new PostParam(JobCommon.KEY_TASK_ID, String.valueOf(taskid)) //
+                , new PostParam(PEWorkflowDAG.KEY_DAG, Objects.requireNonNull(dag, "dag can not be null")));
 
-//        if (chainContext.containAsynJob()) {
-//            for (IExecChainContext.AsynSubJob asynJob : chainContext.getAsynSubJobs()) {
-//                params.add(new PostParam(IParamContext.KEY_ASYN_JOB_NAME, asynJob.jobName));
-//            }
-//        }
-
-        soapRemote(url, params, CreateNewTaskResult.class);
+        postJSON(url, params, CreateNewTaskResult.class, true);
     }
 
     /**

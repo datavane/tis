@@ -1451,11 +1451,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   @Override
   public CreateNewTaskResult createNewDataXTask(IExecChainContext chainContext, TriggerType triggerType,
-                                                File dagSpecPath) {
+                                                File dagSpecPath, Optional<WorkFlowBuildHistory> preWorkflowHistory) {
     // final TriggerType triggerType = TriggerType.parse(this.getInt(IFullBuildContext.KEY_TRIGGER_TYPE));
     Application app = null;
     ExecutePhaseRange executeRanage = chainContext.getExecutePhaseRange();
-    ;
+
     // appname 可以为空
     // String appname = this.getString(IFullBuildContext.KEY_APP_NAME);
     // Integer workflowId = this.getInt(IFullBuildContext.KEY_WORKFLOW_ID, null, false);
@@ -1498,7 +1498,8 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
       task.setAppName(app.getProjectName());
     }
     // 生成一个新的taskid
-    return new CreateNewTaskResult(getHistoryDAO().insertSelective(task), app);
+    return new CreateNewTaskResult(getHistoryDAO().insertSelective(task), app,
+      preWorkflowHistory.map(WorkFlowBuildHistory::getTaskId).orElse(null));
   }
 
   @Override

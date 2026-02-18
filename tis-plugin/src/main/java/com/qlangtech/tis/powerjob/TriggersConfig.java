@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.powerjob;
 
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.StoreResourceType;
 import org.apache.commons.lang.StringUtils;
 
@@ -31,6 +32,10 @@ public class TriggersConfig {
 
     private final String dataXName;
     private final StoreResourceType resType;
+
+    public static TriggersConfig create(DataXName dataXName) {
+        return new TriggersConfig(dataXName.getPipelineName(), dataXName.getType());
+    }
 
     public TriggersConfig(String dataXName, StoreResourceType resType) {
         this.resType = Objects.requireNonNull(resType, "resType can not be null");

@@ -127,16 +127,16 @@ public interface IEndTypeGetter {
         , TDFS("t-dfs", EndTypeCategory.Data, true, Optional.of("本地文本、阿里云OSS、HDFS、FTP数据（支持text，csv等格式）")) //
         // , Cassandra("cassandra", EndTypeCategory.Data, true, Optional.of("Apache分布式NoSQL，官网：https://cassandra.apache.org/"))
         // , HDFS("hdfs")
-        , SqlServer("sqlServer", EndTypeCategory.Data, true, Optional.of("微软关系型数据库，官网：https://www.microsoft"
-                + ".com/sql-server/")) //
+        , SqlServer("sqlServer", EndTypeCategory.Data, true, Optional.of("微软关系型数据库，官网：https://www.microsoft" + ".com"
+                + "/sql-server/")) //
         , TiDB("TiDB", EndTypeCategory.Data, true, Optional.of("PingCAP NewSQL数据库，官网：https://www.pingcap.com/")) //
-        , RocketMQ("rocketMq", EndTypeCategory.Data, true, Optional.of("Apache分布式消息系统，官网：https://rocketmq.apache"
-                + ".org/")) //
+        , RocketMQ("rocketMq", EndTypeCategory.Data, true, Optional.of("Apache分布式消息系统，官网：https://rocketmq.apache" +
+                ".org/")) //
         , Kafka("kafka", EndTypeCategory.Data, true, Optional.of("Apache流处理平台，官网：https://kafka.apache.org/")) //
         //, DataFlow("dataflow", EndTypeCategory.Assist) //
         , DaMeng("daMeng", EndTypeCategory.Data, true, Optional.of("达梦数据库，https://www.dameng.com/")) //
-        , AliyunODPS("aliyunOdps", EndTypeCategory.Data, true, Optional.of("阿里云MaxCompute，官网：https://www.aliyun"
-                + ".com/product/odps")) //
+        , AliyunODPS("aliyunOdps", EndTypeCategory.Data, true, Optional.of("阿里云MaxCompute，官网：https://www.aliyun" +
+                ".com/product/odps")) //
         , HiveMetaStore("hms", EndTypeCategory.Data, true, Optional.of("Hive元数据服务，官网：https://hive.apache.org/")) //
         , Spark("spark", EndTypeCategory.Data, true, Optional.of("Apache统一分析引擎，官网：https://spark.apache.org/")) //
         , RabbitMQ("rabbitmq", EndTypeCategory.Data, true, Optional.of("Erlang消息队列，官网：https://www.rabbitmq.com/")) //
@@ -190,7 +190,8 @@ public interface IEndTypeGetter {
         , AutoGen("auto-generate", EndTypeCategory.Transformer, true) //
         , Copy("clone", EndTypeCategory.Transformer, true) //
         , Constant("constant", EndTypeCategory.Transformer, true) //
-        , License("license", EndTypeCategory.Icon, true);
+        , License("license", EndTypeCategory.Icon, true) //
+        , Crontab("crontab", EndTypeCategory.Icon, true);
 
         private final String val;
         private final boolean containICON;

@@ -54,7 +54,7 @@ public class TestTisServlet extends TestCase {
         EasyMock.expect(execChainContext.getIndexName()).andReturn(collectionName);
         EasyMock.expect(execChainContext.getString(IFullBuildContext.KEY_BUILD_HISTORY_TASK_ID)).andReturn(historyId);
         EasyMock.replay(execChainContext);
-        Integer newTask = IExecChainContext.createNewTask(execChainContext, dagSpecPath);
+        Integer newTask = IExecChainContext.createNewTask(execChainContext, dagSpecPath).getTaskid();
         assertEquals(taskid, newTask);
 
         EasyMock.verify(execChainContext);

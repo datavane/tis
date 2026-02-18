@@ -49,7 +49,8 @@ public class IndexBackFlowPhaseStatus extends BasicPhaseStatus<NodeBackflowStatu
 
     @Override
     protected FullbuildPhase getPhase() {
-        return FullbuildPhase.IndexBackFlow;
+       // return FullbuildPhase.IndexBackFlow;
+        throw new UnsupportedOperationException();
     }
 
     @Override
