@@ -19,6 +19,7 @@
 package com.qlangtech.tis.runtime.module.action;
 
 import com.alibaba.fastjson.JSONArray;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.DefaultDataXProcessorManipulate;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.biz.dal.pojo.AppType;
@@ -47,7 +48,8 @@ public class ApplicationDelegate {
    * @return
    */
   public JSONArray getManipulateMetas() {
-    DefaultDataXProcessorManipulate.DataXProcessorTemplateManipulateStore manipulateStore = DefaultDataXProcessorManipulate.getManipulateStore(app.getProjectName());
+    DefaultDataXProcessorManipulate.DataXProcessorTemplateManipulateStore manipulateStore =
+      DefaultDataXProcessorManipulate.getManipulateStore(DataXName.createDataXPipeline(app.getProjectName()),false);
     Collection<DefaultDataXProcessorManipulate> manipulates = manipulateStore.getManipulates();
     if (CollectionUtils.isEmpty(manipulates)) {
       return null;

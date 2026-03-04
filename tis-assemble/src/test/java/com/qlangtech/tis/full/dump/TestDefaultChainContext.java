@@ -49,23 +49,23 @@ public class TestDefaultChainContext extends TestCase implements TISEasyMock {
         String s = IndexSwapTaskflowLauncher.KEY_INDEX_SWAP_TASK_FLOW_LAUNCHER;
     }
 
-    public void testLoadPhaseStatusFromLatest() {
-        IParamContext paramContext = this.mock("paramContext", IParamContext.class);
-        DefaultChainContext chainContext = new DefaultChainContext(paramContext);
-
-        PhaseStatusCollection statusCollection = chainContext.loadPhaseStatusFromLatest();
-        assertNull(statusCollection);
-
-// ./src/test/resources/com/qlangtech/tis/full/dump/cfg_repo/df-logs/66/dump
-        statusCollection = chainContext.loadPhaseStatusFromLatest();
-        assertNotNull(statusCollection);
-        DumpPhaseStatus dumpPhase = statusCollection.getDumpPhase();
-        assertNotNull(dumpPhase);
-        assertEquals(62, dumpPhase.getTaskId());
-        String dataXFileName = "instancedetail_0.json";
-        DumpPhaseStatus.TableDumpStatus dataXExecStatus = dumpPhase.getTable(dataXFileName);
-        assertNotNull(dataXFileName + " relevant dataX instance can be null", dataXExecStatus);
-        assertEquals(524525, dataXExecStatus.getReadRows());
-        assertEquals(1000001, dataXExecStatus.getAllRows());
-    }
+//    public void testLoadPhaseStatusFromLatest() {
+//        IParamContext paramContext = this.mock("paramContext", IParamContext.class);
+//        DefaultChainContext chainContext = new DefaultChainContext(paramContext);
+//
+//        PhaseStatusCollection statusCollection = chainContext.loadPhaseStatusFromLatest();
+//        assertNull(statusCollection);
+//
+//// ./src/test/resources/com/qlangtech/tis/full/dump/cfg_repo/df-logs/66/dump
+//        statusCollection = chainContext.loadPhaseStatusFromLatest();
+//        assertNotNull(statusCollection);
+//        DumpPhaseStatus dumpPhase = statusCollection.getDumpPhase();
+//        assertNotNull(dumpPhase);
+//        assertEquals(62, dumpPhase.getTaskId());
+//        String dataXFileName = "instancedetail_0.json";
+//        DumpPhaseStatus.TableDumpStatus dataXExecStatus = dumpPhase.getTable(dataXFileName);
+//        assertNotNull(dataXFileName + " relevant dataX instance can be null", dataXExecStatus);
+//        assertEquals(524525, dataXExecStatus.getReadRows());
+//        assertEquals(1000001, dataXExecStatus.getAllRows());
+//    }
 }

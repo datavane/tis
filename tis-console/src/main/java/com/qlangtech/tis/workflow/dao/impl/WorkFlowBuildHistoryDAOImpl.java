@@ -125,12 +125,12 @@ public class WorkFlowBuildHistoryDAOImpl extends BasicDAO<WorkFlowBuildHistory, 
    * key.setId(id);
    * return (WorkFlowBuildHistory) this.loadFromWriterDB("work_flow_build_history.loadFromWriteDBWithLock", key);
    */
-  @Override
-  public WorkFlowBuildHistory loadFromWriteDBWithLock(Integer id) {
-    // TODO: 实现从写库加载并加行锁
-    // 参考 loadFromWriteDB() 方法，但使用 loadFromWriteDBWithLock 映射
-    return null;
-  }
+//  @Override
+//  public WorkFlowBuildHistory loadFromWriteDBWithLock(Integer id) {
+//    // TODO: 实现从写库加载并加行锁
+//    // 参考 loadFromWriteDB() 方法，但使用 loadFromWriteDBWithLock 映射
+//    return null;
+//  }
 
   /**
    * 查询卡住的工作流实例
@@ -145,12 +145,12 @@ public class WorkFlowBuildHistoryDAOImpl extends BasicDAO<WorkFlowBuildHistory, 
    * params.put("timeoutMinutes", timeoutMinutes);
    * return this.list("work_flow_build_history.selectStuckInstances", params);
    */
-  @Override
-  public List<WorkFlowBuildHistory> selectStuckInstances(int timeoutMinutes) {
-    // TODO: 实现查询卡住的工作流实例
-    // 传入 timeoutMinutes 参数，调用 MyBatis 映射
-    return List.of();
-  }
+//  @Override
+//  public List<WorkFlowBuildHistory> selectStuckInstances(int timeoutMinutes) {
+//    // TODO: 实现查询卡住的工作流实例
+//    // 传入 timeoutMinutes 参数，调用 MyBatis 映射
+//    return List.of();
+//  }
 
   /**
    * 选择性更新工作流实例
@@ -167,7 +167,7 @@ public class WorkFlowBuildHistoryDAOImpl extends BasicDAO<WorkFlowBuildHistory, 
   public int updateByPrimaryKeySelective(WorkFlowBuildHistory record) {
     // TODO: 实现选择性更新
     // 参考 updateByExampleSelective() 方法，但使用主键更新
-    return 0;
+ throw new UnsupportedOperationException();
   }
 
   private static class UpdateByExampleParms extends WorkFlowBuildHistoryCriteria {

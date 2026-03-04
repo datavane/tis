@@ -163,6 +163,7 @@ public class PEWorkflowDAG implements Serializable {
             this.nodeParams = nodeParams;
         }
 
+        @JSONField(serialize = false)
         public DataXJobInfo getDataXJobInfo() {
             if (this.getExecRole() != LifeCycleHook.Dump) {
                 throw new IllegalStateException("role must be " + LifeCycleHook.Dump + " but now is " + this.getExecRole());

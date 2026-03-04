@@ -46,8 +46,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static com.qlangtech.tis.fullbuild.IFullBuildContext.KEY_LASTEST_WORKFLOW_HISTORY_ID;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2015年12月15日 下午4:39:38
@@ -284,10 +282,10 @@ public class DefaultChainContext implements IExecChainContext {
     private final Map<String, Object> attribute = new HashMap<>();
 
     public void setAttribute(String key, Object v) {
-        if (JobCommon.KEY_TASK_ID.equals(key)) {
-            final Integer taskid = (Integer) v;
-            PhaseStatusCollection.initialTaskPhase(taskid);
-        }
+       // if (JobCommon.KEY_TASK_ID.equals(key)) {
+           // final Integer taskid = (Integer) v;
+          //  PhaseStatusCollection.initialTaskPhase(taskid);
+        //}
         this.attribute.put(key, v);
 
     }

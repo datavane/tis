@@ -343,7 +343,7 @@ public class FullBuildStatCollectorServer extends LogCollectorGrpc.LogCollectorI
                     } catch (InterruptedException e) {
                     }
                 }
-                logger.info("stopto monitor taskid:" + taskid + "relevant stat info");
+                logger.info("stop to monitor taskid:" + taskid + "relevant stat info");
                 serverCallStreamObserver.onCompleted();
             }
         });

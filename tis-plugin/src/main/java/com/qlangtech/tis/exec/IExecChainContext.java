@@ -123,7 +123,7 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
      * @return
      */
     static CreateNewTaskResult createNewTask(NewTaskParam newTaskParam) {
-        String url = WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[]{"fullbuild_workflow_action",
+        String url = WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[]{KEY_FULLBUILD_WORKFLOW_ACTION,
                 "do_create_new_task"});
         AjaxResult<CreateNewTaskResult> result = HttpUtils.soapRemote(url, newTaskParam.params(),
                 CreateNewTaskResult.class);

@@ -293,30 +293,30 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
     @Override
     public void reportBuildIndexStatus(com.qlangtech.tis.rpc.grpc.log.common.BuildSharedPhaseStatus buildStatus
             , StreamObserver<Empty> responseObserver) {
-        Integer taskid = buildStatus.getTaskid();
-        if (taskid == null) {
-            throw new IllegalArgumentException("taskid can not be null");
-        }
-        PhaseStatusCollection phaseStatusSet = PhaseStatusCollection.getTaskPhaseReference(taskid);
-        if (phaseStatusSet == null) {
-            log.warn("taskid:" + taskid + " relevent phaseStatusSet is null");
-            returnEmpty(responseObserver);
-            return;
-        }
-        BuildPhaseStatus status = phaseStatusSet.getBuildPhase();
-        BuildSharedPhaseStatus sharedBuildStatus = status.getBuildSharedPhaseStatus(buildStatus.getSharedName());
-        if (!sharedBuildStatus.isFaild()) {
-            sharedBuildStatus.setFaild(buildStatus.getFaild());
-        }
-        if (!sharedBuildStatus.isComplete()) {
-            sharedBuildStatus.setComplete(buildStatus.getComplete());
-        }
-        if (sharedBuildStatus.isWaiting()) {
-            sharedBuildStatus.setWaiting(buildStatus.getWaiting());
-        }
-        sharedBuildStatus.setAllBuildSize(buildStatus.getAllBuildSize());
-        sharedBuildStatus.setBuildReaded(buildStatus.getBuildReaded());
-        status.isComplete();
+//        Integer taskid = buildStatus.getTaskid();
+//        if (taskid == null) {
+//            throw new IllegalArgumentException("taskid can not be null");
+//        }
+//        PhaseStatusCollection phaseStatusSet = PhaseStatusCollection.getTaskPhaseReference(taskid);
+//        if (phaseStatusSet == null) {
+//            log.warn("taskid:" + taskid + " relevent phaseStatusSet is null");
+//            returnEmpty(responseObserver);
+//            return;
+//        }
+//       // BuildPhaseStatus status = phaseStatusSet.getBuildPhase();
+//        BuildSharedPhaseStatus sharedBuildStatus = status.getBuildSharedPhaseStatus(buildStatus.getSharedName());
+//        if (!sharedBuildStatus.isFaild()) {
+//            sharedBuildStatus.setFaild(buildStatus.getFaild());
+//        }
+//        if (!sharedBuildStatus.isComplete()) {
+//            sharedBuildStatus.setComplete(buildStatus.getComplete());
+//        }
+//        if (sharedBuildStatus.isWaiting()) {
+//            sharedBuildStatus.setWaiting(buildStatus.getWaiting());
+//        }
+//        sharedBuildStatus.setAllBuildSize(buildStatus.getAllBuildSize());
+//        sharedBuildStatus.setBuildReaded(buildStatus.getBuildReaded());
+//        status.isComplete();
         returnEmpty(responseObserver);
     }
 

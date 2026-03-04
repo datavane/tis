@@ -113,9 +113,8 @@ public class PhaseStatusCollection implements IPhaseStatusCollection {
 
     private JoinPhaseStatus joinPhase;
 
-    private BuildPhaseStatus buildPhase;
-
-    private IndexBackFlowPhaseStatus indexBackFlowPhaseStatus;
+//    private BuildPhaseStatus buildPhase;
+//    private IndexBackFlowPhaseStatus indexBackFlowPhaseStatus;
     private ExecutePhaseRange executePhaseRange;
     private final Integer taskid;
 
@@ -125,8 +124,8 @@ public class PhaseStatusCollection implements IPhaseStatusCollection {
         this.taskid = Objects.requireNonNull(taskid, "taskId can not be null");
         this.dumpPhase = new DumpPhaseStatus(taskid);
         this.joinPhase = new JoinPhaseStatus(taskid);
-        this.buildPhase = new BuildPhaseStatus(taskid);
-        this.indexBackFlowPhaseStatus = new IndexBackFlowPhaseStatus(taskid);
+//        this.buildPhase = new BuildPhaseStatus(taskid);
+//        this.indexBackFlowPhaseStatus = new IndexBackFlowPhaseStatus(taskid);
     }
     /**
      * @return
@@ -182,21 +181,21 @@ public class PhaseStatusCollection implements IPhaseStatusCollection {
         this.joinPhase = joinPhase;
     }
 
-    @JSONField(serialize = false)
-    public BuildPhaseStatus getBuildPhase() {
-        return this.buildPhase;
-    }
-
-    @JSONField(serialize = false)
-    public IndexBackFlowPhaseStatus getIndexBackFlowPhaseStatus() {
-        return this.indexBackFlowPhaseStatus;
-    }
-
-    public void setBuildPhase(BuildPhaseStatus buildPhase) {
-        this.buildPhase = buildPhase;
-    }
-
-    public void setIndexBackFlowPhaseStatus(IndexBackFlowPhaseStatus indexBackFlowPhaseStatus) {
-        this.indexBackFlowPhaseStatus = indexBackFlowPhaseStatus;
-    }
+//    @JSONField(serialize = false)
+//    public BuildPhaseStatus getBuildPhase() {
+//        return this.buildPhase;
+//    }
+//
+//    @JSONField(serialize = false)
+//    public IndexBackFlowPhaseStatus getIndexBackFlowPhaseStatus() {
+//        return this.indexBackFlowPhaseStatus;
+//    }
+//
+//    public void setBuildPhase(BuildPhaseStatus buildPhase) {
+//        this.buildPhase = buildPhase;
+//    }
+//
+//    public void setIndexBackFlowPhaseStatus(IndexBackFlowPhaseStatus indexBackFlowPhaseStatus) {
+//        this.indexBackFlowPhaseStatus = indexBackFlowPhaseStatus;
+//    }
 }

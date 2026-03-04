@@ -34,9 +34,33 @@ public interface DataXJobSubmitAkkaClusterSupport {
     public WorkflowRuntimeStatus doQueryWorkflowStatus(DataXName dataXName, Integer taskId);
 
     /**
+     * 开启或关闭定时任务
+     *
+     * @param dataXName
+     * @param crontab
+     * @param turnOn
+     */
+    public void handleRegisterSchedule(DataXName dataXName, String crontab, boolean turnOn);
+
+    /**
+     * 取消正在执行的Task任务
+     *
+     * @param dataXName
+     * @param taskId
+     */
+    public void cancelTask(DataXName dataXName, Integer taskId);
+
+    /**
      * Query Akka Actor System status for monitoring dashboard
      *
      * @return actor system status
      */
     public ActorSystemStatus queryActorSystemStatus();
+
+    /**
+     * Query DAGSchedulerActor for all scheduled crontab entries detail
+     *
+     * @return scheduler detail
+     */
+    public DAGSchedulerDetail getDAGSchedulerDetail();
 }

@@ -153,7 +153,7 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
         executeJobTrigger(jobTrigger, true);
 
 
-        PhaseStatusCollection taskPhaseRef = TrackableExecuteInterceptor.getTaskPhaseReference(testTaskId);
+        PhaseStatusCollection taskPhaseRef = PhaseStatusCollection.getTaskPhaseReference(testTaskId);
         Assert.assertNotNull(taskPhaseRef);
 
         DumpPhaseStatus dumpStatus = taskPhaseRef.getDumpPhase();
@@ -233,7 +233,7 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
     private void executeJobTrigger(IRemoteDumpTaskTrigger jobTrigger, boolean finalSuccess,
                                    Supplier<IExecChainContext> execChainContextSupplier) throws Exception {
 
-        TrackableExecuteInterceptor.initialTaskPhase(testTaskId);
+        PhaseStatusCollection.initialTaskPhase(testTaskId);
 
         DataXJobSubmit.mockGetter =
                 () -> new TestIndexSwapTaskflowLauncherWithDataXTrigger.MockDataXJobSubmit(jobTrigger);

@@ -19,7 +19,9 @@ package com.qlangtech.tis.fullbuild.servlet;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.datax.ActorSystemStatus;
+import com.qlangtech.tis.datax.DAGSchedulerDetail;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.DataXJobSubmitAkkaClusterSupport;
 import com.qlangtech.tis.datax.DataXName;
@@ -27,10 +29,13 @@ import com.qlangtech.tis.datax.NodeStatus;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.WorkflowRuntimeStatus;
 import com.qlangtech.tis.job.common.JobParams;
+import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.IAjaxResult;
+import com.qlangtech.tis.runtime.module.action.IParamGetter;
 import com.qlangtech.tis.workflow.pojo.DagNodeExecution;
 import org.apache.commons.io.IOUtils;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -49,11 +54,29 @@ public class DAGWorkflowServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         DataXJobSubmitAkkaClusterSupport akkaClusterSupport =
                 (DataXJobSubmitAkkaClusterSupport) DataXJobSubmit.getDataXJobSubmit();
-        final String method = req.getParameter("method");
+        final String method = req.getParameter(HttpUtils.KEY_METHOD);
         JSONObject result = new JSONObject();
         boolean success = false;
         breakSwitch:
         switch (method) {
+            case HttpUtils.KEY_METHOD_HANDLE_CANCEL_TASK: {
+                DataXName dataXName = getDataXName(req);
+                Integer taskId = Integer.parseInt(req.getParameter(JobParams.KEY_TASK_ID));
+                akkaClusterSupport.cancelTask(dataXName, taskId);
+                success = true;
+                break;
+            }
+            case HttpUtils.KEY_METHOD_HANDLE_REGISTER_SCHEDULE: {
+                DataXName dataXName = getDataXName(req);
+                String crontab = req.getParameter(TriggerType.KEY_CONTAB);
+                boolean turnOn = Boolean.parseBoolean(req.getParameter(TriggerType.KEY_CRONTAB_TURN_ON));
+                if (StringUtils.isEmpty(crontab)) {
+                    throw new IllegalStateException("key " + crontab + " can not be empty");
+                }
+                akkaClusterSupport.handleRegisterSchedule(dataXName, crontab, turnOn);
+                success = true;
+                break;
+            }
             case "queryWorkflowStatus": {
                 WorkflowRuntimeStatus workflowRuntimeStatus = getWorkflowStatus(req, akkaClusterSupport);
                 if (workflowRuntimeStatus != null) {
@@ -83,12 +106,28 @@ public class DAGWorkflowServlet extends HttpServlet {
                 success = true;
                 break;
             }
+            case "getDAGSchedulerDetail": {
+                DAGSchedulerDetail detail = akkaClusterSupport.getDAGSchedulerDetail();
+                result.put(IAjaxResult.KEY_BIZRESULT, detail);
+                success = true;
+                break;
+            }
             default: {
                 throw new IllegalStateException("illegal method:" + method);
             }
         }
         result.put(IAjaxResult.KEY_SUCCESS, success);
         IOUtils.write(JSON.toJSONString(result, true), resp.getWriter());
+    }
+
+    private static DataXName getDataXName(HttpServletRequest req) {
+        DataXName dataXName = HttpUtils.createDataXName(new IParamGetter() {
+            @Override
+            public String getString(String key) {
+                return req.getParameter(key);
+            }
+        });
+        return dataXName;
     }
 
     private static WorkflowRuntimeStatus getWorkflowStatus( //

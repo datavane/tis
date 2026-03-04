@@ -89,24 +89,30 @@ public class LogCollectorClient implements ILogReporter {
         scBuilder.setTaskId(phaseStatusSet.getTaskid());
         DumpPhaseStatus dumpPhase = phaseStatusSet.getDumpPhase();
         JoinPhaseStatus joinPhase = phaseStatusSet.getJoinPhase();
-        BuildPhaseStatus buildPhase = phaseStatusSet.getBuildPhase();
-        IndexBackFlowPhaseStatus indexBackFlowPhase = phaseStatusSet.getIndexBackFlowPhaseStatus();
+        //  BuildPhaseStatus buildPhase = phaseStatusSet.getBuildPhase();
+        // IndexBackFlowPhaseStatus indexBackFlowPhase = phaseStatusSet.getIndexBackFlowPhaseStatus();
         if (dumpPhase != null) {
             PDumpPhaseStatus.Builder builder = PDumpPhaseStatus.newBuilder();
-            com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus.Builder tabDump = null;
-            DumpPhaseStatus.TableDumpStatus s = null;
-            for (Map.Entry<String, DumpPhaseStatus.TableDumpStatus> entry : dumpPhase.tablesDump.entrySet()) {
-                s = entry.getValue();
-                tabDump = com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus.newBuilder();
-                tabDump.setAllRows(s.getAllRows());
-                tabDump.setTableName(s.getName());
-                tabDump.setTaskid(s.getTaskid());
-                tabDump.setReadRows(s.getReadRows());
-                tabDump.setFaild(s.isFaild());
-                tabDump.setComplete(s.isComplete());
-                tabDump.setWaiting(s.isWaiting());
-                builder.putTablesDump(entry.getKey(), tabDump.build());
-            }
+
+            // DumpPhaseStatus.TableDumpStatus s = null;
+
+            dumpPhase.foreach((key, dumpStatus) -> {
+
+                com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus.Builder tabDump =
+                        com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus.newBuilder();
+                tabDump.setAllRows(dumpStatus.getAllRows());
+                tabDump.setTableName(dumpStatus.getName());
+                tabDump.setTaskid(dumpStatus.getTaskid());
+                tabDump.setReadRows(dumpStatus.getReadRows());
+                tabDump.setFaild(dumpStatus.isFaild());
+                tabDump.setComplete(dumpStatus.isComplete());
+                tabDump.setWaiting(dumpStatus.isWaiting());
+                builder.putTablesDump(key, tabDump.build());
+            });
+
+//            for (Map.Entry<String, DumpPhaseStatus.TableDumpStatus> entry : dumpPhase.tablesDump.entrySet()) {
+//
+//            }
             scBuilder.setDumpPhase(builder);
         }
         if (joinPhase != null) {
@@ -134,44 +140,47 @@ public class LogCollectorClient implements ILogReporter {
             }
             scBuilder.setJoinPhase(builder);
         }
-        if (buildPhase != null) {
-            PBuildPhaseStatus.Builder builder = PBuildPhaseStatus.newBuilder();
-            buildPhase.nodeBuildStatus.entrySet().stream().forEach((e) -> {
-                com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus bf = null;
-                com.qlangtech.tis.rpc.grpc.log.common.BuildSharedPhaseStatus.Builder bfBuilder = com.qlangtech.tis.rpc.grpc.log.common.BuildSharedPhaseStatus.newBuilder();
-                bf = e.getValue();
-                bfBuilder.setAllBuildSize(bf.getAllBuildSize());
-                bfBuilder.setBuildReaded(bf.getBuildReaded());
-                bfBuilder.setTaskid(bf.getTaskid());
-                bfBuilder.setSharedName(bf.getSharedName());
-                bfBuilder.setFaild(bf.isFaild());
-                bfBuilder.setComplete(bf.isComplete());
-                bfBuilder.setWaiting(bf.isWaiting());
-                builder.putNodeBuildStatus(e.getKey(), bfBuilder.build());
-            });
-            scBuilder.setBuildPhase(builder);
-        }
-        if (indexBackFlowPhase != null) {
-            PIndexBackFlowPhaseStatus.Builder builder = PIndexBackFlowPhaseStatus.newBuilder();
-            indexBackFlowPhase.nodesStatus.entrySet().stream().forEach((e) -> {
-                IndexBackFlowPhaseStatus.NodeBackflowStatus ib = e.getValue();
-                com.qlangtech.tis.rpc.grpc.log.common.NodeBackflowStatus.Builder ibBuilder = com.qlangtech.tis.rpc.grpc.log.common.NodeBackflowStatus.newBuilder();
-                ibBuilder.setNodeName(ib.getName());
-                ibBuilder.setAllSize(ib.getAllSize());
-                ibBuilder.setReaded(ib.getReaded());
-                ibBuilder.setFaild(ib.isFaild());
-                ibBuilder.setComplete(ib.isComplete());
-                ibBuilder.setWaiting(ib.isWaiting());
-                builder.putNodesStatus(e.getKey(), ibBuilder.build());
-            });
-            scBuilder.setIndexBackFlowPhaseStatus(builder);
-        }
+        //        if (buildPhase != null) {
+        //            PBuildPhaseStatus.Builder builder = PBuildPhaseStatus.newBuilder();
+        //            buildPhase.nodeBuildStatus.entrySet().stream().forEach((e) -> {
+        //                com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus bf = null;
+        //                com.qlangtech.tis.rpc.grpc.log.common.BuildSharedPhaseStatus.Builder bfBuilder = com
+        //                .qlangtech.tis.rpc.grpc.log.common.BuildSharedPhaseStatus.newBuilder();
+        //                bf = e.getValue();
+        //                bfBuilder.setAllBuildSize(bf.getAllBuildSize());
+        //                bfBuilder.setBuildReaded(bf.getBuildReaded());
+        //                bfBuilder.setTaskid(bf.getTaskid());
+        //                bfBuilder.setSharedName(bf.getSharedName());
+        //                bfBuilder.setFaild(bf.isFaild());
+        //                bfBuilder.setComplete(bf.isComplete());
+        //                bfBuilder.setWaiting(bf.isWaiting());
+        //                builder.putNodeBuildStatus(e.getKey(), bfBuilder.build());
+        //            });
+        //            scBuilder.setBuildPhase(builder);
+        //        }
+        //        if (indexBackFlowPhase != null) {
+        //            PIndexBackFlowPhaseStatus.Builder builder = PIndexBackFlowPhaseStatus.newBuilder();
+        //            indexBackFlowPhase.nodesStatus.entrySet().stream().forEach((e) -> {
+        //                IndexBackFlowPhaseStatus.NodeBackflowStatus ib = e.getValue();
+        //                com.qlangtech.tis.rpc.grpc.log.common.NodeBackflowStatus.Builder ibBuilder = com.qlangtech
+        //                .tis.rpc.grpc.log.common.NodeBackflowStatus.newBuilder();
+        //                ibBuilder.setNodeName(ib.getName());
+        //                ibBuilder.setAllSize(ib.getAllSize());
+        //                ibBuilder.setReaded(ib.getReaded());
+        //                ibBuilder.setFaild(ib.isFaild());
+        //                ibBuilder.setComplete(ib.isComplete());
+        //                ibBuilder.setWaiting(ib.isWaiting());
+        //                builder.putNodesStatus(e.getKey(), ibBuilder.build());
+        //            });
+        //            scBuilder.setIndexBackFlowPhaseStatus(builder);
+        //        }
         return scBuilder.build();
     }
 
     @Override
     public StreamObserver<PMonotorTarget> registerMonitorEvent(ILogListener logListener) {
-        ClientResponseObserver<PMonotorTarget, PExecuteState> clientResponseObserver = new ClientResponseObserver<PMonotorTarget, PExecuteState>() {
+        ClientResponseObserver<PMonotorTarget, PExecuteState> clientResponseObserver =
+                new ClientResponseObserver<PMonotorTarget, PExecuteState>() {
 
             ClientCallStreamObserver<PMonotorTarget> requestStream;
 
@@ -236,14 +245,16 @@ public class LogCollectorClient implements ILogReporter {
                 // done.countDown();
             }
         };
-        StreamObserver<PMonotorTarget> pMonotorTargetStreamObserver = this.stub.registerMonitorEvent(clientResponseObserver);
+        StreamObserver<PMonotorTarget> pMonotorTargetStreamObserver =
+                this.stub.registerMonitorEvent(clientResponseObserver);
         // pMonotorTargetStreamObserver.onNext(t.build());
         return pMonotorTargetStreamObserver;
     }
 
     public static MonotorTarget convert(PMonotorTarget request) {
-        MonotorTarget monotorTarget
-                = MonotorTarget.createRegister(DataXName.createDataXPipeline(request.getCollection()), convert(request.getLogtype()));
+        MonotorTarget monotorTarget =
+                MonotorTarget.createRegister(DataXName.createDataXPipeline(request.getCollection()),
+                        convert(request.getLogtype()));
         if (request.getTaskid() > 0) {
             monotorTarget.setTaskid(request.getTaskid());
         }
@@ -316,7 +327,8 @@ public class LogCollectorClient implements ILogReporter {
         ImmutableMap.Builder logTypeMapBuilder = ImmutableMap.builder();
         // logTypeMapBuilder.put(LogType.MQ_TAGS_STATUS.typeKind, PExecuteState.LogType.MQ_TAGS_STATUS);
         logTypeMapBuilder.put(LogType.INCR_SEND.typeKind, PExecuteState.LogType.INCR_SEND);
-        logTypeMapBuilder.put(LogType.INCR_DEPLOY_STATUS_CHANGE.typeKind, PExecuteState.LogType.INCR_DEPLOY_STATUS_CHANGE);
+        logTypeMapBuilder.put(LogType.INCR_DEPLOY_STATUS_CHANGE.typeKind,
+                PExecuteState.LogType.INCR_DEPLOY_STATUS_CHANGE);
         logTypeMapBuilder.put(LogType.FULL.typeKind, PExecuteState.LogType.FULL);
         logTypeMapBuilder.put(LogType.INCR.typeKind, PExecuteState.LogType.INCR);
         logTypeMap = logTypeMapBuilder.build();
@@ -331,7 +343,8 @@ public class LogCollectorClient implements ILogReporter {
     }
 
     @Override
-    public java.util.Iterator<com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> buildPhraseStatus(// , final IPhaseStatusCollectionListener slistener
+    public java.util.Iterator<com.qlangtech.tis.rpc.grpc.log.stream.PPhaseStatusCollection> buildPhraseStatus(// ,
+                                                                                                              // final IPhaseStatusCollectionListener slistener
                                                                                                               Integer taskid) {
         PBuildPhaseStatusParam statusParam = PBuildPhaseStatusParam.newBuilder().setTaskid(taskid).build();
         return blockStub.buildPhraseStatus(statusParam);
@@ -343,19 +356,20 @@ public class LogCollectorClient implements ILogReporter {
 
         PDumpPhaseStatus dumpPhase = Objects.requireNonNull(stat, "param stat can not be null").getDumpPhase();
         PJoinPhaseStatus joinPhase = stat.getJoinPhase();
-        PBuildPhaseStatus buildPhase = stat.getBuildPhase();
-        PIndexBackFlowPhaseStatus backflow = stat.getIndexBackFlowPhaseStatus();
+        //        PBuildPhaseStatus buildPhase = stat.getBuildPhase();
+        //        PIndexBackFlowPhaseStatus backflow = stat.getIndexBackFlowPhaseStatus();
         PhaseStatusCollection result = new PhaseStatusCollection(stat.getTaskId(), executePhaseRange);
         if (executePhaseRange.contains(FullbuildPhase.FullDump) && dumpPhase != null) {
             DumpPhaseStatus dump = result.getDumpPhase();
             dumpPhase.getTablesDumpMap().forEach((k, v) -> {
-                DumpPhaseStatus.TableDumpStatus s = new DumpPhaseStatus.TableDumpStatus(v.getTableName(), v.getTaskid());
+                DumpPhaseStatus.TableDumpStatus s = new DumpPhaseStatus.TableDumpStatus(v.getTableName(),
+                        v.getTaskid());
                 s.setAllRows(v.getAllRows());
                 s.setReadRows(v.getReadRows());
                 s.setComplete(v.getComplete());
                 s.setFaild(v.getFaild());
                 s.setWaiting(v.getWaiting());
-                dump.tablesDump.put(k, s);
+                dump.putTablesDump(k, s);
             });
         }
         if (executePhaseRange.contains(FullbuildPhase.JOIN) && joinPhase != null) {
@@ -366,34 +380,34 @@ public class LogCollectorClient implements ILogReporter {
                 sm.put(k, s);
             });
         }
-//        if (executePhaseRange.contains(FullbuildPhase.BUILD) && buildPhase != null) {
-//            BuildPhaseStatus build = result.getBuildPhase();
-//            buildPhase.getNodeBuildStatusMap().forEach((k, v) -> {
-//                com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus s
-//                        = new com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus();
-//                s.setAllBuildSize(v.getAllBuildSize());
-//                s.setBuildReaded(v.getBuildReaded());
-//                s.setTaskid(v.getTaskid());
-//                s.setSharedName(v.getSharedName());
-//                s.setComplete(v.getComplete());
-//                s.setFaild(v.getFaild());
-//                s.setWaiting(v.getWaiting());
-//                build.nodeBuildStatus.put(k, s);
-//            });
-//        }
-//        if (executePhaseRange.contains(FullbuildPhase.IndexBackFlow) && backflow != null) {
-//            IndexBackFlowPhaseStatus bf = result.getIndexBackFlowPhaseStatus();
-//            backflow.getNodesStatusMap().forEach((k, v) -> {
-//                IndexBackFlowPhaseStatus.NodeBackflowStatus s
-//                        = new IndexBackFlowPhaseStatus.NodeBackflowStatus(v.getNodeName());
-//                s.setAllSize((int) v.getAllSize());
-//                s.setReaded((int) v.getReaded());
-//                s.setComplete(v.getComplete());
-//                s.setFaild(v.getFaild());
-//                s.setWaiting(v.getWaiting());
-//                bf.nodesStatus.put(k, s);
-//            });
-//        }
+        //        if (executePhaseRange.contains(FullbuildPhase.BUILD) && buildPhase != null) {
+        //            BuildPhaseStatus build = result.getBuildPhase();
+        //            buildPhase.getNodeBuildStatusMap().forEach((k, v) -> {
+        //                com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus s
+        //                        = new com.qlangtech.tis.fullbuild.phasestatus.impl.BuildSharedPhaseStatus();
+        //                s.setAllBuildSize(v.getAllBuildSize());
+        //                s.setBuildReaded(v.getBuildReaded());
+        //                s.setTaskid(v.getTaskid());
+        //                s.setSharedName(v.getSharedName());
+        //                s.setComplete(v.getComplete());
+        //                s.setFaild(v.getFaild());
+        //                s.setWaiting(v.getWaiting());
+        //                build.nodeBuildStatus.put(k, s);
+        //            });
+        //        }
+        //        if (executePhaseRange.contains(FullbuildPhase.IndexBackFlow) && backflow != null) {
+        //            IndexBackFlowPhaseStatus bf = result.getIndexBackFlowPhaseStatus();
+        //            backflow.getNodesStatusMap().forEach((k, v) -> {
+        //                IndexBackFlowPhaseStatus.NodeBackflowStatus s
+        //                        = new IndexBackFlowPhaseStatus.NodeBackflowStatus(v.getNodeName());
+        //                s.setAllSize((int) v.getAllSize());
+        //                s.setReaded((int) v.getReaded());
+        //                s.setComplete(v.getComplete());
+        //                s.setFaild(v.getFaild());
+        //                s.setWaiting(v.getWaiting());
+        //                bf.nodesStatus.put(k, s);
+        //            });
+        //        }
         return result;
     }
 

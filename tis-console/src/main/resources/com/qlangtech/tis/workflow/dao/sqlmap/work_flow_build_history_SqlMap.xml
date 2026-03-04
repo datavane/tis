@@ -36,7 +36,7 @@
     <result column="op_time" property="opTime" jdbcType="TIMESTAMP" />
     <result column="end_phase" property="endPhase" jdbcType="TINYINT" />
 
-    <result column="instance_status" property="instanceStatus" jdbcType="VARCHAR" />
+
     <result column="last_ver" property="lastVer" jdbcType="SMALLINT" />
   </resultMap>
 
@@ -74,7 +74,7 @@
   </sql>
   <select id="ibatorgenerated_selectByExample" resultMap="ibatorgenerated_BaseResultMap" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria" >
     select aa.id, start_time, end_time, state, trigger_type, op_user_id, op_user_name, app_id,
-      app_name, start_phase, history_id, work_flow_id, create_time, op_time, end_phase, last_ver ,instance_status, dag_runtime, wf_context
+      app_name, start_phase, history_id, work_flow_id, create_time, op_time, end_phase, last_ver , dag_runtime, wf_context
      from ( select id from work_flow_build_history
     <isParameterPresent >
       <include refid="work_flow_build_history.ibatorgenerated_Example_Where_Clause" />
@@ -87,7 +87,7 @@
   </select>
   <select id="ibatorgenerated_selectByPrimaryKey" resultMap="ibatorgenerated_ResultMapWithBLOBs" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory" >
     select id, start_time, end_time, state, trigger_type, op_user_id, op_user_name, app_id,
-      app_name, start_phase, history_id, work_flow_id, create_time, op_time, end_phase, last_ver, asyn_sub_task_status, instance_status, dag_runtime, wf_context
+      app_name, start_phase, history_id, work_flow_id, create_time, op_time, end_phase, last_ver, asyn_sub_task_status,  dag_runtime, wf_context
     from work_flow_build_history
     where id = #id:INTEGER#
   </select>
@@ -102,11 +102,11 @@
   <insert id="ibatorgenerated_insert" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory" >
     insert into work_flow_build_history (id, start_time, end_time, state, trigger_type, op_user_id,
       op_user_name, app_id, app_name, start_phase, history_id, work_flow_id, create_time, op_time,
-      end_phase, instance_status, dag_runtime, wf_context)
+      end_phase,  dag_runtime, wf_context)
     values (#id:INTEGER#, #startTime:TIMESTAMP#, #endTime:TIMESTAMP#, #state:TINYINT#,
       #triggerType:BIT#, #opUserId:INTEGER#, #opUserName:VARCHAR#, #appId:INTEGER#,
       #appName:VARCHAR#, #startPhase:TINYINT#, #historyId:INTEGER#, #workFlowId:INTEGER#,
-      #createTime:TIMESTAMP#, #opTime:TIMESTAMP#, #endPhase:TINYINT#, #instanceStatus:VARCHAR# ,#dagRuntime:LONGVARCHAR#,  #wfContext:LONGVARCHAR#)
+      #createTime:TIMESTAMP#, #opTime:TIMESTAMP#, #endPhase:TINYINT# ,#dagRuntime:LONGVARCHAR#,  #wfContext:LONGVARCHAR#)
 
   </insert>
   <insert id="ibatorgenerated_insertSelective" parameterClass="com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory" >
@@ -163,9 +163,7 @@
       <isNotNull prepend="," property="asynSubTaskStatus" >
         asyn_sub_task_status
       </isNotNull>
-      <isNotNull prepend="," property="instanceStatus" >
-        instance_status
-      </isNotNull>
+
       <isNotNull prepend="," property="dagRuntime" >
         dag_runtime
       </isNotNull>
@@ -228,9 +226,7 @@
       <isNotNull prepend="," property="asynSubTaskStatus" >
         #asynSubTaskStatus:LONGVARCHAR#
       </isNotNull>
-      <isNotNull prepend="," property="instanceStatus" >
-        #instanceStatus:VARCHAR#
-      </isNotNull>
+
       <isNotNull prepend="," property="dagRuntime" >
         #dagRuntime:LONGVARCHAR#
       </isNotNull>
@@ -296,9 +292,6 @@
       </isNotNull>
       <isNotNull prepend="," property="record.asynSubTaskStatus" >
         asyn_sub_task_status = #record.asynSubTaskStatus:LONGVARCHAR#
-      </isNotNull>
-      <isNotNull prepend="," property="record.instanceStatus" >
-        instance_status = #record.instanceStatus:VARCHAR#
       </isNotNull>
       <isNotNull prepend="," property="record.dagRuntime" >
         dag_runtime = #record.dagRuntime:LONGVARCHAR#

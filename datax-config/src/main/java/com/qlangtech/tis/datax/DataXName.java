@@ -18,6 +18,9 @@
 
 package com.qlangtech.tis.datax;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -40,10 +43,11 @@ public class DataXName implements Serializable {
     }
 
     public StoreResourceType assetCheckDataAppType() {
-//        if (this.getType() != StoreResourceType.DataApp) {
-//            throw new IllegalStateException("dataXName type must be :" + StoreResourceType.DataApp + " but is :" + this.getType());
-//        }
-//        return this.getType();
+        //        if (this.getType() != StoreResourceType.DataApp) {
+        //            throw new IllegalStateException("dataXName type must be :" + StoreResourceType.DataApp + " but
+        //            is :" + this.getType());
+        //        }
+        //        return this.getType();
 
         return this.assetCheckType(StoreResourceType.DataApp);
     }
@@ -69,6 +73,21 @@ public class DataXName implements Serializable {
 
     public StoreResourceType getType() {
         return this.type;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DataXName)) {
+            return false;
+        }
+        DataXName dataXName = (DataXName) o;
+        return Objects.equals(pipelineName, dataXName.pipelineName) && type == dataXName.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pipelineName, type);
     }
 
     @Override

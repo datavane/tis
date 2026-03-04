@@ -26,15 +26,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.ajax.AjaxResult;
-import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
-import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.ConfigFileContext.HTTPMethod;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
-import com.qlangtech.tis.order.center.IParamContext;
-import com.qlangtech.tis.realtime.yarn.rpc.IncrRateControllerCfgDTO;
 import com.qlangtech.tis.runtime.module.action.IParamGetter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -43,13 +39,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -60,6 +57,12 @@ import java.util.stream.Stream;
 public class HttpUtils {
 
     public static final String KEY_FULLBUILD_WORKFLOW_ACTION = "fullbuild_workflow_action";
+    public static final String KEY_METHOD_HANDLE_REGISTER_SCHEDULE = "handleRegisterSchedule";
+    /**
+     * 取消正在执行的任务
+     */
+    public static final String KEY_METHOD_HANDLE_CANCEL_TASK = "handleCancelTask";
+    public static final String KEY_METHOD = "method";
 
     private static final Logger logger = LoggerFactory.getLogger(HttpUtils.class);
 
@@ -141,6 +144,33 @@ public class HttpUtils {
 
     public static <T> T processContent(URL url, StreamProcess<T> process, int maxRetry) {
         return ConfigFileContext.processContent(url, process, maxRetry);
+    }
+
+    public static <T> T postAssembleDAGServlet(String method, List<HttpUtils.PostParam> params, Function<InputStream,
+                T> process) {
+        if (StringUtils.isEmpty(method)) {
+            throw new IllegalArgumentException("param method can not be empty");
+        }
+        try {
+            final String getAssembleHttpHost = Config.getAssembleHttpHost();
+            if (org.apache.commons.lang3.StringUtils.isEmpty(getAssembleHttpHost)) {
+                throw new IllegalArgumentException("param getAssembleHttpHost can not be empty");
+            }
+            params.add(new HttpUtils.PostParam(HttpUtils.KEY_METHOD, method));
+            return post(new URL(getAssembleHttpHost + "/dag"), params, new PostFormStreamProcess<T>() {
+
+                @Override
+                public T p(int status, InputStream stream, Map headerFields) throws IOException {
+                    if (status != HttpURLConnection.HTTP_OK) {
+                        String resp = IOUtils.toString(stream, TisUTF8.get());
+                        throw new IllegalStateException(resp);
+                    }
+                    return process.apply(stream);
+                }
+            });
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static <T> T post(URL url, byte[] content, PostFormStreamProcess<T> process) {

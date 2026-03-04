@@ -106,7 +106,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
         //  Assert.assertNotNull(IndexSwapTaskflowLauncher.class);
         IndexSwapTaskflowLauncher.initPhaseStatusStatusWriter();
 
-        PhaseStatusCollection status = TrackableExecuteInterceptor.initialTaskPhase(TASK_ID);
+        PhaseStatusCollection status = PhaseStatusCollection.initialTaskPhase(TASK_ID);
         DumpPhaseStatus dump = new DumpPhaseStatus(TASK_ID);
         DumpPhaseStatus.TableDumpStatus user = dump.getTable("user");
         user.setAllRows(55);
@@ -125,7 +125,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
         status.flushStatus2Local();
 
 
-        PhaseStatusCollection loadStatus = TrackableExecuteInterceptor.getTaskPhaseReference(TASK_ID);
+        PhaseStatusCollection loadStatus = PhaseStatusCollection.getTaskPhaseReference(TASK_ID);
         Assert.assertNotNull(loadStatus);
 
         DumpPhaseStatus actualDump = loadStatus.getDumpPhase();

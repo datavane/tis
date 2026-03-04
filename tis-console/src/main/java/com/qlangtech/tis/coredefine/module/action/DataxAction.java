@@ -147,6 +147,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.config.module.action.FullbuildWorkflowAction.hasRunningWorkflowInstance;
+
 /**
  * manage DataX pipe process logic
  *
@@ -186,6 +188,12 @@ public class DataxAction extends BasicModule {
     this.setBizResult(context, new PaginationResult(pager, workflows.getRight()));
   }
 
+  /**
+   * trigger_fullbuild_task
+   *
+   * @param context
+   * @throws Exception
+   */
   @Func(value = PermissionConstant.DATAX_MANAGE)
   public void doTriggerFullbuildTask(Context context) throws Exception {
 
@@ -198,6 +206,12 @@ public class DataxAction extends BasicModule {
 
     DataXName dataX = this.getCollectionName();
 
+    if (hasRunningWorkflowInstance(this, dataX)) {
+      this.addErrorMessage(context, "不能重复触发同步任务");
+      return;
+    }
+
+
     IDataxProcessor dataXProcessor = DataxProcessor.load(null, dataX.getType(), dataX.getPipelineName());
 
     if (!dataXProcessor.isSupportBatch(this)) {
@@ -205,8 +219,8 @@ public class DataxAction extends BasicModule {
       return;
     }
 
-    WorkFlowBuildHistory latestWorkflowHistory =
-      this.getDaoContext().getLatestSuccessWorkflowHistory(SynResTarget.pipeline(dataXProcessor.identityValue()));
+    //    WorkFlowBuildHistory latestWorkflowHistory =
+    //      this.getDaoContext().getLatestSuccessWorkflowHistory(SynResTarget.pipeline(dataXProcessor.identityValue()));
 
     Optional<JobTrigger> partialTrigger = JobTrigger.getPartialTriggerFromContext(context);
     DataXCfgGenerator.GenerateCfgs cfgFileNames = dataXProcessor.getDataxCfgFileNames(null, partialTrigger);
@@ -229,13 +243,11 @@ public class DataxAction extends BasicModule {
     //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.JOIN.getName()));
 
     // this.setBizResult(context, TriggerBuildResult.triggerBuild(this, context, params));
-    this.setBizResult(context, this.triggerJob(this, context, this.getCollectionName(),
-      Optional.ofNullable(latestWorkflowHistory)));
+    this.setBizResult(context, this.triggerJob(this, context, this.getCollectionName()));
   }
 
 
-  private TriggerBuildResult triggerJob(IControlMsgHandler module, Context context, DataXName appName,
-                                        Optional<WorkFlowBuildHistory> latestWorkflowHistory) {
+  private TriggerBuildResult triggerJob(IControlMsgHandler module, Context context, DataXName appName) {
     if (appName == null) {
       throw new IllegalArgumentException("param appName can not be empty");
     }
@@ -251,7 +263,7 @@ public class DataxAction extends BasicModule {
       partialTrigger.ifPresent((partial) -> {
         params.add(partial.getHttpPostSelectedTabsAsParam());
       });
-      JobTrigger.addLatestWorkflowHistoryAsParam(params, latestWorkflowHistory);
+      //  JobTrigger.addLatestWorkflowHistoryAsParam(params, latestWorkflowHistory);
       return TriggerBuildResult.triggerBuild(module, context, params);
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);

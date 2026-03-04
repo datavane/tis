@@ -19,6 +19,7 @@
 package com.qlangtech.tis.datax;
 
 import com.alibaba.citrus.turbine.Context;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
@@ -38,7 +39,10 @@ import com.qlangtech.tis.plugin.ds.manipulate.ManipuldateUtils;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -56,12 +60,13 @@ import java.util.stream.Collectors;
  **/
 public abstract class DefaultDataXProcessorManipulate implements Describable<DefaultDataXProcessorManipulate>,
         ManipuldateProcessor, IdentityName {
+    private static final Logger logger = LoggerFactory.getLogger(DefaultDataXProcessorManipulate.class);
 
     @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require,
             Validator.identity})
     public String name;
 
-    private static final ConcurrentMap<String /*PipelineId*/, DataXProcessorTemplateManipulateStore> processorManipulateRegister = Maps.newConcurrentMap();
+    private static ConcurrentMap<String /*PipelineId*/, DataXProcessorTemplateManipulateStore> processorManipulateRegister;
 
     /**
      * Get the in-memory manipulate registry for all loaded pipelines.
@@ -69,21 +74,61 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
      *
      * @return unmodifiable view of the manipulate registry
      */
-    public static Map<String, DataXProcessorTemplateManipulateStore> getManipulateRegistry() {
-        return Collections.unmodifiableMap(processorManipulateRegister);
+    public static ConcurrentMap<String, DataXProcessorTemplateManipulateStore> getManipulateRegistry() {
+
+        if (processorManipulateRegister == null) {
+            processorManipulateRegister = Maps.newConcurrentMap();
+
+            File appDir = new File(TIS.pluginCfgRoot, StoreResourceType.DataApp.getType());
+            String[] subDirs = null;
+            if (!appDir.exists() || (subDirs = appDir.list()) == null) {
+                return processorManipulateRegister;
+            }
+
+            List<String> target = Lists.newArrayList();
+            for (String pipe : subDirs) {
+                DataXName dataXName = DataXName.createDataXPipeline(pipe);
+
+                if (getStoreKey(null, dataXName).getSotreFile().exists()) {
+                    target.add(pipe);
+                    getManipulateStore(dataXName, false);
+                }
+            }
+
+            logger.info("scan subDirs count:{},target " + DefaultDataXProcessorManipulate.class.getSimpleName() +
+                    ":{}", subDirs.length, String.join(",", target));
+
+            return processorManipulateRegister;
+        }
+        return processorManipulateRegister;
     }
 
-    public static DataXProcessorTemplateManipulateStore getManipulateStore(String pipelineName) {
-        if (StringUtils.isEmpty(pipelineName)) {
+    /**
+     *
+     * @param dataXName
+     * @param forceFresh 强制从文件系统中获取最新的
+     * @return
+     */
+    public static DataXProcessorTemplateManipulateStore getManipulateStore(DataXName dataXName,
+                                                                           final boolean forceFresh) {
+        if (dataXName == null) {
             throw new IllegalArgumentException("param pipelineName can not be empty");
         }
-        return processorManipulateRegister.computeIfAbsent(pipelineName, (pipe) -> {
-            DataXProcessorTemplateManipulateStore store = new DataXProcessorTemplateManipulateStore();
-            for (DefaultDataXProcessorManipulate manipulate : getPluginStore(null,
-                    DataXName.createDataXPipeline(pipe)).getPlugins()) {
-                store.replace(manipulate);
+        return getManipulateRegistry().compute(dataXName.getPipelineName(), (pipe, old) -> {
+            if (forceFresh || old == null) {
+                DataXProcessorTemplateManipulateStore store = new DataXProcessorTemplateManipulateStore();
+                IPluginStore<DefaultDataXProcessorManipulate> pluginStore = getPluginStore(null,
+                        DataXName.createDataXPipeline(pipe));
+                if (forceFresh) {
+                    pluginStore.cleanPlugins();
+                }
+                for (DefaultDataXProcessorManipulate manipulate : pluginStore.getPlugins()) {
+                    store.replace(manipulate);
+                }
+                return store;
+            } else {
+                return old;
             }
-            return store;
         });
     }
 
@@ -94,19 +139,14 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
             return manipuldateStore.values();
         }
 
-        public DefaultDataXProcessorManipulate getManipuldate(IdentityName id) {
-            return manipuldateStore.get(id);
+        public <T extends DefaultDataXProcessorManipulate> T getManipuldate(IdentityName id, Class<T> clazz) {
+            return clazz.cast(manipuldateStore.get(id));
         }
 
         public DefaultDataXProcessorManipulate.MonitorForEventsManager getAlertManager() {
             DefaultDataXProcessorManipulate manipuldate =
-                    this.getManipuldate(IdentityName.create(DefaultDataXProcessorManipulate.MonitorForEventsManager.KEY_ALERT));
+                    this.getManipuldate(IdentityName.create(DefaultDataXProcessorManipulate.MonitorForEventsManager.KEY_ALERT), DefaultDataXProcessorManipulate.class);
             return (DefaultDataXProcessorManipulate.MonitorForEventsManager) manipuldate;
-            //            if (manipuldate == null) {
-            //                return Collections.emptyList();
-            //            }
-            //            DefaultDataXProcessorManipulate.MonitorForEventsManager monitorManager
-            //                    = (DefaultDataXProcessorManipulate.MonitorForEventsManager) manipuldate;
         }
 
         public void replace(DefaultDataXProcessorManipulate replace) {
@@ -134,10 +174,16 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
         if (appName == null) {
             throw new IllegalArgumentException("param appName can not be empty");
         }
-        KeyedPluginStore.AppKey appKey = new KeyedPluginStore.AppKey(context, appName.getType(),
-                appName.getPipelineName(), DefaultDataXProcessorManipulate.class);
+        KeyedPluginStore.AppKey appKey = getStoreKey(context, appName);
+
         IPluginStore<DefaultDataXProcessorManipulate> pluginStore = TIS.getPluginStore(appKey);
+
         return pluginStore;
+    }
+
+    private static KeyedPluginStore.AppKey getStoreKey(IPluginContext context, DataXName appName) {
+        return new KeyedPluginStore.AppKey(context, appName.getType(), appName.getPipelineName(),
+                DefaultDataXProcessorManipulate.class);
     }
 
     @Override
@@ -189,6 +235,7 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
                 // 只删除TIS本地端配置，dolphinscheduler端不进行任何操作
                 // store.setPlugins(pluginContext, context, Collections.emptyList());
                 store.delete(pluginContext, context, this);
+                afterManipuldateProcess(pluginContext, context, itemsProcessor);
                 return;
             }
 
@@ -204,7 +251,7 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
                 }
             }
 
-            afterManipuldateProcess(pluginContext, context, itemsProcessor);
+           // afterManipuldateProcess(pluginContext, context, itemsProcessor);
 
             if (desc.isManipulateStorable()) {
                 /**
@@ -213,7 +260,7 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
                  */
                 store.replace(pluginContext, context, this);
             }
-
+            afterManipuldateProcess(pluginContext, context, itemsProcessor);
         }
     }
 
@@ -262,8 +309,8 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
 
         }
 
-        private DataXProcessorTemplateManipulateStore getManipulateStore() {
-            return DefaultDataXProcessorManipulate.getManipulateStore(this.pipelineName.getPipelineName());
+        private final DataXProcessorTemplateManipulateStore getManipulateStore() {
+            return DefaultDataXProcessorManipulate.getManipulateStore(this.pipelineName, false);
             //            return processorManipulateRegister.computeIfAbsent(
             //                    this.pipelineName.getPipelineName(), (pipe) -> new
             //                    DataXProcessorTemplateManipulateStore());
@@ -288,8 +335,8 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
 
         private List<Descriptor.ParseDescribable<DefaultDataXProcessorManipulate>> getPluginsExclude(IdentityName id) {
             List<Descriptor.ParseDescribable<DefaultDataXProcessorManipulate>> dlist =
-                    plugins.stream().filter((p) -> !StringUtils.equals(Objects.requireNonNull(id, "param id can not "
-                            + "be null").identityValue(), p.identityValue())).map((p) -> new Descriptor.ParseDescribable<DefaultDataXProcessorManipulate>(p)).collect(Collectors.toList());
+                    plugins.stream().filter((p) -> !StringUtils.equals(Objects.requireNonNull(id,
+                            "param id can not " + "be null").identityValue(), p.identityValue())).map((p) -> new Descriptor.ParseDescribable<DefaultDataXProcessorManipulate>(p)).collect(Collectors.toList());
             return dlist;
         }
     }

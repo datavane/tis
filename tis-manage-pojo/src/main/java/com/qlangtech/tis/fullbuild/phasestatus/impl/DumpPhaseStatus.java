@@ -28,6 +28,9 @@ import org.apache.commons.lang.StringUtils;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -36,7 +39,7 @@ import java.util.Map;
 public class DumpPhaseStatus extends BasicPhaseStatus<TableDumpStatus> {
 
     @JSONField(serialize = false)
-    public final Map<String, TableDumpStatus> /* table name,db.tableName */
+    private final Map<String, TableDumpStatus> /* table name,db.tableName */
             tablesDump = Maps.newConcurrentMap();
 
     public DumpPhaseStatus(int taskid) {
@@ -77,6 +80,10 @@ public class DumpPhaseStatus extends BasicPhaseStatus<TableDumpStatus> {
         return tabDumpStatus;
     }
 
+    public void foreach(BiConsumer<String, TableDumpStatus> entryConsumer){
+        this.tablesDump.forEach(entryConsumer);
+    }
+
     @Override
     public IProcessDetailStatus<TableDumpStatus> getProcessStatus() {
         return new ProcessDetailStatusImpl<TableDumpStatus>(DumpPhaseStatus.this.tablesDump) {
@@ -88,6 +95,13 @@ public class DumpPhaseStatus extends BasicPhaseStatus<TableDumpStatus> {
             }
         };
 
+    }
+
+    public void putTablesDump(String tableName, TableDumpStatus dumpStatus) {
+        if (StringUtils.isEmpty(tableName)) {
+            throw new IllegalArgumentException("param tableName can not be null");
+        }
+        this.tablesDump.put(tableName, Objects.requireNonNull(dumpStatus, "dumpStatus can not be null"));
     }
 
     /**

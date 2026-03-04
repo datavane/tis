@@ -277,7 +277,7 @@ public class FlinkJobsMonitor implements InitializingBean {
    */
   private Pair<List<AlertChannel>, DefaultDataXProcessorManipulate.MonitorForEventsManager> getPipelineAlertChannels(String pipelineName) {
     DefaultDataXProcessorManipulate.DataXProcessorTemplateManipulateStore manipulateStore =
-      DefaultDataXProcessorManipulate.getManipulateStore(pipelineName);
+      DefaultDataXProcessorManipulate.getManipulateStore(DataXName.createDataXPipeline(pipelineName), false);
     DefaultDataXProcessorManipulate.MonitorForEventsManager monitorManager = manipulateStore.getAlertManager();
     if (monitorManager == null) {
       return Pair.of(Collections.emptyList(), null);

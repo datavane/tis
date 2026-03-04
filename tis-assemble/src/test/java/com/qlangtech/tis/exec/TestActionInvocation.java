@@ -85,27 +85,27 @@ public class TestActionInvocation extends TestCase {
 //        Assert.assertEquals(0, backflowCount.get());
 //    }
 
-    private static class TestIndexBackFlowInterceptor extends TrackableExecuteInterceptor {
-
-        private final AtomicInteger buildCount;
-
-        public TestIndexBackFlowInterceptor(AtomicInteger buildCount) {
-            super();
-            this.buildCount = buildCount;
-        }
-
-        @Override
-        protected ExecuteResult execute(IExecChainContext execChainContext) throws Exception {
-            buildCount.incrementAndGet();
-            Assert.fail("unreasonable to get here");
-            return ExecuteResult.SUCCESS;
-        }
-
-        @Override
-        public Set<FullbuildPhase> getPhase() {
-            return Collections.singleton(FullbuildPhase.IndexBackFlow);
-        }
-    }
+//    private static class TestIndexBackFlowInterceptor extends TrackableExecuteInterceptor {
+//
+//        private final AtomicInteger buildCount;
+//
+//        public TestIndexBackFlowInterceptor(AtomicInteger buildCount) {
+//            super();
+//            this.buildCount = buildCount;
+//        }
+//
+//        @Override
+//        protected ExecuteResult execute(IExecChainContext execChainContext) throws Exception {
+//            buildCount.incrementAndGet();
+//            Assert.fail("unreasonable to get here");
+//            return ExecuteResult.SUCCESS;
+//        }
+//
+//        @Override
+//        public Set<FullbuildPhase> getPhase() {
+//            return Collections.singleton(FullbuildPhase.IndexBackFlow);
+//        }
+//    }
 
     private static class TestWorkflowDumpAndJoinInterceptor extends TrackableExecuteInterceptor {
 

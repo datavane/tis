@@ -25,6 +25,7 @@ import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
+import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.compiler.streamcode.GenerateDAOAndIncrScript;
@@ -54,6 +55,7 @@ import com.qlangtech.tis.datax.job.SubJobResName;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.job.common.JobCommon;
+import com.qlangtech.tis.job.common.JobParams;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
@@ -320,8 +322,13 @@ public class CoreAction extends BasicModule {
       return;
     }
 
-    DataXJobSubmit dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit();
-    dataXJobSubmit.cancelTask(this, context, buildHistory);
+    List<HttpUtils.PostParam> params = Lists.newArrayList();
+    params.addAll(HttpUtils.dataXToParams(this.getCollectionName()));
+    params.add(new HttpUtils.PostParam(JobParams.KEY_TASK_ID, taskId));
+    HttpUtils.postAssembleDAGServlet(HttpUtils.KEY_METHOD_HANDLE_CANCEL_TASK, params, (respStream) -> null);
+
+//    DataXJobSubmit dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit();
+//    dataXJobSubmit.cancelTask(this, context, buildHistory);
 
     WorkFlowBuildHistory record = new WorkFlowBuildHistory();
     record.setState((byte) ExecResult.CANCEL.getValue());

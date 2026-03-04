@@ -65,8 +65,8 @@ public class DataXExecuteInterceptor extends TrackableExecuteInterceptor {
         TriggerBuildResult triggerBuildResult = submit.triggerJob(execChainContext, pipelineName
                 //     , Optional.ofNullable(lastHistory)
         );
-        execChainContext.setAttribute(JobCommon.KEY_TASK_ID, Objects.requireNonNull(triggerBuildResult.taskid,
-                "taskid can not be null"));
+                execChainContext.setAttribute(JobCommon.KEY_TASK_ID, Objects.requireNonNull(triggerBuildResult.taskid,
+                        "taskid can not be null"));
 
         return ExecuteResult.createSuccess();
     }

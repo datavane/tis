@@ -33,6 +33,7 @@ import com.qlangtech.tis.exec.IExecChainContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
+import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.taskflow.AdapterTask;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.datax.StoreResourceType;
@@ -62,7 +63,7 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
 
 
         IDataxProcessor processor = DataxProcessor.load(null, StoreResourceType.DataFlow, wfName);
-        TrackableExecuteInterceptor.initialTaskPhase(taskId);
+        PhaseStatusCollection.initialTaskPhase(taskId);
         WorkflowDumpAndJoinInterceptor interceptor = new WorkflowDumpAndJoinInterceptor();
 
         IExecChainContext execContext = this.mock("execContext", IExecChainContext.class);
