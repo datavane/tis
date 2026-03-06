@@ -366,8 +366,8 @@ public class PluginItems implements IPluginItemsProcessor {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.DATAX_WORKER) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
-    } else if (heteroEnum == HeteroEnum.appJobWorkerTplReWriter) {
-      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
+//    } else if (heteroEnum == HeteroEnum.appJobWorkerTplReWriter) {
+//      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.noStore) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.TRANSFORMER_RULES) {

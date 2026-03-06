@@ -17,16 +17,13 @@
  */
 package com.qlangtech.tis.fullbuild.phasestatus;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BasicPhaseStatus;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.IndexBackFlowPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 
 import java.io.File;
@@ -41,12 +38,12 @@ import java.util.concurrent.TimeUnit;
 public class PhaseStatusCollection implements IPhaseStatusCollection {
     private static final LoadingCache<Integer, PhaseStatusCollection> taskPhaseReference =
             CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES) //
-                    .build(new CacheLoader<>() {
-                        @Override
-                        public PhaseStatusCollection load(Integer taskId) throws Exception {
-                            return loadPhaseStatusFromLocal(taskId);
-                        }
-                    });
+            .build(new CacheLoader<>() {
+                @Override
+                public PhaseStatusCollection load(Integer taskId) throws Exception {
+                    return loadPhaseStatusFromLocal(taskId);
+                }
+            });
     //    private static final Map<Integer, PhaseStatusCollection> /*** taskid*/
     //            taskPhaseReference = new HashMap<>(); //new WeakHashMap<>();
 
@@ -67,6 +64,7 @@ public class PhaseStatusCollection implements IPhaseStatusCollection {
             throw new RuntimeException(e);
         }
     }
+
     /**
      * @param taskid
      * @return
@@ -86,8 +84,8 @@ public class PhaseStatusCollection implements IPhaseStatusCollection {
                 if (result == null) {
                     result = new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange());
                 }
-                IFlush2Local flush2Local =
-                        IFlush2LocalFactory.createNew(PhaseStatusCollection.class.getClassLoader(), localFile).orElseThrow(() -> new IllegalStateException("flush2Local must be present"));
+                IFlush2Local flush2Local = IFlush2LocalFactory.createNew(PhaseStatusCollection.class.getClassLoader()
+                        , localFile).orElseThrow(() -> new IllegalStateException("flush2Local must be present"));
                 phaseStatus = flush2Local.loadPhase(); // BasicPhaseStatus.statusWriter.loadPhase(localFile);
                 switch (phase) {
                     case FullDump:
@@ -100,7 +98,8 @@ public class PhaseStatusCollection implements IPhaseStatusCollection {
                     //                        result.setBuildPhase((BuildPhaseStatus) phaseStatus);
                     //                        break;
                     //                    case IndexBackFlow:
-                    //                        result.setIndexBackFlowPhaseStatus((IndexBackFlowPhaseStatus) phaseStatus);
+                    //                        result.setIndexBackFlowPhaseStatus((IndexBackFlowPhaseStatus)
+                    //                        phaseStatus);
                 }
             }
         } catch (Exception e) {
@@ -113,8 +112,8 @@ public class PhaseStatusCollection implements IPhaseStatusCollection {
 
     private JoinPhaseStatus joinPhase;
 
-//    private BuildPhaseStatus buildPhase;
-//    private IndexBackFlowPhaseStatus indexBackFlowPhaseStatus;
+    //    private BuildPhaseStatus buildPhase;
+    //    private IndexBackFlowPhaseStatus indexBackFlowPhaseStatus;
     private ExecutePhaseRange executePhaseRange;
     private final Integer taskid;
 
@@ -124,24 +123,29 @@ public class PhaseStatusCollection implements IPhaseStatusCollection {
         this.taskid = Objects.requireNonNull(taskid, "taskId can not be null");
         this.dumpPhase = new DumpPhaseStatus(taskid);
         this.joinPhase = new JoinPhaseStatus(taskid);
-//        this.buildPhase = new BuildPhaseStatus(taskid);
-//        this.indexBackFlowPhaseStatus = new IndexBackFlowPhaseStatus(taskid);
+        //        this.buildPhase = new BuildPhaseStatus(taskid);
+        //        this.indexBackFlowPhaseStatus = new IndexBackFlowPhaseStatus(taskid);
     }
+
+    public ExecutePhaseRange phaseRange() {
+        return Objects.requireNonNull(this.executePhaseRange, "executePhaseRange can not be null");
+    }
+
     /**
      * @return
      */
     public boolean isComplete() {
         return (!executePhaseRange.contains(FullbuildPhase.FullDump) || dumpPhase.isComplete()) //
                 && (!executePhaseRange.contains(FullbuildPhase.JOIN) || joinPhase.isComplete()); //
-                // && (!executePhaseRange.contains(FullbuildPhase.BUILD) || buildPhase.isComplete()) //
-               // && (!executePhaseRange.contains(FullbuildPhase.IndexBackFlow) || indexBackFlowPhaseStatus.isComplete());
+        // && (!executePhaseRange.contains(FullbuildPhase.BUILD) || buildPhase.isComplete()) //
+        // && (!executePhaseRange.contains(FullbuildPhase.IndexBackFlow) || indexBackFlowPhaseStatus.isComplete());
     }
 
     public boolean isFaild() {
         return (executePhaseRange.contains(FullbuildPhase.FullDump) && dumpPhase.isFaild()) //
                 || (executePhaseRange.contains(FullbuildPhase.JOIN) && joinPhase.isFaild()); //
-                // || (executePhaseRange.contains(FullbuildPhase.BUILD) && buildPhase.isFaild()) //
-                //|| (executePhaseRange.contains(FullbuildPhase.IndexBackFlow) && indexBackFlowPhaseStatus.isFaild());
+        // || (executePhaseRange.contains(FullbuildPhase.BUILD) && buildPhase.isFaild()) //
+        //|| (executePhaseRange.contains(FullbuildPhase.IndexBackFlow) && indexBackFlowPhaseStatus.isFaild());
     }
 
     public void flushStatus2Local() {
@@ -151,14 +155,13 @@ public class PhaseStatusCollection implements IPhaseStatusCollection {
         if (executePhaseRange.contains(FullbuildPhase.JOIN)) {
             joinPhase.intervalWriteStatus2Local();
         }
-//        if (executePhaseRange.contains(FullbuildPhase.BUILD)) {
-//            buildPhase.intervalWriteStatus2Local();
-//        }
-//        if (executePhaseRange.contains(FullbuildPhase.IndexBackFlow)) {
-//            indexBackFlowPhaseStatus.intervalWriteStatus2Local();
-//        }
+        //        if (executePhaseRange.contains(FullbuildPhase.BUILD)) {
+        //            buildPhase.intervalWriteStatus2Local();
+        //        }
+        //        if (executePhaseRange.contains(FullbuildPhase.IndexBackFlow)) {
+        //            indexBackFlowPhaseStatus.intervalWriteStatus2Local();
+        //        }
     }
-
 
 
     public Integer getTaskid() {
@@ -181,21 +184,21 @@ public class PhaseStatusCollection implements IPhaseStatusCollection {
         this.joinPhase = joinPhase;
     }
 
-//    @JSONField(serialize = false)
-//    public BuildPhaseStatus getBuildPhase() {
-//        return this.buildPhase;
-//    }
-//
-//    @JSONField(serialize = false)
-//    public IndexBackFlowPhaseStatus getIndexBackFlowPhaseStatus() {
-//        return this.indexBackFlowPhaseStatus;
-//    }
-//
-//    public void setBuildPhase(BuildPhaseStatus buildPhase) {
-//        this.buildPhase = buildPhase;
-//    }
-//
-//    public void setIndexBackFlowPhaseStatus(IndexBackFlowPhaseStatus indexBackFlowPhaseStatus) {
-//        this.indexBackFlowPhaseStatus = indexBackFlowPhaseStatus;
-//    }
+    //    @JSONField(serialize = false)
+    //    public BuildPhaseStatus getBuildPhase() {
+    //        return this.buildPhase;
+    //    }
+    //
+    //    @JSONField(serialize = false)
+    //    public IndexBackFlowPhaseStatus getIndexBackFlowPhaseStatus() {
+    //        return this.indexBackFlowPhaseStatus;
+    //    }
+    //
+    //    public void setBuildPhase(BuildPhaseStatus buildPhase) {
+    //        this.buildPhase = buildPhase;
+    //    }
+    //
+    //    public void setIndexBackFlowPhaseStatus(IndexBackFlowPhaseStatus indexBackFlowPhaseStatus) {
+    //        this.indexBackFlowPhaseStatus = indexBackFlowPhaseStatus;
+    //    }
 }

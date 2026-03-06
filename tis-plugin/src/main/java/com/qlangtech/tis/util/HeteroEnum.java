@@ -285,21 +285,21 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
     @TISExtension
     public static final HeteroEnum<K8sImage> K8S_FLINK_IMAGES = new DockerImageHeteroEnum(ImageCategory.DEFAULT_FLINK_DESC_NAME);
     // ////////////////////////////////////////////////////////
-    @TISExtension
-    public static final HeteroEnum<DataXJobWorker> appJobWorkerTplReWriter = new HeteroEnum<DataXJobWorker>(//
-            DataXJobWorker.class, //
-            DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite.token
-            , DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite.name(), Selectable.Single, true) {
-        @Override
-        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            return super.getPluginStore(pluginContext, pluginMeta);
-        }
-
-        @Override
-        public List<DataXJobWorker> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            return super.getPlugins(pluginContext, pluginMeta);
-        }
-    };
+//    @TISExtension
+//    public static final HeteroEnum<DataXJobWorker> appJobWorkerTplReWriter = new HeteroEnum<DataXJobWorker>(//
+//            DataXJobWorker.class, //
+//            DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite.token
+//            , DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite.name(), Selectable.Single, true) {
+//        @Override
+//        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+//            return super.getPluginStore(pluginContext, pluginMeta);
+//        }
+//
+//        @Override
+//        public List<DataXJobWorker> getPlugins(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+//            return super.getPlugins(pluginContext, pluginMeta);
+//        }
+//    };
     @TISExtension
     public static final HeteroEnum<DataXJobWorker> DATAX_WORKER = new HeteroEnum<DataXJobWorker>(//
             DataXJobWorker.class, //

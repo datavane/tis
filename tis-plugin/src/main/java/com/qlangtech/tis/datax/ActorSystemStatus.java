@@ -45,6 +45,7 @@ public class ActorSystemStatus implements Serializable {
     private Map<String, Integer> actorCounts = new HashMap<>();
     private List<ActiveWorkflowInfo> activeWorkflows = new ArrayList<>();
     private List<ActiveWorkerInfo> activeWorkers = new ArrayList<>();
+    // private int maxInstancesPerNode = DataXJobSubmitParams.DEFAULT_MAX_INSTANCES_PER_NODE;
 
     // Getters and Setters
 
@@ -143,6 +144,14 @@ public class ActorSystemStatus implements Serializable {
     public void setActiveWorkers(List<ActiveWorkerInfo> activeWorkers) {
         this.activeWorkers = activeWorkers;
     }
+
+    public int getMaxInstancesPerNode() {
+        return DataXJobSubmitParams.getDftIfEmpty().maxInstancesPerNode;
+    }
+
+    //    public void setMaxInstancesPerNode(int maxInstancesPerNode) {
+    //        this.maxInstancesPerNode = maxInstancesPerNode;
+    //    }
 
     /**
      * Cluster member info
@@ -251,6 +260,11 @@ public class ActorSystemStatus implements Serializable {
         private Integer taskId;
         private Long nodeId;
         private long startTime;
+        /**
+         * Full cluster address of the node where this worker runs,
+         * e.g. akka://TIS-DAG-System@192.168.28.189:2551
+         */
+        private String workerAddress;
 
         public String getActorPath() {
             return actorPath;
@@ -282,6 +296,14 @@ public class ActorSystemStatus implements Serializable {
 
         public void setStartTime(long startTime) {
             this.startTime = startTime;
+        }
+
+        public String getWorkerAddress() {
+            return workerAddress;
+        }
+
+        public void setWorkerAddress(String workerAddress) {
+            this.workerAddress = workerAddress;
         }
     }
 }

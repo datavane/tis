@@ -459,8 +459,9 @@ public class DataxAction extends BasicModule {
   }
 
   private K8SWorkerCptType getPowerJobCptType() {
-    return this.getBoolean(KEY_USING_POWERJOB_USE_EXIST_CLUSTER) ? K8SWorkerCptType.UsingExistCluster :
-      K8SWorkerCptType.Server;
+    //    return this.getBoolean(KEY_USING_POWERJOB_USE_EXIST_CLUSTER) ? K8SWorkerCptType.UsingExistCluster :
+    //     ;
+    return K8SWorkerCptType.DataXWorker;
   }
 
   public void relaunchK8SCluster(Context context, K8SWorkerCptType cptType) throws Exception {
@@ -502,18 +503,18 @@ public class DataxAction extends BasicModule {
     ServerLaunchToken lt = launchToken.orElseThrow(() -> new IllegalStateException("launchToken must be present"));
     JSONObject dataXWorker = new JSONObject();
 
-    dataXWorker.put("usingPowderJobUseExistCluster", lt.workerCptType == K8SWorkerCptType.UsingExistCluster);
+    // dataXWorker.put("usingPowderJobUseExistCluster", lt.workerCptType == K8SWorkerCptType.UsingExistCluster);
 
-    if (lt.workerCptType == K8SWorkerCptType.Server) {
+    if (lt.workerCptType == K8SWorkerCptType.DataXWorker) {
 
       DataXJobWorker pjServer = DataXJobWorker.getJobWorker(TargetResName.K8S_DATAX_INSTANCE_NAME,
-        Optional.of(K8SWorkerCptType.Server));
-      DataXJobWorker pjWorker = DataXJobWorker.getJobWorker(TargetResName.K8S_DATAX_INSTANCE_NAME,
-        Optional.of(K8SWorkerCptType.Worker));
+        Optional.of(K8SWorkerCptType.DataXWorker));
+      //      DataXJobWorker pjWorker = DataXJobWorker.getJobWorker(TargetResName.K8S_DATAX_INSTANCE_NAME,
+      //        Optional.of(K8SWorkerCptType.Worker));
       dataXWorker.put("powderJobServerRCSpec",
         IncrUtils.serializeSpec(IncrSpecResult.create(pjServer.getReplicasSpec(), pjServer.getHpa())));
-      dataXWorker.put("powderJobWorkerRCSpec",
-        IncrUtils.serializeSpec(IncrSpecResult.create(pjWorker.getReplicasSpec(), pjWorker.getHpa())));
+      //      dataXWorker.put("powderJobWorkerRCSpec",
+      //        IncrUtils.serializeSpec(IncrSpecResult.create(pjWorker.getReplicasSpec(), pjWorker.getHpa())));
     }
 
 
@@ -558,7 +559,7 @@ public class DataxAction extends BasicModule {
       this.launchDataxWorker(context, httpResponseWriter, dataxJobWorker,
         DataXJobWorker.getOrchestrate(dataxJobWorker));
     } else {
-      throw new NotImplementedException("to do for " + K8SWorkerCptType.UsingExistCluster + ",worker:" + dataxJobWorker.getClass().getName());
+      throw new NotImplementedException("worker:" + dataxJobWorker.getClass().getName());
     }
   }
 
@@ -623,11 +624,11 @@ public class DataxAction extends BasicModule {
 
     PluginDescMeta pluginDescMeta = new PluginDescMeta(DataXJobWorker.getDesc(targetName));
 
-    boolean addJobTplOverwritePlugin = this.getBoolean("addJobTplOverwritePlugin");
-    if (addJobTplOverwritePlugin) {
-      pluginDescMeta.addTypedPlugins(DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite,
-        HeteroEnum.appJobWorkerTplReWriter.getPlugins(this, null));
-    }
+//    boolean addJobTplOverwritePlugin = this.getBoolean("addJobTplOverwritePlugin");
+//    if (addJobTplOverwritePlugin) {
+//      pluginDescMeta.addTypedPlugins(DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite,
+//        HeteroEnum.appJobWorkerTplReWriter.getPlugins(this, null));
+//    }
 
     this.setBizResult(context, pluginDescMeta);
   }

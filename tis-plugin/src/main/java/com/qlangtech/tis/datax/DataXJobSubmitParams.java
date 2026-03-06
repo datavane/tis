@@ -47,27 +47,36 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
     private static final String LOCAL_DATAX_SUBMIT_PARAMS = "DataXSubmitParams";
     private static final String FIELD_NAME = "name";
 
+    public static final int DEFAULT_MAX_INSTANCES_PER_NODE = 5;
+    public static final int DEFAULT_MAX_TOTAL_INSTANCES = 100;
+
     @FormField(ordinal = 0, identity = true, type = FormFieldType.INPUTTEXT, validate = {Validator.require,
             Validator.identity})
     public String name;
 
-//    /**
-//     * 一个数据管道中最多的任务
-//     */
-//    @FormField(ordinal = 1, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
-//    public Integer maxJobs;
+    //    /**
+    //     * 一个数据管道中最多的任务
+    //     */
+    //    @FormField(ordinal = 1, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
+    //    public Integer maxJobs;
 
     /**
      * 单个管道中的并行度,需要满足： pipelineParallelism <= vmParallelism
      */
     @FormField(ordinal = 2, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
     public Integer pipelineParallelism;
+//    /**
+//     * 单机VM中的任务并行度
+//     */
+//    @FormField(ordinal = 3, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
+//    public Integer vmParallelism;
     /**
-     * 单机VM中的任务并行度
+     * Maximum number of TaskWorkerActor instances (routees) on each cluster node.
+     * Each instance processes one task at a time, so this value controls
+     * the maximum concurrent task count per node.
      */
     @FormField(ordinal = 3, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
-    public Integer vmParallelism;
-
+    public Integer maxInstancesPerNode;
     /**
      * 最大执行任务时间，如果超过需要主动将任务关闭甚至Kill掉
      */
@@ -76,6 +85,45 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
 
     @FormField(ordinal = 5, validate = {Validator.require})
     public MemorySpecification memorySpec;
+
+
+    /**
+     * Whether to fork a separate JVM process for each subtask execution.
+     * When enabled, subtasks will be launched via {@code Runtime.exec("java -classpath ...")}
+     * running in an isolated JVM process with independent memory space and classloader.
+     * When disabled, subtasks run as threads within the current JVM.
+     */
+    @FormField(ordinal = 6, advance = true, type = FormFieldType.ENUM, validate = {Validator.require})
+    public Boolean forkJvm;
+
+
+
+    /**
+     * Maximum total number of TaskWorkerActor instances across the entire cluster.
+     * ClusterRouterPool will not create more routees than this total limit.
+     */
+    @FormField(ordinal = 8, advance = true, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
+    public Integer maxTotalNrOfInstances;
+
+    /**
+     * 取得批量任务提交器
+     *
+     * @param dryRun
+     * @return
+     */
+    public DataXJobSubmit getTaskSubmit(boolean dryRun) {
+        DataXJobSubmit.InstanceType instanceType = (forkJvm) //
+                ? DataXJobSubmit.InstanceType.LOCAL //
+                : DataXJobSubmit.InstanceType.EMBEDDED;
+
+        Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(dryRun, instanceType);
+        if (dataXJobSubmit.isEmpty()) {
+            throw new IllegalStateException("dataXJobSubmit must be present ,instanceType:" + instanceType + "," +
+                    "isDryRun:" + dryRun);
+        }
+        return dataXJobSubmit.get();
+    }
+
 
     public Duration getTaskExpireHours() {
         return taskExpireHours;
@@ -99,7 +147,7 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
 
     private ArrayBlockingQueue<Long> getAvailableAreaController() {
         if (availableAreaController == null) {
-            availableAreaController = new ArrayBlockingQueue<>(this.vmParallelism);
+            availableAreaController = new ArrayBlockingQueue<>(this.maxInstancesPerNode);
         }
         return availableAreaController;
     }
@@ -121,8 +169,7 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
             }
         } else {
             // 等待提交任务超时
-            throw new DataXJobSingleProcessorException("dataX:" + dataxName + ",job submit timeout,wait " + "for 1 "
-                    + "hours");
+            throw new DataXJobSingleProcessorException("dataX:" + dataxName + ",job submit timeout,wait " + "for 1 " + "hours");
         }
     }
 
@@ -142,11 +189,14 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
             DataXJobSubmitParams dft = new DataXJobSubmitParams() {
             };
             dft.name = "default";
-           // dft.maxJobs = DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB;
-            dft.vmParallelism = DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
+            // dft.maxJobs = DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB;
+          //  dft.vmParallelism = DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
             dft.pipelineParallelism = DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
             dft.memorySpec = new DefaultMemorySpecification();
             dft.taskExpireHours = Duration.ofHours(10);
+            dft.forkJvm = true;
+            dft.maxInstancesPerNode = DEFAULT_MAX_INSTANCES_PER_NODE;
+            dft.maxTotalNrOfInstances = DEFAULT_MAX_TOTAL_INSTANCES;
             //            dft.memoryLimit = MEMORY_REQUEST_DEFAULT;
             //            dft.memoryRequest = MEMORY_REQUEST_DEFAULT;
             return dft;
@@ -194,7 +244,9 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
         }
 
         private static final String FIELD_PIPELINE_PARALLELISM = "pipelineParallelism";
-        private static final String FIELD_VM_PARALLELISM = "vmParallelism";
+       // private static final String FIELD_VM_PARALLELISM = "maxInstancesPerNode";
+        private static final String FIELD_MAX_INSTANCES_PER_NODE = "maxInstancesPerNode";
+        private static final String FIELD_MAX_TOTAL_NR_OF_INSTANCES = "maxTotalNrOfInstances";
 
 
         public boolean validateTaskExpireHours(IFieldErrorHandler msgHandler, Context context, String fieldName,
@@ -225,10 +277,11 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
             }
             boolean validateFaild = false;
 
-//            if (submitParams.maxJobs < DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB) {
-//                msgHandler.addFieldError(context, "maxJobs", "不能小于" + DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB);
-//                validateFaild = true;
-//            }
+            //            if (submitParams.maxJobs < DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB) {
+            //                msgHandler.addFieldError(context, "maxJobs", "不能小于" + DataXJobSubmit
+            //                .MAX_TABS_NUM_IN_PER_JOB);
+            //                validateFaild = true;
+            //            }
             //            if (submitParams.memoryLimit < MemorySpecification.MEMORY_REQUEST_DEFAULT) {
             //                msgHandler.addFieldError(context, MemorySpecification.FIELD_MEMORY_LIMIT, "不能小于" +
             //                MemorySpecification.MEMORY_REQUEST_DEFAULT);
@@ -253,15 +306,34 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
                 validateFaild = true;
             }
 
-            if (submitParams.vmParallelism < DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM) {
-                msgHandler.addFieldError(context, FIELD_VM_PARALLELISM,
+            if (submitParams.maxInstancesPerNode < DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM) {
+                msgHandler.addFieldError(context, FIELD_MAX_INSTANCES_PER_NODE,
                         "不能小于" + DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM);
                 validateFaild = true;
             }
 
-            if (!validateFaild && (submitParams.pipelineParallelism > submitParams.vmParallelism)) {
-                msgHandler.addFieldError(context, FIELD_PIPELINE_PARALLELISM, "不能大于" + submitParams.vmParallelism);
-                msgHandler.addFieldError(context, FIELD_VM_PARALLELISM, "不能小于" + submitParams.pipelineParallelism);
+//            if (!validateFaild && (submitParams.pipelineParallelism > submitParams.maxInstancesPerNode)) {
+//                msgHandler.addFieldError(context, FIELD_PIPELINE_PARALLELISM, "不能大于" + submitParams.maxInstancesPerNode);
+//                msgHandler.addFieldError(context, FIELD_MAX_INSTANCES_PER_NODE, "不能小于" + submitParams.pipelineParallelism);
+//                validateFaild = true;
+//            }
+
+            //maxInstancesPerNode / maxTotalNrOfInstances ====================================
+//            if (submitParams.maxInstancesPerNode < 1) {
+//                msgHandler.addFieldError(context, FIELD_MAX_INSTANCES_PER_NODE, "不能小于1");
+//                validateFaild = true;
+//            }
+
+            if (submitParams.maxTotalNrOfInstances < 1) {
+                msgHandler.addFieldError(context, FIELD_MAX_TOTAL_NR_OF_INSTANCES, "不能小于1");
+                validateFaild = true;
+            }
+
+            if (!validateFaild && (submitParams.maxTotalNrOfInstances < submitParams.maxInstancesPerNode)) {
+                msgHandler.addFieldError(context, FIELD_MAX_TOTAL_NR_OF_INSTANCES,
+                        "不能小于" + submitParams.maxInstancesPerNode);
+                msgHandler.addFieldError(context, FIELD_MAX_INSTANCES_PER_NODE,
+                        "不能大于" + submitParams.maxTotalNrOfInstances);
                 validateFaild = true;
             }
 

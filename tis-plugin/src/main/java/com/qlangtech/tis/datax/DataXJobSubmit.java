@@ -65,6 +65,7 @@ import java.util.function.Function;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-04-27 17:03
+ * @see  DataXJobSubmitParams
  **/
 @TISExtensible
 @Public
@@ -247,7 +248,7 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
         //        msg.setJobId(taskContext.getTaskId());
         msg.setJobName(dataXJobInfo.serialize());
         msg.setExecEpochMilli(taskContext.getPartitionTimestampWithMillis());
-        //        msg.setResType(processor.getResType());
+        msg.setResType(processor.getResType());
 
         if (jobContext.getSpecifiedLocalLoggerPath() != null) {
             // msg.setLocalLoggerPath(jobContext.getSpecifiedLocalLoggerPath().getAbsolutePath());

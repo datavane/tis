@@ -96,11 +96,12 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
     }
 
     public enum K8SWorkerCptType {
-        Server("powerjob-server", null), Worker("powerjob-worker"), JobTpl("powerjob-job-tpl"),
+        DataXWorker("dataX-worker", null)
+        //, Worker("powerjob-worker"), JobTpl("powerjob-job-tpl"),
         // 具体app中可以覆写默认JobTpl中指定的参数值，并且还能定时任务表达式
-        JobTplAppOverwrite("powerjob-job-tpl-app-overwrite") //
-        , UsingExistCluster("powerjob-use-exist-cluster", null),
-        FlinkCluster("flink-cluster", null),
+        //JobTplAppOverwrite("powerjob-job-tpl-app-overwrite") //
+        //, UsingExistCluster("powerjob-use-exist-cluster", null),
+        ,FlinkCluster("flink-cluster", null),
         FlinkKubernetesApplicationCfg("flink-kubernetes-application-cfg"),
         K8SPods("k8s-pods");
         public final String token;
@@ -152,11 +153,11 @@ public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
 //        return getJobWorker(K8S_FLINK_CLUSTER_NAME, Optional.empty());
 //    }
 
-    public static <K8SDataXPowerJobWorker extends DataXJobWorker> K8SDataXPowerJobWorker getK8SDataXPowerJobWorker() {
-        return (K8SDataXPowerJobWorker)
-                DataXJobWorker.getJobWorker(TargetResName.K8S_DATAX_INSTANCE_NAME
-                        , Optional.of(DataXJobWorker.K8SWorkerCptType.Worker));
-    }
+//    public static <K8SDataXPowerJobWorker extends DataXJobWorker> K8SDataXPowerJobWorker getK8SDataXPowerJobWorker() {
+//        return (K8SDataXPowerJobWorker)
+//                DataXJobWorker.getJobWorker(TargetResName.K8S_DATAX_INSTANCE_NAME
+//                        , Optional.of(DataXJobWorker.K8SWorkerCptType.Worker));
+//    }
 
     public static DataXJobWorker getJobWorker(TargetResName resName) {
         Optional<ServerLaunchToken> token = getLaunchToken(resName);

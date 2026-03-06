@@ -22,5 +22,19 @@
     "label": "任务超时时间",
     "help": "执行单个DataX 表任务执行超时时间。超过设置的超时时间，TIS会主动将任务关闭。单位：小时",
     "dftVal": 10
+  },
+  "forkJvm": {
+    "label": "ForkJvm",
+    "dftVal": true
+  },
+  "maxInstancesPerNode": {
+    "label": "单节点最大Worker数",
+    "help": "Akka集群中每个节点最多创建的TaskWorker实例数。每个实例同一时刻处理一个任务，此值控制单节点最大并发任务数",
+    "dftVal": "com.qlangtech.tis.datax.DataXJobSubmitParams.DEFAULT_MAX_INSTANCES_PER_NODE"
+  },
+  "maxTotalNrOfInstances": {
+    "label": "集群最大Worker总数",
+    "help": "Akka集群中所有节点的TaskWorker实例总数上限。ClusterRouterPool不会创建超过此总数的Worker实例",
+    "dftVal": "com.qlangtech.tis.datax.DataXJobSubmitParams.DEFAULT_MAX_TOTAL_INSTANCES"
   }
 }

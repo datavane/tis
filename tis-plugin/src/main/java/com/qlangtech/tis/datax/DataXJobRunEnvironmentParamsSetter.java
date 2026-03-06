@@ -55,7 +55,7 @@ public interface DataXJobRunEnvironmentParamsSetter {
 
     public void setClasspath(String classpath);
 
-    public void setWorkingDirectory(File workingDirectory);
+  //  public void setWorkingDirectory(File workingDirectory);
 
     public void setExtraJavaSystemPramsSuppiler(ExtraJavaSystemPramsSuppiler extraJavaSystemPramsSuppiler);
 
