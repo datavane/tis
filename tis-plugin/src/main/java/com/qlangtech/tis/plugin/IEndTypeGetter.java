@@ -141,7 +141,8 @@ public interface IEndTypeGetter {
         , Spark("spark", EndTypeCategory.Data, true, Optional.of("Apache统一分析引擎，官网：https://spark.apache.org/")) //
         , RabbitMQ("rabbitmq", EndTypeCategory.Data, true, Optional.of("Erlang消息队列，官网：https://www.rabbitmq.com/")) //
 
-
+        , HDFS("hdfs", EndTypeCategory.Assist, true) //
+        , AmazonS3("s3", EndTypeCategory.Assist, true) //
         , PowerJob("powerjob", EndTypeCategory.Assist, true) //
         , Flink("flink", EndTypeCategory.Assist, true)//
         , RateController("rate-controller", EndTypeCategory.Assist, true)//

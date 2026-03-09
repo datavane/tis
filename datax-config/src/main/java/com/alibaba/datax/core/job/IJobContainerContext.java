@@ -12,5 +12,10 @@ import java.util.Optional;
 public interface IJobContainerContext extends IDataXTaskRelevant, IDataXNameAware, ISourceTable {
     <T extends ITransformerBuildInfo> Optional<T> getTransformerBuildCfg();
 
-
+    /**
+     * 当前运行的任务task id
+     *
+     * @return
+     */
+    public Integer getTaskId();
 }
