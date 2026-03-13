@@ -26,6 +26,8 @@ import com.qlangtech.tis.plugin.datax.common.AutoCreateTable;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.IInitWriterTableExecutor;
+import com.qlangtech.tis.plugin.ds.ISelectedTab;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
 import java.util.Map;
 import java.util.Optional;
@@ -35,6 +37,10 @@ import java.util.Optional;
  * @date 2021-04-07 14:36
  */
 public interface IDataxWriter extends IDataXPluginMeta, IRepositoryResourceScannable {
+
+    default EntityName parseEntity(ISelectedTab tab) {
+        return EntityName.parse(tab.getName());
+    }
 
     public static IPartionableWarehouse getPartionableWarehouse(IDataxWriter writer) {
         if (!(writer instanceof IPartionableWarehouse)) {

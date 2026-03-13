@@ -26,6 +26,7 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 
 import java.io.File;
+import java.util.function.BiConsumer;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -34,8 +35,12 @@ import java.io.File;
 @Public
 public abstract class FileSystemFactory implements Describable<FileSystemFactory>, ITISFileSystemFactory, IdentityName {
 
-    public abstract <Configuration> Configuration getConfiguration();
+    public abstract <Configuration extends IReplayConfiguration> Configuration getConfiguration();
 
+
+    public interface IReplayConfiguration {
+        public void replay(BiConsumer<String, String> consumer);
+    }
 
     /**
      * 需要向本地默认的 配置文件夹中方式hdfs-site.xml配置文件

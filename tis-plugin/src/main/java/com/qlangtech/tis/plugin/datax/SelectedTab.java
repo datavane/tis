@@ -154,6 +154,15 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     @FormField(ordinal = 200, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
     public List<CMeta> cols = Lists.newArrayList();
 
+    /**
+     * 取得表的分区键集合
+     *
+     * @return
+     */
+    public Optional<List<String>> getPartitionKeys() {
+        return Optional.empty();
+    }
+
     @Override
     public List<IColMetaGetter> overwriteCols(IMessageHandler pluginCtx, boolean includeContextParams) {
         IPluginContext context = (IPluginContext) pluginCtx;
@@ -189,8 +198,6 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     public List<String> getPrimaryKeys() {
         return this.primaryKeys;
     }
-
-
 
 
     public List<String> getColKeys() {

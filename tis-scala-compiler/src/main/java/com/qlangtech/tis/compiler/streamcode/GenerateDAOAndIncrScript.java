@@ -27,7 +27,6 @@ import com.qlangtech.tis.compiler.java.JavaCompilerProcess;
 import com.qlangtech.tis.coredefine.module.action.IbatorProperties;
 import com.qlangtech.tis.coredefine.module.action.IndexIncrStatus;
 import com.qlangtech.tis.datax.DataXName;
-import com.qlangtech.tis.datax.job.JobOrchestrateException;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.offline.DbScope;
