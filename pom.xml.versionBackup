@@ -44,7 +44,7 @@
 
 
     <properties>
-        <revision>5.0.0-SNAPSHOT</revision>
+        <revision>5.0.0</revision>
         <testcontainers.version>1.15.3</testcontainers.version>
         <flink.version>tis-1.20.1</flink.version>
         <alibaba.datax.version>${project.version}</alibaba.datax.version>
@@ -322,11 +322,11 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.jenkins-ci</groupId>
-                <artifactId>task-reactor</artifactId>
-                <version>1.5</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>org.jenkins-ci</groupId>-->
+<!--                <artifactId>task-reactor</artifactId>-->
+<!--                <version>1.5</version>-->
+<!--            </dependency>-->
 
 
             <dependency>
