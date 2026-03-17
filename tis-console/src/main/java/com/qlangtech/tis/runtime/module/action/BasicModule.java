@@ -705,9 +705,9 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     app.setIsAutoDeploy(true);
     if (!justValidate) {
       result = AddAppAction.createApplication(app, context, this, afterAppCreate);
-      DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
-        submit.createJob(this, context, dataxProcessor);
-      });
+//      DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
+//        submit.createJob(this, context, dataxProcessor);
+//      });
 
       addActionMessage(context, "已经成功创建实例[" + app.getProjectName() + "]");
     }

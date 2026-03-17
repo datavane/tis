@@ -79,8 +79,7 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
 
     public static void main(String[] args) throws Exception {
         Enumeration<URL> resources =
-                Thread.currentThread().getContextClassLoader().getResources("com/google/common" + "/base" +
-                        "/Preconditions.class");
+                Thread.currentThread().getContextClassLoader().getResources("com/google/common/base/Preconditions.class");
         while (resources.hasMoreElements()) {
             System.out.println(resources.nextElement());
         }
@@ -98,15 +97,15 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
         return jobSubmit;
     }
 
-    public static Optional<IDataXPowerJobSubmit> getPowerJobSubmit() {
-        DataXJobSubmit dataXJobSubmit = getDataXJobSubmit();
-        logger.info("get dataXJobSubmit instanceof :" + dataXJobSubmit.getClass().getName() + ",triggerType:" + DataXJobSubmit.getDataXTriggerType());
-
-        if (dataXJobSubmit instanceof IDataXPowerJobSubmit) {
-            return Optional.of((IDataXPowerJobSubmit) dataXJobSubmit);
-        }
-        return Optional.empty();
-    }
+//    public static Optional<IDataXPowerJobSubmit> getPowerJobSubmit() {
+//        DataXJobSubmit dataXJobSubmit = getDataXJobSubmit();
+//        logger.info("get dataXJobSubmit instanceof :" + dataXJobSubmit.getClass().getName() + ",triggerType:" + DataXJobSubmit.getDataXTriggerType());
+//
+//        if (dataXJobSubmit instanceof IDataXPowerJobSubmit) {
+//            return Optional.of((IDataXPowerJobSubmit) dataXJobSubmit);
+//        }
+//        return Optional.empty();
+//    }
 
 
     public static Optional<DataXJobSubmit> getDataXJobSubmit(boolean dryRun,

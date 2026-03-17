@@ -968,9 +968,9 @@ public class OfflineDatasourceAction extends BasicModule {
       DataxAction.generateDataXCfgs(
         pluginContext, context, StoreResourceType.DataFlow, topology.getName(), false);
 
-      DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
-        submit.createWorkflowJob((IControlMsgHandler) pluginContext, context, topology);
-      });
+//      DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
+//        submit.createWorkflowJob((IControlMsgHandler) pluginContext, context, topology);
+//      });
 
     }
 

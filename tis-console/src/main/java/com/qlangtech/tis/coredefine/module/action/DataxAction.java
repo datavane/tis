@@ -26,7 +26,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.coredefine.module.action.IncrUtils.IncrSpecResult;
@@ -34,7 +33,6 @@ import com.qlangtech.tis.datax.DataXCfgFile;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.DataXJobSubmit.InstanceType;
 import com.qlangtech.tis.datax.DataXName;
-import com.qlangtech.tis.datax.IDataXPowerJobSubmit;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IDataxReaderContext;
@@ -84,7 +82,6 @@ import com.qlangtech.tis.manage.common.incr.StreamContextConstant;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.plugin.IPluginTaggable;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
@@ -92,17 +89,14 @@ import com.qlangtech.tis.plugin.annotation.IFieldValidator;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
-import com.qlangtech.tis.plugin.datax.transformer.OutputParameter;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta;
 import com.qlangtech.tis.plugin.ds.DataTypeMeta.IMultiItemsView;
-import com.qlangtech.tis.plugin.ds.DefaultTab;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.ds.IdlistElementCreatorFactory;
 import com.qlangtech.tis.plugin.trigger.JobTrigger;
-import com.qlangtech.tis.realtime.yarn.rpc.SynResTarget;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.action.CreateIndexConfirmModel;
 import com.qlangtech.tis.runtime.module.action.SchemaAction;
@@ -125,7 +119,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.convention.annotation.InterceptorRef;
 import org.apache.struts2.convention.annotation.InterceptorRefs;
@@ -160,33 +153,33 @@ public class DataxAction extends BasicModule {
   private static final Logger logger = LoggerFactory.getLogger(DataxAction.class);
   private static final String PARAM_KEY_DATAX_NAME = StoreResourceType.DATAX_NAME;
 
-  @Func(value = PermissionConstant.DATAX_MANAGE)
-  public void doDeletePowerJobWorkflow(Context context) throws Exception {
-    Long pjWorkflowId = this.getLong("id");
-    Optional<IDataXPowerJobSubmit> powerJobSubmit = DataXJobSubmit.getPowerJobSubmit();
-    IDataXPowerJobSubmit jobSubmit = powerJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must "
-      + "be present"));
-    jobSubmit.deleteWorkflow(this, context, pjWorkflowId);
-  }
+//  @Func(value = PermissionConstant.DATAX_MANAGE)
+//  public void doDeletePowerJobWorkflow(Context context) throws Exception {
+//    Long pjWorkflowId = this.getLong("id");
+//    Optional<IDataXPowerJobSubmit> powerJobSubmit = DataXJobSubmit.getPowerJobSubmit();
+//    IDataXPowerJobSubmit jobSubmit = powerJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must "
+//      + "be present"));
+//    jobSubmit.deleteWorkflow(this, context, pjWorkflowId);
+//  }
 
-  @Func(value = PermissionConstant.DATAX_MANAGE)
-  public void doGetAllPowerjobWorkflowRecord(Context context) throws Exception {
-
-    // Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit
-    // .getDataXTriggerType());
-
-    Optional<IDataXPowerJobSubmit> powerJobSubmit = DataXJobSubmit.getPowerJobSubmit();
-
-    IDataXPowerJobSubmit jobSubmit = powerJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must "
-      + "be present"));
-    Map<String, Object> criteria = Maps.newHashMap();
-
-    Pager pager = createPager();
-    Pair<Integer, List<Object>> workflows = jobSubmit.fetchAllInstance(criteria, pager.getCurPage(),
-      pager.getRowsPerPage());
-    pager.setTotalCount(workflows.getKey());
-    this.setBizResult(context, new PaginationResult(pager, workflows.getRight()));
-  }
+//  @Func(value = PermissionConstant.DATAX_MANAGE)
+//  public void doGetAllPowerjobWorkflowRecord(Context context) throws Exception {
+//
+//    // Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit
+//    // .getDataXTriggerType());
+//
+//    Optional<IDataXPowerJobSubmit> powerJobSubmit = DataXJobSubmit.getPowerJobSubmit();
+//
+//    IDataXPowerJobSubmit jobSubmit = powerJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must "
+//      + "be present"));
+//    Map<String, Object> criteria = Maps.newHashMap();
+//
+//    Pager pager = createPager();
+//    Pair<Integer, List<Object>> workflows = jobSubmit.fetchAllInstance(criteria, pager.getCurPage(),
+//      pager.getRowsPerPage());
+//    pager.setTotalCount(workflows.getKey());
+//    this.setBizResult(context, new PaginationResult(pager, workflows.getRight()));
+//  }
 
   /**
    * trigger_fullbuild_task
@@ -1114,26 +1107,26 @@ public class DataxAction extends BasicModule {
   private static final Pattern PatternEdittingDirSuffix =
     Pattern.compile("\\-[\\da-z]{8}\\-[\\da-z]{4}\\-[\\da-z]{4" + "}\\-[\\da-z]{4}\\-[\\da-z]{12}");
 
-  /**
-   * 更新Powerjob worker与应用绑定,更新Crontab
-   *
-   * @param context
-   * @throws Exception
-   */
-  @Func(value = PermissionConstant.DATAX_MANAGE)
-  public void doUpdatePowerJob(Context context) throws Exception {
-
-    Optional<IDataXPowerJobSubmit> dataXJobSubmit //
-      = DataXJobSubmit.getPowerJobSubmit();
-
-    IDataXPowerJobSubmit jobSubmit = dataXJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must "
-      + "be present"));
-
-    DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(null, StoreResourceType.DataApp,
-      this.getAppDomain().getAppName());
-    // 这里可以在pwoerjob 中创建workflow任务
-    this.setBizResult(context, jobSubmit.saveJob(this, context, dataxProcessor));
-  }
+//  /**
+//   * 更新Powerjob worker与应用绑定,更新Crontab
+//   *
+//   * @param context
+//   * @throws Exception
+//   */
+//  @Func(value = PermissionConstant.DATAX_MANAGE)
+//  public void doUpdatePowerJob(Context context) throws Exception {
+//
+//    Optional<IDataXPowerJobSubmit> dataXJobSubmit //
+//      = DataXJobSubmit.getPowerJobSubmit();
+//
+//    IDataXPowerJobSubmit jobSubmit = dataXJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must "
+//      + "be present"));
+//
+//    DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(null, StoreResourceType.DataApp,
+//      this.getAppDomain().getAppName());
+//    // 这里可以在pwoerjob 中创建workflow任务
+//    this.setBizResult(context, jobSubmit.saveJob(this, context, dataxProcessor));
+//  }
 
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
@@ -1180,9 +1173,9 @@ public class DataxAction extends BasicModule {
     SelectedTabExtend.clearTabExtend(null, dataxName.getPipelineName());
     SelectedTabExtend.clearTabExtend(this, dataxName.getPipelineName());
 
-    DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
-      submit.saveJob(this, context, old);
-    });
+//    DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
+//      submit.saveJob(this, context, old);
+//    });
 
 
     this.addActionMessage(context, "已经成功更新");
