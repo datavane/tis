@@ -18,18 +18,16 @@
 
 package com.qlangtech.tis.exec;
 
+import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
-import com.qlangtech.tis.powerjob.TriggersConfig;
 import junit.framework.TestCase;
 
 import java.util.Optional;
 import java.util.function.Consumer;
-
-import com.alibaba.fastjson.JSONObject;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -49,7 +47,7 @@ public class TestAbstractExecContext extends TestCase {
 //        PluginAndCfgsSnapshot > cfgsSnapshotConsumer
         String pipeline = "test";
         StoreResourceType resourceType = StoreResourceType.DataApp;
-        TriggersConfig triggerCfg = new TriggersConfig("test", resourceType);
+        //TriggersConfig triggerCfg = new TriggersConfig("test", resourceType);
         DataxProcessor.processorGetter = (name) -> {
             return null;
         };
@@ -67,7 +65,7 @@ public class TestAbstractExecContext extends TestCase {
         };
 
         AbstractExecContext.deserializeInstanceParams(
-                triggerCfg, instanceParams, resolveCfgsSnapshotConsumer, execChainContextConsumer, cfgsSnapshotConsumer);
+                 instanceParams, resolveCfgsSnapshotConsumer, execChainContextConsumer, cfgsSnapshotConsumer);
     }
 
 }

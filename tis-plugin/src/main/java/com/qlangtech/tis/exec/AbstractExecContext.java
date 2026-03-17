@@ -22,33 +22,19 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.datax.IDataxProcessor;
-import com.qlangtech.tis.exec.impl.DataXPipelineExecContext;
-import com.qlangtech.tis.exec.impl.WorkflowExecContext;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.fs.ITISFileSystem;
-import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.fullbuild.indexbuild.IDumpTable;
 import com.qlangtech.tis.fullbuild.indexbuild.ITabPartition;
 import com.qlangtech.tis.fullbuild.indexbuild.RemoteTaskTriggers;
-import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.job.common.JobCommon;
-import com.qlangtech.tis.job.common.JobParams;
-import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.order.center.IAppSourcePipelineController;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
-import com.qlangtech.tis.plugin.PluginAndCfgsSnapshotUtils;
-import com.qlangtech.tis.datax.StoreResourceType;
-import com.qlangtech.tis.powerjob.TriggersConfig;
 import com.qlangtech.tis.sql.parser.TabPartitions;
-import com.qlangtech.tis.trigger.util.JsonUtil;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.StringUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -62,7 +48,7 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
     private ITISCoordinator coordinator;
     private ExecutePhaseRange executePhaseRange;
     private boolean dryRun;
-   // private PhaseStatusCollection latestPhaseStatusCollection;
+    // private PhaseStatusCollection latestPhaseStatusCollection;
     // private StoreResourceType resType;
     private File specifiedLocalLoggerPath;
     /**
@@ -72,7 +58,9 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
 
     private final long ps;
 
-    public static void deserializeInstanceParams(TriggersConfig triggerCfg, JSONObject instanceParams, boolean resolveCfgsSnapshotConsumer, Consumer<AbstractExecContext> execChainContextConsumer, Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
+    public static void deserializeInstanceParams(JSONObject instanceParams, boolean resolveCfgsSnapshotConsumer,
+                                                 Consumer<AbstractExecContext> execChainContextConsumer,
+                                                 Consumer<PluginAndCfgsSnapshot> cfgsSnapshotConsumer) {
     }
 
     @Override
@@ -90,7 +78,8 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
      * @return
      * @see IExecChainContext#createInstanceParams Params set in this method
      */
-    public static PluginAndCfgsSnapshot resolveCfgsSnapshotConsumer(StoreResourceType resourceType, JSONObject instanceParams) {
+    public static PluginAndCfgsSnapshot resolveCfgsSnapshotConsumer(StoreResourceType resourceType,
+                                                                    JSONObject instanceParams) {
         return null;
     }
 
@@ -169,7 +158,6 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
     }
 
 
-
     @Override
     public ExecutePhaseRange getExecutePhaseRange() {
         return this.executePhaseRange;
@@ -229,14 +217,14 @@ public abstract class AbstractExecContext implements IExecChainContext, Identity
         return taskId;
     }
 
-//    public void setLatestPhaseStatusCollection(PhaseStatusCollection latestPhaseStatusCollection) {
-//        this.latestPhaseStatusCollection = latestPhaseStatusCollection;
-//    }
-//
-//    @Override
-//    public PhaseStatusCollection loadPhaseStatusFromLatest() {
-//        return this.latestPhaseStatusCollection;
-//    }
+    //    public void setLatestPhaseStatusCollection(PhaseStatusCollection latestPhaseStatusCollection) {
+    //        this.latestPhaseStatusCollection = latestPhaseStatusCollection;
+    //    }
+    //
+    //    @Override
+    //    public PhaseStatusCollection loadPhaseStatusFromLatest() {
+    //        return this.latestPhaseStatusCollection;
+    //    }
 
 
     @Override
