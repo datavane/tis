@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.ServletRequest;
+import jakarta.servlet.ServletRequest;
 
 /**
  * 因为要做到能够在页面（jsp）和action（webwork或者Struts2）<br>

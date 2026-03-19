@@ -17,10 +17,10 @@
  */
 package com.qlangtech.tis.manage.common;
 
-import com.opensymphony.xwork2.ActionChainResult;
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.inject.Container;
-import com.opensymphony.xwork2.inject.Inject;
+import org.apache.struts2.result.ActionChainResult;
+import org.apache.struts2.ActionInvocation;
+import org.apache.struts2.inject.Container;
+import org.apache.struts2.inject.Inject;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
@@ -31,7 +31,7 @@ import org.apache.struts2.dispatcher.mapper.ActionMapping;
 import org.apache.struts2.dispatcher.mapper.DefaultActionMapper;
 import org.apache.struts2.result.StrutsResultSupport;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.regex.Pattern;
 
 /**

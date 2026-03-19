@@ -17,12 +17,12 @@
  */
 package com.qlangtech.tis.manage.common.valve;
 
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
+import org.apache.struts2.ActionInvocation;
+import org.apache.struts2.interceptor.MethodFilterInterceptor;
 import com.qlangtech.tis.manage.spring.aop.AuthorityCheckAdvice;
 import org.apache.struts2.ServletActionContext;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

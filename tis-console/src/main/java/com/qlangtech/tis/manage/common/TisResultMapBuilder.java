@@ -23,9 +23,9 @@ import java.util.regex.Matcher;
 import org.apache.struts2.convention.ResultMapBuilder;
 import org.apache.struts2.convention.annotation.Action;
 import org.springframework.util.StringUtils;
-import com.opensymphony.xwork2.ActionChainResult;
-import com.opensymphony.xwork2.config.entities.PackageConfig;
-import com.opensymphony.xwork2.config.entities.ResultConfig;
+import org.apache.struts2.result.ActionChainResult;
+import org.apache.struts2.config.entities.PackageConfig;
+import org.apache.struts2.config.entities.ResultConfig;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 

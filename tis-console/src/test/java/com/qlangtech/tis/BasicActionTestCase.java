@@ -18,7 +18,7 @@
 package com.qlangtech.tis;
 
 import com.alibaba.fastjson.JSONObject;
-import com.opensymphony.xwork2.ActionProxy;
+
 import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.manage.common.*;
@@ -28,6 +28,7 @@ import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.test.TISEasyMock;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.struts2.ActionProxy;
 import org.apache.struts2.junit.StrutsSpringTestCase;
 
 import java.io.IOException;

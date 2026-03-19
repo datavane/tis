@@ -18,16 +18,16 @@
 package com.qlangtech.tis.manage.common;
 
 import java.io.OutputStreamWriter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.components.ActionComponent;
 import org.apache.struts2.dispatcher.Dispatcher;
 import org.apache.struts2.dispatcher.mapper.ActionMapping;
 import org.apache.struts2.dispatcher.mapper.DefaultActionMapper;
-import com.opensymphony.xwork2.inject.Container;
-import com.opensymphony.xwork2.util.ValueStack;
+import org.apache.struts2.inject.Container;
+import org.apache.struts2.util.ValueStack;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

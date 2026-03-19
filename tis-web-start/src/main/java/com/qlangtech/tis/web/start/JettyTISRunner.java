@@ -20,25 +20,26 @@ package com.qlangtech.tis.web.start;
 import com.qlangtech.tis.health.check.IStatusChecker;
 import com.qlangtech.tis.health.check.StatusLevel;
 import com.qlangtech.tis.health.check.StatusModel;
+import org.eclipse.jetty.ee11.servlet.FilterHolder;
+import org.eclipse.jetty.ee11.webapp.WebAppContext;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.NetworkTrafficServerConnector;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -46,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -55,10 +57,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class JettyTISRunner {
 
     private Server server;
-    public static boolean enableJndi = true;
 
-    // FilterHolder dispatchFilter;
-    // String context;
     private static JettyTISRunner jetty;
 
     private static final Logger logger = LoggerFactory.getLogger(JettyTISRunner.class);
@@ -85,8 +84,6 @@ public class JettyTISRunner {
 
     /**
      * 关闭jetty
-     *
-     * @throws Exception
      */
     public static void stopJetty() throws Exception {
         if (jetty == null) {
@@ -100,16 +97,7 @@ public class JettyTISRunner {
 
     private final IWebAppContextSetter contextSetter;
 
-    private HandlerList handlers = new HandlerList() {
-        @Override
-        public void addHandler(Handler handler) {
-            if (handler instanceof WebAppContext) {
-                contextSetter.process((WebAppContext) handler);
-            }
-            super.addHandler(handler);
-            contextAddCount.incrementAndGet();
-        }
-    };
+    private final List<Handler> handlerList = new CopyOnWriteArrayList<>();
 
     private final AtomicInteger contextAddCount = new AtomicInteger();
     private List<IWebAppContextCollector> webAppContextCollector;
@@ -126,7 +114,7 @@ public class JettyTISRunner {
     }
 
     public void addContext(IWebAppContextCollector webAppContextCollector) throws IOException {
-        webAppContextCollector.launchContext(this.getHandlers());
+        webAppContextCollector.launchContext(this);
         if (this.webAppContextCollector != null) {
             throw new IllegalStateException("webAppContextCollector shall not be set twice");
         }
@@ -139,35 +127,35 @@ public class JettyTISRunner {
         this.contextSetter = contextSetter;
     }
 
-    public final HandlerCollection getHandlers() {
-        return this.handlers;
-    }
-
     /**
      * 启动子应用
-     *
-     * @param contextDir
-     * @throws Exception
      */
     public void addContext(File contextDir) throws Exception {
         this.addContext("/" + contextDir.getName(), contextDir, true, true);
     }
 
     public void addContext(WebAppContext webAppContext) throws Exception {
-        // contextSetter.process(webAppContext);
-        handlers.addHandler(webAppContext);
-        //contextAddCount.incrementAndGet();
+        if (webAppContext instanceof WebAppContext) {
+            contextSetter.process(webAppContext);
+        }
+        handlerList.add(webAppContext);
+        contextAddCount.incrementAndGet();
     }
 
 
     public void addContext(final String context, File contextDir, boolean addDirJars, boolean checkWebXmlExist) throws Exception {
-        final File webappDir = getWebapp(contextDir);
-        if (!(webappDir.exists() && webappDir.isDirectory() && (!checkWebXmlExist || (new File(webappDir, TisApp.PATH_WEB_XML)).exists()))) {
+        final File webappDir = getWebapp(contextDir).getCanonicalFile();
+        if (!(webappDir.exists() && webappDir.isDirectory() && (!checkWebXmlExist || (new File(webappDir,
+                TisApp.PATH_WEB_XML)).exists()))) {
             logger.warn("dir is not webapp,skip:{}", webappDir.getAbsolutePath());
             return;
         }
-        Resource webContentResource = Resource.newResource(webappDir);
-        WebAppContext webAppContext = new WebAppContext(webContentResource, context);
+        //  webappDir.toURI()
+
+        // org.eclipse.jetty.util.resource.Resource.
+        WebAppContext webAppContext = new WebAppContext();
+        webAppContext.setBaseResource(ResourceFactory.of(webAppContext).newResource(webappDir.toURI()));
+        webAppContext.setContextPath(context);
         if (addDirJars) {
             final File libsDir = new File(contextDir, "lib");
             if (!(libsDir.exists() && libsDir.isDirectory())) {
@@ -179,24 +167,21 @@ public class JettyTISRunner {
                 resNames.add(path);
                 jarfiles.add((new File(libsDir, path)).toURI().toURL());
             }
-            // contextCloassLoader.addJars(Resource.newResource(libsDir));
             File confDir = new File(contextDir, "conf");
             if (!confDir.exists()) {
                 throw new IllegalStateException("web context:" + context + " dir not exist:" + confDir.getAbsolutePath());
             }
             resNames.add(confDir.getName());
-            // contextCloassLoader.addClassPath(Resource.newResource(confDir));
             jarfiles.add(confDir.toURI().toURL());
-            TISAppClassLoader contextCloassLoader
-                    = new TISAppClassLoader(context, this.parentLoader, jarfiles.toArray(new URL[jarfiles.size()]));
-            logger.info("context:" + context + " start with customer classLoader,resCount:"
-                    + jarfiles.size() + ",enums:" + String.join(",", resNames));
+            TISAppClassLoader contextCloassLoader = new TISAppClassLoader(context, this.parentLoader,
+                    jarfiles.toArray(new URL[jarfiles.size()]));
+            logger.info("context:" + context + " start with customer classLoader,resCount:" + jarfiles.size() + "," + "enums:" + String.join(",", resNames));
             webAppContext.setClassLoader(contextCloassLoader);
         } else {
             logger.info("context:" + context + " start with system classloader");
             webAppContext.setClassLoader(this.getClass().getClassLoader());
         }
-        webAppContext.setDescriptor("/" + TisApp.PATH_WEB_XML);
+        webAppContext.setDescriptor(new File(webappDir, TisApp.PATH_WEB_XML).getAbsolutePath());
         webAppContext.setDisplayName(context);
         webAppContext.setConfigurationDiscovered(true);
         webAppContext.setParentLoaderPriority(true);
@@ -204,7 +189,6 @@ public class JettyTISRunner {
         webAppContext.addServlet(CheckHealth.class, "/check_health");
 
         this.addContext(webAppContext);
-
     }
 
     public File getWebapp(File contextDir) {
@@ -212,31 +196,25 @@ public class JettyTISRunner {
     }
 
     private void init() {
-        // this.setSolrHome();
         if (validateContextHandler()) {
             throw new IllegalStateException("handlers can not small than 1");
         }
         server = new Server(new QueuedThreadPool(450));
-        // << 启用jndi
-        if (enableJndi) {
-            org.eclipse.jetty.webapp.Configuration.ClassList classlist
-                    = org.eclipse.jetty.webapp.Configuration.ClassList.setServerDefault(server);
-            classlist.addAfter("org.eclipse.jetty.webapp.FragmentConfiguration"
-                    , "org.eclipse.jetty.plus.webapp.EnvConfiguration"
-                    , "org.eclipse.jetty.plus.webapp.PlusConfiguration");
-        }
-        // >>
-        NetworkTrafficServerConnector connector = new NetworkTrafficServerConnector(server);
+
         HttpConfiguration configuration = new HttpConfiguration();
-        connector.addConnectionFactory(new HTTP2CServerConnectionFactory(configuration));
+        HttpConnectionFactory h1 = new HttpConnectionFactory(configuration);
+        HTTP2CServerConnectionFactory h2c = new HTTP2CServerConnectionFactory(configuration);
+        ServerConnector connector = new ServerConnector(server, h1, h2c);
         connector.setPort(port);
         server.setConnectors(new Connector[]{connector});
         server.setStopAtShutdown(true);
-        server.setHandler(handlers);
+
+        Handler.Sequence sequence = new Handler.Sequence(handlerList);
+        server.setHandler(sequence);
     }
 
     public boolean validateContextHandler() {
-        return contextAddCount.get() < 1 || this.handlers.getHandlers().length < 1;
+        return contextAddCount.get() < 1 || this.handlerList.size() < 1;
     }
 
     public interface IWebAppContextSetter {
@@ -279,37 +257,8 @@ public class JettyTISRunner {
     }
 
     public void addFilter(FilterHolder filter, String urlpattern) {
-        // this.rootContext.addFilter(filter, urlpattern,
-        // EnumSet.of(DispatcherType.REQUEST));
-        // FilterRegistrationBean registrationBean = new
-        // FilterRegistrationBean();
-        // registrationBean.setFilter(new TisSolrDispatchFilter());
-        // registrationBean.addUrlPatterns("/*");
-        // registrationBean.addInitParameter("excludePatterns",
-        // "/css/.+,/js/.+,/img/.+,/tpl/.+");
-        // registrationBean.setName("SolrRequestFilter");
-        // registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
-        // return registrationBean;
     }
 
-    // public static class InnerFilter implements Filter {
-    //
-    // @Override
-    // public void init(FilterConfig filterConfig) throws ServletException {
-    // }
-    //
-    // @Override
-    // public void doFilter(ServletRequest request, ServletResponse response,
-    // FilterChain chain)
-    // throws IOException, ServletException {
-    // chain.doFilter(request, response);
-    // }
-    //
-    // @Override
-    // public void destroy() {
-    // }
-    // }
-    // ------------------------------------------------------------------------------------------------
     // ------------------------------------------------------------------------------------------------
     public void start() throws Exception {
         start(true);
@@ -336,26 +285,11 @@ public class JettyTISRunner {
             }
             server.join();
         }
-        // if (waitForSolr)
-        // waitForSolr(context);
     }
-
-//    private void setSolrHome() {
-//        //Context c = new InitialContext();
-//        File solrHome = (new File(getDataDir(), "solrhome"));
-//        File solrXML = new File(solrHome, "solr.xml");
-//        if (!solrXML.exists()) {
-//            //  throw new IllegalStateException("solr.xml is not exist:" + solrXML.getAbsolutePath());
-//            return;
-//        }
-//        System.setProperty("solr.solr.home", solrHome.getAbsolutePath());
-//        //c.bind("java:comp/env/solr/home", solrHome.getAbsolutePath());
-//    }
 
     private void stop() throws Exception {
         if (server.isRunning()) {
             server.stop();
-            // server.join();
         }
     }
 

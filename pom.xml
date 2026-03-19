@@ -25,10 +25,9 @@
     <parent>
         <groupId>com.qlangtech.tis</groupId>
         <artifactId>tis-parent</artifactId>
-        <version>2.1.1</version>
+        <version>2.2.0</version>
     </parent>
 
-    <groupId>com.qlangtech.tis</groupId>
     <artifactId>tis</artifactId>
     <!--https://maven.apache.org/maven-ci-friendly.html-->
     <version>${revision}</version>
@@ -52,13 +51,11 @@
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy/MM/dd HH:mm:ss</maven.build.timestamp.format>
         <!--        <java.version>1.8</java.version>-->
-        <spring-version>4.3.30.RELEASE</spring-version>
+        <java.version>17</java.version>
+        <spring-version>6.2.1</spring-version>
         <solr.version>8.7.0</solr.version>
         <curator.version>2.13.0</curator.version>
-        <!--        <jetty.version>9.4.27.v20200227</jetty.version>-->
-        <jetty.version>9.4.31.v20200723</jetty.version>
-
-        <!--        <jetty.version>12.0.13</jetty.version>-->
+        <jetty.version>12.1.7</jetty.version>
 
 
         <log4j-to-slf4j.version>2.13.3</log4j-to-slf4j.version>
@@ -95,6 +92,7 @@
         <module>tis-scala-compiler</module>
         <module>maven-tpi-plugin</module>
         <module>tis-k8s</module>
+<!--        <module>tis-mcp</module>-->
     </modules>
 
     <dependencies>
@@ -117,6 +115,14 @@
     <dependencyManagement>
         <dependencies>
 
+            <!-- Jakarta Servlet API 6.1 (required by MCP SDK and Jetty 12 EE11) -->
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>6.1.0</version>
+                <scope>provided</scope>
+            </dependency>
+
             <!-- 高版本 JDK 移除了 JavaEE 的包，需要手动引入 -->
             <dependency>
                 <groupId>javax.xml.bind</groupId>
@@ -127,24 +133,26 @@
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
-                <version>9.7</version>
+                <version>9.9.1</version>
             </dependency>
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm-commons</artifactId>
-                <version>9.7</version>
+                <version>9.9.1</version>
             </dependency>
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm-tree</artifactId>
-                <version>9.7</version>
+                <version>9.9.1</version>
             </dependency>
-            <!-- 保持Spring内嵌的ASM版本 -->
+            <!-- Spring 6.x已内置ASM，不再需要单独的spring-asm -->
+            <!--
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-asm</artifactId>
                 <version>3.0.6.RELEASE</version>
             </dependency>
+            -->
             <dependency>
                 <groupId>com.qlangtech.tis</groupId>
                 <artifactId>tis-common-dao</artifactId>
@@ -284,11 +292,14 @@
                 <version>${spring-version}</version>
             </dependency>
 
+            <!-- spring-orm removed: iBATIS support provided by mybatis-2-spring -->
+            <!--
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-orm</artifactId>
                 <version>${spring-version}</version>
             </dependency>
+            -->
 
             <dependency>
                 <groupId>org.springframework</groupId>
@@ -299,7 +310,29 @@
             <dependency>
                 <groupId>com.qlangtech.tis</groupId>
                 <artifactId>tis-ibatis</artifactId>
-                <version>4.0</version>
+                <version>5.0</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-beans</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-tx</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-jdbc</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-context</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
 
@@ -375,38 +408,38 @@
 
             <dependency>
                 <groupId>org.eclipse.jetty.http2</groupId>
-                <artifactId>http2-client</artifactId>
+                <artifactId>jetty-http2-client</artifactId>
                 <version>${jetty.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.eclipse.jetty.http2</groupId>
-                <artifactId>http2-common</artifactId>
+                <artifactId>jetty-http2-common</artifactId>
                 <version>${jetty.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.eclipse.jetty.http2</groupId>
-                <artifactId>http2-hpack</artifactId>
+                <artifactId>jetty-http2-hpack</artifactId>
                 <version>${jetty.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.eclipse.jetty.http2</groupId>
-                <artifactId>http2-http-client-transport</artifactId>
+                <artifactId>jetty-http2-client-transport</artifactId>
                 <version>${jetty.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.eclipse.jetty.http2</groupId>
-                <artifactId>http2-server</artifactId>
+                <artifactId>jetty-http2-server</artifactId>
                 <version>${jetty.version}</version>
             </dependency>
 
 
             <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-webapp</artifactId>
+                <groupId>org.eclipse.jetty.ee11</groupId>
+                <artifactId>jetty-ee11-webapp</artifactId>
                 <version>${jetty.version}</version>
                 <scope>provided</scope>
             </dependency>
@@ -418,14 +451,14 @@
             </dependency>
 
             <dependency>
-                <groupId>org.eclipse.jetty.websocket</groupId>
-                <artifactId>websocket-servlet</artifactId>
+                <groupId>org.eclipse.jetty.ee11.websocket</groupId>
+                <artifactId>jetty-ee11-websocket-servlet</artifactId>
                 <version>${jetty.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>org.eclipse.jetty.websocket</groupId>
-                <artifactId>websocket-server</artifactId>
+                <groupId>org.eclipse.jetty.ee11.websocket</groupId>
+                <artifactId>jetty-ee11-websocket-jetty-server</artifactId>
                 <version>${jetty.version}</version>
                 <scope>provided</scope>
             </dependency>
@@ -438,8 +471,8 @@
             </dependency>
 
             <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-servlet</artifactId>
+                <groupId>org.eclipse.jetty.ee11</groupId>
+                <artifactId>jetty-ee11-servlet</artifactId>
                 <version>${jetty.version}</version>
                 <scope>provided</scope>
             </dependency>
@@ -676,6 +709,13 @@
         </dependencies>
     </dependencyManagement>
 
+
+    <repositories>
+        <repository>
+            <id>maven-central-direct</id>
+            <url>https://repo1.maven.org/maven2</url>
+        </repository>
+    </repositories>
 
     <build>
 

@@ -17,10 +17,10 @@
  */
 package com.qlangtech.tis.manage.spring.aop;
 
-import com.opensymphony.xwork2.Action;
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.ActionProxy;
-import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
+import org.apache.struts2.action.Action;
+import org.apache.struts2.ActionInvocation;
+import org.apache.struts2.ActionProxy;
+import org.apache.struts2.interceptor.MethodFilterInterceptor;
 import com.qlangtech.tis.manage.common.IUser;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.RunContextGetter;
@@ -37,8 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 import java.util.Collections;
 

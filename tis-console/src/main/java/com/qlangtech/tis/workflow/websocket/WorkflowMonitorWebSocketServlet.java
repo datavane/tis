@@ -18,10 +18,10 @@
 
 package com.qlangtech.tis.workflow.websocket;
 
-import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
+import org.eclipse.jetty.ee11.websocket.server.JettyWebSocketServlet;
+import org.eclipse.jetty.ee11.websocket.server.JettyWebSocketServletFactory;
 
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.WebServlet;
 
 /**
  * WebSocket Servlet for workflow monitoring
@@ -30,20 +30,20 @@ import javax.servlet.annotation.WebServlet;
  * @date 2026-01-30
  */
 @WebServlet(name = "WorkflowMonitorWebSocket", urlPatterns = {"/ws/workflow/monitor"})
-public class WorkflowMonitorWebSocketServlet extends WebSocketServlet {
+public class WorkflowMonitorWebSocketServlet extends JettyWebSocketServlet {
 
     private static final long serialVersionUID = 1L;
 
     @Override
-    public void configure(WebSocketServletFactory factory) {
+    public void configure(JettyWebSocketServletFactory factory) {
         // Set idle timeout (10 minutes)
-        factory.getPolicy().setIdleTimeout(600000);
+        factory.setIdleTimeout(java.time.Duration.ofMinutes(10));
 
         // Set max text message size (1MB)
-        factory.getPolicy().setMaxTextMessageSize(1024 * 1024);
+        factory.setMaxTextMessageSize(1024 * 1024);
 
         // Set max binary message size (1MB)
-        factory.getPolicy().setMaxBinaryMessageSize(1024 * 1024);
+        factory.setMaxBinaryMessageSize(1024 * 1024);
 
         // Register the WebSocket handler
         factory.setCreator((req, resp) -> new WorkflowMonitorWebSocketHandler());

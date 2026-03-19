@@ -26,7 +26,7 @@ import org.apache.velocity.exception.ResourceNotFoundException;
 import org.apache.velocity.runtime.directive.Directive;
 import org.apache.velocity.runtime.directive.DirectiveConstants;
 import org.apache.velocity.runtime.parser.node.Node;
-import com.opensymphony.xwork2.util.ValueStack;
+import org.apache.struts2.util.ValueStack;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

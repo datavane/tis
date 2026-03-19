@@ -18,15 +18,15 @@
 
 package com.qlangtech.tis.offline.module.action;
 
-import com.opensymphony.xwork2.ActionProxy;
+
 import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
-import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.struts2.ActionProxy;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）

@@ -21,7 +21,7 @@ package com.qlangtech.tis.coredefine.module.action;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.opensymphony.xwork2.ActionProxy;
+import org.apache.struts2.ActionProxy;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.manage.common.MockContext;

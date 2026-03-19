@@ -17,7 +17,7 @@
  */
 package com.qlangtech.tis.manage.form;
 
-import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload2.core.FileItem;
 
 /**
  * 全局依赖资源

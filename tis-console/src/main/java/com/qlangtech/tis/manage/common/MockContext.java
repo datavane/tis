@@ -18,7 +18,7 @@
 package com.qlangtech.tis.manage.common;
 
 import com.alibaba.citrus.turbine.Context;
-import com.opensymphony.xwork2.ActionContext;
+import org.apache.struts2.ActionContext;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;

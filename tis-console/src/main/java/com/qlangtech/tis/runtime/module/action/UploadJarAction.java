@@ -18,7 +18,7 @@
 package com.qlangtech.tis.runtime.module.action;
 
 import com.alibaba.citrus.turbine.Context;
-import com.opensymphony.xwork2.ModelDriven;
+import org.apache.struts2.ModelDriven;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.UploadJarForm;
 import com.qlangtech.tis.manage.biz.dal.pojo.Snapshot;

@@ -1,7 +1,5 @@
 package com.qlangtech.tis.web.start;
 
-import org.eclipse.jetty.server.handler.HandlerCollection;
-
 import java.io.IOException;
 
 /**
@@ -27,7 +25,7 @@ import java.io.IOException;
  * @create: 2022-12-06 10:36
  **/
 public interface IWebAppContextCollector {
-    public void launchContext(HandlerCollection contexts) throws IOException;
+    public void launchContext(JettyTISRunner runner) throws IOException;
 
     public void afterLaunchContext() throws IOException;
 }

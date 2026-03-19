@@ -18,7 +18,7 @@
 package com.qlangtech.tis.runtime.module.action;
 
 import com.alibaba.citrus.turbine.Context;
-import com.opensymphony.xwork2.ModelDriven;
+import org.apache.struts2.ModelDriven;
 import com.qlangtech.tis.manage.ChangeDomainForm;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria.Criteria;
@@ -34,9 +34,9 @@ import com.qlangtech.tis.runtime.module.control.AppDomain;
 import junit.framework.Assert;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;

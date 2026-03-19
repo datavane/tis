@@ -21,10 +21,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.realtime.servlet.RealtimeStatePageServlet.RowPair;
 import com.qlangtech.tis.realtime.transfer.IOnsListenerStatus;
@@ -34,7 +34,7 @@ import com.qlangtech.tis.manage.common.TISCollectionUtils;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2016年12月10日
  */
-public class HistogramStateServlet extends javax.servlet.http.HttpServlet {
+public class HistogramStateServlet extends jakarta.servlet.http.HttpServlet {
 
     private static final long serialVersionUID = 1L;
 

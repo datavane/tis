@@ -20,8 +20,13 @@ package com.qlangtech.tis.workflow.websocket;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.eclipse.jetty.websocket.api.Callback;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.WebSocketAdapter;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketOpen;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +46,8 @@ import java.util.concurrent.TimeUnit;
  * @author 百岁 (mozhenghua@gmail.com)
  * @date 2026-01-30
  */
-public class WorkflowMonitorWebSocketHandler extends WebSocketAdapter {
+@WebSocket
+public class WorkflowMonitorWebSocketHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(WorkflowMonitorWebSocketHandler.class);
 
@@ -57,6 +63,8 @@ public class WorkflowMonitorWebSocketHandler extends WebSocketAdapter {
     // Heartbeat scheduler
     private static final ScheduledExecutorService heartbeatScheduler = Executors.newSingleThreadScheduledExecutor();
 
+    private Session session;
+
     static {
         // Start heartbeat task (every 30 seconds)
         heartbeatScheduler.scheduleAtFixedRate(() -> {
@@ -68,21 +76,20 @@ public class WorkflowMonitorWebSocketHandler extends WebSocketAdapter {
         }, 30, 30, TimeUnit.SECONDS);
     }
 
-    @Override
-    public void onWebSocketConnect(Session session) {
-        super.onWebSocketConnect(session);
+    @OnWebSocketOpen
+    public void onOpen(Session session) {
+        this.session = session;
         sessions.add(session);
         sessionSubscriptions.put(session, new CopyOnWriteArraySet<>());
-        logger.info("WebSocket connected: {}, total sessions: {}", session.getRemoteAddress(), sessions.size());
+        logger.info("WebSocket connected: {}, total sessions: {}", session.getRemoteSocketAddress(), sessions.size());
 
         // Send welcome message
         sendMessage(session, createMessage("connected", "Welcome to workflow monitor"));
     }
 
-    @Override
-    public void onWebSocketText(String message) {
-        Session session = getSession();
-        logger.debug("Received message from {}: {}", session.getRemoteAddress(), message);
+    @OnWebSocketMessage
+    public void onMessage(Session session, String message) {
+        logger.debug("Received message from {}: {}", session.getRemoteSocketAddress(), message);
 
         try {
             JSONObject json = JSON.parseObject(message);
@@ -108,10 +115,9 @@ public class WorkflowMonitorWebSocketHandler extends WebSocketAdapter {
         }
     }
 
-    @Override
-    public void onWebSocketClose(int statusCode, String reason) {
-        Session session = getSession();
-        logger.info("WebSocket closed: {}, status: {}, reason: {}", session.getRemoteAddress(), statusCode, reason);
+    @OnWebSocketClose
+    public void onClose(Session session, int statusCode, String reason) {
+        logger.info("WebSocket closed: {}, status: {}, reason: {}", session.getRemoteSocketAddress(), statusCode, reason);
 
         // Clean up subscriptions
         Set<Long> subscribedInstances = sessionSubscriptions.remove(session);
@@ -128,13 +134,11 @@ public class WorkflowMonitorWebSocketHandler extends WebSocketAdapter {
         }
 
         sessions.remove(session);
-        super.onWebSocketClose(statusCode, reason);
     }
 
-    @Override
-    public void onWebSocketError(Throwable cause) {
-        logger.error("WebSocket error: " + getSession().getRemoteAddress(), cause);
-        super.onWebSocketError(cause);
+    @OnWebSocketError
+    public void onError(Session session, Throwable cause) {
+        logger.error("WebSocket error: " + session.getRemoteSocketAddress(), cause);
     }
 
     /**
@@ -151,7 +155,7 @@ public class WorkflowMonitorWebSocketHandler extends WebSocketAdapter {
         subscriptions.computeIfAbsent(instanceId, k -> new CopyOnWriteArraySet<>()).add(session);
         sessionSubscriptions.get(session).add(instanceId);
 
-        logger.info("Session {} subscribed to workflow instance {}", session.getRemoteAddress(), instanceId);
+        logger.info("Session {} subscribed to workflow instance {}", session.getRemoteSocketAddress(), instanceId);
         sendMessage(session, createMessage("subscribed", "Subscribed to instance " + instanceId));
     }
 
@@ -179,7 +183,7 @@ public class WorkflowMonitorWebSocketHandler extends WebSocketAdapter {
             subscribedInstances.remove(instanceId);
         }
 
-        logger.info("Session {} unsubscribed from workflow instance {}", session.getRemoteAddress(), instanceId);
+        logger.info("Session {} unsubscribed from workflow instance {}", session.getRemoteSocketAddress(), instanceId);
         sendMessage(session, createMessage("unsubscribed", "Unsubscribed from instance " + instanceId));
     }
 
@@ -264,9 +268,9 @@ public class WorkflowMonitorWebSocketHandler extends WebSocketAdapter {
     private static void sendMessage(Session session, String message) {
         if (session != null && session.isOpen()) {
             try {
-                session.getRemote().sendString(message);
-            } catch (IOException e) {
-                logger.error("Failed to send message to session: " + session.getRemoteAddress(), e);
+                session.sendText(message, Callback.NOOP);
+            } catch (Exception e) {
+                logger.error("Failed to send message to session: " + session.getRemoteSocketAddress(), e);
             }
         }
     }

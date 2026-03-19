@@ -21,10 +21,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.realtime.transfer.IOnsListenerStatus;
 import com.qlangtech.tis.manage.common.TISCollectionUtils;
@@ -33,7 +33,7 @@ import com.qlangtech.tis.manage.common.TISCollectionUtils;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2016年3月9日
  */
-public class RealtimeStatePageServlet extends javax.servlet.http.HttpServlet {
+public class RealtimeStatePageServlet extends jakarta.servlet.http.HttpServlet {
 
     private static final long serialVersionUID = 1L;
 

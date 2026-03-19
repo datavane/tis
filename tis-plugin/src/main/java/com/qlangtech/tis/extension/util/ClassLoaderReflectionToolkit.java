@@ -24,6 +24,11 @@ import java.net.URL;
 import java.util.Enumeration;
 
 /**
+ * java 启动时候需要加参数：--add-opens java.base/java.lang=ALL-UNNAMED
+ * <pre>
+ *    所以这个参数的意思是：在运行时把 java.base 模块的 java.lang 包"深度开放"给 classpath 上的所有代码，使得 ClassLoaderReflectionToolkit 可以反射调用 ClassLoader.findClass() 等 protected 方法。
+ *   这是 Java 17 上运行 Jenkins 等老框架的标准做法。Java 16 之前这些反射操作只会产生警告，Java 16+ 开始直接抛 InaccessibleObjectException。
+ * </pre>
  * Reflective access to various {@link ClassLoader} methods which are otherwise {@code protected}.
  *
  * @author 百岁（baisui@qlangtech.com）

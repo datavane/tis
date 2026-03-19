@@ -22,7 +22,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.opensymphony.xwork2.ModelDriven;
+import org.apache.struts2.ModelDriven;
 import com.qlangtech.tis.coredefine.biz.FCoreRequest;
 import com.qlangtech.tis.coredefine.module.action.CoreAction;
 import com.qlangtech.tis.coredefine.module.control.SelectableServer;

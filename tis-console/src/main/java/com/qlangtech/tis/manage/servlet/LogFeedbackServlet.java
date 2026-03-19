@@ -48,10 +48,14 @@ import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClientFactory;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import org.eclipse.jetty.websocket.api.Callback;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.WebSocketAdapter;
-import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketOpen;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.eclipse.jetty.ee11.websocket.server.JettyWebSocketServlet;
+import org.eclipse.jetty.ee11.websocket.server.JettyWebSocketServletFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +77,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2014-4-2
  */
-public class LogFeedbackServlet extends WebSocketServlet {
+public class LogFeedbackServlet extends JettyWebSocketServlet {
 
   private static final Logger logger = LoggerFactory.getLogger(LogFeedbackServlet.class);
 
@@ -105,9 +109,8 @@ public class LogFeedbackServlet extends WebSocketServlet {
   }
 
   @Override
-  public void configure(WebSocketServletFactory factory) {
-    factory.getPolicy().setIdleTimeout(240000);
-    factory.getPolicy().setAsyncWriteTimeout(-1);
+  public void configure(JettyWebSocketServletFactory factory) {
+    factory.setIdleTimeout(java.time.Duration.ofMillis(240000));
     factory.setCreator((req, rep) -> {
       return new LogSocket();
     });
@@ -115,7 +118,8 @@ public class LogFeedbackServlet extends WebSocketServlet {
     this.wfDao = BasicServlet.getBeanByType(getServletContext(), IWorkflowDAOFacade.class);
   }
 
-  public class LogSocket extends WebSocketAdapter implements ILogListener, LogCollectorClient.IPhaseStatusCollectionListener {
+  @WebSocket
+  public class LogSocket implements ILogListener, LogCollectorClient.IPhaseStatusCollectionListener {
 
     // 在客户端中将服务端的流式消息缓存一些，这样用户重复打开终端显示，第二次显示不会为空内容
     private final Map<LogType, CyclicBuffer<MessageOrBuilder>> logtypes = new HashMap<>();
@@ -126,13 +130,15 @@ public class LogFeedbackServlet extends WebSocketServlet {
 
     private StreamObserver<PMonotorTarget> pMonotorObserver;
     private ExtendWorkFlowBuildHistory buildTask;
+    private Session session;
+    private volatile boolean closed = false;
 
     public LogSocket() {
     }
 
-    @Override
-    public void onWebSocketConnect(Session sess) {
-      super.onWebSocketConnect(sess);
+    @OnWebSocketOpen
+    public void onOpen(Session sess) {
+      this.session = sess;
       this.taskid = Integer.parseInt(this.getParameter(JobCommon.KEY_TASK_ID, Collections.singletonList("-1")));
       this.collectionName = DataXName.createDataXPipeline(getParameter("collection", Collections.singletonList(MonotorTarget.DUMP_COLLECTION)));
       List<RegisterMonotorTarget> typies = RegisterMonotorTarget.parseLogTypes(this.collectionName, this.taskid, this.getParameter("logtype"));
@@ -183,8 +189,8 @@ public class LogFeedbackServlet extends WebSocketServlet {
      *
      * @param message
      */
-    @Override
-    public void onWebSocketText(String message) {
+    @OnWebSocketMessage
+    public void onMessage(Session sess, String message) {
       JSONObject body = JSON.parseObject(message);
       List<RegisterMonotorTarget> logtype
         = RegisterMonotorTarget.parseLogTypes(this.collectionName, this.taskid, body.getString("logtype"));
@@ -202,7 +208,11 @@ public class LogFeedbackServlet extends WebSocketServlet {
 
     @Override
     public boolean isClosed() {
-      return this.isNotConnected();
+      return this.closed || this.session == null || !this.session.isOpen();
+    }
+
+    public boolean isConnected() {
+      return this.session != null && this.session.isOpen();
     }
 
     // @Override
@@ -221,7 +231,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
         PExecuteState event = (PExecuteState) evt;
         LogType ltype = LogCollectorClient.convert(event.getLogType());
         CyclicBuffer<MessageOrBuilder> messageBuffer = null;
-        if (this.isConnected() && (messageBuffer = this.logtypes.get(ltype)) != null) {
+      if (this.isConnected() && (messageBuffer = this.logtypes.get(ltype)) != null) {
           // JsonFormat.Printer printer = JsonFormat.printer();
           // 向客户端缓存中也写一份
           messageBuffer.add(event);
@@ -232,9 +242,9 @@ public class LogFeedbackServlet extends WebSocketServlet {
       }
     }
 
-    @Override
-    public void onWebSocketClose(int statusCode, String reason) {
-      super.onWebSocketClose(statusCode, reason);
+    @OnWebSocketClose
+    public void onClose(Session sess, int statusCode, String reason) {
+      this.closed = true;
       getMonitorSet().onCompleted();
       // try {
       // // 服下毒丸，通讯终止
@@ -437,7 +447,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
         }
         // webSocket 不能多线程发送消息，所以要在这里加一个锁
         // https://stackoverflow.com/questions/36305830/blocking-message-pending-10000-for-blocking-using-spring-websockets
-        this.getRemote().sendString(jsonContent);
+        this.session.sendText(jsonContent, Callback.NOOP);
       }
     }
 
@@ -483,7 +493,7 @@ public class LogFeedbackServlet extends WebSocketServlet {
     }
 
     private String getParameter(String key, List<String> dft) {
-      Map<String, List<String>> params = this.getSession().getUpgradeRequest().getParameterMap();
+      Map<String, List<String>> params = this.session.getUpgradeRequest().getParameterMap();
       for (String v : params.getOrDefault(key, dft)) {
         return v;
       }

@@ -21,10 +21,10 @@ import com.qlangtech.tis.fullbuild.taskflow.TaskWorkflow;
 import com.qlangtech.tis.fullbuild.taskflow.WorkflowTaskConfigParser;
 import com.qlangtech.tis.git.GitUtils;
 import org.apache.commons.lang3.StringUtils;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**

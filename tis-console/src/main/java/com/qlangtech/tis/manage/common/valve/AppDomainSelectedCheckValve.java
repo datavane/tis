@@ -17,10 +17,10 @@
  */
 package com.qlangtech.tis.manage.common.valve;
 
-import com.opensymphony.xwork2.Action;
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.ActionProxy;
-import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
+import org.apache.struts2.action.Action;
+import org.apache.struts2.ActionInvocation;
+import org.apache.struts2.ActionProxy;
+import org.apache.struts2.interceptor.MethodFilterInterceptor;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
 import com.qlangtech.tis.manage.common.CheckAppDomainExistValve;
 import com.qlangtech.tis.manage.common.RunContextGetter;

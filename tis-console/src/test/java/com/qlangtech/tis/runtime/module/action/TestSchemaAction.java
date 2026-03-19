@@ -18,7 +18,7 @@
 package com.qlangtech.tis.runtime.module.action;
 
 import com.alibaba.fastjson.JSONObject;
-import com.opensymphony.xwork2.ActionProxy;
+
 import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
 import com.qlangtech.tis.manage.common.Config;
@@ -30,6 +30,7 @@ import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.struts2.ActionProxy;
 
 import java.io.File;
 import java.io.IOException;

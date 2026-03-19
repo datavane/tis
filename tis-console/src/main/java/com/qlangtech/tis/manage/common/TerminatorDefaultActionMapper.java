@@ -18,7 +18,7 @@
 
 package com.qlangtech.tis.manage.common;
 
-import com.opensymphony.xwork2.config.ConfigurationManager;
+import org.apache.struts2.config.ConfigurationManager;
 import org.apache.struts2.dispatcher.mapper.ActionMapping;
 import org.apache.struts2.dispatcher.mapper.DefaultActionMapper;
 

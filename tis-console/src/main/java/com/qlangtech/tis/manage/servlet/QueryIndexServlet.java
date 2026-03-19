@@ -20,7 +20,7 @@
 //import com.google.common.cache.Cache;
 //import com.google.common.cache.CacheBuilder;
 //import com.google.common.collect.Lists;
-//import com.opensymphony.xwork2.ActionContext;
+//import org.apache.struts2.ActionContext;
 //import com.qlangtech.tis.manage.common.*;
 //import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 //import com.qlangtech.tis.runtime.module.action.IParamGetter;
@@ -46,9 +46,9 @@
 //import org.apache.solr.common.util.SimpleOrderedMap;
 //import org.json.JSONArray;
 //import org.json.JSONObject;
-//import javax.servlet.ServletException;
-//import javax.servlet.http.HttpServletRequest;
-//import javax.servlet.http.HttpServletResponse;
+//import jakarta.servlet.ServletException;
+//import jakarta.servlet.http.HttpServletRequest;
+//import jakarta.servlet.http.HttpServletResponse;
 //import java.io.IOException;
 //import java.io.InputStream;
 //import java.io.PrintWriter;

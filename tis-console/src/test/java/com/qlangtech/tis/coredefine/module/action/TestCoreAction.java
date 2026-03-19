@@ -18,7 +18,7 @@
 //package com.qlangtech.tis.coredefine.module.action;
 //
 //import com.google.common.collect.Lists;
-//import com.opensymphony.xwork2.ActionProxy;
+//import org.apache.struts2.ActionProxy;
 //import com.qlangtech.tis.BasicActionTestCase;
 //import com.qlangtech.tis.cloud.ITISCoordinator;
 //import com.qlangtech.tis.cloud.MockZKUtils;

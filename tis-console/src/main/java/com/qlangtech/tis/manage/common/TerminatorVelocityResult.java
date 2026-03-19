@@ -17,12 +17,12 @@
 // */
 //package com.qlangtech.tis.manage.common;
 //
-//import javax.servlet.http.HttpServletRequest;
-//import javax.servlet.http.HttpServletResponse;
+//import jakarta.servlet.http.HttpServletRequest;
+//import jakarta.servlet.http.HttpServletResponse;
 //import org.apache.commons.lang3.StringUtils;
 //import org.apache.struts2.ServletActionContext;
 //import org.apache.struts2.result.VelocityResult;
-//import com.opensymphony.xwork2.ActionInvocation;
+//import org.apache.struts2.ActionInvocation;
 //import com.qlangtech.tis.runtime.module.action.BasicModule;
 //
 ///**

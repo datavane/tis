@@ -109,8 +109,14 @@
         </dependency>
 
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty.ee11</groupId>
+            <artifactId>jetty-ee11-webapp</artifactId>
             <scope>compile</scope>
         </dependency>
 
@@ -122,43 +128,43 @@
 
         <dependency>
             <groupId>org.eclipse.jetty.http2</groupId>
-            <artifactId>http2-client</artifactId>
+            <artifactId>jetty-http2-client</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jetty.http2</groupId>
-            <artifactId>http2-common</artifactId>
+            <artifactId>jetty-http2-common</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jetty.http2</groupId>
-            <artifactId>http2-hpack</artifactId>
+            <artifactId>jetty-http2-hpack</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jetty.http2</groupId>
-            <artifactId>http2-http-client-transport</artifactId>
+            <artifactId>jetty-http2-client-transport</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jetty.http2</groupId>
-            <artifactId>http2-server</artifactId>
+            <artifactId>jetty-http2-server</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-servlet</artifactId>
+            <groupId>org.eclipse.jetty.ee11.websocket</groupId>
+            <artifactId>jetty-ee11-websocket-servlet</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-server</artifactId>
+            <groupId>org.eclipse.jetty.ee11.websocket</groupId>
+            <artifactId>jetty-ee11-websocket-jetty-server</artifactId>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>apache-jsp</artifactId>
+            <groupId>org.eclipse.jetty.ee11</groupId>
+            <artifactId>jetty-ee11-apache-jsp</artifactId>
             <version>${jetty.version}</version>
             <scope>compile</scope>
         </dependency>
@@ -182,8 +188,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
+            <groupId>org.eclipse.jetty.ee11</groupId>
+            <artifactId>jetty-ee11-servlet</artifactId>
             <scope>compile</scope>
         </dependency>
 

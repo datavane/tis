@@ -17,13 +17,13 @@
  */
 package com.qlangtech.tis.manage.common;
 
-import com.opensymphony.xwork2.config.ConfigurationManager;
+import org.apache.struts2.config.ConfigurationManager;
 import com.qlangtech.tis.realtime.transfer.UnderlineUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.dispatcher.mapper.ActionMapping;
 import org.apache.struts2.dispatcher.mapper.DefaultActionMapper;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

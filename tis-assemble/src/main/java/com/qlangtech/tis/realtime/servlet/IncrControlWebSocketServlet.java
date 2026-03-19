@@ -33,10 +33,13 @@ import com.qlangtech.tis.trigger.jst.MonotorTarget;
 import com.qlangtech.tis.trigger.jst.RegisterMonotorTarget;
 import com.qlangtech.tis.trigger.socket.ExecuteState;
 import com.qlangtech.tis.trigger.socket.LogType;
+import org.eclipse.jetty.websocket.api.Callback;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.WebSocketAdapter;
-import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketOpen;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.eclipse.jetty.ee11.websocket.server.JettyWebSocketServlet;
+import org.eclipse.jetty.ee11.websocket.server.JettyWebSocketServletFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,38 +57,44 @@ import java.util.concurrent.Executors;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2025-07-17 15:23
  **/
-public class IncrControlWebSocketServlet extends WebSocketServlet {
+public class IncrControlWebSocketServlet extends JettyWebSocketServlet {
     private static final Logger logger = LoggerFactory.getLogger(IncrControlWebSocketServlet.class);
 
     private IncrStatusUmbilicalProtocolImpl incrStatusUmbilicalProtocol;
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     @Override
-    public void configure(WebSocketServletFactory factory) {
+    public void configure(JettyWebSocketServletFactory factory) {
         this.incrStatusUmbilicalProtocol = IncrStatusUmbilicalProtocolImpl.getInstance();
-        factory.getPolicy().setIdleTimeout(240000);
-        factory.getPolicy().setAsyncWriteTimeout(-1);
+        factory.setIdleTimeout(java.time.Duration.ofMillis(240000));
         factory.setCreator((req, rep) -> {
             return new IncrSocket(incrStatusUmbilicalProtocol);
         });
-
     }
 
 
-    public class IncrSocket extends WebSocketAdapter implements ILogListener {
+    @WebSocket
+    public class IncrSocket implements ILogListener {
         private DataXName collectionName;
         private final IncrStatusUmbilicalProtocolImpl incrStatusUmbilicalProtoco;
+        private Session session;
+        private volatile boolean closed = false;
 
         public IncrSocket(IncrStatusUmbilicalProtocolImpl incrStatusUmbilicalProtoco) {
             this.incrStatusUmbilicalProtoco = incrStatusUmbilicalProtoco;
         }
 
-        @Override
-        public void onWebSocketConnect(Session sess) {
-            super.onWebSocketConnect(sess);
+        @OnWebSocketOpen
+        public void onOpen(Session sess) {
+            this.session = sess;
             this.collectionName = DataXName.createDataXPipeline(getParameter("collection", Collections.singletonList(MonotorTarget.DUMP_COLLECTION)));
             List<RegisterMonotorTarget> typies = RegisterMonotorTarget.parseLogTypes(this.collectionName, -1, this.getParameter("logtype"));
             addMonitor(typies);
+        }
+
+        @OnWebSocketClose
+        public void onClose(Session sess, int statusCode, String reason) {
+            this.closed = true;
         }
 
         private void addMonitor(List<RegisterMonotorTarget> typies) {
@@ -104,7 +113,7 @@ public class IncrControlWebSocketServlet extends WebSocketServlet {
         }
 
         private String getParameter(String key, List<String> dft) {
-            Map<String, List<String>> params = this.getSession().getUpgradeRequest().getParameterMap();
+            Map<String, List<String>> params = this.session.getUpgradeRequest().getParameterMap();
             for (String v : params.getOrDefault(key, dft)) {
                 return v;
             }
@@ -133,9 +142,6 @@ public class IncrControlWebSocketServlet extends WebSocketServlet {
                     }
                 });
             } else if (monitorTarget.testLogType(LogType.MQ_TAGS_STATUS)) {
-                // PluginStore<MQListenerFactory> mqListenerFactory = (PluginStore<MQListenerFactory>) TIS.getPluginStore(this.collectionName, MQListenerFactory.class);
-                // MQListenerFactory plugin = mqListenerFactory.getPlugin();
-                // 增量节点处理
                 final Map<String, TopicTagStatus> /* this.tag */
                         transferTagStatus = new HashMap<>();
                 final Map<String, TopicTagStatus> /* this.tag */
@@ -163,17 +169,6 @@ public class IncrControlWebSocketServlet extends WebSocketServlet {
         public List<TopicTagIncrStatus.FocusTags> getFocusTags(String collectionName) throws MalformedURLException {
             TopicTagIncrStatus.FocusTags focusTags = new FocusTags(collectionName, Collections.singletonList(IIncreaseCounter.TABLE_CONSUME_COUNT));
             return Collections.singletonList(focusTags);
-            //
-//    JobType.RemoteCallResult<TopicInfo> topicInfo = JobType.ACTION_getTopicTags.assembIncrControlWithResult(
-//      CoreAction.getAssembleNodeAddress(zookeeper),
-//      collectionName, Collections.emptyList(), TopicInfo.class);
-//    if (topicInfo.biz.getTopicWithTags().size() < 1) {
-//      // 返回为空的话可以证明没有正常启动
-//      return Collections.emptyList();
-//    }
-//    TopicInfo topicTags = topicInfo.biz;
-//    return topicTags.getTopicWithTags()
-//      .entrySet().stream().map((entry) -> new TopicTagIncrStatus.FocusTags(entry.getKey(), entry.getValue())).collect(Collectors.toList());
         }
 
         @Override
@@ -187,8 +182,7 @@ public class IncrControlWebSocketServlet extends WebSocketServlet {
                     throw new IllegalStateException("ws conn has closed,jsonContent:" + jsonContent);
                 }
                 // webSocket 不能多线程发送消息，所以要在这里加一个锁
-                // https://stackoverflow.com/questions/36305830/blocking-message-pending-10000-for-blocking-using-spring-websockets
-                this.getRemote().sendString(jsonContent);
+                this.session.sendText(jsonContent, Callback.NOOP);
             }
         }
 
@@ -199,7 +193,7 @@ public class IncrControlWebSocketServlet extends WebSocketServlet {
 
         @Override
         public boolean isClosed() {
-            return this.isNotConnected();
+            return this.closed || this.session == null || !this.session.isOpen();
         }
     }
 }

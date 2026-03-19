@@ -18,7 +18,7 @@
 package com.qlangtech.tis.config.module.screen;
 
 import com.alibaba.citrus.turbine.Context;
-import com.opensymphony.xwork2.Action;
+import org.apache.struts2.action.Action;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
@@ -33,7 +33,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;

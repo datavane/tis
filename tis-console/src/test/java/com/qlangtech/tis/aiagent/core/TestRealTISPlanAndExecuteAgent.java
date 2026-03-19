@@ -19,7 +19,6 @@
 package com.qlangtech.tis.aiagent.core;
 
 import com.alibaba.fastjson.JSONObject;
-import com.opensymphony.xwork2.ActionProxy;
 import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
@@ -35,6 +34,7 @@ import com.qlangtech.tis.plugin.llm.log.ExecuteLog;
 import com.qlangtech.tis.util.PartialSettedPluginContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.struts2.ActionProxy;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.OutputStreamWriter;

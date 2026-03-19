@@ -19,7 +19,7 @@ package com.qlangtech.tis.runtime.module.action.jarcontent;
 
 import com.alibaba.citrus.turbine.Context;
 import junit.framework.Assert;
-import com.opensymphony.xwork2.ModelDriven;
+import org.apache.struts2.ModelDriven;
 import com.qlangtech.tis.manage.GroupChangeSnapshotForm;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroup;

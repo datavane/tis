@@ -20,7 +20,7 @@ package com.qlangtech.tis.runtime.module.action;
 
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.DefaultFilter;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 
 /**

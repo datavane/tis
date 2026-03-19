@@ -21,7 +21,7 @@ import com.koubei.web.tag.pager.util.DefaultStaticTool;
 import com.koubei.web.tag.pager.util.StaticTool;
 import org.apache.commons.lang.StringUtils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

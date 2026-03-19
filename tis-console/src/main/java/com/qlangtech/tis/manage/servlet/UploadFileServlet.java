@@ -23,14 +23,14 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.fileupload2.core.DiskFileItem;
+import org.apache.commons.fileupload2.core.DiskFileItemFactory;
+import org.apache.commons.fileupload2.core.FileUploadException;
+import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
@@ -47,12 +47,13 @@ public class UploadFileServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
-    private static final ServletFileUpload fileUpload;
+    private static final JakartaServletFileUpload<DiskFileItem, DiskFileItemFactory> fileUpload;
 
     static {
-        DiskFileItemFactory itemFactory = new DiskFileItemFactory();
-        itemFactory.setRepository(new File("/tmp"));
-        fileUpload = new ServletFileUpload(itemFactory);
+        DiskFileItemFactory itemFactory = DiskFileItemFactory.builder()
+                .setPath(new File("/tmp").toPath())
+                .get();
+        fileUpload = new JakartaServletFileUpload<>(itemFactory);
     }
 
     private static final String uploadDir = "/home/admin/tomcat/taobao-tomcat-7.0.52.2/deploy/up";
@@ -107,9 +108,9 @@ public class UploadFileServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
-            List<FileItem> items = fileUpload.parseRequest(req);
+            List<DiskFileItem> items = fileUpload.parseRequest(req);
             SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
-            for (FileItem item : items) {
+            for (DiskFileItem item : items) {
                 FileOutputStream outputStream = FileUtils.openOutputStream(new File(uploadDir + "/" + format.format(new Date()) + "/" + item.getFieldName()));
                 IOUtils.copy(item.getInputStream(), outputStream);
                 outputStream.flush();

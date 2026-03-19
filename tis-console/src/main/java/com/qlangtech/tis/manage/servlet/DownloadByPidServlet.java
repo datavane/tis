@@ -20,7 +20,7 @@ package com.qlangtech.tis.manage.servlet;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.pubhook.common.ConfigConstant;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

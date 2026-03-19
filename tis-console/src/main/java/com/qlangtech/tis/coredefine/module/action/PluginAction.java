@@ -23,7 +23,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
-import com.opensymphony.xwork2.ActionContext;
+import org.apache.struts2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -102,7 +102,7 @@ import org.apache.struts2.dispatcher.multipart.UploadedFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;

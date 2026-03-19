@@ -21,16 +21,19 @@ import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
+import org.eclipse.jetty.websocket.api.Callback;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.WebSocketAdapter;
-import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketOpen;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.eclipse.jetty.ee11.websocket.server.JettyWebSocketServlet;
+import org.eclipse.jetty.ee11.websocket.server.JettyWebSocketServletFactory;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -47,7 +50,7 @@ import java.util.concurrent.TimeUnit;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2014-4-2
  */
-public class TaskFeedbackServlet extends WebSocketServlet {
+public class TaskFeedbackServlet extends JettyWebSocketServlet {
 
   private static final Logger logger = LoggerFactory.getLogger(TaskFeedbackServlet.class);
 
@@ -59,22 +62,23 @@ public class TaskFeedbackServlet extends WebSocketServlet {
   }
 
   @Override
-  public void configure(WebSocketServletFactory factory) {
+  public void configure(JettyWebSocketServletFactory factory) {
     // set a 10 second timeout
-    factory.getPolicy().setIdleTimeout(240000);
-    factory.getPolicy().setAsyncWriteTimeout(-1);
-    factory.register(FullAssembleLogSocket.class);
+    factory.setIdleTimeout(java.time.Duration.ofMillis(240000));
+    factory.setCreator((req, rep) -> new FullAssembleLogSocket());
   }
 
-  public static class FullAssembleLogSocket extends WebSocketAdapter {
+  @WebSocket
+  public static class FullAssembleLogSocket {
 
     long taskid;
+    private Session session;
 
     private final ScheduledExecutorService falconSendScheduler = Executors.newScheduledThreadPool(1);
 
-    @Override
-    public void onWebSocketConnect(Session sess) {
-      super.onWebSocketConnect(sess);
+    @OnWebSocketOpen
+    public void onOpen(Session sess) {
+      this.session = sess;
       taskid = Long.parseLong(getParameter(JobCommon.KEY_TASK_ID));
       logger.info("start a new log fetch tasklog status taskid:" + taskid);
       // new  LogCollectorClient();
@@ -92,7 +96,7 @@ public class TaskFeedbackServlet extends WebSocketServlet {
             boolean success = result.getBoolean("success");
             if (success) {
               // 向客戶端傳輸數據
-              getRemote().sendString(String.valueOf(result.get("status")));
+              session.sendText(String.valueOf(result.get("status")), Callback.NOOP);
             }
           } catch (Throwable e) {
             logger.error(e.getMessage(), e);
@@ -102,7 +106,7 @@ public class TaskFeedbackServlet extends WebSocketServlet {
     }
 
     private String getParameter(String key) {
-      for (String v : this.getSession().getUpgradeRequest().getParameterMap().get(key)) {
+      for (String v : this.session.getUpgradeRequest().getParameterMap().get(key)) {
         return v;
       }
       throw new IllegalArgumentException("key:" + key + " relevant val is not exist in request");
@@ -113,9 +117,8 @@ public class TaskFeedbackServlet extends WebSocketServlet {
     // this._connection = connection;
     //
     // }
-    @Override
-    public void onWebSocketClose(int statusCode, String reason) {
-      super.onWebSocketClose(statusCode, reason);
+    @OnWebSocketClose
+    public void onClose(Session sess, int statusCode, String reason) {
       logger.info("close tasklog status monitor taskid:" + taskid);
       this.falconSendScheduler.shutdownNow();
     }

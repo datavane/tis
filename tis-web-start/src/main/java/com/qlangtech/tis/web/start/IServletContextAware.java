@@ -17,7 +17,7 @@
  */
 package com.qlangtech.tis.web.start;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

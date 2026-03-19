@@ -20,7 +20,7 @@ package com.qlangtech.tis.config.module.action;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Sets;
-import com.opensymphony.xwork2.ActionProxy;
+
 import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.assemble.TriggerType;
@@ -30,6 +30,7 @@ import com.qlangtech.tis.manage.common.CreateNewTaskResult;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
+import org.apache.struts2.ActionProxy;
 
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;

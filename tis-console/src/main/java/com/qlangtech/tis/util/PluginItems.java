@@ -20,7 +20,7 @@ package com.qlangtech.tis.util;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.opensymphony.xwork2.ActionContext;
+import org.apache.struts2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.coredefine.module.action.PluginItemsParser;

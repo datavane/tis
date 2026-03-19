@@ -18,9 +18,9 @@
 package com.qlangtech.tis.manage.common.valve;
 
 import com.alibaba.citrus.turbine.Context;
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.ActionProxy;
-import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
+import org.apache.struts2.ActionInvocation;
+import org.apache.struts2.ActionProxy;
+import org.apache.struts2.interceptor.MethodFilterInterceptor;
 import com.qlangtech.tis.manage.biz.dal.dao.IOperationLogDAO;
 import com.qlangtech.tis.manage.biz.dal.pojo.OperationLog;
 import com.qlangtech.tis.manage.common.*;
@@ -35,8 +35,8 @@ import org.apache.struts2.ServletActionContext;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.Map;

@@ -25,10 +25,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
@@ -39,7 +39,7 @@ import java.util.Map;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2016年4月13日
  */
-public class IncrControlServlet extends javax.servlet.http.HttpServlet {
+public class IncrControlServlet extends jakarta.servlet.http.HttpServlet {
 
     private static final long serialVersionUID = 1L;
 

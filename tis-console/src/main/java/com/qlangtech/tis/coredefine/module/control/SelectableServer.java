@@ -20,7 +20,7 @@ package com.qlangtech.tis.coredefine.module.control;
 
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author 百岁（baisui@qlangtech.com）

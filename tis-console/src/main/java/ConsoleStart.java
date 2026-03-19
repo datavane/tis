@@ -16,18 +16,24 @@
  * limitations under the License.
  */
 
+import com.qlangtech.tis.extension.util.ClassLoaderReflectionToolkit;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.mcp.WeatherHttpMcpServer;
 import com.qlangtech.tis.web.start.JettyTISRunner;
 import com.qlangtech.tis.web.start.TisApp;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.web.start.TisSubModule;
+import io.modelcontextprotocol.server.transport.HttpServletStreamableServerTransportProvider;
+import org.eclipse.jetty.ee11.servlet.ServletHolder;
 
+import jakarta.servlet.Servlet;
 import java.io.File;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-05-05 19:53
+ * @see ClassLoaderReflectionToolkit 启动时候要加：--add-opens java.base/java.lang=ALL-UNNAMED
  */
 public class ConsoleStart {
   static {
@@ -41,16 +47,11 @@ public class ConsoleStart {
 
 
     TisApp app = new TisApp(TisSubModule.TIS_CONSOLE, (context) -> {
+      HttpServletStreamableServerTransportProvider mcpProvider = WeatherHttpMcpServer.getMcpProvider();
+      context.addServlet(new ServletHolder(mcpProvider), "/mcp/*");
       context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
       context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
     });
-
-    /**
-     * 本地ng-tis aot 编译, 测试用
-     */
-//    JettyTISRunner.enableJndi = false;
-//    app.addRootContext(new File("/Users/mozhenghua/ng-tis"));
-//    app.addZeppelinContext(new File("/opt/misc/zeppelin_v2/zeppelin/dist/tis-zeppelin"));
 
     System.out.println("start");
     app.start(args);
