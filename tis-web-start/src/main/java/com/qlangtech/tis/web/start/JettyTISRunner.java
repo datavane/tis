@@ -20,6 +20,7 @@ package com.qlangtech.tis.web.start;
 import com.qlangtech.tis.health.check.IStatusChecker;
 import com.qlangtech.tis.health.check.StatusLevel;
 import com.qlangtech.tis.health.check.StatusModel;
+import org.eclipse.jetty.ee.webapp.WebAppClassLoader;
 import org.eclipse.jetty.ee11.servlet.FilterHolder;
 import org.eclipse.jetty.ee11.webapp.WebAppContext;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
@@ -145,8 +146,8 @@ public class JettyTISRunner {
 
     public void addContext(final String context, File contextDir, boolean addDirJars, boolean checkWebXmlExist) throws Exception {
         final File webappDir = getWebapp(contextDir).getCanonicalFile();
-        if (!(webappDir.exists() && webappDir.isDirectory() && (!checkWebXmlExist || (new File(webappDir,
-                TisApp.PATH_WEB_XML)).exists()))) {
+        if (!(webappDir.exists() && webappDir.isDirectory() //
+                && (!checkWebXmlExist || (new File(webappDir, TisApp.PATH_WEB_XML)).exists()))) {
             logger.warn("dir is not webapp,skip:{}", webappDir.getAbsolutePath());
             return;
         }
@@ -154,7 +155,8 @@ public class JettyTISRunner {
 
         // org.eclipse.jetty.util.resource.Resource.
         WebAppContext webAppContext = new WebAppContext();
-        webAppContext.setBaseResource(ResourceFactory.of(webAppContext).newResource(webappDir.toURI()));
+        ResourceFactory resourceFactory = ResourceFactory.of(webAppContext);
+        webAppContext.setBaseResource(resourceFactory.newResource(webappDir.toURI()));
         webAppContext.setContextPath(context);
         if (addDirJars) {
             final File libsDir = new File(contextDir, "lib");
@@ -179,7 +181,9 @@ public class JettyTISRunner {
             webAppContext.setClassLoader(contextCloassLoader);
         } else {
             logger.info("context:" + context + " start with system classloader");
-            webAppContext.setClassLoader(this.getClass().getClassLoader());
+            WebAppClassLoader clazzLoader = new WebAppClassLoader(this.getClass().getClassLoader(), webAppContext);
+            clazzLoader.addClassPath(resourceFactory.newResource(new File(contextDir, "target/classes").toPath()));
+            webAppContext.setClassLoader(clazzLoader);
         }
         webAppContext.setDescriptor(new File(webappDir, TisApp.PATH_WEB_XML).getAbsolutePath());
         webAppContext.setDisplayName(context);

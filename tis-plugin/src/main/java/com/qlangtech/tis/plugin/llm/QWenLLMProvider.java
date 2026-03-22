@@ -125,6 +125,7 @@ public class QWenLLMProvider extends LLMProvider {
         return chat(context, prompt, systemPrompt, true, JsonSchema.off());
     }
 
+
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary,
                             JsonSchema jsonOutput) {
         ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);// new DefaultExecuteLog

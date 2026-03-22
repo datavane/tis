@@ -98,7 +98,7 @@ public class TriggerBuildResultTest extends TestCase {
         // Assertions
         Assert.assertNotNull("Trigger result should not be null", result);
         Assert.assertTrue("Trigger should be successful", result.success);
-        Assert.assertEquals("Task ID should match", 12345, result.getTaskid());
+        Assert.assertEquals("Task ID should match", 12345, (int)result.getTaskid());
     }
 
     @Override

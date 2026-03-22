@@ -72,7 +72,8 @@
       "Bash(ls -d /Users/mozhenghua/.m2/repository/org/apache/struts*/)",
       "Bash(ls /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-console/src/main/java/com/qlangtech/tis/runtime/module/action/*.java)",
       "Bash(xargs -I{} basename {} .java)",
-      "Bash(mvn dependency:tree -pl tis-console -Dincludes=org.ow2.asm -Dverbose -o)"
+      "Bash(mvn dependency:tree -pl tis-console -Dincludes=org.ow2.asm -Dverbose -o)",
+      "Bash(mvn compile -pl tis-console -Dmaven.test.skip=true -o)"
     ],
     "deny": [],
     "ask": []

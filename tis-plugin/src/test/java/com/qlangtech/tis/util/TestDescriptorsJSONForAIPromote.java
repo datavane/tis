@@ -29,6 +29,7 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import junit.framework.TestCase;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
 
@@ -59,6 +60,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
         // 创建DefaultDescriptor实例
         defaultDescriptor = new DefaultPlugin.DefaultDescriptor();
         describableImpl = new DescribableImpl(DefaultPlugin.class, Optional.empty());
+        describableImpl.addImpl(DefaultPlugin.class.getName());
     }
 
     /**
@@ -387,5 +389,19 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
         assertTrue("Should contain extend point", descJson.containsKey(DescriptorsJSON.KEY_EXTEND_POINT));
         assertEquals("Extend point should be DefaultPlugin class", DefaultPlugin.class.getName(),
                 descJson.getString(DescriptorsJSON.KEY_EXTEND_POINT));
+
+        Pair<DescriptorsMeta, DescriptorsJSONForAIPrompt> desc = DescriptorsJSONForAIPrompt.desc(describableImpl);
+
+        DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta meta =
+                (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) desc.getKey();
+
+        StringBuilder schema = new StringBuilder();
+        for (Map.Entry<String, JsonSchema> entry : meta.descSchemaRegister.entrySet()) {
+            entry.getValue().appendFieldDescToPrompt(schema);
+
+            System.out.println(JsonUtil.toString(entry.getValue().root(), true));
+            break;
+        }
+        System.out.println(schema);
     }
 }

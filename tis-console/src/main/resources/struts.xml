@@ -27,6 +27,7 @@
         name="tis_convention"
         class="com.qlangtech.tis.manage.common.TisPackageBasedActionConfigBuilder"/>
   <constant name="struts.convention.actionConfigBuilder" value="tis_convention"/>
+  <constant name="struts.convention.exclude.parentClassLoader" value="true"/>
 
   <!---->
   <constant name="struts.ui.templateDir" value="tistemplate"/>

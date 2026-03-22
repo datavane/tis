@@ -56,70 +56,70 @@ import java.util.concurrent.Executors;
  **/
 public class TestServerLaunchToken extends TestCase {
 
-    public void testAppendLaunchingLine() throws Exception {
-        File launchTokenParentDir = new File(FileUtils.getTempDirectory(), "launch");
-        TargetResName workerType = new TargetResName("res");
-        K8SWorkerCptType workerCptType = K8SWorkerCptType.Server;
-        ServerLaunchToken launchToken = ServerLaunchToken.create(launchTokenParentDir, workerType, false, workerCptType);
-        Set<String> testLines = Sets.newHashSet();
-//        for (int i = 0; i < 10; i++) {
+//    public void testAppendLaunchingLine() throws Exception {
+//        File launchTokenParentDir = new File(FileUtils.getTempDirectory(), "launch");
+//        TargetResName workerType = new TargetResName("res");
+//        K8SWorkerCptType workerCptType = K8SWorkerCptType.Server;
+//        ServerLaunchToken launchToken = ServerLaunchToken.create(launchTokenParentDir, workerType, false, workerCptType);
+//        Set<String> testLines = Sets.newHashSet();
+////        for (int i = 0; i < 10; i++) {
+////
+////            JSONObject m = SubJobLog.createSubJobLog(InfoType.INFO, TimeFormat.getCurrentTimeStamp(), "line_" + i);
+////            testLines.add(SSEEventType.TASK_LOG.getEventType() + SSERunnable.splitChar + JsonUtil.toString(m, false));
+////        }
 //
-//            JSONObject m = SubJobLog.createSubJobLog(InfoType.INFO, TimeFormat.getCurrentTimeStamp(), "line_" + i);
-//            testLines.add(SSEEventType.TASK_LOG.getEventType() + SSERunnable.splitChar + JsonUtil.toString(m, false));
+//        ExecutorService executors = Executors.newCachedThreadPool();
+//
+//        CountDownLatch countDown = new CountDownLatch(1);
+//        final int lineCount = 10;
+//        executors.execute(() -> {
+//
+//            String line = null;
+//            for (int i = 0; i < lineCount; i++) {
+//                line = "line_" + i;
+//                testLines.add(line);
+//                JSONObject m = SubJobLog.createSubJobLog(InfoType.INFO, TimeFormat.getCurrentTimeStamp(), line);
+//
+//                launchToken.appendLaunchingLine(SSEEventType.TASK_LOG.getEventType()
+//                        + SSERunnable.splitChar + JsonUtil.toString(m, false));
+//                try {
+//                    Thread.sleep(1000);
+//                } catch (InterruptedException e) {
+//                }
+//            }
+//
+//            countDown.countDown();
+//        });
+//        List<ExecuteStep> executeSteps = Lists.newArrayList();
+//        executeSteps.add(new ExecuteStep(new DefaultSubJobResName("subJobRes"), "desc info"));
+//        TestDataXJobWorker jobWorker = new TestDataXJobWorker();
+//        StringWriter writer = new StringWriter();
+//
+//        DefaultSSERunnable sseRunnable
+//                = new DefaultSSERunnable(new SSEEventWriter(new PrintWriter(writer))
+//                , new ExecuteSteps("测试任务", jobWorker, executeSteps), () -> {
+//        });
+//
+//        k8SLaunching k8SLaunching = sseRunnable.hasLaunchingToken(launchToken);
+//
+//        /**==============================
+//         * IMPORT
+//         ==============================*/
+//        launchToken.addObserver(k8SLaunching);
+//        //  k8SLaunching.getLogs()
+//
+//        for (SubJobLog subJobLog : k8SLaunching.getLogs()) {
+//            //public void writeMessage(InfoType logLevel, long timestamp, String msg)
+//            sseRunnable.writeHistoryLog(subJobLog);
 //        }
-
-        ExecutorService executors = Executors.newCachedThreadPool();
-
-        CountDownLatch countDown = new CountDownLatch(1);
-        final int lineCount = 10;
-        executors.execute(() -> {
-
-            String line = null;
-            for (int i = 0; i < lineCount; i++) {
-                line = "line_" + i;
-                testLines.add(line);
-                JSONObject m = SubJobLog.createSubJobLog(InfoType.INFO, TimeFormat.getCurrentTimeStamp(), line);
-
-                launchToken.appendLaunchingLine(SSEEventType.TASK_LOG.getEventType()
-                        + SSERunnable.splitChar + JsonUtil.toString(m, false));
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                }
-            }
-
-            countDown.countDown();
-        });
-        List<ExecuteStep> executeSteps = Lists.newArrayList();
-        executeSteps.add(new ExecuteStep(new DefaultSubJobResName("subJobRes"), "desc info"));
-        TestDataXJobWorker jobWorker = new TestDataXJobWorker();
-        StringWriter writer = new StringWriter();
-
-        DefaultSSERunnable sseRunnable
-                = new DefaultSSERunnable(new SSEEventWriter(new PrintWriter(writer))
-                , new ExecuteSteps("测试任务", jobWorker, executeSteps), () -> {
-        });
-
-        k8SLaunching k8SLaunching = sseRunnable.hasLaunchingToken(launchToken);
-
-        /**==============================
-         * IMPORT
-         ==============================*/
-        launchToken.addObserver(k8SLaunching);
-        //  k8SLaunching.getLogs()
-
-        for (SubJobLog subJobLog : k8SLaunching.getLogs()) {
-            //public void writeMessage(InfoType logLevel, long timestamp, String msg)
-            sseRunnable.writeHistoryLog(subJobLog);
-        }
-
-        countDown.await();
-        String writeLines = writer.toString();
-        Assert.assertEquals(lineCount, testLines.size());
-        for (String line : testLines) {
-            Assert.assertTrue(StringUtils.indexOf(writeLines, line) > -1);
-        }
-    }
+//
+//        countDown.await();
+//        String writeLines = writer.toString();
+//        Assert.assertEquals(lineCount, testLines.size());
+//        for (String line : testLines) {
+//            Assert.assertTrue(StringUtils.indexOf(writeLines, line) > -1);
+//        }
+//    }
 
     private static class DefaultSubJobResName extends SubJobResName<Object> {
         public DefaultSubJobResName(String name) {

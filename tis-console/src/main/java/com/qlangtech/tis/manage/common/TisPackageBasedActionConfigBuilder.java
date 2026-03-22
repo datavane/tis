@@ -43,9 +43,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -63,54 +67,81 @@ public class TisPackageBasedActionConfigBuilder extends PackageBasedActionConfig
   private static final Logger LOG = LoggerFactory.getLogger(TisPackageBasedActionConfigBuilder.class);
 
   public static void main(String[] args) throws Exception {
-    Matcher m = filePattern.matcher("jar:file:/opt/app/spring-boot/tjs/lib/tis.jar!/com/qlangtech/tis/runtime/module/screen");
+    Matcher m =
+      filePattern.matcher("jar:file:/opt/app/spring-boot/tjs/lib/tis" + ".jar!/com/qlangtech/tis/runtime" + "/module"
+        + "/screen");
     if (m.matches()) {
       System.out.println(new URL(m.group(1)));
     }
   }
 
   @Inject
-  public TisPackageBasedActionConfigBuilder(Configuration configuration, Container container, ObjectFactory objectFactory
-    , @Inject("struts.convention.redirect.to.slash") String redirectToSlash
-    , @Inject("struts.convention.default.parent.package") String defaultParentPackage
+  public TisPackageBasedActionConfigBuilder(Configuration configuration, Container container,
+                                            ObjectFactory objectFactory //
+    , @Inject("struts.convention.redirect.to.slash") String redirectToSlash //
+    , @Inject("struts.convention.default.parent.package") String defaultParentPackage //
     , @Inject("struts.convention.enable.smi.inheritance") String enableSmiInheritance) {
     super(configuration, container, objectFactory, redirectToSlash, defaultParentPackage, enableSmiInheritance);
     this.parentPkgConfig = configuration.getPackageConfig("default");
-    Assert.assertNotNull(this.parentPkgConfig);
+    Objects.requireNonNull(this.parentPkgConfig);
 
 
   }
 
-//  /**
-//   * Configuration configuration
-//   * , Container container
-//   * , ObjectFactory objectFactory
-//   * , @Inject("struts.convention.redirect.to.slash") String redirectToSlash
-//   * , @Inject("struts.convention.default.parent.package") String defaultParentPackage, @Inject("struts.convention.enable.smi.inheritance") String enableSmiInheritance
-//   *
-//   * @param configuration
-//   * @param container
-//   * @param objectFactory
-//   * @param redirectToSlash
-//   * @param defaultParentPackage
-//   */
-//  @Inject
-//  public TisPackageBasedActionConfigBuilder(Configuration configuration, Container container
-//    , ObjectFactory objectFactory
-//    , @Inject("struts.convention.redirect.to.slash") String redirectToSlash
-//    , @Inject("struts.convention.default.parent.package") String defaultParentPackage) {
-//    super(configuration, container, objectFactory, redirectToSlash, defaultParentPackage);
-//    this.parentPkgConfig = configuration.getPackageConfig("default");
-//    Assert.assertNotNull(this.parentPkgConfig);
-//  }
+  //  /**
+  //   * Configuration configuration
+  //   * , Container container
+  //   * , ObjectFactory objectFactory
+  //   * , @Inject("struts.convention.redirect.to.slash") String redirectToSlash
+  //   * , @Inject("struts.convention.default.parent.package") String defaultParentPackage, @Inject("struts
+  //   .convention.enable.smi.inheritance") String enableSmiInheritance
+  //   *
+  //   * @param configuration
+  //   * @param container
+  //   * @param objectFactory
+  //   * @param redirectToSlash
+  //   * @param defaultParentPackage
+  //   */
+  //  @Inject
+  //  public TisPackageBasedActionConfigBuilder(Configuration configuration, Container container
+  //    , ObjectFactory objectFactory
+  //    , @Inject("struts.convention.redirect.to.slash") String redirectToSlash
+  //    , @Inject("struts.convention.default.parent.package") String defaultParentPackage) {
+  //    super(configuration, container, objectFactory, redirectToSlash, defaultParentPackage);
+  //    this.parentPkgConfig = configuration.getPackageConfig("default");
+  //    Assert.assertNotNull(this.parentPkgConfig);
+  //  }
   @Override
   protected Test<ClassInfo> getActionClassTest() {
     return super.getActionClassTest();
   }
 
-  public static final Pattern NAMESPACE_PATTERN = Pattern.compile("com\\.qlangtech\\.tis\\.(\\w+)\\.module\\.(screen|action|control)(.*)(\\..*)$");
+  @Override
+  protected Set<Class<?>> findActions() {
+    if (!TisAppLaunch.isTestMock()) {
+      return super.findActions();
+    }
+    // 测试模式下绕过 readUrls()/buildUrlSet() 的逻辑
+    // 因为 buildUrlSet() 中 urlSet.exclude(parent) 会把 target/classes/ 排除掉
+    // （IDE/Maven 运行测试时 target/classes 已在系统 classloader 的 classpath 上）
+    Set<Class<?>> classes = new HashSet<>();
+    try {
+      Test<String> classPackageTest = getClassPackageTest();
+      List<URL> urls = Collections.list(getClassLoader().getResources(""));
+      ClassFinder finder = buildClassFinder(classPackageTest, urls);
+      Test<ClassInfo> test = getActionClassTest();
+      classes.addAll(finder.findClasses(test));
+    } catch (Exception ex) {
+      LOG.error("Unable to scan named packages in test mode", ex);
+    }
+    return classes;
+  }
 
-  // public static final Pattern NAMESPACE_TIS_PATTERN = Pattern.compile("com\\.qlangtech\\.tis\\.(\\w+)\\.module\\.(screen|action|control)(.*)(\\..*)$");
+  public static final Pattern NAMESPACE_PATTERN = Pattern.compile("com\\.qlangtech\\.tis\\.(\\w+)\\.module\\." +
+    "(screen|action|control)(.*)(\\..*)$");
+
+  // public static final Pattern NAMESPACE_TIS_PATTERN = Pattern.compile("com\\.qlangtech\\.tis\\.(\\w+)\\.module\\.
+  // (screen|action|control)(.*)(\\..*)$");
   private String[] tisActionPackages;
 
   @Inject(value = ConventionConstants.CONVENTION_ACTION_PACKAGES, required = false)
@@ -122,15 +153,20 @@ public class TisPackageBasedActionConfigBuilder extends PackageBasedActionConfig
   }
 
   @Override
+  protected boolean checkPackageLocators(String classPackageName) {
+    return false;
+  }
+
+  @Override
   protected ClassFinder buildClassFinder(Test<String> classPackageTest, final List<URL> urls) {
     // File jar = new File("./");
-//        String[] targetJars = jar.list(new FilenameFilter() {
-//
-//            @Override
-//            public boolean accept(File dir, String name) {
-//                return org.apache.commons.lang.StringUtils.endsWith(name, ".jar");
-//            }
-//        });
+    //        String[] targetJars = jar.list(new FilenameFilter() {
+    //
+    //            @Override
+    //            public boolean accept(File dir, String name) {
+    //                return org.apache.commons.lang.StringUtils.endsWith(name, ".jar");
+    //            }
+    //        });
     // if ( targetJars == null || targetJars.length != 1) {
     if (TisAppLaunch.isTestMock()) {
       // 在开发环境中运行
@@ -160,7 +196,8 @@ public class TisPackageBasedActionConfigBuilder extends PackageBasedActionConfig
   }
 
   @Override
-  protected Builder getPackageConfig(Map<String, Builder> packageConfigs, String actionNamespace, String actionPackage, Class<?> actionClass, Action action) {
+  protected Builder getPackageConfig(Map<String, Builder> packageConfigs, String actionNamespace,
+                                     String actionPackage, Class<?> actionClass, Action action) {
     Matcher matcher = NAMESPACE_PATTERN.matcher(actionClass.getName());
     // 解析struts2的命名空间
     String name = null;
@@ -177,11 +214,13 @@ public class TisPackageBasedActionConfigBuilder extends PackageBasedActionConfig
       pkgConfig.strictMethodInvocation(false);
       packageConfigs.put(name, pkgConfig);
       // check for @DefaultInterceptorRef in the package
-      DefaultInterceptorRef defaultInterceptorRef = AnnotationUtils.findAnnotation(actionClass, DefaultInterceptorRef.class);
+      DefaultInterceptorRef defaultInterceptorRef = AnnotationUtils.findAnnotation(actionClass,
+        DefaultInterceptorRef.class);
       if (defaultInterceptorRef != null) {
         pkgConfig.defaultInterceptorRef(defaultInterceptorRef.value());
         if (LOG.isTraceEnabled())
-          LOG.debug("Setting [#0] as the default interceptor ref for [#1]", defaultInterceptorRef.value(), pkgConfig.getName());
+          LOG.debug("Setting [#0] as the default interceptor ref for [#1]", defaultInterceptorRef.value(),
+            pkgConfig.getName());
       }
     }
     if (LOG.isTraceEnabled()) {

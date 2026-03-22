@@ -82,9 +82,12 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
 
             @SuppressWarnings("unchecked") AIPromptEnhance promptEnhance =
                     (AIPromptEnhance) propertyType.fieldClazz.getAnnotation(AIPromptEnhance.class);
-            String helpContent = propertyType.extraProp.getHelpContent();
+            String helpContent = null;
+            if (propertyType.extraProp != null) {
+                helpContent = propertyType.extraProp.getHelpContent();
+            }
             if (promptEnhance != null) {
-                return helpContent + "\n" + promptEnhance.prompt();
+                return StringUtils.trimToEmpty(helpContent) + "\n" + promptEnhance.prompt();
             }
             return helpContent;
         }
