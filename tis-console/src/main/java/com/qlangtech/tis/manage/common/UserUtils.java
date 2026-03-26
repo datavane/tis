@@ -49,7 +49,7 @@ public class UserUtils {
   public static final String USER_TOKEN_SESSION = UserUtils.class.getName() + "user";
 
   public static String currentLoginUserName() {
-    RunContext runContext = BasicServlet.getBeanByType(ServletActionContext.getServletContext(), RunContext.class);
+    RunContext runContext = BasicServlet.getBeanByType( RunContext.class);
     final IUser user = UserUtils.getUser(
       ServletActionContext.getRequest(), Objects.requireNonNull(runContext, "runContext can not be null"));
     return user.getName();

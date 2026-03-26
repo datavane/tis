@@ -44,10 +44,10 @@ public class DefaultContext implements Context {
         return this.contextMap;
     }
 
-    @Override
-    public boolean hasErrors() {
-        return this.get(IMessageHandler.ACTION_ERROR_MSG) != null && !((List<String>) this.get(IMessageHandler.ACTION_ERROR_MSG)).isEmpty();
-    }
+//    @Override
+//    public boolean hasErrors() {
+//        return this.get(IMessageHandler.ACTION_ERROR_MSG) != null && !((List<String>) this.get(IMessageHandler.ACTION_ERROR_MSG)).isEmpty();
+//    }
 
     @Override
     public boolean containsKey(String key) {

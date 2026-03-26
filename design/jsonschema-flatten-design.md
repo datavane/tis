@@ -566,9 +566,185 @@ return McpServerFeatures.SyncToolSpecification.builder().tool(tool).callHandler(
 - `BasicStepExecutor.createPluginInstance()` 能正确处理扁平 schema
 - `validateAttrValMap()` 在还原后能正常校验
 
-## 7. 风险点与注意事项
+## 7. MCP Tool 架构：发现 + 执行模式
 
-1. **影响范围**：改造影响所有使用 `DescriptorsJSONForAIPrompt` 生成 schema 的流程（MCP 和 AI Agent）
+### 7.1 问题
+
+TIS 是基于插件的可扩展平台，DataSource 类型有 MySQL、SQLServer、Oracle 等数十种，且会持续增长。如果为每种插件注册一个 MCP tool，会导致：
+- tool 列表随插件增减变化，MCP Server 代码需频繁修改
+- 大量 tool 的 schema 全部进入 LLM 的 system prompt，**消耗大量 token**
+
+### 7.2 方案：稳定的通用 Tool（发现 + 执行两阶段）
+
+只注册 **3 个永远不变的 tool**，无论 TIS 插件如何增减，MCP Server 代码和 tool 定义均无需改动：
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  稳定的 3 个 MCP Tool                                        │
+│                                                              │
+│  1. list_plugin_types(category)                              │
+│     category: "datasource" | "reader" | "writer" | ...       │
+│     返回: 可用插件类型列表（含简要参数摘要）                      │
+│                                                              │
+│  2. get_plugin_schema(type)                                  │
+│     返回: 该类型的完整扁平化参数 schema                         │
+│                                                              │
+│  3. create_plugin_instance(type, params)                     │
+│     执行: 参数校验 → FlatJsonToTisConverter 还原 → 创建实例     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 7.3 Token 消耗对比
+
+| 方案 | 注册 tool 数 | 每次对话 tool schema 开销 |
+|------|-------------|------------------------|
+| 每个插件一个 tool | 90+ | 巨大（所有 schema 进 system prompt） |
+| 通用 tool（本方案） | 3 | 很小（3 个简单 schema） |
+
+### 7.4 调用顺序保障
+
+MCP 协议没有内置 tool 调用顺序强制机制，采用**服务端校验 + 引导式报错**策略：
+
+#### 原则：不强制顺序，让每一步自带容错
+
+```
+场景A：LLM 按标准流程（3步）
+  list_plugin_types("datasource")
+    → ["MySQL-V5", "SQLServer", "Oracle", ...]
+  get_plugin_schema("MySQL-V5")
+    → { host: string, port: integer, dbName: string, ... }
+  create_plugin_instance("MySQL-V5", {host:"192.168.28.200", ...})
+    → 创建成功
+
+场景B：LLM 跳过 get_plugin_schema（也能工作）
+  create_plugin_instance("MySQL-V5", {host:"192.168.28.200"})
+    → 校验失败："缺少必填参数: dbName, userName, password。
+       请调用 get_plugin_schema('MySQL-V5') 获取完整参数格式"
+  get_plugin_schema("MySQL-V5") → 获取 schema
+  create_plugin_instance(完整参数) → 创建成功
+
+场景C：LLM 已知参数（最高效，1步完成）
+  create_plugin_instance("MySQL-V5", {完整参数})
+    → 直接创建成功
+```
+
+#### 具体实现
+
+**Tool 描述引导**（`create_plugin_instance` 的 description）：
+
+```
+创建插件实例。建议先调用 list_plugin_types 查看可用类型，
+再调用 get_plugin_schema 获取参数格式。
+```
+
+**`list_plugin_types` 返回带参数摘要**（减少一次调用）：
+
+```json
+[
+  { "type": "MySQL-V5",
+    "description": "MySQL数据源",
+    "requiredParams": ["host", "port", "dbName", "userName", "password"],
+    "optionalParams": ["encode", "extraParams", "useCompression", "timeZone"] },
+  { "type": "Oracle", "description": "Oracle数据源", ... }
+]
+```
+
+**`create_plugin_instance` 服务端严格校验**：
+
+```java
+callHandler((exchange, request) -> {
+    String type = (String) request.arguments().get("type");
+    Map params = (Map) request.arguments().get("params");
+
+    // 1. 校验 type 是否存在
+    Descriptor desc = findDescriptorByDisplayName(type);
+    if (desc == null) {
+        return CallToolResult.builder().isError(true)
+            .addTextContent("未知的插件类型: " + type
+              + "。请调用 list_plugin_types 查看可用类型")
+            .build();
+    }
+
+    // 2. 校验必填参数
+    List<String> missingFields = validateRequiredParams(desc, params);
+    if (!missingFields.isEmpty()) {
+        return CallToolResult.builder().isError(true)
+            .addTextContent("缺少必填参数: " + String.join(", ", missingFields)
+              + "。请调用 get_plugin_schema('" + type + "') 获取完整参数格式")
+            .build();
+    }
+
+    // 3. 校验通过，反向还原 + 创建实例
+    JSONObject flatJson = buildFlatJson(desc, params);
+    JSONObject tisFormat = FlatJsonToTisConverter.convert(flatJson);
+    // ... 调用 TIS 后端创建
+})
+```
+
+### 7.5 `WeatherHttpMcpServer` 改造
+
+当前 `getMcpProvider()` 中硬编码了 tool 定义。改造后：
+
+```java
+public static HttpServletStreamableServerTransportProvider getMcpProvider() {
+    HttpServletStreamableServerTransportProvider transportProvider =
+        HttpServletStreamableServerTransportProvider.builder()
+            .mcpEndpoint("/mcp").build();
+
+    McpSyncServer server = McpServer.sync(transportProvider)
+        .serverInfo("tis-server", "1.0.0")
+        .tools(
+            createListPluginTypesTool(),     // 通用：列出可用插件类型
+            createGetPluginSchemaTool(),     // 通用：获取插件 schema
+            createPluginInstanceTool()       // 通用：创建插件实例
+        )
+        .build();
+
+    return transportProvider;
+}
+```
+
+3 个 tool 的 `callHandler` 内部通过 TIS 的 `Descriptor` 体系动态获取插件元数据，无需硬编码任何特定插件。
+
+### 7.6 数据流图（MCP 完整链路）
+
+```
+MCP Client (LLM)
+    │
+    │ ① list_plugin_types("datasource")
+    ▼
+TIS MCP Server
+    │  遍历 TIS.get().getDescriptorList(DataSourceFactory.class)
+    │  返回: [{type:"MySQL-V5", requiredParams:[...]}, ...]
+    ▼
+MCP Client (LLM)
+    │
+    │ ② get_plugin_schema("MySQL-V5")
+    ▼
+TIS MCP Server
+    │  DescriptorsJSONForAIPrompt.desc(pluginImpl)
+    │  → toMcpJsonSchema() 扁平化
+    │  返回: { host: string, port: integer, ... }
+    ▼
+MCP Client (LLM)
+    │
+    │ ③ create_plugin_instance("MySQL-V5", {host:"...", port:3306, ...})
+    ▼
+TIS MCP Server
+    │  校验参数
+    │  → FlatJsonToTisConverter.convert() 还原
+    │  → AttrValMap.parseDescribableMap()
+    │  → Descriptor.validate()
+    │  → 持久化保存
+    │  返回: "MySQL数据源 shop_ds 创建成功"
+    ▼
+MCP Client (LLM) → 回复用户
+```
+
+## 8. 风险点与注意事项
+
+1. **影响范围**：JsonSchema 扁平化改造影响所有使用 `DescriptorsJSONForAIPrompt` 生成 schema 的流程（MCP 和 AI Agent）
 2. **向后兼容**：如果有已保存的 schema 或缓存，需要清理
 3. **递归 oneOf**：oneOf 选项内部可能还有 oneOf（如 `splitTableStrategy` 的 "on" 选项内部还有多个子字段），`setFlatSchema` 和 `FlatJsonToTisConverter` 都需要正确递归处理
 4. **`fieldsDesc` 同步**：`JsonSchema` 的 `fieldsDesc` 用于生成提示词（`appendFieldDescToPrompt`），扁平化后需要确保 fieldsDesc 的路径和描述仍然正确
+5. **MCP Tool 通用性**：3 个通用 tool 的 callHandler 需要能处理所有插件类别（datasource/reader/writer），不能有特定插件的硬编码逻辑

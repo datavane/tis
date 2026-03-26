@@ -18,8 +18,11 @@
 package com.qlangtech.tis.manage;
 
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.manage.servlet.BasicServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
@@ -52,7 +55,14 @@ public class ConsoleInitilizeListener implements ServletContextListener {
     // 1. 设置 CenterResource 配置
     CenterResource.setNotFetchFromCenterRepository();
 
-    // 2. 初始化 TIS Actor System
+    // 2. 将 Spring ApplicationContext 注入到 BasicServlet，
+    //    避免后续在非 HTTP 请求线程（如 MCP tool handler）中
+    //    通过 DefaultFilter ThreadLocal 获取 ServletContext 失败
+    WebApplicationContext springCtx =
+      WebApplicationContextUtils.getRequiredWebApplicationContext(sce.getServletContext());
+    BasicServlet.setApplicationContext(springCtx);
+
+    // 3. 初始化 TIS Actor System
     try {
      // initializeTISActorSystem(sce);
     } catch (Exception e) {

@@ -33,6 +33,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -43,8 +44,14 @@ public abstract class AdapterPluginContext implements IPluginContext, IControlMs
     private final IControlMsgHandler msgHandler;
 
     public AdapterPluginContext(IPluginContext pluginContext) {
-        this.pluginContext = pluginContext;
-        this.msgHandler = (IControlMsgHandler) pluginContext;
+        //        this.pluginContext = pluginContext;
+        //        this.msgHandler = (IControlMsgHandler) pluginContext;
+        this(pluginContext, (IControlMsgHandler) pluginContext);
+    }
+
+    public AdapterPluginContext(IPluginContext pluginContext, IControlMsgHandler msgHandler) {
+        this.pluginContext = (pluginContext);
+        this.msgHandler = Objects.requireNonNull(msgHandler, "msgHandler can not be null");
     }
 
     @Override
@@ -58,9 +65,7 @@ public abstract class AdapterPluginContext implements IPluginContext, IControlMs
     }
 
     @Override
-    public Pair<Boolean, IPluginItemsProcessor> getPluginItems(
-            IUploadPluginMeta pluginMeta, Context context, int pluginIndex
-            , JSONArray itemsArray, FormVaildateType verify, PropValRewrite propValRewrite) {
+    public Pair<Boolean, IPluginItemsProcessor> getPluginItems(IUploadPluginMeta pluginMeta, Context context, int pluginIndex, JSONArray itemsArray, FormVaildateType verify, PropValRewrite propValRewrite) {
         return pluginContext.getPluginItems(pluginMeta, context, pluginIndex, itemsArray, verify, propValRewrite);
     }
 
@@ -116,7 +121,7 @@ public abstract class AdapterPluginContext implements IPluginContext, IControlMs
 
     @Override
     public boolean isCollectionAware() {
-        return pluginContext.isCollectionAware();
+        return msgHandler.isCollectionAware();
     }
 
     @Override
@@ -131,31 +136,31 @@ public abstract class AdapterPluginContext implements IPluginContext, IControlMs
 
     @Override
     public DataXName getCollectionName() {
-        return pluginContext.getCollectionName();
+        return msgHandler.getCollectionName();
     }
 
     @Override
     public void errorsPageShow(Context context) {
-        pluginContext.errorsPageShow(context);
+        msgHandler.errorsPageShow(context);
     }
 
     @Override
     public void addActionMessage(Context context, String msg) {
-        pluginContext.addActionMessage(context, msg);
+        msgHandler.addActionMessage(context, msg);
     }
 
     @Override
     public void setBizResult(Context context, Object result, boolean overwriteable) {
-        pluginContext.setBizResult(context, result, overwriteable);
+        msgHandler.setBizResult(context, result, overwriteable);
     }
 
     @Override
     public void addErrorMessage(Context context, String msg) {
-        pluginContext.addErrorMessage(context, msg);
+        msgHandler.addErrorMessage(context, msg);
     }
 
     @Override
     public String getRequestHeader(String key) {
-        return pluginContext.getRequestHeader(key);
+        return msgHandler.getRequestHeader(key);
     }
 }

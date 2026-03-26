@@ -64,6 +64,10 @@ import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_VALS;
  */
 public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends DescriptorsJSON<T,
         DescriptorsJSONForAIPrompt.AISchemaAttrVal> {
+    /**
+     * 进行过程中构建的组件依赖
+     */
+    private Map<Class<? extends Descriptor>, DescribableImpl> descFieldsRegister = Maps.newHashMap();
 
     public static class AISchemaAttrVal extends AttrVal {
         private final String fieldKey;
@@ -112,6 +116,12 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
             super(rootDesc);
         }
 
+        /**
+         *
+         * @param id       插件的实现类className值
+         * @param descJson
+         * @param desc
+         */
         @Override
         public void addDesc(String id, JSONObject descJson, Object desc) {
             super.addDesc(id, descJson, desc);
@@ -122,81 +132,93 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
                             , "concrete plugin implement class") //
                     .setConst(descriptor.getId());
 
-            final JSONArray attrs = Objects.requireNonNull(descJson.getJSONArray(KEY_SCHEMA_FIELDS_ATTRS),
-                    KEY_SCHEMA_FIELDS_ATTRS + " relevant attrs can not be null");
+
             schemaBuilder.addObjectProperty(PLUGIN_EXTENSION_VALS, (inner) -> {
-                attrs.forEach((attr) -> {
-                    AISchemaAttrVal attrVal = (AISchemaAttrVal) attr;
-                    PropertyType pt = attrVal.propertyType;
-                    if (pt.isDescribable()) {
-                        inner.addOneOfProperty(attrVal, pt.getApplicableDescriptors(), true);
-                    } else {
-                        FormFieldType fieldType = pt.formField.type();
-                        Validator[] validators = pt.formField.validate();
-                        // attrVal.propertyType.extraProp.getHelpContent()
-                        //  JsonSchema.AddedProperty addedProperty = //
-                        inner.addObjectProperty(attrVal.fieldKey, (i) -> {
-
-                            JsonSchema.FieldType schemaFieldType =
-                                    (pt.fieldClazz == boolean.class || pt.fieldClazz == Boolean.class) ?
-                                            JsonSchema.FieldType.Boolean : fieldType.schemaFieldType;
-
-                            String placeholder = pt.extraProp.getPlaceholder();
-                            StringBuilder helpContent =
-                                    new StringBuilder(StringUtils.trimToEmpty(pt.extraProp.getHelpContent()));
-                            if (StringUtils.isNotEmpty(placeholder)) {
-                                helpContent.append(helpContent.length() > 0 ? "," : StringUtils.EMPTY).append("例子:").append(placeholder);
-                            }
-                            AIPromptEnhance promptEnhance = pt.f.getAnnotation(AIPromptEnhance.class);
-                            if (promptEnhance != null) {
-                                helpContent.append("\n").append(promptEnhance.prompt());
-                            }
-                            Object dft = pt.dftVal();
-                            if (dft != null) {
-                                // 但 Qwen 的 structured output 功能目前（截至 2026 年）并不会自动读取并应用 default 值。它只保证输出结构符合
-                                // schema（字段存在、类型正确、enum/pattern 合规），但不会主动填充默认值。
-                                // 所以需要在提示词中说明默认值
-                                helpContent.append("\n `").append(SCHEMA_VALUE_DEFAULT).append("`:").append(JsonUtil.toString(dft));
-                            }
-                            //                            if (pt.isIdentity()) {
-                            //                                /**
-                            //                                 * 1. 没有抽取到对应值： 输出的`_primaryVal`属性对应的值不要自动生成（切记）
-                            //                                 * 2.  抽取到对应的值：输出的`_primaryVal`属性值必须严格匹配正则式：
-                            //                                 `[A-Z\\da-z_]+`
-                            //                                 *       ，如有非法字符须进行**合理替换**以符合正则式，例如：识别得到“mysql-mysql-2
-                            //                                 *       ”不符合正则式规范，**必须**进行**合理替换**变成“mysql_mysql_2”
-                            //                                 */
-                            //                                helpContent.append("\n没有抽取到对应值：
-                            //                                输出的`_primaryVal`属性对应的值不要自动生成（切记）");
-                            //                            }
-                            JsonSchema.AddedProperty addedProperty =  //
-                                    i.addProperty(KEY_primaryVal, schemaFieldType, helpContent.toString(),
-                                            pt.isInputRequired());
-
-                            if (dft != null) {
-                                addedProperty.setDefault(dft);
-
-                            }
-                            List<Option> enumPropOptions = attrVal.propertyType.getEnumPropOptions(false);
-                            if (CollectionUtils.isNotEmpty(enumPropOptions)) {
-                                addedProperty.setValEnums(enumPropOptions.stream().map(Option::getValue).toArray(Object[]::new));
-                            }
-                            allValidator:
-                            for (Validator validator : validators) {
-                                for (ValidateRule rule : validator.rules) {
-                                    if (rule.pattern != null) {
-                                        addedProperty.setPattern(rule.pattern);
-                                        break allValidator;
-                                    }
-                                }
-                            }
-                        });
-
-                    }
-                });
+                addProps2Builder(descJson, inner);
             });
 
             this.descSchemaRegister.put(id, schemaBuilder.build());
+        }
+
+        /**
+         * @param descJson
+         * @param inner
+         * @see #createFormPropertyTypes  param is return from descJson
+         */
+        public static void addProps2Builder(JSONObject descJson, JsonSchema.Builder inner) {
+            final JSONArray attrs = Objects.requireNonNull(descJson.getJSONArray(KEY_SCHEMA_FIELDS_ATTRS),
+                    KEY_SCHEMA_FIELDS_ATTRS + " relevant attrs can not be null");
+            attrs.forEach((attr) -> {
+                AISchemaAttrVal attrVal = (AISchemaAttrVal) attr;
+                PropertyType pt = attrVal.propertyType;
+                if (pt.isDescribable()) {
+                    inner.addOneOfProperty(attrVal, pt.getApplicableDescriptors(), true);
+                } else {
+                    FormFieldType fieldType = pt.formField.type();
+                    Validator[] validators = pt.formField.validate();
+                    // attrVal.propertyType.extraProp.getHelpContent()
+                    //  JsonSchema.AddedProperty addedProperty = //
+
+
+                    //  inner.addObjectProperty(attrVal.fieldKey, (i) -> {
+
+                    JsonSchema.FieldType schemaFieldType =
+                            (pt.fieldClazz == boolean.class || pt.fieldClazz == Boolean.class) ?
+                                    JsonSchema.FieldType.Boolean : fieldType.schemaFieldType;
+
+                    String placeholder = pt.extraProp.getPlaceholder();
+                    StringBuilder helpContent =
+                            new StringBuilder(StringUtils.trimToEmpty(pt.extraProp.getHelpContent()));
+                    if (StringUtils.isNotEmpty(placeholder)) {
+                        helpContent.append(!helpContent.isEmpty() ? "," : StringUtils.EMPTY).append("例子:").append(placeholder);
+                    }
+                    AIPromptEnhance promptEnhance = pt.f.getAnnotation(AIPromptEnhance.class);
+                    if (promptEnhance != null) {
+                        helpContent.append("\n").append(promptEnhance.prompt());
+                    }
+                    Object dft = pt.dftVal();
+                    if (dft != null) {
+                        // 但 Qwen 的 structured output 功能目前（截至 2026 年）并不会自动读取并应用 default 值。它只保证输出结构符合
+                        // schema（字段存在、类型正确、enum/pattern 合规），但不会主动填充默认值。
+                        // 所以需要在提示词中说明默认值
+                        helpContent.append("\n `").append(SCHEMA_VALUE_DEFAULT).append("`:").append(JsonUtil.toString(dft));
+                    }
+                    //                            if (pt.isIdentity()) {
+                    //                                /**
+                    //                                 * 1. 没有抽取到对应值： 输出的`_primaryVal`属性对应的值不要自动生成（切记）
+                    //                                 * 2.  抽取到对应的值：输出的`_primaryVal`属性值必须严格匹配正则式：
+                    //                                 `[A-Z\\da-z_]+`
+                    //                                 *       ，如有非法字符须进行**合理替换**以符合正则式，例如：识别得到“mysql-mysql-2
+                    //                                 *       ”不符合正则式规范，**必须**进行**合理替换**变成“mysql_mysql_2”
+                    //                                 */
+                    //                                helpContent.append("\n没有抽取到对应值：
+                    //                                输出的`_primaryVal`属性对应的值不要自动生成（切记）");
+                    //                            }
+                    JsonSchema.AddedProperty addedProperty =  //
+                            inner.addProperty(attrVal.fieldKey, schemaFieldType, helpContent.toString(),
+                                    pt.isInputRequired());
+
+                    if (dft != null) {
+                        addedProperty.setDefault(dft);
+
+                    }
+                    List<Option> enumPropOptions = attrVal.propertyType.getEnumPropOptions(false);
+                    if (CollectionUtils.isNotEmpty(enumPropOptions)) {
+                        addedProperty.setValEnums(enumPropOptions.stream().map(Option::getValue).toArray(Object[]::new));
+                    }
+                    allValidator:
+                    for (Validator validator : validators) {
+                        for (ValidateRule rule : validator.rules) {
+                            if (rule.pattern != null) {
+                                addedProperty.setPattern(rule.pattern);
+                                break allValidator;
+                            }
+                        }
+                    }
+                    //  });
+
+                }
+            });
         }
     }
 
@@ -206,10 +228,6 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
         return Pair.of(aiPrompt.getDescriptorsJSON(), aiPrompt);
     }
 
-    /**
-     * 进行过程中构建的组件依赖
-     */
-    private Map<Class<? extends Descriptor>, DescribableImpl> descFieldsRegister = Maps.newHashMap();
 
     public DescriptorsJSONForAIPrompt(Descriptor<T> descriptor, DescribableImpl pluginImpl) {
         super(descriptor);

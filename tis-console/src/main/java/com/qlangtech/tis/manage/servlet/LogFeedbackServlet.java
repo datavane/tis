@@ -114,8 +114,8 @@ public class LogFeedbackServlet extends JettyWebSocketServlet {
     factory.setCreator((req, rep) -> {
       return new LogSocket();
     });
-    this.zkGetter = BasicServlet.getBeanByType(getServletContext(), ZooKeeperGetter.class);
-    this.wfDao = BasicServlet.getBeanByType(getServletContext(), IWorkflowDAOFacade.class);
+    this.zkGetter = BasicServlet.getBeanByType( ZooKeeperGetter.class);
+    this.wfDao = BasicServlet.getBeanByType( IWorkflowDAOFacade.class);
   }
 
   @WebSocket

@@ -37,6 +37,7 @@ import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.workflow.dao.IDatasourceDbDAO;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
 import com.qlangtech.tis.workflow.pojo.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -68,6 +69,10 @@ public class OfflineManager {
 
   public void setComDfireTisWorkflowDAOFacade(IWorkflowDAOFacade comDfireTisWorkflowDAOFacade) {
     this.workflowDAOFacade = comDfireTisWorkflowDAOFacade;
+  }
+
+  public IDatasourceDbDAO getDatasourceDbDAO() {
+    return workflowDAOFacade.getDatasourceDbDAO();
   }
 
   /**

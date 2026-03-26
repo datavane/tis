@@ -46,6 +46,9 @@ import static com.qlangtech.tis.aiagent.execute.impl.PluginInstanceCreateExecuto
  * @date 2025/10/4
  */
 public class PipelineBatchExecutor implements StepExecutor {
+  public PipelineBatchExecutor() {
+  }
+
   @Override
   public boolean execute(TaskPlan plan, TaskStep step, AgentContext context) {
 
@@ -88,7 +91,7 @@ public class PipelineBatchExecutor implements StepExecutor {
     DataXJobSubmit.InstanceType triggerType = DataXJobSubmit.getDataXTriggerType();
     Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, triggerType);
 
-    if (!dataXJobSubmit.isPresent()) {
+    if (dataXJobSubmit.isEmpty()) {
       throw new IllegalStateException("triggerType:" + triggerType + " have not been installed,please install it "
         + "ahead");
     }

@@ -18,9 +18,11 @@
 
 package com.qlangtech.tis.datax;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import javax.xml.crypto.Data;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -32,6 +34,13 @@ public class DataXName implements Serializable {
 
     public static DataXName createDataXPipeline(String pipelineName) {
         return new DataXName(pipelineName, StoreResourceType.DataApp);
+    }
+
+    public static DataXName createDS(String dsName) {
+        if (StringUtils.isEmpty(dsName)) {
+            throw new IllegalStateException("param dsName can not be empty");
+        }
+        return new DataXName(dsName, StoreResourceType.DataBase);
     }
 
     public boolean isDataAppType() {

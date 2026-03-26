@@ -86,7 +86,7 @@ public class BasicActionTestCase extends StrutsSpringTestCase implements TISEasy
   }
 
   protected AjaxValve.ActionExecResult showBizResult() {
-    AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
+    AjaxValve.ActionExecResult actionExecResult = AjaxValve.getActionExecResult();
     if (!actionExecResult.isSuccess()) {
       System.err.println(AjaxValve.buildResultStruct(MockContext.instance));
       // actionExecResult.getErrorPageShow()

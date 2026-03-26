@@ -17,8 +17,6 @@
  */
 package com.qlangtech.tis.aiagent.plan;
 
-import com.alibaba.citrus.turbine.Context;
-import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.google.common.collect.ImmutableMap;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
@@ -33,14 +31,10 @@ import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
-import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
-import com.qlangtech.tis.util.HeteroEnum;
-import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,34 +48,40 @@ import java.util.Optional;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/9/17
  */
-public class TaskPlan {
+public class TaskPlan implements IAITaskPlan {
 
   public final Map<Class<? extends Describable>, DescribableImpl> readerExtendPoints;
-
+  MockContext runtimeContext = null;
 
   public final Map<Class<? extends Describable>, DescribableImpl> writerExtendPoints;
   public final DescribableImpl processorExtendPoints;
-  private MockContext runtimeContext;
 
-  public Context getRuntimeContext(boolean createNew) {
-
-    if (createNew) {
-      DefaultContext ctx = new DefaultContext();
-      setPluginMeta(ctx);
-      return ctx;
-    } else {
-      if (runtimeContext == null) {
-        runtimeContext = new MockContext();
-        setPluginMeta(runtimeContext);
-      }
-      return this.runtimeContext;
+  @Override
+  public MockContext getMockRuntimeContenxt() {
+    if (runtimeContext == null) {
+      runtimeContext = new MockContext();
+      IAITaskPlan.setPluginMeta(runtimeContext);
     }
+    return this.runtimeContext;
   }
 
-  private static void setPluginMeta(Context ctx) {
-    ctx.put(UploadPluginMeta.KEY_PLUGIN_META,
-      UploadPluginMeta.create(HeteroEnum.APP_SOURCE).putExtraParams(DBIdentity.KEY_UPDATE, Boolean.FALSE.toString()));
-  }
+  //  @Override
+//  public Context getRuntimeContext(boolean createNew) {
+//
+//    if (createNew) {
+//      DefaultContext ctx = new DefaultContext();
+//      setPluginMeta(ctx);
+//      return ctx;
+//    } else {
+//      if (runtimeContext == null) {
+//        runtimeContext = new MockContext();
+//        setPluginMeta(runtimeContext);
+//      }
+//      return this.runtimeContext;
+//    }
+//  }
+
+
 
   /**
    * 校验每个扩展点都找到对应的实现插件
@@ -137,10 +137,12 @@ public class TaskPlan {
     this.writerExtendPoints = mapBuilder.build();
   }
 
+  @Override
   public <T> T getControlMsgHandler() {
     return (T) Objects.requireNonNull(this.controlMsgHandler, "controlMsgHandler can not be null");
   }
 
+  @Override
   public LLMProvider getLLMProvider() {
     return this.llmProvider;
   }

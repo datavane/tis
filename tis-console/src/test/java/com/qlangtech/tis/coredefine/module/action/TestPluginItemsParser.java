@@ -21,6 +21,7 @@ package com.qlangtech.tis.coredefine.module.action;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import org.apache.struts2.ActionProxy;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.impl.PropertyType;
@@ -34,7 +35,6 @@ import com.qlangtech.tis.util.IUploadPluginMeta;
 import com.qlangtech.tis.util.UploadPluginMeta;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -78,7 +78,7 @@ public class TestPluginItemsParser extends BasicPluginAction {
         });
 
       Assert.assertTrue("because newIdentityName is duplicate, result itemsProcessor shall be null", context.hasErrors());
-      ActionExecResult execResult = MockContext.getActionExecResult();
+      ActionExecResult execResult = AjaxValve.getActionExecResult();
       List<List<ItemsErrors>> errorMsgs = execResult.getPluginErrorList();
       Assert.assertEquals(1, errorMsgs.size());
       List<ItemsErrors> itemsErrors = null;

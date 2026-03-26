@@ -22,10 +22,6 @@
          xsi:schemaLocation="
         http://java.sun.com/xml/ns/j2ee  http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd
     ">
-  <listener>
-    <listener-class>com.qlangtech.tis.manage.ConsoleInitilizeListener</listener-class>
-  </listener>
-
   <env-entry>
     <env-entry-name>logback/context-name</env-entry-name>
     <env-entry-type>java.lang.String</env-entry-type>
@@ -47,6 +43,10 @@
     <param-name>contextClass</param-name>
     <param-value>com.qlangtech.tis.manage.spring.TISWebApplicationContext</param-value>
   </context-param>
+
+  <listener>
+    <listener-class>com.qlangtech.tis.manage.ConsoleInitilizeListener</listener-class>
+  </listener>
 
   <filter>
     <filter-name>setResponseLocal</filter-name>

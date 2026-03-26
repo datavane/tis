@@ -19,6 +19,7 @@
 package com.qlangtech.tis.plugin.timezone;
 
 import com.alibaba.citrus.turbine.Context;
+import com.qlangtech.tis.extension.AIPromptEnhance;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.annotation.FormField;
@@ -37,6 +38,7 @@ import java.time.ZoneId;
 public class CustomizeTISTimeZone extends TISTimeZone {
 
     private static final Logger logger = LoggerFactory.getLogger(CustomizeTISTimeZone.class);
+    @AIPromptEnhance(prompt = "必须要符合java`java.time.ZoneId.of()`函数的解析规范")
     @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
     public String timeZone;
 

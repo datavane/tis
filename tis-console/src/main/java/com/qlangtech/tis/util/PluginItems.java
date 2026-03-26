@@ -167,17 +167,10 @@ public class PluginItems implements IPluginItemsProcessor {
    * @return
    */
   private static List<IdentityName> loadExistDbs(boolean listen2SaveEvent, String... extendClass) {
-    final ActionContext actionContext = ActionContext.getContext();
-    if (actionContext == null) {
-      return Collections.emptyList();
-    }
+    final ActionContext actionContext = BasicServlet.getActionContext();
     if (extendClass == null || extendClass.length < 1) {
       throw new IllegalArgumentException("param extendClass can not be null");
     }
-    if (actionContext.getServletContext() == null) {
-      throw new IllegalStateException("ServletContext can not be null");
-    }
-
     Descriptor descriptor = GroovyShellUtil.descriptorThreadLocal.get();
     if (listen2SaveEvent && dbUpdateEventObservers.add(Objects.requireNonNull(descriptor, "descriptor can not be " +
       "null"))) {
@@ -192,8 +185,7 @@ public class PluginItems implements IPluginItemsProcessor {
       });
     }
 
-    IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(actionContext.getServletContext(),
-      IWorkflowDAOFacade.class);
+    IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(IWorkflowDAOFacade.class);
     Objects.requireNonNull(wfFacade, "wfFacade can not be null");
     DatasourceDbCriteria dbCriteria = createDatasourceDbCriteria(extendClass);
     List<com.qlangtech.tis.workflow.pojo.DatasourceDb> dbs = wfFacade.getDatasourceDbDAO().selectByExample(dbCriteria);
@@ -366,8 +358,8 @@ public class PluginItems implements IPluginItemsProcessor {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.DATAX_WORKER) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
-//    } else if (heteroEnum == HeteroEnum.appJobWorkerTplReWriter) {
-//      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
+      //    } else if (heteroEnum == HeteroEnum.appJobWorkerTplReWriter) {
+      //      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.noStore) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.TRANSFORMER_RULES) {

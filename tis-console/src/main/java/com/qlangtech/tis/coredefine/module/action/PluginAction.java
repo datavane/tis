@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
+import com.qlangtech.tis.util.IPluginContext;
 import org.apache.struts2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
@@ -103,6 +104,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -749,28 +751,28 @@ public class PluginAction extends BasicModule {
    * @param context
    * @throws Exception
    */
-//  public void doGetAllHostChildStepDesc(Context context) throws Exception {
-//    //  KEY_MULTI_STEPS_SAVED_ITEMS
-//    JSONObject postContent = this.getJSONPostContent();
-//
-//    OneStepOfMultiSteps[] multiSteps = OneStepOfMultiSteps.parseStepsPlugin(this, context,
-//      postContent.getJSONArray(KEY_MULTI_STEPS_SAVED_ITEMS));
-//
-//    if (ArrayUtils.isEmpty(multiSteps)) {
-//      throw new IllegalStateException("multiSteps can not be null");
-//    }
-//
-//    OneStepOfMultiSteps[] allSteps = new OneStepOfMultiSteps[multiSteps.length];
-//    ArrayUtils.arraycopy(multiSteps, 0, allSteps, 0, multiSteps.length);
-//    for (OneStepOfMultiSteps childStep : multiSteps) {
-//      childStep.processCurrentStep(this, context, allSteps);
-//    }
-//    List<DescriptorsMeta> stepDescMeta = Lists.newArrayList();
-//    for (OneStepOfMultiSteps childStep : multiSteps) {
-//      stepDescMeta.add(new DefaultDescriptorsJSON(childStep.getDescriptor()).getDescriptorsJSON());
-//    }
-//    this.setBizResult(context, stepDescMeta);
-//  }
+  //  public void doGetAllHostChildStepDesc(Context context) throws Exception {
+  //    //  KEY_MULTI_STEPS_SAVED_ITEMS
+  //    JSONObject postContent = this.getJSONPostContent();
+  //
+  //    OneStepOfMultiSteps[] multiSteps = OneStepOfMultiSteps.parseStepsPlugin(this, context,
+  //      postContent.getJSONArray(KEY_MULTI_STEPS_SAVED_ITEMS));
+  //
+  //    if (ArrayUtils.isEmpty(multiSteps)) {
+  //      throw new IllegalStateException("multiSteps can not be null");
+  //    }
+  //
+  //    OneStepOfMultiSteps[] allSteps = new OneStepOfMultiSteps[multiSteps.length];
+  //    ArrayUtils.arraycopy(multiSteps, 0, allSteps, 0, multiSteps.length);
+  //    for (OneStepOfMultiSteps childStep : multiSteps) {
+  //      childStep.processCurrentStep(this, context, allSteps);
+  //    }
+  //    List<DescriptorsMeta> stepDescMeta = Lists.newArrayList();
+  //    for (OneStepOfMultiSteps childStep : multiSteps) {
+  //      stepDescMeta.add(new DefaultDescriptorsJSON(childStep.getDescriptor()).getDescriptorsJSON());
+  //    }
+  //    this.setBizResult(context, stepDescMeta);
+  //  }
 
   /**
    * plugin form 的子表单的某条详细记录被点击
@@ -920,12 +922,12 @@ public class PluginAction extends BasicModule {
     if (context.get(IMessageHandler.ACTION_BIZ_RESULT) == null) {
       this.setBizResult(context,
         describables.stream().flatMap((itemSaveResult) -> itemSaveResult.getIdentityStream()).map((d) -> {
-        if (d instanceof IdentityDesc) {
-          return ((IdentityDesc) d).describePlugin();
-        } else {
-          return (d).identityValue();
-        }
-      }).collect(Collectors.toList()));
+          if (d instanceof IdentityDesc) {
+            return ((IdentityDesc) d).describePlugin();
+          } else {
+            return (d).identityValue();
+          }
+        }).collect(Collectors.toList()));
     }
   }
 
@@ -1008,7 +1010,7 @@ public class PluginAction extends BasicModule {
     createDatabase(this, dbDesc, dbName, context, shallUpdateDB, this.offlineManager);
   }
 
-  public static DatasourceDb createDatabase(BasicModule module, ParseDescribable<DataSourceFactory> dbDesc,
+  public static DatasourceDb createDatabase(IPluginContext module, ParseDescribable<DataSourceFactory> dbDesc,
                                             String dbName, Context context, boolean shallUpdateDB,
                                             OfflineManager offlineManager) {
     if (StringUtils.isEmpty(dbName)) {
@@ -1018,7 +1020,7 @@ public class PluginAction extends BasicModule {
     if (shallUpdateDB) {
       datasourceDb = new DatasourceDb();
       datasourceDb.setName(dbName);
-      datasourceDb.setSyncOnline(new Byte("0"));
+      datasourceDb.setSyncOnline((byte) 0);
       datasourceDb.setCreateTime(new Date());
       datasourceDb.setOpTime(new Date());
       Describable plugin = dbDesc.getInstance();
@@ -1026,7 +1028,7 @@ public class PluginAction extends BasicModule {
 
       DatasourceDbCriteria criteria = new DatasourceDbCriteria();
       criteria.createCriteria().andNameEqualTo(dbName);
-      int exist = module.getWorkflowDAOFacade().getDatasourceDbDAO().countByExample(criteria);
+      int exist = offlineManager.getDatasourceDbDAO().countByExample(criteria);
       if (exist > 0) {
 
         module.addErrorMessage(context, "已经有了同名(" + dbName + ")的数据库");
@@ -1035,14 +1037,14 @@ public class PluginAction extends BasicModule {
       /**
        * 校验数据库连接是否正常
        */
-      int dbId = module.getWorkflowDAOFacade().getDatasourceDbDAO().insertSelective(datasourceDb);
+      int dbId = offlineManager.getDatasourceDbDAO().insertSelective(datasourceDb);
       datasourceDb.setId(dbId);
       //module.setBizResult(context, datasourceDb);
     } else {
       // 更新状态
       DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
       dbCriteria.createCriteria().andNameEqualTo(dbName);
-      for (DatasourceDb db : module.getWorkflowDAOFacade().getDatasourceDbDAO().selectByExample(dbCriteria)) {
+      for (DatasourceDb db : offlineManager.getDatasourceDbDAO().selectByExample(dbCriteria)) {
         datasourceDb = db;
         break;
       }

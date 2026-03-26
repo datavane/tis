@@ -17,6 +17,10 @@
  */
 package com.alibaba.citrus.turbine;
 
+import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
+
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -36,7 +40,20 @@ public interface Context {
 
     public void remove(String key);
 
-    public boolean hasErrors();
+
+    @SuppressWarnings("all")
+    public default boolean hasErrors() {
+
+        if (this.get(IFieldErrorHandler.ACTION_ERROR_FIELDS) != null && !((List<Object>) this.get(IFieldErrorHandler.ACTION_ERROR_FIELDS)).isEmpty()) {
+            return true;
+        }
+
+        if (this.get(IMessageHandler.ACTION_ERROR_MSG) != null && !((List<String>) this.get(IMessageHandler.ACTION_ERROR_MSG)).isEmpty()) {
+            return true;
+        }
+
+        return false;
+    }
 
     public default <T> T getContext() {
         throw new UnsupportedOperationException();

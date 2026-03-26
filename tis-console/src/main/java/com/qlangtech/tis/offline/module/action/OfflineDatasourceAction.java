@@ -148,7 +148,7 @@ public class OfflineDatasourceAction extends BasicModule {
     criteria.setOrderByClause("id desc");
     List<Option> opts = Lists.newArrayList();
     Option opt = null;
-    IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(ServletActionContext.getServletContext(),
+    IWorkflowDAOFacade wfFacade = BasicServlet.getBeanByType(
       IWorkflowDAOFacade.class);
     List<WorkFlow> wfs = wfFacade.getWorkFlowDAO().selectByExample(criteria);
     for (WorkFlow wf : wfs) {
@@ -968,9 +968,9 @@ public class OfflineDatasourceAction extends BasicModule {
       DataxAction.generateDataXCfgs(
         pluginContext, context, StoreResourceType.DataFlow, topology.getName(), false);
 
-//      DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
-//        submit.createWorkflowJob((IControlMsgHandler) pluginContext, context, topology);
-//      });
+      //      DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
+      //        submit.createWorkflowJob((IControlMsgHandler) pluginContext, context, topology);
+      //      });
 
     }
 
@@ -1090,7 +1090,8 @@ public class OfflineDatasourceAction extends BasicModule {
     if (pmeta != null && pmeta.length > 0) {
       pluginMeta = getPluginMeta(false);
     }
-    Set<String> filterDescDisplayNames = pluginMeta.stream().map((pm) -> pm.getTargetDesc().matchTargetPluginDescName).collect(Collectors.toSet());
+    Set<String> filterDescDisplayNames =
+      pluginMeta.stream().map((pm) -> pm.getTargetDesc().matchTargetPluginDescName).collect(Collectors.toSet());
     DescriptorExtensionList<DataSourceFactory, Descriptor<DataSourceFactory>> dbDescs =
       TIS.get().getDescriptorList(DataSourceFactory.class);
 
@@ -1121,7 +1122,8 @@ public class OfflineDatasourceAction extends BasicModule {
   public static class ConfigDsMeta extends PluginDescMeta {
     final Collection<OfflineDatasourceAction.DatasourceDb> dbs;
 
-    public ConfigDsMeta(Collection<DatasourceDb> dbs, Map<String, DataSourceFactory.BaseDataSourceFactoryDescriptor> descMap) {
+    public ConfigDsMeta(Collection<DatasourceDb> dbs,
+                        Map<String, DataSourceFactory.BaseDataSourceFactoryDescriptor> descMap) {
       super(descMap.values());
       this.dbs = dbs;
       this.dbs.forEach((db) -> {
@@ -1170,7 +1172,8 @@ public class OfflineDatasourceAction extends BasicModule {
     if (tabs == null) {
       throw new IllegalArgumentException("initialize Tabs can not be null");
     }
-    List<String> selectedTabs = ((Stream<Object>) tabs.stream()).map((tab) -> (String) tab).collect(Collectors.toList());
+    List<String> selectedTabs =
+      ((Stream<Object>) tabs.stream()).map((tab) -> (String) tab).collect(Collectors.toList());
 
     UploadPluginMeta pluginMeta = Objects.requireNonNull(getPluginMeta(body), "pluginMeta can not be null");
 
@@ -1253,8 +1256,8 @@ public class OfflineDatasourceAction extends BasicModule {
     } else {
       throw TisException.create("该数据源下还没有选中的表，请先点击编辑，选择您所需要的表");
     }
-//    = Objects.requireNonNull()
-//      , "dbName:" + db.getName() + " relevant reader can not be null");
+    //    = Objects.requireNonNull()
+    //      , "dbName:" + db.getName() + " relevant reader can not be null");
     this.setBizResult(context, colsMeta);
   }
 
@@ -1336,9 +1339,9 @@ public class OfflineDatasourceAction extends BasicModule {
     }
   }
 
-//  public static final String COMPONENT_START = "component.start";
-//
-//  public static final String COMPONENT_END = "component.end";
+  //  public static final String COMPONENT_START = "component.start";
+  //
+  //  public static final String COMPONENT_END = "component.end";
 
   /**
    * Do execute workflow. 执行数据流任务<br>
@@ -1360,11 +1363,11 @@ public class OfflineDatasourceAction extends BasicModule {
     DataXJobSubmit jobSubmit = DataXJobSubmit.getDataXJobSubmit();
 
     // 在powerjob 系统中 定时任务触发，已经生成wfInstanceId
-//    Optional<Long> powerJobWorkflowInstanceId
-//      = Optional.ofNullable(this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, null));
+    //    Optional<Long> powerJobWorkflowInstanceId
+    //      = Optional.ofNullable(this.getLong(DataxUtils.POWERJOB_WORKFLOW_INSTANCE_ID, null));
 
     TriggerBuildResult buildResult = jobSubmit.triggerWorkflowJob(
-      this, context, df, dryRun,  Optional.ofNullable(latestSuccessWorkflowHistory));
+      this, context, df, dryRun, Optional.ofNullable(latestSuccessWorkflowHistory));
     if (buildResult.success) {
       // throw new IllegalStateException("dataflowid:" + id + " trigger faild");
       if (buildResult.getTaskid() < 1) {

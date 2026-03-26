@@ -73,7 +73,13 @@
       "Bash(ls /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-console/src/main/java/com/qlangtech/tis/runtime/module/action/*.java)",
       "Bash(xargs -I{} basename {} .java)",
       "Bash(mvn dependency:tree -pl tis-console -Dincludes=org.ow2.asm -Dverbose -o)",
-      "Bash(mvn compile -pl tis-console -Dmaven.test.skip=true -o)"
+      "Bash(mvn compile -pl tis-console -Dmaven.test.skip=true -o)",
+      "Bash(grep -n \"exist\\\\|duplicate\\\\|reuse\\\\|already\\\\|isPluginEqual\\\\|findExist\\\\|skip\\\\|samePlugin\\\\|比对\\\\|复用\\\\|已存在\\\\|已经存在\" /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-console/src/main/java/com/qlangtech/tis/aiagent/execute/impl/*.java)",
+      "Bash(mvn test -pl tis-console -Dtest=com.qlangtech.tis.mcp.TestWeatherHttpMcpServer -Dmaven.test.failure.ignore=true -o)",
+      "Bash(mvn install -pl tis-plugin -Dmaven.test.skip=true -o)",
+      "Bash(grep -r setApplicationContext --include=*.java -l)",
+      "Bash(grep -r DefaultFilter --include=*.xml -l)",
+      "Bash(grep -r \"getMcpProvider\\\\|transportProvider\" --include=*.java -l)"
     ],
     "deny": [],
     "ask": []

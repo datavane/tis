@@ -73,7 +73,6 @@ import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.ManageUtils;
-import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.RunContext;
 import com.qlangtech.tis.manage.common.TisUTF8;
@@ -569,7 +568,7 @@ public class DataxAction extends BasicModule {
       @Override
       public void afterLaunched() {
         doGetJobWorkerMeta(context);
-        AjaxValve.ActionExecResult actionExecResult = MockContext.getActionExecResult();
+        AjaxValve.ActionExecResult actionExecResult = AjaxValve.getActionExecResult();
         DataXJobWorkerStatus jobWorkerStatus = (DataXJobWorkerStatus) actionExecResult.getBizResult();
         if (jobWorkerStatus == null || !jobWorkerStatus.isK8sReplicationControllerCreated()) {
           throw new IllegalStateException("Job Controller launch faild please contract administer");
@@ -931,7 +930,7 @@ public class DataxAction extends BasicModule {
     if (deps != null) {
       return deps;
     }
-    RunContext runContext = BasicServlet.getBeanByType(ServletActionContext.getServletContext(), RunContext.class);
+    RunContext runContext = BasicServlet.getBeanByType( RunContext.class);
     Objects.requireNonNull(runContext, "runContext can not be null");
     return deps = BasicModule.getDptList(runContext, new IDepartmentGetter() {
     });

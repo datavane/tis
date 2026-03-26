@@ -33,15 +33,14 @@ import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.ItemsErrors;
 import com.qlangtech.tis.runtime.module.misc.impl.ListDetailedItemsErrors;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import com.qlangtech.tis.util.impl.AttrVals;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.result.StrutsResultSupport;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -61,8 +60,12 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
   public static final String EXEC_NULL = "exec_null";
 
   public static StringBuffer buildResultStruct(Context context) {
-    ActionExecResult r = new ActionExecResult(context).invoke();
+    ActionExecResult r = ActionExecResult.create(context);
     return buildResultStruct(r, r.errorPageShow, r.errorMsgList, r.msgList, r.pluginErrorList, r.getBizResult());
+  }
+
+  public static ActionExecResult getActionExecResult() {
+    return ActionExecResult.create(MockContext.instance);// new ActionExecResult(MockContext.instance).invoke();
   }
 
   /**
@@ -89,7 +92,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
 
   @SuppressWarnings("unchecked")
   private void writeExecuteResult(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    ActionExecResult actionExecResult = MockContext.getActionExecResult();
+    ActionExecResult actionExecResult = getActionExecResult();
     List<Object> errorMsgList = actionExecResult.errorMsgList;
 
     List<String> msgList = //Boolean.parseBoolean(request.getParameter(KEY_NOT_SHOW_BIZ_MSG))
@@ -113,21 +116,16 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
    * @param extendVal    业务系统出了 errors 和msgs之外还要传其他的值
    * @throws IOException
    */
-  public static void writeInfo2Client(IExecResult actionExecResult, HttpServletResponse response,
-                                      Boolean errorPageShow, List<Object> errorMsgList, List<String> msgList,
-                                      List<List<ItemsErrors>> pluginErrorList, Object extendVal) throws IOException {
+  public static void writeInfo2Client(IExecResult actionExecResult, HttpServletResponse response, Boolean errorPageShow, List<Object> errorMsgList, List<String> msgList, List<List<ItemsErrors>> pluginErrorList, Object extendVal) throws IOException {
     //try {
-    StringBuffer result = buildResultStruct(actionExecResult, errorPageShow, errorMsgList, msgList, pluginErrorList,
-      extendVal);
+    StringBuffer result = buildResultStruct(actionExecResult, errorPageShow, errorMsgList, msgList, pluginErrorList, extendVal);
     writeJson(response, result);
     //    } catch (JSONException e) {
     //      throw new IOException(e);
     //    }
   }
 
-  private static StringBuffer buildResultStruct(IExecResult actionExecResult, Boolean errorPageShow,
-                                                List<Object> errorMsgList, List<String> msgList,
-                                                List<List<ItemsErrors>> pluginErrorList, Object extendVal) {
+  private static StringBuffer buildResultStruct(IExecResult actionExecResult, Boolean errorPageShow, List<Object> errorMsgList, List<String> msgList, List<List<ItemsErrors>> pluginErrorList, Object extendVal) {
     StringBuffer result = new StringBuffer();
     result.append("{\n");
     result.append(" \"").append(KEY_SUCCESS).append("\":").append(actionExecResult.isSuccess());
@@ -238,6 +236,9 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
     private List<Object> errorMsgList;
 
     public void addErrorMsg(List<String> msgs) {
+      if (this.errorMsgList == null) {
+        this.errorMsgList = Lists.newArrayList();
+      }
       this.errorMsgList.addAll(msgs);
     }
 
@@ -305,7 +306,7 @@ public class AjaxValve extends StrutsResultSupport implements IAjaxResult {
       return errors;
     }
 
-    public ActionExecResult invoke() {
+    private ActionExecResult invoke() {
       errorMsgList = getErrorMsgList(context);
       msgList = (List<String>) context.get(IMessageHandler.ACTION_MSG);
       pluginErrorList = (List<List<ItemsErrors>>) context.get(IFieldErrorHandler.ACTION_ERROR_FIELDS);

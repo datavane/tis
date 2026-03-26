@@ -19,16 +19,17 @@ package com.qlangtech.tis.manage.servlet;
 
 import com.qlangtech.tis.manage.common.HttpConfigFileReader;
 import com.qlangtech.tis.manage.common.RunContext;
-import org.springframework.context.ApplicationContext;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
-
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.struts2.ActionContext;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.WebApplicationContext;
+
 import java.io.IOException;
 import java.util.Objects;
 
@@ -41,19 +42,48 @@ public class BasicServlet extends HttpServlet {
   private static final long serialVersionUID = 1L;
 
   protected RunContext getContext() {
-    return getBeanByType(this.getServletContext(), RunContext.class);
+    return getBeanByType(RunContext.class);
   }
 
-  public static <T> T getBeanByType(ServletContext servletContext, Class<T> clazz) {
+  public static ActionContext getActionContext() {
+    final ActionContext actionContext = ActionContext.getContext();
+    if (actionContext == null) {
+      throw new IllegalStateException("ActionContext can not be null");
+    }
+    if (actionContext.getServletContext() == null) {
+      throw new IllegalStateException("ServletContext can not be null");
+    }
+    return actionContext;
+  }
 
-    ApplicationContext applicationContext = (ApplicationContext)
-      Objects.requireNonNull(servletContext, "servletContext can not be null")
-        .getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 
-    Objects.requireNonNull(applicationContext
-      , "applicationContext can not be null in servletContent by key:"
-        + WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+  public static void autowireBeanProperties(Object existingBean) {
+    getSpringApplicationContext().getAutowireCapableBeanFactory().autowireBeanProperties(existingBean,
+      AutowireCapableBeanFactory.AUTOWIRE_BY_NAME, false);
+  }
 
+  private static ApplicationContext applicationContext;
+
+  private static ApplicationContext getSpringApplicationContext() {
+    if (applicationContext == null) {
+      ServletContext servletContext = getActionContext().getServletContext();
+      applicationContext = (ApplicationContext)
+        Objects.requireNonNull(servletContext, "servletContext can not be null")
+          .getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+      Objects.requireNonNull(applicationContext
+        , "applicationContext can not be null in servletContent by key:"
+          + WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+    }
+    return applicationContext;
+  }
+
+  public static void setApplicationContext(ApplicationContext context) {
+    applicationContext =Objects.requireNonNull( context,"context can not be null");
+  }
+
+  public static <T> T getBeanByType(Class<T> clazz) {
+
+    ApplicationContext applicationContext = getSpringApplicationContext();
     for (Object context : applicationContext.getBeansOfType(clazz).values()) {
       return clazz.cast(context);
     }

@@ -19,7 +19,6 @@ package com.qlangtech.tis.manage.common;
 
 import com.alibaba.citrus.turbine.Context;
 import org.apache.struts2.ActionContext;
-import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import junit.framework.Assert;
@@ -34,10 +33,6 @@ import java.util.Set;
 public class MockContext implements Context {
 
   public static final MockContext instance = new MockContext();
-
-  public static AjaxValve.ActionExecResult getActionExecResult() {
-    return new AjaxValve.ActionExecResult(instance).invoke();
-  }
 
   @Override
   public boolean containsKey(String key) {

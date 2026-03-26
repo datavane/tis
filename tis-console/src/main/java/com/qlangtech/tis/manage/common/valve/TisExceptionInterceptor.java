@@ -27,7 +27,6 @@ import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.lang.ErrorValue;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.lang.TisException.ErrorCode;
-import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.TisActionMapper;
 import com.qlangtech.tis.manage.spring.aop.AuthorityCheckAdvice;
 import com.qlangtech.tis.order.center.IParamContext;
@@ -102,7 +101,7 @@ public class TisExceptionInterceptor extends MethodFilterInterceptor {
       } else {
         invocation.getInvocationContext().put(TransactionStatus.class.getSimpleName(), status);
         final String result = invocation.invoke();
-        execResult = MockContext.getActionExecResult();
+        execResult = AjaxValve.getActionExecResult();
         // 一定要invoke之后再执行
         if (!execResult.isSuccess()) {
           // 业务失败也要回滚

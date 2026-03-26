@@ -39,14 +39,15 @@ public class PostedDSProp {
     private final Boolean update;
 
     public static PostedDSProp parse(UploadPluginMeta pluginMeta) {
-        return new PostedDSProp(DBIdentity.parse(pluginMeta.getExtraParam(DBIdentity.KEY_DB_NAME))
-                , DbScope.parse(pluginMeta.getExtraParam(DBIdentity.KEY_TYPE))
-                , pluginMeta.isUpdate());
+        return new PostedDSProp(DBIdentity.parse(pluginMeta.getExtraParam(DBIdentity.KEY_DB_NAME)),
+                DbScope.parse(pluginMeta.getExtraParam(DBIdentity.KEY_TYPE)), pluginMeta.isUpdate());
     }
 
     public static UploadPluginMeta createPluginMeta(DBIdentity dbName, boolean update) {
-        return UploadPluginMeta.parse(HeteroEnum.DATASOURCE.identityValue() + ":" + KEY_REQUIRE
-                + "," + DBIdentity.KEY_DB_NAME + "_" + dbName.identityValue() + "," + DBIdentity.KEY_UPDATE + "_" + update);
+        return UploadPluginMeta.parse(HeteroEnum.DATASOURCE.identityValue()
+                        + ":" + KEY_REQUIRE + "," + DBIdentity.KEY_DB_NAME + "_" + dbName.identityValue()
+                        + "," + DBIdentity.KEY_UPDATE + "_" + update)
+                .putExtraParams(DBIdentity.KEY_TYPE, DbScope.DETAILED.getToken());
     }
 
     public static PostedDSProp parse(String dbIdVal) {
@@ -91,10 +92,6 @@ public class PostedDSProp {
 
     @Override
     public String toString() {
-        return "PostedDSProp{" +
-                "dbname=" + (dbname.isPresent() ? dbname.get().identityValue() : StringUtils.EMPTY) +
-                ", dbType=" + dbType +
-                ", update=" + update +
-                '}';
+        return "PostedDSProp{" + "dbname=" + (dbname.isPresent() ? dbname.get().identityValue() : StringUtils.EMPTY) + ", dbType=" + dbType + ", update=" + update + '}';
     }
 }

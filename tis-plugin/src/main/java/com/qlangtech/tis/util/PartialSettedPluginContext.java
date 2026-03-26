@@ -52,17 +52,19 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
 
     private IPluginContext targetRuntimeContext;
 
-//    /**
-//     * @param fieldErrorHandler
-//     * @param messageHandler
-//     * @return
-//     * @see // DefaultMessageHandler
-//     */
-//    public PartialSettedPluginContext setMessageAndFieldErrorHandler(IFieldErrorHandler fieldErrorHandler, IMessageHandler messageHandler) {
-//        this.fieldErrorHandler = fieldErrorHandler;
-//        this.messageHandler = messageHandler;
-//        return this;
-//    }
+    public PartialSettedPluginContext() {
+    }
+    //    /**
+    //     * @param fieldErrorHandler
+    //     * @param messageHandler
+    //     * @return
+    //     * @see // DefaultMessageHandler
+    //     */
+    //    public PartialSettedPluginContext setMessageAndFieldErrorHandler(IFieldErrorHandler fieldErrorHandler, IMessageHandler messageHandler) {
+    //        this.fieldErrorHandler = fieldErrorHandler;
+    //        this.messageHandler = messageHandler;
+    //        return this;
+    //    }
 
     public PartialSettedPluginContext setTargetRuntimeContext(IPluginContext targetRuntimeContext) {
         this.targetRuntimeContext = Objects.requireNonNull(targetRuntimeContext, "param targetRuntimeContext can not be null");
@@ -127,8 +129,7 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
     }
 
     @Override
-    public Pair<Boolean, IPluginItemsProcessor> getPluginItems(
-            IUploadPluginMeta pluginMeta, Context context, int pluginIndex, JSONArray itemsArray, FormVaildateType verify, PropValRewrite propValRewrite) {
+    public Pair<Boolean, IPluginItemsProcessor> getPluginItems(IUploadPluginMeta pluginMeta, Context context, int pluginIndex, JSONArray itemsArray, FormVaildateType verify, PropValRewrite propValRewrite) {
         throw new UnsupportedOperationException();
     }
 
@@ -139,19 +140,17 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
 
     @Override
     public boolean isCollectionAware() {
-        return collectionName.getType() == StoreResourceType.DataApp;
+        return collectionName != null && collectionName.getType() == StoreResourceType.DataApp;
     }
 
     @Override
     public boolean isDataSourceAware() {
-        return collectionName.getType() == StoreResourceType.DataBase;
+        return collectionName != null && collectionName.getType() == StoreResourceType.DataBase;
     }
 
     @Override
-    public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context,
-                      boolean shallUpdateDB) {
-        Objects.requireNonNull(this.targetRuntimeContext, "targetRuntimeContext can not be null")
-                .addDb(dbDesc, dbName, context, shallUpdateDB);
+    public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {
+        Objects.requireNonNull(this.targetRuntimeContext, "targetRuntimeContext can not be null").addDb(dbDesc, dbName, context, shallUpdateDB);
     }
 
     @Override
