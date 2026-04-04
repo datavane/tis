@@ -17,8 +17,10 @@
  */
 package com.qlangtech.tis.manage;
 
+import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
+import com.qlangtech.tis.util.HeteroEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
@@ -47,10 +49,11 @@ public class ConsoleInitilizeListener implements ServletContextListener {
    * TIS Actor System 实例
    */
   //private TISActorSystem tisActorSystem;
-
   @Override
   public void contextInitialized(ServletContextEvent sce) {
     logger.info("TIS Console initializing...");
+
+
 
     // 1. 设置 CenterResource 配置
     CenterResource.setNotFetchFromCenterRepository();
@@ -62,9 +65,14 @@ public class ConsoleInitilizeListener implements ServletContextListener {
       WebApplicationContextUtils.getRequiredWebApplicationContext(sce.getServletContext());
     BasicServlet.setApplicationContext(springCtx);
 
+
+    IPluginEnum.registeExistItemsGettor(HeteroEnum.DATASOURCE, (desc) -> {
+      return com.qlangtech.tis.util.PluginItems.getExistDbs(desc.getDisplayName());
+    });
+
     // 3. 初始化 TIS Actor System
     try {
-     // initializeTISActorSystem(sce);
+      // initializeTISActorSystem(sce);
     } catch (Exception e) {
       logger.error("Failed to initialize TIS Actor System", e);
       // 不抛出异常，允许 TIS 继续启动（Actor System 是可选功能）
@@ -78,13 +86,13 @@ public class ConsoleInitilizeListener implements ServletContextListener {
     logger.info("TIS Console shutting down...");
 
     // 优雅关闭 TIS Actor System
-//    if (tisActorSystem != null) {
-//      try {
-//        tisActorSystem.shutdown();
-//      } catch (Exception e) {
-//        logger.error("Failed to shutdown TIS Actor System", e);
-//      }
-//    }
+    //    if (tisActorSystem != null) {
+    //      try {
+    //        tisActorSystem.shutdown();
+    //      } catch (Exception e) {
+    //        logger.error("Failed to shutdown TIS Actor System", e);
+    //      }
+    //    }
 
     logger.info("TIS Console shutdown completed");
   }

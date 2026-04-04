@@ -19,16 +19,12 @@
 import com.qlangtech.tis.extension.util.ClassLoaderReflectionToolkit;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
-import com.qlangtech.tis.mcp.WeatherHttpMcpServer;
-import com.qlangtech.tis.web.start.JettyTISRunner;
+import com.qlangtech.tis.mcp.TISHttpMcpServer;
 import com.qlangtech.tis.web.start.TisApp;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.web.start.TisSubModule;
 import io.modelcontextprotocol.server.transport.HttpServletStreamableServerTransportProvider;
 import org.eclipse.jetty.ee11.servlet.ServletHolder;
-
-import jakarta.servlet.Servlet;
-import java.io.File;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -47,7 +43,7 @@ public class ConsoleStart {
 
 
     TisApp app = new TisApp(TisSubModule.TIS_CONSOLE, (context) -> {
-      HttpServletStreamableServerTransportProvider mcpProvider = WeatherHttpMcpServer.getMcpProvider();
+      HttpServletStreamableServerTransportProvider mcpProvider = TISHttpMcpServer.getMcpProvider();
       context.addServlet(new ServletHolder(mcpProvider), "/mcp/*");
       context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
       context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");

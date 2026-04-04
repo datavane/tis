@@ -17,7 +17,6 @@
  */
 package com.qlangtech.tis.util;
 
-import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
@@ -268,7 +267,9 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
                     if (extraProps != null && extraProps.getBooleanValue(PluginExtraProps.KEY_DISABLE)) {
                         continue;
                     }
-
+                    if(!propertyAccept(val)){
+                       continue;
+                    }
                     if (val.advance()) {
                         containAdvanceField = true;
                     }
@@ -311,6 +312,10 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
             }
         }
         return descriptorsMeta;
+    }
+
+    protected boolean propertyAccept(PropertyType val) {
+        return true;
     }
 
     protected DescriptorsMeta createDescriptorsMeta() {

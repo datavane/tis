@@ -21,7 +21,7 @@ package com.qlangtech.tis.util;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.aiagent.llm.JsonSchema;
+import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
 import com.qlangtech.tis.extension.AIPromptEnhance;
 import com.qlangtech.tis.extension.Describable;
@@ -38,21 +38,13 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.lang.annotation.Annotation;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
-import static com.qlangtech.tis.aiagent.llm.JsonSchema.SCHEMA_VALUE_DEFAULT;
-import static com.qlangtech.tis.extension.Descriptor.KEY_ENUM_PROP;
-import static com.qlangtech.tis.extension.Descriptor.KEY_primaryVal;
-import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_ENUM_FILTER;
-import static com.qlangtech.tis.extension.util.PluginExtraProps.Props.KEY_ASYNC_HELP;
+import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_DEFAULT;
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_VALS;
 
@@ -64,6 +56,12 @@ import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_VALS;
  */
 public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends DescriptorsJSON<T,
         DescriptorsJSONForAIPrompt.AISchemaAttrVal> {
+
+    public static Pair<DescriptorsMeta, DescriptorsJSONForAIPrompt> desc(DescribableImpl pluginImpl) {
+        DescriptorsJSONForAIPrompt aiPrompt = new DescriptorsJSONForAIPrompt(pluginImpl.getImplDesc(), pluginImpl);
+        return Pair.of(aiPrompt.getDescriptorsJSON(), aiPrompt);
+    }
+
     /**
      * 进行过程中构建的组件依赖
      */
@@ -109,7 +107,7 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
 
     public static class AISchemaDescriptorsMeta extends DescriptorsMeta {
 
-        public final Map<String /* concrete plugin implement class */, JsonSchema> descSchemaRegister =
+        public final Map<String /* concrete plugin implement class */, TISJsonSchema> descSchemaRegister =
                 Maps.newHashMap();
 
         public AISchemaDescriptorsMeta(boolean rootDesc) {
@@ -126,9 +124,9 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
         public void addDesc(String id, JSONObject descJson, Object desc) {
             super.addDesc(id, descJson, desc);
             Descriptor descriptor = (Descriptor) desc;
-            JsonSchema.Builder schemaBuilder //
-                    = JsonSchema.Builder.create(descriptor.getDisplayName(), Optional.empty());
-            schemaBuilder.addProperty(PLUGIN_EXTENSION_IMPL, JsonSchema.FieldType.String //
+            TISJsonSchema.Builder schemaBuilder //
+                    = TISJsonSchema.Builder.create(descriptor.getDisplayName(), Optional.empty());
+            schemaBuilder.addProperty(PLUGIN_EXTENSION_IMPL, TISJsonSchema.FieldType.String //
                             , "concrete plugin implement class") //
                     .setConst(descriptor.getId());
 
@@ -145,7 +143,7 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
          * @param inner
          * @see #createFormPropertyTypes  param is return from descJson
          */
-        public static void addProps2Builder(JSONObject descJson, JsonSchema.Builder inner) {
+        public static void addProps2Builder(JSONObject descJson, TISJsonSchema.Builder inner) {
             final JSONArray attrs = Objects.requireNonNull(descJson.getJSONArray(KEY_SCHEMA_FIELDS_ATTRS),
                     KEY_SCHEMA_FIELDS_ATTRS + " relevant attrs can not be null");
             attrs.forEach((attr) -> {
@@ -162,9 +160,9 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
 
                     //  inner.addObjectProperty(attrVal.fieldKey, (i) -> {
 
-                    JsonSchema.FieldType schemaFieldType =
+                    TISJsonSchema.FieldType schemaFieldType =
                             (pt.fieldClazz == boolean.class || pt.fieldClazz == Boolean.class) ?
-                                    JsonSchema.FieldType.Boolean : fieldType.schemaFieldType;
+                                    TISJsonSchema.FieldType.Boolean : fieldType.schemaFieldType;
 
                     String placeholder = pt.extraProp.getPlaceholder();
                     StringBuilder helpContent =
@@ -194,7 +192,7 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
                     //                                helpContent.append("\n没有抽取到对应值：
                     //                                输出的`_primaryVal`属性对应的值不要自动生成（切记）");
                     //                            }
-                    JsonSchema.AddedProperty addedProperty =  //
+                    TISJsonSchema.AddedProperty addedProperty =  //
                             inner.addProperty(attrVal.fieldKey, schemaFieldType, helpContent.toString(),
                                     pt.isInputRequired());
 
@@ -220,12 +218,6 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
                 }
             });
         }
-    }
-
-
-    public static Pair<DescriptorsMeta, DescriptorsJSONForAIPrompt> desc(DescribableImpl pluginImpl) {
-        DescriptorsJSONForAIPrompt aiPrompt = new DescriptorsJSONForAIPrompt(pluginImpl.getImplDesc(), pluginImpl);
-        return Pair.of(aiPrompt.getDescriptorsJSON(), aiPrompt);
     }
 
 
@@ -274,6 +266,20 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
     protected DescriptorsJSON<T, DescriptorsJSONForAIPrompt.AISchemaAttrVal> createInnerDescrible(List<?
             extends Descriptor> descriptors) {
         return new DescriptorsJSONForAIPrompt(descriptors, false);
+    }
+
+    @Override
+    protected boolean propertyAccept(PropertyType val) {
+//        if (val.extraProp.getDftVal() != null) {
+//            return false;
+//        }
+//        for (Validator validator : val.getValidator()) {
+//            // 为了避免提交给大模型的prompt文案太多，这里只需要大模型解析 requeird 为true，且dftVal为空的
+//            if (validator == Validator.require) {
+//                return true;
+//            }
+//        }
+        return true;
     }
 
     @Override

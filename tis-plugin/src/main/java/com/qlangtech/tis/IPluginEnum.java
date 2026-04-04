@@ -18,17 +18,27 @@
 
 package com.qlangtech.tis;
 
+import com.google.common.collect.Maps;
+import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
+import com.qlangtech.tis.util.AttrValMap;
+import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -36,6 +46,11 @@ import java.util.List;
  * @see com.qlangtech.tis.util.HeteroEnum impl
  **/
 public interface IPluginEnum<T extends Describable<T>> extends IdentityName {
+    static final Map<HeteroEnum, Function<Descriptor, List<Option>>> existItemsGetter = Maps.newHashMap();
+
+    static void registeExistItemsGettor(HeteroEnum hetero, Function<Descriptor, List<Option>> itemsGetter) {
+        existItemsGetter.put(hetero, itemsGetter);
+    }
 
     public Class<T> getExtensionPoint();
 
@@ -62,11 +77,34 @@ public interface IPluginEnum<T extends Describable<T>> extends IdentityName {
 
     public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta);
 
-    public <T extends Describable<T>> List<Descriptor<T>> descriptors(UploadPluginMeta.TargetDesc targetDesc, List<T> items, boolean justGetItemRelevant);
+    public <T extends Describable<T>> List<Descriptor<T>> descriptors(UploadPluginMeta.TargetDesc targetDesc,
+                                                                      List<T> items, boolean justGetItemRelevant);
 
     public <T extends Describable<T>> List<Descriptor<T>> descriptors();
 
     public boolean isIdentityUnique();
 
     public boolean isAppNameAware();
+
+    /**
+     * 例如DataSource实例，需要找已经存在的实例列表
+     *
+     * @param pluginDesc
+     * @return
+     */
+    default List<Option> getExistItems(Descriptor<T> pluginDesc) {
+        return Objects.requireNonNull(existItemsGetter.get(this),
+                this.getIdentity() + "(" + this.getExtensionPoint().getSimpleName() + ")" + " relevant "
+                        + "existItemsGetter can not be null,please invoke registeExistItemsGettor").apply(pluginDesc);
+    }
+
+    /**
+     * 创建记录的token
+     *
+     * @param id
+     * @return
+     */
+    default Pair<DataXName, UploadPluginMeta> createPKToken(IdentityName id) {
+        throw new UnsupportedOperationException(this.getIdentity() + "," + this.getExtensionPoint().getName());
+    }
 }

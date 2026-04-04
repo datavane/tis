@@ -85,7 +85,10 @@ public class FlatJsonToTisConverter {
 
             if (pt != null && pt.isDescribable()) {
                 // oneOf 字段：需要还原 descVal 包装
-                Map<String,Object> flatOneOf = (Map<String,Object>) value;
+                if (!(value instanceof Map<?, ?>)) {
+                    throw new IllegalStateException("fieldName:" + fieldName + " type error,value:" + String.valueOf(value));
+                }
+                Map<String, Object> flatOneOf = (Map<String, Object>) value;
                 result.put(fieldName, convertDescribableField(flatOneOf, pt));
             } else {
                 // 普通字段：添加 _primaryVal 包装
@@ -104,9 +107,9 @@ public class FlatJsonToTisConverter {
      * 输出：{ "descVal": { "impl": "...NoneSplitTableStrategy", "vals": { "host": { "_primaryVal": "..." } } } }
      * </pre>
      */
-    private static JSONObject convertDescribableField( Map<String,Object> flatOneOf, PropertyType pt) {
-        Object impl = Objects.requireNonNull(flatOneOf.get(JsonSchema.SCHEMA_PLUGIN_DESCRIPTOR_ID),
-                "oneOf field must contain '" + JsonSchema.SCHEMA_PLUGIN_DESCRIPTOR_ID + "' field");
+    private static JSONObject convertDescribableField(Map<String, Object> flatOneOf, PropertyType pt) {
+        Object impl = Objects.requireNonNull(flatOneOf.get(TISJsonSchema.SCHEMA_PLUGIN_DESCRIPTOR_ID),
+                "oneOf field must contain '" + TISJsonSchema.SCHEMA_PLUGIN_DESCRIPTOR_ID + "' field");
 
         // 通过 id（displayName）找到对应的 Descriptor
         Descriptor matchedDesc = null;
@@ -127,7 +130,7 @@ public class FlatJsonToTisConverter {
         Map<String, IPropertyType> innerPts = matchedDesc.getPropertyTypes();
 
         for (Map.Entry<String, Object> entry : flatOneOf.entrySet()) {
-            if (JsonSchema.SCHEMA_PLUGIN_DESCRIPTOR_ID.equals(entry.getKey())) {
+            if (TISJsonSchema.SCHEMA_PLUGIN_DESCRIPTOR_ID.equals(entry.getKey())) {
                 continue;
             }
             PropertyType innerPt = (PropertyType) innerPts.get(entry.getKey());

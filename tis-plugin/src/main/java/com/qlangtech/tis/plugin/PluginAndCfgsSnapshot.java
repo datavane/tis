@@ -881,7 +881,7 @@ public class PluginAndCfgsSnapshot {
         TIS tis = TIS.get();
         List<IRepositoryResource> keyedPluginStores = Collections.emptyList();
         if (tis != null) {
-            ExtensionList<HeteroEnum> hlist = TIS.get().getExtensionList(HeteroEnum.class);
+            List<HeteroEnum> hlist = HeteroEnum.heteroEnums();// TIS.get().getExtensionList(HeteroEnum.class);
             keyedPluginStores =
                     hlist.stream()
                             .filter((e) -> !e.isAppNameAware() && (e != PARAMS_CONFIG_USER_ISOLATION))

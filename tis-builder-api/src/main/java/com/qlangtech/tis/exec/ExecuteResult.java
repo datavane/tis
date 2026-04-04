@@ -25,7 +25,7 @@ public class ExecuteResult {
 
     final boolean success;
 
-    private String message;
+    private Object message;
 
 
     public static ExecuteResult SUCCESS = new ExecuteResult(true);
@@ -34,8 +34,12 @@ public class ExecuteResult {
         return new ExecuteResult(false);
     }
 
-    public static ExecuteResult createSuccess() {
-        return new ExecuteResult(true);
+    public static ExecuteResult createSuccess(Object... bizResult) {
+        ExecuteResult result = new ExecuteResult(true);
+        if (bizResult.length > 0) {
+            result.setMessage(bizResult[0]);
+        }
+        return result;
     }
 
     public ExecuteResult(boolean success) {
@@ -44,11 +48,11 @@ public class ExecuteResult {
     }
 
 
-    public String getMessage() {
+    public Object getMessage() {
         return message;
     }
 
-    public ExecuteResult setMessage(String message) {
+    public ExecuteResult setMessage(Object message) {
         this.message = message;
         return this;
     }

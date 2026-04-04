@@ -29,15 +29,14 @@ import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import static com.qlangtech.tis.aiagent.llm.JsonSchema.SCHEMA_PLUGIN_DESCRIPTOR_ID;
-import static com.qlangtech.tis.mcp.WeatherHttpMcpServer.parseAttrValMap;
+import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_PLUGIN_DESCRIPTOR_ID;
+import static com.qlangtech.tis.mcp.TISHttpMcpServer.parseAttrValMap;
 import static com.qlangtech.tis.runtime.module.action.SysInitializeAction.getClassPathXmlApplicationContext;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -50,7 +49,7 @@ import static org.easymock.EasyMock.verify;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/3/25
  */
-public class TestWeatherHttpMcpServer extends TestCase {
+public class TestTISHttpMcpServer extends TestCase {
 
   /**
    * 创建一个用于测试的 DescribableImpl 实例，
@@ -65,7 +64,7 @@ public class TestWeatherHttpMcpServer extends TestCase {
     };
   }
 
-  private WeatherHttpMcpServer mcpServer;
+  private TISHttpMcpServer mcpServer;
 
   static {
     BasicServlet.setApplicationContext(getClassPathXmlApplicationContext());
@@ -75,7 +74,7 @@ public class TestWeatherHttpMcpServer extends TestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    mcpServer = new WeatherHttpMcpServer();
+    mcpServer = new TISHttpMcpServer();
   }
 
   /**
@@ -93,7 +92,7 @@ public class TestWeatherHttpMcpServer extends TestCase {
    */
   private void assertErrorResult(CallToolResult result) {
     assertNotNull("result should not be null", result);
-   // assertTrue("result should indicate error", result.isError());
+    // assertTrue("result should indicate error", result.isError());
     assertNotNull("content should not be null", result.structuredContent());
     //    assertFalse("content should not be empty", result.content().isEmpty());
 
@@ -120,7 +119,7 @@ public class TestWeatherHttpMcpServer extends TestCase {
 
   public void testParseAttrValMap() {
     McpSchema.CallToolRequest mysqlDataSourceMcpRequest = createMysqlDataSourceMcpRequest();
-    AttrValMap valMap = parseAttrValMap(mysqlDataSourceMcpRequest);
+    AttrValMap valMap = parseAttrValMap(new McpTool.RequestArguments(mysqlDataSourceMcpRequest.arguments()));
     Assert.assertNotNull(valMap);
   }
 

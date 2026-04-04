@@ -120,5 +120,11 @@ public class DescribableImpl {
         return this.impls;
     }
 
-
+    @Override
+    public String toString() {
+        return "{" +
+                "impls=" + String.join(",", impls) +
+                ", extendPoint=" + extendPoint.getSimpleName() +
+                '}';
+    }
 }

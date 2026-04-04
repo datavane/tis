@@ -26,7 +26,6 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.plugin.llm.DeepSeekProvider;
-import com.qlangtech.tis.plugin.llm.log.NoneExecuteLog;
 import com.qlangtech.tis.plugin.llm.log.ExecuteLog;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
@@ -131,7 +130,7 @@ public abstract class LLMProvider extends ParamsConfig {
      * @see DeepSeekProvider#chatJson(String, List, String)
      */
     public abstract LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
-                                         JsonSchema jsonSchema);
+                                         TISJsonSchema jsonSchema);
 
     /**
      * 获取提供商名称

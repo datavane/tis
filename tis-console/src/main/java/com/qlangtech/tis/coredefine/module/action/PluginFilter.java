@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/9/18
  */
-public class PluginFilter {
+public class PluginFilter  {
   //private final PluginAction pluginAction;
   final Set<IPluginTaggable.PluginTag> tags;
   final Predicate<UpdateSite.Plugin> endTypeMatcher;

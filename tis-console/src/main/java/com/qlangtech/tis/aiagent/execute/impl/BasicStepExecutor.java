@@ -32,12 +32,11 @@ import com.qlangtech.tis.aiagent.core.PluginPropsComplement;
 import com.qlangtech.tis.aiagent.core.RequestKey;
 import com.qlangtech.tis.aiagent.core.SelectionOptions;
 import com.qlangtech.tis.aiagent.execute.StepExecutor;
-import com.qlangtech.tis.aiagent.llm.JsonSchema;
+import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
 import com.qlangtech.tis.aiagent.plan.IAITaskPlan;
-import com.qlangtech.tis.aiagent.plan.TaskPlan;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.coredefine.module.action.PluginAction;
 import com.qlangtech.tis.coredefine.module.action.PluginFilter;
@@ -52,7 +51,6 @@ import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.model.UpdateSite;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
-import com.qlangtech.tis.extension.util.TextFile;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.TisUTF8;
@@ -78,13 +76,14 @@ import com.qlangtech.tis.util.PluginItems;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.util.impl.AttrVals;
 import com.qlangtech.tis.util.impl.PluginEqualResult;
+import io.modelcontextprotocol.server.McpSyncServerExchange;
+import io.modelcontextprotocol.spec.McpSchema;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -156,7 +155,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
       (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) desc.getLeft();
 
 
-    for (Map.Entry<String, JsonSchema> entry : descriptorsMeta.descSchemaRegister.entrySet()) {
+    for (Map.Entry<String, TISJsonSchema> entry : descriptorsMeta.descSchemaRegister.entrySet()) {
       // 需要遍历他的所有属性如果有需要创建的属性插件需要先创建
       AttrValMap attrValMap = getPluginPostAttrValMap(context, userInput, endType, entry, llmProvider);
 
@@ -192,7 +191,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
   }
 
   protected AttrValMap getPluginPostAttrValMap(AgentContext context, UserPrompt userInput //
-    , Optional<IEndTypeGetter.EndType> endType, Map.Entry<String, JsonSchema> entry, LLMProvider llmProvider) {
+    , Optional<IEndTypeGetter.EndType> endType, Map.Entry<String, TISJsonSchema> entry, LLMProvider llmProvider) {
     JSONObject pluginPostBody = extractUserInput2Json(context, userInput, endType,
       Objects.requireNonNull(entry.getValue()), llmProvider);
 
@@ -212,7 +211,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
    * @return
    */
   public JSONObject extractUserInput2Json(IAgentContext context, UserPrompt userInput,
-                                          Optional<IEndTypeGetter.EndType> endType, JsonSchema descriptorJson,
+                                          Optional<IEndTypeGetter.EndType> endType, TISJsonSchema descriptorJson,
                                           LLMProvider llmProvider) {
     final String prompt = "用户输入内容：" + userInput.getPrompt();
     final String systemPrompt = SYSTEM_ASSIST_ROLE + "你的任务是帮助用户创建数据同步管道。\n"  //
@@ -292,7 +291,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
 
       UserPrompt userPrompt = new UserPrompt("解析源端目标表列表", promptTpl);
       LLMProvider.LLMResponse llmResponse = llmProvider.chatJson(context, userPrompt,
-        Lists.newArrayList(SYSTEM_ASSIST_ROLE), JsonSchema.off());
+        Lists.newArrayList(SYSTEM_ASSIST_ROLE), TISJsonSchema.off());
       JSONObject json = llmResponse.getJsonContent();
 
       JSONArray targetTables = json.getJSONArray("targetTables");
@@ -693,7 +692,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
                         HeteroEnum hetero, IAITaskPlan plan, AgentContext context, Context ctx //
     , PartialSettedPluginContext pluginCtx, UploadPluginMeta pluginMetaMeta, AttrValMap pluginVals) throws Exception {
 
-    pluginVals = validateAttrValMap(hetero, plan, context, pluginMetaMeta, pluginVals);
+    pluginVals = validateAttrValMap(hetero, plan, context, Optional.ofNullable(pluginCtx.getTISDataXName()), pluginVals);
 
 
     return savePlugin(hetero, ctx, pluginCtx, pluginMetaMeta, pluginVals);
@@ -710,12 +709,12 @@ public abstract class BasicStepExecutor implements StepExecutor {
   }
 
   public AttrValMap validateAttrValMap(HeteroEnum hetero, IAITaskPlan plan, AgentContext context,
-                                       UploadPluginMeta pluginMetaMeta, AttrValMap pluginVals) throws Exception {
+                                       Optional<DataXName> dataXName, AttrValMap pluginVals) throws Exception {
     /**
      * 先进行校验
      */
     pluginVals = validateAttrValMap(plan, context, hetero, pluginVals //
-      , Optional.ofNullable(pluginMetaMeta.getDataXName(false)), this.executeComplementWhenInvalidate);
+      , dataXName, this.executeComplementWhenInvalidate);
     return pluginVals;
   }
 
@@ -743,26 +742,20 @@ public abstract class BasicStepExecutor implements StepExecutor {
    */
   protected void checkInstallPlugin(AgentContext context, Set<Pair<IEndTypeGetter.EndType,
     Collection<DescribableImpl>>> installImpls, Consumer<Set<PluginWillInstall>> beforeInstall) {
+
     UpdateCenter center = TIS.get().getUpdateCenter();
-    final List<UpdateSite.Plugin> availables = center.getPlugins(UpdateSite::getAllPlugins);
-    try {
-      if (CollectionUtils.isEmpty(availables)) {
-        for (UpdateSite usite : center.getSiteList()) {
-          TextFile textFile = usite.getDataLoadFaildFile();
-          if (textFile.exists()) {
-            throw TisException.create(textFile.read());
-          }
-        }
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    final List<UpdateSite.Plugin> availables = center.getAvailablePlugins();
     Set<PluginWillInstall> pluginsInstall = Sets.newHashSet();
     for (Pair<IEndTypeGetter.EndType, Collection<DescribableImpl>> pair : installImpls) {
       pluginsInstall.addAll(parsePluginWillInstalls(pair.getKey(), pair.getRight(), availables));
     }
     beforeInstall.accept(pluginsInstall);
 
+    installPlugin(context, pluginsInstall, center, null);
+  }
+
+  public static void installPlugin(AgentContext context, Set<PluginWillInstall> pluginsInstall, UpdateCenter center,
+                                   McpSyncServerExchange exchange) {
     Boolean success = false;
     try {
       if (CollectionUtils.isNotEmpty(pluginsInstall)) {
@@ -774,8 +767,18 @@ public abstract class BasicStepExecutor implements StepExecutor {
         final AtomicBoolean beWait = new AtomicBoolean(true);
         waitInstallComplete.execute(() -> {
           while (beWait.get()) {
+            List<UpdateCenter.UpdateCenterJob> jobs = PluginAction.getInstallJobs(center);
+            context.sendPluginInstallStatus(requestKey, jobs, false);
+            if (exchange != null) {
+              double progress = calculateProgress(jobs);
 
-            context.sendPluginInstallStatus(requestKey, PluginAction.getInstallJobs(center), false);
+              exchange.progressNotification(new McpSchema.ProgressNotification(
+                requestKey.getSessionKey(),
+                progress,
+                1.0,
+                "Installing plugins..."
+              ));
+            }
             try {
               Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -796,6 +799,30 @@ public abstract class BasicStepExecutor implements StepExecutor {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private static double calculateProgress(List<UpdateCenter.UpdateCenterJob> jobs) {
+    if (jobs.isEmpty()) {
+      return 1.0;
+    }
+
+    double totalProgress = 0.0;
+    for (UpdateCenter.UpdateCenterJob job : jobs) {
+      if (job instanceof UpdateCenter.DownloadJob) {
+        UpdateCenter.DownloadJob downloadJob = (UpdateCenter.DownloadJob) job;
+        UpdateCenter.DownloadJob.InstallationStatus status = downloadJob.status;
+
+        if (status instanceof UpdateCenter.DownloadJob.Success ||
+          status instanceof UpdateCenter.DownloadJob.Skipped) {
+          totalProgress += 1.0;
+        } else if (status instanceof UpdateCenter.DownloadJob.Installing) {
+          UpdateCenter.DownloadJob.Installing installing = (UpdateCenter.DownloadJob.Installing) status;
+          totalProgress += (installing.percentage / 100.0);
+        }
+      }
+    }
+
+    return totalProgress / jobs.size();
   }
 
   private Set<PluginWillInstall> parsePluginWillInstalls(IEndTypeGetter.EndType endType,

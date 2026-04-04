@@ -174,7 +174,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         invoke = AbstractActionInvocation.createExecChain(chainContext);
         ExecuteResult execResult = invoke.invoke();
         if (!execResult.isSuccess()) {
-            logger.warn(execResult.getMessage());
+           // logger.warn(execResult.getMessage());
         }
         return execResult;
     }

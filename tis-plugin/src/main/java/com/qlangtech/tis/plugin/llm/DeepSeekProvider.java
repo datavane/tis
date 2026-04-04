@@ -22,7 +22,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
-import com.qlangtech.tis.aiagent.llm.JsonSchema;
+import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.extension.TISExtension;
@@ -101,12 +101,12 @@ public class DeepSeekProvider extends LLMProvider {
 
     @Override
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
-        return chat(context, prompt, systemPrompt, true, JsonSchema.off());
+        return chat(context, prompt, systemPrompt, true, TISJsonSchema.off());
     }
 
 
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary,
-                            JsonSchema jsonOutput) {
+                            TISJsonSchema jsonOutput) {
         ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);
         try {
             List<HttpUtils.PostParam> postParams = new ArrayList<>();
@@ -246,7 +246,7 @@ public class DeepSeekProvider extends LLMProvider {
 
     @Override
     public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
-                                JsonSchema jsonSchema) {
+                                TISJsonSchema jsonSchema) {
         String enhancedPrompt = prompt.getPrompt();
         if (jsonSchema.isContainSchema()) {
             // enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果：\n" + jsonSchema;

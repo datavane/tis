@@ -18,7 +18,7 @@
 package com.qlangtech.tis.aiagent.core;
 
 import com.alibaba.fastjson.JSONObject;
-import com.qlangtech.tis.aiagent.llm.JsonSchema;
+import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.aiagent.plan.AgentTaskIntention;
@@ -279,7 +279,7 @@ public class TISPlanAndExecuteAgent {
   /**
    * 获取计划JSON Schema
    */
-  private JsonSchema getPlanSchema() {
+  private TISJsonSchema getPlanSchema() {
 
     //    String schemaExample =
     //      "{\n" + "  \"" + KEY_INTENTION + "\":\"string类型\",\n" + "  \"" + KEY_SOURCE + "\": {\"" + KEY_TYPE +
@@ -298,25 +298,25 @@ public class TISPlanAndExecuteAgent {
     //      "}";
 
 
-    JsonSchema.Builder builder = JsonSchema.Builder.create("CreatePipelineRequest", Optional.empty());
-    builder.addProperty(KEY_INTENTION, JsonSchema.FieldType.String, "是一个枚举类型").setValEnums(AgentTaskIntention.CreatePipeline, AgentTaskIntention.Other);
+    TISJsonSchema.Builder builder = TISJsonSchema.Builder.create("CreatePipelineRequest", Optional.empty());
+    builder.addProperty(KEY_INTENTION, TISJsonSchema.FieldType.String, "是一个枚举类型").setValEnums(AgentTaskIntention.CreatePipeline, AgentTaskIntention.Other);
 
     builder.addObjectProperty(KEY_SOURCE, (innerBuilder) -> {
-      innerBuilder.addProperty(KEY_TYPE, JsonSchema.FieldType.String, "值必须为系统提示词中枚举到的端类型关键词，大小写必须一致");
-      innerBuilder.addProperty(KEY_EXTRACT_INFO, JsonSchema.FieldType.String, "从用户提供的数据通道任务描述信息中抽取源端相关的描述信息(不需要结构化数据，如：json或xml)");
-      innerBuilder.addProperty(SUB_PROP_FIELD_NAME, JsonSchema.FieldType.String,
+      innerBuilder.addProperty(KEY_TYPE, TISJsonSchema.FieldType.String, "值必须为系统提示词中枚举到的端类型关键词，大小写必须一致");
+      innerBuilder.addProperty(KEY_EXTRACT_INFO, TISJsonSchema.FieldType.String, "从用户提供的数据通道任务描述信息中抽取源端相关的描述信息(不需要结构化数据，如：json或xml)");
+      innerBuilder.addProperty(SUB_PROP_FIELD_NAME, TISJsonSchema.FieldType.String,
         "从用户提供的数据通道任务描述信息中抽取源端相关的信息（如：‘除AA" + "、BB表以外的所有表’，‘前缀为user" + "的表’，‘AA，BB’）,如不能抽取得到则设置为空字符串");
       //  innerBuilder.setRequiredFields(KEY_TYPE, KEY_EXTRACT_INFO, SUB_PROP_FIELD_NAME);
     });
     builder.addObjectProperty(KEY_TARGET, (inner) -> {
-      inner.addProperty(KEY_TYPE, JsonSchema.FieldType.String, "值必须为系统提示词中枚举到的端类型关键词，大小写必须一致");
-      inner.addProperty(KEY_EXTRACT_INFO, JsonSchema.FieldType.String, "从用户提供的数据通道任务描述信息中抽取目标端相关的描述信息(不需要结构化数据，如：json或xml)");
+      inner.addProperty(KEY_TYPE, TISJsonSchema.FieldType.String, "值必须为系统提示词中枚举到的端类型关键词，大小写必须一致");
+      inner.addProperty(KEY_EXTRACT_INFO, TISJsonSchema.FieldType.String, "从用户提供的数据通道任务描述信息中抽取目标端相关的描述信息(不需要结构化数据，如：json或xml)");
       //inner.setRequiredFields(KEY_TYPE, KEY_EXTRACT_INFO);
     });
 
     builder.addObjectProperty(KEY_EXECUTE_OPTION_CONFIG, (inner) -> {
-      inner.addProperty(KEY_EXECUTE_INCR, JsonSchema.FieldType.Boolean, "表明数据管道创建完成后是否立即启动增量实时同步").setDefault(false);
-      inner.addProperty(KEY_EXECUTE_BATCH, JsonSchema.FieldType.Boolean, "表明数据管道创建完成后是否立即启动批量同步").setDefault(false);
+      inner.addProperty(KEY_EXECUTE_INCR, TISJsonSchema.FieldType.Boolean, "表明数据管道创建完成后是否立即启动增量实时同步").setDefault(false);
+      inner.addProperty(KEY_EXECUTE_BATCH, TISJsonSchema.FieldType.Boolean, "表明数据管道创建完成后是否立即启动批量同步").setDefault(false);
       // inner.setRequiredFields(KEY_EXECUTE_INCR,KEY_EXECUTE_BATCH);
     });
     return builder.build();

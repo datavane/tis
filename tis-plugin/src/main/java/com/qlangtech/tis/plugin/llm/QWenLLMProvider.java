@@ -24,14 +24,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
-import com.qlangtech.tis.aiagent.llm.JsonSchema;
+import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
-import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.PostFormStreamProcess;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
@@ -57,10 +56,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.qlangtech.tis.aiagent.llm.JsonSchema.SCHEMA_VALUE_CONST;
-import static com.qlangtech.tis.aiagent.llm.JsonSchema.SCHEMA_VALUE_DEFAULT;
-import static com.qlangtech.tis.aiagent.llm.JsonSchema.SCHEMA_VALUE_ENUM;
-import static com.qlangtech.tis.aiagent.llm.JsonSchema.SCHEMA_VALUE_PATTERN;
+import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_DEFAULT;
+import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_PATTERN;
 import static com.qlangtech.tis.extension.Descriptor.KEY_primaryVal;
 
 /**
@@ -122,12 +119,12 @@ public class QWenLLMProvider extends LLMProvider {
 
     @Override
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
-        return chat(context, prompt, systemPrompt, true, JsonSchema.off());
+        return chat(context, prompt, systemPrompt, true, TISJsonSchema.off());
     }
 
 
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary,
-                            JsonSchema jsonOutput) {
+                            TISJsonSchema jsonOutput) {
         ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);// new DefaultExecuteLog
         // (prompt, context, logger) : new NoneExecuteLog();
         try {
@@ -298,7 +295,7 @@ public class QWenLLMProvider extends LLMProvider {
 
     @Override
     public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
-                                JsonSchema jsonSchema) {
+                                TISJsonSchema jsonSchema) {
         // 增强prompt，要求返回JSON格式
         StringBuilder enhancedPrompt = new StringBuilder(prompt.getPrompt());
         if (jsonSchema.isContainSchema()) {

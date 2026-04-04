@@ -28,8 +28,10 @@ import com.qlangtech.tis.extension.RestartRequiredException;
 import com.qlangtech.tis.extension.Saveable;
 import com.qlangtech.tis.extension.impl.MissingDependencyException;
 import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.extension.util.TextFile;
 import com.qlangtech.tis.extension.util.VersionNumber;
 import com.qlangtech.tis.install.InstallUtil;
+import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.ConfigFileContext.Header;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
@@ -42,6 +44,7 @@ import com.qlangtech.tis.util.Util;
 import com.qlangtech.tis.util.exec.AtmostOneThreadExecutor;
 import com.qlangtech.tis.util.exec.DaemonThreadFactory;
 import com.qlangtech.tis.util.exec.NamingThreadFactory;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;
@@ -121,14 +124,16 @@ public class UpdateCenter implements Saveable {
      * Read timeout when downloading plugins, defaults to 1 minute
      */
     private static final int PLUGIN_DOWNLOAD_READ_TIMEOUT
-            = (int) TimeUnit.SECONDS.toMillis(Integer.parseInt(System.getProperty(UpdateCenterResource.class.getName() + ".pluginDownloadReadTimeoutSeconds", "60")));
+            =
+            (int) TimeUnit.SECONDS.toMillis(Integer.parseInt(System.getProperty(UpdateCenterResource.class.getName() + ".pluginDownloadReadTimeoutSeconds", "60")));
 
     /**
      * {@linkplain 'UpdateSite#getId()' ID} of the default update site.
      *
      * @since 1.483; configurable via system property since 2.4
      */
-    public static final String ID_DEFAULT = System.getProperty(UpdateCenterResource.class.getName() + ".defaultUpdateSiteId", UpdateCenterResource.PREDEFINED_UPDATE_SITE_ID);
+    public static final String ID_DEFAULT = System.getProperty(UpdateCenterResource.class.getName() +
+            ".defaultUpdateSiteId", UpdateCenterResource.PREDEFINED_UPDATE_SITE_ID);
     private static final Logger LOGGER = LoggerFactory.getLogger(UpdateCenterResource.class);
     /**
      * {@link UpdateSite}s from which we've already installed a plugin at least once.
@@ -164,11 +169,11 @@ public class UpdateCenter implements Saveable {
 
     static {
 
-//        String ucOverride = System.getProperty(UpdateCenter.class.getName() + ".updateCenterUrl");
-//        if (ucOverride != null) {
-//            LOGGER.info("Using a custom update center defined by the system property: {}", ucOverride);
-//            UPDATE_CENTER_URL = ucOverride;
-//        } else {
+        //        String ucOverride = System.getProperty(UpdateCenter.class.getName() + ".updateCenterUrl");
+        //        if (ucOverride != null) {
+        //            LOGGER.info("Using a custom update center defined by the system property: {}", ucOverride);
+        //            UPDATE_CENTER_URL = ucOverride;
+        //        } else {
         // UPDATE_CENTER_URL = ;
         //}
     }
@@ -244,6 +249,24 @@ public class UpdateCenter implements Saveable {
             }
         }
 
+    }
+
+    public List<UpdateSite.Plugin> getAvailablePlugins() {
+        final UpdateCenter center = this;
+        final List<UpdateSite.Plugin> availables = center.getPlugins(UpdateSite::getAllPlugins);
+        try {
+            if (CollectionUtils.isEmpty(availables)) {
+                for (UpdateSite usite : center.getSiteList()) {
+                    TextFile textFile = usite.getDataLoadFaildFile();
+                    if (textFile.exists()) {
+                        throw TisException.create(textFile.read());
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return availables;
     }
 
     public PersistedList<UpdateSite> getSites() {
@@ -345,7 +368,8 @@ public class UpdateCenter implements Saveable {
             if (connectionCheckJob != null) {
                 return connectionCheckJob;
             } else {
-                throw new IllegalStateException("Illegal addition of an UpdateCenter job without calling UpdateCenter.addJob. " +
+                throw new IllegalStateException("Illegal addition of an UpdateCenter job without calling UpdateCenter"
+                        + ".addJob. " +
                         "No ConnectionCheckJob found for the site.");
             }
         }
@@ -362,24 +386,24 @@ public class UpdateCenter implements Saveable {
      */
     public List<UpdateSite.Plugin> getAvailables() {
         return getPlugins((site) -> site.getAvailables());
-//        Map<String, UpdateSite.Plugin> pluginMap = new LinkedHashMap<>();
-//        for (UpdateSite site : sites) {
-//            for (UpdateSite.Plugin plugin : site.getAvailables()) {
-//                final UpdateSite.Plugin existing = pluginMap.get(plugin.name);
-//                if (existing == null) {
-//                    pluginMap.put(plugin.name, plugin);
-//                } else if (!existing.version.equals(plugin.version)) {
-//                    // allow secondary update centers to publish different versions
-//                    // TODO refactor to consolidate multiple versions of the same plugin within the one row
-//                    final String altKey = plugin.name + ":" + plugin.version;
-//                    if (!pluginMap.containsKey(altKey)) {
-//                        pluginMap.put(altKey, plugin);
-//                    }
-//                }
-//            }
-//        }
-//
-//        return new ArrayList<>(pluginMap.values());
+        //        Map<String, UpdateSite.Plugin> pluginMap = new LinkedHashMap<>();
+        //        for (UpdateSite site : sites) {
+        //            for (UpdateSite.Plugin plugin : site.getAvailables()) {
+        //                final UpdateSite.Plugin existing = pluginMap.get(plugin.name);
+        //                if (existing == null) {
+        //                    pluginMap.put(plugin.name, plugin);
+        //                } else if (!existing.version.equals(plugin.version)) {
+        //                    // allow secondary update centers to publish different versions
+        //                    // TODO refactor to consolidate multiple versions of the same plugin within the one row
+        //                    final String altKey = plugin.name + ":" + plugin.version;
+        //                    if (!pluginMap.containsKey(altKey)) {
+        //                        pluginMap.put(altKey, plugin);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //
+        //        return new ArrayList<>(pluginMap.values());
     }
 
 
@@ -447,7 +471,8 @@ public class UpdateCenter implements Saveable {
         } else {
             if (sites.isEmpty()) {
                 // If there aren't already any UpdateSources, add the default one.
-                // to maintain compatibility with existing UpdateCenterConfiguration, create the default one as specified by UpdateCenterConfiguration
+                // to maintain compatibility with existing UpdateCenterConfiguration, create the default one as
+                // specified by UpdateCenterConfiguration
                 sites.add(createDefaultUpdateSite());
             }
         }
@@ -480,22 +505,23 @@ public class UpdateCenter implements Saveable {
     }
 
     protected UpdateSite createDefaultUpdateSite() {
-        UpdateSite dftUpdateSite = UpdateSite.tisDftUpdateSite();// new UpdateSite(PREDEFINED_UPDATE_SITE_ID, config.getUpdateCenterUrl() + KEY_DEFAULT_JSON);
-//        if (!dftUpdateSite.existLocal()) {
-//
-//        }
+        UpdateSite dftUpdateSite = UpdateSite.tisDftUpdateSite();// new UpdateSite(PREDEFINED_UPDATE_SITE_ID, config
+        // .getUpdateCenterUrl() + KEY_DEFAULT_JSON);
+        //        if (!dftUpdateSite.existLocal()) {
+        //
+        //        }
         return dftUpdateSite;
     }
 
     @Override
     public synchronized void save() {
-//        if(BulkChange.contains(this))   return;
-//        try {
-//            getConfigFile().write(sites);
-//            SaveableListener.fireOnChange(this, getConfigFile());
-//        } catch (IOException e) {
-//            LOGGER.log(Level.WARNING, "Failed to save "+getConfigFile(),e);
-//        }
+        //        if(BulkChange.contains(this))   return;
+        //        try {
+        //            getConfigFile().write(sites);
+        //            SaveableListener.fireOnChange(this, getConfigFile());
+        //        } catch (IOException e) {
+        //            LOGGER.log(Level.WARNING, "Failed to save "+getConfigFile(),e);
+        //        }
     }
 
 
@@ -525,7 +551,8 @@ public class UpdateCenter implements Saveable {
     public UpdateSite.Plugin getPlugin(String artifactId) {
         for (UpdateSite s : sites) {
             UpdateSite.Plugin p = s.getPlugin(artifactId);
-            if (p != null) return p;
+            if (p != null)
+                return p;
         }
         return null;
     }
@@ -534,8 +561,8 @@ public class UpdateCenter implements Saveable {
 
         return Descriptor.getConfigFile(UpdateCenterResource.class.getName());
 
-//        return new XmlFile(XSTREAM,new File(TIS.get().root,
-//                UpdateCenter.class.getName()+".xml"));
+        //        return new XmlFile(XSTREAM,new File(TIS.get().root,
+        //                UpdateCenter.class.getName()+".xml"));
     }
 
     /**
@@ -628,7 +655,8 @@ public class UpdateCenter implements Saveable {
             try {
                 return MessageDigest.getInstance(algorithm);
             } catch (NoSuchAlgorithmException e) {
-                LOGGER.info("Failed to instantiate message digest algorithm, may only have weak or no verification of downloaded file", algorithm);
+                LOGGER.info("Failed to instantiate message digest algorithm, may only have weak or no verification of"
+                        + " downloaded file", algorithm);
             }
             return null;
         }
@@ -696,7 +724,8 @@ public class UpdateCenter implements Saveable {
                              OutputStream out =
                                      sha1 != null ? new DigestOutputStream(
                                              sha256 != null ? new DigestOutputStream(
-                                                     sha512 != null ? new DigestOutputStream(_out, sha512) : _out, sha256) : _out, sha1) : _out;
+                                                     sha512 != null ? new DigestOutputStream(_out, sha512) : _out,
+                                                     sha256) : _out, sha1) : _out;
                              //InputStream in = con.getInputStream();
                              CountingInputStream cin = new CountingInputStream(stream)) {
                             while ((len = cin.read(buf)) >= 0) {
@@ -705,7 +734,8 @@ public class UpdateCenter implements Saveable {
                                 //
                                 if (job.status == null || job.status.used.get()) {
                                     percentage = (int) (((double) cin.getByteCount() / total) * 100);
-                                    //  System.out.println("---------cin.getCount():" + cin.getByteCount() + ",total:" + total + ",percentage:" + percentage);
+                                    //  System.out.println("---------cin.getCount():" + cin.getByteCount() + ",
+                                    //  total:" + total + ",percentage:" + percentage);
                                     job.status = job.new Installing(percentage, cin.getByteCount());
                                 }
 
@@ -720,7 +750,8 @@ public class UpdateCenter implements Saveable {
                         // assist troubleshooting in case of e.g. "too many redirects" by printing actual URL
                         String extraMessage = "";
                         if (con != null && con.getURL() != null && !src.toString().equals(con.getURL().toString())) {
-                            // Two URLs are considered equal if different hosts resolve to same IP. Prefer to log in case of string inequality,
+                            // Two URLs are considered equal if different hosts resolve to same IP. Prefer to log in
+                            // case of string inequality,
                             // because who knows how the server responds to different host name in the request header?
                             // Also, since it involved name resolution, it'd be an expensive operation.
                             extraMessage = " (redirected to: " + con.getURL() + ")";
@@ -736,12 +767,12 @@ public class UpdateCenter implements Saveable {
                 }
             });
 
-//                con = connect(job, src);
-//                Objects.requireNonNull(con, "con can not be null");
-//                //JENKINS-34174 - set timeout for downloads, may hang indefinitely
-//                // particularly noticeable during 2.0 install when downloading
-//                // many plugins
-//                con.setReadTimeout(PLUGIN_DOWNLOAD_READ_TIMEOUT);
+            //                con = connect(job, src);
+            //                Objects.requireNonNull(con, "con can not be null");
+            //                //JENKINS-34174 - set timeout for downloads, may hang indefinitely
+            //                // particularly noticeable during 2.0 install when downloading
+            //                // many plugins
+            //                con.setReadTimeout(PLUGIN_DOWNLOAD_READ_TIMEOUT);
 
 
             if (sha1 != null) {
@@ -757,27 +788,30 @@ public class UpdateCenter implements Saveable {
                 job.computedSHA512 = Base64.getEncoder().encodeToString(digest);
             }
             return tmp;
-//            } catch (IOException e) {
-//                // assist troubleshooting in case of e.g. "too many redirects" by printing actual URL
-//                String extraMessage = "";
-//                if (con != null && con.getURL() != null && !src.toString().equals(con.getURL().toString())) {
-//                    // Two URLs are considered equal if different hosts resolve to same IP. Prefer to log in case of string inequality,
-//                    // because who knows how the server responds to different host name in the request header?
-//                    // Also, since it involved name resolution, it'd be an expensive operation.
-//                    extraMessage = " (redirected to: " + con.getURL() + ")";
-//                }
-//                throw new IOException("Failed to download from " + src + extraMessage, e);
-//            }
+            //            } catch (IOException e) {
+            //                // assist troubleshooting in case of e.g. "too many redirects" by printing actual URL
+            //                String extraMessage = "";
+            //                if (con != null && con.getURL() != null && !src.toString().equals(con.getURL().toString
+            //                ())) {
+            //                    // Two URLs are considered equal if different hosts resolve to same IP. Prefer to
+            //                    log in case of string inequality,
+            //                    // because who knows how the server responds to different host name in the request
+            //                    header?
+            //                    // Also, since it involved name resolution, it'd be an expensive operation.
+            //                    extraMessage = " (redirected to: " + con.getURL() + ")";
+            //                }
+            //                throw new IOException("Failed to download from " + src + extraMessage, e);
+            //            }
         }
 
-//        /**
-//         * Connects to the given URL for downloading the binary. Useful for tweaking
-//         * how the connection gets established.
-//         */
-//        protected URLConnection connect(DownloadJob job, URL src) throws IOException {
-//            //return ProxyConfiguration.open(src);
-//            return src.openConnection();
-//        }
+        //        /**
+        //         * Connects to the given URL for downloading the binary. Useful for tweaking
+        //         * how the connection gets established.
+        //         */
+        //        protected URLConnection connect(DownloadJob job, URL src) throws IOException {
+        //            //return ProxyConfiguration.open(src);
+        //            return src.openConnection();
+        //        }
 
         /**
          * Called after a plugin has been downloaded to move it into its final
@@ -867,27 +901,28 @@ public class UpdateCenter implements Saveable {
                 }
             });
 
-//            try {
-//
-//
-//
-//                URLConnection connection = ProxyConfiguration.open(url);
-//
-//                if (connection instanceof HttpURLConnection) {
-//                    int responseCode = ((HttpURLConnection) connection).getResponseCode();
-//                    if (HttpURLConnection.HTTP_OK != responseCode) {
-//                        throw new HttpRetryException("Invalid response code (" + responseCode + ") from URL: " + url, responseCode);
-//                    }
-//                } else {
-//                    try (InputStream is = connection.getInputStream()) {
-//                        IOUtils.copy(is, NullOutputStream.NULL_OUTPUT_STREAM);
-//                    }
-//                }
-//            } catch (SSLHandshakeException e) {
-//                if (e.getMessage().contains("PKIX path building failed"))
-//                    // fix up this crappy error message from JDK
-//                    throw new IOException("Failed to validate the SSL certificate of " + url, e);
-//            }
+            //            try {
+            //
+            //
+            //
+            //                URLConnection connection = ProxyConfiguration.open(url);
+            //
+            //                if (connection instanceof HttpURLConnection) {
+            //                    int responseCode = ((HttpURLConnection) connection).getResponseCode();
+            //                    if (HttpURLConnection.HTTP_OK != responseCode) {
+            //                        throw new HttpRetryException("Invalid response code (" + responseCode + ") from
+            //                        URL: " + url, responseCode);
+            //                    }
+            //                } else {
+            //                    try (InputStream is = connection.getInputStream()) {
+            //                        IOUtils.copy(is, NullOutputStream.NULL_OUTPUT_STREAM);
+            //                    }
+            //                }
+            //            } catch (SSLHandshakeException e) {
+            //                if (e.getMessage().contains("PKIX path building failed"))
+            //                    // fix up this crappy error message from JDK
+            //                    throw new IOException("Failed to validate the SSL certificate of " + url, e);
+            //            }
         }
     }
 
@@ -925,9 +960,9 @@ public class UpdateCenter implements Saveable {
             this.site = site;
         }
 
-//        public Api getApi() {
-//            return new Api(this);
-//        }
+        //        public Api getApi() {
+        //            return new Api(this);
+        //        }
 
         public UUID getCorrelationId() {
             return correlationId;
@@ -1069,12 +1104,12 @@ public class UpdateCenter implements Saveable {
 
         // private Authentication authentication;
 
-//        /**
-//         * Get the user that initiated this job
-//         */
-//        public Authentication getUser() {
-//            return this.authentication;
-//        }
+        //        /**
+        //         * Get the user that initiated this job
+        //         */
+        //        public Authentication getUser() {
+        //            return this.authentication;
+        //        }
 
         protected DownloadJob(UpdateSite site) {
             super(site);
@@ -1092,7 +1127,8 @@ public class UpdateCenter implements Saveable {
                 onSuccess();
             } catch (InstallationStatus e) {
                 status = e;
-                if (status.isSuccess()) onSuccess();
+                if (status.isSuccess())
+                    onSuccess();
                 requiresRestart |= status.requiresRestart();
             } catch (MissingDependencyException e) {
                 LOGGER.error("Failed to install {}: {}", getName(), e.getMessage());
@@ -1315,10 +1351,10 @@ public class UpdateCenter implements Saveable {
             return new File(baseDir, tpiName);
         }
 
-//        private File getLegacyDestination() {
-//            File baseDir = pm.rootDir;
-//            return new File(baseDir, plugin.name + ".hpi");
-//        }
+        //        private File getLegacyDestination() {
+        //            File baseDir = pm.rootDir;
+        //            return new File(baseDir, plugin.name + ".hpi");
+        //        }
 
         @Override
         public String getName() {
@@ -1342,12 +1378,12 @@ public class UpdateCenter implements Saveable {
                 super._run();
 
                 // if this is a bundled plugin, make sure it won't get overwritten
-//                PluginWrapper pw = plugin.getInstalled();
-//                if (pw != null && pw.isBundled()) {
-//                    try (ACLContext ctx = ACL.as2(ACL.SYSTEM2)) {
-//                        pw.doPin();
-//                    }
-//                }
+                //                PluginWrapper pw = plugin.getInstalled();
+                //                if (pw != null && pw.isBundled()) {
+                //                    try (ACLContext ctx = ACL.as2(ACL.SYSTEM2)) {
+                //                        pw.doPin();
+                //                    }
+                //                }
 
                 if (dynamicLoad) {
                     try {
@@ -1434,12 +1470,12 @@ public class UpdateCenter implements Saveable {
             File bak = Util.changeExtension(dst, ".bak");
             bak.delete();
 
-//            final File legacy = getLegacyDestination();
-//            if (legacy.exists()) {
-//                if (!legacy.renameTo(bak)) {
-//                    legacy.delete();
-//                }
-//            }
+            //            final File legacy = getLegacyDestination();
+            //            if (legacy.exists()) {
+            //                if (!legacy.renameTo(bak)) {
+            //                    legacy.delete();
+            //                }
+            //            }
             if (dst.exists()) {
                 if (!dst.renameTo(bak)) {
                     dst.delete();
@@ -1483,7 +1519,8 @@ public class UpdateCenter implements Saveable {
                 status = new Failure(x);
                 LOGGER.warn("Failed to start some plugins", x);
             }
-            LOGGER.info("Completed installation of {} plugins in {}ms", batch.size(), ((System.currentTimeMillis() - start)));
+            LOGGER.info("Completed installation of {} plugins in {}ms", batch.size(),
+                    ((System.currentTimeMillis() - start)));
         }
 
 
@@ -1598,53 +1635,58 @@ public class UpdateCenter implements Saveable {
      */
     /* package */
     static void verifyChecksums(WithComputedChecksums job, UpdateSite.Entry entry, File file) throws IOException {
-//        VerificationResult result512 = verifyChecksums(entry.getSha512(), job.getComputedSHA512(), false);
-//        switch (result512) {
-//            case PASS:
-//                // this has passed so no reason to check the weaker checksums
-//                return;
-//            case FAIL:
-//                throwVerificationFailure(entry.getSha512(), job.getComputedSHA512(), file, "SHA-512");
-//                break;
-//            case NOT_COMPUTED:
-//                LOGGER.log(WARNING, "Attempt to verify a downloaded file (" + file.getName() + ") using SHA-512 failed since it could not be computed. Falling back to weaker algorithms. Update your JRE.");
-//                break;
-//            case NOT_PROVIDED:
-//                break;
-//            default:
-//                throw new IllegalStateException("Unexpected value: " + result512);
-//        }
-//
-//        VerificationResult result256 = verifyChecksums(entry.getSha256(), job.getComputedSHA256(), false);
-//        switch (result256) {
-//            case PASS:
-//                return;
-//            case FAIL:
-//                throwVerificationFailure(entry.getSha256(), job.getComputedSHA256(), file, "SHA-256");
-//                break;
-//            case NOT_COMPUTED:
-//            case NOT_PROVIDED:
-//                break;
-//            default:
-//                throw new IllegalStateException("Unexpected value: " + result256);
-//        }
-//
-//        if (result512 == VerificationResult.NOT_PROVIDED && result256 == VerificationResult.NOT_PROVIDED) {
-//            LOGGER.log(INFO, "Attempt to verify a downloaded file (" + file.getName() + ") using SHA-512 or SHA-256 failed since your configured update site does not provide either of those checksums. Falling back to SHA-1.");
-//        }
-//
-//        VerificationResult result1 = verifyChecksums(entry.getSha1(), job.getComputedSHA1(), true);
-//        switch (result1) {
-//            case PASS:
-//                return;
-//            case FAIL:
-//                throwVerificationFailure(entry.getSha1(), job.getComputedSHA1(), file, "SHA-1");
-//                break;
-//            case NOT_COMPUTED:
-//                throw new IOException("Failed to compute SHA-1 of downloaded file, refusing installation");
-//            case NOT_PROVIDED:
-//                throw new IOException("Unable to confirm integrity of downloaded file, refusing installation");
-//        }
+        //        VerificationResult result512 = verifyChecksums(entry.getSha512(), job.getComputedSHA512(), false);
+        //        switch (result512) {
+        //            case PASS:
+        //                // this has passed so no reason to check the weaker checksums
+        //                return;
+        //            case FAIL:
+        //                throwVerificationFailure(entry.getSha512(), job.getComputedSHA512(), file, "SHA-512");
+        //                break;
+        //            case NOT_COMPUTED:
+        //                LOGGER.log(WARNING, "Attempt to verify a downloaded file (" + file.getName() + ") using
+        //                SHA-512 failed since it could not be computed. Falling back to weaker algorithms. Update
+        //                your JRE.");
+        //                break;
+        //            case NOT_PROVIDED:
+        //                break;
+        //            default:
+        //                throw new IllegalStateException("Unexpected value: " + result512);
+        //        }
+        //
+        //        VerificationResult result256 = verifyChecksums(entry.getSha256(), job.getComputedSHA256(), false);
+        //        switch (result256) {
+        //            case PASS:
+        //                return;
+        //            case FAIL:
+        //                throwVerificationFailure(entry.getSha256(), job.getComputedSHA256(), file, "SHA-256");
+        //                break;
+        //            case NOT_COMPUTED:
+        //            case NOT_PROVIDED:
+        //                break;
+        //            default:
+        //                throw new IllegalStateException("Unexpected value: " + result256);
+        //        }
+        //
+        //        if (result512 == VerificationResult.NOT_PROVIDED && result256 == VerificationResult.NOT_PROVIDED) {
+        //            LOGGER.log(INFO, "Attempt to verify a downloaded file (" + file.getName() + ") using SHA-512 or
+        //            SHA-256 failed since your configured update site does not provide either of those checksums.
+        //            Falling back to SHA-1.");
+        //        }
+        //
+        //        VerificationResult result1 = verifyChecksums(entry.getSha1(), job.getComputedSHA1(), true);
+        //        switch (result1) {
+        //            case PASS:
+        //                return;
+        //            case FAIL:
+        //                throwVerificationFailure(entry.getSha1(), job.getComputedSHA1(), file, "SHA-1");
+        //                break;
+        //            case NOT_COMPUTED:
+        //                throw new IOException("Failed to compute SHA-1 of downloaded file, refusing installation");
+        //            case NOT_PROVIDED:
+        //                throw new IOException("Unable to confirm integrity of downloaded file, refusing
+        //                installation");
+        //        }
     }
 
     /**
@@ -1721,7 +1763,8 @@ public class UpdateCenter implements Saveable {
                                 if (e.getMessage().contains("Connection timed out")) {
                                     // Google can't be down, so this is probably a proxy issue
                                     connectionStates.put(ConnectionStatus.INTERNET, ConnectionStatus.FAILED);
-                                    // Messages.UpdateCenter_Status_ConnectionFailed(Functions.xmlEscape(connectionCheckUrl))
+                                    // Messages.UpdateCenter_Status_ConnectionFailed(Functions.xmlEscape
+                                    // (connectionCheckUrl))
                                     statuses.add("ConnectionFailed:" + connectionCheckUrl);
                                     return;
                                 }
@@ -1781,10 +1824,10 @@ public class UpdateCenter implements Saveable {
      * Sequence number generator.
      */
     private static final AtomicInteger iota = new AtomicInteger();
-//    public static final XStream2 XSTREAM = new XStream2(XmlFile.DEFAULT_DRIVER);
-//
-//    static {
-//        XSTREAM.alias("site",UpdateSite.class);
-//       // XSTREAM.alias("sites",PersistedList.class);
-//    }
+    //    public static final XStream2 XSTREAM = new XStream2(XmlFile.DEFAULT_DRIVER);
+    //
+    //    static {
+    //        XSTREAM.alias("site",UpdateSite.class);
+    //       // XSTREAM.alias("sites",PersistedList.class);
+    //    }
 }

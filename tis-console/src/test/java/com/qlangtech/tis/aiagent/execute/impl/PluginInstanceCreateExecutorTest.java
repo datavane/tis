@@ -24,7 +24,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
 import com.qlangtech.tis.aiagent.core.TestRealTISPlanAndExecuteAgent;
-import com.qlangtech.tis.aiagent.llm.JsonSchema;
+import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
@@ -85,7 +85,7 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     Pair<DescriptorsMeta, DescriptorsJSONForAIPrompt> desc = DescriptorsJSONForAIPrompt.desc(impl);
     LLMProvider llmProvider = TestRealTISPlanAndExecuteAgent.getLlmProvider();
     DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta descriptorsMeta =  (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) desc.getLeft();
-    for (Map.Entry<String, JsonSchema> entry : descriptorsMeta.descSchemaRegister.entrySet()) {
+    for (Map.Entry<String, TISJsonSchema> entry : descriptorsMeta.descSchemaRegister.entrySet()) {
       // 需要遍历他的所有属性如果有需要创建的属性插件需要先创建
       JSONObject jsonObject
         = instanceCreateExecutor.extractUserInput2Json(IAgentContext.createNull(),

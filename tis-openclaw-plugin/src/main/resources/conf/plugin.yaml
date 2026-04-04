@@ -1,0 +1,11 @@
+---
+name: tis-data-pipeline
+version: 1.0.0
+description: TIS 数据集成平台插件 - 支持创建和管理端到端的数据同步管道
+author: TIS Community
+tags: [data-integration, etl, cdc, pipeline, datax, flink]
+
+# MCP Server 配置（tools 通过 MCP 协议自动发现）
+# endpoint 可通过环境变量 TIS_MCP_ENDPOINT 配置，默认为 localhost:8080
+mcp:
+  endpoint: ${TIS_MCP_ENDPOINT:-http://localhost:8080/tjs/mcp}

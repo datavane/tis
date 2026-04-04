@@ -167,7 +167,7 @@ public class PluginItems implements IPluginItemsProcessor {
    * @return
    */
   private static List<IdentityName> loadExistDbs(boolean listen2SaveEvent, String... extendClass) {
-    final ActionContext actionContext = BasicServlet.getActionContext();
+   // final ActionContext actionContext = BasicServlet.getActionContext();
     if (extendClass == null || extendClass.length < 1) {
       throw new IllegalArgumentException("param extendClass can not be null");
     }
@@ -262,7 +262,9 @@ public class PluginItems implements IPluginItemsProcessor {
     if (OfflineDatasourceAction.existDbs != null) {
       return OfflineDatasourceAction.existDbs;
     }
-    return loadExistDbs(true, extendClass).stream().map((db) -> new Option(db.identityValue(), db.identityValue())).collect(Collectors.toList());
+    return loadExistDbs(true, extendClass).stream()
+      .map((db) -> new Option(db.identityValue(), db.identityValue()))
+      .collect(Collectors.toList());
   }
 
   private IPluginStoreSave<?> getStore(List<Descriptor.ParseDescribable<?>> dlist) {

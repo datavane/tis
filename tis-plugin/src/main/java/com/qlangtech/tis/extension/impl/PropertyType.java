@@ -494,7 +494,9 @@ public class PropertyType implements IPropertyType {
             Set<Validator> result = Sets.newHashSet();
 
             Map<Validator, PluginExtraProps.Props.ValidatorCfg> validators = (extraProp == null ?
-                    Collections.emptyList() : (this.extraProp.getExtraValidators())).stream().collect(Collectors.toMap((v) -> ((PluginExtraProps.Props.ValidatorCfg) v).validator, (v) -> (PluginExtraProps.Props.ValidatorCfg) v));
+                    Collections.emptyList() : (this.extraProp.getExtraValidators())).stream() //
+                    .collect(Collectors.toMap((v) -> ((PluginExtraProps.Props.ValidatorCfg) v).validator //
+                            , (v) -> (PluginExtraProps.Props.ValidatorCfg) v));
 
             PluginExtraProps.Props.ValidatorCfg validatorCfg = null;
             for (Validator v : formField.validate()) {

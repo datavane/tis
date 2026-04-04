@@ -92,14 +92,11 @@ public class PluginInstanceCreateExecutor extends BasicStepExecutor {
   @Override
   public boolean execute(TaskPlan plan, TaskStep step, AgentContext context) {
     try {
-
       Context ctx = plan.getRuntimeContext(false);
-
       /**
        * support for DefaultDataxProcessor$DescriptorImpl.getManipulateStore()
        */
       AppAndRuntime.setAppAndRuntime(new AppAndRuntime(Collections.emptyMap()));
-
 
       /**
        * dataXProcessor vals
@@ -205,13 +202,9 @@ public class PluginInstanceCreateExecutor extends BasicStepExecutor {
            * }
            * @see com.qlangtech.tis.offline.module.action.OfflineDatasourceAction#doGetDsTabsVals(Context)
            */
-          // List<ISelectedTab> tabs = null;
-          //  List<String> notFoundTabs = Collections.emptyList();
           ExtractTargetTableInfoResult extractTargetTableInfoResult =
             new ExtractTargetTableInfoResult(Collections.emptyList(), Collections.emptyList());
           if (StringUtils.isNotEmpty(sourceEnd.getExtraSelectedTabInfo())) {
-            // List<String> notFoundTabs = Collections.emptyList();
-            // try {
             TableInDB tabsInDB = dataXReader.getTablesInDB();
             /**
              * 数据库中已经存在表名称
@@ -220,20 +213,6 @@ public class PluginInstanceCreateExecutor extends BasicStepExecutor {
             extractTargetTableInfoResult = this.extractTargetTableInfo(//
               context, sourceEnd.getExtraSelectedTabInfo(), existTabs, plan.getLLMProvider());
 
-
-            //              tabs = dataXReader.createDefaultTables(pluginCtx, null, selectedTabsMeta, (entry) -> {
-            //              }, false);
-            //  } catch (Exception e) {
-            //              int expIdx;
-            //              // 目标表无法识别到
-            //              if ((expIdx = ExceptionUtils.indexOfThrowable(e, TableNotFoundException.class)) > -1) {
-            //                TableNotFoundException tabNotFoundException = ExceptionUtils.throwableOfThrowable(e,
-            //                  TableNotFoundException.class, expIdx);
-            //                notFoundTabs = Collections.singletonList(tabNotFoundException.tableName);
-            //              } else {
-            //                throw e;
-            //              }
-            //  }
           }
 
 
@@ -302,34 +281,15 @@ public class PluginInstanceCreateExecutor extends BasicStepExecutor {
           selectApplySessionData = sendTableSelectApply(context, "请选择源库中需要同步的表", primaryFieldVal, dataXReaderImpl);
         }
 
-        if (selectApplySessionData != null) {
-          //          AtomicInteger count = new AtomicInteger();
-          //          List<String> targetTabs = selectApplySessionData.getSelectedTabs();
-          //          final int maxShow = 5;
-          //          context.sendMessage("已经识别到导入表：" +  //
-          //            targetTabs.stream().filter((tab) -> count.incrementAndGet() < maxShow).collect(Collectors
-          //            .joining(",")) //
-          //            + ((count.get() > maxShow) ? "...等" : StringUtils.EMPTY) + "，共" + targetTabs.size() + "张表");
-          //
-          //          if (pipeMeta.isWriterRDBMS()) {
-          //            /**
-          //             * 与 /Users/mozhenghua/j2ee_solution/project/tis-console/src/base/datax.add.step5.component
-          //             .ts 文件中第183行逻辑一致
-          //             */
-          //            List<TableAlias> tableMaps = Lists.newArrayList();
-          //            targetTabs.forEach((tab) -> {
-          //              tableMaps.add(new TableAlias(tab));
-          //            });
-          //            TableAlias.saveTableMapper(pluginCtx, primaryFieldVal.identityValue(), tableMaps);
-          //          }
-        }
-
 
       }
       //=====================================================
       endCfg = plan.getTargetEnd();
 
 
+      /**
+       * dataX Writer
+       */
       createPluginAndStore(HeteroEnum.DATAX_WRITER, plan //
         , Optional.of(endCfg.getType()), dataXWriterImpl //
         , new UserPrompt("正在生成目标端" + endCfg.getType() //

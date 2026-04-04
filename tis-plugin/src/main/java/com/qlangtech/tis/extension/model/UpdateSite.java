@@ -90,6 +90,8 @@ import static com.qlangtech.tis.util.MemoryReductionUtil.*;
  */
 public class UpdateSite {
 
+    public static final String END_TYPES = "endTypes";
+
     public static UpdateSite tisDftUpdateSite() {
         return tisDftUpdateSite(TisMetaProps.getInstance().getVersion());
     }
@@ -531,7 +533,7 @@ public class UpdateSite {
             }
             this.pluginTags = ((Stream<Object>) pluginTags.stream())
                     .map((t) -> IPluginTaggable.PluginTag.parse((String) t)).collect(Collectors.toSet());
-            JSONArray endTypes = o.getJSONArray("endTypes");
+            JSONArray endTypes = o.getJSONArray(END_TYPES);
             if (endTypes == null) {
                 throw new IllegalStateException(JsonUtil.toString(o) + " lack relevant property endTypes");
             }
