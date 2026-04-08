@@ -108,4 +108,6 @@ public class DefaultMessageHandler extends DefaultFieldErrorHandler implements I
     msgList.add(msg);
     context.put(ACTION_MSG, new ArrayList<String>());
   }
+
+
 }

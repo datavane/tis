@@ -2,6 +2,7 @@ package com.qlangtech.tis.datax;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.sql.Date;
 import java.sql.Time;
 import java.time.Clock;
 import java.time.Instant;
@@ -63,6 +64,11 @@ public enum TimeFormat implements ITimeFormat {
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMilli), sysZoneId);
     }
 
+    public String format(java.util.Date time) {
+        return LocalDateTime.ofInstant(time.toInstant(), sysZoneId).format(this.timeFormatter);
+    }
+
+
     public static TimeFormat parse(String token) {
 
         for (TimeFormat f : TimeFormat.values()) {
@@ -74,6 +80,7 @@ public enum TimeFormat implements ITimeFormat {
     }
 
     public static void main(String[] args) {
-        System.out.println(TimeFormat.yyyyMMddHHmmss.format(1709001500699l));
+        System.out.println( yyyyMMdd_HH_mm_ss.format(new java.util.Date()));
+       // System.out.println(TimeFormat.yyyyMMddHHmmss.format(1709001500699l));
     }
 }

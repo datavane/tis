@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -100,11 +101,12 @@ public interface IPluginEnum<T extends Describable<T>> extends IdentityName {
 
     /**
      * 创建记录的token
-     *
-     * @param id
+     * @param hostPluginId
+     * @param valMap
      * @return
      */
-    default Pair<DataXName, UploadPluginMeta> createPKToken(IdentityName id) {
+    default Pair<DataXName, UploadPluginMeta> createPKToken(Optional<String> hostPluginId, AttrValMap valMap) {
+        // IdentityName.create(valMap.getPrimaryFieldVal())
         throw new UnsupportedOperationException(this.getIdentity() + "," + this.getExtensionPoint().getName());
     }
 }

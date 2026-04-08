@@ -65,9 +65,9 @@ public class AgentContext implements IAgentContext {
   public static final String KEY_CONTENT_DETAIL = "content";
   public static final String KEY_VALIDATE_PLUGIN_ATTR_VALS = "config";
   public static final long maxWaitMillis = 300000; // 5分钟超时
-//  public static String getSelectionKey(String requestId) {
-//    return "user_selection_" + requestId;
-//  }
+  //  public static String getSelectionKey(String requestId) {
+  //    return "user_selection_" + requestId;
+  //  }
 
   private final String sessionId;
   private final SSEEventWriter sseWriter;
@@ -189,7 +189,8 @@ public class AgentContext implements IAgentContext {
   /**
    * 发送JSON数据到客户端（用于插件配置）
    *
-   * @see com.qlangtech.tis.coredefine.module.action.ChatPipelineAction#doSubmitPluginPropsComplement wait from it for notify
+   * @see com.qlangtech.tis.coredefine.module.action.ChatPipelineAction#doSubmitPluginPropsComplement wait from it
+   * for notify
    */
   public void sendPluginConfig(
     RequestKey requestId, AjaxValve.ActionExecResult validateResult
@@ -252,6 +253,8 @@ public class AgentContext implements IAgentContext {
 
       JSONObject data = new JSONObject();
       data.put("type", "selection_request");
+      data.put(SSERunnable.SSEEventType.KEY_ENVENT_TYPE,
+        SSERunnable.SSEEventType.AI_AGNET_SELECTION_REQUEST.getEventType());
       data.put(KEY_REQUEST_ID, requestId.getSessionKey());
       data.put("prompt", prompt);
       data.put("options", optionsData);
@@ -360,7 +363,7 @@ public class AgentContext implements IAgentContext {
    */
   public <ChatSessionData extends ISessionData> ChatSessionData
   waitForUserPost(
-    RequestKey requestId, Predicate<ChatSessionData> predicate) {
+    RequestKey requestId, Predicate<ChatSessionData> predicate) throws PendingClarificationException {
 
     // 为每个requestId创建一个专用的锁对象
     Object lock = selectionLocks.computeIfAbsent(requestId.getSessionKey(), k -> new Object());
@@ -439,6 +442,7 @@ public class AgentContext implements IAgentContext {
   }
 
 
+  @SuppressWarnings("all")
   public <T extends ISessionData> T getSessionData(RequestKey selectedKey) {
     return (T) Objects.requireNonNull(sessionData.get(selectedKey.getSessionKey())
       , "key:" + selectedKey + " relevant instance can not be null");

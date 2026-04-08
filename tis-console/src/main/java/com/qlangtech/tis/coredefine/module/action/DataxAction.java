@@ -152,33 +152,35 @@ public class DataxAction extends BasicModule {
   private static final Logger logger = LoggerFactory.getLogger(DataxAction.class);
   private static final String PARAM_KEY_DATAX_NAME = StoreResourceType.DATAX_NAME;
 
-//  @Func(value = PermissionConstant.DATAX_MANAGE)
-//  public void doDeletePowerJobWorkflow(Context context) throws Exception {
-//    Long pjWorkflowId = this.getLong("id");
-//    Optional<IDataXPowerJobSubmit> powerJobSubmit = DataXJobSubmit.getPowerJobSubmit();
-//    IDataXPowerJobSubmit jobSubmit = powerJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must "
-//      + "be present"));
-//    jobSubmit.deleteWorkflow(this, context, pjWorkflowId);
-//  }
+  //  @Func(value = PermissionConstant.DATAX_MANAGE)
+  //  public void doDeletePowerJobWorkflow(Context context) throws Exception {
+  //    Long pjWorkflowId = this.getLong("id");
+  //    Optional<IDataXPowerJobSubmit> powerJobSubmit = DataXJobSubmit.getPowerJobSubmit();
+  //    IDataXPowerJobSubmit jobSubmit = powerJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit
+  //    must "
+  //      + "be present"));
+  //    jobSubmit.deleteWorkflow(this, context, pjWorkflowId);
+  //  }
 
-//  @Func(value = PermissionConstant.DATAX_MANAGE)
-//  public void doGetAllPowerjobWorkflowRecord(Context context) throws Exception {
-//
-//    // Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit
-//    // .getDataXTriggerType());
-//
-//    Optional<IDataXPowerJobSubmit> powerJobSubmit = DataXJobSubmit.getPowerJobSubmit();
-//
-//    IDataXPowerJobSubmit jobSubmit = powerJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must "
-//      + "be present"));
-//    Map<String, Object> criteria = Maps.newHashMap();
-//
-//    Pager pager = createPager();
-//    Pair<Integer, List<Object>> workflows = jobSubmit.fetchAllInstance(criteria, pager.getCurPage(),
-//      pager.getRowsPerPage());
-//    pager.setTotalCount(workflows.getKey());
-//    this.setBizResult(context, new PaginationResult(pager, workflows.getRight()));
-//  }
+  //  @Func(value = PermissionConstant.DATAX_MANAGE)
+  //  public void doGetAllPowerjobWorkflowRecord(Context context) throws Exception {
+  //
+  //    // Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit
+  //    // .getDataXTriggerType());
+  //
+  //    Optional<IDataXPowerJobSubmit> powerJobSubmit = DataXJobSubmit.getPowerJobSubmit();
+  //
+  //    IDataXPowerJobSubmit jobSubmit = powerJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit
+  //    must "
+  //      + "be present"));
+  //    Map<String, Object> criteria = Maps.newHashMap();
+  //
+  //    Pager pager = createPager();
+  //    Pair<Integer, List<Object>> workflows = jobSubmit.fetchAllInstance(criteria, pager.getCurPage(),
+  //      pager.getRowsPerPage());
+  //    pager.setTotalCount(workflows.getKey());
+  //    this.setBizResult(context, new PaginationResult(pager, workflows.getRight()));
+  //  }
 
   /**
    * trigger_fullbuild_task
@@ -616,11 +618,11 @@ public class DataxAction extends BasicModule {
 
     PluginDescMeta pluginDescMeta = new PluginDescMeta(DataXJobWorker.getDesc(targetName));
 
-//    boolean addJobTplOverwritePlugin = this.getBoolean("addJobTplOverwritePlugin");
-//    if (addJobTplOverwritePlugin) {
-//      pluginDescMeta.addTypedPlugins(DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite,
-//        HeteroEnum.appJobWorkerTplReWriter.getPlugins(this, null));
-//    }
+    //    boolean addJobTplOverwritePlugin = this.getBoolean("addJobTplOverwritePlugin");
+    //    if (addJobTplOverwritePlugin) {
+    //      pluginDescMeta.addTypedPlugins(DataXJobWorker.K8SWorkerCptType.JobTplAppOverwrite,
+    //        HeteroEnum.appJobWorkerTplReWriter.getPlugins(this, null));
+    //    }
 
     this.setBizResult(context, pluginDescMeta);
   }
@@ -930,7 +932,7 @@ public class DataxAction extends BasicModule {
     if (deps != null) {
       return deps;
     }
-    RunContext runContext = BasicServlet.getBeanByType( RunContext.class);
+    RunContext runContext = BasicServlet.getBeanByType(RunContext.class);
     Objects.requireNonNull(runContext, "runContext can not be null");
     return deps = BasicModule.getDptList(runContext, new IDepartmentGetter() {
     });
@@ -1042,7 +1044,7 @@ public class DataxAction extends BasicModule {
       // 判断增量实例是否存在
       IFlinkIncrJobStatus.State state = null;
       try {
-        IndexIncrStatus incrStatus = CoreAction.getIndexIncrStatus(this, true);
+        IndexIncrStatus incrStatus = CoreAction.getIndexIncrStatus(this.getTISDataXName(), true);
         state = incrStatus.getState();
       } catch (Throwable e) {
         logger.error(e.getMessage(), e);
@@ -1106,26 +1108,27 @@ public class DataxAction extends BasicModule {
   private static final Pattern PatternEdittingDirSuffix =
     Pattern.compile("\\-[\\da-z]{8}\\-[\\da-z]{4}\\-[\\da-z]{4" + "}\\-[\\da-z]{4}\\-[\\da-z]{12}");
 
-//  /**
-//   * 更新Powerjob worker与应用绑定,更新Crontab
-//   *
-//   * @param context
-//   * @throws Exception
-//   */
-//  @Func(value = PermissionConstant.DATAX_MANAGE)
-//  public void doUpdatePowerJob(Context context) throws Exception {
-//
-//    Optional<IDataXPowerJobSubmit> dataXJobSubmit //
-//      = DataXJobSubmit.getPowerJobSubmit();
-//
-//    IDataXPowerJobSubmit jobSubmit = dataXJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit must "
-//      + "be present"));
-//
-//    DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(null, StoreResourceType.DataApp,
-//      this.getAppDomain().getAppName());
-//    // 这里可以在pwoerjob 中创建workflow任务
-//    this.setBizResult(context, jobSubmit.saveJob(this, context, dataxProcessor));
-//  }
+  //  /**
+  //   * 更新Powerjob worker与应用绑定,更新Crontab
+  //   *
+  //   * @param context
+  //   * @throws Exception
+  //   */
+  //  @Func(value = PermissionConstant.DATAX_MANAGE)
+  //  public void doUpdatePowerJob(Context context) throws Exception {
+  //
+  //    Optional<IDataXPowerJobSubmit> dataXJobSubmit //
+  //      = DataXJobSubmit.getPowerJobSubmit();
+  //
+  //    IDataXPowerJobSubmit jobSubmit = dataXJobSubmit.orElseThrow(() -> new IllegalStateException("dataXJobSubmit
+  //    must "
+  //      + "be present"));
+  //
+  //    DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(null, StoreResourceType.DataApp,
+  //      this.getAppDomain().getAppName());
+  //    // 这里可以在pwoerjob 中创建workflow任务
+  //    this.setBizResult(context, jobSubmit.saveJob(this, context, dataxProcessor));
+  //  }
 
 
   @Func(value = PermissionConstant.DATAX_MANAGE)
@@ -1172,9 +1175,9 @@ public class DataxAction extends BasicModule {
     SelectedTabExtend.clearTabExtend(null, dataxName.getPipelineName());
     SelectedTabExtend.clearTabExtend(this, dataxName.getPipelineName());
 
-//    DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
-//      submit.saveJob(this, context, old);
-//    });
+    //    DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
+    //      submit.saveJob(this, context, old);
+    //    });
 
 
     this.addActionMessage(context, "已经成功更新");

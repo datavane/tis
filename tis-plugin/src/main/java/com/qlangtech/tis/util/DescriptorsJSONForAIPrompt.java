@@ -43,8 +43,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_DEFAULT;
+import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_CREATOR_HETERO;
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_VALS;
 
@@ -56,6 +58,8 @@ import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_VALS;
  */
 public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends DescriptorsJSON<T,
         DescriptorsJSONForAIPrompt.AISchemaAttrVal> {
+
+    public static final String MCP_TOOL_INSTALL_PLUGIN = "install_plugin";
 
     public static Pair<DescriptorsMeta, DescriptorsJSONForAIPrompt> desc(DescribableImpl pluginImpl) {
         DescriptorsJSONForAIPrompt aiPrompt = new DescriptorsJSONForAIPrompt(pluginImpl.getImplDesc(), pluginImpl);
@@ -107,7 +111,7 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
 
     public static class AISchemaDescriptorsMeta extends DescriptorsMeta {
 
-        public final Map<String /* concrete plugin implement class */, TISJsonSchema> descSchemaRegister =
+        public final Map<String /* concrete plugin implement class */, Pair<TISJsonSchema, Descriptor>> descSchemaRegister =
                 Maps.newHashMap();
 
         public AISchemaDescriptorsMeta(boolean rootDesc) {
@@ -124,6 +128,7 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
         public void addDesc(String id, JSONObject descJson, Object desc) {
             super.addDesc(id, descJson, desc);
             Descriptor descriptor = (Descriptor) desc;
+
             TISJsonSchema.Builder schemaBuilder //
                     = TISJsonSchema.Builder.create(descriptor.getDisplayName(), Optional.empty());
             schemaBuilder.addProperty(PLUGIN_EXTENSION_IMPL, TISJsonSchema.FieldType.String //
@@ -132,10 +137,10 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
 
 
             schemaBuilder.addObjectProperty(PLUGIN_EXTENSION_VALS, (inner) -> {
-                addProps2Builder(descJson, inner);
+                addProps2Builder(descriptor, descJson, inner);
             });
 
-            this.descSchemaRegister.put(id, schemaBuilder.build());
+            this.descSchemaRegister.put(id, Pair.of(schemaBuilder.build(), descriptor));
         }
 
         /**
@@ -143,9 +148,13 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
          * @param inner
          * @see #createFormPropertyTypes  param is return from descJson
          */
-        public static void addProps2Builder(JSONObject descJson, TISJsonSchema.Builder inner) {
+        public static void addProps2Builder(Descriptor descriptor, JSONObject descJson, TISJsonSchema.Builder inner) {
             final JSONArray attrs = Objects.requireNonNull(descJson.getJSONArray(KEY_SCHEMA_FIELDS_ATTRS),
                     KEY_SCHEMA_FIELDS_ATTRS + " relevant attrs can not be null");
+
+            Map<String /*** fieldname*/, PluginExtraProps.FieldRefCreateor> propsImplRefs =
+                    descriptor.getPropsImplRefs();
+
             attrs.forEach((attr) -> {
                 AISchemaAttrVal attrVal = (AISchemaAttrVal) attr;
                 PropertyType pt = attrVal.propertyType;
@@ -180,18 +189,34 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
                         // schema（字段存在、类型正确、enum/pattern 合规），但不会主动填充默认值。
                         // 所以需要在提示词中说明默认值
                         helpContent.append("\n `").append(SCHEMA_VALUE_DEFAULT).append("`:").append(JsonUtil.toString(dft));
+                    } else {
+                        PluginExtraProps.FieldRefCreateor propRef = propsImplRefs.get(attrVal.getFieldKey());
+                        // dft == null
+                        if (propRef != null) {
+                            List<Option> existOpts = propRef.getValOptions();
+                            if (CollectionUtils.isNotEmpty(existOpts)) {
+                                helpContent.append("\n属性值的可选项为：" + existOpts.stream().map((opt) -> "'" + opt.getValue() + "'").collect(Collectors.joining(",")))
+                                        .append("，需要让用户确认选择一个作为本属性输入值，如果用户需要的属性不在以上可选值之中，");
+                            }
+                            helpContent.append("\n需要让用户先创建插件实例，以新建实例的主键值作为属性的输入值。实例可选类型如下:");
+                            List<PluginExtraProps.CandidatePlugin> candidatePlugins = propRef.getCandidatePlugins();
+                            int index = 1;
+                            for (PluginExtraProps.CandidatePlugin candidate : candidatePlugins) {
+                                Descriptor installedPluginDescriptor = candidate.getInstalledPluginDescriptor();
+                                helpContent.append("\n").append(index++).append(". ").append(candidate.getDisplayName()).append(":").append(KEY_CREATOR_HETERO)
+                                        .append("=").append(candidate.getHetero().identityValue());
+                                if (installedPluginDescriptor == null) {
+                                    helpContent.append(" TIS中还没有安装此插件，须先安装，")
+                                            .append(KEY_DISPLAY_NAME).append("=").append(candidate.getDisplayName())
+                                            .append(",").append(KEY_EXTEND_POINT).append("=").append(candidate.getHetero().getExtensionPoint().getName()).append(",请调用mcp tool:").append(MCP_TOOL_INSTALL_PLUGIN);
+                                } else {
+                                    helpContent.append(",").append(PLUGIN_EXTENSION_IMPL).append("=").append(installedPluginDescriptor.clazz.getName());
+                                }
+                            }
+                        }
                     }
-                    //                            if (pt.isIdentity()) {
-                    //                                /**
-                    //                                 * 1. 没有抽取到对应值： 输出的`_primaryVal`属性对应的值不要自动生成（切记）
-                    //                                 * 2.  抽取到对应的值：输出的`_primaryVal`属性值必须严格匹配正则式：
-                    //                                 `[A-Z\\da-z_]+`
-                    //                                 *       ，如有非法字符须进行**合理替换**以符合正则式，例如：识别得到“mysql-mysql-2
-                    //                                 *       ”不符合正则式规范，**必须**进行**合理替换**变成“mysql_mysql_2”
-                    //                                 */
-                    //                                helpContent.append("\n没有抽取到对应值：
-                    //                                输出的`_primaryVal`属性对应的值不要自动生成（切记）");
-                    //                            }
+
+
                     TISJsonSchema.AddedProperty addedProperty =  //
                             inner.addProperty(attrVal.fieldKey, schemaFieldType, helpContent.toString(),
                                     pt.isInputRequired());
@@ -270,15 +295,15 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
 
     @Override
     protected boolean propertyAccept(PropertyType val) {
-//        if (val.extraProp.getDftVal() != null) {
-//            return false;
-//        }
-//        for (Validator validator : val.getValidator()) {
-//            // 为了避免提交给大模型的prompt文案太多，这里只需要大模型解析 requeird 为true，且dftVal为空的
-//            if (validator == Validator.require) {
-//                return true;
-//            }
-//        }
+        //        if (val.extraProp.getDftVal() != null) {
+        //            return false;
+        //        }
+        //        for (Validator validator : val.getValidator()) {
+        //            // 为了避免提交给大模型的prompt文案太多，这里只需要大模型解析 requeird 为true，且dftVal为空的
+        //            if (validator == Validator.require) {
+        //                return true;
+        //            }
+        //        }
         return true;
     }
 

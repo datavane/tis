@@ -152,6 +152,8 @@ public interface SSERunnable extends Runnable, IJobFeedback {
         AI_AGNET_SELECTION_REQUEST("ai_agent_selection_request"),
         AI_AGNET_DONE("ai_agent_done");
 
+        public static final String KEY_ENVENT_TYPE = "eventType";
+
         private final String eventType;
 
         private SSEEventType(String type) {

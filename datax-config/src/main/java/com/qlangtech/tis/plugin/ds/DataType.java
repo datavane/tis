@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.ds;
 
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson2.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.crypto.Data;
@@ -35,6 +36,11 @@ import java.util.regex.Pattern;
 public class DataType implements Serializable, Cloneable {
 
     public static final String KEY_UNSIGNED = "UNSIGNED";
+
+    public static final String KEY_TYPE_NAME = "typeName";
+    public static final String KEY_COLUMN_SIZE = "columnSize";
+    public static final String KEY_FIELD_UNSIGNED = "unsigned";
+    public static final String KEY_DECUNAK_DIGITS = "decimalDigits";
 
     public static DataType createVarChar(int size) {
         if (size < 1) {
@@ -349,32 +355,47 @@ public class DataType implements Serializable, Cloneable {
         return this.columnSize;
     }
 
+    public JSONObject convert2JsonDesc() {
+        JSONObject desc = new JSONObject();
+        desc.put(KEY_TYPE_NAME, this.typeName);
+        if (this.columnSize > 0) {
+            desc.put(KEY_COLUMN_SIZE, this.columnSize);
+        }
+        if (this.isUnsigned()) {
+            desc.put(KEY_FIELD_UNSIGNED, true);
+        }
+        if (this.getDecimalDigits() > 0) {
+            desc.put(KEY_DECUNAK_DIGITS, this.getDecimalDigits());
+        }
+        return desc;
+    }
+
     public interface TypeVisitor<T> {
         T intType(DataType type);
-//         {
-//            return bigInt(type);
-//        }
+        //         {
+        //            return bigInt(type);
+        //        }
 
         T bigInt(DataType type);
 
         T floatType(DataType type);
-//        {
-//            return doubleType(type);
-//        }
+        //        {
+        //            return doubleType(type);
+        //        }
 
         T doubleType(DataType type);
 
         T decimalType(DataType type);
-//         {
-//            return doubleType(type);
-//        }
+        //         {
+        //            return doubleType(type);
+        //        }
 
         T dateType(DataType type);
 
         T timeType(DataType type);
-//         {
-//            return timestampType(type);
-//        }
+        //         {
+        //            return timestampType(type);
+        //        }
 
         T timestampType(DataType type);
 
@@ -385,19 +406,19 @@ public class DataType implements Serializable, Cloneable {
         T varcharType(DataType type);
 
         T tinyIntType(DataType dataType);
-//         {
-//            return intType(dataType);
-//        }
+        //         {
+        //            return intType(dataType);
+        //        }
 
         T smallIntType(DataType dataType);
-//         {
-//            return intType(dataType);
-//        }
+        //         {
+        //            return intType(dataType);
+        //        }
 
         T boolType(DataType dataType);
-//         {
-//            return bitType(dataType);
-//        }
+        //         {
+        //            return bitType(dataType);
+        //        }
     }
 
     /**

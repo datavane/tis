@@ -20,6 +20,7 @@ package com.qlangtech.tis.manage;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
+import com.qlangtech.tis.mcp.TISHttpMcpServer;
 import com.qlangtech.tis.util.HeteroEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,11 +33,6 @@ import jakarta.servlet.ServletContextListener;
 /**
  * TIS Console 初始化监听器
  * 负责 TIS 系统启动和关闭时的初始化工作
- * <p>
- * 核心职责：
- * 1. 设置 CenterResource 配置
- * 2. 初始化 TIS Actor System（DAG 任务调度系统）
- * 3. 优雅关闭 Actor System
  *
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-05-23 09:49
@@ -45,14 +41,9 @@ public class ConsoleInitilizeListener implements ServletContextListener {
 
   private static final Logger logger = LoggerFactory.getLogger(ConsoleInitilizeListener.class);
 
-  /**
-   * TIS Actor System 实例
-   */
-  //private TISActorSystem tisActorSystem;
   @Override
   public void contextInitialized(ServletContextEvent sce) {
     logger.info("TIS Console initializing...");
-
 
 
     // 1. 设置 CenterResource 配置
@@ -70,7 +61,15 @@ public class ConsoleInitilizeListener implements ServletContextListener {
       return com.qlangtech.tis.util.PluginItems.getExistDbs(desc.getDisplayName());
     });
 
-    // 3. 初始化 TIS Actor System
+    // 3. 初始化 MCP Server
+    TISHttpMcpServer.McpProviderResult mcpResult = TISHttpMcpServer.getMcpProvider();
+
+    jakarta.servlet.ServletRegistration.Dynamic mcpServlet =
+      sce.getServletContext().addServlet("tis-mcp", mcpResult.getServletProvider());
+    mcpServlet.setAsyncSupported(true);
+    mcpServlet.addMapping("/mcp/*");
+
+    // 4. 初始化 TIS Actor System
     try {
       // initializeTISActorSystem(sce);
     } catch (Exception e) {

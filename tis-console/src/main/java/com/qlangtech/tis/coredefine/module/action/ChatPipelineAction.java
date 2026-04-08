@@ -20,6 +20,7 @@ package com.qlangtech.tis.coredefine.module.action;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.aiagent.core.AgentContext;
 import com.qlangtech.tis.aiagent.core.PluginPropsComplement;
@@ -42,6 +43,7 @@ import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.common.UserProfile;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.spring.aop.Func;
+import com.qlangtech.tis.mcp.SessionKey;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.util.AttrValMap;
@@ -55,12 +57,14 @@ import org.slf4j.LoggerFactory;
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -80,10 +84,14 @@ public class ChatPipelineAction extends BasicModule {
 
   // 常量定义
   private static final String KEY_SESSION_ID = "sessionId";
+  public static final String KEY_SUBMIT_SELECTION = "selectedIndex";
 
   // 会话管理
   private static final ConcurrentHashMap<String, ChatSession> sessions = new ConcurrentHashMap<>();
-
+  public static ChatSession getChatSession(String sessionId) {
+    ChatSession session = sessions.computeIfAbsent(sessionId, ChatSession::new);
+    return session;
+  }
   // 异步执行线程池
   private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -254,7 +262,7 @@ public class ChatPipelineAction extends BasicModule {
       sessionId = UUID.randomUUID().toString();
     }
 
-    ChatSession session = sessions.computeIfAbsent(sessionId, ChatSession::new);
+    ChatSession session = getChatSession(sessionId);
     session.addMessage("user", userInput);
 
     // 获取原始的Servlet请求和响应对象
@@ -325,6 +333,8 @@ public class ChatPipelineAction extends BasicModule {
 
     // 主线程直接返回，不会关闭连接
   }
+
+
 
   /**
    * 用户响应输入（响应Agent的输入请求）
@@ -481,7 +491,7 @@ public class ChatPipelineAction extends BasicModule {
 
     String sessionId = jsonContent.getString(KEY_SESSION_ID);
     RequestKey requestId = RequestKey.create(jsonContent.getString(KEY_REQUEST_ID));
-    Integer selectedIndex = jsonContent.getInteger("selectedIndex");
+    Integer selectedIndex = jsonContent.getInteger(KEY_SUBMIT_SELECTION);
 
     if (sessionId == null || requestId == null || selectedIndex == null) {
       //this.addErrorMessage(context, "参数不完整");
@@ -524,12 +534,14 @@ public class ChatPipelineAction extends BasicModule {
   /**
    * 聊天会话
    */
-  private static class ChatSession {
+  public static class ChatSession {
     private final String sessionId;
     private final java.util.List<ChatMessage> messages;
     private final java.util.Map<String, String> userResponses;
     private final long createTime;
     private AgentContext agentContext;
+
+    private ConcurrentMap<SessionKey<?>, Object> sessionData = Maps.newConcurrentMap();
 
     public ChatSession(String sessionId) {
       this.sessionId = sessionId;
@@ -564,6 +576,14 @@ public class ChatPipelineAction extends BasicModule {
 
     public void setAgentContext(AgentContext agentContext) {
       this.agentContext = agentContext;
+    }
+
+    public <VAL_TYPE> VAL_TYPE get(SessionKey<VAL_TYPE> sessionKey) {
+      return (VAL_TYPE) sessionData.get(sessionKey);
+    }
+
+    public <T> void put(SessionKey<T> key, T val) {
+      sessionData.put(Objects.requireNonNull(key, "key can not be null"), Objects.requireNonNull(val));
     }
   }
 

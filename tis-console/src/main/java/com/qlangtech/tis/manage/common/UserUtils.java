@@ -31,6 +31,9 @@ import org.apache.struts2.dispatcher.StrutsRequestWrapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Objects;
 
 /**
@@ -40,6 +43,7 @@ import java.util.Objects;
 public class UserUtils {
 
   public static final String USER_TOKEN = "user_token";
+  private static final Logger log = LoggerFactory.getLogger(UserUtils.class);
 
 
   public static final IAppsFetcher getAppsFetcher(HttpServletRequest request, RunContext runContext) {
@@ -49,10 +53,15 @@ public class UserUtils {
   public static final String USER_TOKEN_SESSION = UserUtils.class.getName() + "user";
 
   public static String currentLoginUserName() {
-    RunContext runContext = BasicServlet.getBeanByType( RunContext.class);
-    final IUser user = UserUtils.getUser(
-      ServletActionContext.getRequest(), Objects.requireNonNull(runContext, "runContext can not be null"));
-    return user.getName();
+    try {
+      RunContext runContext = BasicServlet.getBeanByType(RunContext.class);
+      final IUser user = UserUtils.getUser(
+        ServletActionContext.getRequest(), Objects.requireNonNull(runContext, "runContext can not be null"));
+      return user.getName();
+    } catch (Exception e) {
+      log.warn(e.getMessage());
+      return StringUtils.EMPTY;
+    }
   }
 
   public static final IUser getUser(final HttpServletRequest r, RunContext runContext) {
@@ -63,7 +72,8 @@ public class UserUtils {
       // return NOT_LOGIN_USER;
       return result;
     }
-    final TISHttpServletRequestWrapper request = (TISHttpServletRequestWrapper) (((StrutsRequestWrapper) r).getRequest());
+    final TISHttpServletRequestWrapper request =
+      (TISHttpServletRequestWrapper) (((StrutsRequestWrapper) r).getRequest());
     HttpSession session = request.getSession();
     try {
       if ((result = getUserFromCache(request)) == null) {

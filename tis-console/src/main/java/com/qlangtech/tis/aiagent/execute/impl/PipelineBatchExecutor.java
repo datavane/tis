@@ -21,6 +21,7 @@ package com.qlangtech.tis.aiagent.execute.impl;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.aiagent.core.AgentContext;
+import com.qlangtech.tis.aiagent.core.PendingClarificationException;
 import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.lang.PayloadLink;
 import com.qlangtech.tis.aiagent.core.RequestKey;
@@ -72,13 +73,18 @@ public class PipelineBatchExecutor implements StepExecutor {
 
       final String prompt = "请选择是否立即触发全量历史数据同步？";
       context.requestUserSelection(requestId, prompt, Optional.empty(), opts);
+      SelectionOptions selectedIndex = null;
 
-      /************************************************************************
-       * 等待客户端发送的选择信息
-       ************************************************************************/
-      SelectionOptions selectedIndex = context.waitForUserPost(requestId, (selOpts) -> {
-        return (selOpts != null && selOpts.hasSelectedOpt());
-      });
+      try {
+        /************************************************************************
+         * 等待客户端发送的选择信息
+         ************************************************************************/
+        selectedIndex = context.waitForUserPost(requestId, (selOpts) -> {
+          return (selOpts != null && selOpts.hasSelectedOpt());
+        });
+      } catch (PendingClarificationException e) {
+        throw new RuntimeException(e);
+      }
       executeBatch = (selectedIndex.getSelectedIndex() == 0);
     }
 

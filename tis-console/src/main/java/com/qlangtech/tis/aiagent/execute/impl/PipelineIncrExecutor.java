@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.aiagent.core.AgentContext;
+import com.qlangtech.tis.aiagent.core.PendingClarificationException;
 import com.qlangtech.tis.aiagent.core.RequestKey;
 import com.qlangtech.tis.aiagent.core.SelectionOptions;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
@@ -66,7 +67,7 @@ public class PipelineIncrExecutor extends BasicStepExecutor {
     TaskPlan.SourceDataEndCfg sourceEnd = plan.getSourceEnd();
     TaskPlan.DataEndCfg targetEnd = plan.getTargetEnd();
     IAppSource processor = sourceEnd.getProcessor();
-    DataXName pipelineName =sourceEnd.getDataXName();
+    DataXName pipelineName = sourceEnd.getDataXName();
     if (!Objects.requireNonNull(sourceEnd.getEndTypeMeta(), "sourceEnd:" + sourceEnd.getType() + " relevant "
       + "EndTypeMeta can not be null").isSupportIncr()) {
       context.sendMessage("源端‘" + sourceEnd.getType() + "’ 类型不支持增量实时数据同步，因此跳过该步骤");
@@ -87,13 +88,18 @@ public class PipelineIncrExecutor extends BasicStepExecutor {
 
       final String prompt = "请选择是否开启增量实时同步通道执行？";
       context.requestUserSelection(requestId, prompt, Optional.empty(), opts);
+      SelectionOptions selectedIndex = null;
 
-      /************************************************************************
-       * 等待客户端发送的选择信息
-       ************************************************************************/
-      SelectionOptions selectedIndex = context.waitForUserPost(requestId, (selOpts) -> {
-        return (selOpts != null && selOpts.hasSelectedOpt());
-      });
+      try {
+        /************************************************************************
+         * 等待客户端发送的选择信息
+         ************************************************************************/
+        selectedIndex = context.waitForUserPost(requestId, (selOpts) -> {
+          return (selOpts != null && selOpts.hasSelectedOpt());
+        });
+      } catch (PendingClarificationException e) {
+        throw new RuntimeException(e);
+      }
       executeIncr = (selectedIndex.getSelectedIndex() == 0);
     }
 

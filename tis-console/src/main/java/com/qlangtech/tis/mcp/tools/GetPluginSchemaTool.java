@@ -29,6 +29,7 @@ import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.model.UpdateCenter;
 import com.qlangtech.tis.extension.model.UpdateSite;
+import com.qlangtech.tis.mcp.McpAgentContext;
 import com.qlangtech.tis.mcp.McpTool;
 import com.qlangtech.tis.mcp.TISHttpMcpServer;
 import com.qlangtech.tis.util.DescriptorsJSONForAIPrompt;
@@ -64,18 +65,19 @@ public class GetPluginSchemaTool extends McpTool {
 
   @Override
   protected TISJsonSchema getInputSchema(TISJsonSchema.Builder builder) {
-//    TISJsonSchema.Builder builder //
-//      = TISJsonSchema.Builder.create(this.toolName + "_input_schema", Optional.empty());
+    //    TISJsonSchema.Builder builder //
+    //      = TISJsonSchema.Builder.create(this.toolName + "_input_schema", Optional.empty());
     builder.addProperty(PLUGIN_EXTENSION_IMPL, TISJsonSchema.FieldType.String, "TIS插件的具体实现类");
-//    builder.addProperty(DescriptorsJSON.KEY_EXTEND_POINT, TISJsonSchema.FieldType.String,
-//      "插件扩展点，使用tool " + ListPluginTypesTool.TOOL_NAME + " 输出key:" + KEY_AVAILABLE_PLUGINS + "." + DescriptorsJSON.KEY_EXTEND_POINT + "对应的值");
+    //    builder.addProperty(DescriptorsJSON.KEY_EXTEND_POINT, TISJsonSchema.FieldType.String,
+    //      "插件扩展点，使用tool " + ListPluginTypesTool.TOOL_NAME + " 输出key:" + KEY_AVAILABLE_PLUGINS + "." +
+    //      DescriptorsJSON.KEY_EXTEND_POINT + "对应的值");
     return builder.build();
   }
 
   @Override
   protected TISJsonSchema getOutputStream(TISJsonSchema.Builder builder) {
-//    TISJsonSchema.Builder builder
-//      = TISJsonSchema.Builder.create(this.toolName + "_output_schema", Optional.empty());
+    //    TISJsonSchema.Builder builder
+    //      = TISJsonSchema.Builder.create(this.toolName + "_output_schema", Optional.empty());
     builder.addObjectProperty(KEY_OUT_PLUGIN_SCHEMA, TISJsonSchema.Builder::enableAdditionalProps);
 
     return builder.build();
@@ -83,7 +85,8 @@ public class GetPluginSchemaTool extends McpTool {
 
   @SuppressWarnings("all")
   @Override
-  public ExecuteResult execHandle(McpSyncServerExchange exchange, RequestArguments arguments) throws Exception {
+  public ExecuteResult execHandle(McpAgentContext agentContext, McpSyncServerExchange exchange,
+                                  RequestArguments arguments) throws Exception {
 
     String impl = arguments.get(PLUGIN_EXTENSION_IMPL);
 
@@ -103,7 +106,7 @@ public class GetPluginSchemaTool extends McpTool {
       if (pluginWillInstalls.isEmpty()) {
         throw new IllegalStateException(impl + " relevant pluginWillInstalls can not be empty");
       }
-      AgentContext agentContext = createAgentContext(exchange);
+      //  AgentContext agentContext = createAgentContext(exchange);
       // exchange.progressNotification();
       BasicStepExecutor.installPlugin(agentContext, pluginWillInstalls, updateCenter, exchange);
       descriptor = TIS.get().getDescriptor(impl);
@@ -114,10 +117,10 @@ public class GetPluginSchemaTool extends McpTool {
     DescribableImpl pluginImpl = new DescribableImpl(descriptor.clazz, Optional.empty());
     pluginImpl.addImpl(impl);
     Pair<DescriptorsMeta, DescriptorsJSONForAIPrompt> desc = DescriptorsJSONForAIPrompt.desc(pluginImpl);
-    for (Map.Entry<String, TISJsonSchema> entry
+    for (Map.Entry<String, Pair<TISJsonSchema, Descriptor>> entry
       : ((DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) desc.getKey()).descSchemaRegister.entrySet()) {
-
-      return ExecuteResult.createSuccess(Map.of(KEY_OUT_PLUGIN_SCHEMA, entry.getValue().schema()));
+      TISJsonSchema pluginImplSchema = entry.getValue().getKey();
+      return ExecuteResult.createSuccess(Map.of(KEY_OUT_PLUGIN_SCHEMA,pluginImplSchema.schema()));
     }
     throw new IllegalStateException("can not find jsonSchema for:" + String.join(",", pluginImpl.getImpls()));
 

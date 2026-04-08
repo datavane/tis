@@ -74,15 +74,16 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
     }
 
     public void testConstructorWithMySQL8() {
-        String pluginId = "com.qlangtech.tis.plugin.ds.mysql.MySQLV8DataSourceFactory";
+       // String pluginId = "com.qlangtech.tis.plugin.ds.mysql.MySQLV8DataSourceFactory";
         //String pluginId = "com.qlangtech.tis.plugin.datax.DataxMySQLWriter";
+        String pluginId = "com.qlangtech.tis.plugin.datax.DataxMySQLReader";
         Descriptor descriptor = TIS.get().getDescriptor(pluginId);
         DescriptorsJSONForAIPrompt descriptorsJSON =
                 new DescriptorsJSONForAIPrompt<>(Collections.singletonList(descriptor), true);
 
         DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta result =
                 (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) descriptorsJSON.getDescriptorsJSON();
-        TISJsonSchema jsonSchema = result.descSchemaRegister.get(pluginId);
+        TISJsonSchema jsonSchema = result.descSchemaRegister.get(pluginId).getKey();
         //
         StringBuilder prompt = new StringBuilder();
         jsonSchema.appendFieldDescToPrompt(prompt);
@@ -157,7 +158,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
         String serializeJson = JsonUtil.toString(result, true);
         System.out.println(serializeJson);
 
-        TISJsonSchema pluginMetaSchema = result.descSchemaRegister.get(descriptorId);
+        TISJsonSchema pluginMetaSchema = result.descSchemaRegister.get(descriptorId).getKey();
         assertNotNull("descriptorId:" + descriptorId + " relevant pluginMetaSchema can not be null", pluginMetaSchema);
         List<Option> fieldsDesc = pluginMetaSchema.getFieldsDesc();
         assertFalse(fieldsDesc.isEmpty());
@@ -396,10 +397,10 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
                 (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) desc.getKey();
 
         StringBuilder schema = new StringBuilder();
-        for (Map.Entry<String, TISJsonSchema> entry : meta.descSchemaRegister.entrySet()) {
-            entry.getValue().appendFieldDescToPrompt(schema);
+        for (Map.Entry<String, Pair<TISJsonSchema, Descriptor>> entry : meta.descSchemaRegister.entrySet()) {
+            entry.getValue().getKey().appendFieldDescToPrompt(schema);
 
-            System.out.println(JsonUtil.toString(entry.getValue().root(), true));
+            System.out.println(JsonUtil.toString(entry.getValue().getKey().root(), true));
             break;
         }
         System.out.println(schema);

@@ -21,6 +21,7 @@ package com.qlangtech.tis.aiagent.execute.impl;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.core.AgentContext;
+import com.qlangtech.tis.aiagent.core.PendingClarificationException;
 import com.qlangtech.tis.aiagent.core.RequestKey;
 import com.qlangtech.tis.aiagent.plan.TaskPlan;
 import com.qlangtech.tis.aiagent.plan.TaskStep;
@@ -57,7 +58,11 @@ public class PluginInstanceCreateExecutor4Test extends BasicStepExecutor {
 
       context.sendOpenColsMetaSetter(requestKey, primaryFieldVal, AjaxValve.ActionExecResult.create(ctx), colsMetaViewBiz);
 
-      ColsMetaSetterSessionData colsMeta = context.waitForUserPost(requestKey, ColsMetaSetterSessionData::isHasValidSet);
+      try {
+        ColsMetaSetterSessionData colsMeta = context.waitForUserPost(requestKey, ColsMetaSetterSessionData::isHasValidSet);
+      } catch (PendingClarificationException e) {
+        throw new RuntimeException(e);
+      }
     }
 
     return false;

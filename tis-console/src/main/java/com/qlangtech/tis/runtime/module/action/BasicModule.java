@@ -130,6 +130,7 @@ import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -382,12 +383,17 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   @Override
   public BasicPipelineValidator getPipelineValidator(BizLogic logicType) {
+    return createPipelineValidator(logicType, this.getApplicationDAO(), this.wfDAOFacade);
+  }
+
+  public static BasicPipelineValidator createPipelineValidator(BizLogic logicType, IApplicationDAO applicationDAO,
+                                                               IWorkflowDAOFacade workflowDAOFacade) {
     switch (logicType) {
       case VALIDATE_APP_NAME_DUPLICATE:
-        AppNameDuplicateValidator nameDuplicateValidator = new AppNameDuplicateValidator(this.getApplicationDAO());
+        AppNameDuplicateValidator nameDuplicateValidator = new AppNameDuplicateValidator(applicationDAO);
         return nameDuplicateValidator;
       case VALIDATE_WORKFLOW_NAME_DUPLICATE:
-        DataFlowDuplicateValidator wfValidator = new DataFlowDuplicateValidator(this.wfDAOFacade.getWorkFlowDAO());
+        DataFlowDuplicateValidator wfValidator = new DataFlowDuplicateValidator(workflowDAOFacade.getWorkFlowDAO());
         return wfValidator;
       default:
         throw new IllegalStateException("illegal logicType:" + logicType);
@@ -590,11 +596,11 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
     SchemaAction.CreateAppResult createAppResult = this.createNewApp(context, app, dataxProcessor, false,
       (newAppId) -> {
-      SchemaAction.CreateAppResult appResult = new SchemaAction.CreateAppResult();
-      appResult.setSuccess(true);
-      appResult.setNewAppId(newAppId);
-      return appResult;
-    });
+        SchemaAction.CreateAppResult appResult = new SchemaAction.CreateAppResult();
+        appResult.setSuccess(true);
+        appResult.setNewAppId(newAppId);
+        return appResult;
+      });
   }
 
 
@@ -705,9 +711,9 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     app.setIsAutoDeploy(true);
     if (!justValidate) {
       result = AddAppAction.createApplication(app, context, this, afterAppCreate);
-//      DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
-//        submit.createJob(this, context, dataxProcessor);
-//      });
+      //      DataXJobSubmit.getPowerJobSubmit().ifPresent((submit) -> {
+      //        submit.createJob(this, context, dataxProcessor);
+      //      });
 
       addActionMessage(context, "已经成功创建实例[" + app.getProjectName() + "]");
     }

@@ -76,3 +76,4 @@ mvn clean deploy -Dmaven.test.skip=true -Dautoconfig.skip -pl tis-plugin,maven-t
 - Web UI项目: https://github.com/qlangtech/ng-tis
 - 本项目的所有前端项目代码在`/Users/mozhenghua/j2ee_solution/project/tis-console`目录下
 - 本项目是Core内核层，构建了TIS的抽象层，负责TIS所有插件的生命周期管理，大部分插件实现在`/Users/mozhenghua/j2ee_solution/project/plugins`这个路径所对应的项目中
+- modelcontextprotocol相关的原代码已经克隆到本地，路径为：/opt/misc/java-sdk 

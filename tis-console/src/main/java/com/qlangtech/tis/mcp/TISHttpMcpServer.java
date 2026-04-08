@@ -33,6 +33,7 @@ import com.qlangtech.tis.aiagent.core.RequestKey;
 import com.qlangtech.tis.aiagent.llm.FlatJsonToTisConverter;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
+import com.qlangtech.tis.coredefine.module.action.ChatPipelineAction;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.extension.Descriptor;
@@ -41,12 +42,23 @@ import com.qlangtech.tis.manage.common.IAjaxResult;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
-import com.qlangtech.tis.mcp.tools.pipeline.CreatePipelinePrepareTool;
+import com.qlangtech.tis.mcp.tools.ClarificationSubmitTool;
 import com.qlangtech.tis.mcp.tools.CreatePluginInstanceTool;
+import com.qlangtech.tis.mcp.tools.GetIncrSyncStatusTool;
+import com.qlangtech.tis.mcp.tools.GetPipelineDetailTool;
+import com.qlangtech.tis.mcp.tools.GetPipelineExecHistoryTool;
 import com.qlangtech.tis.mcp.tools.GetPluginSchemaTool;
+import com.qlangtech.tis.mcp.tools.GetTableColumnsTool;
+import com.qlangtech.tis.mcp.tools.GetTaskLogTool;
+import com.qlangtech.tis.mcp.tools.ListDatasourcesTool;
 import com.qlangtech.tis.mcp.tools.ListPluginTypesTool;
-import com.qlangtech.tis.mcp.tools.RequireUserAddressTool;
-import com.qlangtech.tis.mcp.tools.RequireUserAddressElicitationTool;
+import com.qlangtech.tis.mcp.tools.ListTablesTool;
+import com.qlangtech.tis.mcp.tools.PipelineGetTaskStatusTool;
+import com.qlangtech.tis.mcp.tools.PipelineListTool;
+import com.qlangtech.tis.mcp.tools.PipelineStartIncrSyncTool;
+import com.qlangtech.tis.mcp.tools.PipelineTriggerBatchTool;
+import com.qlangtech.tis.mcp.tools.pipeline.CreatePipelineCommitTool;
+import com.qlangtech.tis.mcp.tools.pipeline.CreatePipelinePrepareTool;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -74,7 +86,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -82,8 +93,9 @@ import java.util.stream.Collectors;
 import static com.qlangtech.tis.aiagent.execute.impl.BasicStepExecutor.createPluginContext;
 
 /**
+ * TIS MCP Server 核心类，管理 MCP 工具注册和会话缓存。
  *
- * <a href="design/jsonschema-flatten-design.md" >design/jsonschema-flatten-design.md</>
+ * <a href="design/jsonschema-flatten-design.md" >design/jsonschema-flatten-design.md</a>
  */
 public class TISHttpMcpServer {
   private static final Logger logger = LoggerFactory.getLogger(TISHttpMcpServer.class);
@@ -92,17 +104,18 @@ public class TISHttpMcpServer {
    * MCP session cache: keyed by sessionId, stores per-session attributes (e.g., pipeline process instance)
    * so that subsequent tool calls within the same session can retrieve previously cached data.
    */
-  private final Map<String, McpSession> mcpSessionCache = new ConcurrentHashMap<>();
+  // private final Map<String, McpSession> mcpSessionCache = new ConcurrentHashMap<>();
 
   /**
    * Get or create the session attribute map for the given sessionId.
    *
-   * @param exchange the MCP session ID from {@code exchange.sessionId()}
-   * @return a thread-safe map for storing session-scoped data
+   * @param exchange the MCP exchange from which to extract sessionId
+   * @return a thread-safe McpSession for storing session-scoped data
    */
-  public McpSession getSession(McpSyncServerExchange exchange) {
+  public ChatPipelineAction.ChatSession getSession(McpSyncServerExchange exchange) {
     String sessionId = exchange.sessionId();
-    return mcpSessionCache.computeIfAbsent(sessionId, k -> new McpSession());
+    return ChatPipelineAction.getChatSession(sessionId);
+   // return mcpSessionCache.computeIfAbsent(sessionId, k -> new McpSession());
   }
 
   @Autowired
@@ -121,24 +134,63 @@ public class TISHttpMcpServer {
     return offlineManager;
   }
 
+  /**
+   * 创建 MCP provider 的返回结果
+   */
+  public static class McpProviderResult {
+    private final HttpServletStreamableServerTransportProvider servletProvider;
 
-  public static HttpServletStreamableServerTransportProvider getMcpProvider() {
-    HttpServletStreamableServerTransportProvider transportProvider =
+    public McpProviderResult(HttpServletStreamableServerTransportProvider servletProvider) {
+      this.servletProvider = servletProvider;
+    }
+
+    /**
+     * 获取用于注册到 Servlet 容器的 transport provider
+     */
+    public HttpServletStreamableServerTransportProvider getServletProvider() {
+      return servletProvider;
+    }
+  }
+
+  /**
+   * 创建 MCP provider 并初始化工具注册。
+   *
+   * @return 包含 servlet provider 的结果对象
+   */
+  public static McpProviderResult getMcpProvider() {
+    HttpServletStreamableServerTransportProvider servletProvider =
       HttpServletStreamableServerTransportProvider.builder().mcpEndpoint("/mcp").build();
     TISHttpMcpServer mcpServer = new TISHttpMcpServer();
 
-    McpTool[] tools = new McpTool[]{//new DataSourceCreateTool(mcpServer),
-      new ListPluginTypesTool(mcpServer),
-      new CreatePluginInstanceTool(mcpServer) //
-      , new GetPluginSchemaTool(mcpServer) //
-      , new CreatePipelinePrepareTool(mcpServer)
-      , new RequireUserAddressTool(mcpServer)
-      , new RequireUserAddressElicitationTool(mcpServer)};
+    McpTool[] tools = new McpTool[]{
+      // Layer 1: Query & Browse
+      new ListDatasourcesTool(mcpServer)
+      , new ListTablesTool(mcpServer)
+      , new GetTableColumnsTool(mcpServer)
+      , new PipelineListTool(mcpServer)
+      , new GetPipelineDetailTool(mcpServer)
+     // , new GetDataLineageTool(mcpServer)
+      // Layer 2: Diagnostics & Monitoring
+      , new PipelineGetTaskStatusTool(mcpServer)
+      , new GetPipelineExecHistoryTool(mcpServer)
+      , new GetTaskLogTool(mcpServer)
+      , new GetIncrSyncStatusTool(mcpServer)
+      // Layer 3: Operations
+      , new PipelineTriggerBatchTool(mcpServer)
+      , new PipelineStartIncrSyncTool(mcpServer)
+      // Plugin management
+//      , new ListPluginTypesTool(mcpServer)
+//      , new GetPluginSchemaTool(mcpServer)
+//      , new CreatePluginInstanceTool(mcpServer)
+//      , new CreatePipelinePrepareTool(mcpServer)
+//      , new CreatePipelineCommitTool(mcpServer)
+//      , new ClarificationSubmitTool(mcpServer)
+    };
 
-    McpSyncServer server = McpServer.sync(transportProvider).serverInfo("tis-mcp-server", "1.0.0") //
+    McpSyncServer server = McpServer.sync(servletProvider).serverInfo("tis-mcp-server", "1.0.0") //
       .prompts().tools(Arrays.stream(tools).map(McpTool::createToolSpec).toList()).build();
 
-    return transportProvider;
+    return new McpProviderResult(servletProvider);
   }
 
   public static AttrValMap parseAttrValMap(McpTool.RequestArguments request) {
@@ -154,8 +206,8 @@ public class TISHttpMcpServer {
     return (exchange, request) -> {
       try {
 
-        PluginStepExecutor pluginStepExecutor =
-          new PluginStepExecutor(parseAttrValMap(new McpTool.RequestArguments(request.arguments())));
+        MCPPluginStepExecutor pluginStepExecutor =
+          new MCPPluginStepExecutor(parseAttrValMap(new McpTool.RequestArguments(request.arguments())));
 
         MCPTaskPlan taskPlan = new MCPTaskPlan(this);
         Context runtimeContext = taskPlan.getRuntimeContext(true);

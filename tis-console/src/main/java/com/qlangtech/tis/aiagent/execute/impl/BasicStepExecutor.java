@@ -28,6 +28,7 @@ import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.aiagent.core.AgentContext;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
+import com.qlangtech.tis.aiagent.core.PendingClarificationException;
 import com.qlangtech.tis.aiagent.core.PluginPropsComplement;
 import com.qlangtech.tis.aiagent.core.RequestKey;
 import com.qlangtech.tis.aiagent.core.SelectionOptions;
@@ -155,7 +156,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
       (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) desc.getLeft();
 
 
-    for (Map.Entry<String, TISJsonSchema> entry : descriptorsMeta.descSchemaRegister.entrySet()) {
+    for (Map.Entry<String, Pair<TISJsonSchema, Descriptor>> entry : descriptorsMeta.descSchemaRegister.entrySet()) {
       // 需要遍历他的所有属性如果有需要创建的属性插件需要先创建
       AttrValMap attrValMap = getPluginPostAttrValMap(context, userInput, endType, entry, llmProvider);
 
@@ -191,9 +192,9 @@ public abstract class BasicStepExecutor implements StepExecutor {
   }
 
   protected AttrValMap getPluginPostAttrValMap(AgentContext context, UserPrompt userInput //
-    , Optional<IEndTypeGetter.EndType> endType, Map.Entry<String, TISJsonSchema> entry, LLMProvider llmProvider) {
+    , Optional<IEndTypeGetter.EndType> endType, Map.Entry<String, Pair<TISJsonSchema, Descriptor>> entry, LLMProvider llmProvider) {
     JSONObject pluginPostBody = extractUserInput2Json(context, userInput, endType,
-      Objects.requireNonNull(entry.getValue()), llmProvider);
+      Objects.requireNonNull(entry.getValue().getKey()), llmProvider);
 
     AttrValMap attrValMap = AttrValMap.parseDescribableMap(Optional.empty(), pluginPostBody);
     return attrValMap;
@@ -318,7 +319,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
    * @return
    * @throws Exception
    */
-  private Map<String, IdentityName> setPropsImplRefsVals(IAITaskPlan plan, AgentContext context, UserPrompt userInput
+  protected Map<String, IdentityName> setPropsImplRefsVals(IAITaskPlan plan, AgentContext context, UserPrompt userInput
     , Optional<IEndTypeGetter.EndType> endType, Descriptor implDesc) throws Exception {
     Map<String, IdentityName> propsImplRefsVals = Maps.newHashMap();
     Map<String, PluginExtraProps.FieldRefCreateor> propsImplRefs = implDesc.getPropsImplRefs();
@@ -513,7 +514,8 @@ public abstract class BasicStepExecutor implements StepExecutor {
    */
   private PluginExtraProps.CandidatePlugin selectTargetPluginDescriptor(AgentContext context, Map.Entry<String,
                                                                           PluginExtraProps.FieldRefCreateor> e //
-    , Optional<IEndTypeGetter.EndType> endType, List<PluginExtraProps.CandidatePlugin> candidatePlugins) {
+    , Optional<IEndTypeGetter.EndType> endType, List<PluginExtraProps.CandidatePlugin> candidatePlugins)
+    throws PendingClarificationException {
 
     /**
      * 1. 需要用户去确认使用哪种插件类型
@@ -521,7 +523,8 @@ public abstract class BasicStepExecutor implements StepExecutor {
      */
     PluginExtraProps.CandidatePlugin tagetPlugin = selectPlugin(context, e.getKey(), endType, candidatePlugins);
 
-    Descriptor installedPluginDescriptor = tagetPlugin.getInstalledPluginDescriptor();
+    Descriptor installedPluginDescriptor = Objects.requireNonNull(tagetPlugin, "tagetPlugin can not be null")
+      .getInstalledPluginDescriptor();
     if (installedPluginDescriptor == null) {
       // 开始需要安装插件
       throw new IllegalStateException(tagetPlugin.getDisplayName() + " plugin must have been installed");
@@ -539,7 +542,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
    */
   private PluginExtraProps.CandidatePlugin selectPlugin(AgentContext context, String fieldName,
                                                         Optional<IEndTypeGetter.EndType> endType,
-                                                        List<PluginExtraProps.CandidatePlugin> candidatePlugins) {
+                                                        List<PluginExtraProps.CandidatePlugin> candidatePlugins) throws PendingClarificationException {
 
     if (CollectionUtils.isEmpty(candidatePlugins)) {
       throw new IllegalArgumentException("candidatePlugins can not be empty");
@@ -556,7 +559,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
     context.requestUserSelection(requestId, prompt, endType, candidatePlugins);
 
     /************************************************************************
-     * 等待客户端发送的选择信息
+     * 等待客户端提交的选择信息
      ************************************************************************/
     SelectionOptions selectedIndex = context.waitForUserPost(requestId, (selOpts) -> {
       return (selOpts != null && selOpts.hasSelectedOpt());
@@ -692,7 +695,8 @@ public abstract class BasicStepExecutor implements StepExecutor {
                         HeteroEnum hetero, IAITaskPlan plan, AgentContext context, Context ctx //
     , PartialSettedPluginContext pluginCtx, UploadPluginMeta pluginMetaMeta, AttrValMap pluginVals) throws Exception {
 
-    pluginVals = validateAttrValMap(hetero, plan, context, Optional.ofNullable(pluginCtx.getTISDataXName()), pluginVals);
+    pluginVals = validateAttrValMap(hetero, plan, context, Optional.ofNullable(pluginCtx.getTISDataXName()),
+      pluginVals);
 
 
     return savePlugin(hetero, ctx, pluginCtx, pluginMetaMeta, pluginVals);

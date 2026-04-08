@@ -116,7 +116,21 @@
       "Bash(git -C /Users/mozhenghua/j2ee_solution/project/tis-solr checkout -- tis-console/src/main/java/com/qlangtech/tis/mcp/tools/pipeline/CreatePipelinePrepareTool.java)",
       "Bash(git -C /Users/mozhenghua/j2ee_solution/project/tis-solr log --oneline -3 -- tis-console/src/main/java/com/qlangtech/tis/mcp/tools/pipeline/CreatePipelinePrepareTool.java)",
       "Bash(git -C /Users/mozhenghua/j2ee_solution/project/tis-solr status -- tis-console/src/main/java/com/qlangtech/tis/mcp/tools/pipeline/)",
-      "Bash(git -C /Users/mozhenghua/j2ee_solution/project/tis-solr show :tis-console/src/main/java/com/qlangtech/tis/mcp/tools/pipeline/CreatePipelinePrepareTool.java)"
+      "Bash(git -C /Users/mozhenghua/j2ee_solution/project/tis-solr show :tis-console/src/main/java/com/qlangtech/tis/mcp/tools/pipeline/CreatePipelinePrepareTool.java)",
+      "Bash(mvn compile test-compile -pl tis-console -Dmaven.test.skip=false -o)",
+      "mcp__ide__getDiagnostics",
+      "Bash(claude --version)",
+      "Bash(npm show @anthropic-ai/claude-code version)",
+      "Bash(gh repo view jackwener/opencli)",
+      "Bash(gh search repos \"opencli\" --owner jackwener --json name,description,url)",
+      "Bash(gh search repos \"opencli\" --json name,description,url --limit 10)",
+      "Bash(grep -ri \"openclaw\\\\|open-claw\\\\|open_claw\" /opt/misc/opencli/ --include=*.ts --include=*.js --include=*.json --include=*.md -l)",
+      "Bash(grep -ri \"openclaw\\\\|open-claw\\\\|mcp\" /opt/misc/opencli/ --include=*.md --include=*.ts --include=*.json --include=*.yaml --include=*.yml -l)",
+      "Bash(grep -ri \"mcp\\\\|model.context.protocol\" /opt/misc/opencli/ --include=*.ts --include=*.js --include=*.json --include=*.md -l)",
+      "Bash(grep -ri \"openclaw\\\\|open-claw\\\\|open_claw\" /opt/misc/opencli/ --include=*.ts --include=*.js --include=*.json --include=*.yaml --include=*.yml)",
+      "Bash(python3 -m json.tool)",
+      "Bash(grep -rn \"class.*Action\" /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-console/src/main/java/com/qlangtech/tis/coredefine/module/action/*.java)",
+      "Bash(grep -rn 'class ExecuteResult' /Users/mozhenghua/j2ee_solution/project/tis-solr/ --include=*.java)"
     ],
     "deny": [],
     "ask": []

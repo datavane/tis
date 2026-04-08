@@ -198,7 +198,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
    */
   public void doGetIncrStatus(Context context) throws Exception {
     this.getIndexWithPost();
-    this.setBizResult(context, CoreAction.getIndexIncrStatus(this, true));
+    this.setBizResult(context, CoreAction.getIndexIncrStatus(this.getTISDataXName(), true));
   }
 
 //  /**
@@ -410,7 +410,7 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
 //    }
 //    topologyDir.delete();
 
-    IPluginStore<IncrStreamFactory> store = CoreAction.getIncrStreamFactoryStore(this);
+    IPluginStore<IncrStreamFactory> store = CoreAction.getIncrStreamFactoryStore(this.getCollectionName());
     try {
       if (store.getPlugin() != null) {
         // 删除增量实例

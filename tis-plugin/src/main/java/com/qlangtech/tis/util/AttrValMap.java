@@ -161,15 +161,29 @@ public class AttrValMap {
         return val == null || StringUtils.isEmpty(String.valueOf(val));
     }
 
+    /**
+     * 包含主键属性
+     *
+     * @return
+     */
+    public boolean containPKField() {
+        return getIdField() != null;
+    }
+
     private Object getPKVal() {
 
-        PropertyType idField =
-                Objects.requireNonNull(this.descriptor, "descriptor can not be null").getIdentityField(false);
+        PropertyType idField = getIdField();
         if (idField == null) {
             return null;
         }
 
         return this.getAttrVals().getPrimaryVal(idField.propertyName());
+    }
+
+    private PropertyType getIdField() {
+        return
+                Objects.requireNonNull(this.descriptor, "descriptor can not be null")
+                        .getIdentityField(false);
     }
 
     /**

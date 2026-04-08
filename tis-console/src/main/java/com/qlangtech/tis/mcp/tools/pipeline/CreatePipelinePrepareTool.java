@@ -19,24 +19,26 @@
 package com.qlangtech.tis.mcp.tools.pipeline;
 
 import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.aiagent.core.AgentContext;
 import com.qlangtech.tis.aiagent.execute.impl.BasicStepExecutor;
 import com.qlangtech.tis.aiagent.execute.impl.IPrimaryValRewrite;
 import com.qlangtech.tis.aiagent.execute.impl.PluginInstanceCreateExecutor;
 import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
+import com.qlangtech.tis.coredefine.module.action.ChatPipelineAction;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.exec.ExecuteResult;
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.manage.common.AppAndRuntime;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
+import com.qlangtech.tis.mcp.MCPPluginStepExecutor;
 import com.qlangtech.tis.mcp.MCPTaskPlan;
-import com.qlangtech.tis.mcp.McpSession;
+import com.qlangtech.tis.mcp.McpAgentContext;
 import com.qlangtech.tis.mcp.McpTool;
-import com.qlangtech.tis.mcp.PluginStepExecutor;
+import com.qlangtech.tis.mcp.SessionKey;
 import com.qlangtech.tis.mcp.TISHttpMcpServer;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -72,14 +74,15 @@ import static com.qlangtech.tis.plugin.IdentityName.createNewPrimaryFieldValue;
  */
 public class CreatePipelinePrepareTool extends McpTool {
 
-  private static final String KEY_DEFAULT_DATAX_PROCESS_IMPL = "com.qlangtech.tis.plugin.datax.DefaultDataxProcessor";
-  private static final String KEY_SOURCE_END = "source_end";
-  private static final String KEY_TARGET_END = "target_end";
+  public static final String KEY_DEFAULT_DATAX_PROCESS_IMPL = "com.qlangtech.tis.plugin.datax.DefaultDataxProcessor";
+  public static final String KEY_SOURCE_END = "source_end";
+  public static final String KEY_TARGET_END = "target_end";
   /**
    * Session cache key for the pipeline process instance
    */
-  public static final McpSession.SessionKey<Describable> KEY_SESSION_PIPELINE_PROCESS = new McpSession.SessionKey<>( "pipeline_process");
-  private final TISJsonSchema dataXProcessorSchema;
+  public static final SessionKey<Describable<?>> KEY_SESSION_PIPELINE_PROCESS = new SessionKey<>(
+    "pipeline_process");
+  private TISJsonSchema dataXProcessorSchema;
   private static final String END_TYPES_DESC;
   private final DescribableImpl pluginImpl;
 
@@ -98,14 +101,21 @@ public class CreatePipelinePrepareTool extends McpTool {
       , mcpServer);
     this.pluginImpl = new DescribableImpl(DataxProcessor.class, Optional.empty());
     pluginImpl.addImpl(KEY_DEFAULT_DATAX_PROCESS_IMPL);
-    Pair<DescriptorsMeta, DescriptorsJSONForAIPrompt> desc = DescriptorsJSONForAIPrompt.desc(pluginImpl);
-    for (Map.Entry<String, TISJsonSchema> entry
-      : ((DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) desc.getKey()).descSchemaRegister.entrySet()) {
-      dataXProcessorSchema = entry.getValue();
-      return;
+  }
+
+  private TISJsonSchema getProcessorJsonSchema() {
+    // final TISJsonSchema dataXProcessorSchema;
+    if (this.dataXProcessorSchema == null) {
+      Pair<DescriptorsMeta, DescriptorsJSONForAIPrompt> desc = DescriptorsJSONForAIPrompt.desc(pluginImpl);
+      for (Map.Entry<String, Pair<TISJsonSchema, Descriptor>> entry
+        : ((DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) desc.getKey()).descSchemaRegister.entrySet()) {
+        dataXProcessorSchema = entry.getValue().getKey();
+        return dataXProcessorSchema;
+      }
+      throw new IllegalStateException("dataXProcessorSchema has not been initialize");
     }
 
-    throw new IllegalStateException("dataXProcessorSchema has not been initialize");
+    return dataXProcessorSchema;
   }
 
   @Override
@@ -117,7 +127,7 @@ public class CreatePipelinePrepareTool extends McpTool {
     builder.addProperty(KEY_TARGET_END, TISJsonSchema.FieldType.String, "目标端数据端类型")
       .setValEnums(dataEnds);
 
-    builder.addObjectProperty(IncrRateControllerCfgDTO.KEY_PIPELINE, dataXProcessorSchema);
+    builder.addObjectProperty(IncrRateControllerCfgDTO.KEY_PIPELINE, getProcessorJsonSchema());
 
     return builder.build();
   }
@@ -128,15 +138,15 @@ public class CreatePipelinePrepareTool extends McpTool {
   }
 
   @Override
-  public ExecuteResult execHandle(McpSyncServerExchange exchange, RequestArguments arguments) throws Exception {
+  public ExecuteResult execHandle(McpAgentContext agentContext, McpSyncServerExchange exchange, RequestArguments arguments) throws Exception {
     //exchange.createMessage()
 
     MCPTaskPlan plan = new MCPTaskPlan(this.mcpServer);
     Context context = plan.getRuntimeContext(true);
-    AgentContext agentContext = createAgentContext(exchange);
+   // AgentContext agentContext = createAgentContext(exchange);
 
-    PluginStepExecutor pluginStepExecutor =
-      new PluginStepExecutor(parseAttrValMap(new RequestArguments(arguments.get(IncrRateControllerCfgDTO.KEY_PIPELINE))));
+    MCPPluginStepExecutor pluginStepExecutor =
+      new MCPPluginStepExecutor(parseAttrValMap(new RequestArguments(arguments.get(IncrRateControllerCfgDTO.KEY_PIPELINE))));
     IEndTypeGetter.EndType sourceEnd = IEndTypeGetter.EndType.parse(arguments.get(KEY_SOURCE_END));
     IEndTypeGetter.EndType targetEnd = IEndTypeGetter.EndType.parse(arguments.get(KEY_TARGET_END));
 
@@ -188,7 +198,7 @@ public class CreatePipelinePrepareTool extends McpTool {
 
     AjaxValve.ActionExecResult successResult = AjaxValve.ActionExecResult.create(context);
     if (successResult.isSuccess()) {
-      McpSession mcpSession = mcpServer.getSession(exchange);
+      ChatPipelineAction.ChatSession mcpSession = mcpServer.getSession(exchange);
       // Save the process instance to the MCP session cache, so subsequent tools can retrieve it
       mcpSession.put(KEY_SESSION_PIPELINE_PROCESS, process);
     }

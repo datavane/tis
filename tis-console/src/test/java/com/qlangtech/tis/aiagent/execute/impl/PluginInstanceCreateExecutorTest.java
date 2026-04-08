@@ -85,11 +85,11 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     Pair<DescriptorsMeta, DescriptorsJSONForAIPrompt> desc = DescriptorsJSONForAIPrompt.desc(impl);
     LLMProvider llmProvider = TestRealTISPlanAndExecuteAgent.getLlmProvider();
     DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta descriptorsMeta =  (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) desc.getLeft();
-    for (Map.Entry<String, TISJsonSchema> entry : descriptorsMeta.descSchemaRegister.entrySet()) {
+    for (Map.Entry<String, Pair<TISJsonSchema, Descriptor>> entry : descriptorsMeta.descSchemaRegister.entrySet()) {
       // 需要遍历他的所有属性如果有需要创建的属性插件需要先创建
       JSONObject jsonObject
         = instanceCreateExecutor.extractUserInput2Json(IAgentContext.createNull(),
-        new UserPrompt("解析数据源配置", userInput), endType, Objects.requireNonNull(entry.getValue()), llmProvider);
+        new UserPrompt("解析数据源配置", userInput), endType, Objects.requireNonNull(entry.getValue().getKey()), llmProvider);
 
       Objects.requireNonNull(jsonObject,"jsonObject can not be null");
 

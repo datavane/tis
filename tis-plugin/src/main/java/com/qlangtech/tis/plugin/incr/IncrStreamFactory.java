@@ -43,6 +43,10 @@ public abstract class IncrStreamFactory implements Describable<IncrStreamFactory
     public static Function<String, IncrStreamFactory> stubStreamFactory;
 
     public static IncrStreamFactory getFactory(String indexName) {
+        return getFactory(indexName, true);
+    }
+
+    public static IncrStreamFactory getFactory(String indexName, boolean validateNull) {
         if (StringUtils.isEmpty(indexName)) {
             throw new IllegalArgumentException("indexName:" + indexName + " can not be empty");
         }
@@ -51,7 +55,7 @@ public abstract class IncrStreamFactory implements Describable<IncrStreamFactory
         }
         IPluginStore<IncrStreamFactory> store = TIS.getPluginStore(indexName, IncrStreamFactory.class);
         IncrStreamFactory k8sConfig = store.getPlugin();
-        if (k8sConfig == null) {
+        if (validateNull && k8sConfig == null) {
             throw new IllegalStateException("key:" + indexName + " have not set k8s plugin");
         }
         return k8sConfig;
@@ -61,16 +65,16 @@ public abstract class IncrStreamFactory implements Describable<IncrStreamFactory
     public abstract Integer getParallelism();
 
     public abstract ServerLaunchToken getLaunchToken(TargetResName indexName);
-//    {
-//        return ServerLaunchToken.createFlinkClusterToken().token(this.getClusterType(), indexName);
-//        // return incrLaunchToken;
-//    }
+    //    {
+    //        return ServerLaunchToken.createFlinkClusterToken().token(this.getClusterType(), indexName);
+    //        // return incrLaunchToken;
+    //    }
 
     @Override
     public boolean hasCreated(TargetResName collection) {
         return getLaunchToken(collection).isLaunchTokenExist();
     }
-//  public abstract IRCController getIncrSync();
+    //  public abstract IRCController getIncrSync();
 
     /**
      * 取得集群部署类型类型

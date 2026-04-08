@@ -51,9 +51,13 @@ public class DefaultFieldErrorHandler implements IFieldErrorHandler {
 
     public static final String KEY_VALIDATE_PLUGIN_INDEX = "validate_plugin_index";
 
+    public DefaultFieldErrorHandler() {
+    }
+
     @Override
     public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
-        throw new UnsupportedOperationException();
+       // throw new UnsupportedOperationException();
+        return getPipelineValidator(logicType).validate(this, context, fieldName, value);
     }
 
     @Override

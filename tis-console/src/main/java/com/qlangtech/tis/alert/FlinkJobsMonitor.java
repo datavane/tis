@@ -239,7 +239,7 @@ public class FlinkJobsMonitor implements InitializingBean {
       AlertTemplate alertTemplate =
         AlertTemplate.builder().title("TIS Flink Job 告警").subject(String.format("Flink " + "Job [%s] 状态异常",
             jobInfo.getJobName())).jobName(jobInfo.getJobName()).status(String.valueOf(jobInfo.getIncrJobStatus().getState())).type(1)  // 1-任务状态
-        .startTime(startTime).endTime(endTime).duration(startTime, endTime).link(jobInfo.getJobManagerUrl()).restart(false, 0).build();
+          .startTime(startTime).endTime(endTime).duration(startTime, endTime).link(jobInfo.getJobManagerUrl()).restart(false, 0).build();
 
       Pair<List<AlertChannel>, DefaultDataXProcessorManipulate.MonitorForEventsManager> pair =
         this.getPipelineAlertChannels(jobInfo.getJobName());
@@ -325,7 +325,7 @@ public class FlinkJobsMonitor implements InitializingBean {
       IndexIncrStatus indexIncrStatus = null;
       try {
         IndexIncrStatus incrStatus = new IndexIncrStatus();
-        indexIncrStatus = CoreAction.getIndexIncrStatus(IControlMsgHandler.namedContext(pipelineName), incrStatus,
+        indexIncrStatus = CoreAction.getIndexIncrStatus(DataXName.createDataXPipeline(pipelineName), incrStatus,
           false);
       } catch (Throwable e) {
         throw new RuntimeException("pipe:" + pipelineName, e);

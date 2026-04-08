@@ -26,6 +26,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.util.DescriptorsJSONForAIPrompt;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
@@ -154,12 +155,12 @@ public abstract class TISJsonSchema {
     /**
      * @param root
      * @param schema     <pre>
-     *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {	"type": "object",
-     *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           		"properties": {
-     *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 "required": ["host"], // 根据实际结构，可能需要调整必填项
-     *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 "additionalProperties": false
-     *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                }
-     *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </pre>
+     *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {	"type": "object",
+     *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               		"properties": {
+     *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     "required": ["host"], // 根据实际结构，可能需要调整必填项
+     *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     "additionalProperties": false
+     *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    }
+     *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </pre>
      * @param fieldsDesc 字段描述
      * @return
      */
@@ -251,17 +252,14 @@ public abstract class TISJsonSchema {
 
 
             OneOfFieldsDesc oneOfFieldsDesc = new OneOfFieldsDesc();
-            for (Map.Entry<String /* concrete plugin implement class */, TISJsonSchema> entry :
+            for (Map.Entry<String /* concrete plugin implement class */, Pair<TISJsonSchema, Descriptor>> entry :
                     schemaDescriptorsMeta.descSchemaRegister.entrySet()) {
                 Builder schemaBuilder = createInnerSchemaBuilder(propertyKey);
-                // Builder.create(entry.getKey(), this.parentKey);
-                TISJsonSchema jsonSchema = entry.getValue();
-                //                schemaBuilder.addObjectProperty(KEY_DESC_VAL, (descBuilder) -> {
-                //                    descBuilder.setSchema(jsonSchema);
-                //                });
+                TISJsonSchema jsonSchema = entry.getValue().getKey();
+
                 DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta //
-                        .addProps2Builder(schemaDescriptorsMeta.getJSONObject(entry.getKey()), schemaBuilder);
-                //schemaBuilder.setFlatSchema(jsonSchema);
+                        .addProps2Builder(entry.getValue().getValue(),
+                                schemaDescriptorsMeta.getJSONObject(entry.getKey()), schemaBuilder);
                 schemaBuilder.addProperty(SCHEMA_PLUGIN_DESCRIPTOR_ID, FieldType.String, "代表本`" + SCHEMA_ONE_OF +
                                 "`之一的标识符", false)//
                         .setConst(entry.getKey());
@@ -287,6 +285,60 @@ public abstract class TISJsonSchema {
                 this.requiredFields.add(propertyKey);
             }
             properties.put(propertyKey, property);
+        }
+
+        public void addOneOfProperty(
+                List<TISJsonSchema> oneOfSchemaList) {
+
+
+            // final String propertyKey = attrVal.getFieldKey();
+            //JSONObject property = new JSONObject();
+            JSONArray oneOf = new JSONArray();
+
+            //            DescriptorsJSONForAIPrompt descriptorsJSONForAIPrompt =
+            //                    new DescriptorsJSONForAIPrompt(applicableDescriptors, false);
+            //            DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta schemaDescriptorsMeta //
+            //                    =
+            //                    (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) descriptorsJSONForAIPrompt
+            //                    .getDescriptorsJSON();
+
+
+            // OneOfFieldsDesc oneOfFieldsDesc = new OneOfFieldsDesc();
+            for (TISJsonSchema entry :
+                    oneOfSchemaList) {
+                //                Builder schemaBuilder = createInnerSchemaBuilder(propertyKey);
+                //                TISJsonSchema jsonSchema = entry.getValue();
+                //
+                //                DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta //
+                //                        .addProps2Builder(schemaDescriptorsMeta.getJSONObject(entry.getKey()),
+                //                        schemaBuilder);
+                //                schemaBuilder.addProperty(SCHEMA_PLUGIN_DESCRIPTOR_ID, FieldType.String, "代表本`" +
+                //                SCHEMA_ONE_OF +
+                //                                "`之一的标识符", false)//
+                //                        .setConst(entry.getKey());
+                //                // .setConst(jsonSchema.getSchemaName());
+                oneOf.add(entry.schema());
+                //                oneOfFieldsDesc.setPluginConcreteClassRelevant(entry.getKey(), schemaBuilder
+                //                .fieldsDesc,
+                //                        jsonSchema.getSchemaName());
+                //                //  System.out.println(schemaBuilder.fieldsDesc.size());
+
+            }
+            // this.fieldsDesc.add(new Option(propertyKey, oneOfFieldsDesc));
+
+            // addFieldsDesc(propertyKey, oneOfFieldsDesc);
+
+            // this.fieldsDesc.addAll(builder.fieldsDesc);
+            // property.put(SCHEMA_ONE_OF, oneOf);
+            // String help = attrVal.getHelp();
+            //            help.ifPresent((helpContent) -> {
+            //                oneOfFieldsDesc.help = helpContent;
+            //                property.put(SCHEMA_DESC, helpContent);
+            //            });
+            //            if (required) {
+            //                this.requiredFields.add(propertyKey);
+            //            }
+            schemaProperties.put(SCHEMA_ONE_OF, oneOf);
         }
 
 

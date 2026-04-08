@@ -153,14 +153,14 @@ public class CoreAction extends BasicModule {
 
   public static String getAssembleNodeAddress(ITISCoordinator coordinator) {
     // 增量状态收集节点
-//    final String incrStateCollectAddress =
-//      ZkUtils.getFirstChildValue(
-//        coordinator,
-//        ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
-//        true);
+    //    final String incrStateCollectAddress =
+    //      ZkUtils.getFirstChildValue(
+    //        coordinator,
+    //        ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH,
+    //        true);
     return Config.getAssembleHttpHost();
-//    "http://" + StringUtils.substringBefore(incrStateCollectAddress, ":")
-//      + ":8080" + Config.CONTEXT_ASSEMBLE;
+    //    "http://" + StringUtils.substringBefore(incrStateCollectAddress, ":")
+    //      + ":8080" + Config.CONTEXT_ASSEMBLE;
   }
 
   /**
@@ -183,7 +183,8 @@ public class CoreAction extends BasicModule {
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
   public void doCreateNewSavepoint(Context context) throws Exception {
     IRCController incrSync = getRCController();
-    TargetResName resName = TargetResName.createTargetName(this.getCollectionName());// new TargetResName(this.getCollectionName());
+    DataXName pipeline = this.getTISDataXName();
+    TargetResName resName = TargetResName.createTargetName(pipeline);// new TargetResName(this.getCollectionName());
 
     IRCController.SupportTriggerSavePointResult supportResult = null;
     if (!(supportResult = incrSync.supportTriggerSavePoint(resName)).support) {
@@ -193,12 +194,12 @@ public class CoreAction extends BasicModule {
     incrSync.triggerSavePoint(resName);
 
 
-    IndexIncrStatus incrStatus = getIndexIncrStatus(this, false);
+    IndexIncrStatus incrStatus = getIndexIncrStatus(pipeline, false);
     this.setBizResult(context, incrStatus);
   }
 
   private IncrStreamFactory getRCController() {
-    IPluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this, true);
+    IPluginStore<IncrStreamFactory> incrStreamStore = getIncrStreamFactoryStore(this.getTISDataXName(), true);
     IncrStreamFactory incrStream = incrStreamStore.getPlugin();
     return incrStream;
   }
@@ -222,9 +223,9 @@ public class CoreAction extends BasicModule {
       throw new IllegalArgumentException("param savepointPath can not be null");
     }
     IRCController incrSync = getRCController();
-
-    incrSync.discardSavepoint(TargetResName.createTargetName(this.getCollectionName()), savepointPath);
-    IndexIncrStatus incrStatus = getIndexIncrStatus(this, false);
+    DataXName pipeline = this.getCollectionName();
+    incrSync.discardSavepoint(TargetResName.createTargetName(pipeline), savepointPath);
+    IndexIncrStatus incrStatus = getIndexIncrStatus(this.getCollectionName(), false);
     this.setBizResult(context, incrStatus);
   }
 
@@ -237,7 +238,8 @@ public class CoreAction extends BasicModule {
     // waittingiIntendedStatus(context, IFlinkIncrJobStatus.State.RUNNING);
 
     // ======================================================
-    final ServerLaunchToken incrLaunchToken = incrSync.getLaunchToken(TargetResName.createTargetName(this.getCollectionName()));
+    final ServerLaunchToken incrLaunchToken =
+      incrSync.getLaunchToken(TargetResName.createTargetName(this.getCollectionName()));
 
     LaunchIncrSyncChannel incrLauncher
       = new LaunchIncrSyncChannel(this.getCollectionName(), this, context, incrLaunchToken, true) {
@@ -327,8 +329,8 @@ public class CoreAction extends BasicModule {
     params.add(new HttpUtils.PostParam(JobParams.KEY_TASK_ID, taskId));
     HttpUtils.postAssembleDAGServlet(HttpUtils.KEY_METHOD_HANDLE_CANCEL_TASK, params, (respStream) -> null);
 
-//    DataXJobSubmit dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit();
-//    dataXJobSubmit.cancelTask(this, context, buildHistory);
+    //    DataXJobSubmit dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit();
+    //    dataXJobSubmit.cancelTask(this, context, buildHistory);
 
     WorkFlowBuildHistory record = new WorkFlowBuildHistory();
     record.setState((byte) ExecResult.CANCEL.getValue());
@@ -381,16 +383,16 @@ public class CoreAction extends BasicModule {
    */
   public void doGetIncrStatus(Context context) throws Exception {
     final boolean cache = this.getBoolean("cache");
-    IndexIncrStatus incrStatus = getIndexIncrStatus(this, cache);
+    IndexIncrStatus incrStatus = getIndexIncrStatus(this.getCollectionName(), cache);
     setIncrScriptCreated(this, incrStatus);
     this.setBizResult(context, incrStatus);
   }
 
 
-  public static IndexIncrStatus getIndexIncrStatus(IControlMsgHandler module, IDeploymentDetail rcConfig) throws Exception {
-    IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
+  public static IndexIncrStatus getIndexIncrStatus(DataXName pipeline, IDeploymentDetail rcConfig) throws Exception {
+    IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(pipeline);
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
-    IPluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
+    IPluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(pipeline);
     IncrStreamFactory incrStreamFactory = null;
     // IncrStreamFactory incrStream = null;
     if ((incrStreamFactory = store.getPlugin()) == null) {
@@ -427,16 +429,17 @@ public class CoreAction extends BasicModule {
   }
 
   private static void setIncrScriptCreated(BasicModule module, IndexIncrStatus incrStatus) {
+    DataXName pipeline = module.getTISDataXName();
     IndexStreamCodeGenerator indexStreamCodeGenerator
-      = getIndexStreamCodeGenerator(module.getTISDataXName(), module);
+      = getIndexStreamCodeGenerator(pipeline, module);
     StreamCodeContext streamCodeContext
-      = new StreamCodeContext(module.getCollectionName(), indexStreamCodeGenerator.incrScriptTimestamp);
+      = new StreamCodeContext(pipeline, indexStreamCodeGenerator.incrScriptTimestamp);
     incrStatus.setIncrScriptCreated(streamCodeContext.isIncrScriptDirCreated());
   }
 
-  public static IndexIncrStatus getIndexIncrStatus(IControlMsgHandler module, boolean getRcConfigInCache) throws Exception {
-    IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
-    return getIndexIncrStatus(module, incrStatus, getRcConfigInCache);
+  public static IndexIncrStatus getIndexIncrStatus(DataXName dataXName, boolean getRcConfigInCache) throws Exception {
+    IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(dataXName);
+    return getIndexIncrStatus(dataXName, incrStatus, getRcConfigInCache);
   }
 
   /**
@@ -445,16 +448,17 @@ public class CoreAction extends BasicModule {
    * @return
    * @throws Exception
    */
-  public static IndexIncrStatus getIndexIncrStatus(IControlMsgHandler module, IndexIncrStatus incrStatus, boolean getRcConfigInCache) throws Exception {
+  public static IndexIncrStatus getIndexIncrStatus(DataXName pipeline, IndexIncrStatus incrStatus,
+                                                   boolean getRcConfigInCache) throws Exception {
 
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
-    IPluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(module);
+    IPluginStore<IncrStreamFactory> store = getIncrStreamFactoryStore(pipeline);
 
     if ((store.getPlugin()) == null) {
       incrStatus.setK8sPluginInitialized(false);
       return incrStatus;
     }
-    TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(module.getCollectionName());
+    TISK8sDelegate k8s = TISK8sDelegate.getK8SDelegate(pipeline);
     if (!k8s.hasCreated()) {
       incrStatus.setK8sPluginInitialized(false);
       return incrStatus;
@@ -462,18 +466,18 @@ public class CoreAction extends BasicModule {
 
     k8s.checkUseable(false);
     IDeploymentDetail rcConfig = k8s.getRcConfig(getRcConfigInCache);
-    return getIndexIncrStatus(module, rcConfig);
+    return getIndexIncrStatus(pipeline, rcConfig);
 
   }
 
-  public static IPluginStore<IncrStreamFactory> getIncrStreamFactoryStore(IControlMsgHandler module) {
-    return getIncrStreamFactoryStore(module, false);
+  public static IPluginStore<IncrStreamFactory> getIncrStreamFactoryStore(DataXName pipeline) {
+    return getIncrStreamFactoryStore(pipeline, false);
   }
 
-  private static IPluginStore<IncrStreamFactory> getIncrStreamFactoryStore(IControlMsgHandler module, boolean validateNull) {
-    IPluginStore<IncrStreamFactory> store = TIS.getPluginStore(module.getCollectionName(), IncrStreamFactory.class);
+  private static IPluginStore<IncrStreamFactory> getIncrStreamFactoryStore(DataXName pipeline, boolean validateNull) {
+    IPluginStore<IncrStreamFactory> store = TIS.getPluginStore(pipeline, IncrStreamFactory.class);
     if (validateNull && store.getPlugin() == null) {
-      throw new IllegalStateException("collection:" + module.getCollectionName() + " relevant IncrStreamFactory store can not be null");
+      throw new IllegalStateException("collection:" + pipeline + " relevant IncrStreamFactory store can not be null");
     }
     return store;
   }
@@ -510,7 +514,7 @@ public class CoreAction extends BasicModule {
 
   @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_CONFIG_EDIT, sideEffect = false)
   public void doStartIncrSyncChannal(Context context) throws Exception {
-//    IndexIncrStatus incrStatus = generateDAOAndIncrScript(this, context);
+    //    IndexIncrStatus incrStatus = generateDAOAndIncrScript(this, context);
 
     this.setBizResult(context, doGetDataXReaderWriterDesc(this.getCollectionName()));
   }
@@ -520,7 +524,8 @@ public class CoreAction extends BasicModule {
   }
 
   public static IndexIncrStatus generateDAOAndIncrScript(
-    BasicModule module, Context context, boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage, boolean hasCfgChanged) throws Exception {
+    BasicModule module, Context context, boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage,
+    boolean hasCfgChanged) throws Exception {
 
     IStreamIncrGenerateStrategy appSource = IAppSource.load(null, module.getCollectionName());
 
@@ -540,15 +545,16 @@ public class CoreAction extends BasicModule {
    */
   public static IndexIncrStatus generateDAOAndIncrScript(
     BasicModule module, Context context
-    , boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage, boolean excludeFacadeDAOSupport, boolean hasCfgChanged) throws Exception {
-
+    , boolean validateGlobalIncrStreamFactory, boolean compilerAndPackage, boolean excludeFacadeDAOSupport,
+    boolean hasCfgChanged) throws Exception {
+    DataXName pipeline = module.getTISDataXName();
     IndexStreamCodeGenerator indexStreamCodeGenerator
-      = getIndexStreamCodeGenerator(module.getTISDataXName(), module);
+      = getIndexStreamCodeGenerator(pipeline, module);
 
     IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(module.getCollectionName());
 
     // 已经定义了全局插件
-    IPluginStore<IncrStreamFactory> collectionBindIncrStreamFactoryStore = getIncrStreamFactoryStore(module);
+    IPluginStore<IncrStreamFactory> collectionBindIncrStreamFactoryStore = getIncrStreamFactoryStore(pipeline);
     if (collectionBindIncrStreamFactoryStore.getPlugin() == null) {
     }
 
@@ -562,7 +568,8 @@ public class CoreAction extends BasicModule {
     }
     GenerateDAOAndIncrScript generateDAOAndIncrScript = new GenerateDAOAndIncrScript(module, indexStreamCodeGenerator);
     if (excludeFacadeDAOSupport) {
-      generateDAOAndIncrScript.generateIncrScript(context, incrStatus, compilerAndPackage, Collections.emptyMap(), hasCfgChanged);
+      generateDAOAndIncrScript.generateIncrScript(context, incrStatus, compilerAndPackage, Collections.emptyMap(),
+        hasCfgChanged);
     } else {
       // 需要facadeDAO支持
       generateDAOAndIncrScript.generate(context, incrStatus
@@ -578,7 +585,8 @@ public class CoreAction extends BasicModule {
     IndexIncrStatus incrStatus = new IndexIncrStatus();
     incrStatus.setState(IFlinkIncrJobStatus.State.NONE);
 
-    IDataxProcessor dataxProcessor = DataxProcessor.load(null, appName.assetCheckDataAppType(), appName.getPipelineName());
+    IDataxProcessor dataxProcessor = DataxProcessor.load(null, appName.assetCheckDataAppType(),
+      appName.getPipelineName());
     DataxWriter writer = (DataxWriter) dataxProcessor.getWriter(null, true);
     incrStatus.setWriterDesc(createDescVals(writer.getDescriptor()));
 
@@ -666,7 +674,8 @@ public class CoreAction extends BasicModule {
     IncrStreamFactory incrSync = getRCController();
 
     // ======================================================
-    final ServerLaunchToken incrLaunchToken = incrSync.getLaunchToken(TargetResName.createTargetName((this.getCollectionName())));
+    final ServerLaunchToken incrLaunchToken =
+      incrSync.getLaunchToken(TargetResName.createTargetName((this.getCollectionName())));
 
     LaunchIncrSyncChannel incrLauncher
       = new LaunchIncrSyncChannel(this.getCollectionName(), this, context, incrLaunchToken, true) {
@@ -724,7 +733,8 @@ public class CoreAction extends BasicModule {
 
   /**
    * 部署实例
-   * https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/resource-providers/standalone/kubernetes/
+   * https://nightlies.apache.org/flink/flink-docs-release-1
+   * .14/docs/deployment/resource-providers/standalone/kubernetes/
    *
    * @param context
    * @throws Exception
@@ -741,13 +751,15 @@ public class CoreAction extends BasicModule {
 
   }
 
-  public static void startDeployIncrSyncChannal(BasicModule module, Context context, IncrStreamFactory streamFactory, DataXName pipelineName) {
+  public static void startDeployIncrSyncChannal(BasicModule module, Context context, IncrStreamFactory streamFactory,
+                                                DataXName pipelineName) {
     startDeployIncrSyncChannal(module.getEventStreamWriter(), module, context, streamFactory, pipelineName);
   }
 
   public static void startDeployIncrSyncChannal(SSEEventWriter sseEventWriter, BasicModule module
     , Context context, IncrStreamFactory streamFactory, DataXName pipelineName) {
-    final ServerLaunchToken incrLaunchToken = streamFactory.getLaunchToken(TargetResName.createTargetName(pipelineName));
+    final ServerLaunchToken incrLaunchToken =
+      streamFactory.getLaunchToken(TargetResName.createTargetName(pipelineName));
 
     LaunchIncrSyncChannel incrLauncher
       = new LaunchIncrSyncChannel(pipelineName, new AdapterPluginContext(module) {
@@ -872,7 +884,8 @@ public class CoreAction extends BasicModule {
   }
 
 
-  private static Map<Integer, Long> getDependencyDbsMap(BasicModule module, IndexStreamCodeGenerator indexStreamCodeGenerator) {
+  private static Map<Integer, Long> getDependencyDbsMap(BasicModule module,
+                                                        IndexStreamCodeGenerator indexStreamCodeGenerator) {
     final Map<DBNode, List<String>> dbNameMap = indexStreamCodeGenerator.getDbTables();
     if (dbNameMap.size() < 1) {
       throw new IllegalStateException("dbNameMap size can not small than 1");
@@ -887,7 +900,8 @@ public class CoreAction extends BasicModule {
 
   private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(DataXName dataXName, BasicModule module) {
     //  DataXName dataXName = pipelineNameAware.getCollectionName();
-    Optional<IBasicAppSource> appSource = IAppSource.loadNullable(null, Objects.requireNonNull(dataXName).getType(), dataXName.getPipelineName());
+    Optional<IBasicAppSource> appSource = IAppSource.loadNullable(null, Objects.requireNonNull(dataXName).getType(),
+      dataXName.getPipelineName());
 
     Date scriptLastOpTime = appSource.get().accept(new IBasicAppSource.IAppSourceVisitor<Date>() {
       @Override
@@ -899,8 +913,9 @@ public class CoreAction extends BasicModule {
 
       @Override
       public Date visit(ISingleTableAppSource single) {
-//        DatasourceTable table = module.getWorkflowDAOFacade().getDatasourceTableDAO().loadFromWriteDB(single.getTabId());
-//        return table.getOpTime();
+        //        DatasourceTable table = module.getWorkflowDAOFacade().getDatasourceTableDAO().loadFromWriteDB
+        //        (single.getTabId());
+        //        return table.getOpTime();
         throw new UnsupportedOperationException();
       }
 
@@ -914,10 +929,11 @@ public class CoreAction extends BasicModule {
     return new IndexStreamCodeGenerator(dataXName, appSource.get()
       , ManageUtils.formatNowYyyyMMddHHmmss(scriptLastOpTime), (dbId, rewriteableTables) -> {
       // 通过dbid返回db中的所有表名称
-//      DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
-//      tableCriteria.createCriteria().andDbIdEqualTo(dbId);
-//      List<DatasourceTable> tableList = module.getWorkflowDAOFacade().getDatasourceTableDAO().selectByExample(tableCriteria);
-//      return tableList.stream().map((t) -> t.getName()).collect(Collectors.toList());
+      //      DatasourceTableCriteria tableCriteria = new DatasourceTableCriteria();
+      //      tableCriteria.createCriteria().andDbIdEqualTo(dbId);
+      //      List<DatasourceTable> tableList = module.getWorkflowDAOFacade().getDatasourceTableDAO().selectByExample
+      //      (tableCriteria);
+      //      return tableList.stream().map((t) -> t.getName()).collect(Collectors.toList());
       return Collections.emptyList();
     });
   }
@@ -928,17 +944,17 @@ public class CoreAction extends BasicModule {
   }
 
 
-//  /**
-//   * 触发生成一个新的Task do_trigger_fullbuild_task
-//   *
-//   * @param context
-//   * @throws Exception
-//   */
-//  @Func(value = PermissionConstant.DATAFLOW_MANAGE)
-//  public void doTriggerFullbuildTask(Context context) throws Exception {
-//    Application app = this.getAppDomain().getApp();
-//    triggerFullIndexSwape(this, context, app, getIndex().getSlices().size());
-//  }
+  //  /**
+  //   * 触发生成一个新的Task do_trigger_fullbuild_task
+  //   *
+  //   * @param context
+  //   * @throws Exception
+  //   */
+  //  @Func(value = PermissionConstant.DATAFLOW_MANAGE)
+  //  public void doTriggerFullbuildTask(Context context) throws Exception {
+  //    Application app = this.getAppDomain().getApp();
+  //    triggerFullIndexSwape(this, context, app, getIndex().getSlices().size());
+  //  }
 
 
   /**
@@ -951,17 +967,18 @@ public class CoreAction extends BasicModule {
    * @return
    * @throws Exception
    */
-  public static TriggerBuildResult triggerFullIndexSwape(BasicModule module, Context context, Application app, int sharedCount) throws Exception {
+  public static TriggerBuildResult triggerFullIndexSwape(BasicModule module, Context context, Application app,
+                                                         int sharedCount) throws Exception {
 
     Objects.requireNonNull(app, "app can not be null");
 
-//    Objects.requireNonNull(wfId, "wfId can not be null");
-//    if (sharedCount < 1) {
-//      throw new IllegalArgumentException("param sharedCount can not be null");
-//    }
-//    if (StringUtils.isEmpty(wfName)) {
-//      throw new IllegalArgumentException("param wfName can not be null");
-//    }
+    //    Objects.requireNonNull(wfId, "wfId can not be null");
+    //    if (sharedCount < 1) {
+    //      throw new IllegalArgumentException("param sharedCount can not be null");
+    //    }
+    //    if (StringUtils.isEmpty(wfName)) {
+    //      throw new IllegalArgumentException("param wfName can not be null");
+    //    }
 
     ISolrAppSource appSource = IAppSource.load(null, DataXName.createDataXPipeline(app.getProjectName()));
 
@@ -969,30 +986,31 @@ public class CoreAction extends BasicModule {
       return new TriggerBuildResult(false);
     }
 
-//    SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wfName);
-//    Objects.requireNonNull(topology, "topology:" + wfName + " relevant topology can not be be null");
-//
-//    Optional<ERRules> erRule = module.getErRules(wfName);
-//    if (!topology.isSingleTableModel()) {
-//      if (!erRule.isPresent()) {
-//        module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ER Rule");
-//        return new TriggerBuildResult(false);
-//      } else {
-//        ERRules erRules = erRule.get();
-//        List<PrimaryTableMeta> pTabs = erRules.getPrimaryTabs();
-//        Optional<PrimaryTableMeta> prTableMeta = pTabs.stream().findFirst();
-//        if (!TableMeta.hasValidPrimayTableSharedKey(prTableMeta.isPresent() ? Optional.of(prTableMeta.get()) : Optional.empty())) {
-//          module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ERRule 选择主表并且设置分区键");
-//          return new TriggerBuildResult(false);
-//        }
-//      }
-//    }
+    //    SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(wfName);
+    //    Objects.requireNonNull(topology, "topology:" + wfName + " relevant topology can not be be null");
+    //
+    //    Optional<ERRules> erRule = module.getErRules(wfName);
+    //    if (!topology.isSingleTableModel()) {
+    //      if (!erRule.isPresent()) {
+    //        module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ER Rule");
+    //        return new TriggerBuildResult(false);
+    //      } else {
+    //        ERRules erRules = erRule.get();
+    //        List<PrimaryTableMeta> pTabs = erRules.getPrimaryTabs();
+    //        Optional<PrimaryTableMeta> prTableMeta = pTabs.stream().findFirst();
+    //        if (!TableMeta.hasValidPrimayTableSharedKey(prTableMeta.isPresent() ? Optional.of(prTableMeta.get()) :
+    //        Optional.empty())) {
+    //          module.addErrorMessage(context, "请为数据流:[" + wfName + "]定义ERRule 选择主表并且设置分区键");
+    //          return new TriggerBuildResult(false);
+    //        }
+    //      }
+    //    }
     return sendRequest2FullIndexSwapeNode(module, context, new AppendParams() {
       @Override
       List<PostParam> getParam() {
         return Lists.newArrayList(
-//          new PostParam(IFullBuildContext.KEY_WORKFLOW_NAME, wfName)
-//          , new PostParam(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(wfId))
+          //          new PostParam(IFullBuildContext.KEY_WORKFLOW_NAME, wfName)
+          //          , new PostParam(IFullBuildContext.KEY_WORKFLOW_ID, String.valueOf(wfId))
           // new PostParam(IFullBuildContext.KEY_APP_NAME, app.getProjectName())
           //,
           new PostParam(IFullBuildContext.KEY_APP_SHARD_COUNT, String.valueOf(sharedCount)));
@@ -1008,7 +1026,8 @@ public class CoreAction extends BasicModule {
    */
   public void doGetWorkflowBuildHistory(final Context context) throws Exception {
     Integer taskid = this.getInt(JobCommon.KEY_TASK_ID, null, false);
-    WorkFlowBuildHistory buildHistory = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByPrimaryKey(taskid);
+    WorkFlowBuildHistory buildHistory =
+      this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByPrimaryKey(taskid);
     if (buildHistory == null) {
       throw new IllegalStateException(JobCommon.KEY_TASK_ID + ":" + taskid + "relevant buildHistory can not be null");
     }
@@ -1062,7 +1081,8 @@ public class CoreAction extends BasicModule {
     Integer wfid = this.getInt("wfid");
     Integer taskid = this.getInt(JobCommon.KEY_TASK_ID);
 
-    WorkFlowBuildHistory buildHistory = this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByPrimaryKey(taskid);
+    WorkFlowBuildHistory buildHistory =
+      this.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO().selectByPrimaryKey(taskid);
     Map<String, Object> result = Maps.newHashMap();
     result.put("task", buildHistory);
 
@@ -1083,13 +1103,13 @@ public class CoreAction extends BasicModule {
     WorkFlow workFlow = new WorkFlow();
     WorkFlowBuildHistoryCriteria query = new WorkFlowBuildHistoryCriteria();
     WorkFlowBuildHistoryCriteria.Criteria criteria = query.createCriteria();
-//    if (isCollectionAware()) {
-//
-//    } else {
-//      if (wfid < 0) {
-//        throw new IllegalArgumentException("param wfid can not small than 0");
-//      }
-//    }
+    //    if (isCollectionAware()) {
+    //
+    //    } else {
+    //      if (wfid < 0) {
+    //        throw new IllegalArgumentException("param wfid can not small than 0");
+    //      }
+    //    }
 
     if (wfid > 0) {
       // 使用workflow 纬度过滤
@@ -1113,9 +1133,9 @@ public class CoreAction extends BasicModule {
     Pager pager = this.createPager();
     pager.setTotalCount(historyDAO.countByExample(query));
 
-//    if ((wfid > 0) && StringUtils.isEmpty(workFlow.getName())) {
-//      throw new IllegalStateException("workflow name can not be empty");
-//    }
+    //    if ((wfid > 0) && StringUtils.isEmpty(workFlow.getName())) {
+    //      throw new IllegalStateException("workflow name can not be empty");
+    //    }
 
     this.setBizResult(context
       , new PaginationResult(pager, adapterBuildHistory(
@@ -1149,21 +1169,21 @@ public class CoreAction extends BasicModule {
     FileUtils.copyFile(logFile, getResponse().getOutputStream());
   }
 
-//  /** grep
-//   * 取得POJO 內容
-//   *
-//   * @param context
-//   * @throws Exception
-//   */
-//  public void doGetPojoData(Context context) throws Exception {
-//    final AppDomainInfo appDomainInfo = this.getAppDomain();
-//    try (StringWriter writer = new StringWriter()) {
-//      if (!ViewPojo.downloadResource(context, appDomainInfo, this, writer)) {
-//        return;
-//      }
-//      this.setBizResult(context, writer.toString());
-//    }
-//  }
+  //  /** grep
+  //   * 取得POJO 內容
+  //   *
+  //   * @param context
+  //   * @throws Exception
+  //   */
+  //  public void doGetPojoData(Context context) throws Exception {
+  //    final AppDomainInfo appDomainInfo = this.getAppDomain();
+  //    try (StringWriter writer = new StringWriter()) {
+  //      if (!ViewPojo.downloadResource(context, appDomainInfo, this, writer)) {
+  //        return;
+  //      }
+  //      this.setBizResult(context, writer.toString());
+  //    }
+  //  }
 
   /**
    * 判断索引是否存在
@@ -1178,75 +1198,77 @@ public class CoreAction extends BasicModule {
     this.setBizResult(context, biz);
   }
 
-//  /**
-//   * Corenodemanage页面初始化的时候页面显示的信息
-//   *
-//   * @param context
-//   * @throws Exception
-//   */
-//  public void doGetViewData(Context context) throws Exception {
-//    Map<String, Object> result = getCollectionStatus(this);
-//    this.setBizResult(context, result);
-//  }
+  //  /**
+  //   * Corenodemanage页面初始化的时候页面显示的信息
+  //   *
+  //   * @param context
+  //   * @throws Exception
+  //   */
+  //  public void doGetViewData(Context context) throws Exception {
+  //    Map<String, Object> result = getCollectionStatus(this);
+  //    this.setBizResult(context, result);
+  //  }
 
-//  public static Map<String, Object> getCollectionStatus(BasicModule module) throws Exception {
-//    Map<String, Object> result = new HashMap<>();
-//    result.put("instanceDirDesc", getInstanceDirDesc(module));
-//    result.put("topology", getCollectionTopology(module));
-//    result.put("config", module.getConfigGroup0());
-//    result.put("app", module.getAppDomain());
-//    ClusterStateCollectAction.StatusCollectStrategy collectStrategy = ClusterStateCollectAction.getCollectStrategy(
-//      module.getClusterSnapshotDAO(), module.getAppDomain().getAppid(), ClusterStateCollectAction.TODAY);
-//    ClusterSnapshot.Summary metricSummary = collectStrategy.getMetricSummary();
-//    result.put("metrics", metricSummary);
-//    return result;
-//  }
+  //  public static Map<String, Object> getCollectionStatus(BasicModule module) throws Exception {
+  //    Map<String, Object> result = new HashMap<>();
+  //    result.put("instanceDirDesc", getInstanceDirDesc(module));
+  //    result.put("topology", getCollectionTopology(module));
+  //    result.put("config", module.getConfigGroup0());
+  //    result.put("app", module.getAppDomain());
+  //    ClusterStateCollectAction.StatusCollectStrategy collectStrategy = ClusterStateCollectAction.getCollectStrategy(
+  //      module.getClusterSnapshotDAO(), module.getAppDomain().getAppid(), ClusterStateCollectAction.TODAY);
+  //    ClusterSnapshot.Summary metricSummary = collectStrategy.getMetricSummary();
+  //    result.put("metrics", metricSummary);
+  //    return result;
+  //  }
 
-//  public static CollectionTopology getCollectionTopology(BasicModule module) throws Exception {
-//    final QueryResutStrategy queryResutStrategy
-//      = QueryIndexServlet.createQueryResutStrategy(module.getAppDomain(), module.getRequest(), module.getResponse(), module.getDaoContext());
-//    return queryResutStrategy.createCollectionTopology();
-//    // //
-//    // URL url = new URL("http://192.168.28.200:8080/solr/admin/zookeeper?_=1587217613386&detail=true&path=%2Fcollections%2Fsearch4totalpay%2Fstate.json&wt=json");
-//    // return HttpUtils.get(url, new StreamProcess<CollectionTopology>() {
-//    // @Override
-//    // public CollectionTopology p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-//    // JSONTokener tokener = new JSONTokener(stream);
-//    // JSONObject result = new JSONObject(tokener);
-//    //
-//    // result.getString("data");
-//    //
-//    //
-//    // return null;
-//    // }
-//    // });
-//  }
+  //  public static CollectionTopology getCollectionTopology(BasicModule module) throws Exception {
+  //    final QueryResutStrategy queryResutStrategy
+  //      = QueryIndexServlet.createQueryResutStrategy(module.getAppDomain(), module.getRequest(), module.getResponse
+  //      (), module.getDaoContext());
+  //    return queryResutStrategy.createCollectionTopology();
+  //    // //
+  //    // URL url = new URL("http://192.168.28.200:8080/solr/admin/zookeeper?_=1587217613386&detail=true&path=%2Fcollections%2Fsearch4totalpay%2Fstate.json&wt=json");
+  //    // return HttpUtils.get(url, new StreamProcess<CollectionTopology>() {
+  //    // @Override
+  //    // public CollectionTopology p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+  //    // JSONTokener tokener = new JSONTokener(stream);
+  //    // JSONObject result = new JSONObject(tokener);
+  //    //
+  //    // result.getString("data");
+  //    //
+  //    //
+  //    // return null;
+  //    // }
+  //    // });
+  //  }
 
 
   public static ServerGroupAdapter getServerGroup0(AppDomainInfo domain, BasicModule module) {
-    List<ServerGroupAdapter> groupList = BasicScreen.createServerGroupAdapterList(new BasicScreen.ServerGroupCriteriaSetter() {
+    List<ServerGroupAdapter> groupList =
+      BasicScreen.createServerGroupAdapterList(new BasicScreen.ServerGroupCriteriaSetter() {
 
-      @Override
-      public void process(ServerGroupCriteria.Criteria criteria) {
-        criteria.andAppIdEqualTo(domain.getAppid()).andRuntEnvironmentEqualTo(domain.getRunEnvironment().getId());
-        criteria.andGroupIndexEqualTo((short) 0);
-        // if (publishSnapshotIdIsNotNull) {
-        criteria.andPublishSnapshotIdIsNotNull();
-        // }
-      }
+        @Override
+        public void process(ServerGroupCriteria.Criteria criteria) {
+          criteria.andAppIdEqualTo(domain.getAppid()).andRuntEnvironmentEqualTo(domain.getRunEnvironment().getId());
+          criteria.andGroupIndexEqualTo((short) 0);
+          // if (publishSnapshotIdIsNotNull) {
+          criteria.andPublishSnapshotIdIsNotNull();
+          // }
+        }
 
-      @Override
-      public List<Server> getServers(RunContext daoContext, ServerGroup group) {
-        return Collections.emptyList();
-      }
+        @Override
+        public List<Server> getServers(RunContext daoContext, ServerGroup group) {
+          return Collections.emptyList();
+        }
 
-      @Override
-      public int getMaxSnapshotId(ServerGroup group, RunContext daoContext) {
-        SnapshotCriteria snapshotCriteria = new SnapshotCriteria();
-        snapshotCriteria.createCriteria().andAppidEqualTo(group.getAppId());
-        return daoContext.getSnapshotDAO().getMaxSnapshotId(snapshotCriteria);
-      }
-    }, true, module);
+        @Override
+        public int getMaxSnapshotId(ServerGroup group, RunContext daoContext) {
+          SnapshotCriteria snapshotCriteria = new SnapshotCriteria();
+          snapshotCriteria.createCriteria().andAppidEqualTo(group.getAppId());
+          return daoContext.getSnapshotDAO().getMaxSnapshotId(snapshotCriteria);
+        }
+      }, true, module);
     for (ServerGroupAdapter group : groupList) {
       return group;
     }
@@ -1295,7 +1317,7 @@ public class CoreAction extends BasicModule {
     }
     IDeploymentDetail detail = null;
     if ((detail = waittingiIntendedStatus(IFlinkIncrJobStatus.State.STOPED)) != null) {
-      IndexIncrStatus incrStatus = getIndexIncrStatus(this, detail);
+      IndexIncrStatus incrStatus = getIndexIncrStatus(this.getTISDataXName(), detail);
       this.setBizResult(context, incrStatus);
     } else {
       this.addErrorMessage(context, "操作超时");
@@ -1303,25 +1325,26 @@ public class CoreAction extends BasicModule {
     }
   }
 
-//  /**
-//   * 控制增量任务暂停继续，當增量任務需要重啟或者過載的情况下需要重启增量执行节点，需要先将管道中的数据全部排空
-//   *
-//   * @param context
-//   * @throws Exception
-//   */
-//  @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
-//  public void doIncrResumePause(Context context) throws Exception {
-//    boolean pause = this.getBoolean("pause");
-//    final String collection = this.getAppDomain().getAppName();
-//
-//    JobType.RemoteCallResult<?> callResult = JobType.IndexJobRunning.assembIncrControl(
-//      getAssembleNodeAddress(this.getSolrZkClient()), collection, Lists.newArrayList(new PostParam("stop", pause)), null);
-//    if (!callResult.success) {
-//      this.addErrorMessage(context, callResult.msg);
-//      return;
-//    }
-//    this.addActionMessage(context, collection + ":增量任务状态变为:" + (pause ? "暂停" : "启动"));
-//  }
+  //  /**
+  //   * 控制增量任务暂停继续，當增量任務需要重啟或者過載的情况下需要重启增量执行节点，需要先将管道中的数据全部排空
+  //   *
+  //   * @param context
+  //   * @throws Exception
+  //   */
+  //  @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
+  //  public void doIncrResumePause(Context context) throws Exception {
+  //    boolean pause = this.getBoolean("pause");
+  //    final String collection = this.getAppDomain().getAppName();
+  //
+  //    JobType.RemoteCallResult<?> callResult = JobType.IndexJobRunning.assembIncrControl(
+  //      getAssembleNodeAddress(this.getSolrZkClient()), collection, Lists.newArrayList(new PostParam("stop", pause)
+  //      ), null);
+  //    if (!callResult.success) {
+  //      this.addErrorMessage(context, callResult.msg);
+  //      return;
+  //    }
+  //    this.addActionMessage(context, collection + ":增量任务状态变为:" + (pause ? "暂停" : "启动"));
+  //  }
 
   //
 
@@ -1340,7 +1363,8 @@ public class CoreAction extends BasicModule {
       this.addErrorMessage(context, "组内副本数不能小于1");
       return;
     }
-    context.put(CREATE_CORE_SELECT_COREINFO, new CreateCorePageDTO(groupNum, repliation, "y".equals(this.getString("exclusive"))));
+    context.put(CREATE_CORE_SELECT_COREINFO, new CreateCorePageDTO(groupNum, repliation, "y".equals(this.getString(
+      "exclusive"))));
     // this.forward("coredefine.vm");
   }
 
@@ -1427,20 +1451,21 @@ public class CoreAction extends BasicModule {
    */
   public static void deleteCollection(BasicModule module, final Context context) throws Exception {
 
-//    URL url = new URL("http://" + getCloudOverseerNode(module.getSolrZkClient()) + ADMIN_COLLECTION_PATH
-//      + "?action=DELETE&name" + module.getCollectionName());
-//    log.info("delete collection in  cloud url:" + url);
-//    HttpUtils.processContent(url, new StreamProcess<Object>() {
-//
-//      @Override
-//      public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-//        ProcessResponse result = null;
-//        if (!(result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, err))).success) {
-//          throw new IllegalStateException("collection:" + module.getCollectionName() + " has not been delete");
-//        }
-//        return null;
-//      }
-//    });
+    //    URL url = new URL("http://" + getCloudOverseerNode(module.getSolrZkClient()) + ADMIN_COLLECTION_PATH
+    //      + "?action=DELETE&name" + module.getCollectionName());
+    //    log.info("delete collection in  cloud url:" + url);
+    //    HttpUtils.processContent(url, new StreamProcess<Object>() {
+    //
+    //      @Override
+    //      public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+    //        ProcessResponse result = null;
+    //        if (!(result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, err)))
+    //        .success) {
+    //          throw new IllegalStateException("collection:" + module.getCollectionName() + " has not been delete");
+    //        }
+    //        return null;
+    //      }
+    //    });
   }
 
   /**
@@ -1454,23 +1479,24 @@ public class CoreAction extends BasicModule {
     //final String cloudOverseer = getCloudOverseerNode(module.getSolrZkClient());
     // : "plain";
     List<String> collections = Lists.newArrayList();
-//    URL url = new URL("http://" + cloudOverseer + ADMIN_COLLECTION_PATH + "?action=LIST");
-//    log.info("list collection in  cloud url:" + url);
-//    HttpUtils.processContent(url, new StreamProcess<Object>() {
-//
-//      @Override
-//      public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-//        ProcessResponse result = null;
-//        if ((result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, err))).success) {
-//          Map<String, Object> biz = (Map<String, Object>) result.result;
-//          List<String> clist = (List<String>) biz.get("collections");
-//          if (!CollectionUtils.isEmpty(clist)) {
-//            collections.addAll(clist);
-//          }
-//        }
-//        return null;
-//      }
-//    });
+    //    URL url = new URL("http://" + cloudOverseer + ADMIN_COLLECTION_PATH + "?action=LIST");
+    //    log.info("list collection in  cloud url:" + url);
+    //    HttpUtils.processContent(url, new StreamProcess<Object>() {
+    //
+    //      @Override
+    //      public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+    //        ProcessResponse result = null;
+    //        if ((result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, err)))
+    //        .success) {
+    //          Map<String, Object> biz = (Map<String, Object>) result.result;
+    //          List<String> clist = (List<String>) biz.get("collections");
+    //          if (!CollectionUtils.isEmpty(clist)) {
+    //            collections.addAll(clist);
+    //          }
+    //        }
+    //        return null;
+    //      }
+    //    });
     return collections;
   }
 
@@ -1489,54 +1515,57 @@ public class CoreAction extends BasicModule {
    */
   public static boolean createCollection(BasicModule module, final Context context, final Integer groupNum
     , final Integer repliationCount, FCoreRequest request, int publishSnapshotId) throws Exception {
-//    if (publishSnapshotId < 0) {
-//      throw new IllegalArgumentException("shall set publishSnapshotId");
-//    }
-//    if (!request.isValid()) {
-//      return false;
-//    }
-//
-//    SnapshotDomain snapshotDomain = module.getSnapshotViewDAO().getView(publishSnapshotId);
-//    InputStream input = null;
-//    IIndexMetaData meta = SolrFieldsParser.parse(() -> snapshotDomain.getSolrSchema().getContent());
-//    ParseResult parseResult = meta.getSchemaParseResult();
-//    String routerField = parseResult.getSharedKey();
-//    if (StringUtils.isBlank(routerField)) {
-//      module.addErrorMessage(context, "Schema中还没有设置‘sharedKey’");
-//      return false;
-//    }
-//    final String cloudOverseer = getCloudOverseerNode(module.getSolrZkClient());
-//    String tisRepositoryHost = StringUtils.EMPTY;
-//    if (Config.isTestMock()) {
-//      tisRepositoryHost = "&" + PropteryGetter.KEY_PROP_TIS_REPOSITORY_HOST + "=" + URLEncoder.encode(ManageUtils.getServerIp(), getEncode());
-//    }
-//
-//    final String routerName = HashcodeRouter.NAME;
-//    URL url = new URL("http://" + cloudOverseer + CREATE_COLLECTION_PATH
-//      + request.getIndexName() + "&router.name=" + routerName + "&router.field=" + routerField
-//      + "&replicationFactor=" + repliationCount + "&numShards=" + groupNum
-//      + "&collection.configName=" + DEFAULT_SOLR_CONFIG + "&maxShardsPerNode=" + MAX_SHARDS_PER_NODE
-//      + "&property.dataDir=data&createNodeSet=" + URLEncoder.encode(request.getCreateNodeSet(), getEncode())
-//      + "&" + PropteryGetter.KEY_PROP_CONFIG_SNAPSHOTID + "=" + publishSnapshotId
-//      + tisRepositoryHost);
-//
-//    log.info("create new cloud url:" + url);
-//    HttpUtils.processContent(url, new StreamProcess<Object>() {
-//
-//      @Override
-//      public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-//        ProcessResponse result = null;
-//        if ((result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, err))).success) {
-//          module.addActionMessage(context, "成功触发了创建索引集群" + groupNum + "组,组内" + repliationCount + "个副本");
-//        }
-//        return null;
-//      }
-//    });
+    //    if (publishSnapshotId < 0) {
+    //      throw new IllegalArgumentException("shall set publishSnapshotId");
+    //    }
+    //    if (!request.isValid()) {
+    //      return false;
+    //    }
+    //
+    //    SnapshotDomain snapshotDomain = module.getSnapshotViewDAO().getView(publishSnapshotId);
+    //    InputStream input = null;
+    //    IIndexMetaData meta = SolrFieldsParser.parse(() -> snapshotDomain.getSolrSchema().getContent());
+    //    ParseResult parseResult = meta.getSchemaParseResult();
+    //    String routerField = parseResult.getSharedKey();
+    //    if (StringUtils.isBlank(routerField)) {
+    //      module.addErrorMessage(context, "Schema中还没有设置‘sharedKey’");
+    //      return false;
+    //    }
+    //    final String cloudOverseer = getCloudOverseerNode(module.getSolrZkClient());
+    //    String tisRepositoryHost = StringUtils.EMPTY;
+    //    if (Config.isTestMock()) {
+    //      tisRepositoryHost = "&" + PropteryGetter.KEY_PROP_TIS_REPOSITORY_HOST + "=" + URLEncoder.encode
+    //      (ManageUtils.getServerIp(), getEncode());
+    //    }
+    //
+    //    final String routerName = HashcodeRouter.NAME;
+    //    URL url = new URL("http://" + cloudOverseer + CREATE_COLLECTION_PATH
+    //      + request.getIndexName() + "&router.name=" + routerName + "&router.field=" + routerField
+    //      + "&replicationFactor=" + repliationCount + "&numShards=" + groupNum
+    //      + "&collection.configName=" + DEFAULT_SOLR_CONFIG + "&maxShardsPerNode=" + MAX_SHARDS_PER_NODE
+    //      + "&property.dataDir=data&createNodeSet=" + URLEncoder.encode(request.getCreateNodeSet(), getEncode())
+    //      + "&" + PropteryGetter.KEY_PROP_CONFIG_SNAPSHOTID + "=" + publishSnapshotId
+    //      + tisRepositoryHost);
+    //
+    //    log.info("create new cloud url:" + url);
+    //    HttpUtils.processContent(url, new StreamProcess<Object>() {
+    //
+    //      @Override
+    //      public Object p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+    //        ProcessResponse result = null;
+    //        if ((result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, err)))
+    //        .success) {
+    //          module.addActionMessage(context, "成功触发了创建索引集群" + groupNum + "组,组内" + repliationCount + "个副本");
+    //        }
+    //        return null;
+    //      }
+    //    });
     return true;
   }
 
   public static String getCloudOverseerNode(ITISCoordinator zkClient) {
-    Map v = JSON.parseObject(zkClient.getData(ZkUtils.ZK_PATH_OVERSEER_ELECT_LEADER, true), Map.class, Feature.AllowUnQuotedFieldNames);
+    Map v = JSON.parseObject(zkClient.getData(ZkUtils.ZK_PATH_OVERSEER_ELECT_LEADER, true), Map.class,
+      Feature.AllowUnQuotedFieldNames);
     String id = (String) v.get("id");
     if (id == null) {
       throw new IllegalStateException("collection cluster overseer node has not launch");
@@ -1548,95 +1577,102 @@ public class CoreAction extends BasicModule {
     return StringUtils.substringBefore(arr[1], "_");
   }
 
-//  /**
-//   * 更新全部schema
-//   *
-//   * @param context
-//   * @throws Exception
-//   */
-//  @Func(PermissionConstant.APP_SCHEMA_UPDATE)
-//  public void doUpdateSchemaAllServer(final Context context) throws Exception {
-//    final boolean needReload = this.getBoolean("needReload");
-//    Integer snapshotId = this.getInt(ICoreAdminAction.TARGET_SNAPSHOT_ID);
-//    DocCollection docCollection = TISZkStateReader.getCollectionLive(this.getZkStateReader(), this.getCollectionName());
-//    pushConfig2Engine(this, context, docCollection, snapshotId, needReload);
-//  }
+  //  /**
+  //   * 更新全部schema
+  //   *
+  //   * @param context
+  //   * @throws Exception
+  //   */
+  //  @Func(PermissionConstant.APP_SCHEMA_UPDATE)
+  //  public void doUpdateSchemaAllServer(final Context context) throws Exception {
+  //    final boolean needReload = this.getBoolean("needReload");
+  //    Integer snapshotId = this.getInt(ICoreAdminAction.TARGET_SNAPSHOT_ID);
+  //    DocCollection docCollection = TISZkStateReader.getCollectionLive(this.getZkStateReader(), this
+  //    .getCollectionName());
+  //    pushConfig2Engine(this, context, docCollection, snapshotId, needReload);
+  //  }
 
-//  public static void pushConfig2Engine(BasicModule module, Context context, DocCollection collection, int snapshotId, boolean needReload) throws Exception {
-//    // module.errorsPageShow(context);
-//    if (traverseCollectionReplic(collection, false, /* collection */
-//      new ReplicaCallback() {
-//
-//        @Override
-//        public boolean process(boolean isLeader, final Replica replica) throws Exception {
-//          try {
-//            URL url = new URL(replica.getStr(BASE_URL_PROP) + "/admin/cores?action=CREATEALIAS&" + ICoreAdminAction.EXEC_ACTION + "=" + ICoreAdminAction.ACTION_UPDATE_CONFIG + "&core=" + replica.getStr(CORE_NAME_PROP) + "&" + ZkStateReader.COLLECTION_PROP + "=" + collection.getName() + "&needReload=" + needReload + "&" + ICoreAdminAction.TARGET_SNAPSHOT_ID + "=" + snapshotId);
-//            return HttpUtils.processContent(url, new StreamProcess<Boolean>() {
-//
-//              @Override
-//              public Boolean p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-//                ProcessResponse result = null;
-//                if ((result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context, replica.getName() + "," + err))).success) {
-//                  // addActionMessage(context, "成功触发了创建索引集群" + groupNum + "组,组内" + repliationCount + "个副本");
-//                  // return true;
-//                }
-//                return true;
-//              }
-//            });
-//          } catch (MalformedURLException e) {
-//            // e.printStackTrace();
-//            log.error(collection.getName(), e);
-//            module.addErrorMessage(context, e.getMessage());
-//          }
-//          return true;
-//        }
-//      })) {
-//      // module.addActionMessage(context, "已经更新全部服务器配置文件");
-//    }
-//  }
+  //  public static void pushConfig2Engine(BasicModule module, Context context, DocCollection collection, int
+  //  snapshotId, boolean needReload) throws Exception {
+  //    // module.errorsPageShow(context);
+  //    if (traverseCollectionReplic(collection, false, /* collection */
+  //      new ReplicaCallback() {
+  //
+  //        @Override
+  //        public boolean process(boolean isLeader, final Replica replica) throws Exception {
+  //          try {
+  //            URL url = new URL(replica.getStr(BASE_URL_PROP) + "/admin/cores?action=CREATEALIAS&" +
+  //            ICoreAdminAction.EXEC_ACTION + "=" + ICoreAdminAction.ACTION_UPDATE_CONFIG + "&core=" + replica
+  //            .getStr(CORE_NAME_PROP) + "&" + ZkStateReader.COLLECTION_PROP + "=" + collection.getName() +
+  //            "&needReload=" + needReload + "&" + ICoreAdminAction.TARGET_SNAPSHOT_ID + "=" + snapshotId);
+  //            return HttpUtils.processContent(url, new StreamProcess<Boolean>() {
+  //
+  //              @Override
+  //              public Boolean p(int status, InputStream stream, Map<String, List<String>> headerFields) {
+  //                ProcessResponse result = null;
+  //                if ((result = ProcessResponse.processResponse(stream, (err) -> module.addErrorMessage(context,
+  //                replica.getName() + "," + err))).success) {
+  //                  // addActionMessage(context, "成功触发了创建索引集群" + groupNum + "组,组内" + repliationCount + "个副本");
+  //                  // return true;
+  //                }
+  //                return true;
+  //              }
+  //            });
+  //          } catch (MalformedURLException e) {
+  //            // e.printStackTrace();
+  //            log.error(collection.getName(), e);
+  //            module.addErrorMessage(context, e.getMessage());
+  //          }
+  //          return true;
+  //        }
+  //      })) {
+  //      // module.addActionMessage(context, "已经更新全部服务器配置文件");
+  //    }
+  //  }
 
-//  /**
-//   * 遍历所有的副本节点
-//   *
-//   * @param collection
-//   * @param firstProcessLeader
-//   * @param replicaCallback
-//   * @return
-//   * @throws Exception
-//   */
-//  public static boolean traverseCollectionReplic(final DocCollection collection, boolean firstProcessLeader, ReplicaCallback replicaCallback) throws Exception {
-//    if (collection == null) {
-//      throw new IllegalStateException("param collection can not be null");
-//    }
-//    Replica leader = null;
-//    // String requestId = null;
-//    for (Slice slice : collection.getSlices()) {
-//      leader = slice.getLeader();
-//      if (firstProcessLeader) {
-//        if (!replicaCallback.process(true, leader)) {
-//          return false;
-//        }
-//      }
-//      for (Replica replica : slice.getReplicas()) {
-//        if (leader == replica) {
-//          continue;
-//        }
-//        if (!replicaCallback.process(true, replica)) {
-//          return false;
-//        }
-//      }
-//      if (!firstProcessLeader) {
-//        if (!replicaCallback.process(true, leader)) {
-//          return false;
-//        }
-//      }
-//    }
-//    return true;
-//  }
+  //  /**
+  //   * 遍历所有的副本节点
+  //   *
+  //   * @param collection
+  //   * @param firstProcessLeader
+  //   * @param replicaCallback
+  //   * @return
+  //   * @throws Exception
+  //   */
+  //  public static boolean traverseCollectionReplic(final DocCollection collection, boolean firstProcessLeader,
+  //  ReplicaCallback replicaCallback) throws Exception {
+  //    if (collection == null) {
+  //      throw new IllegalStateException("param collection can not be null");
+  //    }
+  //    Replica leader = null;
+  //    // String requestId = null;
+  //    for (Slice slice : collection.getSlices()) {
+  //      leader = slice.getLeader();
+  //      if (firstProcessLeader) {
+  //        if (!replicaCallback.process(true, leader)) {
+  //          return false;
+  //        }
+  //      }
+  //      for (Replica replica : slice.getReplicas()) {
+  //        if (leader == replica) {
+  //          continue;
+  //        }
+  //        if (!replicaCallback.process(true, replica)) {
+  //          return false;
+  //        }
+  //      }
+  //      if (!firstProcessLeader) {
+  //        if (!replicaCallback.process(true, leader)) {
+  //          return false;
+  //        }
+  //      }
+  //    }
+  //    return true;
+  //  }
 
-//  public static interface ReplicaCallback {
-//    public boolean process(boolean isLeader, Replica replica) throws Exception;
-//  }
+  //  public static interface ReplicaCallback {
+  //    public boolean process(boolean isLeader, Replica replica) throws Exception;
+  //  }
 
 
   private Map<String, CoreNode> getCoreNodeMap(boolean isAppNameAware) {
@@ -1658,7 +1694,8 @@ public class CoreAction extends BasicModule {
   // * 但是在减少副本的时候每组可以一个副本都不选）
   // * @return
   // */
-  private ParseIpResult parseIps(Context context, String serverSuffix, boolean isAppNameAware, boolean mustSelectMoreOneReplicAtLeast) {
+  private ParseIpResult parseIps(Context context, String serverSuffix, boolean isAppNameAware,
+                                 boolean mustSelectMoreOneReplicAtLeast) {
     ParseIpResult result = new ParseIpResult();
     result.valid = false;
     List<String> parseips = new ArrayList<String>();
@@ -1667,7 +1704,8 @@ public class CoreAction extends BasicModule {
       return result;
     }
     if (mustSelectMoreOneReplicAtLeast && ips.length < 1) {
-      addErrorMessage(context, "请" + (StringUtils.isNotEmpty(serverSuffix) ? "为第" + serverSuffix + "组" : StringUtils.EMPTY) + "选择服务器");
+      addErrorMessage(context, "请" + (StringUtils.isNotEmpty(serverSuffix) ? "为第" + serverSuffix + "组" :
+        StringUtils.EMPTY) + "选择服务器");
       return result;
     }
     // StringBuffer ipLiteria = new StringBuffer();
@@ -1690,7 +1728,8 @@ public class CoreAction extends BasicModule {
       }
       if (nodeinfo != null) {
         if (current.getLuceneSpecVersion() != nodeinfo.getLuceneSpecVersion()) {
-          this.addErrorMessage(context, (StringUtils.isNotEmpty(serverSuffix) ? "第" + serverSuffix + "组" : StringUtils.EMPTY) + "服务器Lucene版本不一致");
+          this.addErrorMessage(context, (StringUtils.isNotEmpty(serverSuffix) ? "第" + serverSuffix + "组" :
+            StringUtils.EMPTY) + "服务器Lucene版本不一致");
           return result;
         }
       }
@@ -2218,11 +2257,13 @@ public class CoreAction extends BasicModule {
   // + "副本成功!");
   // }
   //
-  private FCoreRequest createCoreRequest(Context context, Integer group, Integer replica, String setVerbs, boolean mustSelectMoreOneReplicAtLeast) {
+  private FCoreRequest createCoreRequest(Context context, Integer group, Integer replica, String setVerbs,
+                                         boolean mustSelectMoreOneReplicAtLeast) {
     return createCoreRequest(context, 0, group, replica, setVerbs, mustSelectMoreOneReplicAtLeast);
   }
 
-  private FCoreRequest createCoreRequest(Context context, int assignGroupCount, int group, int replica, String setVerbs, boolean mustSelectMoreOneReplicAtLeast) {
+  private FCoreRequest createCoreRequest(Context context, int assignGroupCount, int group, int replica,
+                                         String setVerbs, boolean mustSelectMoreOneReplicAtLeast) {
     return createCoreRequest(context, assignGroupCount, group, replica, setVerbs, /* isAppNameAware */
       false, mustSelectMoreOneReplicAtLeast);
   }
@@ -2235,7 +2276,9 @@ public class CoreAction extends BasicModule {
    * @param setVerbs
    * @return
    */
-  private FCoreRequest createCoreRequest(Context context, int assignGroupCount, int group, int replica, String setVerbs, boolean isAppNameAware, boolean mustSelectMoreOneReplicAtLeast) {
+  private FCoreRequest createCoreRequest(Context context, int assignGroupCount, int group, int replica,
+                                         String setVerbs, boolean isAppNameAware,
+                                         boolean mustSelectMoreOneReplicAtLeast) {
     // boolean valid = false;
     // CoreRequest request = ;
     CoreRequest coreRequest = createIps(context, this.getCollectionName().getPipelineName(), null);
@@ -2244,7 +2287,8 @@ public class CoreAction extends BasicModule {
     // 不用为单独的一个组设置服务ip地址
     final int GROUP_SIZE = 1;
     for (int i = 0; i < GROUP_SIZE; i++) {
-      ParseIpResult parseResult = parseIps(context, String.valueOf(assignGroupCount + i), isAppNameAware, mustSelectMoreOneReplicAtLeast);
+      ParseIpResult parseResult = parseIps(context, String.valueOf(assignGroupCount + i), isAppNameAware,
+        mustSelectMoreOneReplicAtLeast);
       if (parseResult.valid && parseResult.ips.length > 0) {
         if ((parseResult.ips.length * MAX_SHARDS_PER_NODE) < (group * replica)) {
           this.addErrorMessage(context, "您选择的机器节点不足,至少要" + ((group * replica) / MAX_SHARDS_PER_NODE) + "台机器");

@@ -43,8 +43,8 @@ public class ConsoleStart {
 
 
     TisApp app = new TisApp(TisSubModule.TIS_CONSOLE, (context) -> {
-      HttpServletStreamableServerTransportProvider mcpProvider = TISHttpMcpServer.getMcpProvider();
-      context.addServlet(new ServletHolder(mcpProvider), "/mcp/*");
+//      HttpServletStreamableServerTransportProvider mcpProvider = TISHttpMcpServer.getMcpProvider();
+//      context.addServlet(new ServletHolder(mcpProvider), "/mcp/*");
       context.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
       context.setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "true");
     });

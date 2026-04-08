@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 public class ColumnMetaData extends Option implements IColMetaGetter {
 
     public static final String KEY_COLS_METADATA = "cols-metadata";
+    public static final String KEY_COMMENT = "comment";
 
     public static Map<String, ColumnMetaData> toMap(List<ColumnMetaData> cols) {
         TreeMap<String, ColumnMetaData> result = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -59,15 +60,15 @@ public class ColumnMetaData extends Option implements IColMetaGetter {
 
         }).collect(Collectors.toList());
 
-//        ColumnMetaData c = this;
-//        CMeta cmeta = createCmeta();
-//        cmeta.setName(c.getName());
-//        cmeta.setComment(c.getComment());
-//        cmeta.setPk(c.isPk());
-//        cmeta.setType(c.getType());
-//        cmeta.setNullable(c.isNullable());
-//
-//        return c.convert();
+        //        ColumnMetaData c = this;
+        //        CMeta cmeta = createCmeta();
+        //        cmeta.setName(c.getName());
+        //        cmeta.setComment(c.getComment());
+        //        cmeta.setPk(c.isPk());
+        //        cmeta.setType(c.getType());
+        //        cmeta.setNullable(c.isNullable());
+        //
+        //        return c.convert();
     }
 
     public static void fillSelectedTabMeta(ISelectedTab tab,
@@ -85,8 +86,10 @@ public class ColumnMetaData extends Option implements IColMetaGetter {
                 col.setType(colMeta.getType());
                 col.setComment(colMeta.getComment());
                 col.setNullable(colMeta.isNullable());
-//                throw new IllegalStateException("col:" + col.getName() + " can not find relevant 'col' on "
-//                        + tab.getName() + ",exist Keys:[" + colsMeta.keySet().stream().collect(Collectors.joining(",")) + "]");
+                //                throw new IllegalStateException("col:" + col.getName() + " can not find relevant
+                //                'col' on "
+                //                        + tab.getName() + ",exist Keys:[" + colsMeta.keySet().stream().collect
+                //                        (Collectors.joining(",")) + "]");
             }
 
         }

@@ -415,11 +415,15 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "datasource", //
             "数据源", //
             Selectable.Single, true) {
+
         @Override
-        public Pair<DataXName, UploadPluginMeta> createPKToken(IdentityName id) {
-            return Pair.of(DataXName.createDS(id.identityValue()),
-                    PostedDSProp.createPluginMeta(DBIdentity.parseId(id.identityValue()), false));
+        public Pair<DataXName, UploadPluginMeta> createPKToken(Optional<String> hostPluginId, AttrValMap valMap) {
+            String primaryFieldVal = valMap.getPrimaryFieldVal();
+            return Pair.of(DataXName.createDS(primaryFieldVal),
+                    PostedDSProp.createPluginMeta(DBIdentity.parseId(primaryFieldVal), false));
         }
+
+
         //        @Override
         //        public List<Option> getExistItems(Descriptor<DataSourceFactory> pluginDesc) {
         //            // return super.getExistItems(pluginDesc);
@@ -454,6 +458,21 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "dataxReader", //
             "DataX Reader", //
             Selectable.Multi, true) {
+        //        @Override
+        //        public Pair<DataXName, UploadPluginMeta> createPKToken(Optional<String> hostPluginId, AttrValMap
+        //        valMap) {
+        //            return super.createPKToken(hostPluginId, valMap);
+        //        }
+
+        @Override
+        public Pair<DataXName, UploadPluginMeta> createPKToken(Optional<String> hostPluginId, AttrValMap valMap) {
+
+            String id = hostPluginId.orElseThrow();
+
+            return Pair.of(DataXName.createDataXPipeline(id),
+                    UploadPluginMeta.appnameMeta(IPluginContext.namedContext(id), id));
+        }
+
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
             return getDataXReaderAndWriterStore(pluginContext, true, pluginMeta, Optional.empty());
@@ -465,6 +484,14 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "dataxWriter", //
             "DataX Writer", //
             Selectable.Multi, true) {
+
+        @Override
+        public Pair<DataXName, UploadPluginMeta> createPKToken(Optional<String> hostPluginId, AttrValMap valMap) {
+            final String id = hostPluginId.orElseThrow();
+            return Pair.of(DataXName.createDataXPipeline(id),
+                    UploadPluginMeta.appnameMeta(IPluginContext.namedContext(id), id));
+        }
+
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
             return getDataXReaderAndWriterStore(pluginContext, false, pluginMeta);
