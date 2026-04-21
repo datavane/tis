@@ -33,11 +33,33 @@ public enum ViewContent {
      * 表JOIN时的过滤条件
      */
     TableJoinFilterCondition("tableJoinFilterCondition"),
-    Unknow("unknow");
+    /**
+     * 多个可选的单个值
+     */
+    MultiSelectSingleVal("multiSelectSingleVal", false),
+
+    Unknow("unknow", false);
+
     private String token;
+    private boolean colTypeMetasAware;
 
     private ViewContent(String token) {
+        this(token, true);
+    }
+
+    /**
+     *
+     * @param token
+     * @param colTypeMetasAware 是否需要包含 colType的信息
+     * @see DataTypeMeta#createViewBiz(DataTypeMeta.IMultiItemsView, Object)
+     */
+    private ViewContent(String token, boolean colTypeMetasAware) {
         this.token = token;
+        this.colTypeMetasAware = colTypeMetasAware;
+    }
+
+    public boolean isColTypeMetasAware() {
+        return this.colTypeMetasAware;
     }
 
     public String getToken() {

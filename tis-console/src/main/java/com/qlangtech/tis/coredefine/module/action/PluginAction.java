@@ -115,6 +115,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.MultiStepsSupportHost.KEY_MULTI_STEPS_SAVED_ITEMS;
+import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
 
 /**
@@ -163,15 +164,15 @@ public class PluginAction extends BasicModule {
   }
 
 
-  /**
-   * 取得端类型相对应的插件列表
-   *
-   * @param context
-   * @throws Exception
-   */
-  public void doGetEndtypeDescs(Context context) throws Exception {
-
-  }
+  //  /**
+  //   * 取得端类型相对应的插件列表
+  //   *
+  //   * @param context
+  //   * @throws Exception
+  //   */
+  //  public void doGetEndtypeDescs(Context context) throws Exception {
+  //
+  //  }
 
 
   /**
@@ -328,7 +329,7 @@ public class PluginAction extends BasicModule {
   }
 
   private DescriptorField parseDescField() {
-    String pluginImpl = this.getString("impl");
+    String pluginImpl = this.getString(PLUGIN_EXTENSION_IMPL);
     String fieldName = this.getString("field");
     if (StringUtils.isEmpty(pluginImpl)) {
       throw new IllegalArgumentException("param 'impl' can not be null");
@@ -745,6 +746,31 @@ public class PluginAction extends BasicModule {
     this.setBizResult(context, pluginDetail);
   }
 
+
+  /**
+   * 获取服务端渲染值
+   *
+   * @param context
+   * @see Descriptor#getValueChangePipe
+   */
+  public void doRenderValueChange(Context context) {
+    List<UploadPluginMeta> pluginsMeta = getPluginMeta();
+
+    DescriptorField descriptorField = parseDescField();
+    Descriptor targetDesc = Objects.requireNonNull(descriptorField.getTargetDesc()
+      , descriptorField.pluginImpl + " relevant Descriptor can not be null");
+
+    Descriptor.ValueChangePipe valueChangePipe
+      = targetDesc.getValueChangePipe(descriptorField.field);
+
+    for (UploadPluginMeta meta : pluginsMeta) {
+      this.setBizResult(context, valueChangePipe.render(meta, this));
+      return;
+    }
+
+    throw new IllegalStateException("pluginsMeta can not be empty");
+  }
+
   /**
    * 取得所有host插件内嵌的子插件的desc
    *
@@ -825,7 +851,7 @@ public class PluginAction extends BasicModule {
     JSONArray hlist = new JSONArray();
     pluginDetail.put("showExtensionPoint", TIS.get().loadGlobalComponent().isShowExtensionDetail());
     for (UploadPluginMeta pmeta : plugins) {
-
+      context.put(UploadPluginMeta.KEY_PLUGIN_META, pmeta);
       hetero = this.createHeteroList(pmeta);
       if (!pmeta.isUseCache()) {
         hetero.getItems().forEach((p) -> {

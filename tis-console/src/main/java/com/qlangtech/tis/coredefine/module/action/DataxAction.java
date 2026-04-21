@@ -140,6 +140,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.config.module.action.FullbuildWorkflowAction.hasRunningWorkflowInstance;
+import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
 
 /**
  * manage DataX pipe process logic
@@ -326,7 +327,7 @@ public class DataxAction extends BasicModule {
      */
     pmodel.getDataXReader(this, dataxName);
 
-    final String requestDescId = writerDesc.getString("impl");
+    final String requestDescId = writerDesc.getString(PLUGIN_EXTENSION_IMPL);
     DataxWriter writer = pmodel.loadWriter(this, writerDesc, dataxName);
 
     Map<String, Object> pluginInfo = Maps.newHashMap();
@@ -355,7 +356,7 @@ public class DataxAction extends BasicModule {
     if (StringUtils.isEmpty(dataxName)) {
       throw new IllegalStateException("param " + PARAM_KEY_DATAX_NAME + " can not be null");
     }
-    final String requestDescId = readerDesc.getString("impl");
+    final String requestDescId = readerDesc.getString(PLUGIN_EXTENSION_IMPL);
     KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(this, dataxName);
     DataxReader reader = readerStore.getPlugin();
     Map<String, Object> pluginInfo = Maps.newHashMap();

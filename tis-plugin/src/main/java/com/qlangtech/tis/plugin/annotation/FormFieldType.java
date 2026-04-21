@@ -59,6 +59,7 @@ public enum FormFieldType {
     MULTI_SELECTABLE(8, TISJsonSchema.FieldType.Array),
 
     INPUTTEXT(1, TISJsonSchema.FieldType.String),
+
     /**
      * 有多个选项可以选择
      */
@@ -384,9 +385,9 @@ public enum FormFieldType {
             return cmeta;
         }
 
-//        public boolean isChecked() {
-//            return checked;
-//        }
+        //        public boolean isChecked() {
+        //            return checked;
+        //        }
     }
 
     public interface IPropValProcessor {

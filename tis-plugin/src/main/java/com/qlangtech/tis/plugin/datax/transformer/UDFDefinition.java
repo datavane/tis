@@ -29,6 +29,7 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
 
 import java.io.Serializable;
 import java.util.List;
@@ -81,7 +82,7 @@ public abstract class UDFDefinition implements Describable<UDFDefinition>, Manip
     }
 
     @Override
-    public void manipuldateProcess(IPluginContext pluginContext, Optional<Context> context) {
+    public void manipuldateProcess(IPluginContext pluginContext, UploadPluginMeta pluginMeta, Optional<Context> context) {
 
         try {
             // 直接传输到前端UI上

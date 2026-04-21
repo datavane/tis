@@ -18,6 +18,7 @@
 package com.qlangtech.tis.extension;
 
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.TIS;
 
 /**
@@ -26,6 +27,8 @@ import com.qlangtech.tis.TIS;
  */
 public interface Describable<T extends Describable<T>> {
 
+    @SuppressWarnings("all")
+    @JSONField(serialize = false)
     default Descriptor<T> getDescriptor() {
         return TIS.get().getDescriptor(this.getClass());
     }

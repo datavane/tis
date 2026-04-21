@@ -1,0 +1,1 @@
+{  "constraint": {    "label": "约束规则",    "subDescEnumFilter": "return com.qlangtech.tis.plugin.ontology.impl.valuetype.ConstraintsOfValueType.descFilter(desc);",    "help": "com.qlangtech.tis.plugin.ontology.impl.valuetype.ConstraintsOfValueType.generateConstraintHelp():uncache_true"  }}

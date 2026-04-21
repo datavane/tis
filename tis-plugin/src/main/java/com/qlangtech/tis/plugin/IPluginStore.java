@@ -24,6 +24,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
 
 import java.util.Collections;
 import java.util.List;
@@ -42,65 +43,72 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
      * @return
      * @see com.qlangtech.tis.plugin.trigger.JobTrigger
      */
-    public static <T extends Describable> IPluginStore<T> noSaveStore() {
-        return new IPluginStore<T>() {
-            @Override
-            public T getPlugin() {
-                return null;
-            }
-
-            @Override
-            public List<T> getPlugins() {
-                return Collections.emptyList();
-            }
-
-            @Override
-            public void cleanPlugins() {
-
-            }
-
-            @Override
-            public List<Descriptor<T>> allDescriptor() {
-                return Collections.emptyList();
-            }
-
-            @Override
-            public T find(String name, boolean throwNotFoundErr) {
-                return null;
-            }
-
+    public static <T extends Describable<T>> IPluginStore<T> noSaveStore(UploadPluginMeta pluginMeta) {
+        return new AdapterPluginStore<>() {
             @Override
             public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context,
                                                List<ParseDescribable<T>> dlist, boolean update) {
-
-                dlist.stream().forEach((plugin) -> {
+                dlist.forEach((plugin) -> {
                     plugin.getSubFormInstances().forEach((p) -> {
                         if (!(p instanceof ManipuldateProcessor)) {
                             throw new IllegalStateException("instance of " + p.getClass().getName() + " must be type "
                                     + "of " + ManipuldateProcessor.class.getSimpleName());
                         }
-                        ((ManipuldateProcessor) p).manipuldateProcess(pluginContext, context);
+                        ((ManipuldateProcessor) p).manipuldateProcess(pluginContext, pluginMeta, context);
                     });
                 });
-
                 return new SetPluginsResult(true, false);
             }
-
-            @Override
-            public void copyConfigFromRemote() {
-
-            }
-
-            @Override
-            public long getWriteLastModifyTimeStamp() {
-                return 0;
-            }
-
-            @Override
-            public XmlFile getTargetFile() {
-                return null;
-            }
         };
+    }
+
+    public static class AdapterPluginStore<T extends Describable<T>> implements IPluginStore<T> {
+        @Override
+        public T getPlugin() {
+            return null;
+        }
+
+        @Override
+        public List<T> getPlugins() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public void cleanPlugins() {
+
+        }
+
+        @Override
+        public List<Descriptor<T>> allDescriptor() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public T find(String name, boolean throwNotFoundErr) {
+            return null;
+        }
+
+        @Override
+        public SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context,
+                                           List<ParseDescribable<T>> dlist, boolean update) {
+
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void copyConfigFromRemote() {
+
+        }
+
+        @Override
+        public long getWriteLastModifyTimeStamp() {
+            return 0;
+        }
+
+        @Override
+        public XmlFile getTargetFile() {
+            return null;
+        }
     }
 
     public T getPlugin();
@@ -161,7 +169,7 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
         /**
          * 执行处理
          */
-        void manipuldateProcess(IPluginContext pluginContext, Optional<Context> context);
+        void manipuldateProcess(IPluginContext pluginContext, UploadPluginMeta pluginMeta, Optional<Context> context);
     }
 
     interface AfterPluginVerified {

@@ -502,7 +502,7 @@ public class DataXCfgGenerator implements IDataXNameAware {
                 return Collections.emptyList();
             }
             GenerateCfgs dataxCfgFileNames = dataxProcessor.getDataxCfgFileNames(null, Optional.empty());
-            return (dataxCfgFileNames.getTargetTabs().stream().map((tab) -> new Option(tab)).collect(Collectors.toList()));
+            return (dataxCfgFileNames.getTargetTabs().stream().map(Option::new).collect(Collectors.toList()));
         }
 
         @JSONField(serialize = false)

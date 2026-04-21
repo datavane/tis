@@ -202,7 +202,7 @@ public class CMeta extends TypeBase implements Serializable, IColMetaGetter, Ide
     }
 
     /**
-     * https://github.com/datavane/tis/issues/433
+     * <a href="https://github.com/datavane/tis/issues/433">...</a>
      */
     public static class VirtualCMeta extends CMeta {
         /**

@@ -63,7 +63,7 @@ public class TransformerRuleKey extends KeyedPluginStore.AppKey {
     }
 
     @Override
-    public String getSerializeFileName() {
+    public String getSerializeFileRelativePath() {
         return this.getSubDirPath() + File.separator + tableName;
     }
 }

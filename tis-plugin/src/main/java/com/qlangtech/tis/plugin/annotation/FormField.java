@@ -26,6 +26,11 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 public @interface FormField {
     /**
+     *
+     * @return
+     */
+    boolean prompt4llm() default false;
+    /**
      * 替换IdentityName接口的功能，说明一个插件中有一个field的值能代表该插件的唯一ID，不过一个插件中只能有一个field标记为identity=true
      */
     boolean identity() default false;

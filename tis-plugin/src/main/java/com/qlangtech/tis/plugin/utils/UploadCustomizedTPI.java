@@ -36,6 +36,7 @@ import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PluginMeta;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -88,7 +89,7 @@ public class UploadCustomizedTPI implements Describable<UploadCustomizedTPI>, IT
     }
 
     @Override
-    public void manipuldateProcess(IPluginContext pluginContext, Optional<Context> context) {
+    public void manipuldateProcess(IPluginContext pluginContext, UploadPluginMeta meta, Optional<Context> context) {
         PluginManager pm = TIS.get().getPluginManager();
         TmpFile tmpFile = getTmpeFile();
 //        PluginManifest manifest = PluginManifest.create(tmpFile.tmp);

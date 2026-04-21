@@ -63,13 +63,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.qlangtech.tis.plugin.IEndTypeGetter.EndType.KEY_END_TYPE;
+import static com.qlangtech.tis.manage.common.Option.KEY_END_TYPE;
 import static com.qlangtech.tis.util.HeteroEnum.DATASOURCE;
 
 /**

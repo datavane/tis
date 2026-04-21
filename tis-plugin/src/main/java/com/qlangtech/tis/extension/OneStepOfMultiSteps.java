@@ -28,6 +28,7 @@ import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.io.Serializable;
@@ -135,7 +136,8 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
      * @see MultiStepsSupportHost
      */
     @Override
-    public final void manipuldateProcess(IPluginContext pluginContext, Optional<Context> context) {
+    public final void manipuldateProcess(IPluginContext pluginContext, UploadPluginMeta pluginMeta,
+                                         Optional<Context> context) {
         try {
             Context currentCtx = context.orElseThrow();
 

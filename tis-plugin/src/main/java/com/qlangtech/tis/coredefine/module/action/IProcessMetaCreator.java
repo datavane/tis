@@ -7,6 +7,8 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.util.IPluginContext;
 
+import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -33,9 +35,9 @@ interface IProcessMetaCreator {
     default DataXBasicProcessMeta createProcessMeta(IPluginContext pluginContext
             , String dataXName, JSONObject reader, JSONObject writer) throws Exception {
         DataxReader.BaseDataxReaderDescriptor readerDesc
-                = (DataxReader.BaseDataxReaderDescriptor) TIS.get().getDescriptor(reader.getString("impl"));
+                = (DataxReader.BaseDataxReaderDescriptor) TIS.get().getDescriptor(reader.getString(PLUGIN_EXTENSION_IMPL));
         DataxWriter.BaseDataxWriterDescriptor writerDesc
-                = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString("impl"));
+                = (DataxWriter.BaseDataxWriterDescriptor) TIS.get().getDescriptor(writer.getString(PLUGIN_EXTENSION_IMPL));
 
         return createProcessMeta(pluginContext, dataXName, readerDesc, writerDesc);
     }

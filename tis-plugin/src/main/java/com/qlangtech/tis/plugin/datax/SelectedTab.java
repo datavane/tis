@@ -98,6 +98,7 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
     public static final String KEY_SOURCE_PROPS = "sourceProps";
     public static final String KEY_FIELD_COLS = "cols";
     public static final String KEY_FIELD_PRIMARY_KEYS = "primaryKeys";
+    public static final String KEY_FILED_TABLE_NAME = "tableName";
     private static final Logger logger = LoggerFactory.getLogger(SelectedTab.class);
 
     // 针对增量构建流程中的属性扩展
@@ -109,11 +110,11 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
                                                                    String pipelineName) {
         UploadPluginMeta selectedTabsMeta = UploadPluginMeta.parse(pluginCtx,
                 HeteroEnum.DATAX_READER.identity + ":" + KEY_REQUIRE + "," + PLUGIN_META_TARGET_DESCRIPTOR_IMPLEMENTION + "_" //
-                + descriptor.getId() + "," + PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_" //
-                + descriptor.getDisplayName() + "," //
-                + PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," //
-                + DATAX_NAME + "_" + pipelineName//
-                + "," + MAX_READER_TABLE_SELECT_COUNT + "_999", false);
+                        + descriptor.getId() + "," + PLUGIN_META_TARGET_DESCRIPTOR_NAME + "_" //
+                        + descriptor.getDisplayName() + "," //
+                        + PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," //
+                        + DATAX_NAME + "_" + pipelineName//
+                        + "," + MAX_READER_TABLE_SELECT_COUNT + "_999", false);
         return selectedTabsMeta;
     }
 

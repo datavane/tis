@@ -188,7 +188,7 @@ public class MultiItemsViewType implements IMultiItemsView {
         } //
                 , (obj) -> {
             List<CMeta> mulitOpt = (List<CMeta>) obj;
-            return mulitOpt.stream().map((c) -> c.getName()).collect(Collectors.toList());
+            return mulitOpt.stream().map(CMeta::getName).collect(Collectors.toList());
         }), TupleList("tuplelist" //
                 , (attrDesc, msgHandler, context, eprops) -> {
 

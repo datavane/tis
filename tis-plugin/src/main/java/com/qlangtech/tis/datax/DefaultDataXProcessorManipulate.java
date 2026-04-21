@@ -37,6 +37,7 @@ import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.manipulate.ManipulateItemsProcessor;
 import com.qlangtech.tis.plugin.ds.manipulate.ManipuldateUtils;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -44,7 +45,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -89,7 +89,7 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
             for (String pipe : subDirs) {
                 DataXName dataXName = DataXName.createDataXPipeline(pipe);
 
-                if (getStoreKey(null, dataXName).getSotreFile().exists()) {
+                if (getStoreKey(null, dataXName).getStoreXmlFile().exists()) {
                     target.add(pipe);
                     getManipulateStore(dataXName, false);
                 }
@@ -209,14 +209,15 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
     }
 
     @Override
-    public final void manipuldateProcess(IPluginContext pluginContext, Optional<Context> context) {
+    public final void manipuldateProcess(IPluginContext pluginContext, UploadPluginMeta pluginMeta,
+                                         Optional<Context> context) {
         synchronized (DefaultDataXProcessorManipulate.class) {
             /**
              * 校验
              */
             ManipulateItemsProcessor itemsProcessor = ManipuldateUtils.instance(pluginContext, context.orElseThrow(),
                     this.getNewIdentityName(), (meta) -> {
-            });
+                    });
             //            if (org.apache.commons.lang.StringUtils.isEmpty()) {
             //                throw new IllegalStateException("originId can not be null");
             //            }
@@ -251,7 +252,7 @@ public abstract class DefaultDataXProcessorManipulate implements Describable<Def
                 }
             }
 
-           // afterManipuldateProcess(pluginContext, context, itemsProcessor);
+            // afterManipuldateProcess(pluginContext, context, itemsProcessor);
 
             if (desc.isManipulateStorable()) {
                 /**

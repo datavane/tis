@@ -103,60 +103,62 @@ public class DataTypeMeta {
         }
         biz.put("tabMapper", Objects.requireNonNull(tabMapper, "tabMapper can not be null"));
 
-        JSONArray types = new JSONArray();
-        JSONObject type = null;
-        JSONObject dt = null;
-        DataType t = null;
-        DataTypeMeta meta = null;
-        JDBCTypes jdbcType = null;
 
-        for (Map.Entry<JDBCTypes, DataTypeMeta> entry
-                : DataTypeMeta.getTypeMetasDic().entrySet()) {
-            meta = entry.getValue();
-            jdbcType = entry.getKey();
-            type = new JSONObject();
-            type.put("containColSize", meta.isContainColSize());
-            type.put("containDecimalRange", meta.isContainDecimalRange());
-            dt = new JSONObject();
+        if (multiItemsView.getViewContent().isColTypeMetasAware()) {
+            JSONArray types = new JSONArray();
+            JSONObject type = null;
+            JSONObject dt = null;
+            DataType t = null;
+            DataTypeMeta meta = null;
+            JDBCTypes jdbcType = null;
 
-            t = meta.getType();
+            for (Map.Entry<JDBCTypes, DataTypeMeta> entry
+                    : DataTypeMeta.getTypeMetasDic().entrySet()) {
+                meta = entry.getValue();
+                jdbcType = entry.getKey();
+                type = new JSONObject();
+                type.put("containColSize", meta.isContainColSize());
+                type.put("containDecimalRange", meta.isContainDecimalRange());
+                dt = new JSONObject();
 
-            dt.put("columnSize", t.getColumnSize());
-            dt.put("decimalDigits", t.getDecimalDigits());
-            dt.put("type", jdbcType.type);
-            dt.put("typeDesc", t.getTypeDesc());
-            // dt.put("typeName", t.typeName);
-            dt.put("typeName", jdbcType.getLiteria());
+                t = meta.getType();
 
-            ColSizeRange colsSizeRange = meta.getColsSizeRange();
-            if (colsSizeRange != null) {
-                //                "colsSizeRange": {
-                //                    "max": 46,
-                //                            "min": 1
-                //                },
-                JSONObject range = new JSONObject();
-                range.put("max", colsSizeRange.getMax());
-                range.put("min", colsSizeRange.getMin());
-                type.put("colsSizeRange", range);
+                dt.put("columnSize", t.getColumnSize());
+                dt.put("decimalDigits", t.getDecimalDigits());
+                dt.put("type", jdbcType.type);
+                dt.put("typeDesc", t.getTypeDesc());
+                // dt.put("typeName", t.typeName);
+                dt.put("typeName", jdbcType.getLiteria());
+
+                ColSizeRange colsSizeRange = meta.getColsSizeRange();
+                if (colsSizeRange != null) {
+                    //                "colsSizeRange": {
+                    //                    "max": 46,
+                    //                            "min": 1
+                    //                },
+                    JSONObject range = new JSONObject();
+                    range.put("max", colsSizeRange.getMax());
+                    range.put("min", colsSizeRange.getMin());
+                    type.put("colsSizeRange", range);
+                }
+
+                DecimalRange decimalRange = meta.getDecimalRange();
+                if (decimalRange != null) {
+                    JSONObject range = new JSONObject();
+                    //                "decimalRange": {
+                    //                    "max": 20,
+                    //                            "min": 1
+                    //                },
+                    range.put("max", decimalRange.getMax());
+                    range.put("min", decimalRange.getMin());
+                    type.put("decimalRange", range);
+                }
+
+                type.put("type", dt);
+                types.add(type);
             }
-
-            DecimalRange decimalRange = meta.getDecimalRange();
-            if (decimalRange != null) {
-                JSONObject range = new JSONObject();
-                //                "decimalRange": {
-                //                    "max": 20,
-                //                            "min": 1
-                //                },
-                range.put("max", decimalRange.getMax());
-                range.put("min", decimalRange.getMin());
-                type.put("decimalRange", range);
-            }
-
-            type.put("type", dt);
-            types.add(type);
+            biz.put("colMetas", types);
         }
-
-        biz.put("colMetas", types);
         multiItemsView.appendExternalJsonProp(biz);
         return biz;
     }

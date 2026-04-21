@@ -39,6 +39,7 @@ import java.util.Map;
 import static com.qlangtech.tis.mcp.tools.pipeline.CreatePipelinePrepareTool.KEY_SOURCE_END;
 import static com.qlangtech.tis.mcp.tools.pipeline.CreatePipelinePrepareTool.KEY_TARGET_END;
 import static com.qlangtech.tis.runtime.module.action.SysInitializeAction.getClassPathXmlApplicationContext;
+import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -95,7 +96,7 @@ public class TestCreatePipelinePrepareTool extends TestCase {
     pipelineVals.put("globalCfg", "test");
 
     Map<String, Object> pipelineArgs = new HashMap<>();
-    pipelineArgs.put("impl", CreatePipelinePrepareTool.KEY_DEFAULT_DATAX_PROCESS_IMPL);
+    pipelineArgs.put(PLUGIN_EXTENSION_IMPL, CreatePipelinePrepareTool.KEY_DEFAULT_DATAX_PROCESS_IMPL);
     pipelineArgs.put("vals", pipelineVals);
 
     // 构造完整请求参数

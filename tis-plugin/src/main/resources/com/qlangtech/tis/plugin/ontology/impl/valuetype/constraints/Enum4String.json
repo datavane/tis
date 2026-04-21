@@ -1,0 +1,1 @@
+{  "caseInsensitive": {    "label": "忽略大小写"  },  "enumVals": {    "label": "可用值",    "elementCreator": "com.qlangtech.tis.plugin.ontology.impl.valuetype.constraints.Enum4StringValsCreatorFactory",    "enum": "com.qlangtech.tis.plugin.ontology.impl.valuetype.constraints.Enum4StringValsCreatorFactory.getVals():uncache_true",    "viewtype": "tuplelist",    "help": ""  }}

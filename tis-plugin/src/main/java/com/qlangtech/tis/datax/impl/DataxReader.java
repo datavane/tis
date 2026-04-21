@@ -30,7 +30,6 @@ import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.IGroupChildTaskIterator;
 import com.qlangtech.tis.datax.IStreamTableMeta;
-import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.PluginFormProperties;
@@ -415,7 +414,7 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
                                 Map<String, SelectedTab> tabsExtend = SelectedTabExtend.getTabExtend(pluginContext,
                                         appname);
                                 // 子表单中的内容更新了之后，要同步父表单中的状态
-                                subFieldStore.addPluginsUpdateListener(new PluginStore.PluginsUpdateListener(subFieldKey.getSerializeFileName(), reader) {
+                                subFieldStore.addPluginsUpdateListener(new PluginStore.PluginsUpdateListener(subFieldKey.getSerializeFileRelativePath(), reader) {
                                     @Override
                                     public void accept(PluginStore<Describable> pluginStore) {
                                         // logger.info("execute setReaderSubFormProp2,subitem count:" + pluginStore
@@ -525,10 +524,10 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
         }
 
         @Override
-        public String getSerializeFileName() {
+        public String getSerializeFileRelativePath() {
             //  return this.getSubDirPath() + File.separator + this.subfieldForm.getSubFormFieldName() + File
             //  .separator + subformDetailId;
-            return super.getSerializeFileName() + "." + this.subfieldForm.getSubFormFieldName();
+            return super.getSerializeFileRelativePath() + "." + this.subfieldForm.getSubFormFieldName();
         }
     }
 

@@ -28,7 +28,6 @@ import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.MultiStepsHostPluginFormProperties;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.plugin.IdentityName;
-import com.qlangtech.tis.trigger.util.UnCacheStringSerializer;
 
 import java.util.Map;
 import java.util.Objects;

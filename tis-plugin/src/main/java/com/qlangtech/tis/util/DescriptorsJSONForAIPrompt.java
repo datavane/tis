@@ -295,16 +295,26 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
 
     @Override
     protected boolean propertyAccept(PropertyType val) {
-        //        if (val.extraProp.getDftVal() != null) {
-        //            return false;
-        //        }
-        //        for (Validator validator : val.getValidator()) {
-        //            // 为了避免提交给大模型的prompt文案太多，这里只需要大模型解析 requeird 为true，且dftVal为空的
-        //            if (validator == Validator.require) {
-        //                return true;
-        //            }
-        //        }
         return true;
+//        if (val.formField.prompt4llm()) {
+//            return true;
+//        }
+//
+//        if (val.isIdentity()) {
+//            return true;
+//        }
+//
+//        if (val.extraProp.getDftVal() != null) {
+//            return false;
+//        }
+//
+//        for (Validator validator : val.getValidator()) {
+//            // 为了避免提交给大模型的prompt文案太多，这里只需要大模型解析 requeird 为true，且dftVal为空的
+//            if (validator == Validator.require) {
+//                return true;
+//            }
+//        }
+//        return false;
     }
 
     @Override

@@ -38,6 +38,7 @@ import java.util.function.BiFunction;
 import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_PLUGIN_DESCRIPTOR_ID;
 import static com.qlangtech.tis.mcp.TISHttpMcpServer.parseAttrValMap;
 import static com.qlangtech.tis.runtime.module.action.SysInitializeAction.getClassPathXmlApplicationContext;
+import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -174,7 +175,7 @@ public class TestTISHttpMcpServer extends TestCase {
         , "timeZone", "Asia/Shanghai"));
 
     Map<String, Object> args = new HashMap<>();
-    args.put("impl", "com.qlangtech.tis.plugin.ds.mysql.MySQLV5DataSourceFactory");
+    args.put(PLUGIN_EXTENSION_IMPL, "com.qlangtech.tis.plugin.ds.mysql.MySQLV5DataSourceFactory");
     args.put("vals", vals);
 
     McpSchema.CallToolRequest request = new McpSchema.CallToolRequest("create_datasource", args);
@@ -240,7 +241,7 @@ public class TestTISHttpMcpServer extends TestCase {
       mcpServer.createDataSourcecallHandler("创建MySQL数据源", pluginImpl);
 
     Map<String, Object> args = new HashMap<>();
-    args.put("impl", "non.existent.PluginClass");
+    args.put(PLUGIN_EXTENSION_IMPL, "non.existent.PluginClass");
     args.put("vals", new HashMap<>());
     McpSchema.CallToolRequest request = new McpSchema.CallToolRequest("create_datasource", args);
 

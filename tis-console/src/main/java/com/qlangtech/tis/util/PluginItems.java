@@ -20,29 +20,30 @@ package com.qlangtech.tis.util;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.struts2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.coredefine.module.action.PluginItemsParser;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.plugin.IEndTypeGetter;
-import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IPluginStoreSave;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.SetPluginsResult;
-import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.plugin.ontology.OntologyDomain;
+import com.qlangtech.tis.plugin.ontology.OntologyValueType;
+import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.utils.DBsGetter;
 import com.qlangtech.tis.workflow.dao.IWorkflowDAOFacade;
@@ -167,7 +168,7 @@ public class PluginItems implements IPluginItemsProcessor {
    * @return
    */
   private static List<IdentityName> loadExistDbs(boolean listen2SaveEvent, String... extendClass) {
-   // final ActionContext actionContext = BasicServlet.getActionContext();
+    // final ActionContext actionContext = BasicServlet.getActionContext();
     if (extendClass == null || extendClass.length < 1) {
       throw new IllegalArgumentException("param extendClass can not be null");
     }
@@ -365,6 +366,17 @@ public class PluginItems implements IPluginItemsProcessor {
     } else if (heteroEnum == HeteroEnum.noStore) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else if (heteroEnum == HeteroEnum.TRANSFORMER_RULES) {
+      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
+    } else if (heteroEnum == OntologyDomain.ONTOLOGY_DOMAIN) {
+      for (Descriptor.ParseDescribable<?> plugin : dlist) {
+        if (StringUtils.isEmpty(pluginMeta.getExtraParam(OntologyDomain.NAME_ONTOLOGY_DOMAIN))) {
+          pluginMeta.putExtraParams(OntologyDomain.NAME_ONTOLOGY_DOMAIN,
+            ((IdentityName) plugin.getInstance()).identityValue());
+        }
+        break;
+      }
+      store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
+    } else if (heteroEnum == OntologyValueType.ONTOLOGY_VALUE_TYPE) {
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else {
       if (heteroEnum.isAppNameAware()) {

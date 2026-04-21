@@ -102,7 +102,8 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
                     lastModfiyTimeStamp = Long.parseLong(FileUtils.readFileToString(lastModify, TisUTF8.get()));
                 }
                 if (resolveMeta) {
-                    Iterator<File> files = FileUtils.iterateFiles(appDir, new String[]{DOMUtil.XML_RESERVED_PREFIX}, true);
+                    Iterator<File> files = FileUtils.iterateFiles(appDir, new String[]{DOMUtil.XML_RESERVED_PREFIX},
+                            true);
                     metas = ComponentMeta.loadPluginMeta(() -> {
                         return Lists.newArrayList(files);
                     });
@@ -141,7 +142,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
     }
 
     public KeyedPluginStore(Key key, IPluginProcessCallback<T>... pluginCreateCallback) {
-        super(key.pluginClass.getClazz(), key.getSotreFile(), pluginCreateCallback);
+        super(key.pluginClass.getClazz(), key.getStoreXmlFile(), pluginCreateCallback);
         this.key = key;
     }
 
@@ -187,7 +188,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
     @Override
     protected String getSerializeFileName() {
-        return key.getSerializeFileName();
+        return key.getSerializeFileRelativePath();
     }
 
     public static class Key<T extends Describable> {
@@ -217,16 +218,30 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             this.metaCfgDir = metaCfgDir;
         }
 
-        public String getSerializeFileName() {
-            return this.getSubDirPath() + File.separator + pluginClass.getName();
+        public String getSerializeFileRelativePath() {
+            return this.getSubDirPath() + File.separator + getFileName();
+        }
+
+        /**
+         * 取得文件名
+         *
+         * @return
+         */
+        protected String getFileName() {
+            return pluginClass.getName();
         }
 
         public final String getSubDirPath() {
             return groupName + File.separator + keyVal.getKeyVal();
         }
 
-        public XmlFile getSotreFile() {
-            return Descriptor.getConfigFile(getSerializeFileName(), this.metaCfgDir);
+        public File getStoreFile() {
+            String pluginId = getSerializeFileRelativePath();
+            return Descriptor.getFile(pluginId, this.metaCfgDir);
+        }
+
+        public XmlFile getStoreXmlFile() {
+            return new XmlFile(getStoreFile(), Descriptor.getPluginFileName(getSerializeFileRelativePath()));
         }
 
         @Override
@@ -264,8 +279,10 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
             PluginClassCategory<?> that = (PluginClassCategory<?>) o;
             return Objects.equals(this.hashCode(), that.hashCode());
         }
@@ -321,7 +338,8 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         }
 
         public String getKeyVal() {
-            StringBuffer keyVal = new StringBuffer(StringUtils.isBlank(this.suffix) ? getVal() : TMP_DIR_NAME + (getVal() + "-" + this.suffix));
+            StringBuffer keyVal = new StringBuffer(StringUtils.isBlank(this.suffix) ? getVal() :
+                    TMP_DIR_NAME + (getVal() + "-" + this.suffix));
             subPath.ifPresent((sub) -> {
                 keyVal.append(File.separator).append(sub);
             });
@@ -348,8 +366,9 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         public AppKey(IPluginContext pluginContext, StoreResourceType resourceType, String appname,
                       PluginClassCategory<TT> clazz) {
             this(calAppName(pluginContext, appname), resourceType, clazz);
-//            super(resourceType.getType(), calAppName(pluginContext, appname), clazz, resourceType.useMetaCfgDir);
-//            this.resourceType = resourceType;
+            //            super(resourceType.getType(), calAppName(pluginContext, appname), clazz, resourceType
+            //            .useMetaCfgDir);
+            //            this.resourceType = resourceType;
         }
 
         public AppKey(KeyVal keyVal, StoreResourceType resourceType, PluginClassCategory<TT> clazz) {
@@ -377,7 +396,8 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
          * @param updateAware   是否要关注update处理？
          * @return
          */
-        public static KeyVal calAppName(IPluginContext pluginContext, String appname, Optional<String> subPath, boolean updateAware) {
+        public static KeyVal calAppName(IPluginContext pluginContext, String appname, Optional<String> subPath,
+                                        boolean updateAware) {
             if (pluginContext == null) {
                 return new KeyVal(appname, Objects.requireNonNull(subPath, "subPath can not be null"));
             }
@@ -387,7 +407,8 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
             if (inUpdateProcess && !pluginContext.isCollectionAware()) {
                 throw new IllegalStateException("pluginContext.isCollectionAware() must be true");
             }
-            return (updateAware && pluginContext != null && inUpdateProcess) ? new KeyVal(appname, pluginContext.getExecId(), subPath) :
+            return (updateAware && pluginContext != null && inUpdateProcess) ? new KeyVal(appname,
+                    pluginContext.getExecId(), subPath) :
                     new KeyVal(appname, subPath);
         }
 

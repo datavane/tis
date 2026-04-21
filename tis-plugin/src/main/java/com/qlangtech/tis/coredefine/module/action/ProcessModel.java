@@ -38,6 +38,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
+
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -141,7 +143,7 @@ public enum ProcessModel {
 //      DataxReader.load(pluginContext, name);
 //    }
         DataxWriter writer = (DataxWriter) processor.getWriter(pluginContext, false);
-        final String requestDescId = writerDesc.getString("impl");
+        final String requestDescId = writerDesc.getString(PLUGIN_EXTENSION_IMPL);
         if (this == CreateDatax && writer != null && StringUtils.equals(writer.getDescriptor().getId(), requestDescId)) {
             DataxReader readerPlugin = DataxReader.load(pluginContext, name);
             DataxWriter.BaseDataxWriterDescriptor writerDescriptor = (DataxWriter.BaseDataxWriterDescriptor) writer.getDescriptor();

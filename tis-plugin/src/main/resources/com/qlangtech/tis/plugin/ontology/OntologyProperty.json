@@ -1,0 +1,1 @@
+{  "type": {    "label": "类型",    "enum": "com.qlangtech.tis.plugin.ontology.OntologyType.availableTypes()"  },  "valueType": {    "label": "值类型",    "enum": "com.qlangtech.tis.plugin.ontology.OntologyValueType.availableValTypes():uncache_true"  },  "pk": {    "label": "是否主键",    "dftVal": false  },  "nullable": {    "label": "是否允许为空",    "dftVal": true  }}

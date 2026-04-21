@@ -74,9 +74,9 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
     }
 
     public void testConstructorWithMySQL8() {
-       // String pluginId = "com.qlangtech.tis.plugin.ds.mysql.MySQLV8DataSourceFactory";
+        String pluginId = "com.qlangtech.tis.plugin.ds.mysql.MySQLV8DataSourceFactory";
         //String pluginId = "com.qlangtech.tis.plugin.datax.DataxMySQLWriter";
-        String pluginId = "com.qlangtech.tis.plugin.datax.DataxMySQLReader";
+       // String pluginId = "com.qlangtech.tis.plugin.datax.DataxMySQLReader";
         Descriptor descriptor = TIS.get().getDescriptor(pluginId);
         DescriptorsJSONForAIPrompt descriptorsJSON =
                 new DescriptorsJSONForAIPrompt<>(Collections.singletonList(descriptor), true);

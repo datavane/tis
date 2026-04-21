@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin;
 
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.impl.IOUtils;
+import com.qlangtech.tis.plugin.ontology.OntologyType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
 public interface IEndTypeGetter {
 
     String EndTypeDesc = "endTypeDesc";
-    String EndTypeKey =  "key";
+    String EndTypeKey = "key";
     String EndTypeDescription = "description";
 
     /**
@@ -105,7 +106,7 @@ public interface IEndTypeGetter {
     enum EndTypeCategory {
         Data, Assist, // 报警类别
         Alert, Transformer, // 图标
-        Icon
+        Icon, DataType
     }
 
     /**
@@ -188,6 +189,23 @@ public interface IEndTypeGetter {
         , Blank("blank", EndTypeCategory.Icon, true) //
         , Stop("tis-stop", EndTypeCategory.Icon, true) //
         , Link("tis-link", EndTypeCategory.Icon, true) //
+        , Ontology("ontology", EndTypeCategory.Icon, true) //
+        /**
+         * data type for ontology
+         * @see OntologyType
+         */
+        , DataTypeString("type_string", EndTypeCategory.DataType, true) //
+        , DataTypeInteger("type_integer", EndTypeCategory.DataType, true) //
+        , DataTypeTime("type_time", EndTypeCategory.DataType, true) //
+        , DataTypeBoolean("type_boolean", EndTypeCategory.DataType, true) //
+        , DataTypeByte("type_byte", EndTypeCategory.DataType, true)//
+        , DataTypeDecimal("type_decimal", EndTypeCategory.DataType, true)//
+        , DataTypeArray("type_array", EndTypeCategory.DataType, true)//
+        , DataTypeStruct("type_struct", EndTypeCategory.DataType, true)//
+        , DataTypeBlob("type_blob", EndTypeCategory.DataType, true)//
+        // 地理相关
+        , DataTypeGeo("type_geo", EndTypeCategory.DataType, true)//
+        , DataTypeVector("type_vector", EndTypeCategory.DataType, true)//
 
         //
         , Replace("replace", EndTypeCategory.Transformer, true)//
@@ -208,7 +226,6 @@ public interface IEndTypeGetter {
 
         private static final DefaultIconReference unknowStorageType = new DefaultIconReference(UnKnowStoreType);
 
-        public static String KEY_END_TYPE = "endType";
         public static String KEY_END_TYPE_DESC = "endTypeDesc";
         public static String KEY_SUPPORT_ICON = "supportIcon";
 

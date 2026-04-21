@@ -28,6 +28,7 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.datax.transformer.impl.ExistTargetCoumn;
 import com.qlangtech.tis.plugin.datax.transformer.impl.VirtualTargetColumn;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
 
 import java.io.Serializable;
 import java.util.Optional;
@@ -81,7 +82,7 @@ public abstract class TargetColumn implements Describable<TargetColumn>, Manipul
     }
 
     @Override
-    public void manipuldateProcess(IPluginContext pluginContext, Optional<Context> context) {
+    public void manipuldateProcess(IPluginContext pluginContext, UploadPluginMeta pluginMeta,Optional<Context> context) {
         try {
             // 直接传输到前端UI上
             Context c = context.orElseThrow(() -> new IllegalStateException("context must be present"));

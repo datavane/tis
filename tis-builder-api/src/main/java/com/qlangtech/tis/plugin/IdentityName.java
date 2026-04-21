@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.plugin;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
@@ -92,6 +93,7 @@ public interface IdentityName {
     //}
 
 
+    @JSONField(serialize = false)
     default Class<?> getDescribleClass() {
         return this.getClass();
     }

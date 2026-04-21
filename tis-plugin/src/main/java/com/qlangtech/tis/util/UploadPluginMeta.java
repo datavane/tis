@@ -45,7 +45,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.qlangtech.tis.plugin.IEndTypeGetter.EndType.KEY_END_TYPE;
+import static com.qlangtech.tis.manage.common.Option.KEY_END_TYPE;
 
 /**
  * 解析提交的plugin元数据信息，如果plugin为"xxxplugin:require" 则是在告诉服务端，该plugin必须要有输入内容，该plugin不可缺省
@@ -66,8 +66,8 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     public static final Pattern PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR =
             Pattern.compile("([^" + ATTR_KEY_VALUE_SPLIT + "]+?)" + ATTR_KEY_VALUE_SPLIT + "(" + PATTERN_PLUGIN_ATTRIBUTE.pattern() + ")");
 
-    private static final Pattern PATTERN_PLUGIN_META = Pattern.compile("(.+?)(:(,?(" + PATTERN_PLUGIN_ATTRIBUTE + "))"
-            + "+)?");
+    private static final Pattern PATTERN_PLUGIN_META //
+            = Pattern.compile("(.+?)(:(,?(" + PATTERN_PLUGIN_ATTRIBUTE + "))+)?");
 
     /**
      * 跳过插件实例保存执行流程

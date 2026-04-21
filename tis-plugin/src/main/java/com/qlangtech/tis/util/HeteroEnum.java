@@ -60,6 +60,9 @@ import com.qlangtech.tis.plugin.ds.PostedDSProp;
 import com.qlangtech.tis.plugin.incr.IncrStreamFactory;
 import com.qlangtech.tis.plugin.k8s.K8sImage;
 import com.qlangtech.tis.plugin.k8s.K8sImage.ImageCategory;
+import com.qlangtech.tis.plugin.ontology.OntologyDomain;
+import com.qlangtech.tis.plugin.ontology.OntologyLinker;
+import com.qlangtech.tis.plugin.ontology.OntologyValueType;
 import com.qlangtech.tis.plugin.utils.UploadCustomizedTPI;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -116,7 +119,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "uploadCustomizedTPI", "upload customized TPI", Selectable.Multi, true) {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            return IPluginStore.noSaveStore();
+            return IPluginStore.noSaveStore(pluginMeta);
         }
     };
 
@@ -165,7 +168,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "noStore", "noStore", Selectable.Multi, false) {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            return IPluginStore.noSaveStore();
+            return IPluginStore.noSaveStore(pluginMeta);
         }
     };
 
@@ -177,7 +180,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "transformerUDF", "Transformer UDF", Selectable.Multi, true) {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            return IPluginStore.noSaveStore();
+            return IPluginStore.noSaveStore(pluginMeta);
         }
     };
 
@@ -188,7 +191,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "target-column", "Target Column", Selectable.Multi, true) {
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            return IPluginStore.noSaveStore();
+            return IPluginStore.noSaveStore(pluginMeta);
         }
     };
 
@@ -410,6 +413,28 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
 
     @TISExtension
+    public static final HeteroEnum<OntologyLinker> ONTOLOGY_LINKER = new HeteroEnum<>(//
+            OntologyLinker.class, //
+            "ontology-linker", //
+            "本体连接器", Selectable.Multi, false) {
+        @SuppressWarnings("all")
+        @Override
+        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+            String ontology = pluginMeta.getExtraParam(OntologyDomain.NAME_ONTOLOGY_DOMAIN);
+            if (StringUtils.isEmpty(ontology)) {
+                throw new IllegalStateException("param ontology can not be empty");
+            }
+            KeyedPluginStore.Key key =
+                    new KeyedPluginStore.Key(OntologyDomain.ONTOLOGY_DOMAIN.getIdentity() + "/" + ontology,
+                    this.getIdentity(), this.extensionPoint);
+            return TIS.getPluginStore(key);
+        }
+    };
+
+
+
+
+    @TISExtension
     public static final HeteroEnum<DataSourceFactory> DATASOURCE = new HeteroEnum<DataSourceFactory>(//
             DataSourceFactory.class, //
             "datasource", //
@@ -422,14 +447,6 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             return Pair.of(DataXName.createDS(primaryFieldVal),
                     PostedDSProp.createPluginMeta(DBIdentity.parseId(primaryFieldVal), false));
         }
-
-
-        //        @Override
-        //        public List<Option> getExistItems(Descriptor<DataSourceFactory> pluginDesc) {
-        //            // return super.getExistItems(pluginDesc);
-        //
-        //            // com.qlangtech.tis.util.PluginItems.getExistDbs(pluginDesc.getDisplayName());
-        //        }
 
         @Override
         public DataSourceFactory findPlugin(PluginExtraProps.CandidatePlugin candidatePlugins, IdentityName identity) {
@@ -749,17 +766,19 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
         //        return plugins;
     }
 
+    @SuppressWarnings("all")
     @Override
-    public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-        IPluginStore store = null;
+    public IPluginStore<T> getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+        IPluginStore<T> store = null;
         if (this.isAppNameAware()) {
             if (!pluginContext.isCollectionAware()) {
                 throw new IllegalStateException(this.getExtensionPoint().getName() + " must be collection aware");
             }
             DataXName dataXName = pluginContext.getCollectionName();
-            store = TIS.getPluginStore(dataXName.getType().getType(), dataXName.getPipelineName(), this.extensionPoint);
+            store = (IPluginStore<T>) TIS.getPluginStore(dataXName.getType().getType(), dataXName.getPipelineName(),
+                    this.extensionPoint);
         } else {
-            store = TIS.getPluginStore(this.extensionPoint);
+            store = (IPluginStore<T>) TIS.getPluginStore(this.extensionPoint);
         }
         //}
         Objects.requireNonNull(store, "plugin store can not be null");

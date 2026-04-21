@@ -21,12 +21,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.plugin.IdentityName;
-import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -38,10 +36,31 @@ public class Option implements IdentityName {
     public static final String KEY_VALUE = "val";
     public static final String KEY_LABEL = "label";
     public static final String keyChecked = "checked";
+    public static String KEY_END_TYPE = "endType";
 
     public static Option create(JSONObject option) {
         return new Option(Objects.requireNonNull(option, "option can not be null").getString(Option.KEY_LABEL),
                 option.getString(Option.KEY_VALUE));
+    }
+
+    private final String name;
+
+    private final Object value;
+
+    private Boolean checked;
+
+    /**
+     * @param name  label
+     * @param value
+     */
+    public Option(String name, Object value) {
+        super();
+        this.name = name;
+        this.value = value;
+    }
+
+    public Option(String val) {
+        this(val, val);
     }
 
     public static JSONArray toJson(List<?> options) {
@@ -63,6 +82,10 @@ public class Option implements IdentityName {
                 JSONObject o = new JSONObject();
                 o.put(KEY_LABEL, opt.getName());
                 o.put(KEY_VALUE, opt.getValue());
+                String endtype = null;
+                if ((endtype = opt.endType()) != null) {
+                    o.put(KEY_END_TYPE, endtype);
+                }
                 if (opt.isChecked() != null) {
                     o.put(keyChecked, opt.isChecked());
                 }
@@ -70,26 +93,6 @@ public class Option implements IdentityName {
             });
         }
         return enums;
-    }
-
-    private final String name;
-
-    private final Object value;
-
-    private Boolean checked;
-
-    /**
-     * @param name  label
-     * @param value
-     */
-    public Option(String name, Object value) {
-        super();
-        this.name = name;
-        this.value = value;
-    }
-
-    public Option(String val) {
-        this(val, val);
     }
 
     @Override
@@ -113,5 +116,14 @@ public class Option implements IdentityName {
     public Option setChecked(Boolean checked) {
         this.checked = checked;
         return this;
+    }
+
+    /**
+     * 下啦选项中也可以设置图标
+     *  //@see EndType
+     * @return
+     */
+    public String endType() {
+        return null;
     }
 }

@@ -1,0 +1,1 @@
+{  "enumVals": {    "label": "可用值",    "elementCreator": "com.qlangtech.tis.plugin.ontology.impl.valuetype.constraints.Enum4IntegerValsCreatorFactory",    "enum": "com.qlangtech.tis.plugin.ontology.impl.valuetype.constraints.BasicEnumValsCreatorFactory.getVals()",    "viewtype": "tuplelist",    "help": ""  }}

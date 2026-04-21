@@ -51,6 +51,8 @@ import java.util.logging.Logger;
  */
 public final class XmlFile {
 
+    public static final String KEY_XML_EXTENSION = "xml";
+    public static final String KEY_XML_DOT_EXTENSION = "." + KEY_XML_EXTENSION;
     private final XStream2 xs;
 
     private final File file;
@@ -83,18 +85,18 @@ public final class XmlFile {
         // Apply security hardening to the existing XStream instance
         // This only needs to happen once
         if (!xsSecurityInitialized) {
-            synchronized(this) {
+            synchronized (this) {
                 if (!xsSecurityInitialized) {
                     // Apply security configurations to the existing xs instance
 
                     // Set up allowlist for permitted classes
-                    xs.allowTypesByWildcard(new String[] {
+                    xs.allowTypesByWildcard(new String[]{
                             "com.qlangtech.tis.**"
                             // Add other necessary packages your application needs
                     });
 
                     // Block commonly exploited classes
-                    xs.denyTypes(new Class[] {
+                    xs.denyTypes(new Class[]{
                             java.lang.System.class,
                             java.lang.ProcessBuilder.class,
                             java.lang.Runtime.class
@@ -189,38 +191,38 @@ public final class XmlFile {
     public static class DefaultDataHolder extends MapBackedDataHolder {
 
         // Map<Object, Object> map = new HashMap<>();
-//        private final Set<PluginMeta> pluginsMeta;
-//        private final XmlFile xmlFile;
+        //        private final Set<PluginMeta> pluginsMeta;
+        //        private final XmlFile xmlFile;
 
         public DefaultDataHolder(Set<PluginMeta> pluginsMeta, XmlFile xmlFile) {
             super();
-//            this.pluginsMeta = pluginsMeta;
-//            this.xmlFile = xmlFile;
+            //            this.pluginsMeta = pluginsMeta;
+            //            this.xmlFile = xmlFile;
             this.put(PluginMeta.class, pluginsMeta);
             this.put(XmlFile.class, xmlFile);
         }
 
-//        @Override
-//        public Object get(Object key) {
-//            if (key == PluginMeta.class) {
-//                return pluginsMeta;
-//            }
-//            if (key == XmlFile.class) {
-//                return xmlFile;
-//            }
-//            return super.get(key);
-//        }
+        //        @Override
+        //        public Object get(Object key) {
+        //            if (key == PluginMeta.class) {
+        //                return pluginsMeta;
+        //            }
+        //            if (key == XmlFile.class) {
+        //                return xmlFile;
+        //            }
+        //            return super.get(key);
+        //        }
 
-//        @Override
-//        public void put(Object key, Object value) {
-//            // map.put(key, value);
-//        }
-//
-//        @Override
-//        public Iterator keys() {
-//            // return map.keySet().iterator();
-//            return null;
-//        }
+        //        @Override
+        //        public void put(Object key, Object value) {
+        //            // map.put(key, value);
+        //        }
+        //
+        //        @Override
+        //        public Iterator keys() {
+        //            // return map.keySet().iterator();
+        //            return null;
+        //        }
     }
 
     public boolean exists() {
@@ -237,7 +239,7 @@ public final class XmlFile {
         } catch (IOException e) {
             throw new RuntimeException("file:" + file.getAbsolutePath(), e);
         }
-//        file.getParentFile().mkdirs();
+        //        file.getParentFile().mkdirs();
     }
 
     @Override

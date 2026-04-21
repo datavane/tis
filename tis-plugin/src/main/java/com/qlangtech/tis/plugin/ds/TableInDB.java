@@ -46,8 +46,12 @@ public abstract class TableInDB {
         //                , this.dbSourceId.identityValue());
     }
 
+    public static TableInDB create(DBIdentity id, Function<String, String> tableNameProcessor) {
+        return new DftTableInDB(id, tableNameProcessor);
+    }
+
     public static TableInDB create(DBIdentity id) {
-        return new DftTableInDB(id);
+        return new DftTableInDB(id, (tab) -> tab);
     }
 
     /**
@@ -86,14 +90,16 @@ public abstract class TableInDB {
 
     private static class DftTableInDB extends TableInDB {
         private List<String> tabs = Lists.newArrayList();
+        private final Function<String, String> tabNameProcessor;
 
-        public DftTableInDB(DBIdentity id) {
+        public DftTableInDB(DBIdentity id, Function<String, String> tabNameProcessor) {
             super(id);
+            this.tabNameProcessor = tabNameProcessor;
         }
 
         @Override
         public void add(String jdbcUrl, String tab) {
-            this.tabs.add(tab);
+            this.tabs.add(tabNameProcessor.apply(tab));
         }
 
 
