@@ -19,41 +19,21 @@ package com.qlangtech.tis.plugin.ontology;
 
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.TISExtension;
-import com.qlangtech.tis.plugin.annotation.FormField;
-import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import com.qlangtech.tis.plugin.annotation.Validator;
 
 /**
- * Measure（度量）列的元信息：默认聚合方式 + 单位 + 精度。
+ * OntologyProperty 的语义角色插件化抽象。子类见 {@code impl/role/*}，
+ * 每个子类对应 {@link SemanticRole} 中的一项。
  *
  * @author 百岁 (baisui@qlangtech.com)
- * @date 2026/5/9
+ * @date 2026/5/10
  */
-public class MeasureSpec implements Describable<MeasureSpec> {
+public abstract class PropertyRoleType implements Describable<PropertyRoleType> {
 
-    @FormField(ordinal = 0, type = FormFieldType.ENUM, validate = {Validator.require})
-    public String agg;
+    public abstract SemanticRole kind();
 
-    @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT, validate = {})
-    public String unit;
-
-    @FormField(ordinal = 2, type = FormFieldType.INT_NUMBER, validate = {Validator.integer})
-    public Integer precision;
-
-    public AggregationFunc parseAgg() {
-        return AggregationFunc.valueOf(this.agg);
-    }
-
-    @TISExtension
-    public static class DftDesc extends Descriptor<MeasureSpec> {
-        public DftDesc() {
+    public static abstract class BasicDesc extends Descriptor<PropertyRoleType> {
+        public BasicDesc() {
             super();
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "Measure Spec";
         }
     }
 }

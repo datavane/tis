@@ -1,1 +1,1 @@
-{  "synonyms": {    "elementCreator": "com.qlangtech.tis.plugin.datax.transformer.jdbcprop.JdbcPropertyElementSelectFromExistFieldCreatorFactory",    "enum": "com.qlangtech.tis.plugin.datax.transformer.impl.ConcatUDF.getFromCols():uncache_true",    "viewtype": "tuplelist"  }}
+{  "synonyms": {    "elementCreator": "com.qlangtech.tis.plugin.ontology.impl.synonyms.SynonymsElementCreatorFactory",    "enum": "com.qlangtech.tis.plugin.ontology.impl.synonyms.SynonymsElementCreatorFactory.getVals():uncache_false",    "viewtype": "tuplelist"  }}

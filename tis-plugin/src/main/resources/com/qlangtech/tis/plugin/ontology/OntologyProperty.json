@@ -1,1 +1,1 @@
-{  "typeRef": {    "label": "类型引用",    "dftVal": "Default"  },  "pk": {    "label": "是否主键",    "dftVal": false  },  "nullable": {    "label": "是否允许为空",    "dftVal": true  }}
+{  "typeRef": {    "label": "类型引用",    "dftVal": "Default"  },  "pk": {    "label": "主键",    "dftVal": false  },  "nullable": {    "label": "允许为空",    "dftVal": true  },  "role": {    "enum": "com.qlangtech.tis.plugin.ontology.getRoleOpts()",    "dftVal": 0  }}

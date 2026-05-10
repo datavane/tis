@@ -58,7 +58,7 @@ public class OntologyProperty implements Describable<OntologyProperty>, Identity
     @FormField(identity = true, ordinal = 0, validate = {Validator.require, Validator.db_col_name})
     public String name;
 
-    @FormField(ordinal = 4, validate = {Validator.none_blank})
+    @FormField(ordinal = 1, validate = {Validator.none_blank})
     public String description;
 
     //    /**
@@ -69,7 +69,7 @@ public class OntologyProperty implements Describable<OntologyProperty>, Identity
     //    public int type;
 
     @JSONField(serialize = false)
-    @FormField(ordinal = 1, validate = {Validator.require})
+    @FormField(ordinal = 2, validate = {Validator.require})
     public OntologyPropertyTypeRef typeRef;
 
 
@@ -80,27 +80,17 @@ public class OntologyProperty implements Describable<OntologyProperty>, Identity
     public Boolean nullable;
 
     /**
-     * ChatBI 语义角色 —— Dimension/Measure/TimeDimension/Identifier/Unknown。
-     * 取值见 {@link SemanticRole}。空时按 Unknown 处理。
+     * ChatBI 语义角色 —— 子类对应 {@link SemanticRole} 中的一项，
+     * MeasureRole 还承载 derived property 配置。
      */
-    @FormField(ordinal = 5, type = FormFieldType.ENUM, validate = {Validator.integer})
-    public Integer role;
-
-    /**
-     * 仅当 role=Measure 时有意义：默认聚合方式 + 单位 + 精度。
-     */
-    @FormField(ordinal = 6, validate = {})
-    public MeasureSpec measureSpec;
+    @FormField(ordinal = 5, validate = {Validator.require})
+    public PropertyRoleType roleType;
 
     public SemanticRole getSemanticRole() {
-        return this.role == null ? SemanticRole.Unknown : SemanticRole.parse(this.role);
+        return this.roleType == null ? SemanticRole.Unknown : this.roleType.kind();
     }
 
-    public MeasureSpec getMeasureSpec() {
-        return this.measureSpec;
-    }
 
-    
     @TISExtension
     public static final HeteroEnum<OntologyProperty> ONTOLOGY_PROPERTY = new HeteroEnum<>(//
             OntologyProperty.class, //

@@ -15,23 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.qlangtech.tis.plugin.ontology;
+package com.qlangtech.tis.plugin.ontology.impl.role;
+
+import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.plugin.ontology.PropertyRoleType;
+import com.qlangtech.tis.plugin.ontology.SemanticRole;
 
 /**
- * Derived property 聚合方式的 kind 标签。
- * 子类层次见 {@link com.qlangtech.tis.plugin.ontology.impl.aggregation.AggregationKind}。
+ * 未设置角色时的兜底。
  *
  * @author 百岁 (baisui@qlangtech.com)
- * @date 2026/5/9
+ * @date 2026/5/10
  */
-public enum AggregationFunc {
-    COUNT,
-    SUM,
-    AVG,
-    MIN,
-    MAX,
-    APPROX_CARDINALITY,
-    COUNT_DISTINCT,
-    COLLECT_LIST,
-    COLLECT_SET
+public class UnknownRole extends PropertyRoleType {
+
+    @Override
+    public SemanticRole kind() {
+        return SemanticRole.Unknown;
+    }
+
+    @TISExtension
+    public static class DftDesc extends BasicDesc {
+        @Override
+        public String getDisplayName() {
+            return SemanticRole.Unknown.getLabel();
+        }
+    }
 }

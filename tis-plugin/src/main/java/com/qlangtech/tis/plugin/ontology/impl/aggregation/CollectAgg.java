@@ -15,23 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.qlangtech.tis.plugin.ontology;
+package com.qlangtech.tis.plugin.ontology.impl.aggregation;
+
+import com.qlangtech.tis.plugin.annotation.FormField;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.Validator;
 
 /**
- * Derived property 聚合方式的 kind 标签。
- * 子类层次见 {@link com.qlangtech.tis.plugin.ontology.impl.aggregation.AggregationKind}。
+ * collect 类聚合的公共父类：把目标属性的值收集成集合，并支持上限。
  *
  * @author 百岁 (baisui@qlangtech.com)
- * @date 2026/5/9
+ * @date 2026/5/10
  */
-public enum AggregationFunc {
-    COUNT,
-    SUM,
-    AVG,
-    MIN,
-    MAX,
-    APPROX_CARDINALITY,
-    COUNT_DISTINCT,
-    COLLECT_LIST,
-    COLLECT_SET
+public abstract class CollectAgg extends PropertyTargetedAgg {
+
+    @FormField(ordinal = 1, type = FormFieldType.INT_NUMBER, validate = {Validator.integer})
+    public Integer limit;
+
+    public Integer getLimit() {
+        return limit;
+    }
 }

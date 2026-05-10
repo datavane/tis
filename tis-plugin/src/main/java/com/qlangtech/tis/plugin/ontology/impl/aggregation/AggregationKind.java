@@ -15,23 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.qlangtech.tis.plugin.ontology;
+package com.qlangtech.tis.plugin.ontology.impl.aggregation;
+
+import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.plugin.ontology.AggregationFunc;
 
 /**
- * Derived property 聚合方式的 kind 标签。
- * 子类层次见 {@link com.qlangtech.tis.plugin.ontology.impl.aggregation.AggregationKind}。
+ * Derived property 的聚合方式抽象。每个子类对应 {@link AggregationFunc} 中的一项。
+ * 设计参考 Palantir Foundry derived properties。
  *
  * @author 百岁 (baisui@qlangtech.com)
- * @date 2026/5/9
+ * @date 2026/5/10
  */
-public enum AggregationFunc {
-    COUNT,
-    SUM,
-    AVG,
-    MIN,
-    MAX,
-    APPROX_CARDINALITY,
-    COUNT_DISTINCT,
-    COLLECT_LIST,
-    COLLECT_SET
+public abstract class AggregationKind implements Describable<AggregationKind> {
+
+    public abstract AggregationFunc kind();
+
+    public static abstract class BasicDesc extends Descriptor<AggregationKind> {
+        public BasicDesc() {
+            super();
+        }
+    }
 }

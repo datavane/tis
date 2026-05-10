@@ -15,23 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.qlangtech.tis.plugin.ontology;
+package com.qlangtech.tis.plugin.ontology.impl.aggregation;
+
+import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.plugin.ontology.AggregationFunc;
 
 /**
- * Derived property 聚合方式的 kind 标签。
- * 子类层次见 {@link com.qlangtech.tis.plugin.ontology.impl.aggregation.AggregationKind}。
+ * 取目标属性的最大值。
  *
  * @author 百岁 (baisui@qlangtech.com)
- * @date 2026/5/9
+ * @date 2026/5/10
  */
-public enum AggregationFunc {
-    COUNT,
-    SUM,
-    AVG,
-    MIN,
-    MAX,
-    APPROX_CARDINALITY,
-    COUNT_DISTINCT,
-    COLLECT_LIST,
-    COLLECT_SET
+public class MaxAgg extends PropertyTargetedAgg {
+
+    @Override
+    public AggregationFunc kind() {
+        return AggregationFunc.MAX;
+    }
+
+    @TISExtension
+    public static class DftDesc extends BasicDesc {
+        @Override
+        public String getDisplayName() {
+            return "Maximum";
+        }
+    }
 }

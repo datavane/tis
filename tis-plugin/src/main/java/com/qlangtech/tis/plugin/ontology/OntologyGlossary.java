@@ -25,6 +25,8 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.glossary.GlossaryTarget;
+import com.qlangtech.tis.plugin.ontology.impl.synonyms.SynonymsElement;
+import com.qlangtech.tis.plugin.ontology.impl.synonyms.SynonymsElementCreatorFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,9 +48,10 @@ public class OntologyGlossary extends Ontology implements IdentityName {
 
     /**
      * 同义词列表（持久化为 List&lt;String&gt;）。
+     * @see SynonymsElementCreatorFactory
      */
-    @FormField(ordinal = 1, type = FormFieldType.TEXTAREA, validate = {})
-    public List<String> synonyms;
+    @FormField(ordinal = 1, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
+    public List<SynonymsElement> synonyms;
 
     @FormField(ordinal = 2, type = FormFieldType.TEXTAREA, validate = {Validator.require})
     public String description;
@@ -56,7 +59,7 @@ public class OntologyGlossary extends Ontology implements IdentityName {
     @FormField(ordinal = 3, validate = {Validator.require})
     public GlossaryTarget target;
 
-    public List<String> getSynonyms() {
+    public List<SynonymsElement> getSynonyms() {
         return synonyms == null ? new ArrayList<>() : synonyms;
     }
 
