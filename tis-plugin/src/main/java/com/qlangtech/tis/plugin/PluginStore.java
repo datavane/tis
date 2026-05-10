@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class PluginStore<T extends Describable> implements IPluginStore<T> {
+public class PluginStore<T extends Describable<T>> implements IPluginStore<T> {
     private static final Logger logger = LoggerFactory.getLogger(PluginStore.class);
     private final transient Class<T> pluginClass;
 
@@ -89,7 +89,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
      *
      * @param <T>
      */
-    public interface IPluginProcessCallback<T extends Describable> {
+    public interface IPluginProcessCallback<T extends Describable<T>> {
         void afterDeserialize(PluginStore<T> pluginStore, T t);
     }
 
@@ -236,7 +236,8 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
         this.pluginsUpdateListeners.add(consumer);
     }
 
-    public static abstract class PluginsUpdateListener implements Consumer<PluginStore<Describable>>, Recyclable {
+    public static abstract class PluginsUpdateListener implements Consumer<PluginStore<? extends Describable<?>>>,
+            Recyclable {
         private final Recyclable recyclable;
         public final String identity;
 
@@ -354,7 +355,7 @@ public class PluginStore<T extends Describable> implements IPluginStore<T> {
                         logger.info("dirty instance:" + next.identity + " will remove from watch listeners");
                         continue;
                     }
-                    next.accept((PluginStore<Describable>) this);
+                    next.accept((PluginStore<? extends Describable<?>>) this);
                 }
                 logger.info("notify pluginsUpdateListeners size:" + pluginsUpdateListeners.size());
             }

@@ -49,5 +49,7 @@ public abstract class DBsGetter {
      * @param extendClass
      * @return
      */
-    public abstract List<IdentityName> getExistDbs(String... extendClass);
+    public abstract <T extends IdentityName> List<T> getExistDbs(String... extendClass);
+
+
 }

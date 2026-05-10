@@ -19,42 +19,31 @@ package com.qlangtech.tis.plugin.ontology;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Lists;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.MultiStepsSupportHost;
 import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
 import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.TISExtension;
-import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
-import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.valuetype.ConstraintsOfValueType;
 import com.qlangtech.tis.plugin.ontology.impl.valuetype.MetadataOfValueType;
-import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
-import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.qlangtech.tis.extension.Descriptor.getPluginFileName;
-import static com.qlangtech.tis.plugin.ontology.OntologyDomain.NAME_ONTOLOGY_DOMAIN;
 
 /**
  * 本体值类型
@@ -65,7 +54,7 @@ import static com.qlangtech.tis.plugin.ontology.OntologyDomain.NAME_ONTOLOGY_DOM
  * @see ConstraintsOfValueType
  * @see MetadataOfValueType
  */
-public class OntologyValueType implements Describable<OntologyValueType>, IdentityName, MultiStepsSupportHost,
+public class OntologyValueType extends Ontology implements IdentityName, MultiStepsSupportHost,
         IPluginStore.ManipuldateProcessor, IPluginStore.BeforePluginSaved {
 
     /**
@@ -74,8 +63,11 @@ public class OntologyValueType implements Describable<OntologyValueType>, Identi
     public static final String KEY_VALUE_TYPE = "ontology-value-type";
     public static final String KEY_START_PERSISTENCE = "start_persistence";
 
+    /**
+     * Caution: 这个字段目前没有用，由于 实现了IdentityName接口
+     */
     @FormField(identity = true, ordinal = 0, validate = {Validator.require, Validator.identity})
-    public String name;
+    public String useless;
 
     private OneStepOfMultiSteps[] stepsPlugin;
 
@@ -98,24 +90,28 @@ public class OntologyValueType implements Describable<OntologyValueType>, Identi
         if (StringUtils.isEmpty(ontologyName)) {
             throw new IllegalArgumentException("param ontologyName can not be empty");
         }
-        List<OntologyValueType> objectTypes = Lists.newArrayList();
-        File objectTypeDir = OntologyDomain.getValueTypeDir(ontologyName);
-        String valTypeName = null;
-        for (String ds : Objects.requireNonNull(objectTypeDir.list(), "subDir of objectTypeDir can not be null")) {
-            File dsDir = new File(objectTypeDir, ds);
-            for (File ot : FileUtils.listFiles(dsDir, new String[]{XmlFile.KEY_XML_EXTENSION}, false)) {
-                valTypeName = StringUtils.removeEnd(ot.getName(), XmlFile.KEY_XML_DOT_EXTENSION);
-                UploadPluginMeta pluginMeta = UploadPluginMeta.create(ONTOLOGY_VALUE_TYPE) //
-                        .putExtraParams(KEY_START_PERSISTENCE, Boolean.TRUE.toString())
-                        .putExtraParams(NAME_ONTOLOGY_DOMAIN, ontologyName)
-                        .putExtraParams(IdentityName.PLUGIN_IDENTITY_NAME, valTypeName);
-                IPluginStore<OntologyValueType> ps =
-                        ONTOLOGY_VALUE_TYPE.getPluginStore(null, pluginMeta);
-
-                objectTypes.add(Objects.requireNonNull(ps.getPlugin(), "ot:" + ot.getAbsolutePath()));
-            }
-        }
-        return objectTypes;
+        //        List<OntologyValueType> objectTypes = Lists.newArrayList();
+        //        File objectTypeDir = OntologyDomain.getValueTypeDir(ontologyName);
+        //        String valTypeName = null;
+        //        for (String ds : Objects.requireNonNull(objectTypeDir.list(), "subDir of objectTypeDir can not be
+        //        null")) {
+        //            File dsDir = new File(objectTypeDir, ds);
+        //            for (File ot : FileUtils.listFiles(dsDir, new String[]{XmlFile.KEY_XML_EXTENSION}, false)) {
+        //                valTypeName = StringUtils.removeEnd(ot.getName(), XmlFile.KEY_XML_DOT_EXTENSION);
+        //                UploadPluginMeta pluginMeta = UploadPluginMeta.create(ONTOLOGY) //
+        //                        .putExtraParams(KEY_START_PERSISTENCE, Boolean.TRUE.toString())
+        //                        .putExtraParams(NAME_ONTOLOGY_DOMAIN, ontologyName)
+        //                        .putExtraParams(IdentityName.PLUGIN_IDENTITY_NAME, valTypeName);
+        //                Ontology.OntologyEnum ontologyEnum = OntologyEnum.ValueType;
+        //                IPluginStore<OntologyValueType> ps
+        //                        = ontologyEnum.getStoreKey(OntologyPluginMeta.createPluginMeta(pluginMeta))
+        //                        .unsaveCast();
+        //                objectTypes.add(Objects.requireNonNull(ps.getPlugin(), "ot:" + ot.getAbsolutePath()));
+        //            }
+        //        }
+        //        ;
+        return OntologyEnum.ValueType.loadAll(OntologyPluginMeta.create(OntologyEnum.ValueType, ontologyName));
+        //  return objectTypes;
     }
 
     /**
@@ -123,7 +119,7 @@ public class OntologyValueType implements Describable<OntologyValueType>, Identi
      *
      * @return
      */
-    public static List<Option> availableValTypes() {
+    public static List<OptionWithEndType> availableValTypes() {
         Map<Class<? extends Descriptor>, Describable> classDescribableMap =
                 Objects.requireNonNull(GroovyShellUtil.pluginThreadLocal.get(), "classDescribableMap can not be null");
         for (Map.Entry<Class<? extends Descriptor>, Describable> entry : classDescribableMap.entrySet()) {
@@ -135,17 +131,19 @@ public class OntologyValueType implements Describable<OntologyValueType>, Identi
             IPluginContext pluginContext = IPluginContext.getThreadLocalInstance();
             OntologyPluginMeta meta = OntologyPluginMeta.createPluginMeta(pluginContext.getContext());
             return getMatchedValTypeOptions(meta, selectedType);
-
         }
         throw new IllegalStateException("classDescribableMap.entrySet() can not be empty");
     }
 
-    public static List<Option> getMatchedValTypeOptions(OntologyPluginMeta meta, OntologyType selectedType) {
+
+    public static List<OptionWithEndType> getMatchedValTypeOptions(OntologyPluginMeta meta,
+                                                                   OntologyType selectedType) {
         return OntologyValueType.load(meta.getDomain()).stream()
                 .filter((valType) -> {
                     return Objects.requireNonNull(selectedType, "endType can not be null")
                             == valType.getMeta().ontologyType();
-                }).map((valType) -> new Option(valType.name))
+                }).map((valType) -> new OptionWithEndType(valType.identityValue(), valType.identityValue(),
+                        selectedType.getEndType()))
                 .collect(Collectors.toList());
     }
 
@@ -160,62 +158,19 @@ public class OntologyValueType implements Describable<OntologyValueType>, Identi
 
     @Override
     public String identityValue() {
-        return this.name;
+        //  return this.name;
+        if (stepsPlugin[0] instanceof MetadataOfValueType meta) {
+            return meta.name;
+        }
+        return null;
     }
 
-
-    @TISExtension
-    public static final HeteroEnum<OntologyValueType> ONTOLOGY_VALUE_TYPE = new HeteroEnum<>(//
-            OntologyValueType.class, //
-            KEY_VALUE_TYPE, // },
-            "本体值属性", Selectable.Single, false) {
-        @SuppressWarnings("all")
-        @Override
-        public IPluginStore<OntologyValueType> getPluginStore(IPluginContext pluginContext,
-                                                              UploadPluginMeta pluginMeta) {
-
-            if (pluginMeta.getBoolean(KEY_START_PERSISTENCE)) {
-                String ontologyName = pluginMeta.getExtraParam(NAME_ONTOLOGY_DOMAIN);
-                String valueType = pluginMeta.getExtraParam(IdentityName.PLUGIN_IDENTITY_NAME);
-                if (StringUtils.isEmpty(ontologyName)) {
-                    throw new IllegalArgumentException("param ontologyName can not be empty");
-                }
-                if (StringUtils.isEmpty(valueType)) {
-                    throw new IllegalArgumentException("param valueType can not be empty");
-                }
-                KeyedPluginStore.Key key = new KeyedPluginStore.Key(this.getIdentity(), ontologyName
-                        , this.extensionPoint) {
-                    @Override
-                    public File getStoreFile() {
-                        File objectTypeDir = OntologyDomain.getValueTypeDir(ontologyName);
-                        return new File(objectTypeDir, getPluginFileName(getFileName()));
-                    }
-
-                    public String getSerializeFileRelativePath() {
-                        return this.getSubDirPath() + File.separator + getFileName();
-                    }
-
-                    @Override
-                    protected String getFileName() {
-                        return valueType;
-                    }
-
-                    @Override
-                    public int hashCode() {
-                        return Objects.hash(keyVal.getKeyVal(), ontologyName, getFileName());
-                    }
-                };
-                return TIS.getPluginStore(key);
-            }
-            return IPluginStore.noSaveStore(pluginMeta);
-        }
-    };
 
     @Override
     public void beforeSaved(IPluginContext pluginContext, Optional<Context> context) {
         for (OneStepOfMultiSteps step : getMultiStepsSavedItems()) {
             if (step instanceof MetadataOfValueType) {
-                this.name = ((MetadataOfValueType) step).name;
+                //  this.name = ((MetadataOfValueType) step).name;
                 return;
             }
         }
@@ -240,11 +195,17 @@ public class OntologyValueType implements Describable<OntologyValueType>, Identi
     public void manipuldateProcess(IPluginContext pluginContext, UploadPluginMeta pluginMeta,
                                    Optional<Context> context) {
         // 进行持久化
-        IPluginStore<OntologyValueType> valTypeStore = ONTOLOGY_VALUE_TYPE.getPluginStore(pluginContext,
-                pluginMeta.putExtraParams(KEY_START_PERSISTENCE,
+        IPluginStore<OntologyValueType> valTypeStore =
+                OntologyEnum.ValueType.getPluginStore(OntologyPluginMeta.createPluginMeta(pluginMeta.putExtraParams(KEY_START_PERSISTENCE,
                                 Boolean.TRUE.toString())
                         .putExtraParams(IdentityName.PLUGIN_IDENTITY_NAME,
-                                this.getMeta().name));
+                                this.getMeta().name))).unsaveCast();
+
+        //        = ONTOLOGY_VALUE_TYPE.getPluginStore(pluginContext,
+        //                pluginMeta.putExtraParams(KEY_START_PERSISTENCE,
+        //                                Boolean.TRUE.toString())
+        //                        .putExtraParams(IdentityName.PLUGIN_IDENTITY_NAME,
+        //                                this.getMeta().name));
 
         valTypeStore.setPlugins(pluginContext, context,
                 Collections.singletonList(new Descriptor.ParseDescribable<>(this)));
@@ -252,19 +213,29 @@ public class OntologyValueType implements Describable<OntologyValueType>, Identi
 
 
     @TISExtension
-    public static class DefaultDesc extends Descriptor<OntologyValueType> implements MultiStepsSupportHostDescriptor<OntologyValueType> {
+    public static class DefaultDesc extends Ontology.BasicDesc implements MultiStepsSupportHostDescriptor<OntologyValueType> {
         public DefaultDesc() {
             super();
         }
 
         @Override
+        protected OntologyEnum getOntologyType() {
+            return OntologyEnum.ValueType;
+        }
+
+        @Override
         public String getDisplayName() {
-            return "ValueType";
+            return "Value Type";
         }
 
         @Override
         public Class<OntologyValueType> getHostClass() {
             return OntologyValueType.class;
+        }
+
+        @Override
+        public EndType getEndType() {
+            return EndType.OntologyValueType;
         }
 
         @Override

@@ -1,0 +1,1 @@
+{  "objectType": {    "label": "Object Type",    "enum": "com.qlangtech.tis.plugin.ontology.impl.linker.LinkReference.getObjectTypeOpts():uncache_true"  },  "targetField": {    "label": "Target Field"  }}

@@ -23,6 +23,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
+import com.qlangtech.tis.extension.DescriptorExtensionList;
+import com.qlangtech.tis.extension.ExtensionList;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.struts2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
@@ -631,20 +634,46 @@ public class PluginAction extends BasicModule {
   /**
    * @param context
    */
+  @SuppressWarnings("all")
   public void doGetDescsByExtendpoint(Context context) throws Exception {
     List<String> extendpoints = this.getExtendpointParam();
     if (CollectionUtils.isEmpty(extendpoints)) {
       throw new IllegalArgumentException("extendpoints can not be null");
     }
+    String t = null;
+    EndType endType = null;
+    if (StringUtils.isNotEmpty(t = this.getString(Option.KEY_END_TYPE))) {
+      endType = EndType.parse(t);
+    }
 
 
     for (String extend : extendpoints) {
+      List<Descriptor> descriptorList =
+        TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend));
+      if (endType != null) {
+        descriptorList = descriptorList.stream()
+          .filter(new TargetEndTypeMatch(endType))
+          .collect(Collectors.toList());
+      }
       this.setBizResult(context,
-        new DefaultDescriptorsJSON(TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend))).getDescriptorsJSON());
+        new DefaultDescriptorsJSON(descriptorList).getDescriptorsJSON());
       return;
     }
 
     throw new IllegalArgumentException("extendpoints can not be null");
+  }
+
+  private static class TargetEndTypeMatch implements java.util.function.Predicate<Descriptor> {
+    private final EndType targetEndType;
+
+    public TargetEndTypeMatch(EndType targetEndType) {
+      this.targetEndType = targetEndType;
+    }
+
+    @Override
+    public boolean test(Descriptor descriptor) {
+      return descriptor instanceof IEndTypeGetter getter && getter.getEndType() == targetEndType;
+    }
   }
 
   /**
@@ -962,6 +991,7 @@ public class PluginAction extends BasicModule {
     return saveResult.getLeft();
   }
 
+  @SuppressWarnings("all")
   private static Pair<List<ItemsSaveResult>, IPluginItemsProcessor> getPluginActionSaveResult(HttpServletRequest request) {
     Pair<List<ItemsSaveResult>, IPluginItemsProcessor> saveResult = (Pair<List<ItemsSaveResult>,
       IPluginItemsProcessor>) request.getAttribute(ItemsSaveResult.KEY_ITEMS_SAVE_RESULT);

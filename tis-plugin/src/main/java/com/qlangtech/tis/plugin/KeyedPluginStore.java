@@ -49,7 +49,7 @@ import java.util.regex.Pattern;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
+public class KeyedPluginStore<T extends Describable<T>> extends PluginStore<T> {
     //  public static final String TMP_DIR = ".tmp";
     public static final String TMP_DIR_NAME = IOUtils.TMP_DIR + "/";
     public static final String KEY_EXEC_ID = "execId";
@@ -66,7 +66,7 @@ public class KeyedPluginStore<T extends Describable> extends PluginStore<T> {
         System.out.println(matcher.find());
     }
 
-    public static <TT extends Describable> KeyedPluginStore<TT> getPluginStore(DataxReader.SubFieldFormAppKey<TT> subFieldFormKey) {
+    public static <TT extends Describable<TT>> KeyedPluginStore<TT> getPluginStore(DataxReader.SubFieldFormAppKey<TT> subFieldFormKey) {
         return (KeyedPluginStore<TT>) TIS.dataXReaderSubFormPluginStore.get(subFieldFormKey);
     }
 

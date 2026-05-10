@@ -50,11 +50,16 @@ public class TestValidator extends TestCase {
         msgHandler.addFieldError(context, fieldPath, ValidatorCommons.MSG_RELATIVE_PATH_ERROR);
         EasyMock.expectLastCall().times(1);
         EasyMock.replay(msgHandler);
-        assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "user/home/admin"));
-        assertFalse("shall not be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "/user/home/admin"));
-        assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "xxx/instancedetail*"));
-        assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "xxx/instancedetail*.text"));
-        assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "xxx/instancedetail*.csv"));
+        assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "user/home"
+                + "/admin"));
+        assertFalse("shall not be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "/user"
+                + "/home/admin"));
+        assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "xxx"
+                + "/instancedetail*"));
+        assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "xxx"
+                + "/instancedetail*.text"));
+        assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "xxx"
+                + "/instancedetail*.csv"));
         assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "xxx/*.json"));
 
         EasyMock.verify(msgHandler);
@@ -91,8 +96,10 @@ public class TestValidator extends TestCase {
         final String processName = "processName";
         msgHandler.addFieldError(context, processName, ValidatorCommons.MSG_FORBID_START_WITH_NUMBER);
         EasyMock.replay(msgHandler);
-        assertTrue("shall be valid", Validator.forbid_start_with_number.validate(msgHandler, context, processName, "username123"));
-        assertFalse("shall be invalid", Validator.forbid_start_with_number.validate(msgHandler, context, processName, "123dddd"));
+        assertTrue("shall be valid", Validator.forbid_start_with_number.validate(msgHandler, context, processName,
+                "username123"));
+        assertFalse("shall be invalid", Validator.forbid_start_with_number.validate(msgHandler, context, processName,
+                "123dddd"));
         EasyMock.verify(msgHandler);
     }
 
@@ -104,8 +111,10 @@ public class TestValidator extends TestCase {
         msgHandler.addFieldError(context, fieldHost, ValidatorCommons.MSG_HOST_IP_ERROR);
         EasyMock.expectLastCall().times(2);
         EasyMock.replay(msgHandler);
-        Assert.assertFalse("must be faild", Validator.host.validate(msgHandler, context, fieldHost, "http://192.168.64.3:31135"));
-        Assert.assertTrue("must be valid", Validator.host.validate(msgHandler, context, fieldHost, "192.168.64.3:31135"));
+        Assert.assertFalse("must be faild", Validator.host.validate(msgHandler, context, fieldHost, "http://192.168"
+                + ".64.3:31135"));
+        Assert.assertTrue("must be valid", Validator.host.validate(msgHandler, context, fieldHost, "192.168.64"
+                + ".3:31135"));
         Assert.assertTrue("must be valid", Validator.host.validate(msgHandler, context, fieldHost, "baidu.com:31135"));
         Assert.assertFalse("must be faild", Validator.host.validate(msgHandler, context, fieldHost, "baidu.com"));
 
@@ -157,12 +166,30 @@ public class TestValidator extends TestCase {
         EasyMock.verify(msgHandler);
     }
 
+    public void testNone_blank() {
+        Validator noneBlankValidator = Validator.none_blank;
+        DefaultFieldErrorHandler fEHandler = new DefaultFieldErrorHandler();
+        DefaultContext context = new DefaultContext();
+        assertTrue("error shall none error", noneBlankValidator.validate(fEHandler, context, field1Name, ""));
+        Assert.assertFalse(context.hasErrors());
+
+        assertFalse("error shall error", noneBlankValidator.validate(fEHandler, context, field1Name, "        "));
+        Assert.assertTrue(context.hasErrors());
+
+         context = new DefaultContext();
+
+        assertTrue("error shall none error", noneBlankValidator.validate(fEHandler, context, field1Name, "   aa a  a  "));
+        Assert.assertFalse(context.hasErrors());
+
+        assertTrue("error shall none error", noneBlankValidator.validate(fEHandler, context, field1Name, "a   b"));
+        Assert.assertFalse(context.hasErrors());
+    }
 
     public void testValidateIdentity() {
         Validator identityValidator = Validator.identity;
         DefaultFieldErrorHandler fEHandler = new DefaultFieldErrorHandler();
         DefaultContext context = new DefaultContext();
-        context.put(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX, new Integer(2));
+        context.put(DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX, 2);
         assertTrue("error shall none error", identityValidator.validate(fEHandler, context, field1Name, "base123"));
         assertFalse(identityValidator.validate(fEHandler, context, field1Name, "_bas&e123"));
         List<List<ItemsErrors>> pluginErrorList
@@ -176,9 +203,9 @@ public class TestValidator extends TestCase {
         assertEquals("[{\"name\":\"testField\",\"content\":\"必须由小写字母，大写字母，数字、下划线、减号组成\"}]"
                 , JsonUtil.toString(itemError.serial2JSON(), false));
 
-//        assertEquals(field1Name, fError.getFieldName());
-//        assertEquals(ValidatorCommons.MSG_IDENTITY_ERROR, fError.getMsg());
-//        assertNull(fError.itemsErrorList);
+        //        assertEquals(field1Name, fError.getFieldName());
+        //        assertEquals(ValidatorCommons.MSG_IDENTITY_ERROR, fError.getMsg());
+        //        assertNull(fError.itemsErrorList);
     }
 
     public void testCreateValidateField() {

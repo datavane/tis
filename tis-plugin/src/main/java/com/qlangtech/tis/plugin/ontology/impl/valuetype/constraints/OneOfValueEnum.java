@@ -17,25 +17,28 @@
  */
 package com.qlangtech.tis.plugin.ontology.impl.valuetype.constraints;
 
-import com.qlangtech.tis.plugin.ds.IMultiElement;
+import com.qlangtech.tis.plugin.ds.BasicMultiSelectSingleValElementCreatorFactory;
 
 /**
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/4/19
  */
-public class OneOfValueEnum implements IMultiElement {
-    private String enumVal;
-
-    public String getEnumVal() {
-        return enumVal;
+public class OneOfValueEnum extends BasicMultiSelectSingleValElementCreatorFactory.OneOfMultiElement {
+    public OneOfValueEnum() {
+        super();
     }
-
-    public void setEnumVal(String enumVal) {
-        this.enumVal = enumVal;
-    }
-
-    @Override
-    public String getName() {
-        return enumVal;
-    }
+    //    private String enumVal;
+//
+//    public String getEnumVal() {
+//        return enumVal;
+//    }
+//
+//    public void setEnumVal(String enumVal) {
+//        this.enumVal = enumVal;
+//    }
+//
+//    @Override
+//    public String getName() {
+//        return enumVal;
+//    }
 }

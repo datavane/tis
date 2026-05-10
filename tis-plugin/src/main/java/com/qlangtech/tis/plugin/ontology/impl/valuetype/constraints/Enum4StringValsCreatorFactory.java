@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.plugin.ontology.impl.valuetype.constraints;
 
+import com.qlangtech.tis.plugin.annotation.InputValueValidator;
 import com.qlangtech.tis.plugin.annotation.Validator;
 
 import java.util.List;
@@ -28,7 +29,7 @@ import java.util.List;
 public class Enum4StringValsCreatorFactory extends BasicEnumValsCreatorFactory {
 
     @Override
-    protected List<Validator> getSingleValueValidator() {
+    protected List<InputValueValidator> getSingleValueValidator() {
         return List.of(Validator.require);
     }
 

@@ -34,7 +34,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.*;
 
 import static com.qlangtech.tis.extension.Descriptor.KEY_EPROPS;
-import static com.qlangtech.tis.extension.util.PluginExtraProps.Props.KEY_HELP;
+import static com.qlangtech.tis.manage.common.Option.KEY_HELP;
 
 /**
  * DescriptorsJSONForAIPromote 单元测试类

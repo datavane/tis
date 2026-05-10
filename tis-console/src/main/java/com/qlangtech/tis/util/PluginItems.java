@@ -30,6 +30,7 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
@@ -41,8 +42,10 @@ import com.qlangtech.tis.plugin.SetPluginsResult;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.DataSourceFactoryPluginStore;
 import com.qlangtech.tis.plugin.ds.PostedDSProp;
+import com.qlangtech.tis.plugin.ontology.Ontology;
 import com.qlangtech.tis.plugin.ontology.OntologyDomain;
-import com.qlangtech.tis.plugin.ontology.OntologyValueType;
+import com.qlangtech.tis.plugin.ontology.OntologyProperty;
+import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.utils.DBsGetter;
@@ -54,11 +57,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_SKIP_PLUGINS_SAVE;
@@ -155,10 +160,12 @@ public class PluginItems implements IPluginItemsProcessor {
 
   public static class DefaultDBsGetter extends DBsGetter {
     @Override
-    public List<IdentityName> getExistDbs(String... extendClass) {
+    public List<DBIdentity> getExistDbs(String... extendClass) {
       return loadExistDbs(false, extendClass);
     }
   }
+
+  private static final String KEY_ALL_TYPE = "all";
 
   /**
    * datax中显示已由数据源使用 <br>
@@ -167,7 +174,7 @@ public class PluginItems implements IPluginItemsProcessor {
    * @param extendClass
    * @return
    */
-  private static List<IdentityName> loadExistDbs(boolean listen2SaveEvent, String... extendClass) {
+  private static List<DBIdentity> loadExistDbs(boolean listen2SaveEvent, String... extendClass) {
     // final ActionContext actionContext = BasicServlet.getActionContext();
     if (extendClass == null || extendClass.length < 1) {
       throw new IllegalArgumentException("param extendClass can not be null");
@@ -191,7 +198,13 @@ public class PluginItems implements IPluginItemsProcessor {
     DatasourceDbCriteria dbCriteria = createDatasourceDbCriteria(extendClass);
     List<com.qlangtech.tis.workflow.pojo.DatasourceDb> dbs = wfFacade.getDatasourceDbDAO().selectByExample(dbCriteria);
     List<Descriptor<DataSourceFactory>> dsDescs = HeteroEnum.DATASOURCE.descriptors();
-    return dbs.stream().map((db) -> new DBIdentity(db, dsDescs)).collect(Collectors.toList());
+    //    Map<String, Descriptor<DataSourceFactory>> descs =
+    //      dsDescs.stream().collect(Collectors.toMap(Descriptor::getDisplayName, (desc) -> desc));
+    return dbs.stream() //
+      .filter((db) -> StringUtils.isNotEmpty(db.getExtendClass())) //
+      .map((db) -> new DBIdentity(db, dsDescs))
+      //.filter((db) -> db.getDesc() != null)
+      .toList();
     // return dbs.stream().map((db) -> new Option(db.getName(), db.getName())).collect(Collectors.toList());
   }
 
@@ -199,7 +212,8 @@ public class PluginItems implements IPluginItemsProcessor {
     DatasourceDbCriteria dbCriteria = new DatasourceDbCriteria();
     List<String> extendClazzs = Lists.newArrayList(); // Lists.newArrayList(extendClass).stre;
     for (String type : extendClass) {
-      if ("all".equalsIgnoreCase(type)) {
+      if (KEY_ALL_TYPE.equalsIgnoreCase(type)) {
+        dbCriteria.createCriteria().andExtendClassNotNull();
         return dbCriteria;
       } else {
         extendClazzs.add(StringUtils.lowerCase(type));
@@ -209,7 +223,7 @@ public class PluginItems implements IPluginItemsProcessor {
     return dbCriteria;
   }
 
-  private static class DBIdentity implements IdentityName, IEndTypeGetter {
+  public static class DBIdentity implements IdentityName, IEndTypeGetter {
     private final com.qlangtech.tis.workflow.pojo.DatasourceDb db;
     private final List<Descriptor<DataSourceFactory>> dsDescs;
     private Descriptor _descriptor;
@@ -231,13 +245,19 @@ public class PluginItems implements IPluginItemsProcessor {
 
     private Descriptor getDesc() {
       if (_descriptor == null) {
+        //        Descriptor<DataSourceFactory> d = null;
+        //        if ((d = ) != null) {
+        //          return _descriptor = d;
+        //        }
+
+        //return _descriptor = dsDescs.get(db.getExtendClass());
         for (Descriptor<DataSourceFactory> desc : dsDescs) {
           if (desc.getDisplayName().equalsIgnoreCase(db.getExtendClass())) {
             return _descriptor = desc;
           }
         }
         throw new IllegalStateException("can not find '" + db.getExtendClass() + "' in " //
-          + dsDescs.stream().map((d) -> d.getDisplayName()).collect(Collectors.joining(",")));
+          + dsDescs.stream().map(Descriptor::getDisplayName).collect(Collectors.joining(",")));
       }
       return _descriptor;
     }
@@ -263,8 +283,26 @@ public class PluginItems implements IPluginItemsProcessor {
     if (OfflineDatasourceAction.existDbs != null) {
       return OfflineDatasourceAction.existDbs;
     }
+
+    //    Function<DBIdentity, Option> optMapper =
+    //      (extendClass.length == 1 && KEY_ALL_TYPE.equalsIgnoreCase(extendClass[0])) //
+    //        ? (dbId) -> {
+    //        return new OptionWithEndType(dbId.identityValue(), dbId.identityValue(), dbId.getEndType());
+    //      } : (dbId) -> {
+    //        return new Option(dbId.identityValue(), dbId.identityValue());
+    //      };
+
+    Function<DBIdentity, Option> optMapper =
+      //      (extendClass.length == 1 && KEY_ALL_TYPE.equalsIgnoreCase(extendClass[0])) //
+      //        ? (dbId) -> {
+      //        return new OptionWithEndType(dbId.identityValue(), dbId.identityValue(), dbId.getEndType());
+      //      } :
+      (dbId) -> {
+        return new Option(dbId.identityValue(), dbId.identityValue());
+      };
+
     return loadExistDbs(true, extendClass).stream()
-      .map((db) -> new Option(db.identityValue(), db.identityValue()))
+      .map(optMapper)
       .collect(Collectors.toList());
   }
 
@@ -376,7 +414,21 @@ public class PluginItems implements IPluginItemsProcessor {
         break;
       }
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
-    } else if (heteroEnum == OntologyValueType.ONTOLOGY_VALUE_TYPE) {
+    } else if (heteroEnum == Ontology.ONTOLOGY || heteroEnum == OntologyProperty.ONTOLOGY_PROPERTY) {
+
+      for (Descriptor.ParseDescribable<?> plugin : dlist) {
+        if (plugin.getInstance() instanceof IdentityName idInstant) {
+          if (idInstant instanceof IPluginStore.BeforePluginSaved beforeSave) {
+            beforeSave.beforeSaved(this.pluginContext, Optional.empty());
+          }
+          OntologyPluginMeta meta = OntologyPluginMeta.createPluginMeta(pluginMeta);
+          if (StringUtils.isEmpty(meta.getPluginIdVal())) {
+            meta.setPluginIdVal(idInstant.identityValue());
+          }
+          break;
+        }
+      }
+
       store = heteroEnum.getPluginStore(this.pluginContext, pluginMeta);
     } else {
       if (heteroEnum.isAppNameAware()) {

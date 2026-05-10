@@ -47,13 +47,13 @@ import java.util.Optional;
 @Public
 public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGetter, IdentityName {
 
-    static <T extends IAppSource> KeyedPluginStore<T> getPluginStore(IPluginContext context, String appName) {
+    static KeyedPluginStore<IAppSource> getPluginStore(IPluginContext context, String appName) {
         return getPluginStore(context, StoreResourceType.DataApp, appName);
     }
 
-    static <T extends IAppSource> KeyedPluginStore<T> getPluginStore(
+    static KeyedPluginStore<IAppSource> getPluginStore(
             IPluginContext context, StoreResourceType resType, String appName) {
-        return (KeyedPluginStore<T>) TIS.appSourcePluginStore.get(createAppSourceKey(context, resType, appName));
+        return (KeyedPluginStore<IAppSource>) TIS.appSourcePluginStore.get(createAppSourceKey(context, resType, appName));
     }
 
     static KeyedPluginStore.AppKey createAppSourceKey(IPluginContext context, String appName) {
@@ -78,18 +78,18 @@ public interface IAppSource extends Describable<IAppSource>, StoreResourceTypeGe
         RecordTransformerRules.cleanPluginStoreCache(context, appName);
     }
 
-    static <T extends IAppSource> Optional<T> loadNullable(IPluginContext context, DataXName appName) {
+    static Optional<IAppSource> loadNullable(IPluginContext context, DataXName appName) {
         return loadNullable(context, appName.getType(), appName.getPipelineName());
     }
 
-    static <T extends IAppSource> Optional<T> loadNullable(
+    static Optional<IAppSource> loadNullable(
             IPluginContext context, StoreResourceType resType, String appName) {
-        KeyedPluginStore<T> pluginStore = getPluginStore(context, resType, appName);
+        KeyedPluginStore<IAppSource> pluginStore = getPluginStore(context, resType, appName);
         IAppSource appSource = pluginStore.getPlugin();
-        return (Optional<T>) Optional.ofNullable(appSource);
+        return Optional.ofNullable(appSource);
     }
 
-    static <T extends IAppSource> T load(String appName) {
+    static IAppSource load(String appName) {
         return load(null, DataXName.createDataXPipeline(appName));
     }
 

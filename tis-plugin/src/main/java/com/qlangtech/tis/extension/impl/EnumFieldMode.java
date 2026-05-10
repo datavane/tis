@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.extension.impl;
 
+import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.plugin.IdentityName;
 
 import java.lang.reflect.Field;
@@ -35,7 +36,8 @@ public enum EnumFieldMode {
         if (!isValOfOptionList(dftVal, fieldDesc)) {
             throw new IllegalStateException(fieldDesc + " val " + dftVal.getClass() + " " + "must be " + "type" + " " + "of " + List.class.getName());
         }
-        return ((List) dftVal).stream().map((val) -> (val instanceof IdentityName) ? ((IdentityName) val).identityValue() : val).collect(Collectors.toList());
+        return ((List) dftVal).stream().map((val) -> (val instanceof IdentityName) ?
+                ((IdentityName) val).identityValue() : val).collect(Collectors.toList());
     }) //
     , DEFAULT("default", (dftVal, fieldDesc) -> {
         if (isValOfOptionList(dftVal, fieldDesc)) {
@@ -47,11 +49,13 @@ public enum EnumFieldMode {
                     "type of String or Boolean ,but now is " + dftVal.getClass());
         }
         return dftVal;
-    });
+    })
+    // 平铺单选
+    , FLATTED_SINGLE_CHOICE("flat_single_choice", DEFAULT.enumDftValProcess);;
     public final String val;
     private final BiFunction<Object/**inputVal*/, String /**field desc**/, Object/**output Val*/> enumDftValProcess;
 
-    public static EnumFieldMode parse(String val) {
+    private static EnumFieldMode parse(String val) {
         for (EnumFieldMode mode : EnumFieldMode.values()) {
             if (mode.val.equals(val)) {
                 return mode;
@@ -63,6 +67,10 @@ public enum EnumFieldMode {
     private EnumFieldMode(String val, BiFunction<Object, String, Object> enumDftValProcess) {
         this.val = val;
         this.enumDftValProcess = enumDftValProcess;
+    }
+
+    static EnumFieldMode parseEnumFieldMode(PluginExtraProps.Props extraProp) {
+        return parse(extraProp != null ? extraProp.getProps().getString("enumMode") : null);
     }
 
     /**
@@ -92,10 +100,11 @@ public enum EnumFieldMode {
                     throw new IllegalStateException(fieldDesc + ",opt" + " " + "element " + o.getClass() + " " +
                             "must be type of " + String.class.getSimpleName() + " or " + IdentityName.class.getSimpleName());
                 }
-//                if (!(o.getClass() == String.class)) {
-//                    throw new IllegalStateException(fieldDesc + ",opt" + " " + "element " + o.getClass() + " " +
-//                            "must be type of " + String.class);
-//                }
+                //                if (!(o.getClass() == String.class)) {
+                //                    throw new IllegalStateException(fieldDesc + ",opt" + " " + "element " + o
+                //                    .getClass() + " " +
+                //                            "must be type of " + String.class);
+                //                }
             }
             return true;
         }

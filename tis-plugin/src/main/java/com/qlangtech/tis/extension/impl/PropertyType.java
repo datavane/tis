@@ -65,6 +65,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.Descriptor.KEY_DESC_VAL;
+import static com.qlangtech.tis.extension.util.PluginExtraProps.Props.KEY_VIEW_TYPE;
 import static com.qlangtech.tis.manage.common.Option.KEY_LABEL;
 import static com.qlangtech.tis.manage.common.Option.KEY_VALUE;
 
@@ -301,7 +302,7 @@ public class PropertyType implements IPropertyType {
                                     if (StringUtils.isNotEmpty(help) && StringUtils.startsWith(help,
                                             IMessageHandler.TSEARCH_PACKAGE)) {
                                         //props.put(PluginExtraProps.Props.KEY_HELP, GroovyShellEvaluate.eval(help));
-                                        props.put(PluginExtraProps.Props.KEY_HELP, GroovyShellEvaluate.scriptEval(help));
+                                        props.put(Option.KEY_HELP, GroovyShellEvaluate.scriptEval(help));
                                     }
 
                                     if (dftVal != null && StringUtils.startsWith(String.valueOf(dftVal),
@@ -379,6 +380,7 @@ public class PropertyType implements IPropertyType {
     private static JSONArray resolveEnumProp(Field field, Descriptor descriptor,
                                              PluginExtraProps.Props fieldExtraProps, Function<Object, Object> process) {
         JSONObject props = fieldExtraProps.getProps();
+        props.get(KEY_VIEW_TYPE);
         Object anEnum = props.get(Descriptor.KEY_ENUM_PROP);
         JSONArray enums = new JSONArray();
         if (anEnum != null && anEnum instanceof String) {
@@ -455,7 +457,7 @@ public class PropertyType implements IPropertyType {
         if (this.formField.type() != FormFieldType.ENUM && this.formField.type() != FormFieldType.SELECTABLE) {
             return null;
         }
-        return EnumFieldMode.parse(this.extraProp != null ? getExtraProps().getString("enumMode") : null);
+        return EnumFieldMode.parseEnumFieldMode(this.extraProp);
     }
 
 

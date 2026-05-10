@@ -350,7 +350,7 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
         PluginExtraProps.Props extraProp = val.extraProp;
         if (extraProp != null && extraProp.isAsynHelp()) {
             JSONObject props = new JSONObject(val.getExtraProps());
-            props.put(PluginExtraProps.Props.KEY_HELP, Objects.requireNonNull(extraProp.asynHelp(),
+            props.put(Option.KEY_HELP, Objects.requireNonNull(extraProp.asynHelp(),
                     "asynHelp can " + "not" + " be null").getContentForAI().toString());
             return props;
         }

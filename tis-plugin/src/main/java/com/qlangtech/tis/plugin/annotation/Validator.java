@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public enum Validator {
+public enum Validator implements InputValueValidator {
 
     //    require((msgHandler, context, fieldKey, fieldData) -> {
     //        if (StringUtils.isBlank(fieldData)) {
@@ -206,6 +206,7 @@ public enum Validator {
      * @param fieldData
      * @return false 校验失败
      */
+    @Override
     public boolean validate(//
                             IFieldErrorHandler msgHandler, //
                             Context context, String fieldKey, String fieldData) {

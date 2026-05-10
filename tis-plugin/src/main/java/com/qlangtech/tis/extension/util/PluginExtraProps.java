@@ -429,7 +429,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         /**
          * 下拉列表选项
          */
-        private Supplier<List<Option>> selectableOpts = () -> Collections.emptyList();
+        private Supplier<List<Option>> selectableOpts = Collections::emptyList;
 
         private Supplier<Object> dftValGetter = () -> null;
 
@@ -641,7 +641,6 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
 
     public static class Props {
-        public static final String KEY_HELP = "help";
         public static final String KEY_VALIDATOR = "validators";
         public static final String KEY_VIEW_TYPE = "viewtype";
         public static final String KEY_ASYNC_HELP = "asyncHelp";
@@ -654,9 +653,6 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             this.props = props;
         }
 
-        //        private void setFieldRefCreateor() {
-        //            this._fieldRefCreateor = Optional.ofNullable(createFieldRefCreateor(this.props));
-        //        }
 
         private static FieldRefCreateor createFieldRefCreateor(JSONObject props) {
             FieldRefCreateor createor = null;
@@ -803,7 +799,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         @JSONField(serialize = false)
         public String getHelpContent() {
-            return (String) props.get(KEY_HELP);
+            return (String) props.get(Option.KEY_HELP);
         }
 
         @JSONField(serialize = false)
@@ -891,7 +887,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
          */
         public void tagAsynHelp(MarkdownHelperContent asynHelp) {
             props.put(KEY_ASYNC_HELP, true);
-            props.remove(KEY_HELP);
+            props.remove(Option.KEY_HELP);
             this.asynHelp = asynHelp;
         }
 

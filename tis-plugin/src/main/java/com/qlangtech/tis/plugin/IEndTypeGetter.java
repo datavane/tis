@@ -190,6 +190,10 @@ public interface IEndTypeGetter {
         , Stop("tis-stop", EndTypeCategory.Icon, true) //
         , Link("tis-link", EndTypeCategory.Icon, true) //
         , Ontology("ontology", EndTypeCategory.Icon, true) //
+        , Keys("keys", EndTypeCategory.Icon, true)//
+        , Table("table", EndTypeCategory.Icon, true)//
+
+
         /**
          * data type for ontology
          * @see OntologyType
@@ -206,6 +210,14 @@ public interface IEndTypeGetter {
         // 地理相关
         , DataTypeGeo("type_geo", EndTypeCategory.DataType, true)//
         , DataTypeVector("type_vector", EndTypeCategory.DataType, true)//
+
+        , Shared("shared", EndTypeCategory.Icon, true)//
+        , OntologyLink("ontology-link", EndTypeCategory.Icon, true)//
+        , OntologyValueType("ontology-value-type", EndTypeCategory.Icon, true)//
+        , OntologyObjectType("ontology-object-type", EndTypeCategory.Icon, true)//
+        , OntologyGlossary("ontology-glossary", EndTypeCategory.Icon, true)//
+
+
 
         //
         , Replace("replace", EndTypeCategory.Transformer, true)//

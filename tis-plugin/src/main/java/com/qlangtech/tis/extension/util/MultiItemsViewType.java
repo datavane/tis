@@ -71,7 +71,7 @@ public class MultiItemsViewType implements IMultiItemsView {
         // PluginExtraProps.Props props = propertyType.extraProp;
         ElementCreatorFactory elementCreator = null;
         ViewFormatType formatType = ViewFormatType.parse(getStrProp(Objects.requireNonNull(props,
-                "props can not be " + "null"), PluginExtraProps.Props.KEY_VIEW_TYPE));
+                "props can not be null"), PluginExtraProps.Props.KEY_VIEW_TYPE));
         try {
             String selectElementCreator = getStrProp(props, CMeta.KEY_ELEMENT_CREATOR_FACTORY);
             if (StringUtils.isEmpty(selectElementCreator)) {

@@ -64,6 +64,7 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.IMultiElement;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
+import com.qlangtech.tis.plugin.ontology.OntologyProperty;
 import com.qlangtech.tis.runtime.module.action.IParamGetter;
 import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
@@ -165,6 +166,29 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             clazz = (Class) getClass();
         this.clazz = clazz;
         this.validateMethodMap = this.createValidateMap();
+    }
+
+    /**
+     * 将from端属性拷贝到target端
+     *
+     * @param taget
+     * @param from
+     */
+    public void assign(T taget, T from) {
+
+        try {
+            Descriptor<T> descriptor = this;
+            Map<String, /*** fieldname*/IPropertyType> props = descriptor.getPropertyTypes();
+            PropertyType prop = null;
+            for (Map.Entry<String, /*** fieldname*/IPropertyType> entry : props.entrySet()) {
+                prop = (PropertyType) entry.getValue();
+                if (!prop.isIdentity()) {
+                    prop.f.set(taget, prop.f.get(from));
+                }
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -885,7 +909,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     public static class ValueChangePipe {
         private final String fromField;
-        private final String toField;
+        private final String[] toField;
         private BiFunction<UploadPluginMeta, IParamGetter, JSONObject> serverSideRender;
 
         static String createMapperKey(String fromField) {
@@ -904,9 +928,17 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
          * @param fromField
          * @param toField
          */
-        public ValueChangePipe(String fromField, String toField) {
+        public ValueChangePipe(String fromField, String... toField) {
             this.fromField = fromField;
             this.toField = toField;
+        }
+
+        public String getFromField() {
+            return fromField;
+        }
+
+        public String[] getToField() {
+            return toField;
         }
 
         public void render(BiFunction<UploadPluginMeta, IParamGetter, JSONObject> function) {
@@ -936,7 +968,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
     }
 
-    protected ValueChangePipe valueChangePipe(String fromField, String toField) {
+    protected ValueChangePipe valueChangePipe(String fromField, String... toField) {
         ValueChangePipe pipe = new ValueChangePipe(fromField, toField);
         this.valueChangePipes.put(createMapperKey(fromField), pipe);
         return pipe;
@@ -1590,6 +1622,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 , "fromField:" + fromField + " relevant ValueChangePipe can not be null");
     }
 
+    public Map<String, ValueChangePipe> getValueChangePipes() {
+        return Collections.unmodifiableMap(valueChangePipes);
+    }
+
     /**
      * 如果插件中有selectable的控件，则在descriptor中需要注册selectable控件中的内容
      *
@@ -1600,22 +1636,19 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         selectOptsRegister.put(fieldName, getter);
     }
 
+    @SuppressWarnings("all")
     @Override
     public final List<SelectOption> getSelectOptions(String name) {
         Callable<List<? extends IdentityName>> opsCallable = selectOptsRegister.get(name);
         if (opsCallable == null) {
-            throw new IllegalStateException("fieldName:" + name + " is select options has not been register,class:" + this.getClass().getName() + ",has registed:" + selectOptsRegister.keySet().stream().collect(Collectors.joining(",")));
+            throw new IllegalStateException("fieldName:" + name + " is select options has not been register,class:" //
+                    + this.getClass().getName() + ",has registed:" + String.join(",", selectOptsRegister.keySet()));
         }
         try {
             List<? extends IdentityName> opts = opsCallable.call();
             if (opts == null) {
                 return Collections.emptyList();
             }
-            //            final EndType[] endType = new EndType[1];
-            //            if (this instanceof IEndTypeGetter) {
-            //                endType[0] = (((IEndTypeGetter) this).getEndType());
-            //            }
-
             Map<Class, Optional<EndType>> pluginEndTypeMapper = Maps.newHashMap();
 
             return opts.stream().map((r) -> {

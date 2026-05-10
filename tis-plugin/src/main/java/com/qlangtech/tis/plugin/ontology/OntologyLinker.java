@@ -17,50 +17,154 @@
  */
 package com.qlangtech.tis.plugin.ontology;
 
-import com.qlangtech.tis.extension.Describable;
+import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.MultiStepsSupportHost;
+import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
+import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
-import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
+import com.qlangtech.tis.plugin.ontology.impl.linker.LinkResources;
+import com.qlangtech.tis.plugin.ontology.impl.linker.RelationshipTypeObjectTypeForeignKeys;
+import com.qlangtech.tis.plugin.ontology.impl.linker.RelationshipTypeSetter;
+import com.qlangtech.tis.plugin.ontology.impl.valuetype.MetadataOfValueType;
+import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+import static com.qlangtech.tis.plugin.ontology.OntologyValueType.KEY_START_PERSISTENCE;
 
 /**
  * 本体对象连接器
+ * <a href="https://www.palantir.com/docs/foundry/object-link-types/create-link-type/">...</a>
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/4/14
+ * @see RelationshipTypeSetter
+ * @see com.qlangtech.tis.plugin.ontology.impl.linker.LinkResources
  */
-public class OntologyLinker implements Describable<OntologyLinker>, IdentityName {
+public class OntologyLinker extends Ontology implements IdentityName, MultiStepsSupportHost,
+        IPluginStore.ManipuldateProcessor, IPluginStore.BeforePluginSaved {
 
     public static final String KEY_LINK_TYPES = "link-types";
+    private OneStepOfMultiSteps[] stepsPlugin;
 
-    @FormField(identity = true, ordinal = 0, validate = {Validator.require, Validator.identity_strict})
+    public static List<OntologyLinker> load(String ontologyName) {
+        if (StringUtils.isEmpty(ontologyName)) {
+            throw new IllegalArgumentException("param ontologyName can not be null");
+        }
+        return OntologyEnum.Linker.loadAll(OntologyPluginMeta.create(OntologyEnum.Linker, ontologyName));
+    }
+
+    @FormField(identity = true, ordinal = 0, validate = {Validator.require})
     public String name;
 
-    @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
-    public String sourceType;
+    public IEndTypeGetter.EndType getLinkTypeEnd() {
+        return getRelationTypeSetterStep().getRelationshipType().getEndType();
+    }
 
-    @FormField(ordinal = 2, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
-    public String targetType;
+    public LinkResources getLinkResourcesStep(){
+        if (stepsPlugin.length != 2) {
+            throw new IllegalStateException("stepsPlugin.length:" + stepsPlugin.length + " length must 2");
+        }
+        return (LinkResources) stepsPlugin[1];
+    }
 
-    @FormField(ordinal = 3, type = FormFieldType.TEXTAREA)
-    public String description;
+    private RelationshipTypeSetter getRelationTypeSetterStep() {
+        if (stepsPlugin.length != 2) {
+            throw new IllegalStateException("stepsPlugin.length:" + stepsPlugin.length + " length must 2");
+        }
+        return (RelationshipTypeSetter) stepsPlugin[0];
+    }
 
     @Override
     public String identityValue() {
         return this.name;
     }
 
+    @Override
+    public void setSteps(OneStepOfMultiSteps[] stepsPlugin) {
+        this.stepsPlugin = Objects.requireNonNull(stepsPlugin, "stepsPlugin can not be null");
+    }
+
+    @Override
+    public OneStepOfMultiSteps[] getMultiStepsSavedItems() {
+        return this.stepsPlugin;
+    }
+
+    @Override
+    public void beforeSaved(IPluginContext pluginContext, Optional<Context> context) {
+        for (OneStepOfMultiSteps step : getMultiStepsSavedItems()) {
+            if (step instanceof LinkResources linkResources) {
+                this.name = linkResources.getLinkIdentityName().identityValue();
+                return;
+            }
+        }
+        throw new IllegalStateException("have not find any LinkResources");
+    }
+
+    @Override
+    public void manipuldateProcess(IPluginContext pluginContext, UploadPluginMeta pluginMeta,
+                                   Optional<Context> context) {
+        // 进行持久化
+        IPluginStore<OntologyLinker> valTypeStore =
+                OntologyEnum.Linker.getPluginStore(
+                        OntologyPluginMeta.createPluginMeta( //
+                                pluginMeta.putExtraParams(KEY_START_PERSISTENCE, Boolean.TRUE.toString())
+                                        .putExtraParams(IdentityName.PLUGIN_IDENTITY_NAME,
+                                                Objects.requireNonNull(this.identityValue(), "id can not be null")))).unsaveCast();
+
+        //        = ONTOLOGY_VALUE_TYPE.getPluginStore(pluginContext,
+        //                pluginMeta.putExtraParams(KEY_START_PERSISTENCE,
+        //                                Boolean.TRUE.toString())
+        //                        .putExtraParams(IdentityName.PLUGIN_IDENTITY_NAME,
+        //                                this.getMeta().name));
+
+        valTypeStore.setPlugins(pluginContext, context,
+                Collections.singletonList(new Descriptor.ParseDescribable<>(this)));
+    }
+
     @TISExtension
-    public static class DefaultDesc extends Descriptor<OntologyLinker> {
+    public static class DefaultDesc extends Ontology.BasicDesc implements MultiStepsSupportHostDescriptor<OntologyLinker> {
         public DefaultDesc() {
             super();
         }
 
         @Override
+        protected OntologyEnum getOntologyType() {
+            return OntologyEnum.Linker;
+        }
+
+        @Override
         public String getDisplayName() {
-            return "OntologyLinker";
+            return "Link Type";
+        }
+
+        @Override
+        public Class<OntologyLinker> getHostClass() {
+            return OntologyLinker.class;
+        }
+
+        @Override
+        public List<OneStepOfMultiSteps.BasicDesc> getStepDescriptionList() {
+            return List.of(new RelationshipTypeSetter.Desc(), new RelationshipTypeObjectTypeForeignKeys.DefDesc());
+        }
+
+        @Override
+        public void appendExternalProps(JSONObject multiStepsCfg) {
+
         }
     }
 }

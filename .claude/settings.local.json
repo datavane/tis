@@ -146,7 +146,10 @@
       "Bash(python3 *)",
       "Bash(grep -o \"..\\\\{20\\\\}8c8c8c.\\\\{40\\\\}\" /Users/mozhenghua/j2ee_solution/project/tis-console/dist/ng-tis/vendor.js)",
       "Bash(grep -o \"..\\\\{30\\\\}180px.\\\\{30\\\\}\" /Users/mozhenghua/j2ee_solution/project/tis-console/dist/ng-tis/main.js)",
-      "Bash(grep -o \"..\\\\{60\\\\}rgba.110,136,255.\\\\{60\\\\}\" /Users/mozhenghua/j2ee_solution/project/tis-console/dist/ng-tis/main.js)"
+      "Bash(grep -o \"..\\\\{60\\\\}rgba.110,136,255.\\\\{60\\\\}\" /Users/mozhenghua/j2ee_solution/project/tis-console/dist/ng-tis/main.js)",
+      "Bash(npx --prefix /Users/mozhenghua/j2ee_solution/project/tis-console tsc --noEmit --skipLibCheck)",
+      "Bash(mvn compile *)",
+      "Read(//opt/misc/neo4j-demo/**)"
     ],
     "deny": [],
     "ask": []

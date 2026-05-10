@@ -119,6 +119,9 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
 
     public List<Descriptor<T>> allDescriptor();
 
+    default <TT extends T> IPluginStore<TT> unsaveCast() {
+        return (IPluginStore<TT>) this;
+    }
 
     public default T find(String name) {
         return find(name, true);

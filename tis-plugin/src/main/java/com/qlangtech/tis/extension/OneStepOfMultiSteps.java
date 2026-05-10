@@ -85,10 +85,14 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
     @Override
     public final Descriptor<OneStepOfMultiSteps> getDescriptor() {
         Descriptor<OneStepOfMultiSteps> descriptor = Describable.super.getDescriptor();
-        if (!BasicDesc.class.isAssignableFrom(descriptor.getClass())) {
-            throw new IllegalStateException("descriptor:" + descriptor.getClass().getName() + " must extend from " + BasicDesc.class.getName());
+        if (!getBasicDescClass().isAssignableFrom(descriptor.getClass())) {
+            throw new IllegalStateException("descriptor:" + descriptor.getClass().getName() + " must extend from " + getBasicDescClass().getName());
         }
         return descriptor;
+    }
+
+    protected Class<? extends BasicDesc> getBasicDescClass() {
+        return BasicDesc.class;
     }
 
     private static final String KEY_NEXT_STEP_PLUGIN_DESC = "nextStepPluginDesc";
@@ -227,10 +231,8 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
             saved.put(KEY_CURRENT_STEP_INDEX, descriptor.getStep().stepIndex);
 
             // 处理下一步信息
-            Optional<BasicDesc> nextPluginDesc = descriptor.nextPluginDesc();
-            if (nextPluginDesc.isPresent()) {
-                addNextStepInfo(saved, nextPluginDesc.get());
-            }
+            Optional<BasicDesc> nextPluginDesc = descriptor.nextPluginDesc(this);
+            nextPluginDesc.ifPresent(basicDesc -> addNextStepInfo(saved, basicDesc));
 
             return saved;
         } catch (Exception e) {
@@ -248,7 +250,7 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
         DefaultDescriptorsJSON desc2Json = new DefaultDescriptorsJSON(nextDesc);
         saved.put(KEY_NEXT_STEP_PLUGIN_DESC, desc2Json.getDescriptorsJSON());
         saved.put(KEY_NEXT_STEP_PLUGIN_INDEX, nextDesc.getStep().stepIndex);
-        saved.put(KEY_FINAL_STEP, nextDesc.nextPluginDesc().isEmpty());
+        saved.put(KEY_FINAL_STEP, nextDesc.isFinalStep());
     }
 
     /**
@@ -292,7 +294,16 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
          *
          * @return 下一步的描述符，如果是最后一步则为空
          */
-        public abstract Optional<OneStepOfMultiSteps.BasicDesc> nextPluginDesc();
+        public abstract Optional<OneStepOfMultiSteps.BasicDesc> nextPluginDesc(OneStepOfMultiSteps current);
+
+        /**
+         * 是否是最后一步
+         *
+         * @return
+         */
+        public boolean isFinalStep() {
+            return this.nextPluginDesc(null).isEmpty();
+        }
 
         /**
          * 获取步骤描述
@@ -300,5 +311,7 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
          * @return 步骤描述文本
          */
         public abstract String getStepDescription();
+
+
     }
 }

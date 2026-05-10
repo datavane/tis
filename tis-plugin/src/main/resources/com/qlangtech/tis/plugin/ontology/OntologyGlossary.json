@@ -1,0 +1,1 @@
+{  "synonyms": {    "elementCreator": "com.qlangtech.tis.plugin.datax.transformer.jdbcprop.JdbcPropertyElementSelectFromExistFieldCreatorFactory",    "enum": "com.qlangtech.tis.plugin.datax.transformer.impl.ConcatUDF.getFromCols():uncache_true",    "viewtype": "tuplelist"  }}

@@ -901,7 +901,7 @@ public class CoreAction extends BasicModule {
   private static IndexStreamCodeGenerator getIndexStreamCodeGenerator(DataXName dataXName, BasicModule module) {
     //  DataXName dataXName = pipelineNameAware.getCollectionName();
     Optional<IBasicAppSource> appSource = IAppSource.loadNullable(null, Objects.requireNonNull(dataXName).getType(),
-      dataXName.getPipelineName());
+      dataXName.getPipelineName()).map(s -> (IBasicAppSource) s);
 
     Date scriptLastOpTime = appSource.get().accept(new IBasicAppSource.IAppSourceVisitor<Date>() {
       @Override

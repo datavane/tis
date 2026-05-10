@@ -36,7 +36,9 @@ public class Option implements IdentityName {
     public static final String KEY_VALUE = "val";
     public static final String KEY_LABEL = "label";
     public static final String keyChecked = "checked";
+    public static final String KEY_HELP = "help";
     public static String KEY_END_TYPE = "endType";
+   // public static String KEY_HELP = "help";
 
     public static Option create(JSONObject option) {
         return new Option(Objects.requireNonNull(option, "option can not be null").getString(Option.KEY_LABEL),
@@ -86,6 +88,10 @@ public class Option implements IdentityName {
                 if ((endtype = opt.endType()) != null) {
                     o.put(KEY_END_TYPE, endtype);
                 }
+                String help = null;
+                if ((help = opt.description()) != null) {
+                    o.put(KEY_HELP, help);
+                }
                 if (opt.isChecked() != null) {
                     o.put(keyChecked, opt.isChecked());
                 }
@@ -120,10 +126,20 @@ public class Option implements IdentityName {
 
     /**
      * 下啦选项中也可以设置图标
-     *  //@see EndType
+     * //@see EndType
+     *
      * @return
      */
     public String endType() {
+        return null;
+    }
+
+    /**
+     * 描述信息
+     *
+     * @return
+     */
+    public String description() {
         return null;
     }
 }

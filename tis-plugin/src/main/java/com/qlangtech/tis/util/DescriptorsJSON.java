@@ -69,6 +69,7 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
     public static final String KEY_ADVANCE = "advance";
 
     public static final String KEY_SCHEMA_FIELDS_ATTRS = "attrs";
+    public static final String KEY_VALUE_CHANGE_PIPES = "valueChangePipes";
 
     private final Collection<Descriptor<T>> descriptors;
     /**
@@ -229,6 +230,18 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
             desJson.put("veriflable", desc.overWriteValidateMethod);
             Map<String, Object> extractProps = desc.getExtractProps();
             desJson.put("extractProps", extractProps);
+        }
+
+        Map<String, Descriptor.ValueChangePipe> pipes = descriptor.getValueChangePipes();
+        if (!pipes.isEmpty()) {
+            JSONArray pipesJson = new JSONArray();
+            for (Descriptor.ValueChangePipe pipe : pipes.values()) {
+                JSONObject p = new JSONObject();
+                p.put("fromField", pipe.getFromField());
+                p.put("toField", pipe.getToField());
+                pipesJson.add(p);
+            }
+            desJson.put(KEY_VALUE_CHANGE_PIPES, pipesJson);
         }
 
         return Pair.of(desJson, desc);

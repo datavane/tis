@@ -32,7 +32,7 @@ public interface ValidatorCommons {
     Pattern PATTERN_URL = Pattern.compile("^(https?|hdfs):\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\"
             + ".[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$");
 
-    Pattern PATTERN_NONE_BLANK = Pattern.compile("([^\\s]+)");
+    Pattern PATTERN_NONE_BLANK = Pattern.compile("^$|.*\\S.*");
     String MSG_NONE_BLANK_ERROR = "内容不能包含空格";
 
     Pattern PATTERN_RELATIVE_PATH = Pattern.compile("([\\w\\d-_\\.]+/)*([\\w\\d-_\\.\\*]*)");

@@ -18,31 +18,33 @@
 
 package com.qlangtech.tis.plugin.ontology;
 
+import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.MultiStepsSupportHost;
+import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
+import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
-import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
+import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypeProfile;
+import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypeProperties;
 import com.qlangtech.tis.util.IPluginContext;
-import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-
-import static com.qlangtech.tis.extension.Descriptor.getPluginFileName;
-import static com.qlangtech.tis.plugin.ontology.OntologyDomain.NAME_ONTOLOGY_DOMAIN;
+import java.util.Optional;
 
 /**
  * 创建本体Object type，对应一个表
@@ -50,37 +52,65 @@ import static com.qlangtech.tis.plugin.ontology.OntologyDomain.NAME_ONTOLOGY_DOM
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/4/16
  */
-public class OntologyObjectType implements Describable<OntologyObjectType>, IdentityName {
+public class OntologyObjectType extends Ontology implements IdentityName, MultiStepsSupportHost,
+        IPluginStore.ManipuldateProcessor, IPluginStore.BeforePluginSaved {
 
     public static final String KEY_DATASOURCE_NAME = "ds";
     // public static final String KEY_OBJECT_TYPE = "objectType";
     public static final String KEY_OBJECT_TYPE = "object-type";
+    // private transient String dataSourceName;
 
     @FormField(identity = true, ordinal = 0, validate = {Validator.require, Validator.identity})
-    public String name;
+    public String useless;
 
-    @FormField(ordinal = 1, validate = {Validator.require, Validator.identity})
-    public String alias;
-
-    @FormField(ordinal = 2, validate = {Validator.require, Validator.none_blank})
-    public String description;
-
-    private transient String dataSourceName;
-    private List<OntologyProperty> cols;
-
-    public static IPluginStore<OntologyObjectType> getPluginStore(String ontologyName, String dataSourceName,
+    public static IPluginStore<OntologyObjectType> getPluginStore(String ontologyName, //String dataSourceName,
                                                                   String tableName) {
-        return ONTOLOGY_OBJECT_TYPE
-                .getPluginStore(null, UploadPluginMeta.create(ONTOLOGY_OBJECT_TYPE)
-                        .putExtraParams(NAME_ONTOLOGY_DOMAIN, ontologyName) //
-                        .putExtraParams(KEY_DATASOURCE_NAME, dataSourceName) //
-                        .putExtraParams(KEY_OBJECT_TYPE, tableName));
+        OntologyPluginMeta pluginMeta = OntologyPluginMeta.create(OntologyEnum.ObjectType, ontologyName);
+        pluginMeta.getDelegate() //
+                //.putExtraParams(KEY_DATASOURCE_NAME, dataSourceName) //
+                .putExtraParams(KEY_OBJECT_TYPE, tableName);
+        IPluginStore<Ontology> store = OntologyEnum.ObjectType.getPluginStore(pluginMeta);
+        return store.unsaveCast();
+    }
+
+    private OneStepOfMultiSteps[] _stepsPlugin;
+
+    @Override
+    public void setSteps(OneStepOfMultiSteps[] stepsPlugin) {
+        this._stepsPlugin = Objects.requireNonNull(stepsPlugin, "stepsPlugin can not be null");
+    }
+
+    public ObjectTypeProfile getProfile() {
+        return (ObjectTypeProfile) getMultiStepsSavedItems()[0];
+    }
+
+    private ObjectTypeProperties getPropsStep() {
+        return (ObjectTypeProperties) getMultiStepsSavedItems()[1];
+    }
+
+    @Override
+    public OneStepOfMultiSteps[] getMultiStepsSavedItems() {
+        if (_stepsPlugin.length != 2) {
+            throw new IllegalStateException("lenght of _stepsPlugin must be 2");
+        }
+        return _stepsPlugin;
+    }
+
+    @Override
+    public void beforeSaved(IPluginContext pluginContext, Optional<Context> context) {
+
+    }
+
+    @Override
+    public void manipuldateProcess(IPluginContext pluginContext, UploadPluginMeta pluginMeta,
+                                   Optional<Context> context) {
+
     }
 
     @JSONField(serialize = false)
     @Override
-    public Descriptor<OntologyObjectType> getDescriptor() {
-        return Describable.super.getDescriptor();
+    public Descriptor<Ontology> getDescriptor() {
+        return super.getDescriptor();
     }
 
     /**
@@ -92,100 +122,87 @@ public class OntologyObjectType implements Describable<OntologyObjectType>, Iden
     public static List<OntologyObjectType> load(String ontologyName) {
         List<OntologyObjectType> objectTypes = Lists.newArrayList();
         File objectTypeDir = OntologyDomain.getObjectTypeDir(ontologyName);
-        for (String ds : Objects.requireNonNull(objectTypeDir.list(), "subDir of objectTypeDir can not be null")) {
-            File dsDir = new File(objectTypeDir, ds);
-            for (File ot : FileUtils.listFiles(dsDir, new String[]{XmlFile.KEY_XML_EXTENSION}, false)) {
-                IPluginStore<OntologyObjectType> ps =
-                        getPluginStore(ontologyName, ds,
-                                StringUtils.removeEnd(ot.getName(), XmlFile.KEY_XML_DOT_EXTENSION));
-
-                objectTypes.add(Objects.requireNonNull(ps.getPlugin(), "ot:" + ot.getAbsolutePath()).setDataSourceName(ds));
-            }
+        if (!objectTypeDir.exists()) {
+            return Collections.emptyList();
         }
+        //        for (String ds : Objects.requireNonNull(objectTypeDir.list(), "subDir of objectTypeDir can not be
+        //        null")) {
+        //            File dsDir = new File(objectTypeDir, ds);
+        for (File ot : FileUtils.listFiles(objectTypeDir, new String[]{XmlFile.KEY_XML_EXTENSION}, false)) {
+            IPluginStore<OntologyObjectType> ps =
+                    getPluginStore(ontologyName, //ds,
+                            StringUtils.removeEnd(ot.getName(), XmlFile.KEY_XML_DOT_EXTENSION));
+
+            objectTypes.add(Objects.requireNonNull(ps.getPlugin(), "ot:" + ot.getAbsolutePath()));
+        }
+        //}
         return objectTypes;
     }
 
-    public static OntologyObjectType loadDetail(String ontologyName, String dataSourceName, String objType) {
-        return getPluginStore(ontologyName, dataSourceName, objType).getPlugin();
+    public static OntologyObjectType loadDetail(String ontologyName, String objType) {
+        return getPluginStore(ontologyName, objType).getPlugin();
     }
 
 
-    @TISExtension
-    public static final HeteroEnum<OntologyObjectType> ONTOLOGY_OBJECT_TYPE = new HeteroEnum<>(//
-            OntologyObjectType.class, //
-            KEY_OBJECT_TYPE, // },
-            "本体对象类型", Selectable.Single, false) {
-        @SuppressWarnings("all")
-        @Override
-        public IPluginStore<OntologyObjectType> getPluginStore(IPluginContext pluginContext,
-                                                               UploadPluginMeta pluginMeta) {
-            String ontology = pluginMeta.getExtraParam(NAME_ONTOLOGY_DOMAIN);
-            if (StringUtils.isEmpty(ontology)) {
-                throw new IllegalStateException("param ontology can not be empty");
-            }
-            String dataSource = pluginMeta.getExtraParam(KEY_DATASOURCE_NAME);
-            String tableName = pluginMeta.getExtraParam(KEY_OBJECT_TYPE);
-            if (StringUtils.isEmpty(dataSource)) {
-                throw new IllegalStateException("param dataSource can not be empty");
-            }
-            if (StringUtils.isEmpty(tableName)) {
-                throw new IllegalStateException("param tableName can not be empty");
-            }
+    //    public OntologyObjectType setDataSourceName(String dataSourceName) {
+    //        this.dataSourceName = dataSourceName;
+    //        return this;
+    //    }
 
-            KeyedPluginStore.Key key = getStoreKey(ontology, dataSource, tableName);
-            return TIS.getPluginStore(key);
-        }
-    };
+    //    public String getDataSourceName() {
+    //        return this.getProfile().
+    //    }
 
-    @SuppressWarnings("all")
-    private static KeyedPluginStore.Key getStoreKey(String ontologyName, String dataSourceName, String tableName) {
-
-        KeyedPluginStore.Key key = new KeyedPluginStore.Key(ONTOLOGY_OBJECT_TYPE.getIdentity(), ontologyName
-                , ONTOLOGY_OBJECT_TYPE.extensionPoint) {
-            @Override
-            public File getStoreFile() {
-                File objectTypeDir = OntologyDomain.getObjectTypeDir(ontologyName);
-                return new File(objectTypeDir, dataSourceName + File.separator + getPluginFileName(getFileName()));
-            }
-
-            public String getSerializeFileRelativePath() {
-                return this.getSubDirPath() + File.separator + getFileName();
-            }
-
-            @Override
-            protected String getFileName() {
-                return tableName;
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(keyVal.getKeyVal(), ontologyName, dataSourceName, tableName);
-            }
-        };
-        return key;
-    }
-
-
-    public OntologyObjectType setDataSourceName(String dataSourceName) {
-        this.dataSourceName = dataSourceName;
-        return this;
-    }
-
-    public String getDataSourceName() {
-        return this.dataSourceName;
-    }
-
-    public List<OntologyProperty> getCols() {
-        return cols;
-    }
-
-    public void setCols(List<OntologyProperty> cols) {
-        this.cols = cols;
-    }
 
     @Override
     public String identityValue() {
-        return this.name;
+        return this.getProfile().name;
+    }
+
+    public final List<OntologyProperty> getCols() {
+        return this.getPropsStep().getCols();
+    }
+
+    public String getName() {
+        return this.getProfile().name;
+    }
+
+    @TISExtension
+    public static class DefaultDesc extends BasicDesc implements MultiStepsSupportHostDescriptor<OntologyObjectType> {
+        public DefaultDesc() {
+            super();
+        }
+
+        @Override
+        public EndType getEndType() {
+            return EndType.OntologyObjectType;
+        }
+
+        @Override
+        protected OntologyEnum getOntologyType() {
+            return OntologyEnum.ObjectType;
+        }
+
+
+        @Override
+        public String getDisplayName() {
+            return "Object Type";
+        }
+
+        @Override
+        public Class<OntologyObjectType> getHostClass() {
+            return OntologyObjectType.class;
+        }
+
+        @Override
+        public List<OneStepOfMultiSteps.BasicDesc> getStepDescriptionList() {
+            return List.of(new ObjectTypeProfile.DftDesc(), new ObjectTypeProperties.DftDesc());
+        }
+
+        @Override
+        public void appendExternalProps(JSONObject multiStepsCfg) {
+
+        }
     }
 
 }
