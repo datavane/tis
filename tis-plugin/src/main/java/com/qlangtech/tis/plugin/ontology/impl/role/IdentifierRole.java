@@ -36,9 +36,14 @@ public class IdentifierRole extends PropertyRoleType {
 
     @TISExtension
     public static class DftDesc extends BasicDesc {
+//        @Override
+//        public String getDisplayName() {
+//            return SemanticRole.Identifier.getLabel();
+//        }
+
         @Override
-        public String getDisplayName() {
-            return SemanticRole.Identifier.getLabel();
+        protected SemanticRole getKind() {
+            return SemanticRole.Identifier;
         }
     }
 }

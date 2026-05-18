@@ -18,13 +18,10 @@
 package com.qlangtech.tis.plugin.ontology.impl.role;
 
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.extension.Describable;
-import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.TISExtension;
-import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ds.IMultiElement;
 import com.qlangtech.tis.plugin.ontology.OntologyLinker;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.util.IPluginContext;
@@ -34,21 +31,32 @@ import java.util.List;
 /**
  * 对 {@link OntologyLinker} 的轻量引用——只保存 link type 名字。
  * Derived property 的多跳链路通过持有多个 ref 实现。
+ * <p>
+ * Note:目前前端先使用一跳的方式实现，以后有需要再实现多跳
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/5/10
+ * @see MeasureRole
+ * @see OntologyLinkerRefCreatorFactory
  */
-public class OntologyLinkerRef implements Describable<OntologyLinkerRef> {
+public class OntologyLinkerRef implements IMultiElement {
 
-    @FormField(ordinal = 0, type = FormFieldType.ENUM, validate = {Validator.require})
+    public static final String KEY_DERIVED_LINKER_NAME = "derivedLinkerName";
+    static final String  KEY_LINK_TYPE_NAME = "linkerName";
+
+    // @FormField(ordinal = 0, type = FormFieldType.ENUM, validate = {Validator.require})
     public String linkerName;
 
     public String getLinkerName() {
         return linkerName;
     }
 
+    public void setLinkerName(String linkerName) {
+        this.linkerName = linkerName;
+    }
+
     public OntologyLinker resolve(String ontologyName) {
-        for (OntologyLinker linker : OntologyLinker.load(ontologyName)) {
+        for (OntologyLinker linker : OntologyLinker.loadAll(ontologyName)) {
             if (linker.identityValue().equals(this.linkerName)) {
                 return linker;
             }
@@ -56,21 +64,23 @@ public class OntologyLinkerRef implements Describable<OntologyLinkerRef> {
         throw new IllegalStateException("linker not found: " + this.linkerName);
     }
 
-    public static List<Option> getLinkerOpts() {
+    public static List<OntologyLinker> getLinkerOpts() {
+
         IPluginContext pluginContext = IPluginContext.getThreadLocalInstance();
         OntologyPluginMeta meta = OntologyPluginMeta.createPluginMeta(pluginContext.getContext());
-        List<Option> result = Lists.newArrayList();
-        for (OntologyLinker linker : OntologyLinker.load(meta.getDomain())) {
-            result.add(new Option(linker.identityValue(), linker.identityValue()));
+//        meta.getObjectType();
+//        meta.getObjectTypeProperty();
+        List<OntologyLinker> result = Lists.newArrayList();
+        for (OntologyLinker linker : OntologyLinker.loadAll(meta.getDomain())) {
+            if (linker.isConnectMatch(meta)) {
+                result.add(linker);
+            }
         }
         return result;
     }
 
-    @TISExtension
-    public static class DftDesc extends Descriptor<OntologyLinkerRef> {
-        @Override
-        public String getDisplayName() {
-            return "Linker";
-        }
+    @Override
+    public String getName() {
+        return this.linkerName;
     }
 }

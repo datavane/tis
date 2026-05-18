@@ -19,12 +19,19 @@ package com.qlangtech.tis.extension.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
 import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.runtime.module.action.IParamGetter;
 import com.qlangtech.tis.util.DescribableJSON;
+import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -50,7 +57,6 @@ public class RootFormProperties extends PluginFormProperties {
     }
 
 
-
     @Override
     public Descriptor getDescriptor() {
         return this.descriptor;
@@ -66,10 +72,14 @@ public class RootFormProperties extends PluginFormProperties {
         return this.propertiesType.entrySet();
     }
 
+    @SuppressWarnings("all")
     @Override
     public JSON getInstancePropsJson(Object instance) {
         JSONObject vals = new JSONObject();
+        List<Descriptor.ValueChangePipe> valChangePipes = null;
+        Map<String, Object> pipeSourceVals = null;
         try {
+
             Object o = null;
             for (Map.Entry<String, PropertyType> entry : propertiesType.entrySet()) {
 
@@ -77,19 +87,67 @@ public class RootFormProperties extends PluginFormProperties {
                 if (o == null) {
                     continue;
                 }
+
+
                 if (entry.getValue().isDescribable()) {
                     DescribableJSON djson = new DescribableJSON((Describable) o);
                     vals.put(entry.getKey(), djson.getItemJson());
                 } else {
-
+                    // 级联数据同步控件primary控件必须是普通非Describable的属性
+                    Descriptor.ValueChangePipe valueChangePipe = descriptor.getValueChangePipe(entry.getKey(), false);
+                    if (valueChangePipe != null) {
+                        if (valChangePipes == null) {
+                            valChangePipes = Lists.newArrayList();
+                            pipeSourceVals = Maps.newHashMap();
+                        }
+                        pipeSourceVals.put(entry.getKey(), o);
+                        valChangePipes.add(valueChangePipe);
+                    }
 
                     vals.put(entry.getKey(), o);
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("fetchKeys:" + propertiesType.keySet().stream().collect(Collectors.joining(",")) + "，hasKeys:" + Arrays.stream(instance.getClass().getFields()).map((r) -> r.getName()).collect(Collectors.joining(",")), e);
+            throw new RuntimeException("fetchKeys:" + propertiesType.keySet().stream().collect(Collectors.joining(","))//
+                    + "，hasKeys:" + Arrays.stream(instance.getClass().getFields()).map((r) -> r.getName()).collect(Collectors.joining(",")), e);
+        }
+
+        if (CollectionUtils.isNotEmpty(valChangePipes)) {
+            // 此处用以生成级联select控件下拉选项功能
+            IPluginContext threadLocalContext = IPluginContext.getThreadLocalInstance();
+            UploadPluginMeta uploadMeta =
+                    UploadPluginMeta.createPluginMeta(threadLocalContext.getContext());
+            IParamGetter params = new PluginPropParams(pipeSourceVals);
+            for (Descriptor.ValueChangePipe pipe : valChangePipes) {
+                Map<String, List<? extends Option>> renderResult = pipe.render(uploadMeta, params);
+                for (Map.Entry<String, List<? extends Option>> entry : renderResult.entrySet()) {
+                    // 使用"$" 作为前缀，在前端处理中可以方便与插件的property区别
+                    // entry.getKey() 值可能中间包含“.”作为分割符，一个plugin 的property可以级联更新，另外一个Describable类型的子select控件属性
+                    vals.put("$pipe_field$" + entry.getKey(), Option.toJson(entry.getValue()));
+                }
+            }
+
         }
         return (vals);
+    }
+
+    public static class PluginPropParams implements IParamGetter {
+        private final Map<String, Object> pipeSourceVals;
+
+        public PluginPropParams(Map<String, Object> pipeSourceVals) {
+            this.pipeSourceVals = Objects.requireNonNull(pipeSourceVals, "pipeSourceVals can not be null");
+        }
+
+        @Override
+        public String getString(String key) {
+            return String.valueOf((Object) getPropVal(key));
+        }
+
+        @SuppressWarnings("all")
+        public <T> T getPropVal(String key) {
+            return (T) Objects.requireNonNull(pipeSourceVals.get(key), "key:" + key + " relevant value can"
+                    + " not be null");
+        }
     }
 
     @Override

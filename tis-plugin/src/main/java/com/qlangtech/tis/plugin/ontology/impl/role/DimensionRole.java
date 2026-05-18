@@ -36,9 +36,10 @@ public class DimensionRole extends PropertyRoleType {
 
     @TISExtension
     public static class DftDesc extends BasicDesc {
+
         @Override
-        public String getDisplayName() {
-            return SemanticRole.Dimension.getLabel();
+        protected SemanticRole getKind() {
+            return SemanticRole.Dimension;
         }
     }
 }

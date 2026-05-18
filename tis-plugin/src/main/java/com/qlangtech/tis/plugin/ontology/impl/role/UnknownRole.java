@@ -36,9 +36,15 @@ public class UnknownRole extends PropertyRoleType {
 
     @TISExtension
     public static class DftDesc extends BasicDesc {
+
         @Override
-        public String getDisplayName() {
-            return SemanticRole.Unknown.getLabel();
+        protected SemanticRole getKind() {
+            return SemanticRole.Unknown;
         }
+
+//        @Override
+//        public String getDisplayName() {
+//            return SemanticRole.Unknown.getLabel();
+//        }
     }
 }

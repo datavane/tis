@@ -20,8 +20,10 @@ package com.qlangtech.tis.plugin.ontology;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson.annotation.JSONType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.OneStepOfMultiStepsJsonSerializer;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -29,7 +31,9 @@ import com.qlangtech.tis.plugin.SetPluginsResult;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ds.IMultiElement;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
+import com.qlangtech.tis.plugin.ontology.impl.objtype.OntologyPropertyJsonSerializer;
 import com.qlangtech.tis.plugin.ontology.impl.typeref.DefaultPropertyTypeRef;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
@@ -50,7 +54,8 @@ import java.util.stream.Collectors;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/4/18
  */
-public class OntologyProperty implements Describable<OntologyProperty>, IdentityName {
+@JSONType(serializer = OntologyPropertyJsonSerializer.class)
+public class OntologyProperty implements Describable<OntologyProperty>, IdentityName, IMultiElement {
 
     public static final String KEY_ONTOLOGY_PROP = "ontology-property";
 
@@ -58,7 +63,7 @@ public class OntologyProperty implements Describable<OntologyProperty>, Identity
     @FormField(identity = true, ordinal = 0, validate = {Validator.require, Validator.db_col_name})
     public String name;
 
-    @FormField(ordinal = 1, validate = {Validator.none_blank})
+    @FormField(ordinal = 1, type = FormFieldType.TEXTAREA, validate = {Validator.none_blank})
     public String description;
 
     //    /**
@@ -100,11 +105,11 @@ public class OntologyProperty implements Describable<OntologyProperty>, Identity
         @Override
         public IPluginStore<OntologyProperty> getPluginStore(IPluginContext pluginContext,
                                                              UploadPluginMeta pluginMeta) {
-            final String propName = pluginMeta.getExtraParam(KEY_ONTOLOGY_PROP);
+
             OntologyPluginMeta ontologyMeta = new OntologyPluginMeta(pluginMeta);
-            if (StringUtils.isEmpty(propName)) {
-                throw new IllegalStateException("param propName can not be null");
-            }
+            //            if (StringUtils.isEmpty(propName)) {
+            //                throw new IllegalStateException("param propName can not be null");
+            //            }
             return new IPluginStore.AdapterPluginStore<>() {
                 @Override
                 public List<OntologyProperty> getPlugins() {
@@ -136,11 +141,14 @@ public class OntologyProperty implements Describable<OntologyProperty>, Identity
                 private OntologyProperty getOntologyProperty(
                         Consumer<Triple<IPluginStore<OntologyObjectType>,
                                 OntologyObjectType, OntologyProperty>> propConsumer) {
-
+                    final String propName = ontologyMeta.getObjectTypeProperty();
                     IPluginStore<OntologyObjectType> pluginStore =
                             Ontology.OntologyEnum.ObjectType.getPluginStore(ontologyMeta).unsaveCast();
+
+                    ;
                     //  Ontology.ONTOLOGY.getPluginStore(pluginContext, pluginMeta).unsaveCast();
-                    OntologyObjectType objectType = pluginStore.getPlugin();
+                    OntologyObjectType objectType = OntologyObjectType.loadDetail(ontologyMeta.getDomain(),
+                            ontologyMeta.getObjectType());// pluginStore.getPlugin();
                     for (OntologyProperty prop : objectType.getCols()) {
                         if (propName.equals(prop.name)) {
                             propConsumer.accept(Triple.of(pluginStore, objectType, prop));
@@ -179,15 +187,16 @@ public class OntologyProperty implements Describable<OntologyProperty>, Identity
         return this.getName();
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
-    public boolean isPk() {
+    public Boolean isPk() {
         return pk;
     }
 
-    public boolean isNullable() {
+    public Boolean isNullable() {
         return nullable;
     }
 
@@ -206,6 +215,10 @@ public class OntologyProperty implements Describable<OntologyProperty>, Identity
 
     public String getTypeEnd() {
         return this.parseOntologyType().getEndType().getVal();
+    }
+
+    public void setPk(boolean val) {
+        this.pk = val;
     }
 
     @TISExtension

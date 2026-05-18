@@ -20,12 +20,21 @@ package com.qlangtech.tis.plugin.ontology.impl.objtype;
 
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.plugin.ds.TableNotFoundException;
+import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -36,6 +45,8 @@ public class DataSourceBinding extends ObjectTypeBinding {
 
     private static final String KEY_DISPLAY_NAME = "DataSource Bound";
 
+    private static final String KEY_DB_NAME = "dbName";
+    private static final String KEY_PHYSICAL_TABLE_NAME = "physicalTableName";
     @FormField(ordinal = 0, type = FormFieldType.ENUM, validate = {Validator.require})
     public String dbName;
 
@@ -43,11 +54,22 @@ public class DataSourceBinding extends ObjectTypeBinding {
      * 物理表名（可空）。空时回落到 ObjectType 的 name；
      * 用于「ObjectType 逻辑名 ≠ Doris 物理表名」的场景，例如本体侧用中文语义名而 Doris 侧用下划线英文表名。
      */
-    @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT, validate = {Validator.db_col_name})
+    @FormField(ordinal = 1, type = FormFieldType.ENUM, validate = {Validator.require, Validator.db_col_name})
     public String physicalTableName;
 
     public DataSourceFactory getDataSrouce() {
         return DataSourceFactory.load(this.dbName);
+    }
+    
+
+    @Override
+    public List<ColumnMetaData> resolveTabCols() {
+        try {
+            return getDataSrouce().getTableMetadata(false, IPluginContext.getThreadLocalInstance(),
+                    EntityName.parse(this.physicalTableName));
+        } catch (TableNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String resolvePhysicalTableName(String objectTypeName) {
@@ -67,6 +89,12 @@ public class DataSourceBinding extends ObjectTypeBinding {
     public static class DftDesc extends Descriptor<ObjectTypeBinding> {
         public DftDesc() {
             super();
+            this.valueChangePipe(KEY_DB_NAME, KEY_PHYSICAL_TABLE_NAME).render((meta, params) -> {
+                String dbName = params.getString(KEY_DB_NAME);
+                DataSourceFactory dataSource = DataSourceFactory.load(dbName);
+                List<String> tabs = dataSource.getTablesInDB().getTabs();
+                return tabs.stream().map((tab) -> new OptionWithEndType(tab, tab, IEndTypeGetter.EndType.Table)).toList();
+            });
         }
 
         @Override

@@ -245,6 +245,7 @@ public class PropertyType implements IPropertyType {
      * @param clazz
      * @return
      */
+    @SuppressWarnings("all")
     public static Map<String, /*** fieldname */IPropertyType> buildPropertyTypes(Optional<ElementPluginDesc> descriptor, final Class<? extends Describable> clazz) {
         try {
             Map<String, IPropertyType> propMapper = new HashMap<>();

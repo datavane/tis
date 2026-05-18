@@ -19,7 +19,6 @@ package com.qlangtech.tis.plugin.ontology;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.MultiStepsSupportHost;
 import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
@@ -34,7 +33,6 @@ import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.linker.LinkResources;
 import com.qlangtech.tis.plugin.ontology.impl.linker.RelationshipTypeObjectTypeForeignKeys;
 import com.qlangtech.tis.plugin.ontology.impl.linker.RelationshipTypeSetter;
-import com.qlangtech.tis.plugin.ontology.impl.valuetype.MetadataOfValueType;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang3.StringUtils;
@@ -61,26 +59,63 @@ public class OntologyLinker extends Ontology implements IdentityName, MultiSteps
     public static final String KEY_LINK_TYPES = "link-types";
     private OneStepOfMultiSteps[] stepsPlugin;
 
-    public static List<OntologyLinker> load(String ontologyName) {
+    public static List<OntologyLinker> loadAll(String ontologyName) {
         if (StringUtils.isEmpty(ontologyName)) {
             throw new IllegalArgumentException("param ontologyName can not be null");
         }
         return OntologyEnum.Linker.loadAll(OntologyPluginMeta.create(OntologyEnum.Linker, ontologyName));
     }
 
+    public static OntologyLinker load(String ontologyName, String linkerIdName) {
+        if (StringUtils.isEmpty(ontologyName)) {
+            throw new IllegalArgumentException("param ontologyName can not be null");
+        }
+        if (StringUtils.isEmpty(linkerIdName)) {
+            throw new IllegalArgumentException("param linkerIdName can not be null");
+        }
+        return OntologyEnum.Linker.load(OntologyPluginMeta.create(OntologyEnum.Linker, ontologyName).setPluginIdVal(linkerIdName));
+    }
+
     @FormField(identity = true, ordinal = 0, validate = {Validator.require})
     public String name;
+
+    public JSONObject serializeJSON() {
+        JSONObject obj = new JSONObject();
+        obj.put("name", this.name);
+        obj.put("type", this.getLinkTypeEnd().getVal());
+        obj.put("createTime", this.getCreate());
+        return obj;
+    }
 
     public IEndTypeGetter.EndType getLinkTypeEnd() {
         return getRelationTypeSetterStep().getRelationshipType().getEndType();
     }
 
-    public LinkResources getLinkResourcesStep(){
+    public boolean isConnectMatch(OntologyPluginMeta meta) {
+
+        // OntologyPluginMeta meta = OntologyPluginMeta.createPluginMeta(pluginContext.getContext());
+        LinkResources.ObjectLinkerPair links = getLinkResourcesStep().getLinks();
+        return links.isConnectMatch(meta);
+
+
+    }
+
+    public LinkResources getLinkResourcesStep() {
         if (stepsPlugin.length != 2) {
             throw new IllegalStateException("stepsPlugin.length:" + stepsPlugin.length + " length must 2");
         }
         return (LinkResources) stepsPlugin[1];
     }
+
+    /**
+     *
+     * @return
+     */
+    public OntologyObjectType getTargetLinkerEnd(OntologyPluginMeta meta) {
+        LinkResources.ObjectLinkerPair links = getLinkResourcesStep().getLinks();
+        return links.getOtherEnd(meta);
+    }
+
 
     private RelationshipTypeSetter getRelationTypeSetterStep() {
         if (stepsPlugin.length != 2) {
@@ -146,7 +181,10 @@ public class OntologyLinker extends Ontology implements IdentityName, MultiSteps
         protected OntologyEnum getOntologyType() {
             return OntologyEnum.Linker;
         }
-
+        @Override
+        public EndType getEndType() {
+            return EndType.OntologyLink;
+        }
         @Override
         public String getDisplayName() {
             return "Link Type";

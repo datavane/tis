@@ -135,6 +135,7 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
      * @param forAIPromote
      * @return
      */
+    @SuppressWarnings("all")
     public static Pair<JSONObject, Descriptor> createPluginFormPropertyTypes(Descriptor<?> descriptor,
                                                                              Optional<SubFormFilter> subFormFilter,
                                                                              boolean forAIPromote) {
@@ -170,28 +171,13 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
                 }
                 multiStepsCfg.put("multiSteps", steps);
 
-//                IPluginContext threadLocalInstance = IPluginContext.getThreadLocalInstance();
-//                Context context = threadLocalInstance.getContext();
-//                if (MultiStepsHostPluginFormProperties.containUpdateMultiStepsContext(context)) {
-//                    // 说明当前是更新状态，之前已经执行过 @MultiStepsHostPluginFormProperties.getInstancePropsJson() 方法了
-//                    DescriptorsJSON des2Json = forAIPromote ?
-//                            new DescriptorsJSONForAIPrompt(props.getStepDescriptionList(), true) :
-//                            new DefaultDescriptorsJSON(props.getStepDescriptionList());
-//                    multiStepsCfg.put("allStepDesc", des2Json.getDescriptorsJSON());
-//                }
-
-                // JSONArray allStepsDesc = new JSONArray();
                 for (OneStepOfMultiSteps.BasicDesc stepDesc : props.getStepDescriptionList()) {
                     DescriptorsJSON des2Json = forAIPromote ?
                             new DescriptorsJSONForAIPrompt(Collections.singleton(stepDesc), true) :
                             new DefaultDescriptorsJSON(stepDesc);
                     multiStepsCfg.put("firstStepDesc", des2Json.getDescriptorsJSON());
-                    //allStepsDesc.add(des2Json.getDescriptorsJSON());
                     break;
                 }
-
-                //multiStepsCfg.put("allStepsDesc", allStepsDesc);
-
                 JSONObject stepContext = new JSONObject();
                 ((MultiStepsSupportHostDescriptor) descriptor).appendExternalProps(stepContext);
                 // 保证在整个step运行过程中通过客户端SavePluginEvent.postPayload都会提交到服务端的属性

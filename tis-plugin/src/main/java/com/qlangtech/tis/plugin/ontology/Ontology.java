@@ -26,7 +26,6 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.storegetter.BaiscAssistStoreGetter;
 import com.qlangtech.tis.plugin.ontology.impl.storegetter.IAssistStoreGetter;
-import com.qlangtech.tis.plugin.ontology.impl.storegetter.OntologyObjectTypeStoreGetter;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.Selectable;
@@ -69,7 +68,13 @@ public abstract class Ontology implements Describable<Ontology> {
 
     public enum OntologyEnum {
 
-        ObjectType(OntologyObjectType.KEY_OBJECT_TYPE, new OntologyObjectTypeStoreGetter()),
+        ObjectType(OntologyObjectType.KEY_OBJECT_TYPE, new BaiscAssistStoreGetter<OntologyObjectType>() {
+            @Override
+            protected File getAssistRootDir(String ontologyName) {
+                return OntologyDomain.getObjectTypeDir(ontologyName);
+                //  return objectTypeDir;
+            }
+        }),
         ValueType(OntologyValueType.KEY_VALUE_TYPE //
                 , new BaiscAssistStoreGetter<OntologyValueType>() {
             @Override
@@ -137,6 +142,21 @@ public abstract class Ontology implements Describable<Ontology> {
         @SuppressWarnings("all")
         public <T extends Ontology> List<T> loadAll(OntologyPluginMeta meta) {
             return (List<T>) this.storeKeyGetter.loadAll(meta.getDomain());
+        }
+
+        /**
+         * 加载详细
+         *
+         * @param meta
+         * @param <T>
+         * @return
+         */
+        @SuppressWarnings("all")
+        public <T extends Ontology> T load(OntologyPluginMeta meta) {
+            if (StringUtils.isEmpty(meta.getPluginIdVal())) {
+                throw new IllegalArgumentException("meta.getPluginIdVal() can not be empty");
+            }
+            return (T) this.storeKeyGetter.load(meta.getDomain(), meta.getPluginIdVal());
         }
 
     }

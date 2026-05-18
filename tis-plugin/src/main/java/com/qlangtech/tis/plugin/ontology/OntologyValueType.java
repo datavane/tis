@@ -61,7 +61,7 @@ public class OntologyValueType extends Ontology implements IdentityName, MultiSt
      * 值类型
      */
     public static final String KEY_VALUE_TYPE = "ontology-value-type";
-    public static final String KEY_START_PERSISTENCE = "start_persistence";
+    public static final String KEY_START_PERSISTENCE = "startPersistence";
 
     /**
      * Caution: 这个字段目前没有用，由于 实现了IdentityName接口

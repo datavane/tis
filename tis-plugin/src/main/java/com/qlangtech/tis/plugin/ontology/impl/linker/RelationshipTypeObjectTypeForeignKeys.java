@@ -23,8 +23,6 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.Validator;
 
-import java.util.List;
-
 /**
  * Object type foreign keys
  *
@@ -32,9 +30,15 @@ import java.util.List;
  * @date 2026/5/3
  */
 public class RelationshipTypeObjectTypeForeignKeys extends LinkResources {
+    /**
+     * 事实表（1 or n）
+     */
     @FormField(ordinal = 0, validate = {Validator.require})
     public LinkReference left;
 
+    /**
+     * 维表（1）
+     */
     @FormField(ordinal = 2, validate = {Validator.require})
     public LinkReference right;
 
@@ -44,11 +48,16 @@ public class RelationshipTypeObjectTypeForeignKeys extends LinkResources {
     }
 
     @Override
-    public List<ObjectLinkInfo> getLinks() {
-        return List.of(new ObjectLinkInfo(
-                left.getObjectType(), left.targetField,
-                right.getObjectType(), right.targetField,
-                Cardinality.ONE_MANY));
+    public ObjectLinkerPair getLinks() {
+        return new ObjectLinkerPair(
+                new ObjectLinkInfo(
+                        left.getObjectType(), left.targetField,
+                        right.getObjectType(), right.targetField,
+                        Cardinality.MANY_ONE),
+                new ObjectLinkInfo(
+                        left.getObjectType(), left.targetField,
+                        right.getObjectType(), right.targetField,
+                        Cardinality.MANY_ONE));
     }
 
     @TISExtension

@@ -25,6 +25,6 @@ package com.qlangtech.tis.plugin.ontology.impl.linker;
  */
 public enum Cardinality {
     ONE_ONE,
-    ONE_MANY,
+    MANY_ONE,
     MANY_MANY
 }

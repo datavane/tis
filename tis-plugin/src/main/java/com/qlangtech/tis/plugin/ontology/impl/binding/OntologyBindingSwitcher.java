@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.plugin.ontology.impl.binding;
 
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ontology.OntologyObjectType;
 import com.qlangtech.tis.util.IPluginContext;
 
@@ -25,17 +26,18 @@ import com.qlangtech.tis.util.IPluginContext;
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/5/9
+ * @see DefaultBindingSwitcher
  */
 public interface OntologyBindingSwitcher {
 
     /**
      * 校验是否可切换，返回校验报告（兼容差异列表）。
      */
-    BindingSwitchReport validate(OntologyObjectType ot, String newDsName);
+    BindingSwitchReport validate(IPluginContext ctx,OntologyObjectType ot, DataSourceFactory targetDs);
 
     /**
      * 执行切换：把 binding.dbName 改为 newDsName 并持久化。
      * 下游图存储 / 索引同步由 IPluginStore.afterSaved 钩子承担（详见 06 文档），本方法不直接调用。
      */
-    void switchBinding(OntologyObjectType ot, String newDsName, IPluginContext ctx);
+    void switchBinding(OntologyObjectType ot, DataSourceFactory tagetDS, IPluginContext ctx);
 }

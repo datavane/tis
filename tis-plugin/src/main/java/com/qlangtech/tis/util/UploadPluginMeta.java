@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.util;
 
+import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
@@ -35,6 +36,7 @@ import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
+import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -103,6 +105,16 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     public static UploadPluginMeta appnameMeta(IPluginContext pluginContext, String appname) {
         UploadPluginMeta extMeta = parse(pluginContext, "name:" + StoreResourceType.DATAX_NAME + "_" + appname, true);
         return extMeta;
+    }
+
+    /**
+     *
+     * @param context
+     * @return
+     */
+    public static UploadPluginMeta createPluginMeta(Context context) {
+        return Objects.requireNonNull((UploadPluginMeta) context.get(UploadPluginMeta.KEY_PLUGIN_META),
+                UploadPluginMeta.KEY_PLUGIN_META + " relevant ");
     }
 
     /**

@@ -30,6 +30,7 @@ import java.util.function.BiConsumer;
  * <a href="https://www.processon.com/diagraming/69689f89faec1a656012e77d">...</a>
  *
  * @param <T>
+ * @see BasicMultiSelectSingleValElementCreatorFactory 单值textinput内容输入
  */
 public interface ElementCreatorFactory<T extends IMultiElement> {
 
@@ -39,7 +40,7 @@ public interface ElementCreatorFactory<T extends IMultiElement> {
     }
 
     /**
-     * 多选列前置校验
+     * 多选列前置校验，将前端提交的内容解析成IMultiElement实例列表
      *
      * @param msgHandler
      * @param context

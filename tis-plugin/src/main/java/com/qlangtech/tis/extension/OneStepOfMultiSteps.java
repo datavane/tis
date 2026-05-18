@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.annotation.JSONType;
 import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.ontology.OntologyProperty;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DefaultDescriptorsJSON;
@@ -59,6 +60,11 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
         }
     }
 
+    public static <T extends OneStepOfMultiSteps> T getPreviousStepInstance(
+            Class<T> pluginClass) {
+        return getPreviousStepInstance(pluginClass, true);
+    }
+
     /**
      * 取得上一步插件的对象实例
      * <p>
@@ -70,11 +76,13 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
      * @return 前一步的插件实例
      * @throws MultiStepPluginException.StepPluginNotFoundException 如果找不到前一步的插件实例
      */
-    public static <T extends OneStepOfMultiSteps> T getPreviousStepInstance(Class<T> pluginClass) {
+    public static <T extends OneStepOfMultiSteps> T getPreviousStepInstance(
+            Class<T> pluginClass,
+            boolean validateNull) {
         IPluginContext pluginContext = IPluginContext.getThreadLocalInstance();
         T plugin = pluginClass.cast(pluginContext.getContext().get(pluginClass.getName()));
 
-        if (plugin == null) {
+        if (validateNull && plugin == null) {
             throw new MultiStepPluginException.StepPluginNotFoundException(pluginClass.getName());
         }
 
@@ -85,7 +93,8 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
     @Override
     public final Descriptor<OneStepOfMultiSteps> getDescriptor() {
         Descriptor<OneStepOfMultiSteps> descriptor = Describable.super.getDescriptor();
-        if (!getBasicDescClass().isAssignableFrom(descriptor.getClass())) {
+        if (!getBasicDescClass().isAssignableFrom(Objects.requireNonNull(descriptor, this.getClass().getName() + " "
+                + "relevant desc can not benull").getClass())) {
             throw new IllegalStateException("descriptor:" + descriptor.getClass().getName() + " must extend from " + getBasicDescClass().getName());
         }
         return descriptor;
@@ -213,6 +222,7 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
         currentCtx.put(this.getClass().getName(), this);
     }
 
+
     /**
      * 构建步骤处理结果
      * 包含当前步骤的保存数据和下一步的描述符信息
@@ -246,6 +256,7 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
      * @param saved    结果JSON对象
      * @param nextDesc 下一步的描述符
      */
+    @SuppressWarnings("all")
     private void addNextStepInfo(JSONObject saved, BasicDesc nextDesc) {
         DefaultDescriptorsJSON desc2Json = new DefaultDescriptorsJSON(nextDesc);
         saved.put(KEY_NEXT_STEP_PLUGIN_DESC, desc2Json.getDescriptorsJSON());

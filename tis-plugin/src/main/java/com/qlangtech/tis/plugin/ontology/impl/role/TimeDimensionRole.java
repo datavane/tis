@@ -36,9 +36,14 @@ public class TimeDimensionRole extends PropertyRoleType {
 
     @TISExtension
     public static class DftDesc extends BasicDesc {
+        //        @Override
+        //        public String getDisplayName() {
+        //            return SemanticRole.TimeDimension.getLabel();
+        //        }
+
         @Override
-        public String getDisplayName() {
-            return SemanticRole.TimeDimension.getLabel();
+        protected final SemanticRole getKind() {
+            return SemanticRole.TimeDimension;
         }
     }
 }

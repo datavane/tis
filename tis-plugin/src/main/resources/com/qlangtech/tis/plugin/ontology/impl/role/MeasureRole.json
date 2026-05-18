@@ -1,0 +1,1 @@
+{  "linkers": {    "label": "连接(s)",    "elementCreator": "com.qlangtech.tis.plugin.ontology.impl.role.OntologyLinkerRefCreatorFactory",    "enum": "java.util.Collections.emptyList()",    "viewtype": "tuplelist"  }}

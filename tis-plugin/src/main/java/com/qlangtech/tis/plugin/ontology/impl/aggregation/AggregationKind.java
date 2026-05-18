@@ -27,6 +27,7 @@ import com.qlangtech.tis.plugin.ontology.AggregationFunc;
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/5/10
+ * @see PropertyTargetedAgg
  */
 public abstract class AggregationKind implements Describable<AggregationKind> {
 

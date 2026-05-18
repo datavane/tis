@@ -29,6 +29,8 @@ import com.qlangtech.tis.plugin.annotation.Validator;
  */
 public abstract class PropertyTargetedAgg extends AggregationKind {
 
+    public static final String FIELD_TARGET_PROPERTY = "targetProperty";
+
     @FormField(ordinal = 0, type = FormFieldType.ENUM, validate = {Validator.require})
     public String targetProperty;
 

@@ -19,6 +19,7 @@ package com.qlangtech.tis.plugin.ontology;
 
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.plugin.ontology.impl.role.MeasureRole;
 
 /**
  * OntologyProperty 的语义角色插件化抽象。子类见 {@code impl/role/*}，
@@ -26,6 +27,7 @@ import com.qlangtech.tis.extension.Descriptor;
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/5/10
+ * @see MeasureRole
  */
 public abstract class PropertyRoleType implements Describable<PropertyRoleType> {
 
@@ -34,6 +36,13 @@ public abstract class PropertyRoleType implements Describable<PropertyRoleType> 
     public static abstract class BasicDesc extends Descriptor<PropertyRoleType> {
         public BasicDesc() {
             super();
+        }
+
+        protected abstract SemanticRole getKind();
+
+        @Override
+        public final String getDisplayName() {
+            return getKind().name();
         }
     }
 }

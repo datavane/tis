@@ -24,26 +24,26 @@ package com.qlangtech.tis.plugin.ontology;
  * @date 2026/5/9
  */
 public enum SemanticRole {
-    Unknown(0, "未设置"),
-    Identifier(1, "标识列"),
-    Dimension(2, "维度"),
-    TimeDimension(3, "时间维"),
-    Measure(4, "度量");
+    Unknown(0, "未识别的语义角色，作为默认兜底"),
+    Identifier(1, "实体唯一标识列，用于定位对象实例"),
+    Dimension(2, "用于分组与筛选的分类型属性"),
+    TimeDimension(3, "时间属性，支持按粒度切分聚合"),
+    Measure(4, "可聚合的数值度量，如金额、数量");
 
     private final int value;
-    private final String label;
+    private final String description;
 
-    SemanticRole(int value, String label) {
+    SemanticRole(int value, String description) {
         this.value = value;
-        this.label = label;
+        this.description = description;
     }
 
     public int getValue() {
         return value;
     }
 
-    public String getLabel() {
-        return label;
+    public String getDescription() {
+        return description;
     }
 
     public static SemanticRole parse(int value) {

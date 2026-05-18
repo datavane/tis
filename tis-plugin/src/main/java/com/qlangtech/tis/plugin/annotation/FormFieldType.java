@@ -376,7 +376,9 @@ public enum FormFieldType {
         }
 
         public SelectedItem(IMultiElement cmeta) {
-            this(cmeta.getName(), cmeta.getName(), true // !cmeta.isDisable()
+            this(Objects.requireNonNull(cmeta, "cmeta can not be null").getName()
+                    , cmeta.getName(), true // !cmeta
+                    // .isDisable()
             );
             this.cmeta = cmeta;
         }

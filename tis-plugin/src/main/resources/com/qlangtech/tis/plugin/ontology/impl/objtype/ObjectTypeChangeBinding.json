@@ -1,0 +1,1 @@
+{  "dbName": {    "enum": "com.qlangtech.tis.util.PluginItems.getExistDbs(\"all\")",    "creator": {      "label": "配置",      "assistType": "dbQuickManager",      "plugin": [      ]    }  }}

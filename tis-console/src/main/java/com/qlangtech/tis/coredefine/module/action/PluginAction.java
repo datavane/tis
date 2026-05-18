@@ -793,7 +793,9 @@ public class PluginAction extends BasicModule {
       = targetDesc.getValueChangePipe(descriptorField.field);
 
     for (UploadPluginMeta meta : pluginsMeta) {
-      this.setBizResult(context, valueChangePipe.render(meta, this));
+      Map<String, List<? extends Option>> cascadeFieldVals = valueChangePipe.render(meta, this);
+      this.setBizResult(context, cascadeFieldVals.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+              (e) -> Option.toJson(e.getValue()))));
       return;
     }
 

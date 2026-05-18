@@ -62,7 +62,7 @@ public class TransformerRuleElementCreatorFactory implements ElementCreatorFacto
 
     @Override
     public void appendExternalJsonProp(IPropertyType propertyType, JSONObject biz) {
-        this.setSelectedTab(biz);
+        setSelectedTab(biz);
     }
 
     public static void setSelectedTab(JSONObject biz) {

@@ -48,6 +48,7 @@ import com.qlangtech.tis.extension.util.OverwriteProps;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter.EndType;
@@ -910,7 +911,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public static class ValueChangePipe {
         private final String fromField;
         private final String[] toField;
-        private BiFunction<UploadPluginMeta, IParamGetter, JSONObject> serverSideRender;
+        private BiFunction<UploadPluginMeta, IParamGetter, List<? extends Option>> serverSideRender;
 
         static String createMapperKey(String fromField) {
             if (StringUtils.isEmpty(fromField)) {
@@ -941,14 +942,20 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             return toField;
         }
 
-        public void render(BiFunction<UploadPluginMeta, IParamGetter, JSONObject> function) {
+        public void render(BiFunction<UploadPluginMeta, IParamGetter, List<? extends Option>> function) {
             this.serverSideRender = Objects.requireNonNull(function, "function can not be null");
         }
 
-        public JSONObject render(UploadPluginMeta pluginMeta, IParamGetter htmlParam) {
-            return serverSideRender.apply(
+        public Map<String, List<? extends Option>> render(UploadPluginMeta pluginMeta, IParamGetter htmlParam) {
+            Map<String, List<? extends Option>> cascadeVals = Maps.newHashMap();
+
+            List<? extends Option> opts = serverSideRender.apply(
                     Objects.requireNonNull(pluginMeta, "pluginMeta can not be null")
                     , Objects.requireNonNull(htmlParam, "param can not be null"));
+            for (String cascadeField : toField) {
+                cascadeVals.put(cascadeField, opts);
+            }
+            return cascadeVals;
         }
 
         @Override
@@ -1124,7 +1131,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
         // 多选类型的 multi select
         JSONObject eprops = valJ.getJSONObject("_eprops");
-        Objects.requireNonNull(eprops, "property '_eprops'   can not be null");
+        if (eprops == null) {
+            throw new IllegalStateException("property '_eprops' of " + attrDesc.propertyName() + ",from " + attrDesc.f.getDeclaringClass().getName() + "   can "
+                    + "not be null");
+        }
+
         // enums 格式例子：`com/qlangtech/tis/extension/form-prop-enum-example.json`
         return attrDesc.multiSelectablePropProcess((viewType) -> {
             return viewType.getPostSelectedItems(attrDesc, msgHandler, context, eprops);
@@ -1618,8 +1629,18 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     private final Map<String, ValueChangePipe> valueChangePipes = Maps.newHashMap();
 
     public ValueChangePipe getValueChangePipe(String fromField) {
-        return Objects.requireNonNull(valueChangePipes.get(createMapperKey(fromField))
-                , "fromField:" + fromField + " relevant ValueChangePipe can not be null");
+        return getValueChangePipe(fromField, true);
+    }
+
+    public ValueChangePipe getValueChangePipe(String fromField, boolean validateNull) {
+
+        ValueChangePipe pipe = valueChangePipes.get(createMapperKey(fromField));
+
+        if (validateNull) {
+            Objects.requireNonNull(pipe
+                    , "fromField:" + fromField + " relevant ValueChangePipe can not be null");
+        }
+        return pipe;
     }
 
     public Map<String, ValueChangePipe> getValueChangePipes() {

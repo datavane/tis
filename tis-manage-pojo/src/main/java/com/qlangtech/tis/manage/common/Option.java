@@ -37,8 +37,9 @@ public class Option implements IdentityName {
     public static final String KEY_LABEL = "label";
     public static final String keyChecked = "checked";
     public static final String KEY_HELP = "help";
+    public static final String KEY_COMMENT = "comment";
     public static String KEY_END_TYPE = "endType";
-   // public static String KEY_HELP = "help";
+    // public static String KEY_HELP = "help";
 
     public static Option create(JSONObject option) {
         return new Option(Objects.requireNonNull(option, "option can not be null").getString(Option.KEY_LABEL),
@@ -92,6 +93,13 @@ public class Option implements IdentityName {
                 if ((help = opt.description()) != null) {
                     o.put(KEY_HELP, help);
                 }
+                OptionComment comment = null;
+                if ((comment = opt.comment()) != null) {
+                    JSONObject commentObj = new JSONObject();
+                    commentObj.put("color", comment.color);
+                    commentObj.put("content", comment.content);
+                    o.put(KEY_COMMENT, commentObj);
+                }
                 if (opt.isChecked() != null) {
                     o.put(keyChecked, opt.isChecked());
                 }
@@ -141,5 +149,45 @@ public class Option implements IdentityName {
      */
     public String description() {
         return null;
+    }
+
+    /**
+     * 评论性的信息，例如列的列表中，是否为主键在最右侧显示
+     *
+     * @return
+     */
+    public OptionComment comment() {
+        return null;
+    }
+
+    public static class OptionComment {
+        private final String color;
+        private final String content;
+
+        public OptionComment(OptionCommentColor color, String content) {
+            this.color = color.getColor();
+            this.content = content;
+        }
+
+        public String getColor() {
+            return color;
+        }
+
+        public String getContent() {
+            return content;
+        }
+    }
+
+    public enum OptionCommentColor {
+        Geekblue("geekblue"), Blue("blue"), Green("green"), Purple("purple"), Pink("pink");
+        private final String color;
+
+        public String getColor() {
+            return color;
+        }
+
+        private OptionCommentColor(String color) {
+            this.color = color;
+        }
     }
 }

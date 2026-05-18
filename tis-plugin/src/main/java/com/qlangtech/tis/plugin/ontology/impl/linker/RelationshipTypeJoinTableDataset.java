@@ -52,16 +52,17 @@ public class RelationshipTypeJoinTableDataset extends LinkResources {
     }
 
     @Override
-    public List<ObjectLinkInfo> getLinks() {
-        return List.of(
+    public ObjectLinkerPair getLinks() {
+        final JoinReference j = (JoinReference) join;
+        return new ObjectLinkerPair(
                 new ObjectLinkInfo(
                         left.getObjectType(), left.targetField,
-                        join.getObjectType(), join.targetField,
-                        Cardinality.ONE_MANY),
+                        j.getObjectType(), j.targetField,
+                        Cardinality.MANY_ONE),
                 new ObjectLinkInfo(
-                        join.getObjectType(), join.targetField,
+                        j.getObjectType(), j.rightTargetField,
                         right.getObjectType(), right.targetField,
-                        Cardinality.ONE_MANY));
+                        Cardinality.MANY_ONE));
     }
 
     @Override

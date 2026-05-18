@@ -19,6 +19,7 @@
 package com.qlangtech.tis.plugin.ontology;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
@@ -28,6 +29,8 @@ import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
 import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
@@ -35,12 +38,13 @@ import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypeProfile;
 import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypeProperties;
+import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypePropertiesRelevant;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -51,6 +55,9 @@ import java.util.Optional;
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/4/16
+ * @see ObjectTypeProfile
+ * @see ObjectTypeProperties
+ * @see ObjectTypePropertiesRelevant
  */
 public class OntologyObjectType extends Ontology implements IdentityName, MultiStepsSupportHost,
         IPluginStore.ManipuldateProcessor, IPluginStore.BeforePluginSaved {
@@ -63,17 +70,34 @@ public class OntologyObjectType extends Ontology implements IdentityName, MultiS
     @FormField(identity = true, ordinal = 0, validate = {Validator.require, Validator.identity})
     public String useless;
 
-    public static IPluginStore<OntologyObjectType> getPluginStore(String ontologyName, //String dataSourceName,
+    public static IPluginStore<OntologyObjectType> getPluginStore(String ontologyName,
                                                                   String tableName) {
         OntologyPluginMeta pluginMeta = OntologyPluginMeta.create(OntologyEnum.ObjectType, ontologyName);
-        pluginMeta.getDelegate() //
-                //.putExtraParams(KEY_DATASOURCE_NAME, dataSourceName) //
-                .putExtraParams(KEY_OBJECT_TYPE, tableName);
-        IPluginStore<Ontology> store = OntologyEnum.ObjectType.getPluginStore(pluginMeta);
+        pluginMeta.setPersistence().setPluginIdVal(tableName);//.getDelegate() //
+        //.putExtraParams(KEY_OBJECT_TYPE, tableName);
+
+        IPluginStore<Ontology> store = OntologyEnum.ObjectType.getPluginStore(pluginMeta);//.getPluginStore(pluginMeta);
         return store.unsaveCast();
     }
 
     private OneStepOfMultiSteps[] _stepsPlugin;
+
+    /**
+     * 删除一个ontology object type
+     *
+     * @param domain
+     * @param objTypeName
+     */
+    public static void delete(String domain, IdentityName objTypeName) {
+        File storeFile = new File(
+                OntologyDomain.getObjectTypeDir(domain),
+                objTypeName.identityValue() + XmlFile.KEY_XML_DOT_EXTENSION);
+        try {
+            FileUtils.forceDelete(storeFile);
+        } catch (IOException e) {
+            throw new RuntimeException("delete objectType file:" + storeFile.getAbsolutePath(), e);
+        }
+    }
 
     @Override
     public void setSteps(OneStepOfMultiSteps[] stepsPlugin) {
@@ -90,8 +114,9 @@ public class OntologyObjectType extends Ontology implements IdentityName, MultiS
 
     @Override
     public OneStepOfMultiSteps[] getMultiStepsSavedItems() {
-        if (_stepsPlugin.length != 2) {
-            throw new IllegalStateException("lenght of _stepsPlugin must be 2");
+        final int assertLength = 3;
+        if (_stepsPlugin.length != assertLength) {
+            throw new IllegalStateException("lenght of _stepsPlugin must be " + assertLength);
         }
         return _stepsPlugin;
     }
@@ -104,7 +129,11 @@ public class OntologyObjectType extends Ontology implements IdentityName, MultiS
     @Override
     public void manipuldateProcess(IPluginContext pluginContext, UploadPluginMeta pluginMeta,
                                    Optional<Context> context) {
-
+        IPluginStore<OntologyObjectType> valTypeStore =
+                OntologyEnum.ObjectType.getPluginStore(
+                        OntologyPluginMeta.createPluginMeta(pluginMeta).setPersistence()).unsaveCast();
+        valTypeStore.setPlugins(pluginContext, context,
+                Collections.singletonList(new Descriptor.ParseDescribable<>(this)));
     }
 
     @JSONField(serialize = false)
@@ -119,28 +148,34 @@ public class OntologyObjectType extends Ontology implements IdentityName, MultiS
      * @param ontologyName
      * @return
      */
-    public static List<OntologyObjectType> load(String ontologyName) {
-        List<OntologyObjectType> objectTypes = Lists.newArrayList();
-        File objectTypeDir = OntologyDomain.getObjectTypeDir(ontologyName);
-        if (!objectTypeDir.exists()) {
-            return Collections.emptyList();
-        }
-        //        for (String ds : Objects.requireNonNull(objectTypeDir.list(), "subDir of objectTypeDir can not be
-        //        null")) {
-        //            File dsDir = new File(objectTypeDir, ds);
-        for (File ot : FileUtils.listFiles(objectTypeDir, new String[]{XmlFile.KEY_XML_EXTENSION}, false)) {
-            IPluginStore<OntologyObjectType> ps =
-                    getPluginStore(ontologyName, //ds,
-                            StringUtils.removeEnd(ot.getName(), XmlFile.KEY_XML_DOT_EXTENSION));
+    public static List<OntologyObjectType> loadAll(String ontologyName) {
 
-            objectTypes.add(Objects.requireNonNull(ps.getPlugin(), "ot:" + ot.getAbsolutePath()));
-        }
-        //}
-        return objectTypes;
+        return OntologyEnum.ObjectType.loadAll(OntologyPluginMeta.create(OntologyEnum.ObjectType, ontologyName));
+
+        //        List<OntologyObjectType> objectTypes = Lists.newArrayList();
+        //        File objectTypeDir = OntologyDomain.getObjectTypeDir(ontologyName);
+        //        if (!objectTypeDir.exists()) {
+        //            return Collections.emptyList();
+        //        }
+        //        //        for (String ds : Objects.requireNonNull(objectTypeDir.list(), "subDir of objectTypeDir
+        //        can not be
+        //        //        null")) {
+        //        //            File dsDir = new File(objectTypeDir, ds);
+        //        for (File ot : FileUtils.listFiles(objectTypeDir, new String[]{XmlFile.KEY_XML_EXTENSION}, false)) {
+        //            IPluginStore<OntologyObjectType> ps =
+        //                    getPluginStore(ontologyName, //ds,
+        //                            StringUtils.removeEnd(ot.getName(), XmlFile.KEY_XML_DOT_EXTENSION));
+        //
+        //            objectTypes.add(Objects.requireNonNull(ps.getPlugin(), "ot:" + ot.getAbsolutePath()));
+        //        }
+        //        //}
+        //        return objectTypes;
     }
 
     public static OntologyObjectType loadDetail(String ontologyName, String objType) {
-        return getPluginStore(ontologyName, objType).getPlugin();
+
+        return OntologyEnum.ObjectType.load(OntologyPluginMeta.create(OntologyEnum.ObjectType, ontologyName).setPluginIdVal(objType));
+        // return getPluginStore(ontologyName, objType).getPlugin();
     }
 
 
@@ -156,12 +191,29 @@ public class OntologyObjectType extends Ontology implements IdentityName, MultiS
 
     @Override
     public String identityValue() {
-        return this.getProfile().name;
+        return this.getName();
     }
 
     public final List<OntologyProperty> getCols() {
         return this.getPropsStep().getCols();
     }
+
+    public final JSONArray getColsSerialize2JsonArray() {
+        return Option.toJson(this.getColOpts());
+    }
+
+    public final List<OptionWithEndType> getColOpts() {
+        //        List<OntologyProperty> cols = this.getCols();
+        //        List<OptionWithEndType> colOpts = Lists.newArrayList();
+        //        for (OntologyProperty col : cols) {
+        //            colOpts.add(new OptionWithEndType(col.getName(), col.getName(),
+        //                    col.parseOntologyType().getEndType()).setComment(col.isPk() ?
+        //                    new Option.OptionComment(Option.OptionCommentColor.Geekblue, "primary key") : null));
+        //        }
+        //        return colOpts;
+        return this.getPropsStep().getColOpts();
+    }
+
 
     public String getName() {
         return this.getProfile().name;
@@ -196,7 +248,8 @@ public class OntologyObjectType extends Ontology implements IdentityName, MultiS
 
         @Override
         public List<OneStepOfMultiSteps.BasicDesc> getStepDescriptionList() {
-            return List.of(new ObjectTypeProfile.DftDesc(), new ObjectTypeProperties.DftDesc());
+            return List.of(new ObjectTypeProfile.DftDesc(), new ObjectTypeProperties.DftDesc(),
+                    new ObjectTypePropertiesRelevant.DftDesc());
         }
 
         @Override

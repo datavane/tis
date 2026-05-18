@@ -167,6 +167,13 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             NoStorePlaceholderPlugin.class, //
             "noStore", "noStore", Selectable.Multi, false) {
         @Override
+        protected <T extends Describable<T>> List<Descriptor<T>> filterDescriptors( //
+                UploadPluginMeta.TargetDesc targetDesc //
+                , List<T> items, boolean justGetItemRelevant, List<Descriptor<T>> descriptors) {
+            return super.filterDescriptors(targetDesc, items, justGetItemRelevant, descriptors);
+        }
+
+        @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
             return IPluginStore.noSaveStore(pluginMeta);
         }

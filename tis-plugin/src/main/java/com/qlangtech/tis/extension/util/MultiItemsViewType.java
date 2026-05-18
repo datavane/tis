@@ -202,7 +202,7 @@ public class MultiItemsViewType implements IMultiItemsView {
                 return Collections.emptyList();
             }
             return parsePostMCols.writerCols.stream() //
-                    .map((cmeta) -> new FormFieldType.SelectedItem(cmeta)).collect(Collectors.toList());
+                    .map(FormFieldType.SelectedItem::new).collect(Collectors.toList());
         } //
                 , (obj) -> {
             return (List<IMultiElement>) obj;

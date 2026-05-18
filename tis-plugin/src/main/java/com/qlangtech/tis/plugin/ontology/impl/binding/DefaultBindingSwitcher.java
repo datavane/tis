@@ -49,20 +49,15 @@ import java.util.stream.Collectors;
  */
 public class DefaultBindingSwitcher implements OntologyBindingSwitcher {
 
-    /** 列差异阻塞阈值：差异比例 >= 该值时直接阻止切换。 */
+    /**
+     * 列差异阻塞阈值：差异比例 >= 该值时直接阻止切换。
+     */
     private static final double COLUMN_DIFF_BLOCK_RATIO = 0.1d;
 
     @Override
-    public BindingSwitchReport validate(OntologyObjectType ot, String newDsName) {
-        if (StringUtils.isBlank(newDsName)) {
-            return BindingSwitchReport.blocked("newDsName can not be blank");
-        }
-        DataSourceFactory ds;
-        try {
-            ds = DataSourceFactory.load(newDsName);
-        } catch (Exception e) {
-            return BindingSwitchReport.blocked("datasource '" + newDsName + "' not found: " + e.getMessage());
-        }
+    public BindingSwitchReport validate(IPluginContext pluginContext, OntologyObjectType ot,
+                                        DataSourceFactory tagetDS) {
+
 
         // 物理表名（DataSourceBinding.physicalTableName 留空则回落为 OT name）
         String physicalTable = ot.getName();
@@ -71,24 +66,10 @@ public class DefaultBindingSwitcher implements OntologyBindingSwitcher {
             physicalTable = dsb.resolvePhysicalTableName(ot.getName());
         }
 
-        TableInDB tablesInDB;
-        try {
-            tablesInDB = ds.getTablesInDB();
-        } catch (UnsupportedOperationException e) {
-            return BindingSwitchReport.blocked("datasource '" + newDsName + "' does not support table enumeration");
-        } catch (Exception e) {
-            return BindingSwitchReport.blocked("failed to list tables in '" + newDsName + "': " + e.getMessage());
-        }
-
-        final String target = physicalTable;
-        boolean tableExists = tablesInDB.getTabs().stream().anyMatch(t -> StringUtils.equalsIgnoreCase(t, target));
-        if (!tableExists) {
-            return BindingSwitchReport.blocked("table '" + physicalTable + "' not found in datasource '" + newDsName + "'");
-        }
-
         List<ColumnMetaData> dsCols;
         try {
-            dsCols = ds.getTableMetadata(false, IPluginContext.namedContext(newDsName), EntityName.parse(physicalTable));
+            dsCols = tagetDS.getTableMetadata(false, pluginContext,
+                    EntityName.parse(physicalTable));
         } catch (Exception e) {
             return BindingSwitchReport.blocked("failed to read columns of table '" + physicalTable + "': " + e.getMessage());
         }
@@ -117,14 +98,14 @@ public class DefaultBindingSwitcher implements OntologyBindingSwitcher {
     }
 
     @Override
-    public void switchBinding(OntologyObjectType ot, String newDsName, IPluginContext ctx) {
-        BindingSwitchReport report = validate(ot, newDsName);
+    public void switchBinding(OntologyObjectType ot, DataSourceFactory tagetDS, IPluginContext ctx) {
+        BindingSwitchReport report = validate(ctx, ot, tagetDS);
         if (!report.ok()) {
             throw new IllegalStateException("binding switch blocked: " + report.error());
         }
         ObjectTypeProfile profile = ot.getProfile();
         DataSourceBinding newBinding = new DataSourceBinding();
-        newBinding.dbName = newDsName;
+        newBinding.dbName = tagetDS.name;
         if (profile.binding instanceof DataSourceBinding old) {
             newBinding.physicalTableName = old.physicalTableName;
         }

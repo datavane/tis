@@ -93,12 +93,12 @@ public class CMeta extends TypeBase implements Serializable, IColMetaGetter, Ide
     }
 
     public static CMeta create(Optional<ElementCreatorFactory<CMeta>> elementCreator, String colName, JDBCTypes type) {
-//        CMeta cmeta = elementCreator.map((factory) -> {
-//            return factory.createDefault();
-//        }).orElse(new CMeta());// new CMeta();
-//        cmeta.setName(colName);
-//        cmeta.setType(DataTypeMeta.getDataTypeMeta(type).getType());
-//        return cmeta;
+        //        CMeta cmeta = elementCreator.map((factory) -> {
+        //            return factory.createDefault();
+        //        }).orElse(new CMeta());// new CMeta();
+        //        cmeta.setName(colName);
+        //        cmeta.setType(DataTypeMeta.getDataTypeMeta(type).getType());
+        //        return cmeta;
         return create(elementCreator, colName, DataTypeMeta.getDataTypeMeta(type).getType());
     }
 
@@ -198,6 +198,11 @@ public class CMeta extends TypeBase implements Serializable, IColMetaGetter, Ide
     public static class ParsePostMCols<T extends IMultiElement> {
         public List<T> writerCols = Lists.newArrayList();
         public boolean validateFaild = false;
+
+        public boolean isVaild() {
+            return !this.validateFaild;
+        }
+
         public boolean pkHasSelected = false;
     }
 

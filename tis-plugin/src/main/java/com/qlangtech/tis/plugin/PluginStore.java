@@ -103,7 +103,9 @@ public class PluginStore<T extends Describable<T>> implements IPluginStore<T> {
      */
     @Override
     public void copyConfigFromRemote() {
-        CenterResource.copyFromRemote2Local(StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG + "/" + Descriptor.getPluginFileName(getSerializeFileName()), true);
+        CenterResource.copyFromRemote2Local(
+                StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG
+                        + "/" + Descriptor.getPluginFileName(getSerializeFileName()), true);
     }
 
     /**
@@ -159,7 +161,8 @@ public class PluginStore<T extends Describable<T>> implements IPluginStore<T> {
         for (T item : plugins) {
 
             if (!(item instanceof IdentityName)) {
-                throw new IllegalStateException("item of " + item.getClass().getSimpleName() + " must be type of " + IdentityName.class.getSimpleName());
+                throw new IllegalStateException("item of "
+                        + item.getClass().getSimpleName() + " must be type of " + IdentityName.class.getSimpleName());
             }
 
             if (StringUtils.equals(name, ((IdentityName) item).identityValue())) {
@@ -168,7 +171,9 @@ public class PluginStore<T extends Describable<T>> implements IPluginStore<T> {
         }
         if (throwNotFoundErr) {
             final String instanceName = this.pluginClass.getSimpleName();
-            throw new IllegalStateException(instanceName + " has not be initialized,name:" + name + " can not find " + "relevant '" + instanceName + "' in [" + plugins.stream().map((r) -> ((IdentityName) r).identityValue()).collect(Collectors.joining(",")) + "]");
+            throw new IllegalStateException(instanceName + " has not be initialized,name:" + name
+                    + " can not find " + "relevant '" + instanceName
+                    + "' in [" + plugins.stream().map((r) -> ((IdentityName) r).identityValue()).collect(Collectors.joining(",")) + "]");
         } else {
             return null;
         }

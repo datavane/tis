@@ -1,1 +1,1 @@
-{  "left": {    "label": "左对象",    "dftVal": "Reference"  },  "right": {    "label": "右对象",    "dftVal": "Reference"  }}
+{  "left": {    "label": "左对象（事实表）",    "dftVal": "Reference",    "help": "对应事实表实例，Cardinality对应：1 or N"  },  "right": {    "label": "右对象（维度表）",    "dftVal": "Reference",    "help": "对应维度表实例，Cardinality对应1"  }}

@@ -37,6 +37,15 @@ public enum ViewContent {
      * 多个可选的单个值
      */
     MultiSelectSingleVal("multiSelectSingleVal", false),
+    /**
+     * 本体属性Measure连接器
+     */
+    OntologyPropRoleTypeLinker("ontologyPropRoleTypeLinker", false),
+
+    /**
+     * 本体object_type 属性(s)列表
+     */
+    OntologyProps("ontologyProps", false),
 
     Unknow("unknow", false);
 

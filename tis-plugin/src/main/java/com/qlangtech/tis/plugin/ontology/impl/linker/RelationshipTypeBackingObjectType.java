@@ -28,8 +28,6 @@ import com.qlangtech.tis.plugin.ontology.OntologyProperty;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.util.IPluginContext;
 
-import java.util.List;
-
 /**
  *
  * @author 百岁 (baisui@qlangtech.com)
@@ -53,21 +51,21 @@ public class RelationshipTypeBackingObjectType extends LinkResources {
     }
 
     @Override
-    public List<ObjectLinkInfo> getLinks() {
+    public ObjectLinkerPair getLinks() {
         if (!(joinObjectType instanceof JoinReference jr)) {
             throw new IllegalStateException(
                     "joinObjectType must be type of " + JoinReference.class.getName()
                             + " but actual is " + joinObjectType.getClass().getName());
         }
-        return List.of(
+        return new ObjectLinkerPair(
                 new ObjectLinkInfo(
                         leftObjectType, inferPk(leftObjectType),
                         jr.getObjectType(), jr.targetField,
-                        Cardinality.ONE_MANY),
+                        Cardinality.MANY_ONE),
                 new ObjectLinkInfo(
                         jr.getObjectType(), jr.rightTargetField,
                         rightObjectType, inferPk(rightObjectType),
-                        Cardinality.ONE_MANY));
+                        Cardinality.MANY_ONE));
     }
 
     private static String inferPk(String otName) {
