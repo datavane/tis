@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.ontology;
 
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
@@ -104,6 +105,10 @@ public abstract class Ontology implements Describable<Ontology> {
         Glossary(OntologyGlossary.KEY_GLOSSARY,
                 new BaiscAssistStoreGetter<OntologyGlossary>() {
                     @Override
+                    public IPluginStore<OntologyGlossary> getPluginStore(OntologyPluginMeta pluginMeta) {
+                        return super.getPluginStore(pluginMeta.setPersistence());
+                    }
+                    @Override
                     protected File getAssistRootDir(String ontologyName) {
                         return OntologyDomain.getGlossaryDir(ontologyName);
                     }
@@ -181,7 +186,7 @@ public abstract class Ontology implements Describable<Ontology> {
         return desc;
     }
 
-    protected static abstract class BasicDesc extends Descriptor<Ontology> implements IEndTypeGetter {
+    protected static abstract class BasicDesc extends Descriptor<Ontology> implements IEndTypeGetter, DescriptorUseableShortComment {
         public BasicDesc() {
             super();
         }

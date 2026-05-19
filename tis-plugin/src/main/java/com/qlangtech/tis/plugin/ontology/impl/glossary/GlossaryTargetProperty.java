@@ -46,5 +46,15 @@ public class GlossaryTargetProperty extends GlossaryTarget {
         public String getDisplayName() {
             return "Property Reference";
         }
+
+        @Override
+        public EndType getEndType() {
+            return EndType.OntologyProperty;
+        }
+
+        @Override
+        public String shortComment() {
+            return "术语指向对象类型的属性字段";
+        }
     }
 }

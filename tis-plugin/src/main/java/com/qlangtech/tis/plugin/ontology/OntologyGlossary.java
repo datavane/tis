@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.plugin.ontology;
 
+import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -27,10 +28,14 @@ import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.glossary.GlossaryTarget;
 import com.qlangtech.tis.plugin.ontology.impl.synonyms.SynonymsElement;
 import com.qlangtech.tis.plugin.ontology.impl.synonyms.SynonymsElementCreatorFactory;
+import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 业务术语 / 同义词字典。ChatBI NL→SQL 链路通过它把业务名词桥接到本体（OT/Property/SQL 表达式）。
@@ -38,7 +43,7 @@ import java.util.Objects;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/5/9
  */
-public class OntologyGlossary extends Ontology implements IdentityName {
+public class OntologyGlossary extends Ontology implements IdentityName,IPluginStore.ManipuldateProcessor {
 
     public static final String KEY_GLOSSARY = "ontology-glossary";
 
@@ -48,6 +53,7 @@ public class OntologyGlossary extends Ontology implements IdentityName {
 
     /**
      * 同义词列表（持久化为 List&lt;String&gt;）。
+     *
      * @see SynonymsElementCreatorFactory
      */
     @FormField(ordinal = 1, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
@@ -60,9 +66,12 @@ public class OntologyGlossary extends Ontology implements IdentityName {
     public GlossaryTarget target;
 
     public List<SynonymsElement> getSynonyms() {
-        return synonyms == null ? new ArrayList<>() : synonyms;
+        return CollectionUtils.isEmpty(synonyms) ? new ArrayList<>() : synonyms;
     }
+    @Override
+    public void manipuldateProcess(IPluginContext pluginContext, UploadPluginMeta pluginMeta, Optional<Context> context) {
 
+    }
     public static OntologyGlossary load(OntologyPluginMeta meta, String idVal) {
         meta.setPluginIdVal(idVal);
         IPluginStore<OntologyGlossary> pluginStore =
@@ -79,6 +88,8 @@ public class OntologyGlossary extends Ontology implements IdentityName {
     public String identityValue() {
         return this.term;
     }
+
+
 
     @TISExtension
     public static class DefaultDesc extends Ontology.BasicDesc {
@@ -99,6 +110,11 @@ public class OntologyGlossary extends Ontology implements IdentityName {
         @Override
         public String getDisplayName() {
             return "Glossary";
+        }
+
+        @Override
+        public String shortComment() {
+            return "定义业务术语及同义词，将自然语言映射到本体元素";
         }
     }
 }

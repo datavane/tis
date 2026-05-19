@@ -216,7 +216,8 @@ public interface IEndTypeGetter {
         , OntologyValueType("ontology-value-type", EndTypeCategory.Icon, true)//
         , OntologyObjectType("ontology-object-type", EndTypeCategory.Icon, true)//
         , OntologyGlossary("ontology-glossary", EndTypeCategory.Icon, true)//
-
+        , OntologyMetric("ontology-metric", EndTypeCategory.Icon, true)
+        , OntologyProperty("ontology-property", EndTypeCategory.Icon,true )
 
 
         //

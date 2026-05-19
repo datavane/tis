@@ -247,5 +247,10 @@ public class OntologyValueType extends Ontology implements IdentityName, MultiSt
         public void appendExternalProps(JSONObject multiStepsCfg) {
 
         }
+
+        @Override
+        public String shortComment() {
+            return "定义属性的值类型（数据类型与约束规则）";
+        }
     }
 }

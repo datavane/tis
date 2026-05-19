@@ -204,5 +204,10 @@ public class OntologyLinker extends Ontology implements IdentityName, MultiSteps
         public void appendExternalProps(JSONObject multiStepsCfg) {
 
         }
+
+        @Override
+        public String shortComment() {
+            return "定义本体对象类型间的关联关系（Link Type）";
+        }
     }
 }

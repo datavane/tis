@@ -43,5 +43,15 @@ public class GlossaryTargetOT extends GlossaryTarget {
         public String getDisplayName() {
             return "OT Reference";
         }
+
+        @Override
+        public EndType getEndType() {
+            return EndType.OntologyObjectType;
+        }
+
+        @Override
+        public String shortComment() {
+            return "术语指向指定对象类型";
+        }
     }
 }

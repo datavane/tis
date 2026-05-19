@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.ontology.impl.objtype;
 
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
+import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -81,7 +82,7 @@ public class ObjectTypeChangeBinding extends ListItemsManager implements IPlugin
     }
 
     @TISExtension
-    public static class DefaultDesc extends ListItemsManager.BasicDesc {
+    public static class DefaultDesc extends ListItemsManager.BasicDesc implements DescriptorUseableShortComment {
         public DefaultDesc() {
             super();
         }
@@ -131,6 +132,10 @@ public class ObjectTypeChangeBinding extends ListItemsManager implements IPlugin
             return new ListItemsManagerAction(ACTION_CHANGE_BINDING);
         }
 
+        @Override
+        public String shortComment() {
+            return "批量将对象类型切换绑定到指定数据源";
+        }
 
     }
 }

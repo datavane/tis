@@ -256,6 +256,11 @@ public class OntologyObjectType extends Ontology implements IdentityName, MultiS
         public void appendExternalProps(JSONObject multiStepsCfg) {
 
         }
+
+        @Override
+        public String shortComment() {
+            return "定义本体对象类型，对应数据源中的一张表";
+        }
     }
 
 }

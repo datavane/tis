@@ -1,1 +1,132 @@
-/** * Licensed to the Apache Software Foundation (ASF) under one * or more contributor license agreements.  See the NOTICE file * distributed with this work for additional information * regarding copyright ownership.  The ASF licenses this file * to you under the Apache License, Version 2.0 (the * "License"); you may not use this file except in compliance * with the License.  You may obtain a copy of the License at * <p> * http://www.apache.org/licenses/LICENSE-2.0 * <p> * Unless required by applicable law or agreed to in writing, software * distributed under the License is distributed on an "AS IS" BASIS, * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. * See the License for the specific language governing permissions and * limitations under the License. */package com.qlangtech.tis.plugin.ontology;import com.qlangtech.tis.extension.TISExtension;import com.qlangtech.tis.plugin.IPluginStore;import com.qlangtech.tis.plugin.IdentityName;import com.qlangtech.tis.plugin.annotation.FormField;import com.qlangtech.tis.plugin.annotation.FormFieldType;import com.qlangtech.tis.plugin.annotation.Validator;import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;import java.util.List;import java.util.Objects;/** * 本体共享属性 * * @author 百岁 (baisui@qlangtech.com) * @date 2026/4/15 */public class OntologySharedProperty extends Ontology implements IdentityName {    public static final String KEY_SHARED_PROPERTY = "ontology-shared-property";    @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require,            Validator.identity_strict})    public String name;    @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT, validate = {Validator.require})    public String description;    @FormField(ordinal = 2, type = FormFieldType.INPUTTEXT, validate = {Validator.identity_strict})    public String alias;    @FormField(ordinal = 3, type = FormFieldType.ENUM, validate = {Validator.require, Validator.integer})    public int type;    public OntologyType getOntologyType() {        return OntologyType.parse(this.type);    }    public static OntologySharedProperty load(OntologyPluginMeta meta, String idVal) {        meta.setPluginIdVal(idVal);        IPluginStore<OntologySharedProperty> pluginStore =                OntologyEnum.SharedProperty.getPluginStore(meta).unsaveCast(); //.getPluginStore(null, meta.getDelegate());        return Objects.requireNonNull(pluginStore.getPlugin() //                , "idVal:" + idVal + " relevant shared prop can not be null");        // throw new NotImplementedException();    }    /**     * 加载某一个本体域中的Object Type     *     * @param meta     * @return     */    public static List<OntologySharedProperty> loadAll(OntologyPluginMeta meta) {        return OntologyEnum.SharedProperty.loadAll(meta);        // throw new NotImplementedException();        // return Collections.emptyList();    }    //    @TISExtension    //    public static final HeteroEnum<OntologySharedProperty> ONTOLOGY_SHARED_PROPERTY = new HeteroEnum<>(//    //            OntologySharedProperty.class, //    //            KEY_SHARED_PROPERTY, //    //            "本体共享属性", Selectable.Multi, false) {    //        @SuppressWarnings("all")    //        @Override    //        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {    //            String ontology = pluginMeta.getExtraParam(OntologyDomain.NAME_ONTOLOGY_DOMAIN);    //            if (StringUtils.isEmpty(ontology)) {    //                throw new IllegalStateException("param ontology can not be empty");    //            }    //            KeyedPluginStore.Key key = new KeyedPluginStore.Key(this.getIdentity() + "/" + ontology,    //                    this.getIdentity(), this.extensionPoint);    //            return TIS.getPluginStore(key);    //        }    //    };    @Override    public String identityValue() {        return this.name;    }    @TISExtension    public static class DefaultDesc extends Ontology.BasicDesc {        public DefaultDesc() {            super();        }        @Override        public EndType getEndType() {            return EndType.Shared;        }        @Override        protected OntologyEnum getOntologyType() {            return OntologyEnum.SharedProperty;        }        @Override        public String getDisplayName() {            return "Shared Property";        }    }}
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.qlangtech.tis.plugin.ontology;
+
+import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.annotation.FormField;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
+
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * 本体共享属性
+ *
+ * @author 百岁 (baisui@qlangtech.com)
+ * @date 2026/4/15
+ */
+public class OntologySharedProperty extends Ontology implements IdentityName {
+
+    public static final String KEY_SHARED_PROPERTY = "ontology-shared-property";
+
+    @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require,
+            Validator.identity_strict})
+    public String name;
+
+    @FormField(ordinal = 1, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
+    public String description;
+
+    @FormField(ordinal = 2, type = FormFieldType.INPUTTEXT, validate = {Validator.identity_strict})
+    public String alias;
+
+    @FormField(ordinal = 3, type = FormFieldType.ENUM, validate = {Validator.require, Validator.integer})
+    public int type;
+
+    public OntologyType getOntologyType() {
+        return OntologyType.parse(this.type);
+    }
+
+    public static OntologySharedProperty load(OntologyPluginMeta meta, String idVal) {
+
+        meta.setPluginIdVal(idVal);
+        IPluginStore<OntologySharedProperty> pluginStore =
+                OntologyEnum.SharedProperty.getPluginStore(meta).unsaveCast(); //.getPluginStore(null, meta.getDelegate());
+
+        return Objects.requireNonNull(pluginStore.getPlugin() //
+                , "idVal:" + idVal + " relevant shared prop can not be null");
+        // throw new NotImplementedException();
+    }
+
+    /**
+     * 加载某一个本体域中的Object Type
+     *
+     * @param meta
+     * @return
+     */
+    public static List<OntologySharedProperty> loadAll(OntologyPluginMeta meta) {
+        return OntologyEnum.SharedProperty.loadAll(meta);
+
+        // throw new NotImplementedException();
+        // return Collections.emptyList();
+    }
+
+    //    @TISExtension
+    //    public static final HeteroEnum<OntologySharedProperty> ONTOLOGY_SHARED_PROPERTY = new HeteroEnum<>(//
+    //            OntologySharedProperty.class, //
+    //            KEY_SHARED_PROPERTY, //
+    //            "本体共享属性", Selectable.Multi, false) {
+    //        @SuppressWarnings("all")
+    //        @Override
+    //        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+    //            String ontology = pluginMeta.getExtraParam(OntologyDomain.NAME_ONTOLOGY_DOMAIN);
+    //            if (StringUtils.isEmpty(ontology)) {
+    //                throw new IllegalStateException("param ontology can not be empty");
+    //            }
+    //            KeyedPluginStore.Key key = new KeyedPluginStore.Key(this.getIdentity() + "/" + ontology,
+    //                    this.getIdentity(), this.extensionPoint);
+    //            return TIS.getPluginStore(key);
+    //        }
+    //    };
+
+    @Override
+    public String identityValue() {
+        return this.name;
+    }
+
+    @TISExtension
+    public static class DefaultDesc extends Ontology.BasicDesc {
+        public DefaultDesc() {
+            super();
+        }
+
+        @Override
+        public EndType getEndType() {
+            return EndType.Shared;
+        }
+
+        @Override
+        protected OntologyEnum getOntologyType() {
+            return OntologyEnum.SharedProperty;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Shared Property";
+        }
+
+        @Override
+        public String shortComment() {
+            return "定义可跨对象类型复用的共享属性";
+        }
+    }
+}

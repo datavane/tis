@@ -25,15 +25,16 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.ontology.Ontology;
 import com.qlangtech.tis.plugin.ontology.OntologyDomain;
+import com.qlangtech.tis.plugin.ontology.OntologyGlossary;
 import com.qlangtech.tis.plugin.ontology.OntologyLinker;
 import com.qlangtech.tis.plugin.ontology.OntologyObjectType;
 import com.qlangtech.tis.plugin.ontology.OntologySharedProperty;
 import com.qlangtech.tis.plugin.ontology.OntologyValueType;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
-import com.qlangtech.tis.plugin.ontology.impl.binding.BindingSwitchReport;
-import com.qlangtech.tis.plugin.ontology.impl.binding.DefaultBindingSwitcher;
-import com.qlangtech.tis.plugin.ontology.impl.binding.OntologyBindingSwitcher;
 import com.qlangtech.tis.plugin.ontology.impl.linker.LinkResources;
+import com.qlangtech.tis.plugin.ontology.impl.synonyms.SynonymsElement;
+import com.qlangtech.tis.util.DefaultDescriptorsJSON;
+import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
@@ -45,7 +46,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
+import static com.qlangtech.tis.plugin.ontology.OntologyDomain.NAME_ONTOLOGY_DOMAIN;
 import static com.qlangtech.tis.plugin.ontology.OntologyObjectType.KEY_OBJECT_TYPE;
+import static com.qlangtech.tis.util.DescriptorsJSON.KEY_DISPLAY_NAME;
 
 /**
  * @author 百岁 (baisui@qlangtech.com)
@@ -101,10 +104,19 @@ public class OntologyAction extends BasicModule {
   /**
    * 获取本体详情：Object Types, Link Types, Value Types
    */
+  @SuppressWarnings("all")
   public void doGetOntologyDetail(Context context) {
     final String ontologyName = getDomain();
+    UploadPluginMeta pluginMeta = OntologyPluginMeta.createPluginMeta(UploadPluginMeta.create(Ontology.ONTOLOGY))
+      .getDelegate().putExtraParams(NAME_ONTOLOGY_DOMAIN, ontologyName);
+
+    context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
+
 
     JSONObject result = new JSONObject();
+
+    result.put("ontologyDescs",
+      new DefaultDescriptorsJSON<>(pluginMeta.getHeteroEnum().descriptors()).getDescriptorsJSON());
     result.put("name", ontologyName);
 
     // Object Types: 读取该 ontology 下的所有 domain 实例
@@ -173,6 +185,28 @@ public class OntologyAction extends BasicModule {
     }
     result.put("sharedProperties", sharedPropArray);
 
+    List<OntologyGlossary> glossaries
+      = OntologyGlossary.loadAll(OntologyPluginMeta.create(Ontology.OntologyEnum.Glossary, ontologyName));
+    JSONArray glossaryArray = new JSONArray();
+    for (OntologyGlossary glossary : glossaries) {
+      JSONObject obj = new JSONObject();
+      obj.put("term", glossary.term);
+      obj.put("description", glossary.description);
+      JSONArray synonymArray = new JSONArray();
+      for (SynonymsElement syn : glossary.getSynonyms()) {
+        synonymArray.add(syn.getEnumVal());
+      }
+      obj.put("synonyms", synonymArray);
+      JSONObject targetJson = (JSONObject) JSONObject.toJSON(glossary.target);
+      targetJson.put("targetType", glossary.target.getClass().getSimpleName());
+      targetJson.put(KEY_DISPLAY_NAME,
+        Objects.requireNonNull(glossary.target.getDescriptor(), "desc can not be null").getDisplayName());
+      obj.put("target", targetJson);
+      obj.put("createTime", glossary.getCreate());
+      glossaryArray.add(obj);
+    }
+    result.put("glossaries", glossaryArray);
+
     this.setBizResult(context, result);
   }
 
@@ -219,38 +253,38 @@ public class OntologyAction extends BasicModule {
     }).toList()));
   }
 
- // private static final OntologyBindingSwitcher BINDING_SWITCHER = new DefaultBindingSwitcher();
+  // private static final OntologyBindingSwitcher BINDING_SWITCHER = new DefaultBindingSwitcher();
 
-//  /**
-//   * 校验是否可把 OT 的 binding 切换到指定数据源（典型场景：MySQL 建模 → Doris 落地后切换）。
-//   * 入参：domain (= ontology), objectType, newDsName。
-//   */
-//  public void doValidateBindingSwitch(Context context) {
-//    final String ontologyName = getDomain();
-//    final String objType = this.getString(KEY_OBJECT_TYPE);
-//    final String newDsName = this.getString("newDsName");
-//    OntologyObjectType ot = Objects.requireNonNull(
-//      OntologyObjectType.loadDetail(ontologyName, objType), "objectType can not be null");
-//    BindingSwitchReport report = BINDING_SWITCHER.validate(ot, newDsName);
-//    JSONObject biz = new JSONObject();
-//    biz.put("ok", report.ok());
-//    biz.put("missingColumns", report.missingColumns());
-//    biz.put("extraColumns", report.extraColumns());
-//    biz.put("typeMismatches", report.typeMismatches());
-//    biz.put("error", report.error());
-//    this.setBizResult(context, biz);
-//  }
+  //  /**
+  //   * 校验是否可把 OT 的 binding 切换到指定数据源（典型场景：MySQL 建模 → Doris 落地后切换）。
+  //   * 入参：domain (= ontology), objectType, newDsName。
+  //   */
+  //  public void doValidateBindingSwitch(Context context) {
+  //    final String ontologyName = getDomain();
+  //    final String objType = this.getString(KEY_OBJECT_TYPE);
+  //    final String newDsName = this.getString("newDsName");
+  //    OntologyObjectType ot = Objects.requireNonNull(
+  //      OntologyObjectType.loadDetail(ontologyName, objType), "objectType can not be null");
+  //    BindingSwitchReport report = BINDING_SWITCHER.validate(ot, newDsName);
+  //    JSONObject biz = new JSONObject();
+  //    biz.put("ok", report.ok());
+  //    biz.put("missingColumns", report.missingColumns());
+  //    biz.put("extraColumns", report.extraColumns());
+  //    biz.put("typeMismatches", report.typeMismatches());
+  //    biz.put("error", report.error());
+  //    this.setBizResult(context, biz);
+  //  }
 
   /**
    * 执行 OT binding 切换。
    */
-//  public void doSwitchBinding(Context context) {
-//    final String ontologyName = getDomain();
-//    final String objType = this.getString(KEY_OBJECT_TYPE);
-//    final String newDsName = this.getString("newDsName");
-//    OntologyObjectType ot = Objects.requireNonNull(
-//      OntologyObjectType.loadDetail(ontologyName, objType), "objectType can not be null");
-//    BINDING_SWITCHER.switchBinding(ot, newDsName, this);
-//    this.addActionMessage(context, "binding 已切换到 \"" + newDsName + "\"");
-//  }
+  //  public void doSwitchBinding(Context context) {
+  //    final String ontologyName = getDomain();
+  //    final String objType = this.getString(KEY_OBJECT_TYPE);
+  //    final String newDsName = this.getString("newDsName");
+  //    OntologyObjectType ot = Objects.requireNonNull(
+  //      OntologyObjectType.loadDetail(ontologyName, objType), "objectType can not be null");
+  //    BINDING_SWITCHER.switchBinding(ot, newDsName, this);
+  //    this.addActionMessage(context, "binding 已切换到 \"" + newDsName + "\"");
+  //  }
 }

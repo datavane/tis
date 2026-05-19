@@ -561,31 +561,56 @@ public class PluginAction extends BasicModule {
   public void doGetDescriptor(Context context) {
     this.errorsPageShow(context);
     DescriptorsGetter result = getDescriptorsGetter(this);
-
+    final String displayName = result.getDisplayName();
     for (Descriptor desc : result.descriptors) {
-      if (StringUtils.equals(desc.getDisplayName(), result.displayName)) {
+      if (StringUtils.equals(desc.getDisplayName(), displayName)) {
         this.setBizResult(context, new DefaultDescriptorsJSON(desc).getDescriptorsJSON());
         return;
       }
     }
     this.setBizResult(context, Collections.singletonMap("notFoundExtension",
       result.hetero.getExtensionPoint().getName()));
-    this.addErrorMessage(context, "displayName:" + result.displayName + " relevant Descriptor can not be null");
-
+    this.addErrorMessage(context, "displayName:" + displayName + " relevant Descriptor can not be null");
   }
 
+//  /**
+//   * 通过Hetero标识获取descriptors列表
+//   *
+//   * @param context
+//   */
+//  @SuppressWarnings("all")
+//  public void doGetDescriptorsByHetero(Context context) {
+//    this.errorsPageShow(context);
+//    DescriptorsGetter result = getDescriptorsGetter(this);
+//    this.setBizResult(context
+//      , new DefaultDescriptorsJSON(result.descriptors).getDescriptorsJSON());
+//  }
+
+  /**
+   *
+   * @param module
+   * @return
+   */
+  @SuppressWarnings("all")
   private static DescriptorsGetter getDescriptorsGetter(BasicModule module) {
-    final String displayName = module.getString("name");
-    if (StringUtils.isEmpty(displayName)) {
-      throw new IllegalArgumentException("request param 'impl' can not be null");
-    }
+
     IPluginEnum hetero = HeteroEnum.of(module.getString("hetero"));
     List<Descriptor<Describable>> descriptors = null;
-    DescriptorsGetter result = new DescriptorsGetter(displayName, hetero);
+    DescriptorsGetter result = new DescriptorsGetter(hetero) {
+      @Override
+      public String getDisplayName() {
+        final String displayName = module.getString("name");
+        if (StringUtils.isEmpty(displayName)) {
+          throw new IllegalArgumentException("request param 'impl' can not be null");
+        }
+        return displayName;
+      }
+    };
     String[] plugins = module.getStringArray(KEY_PLUGIN);
     if (plugins != null && plugins.length > 0) {
       List<UploadPluginMeta> pluginMetas = module.getPluginMeta();
       for (UploadPluginMeta meta : pluginMetas) {
+        module.getContext().put(UploadPluginMeta.KEY_PLUGIN_META, meta);
         IPluginStore pluginStore = hetero.getPluginStore(module, meta);
         descriptors = pluginStore.allDescriptor();
         result.setItems(pluginStore.getPlugins());
@@ -599,8 +624,8 @@ public class PluginAction extends BasicModule {
     return result;
   }
 
-  private static class DescriptorsGetter {
-    public final String displayName;
+  private abstract static class DescriptorsGetter {
+    // public final String displayName;
     public final IPluginEnum hetero;
     public List<Descriptor<Describable>> descriptors;
 
@@ -609,10 +634,13 @@ public class PluginAction extends BasicModule {
     private UploadPluginMeta pluginMeta;
 
 
-    public DescriptorsGetter(String displayName, IPluginEnum hetero) {
-      this.displayName = displayName;
+    public DescriptorsGetter(//String displayName,
+                             IPluginEnum hetero) {
+      //  this.displayName = displayName;
       this.hetero = hetero;
     }
+
+    public abstract String getDisplayName();
 
     public UploadPluginMeta getPluginMeta() {
       return pluginMeta;
@@ -646,6 +674,11 @@ public class PluginAction extends BasicModule {
       endType = EndType.parse(t);
     }
 
+    List<UploadPluginMeta> pluginMetas = this.getPluginMeta();
+    for (UploadPluginMeta pmeta : pluginMetas) {
+      context.put(UploadPluginMeta.KEY_PLUGIN_META, pmeta);
+      break;
+    }
 
     for (String extend : extendpoints) {
       List<Descriptor> descriptorList =
@@ -722,7 +755,8 @@ public class PluginAction extends BasicModule {
 
     HeteroList hlist = new HeteroList(descriptorsGetter.getPluginMeta());
     if (CollectionUtils.isEmpty(descriptorsGetter.descriptors)) {
-      throw new IllegalStateException(descriptorsGetter.displayName + "," + descriptorsGetter.hetero.identityValue() + " relevant descriptors can not be empty");
+      throw new IllegalStateException(descriptorsGetter.hetero.identityValue() + " relevant descriptors can not be "
+        + "empty");
     }
     hlist.setDescriptors(descriptorsGetter.descriptors);
     hlist.setExtensionPoint(descriptorsGetter.hetero.getExtensionPoint());
@@ -795,7 +829,7 @@ public class PluginAction extends BasicModule {
     for (UploadPluginMeta meta : pluginsMeta) {
       Map<String, List<? extends Option>> cascadeFieldVals = valueChangePipe.render(meta, this);
       this.setBizResult(context, cascadeFieldVals.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-              (e) -> Option.toJson(e.getValue()))));
+        (e) -> Option.toJson(e.getValue()))));
       return;
     }
 

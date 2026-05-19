@@ -43,5 +43,15 @@ public class GlossaryTargetMetricExpr extends GlossaryTarget {
         public String getDisplayName() {
             return "Metric Expression";
         }
+
+        @Override
+        public EndType getEndType() {
+            return EndType.OntologyMetric;
+        }
+
+        @Override
+        public String shortComment() {
+            return "术语绑定自定义SQL指标表达式";
+        }
     }
 }

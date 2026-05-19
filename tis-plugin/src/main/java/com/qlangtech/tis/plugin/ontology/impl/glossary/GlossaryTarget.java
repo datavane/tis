@@ -19,15 +19,21 @@ package com.qlangtech.tis.plugin.ontology.impl.glossary;
 
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.DescriptorUseableShortComment;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 
 /**
  * Glossary 指向的目标：OT / Property / MetricExpr。
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/5/9
+ * @see GlossaryTargetMetricExpr
+ * @see GlossaryTargetOT
+ * @see GlossaryTargetProperty
  */
 public abstract class GlossaryTarget implements Describable<GlossaryTarget> {
 
-    public static abstract class BasicDesc extends Descriptor<GlossaryTarget> {
+    public static abstract class BasicDesc extends Descriptor<GlossaryTarget> implements DescriptorUseableShortComment, IEndTypeGetter {
+
     }
 }

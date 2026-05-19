@@ -25,7 +25,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.config.ParamsConfig;
@@ -38,8 +37,8 @@ import com.qlangtech.tis.extension.impl.AdapterPluginFormProperties;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.EnumFieldMode;
 import com.qlangtech.tis.extension.impl.MultiStepsHostPluginFormProperties;
-import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
+import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.extension.impl.XmlFile;
@@ -48,7 +47,6 @@ import com.qlangtech.tis.extension.util.OverwriteProps;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
-import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter.EndType;
@@ -65,7 +63,6 @@ import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ds.IMultiElement;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
-import com.qlangtech.tis.plugin.ontology.OntologyProperty;
 import com.qlangtech.tis.runtime.module.action.IParamGetter;
 import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
@@ -78,7 +75,6 @@ import com.qlangtech.tis.util.ISelectOptionsGetter;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.util.impl.AttrVals;
-import groovyjarjarpicocli.CommandLine;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
@@ -103,7 +99,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -119,6 +114,8 @@ import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
+ * @see DescriptorUseableShortComment
+ * @see IEndTypeGetter
  */
 public abstract class Descriptor<T extends Describable> implements Saveable, ISelectOptionsGetter {
 
@@ -343,15 +340,19 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      *
      * @return
      */
+    @SuppressWarnings("all")
     public Map<String, Object> getExtractProps(boolean forAIPromote) {
         final Map<String, Object> props = new HashMap<>();
 
 
-        if (this instanceof IEndTypeGetter) {
-            appendProps(((IEndTypeGetter) this).getEndType(), (props));
+        if (this instanceof IEndTypeGetter endGetter) {
+            appendProps(endGetter.getEndType(), (props));
         }
-        if (this instanceof IDescribableManipulate) {
-            IDescribableManipulate descManipuldate = ((IDescribableManipulate) this);
+        if (this instanceof DescriptorUseableShortComment shortComment) {
+            props.put("shortComment", shortComment.shortComment());
+        }
+        if (this instanceof IDescribableManipulate descManipuldate) {
+            // IDescribableManipulate descManipuldate = ((IDescribableManipulate) this);
             Map<String, Object> manipulate = new HashMap<>();
             manipulate.put("extendPoint", Objects.requireNonNull(descManipuldate.getManipulateExtendPoint()).getName());
 
@@ -363,8 +364,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             });
             props.put("manipulate", manipulate);
         }
-        if (this instanceof IDescribableManipulate.IManipulateStorable) {
-            props.put("manipulateStorable", ((IDescribableManipulate.IManipulateStorable) this).isManipulateStorable());
+        if (this instanceof IDescribableManipulate.IManipulateStorable manipulateStorable) {
+            props.put("manipulateStorable", (manipulateStorable).isManipulateStorable());
         }
         if (_helpPath == null) {
             if (forAIPromote) {
@@ -1577,6 +1578,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     public String getDisplayName() {
         return clazz.getSimpleName();
+    }
+
+    /**
+     * 作为getDisplayName语句话描述
+     *
+     * @return
+     */
+    public String displayNameDescription() {
+        return null;
     }
 
     public final String getDisplayNameAsAnchor() {
