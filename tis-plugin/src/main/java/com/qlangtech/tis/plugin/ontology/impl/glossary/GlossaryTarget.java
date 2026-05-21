@@ -33,6 +33,13 @@ import com.qlangtech.tis.plugin.IEndTypeGetter;
  */
 public abstract class GlossaryTarget implements Describable<GlossaryTarget> {
 
+    /**
+     * 目标字面描述信息
+     *
+     * @return
+     */
+    public abstract String getTargetLiteral();
+
     public static abstract class BasicDesc extends Descriptor<GlossaryTarget> implements DescriptorUseableShortComment, IEndTypeGetter {
 
     }

@@ -1,0 +1,7 @@
+{
+  "name": {
+    "label": "连接名称",
+    "help": "本体连接的唯一标识",
+    "placeholder": "例如: order_to_customer"
+  }
+}

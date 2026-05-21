@@ -173,12 +173,22 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
                             (pt.fieldClazz == boolean.class || pt.fieldClazz == Boolean.class) ?
                                     TISJsonSchema.FieldType.Boolean : fieldType.schemaFieldType;
 
-                    String placeholder = pt.extraProp.getPlaceholder();
-                    StringBuilder helpContent =
-                            new StringBuilder(StringUtils.trimToEmpty(pt.extraProp.getHelpContent()));
-                    if (StringUtils.isNotEmpty(placeholder)) {
-                        helpContent.append(!helpContent.isEmpty() ? "," : StringUtils.EMPTY).append("例子:").append(placeholder);
+                    StringBuilder helpContent = new StringBuilder();
+                    if (pt.extraProp != null) {
+                        String placeholder =
+                                Objects.requireNonNull(pt.extraProp,
+                                        "extraProp can not be null,pt:" + pt.propertyName()).getPlaceholder();
+                        //                         helpContent
+                        //                                new StringBuilder(StringUtils.trimToEmpty(pt.extraProp
+                        //                                .getHelpContent()));
+                        if (StringUtils.isNotEmpty(pt.extraProp.getHelpContent())) {
+                            helpContent.append(pt.extraProp.getHelpContent());
+                        }
+                        if (StringUtils.isNotEmpty(placeholder)) {
+                            helpContent.append(!helpContent.isEmpty() ? "," : StringUtils.EMPTY).append("例子:").append(placeholder);
+                        }
                     }
+
                     AIPromptEnhance promptEnhance = pt.f.getAnnotation(AIPromptEnhance.class);
                     if (promptEnhance != null) {
                         helpContent.append("\n").append(promptEnhance.prompt());
@@ -296,25 +306,25 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
     @Override
     protected boolean propertyAccept(PropertyType val) {
         return true;
-//        if (val.formField.prompt4llm()) {
-//            return true;
-//        }
-//
-//        if (val.isIdentity()) {
-//            return true;
-//        }
-//
-//        if (val.extraProp.getDftVal() != null) {
-//            return false;
-//        }
-//
-//        for (Validator validator : val.getValidator()) {
-//            // 为了避免提交给大模型的prompt文案太多，这里只需要大模型解析 requeird 为true，且dftVal为空的
-//            if (validator == Validator.require) {
-//                return true;
-//            }
-//        }
-//        return false;
+        //        if (val.formField.prompt4llm()) {
+        //            return true;
+        //        }
+        //
+        //        if (val.isIdentity()) {
+        //            return true;
+        //        }
+        //
+        //        if (val.extraProp.getDftVal() != null) {
+        //            return false;
+        //        }
+        //
+        //        for (Validator validator : val.getValidator()) {
+        //            // 为了避免提交给大模型的prompt文案太多，这里只需要大模型解析 requeird 为true，且dftVal为空的
+        //            if (validator == Validator.require) {
+        //                return true;
+        //            }
+        //        }
+        //        return false;
     }
 
     @Override

@@ -117,6 +117,16 @@ public class UploadPluginMeta implements IUploadPluginMeta {
                 UploadPluginMeta.KEY_PLUGIN_META + " relevant ");
     }
 
+    public static void putPluginMeta(Context context, UploadPluginMeta meta) {
+        if (context == null) {
+            throw new IllegalArgumentException("param context can not be null");
+        }
+        if (meta == null) {
+            throw new IllegalArgumentException("param meta can not be null");
+        }
+        context.put(UploadPluginMeta.KEY_PLUGIN_META, meta);
+    }
+
     /**
      *
      * @param pluginEnum

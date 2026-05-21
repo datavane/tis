@@ -22,8 +22,10 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.storegetter.BaiscAssistStoreGetter;
 import com.qlangtech.tis.plugin.ontology.impl.storegetter.IAssistStoreGetter;
@@ -31,9 +33,11 @@ import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -67,11 +71,30 @@ public abstract class Ontology implements Describable<Ontology> {
         }
     };
 
+    /**
+     * 删除一个ontology object type
+     *
+     * @param domain
+     * @param objTypeName
+     */
+    public static void delete(OntologyEnum ontologyEnum, String domain, IdentityName objTypeName) {
+
+
+        File storeFile = new File(
+                ontologyEnum.getAssistRootDir(domain),
+                objTypeName.identityValue() + XmlFile.KEY_XML_DOT_EXTENSION);
+        try {
+            FileUtils.forceDelete(storeFile);
+        } catch (IOException e) {
+            throw new RuntimeException("delete objectType file:" + storeFile.getAbsolutePath(), e);
+        }
+    }
+
     public enum OntologyEnum {
 
         ObjectType(OntologyObjectType.KEY_OBJECT_TYPE, new BaiscAssistStoreGetter<OntologyObjectType>() {
             @Override
-            protected File getAssistRootDir(String ontologyName) {
+            public File getAssistRootDir(String ontologyName) {
                 return OntologyDomain.getObjectTypeDir(ontologyName);
                 //  return objectTypeDir;
             }
@@ -79,14 +102,14 @@ public abstract class Ontology implements Describable<Ontology> {
         ValueType(OntologyValueType.KEY_VALUE_TYPE //
                 , new BaiscAssistStoreGetter<OntologyValueType>() {
             @Override
-            protected File getAssistRootDir(String ontologyName) {
+            public File getAssistRootDir(String ontologyName) {
                 return OntologyDomain.getValueTypeDir(ontologyName);
             }
         }),
         Linker(OntologyLinker.KEY_LINK_TYPES //
                 , new BaiscAssistStoreGetter<OntologyLinker>() {
             @Override
-            protected File getAssistRootDir(String ontologyName) {
+            public File getAssistRootDir(String ontologyName) {
                 return OntologyDomain.getLinkTypeDir(ontologyName);
             }
         }),
@@ -98,7 +121,7 @@ public abstract class Ontology implements Describable<Ontology> {
                     }
 
                     @Override
-                    protected File getAssistRootDir(String ontologyName) {
+                    public File getAssistRootDir(String ontologyName) {
                         return OntologyDomain.getSharedPropsDir(ontologyName);
                     }
                 }),
@@ -108,8 +131,9 @@ public abstract class Ontology implements Describable<Ontology> {
                     public IPluginStore<OntologyGlossary> getPluginStore(OntologyPluginMeta pluginMeta) {
                         return super.getPluginStore(pluginMeta.setPersistence());
                     }
+
                     @Override
-                    protected File getAssistRootDir(String ontologyName) {
+                    public File getAssistRootDir(String ontologyName) {
                         return OntologyDomain.getGlossaryDir(ontologyName);
                     }
                 });
@@ -133,6 +157,13 @@ public abstract class Ontology implements Describable<Ontology> {
         private OntologyEnum(String typeIdentity, IAssistStoreGetter<?> storeKeyGetter) {
             this.typeIdentity = typeIdentity;
             this.storeKeyGetter = storeKeyGetter;
+        }
+
+        public File getAssistRootDir(String ontologyName) {
+            if (StringUtils.isEmpty(ontologyName)) {
+                throw new IllegalArgumentException("param ontologyName can not be null");
+            }
+            return storeKeyGetter.getAssistRootDir(ontologyName);
         }
 
         public String getTypeIdentity() {
@@ -186,7 +217,8 @@ public abstract class Ontology implements Describable<Ontology> {
         return desc;
     }
 
-    protected static abstract class BasicDesc extends Descriptor<Ontology> implements IEndTypeGetter, DescriptorUseableShortComment {
+    protected static abstract class BasicDesc extends Descriptor<Ontology> implements IEndTypeGetter,
+            DescriptorUseableShortComment {
         public BasicDesc() {
             super();
         }

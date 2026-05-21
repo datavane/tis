@@ -1,0 +1,11 @@
+{
+  "name": {
+    "label": "任务名称",
+    "help": "推断任务的唯一标识",
+    "placeholder": "例如: infer-v1"
+  },
+  "llm": {
+    "label": "大模型",
+    "help": "用于推断本体的LLM接口"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "sql": {
+    "label": "SQL表达式",
+    "help": "自定义指标SQL表达式",
+    "placeholder": "例如: SUM(price * quantity)"
+  }
+}

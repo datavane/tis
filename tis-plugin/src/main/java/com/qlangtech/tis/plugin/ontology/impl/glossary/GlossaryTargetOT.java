@@ -33,6 +33,11 @@ public class GlossaryTargetOT extends GlossaryTarget {
     @FormField(ordinal = 0, type = FormFieldType.ENUM, validate = {Validator.require})
     public String objectType;
 
+    @Override
+    public String getTargetLiteral() {
+        return objectType;
+    }
+
     @TISExtension
     public static class DftDesc extends BasicDesc {
         public DftDesc() {

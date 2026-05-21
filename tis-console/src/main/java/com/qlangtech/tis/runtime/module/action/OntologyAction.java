@@ -78,8 +78,8 @@ public class OntologyAction extends BasicModule {
     JSONObject biz = new JSONObject();
 
     OntologyPluginMeta pluginMeta = OntologyPluginMeta.create(Ontology.OntologyEnum.ObjectType, ontologyName);
-    context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta.getDelegate());
-
+    //  context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta.getDelegate());
+    UploadPluginMeta.putPluginMeta(context, pluginMeta.getDelegate());
     OntologyObjectType objectType = OntologyObjectType.loadDetail(ontologyName, objType);
     biz.put(KEY_OBJECT_TYPE, Objects.requireNonNull(objectType, "objectType can not be null"));
     List<OntologyLinker> linkers = OntologyLinker.loadAll(ontologyName);
@@ -110,8 +110,8 @@ public class OntologyAction extends BasicModule {
     UploadPluginMeta pluginMeta = OntologyPluginMeta.createPluginMeta(UploadPluginMeta.create(Ontology.ONTOLOGY))
       .getDelegate().putExtraParams(NAME_ONTOLOGY_DOMAIN, ontologyName);
 
-    context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
-
+    //  context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
+    UploadPluginMeta.putPluginMeta(context, pluginMeta);
 
     JSONObject result = new JSONObject();
 
@@ -185,6 +185,9 @@ public class OntologyAction extends BasicModule {
     }
     result.put("sharedProperties", sharedPropArray);
 
+    /**
+     * Glossary相关
+     */
     List<OntologyGlossary> glossaries
       = OntologyGlossary.loadAll(OntologyPluginMeta.create(Ontology.OntologyEnum.Glossary, ontologyName));
     JSONArray glossaryArray = new JSONArray();
@@ -197,8 +200,9 @@ public class OntologyAction extends BasicModule {
         synonymArray.add(syn.getEnumVal());
       }
       obj.put("synonyms", synonymArray);
-      JSONObject targetJson = (JSONObject) JSONObject.toJSON(glossary.target);
-      targetJson.put("targetType", glossary.target.getClass().getSimpleName());
+      JSONObject targetJson = new JSONObject();// (JSONObject) JSONObject.toJSON(glossary.target);
+      targetJson.put("targetLiteral", glossary.target.getTargetLiteral());
+      // targetJson.put("targetType", glossary.target.getClass().getSimpleName());
       targetJson.put(KEY_DISPLAY_NAME,
         Objects.requireNonNull(glossary.target.getDescriptor(), "desc can not be null").getDisplayName());
       obj.put("target", targetJson);

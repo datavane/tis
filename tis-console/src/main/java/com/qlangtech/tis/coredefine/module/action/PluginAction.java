@@ -674,11 +674,12 @@ public class PluginAction extends BasicModule {
       endType = EndType.parse(t);
     }
 
-    List<UploadPluginMeta> pluginMetas = this.getPluginMeta();
-    for (UploadPluginMeta pmeta : pluginMetas) {
-      context.put(UploadPluginMeta.KEY_PLUGIN_META, pmeta);
-      break;
-    }
+//    List<UploadPluginMeta> pluginMetas = this.getPluginMeta();
+//    for (UploadPluginMeta pmeta : pluginMetas) {
+//     // context.put(UploadPluginMeta.KEY_PLUGIN_META, pmeta);
+//      UploadPluginMeta.putPluginMeta(context,pmeta);
+//      break;
+//    }
 
     for (String extend : extendpoints) {
       List<Descriptor> descriptorList =
@@ -827,6 +828,8 @@ public class PluginAction extends BasicModule {
       = targetDesc.getValueChangePipe(descriptorField.field);
 
     for (UploadPluginMeta meta : pluginsMeta) {
+      UploadPluginMeta.putPluginMeta(context,meta);
+   //   context.put(UploadPluginMeta.KEY_PLUGIN_META, meta);
       Map<String, List<? extends Option>> cascadeFieldVals = valueChangePipe.render(meta, this);
       this.setBizResult(context, cascadeFieldVals.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
         (e) -> Option.toJson(e.getValue()))));
@@ -916,7 +919,8 @@ public class PluginAction extends BasicModule {
     JSONArray hlist = new JSONArray();
     pluginDetail.put("showExtensionPoint", TIS.get().loadGlobalComponent().isShowExtensionDetail());
     for (UploadPluginMeta pmeta : plugins) {
-      context.put(UploadPluginMeta.KEY_PLUGIN_META, pmeta);
+    //  context.put(UploadPluginMeta.KEY_PLUGIN_META, pmeta);
+      UploadPluginMeta.putPluginMeta(context,pmeta);
       hetero = this.createHeteroList(pmeta);
       if (!pmeta.isUseCache()) {
         hetero.getItems().forEach((p) -> {

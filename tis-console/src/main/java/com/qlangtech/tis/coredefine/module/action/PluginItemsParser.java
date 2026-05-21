@@ -93,7 +93,8 @@ public class PluginItemsParser {
   public static PluginItemsParser parsePluginItems( //
     IPluginContext module, IControlMsgHandler msgHandler, UploadPluginMeta pluginMeta, Context context,
     int pluginIndex, JSONArray itemsArray, FormVaildateType verify, PropValRewrite propValRewrite) {
-    context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
+  //  context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
+    UploadPluginMeta.putPluginMeta(context,pluginMeta);
     Optional<SubFormFilter> subFormFilter = pluginMeta.getSubFormFilter();
 
     IPluginEnum hEnum = pluginMeta.getHeteroEnum();

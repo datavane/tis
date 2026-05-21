@@ -18,28 +18,62 @@
 package com.qlangtech.tis.plugin.ontology.impl.glossary;
 
 import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ontology.OntologyObjectType;
+import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
+import com.qlangtech.tis.plugin.ontology.impl.linker.LinkReference;
+
+import java.util.List;
+
+import static com.qlangtech.tis.plugin.ontology.impl.linker.LinkReference.KEY_TARGET_FIELD;
 
 /**
  * 指向某个 ObjectType.Property。
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/5/9
+ * @see LinkReference
  */
 public class GlossaryTargetProperty extends GlossaryTarget {
+
+    //    @FormField(ordinal = 0, type = FormFieldType.ENUM, validate = {Validator.require})
+    //    public String objectType;
+    //
+    //    @FormField(ordinal = 1, type = FormFieldType.ENUM, validate = {Validator.require})
+    //    public String propertyName;
+    //    @FormField(ordinal = 0, validate = {Validator.require})
+    //    public LinkReference reference;
+
 
     @FormField(ordinal = 0, type = FormFieldType.ENUM, validate = {Validator.require})
     public String objectType;
 
+
     @FormField(ordinal = 1, type = FormFieldType.ENUM, validate = {Validator.require})
-    public String propertyName;
+    public String targetField;
+
+    @Override
+    public final String getTargetLiteral() {
+        return objectType + "." + targetField;
+    }
 
     @TISExtension
     public static class DftDesc extends BasicDesc {
         public DftDesc() {
             super();
+            this.valueChangePipe(LinkReference.KEY_OBJECT_TYPE, LinkReference.KEY_TARGET_FIELD)
+                    .render((pluginMeta, param) -> {
+                        // JSONObject result = new JSONObject();
+                        OntologyPluginMeta meta = OntologyPluginMeta.createPluginMeta(pluginMeta);
+
+                        OntologyObjectType objectType = OntologyObjectType.loadDetail(meta.getDomain(),
+                                param.getString(LinkReference.KEY_OBJECT_TYPE));
+
+                        return objectType.getColOpts();
+                    });
         }
 
         @Override

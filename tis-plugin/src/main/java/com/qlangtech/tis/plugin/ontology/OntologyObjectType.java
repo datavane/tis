@@ -22,13 +22,11 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.MultiStepsSupportHost;
 import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
 import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.TISExtension;
-import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.IPluginStore;
@@ -41,10 +39,7 @@ import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypeProperties;
 import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypePropertiesRelevant;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import org.apache.commons.io.FileUtils;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -81,23 +76,6 @@ public class OntologyObjectType extends Ontology implements IdentityName, MultiS
     }
 
     private OneStepOfMultiSteps[] _stepsPlugin;
-
-    /**
-     * 删除一个ontology object type
-     *
-     * @param domain
-     * @param objTypeName
-     */
-    public static void delete(String domain, IdentityName objTypeName) {
-        File storeFile = new File(
-                OntologyDomain.getObjectTypeDir(domain),
-                objTypeName.identityValue() + XmlFile.KEY_XML_DOT_EXTENSION);
-        try {
-            FileUtils.forceDelete(storeFile);
-        } catch (IOException e) {
-            throw new RuntimeException("delete objectType file:" + storeFile.getAbsolutePath(), e);
-        }
-    }
 
     @Override
     public void setSteps(OneStepOfMultiSteps[] stepsPlugin) {

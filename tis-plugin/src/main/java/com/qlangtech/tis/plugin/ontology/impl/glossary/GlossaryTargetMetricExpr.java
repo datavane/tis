@@ -33,6 +33,11 @@ public class GlossaryTargetMetricExpr extends GlossaryTarget {
     @FormField(ordinal = 0, type = FormFieldType.TEXTAREA, validate = {Validator.require})
     public String sql;
 
+    @Override
+    public String getTargetLiteral() {
+        return sql;
+    }
+
     @TISExtension
     public static class DftDesc extends BasicDesc {
         public DftDesc() {

@@ -21,9 +21,11 @@ package com.qlangtech.tis.plugin.ontology;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.datax.DefaultDataXProcessorManipulate;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorUseableShortComment;
+import com.qlangtech.tis.extension.IDescribableManipulate;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -192,7 +194,7 @@ public final class OntologyDomain implements Describable<OntologyDomain>, Identi
     }
 
     @TISExtension
-    public static class DefaultDesc extends Descriptor<OntologyDomain> implements DescriptorUseableShortComment {
+    public static class DefaultDesc extends Descriptor<OntologyDomain> implements DescriptorUseableShortComment, IDescribableManipulate<OntologyDomainManipulate> {
         public DefaultDesc() {
             super();
         }
@@ -205,6 +207,16 @@ public final class OntologyDomain implements Describable<OntologyDomain>, Identi
         @Override
         public String shortComment() {
             return "定义本体顶层命名空间（域），用于隔离不同业务场景";
+        }
+
+        @Override
+        public Class<OntologyDomainManipulate> getManipulateExtendPoint() {
+            return OntologyDomainManipulate.class;
+        }
+
+        @Override
+        public Optional<IPluginStore<OntologyDomainManipulate>> getManipulateStore() {
+            return Optional.empty();
         }
     }
 

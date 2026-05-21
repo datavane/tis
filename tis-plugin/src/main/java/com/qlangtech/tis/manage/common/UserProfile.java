@@ -46,9 +46,10 @@ import java.util.Optional;
 public class UserProfile extends ParamsConfig implements IPluginStore.BeforePluginSaved {
 
     public static final String KEY_DISPLAY_NAME = "UserProfile";
-    private static final String KEY_FIELD_LLM_NAME = "llm";
+    public static final String KEY_FIELD_LLM_NAME = "llm";
 
-    @FormField(identity = true, type = FormFieldType.INPUTTEXT, ordinal = 0, validate = {Validator.identity, Validator.require})
+    @FormField(identity = true, type = FormFieldType.INPUTTEXT, ordinal = 0, validate = {Validator.identity,
+            Validator.require})
     public String name;
     /**
      * 大模型接口
@@ -77,7 +78,8 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
     public static void update(IPluginContext pluginContext, UserProfile profile) {
         UploadPluginMeta pluginMeta = ParamsConfigPluginStore.createParamsConfigUserIsolation(KEY_DISPLAY_NAME);
         IPluginStore pluginStore = HeteroEnum.PARAMS_CONFIG_USER_ISOLATION.getPluginStore(pluginContext, pluginMeta);
-        pluginStore.setPlugins(pluginContext, Optional.empty(), Collections.singletonList(new Descriptor.ParseDescribable(profile)));
+        pluginStore.setPlugins(pluginContext, Optional.empty(),
+                Collections.singletonList(new Descriptor.ParseDescribable(profile)));
     }
 
     public LLMProvider getLlmProvider() {

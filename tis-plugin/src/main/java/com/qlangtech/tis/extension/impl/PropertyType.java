@@ -171,8 +171,12 @@ public class PropertyType implements IPropertyType {
 
     public List<Option> getEnumPropOptions(boolean validateNull) {
         List<Option> opts = Lists.newArrayList();
+        if (this.getExtraProps() == null) {
+            return opts;
+        }
         Object enumPp = Objects.requireNonNull(this.getExtraProps(),
-                "extraProps can not be null, for property:" + this.f.getName()).get(Descriptor.KEY_ENUM_PROP);
+                "extraProps can not be null, for property:"
+                        + this.f.getName() + ",owner:" + this.ownerClazz.getName()).get(Descriptor.KEY_ENUM_PROP);
         if (enumPp == null) {
             if (validateNull) {
                 throw new IllegalStateException("field:" + this.f.getName() + " enum property can not be empty");
@@ -188,10 +192,13 @@ public class PropertyType implements IPropertyType {
         } else {
             throw new IllegalStateException("unsupport type:" + enumPp.getClass().getName());
         }
-        for (int i = 0; i < enums.size(); i++) {
-            JSONObject opt = enums.getJSONObject(i);
-            opts.add(new Option(opt.getString(KEY_LABEL), opt.get(Option.KEY_VALUE)));
+        if (enums != null) {
+            for (int i = 0; i < enums.size(); i++) {
+                JSONObject opt = enums.getJSONObject(i);
+                opts.add(new Option(opt.getString(KEY_LABEL), opt.get(Option.KEY_VALUE)));
+            }
         }
+
         return opts;
     }
 
@@ -329,8 +336,8 @@ public class PropertyType implements IPropertyType {
 
                                         resolveEnumProp(f, descriptor.get().getElementDesc(), fieldExtraProps,
                                                 (opts) -> {
-                                            return Option.toJson((List<Option>) opts);
-                                        });
+                                                    return Option.toJson((List<Option>) opts);
+                                                });
                                     }
 
                                     if (descriptor.isPresent() //
