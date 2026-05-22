@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/12/28
  */
-public abstract class TISJsonSchema {
+public abstract class TISJsonSchema implements ITISJsonSchema {
 
     public static final String SCHEMA_NAME = "name";
 
@@ -82,6 +82,7 @@ public abstract class TISJsonSchema {
         this.appendFieldDescToPrompt(prompt, this.getFieldsDesc(), 0);
     }
 
+    @SuppressWarnings("all")
     public void appendFieldDescToPrompt(StringBuilder prompt, List<Option> fieldsDesc, final int indentCount) {
         int num = 1;
 
@@ -99,14 +100,10 @@ public abstract class TISJsonSchema {
                 appendHelp(prompt, indentCount, oneOfFieldsDesc.getHelp());
 
                 for (Map.Entry<String, OneOfFieldsDesc.PluginDesc> entry : oneOfFieldsDesc.entrySet()) {
-                    // System.out.println(" " + entry.getKey());
                     startNewLine(prompt, indentCount + 1).append("* `") //
                             .append(SCHEMA_PLUGIN_DESCRIPTOR_ID).append("`").append("属性为:").append(entry.getValue().pluginDisplayName);
                     this.appendFieldDescToPrompt(prompt, entry.getValue().fieldsDesc, indentCount + 2);
 
-                    //                    for (Option child : entry.getValue()) {
-                    //                        System.out.println("\t" + child.getName());
-                    //                    }
                 }
             } else {
 
@@ -144,13 +141,13 @@ public abstract class TISJsonSchema {
         return prompt;
     }
 
-    public abstract JSONObject root();
+  //  public abstract JSONObject root();
 
     /**
      *
      * @return
      */
-    public abstract JSONObject schema();
+   // public abstract JSONObject schema();
 
     /**
      * @param root
@@ -261,8 +258,8 @@ public abstract class TISJsonSchema {
                         .addProps2Builder(entry.getValue().getValue(),
                                 schemaDescriptorsMeta.getJSONObject(entry.getKey()), schemaBuilder);
                 schemaBuilder.addProperty(SCHEMA_PLUGIN_DESCRIPTOR_ID, FieldType.String, "代表本`" + SCHEMA_ONE_OF +
-                                "`之一的标识符", false)//
-                        .setConst(entry.getKey());
+                                "`之一的标识符", true)//
+                        .setConst(entry.getValue().getValue().getDisplayName());
                 // .setConst(jsonSchema.getSchemaName());
                 oneOf.add(schemaBuilder.build().schema());
                 oneOfFieldsDesc.setPluginConcreteClassRelevant(entry.getKey(), schemaBuilder.fieldsDesc,
@@ -368,6 +365,15 @@ public abstract class TISJsonSchema {
             return new AddedProperty(property);
         }
 
+        public AddedProperty addRawProperty(String propertyKey, JSONObject prebuilt, boolean required) {
+            properties.put(propertyKey, prebuilt);
+            if (required) {
+                this.requiredFields.add(propertyKey);
+            }
+            this.addFieldsDesc(propertyKey, prebuilt.getString(SCHEMA_DESC));
+            return new AddedProperty(prebuilt);
+        }
+
         private void addFieldsDesc(String propertyKey, Object description) {
             this.fieldsDesc.add(new Option(this.parentKey.map((parent) -> parent + ".").orElse(StringUtils.EMPTY) + propertyKey, description));
         }
@@ -452,7 +458,7 @@ public abstract class TISJsonSchema {
             return this;
         }
 
-        public AddedProperty setItems(TISJsonSchema itemsSchema) {
+        public AddedProperty setItems(ITISJsonSchema itemsSchema) {
             property.put("items", itemsSchema.schema());
             return this;
         }

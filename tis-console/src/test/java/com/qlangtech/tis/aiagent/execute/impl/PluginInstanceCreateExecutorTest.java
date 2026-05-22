@@ -24,6 +24,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
 import com.qlangtech.tis.aiagent.core.TestRealTISPlanAndExecuteAgent;
+import com.qlangtech.tis.aiagent.llm.FlatJsonToTisConverter;
+import com.qlangtech.tis.aiagent.llm.ITISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
@@ -84,43 +86,49 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     impl.addImpl("com.qlangtech.tis.plugin.ds.mysql.MySQLV5DataSourceFactory");
     Pair<DescriptorsMeta, DescriptorsJSONForAIPrompt> desc = DescriptorsJSONForAIPrompt.desc(impl);
     LLMProvider llmProvider = TestRealTISPlanAndExecuteAgent.getLlmProvider();
-    DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta descriptorsMeta =  (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) desc.getLeft();
-    for (Map.Entry<String, Pair<TISJsonSchema, Descriptor>> entry : descriptorsMeta.descSchemaRegister.entrySet()) {
-      // 需要遍历他的所有属性如果有需要创建的属性插件需要先创建
-      JSONObject jsonObject
-        = instanceCreateExecutor.extractUserInput2Json(IAgentContext.createNull(),
-        new UserPrompt("解析数据源配置", userInput), endType, Objects.requireNonNull(entry.getValue().getKey()), llmProvider);
+    DescriptorsMeta descriptorsMeta = desc.getLeft();
 
-      Objects.requireNonNull(jsonObject,"jsonObject can not be null");
+    ITISJsonSchema jsonSchema = descriptorsMeta.getFirstPluginJsonSchema();
 
-      Descriptor targetDesc = impl.getImplDesc();
+    //    for (Map.Entry<String, Pair<TISJsonSchema, Descriptor>> entry : descriptorsMeta.descSchemaRegister.entrySet
+    //    ()) {
+    // 需要遍历他的所有属性如果有需要创建的属性插件需要先创建
+    JSONObject jsonObject
+      = instanceCreateExecutor.extractUserInput2Json(IAgentContext.createNull(),
+      new UserPrompt("解析数据源配置", userInput), endType, Objects.requireNonNull(jsonSchema), llmProvider);
 
-      PartialSettedPluginContext msgHandler = IPluginContext.namedContext("test");
-//      DefaultMessageHandler messageHandler = new DefaultMessageHandler();
-//      msgHandler.setMessageAndFieldErrorHandler(messageHandler, messageHandler);
-      Context context = new DefaultContext(); //
-      //  IControlMsgHandler msgHandler;
+    Objects.requireNonNull(jsonObject, "jsonObject can not be null");
 
-      AttrValMap attrValMap = parseDescribableMap(
-        Optional.empty(), jsonObject, ((propType, val) -> {
+    Descriptor targetDesc = impl.getImplDesc();
 
-          // 需要判断 是否有可用的已经存在的插件实例可用，
-          // 如果没有：则需要创建
-          // 如果有：需要便利已经存在的插件确认是否是相同的
-          if (propType.isIdentity()) {
+    PartialSettedPluginContext msgHandler = IPluginContext.namedContext("test");
+//    msgHandler.setTargetRuntimeContext()
+    //      DefaultMessageHandler messageHandler = new DefaultMessageHandler();
+    //      msgHandler.setMessageAndFieldErrorHandler(messageHandler, messageHandler);
+    Context context = new DefaultContext(); //
+    //  IControlMsgHandler msgHandler;
 
-          }
+    AttrValMap attrValMap = parseDescribableMap(
+      Optional.empty(), FlatJsonToTisConverter.convert(jsonObject), ((propType, val) -> {
 
-          return val;
-        }));
-      FormVaildateType verify = FormVaildateType.create(true);
-      Descriptor.PluginValidateResult.setValidateItemPos(context, 0, 0);
+        // 需要判断 是否有可用的已经存在的插件实例可用，
+        // 如果没有：则需要创建
+        // 如果有：需要便利已经存在的插件确认是否是相同的
+        if (propType.isIdentity()) {
 
-      Descriptor.PluginValidateResult validateResult = attrValMap.validate(msgHandler, context, verify, Optional.empty());
-      Assert.assertFalse(validateResult.isValid());
+        }
 
-      validateResult = attrValMap.validate(msgHandler, context, FormVaildateType.create(false), Optional.empty());
-    }
+        return val;
+      }));
+    FormVaildateType verify = FormVaildateType.create(true);
+    Descriptor.PluginValidateResult.setValidateItemPos(context, 0, 0);
+
+    Descriptor.PluginValidateResult validateResult = attrValMap.validate(msgHandler, context, verify,
+      Optional.empty());
+    Assert.assertFalse(validateResult.isValid());
+
+    validateResult = attrValMap.validate(msgHandler, context, FormVaildateType.create(false), Optional.empty());
+    // }
 
 
   }

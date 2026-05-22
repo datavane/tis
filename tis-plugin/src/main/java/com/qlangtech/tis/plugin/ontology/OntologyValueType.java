@@ -90,26 +90,6 @@ public class OntologyValueType extends Ontology implements IdentityName, MultiSt
         if (StringUtils.isEmpty(ontologyName)) {
             throw new IllegalArgumentException("param ontologyName can not be empty");
         }
-        //        List<OntologyValueType> objectTypes = Lists.newArrayList();
-        //        File objectTypeDir = OntologyDomain.getValueTypeDir(ontologyName);
-        //        String valTypeName = null;
-        //        for (String ds : Objects.requireNonNull(objectTypeDir.list(), "subDir of objectTypeDir can not be
-        //        null")) {
-        //            File dsDir = new File(objectTypeDir, ds);
-        //            for (File ot : FileUtils.listFiles(dsDir, new String[]{XmlFile.KEY_XML_EXTENSION}, false)) {
-        //                valTypeName = StringUtils.removeEnd(ot.getName(), XmlFile.KEY_XML_DOT_EXTENSION);
-        //                UploadPluginMeta pluginMeta = UploadPluginMeta.create(ONTOLOGY) //
-        //                        .putExtraParams(KEY_START_PERSISTENCE, Boolean.TRUE.toString())
-        //                        .putExtraParams(NAME_ONTOLOGY_DOMAIN, ontologyName)
-        //                        .putExtraParams(IdentityName.PLUGIN_IDENTITY_NAME, valTypeName);
-        //                Ontology.OntologyEnum ontologyEnum = OntologyEnum.ValueType;
-        //                IPluginStore<OntologyValueType> ps
-        //                        = ontologyEnum.getStoreKey(OntologyPluginMeta.createPluginMeta(pluginMeta))
-        //                        .unsaveCast();
-        //                objectTypes.add(Objects.requireNonNull(ps.getPlugin(), "ot:" + ot.getAbsolutePath()));
-        //            }
-        //        }
-        //        ;
         return OntologyEnum.ValueType.loadAll(OntologyPluginMeta.create(OntologyEnum.ValueType, ontologyName));
         //  return objectTypes;
     }

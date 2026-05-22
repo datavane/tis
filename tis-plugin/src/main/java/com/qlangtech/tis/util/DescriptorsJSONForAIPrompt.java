@@ -21,11 +21,15 @@ package com.qlangtech.tis.util;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.aiagent.llm.ITISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
 import com.qlangtech.tis.extension.AIPromptEnhance;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.MultiStepsSupportHost;
+import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
+import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
@@ -38,11 +42,14 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_DEFAULT;
@@ -70,6 +77,7 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
      * 进行过程中构建的组件依赖
      */
     private Map<Class<? extends Descriptor>, DescribableImpl> descFieldsRegister = Maps.newHashMap();
+    private final BiConsumer<TISJsonSchema.Builder, Descriptor> afterPropertiesAdded;
 
     public static class AISchemaAttrVal extends AttrVal {
         private final String fieldKey;
@@ -114,8 +122,21 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
         public final Map<String /* concrete plugin implement class */, Pair<TISJsonSchema, Descriptor>> descSchemaRegister =
                 Maps.newHashMap();
 
-        public AISchemaDescriptorsMeta(boolean rootDesc) {
+        private final BiConsumer<TISJsonSchema.Builder, Descriptor> afterPropertiesAdded;
+
+        public AISchemaDescriptorsMeta(boolean rootDesc,
+                                       BiConsumer<TISJsonSchema.Builder, Descriptor> afterPropertiesAdded) {
             super(rootDesc);
+            this.afterPropertiesAdded = Objects.requireNonNull(afterPropertiesAdded, "afterPropertiesAdded can not be"
+                    + " null");
+        }
+
+        @Override
+        public Map<String, ITISJsonSchema> getPluginJsonSchema() {
+            //  return super.getPluginJsonSchema();
+            return this.descSchemaRegister.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey,
+                            (entry) -> entry.getValue().getKey()));
         }
 
         /**
@@ -136,11 +157,63 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
                     .setConst(descriptor.getId());
 
 
-            schemaBuilder.addObjectProperty(PLUGIN_EXTENSION_VALS, (inner) -> {
-                addProps2Builder(descriptor, descJson, inner);
-            });
+            if (descriptor instanceof MultiStepsSupportHostDescriptor) {
+                final MultiStepsSupportHostDescriptor<?> hostDesc = (MultiStepsSupportHostDescriptor<?>) descriptor;
+                schemaBuilder.addObjectProperty(PLUGIN_EXTENSION_VALS, (valsBuilder) -> {
+                    buildMultiStepsItemsProperty(valsBuilder, hostDesc);
+                });
+            } else {
+                schemaBuilder.addObjectProperty(PLUGIN_EXTENSION_VALS, (inner) -> {
+                    addProps2Builder(descriptor, descJson, inner);
+                });
+            }
 
+            afterPropertiesAdded.accept(schemaBuilder, descriptor);
             this.descSchemaRegister.put(id, Pair.of(schemaBuilder.build(), descriptor));
+        }
+
+        /**
+         * 为 {@link MultiStepsSupportHost} 类型的宿主插件构造 vals.multiStepsSavedItems 属性。
+         * 每个 step 的 BasicDesc 自身就是 {@link Descriptor}，对其单独跑一次 inner
+         * {@link DescriptorsJSONForAIPrompt} 拿到 {impl, vals} 形态的 schema，再合成
+         * <code>{ type:"array", items:{ oneOf:[stepSchema...] } }</code>，与
+         * {@link OneStepOfMultiSteps#parseStepsPlugin} 期望的反序列化格式天然对齐。
+         */
+        private static void buildMultiStepsItemsProperty(TISJsonSchema.Builder valsBuilder,
+                                                         MultiStepsSupportHostDescriptor<?> hostDesc) {
+            List<TISJsonSchema> stepSchemas = new ArrayList<>();
+            for (OneStepOfMultiSteps.BasicDesc stepDesc : hostDesc.getStepDescriptionList()) {
+                DescriptorsJSONForAIPrompt<?> inner //
+                        = new DescriptorsJSONForAIPrompt<>(Collections.singletonList(stepDesc), false);
+                AISchemaDescriptorsMeta innerMeta //
+                        = (AISchemaDescriptorsMeta) inner.getDescriptorsJSON();
+                for (Pair<TISJsonSchema, Descriptor> stepEntry : innerMeta.descSchemaRegister.values()) {
+                    stepSchemas.add(stepEntry.getKey());
+                }
+            }
+
+            TISJsonSchema oneOfWrapper = buildOneOfArrayItemsSchema(stepSchemas);
+            valsBuilder.addProperty(MultiStepsSupportHost.KEY_MULTI_STEPS_SAVED_ITEMS,
+                            TISJsonSchema.FieldType.Array,
+                            "多步骤插件的各步骤实例（按步骤顺序排列）。每个元素的 impl 字段必须是对应步骤插件的全限定类名",
+                            true)
+                    .setItems(oneOfWrapper);
+        }
+
+        /**
+         * 把 N 个 step schema 折成一个 <code>{oneOf:[...]}</code> 形式的 {@link TISJsonSchema}，
+         * 喂给 {@link TISJsonSchema.AddedProperty#setItems(TISJsonSchema)}。
+         */
+        private static TISJsonSchema buildOneOfArrayItemsSchema(List<TISJsonSchema> stepSchemas) {
+            JSONObject root = new JSONObject();
+            JSONObject schema = new JSONObject();
+            JSONArray oneOf = new JSONArray();
+            for (TISJsonSchema s : stepSchemas) {
+                oneOf.add(s.schema());
+            }
+            schema.put(TISJsonSchema.SCHEMA_ONE_OF, oneOf);
+            root.put(TISJsonSchema.SCHEMA_NAME, "stepItem");
+            return TISJsonSchema.create(root, schema, Collections.emptyList());
         }
 
         /**
@@ -259,10 +332,19 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
     public DescriptorsJSONForAIPrompt(Descriptor<T> descriptor, DescribableImpl pluginImpl) {
         super(descriptor);
         this.descFieldsRegister.put(descriptor.getClass(), pluginImpl);
+        this.afterPropertiesAdded = ((builder, descriptor1) -> {
+        });
     }
 
     public DescriptorsJSONForAIPrompt(Collection<Descriptor<T>> collection, boolean rootDesc) {
+        this(collection, rootDesc, (builder, descriptor) -> {
+        });
+    }
+
+    public DescriptorsJSONForAIPrompt(Collection<Descriptor<T>> collection, boolean rootDesc,
+                                      BiConsumer<TISJsonSchema.Builder, Descriptor> afterPropertiesAdded) {
         super(collection, rootDesc);
+        this.afterPropertiesAdded = afterPropertiesAdded;
     }
 
     public Map<Class<? extends Descriptor>, DescribableImpl> getFieldDescRegister() {
@@ -293,7 +375,7 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
 
     @Override
     protected DescriptorsMeta createDescriptorsMeta() {
-        AISchemaDescriptorsMeta descriptorsMeta = new AISchemaDescriptorsMeta(this.rootDesc);
+        AISchemaDescriptorsMeta descriptorsMeta = new AISchemaDescriptorsMeta(this.rootDesc, this.afterPropertiesAdded);
         return descriptorsMeta;
     }
 

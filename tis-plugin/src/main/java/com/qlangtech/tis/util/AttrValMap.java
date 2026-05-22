@@ -102,6 +102,13 @@ public class AttrValMap {
     }
 
 
+    /**
+     *
+     * @param subFormFilter
+     * @param jsonObject 确认需要 <Code>FlatJsonToTisConverter.#convert()转化过</Code>
+     * @param propValRewrite
+     * @return
+     */
     public static AttrValMap parseDescribableMap(Optional<SubFormFilter> subFormFilter,
                                                  com.alibaba.fastjson.JSONObject jsonObject,
                                                  PropValRewrite propValRewrite) {

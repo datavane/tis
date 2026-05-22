@@ -24,6 +24,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.util.AttrValMap;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 import java.util.Objects;
@@ -114,7 +115,7 @@ public class FlatJsonToTisConverter {
         // 通过 id（displayName）找到对应的 Descriptor
         Descriptor matchedDesc = null;
         for (Descriptor desc : pt.getApplicableDescriptors()) {
-            if (desc.clazz.getName().equals(impl)) {
+            if (desc.clazz.getName().equals(impl) || impl.equals(desc.getDisplayName())) {
                 matchedDesc = desc;
                 break;
             }

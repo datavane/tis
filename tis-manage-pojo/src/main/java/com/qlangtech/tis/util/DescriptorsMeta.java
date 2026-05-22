@@ -21,6 +21,8 @@ package com.qlangtech.tis.util;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONType;
 import com.google.common.collect.Maps;
+import com.qlangtech.tis.aiagent.llm.ITISJsonSchema;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Map;
@@ -74,5 +76,16 @@ public class DescriptorsMeta {
                 (e) -> e.getValue().getLeft()));
     }
 
+    public Map<String/* concrete plugin implement class */, ITISJsonSchema> getPluginJsonSchema() {
+        throw new UnsupportedOperationException("please use DescriptorsJSONForAIPrompt for invoke getPluginJsonSchema"
+                + "()");
+    }
 
+    public final ITISJsonSchema getFirstPluginJsonSchema() {
+        for (Map.Entry<String/* concrete plugin implement class */, ITISJsonSchema> entry :
+                this.getPluginJsonSchema().entrySet()) {
+            return entry.getValue();
+        }
+        throw new IllegalStateException("getPluginJsonSchema can not be empty");
+    }
 }

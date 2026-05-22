@@ -24,6 +24,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
+import com.qlangtech.tis.aiagent.llm.ITISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
@@ -55,6 +56,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_DEFAULT;
 import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_PATTERN;
@@ -124,7 +126,7 @@ public class QWenLLMProvider extends LLMProvider {
 
 
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary,
-                            TISJsonSchema jsonOutput) {
+                            ITISJsonSchema jsonOutput) {
         ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);// new DefaultExecuteLog
         // (prompt, context, logger) : new NoneExecuteLog();
         try {
@@ -242,6 +244,14 @@ public class QWenLLMProvider extends LLMProvider {
                     String responseStr = IOUtils.toString(stream, TisUTF8.get());
 
                     JSONObject responseJson = JSON.parseObject(responseStr);
+                    JSONObject error = null;
+                    if ((error = responseJson.getJSONObject("error")) != null) {
+                        response.setSuccess(false);
+                        response.setErrorMessage(error.entrySet().stream() //
+                                .map((entry) -> entry.getKey()
+                                        + ":" + entry.getValue()).collect(Collectors.joining(",")));
+                        return response;
+                    }
                     executeLog.setResponse(responseJson);
 
                     // 处理通义千问的响应格式
@@ -295,7 +305,7 @@ public class QWenLLMProvider extends LLMProvider {
 
     @Override
     public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
-                                TISJsonSchema jsonSchema) {
+                                ITISJsonSchema jsonSchema) {
         // 增强prompt，要求返回JSON格式
         StringBuilder enhancedPrompt = new StringBuilder(prompt.getPrompt());
         if (jsonSchema.isContainSchema()) {
@@ -311,10 +321,10 @@ public class QWenLLMProvider extends LLMProvider {
             //  SCHEMA_VALUE_CONST
             enhancedPrompt.append("\n\n**注意**：分析用户输入内容必须遵守如下纪律：");
             enhancedPrompt.append("\n**默认值处理**：");
-            enhancedPrompt.append("\n   - 对于 `"+KEY_primaryVal+"` 字段：");
-            enhancedPrompt.append("\n     a) 如果用户提供了对应信息 → 按 schema 要求处理（如替换非法字符以符合 `"+SCHEMA_VALUE_PATTERN+"`）；");
-            enhancedPrompt.append("\n     b) 如果用户**未提供**，但相应属性中定义了 `"+SCHEMA_VALUE_DEFAULT+"`属性 → **必须使用该 "+SCHEMA_VALUE_DEFAULT+" 值**作为`"+KEY_primaryVal+"`属性值；");
-            enhancedPrompt.append("\n     c) 如果用户未提供，且 相应属性 中**无 "+SCHEMA_VALUE_DEFAULT+"** → 填入空字符串 `\"\"`。");
+            enhancedPrompt.append("\n   - 对于 `" + KEY_primaryVal + "` 字段：");
+            enhancedPrompt.append("\n     a) 如果用户提供了对应信息 → 按 schema 要求处理（如替换非法字符以符合 `" + SCHEMA_VALUE_PATTERN + "`）；");
+            enhancedPrompt.append("\n     b) 如果用户**未提供**，但相应属性中定义了 `" + SCHEMA_VALUE_DEFAULT + "`属性 → **必须使用该 " + SCHEMA_VALUE_DEFAULT + " 值**作为`" + KEY_primaryVal + "`属性值；");
+            enhancedPrompt.append("\n     c) 如果用户未提供，且 相应属性 中**无 " + SCHEMA_VALUE_DEFAULT + "** → 填入空字符串 `\"\"`。");
 
             //            enhancedPrompt.append("\n  1. `").append(KEY_primaryVal).append("`对应的属性如定义了" + "`").append
             //            (SCHEMA_VALUE_CONST).append("`则`").append(KEY_primaryVal).append("`对应的值**必须**取值为`").append

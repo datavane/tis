@@ -39,6 +39,7 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
+import com.qlangtech.tis.trigger.util.UnCacheString;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -799,7 +800,12 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         @JSONField(serialize = false)
         public String getHelpContent() {
-            return (String) props.get(Option.KEY_HELP);
+            Object help = props.get(Option.KEY_HELP);
+            if (help instanceof UnCacheString) {
+                Object resolved = ((UnCacheString<?>) help).getValue();
+                return resolved == null ? null : String.valueOf(resolved);
+            }
+            return (String) help;
         }
 
         @JSONField(serialize = false)

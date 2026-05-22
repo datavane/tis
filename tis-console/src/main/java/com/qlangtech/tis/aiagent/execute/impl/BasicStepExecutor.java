@@ -33,6 +33,7 @@ import com.qlangtech.tis.aiagent.core.PluginPropsComplement;
 import com.qlangtech.tis.aiagent.core.RequestKey;
 import com.qlangtech.tis.aiagent.core.SelectionOptions;
 import com.qlangtech.tis.aiagent.execute.StepExecutor;
+import com.qlangtech.tis.aiagent.llm.ITISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
@@ -192,7 +193,8 @@ public abstract class BasicStepExecutor implements StepExecutor {
   }
 
   protected AttrValMap getPluginPostAttrValMap(AgentContext context, UserPrompt userInput //
-    , Optional<IEndTypeGetter.EndType> endType, Map.Entry<String, Pair<TISJsonSchema, Descriptor>> entry, LLMProvider llmProvider) {
+    , Optional<IEndTypeGetter.EndType> endType, Map.Entry<String, Pair<TISJsonSchema, Descriptor>> entry,
+                                               LLMProvider llmProvider) {
     JSONObject pluginPostBody = extractUserInput2Json(context, userInput, endType,
       Objects.requireNonNull(entry.getValue().getKey()), llmProvider);
 
@@ -212,7 +214,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
    * @return
    */
   public JSONObject extractUserInput2Json(IAgentContext context, UserPrompt userInput,
-                                          Optional<IEndTypeGetter.EndType> endType, TISJsonSchema descriptorJson,
+                                          Optional<IEndTypeGetter.EndType> endType, ITISJsonSchema descriptorJson,
                                           LLMProvider llmProvider) {
     final String prompt = "用户输入内容：" + userInput.getPrompt();
     final String systemPrompt = SYSTEM_ASSIST_ROLE + "你的任务是帮助用户创建数据同步管道。\n"  //
@@ -221,35 +223,15 @@ public abstract class BasicStepExecutor implements StepExecutor {
       + "\n" + "现在需要通过用户提交的内容，结合提系统提供的json结构说明，解析出结构化的json作为输出内容";
 
     JSONObject pluginPostBody = null;
-    //final String jsonSchema = "\n\n请严格按照系统提示中输出json的Schema格式返回结果";
-    //    try (InputStream sysPromote = PluginInstanceCreateExecutor.class.getResourceAsStream(
-    //      "describle_plugin_json_create_deamo.md")) {
-    //      LLMProvider.LLMResponse llmResponse = llmProvider.chatJson(
-    //        context // 1
-    //        , userInput.setNewPrompt(prompt) // 2
-    //        , Lists.newArrayList(systemPrompt, IOUtils.toString(Objects.requireNonNull(sysPromote //
-    //        , "sysPromote can not be null"), TisUTF8.get())) // 3. systemPrompt:List<String>
-    //        , descriptorJson // 4. JsonSchema
-    //      );
-    //      return pluginPostBody = llmResponse.getJsonContent();
-    //    } catch (Exception e) {
-    //      throw new RuntimeException(e);
-    //    }
-
-
-    //    try (InputStream sysPromote = PluginInstanceCreateExecutor.class.getResourceAsStream(
-    //      "describle_plugin_json_create_deamo.md")) {
     LLMProvider.LLMResponse llmResponse = llmProvider.chatJson(context // 1
       , userInput.setNewPrompt(prompt) // 2
       , Lists.newArrayList(systemPrompt) // 3. systemPrompt:List<String>
       , descriptorJson // 4. JsonSchema
     );
-    //
-    // System.out.println("CompletionTokens:"+ llmResponse.getCompletionTokens());
+    if (!llmResponse.isSuccess()) {
+      throw new IllegalStateException(llmResponse.getErrorMessage());
+    }
     return pluginPostBody = llmResponse.getJsonContent();
-    //    } catch (Exception e) {
-    //      throw new RuntimeException(e);
-    //    }
   }
 
   public static class ExtractTargetTableInfoResult {
@@ -423,7 +405,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
         }
         case dbQuickManager: {
           pluginCtx = IPluginContext.namedContext(new DataXName(pluginRef.identityValue(),
-            StoreResourceType.DataBase)).setTargetRuntimeContext((IPluginContext) plan.getControlMsgHandler());
+            StoreResourceType.DataBase)).setTargetRuntimeContext(plan.getControlMsgHandler());
           pItems = new PluginItems(pluginCtx, ctx,
             PostedDSProp.createPluginMeta(DBIdentity.parseId(pluginRef.identityValue()), false).putExtraParams(DBIdentity.KEY_TYPE, DbScope.DETAILED.getToken()));
           break;

@@ -41,6 +41,8 @@ import java.util.Optional;
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/9/17
+ * @see com.qlangtech.tis.plugin.llm.QWenLLMProvider
+ * @see DeepSeekProvider
  */
 public abstract class LLMProvider extends ParamsConfig {
     public enum LLMChatPhase {
@@ -130,7 +132,7 @@ public abstract class LLMProvider extends ParamsConfig {
      * @see DeepSeekProvider#chatJson(String, List, String)
      */
     public abstract LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
-                                         TISJsonSchema jsonSchema);
+                                         ITISJsonSchema jsonSchema);
 
     /**
      * 获取提供商名称
