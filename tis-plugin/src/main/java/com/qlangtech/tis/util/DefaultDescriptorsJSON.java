@@ -59,9 +59,16 @@ public class DefaultDescriptorsJSON<T extends Describable<T>> extends Descriptor
     @JSONType(serializer = JSONAttrValSerializer.class)
     public static class JSONAttrVal extends AttrVal {
         private final JSONObject attrVal;
+        private final String propertyName;
 
-        public JSONAttrVal(JSONObject attrVal) {
+        public JSONAttrVal(String propertyName, JSONObject attrVal) {
             this.attrVal = attrVal;
+            this.propertyName = propertyName;
+        }
+
+        @Override
+        public String getFieldKey() {
+            return this.propertyName;
         }
 
         @Override
@@ -110,7 +117,8 @@ public class DefaultDescriptorsJSON<T extends Describable<T>> extends Descriptor
         if (val.advance()) {
             attrVal.put(DescriptorsJSON.KEY_ADVANCE, true);
         }
-        return new JSONAttrVal(attrVal);
+
+        return new JSONAttrVal(val.propertyName(), attrVal);
     }
 
     @Override

@@ -20,6 +20,7 @@ package com.qlangtech.tis.util;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.aiagent.llm.ITISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
@@ -27,6 +28,7 @@ import com.qlangtech.tis.aiagent.plan.DescribableImpl;
 import com.qlangtech.tis.extension.AIPromptEnhance;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.MultiStepsSupportHost;
 import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
 import com.qlangtech.tis.extension.OneStepOfMultiSteps;
@@ -34,6 +36,7 @@ import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.ValidateRule;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -49,7 +52,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_DEFAULT;
@@ -78,6 +84,7 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
      */
     private Map<Class<? extends Descriptor>, DescribableImpl> descFieldsRegister = Maps.newHashMap();
     private final BiConsumer<TISJsonSchema.Builder, Descriptor> afterPropertiesAdded;
+    private final BiFunction<AttrVal, TISJsonSchema.AddedProperty, Boolean> addedPropertyProc;
 
     public static class AISchemaAttrVal extends AttrVal {
         private final String fieldKey;
@@ -88,6 +95,7 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
             this.propertyType = Objects.requireNonNull(propertyType, "propertyType can not be null");
         }
 
+        @Override
         public String getFieldKey() {
             return this.fieldKey;
         }
@@ -119,16 +127,23 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
 
     public static class AISchemaDescriptorsMeta extends DescriptorsMeta {
 
-        public final Map<String /* concrete plugin implement class */, Pair<TISJsonSchema, Descriptor>> descSchemaRegister =
-                Maps.newHashMap();
+        public final Map<String /* concrete plugin implement class */, Pair<TISJsonSchema, Descriptor>>
+                descSchemaRegister = Maps.newHashMap();
 
         private final BiConsumer<TISJsonSchema.Builder, Descriptor> afterPropertiesAdded;
+        /**
+         * Boolean true:跳过AddedProperty后续处理
+         */
+        private final BiFunction<AttrVal, TISJsonSchema.AddedProperty, Boolean> addedPropertyProc;
 
         public AISchemaDescriptorsMeta(boolean rootDesc,
-                                       BiConsumer<TISJsonSchema.Builder, Descriptor> afterPropertiesAdded) {
+                                       BiConsumer<TISJsonSchema.Builder, Descriptor> afterPropertiesAdded
+                , BiFunction<AttrVal, TISJsonSchema.AddedProperty, Boolean> addedPropertyProc
+        ) {
             super(rootDesc);
             this.afterPropertiesAdded = Objects.requireNonNull(afterPropertiesAdded, "afterPropertiesAdded can not be"
                     + " null");
+            this.addedPropertyProc = Objects.requireNonNull(addedPropertyProc, "addedPropertyProc can not be null");
         }
 
         @Override
@@ -157,14 +172,14 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
                     .setConst(descriptor.getId());
 
 
-            if (descriptor instanceof MultiStepsSupportHostDescriptor) {
-                final MultiStepsSupportHostDescriptor<?> hostDesc = (MultiStepsSupportHostDescriptor<?>) descriptor;
+            if (descriptor instanceof MultiStepsSupportHostDescriptor<?> hostDesc) {
+                // final MultiStepsSupportHostDescriptor<?> hostDesc = (MultiStepsSupportHostDescriptor<?>) descriptor;
                 schemaBuilder.addObjectProperty(PLUGIN_EXTENSION_VALS, (valsBuilder) -> {
                     buildMultiStepsItemsProperty(valsBuilder, hostDesc);
                 });
             } else {
                 schemaBuilder.addObjectProperty(PLUGIN_EXTENSION_VALS, (inner) -> {
-                    addProps2Builder(descriptor, descJson, inner);
+                    addProps2Builder(descriptor, descJson, inner, (attr, addedProp) -> false);
                 });
             }
 
@@ -181,47 +196,140 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
          */
         private static void buildMultiStepsItemsProperty(TISJsonSchema.Builder valsBuilder,
                                                          MultiStepsSupportHostDescriptor<?> hostDesc) {
-            List<TISJsonSchema> stepSchemas = new ArrayList<>();
-            for (OneStepOfMultiSteps.BasicDesc stepDesc : hostDesc.getStepDescriptionList()) {
-                DescriptorsJSONForAIPrompt<?> inner //
-                        = new DescriptorsJSONForAIPrompt<>(Collections.singletonList(stepDesc), false);
-                AISchemaDescriptorsMeta innerMeta //
-                        = (AISchemaDescriptorsMeta) inner.getDescriptorsJSON();
-                for (Pair<TISJsonSchema, Descriptor> stepEntry : innerMeta.descSchemaRegister.values()) {
-                    stepSchemas.add(stepEntry.getKey());
+            // List<MultiSteps4OneStepCfg> stepCfgs = Lists.newArrayList();
+
+
+            List<List<ITISJsonSchema>> stepCfgs = hostDesc.generateMultiStepsSchemaForAIPrompt();
+
+            if (stepCfgs.size() == 1) {
+                // TISJsonSchema oneOfWrapper = buildOneOfArrayItemsSchema(stepCfgs.get(0));
+                valsBuilder.addObjectProperty(MultiStepsSupportHost.KEY_MULTI_STEPS_SAVED_ITEMS, (inner) -> {
+                    for (List<ITISJsonSchema> steps : stepCfgs) {
+                        for (int i = 0; i < steps.size(); i++) {
+                            inner.addObjectProperty(OneStepOfMultiSteps.stepsArray[i].name(), steps.get(i));
+                        }
+                        break;
+                    }
+                });
+            } else if (stepCfgs.size() > 1) {
+                /**
+                 * <ul>
+                 * <li>第一步选择lingker（RelationshipTypeSetter）relationshipType类型（int）会决定</li>
+                 * <li>第二步 选择不同步的 插件执行</li>
+                 * </ul>
+                 */
+                List<ITISJsonSchema> oneOfSchemaList = Lists.newArrayList();
+                for (List<ITISJsonSchema> steps : stepCfgs) {
+                    TISJsonSchema.Builder builder =
+                            TISJsonSchema.Builder.create(MultiStepsSupportHost.KEY_MULTI_STEPS_SAVED_ITEMS,
+                                    Optional.empty());
+                    for (int i = 0; i < steps.size(); i++) {
+                        builder.addObjectProperty(OneStepOfMultiSteps.stepsArray[i].name(), steps.get(i));
+                    }
+                    oneOfSchemaList.add(builder.build());
                 }
+                valsBuilder.addOneOfProperty(oneOfSchemaList);
+            } else {
+                throw new IllegalStateException("stepCfgs size is illegal:0");
             }
 
-            TISJsonSchema oneOfWrapper = buildOneOfArrayItemsSchema(stepSchemas);
-            valsBuilder.addProperty(MultiStepsSupportHost.KEY_MULTI_STEPS_SAVED_ITEMS,
-                            TISJsonSchema.FieldType.Array,
-                            "多步骤插件的各步骤实例（按步骤顺序排列）。每个元素的 impl 字段必须是对应步骤插件的全限定类名",
-                            true)
-                    .setItems(oneOfWrapper);
+
+            // valsBuilder.addOneOfProperty();
         }
+
+        //        private static class MultiSteps4OneStepCfg {
+        //            private final OneStepOfMultiSteps.BasicDesc stepDesc;
+        //            private final String polymorphismPropertyField;
+        //            private final boolean containPolymorphismProperty;
+        //
+        //            private final List<ITISJsonSchema> _generatePluginSchema;
+        //
+        //            public MultiSteps4OneStepCfg(OneStepOfMultiSteps.BasicDesc stepDesc) {
+        //                this.stepDesc = stepDesc;
+        //                if (stepDesc.polymorphismPropertyName().isPresent()) {
+        //                    containPolymorphismProperty = true;
+        //                    polymorphismPropertyField = stepDesc.polymorphismPropertyName().get();
+        //                } else {
+        //                    containPolymorphismProperty = false;
+        //                    polymorphismPropertyField = null;
+        //                }
+        //                this._generatePluginSchema = this.generatePluginSchema();
+        //            }
+        //
+        //            public List<ITISJsonSchema> getPluginSchema() {
+        //                return this._generatePluginSchema;
+        //            }
+        //
+        //            private List<ITISJsonSchema> generatePluginSchema() {
+        //                final List<ITISJsonSchema> schemas = Lists.newArrayList();
+        //                if (!containPolymorphismProperty) {
+        //                    DescriptorsJSONForAIPrompt<?> inner //
+        //                            = new DescriptorsJSONForAIPrompt<>(Collections.singletonList(stepDesc), false);
+        //                    DescriptorsMeta innerMeta = inner.getDescriptorsJSON();
+        //                    schemas.add(innerMeta.getFirstPluginJsonSchema());
+        //                } else {
+        //                    PropertyType pp =
+        //                            (PropertyType) Objects.requireNonNull(stepDesc.getPropertyType
+        //                            (polymorphismPropertyField)
+        //                                    , "polymorphismPropertyField:" + polymorphismPropertyField + " relevant "
+        //                                            + "propertyType can not be null");
+        //
+        //                    List<Option> opts = pp.getEnumPropOptions();
+        //                    if (CollectionUtils.isEmpty(opts)) {
+        //                        throw new IllegalStateException("field:" + polymorphismPropertyField + " relevant
+        //                        opts can "
+        //                                + "not be empty");
+        //                    }
+        //                    for (Option opt : opts) {
+        //                        DescriptorsJSONForAIPrompt<?> inner //
+        //                                = new DescriptorsJSONForAIPrompt<>(Collections.singletonList(stepDesc), false,
+        //                                (builder, descriptor) -> {
+        //                                },
+        //                                (attr, addedProp) -> {
+        //
+        //                                    if (StringUtils.equals(attr.getFieldKey(), polymorphismPropertyField)) {
+        //                                        addedProp.setConst(opt.getValue());
+        //                                        // skip
+        //                                        return true;
+        //                                    }
+        //
+        //                                    return false;
+        //                                });
+        //                        DescriptorsMeta innerMeta = inner.getDescriptorsJSON();
+        //                        schemas.add(innerMeta.getFirstPluginJsonSchema());
+        //                    }
+        //                }
+        //                return schemas;
+        //            }
+        //
+        //
+        //        }
 
         /**
          * 把 N 个 step schema 折成一个 <code>{oneOf:[...]}</code> 形式的 {@link TISJsonSchema}，
          * 喂给 {@link TISJsonSchema.AddedProperty#setItems(TISJsonSchema)}。
          */
-        private static TISJsonSchema buildOneOfArrayItemsSchema(List<TISJsonSchema> stepSchemas) {
-            JSONObject root = new JSONObject();
-            JSONObject schema = new JSONObject();
-            JSONArray oneOf = new JSONArray();
-            for (TISJsonSchema s : stepSchemas) {
-                oneOf.add(s.schema());
-            }
-            schema.put(TISJsonSchema.SCHEMA_ONE_OF, oneOf);
-            root.put(TISJsonSchema.SCHEMA_NAME, "stepItem");
-            return TISJsonSchema.create(root, schema, Collections.emptyList());
-        }
+        //        private static TISJsonSchema buildOneOfArrayItemsSchema(List<ITISJsonSchema> stepSchemas) {
+        //            JSONObject root = new JSONObject();
+        //            JSONObject schema = new JSONObject();
+        //            JSONArray oneOf = new JSONArray();
+        //            for (ITISJsonSchema s : stepSchemas) {
+        //                oneOf.add(s.schema());
+        //            }
+        //            schema.put(TISJsonSchema.SCHEMA_ONE_OF, oneOf);
+        //            root.put(TISJsonSchema.SCHEMA_NAME, "stepItem");
+        //            return TISJsonSchema.create(root, schema, Collections.emptyList());
+        //        }
 
         /**
          * @param descJson
          * @param inner
          * @see #createFormPropertyTypes  param is return from descJson
          */
-        public static void addProps2Builder(Descriptor descriptor, JSONObject descJson, TISJsonSchema.Builder inner) {
+        public static void addProps2Builder(Descriptor descriptor
+                , JSONObject descJson, TISJsonSchema.Builder inner
+                , BiFunction<AttrVal, TISJsonSchema.AddedProperty, Boolean> skipAddedPropertyProc
+        ) {
             final JSONArray attrs = Objects.requireNonNull(descJson.getJSONArray(KEY_SCHEMA_FIELDS_ATTRS),
                     KEY_SCHEMA_FIELDS_ATTRS + " relevant attrs can not be null");
 
@@ -234,26 +342,16 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
                 if (pt.isDescribable()) {
                     inner.addOneOfProperty(attrVal, pt.getApplicableDescriptors(), true);
                 } else {
-                    FormFieldType fieldType = pt.formField.type();
+                    //  FormFieldType fieldType = pt.formField.type();
                     Validator[] validators = pt.formField.validate();
-                    // attrVal.propertyType.extraProp.getHelpContent()
-                    //  JsonSchema.AddedProperty addedProperty = //
-
-
-                    //  inner.addObjectProperty(attrVal.fieldKey, (i) -> {
-
-                    TISJsonSchema.FieldType schemaFieldType =
-                            (pt.fieldClazz == boolean.class || pt.fieldClazz == Boolean.class) ?
-                                    TISJsonSchema.FieldType.Boolean : fieldType.schemaFieldType;
+                    TISJsonSchema.FieldType schemaFieldType = pt.schemaFieldType();
 
                     StringBuilder helpContent = new StringBuilder();
                     if (pt.extraProp != null) {
                         String placeholder =
                                 Objects.requireNonNull(pt.extraProp,
                                         "extraProp can not be null,pt:" + pt.propertyName()).getPlaceholder();
-                        //                         helpContent
-                        //                                new StringBuilder(StringUtils.trimToEmpty(pt.extraProp
-                        //                                .getHelpContent()));
+
                         if (StringUtils.isNotEmpty(pt.extraProp.getHelpContent())) {
                             helpContent.append(pt.extraProp.getHelpContent());
                         }
@@ -291,7 +389,9 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
                                 if (installedPluginDescriptor == null) {
                                     helpContent.append(" TIS中还没有安装此插件，须先安装，")
                                             .append(KEY_DISPLAY_NAME).append("=").append(candidate.getDisplayName())
-                                            .append(",").append(KEY_EXTEND_POINT).append("=").append(candidate.getHetero().getExtensionPoint().getName()).append(",请调用mcp tool:").append(MCP_TOOL_INSTALL_PLUGIN);
+                                            .append(",").append(KEY_EXTEND_POINT).append("=")
+                                            .append(candidate.getHetero().getExtensionPoint().getName()).append(","
+                                                    + "请调用mcp tool:").append(MCP_TOOL_INSTALL_PLUGIN);
                                 } else {
                                     helpContent.append(",").append(PLUGIN_EXTENSION_IMPL).append("=").append(installedPluginDescriptor.clazz.getName());
                                 }
@@ -301,17 +401,40 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
 
 
                     TISJsonSchema.AddedProperty addedProperty =  //
-                            inner.addProperty(attrVal.fieldKey, schemaFieldType, helpContent.toString(),
-                                    pt.isInputRequired());
+                            inner.addProperty(attrVal.fieldKey, schemaFieldType
+                                    , helpContent.toString(), pt.isInputRequired());
+
+                    if (skipAddedPropertyProc.apply(attrVal, addedProperty)) {
+                        return;
+                    }
 
                     if (dft != null) {
                         addedProperty.setDefault(dft);
-
                     }
+
+
                     List<Option> enumPropOptions = attrVal.propertyType.getEnumPropOptions(false);
                     if (CollectionUtils.isNotEmpty(enumPropOptions)) {
-                        addedProperty.setValEnums(enumPropOptions.stream().map(Option::getValue).toArray(Object[]::new));
+                        AtomicBoolean allValEqualLabel = new AtomicBoolean(true);
+                        addedProperty.setValEnums(enumPropOptions.stream().map((opt) -> {
+                            if (!StringUtils.equals(opt.getName(), String.valueOf(opt.getValue()))) {
+                                allValEqualLabel.set(false);
+                            }
+                            return opt.getValue();
+                        }).toArray(Object[]::new));
+
+                        if (!allValEqualLabel.get()) {
+                            int[] index = new int[1];
+                            addedProperty.addDescription("枚举说明：" + enumPropOptions.stream().map((opt) -> {
+                                return (++index[0]) + ".\"" + opt.getValue() + "\": " + opt.getName() + ((opt.comment() != null) ?
+                                        "," + opt.comment().getContent() : StringUtils.EMPTY) //
+                                        + (StringUtils.isNotEmpty(opt.description()) ? "," + opt.description() :
+                                        StringUtils.EMPTY);
+                            }).collect(Collectors.joining(",")));
+                        }
                     }
+
+
                     allValidator:
                     for (Validator validator : validators) {
                         for (ValidateRule rule : validator.rules) {
@@ -334,17 +457,21 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
         this.descFieldsRegister.put(descriptor.getClass(), pluginImpl);
         this.afterPropertiesAdded = ((builder, descriptor1) -> {
         });
+        this.addedPropertyProc = (attrVal, addedProp) -> false;
     }
 
     public DescriptorsJSONForAIPrompt(Collection<Descriptor<T>> collection, boolean rootDesc) {
         this(collection, rootDesc, (builder, descriptor) -> {
-        });
+        }, (attrVal, addedProp) -> false);
     }
 
     public DescriptorsJSONForAIPrompt(Collection<Descriptor<T>> collection, boolean rootDesc,
-                                      BiConsumer<TISJsonSchema.Builder, Descriptor> afterPropertiesAdded) {
+                                      BiConsumer<TISJsonSchema.Builder, Descriptor> afterPropertiesAdded
+            , BiFunction<AttrVal, TISJsonSchema.AddedProperty, Boolean> addedPropertyProc
+    ) {
         super(collection, rootDesc);
         this.afterPropertiesAdded = afterPropertiesAdded;
+        this.addedPropertyProc = addedPropertyProc;
     }
 
     public Map<Class<? extends Descriptor>, DescribableImpl> getFieldDescRegister() {
@@ -353,15 +480,6 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
 
     @Override
     protected JSONObject processExtraProps(PropertyType propertyType, JSONObject extraProps) {
-        //        JSONObject extra = new JSONObject(extraProps);
-        //        // 噪音，没有用
-        //        extra.remove(KEY_ENUM_FILTER);
-        //        if (propertyType.isDescribable()) {
-        //            extra.remove(KEY_ENUM_PROP);
-        //        }
-        //        extra.remove(KEY_ENUM_FILTER);
-        //        extra.remove(KEY_ASYNC_HELP);
-
         return extraProps;
     }
 
@@ -375,8 +493,7 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
 
     @Override
     protected DescriptorsMeta createDescriptorsMeta() {
-        AISchemaDescriptorsMeta descriptorsMeta = new AISchemaDescriptorsMeta(this.rootDesc, this.afterPropertiesAdded);
-        return descriptorsMeta;
+        return new AISchemaDescriptorsMeta(this.rootDesc, this.afterPropertiesAdded, this.addedPropertyProc);
     }
 
     @Override
@@ -388,25 +505,6 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
     @Override
     protected boolean propertyAccept(PropertyType val) {
         return true;
-        //        if (val.formField.prompt4llm()) {
-        //            return true;
-        //        }
-        //
-        //        if (val.isIdentity()) {
-        //            return true;
-        //        }
-        //
-        //        if (val.extraProp.getDftVal() != null) {
-        //            return false;
-        //        }
-        //
-        //        for (Validator validator : val.getValidator()) {
-        //            // 为了避免提交给大模型的prompt文案太多，这里只需要大模型解析 requeird 为true，且dftVal为空的
-        //            if (validator == Validator.require) {
-        //                return true;
-        //            }
-        //        }
-        //        return false;
     }
 
     @Override

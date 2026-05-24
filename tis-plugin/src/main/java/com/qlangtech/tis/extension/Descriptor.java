@@ -117,6 +117,7 @@ import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
  * @see DescriptorUseableShortComment
  * @see IEndTypeGetter
  */
+@SuppressWarnings("all")
 public abstract class Descriptor<T extends Describable> implements Saveable, ISelectOptionsGetter {
 
     public static final String SWITCH_OFF = "off";

@@ -29,6 +29,7 @@ import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.extension.util.impl.DefaultGroovyShellFactory;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -235,21 +236,21 @@ public class InferOntologyFromLLM extends OntologyDomainManipulate {
     private TISJsonSchema buildOutputJsonSchema() {
         TISJsonSchema.Builder builder = TISJsonSchema.Builder.create("ontology_inference_result", Optional.empty());
 
-        //        // linkTypes array
-        //        builder.addProperty("linkTypes", TISJsonSchema.FieldType.Array, "推断出的关联关系列表")
-        //                .setItems(buildLinkTypeItemSchema());
+        // linkTypes array
+        builder.addProperty("linkTypes", TISJsonSchema.FieldType.Array, "推断出的关联关系列表")
+                .setItems(buildLinkTypeItemSchema());
         //
         //        // sharedProperties array
         //        builder.addProperty("sharedProperties", TISJsonSchema.FieldType.Array, "推断出的共享属性列表")
         //                .setItems(buildSharedPropertyItemSchema());
         //
-        //        // valueTypes array
-        //        builder.addProperty("valueTypes", TISJsonSchema.FieldType.Array, "推断出的值类型列表")
-        //                .setItems(buildValueTypeItemSchema());
+        // valueTypes array
+        builder.addProperty("valueTypes", TISJsonSchema.FieldType.Array, "推断出的值类型列表")
+                .setItems(buildValueTypeItemSchema());
 
         // glossaries array
-        builder.addProperty("glossaries", TISJsonSchema.FieldType.Array, "推断出的业务术语列表")
-                .setItems(buildGlossaryItemSchema());
+        //        builder.addProperty("glossaries", TISJsonSchema.FieldType.Array, "推断出的业务术语列表")
+        //                .setItems(buildGlossaryItemSchema());
 
         return builder.build();
         //        TISJsonSchema schema = ;
@@ -261,7 +262,7 @@ public class InferOntologyFromLLM extends OntologyDomainManipulate {
 
 
     public static void main(String[] args) {
-
+        DefaultGroovyShellFactory.setInConsoleModule();
         InferOntologyFromLLM infer = new InferOntologyFromLLM();
         infer.llm = "qwen1";
         String ontologyName = "falcon_14";
@@ -269,6 +270,7 @@ public class InferOntologyFromLLM extends OntologyDomainManipulate {
         // pluginContext.setLoginUser()
         pluginContext.setLoginUser(() -> "admin");
         DefaultContext context = new DefaultContext();
+        pluginContext.setContext(context);
 
 
         UploadPluginMeta pluginMeta = OntologyPluginMeta.createPluginMeta(UploadPluginMeta.create(Ontology.ONTOLOGY))
@@ -277,24 +279,24 @@ public class InferOntologyFromLLM extends OntologyDomainManipulate {
         //  context.put(UploadPluginMeta.KEY_PLUGIN_META, pluginMeta);
         UploadPluginMeta.putPluginMeta(context, pluginMeta);
 
-        infer.manipuldateProcess(pluginContext, pluginMeta, Optional.of(context));
+        // infer.manipuldateProcess(pluginContext, pluginMeta, Optional.of(context));
 
-        TISJsonSchema schema = infer.buildOutputJsonSchema();
+        //  TISJsonSchema schema = infer.buildOutputJsonSchema();
 
-        System.out.println(JsonUtil.toString(schema.root()));
+        // System.out.println(JsonUtil.toString(schema.root()));
 
-        //        DescriptorsJSONForAIPrompt descriptorsJSON =
-        //                new DescriptorsJSONForAIPrompt<>(Collections.singletonList(new OntologyGlossary.DefaultDesc
-        //                ()), true);
-        //
-        //        DescriptorsMeta descMeta
-        //                = descriptorsJSON.getDescriptorsJSON();
-        //
-        //        for (Map.Entry<String /* concrete plugin implement class */, ITISJsonSchema> entry :
-        //                descMeta.getPluginJsonSchema().entrySet()) {
-        //
-        //            System.out.println(JsonUtil.toString(entry.getValue().root()));
-        //        }
+        DescriptorsJSONForAIPrompt descriptorsJSON =
+                new DescriptorsJSONForAIPrompt<>(Collections.singletonList(new OntologyLinker.DefaultDesc
+                        ()), true);
+
+        DescriptorsMeta descMeta
+                = descriptorsJSON.getDescriptorsJSON();
+
+        for (Map.Entry<String /* concrete plugin implement class */, ITISJsonSchema> entry :
+                descMeta.getPluginJsonSchema().entrySet()) {
+
+            System.out.println(JsonUtil.toString(entry.getValue().root()));
+        }
     }
 
     /**
@@ -308,9 +310,9 @@ public class InferOntologyFromLLM extends OntologyDomainManipulate {
                 new DescriptorsJSONForAIPrompt<>(Collections.singletonList(new OntologyLinker.DefaultDesc()),
                         true);
         DescriptorsMeta meta = descriptorsJSON.getDescriptorsJSON();
-        return meta.getPluginJsonSchema().values().iterator().next();
-
-
+        ITISJsonSchema schema = meta.getFirstPluginJsonSchema();//.getPluginJsonSchema().values().iterator().next();
+        System.out.println(JsonUtil.toString(schema.root()));
+        return schema;
         //        TISJsonSchema.Builder b = TISJsonSchema.Builder.create("linkTypeItem", Optional.of("linkTypes"));
         //        b.addProperty("sourceObjectType", TISJsonSchema.FieldType.String, "源对象类型（表名）");
         //        b.addProperty("sourceField", TISJsonSchema.FieldType.String, "源表关联字段");
@@ -370,7 +372,7 @@ public class InferOntologyFromLLM extends OntologyDomainManipulate {
                     b.addProperty("confidence", TISJsonSchema.FieldType.String, "置信度")
                             .setValEnums("high", "medium", "low");
                     b.addProperty("reason", TISJsonSchema.FieldType.String, "推断理由");
-                });
+                }, (attr, addedProp) -> false);
 
         DescriptorsMeta meta
                 = descriptorsJSON.getDescriptorsJSON();
@@ -419,7 +421,7 @@ public class InferOntologyFromLLM extends OntologyDomainManipulate {
                         (builder, desc) -> {
                             builder.addProperty("confidence", TISJsonSchema.FieldType.String, "置信度")
                                     .setValEnums("high", "medium", "low");
-                        });
+                        }, (attr, addedProp) -> false);
 
         DescriptorsMeta meta = descriptorsJSON.getDescriptorsJSON();
 

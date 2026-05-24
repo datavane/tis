@@ -21,6 +21,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.plugin.IdentityName;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +39,8 @@ public class Option implements IdentityName {
     public static final String keyChecked = "checked";
     public static final String KEY_HELP = "help";
     public static final String KEY_COMMENT = "comment";
+    public static final String KEY_COMMENT_COLOR = "color";
+    public static final String KEY_CONTENT = "content";
     public static String KEY_END_TYPE = "endType";
     // public static String KEY_HELP = "help";
 
@@ -55,6 +58,7 @@ public class Option implements IdentityName {
     /**
      * @param name  label
      * @param value
+     * @see
      */
     public Option(String name, Object value) {
         super();
@@ -96,8 +100,8 @@ public class Option implements IdentityName {
                 OptionComment comment = null;
                 if ((comment = opt.comment()) != null) {
                     JSONObject commentObj = new JSONObject();
-                    commentObj.put("color", comment.color);
-                    commentObj.put("content", comment.content);
+                    commentObj.put(KEY_COMMENT_COLOR, comment.color);
+                    commentObj.put(KEY_CONTENT, comment.content);
                     o.put(KEY_COMMENT, commentObj);
                 }
                 if (opt.isChecked() != null) {
@@ -181,6 +185,18 @@ public class Option implements IdentityName {
     public enum OptionCommentColor {
         Geekblue("geekblue"), Blue("blue"), Green("green"), Purple("purple"), Pink("pink");
         private final String color;
+
+        public static OptionCommentColor parse(String color) {
+            if (StringUtils.isEmpty(color)) {
+                throw new IllegalArgumentException("param color can not be empty");
+            }
+            for (OptionCommentColor c : OptionCommentColor.values()) {
+                if (c.color.equalsIgnoreCase(color)) {
+                    return c;
+                }
+            }
+            throw new IllegalStateException("illegal color param:" + color);
+        }
 
         public String getColor() {
             return color;

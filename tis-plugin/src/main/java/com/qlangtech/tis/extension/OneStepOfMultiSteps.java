@@ -22,8 +22,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.annotation.JSONType;
+import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.ontology.OntologyProperty;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DefaultDescriptorsJSON;
@@ -33,6 +33,7 @@ import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -59,6 +60,8 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
             return stepIndex;
         }
     }
+
+    public static final Step[] stepsArray = Step.values();
 
     public static <T extends OneStepOfMultiSteps> T getPreviousStepInstance(
             Class<T> pluginClass) {
@@ -298,6 +301,12 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
          * @return 步骤枚举值
          */
         public abstract Step getStep();
+
+
+        //        public Optional<String> polymorphismPropertyName() {
+        //            return Optional.empty();
+        //        }
+
 
         /**
          * 获取下一步骤插件的descriptor

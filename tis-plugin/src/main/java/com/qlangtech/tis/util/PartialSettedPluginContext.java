@@ -19,6 +19,7 @@
 package com.qlangtech.tis.util;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.datax.DataXName;
@@ -49,6 +50,7 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
     private DataXName collectionName;
     private IFieldErrorHandler fieldErrorHandler;
     private IMessageHandler messageHandler;
+    private Context context;
 
     private IPluginContext targetRuntimeContext;
 
@@ -60,14 +62,16 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
     //     * @return
     //     * @see // DefaultMessageHandler
     //     */
-    //    public PartialSettedPluginContext setMessageAndFieldErrorHandler(IFieldErrorHandler fieldErrorHandler, IMessageHandler messageHandler) {
+    //    public PartialSettedPluginContext setMessageAndFieldErrorHandler(IFieldErrorHandler fieldErrorHandler,
+    //    IMessageHandler messageHandler) {
     //        this.fieldErrorHandler = fieldErrorHandler;
     //        this.messageHandler = messageHandler;
     //        return this;
     //    }
 
     public PartialSettedPluginContext setTargetRuntimeContext(IPluginContext targetRuntimeContext) {
-        this.targetRuntimeContext = Objects.requireNonNull(targetRuntimeContext, "param targetRuntimeContext can not be null");
+        this.targetRuntimeContext = Objects.requireNonNull(targetRuntimeContext, "param targetRuntimeContext can not "
+                + "be null");
         this.fieldErrorHandler = (IFieldErrorHandler) targetRuntimeContext;
         this.messageHandler = targetRuntimeContext;
         return this;
@@ -129,7 +133,9 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
     }
 
     @Override
-    public Pair<Boolean, IPluginItemsProcessor> getPluginItems(IUploadPluginMeta pluginMeta, Context context, int pluginIndex, JSONArray itemsArray, FormVaildateType verify, PropValRewrite propValRewrite) {
+    public Pair<Boolean, IPluginItemsProcessor> getPluginItems(IUploadPluginMeta pluginMeta, Context context,
+                                                               int pluginIndex, JSONArray itemsArray,
+                                                               FormVaildateType verify, PropValRewrite propValRewrite) {
         throw new UnsupportedOperationException();
     }
 
@@ -149,8 +155,10 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
     }
 
     @Override
-    public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context, boolean shallUpdateDB) {
-        Objects.requireNonNull(this.targetRuntimeContext, "targetRuntimeContext can not be null").addDb(dbDesc, dbName, context, shallUpdateDB);
+    public void addDb(Descriptor.ParseDescribable<DataSourceFactory> dbDesc, String dbName, Context context,
+                      boolean shallUpdateDB) {
+        Objects.requireNonNull(this.targetRuntimeContext, "targetRuntimeContext can not be null").addDb(dbDesc,
+                dbName, context, shallUpdateDB);
     }
 
     @Override
@@ -205,8 +213,15 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
 
     @Override
     public boolean validateBizLogic(BizLogic logicType, Context context, String fieldName, String value) {
-
         return fieldErrorHandler.validateBizLogic(logicType, context, fieldName, value);
     }
 
+    @Override
+    public Context getContext() {
+        return this.context;
+    }
+
+    public void setContext(Context context) {
+        this.context = Objects.requireNonNull(context, "context can not be null");
+    }
 }

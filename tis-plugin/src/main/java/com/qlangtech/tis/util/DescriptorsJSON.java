@@ -266,8 +266,8 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
                     if (extraProps != null && extraProps.getBooleanValue(PluginExtraProps.KEY_DISABLE)) {
                         continue;
                     }
-                    if(!propertyAccept(val)){
-                       continue;
+                    if (!propertyAccept(val)) {
+                        continue;
                     }
                     if (val.advance()) {
                         containAdvanceField = true;
@@ -402,6 +402,8 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
     }
 
     public static abstract class AttrVal {
+
+        public abstract String getFieldKey();
 
         public abstract void put(String key, Object val);
 

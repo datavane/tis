@@ -23,6 +23,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.ElementPluginDesc;
@@ -33,6 +34,7 @@ import com.qlangtech.tis.extension.util.MultiItemsViewType;
 import com.qlangtech.tis.extension.util.OverwriteProps;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
@@ -126,6 +128,23 @@ public class PropertyType implements IPropertyType {
         return this.f.getName();
     }
 
+    public TISJsonSchema.FieldType schemaFieldType() {
+        FormFieldType fieldType = this.formField.type();
+        if ((this.fieldClazz == boolean.class || this.fieldClazz == Boolean.class)) {
+            return TISJsonSchema.FieldType.Boolean;
+        } else if (this.fieldClazz == int.class || this.fieldClazz == Integer.class) {
+            return TISJsonSchema.FieldType.Integer;
+        } else if (Collection.class.isAssignableFrom(this.fieldClazz)) {
+            EnumFieldMode enumFieldMode = null;
+            if ((enumFieldMode = this.getEnumFieldMode()) != null && enumFieldMode != EnumFieldMode.MULTIPLE) {
+                throw new IllegalStateException("property:" + this.propertyName() + ",plugin:" + this.ownerClazz.getName() //
+                        + ",EnumFieldMode:" + this.getEnumFieldMode() + " must be:" + EnumFieldMode.MULTIPLE);
+            }
+            return TISJsonSchema.FieldType.Array;
+        }
+        return fieldType.schemaFieldType;
+    }
+
     /**
      * 值最终要显示在前端页面上给用户查看
      *
@@ -171,7 +190,8 @@ public class PropertyType implements IPropertyType {
 
     public List<Option> getEnumPropOptions(boolean validateNull) {
         List<Option> opts = Lists.newArrayList();
-        if (this.getExtraProps() == null) {
+
+        if (FormFieldType.ENUM != this.formField.type() || this.getExtraProps() == null) {
             return opts;
         }
         Object enumPp = Objects.requireNonNull(this.getExtraProps(),
@@ -195,7 +215,11 @@ public class PropertyType implements IPropertyType {
         if (enums != null) {
             for (int i = 0; i < enums.size(); i++) {
                 JSONObject opt = enums.getJSONObject(i);
-                opts.add(new Option(opt.getString(KEY_LABEL), opt.get(Option.KEY_VALUE)));
+                Option o = OptionWithEndType.deserialize(opt);
+                if (o == null) {
+                    o = new Option(opt.getString(KEY_LABEL), opt.get(Option.KEY_VALUE));
+                }
+                opts.add(o);
             }
         }
 

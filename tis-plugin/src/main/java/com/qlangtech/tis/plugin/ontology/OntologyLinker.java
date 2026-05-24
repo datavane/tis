@@ -19,11 +19,15 @@ package com.qlangtech.tis.plugin.ontology;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
+import com.qlangtech.tis.aiagent.llm.ITISJsonSchema;
+import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.MultiStepsSupportHost;
 import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
 import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -31,8 +35,13 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.linker.LinkResources;
+import com.qlangtech.tis.plugin.ontology.impl.linker.RelationshipType;
+import com.qlangtech.tis.plugin.ontology.impl.linker.RelationshipTypeBackingObjectType;
+import com.qlangtech.tis.plugin.ontology.impl.linker.RelationshipTypeJoinTableDataset;
 import com.qlangtech.tis.plugin.ontology.impl.linker.RelationshipTypeObjectTypeForeignKeys;
 import com.qlangtech.tis.plugin.ontology.impl.linker.RelationshipTypeSetter;
+import com.qlangtech.tis.util.DescriptorsJSONForAIPrompt;
+import com.qlangtech.tis.util.DescriptorsMeta;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +61,9 @@ import static com.qlangtech.tis.plugin.ontology.OntologyValueType.KEY_START_PERS
  * @date 2026/4/14
  * @see RelationshipTypeSetter
  * @see com.qlangtech.tis.plugin.ontology.impl.linker.LinkResources
+ * @see RelationshipTypeObjectTypeForeignKeys
+ * @see RelationshipTypeJoinTableDataset
+ * @see RelationshipTypeBackingObjectType
  */
 public class OntologyLinker extends Ontology implements IdentityName, MultiStepsSupportHost,
         IPluginStore.ManipuldateProcessor, IPluginStore.BeforePluginSaved {
@@ -178,13 +190,53 @@ public class OntologyLinker extends Ontology implements IdentityName, MultiSteps
         }
 
         @Override
+        public List<List<ITISJsonSchema>> generateMultiStepsSchemaForAIPrompt() {
+
+            List<List<ITISJsonSchema>> result = Lists.newArrayList();
+            for (RelationshipType relationType : RelationshipType.values()) {
+
+                List<ITISJsonSchema> oneOfSteps = Lists.newArrayList();
+                DescriptorsJSONForAIPrompt<?> inner //
+                        =
+                        new DescriptorsJSONForAIPrompt<>(Collections.singletonList(new RelationshipTypeSetter.Desc())
+                                , false,
+                                (builder, descriptor) -> {
+                                },
+                                (attr, addedProp) -> {
+                                    if (StringUtils.equals(attr.getFieldKey(),
+                                            RelationshipTypeSetter.KEY_RELATIONSHIP_TYPE)) {
+                                        addedProp.setConst(relationType.getToken());
+                                        // skip
+                                        return true;
+                                    }
+                                    return false;
+                                });
+
+                DescriptorsMeta innerMeta = inner.getDescriptorsJSON();
+                oneOfSteps.add(innerMeta.getFirstPluginJsonSchema());
+
+
+                inner = new DescriptorsJSONForAIPrompt<>(Collections.singletonList(relationType.getLinkResourceDesc())
+                        , false);
+                innerMeta = inner.getDescriptorsJSON();
+                oneOfSteps.add(innerMeta.getFirstPluginJsonSchema());
+
+                result.add(oneOfSteps);
+            }
+
+            return result;
+        }
+
+        @Override
         protected OntologyEnum getOntologyType() {
             return OntologyEnum.Linker;
         }
+
         @Override
         public EndType getEndType() {
             return EndType.OntologyLink;
         }
+
         @Override
         public String getDisplayName() {
             return "Link Type";
@@ -204,6 +256,7 @@ public class OntologyLinker extends Ontology implements IdentityName, MultiSteps
         public void appendExternalProps(JSONObject multiStepsCfg) {
 
         }
+
 
         @Override
         public String shortComment() {
