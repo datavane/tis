@@ -31,10 +31,8 @@ import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.lang.ErrorValue;
 import com.qlangtech.tis.lang.TisException;
-import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.alert.AlertChannel;
 import com.qlangtech.tis.plugin.alert.AlertTemplate;
-import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -276,7 +274,7 @@ public class FlinkJobsMonitor implements InitializingBean {
    * 获取所有配置的报警渠道
    */
   private Pair<List<AlertChannel>, DefaultDataXProcessorManipulate.MonitorForEventsManager> getPipelineAlertChannels(String pipelineName) {
-    DefaultDataXProcessorManipulate.DataXProcessorTemplateManipulateStore manipulateStore =
+    DefaultDataXProcessorManipulate.AbstractTemplateManipulateStore manipulateStore =
       DefaultDataXProcessorManipulate.getManipulateStore(DataXName.createDataXPipeline(pipelineName), false);
     DefaultDataXProcessorManipulate.MonitorForEventsManager monitorManager = manipulateStore.getAlertManager();
     if (monitorManager == null) {

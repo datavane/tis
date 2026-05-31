@@ -125,6 +125,7 @@ import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@SuppressWarnings("all")
 @InterceptorRefs({@InterceptorRef("tisStack")})
 public class PluginAction extends BasicModule {
   private static final Logger logger = LoggerFactory.getLogger(PluginAction.class);
@@ -185,13 +186,19 @@ public class PluginAction extends BasicModule {
    * @throws Exception
    */
   public void doGetManipuldatePlugin(Context context) throws Exception {
-
+    List<UploadPluginMeta> pluginMetas = this.getPluginMeta(false);
+    for (UploadPluginMeta pluginMeta : pluginMetas) {
+      UploadPluginMeta.putPluginMeta(context, pluginMeta);
+      break;
+    }
     String id = this.getString(IdentityName.PLUGIN_IDENTITY_NAME);
     String pluginImpl = this.getString(DescriptorsJSON.KEY_IMPL);
     Descriptor targetPlugin = Objects.requireNonNull(TIS.get().getDescriptor(pluginImpl),
+
       "pluginImpl:" + pluginImpl + " relevant descriptor can not be null");
     if (!(targetPlugin instanceof IDescribableManipulate)) {
-      throw new IllegalStateException("targetPlugin:" + targetPlugin.getClass().getName() + " is not type of " + IDescribableManipulate.class.getSimpleName());
+      throw new IllegalStateException("targetPlugin:" + targetPlugin.getClass().getName()
+        + " is not type of " + IDescribableManipulate.class.getSimpleName());
     }
     IDescribableManipulate describableManipulate = ((IDescribableManipulate) targetPlugin);
     Optional<IPluginStore> manipulateStore = describableManipulate.getManipulateStore();
@@ -573,18 +580,18 @@ public class PluginAction extends BasicModule {
     this.addErrorMessage(context, "displayName:" + displayName + " relevant Descriptor can not be null");
   }
 
-//  /**
-//   * 通过Hetero标识获取descriptors列表
-//   *
-//   * @param context
-//   */
-//  @SuppressWarnings("all")
-//  public void doGetDescriptorsByHetero(Context context) {
-//    this.errorsPageShow(context);
-//    DescriptorsGetter result = getDescriptorsGetter(this);
-//    this.setBizResult(context
-//      , new DefaultDescriptorsJSON(result.descriptors).getDescriptorsJSON());
-//  }
+  //  /**
+  //   * 通过Hetero标识获取descriptors列表
+  //   *
+  //   * @param context
+  //   */
+  //  @SuppressWarnings("all")
+  //  public void doGetDescriptorsByHetero(Context context) {
+  //    this.errorsPageShow(context);
+  //    DescriptorsGetter result = getDescriptorsGetter(this);
+  //    this.setBizResult(context
+  //      , new DefaultDescriptorsJSON(result.descriptors).getDescriptorsJSON());
+  //  }
 
   /**
    *
@@ -674,12 +681,12 @@ public class PluginAction extends BasicModule {
       endType = EndType.parse(t);
     }
 
-//    List<UploadPluginMeta> pluginMetas = this.getPluginMeta();
-//    for (UploadPluginMeta pmeta : pluginMetas) {
-//     // context.put(UploadPluginMeta.KEY_PLUGIN_META, pmeta);
-//      UploadPluginMeta.putPluginMeta(context,pmeta);
-//      break;
-//    }
+    List<UploadPluginMeta> pluginMetas = this.getPluginMeta(false);
+    for (UploadPluginMeta pmeta : pluginMetas) {
+      // context.put(UploadPluginMeta.KEY_PLUGIN_META, pmeta);
+      UploadPluginMeta.putPluginMeta(context, pmeta);
+      break;
+    }
 
     for (String extend : extendpoints) {
       List<Descriptor> descriptorList =
@@ -828,8 +835,8 @@ public class PluginAction extends BasicModule {
       = targetDesc.getValueChangePipe(descriptorField.field);
 
     for (UploadPluginMeta meta : pluginsMeta) {
-      UploadPluginMeta.putPluginMeta(context,meta);
-   //   context.put(UploadPluginMeta.KEY_PLUGIN_META, meta);
+      UploadPluginMeta.putPluginMeta(context, meta);
+      //   context.put(UploadPluginMeta.KEY_PLUGIN_META, meta);
       Map<String, List<? extends Option>> cascadeFieldVals = valueChangePipe.render(meta, this);
       this.setBizResult(context, cascadeFieldVals.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
         (e) -> Option.toJson(e.getValue()))));
@@ -919,8 +926,8 @@ public class PluginAction extends BasicModule {
     JSONArray hlist = new JSONArray();
     pluginDetail.put("showExtensionPoint", TIS.get().loadGlobalComponent().isShowExtensionDetail());
     for (UploadPluginMeta pmeta : plugins) {
-    //  context.put(UploadPluginMeta.KEY_PLUGIN_META, pmeta);
-      UploadPluginMeta.putPluginMeta(context,pmeta);
+      //  context.put(UploadPluginMeta.KEY_PLUGIN_META, pmeta);
+      UploadPluginMeta.putPluginMeta(context, pmeta);
       hetero = this.createHeteroList(pmeta);
       if (!pmeta.isUseCache()) {
         hetero.getItems().forEach((p) -> {

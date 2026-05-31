@@ -29,6 +29,7 @@ public enum StoreResourceType {
 
     DataBase(StoreResourceTypeConstants.DB_GROUP_NAME, false, StringUtils.EMPTY) //
     , DataApp(StoreResourceTypeConstants.NAME_APP_DIR, false, StoreResourceTypeConstants.DEFAULT_DATAX_PROCESSOR_NAME) //
+    , Ontology("ontology-domain", false, "Ontology") //
     , DataFlow(StoreResourceTypeConstants.NAME_DATAFLOW_DIR, false, StoreResourceTypeConstants.DEFAULT_WORKFLOW_PROCESSOR_NAME);
 
     public static final String KEY_STORE_RESOURCE_TYPE = "storeResType";

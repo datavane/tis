@@ -18,18 +18,16 @@
 
 package com.qlangtech.tis.plugin.ontology.impl.linker;
 
+import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.OneStepOfMultiSteps;
-import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.ontology.Ontology;
 import com.qlangtech.tis.plugin.ontology.OntologyObjectType;
-import com.qlangtech.tis.plugin.ontology.OntologyProperty;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.BaseStream;
 import java.util.stream.Stream;
 
 /**
@@ -68,10 +66,10 @@ public abstract class LinkResources extends OneStepOfMultiSteps {
 
         public OntologyObjectType getOtherEnd(OntologyPluginMeta meta) {
             if (this.left.isSourceConnect(meta)) {
-                return OntologyObjectType.loadDetail(meta.getDomain(), this.right.target);
+                return Ontology.loadObjectTypeDetail(meta.getDomain(), this.right.target);
             }
             if (this.right.isTargetConnect(meta)) {
-                return OntologyObjectType.loadDetail(meta.getDomain(), this.left.source);
+                return Ontology.loadObjectTypeDetail(meta.getDomain(), this.left.source);
             }
 
             throw new IllegalStateException(this.toString() + " can not match objType:" + meta.getObjectType());
@@ -131,13 +129,15 @@ public abstract class LinkResources extends OneStepOfMultiSteps {
         }
     }
 
-    @TISExtension
-    public static class BasicLinkResourceDesc extends OneStepOfMultiSteps.BasicDesc {
+    // @TISExtension
+    public static abstract class BasicLinkResourceDesc extends OneStepOfMultiSteps.BasicDesc implements DescriptorUseableShortComment {
 
         @Override
         public final String getDisplayName() {
             return "第二步";
         }
+
+        protected abstract RelationshipType getRelationShipType();
 
         @Override
         public Step getStep() {
@@ -155,8 +155,13 @@ public abstract class LinkResources extends OneStepOfMultiSteps {
         }
 
         @Override
-        public String getStepDescription() {
-            return "Link resources";
+        public final String shortComment() {
+            return getStepDescription();
+        }
+
+        @Override
+        public final String getStepDescription() {
+            return getRelationShipType().getName();
         }
     }
 }

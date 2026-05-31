@@ -55,8 +55,8 @@ import java.util.Map;
 
 /**
  * DeepSeek大模型Provider实现
- * https://api-docs.deepseek.com/zh-cn/api/create-completion
- * https://api-docs.deepseek.com/zh-cn/api/create-chat-completion
+ * <a href="https://api-docs.deepseek.com/zh-cn/api/create-completion">...</a>
+ * <a href="https://api-docs.deepseek.com/zh-cn/api/create-chat-completion">...</a>
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/9/17

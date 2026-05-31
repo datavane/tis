@@ -18,7 +18,6 @@
 
 package com.qlangtech.tis.plugin.ontology;
 
-import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
@@ -26,7 +25,6 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -35,7 +33,7 @@ import java.util.Objects;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/4/15
  */
-public class OntologySharedProperty extends Ontology implements IdentityName {
+public abstract class OntologySharedProperty extends Ontology implements IdentityName {
 
     public static final String KEY_SHARED_PROPERTY = "ontology-shared-property";
 
@@ -57,76 +55,18 @@ public class OntologySharedProperty extends Ontology implements IdentityName {
     }
 
     public static OntologySharedProperty load(OntologyPluginMeta meta, String idVal) {
-
         meta.setPluginIdVal(idVal);
         IPluginStore<OntologySharedProperty> pluginStore =
-                OntologyEnum.SharedProperty.getPluginStore(meta).unsaveCast(); //.getPluginStore(null, meta.getDelegate());
-
+                OntologyEnum.SharedProperty.getPluginStore(meta).unsaveCast();
         return Objects.requireNonNull(pluginStore.getPlugin() //
                 , "idVal:" + idVal + " relevant shared prop can not be null");
-        // throw new NotImplementedException();
     }
 
-    /**
-     * 加载某一个本体域中的Object Type
-     *
-     * @param meta
-     * @return
-     */
-    public static List<OntologySharedProperty> loadAll(OntologyPluginMeta meta) {
-        return OntologyEnum.SharedProperty.loadAll(meta);
-
-        // throw new NotImplementedException();
-        // return Collections.emptyList();
-    }
-
-    //    @TISExtension
-    //    public static final HeteroEnum<OntologySharedProperty> ONTOLOGY_SHARED_PROPERTY = new HeteroEnum<>(//
-    //            OntologySharedProperty.class, //
-    //            KEY_SHARED_PROPERTY, //
-    //            "本体共享属性", Selectable.Multi, false) {
-    //        @SuppressWarnings("all")
-    //        @Override
-    //        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-    //            String ontology = pluginMeta.getExtraParam(OntologyDomain.NAME_ONTOLOGY_DOMAIN);
-    //            if (StringUtils.isEmpty(ontology)) {
-    //                throw new IllegalStateException("param ontology can not be empty");
-    //            }
-    //            KeyedPluginStore.Key key = new KeyedPluginStore.Key(this.getIdentity() + "/" + ontology,
-    //                    this.getIdentity(), this.extensionPoint);
-    //            return TIS.getPluginStore(key);
-    //        }
-    //    };
 
     @Override
     public String identityValue() {
         return this.name;
     }
 
-    @TISExtension
-    public static class DefaultDesc extends Ontology.BasicDesc {
-        public DefaultDesc() {
-            super();
-        }
 
-        @Override
-        public EndType getEndType() {
-            return EndType.Shared;
-        }
-
-        @Override
-        protected OntologyEnum getOntologyType() {
-            return OntologyEnum.SharedProperty;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "Shared Property";
-        }
-
-        @Override
-        public String shortComment() {
-            return "定义可跨对象类型复用的共享属性";
-        }
-    }
 }

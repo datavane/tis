@@ -18,19 +18,33 @@
 
 package com.qlangtech.tis.aiagent.llm;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.MultiStepsSupportHost;
+import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
+import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.impl.PropertyType;
+import com.qlangtech.tis.extension.util.MultiItemsViewType;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.ds.BasicMultiSelectSingleValElementCreatorFactory;
+import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
+import com.qlangtech.tis.plugin.ds.ViewContent;
 import com.qlangtech.tis.util.AttrValMap;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.Descriptor.KEY_DESC_VAL;
+import static com.qlangtech.tis.extension.Descriptor.KEY_ENUM_PROP;
 import static com.qlangtech.tis.extension.Descriptor.KEY_primaryVal;
+import static com.qlangtech.tis.plugin.ds.ElementCreatorFactory.PROPERTY_TUPLES_KEY;
 
 /**
  * 将 LLM 生成的扁平 JSON 还原为 TIS 后端 {@link AttrValMap#parseDescribableMap} 期望的深层格式。
@@ -48,6 +62,7 @@ import static com.qlangtech.tis.extension.Descriptor.KEY_primaryVal;
  * @date 2026/3/25
  * @see com.qlangtech.tis.util.AttrValMap#parseDescribableMap
  */
+@SuppressWarnings("all")
 public class FlatJsonToTisConverter {
 
     /**
@@ -64,11 +79,27 @@ public class FlatJsonToTisConverter {
 
         JSONObject result = new JSONObject();
         result.put(AttrValMap.PLUGIN_EXTENSION_IMPL, impl);
-
         JSONObject flatVals = flatJson.getJSONObject(AttrValMap.PLUGIN_EXTENSION_VALS);
-        if (flatVals != null) {
-            result.put(AttrValMap.PLUGIN_EXTENSION_VALS, convertVals(flatVals, descriptor));
+
+        if (descriptor instanceof MultiStepsSupportHostDescriptor) {
+            JSONObject stepVals = new JSONObject();
+            for (int i = 0; i < OneStepOfMultiSteps.stepsArray.length; i++) {
+                OneStepOfMultiSteps.Step step = OneStepOfMultiSteps.stepsArray[i];
+                JSONObject stepContent = flatVals.getJSONObject(step.name());
+                if (stepContent == null) {
+                    break;
+                }
+                stepVals.put(step.name(), convert(stepContent));
+            }
+            result.put(AttrValMap.PLUGIN_EXTENSION_VALS, stepVals);
+        } else {
+
+            if (flatVals != null) {
+                result.put(AttrValMap.PLUGIN_EXTENSION_VALS, convertVals(flatVals, descriptor));
+            }
         }
+
+
         return result;
     }
 
@@ -94,7 +125,41 @@ public class FlatJsonToTisConverter {
             } else {
                 // 普通字段：添加 _primaryVal 包装
                 JSONObject wrapped = new JSONObject();
-                wrapped.put(KEY_primaryVal, value);
+                if (pt.formField.type() == FormFieldType.MULTI_SELECTABLE) {
+                    MultiItemsViewType multiItemsViewType = pt.getMultiItemsViewType();
+                    if (multiItemsViewType.getViewContent() != ViewContent.MultiSelectSingleVal) {
+                        // 如果是非MultiSelectSingleVal 类型的话，AI 大模型端处理会非常难处理，所以，这里只处理MultiSelectSingleVal
+                        throw new IllegalStateException("property " + pt.propertyName() //
+                                + " viewType must be " + ViewContent.MultiSelectSingleVal + " but now is " + multiItemsViewType.getViewContent());
+                    }
+                    //
+                    JSONObject enumProp = new JSONObject();
+                    JSONObject mclosProp = new JSONObject();
+                    JSONArray mclos = new JSONArray();
+                    JSONObject elmt = null;
+                    if (value instanceof List multiSingleVals) {
+                        if (CollectionUtils.isEmpty(multiSingleVals)) {
+                            throw new IllegalStateException("fieldName:" + fieldName + " of " //
+                                    + pt.f.getDeclaringClass().getName() + " relevant multiSingleVals can not be "
+                                    + "empty");
+                        }
+                        for (Object val : multiSingleVals) {
+                            elmt = new JSONObject();
+                            elmt.put(BasicMultiSelectSingleValElementCreatorFactory.KEY_ENUM_VAL,
+                                    String.valueOf(Objects.requireNonNull(val)));
+                            mclos.add(elmt);
+                        }
+                    } else {
+                        throw new IllegalStateException("value type must be " + List.class.getSimpleName() + " but "
+                                + "now is " + value.getClass().getName());
+                    }
+                    mclosProp.put(PROPERTY_TUPLES_KEY, mclos);
+                    enumProp.put(KEY_ENUM_PROP, mclosProp);
+                    wrapped.put(ElementCreatorFactory.PROPERTY_EXTERNAL_PROPERTIES, enumProp);
+                } else {
+                    wrapped.put(KEY_primaryVal, value);
+
+                }
                 result.put(fieldName, wrapped);
             }
         }
@@ -113,15 +178,21 @@ public class FlatJsonToTisConverter {
                 "oneOf field must contain '" + TISJsonSchema.SCHEMA_PLUGIN_DESCRIPTOR_ID + "' field");
 
         // 通过 id（displayName）找到对应的 Descriptor
+        List<? extends Descriptor> applicableDescriptors = pt.applicableDescriptors(false);
         Descriptor matchedDesc = null;
-        for (Descriptor desc : pt.getApplicableDescriptors()) {
+        for (Descriptor desc :applicableDescriptors) {
             if (desc.clazz.getName().equals(impl) || impl.equals(desc.getDisplayName())) {
                 matchedDesc = desc;
                 break;
             }
         }
-        Objects.requireNonNull(matchedDesc,
-                "can not find Descriptor with displayName '" + impl + "' for oneOf field");
+
+        if (matchedDesc == null) {
+            throw new IllegalStateException("can not find Descriptor with displayName '" + impl + "' for oneOf field,"
+                    + "in:"
+                    + applicableDescriptors.stream() //
+                    .map((desc) -> desc.getDisplayName() + ":" + desc.clazz.getName()).collect(Collectors.joining(",")));
+        }
 
         JSONObject descVal = new JSONObject();
         descVal.put(AttrValMap.PLUGIN_EXTENSION_IMPL, matchedDesc.getId());

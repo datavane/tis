@@ -18,16 +18,13 @@
 package com.qlangtech.tis.plugin.ontology;
 
 import com.alibaba.citrus.turbine.Context;
-import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.glossary.GlossaryTarget;
 import com.qlangtech.tis.plugin.ontology.impl.synonyms.SynonymsElement;
-import com.qlangtech.tis.plugin.ontology.impl.synonyms.SynonymsElementCreatorFactory;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
@@ -43,7 +40,7 @@ import java.util.Optional;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/5/9
  */
-public class OntologyGlossary extends Ontology implements IdentityName,IPluginStore.ManipuldateProcessor {
+public abstract class OntologyGlossary extends Ontology implements IPluginStore.ManipuldateProcessor {
 
     public static final String KEY_GLOSSARY = "ontology-glossary";
 
@@ -54,7 +51,7 @@ public class OntologyGlossary extends Ontology implements IdentityName,IPluginSt
     /**
      * 同义词列表（持久化为 List&lt;String&gt;）。
      *
-     * @see SynonymsElementCreatorFactory
+     * // @see SynonymsElementCreatorFactory
      */
     @FormField(ordinal = 1, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
     public List<SynonymsElement> synonyms;
@@ -68,20 +65,19 @@ public class OntologyGlossary extends Ontology implements IdentityName,IPluginSt
     public List<SynonymsElement> getSynonyms() {
         return CollectionUtils.isEmpty(synonyms) ? new ArrayList<>() : synonyms;
     }
+
     @Override
-    public void manipuldateProcess(IPluginContext pluginContext, UploadPluginMeta pluginMeta, Optional<Context> context) {
+    public void manipuldateProcess(IPluginContext pluginContext, UploadPluginMeta pluginMeta,
+                                   Optional<Context> context) {
 
     }
+
     public static OntologyGlossary load(OntologyPluginMeta meta, String idVal) {
         meta.setPluginIdVal(idVal);
         IPluginStore<OntologyGlossary> pluginStore =
                 OntologyEnum.Glossary.getPluginStore(meta).unsaveCast();
         return Objects.requireNonNull(pluginStore.getPlugin(),
                 "idVal:" + idVal + " relevant glossary can not be null");
-    }
-
-    public static List<OntologyGlossary> loadAll(OntologyPluginMeta meta) {
-        return OntologyEnum.Glossary.loadAll(meta);
     }
 
     @Override
@@ -91,30 +87,4 @@ public class OntologyGlossary extends Ontology implements IdentityName,IPluginSt
 
 
 
-    @TISExtension
-    public static class DefaultDesc extends Ontology.BasicDesc {
-        public DefaultDesc() {
-            super();
-        }
-
-        @Override
-        public EndType getEndType() {
-            return EndType.OntologyGlossary;
-        }
-
-        @Override
-        protected OntologyEnum getOntologyType() {
-            return OntologyEnum.Glossary;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "Glossary";
-        }
-
-        @Override
-        public String shortComment() {
-            return "定义业务术语及同义词，将自然语言映射到本体元素";
-        }
-    }
 }

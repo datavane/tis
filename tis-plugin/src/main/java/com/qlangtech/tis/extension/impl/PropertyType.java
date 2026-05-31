@@ -440,8 +440,8 @@ public class PropertyType implements IPropertyType {
         return filterFieldProp(descriptor.getPropertyTypes(useCache));
     }
 
-
-    private MultiItemsViewType getMultiItemsViewType() {
+    @JSONField(serialize = false)
+    public MultiItemsViewType getMultiItemsViewType() {
         if (this.multiItemsViewType == null) {
 
             this.multiItemsViewType = MultiItemsViewType.createMultiItemsViewType(this);
@@ -722,14 +722,19 @@ public class PropertyType implements IPropertyType {
 
     private Function<List<? extends Descriptor>, List<? extends Descriptor>> subDescFilter;
 
+    @JSONField(serialize = false)
+    public List<? extends Descriptor> getApplicableDescriptors() {
+        return this.applicableDescriptors(true);
+    }
+
     /**
      * Returns all the descriptors that produce types assignable to the property type.
      */
-    @JSONField(serialize = false)
-    public List<? extends Descriptor> getApplicableDescriptors() {
+    //@JSONField(serialize = false)
+    public List<? extends Descriptor> applicableDescriptors(boolean filterByPropertyScript) {
 
         JSONObject eprops = null;
-        if (subDescFilter == null && (eprops = this.getExtraProps()) != null) {
+        if (filterByPropertyScript && subDescFilter == null && (eprops = this.getExtraProps()) != null) {
             String subDescEnumFilter = eprops.getString(PluginExtraProps.KEY_ENUM_FILTER);
             if (StringUtils.isNotEmpty(subDescEnumFilter)) {
                 final Class fieldClazz = this.ownerClazz;

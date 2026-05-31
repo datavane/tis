@@ -192,6 +192,7 @@ public interface IEndTypeGetter {
         , Ontology("ontology", EndTypeCategory.Icon, true) //
         , Keys("keys", EndTypeCategory.Icon, true)//
         , Table("table", EndTypeCategory.Icon, true)//
+        , ChatBI("chat-bi", EndTypeCategory.Icon, true)//
 
 
         /**

@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.plugin.ontology;
 
+import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorUseableShortComment;
@@ -38,9 +39,11 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * TIS 本体
@@ -48,12 +51,12 @@ import java.util.Objects;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/4/25
  */
-public abstract class Ontology implements Describable<Ontology> {
+public abstract class Ontology implements Describable<Ontology>, IdentityName, IPluginStore.BeforePluginSaved {
     public static final String KEY_ONTOLOGY = "ontology-type";
     /**
      * 创建或者修改时间
      */
-    private transient long create;
+    private long create;
     @TISExtension
     public static final HeteroEnum<Ontology> ONTOLOGY = new HeteroEnum<>(//
             Ontology.class, //
@@ -63,10 +66,8 @@ public abstract class Ontology implements Describable<Ontology> {
         @Override
         public IPluginStore<Ontology> getPluginStore(IPluginContext pluginContext,
                                                      UploadPluginMeta meta) {
-
-            OntologyEnum ontologyEnum = OntologyEnum.parse(meta);
-
             OntologyPluginMeta pluginMeta = OntologyPluginMeta.createPluginMeta(meta);
+            OntologyEnum ontologyEnum = pluginMeta.getOntologyType();
             return ontologyEnum.getPluginStore(pluginMeta);
         }
     };
@@ -88,6 +89,52 @@ public abstract class Ontology implements Describable<Ontology> {
         } catch (IOException e) {
             throw new RuntimeException("delete objectType file:" + storeFile.getAbsolutePath(), e);
         }
+    }
+
+    public static List<OntologyLinker> loadAllLinkers(String ontologyName) {
+        if (org.apache.commons.lang3.StringUtils.isEmpty(ontologyName)) {
+            throw new IllegalArgumentException("param ontologyName can not be null");
+        }
+        return OntologyEnum.Linker.loadAll(OntologyPluginMeta.create(OntologyEnum.Linker, ontologyName));
+    }
+
+    public static List<OntologyGlossary> loadAllGlossary(String ontologyName) {
+
+        return OntologyEnum.Glossary.loadAll(OntologyPluginMeta.create(Ontology.OntologyEnum.Glossary, ontologyName));
+    }
+
+    public static List<OntologySharedProperty> loadAllSharedProperties(String ontologyDomainName) {
+        return loadAllSharedProperties(OntologyPluginMeta.create(OntologyEnum.SharedProperty, ontologyDomainName));
+    }
+
+    /**
+     * 加载某一个本体域中的Object Type
+     *
+     * @param meta
+     * @return
+     */
+    public static List<OntologySharedProperty> loadAllSharedProperties(OntologyPluginMeta meta) {
+        return OntologyEnum.SharedProperty.loadAll(meta);
+        // throw new NotImplementedException();
+        // return Collections.emptyList();
+    }
+
+    public static OntologyObjectType loadObjectTypeDetail(String ontologyName, String objType) {
+        return OntologyEnum.ObjectType.load(OntologyPluginMeta.create(OntologyEnum.ObjectType, ontologyName).setPluginIdVal(objType));
+    }
+
+    /**
+     * 加载某一个本体域中的Object Type
+     *
+     * @param ontologyName
+     * @return
+     */
+    public static List<OntologyValueType> loadAllObjectTypes(String ontologyName) {
+        if (StringUtils.isEmpty(ontologyName)) {
+            throw new IllegalArgumentException("param ontologyName can not be empty");
+        }
+        return OntologyEnum.ValueType.loadAll(OntologyPluginMeta.create(OntologyEnum.ValueType, ontologyName));
+        //  return objectTypes;
     }
 
     public enum OntologyEnum {
@@ -138,20 +185,7 @@ public abstract class Ontology implements Describable<Ontology> {
                     }
                 });
 
-        public static OntologyEnum parse(UploadPluginMeta meta) {
-            String ontology = meta.getExtraParam(KEY_ONTOLOGY);
-            if (StringUtils.isEmpty(ontology)) {
-                throw new IllegalArgumentException("illegal param ontology can not be empty");
-            }
-            for (OntologyEnum type : OntologyEnum.values()) {
-                if (ontology.equalsIgnoreCase(type.typeIdentity)) {
-                    return type;
-                }
-            }
-            throw new IllegalStateException("can not find ontology:" + ontology + " relevant type");
-        }
-
-        private final String typeIdentity;
+        public final String typeIdentity;
         private final IAssistStoreGetter<?> storeKeyGetter;
 
         private OntologyEnum(String typeIdentity, IAssistStoreGetter<?> storeKeyGetter) {
@@ -173,6 +207,29 @@ public abstract class Ontology implements Describable<Ontology> {
         @SuppressWarnings("all")
         public IPluginStore<Ontology> getPluginStore(OntologyPluginMeta meta) {
             return (IPluginStore<Ontology>) this.storeKeyGetter.getPluginStore(meta);
+        }
+
+        /**
+         * 保存本体资源
+         *
+         * @param pluginContext
+         * @param ontologyDomain
+         * @param ontologyObj
+         */
+        public void save(IPluginContext pluginContext, String ontologyDomain, Ontology ontologyObj) {
+            OntologyPluginMeta pluginMeta = OntologyPluginMeta.create(this, ontologyDomain);
+            pluginMeta.setPluginIdVal(ontologyObj.identityValue()).setPersistence();
+
+            IPluginStore<Ontology> valTypeStore = this.getPluginStore(pluginMeta);
+
+            //        = ONTOLOGY_VALUE_TYPE.getPluginStore(pluginContext,
+            //                pluginMeta.putExtraParams(KEY_START_PERSISTENCE,
+            //                                Boolean.TRUE.toString())
+            //                        .putExtraParams(IdentityName.PLUGIN_IDENTITY_NAME,
+            //                                this.getMeta().name));
+
+            valTypeStore.setPlugins(pluginContext, Optional.of(pluginContext.getContext()),
+                    Collections.singletonList(new Descriptor.ParseDescribable<>(ontologyObj)));
         }
 
         @SuppressWarnings("all")
@@ -197,15 +254,20 @@ public abstract class Ontology implements Describable<Ontology> {
 
     }
 
+    @Override
+    public final void beforeSaved(IPluginContext pluginContext, Optional<Context> context) {
+        this.create = System.currentTimeMillis();
+    }
+
     public long getCreate() {
         return this.create;
     }
 
-    @SuppressWarnings("all")
-    public <T extends Ontology> T setCreate(long create) {
-        this.create = create;
-        return (T) this;
-    }
+    //    @SuppressWarnings("all")
+    //    public <T extends Ontology> T setCreate(long create) {
+    //        this.create = create;
+    //        return (T) this;
+    //    }
 
     @Override
     public Descriptor<Ontology> getDescriptor() {
@@ -230,7 +292,7 @@ public abstract class Ontology implements Describable<Ontology> {
             return eprops;
         }
 
-        protected abstract OntologyEnum getOntologyType();
+        public abstract OntologyEnum getOntologyType();
     }
 
 }

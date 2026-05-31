@@ -35,6 +35,7 @@ public enum ViewContent {
     TableJoinFilterCondition("tableJoinFilterCondition"),
     /**
      * 多个可选的单个值
+     * see：//BasicMultiSelectSingleValElementCreatorFactory
      */
     MultiSelectSingleVal("multiSelectSingleVal", false),
     /**

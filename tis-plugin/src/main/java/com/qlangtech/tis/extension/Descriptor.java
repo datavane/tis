@@ -53,6 +53,7 @@ import com.qlangtech.tis.plugin.IEndTypeGetter.EndType;
 import com.qlangtech.tis.plugin.IEndTypeGetter.EndTypeCategory;
 import com.qlangtech.tis.plugin.IEndTypeGetter.IEndType;
 import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IdentityDesc;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -60,6 +61,7 @@ import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
+import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
 import com.qlangtech.tis.plugin.ds.IMultiElement;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
@@ -104,7 +106,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.Descriptor.ValueChangePipe.createMapperKey;
-import static com.qlangtech.tis.extension.MultiStepsSupportHost.KEY_MULTI_STEPS_SAVED_ITEMS;
 import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX;
 import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX;
 import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.popFieldStack;
@@ -366,7 +367,14 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             props.put("manipulate", manipulate);
         }
         if (this instanceof IDescribableManipulate.IManipulateStorable manipulateStorable) {
-            props.put("manipulateStorable", (manipulateStorable).isManipulateStorable());
+            boolean isManipulateStorable = (manipulateStorable).isManipulateStorable();
+            props.put("manipulateStorable", isManipulateStorable);
+            if (isManipulateStorable) {
+                if (!IdentityDesc.class.isAssignableFrom(this.clazz)) {
+                    throw new IllegalStateException("as the desc:" + this.getClass().getName() + " is "
+                            + "manipulateStorable, the " + this.clazz.getName() + " must be type of " + IdentityDesc.class);
+                }
+            }
         }
         if (_helpPath == null) {
             if (forAIPromote) {
@@ -419,7 +427,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         // JSONObject eprops = null;
         try {
             for (Describable plugin : plugins) {
-
                 storeManipuldate.add(getManipulateMeta(forAIPromote, plugin));
             }
         } catch (Exception e) {
@@ -438,8 +445,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         eprops.put(IdentityName.PLUGIN_IDENTITY_NAME, id.identityValue());
         eprops.put("descMeta",
                 DescriptorsJSON.createPluginFormPropertyTypes(desc, Optional.empty(), forAIPromote).getLeft());
-        if (plugin instanceof IManipulateStatus) {
-            IManipulateStatus status = (IManipulateStatus) plugin;
+        if (plugin instanceof IManipulateStatus status) {
+            // IManipulateStatus status = (IManipulateStatus) plugin;
             eprops.put("stateSummary", status.manipulateStatusSummary());
         }
         return eprops;
@@ -1132,7 +1139,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                                                    PropertyType attrDesc, JSONObject valJ) {
 
         // 多选类型的 multi select
-        JSONObject eprops = valJ.getJSONObject("_eprops");
+        JSONObject eprops = valJ.getJSONObject(ElementCreatorFactory.PROPERTY_EXTERNAL_PROPERTIES);
         if (eprops == null) {
             throw new IllegalStateException("property '_eprops' of " + attrDesc.propertyName() + ",from " + attrDesc.f.getDeclaringClass().getName() + "   can "
                     + "not be null");
@@ -1341,10 +1348,21 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             public ParseDescribable<Describable> visitMultiStepsHost(MultiStepsHostPluginFormProperties props) {
                 try {
                     ParseDescribable<Describable> result = new ParseDescribable<>(clazz.newInstance());
-                    Map<String, JSONArray> subFormDetails = keyValMap.asSubFormDetails();
-                    JSONArray multiStepsSavedItems = subFormDetails.get(KEY_MULTI_STEPS_SAVED_ITEMS);
+                    Map<String, JSONObject> stepsForm = keyValMap.asRootFormVals();
+                    JSONArray multiStepsSavedItems = new JSONArray();
+                    for (int i = 0; i < OneStepOfMultiSteps.stepsArray.length; i++) {
+                        OneStepOfMultiSteps.Step step = OneStepOfMultiSteps.stepsArray[i];
+                        JSONObject stepForm = stepsForm.get(step.name());
+                        if (stepForm == null) {
+                            break;
+                        }
+                        multiStepsSavedItems.add(stepForm);
+                    }
+                    // Map<String, JSONArray> subFormDetails = keyValMap.asSubFormDetails();
+                    // JSONArray multiStepsSavedItems = subFormDetails.get(KEY_MULTI_STEPS_SAVED_ITEMS);
                     if (CollectionUtils.isEmpty(multiStepsSavedItems)) {
-                        throw new IllegalStateException("multiStepsSavedItems can not be empty");
+                        throw new IllegalStateException("multiStepsSavedItems can not be empty,stepsForm.size:"
+                                + stepsForm.size() + ",keys:" + String.join(",", stepsForm.keySet()));
                     }
                     OneStepOfMultiSteps[] multiSteps = OneStepOfMultiSteps.parseStepsPlugin(pluginContext, context,
                             multiStepsSavedItems);

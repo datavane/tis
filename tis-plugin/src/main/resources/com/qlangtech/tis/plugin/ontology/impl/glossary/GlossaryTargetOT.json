@@ -1,7 +1,0 @@
-{
-  "objectType": {
-    "label": "对象类型",
-    "help": "术语指向的本体对象类型",
-    "enum": "com.qlangtech.tis.plugin.ontology.impl.linker.LinkReference.getObjectTypeOpts():uncache_true"
-  }
-}

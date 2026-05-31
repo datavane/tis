@@ -52,6 +52,8 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
     private IMessageHandler messageHandler;
     private Context context;
 
+    private JSONObject postContent;
+
     private IPluginContext targetRuntimeContext;
 
     public PartialSettedPluginContext() {
@@ -109,7 +111,11 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
 
     @Override
     public JSONObject getJSONPostContent() {
-        throw new UnsupportedOperationException();
+        return Objects.requireNonNull(this.postContent, "postContent can not be null");
+    }
+
+    public void setPostContent(JSONObject postContent) {
+        this.postContent = postContent;
     }
 
     @Override
@@ -129,7 +135,9 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
 
     @Override
     public List<IUploadPluginMeta> parsePluginMeta(String[] plugins, boolean useCache) {
-        return Collections.emptyList();
+        //return Collections.emptyList();
+        List<IUploadPluginMeta> metas = UploadPluginMeta.parse(this, plugins, useCache, true);
+        return metas;
     }
 
     @Override

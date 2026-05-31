@@ -48,7 +48,7 @@ public class ApplicationDelegate {
    * @return
    */
   public JSONArray getManipulateMetas() {
-    DefaultDataXProcessorManipulate.DataXProcessorTemplateManipulateStore manipulateStore =
+    DefaultDataXProcessorManipulate.AbstractTemplateManipulateStore manipulateStore =
       DefaultDataXProcessorManipulate.getManipulateStore(DataXName.createDataXPipeline(app.getProjectName()),false);
     Collection<DefaultDataXProcessorManipulate> manipulates = manipulateStore.getManipulates();
     if (CollectionUtils.isEmpty(manipulates)) {

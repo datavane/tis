@@ -189,7 +189,8 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
         plugins.add(plugin);
       }
     }
-    return parsePluginMeta(plugins.toArray(String[]::new), useCache, validatePluginEmpty).stream().map((meta) -> (UploadPluginMeta) meta).collect(Collectors.toList());
+    return parsePluginMeta(plugins.toArray(String[]::new), useCache, validatePluginEmpty) //
+      .stream().map((meta) -> (UploadPluginMeta) meta).collect(Collectors.toList());
   }
 
   @Override

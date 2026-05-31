@@ -321,7 +321,7 @@ public class QWenLLMProvider extends LLMProvider {
             //  SCHEMA_VALUE_CONST
             enhancedPrompt.append("\n\n**注意**：分析用户输入内容必须遵守如下纪律：");
             enhancedPrompt.append("\n**默认值处理**：");
-            enhancedPrompt.append("\n   - 对于 `" + KEY_primaryVal + "` 字段：");
+            enhancedPrompt.append("\n   - 对于填充的字段内容，有以下要求：");
             enhancedPrompt.append("\n     a) 如果用户提供了对应信息 → 按 schema 要求处理（如替换非法字符以符合 `" + SCHEMA_VALUE_PATTERN + "`）；");
             enhancedPrompt.append("\n     b) 如果用户**未提供**，但相应属性中定义了 `" + SCHEMA_VALUE_DEFAULT + "`属性 → **必须使用该 " + SCHEMA_VALUE_DEFAULT + " 值**作为`" + KEY_primaryVal + "`属性值；");
             enhancedPrompt.append("\n     c) 如果用户未提供，且 相应属性 中**无 " + SCHEMA_VALUE_DEFAULT + "** → 填入空字符串 `\"\"`。");

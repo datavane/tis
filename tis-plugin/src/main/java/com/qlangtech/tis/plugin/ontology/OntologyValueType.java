@@ -18,13 +18,10 @@
 package com.qlangtech.tis.plugin.ontology;
 
 import com.alibaba.citrus.turbine.Context;
-import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.MultiStepsSupportHost;
-import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
 import com.qlangtech.tis.extension.OneStepOfMultiSteps;
-import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.IPluginStore;
@@ -32,11 +29,8 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
-import com.qlangtech.tis.plugin.ontology.impl.valuetype.ConstraintsOfValueType;
-import com.qlangtech.tis.plugin.ontology.impl.valuetype.MetadataOfValueType;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -51,11 +45,11 @@ import java.util.stream.Collectors;
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/4/14
- * @see ConstraintsOfValueType
- * @see MetadataOfValueType
+ * // @see ConstraintsOfValueType
+ * // @see MetadataOfValueType
  */
-public class OntologyValueType extends Ontology implements IdentityName, MultiStepsSupportHost,
-        IPluginStore.ManipuldateProcessor, IPluginStore.BeforePluginSaved {
+public abstract class OntologyValueType extends Ontology implements IdentityName, MultiStepsSupportHost,
+        IPluginStore.ManipuldateProcessor {
 
     /**
      * 值类型
@@ -69,30 +63,13 @@ public class OntologyValueType extends Ontology implements IdentityName, MultiSt
     @FormField(identity = true, ordinal = 0, validate = {Validator.require, Validator.identity})
     public String useless;
 
-    private OneStepOfMultiSteps[] stepsPlugin;
+    protected OneStepOfMultiSteps[] stepsPlugin;
 
-    public String getDescription() {
-        return getMeta().description;
-    }
+    // public abstract String getDescription();
 
-    private MetadataOfValueType getMeta() {
-        return (MetadataOfValueType) Objects.requireNonNull( //
-                stepsPlugin[OneStepOfMultiSteps.Step.Step1.getStepIndex()], "step1 can can not be null");
-    }
 
-    /**
-     * 加载某一个本体域中的Object Type
-     *
-     * @param ontologyName
-     * @return
-     */
-    public static List<OntologyValueType> load(String ontologyName) {
-        if (StringUtils.isEmpty(ontologyName)) {
-            throw new IllegalArgumentException("param ontologyName can not be empty");
-        }
-        return OntologyEnum.ValueType.loadAll(OntologyPluginMeta.create(OntologyEnum.ValueType, ontologyName));
-        //  return objectTypes;
-    }
+    public abstract IMetadataOfValueType getMeta();
+
 
     /**
      * 通过 OntologyProperty 的type 获取 valueType的下拉可选项目
@@ -118,7 +95,7 @@ public class OntologyValueType extends Ontology implements IdentityName, MultiSt
 
     public static List<OptionWithEndType> getMatchedValTypeOptions(OntologyPluginMeta meta,
                                                                    OntologyType selectedType) {
-        return OntologyValueType.load(meta.getDomain()).stream()
+        return Ontology.loadAllObjectTypes(meta.getDomain()).stream()
                 .filter((valType) -> {
                     return Objects.requireNonNull(selectedType, "endType can not be null")
                             == valType.getMeta().ontologyType();
@@ -126,6 +103,7 @@ public class OntologyValueType extends Ontology implements IdentityName, MultiSt
                         selectedType.getEndType()))
                 .collect(Collectors.toList());
     }
+
 
     //    /**
     //     *
@@ -139,23 +117,15 @@ public class OntologyValueType extends Ontology implements IdentityName, MultiSt
     @Override
     public String identityValue() {
         //  return this.name;
-        if (stepsPlugin[0] instanceof MetadataOfValueType meta) {
-            return meta.name;
-        }
-        return null;
-    }
-
-
-    @Override
-    public void beforeSaved(IPluginContext pluginContext, Optional<Context> context) {
         for (OneStepOfMultiSteps step : getMultiStepsSavedItems()) {
-            if (step instanceof MetadataOfValueType) {
+            if (step instanceof IMetadataOfValueType meta) {
                 //  this.name = ((MetadataOfValueType) step).name;
-                return;
+                return meta.getName();
             }
         }
         throw new IllegalStateException("illegal name have not been set");
     }
+
 
     @Override
     public void setSteps(OneStepOfMultiSteps[] stepsPlugin) {
@@ -179,7 +149,7 @@ public class OntologyValueType extends Ontology implements IdentityName, MultiSt
                 OntologyEnum.ValueType.getPluginStore(OntologyPluginMeta.createPluginMeta(pluginMeta.putExtraParams(KEY_START_PERSISTENCE,
                                 Boolean.TRUE.toString())
                         .putExtraParams(IdentityName.PLUGIN_IDENTITY_NAME,
-                                this.getMeta().name))).unsaveCast();
+                                this.getMeta().getName()))).unsaveCast();
 
         //        = ONTOLOGY_VALUE_TYPE.getPluginStore(pluginContext,
         //                pluginMeta.putExtraParams(KEY_START_PERSISTENCE,
@@ -191,46 +161,13 @@ public class OntologyValueType extends Ontology implements IdentityName, MultiSt
                 Collections.singletonList(new Descriptor.ParseDescribable<>(this)));
     }
 
+    public interface IMetadataOfValueType {
 
-    @TISExtension
-    public static class DefaultDesc extends Ontology.BasicDesc implements MultiStepsSupportHostDescriptor<OntologyValueType> {
-        public DefaultDesc() {
-            super();
-        }
+        public String getDescription();
 
-        @Override
-        protected OntologyEnum getOntologyType() {
-            return OntologyEnum.ValueType;
-        }
+        String getName();
 
-        @Override
-        public String getDisplayName() {
-            return "Value Type";
-        }
-
-        @Override
-        public Class<OntologyValueType> getHostClass() {
-            return OntologyValueType.class;
-        }
-
-        @Override
-        public EndType getEndType() {
-            return EndType.OntologyValueType;
-        }
-
-        @Override
-        public List<OneStepOfMultiSteps.BasicDesc> getStepDescriptionList() {
-            return List.of(new MetadataOfValueType.Desc(), new ConstraintsOfValueType.Desc());
-        }
-
-        @Override
-        public void appendExternalProps(JSONObject multiStepsCfg) {
-
-        }
-
-        @Override
-        public String shortComment() {
-            return "定义属性的值类型（数据类型与约束规则）";
-        }
+        OntologyType ontologyType();
     }
+
 }

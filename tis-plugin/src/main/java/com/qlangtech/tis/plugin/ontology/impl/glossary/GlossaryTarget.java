@@ -27,9 +27,9 @@ import com.qlangtech.tis.plugin.IEndTypeGetter;
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/5/9
- * @see GlossaryTargetMetricExpr
- * @see GlossaryTargetOT
- * @see GlossaryTargetProperty
+ * // @see GlossaryTargetMetricExpr
+ * // @see GlossaryTargetOT
+ * // @see GlossaryTargetProperty
  */
 public abstract class GlossaryTarget implements Describable<GlossaryTarget> {
 

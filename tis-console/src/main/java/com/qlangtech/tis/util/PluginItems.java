@@ -418,12 +418,24 @@ public class PluginItems implements IPluginItemsProcessor {
 
       for (Descriptor.ParseDescribable<?> plugin : dlist) {
         if (plugin.getInstance() instanceof IdentityName idInstant) {
-          if (idInstant instanceof IPluginStore.BeforePluginSaved beforeSave) {
-            beforeSave.beforeSaved(this.pluginContext, Optional.empty());
-          }
+          //          if (idInstant instanceof IPluginStore.BeforePluginSaved beforeSave) {
+          //            beforeSave.beforeSaved(this.pluginContext, Optional.empty());
+          //          }
           OntologyPluginMeta meta = OntologyPluginMeta.createPluginMeta(pluginMeta);
           if (StringUtils.isEmpty(meta.getPluginIdVal())) {
-            meta.setPluginIdVal(idInstant.identityValue());
+            //
+
+            if (StringUtils.isNotEmpty(meta.getDelegate().getExtraParam(Ontology.KEY_ONTOLOGY))
+              && meta.getOntologyType() == Ontology.OntologyEnum.ObjectType) {
+              meta.setPluginIdVal(idInstant.identityValue());
+            } else {
+              // ontology propertyType
+              if (StringUtils.isEmpty(meta.getObjectType())) {
+                throw new IllegalStateException("meta.getObjectType() can not be empty, meta:" + meta.getDelegate());
+              }
+              meta.setPluginIdVal(meta.getObjectType());
+            }
+
           }
           break;
         }

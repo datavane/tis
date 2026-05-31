@@ -276,7 +276,10 @@ public class PluginStore<T extends Describable<T>> implements IPluginStore<T> {
     @Override
     public synchronized SetPluginsResult setPlugins(IPluginContext pluginContext, Optional<Context> context,
                                                     List<Descriptor.ParseDescribable<T>> dlist, boolean update) {
-
+        if (pluginContext == null) {
+            throw new IllegalArgumentException("pluginContext can not be null");
+        }
+        Objects.requireNonNull(context, "context can not be null");
         try {
             Set<PluginMeta> pluginsMeta = Sets.newHashSet();
             List<T> collect = dlist.stream().flatMap((r) -> {

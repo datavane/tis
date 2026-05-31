@@ -19,9 +19,11 @@
 package com.qlangtech.tis.plugin.ontology;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
-import com.qlangtech.tis.datax.DefaultDataXProcessorManipulate;
+import com.qlangtech.tis.plugin.manipulate.ManipulatePluginCacheRegister;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorUseableShortComment;
@@ -37,11 +39,13 @@ import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -56,7 +60,9 @@ import static com.qlangtech.tis.plugin.ontology.OntologyObjectType.KEY_OBJECT_TY
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/4/14
  */
-public final class OntologyDomain implements Describable<OntologyDomain>, IdentityName, IPluginStore.BeforePluginSaved {
+@SuppressWarnings("all")
+public abstract class OntologyDomain implements Describable<OntologyDomain>, IdentityName,
+        IPluginStore.BeforePluginSaved {
 
     public static final String KEY_SHARED_PROPERTIES = "shared-property";
 
@@ -67,7 +73,7 @@ public final class OntologyDomain implements Describable<OntologyDomain>, Identi
     @TISExtension
     public static final HeteroEnum<OntologyDomain> ONTOLOGY_DOMAIN = new HeteroEnum<>(//
             OntologyDomain.class, //
-            "ontology-domain", // },
+            StoreResourceType.Ontology.getType(), // },
             "本体域", Selectable.Single, false) {
         @SuppressWarnings("all")
         @Override
@@ -96,10 +102,17 @@ public final class OntologyDomain implements Describable<OntologyDomain>, Identi
         return domainStore;
     }
 
-    @SuppressWarnings("all")
+
     private static KeyedPluginStore.Key getStoreKey(String ontologyName) {
-        KeyedPluginStore.Key key = new KeyedPluginStore.Key(ONTOLOGY_DOMAIN.getIdentity(), ontologyName
-                , ONTOLOGY_DOMAIN.extensionPoint);
+        //        KeyedPluginStore.Key key = new KeyedPluginStore.Key(ONTOLOGY_DOMAIN.getIdentity(), ontologyName
+        //                , ONTOLOGY_DOMAIN.extensionPoint);
+        //        return key;
+        return getStoreKey(ontologyName, ONTOLOGY_DOMAIN.extensionPoint);
+    }
+
+    public static KeyedPluginStore.Key getStoreKey(String ontologyName, Class<? extends Describable> extensionPoint) {
+        KeyedPluginStore.Key key = new KeyedPluginStore.Key(ONTOLOGY_DOMAIN.getIdentity(), ontologyName,
+                extensionPoint);
         return key;
     }
 
@@ -193,33 +206,43 @@ public final class OntologyDomain implements Describable<OntologyDomain>, Identi
         return new OntologyDomainPojo(this.name, new Date(this.updateTime), this.defaultDomain);
     }
 
-    @TISExtension
-    public static class DefaultDesc extends Descriptor<OntologyDomain> implements DescriptorUseableShortComment, IDescribableManipulate<OntologyDomainManipulate> {
-        public DefaultDesc() {
-            super();
+
+    public static class OntologyDomainPojo {
+        private final String name;
+        private final Date updateTime;
+        private final boolean defaultDomain;
+
+        public OntologyDomainPojo(String name, Date date, boolean defaultDomain) {
+            this.name = name;
+            this.updateTime = date;
+            this.defaultDomain = defaultDomain;
         }
 
-        @Override
-        public String getDisplayName() {
-            return "Ontology";
+        /**
+         * 取得manipuldate 插件 元数据信息
+         *
+         * @return
+         */
+        public JSONArray getManipulateMetas() {
+            ManipulatePluginCacheRegister.TemplateManipulateStore<OntologyDomainManipulate> manipulateStore =
+                    OntologyDomainManipulate.getManipulateStore(this.name, false);
+            Collection<OntologyDomainManipulate> manipulates = manipulateStore.getManipulates();
+            if (CollectionUtils.isEmpty(manipulates)) {
+                return null;
+            }
+            return Descriptor.getManipulateMetas(false, manipulates);
         }
 
-        @Override
-        public String shortComment() {
-            return "定义本体顶层命名空间（域），用于隔离不同业务场景";
+        public String getName() {
+            return this.name;
         }
 
-        @Override
-        public Class<OntologyDomainManipulate> getManipulateExtendPoint() {
-            return OntologyDomainManipulate.class;
+        public Date getUpdateTime() {
+            return this.updateTime;
         }
 
-        @Override
-        public Optional<IPluginStore<OntologyDomainManipulate>> getManipulateStore() {
-            return Optional.empty();
+        public boolean isDefaultDomain() {
+            return this.defaultDomain;
         }
-    }
-
-    public record OntologyDomainPojo(String name, Date updateTime, boolean defaultDomain) {
     }
 }

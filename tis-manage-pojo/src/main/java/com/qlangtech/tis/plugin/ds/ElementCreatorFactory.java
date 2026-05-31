@@ -34,9 +34,10 @@ import java.util.function.BiConsumer;
  */
 public interface ElementCreatorFactory<T extends IMultiElement> {
 
-
+     String PROPERTY_EXTERNAL_PROPERTIES = "_eprops";
+     String PROPERTY_TUPLES_KEY = "_mcols";
     public default String getTuplesKey() {
-        return "_mcols";
+        return PROPERTY_TUPLES_KEY;
     }
 
     /**

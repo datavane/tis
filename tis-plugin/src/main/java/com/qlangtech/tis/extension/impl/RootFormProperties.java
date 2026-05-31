@@ -32,6 +32,8 @@ import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -47,6 +49,7 @@ import java.util.stream.Collectors;
 public class RootFormProperties extends PluginFormProperties {
     public final Map<String, /*** fieldname*/PropertyType> propertiesType;
     private final Descriptor descriptor;
+    private static final Logger logger = LoggerFactory.getLogger(RootFormProperties.class);
 
     private final boolean isSupportMultiStep;
 
@@ -112,21 +115,25 @@ public class RootFormProperties extends PluginFormProperties {
                     + "，hasKeys:" + Arrays.stream(instance.getClass().getFields()).map((r) -> r.getName()).collect(Collectors.joining(",")), e);
         }
 
-        if (CollectionUtils.isNotEmpty(valChangePipes)) {
-            // 此处用以生成级联select控件下拉选项功能
-            IPluginContext threadLocalContext = IPluginContext.getThreadLocalInstance();
-            UploadPluginMeta uploadMeta =
-                    UploadPluginMeta.createPluginMeta(threadLocalContext.getContext());
-            IParamGetter params = new PluginPropParams(pipeSourceVals);
-            for (Descriptor.ValueChangePipe pipe : valChangePipes) {
-                Map<String, List<? extends Option>> renderResult = pipe.render(uploadMeta, params);
-                for (Map.Entry<String, List<? extends Option>> entry : renderResult.entrySet()) {
-                    // 使用"$" 作为前缀，在前端处理中可以方便与插件的property区别
-                    // entry.getKey() 值可能中间包含“.”作为分割符，一个plugin 的property可以级联更新，另外一个Describable类型的子select控件属性
-                    vals.put("$pipe_field$" + entry.getKey(), Option.toJson(entry.getValue()));
+        try {
+            if (CollectionUtils.isNotEmpty(valChangePipes)) {
+                // 此处用以生成级联select控件下拉选项功能
+                IPluginContext threadLocalContext = IPluginContext.getThreadLocalInstance();
+                UploadPluginMeta uploadMeta =
+                        UploadPluginMeta.createPluginMeta(threadLocalContext.getContext());
+                IParamGetter params = new PluginPropParams(pipeSourceVals);
+                for (Descriptor.ValueChangePipe pipe : valChangePipes) {
+                    Map<String, List<? extends Option>> renderResult = pipe.render(uploadMeta, params);
+                    for (Map.Entry<String, List<? extends Option>> entry : renderResult.entrySet()) {
+                        // 使用"$" 作为前缀，在前端处理中可以方便与插件的property区别
+                        // entry.getKey() 值可能中间包含“.”作为分割符，一个plugin 的property可以级联更新，另外一个Describable类型的子select控件属性
+                        vals.put("$pipe_field$" + entry.getKey(), Option.toJson(entry.getValue()));
+                    }
                 }
             }
-
+        } catch (Exception e) {
+            //throw new RuntimeException(e);
+            logger.warn(e.getMessage(), e);
         }
         return (vals);
     }

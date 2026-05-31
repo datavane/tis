@@ -1,1 +1,0 @@
-{  "cols": {    "label": "属性(s)",    "elementCreator": "com.qlangtech.tis.plugin.ontology.impl.objtype.OntologyPropertyCreatorFactory",    "enum": "java.util.Collections.emptyList()",    "viewtype": "tuplelist"  }}

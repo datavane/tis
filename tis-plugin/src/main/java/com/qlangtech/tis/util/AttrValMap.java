@@ -50,6 +50,7 @@ import static com.qlangtech.tis.extension.Descriptor.KEY_primaryVal;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@SuppressWarnings("all")
 public class AttrValMap {
 
     public static final String PLUGIN_EXTENSION_IMPL = "impl";

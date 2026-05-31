@@ -179,7 +179,8 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
                 });
             } else {
                 schemaBuilder.addObjectProperty(PLUGIN_EXTENSION_VALS, (inner) -> {
-                    addProps2Builder(descriptor, descJson, inner, (attr, addedProp) -> false);
+                    addProps2Builder(descriptor, descJson, inner, Objects.requireNonNull(this.addedPropertyProc,
+                            "addedPropertyProc can not be null"));
                 });
             }
 
@@ -200,7 +201,9 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
 
 
             List<List<ITISJsonSchema>> stepCfgs = hostDesc.generateMultiStepsSchemaForAIPrompt();
-
+            if (CollectionUtils.isEmpty(stepCfgs)) {
+                throw new IllegalStateException("stepCfgs can not be empty");
+            }
             if (stepCfgs.size() == 1) {
                 // TISJsonSchema oneOfWrapper = buildOneOfArrayItemsSchema(stepCfgs.get(0));
                 valsBuilder.addObjectProperty(MultiStepsSupportHost.KEY_MULTI_STEPS_SAVED_ITEMS, (inner) -> {

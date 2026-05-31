@@ -20,23 +20,18 @@ package com.qlangtech.tis.plugin.ontology;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.MultiStepsSupportHost;
-import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
 import com.qlangtech.tis.extension.OneStepOfMultiSteps;
-import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
-import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypeProfile;
-import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypeProperties;
-import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypePropertiesRelevant;
+import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypeBinding;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 
@@ -50,11 +45,11 @@ import java.util.Optional;
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/4/16
- * @see ObjectTypeProfile
- * @see ObjectTypeProperties
- * @see ObjectTypePropertiesRelevant
+ * //@see ObjectTypeProfile
+ * //@see ObjectTypeProperties
+ * //@see ObjectTypePropertiesRelevant
  */
-public class OntologyObjectType extends Ontology implements IdentityName, MultiStepsSupportHost,
+public abstract class OntologyObjectType extends Ontology implements MultiStepsSupportHost,
         IPluginStore.ManipuldateProcessor, IPluginStore.BeforePluginSaved {
 
     public static final String KEY_DATASOURCE_NAME = "ds";
@@ -64,6 +59,8 @@ public class OntologyObjectType extends Ontology implements IdentityName, MultiS
 
     @FormField(identity = true, ordinal = 0, validate = {Validator.require, Validator.identity})
     public String useless;
+
+    public abstract ObjectTypeBinding.ObjectTypeBindingInfo getObjectTypeBindingInfo();
 
     public static IPluginStore<OntologyObjectType> getPluginStore(String ontologyName,
                                                                   String tableName) {
@@ -82,14 +79,19 @@ public class OntologyObjectType extends Ontology implements IdentityName, MultiS
         this._stepsPlugin = Objects.requireNonNull(stepsPlugin, "stepsPlugin can not be null");
     }
 
-    public ObjectTypeProfile getProfile() {
-        return (ObjectTypeProfile) getMultiStepsSavedItems()[0];
-    }
+    public abstract ObjectTypeBinding getDataSourceBinding();
 
-    private ObjectTypeProperties getPropsStep() {
-        return (ObjectTypeProperties) getMultiStepsSavedItems()[1];
-    }
+    public abstract Optional<OntologyProperty> getPk();
 
+    /**
+     * 是否禁用了主键？，可以明确设置不需要主键，例如关系表上只有两个外键存在
+     *
+     * @return
+     */
+    public abstract boolean hasDisablePK();
+
+
+    @JSONField(serialize = false)
     @Override
     public OneStepOfMultiSteps[] getMultiStepsSavedItems() {
         final int assertLength = 3;
@@ -97,11 +99,6 @@ public class OntologyObjectType extends Ontology implements IdentityName, MultiS
             throw new IllegalStateException("lenght of _stepsPlugin must be " + assertLength);
         }
         return _stepsPlugin;
-    }
-
-    @Override
-    public void beforeSaved(IPluginContext pluginContext, Optional<Context> context) {
-
     }
 
     @Override
@@ -150,95 +147,43 @@ public class OntologyObjectType extends Ontology implements IdentityName, MultiS
         //        return objectTypes;
     }
 
-    public static OntologyObjectType loadDetail(String ontologyName, String objType) {
-
-        return OntologyEnum.ObjectType.load(OntologyPluginMeta.create(OntologyEnum.ObjectType, ontologyName).setPluginIdVal(objType));
-        // return getPluginStore(ontologyName, objType).getPlugin();
-    }
-
-
-    //    public OntologyObjectType setDataSourceName(String dataSourceName) {
-    //        this.dataSourceName = dataSourceName;
-    //        return this;
-    //    }
-
-    //    public String getDataSourceName() {
-    //        return this.getProfile().
-    //    }
-
-
     @Override
     public String identityValue() {
         return this.getName();
     }
 
-    public final List<OntologyProperty> getCols() {
-        return this.getPropsStep().getCols();
-    }
+    public abstract List<OntologyProperty> getCols();
 
+    @JSONField(serialize = false)
+    public abstract List<OptionWithEndType> getColOpts();
+
+
+    @JSONField(serialize = false)
     public final JSONArray getColsSerialize2JsonArray() {
         return Option.toJson(this.getColOpts());
     }
 
-    public final List<OptionWithEndType> getColOpts() {
-        //        List<OntologyProperty> cols = this.getCols();
-        //        List<OptionWithEndType> colOpts = Lists.newArrayList();
-        //        for (OntologyProperty col : cols) {
-        //            colOpts.add(new OptionWithEndType(col.getName(), col.getName(),
-        //                    col.parseOntologyType().getEndType()).setComment(col.isPk() ?
-        //                    new Option.OptionComment(Option.OptionCommentColor.Geekblue, "primary key") : null));
-        //        }
-        //        return colOpts;
-        return this.getPropsStep().getColOpts();
-    }
+
+    public abstract String getName();
 
 
-    public String getName() {
-        return this.getProfile().name;
-    }
+    /**
+     * 将目标属替换成制定的sharedProp
+     *
+     * @param targetProperty
+     * @param sharedProp
+     */
+    public abstract void setSharedProperty(TargetProperty targetProperty, OntologySharedProperty sharedProp);
 
-    @TISExtension
-    public static class DefaultDesc extends BasicDesc implements MultiStepsSupportHostDescriptor<OntologyObjectType> {
-        public DefaultDesc() {
-            super();
-        }
-
-        @Override
-        public EndType getEndType() {
-            return EndType.OntologyObjectType;
-        }
-
-        @Override
-        protected OntologyEnum getOntologyType() {
-            return OntologyEnum.ObjectType;
-        }
+    public abstract void setValeType(TargetProperty targetProperty, OntologyValueType valueType);
 
 
-        @Override
-        public String getDisplayName() {
-            return "Object Type";
-        }
+    /**
+     * 绑定新的数据源
+     *
+     * @param tagetDS
+     */
+    public abstract void setNewDataSourceBinding(DataSourceFactory tagetDS);
 
-        @Override
-        public Class<OntologyObjectType> getHostClass() {
-            return OntologyObjectType.class;
-        }
-
-        @Override
-        public List<OneStepOfMultiSteps.BasicDesc> getStepDescriptionList() {
-            return List.of(new ObjectTypeProfile.DftDesc(), new ObjectTypeProperties.DftDesc(),
-                    new ObjectTypePropertiesRelevant.DftDesc());
-        }
-
-        @Override
-        public void appendExternalProps(JSONObject multiStepsCfg) {
-
-        }
-
-        @Override
-        public String shortComment() {
-            return "定义本体对象类型，对应数据源中的一张表";
-        }
-    }
 
 }

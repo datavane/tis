@@ -31,6 +31,7 @@ import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ontology.OntologyGlossary;
 import com.qlangtech.tis.plugin.ontology.OntologyValueType;
+import com.qlangtech.tis.plugin.ontology.impl.glossary.DefaultOntologyGlossary;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import junit.framework.TestCase;
 import org.apache.commons.lang3.tuple.Pair;
@@ -518,7 +519,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      */
     public void testNonMultiStepsSchemaUnchanged_OntologyGlossary() {
         DescriptorsJSONForAIPrompt descriptorsJSON =
-                new DescriptorsJSONForAIPrompt<>(Collections.singletonList(new OntologyGlossary.DefaultDesc()), true);
+                new DescriptorsJSONForAIPrompt<>(Collections.singletonList(new DefaultOntologyGlossary.DefaultDesc()), true);
         DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta meta =
                 (DescriptorsJSONForAIPrompt.AISchemaDescriptorsMeta) descriptorsJSON.getDescriptorsJSON();
 

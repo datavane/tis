@@ -1,1 +1,0 @@
-{  "relationshipType": {    "label": "关系类型",    "enum": "com.qlangtech.tis.plugin.ontology.impl.linker.RelationshipTypeSetter.getOptions()",    "enumMode": "flat_single_choice"  }}

@@ -43,6 +43,13 @@ public class DataXName implements Serializable {
         return new DataXName(dsName, StoreResourceType.DataBase);
     }
 
+    public static DataXName createOntology(String ontologyDomainName) {
+        if (StringUtils.isEmpty(ontologyDomainName)) {
+            throw new IllegalArgumentException("param ontologyDomainName can not be empty");
+        }
+        return new DataXName(ontologyDomainName, StoreResourceType.Ontology);
+    }
+
     public boolean isDataAppType() {
         return this.getType() == StoreResourceType.DataApp;
     }
@@ -52,12 +59,6 @@ public class DataXName implements Serializable {
     }
 
     public StoreResourceType assetCheckDataAppType() {
-        //        if (this.getType() != StoreResourceType.DataApp) {
-        //            throw new IllegalStateException("dataXName type must be :" + StoreResourceType.DataApp + " but
-        //            is :" + this.getType());
-        //        }
-        //        return this.getType();
-
         return this.assetCheckType(StoreResourceType.DataApp);
     }
 

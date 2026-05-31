@@ -47,6 +47,7 @@ import java.util.function.Consumer;
  **/
 public class ManipuldateUtils {
 
+    public static final String KEY_ManipulatePluginMeta = "manipulatePluginMeta";
 
     public static ManipulateItemsProcessor instance(IPluginContext pluginContext, Context context,
                                                     String newIdentityName,
@@ -58,10 +59,10 @@ public class ManipuldateUtils {
         boolean updateProcess = postContent.getBooleanValue(IUploadPluginMeta.KEY_JSON_MANIPULATE_BOOL_UPDATE_PROCESS);
         final boolean deleteProcess =
                 postContent.getBooleanValue(IUploadPluginMeta.KEY_JSON_MANIPULATE_BOOL_DELETE_PROCESS);
-        final String keyManipulatePluginMeta = "manipulatePluginMeta";
-        String pluginType = postContent.getString(keyManipulatePluginMeta);
+
+        String pluginType = postContent.getString(KEY_ManipulatePluginMeta);
         if (StringUtils.isEmpty(pluginType)) {
-            throw new IllegalArgumentException("post payload " + keyManipulatePluginMeta + " relevant value can not "
+            throw new IllegalArgumentException("post payload " + KEY_ManipulatePluginMeta + " relevant value can not "
                     + "be null");
         }
         /**
