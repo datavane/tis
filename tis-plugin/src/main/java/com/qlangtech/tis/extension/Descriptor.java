@@ -1522,9 +1522,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                                 TIS.get().pluginManager.uberClassLoader.loadClass(opt.getString(PLUGIN_EXTENSION_IMPL
                                                 ));
                                         PluginWrapper pluginWrapper = TIS.get().pluginManager.whichPlugin(implClass);
-                                        PluginMeta pluginMeta = Objects.requireNonNull(pluginWrapper,
-                                                "implClass:" + implClass + " relevant pluginWrapper can not be null").getDesc();
-                                        result.extraPluginMetas.add(pluginMeta);
+                                        if(pluginWrapper != null){
+                                            PluginMeta pluginMeta = Objects.requireNonNull(pluginWrapper,
+                                                    "implClass:" + implClass + " relevant pluginWrapper can not be null").getDesc();
+                                            result.extraPluginMetas.add(pluginMeta);
+                                        }
                                         break;
                                     }
                                 } catch (ClassNotFoundException e) {

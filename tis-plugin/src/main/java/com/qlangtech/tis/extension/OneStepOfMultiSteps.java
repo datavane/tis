@@ -295,6 +295,32 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
             super();
         }
 
+        @Override
+        public final String getDisplayName() {
+            switch (Objects.requireNonNull(this.getStep()
+                    , this.getClass().getName() + " relevant getStep can not be null")) {
+                case Step1 -> {
+                    return "第一步";
+                }
+                case Step2 -> {
+                    return "第二步";
+                }
+                case Step3 -> {
+                    return "第三步";
+                }
+                case Step4 -> {
+                    return "第四步";
+                }
+                case Step5 -> {
+                    return "第五步";
+                }
+                case Step6 -> {
+                    return "第六步";
+                }
+                default -> throw new IllegalStateException("illegal step:" + this.getStep());
+            }
+        }
+
         /**
          * 获取步骤枚举
          *

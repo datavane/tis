@@ -24,6 +24,7 @@ import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.PostFormStreamProcess;
+import com.qlangtech.tis.plugin.llm.impl.qwen.sampling.TemperatureSampling;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -60,8 +61,11 @@ public class TestQWenLLMProvider extends TestCase {
         provider.baseUrl = "https://dashscope.aliyuncs.com";
         provider.model = "qwen-plus";
         provider.maxTokens = 2048;
-        provider.temperature = 0.7f;
-        provider.topP = 0.9f;
+        //        provider.temperature = 0.7f;
+        //        provider.topP = 0.9f;
+        TemperatureSampling sampling = new TemperatureSampling();
+        sampling.temperature = 0.7f;
+        provider.sampling = sampling;
         //provider.stream = false;
         provider.printLog = false;
         provider.readTimeout = Duration.ofSeconds(30);
@@ -82,11 +86,11 @@ public class TestQWenLLMProvider extends TestCase {
 
         // 模拟响应
         String mockResponse = createMockChatResponse(
-            "这是一个测试响应",
-            "qwen-plus",
-            100L,
-            50L,
-            150L
+                "这是一个测试响应",
+                "qwen-plus",
+                100L,
+                50L,
+                150L
         );
 
         // 使用 Mock 测试（由于实际HTTP调用难以模拟，这里仅测试逻辑）
@@ -183,10 +187,10 @@ public class TestQWenLLMProvider extends TestCase {
         QWenLLMProvider provider = createTestProvider();
 
         String[] validModels = {
-            "qwen-turbo",
-            "qwen-plus",
-            "qwen-max",
-            "qwen-max-longcontext"
+                "qwen-turbo",
+                "qwen-plus",
+                "qwen-max",
+                "qwen-max-longcontext"
         };
 
         for (String model : validModels) {
@@ -213,31 +217,30 @@ public class TestQWenLLMProvider extends TestCase {
     /**
      * 测试温度和TopP参数验证
      */
-    @Test
-    public void testTemperatureAndTopPValidation() {
-        QWenLLMProvider provider = createTestProvider();
-
-        // 测试有效的温度值
-        provider.temperature = 0.1f;
-        assertEquals(0.1f, provider.temperature);
-
-        provider.temperature = 1.0f;
-        assertEquals(1.0f, provider.temperature);
-
-        provider.temperature = 2.0f;
-        assertEquals(2.0f, provider.temperature);
-
-        // 测试有效的TopP值
-        provider.topP = 0.1f;
-        assertEquals(0.1f, provider.topP);
-
-        provider.topP = 0.9f;
-        assertEquals(0.9f, provider.topP);
-
-        provider.topP = 1.0f;
-        assertEquals(1.0f, provider.topP);
-    }
-
+    //    @Test
+    //    public void testTemperatureAndTopPValidation() {
+    //        QWenLLMProvider provider = createTestProvider();
+    //
+    //        // 测试有效的温度值
+    //        provider.temperature = 0.1f;
+    //        assertEquals(0.1f, provider.temperature);
+    //
+    //        provider.temperature = 1.0f;
+    //        assertEquals(1.0f, provider.temperature);
+    //
+    //        provider.temperature = 2.0f;
+    //        assertEquals(2.0f, provider.temperature);
+    //
+    //        // 测试有效的TopP值
+    //        provider.topP = 0.1f;
+    //        assertEquals(0.1f, provider.topP);
+    //
+    //        provider.topP = 0.9f;
+    //        assertEquals(0.9f, provider.topP);
+    //
+    //        provider.topP = 1.0f;
+    //        assertEquals(1.0f, provider.topP);
+    //    }
 
 
     /**
@@ -249,10 +252,13 @@ public class TestQWenLLMProvider extends TestCase {
         provider.apiKey = "test-api-key";
         provider.baseUrl = "https://dashscope.aliyuncs.com";
         provider.model = "qwen-plus";
-        provider.maxTokens = 2048;
-        provider.temperature = 0.7f;
-        provider.topP = 0.9f;
-      //  provider.stream = false;
+        provider.maxTokens = 6000;
+//        provider.temperature = 0.7f;
+//        provider.topP = 0.9f;
+        TemperatureSampling sampling = new TemperatureSampling();
+        sampling.temperature = 0.7f;
+        provider.sampling = sampling;
+        //  provider.stream = false;
         provider.printLog = false;
         provider.readTimeout = Duration.ofSeconds(30);
         return provider;
@@ -262,7 +268,7 @@ public class TestQWenLLMProvider extends TestCase {
      * 创建模拟的聊天响应JSON
      */
     private String createMockChatResponse(String content, String model,
-                                         Long promptTokens, Long completionTokens, Long totalTokens) {
+                                          Long promptTokens, Long completionTokens, Long totalTokens) {
         JSONObject response = new JSONObject();
         response.put("model", model);
 

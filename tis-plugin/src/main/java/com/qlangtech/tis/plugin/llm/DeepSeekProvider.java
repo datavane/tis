@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
 import com.qlangtech.tis.aiagent.llm.ITISJsonSchema;
+import com.qlangtech.tis.aiagent.llm.LLMOptionParams;
 import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
@@ -44,8 +45,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
@@ -102,12 +105,12 @@ public class DeepSeekProvider extends LLMProvider {
 
     @Override
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
-        return chat(context, prompt, systemPrompt, true, TISJsonSchema.off());
+        return chat(context, prompt, systemPrompt, true, TISJsonSchema.off(), new LLMOptionParams());
     }
 
 
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary,
-                            ITISJsonSchema jsonOutput) {
+                            ITISJsonSchema jsonOutput, LLMOptionParams params) {
         ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);
         try {
             List<HttpUtils.PostParam> postParams = new ArrayList<>();
@@ -140,7 +143,11 @@ public class DeepSeekProvider extends LLMProvider {
             userMessage.put("content", prompt.getPrompt());
             messages.add(userMessage);
             postParams.add(new HttpUtils.PostParam("messages", messages));
-
+            boolean stream = false;
+            if (params.getStreamOutput() != null) {
+                postParams.add(new HttpUtils.PostParam("stream", stream = params.getStreamOutput()));
+            }
+            final boolean streamOutput = stream;
             executeLog.setPostParams(postParams);
 
             return HttpUtils.post(new URL(getApiUrl()), postParams //
@@ -190,6 +197,16 @@ public class DeepSeekProvider extends LLMProvider {
                         @Override
                         public LLMResponse p(int status, InputStream stream, Map headerFields) throws IOException {
                             LLMResponse response = new LLMResponse(executeLog);
+
+                            if (streamOutput) {
+                                try (BufferedReader buffer = IOUtils.buffer(new InputStreamReader(stream,
+                                        TisUTF8.get()))) {
+                                    params.getStreamOutputConsumer().accept(buffer);
+                                }
+                                response.setSuccess(true);
+                                return response;
+                            }
+
                             String responseStr = IOUtils.toString(stream, TisUTF8.get());
 
                             JSONObject responseJson = JSON.parseObject(responseStr);
@@ -247,7 +264,7 @@ public class DeepSeekProvider extends LLMProvider {
 
     @Override
     public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
-                                ITISJsonSchema jsonSchema) {
+                                ITISJsonSchema jsonSchema, LLMOptionParams params) {
         String enhancedPrompt = prompt.getPrompt();
         if (jsonSchema.isContainSchema()) {
             // enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果：\n" + jsonSchema;
@@ -255,7 +272,7 @@ public class DeepSeekProvider extends LLMProvider {
             enhancedPrompt += "\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。";
         }
         LLMResponse response = chat(context, new UserPrompt(prompt.getAbstractInfo(), enhancedPrompt), systemPrompt,
-                false, jsonSchema);
+                false, jsonSchema, params);
 
         try {
             if (response.isSuccess() && response.getContent() != null) {

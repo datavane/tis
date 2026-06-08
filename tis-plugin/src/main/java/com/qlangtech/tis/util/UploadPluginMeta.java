@@ -24,6 +24,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.async.message.client.consumer.impl.MQListenerFactory;
 import com.qlangtech.tis.coredefine.module.action.ProcessModel;
 import com.qlangtech.tis.datax.DataXName;
+import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
@@ -32,17 +33,20 @@ import com.qlangtech.tis.extension.impl.IncrSourceExtendSelected;
 import com.qlangtech.tis.manage.common.AppAndRuntime;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.datax.StoreResourceType;
-import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
+import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
-import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -107,14 +111,26 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         return extMeta;
     }
 
+    public static UploadPluginMeta createPluginMeta(Context context) {
+        return createPluginMeta(context, true);
+    }
+
     /**
      *
      * @param context
      * @return
      */
-    public static UploadPluginMeta createPluginMeta(Context context) {
-        return Objects.requireNonNull((UploadPluginMeta) context.get(UploadPluginMeta.KEY_PLUGIN_META),
-                UploadPluginMeta.KEY_PLUGIN_META + " relevant ");
+    public static UploadPluginMeta createPluginMeta(Context context, boolean validateNull) {
+        UploadPluginMeta meta = (UploadPluginMeta) context.get(UploadPluginMeta.KEY_PLUGIN_META);
+        if (validateNull) {
+            Objects.requireNonNull(meta,
+                    UploadPluginMeta.KEY_PLUGIN_META + " relevant ");
+        }
+        return meta;
+    }
+
+    public static boolean containPluginMeta(Context context) {
+        return createPluginMeta(context, false) != null;
     }
 
     public static void putPluginMeta(Context context, UploadPluginMeta meta) {

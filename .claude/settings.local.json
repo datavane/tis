@@ -149,7 +149,11 @@
       "Bash(grep -o \"..\\\\{60\\\\}rgba.110,136,255.\\\\{60\\\\}\" /Users/mozhenghua/j2ee_solution/project/tis-console/dist/ng-tis/main.js)",
       "Bash(npx --prefix /Users/mozhenghua/j2ee_solution/project/tis-console tsc --noEmit --skipLibCheck)",
       "Bash(mvn compile *)",
-      "Read(//opt/misc/neo4j-demo/**)"
+      "Read(//opt/misc/neo4j-demo/**)",
+      "Bash(mvn test-compile *)",
+      "Bash(mvn test *)",
+      "Bash(mvn -o test -Dtest=TestAstValidator#testValidSelectForWithStatement)",
+      "Bash(echo \"EXIT=$?\")"
     ],
     "deny": [],
     "ask": []

@@ -74,6 +74,7 @@ public class ManipuldateUtils {
         }
         for (IUploadPluginMeta meta : pluginMeta) {
             UploadPluginMeta m = (UploadPluginMeta) meta;
+            UploadPluginMeta.putPluginMeta(context, m);
             // 保存pipeline Name用
             // String[] originId = new String[1];
             //            Consumer<String> originIdentityIdConsumer = (originIdentityId) -> {
@@ -84,29 +85,7 @@ public class ManipuldateUtils {
                     Boolean.toString(StringUtils.isEmpty(newIdentityName) || updateProcess));
             pluginMetaConsumer.accept(m);
 
-            // JSONArray itemsArray = new JSONArray();
-            // itemsArray.add(manipulateTarget);
-            //            Pair<Boolean, IPluginItemsProcessor> pluginItems
-            //                    = pluginContext.getPluginItems(meta, context
-            //                    , 0, itemsArray, FormVaildateType.create(false), ((propType, val) -> {
-            //                        PropertyType ptype = (PropertyType) propType;
-            //                        if (ptype.isIdentity()) {
-            //                            //
-            //                            originIdentityIdConsumer.accept((String) val);
-            //                        }
-            //                        // 将原先的主键覆盖掉
-            //                        return (ptype.isIdentity() && StringUtils.isNotEmpty(newIdentityName)) ?
-            //                        newIdentityName : val;
-            //                    }));
 
-            //            if (context.hasErrors()) {
-            //                return null;
-            //            }
-
-            //            if (pluginItems.getKey()) {
-            //                throw new IllegalStateException("pluginItems parse faild");
-            //            }
-            // IPluginItemsProcessor itemsProcessor = pluginItems.getRight();
             return new ManipulateItemsProcessor(m, //
                     Optional.ofNullable(m.getDataXName(false)) //, itemsProcessor
                     , updateProcess, deleteProcess);

@@ -123,47 +123,52 @@ public class FlatJsonToTisConverter {
                 Map<String, Object> flatOneOf = (Map<String, Object>) value;
                 result.put(fieldName, convertDescribableField(flatOneOf, pt));
             } else {
-                // 普通字段：添加 _primaryVal 包装
-                JSONObject wrapped = new JSONObject();
-                if (pt.formField.type() == FormFieldType.MULTI_SELECTABLE) {
-                    MultiItemsViewType multiItemsViewType = pt.getMultiItemsViewType();
-                    if (multiItemsViewType.getViewContent() != ViewContent.MultiSelectSingleVal) {
-                        // 如果是非MultiSelectSingleVal 类型的话，AI 大模型端处理会非常难处理，所以，这里只处理MultiSelectSingleVal
-                        throw new IllegalStateException("property " + pt.propertyName() //
-                                + " viewType must be " + ViewContent.MultiSelectSingleVal + " but now is " + multiItemsViewType.getViewContent());
-                    }
-                    //
-                    JSONObject enumProp = new JSONObject();
-                    JSONObject mclosProp = new JSONObject();
-                    JSONArray mclos = new JSONArray();
-                    JSONObject elmt = null;
-                    if (value instanceof List multiSingleVals) {
-                        if (CollectionUtils.isEmpty(multiSingleVals)) {
-                            throw new IllegalStateException("fieldName:" + fieldName + " of " //
-                                    + pt.f.getDeclaringClass().getName() + " relevant multiSingleVals can not be "
-                                    + "empty");
-                        }
-                        for (Object val : multiSingleVals) {
-                            elmt = new JSONObject();
-                            elmt.put(BasicMultiSelectSingleValElementCreatorFactory.KEY_ENUM_VAL,
-                                    String.valueOf(Objects.requireNonNull(val)));
-                            mclos.add(elmt);
-                        }
-                    } else {
-                        throw new IllegalStateException("value type must be " + List.class.getSimpleName() + " but "
-                                + "now is " + value.getClass().getName());
-                    }
-                    mclosProp.put(PROPERTY_TUPLES_KEY, mclos);
-                    enumProp.put(KEY_ENUM_PROP, mclosProp);
-                    wrapped.put(ElementCreatorFactory.PROPERTY_EXTERNAL_PROPERTIES, enumProp);
-                } else {
-                    wrapped.put(KEY_primaryVal, value);
-
-                }
+                JSONObject wrapped = convertPrimaryProperty(fieldName, pt, value);
                 result.put(fieldName, wrapped);
             }
         }
         return result;
+    }
+
+    private static JSONObject convertPrimaryProperty(String fieldName, PropertyType pt, Object value) {
+        // 普通字段：添加 _primaryVal 包装
+        JSONObject wrapped = new JSONObject();
+        if (pt.formField.type() == FormFieldType.MULTI_SELECTABLE) {
+            MultiItemsViewType multiItemsViewType = pt.getMultiItemsViewType();
+            if (multiItemsViewType.getViewContent() != ViewContent.MultiSelectSingleVal) {
+                // 如果是非MultiSelectSingleVal 类型的话，AI 大模型端处理会非常难处理，所以，这里只处理MultiSelectSingleVal
+                throw new IllegalStateException("property " + pt.propertyName() //
+                        + " viewType must be " + ViewContent.MultiSelectSingleVal + " but now is " + multiItemsViewType.getViewContent());
+            }
+            //
+            JSONObject enumProp = new JSONObject();
+            JSONObject mclosProp = new JSONObject();
+            JSONArray mclos = new JSONArray();
+            JSONObject elmt = null;
+            if (value instanceof List multiSingleVals) {
+                if (CollectionUtils.isEmpty(multiSingleVals)) {
+                    throw new IllegalStateException("fieldName:" + fieldName + " of " //
+                            + pt.f.getDeclaringClass().getName() + " relevant multiSingleVals can not be "
+                            + "empty");
+                }
+                for (Object val : multiSingleVals) {
+                    elmt = new JSONObject();
+                    elmt.put(BasicMultiSelectSingleValElementCreatorFactory.KEY_ENUM_VAL,
+                            String.valueOf(Objects.requireNonNull(val)));
+                    mclos.add(elmt);
+                }
+            } else {
+                throw new IllegalStateException("value type must be " + List.class.getSimpleName() + " but "
+                        + "now is " + value.getClass().getName());
+            }
+            mclosProp.put(PROPERTY_TUPLES_KEY, mclos);
+            enumProp.put(KEY_ENUM_PROP, mclosProp);
+            wrapped.put(ElementCreatorFactory.PROPERTY_EXTERNAL_PROPERTIES, enumProp);
+        } else {
+            wrapped.put(KEY_primaryVal, value);
+
+        }
+        return wrapped;
     }
 
     /**
@@ -180,7 +185,7 @@ public class FlatJsonToTisConverter {
         // 通过 id（displayName）找到对应的 Descriptor
         List<? extends Descriptor> applicableDescriptors = pt.applicableDescriptors(false);
         Descriptor matchedDesc = null;
-        for (Descriptor desc :applicableDescriptors) {
+        for (Descriptor desc : applicableDescriptors) {
             if (desc.clazz.getName().equals(impl) || impl.equals(desc.getDisplayName())) {
                 matchedDesc = desc;
                 break;
@@ -210,9 +215,11 @@ public class FlatJsonToTisConverter {
                 // 递归处理：子 Descriptor 中如果还有 describable 字段
                 innerVals.put(entry.getKey(), convertDescribableField((JSONObject) entry.getValue(), innerPt));
             } else {
-                JSONObject wrapped = new JSONObject();
-                wrapped.put(KEY_primaryVal, entry.getValue());
-                innerVals.put(entry.getKey(), wrapped);
+//                JSONObject wrapped = new JSONObject();
+//                wrapped.put(KEY_primaryVal, entry.getValue());
+
+
+                innerVals.put(entry.getKey(),  convertPrimaryProperty(entry.getKey(),innerPt,entry.getValue()));
             }
         }
         descVal.put(AttrValMap.PLUGIN_EXTENSION_VALS, innerVals);

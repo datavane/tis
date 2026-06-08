@@ -132,11 +132,6 @@ public abstract class LinkResources extends OneStepOfMultiSteps {
     // @TISExtension
     public static abstract class BasicLinkResourceDesc extends OneStepOfMultiSteps.BasicDesc implements DescriptorUseableShortComment {
 
-        @Override
-        public final String getDisplayName() {
-            return "第二步";
-        }
-
         protected abstract RelationshipType getRelationShipType();
 
         @Override

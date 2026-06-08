@@ -42,18 +42,13 @@
   },
   "maxTokens": {
     "label": "最大Token数",
-    "dftVal": 4000,
+    "dftVal": 32000,
     "help": "最大生成 token 数量，不同模型有不同的限制"
   },
-  "temperature": {
-    "label": "温度",
-    "dftVal": 0.1,
-    "help": "采样温度，介于 0 和 2 之间。更高的值会使输出更随机，更低的值会使其更加集中和确定。建议调整范围为 0.1 到 1.0"
-  },
-  "topP": {
-    "label": "Top P",
-    "dftVal": 0.1,
-    "help": "核采样参数，介于 0 和 1 之间。仅考虑概率累积达到 top_p 的词元。建议与 temperature 二选一进行调整"
+  "sampling": {
+    "label": "高级采样",
+    "dftVal": "temperature",
+    "help": "在确定性的模型架构下引入可控的随机性，从而生成多样、新颖且合理的输出"
   },
   "stream": {
     "label": "流式输出",

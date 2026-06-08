@@ -44,6 +44,7 @@ import java.util.Optional;
  * @see com.qlangtech.tis.plugin.llm.QWenLLMProvider
  * @see DeepSeekProvider
  */
+@SuppressWarnings("all")
 public abstract class LLMProvider extends ParamsConfig {
     public enum LLMChatPhase {
         Start, ERROR, Complete
@@ -125,14 +126,20 @@ public abstract class LLMProvider extends ParamsConfig {
     /**
      * 调用LLM进行JSON格式化输出
      *
-     * @param prompt       提示词
-     * @param systemPrompt 系统提示词
-     * @param jsonSchema   JSON Schema定义
+     * @param prompt          提示词
+     * @param systemPrompt    系统提示词
+     * @param jsonSchema      JSON Schema定义
+     * @param LLMOptionParams 内设置的参数可覆盖LLMProvider中定义的属性如stream参数
      * @return 生成的JSON对象和token使用情况
      * @see DeepSeekProvider#chatJson(String, List, String)
      */
     public abstract LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
-                                         ITISJsonSchema jsonSchema);
+                                         ITISJsonSchema jsonSchema, LLMOptionParams params);
+
+    public final LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
+                                      ITISJsonSchema jsonSchema) {
+        return this.chatJson(context, prompt, systemPrompt, jsonSchema, new LLMOptionParams());
+    }
 
     /**
      * 获取提供商名称
@@ -143,8 +150,6 @@ public abstract class LLMProvider extends ParamsConfig {
      * 检查是否可用
      */
     public abstract boolean isAvailable();
-
-
 
 
     /**

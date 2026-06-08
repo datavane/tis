@@ -165,7 +165,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "noStore", "noStore", Selectable.Multi, false) {
         @Override
         protected <T extends Describable<T>> List<Descriptor<T>> filterDescriptors( //
-                UploadPluginMeta.TargetDesc targetDesc //
+                                                                                    UploadPluginMeta.TargetDesc targetDesc //
                 , List<T> items, boolean justGetItemRelevant, List<Descriptor<T>> descriptors) {
             return super.filterDescriptors(targetDesc, items, justGetItemRelevant, descriptors);
         }
@@ -282,7 +282,7 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
 
         @Override
         public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-            ILoginUser user = pluginContext.getLoginUser();
+            ILoginUser user = Objects.requireNonNull(pluginContext.getLoginUser(), "user can not be null");
             return new ParamsConfigPluginStore(pluginMeta, Optional.of(user));
         }
     };
@@ -416,26 +416,24 @@ public class HeteroEnum<T extends Describable<T>> implements IPluginEnum<T> {
             "增量引擎配置", Selectable.Single, true);
 
 
-//    @TISExtension
-//    public static final HeteroEnum<OntologyLinker> ONTOLOGY_LINKER = new HeteroEnum<>(//
-//            OntologyLinker.class, //
-//            "ontology-linker", //
-//            "本体连接器", Selectable.Multi, false) {
-//        @SuppressWarnings("all")
-//        @Override
-//        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
-//            String ontology = pluginMeta.getExtraParam(OntologyDomain.NAME_ONTOLOGY_DOMAIN);
-//            if (StringUtils.isEmpty(ontology)) {
-//                throw new IllegalStateException("param ontology can not be empty");
-//            }
-//            KeyedPluginStore.Key key =
-//                    new KeyedPluginStore.Key(OntologyDomain.ONTOLOGY_DOMAIN.getIdentity() + "/" + ontology,
-//                    this.getIdentity(), this.extensionPoint);
-//            return TIS.getPluginStore(key);
-//        }
-//    };
-
-
+    //    @TISExtension
+    //    public static final HeteroEnum<OntologyLinker> ONTOLOGY_LINKER = new HeteroEnum<>(//
+    //            OntologyLinker.class, //
+    //            "ontology-linker", //
+    //            "本体连接器", Selectable.Multi, false) {
+    //        @SuppressWarnings("all")
+    //        @Override
+    //        public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta) {
+    //            String ontology = pluginMeta.getExtraParam(OntologyDomain.NAME_ONTOLOGY_DOMAIN);
+    //            if (StringUtils.isEmpty(ontology)) {
+    //                throw new IllegalStateException("param ontology can not be empty");
+    //            }
+    //            KeyedPluginStore.Key key =
+    //                    new KeyedPluginStore.Key(OntologyDomain.ONTOLOGY_DOMAIN.getIdentity() + "/" + ontology,
+    //                    this.getIdentity(), this.extensionPoint);
+    //            return TIS.getPluginStore(key);
+    //        }
+    //    };
 
 
     @TISExtension

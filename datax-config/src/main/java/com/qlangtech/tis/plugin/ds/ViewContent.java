@@ -47,6 +47,10 @@ public enum ViewContent {
      * 本体object_type 属性(s)列表
      */
     OntologyProps("ontologyProps", false),
+    /**
+     * 本体资源推理结果列表
+     */
+    OntologyResInference("ontologyResInference", false),
 
     Unknow("unknow", false);
 

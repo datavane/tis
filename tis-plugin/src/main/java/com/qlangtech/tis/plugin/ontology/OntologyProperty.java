@@ -60,6 +60,14 @@ public abstract class OntologyProperty implements Describable<OntologyProperty>,
     @FormField(ordinal = 1, type = FormFieldType.TEXTAREA, validate = {Validator.none_blank})
     public String description;
 
+    /**
+     * 物理表达式（可选）：用于描述从物理存储格式到查询可用格式的转换。
+     * 使用 {col} 作为列名占位符。
+     * 示例：REPLACE(TRIM({col}), '$', '') - 清洗货币符号
+     */
+    @FormField(ordinal = 999, advance = true, type = FormFieldType.TEXTAREA, validate = {})
+    public String physicalExpression;
+
     //    /**
     //     * @see OntologyType
     //     */
@@ -68,15 +76,11 @@ public abstract class OntologyProperty implements Describable<OntologyProperty>,
     //    public int type;
 
 
-
-
     @FormField(ordinal = 3, type = FormFieldType.ENUM, validate = {Validator.require})
     public Boolean pk;
 
     @FormField(ordinal = 4, type = FormFieldType.ENUM, validate = {Validator.require})
     public Boolean nullable;
-
-
 
 
     @TISExtension
@@ -158,7 +162,6 @@ public abstract class OntologyProperty implements Describable<OntologyProperty>,
     }
 
 
-
     @Override
     public String identityValue() {
         return this.getName();
@@ -181,8 +184,31 @@ public abstract class OntologyProperty implements Describable<OntologyProperty>,
         return description;
     }
 
-    public abstract OntologyType parseOntologyType();
+    public String getPhysicalExpression() {
+        return physicalExpression;
+    }
 
+    /**
+     * 判断是否需要物理层转换
+     */
+    public boolean needsPhysicalTransform() {
+        return org.apache.commons.lang3.StringUtils.isNotBlank(physicalExpression);
+    }
+
+    /**
+     * 应用物理转换（替换 {col} 占位符）
+     *
+     * @param columnRef 列引用（如 "p.Product_Price" 或 "Product_Price"）
+     * @return 转换后的表达式，如果没有物理表达式则返回原列引用
+     */
+    public String applyPhysicalTransform(String columnRef) {
+        if (!needsPhysicalTransform()) {
+            return columnRef;
+        }
+        return physicalExpression.replace("{col}", columnRef);
+    }
+
+    public abstract OntologyType parseOntologyType();
 
 
     public String getType() {
@@ -206,8 +232,6 @@ public abstract class OntologyProperty implements Describable<OntologyProperty>,
 
 
     public abstract void reference2ValueType(OntologyValueType valueType);
-
-
 
 
 }

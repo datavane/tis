@@ -19,6 +19,7 @@
 package com.qlangtech.tis.datax.job;
 
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.FilterWriter;
 import java.io.IOException;
@@ -34,6 +35,12 @@ import java.util.function.BiConsumer;
 public class SSEEventWriter extends FilterWriter {
     // private final PrintWriter writer;
     private final BiConsumer<SSERunnable.SSEEventType, JSONObject> sseEventConsumer;
+
+    private static final String PREFIX_DATA = "data: ";
+
+    public static String getDataContent(String data) {
+        return StringUtils.substringAfter(data, PREFIX_DATA);
+    }
 
     public SSEEventWriter(Writer writer) {
         this(writer, (event, data) -> {
@@ -54,7 +61,7 @@ public class SSEEventWriter extends FilterWriter {
         synchronized (lock) {
             try {
                 this.out.write("event: " + event.getEventType() + "\n");
-                this.out.write("data: " + data + "\n\n");
+                this.out.write(PREFIX_DATA + data + "\n\n");
                 this.out.flush();
 
             } catch (IOException e) {

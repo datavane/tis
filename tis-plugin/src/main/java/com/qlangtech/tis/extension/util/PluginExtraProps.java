@@ -71,6 +71,7 @@ import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.manage.common.Option.KEY_END_TYPE;
 import static com.qlangtech.tis.util.HeteroEnum.DATASOURCE;
+import static com.qlangtech.tis.util.UploadPluginMeta.KEY_APPEND;
 
 /**
  * load extra prop desc like 'lable' and so on
@@ -486,20 +487,26 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         private final String displayName;
         private String description;
         // private String targetPluginCategory;
-        private String hetero;
+        private final String hetero;
         private final Optional<String> targetItemDesc;
+        private final boolean append;
         /**
          * 可以为空
          */
         private Optional<Descriptor> descriptor;
 
+        public CandidatePlugin(String displayName, Optional<String> targetItemDesc, String hetero) {
+            this(displayName, targetItemDesc, hetero, true);
+        }
 
         /**
          *
          * @param displayName
+         * @param targetItemDesc
          * @param hetero
+         * @param append         操作插件是否在追加模式
          */
-        public CandidatePlugin(String displayName, Optional<String> targetItemDesc, String hetero) {
+        public CandidatePlugin(String displayName, Optional<String> targetItemDesc, String hetero, boolean append) {
             if (StringUtils.isEmpty(displayName)) {
                 throw new IllegalArgumentException("displayName can not be empty");
             }
@@ -508,6 +515,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             this.targetItemDesc = Objects.requireNonNull(targetItemDesc, "targetItemDesc can not be null");
             //  this.targetPluginCategory = StringUtils.defaultIfEmpty(targetPluginCategory, displayName);
             this.hetero = hetero;
+            this.append = append;
         }
 
         public void setExtraProps(Optional<IEndTypeGetter.EndType> endType, JSONObject option) {
@@ -580,6 +588,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         public String getDisplayName() {
             return this.displayName;
+        }
+
+        public boolean isAppend() {
+            return append;
         }
 
         /**
@@ -689,10 +701,11 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                             }
                         }
 
+                        Boolean append = pmeta.getBoolean(KEY_APPEND);
                         createor.addCandidatePlugin(new CandidatePlugin( //
                                 pmeta.getString(KEY_DESC_NAME)//
                                 , Optional.ofNullable(pmeta.getString(UploadPluginMeta.KEY_TARGET_PLUGIN_DESC))//
-                                , pmeta.getString(KEY_CREATOR_HETERO)));
+                                , pmeta.getString(KEY_CREATOR_HETERO), append != null ? append : Boolean.TRUE));
                     }
                 }
 

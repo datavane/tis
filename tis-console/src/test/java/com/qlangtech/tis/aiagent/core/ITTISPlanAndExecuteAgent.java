@@ -20,6 +20,7 @@ package com.qlangtech.tis.aiagent.core;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.execute.StepExecutor;
 import com.qlangtech.tis.aiagent.llm.ITISJsonSchema;
+import com.qlangtech.tis.aiagent.llm.LLMOptionParams;
 import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
@@ -320,7 +321,7 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
 
     @Override
     public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
-                                ITISJsonSchema jsonSchema) {
+                                ITISJsonSchema jsonSchema, LLMOptionParams params) {
       LLMResponse response = new LLMResponse(createNoneLogger());
       response.setSuccess(true);
 
@@ -377,7 +378,7 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
 
     @Override
     public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
-                                ITISJsonSchema jsonSchema) {
+                                ITISJsonSchema jsonSchema, LLMOptionParams params) {
       return chat(context, prompt, systemPrompt);
     }
 

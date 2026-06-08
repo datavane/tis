@@ -30,6 +30,7 @@ import java.util.Set;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@SuppressWarnings("all")
 public class MockContext implements Context {
 
   public static final MockContext instance = new MockContext();
@@ -39,20 +40,32 @@ public class MockContext implements Context {
     throw new UnsupportedOperationException();
   }
 
+  //private transient ActionContext innerContext;
+
+  private ActionContext getInnerContext() {
+//    if (this.innerContext == null) {
+//      this.innerContext = ;
+//    }
+//    return this.innerContext;
+   return  ActionContext.getContext();
+  }
+
   @Override
   public <T> T getContext() {
-    return (T) ActionContext.getContext();
+    return (T) getInnerContext();
   }
 
   @Override
   public <T> void setContext(T actionContext) {
     ActionContext.bind((ActionContext) actionContext);
+   // this.innerContext = null;
   }
 
   @Override
   public Object get(String key) {
-    Assert.assertNotNull("ActionContext.getContext() can not be null", ActionContext.getContext());
-    return ActionContext.getContext().get(key);
+    ActionContext context = getInnerContext();
+    Assert.assertNotNull("ActionContext.getContext() can not be null", context);
+    return context.get(key);
   }
 
   @Override
@@ -76,7 +89,7 @@ public class MockContext implements Context {
 
   @Override
   public Object put(String key, Object value) {
-    ActionContext.getContext().put(key, value);
+    this.getInnerContext().put(key, value);
     return null;
   }
 

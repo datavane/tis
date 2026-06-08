@@ -25,6 +25,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
 import com.qlangtech.tis.aiagent.llm.ITISJsonSchema;
+import com.qlangtech.tis.aiagent.llm.LLMOptionParams;
 import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
@@ -47,8 +48,11 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.FilterReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
@@ -64,10 +68,10 @@ import static com.qlangtech.tis.extension.Descriptor.KEY_primaryVal;
 
 /**
  * 阿里通义千问大模型Provider实现<br/>
- * API文档：https://help.aliyun.com/document_detail/2712576.html<br/>
+ * API文档：<a href="https://help.aliyun.com/document_detail/2712576.html">...</a><br/>
  * <p>
  * API Key 管理页面<br/>
- * https://bailian.console.aliyun.com/?spm=a2c4g.11186623.0.0.47fe10bdovIEgY&tab=globalset#/efm/api_key
+ * <a href="https://bailian.console.aliyun.com/?spm=a2c4g.11186623.0.0.47fe10bdovIEgY&tab=globalset#/efm/api_key">...</a>
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/10/27
@@ -94,17 +98,27 @@ public class QWenLLMProvider extends LLMProvider {
     public Integer maxTokens;
 
     /**
-     * 阿里云各种模型 https://bailian.console.aliyun.com/?spm=5176.29619931.J_XNqYbJaEnpB5_cCJf7e6D.1
-     * .544a10d7BmxbRi&tab=doc#/doc/?type=model&url=2987148
+     * 阿里云各种模型
+     * <a href="https://bailian.console.aliyun.com/?spm=5176.29619931.J_XNqYbJaEnpB5_cCJf7e6D.1.544a10d7BmxbRi&tab=doc#/doc/?type=model&url=2987148">...</a>
      */
     @FormField(type = FormFieldType.ENUM, ordinal = 4, validate = {Validator.require})
     public String model;
 
-    @FormField(type = FormFieldType.DECIMAL_NUMBER, advance = true, ordinal = 5, validate = {Validator.require})
-    public Float temperature;
+    /**
+     * 使用混合思考模型时，是否开启思考模式，适用于Qwen3.7、Qwen3.6、Qwen3.5、Qwen3、Qwen3-VL模型，以及 DeepSeek-V4-Pro/V4-Flash
+     * 系列（阿里云直供）、DeepSeek-V3.2/V3.2-exp/V3.1 系列（阿里云直供、硅基流动直供）、Kimi-K2.6/K2.5 系列（阿里云直供）、GLM 系列。DeepSeek-V4
+     * 系列默认开启思考，可通过 reasoning_effort 参数调整推理力度。
+     * 开启后，思考内容将通过reasoning_content字段返回。
+     */
+    @FormField(type = FormFieldType.ENUM, ordinal = 5, validate = {Validator.require})
+    public Boolean enableThinking;
 
-    @FormField(type = FormFieldType.DECIMAL_NUMBER, advance = true, ordinal = 6, validate = {})
-    public Float topP;
+    @FormField(type = FormFieldType.DECIMAL_NUMBER, advance = true, ordinal = 6, validate = {Validator.require})
+    public Sampling sampling;
+
+
+    //    @FormField(type = FormFieldType.DECIMAL_NUMBER, advance = true, ordinal = 6, validate = {})
+    //    public Float topP;
 
 
     /**
@@ -124,9 +138,13 @@ public class QWenLLMProvider extends LLMProvider {
         return chat(context, prompt, systemPrompt, true, TISJsonSchema.off());
     }
 
-
     public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary,
                             ITISJsonSchema jsonOutput) {
+        return chat(context, prompt, systemPrompt, logSummary, jsonOutput, new LLMOptionParams());
+    }
+
+    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary,
+                            ITISJsonSchema jsonOutput, LLMOptionParams params) {
         ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);// new DefaultExecuteLog
         // (prompt, context, logger) : new NoneExecuteLog();
         try {
@@ -152,8 +170,17 @@ public class QWenLLMProvider extends LLMProvider {
             postParams.add(new HttpUtils.PostParam("messages", messages));
 
             // 设置其他参数
-            postParams.add(new HttpUtils.PostParam("temperature", temperature));
-            postParams.add(new HttpUtils.PostParam("max_tokens", getMaxTokens()));
+            //            postParams.add(new HttpUtils.PostParam("temperature", temperature));
+            //            if (topP != null) {
+            //                postParams.add(new HttpUtils.PostParam("top_p", topP));
+            //            }
+
+            Objects.requireNonNull(this.sampling, "sampling can not be null").setHttpParams(postParams);
+
+            //final boolean enableThinking = params.getStreamOutput() != null ? params.getStreamOutput() : ;
+            postParams.add(new HttpUtils.PostParam("enable_thinking", Objects.requireNonNull(this.enableThinking,
+                    "enableThinking can not be null")));
+            postParams.add(new HttpUtils.PostParam("max_completion_tokens", getMaxTokens()));
 
             if (jsonOutput.isContainSchema()) {
                 JSONObject responseFormat = new JSONObject();
@@ -171,14 +198,11 @@ public class QWenLLMProvider extends LLMProvider {
                 responseFormat.put("json_schema", jsonOutput.root());
                 postParams.add(new HttpUtils.PostParam("response_format", responseFormat));
             }
-
-            if (topP != null) {
-                postParams.add(new HttpUtils.PostParam("top_p", topP));
-            }
-
-            if (stream != null) {
-                postParams.add(new HttpUtils.PostParam("stream", stream));
-            }
+            final boolean streamOutput = params.getStreamOutput() != null ?
+                    params.getStreamOutput() : stream;
+            //if (stream != null) {
+            postParams.add(new HttpUtils.PostParam("stream", streamOutput));
+            //}
 
             //  postParams.add(new HttpUtils.PostParam("body", requestBody));
 
@@ -241,6 +265,15 @@ public class QWenLLMProvider extends LLMProvider {
                 @Override
                 public LLMResponse p(int status, InputStream stream, Map headerFields) throws IOException {
                     LLMResponse response = new LLMResponse(executeLog);
+
+                    if (streamOutput) {
+                        try (BufferedReader buffer = IOUtils.buffer(new InputStreamReader(stream, TisUTF8.get()))) {
+                            params.getStreamOutputConsumer().accept(buffer);
+                        }
+                        response.setSuccess(true);
+                        return response;
+                    }
+
                     String responseStr = IOUtils.toString(stream, TisUTF8.get());
 
                     JSONObject responseJson = JSON.parseObject(responseStr);
@@ -305,7 +338,7 @@ public class QWenLLMProvider extends LLMProvider {
 
     @Override
     public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
-                                ITISJsonSchema jsonSchema) {
+                                ITISJsonSchema jsonSchema, LLMOptionParams params) {
         // 增强prompt，要求返回JSON格式
         StringBuilder enhancedPrompt = new StringBuilder(prompt.getPrompt());
         if (jsonSchema.isContainSchema()) {
@@ -314,6 +347,8 @@ public class QWenLLMProvider extends LLMProvider {
             enhancedPrompt.append("\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。");
             enhancedPrompt.append("\n请务必严格按照 'response_format' 中定义的 JSON Schema " +
                     "格式输出，不要输出任何其他内容或格式。以下是对'response_format'中相关字段的说明：");
+
+           // enhancedPrompt.append("\n\n请严格按照以下JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n").append(jsonSchema.root());
             //            public static final String SCHEMA_VALUE_ENUM = "enum";
             //            public static final String SCHEMA_VALUE_PATTERN = "pattern";
 
@@ -323,7 +358,7 @@ public class QWenLLMProvider extends LLMProvider {
             enhancedPrompt.append("\n**默认值处理**：");
             enhancedPrompt.append("\n   - 对于填充的字段内容，有以下要求：");
             enhancedPrompt.append("\n     a) 如果用户提供了对应信息 → 按 schema 要求处理（如替换非法字符以符合 `" + SCHEMA_VALUE_PATTERN + "`）；");
-            enhancedPrompt.append("\n     b) 如果用户**未提供**，但相应属性中定义了 `" + SCHEMA_VALUE_DEFAULT + "`属性 → **必须使用该 " + SCHEMA_VALUE_DEFAULT + " 值**作为`" + KEY_primaryVal + "`属性值；");
+            enhancedPrompt.append("\n     b) 如果用户**未提供**，但相应属性中定义了 `" + SCHEMA_VALUE_DEFAULT + "`属性 → **必须使用该 " + SCHEMA_VALUE_DEFAULT + " 值**`");
             enhancedPrompt.append("\n     c) 如果用户未提供，且 相应属性 中**无 " + SCHEMA_VALUE_DEFAULT + "** → 填入空字符串 `\"\"`。");
 
             //            enhancedPrompt.append("\n  1. `").append(KEY_primaryVal).append("`对应的属性如定义了" + "`").append
@@ -341,7 +376,7 @@ public class QWenLLMProvider extends LLMProvider {
         }
 
         LLMResponse response = chat(context, prompt.setNewPrompt(enhancedPrompt.toString()), systemPrompt, false,
-                jsonSchema);
+                jsonSchema, params);
 
         try {
             if (response.isSuccess() && response.getContent() != null) {
@@ -453,6 +488,17 @@ public class QWenLLMProvider extends LLMProvider {
             return super.verify(msgHandler, context, postFormVals);
         }
 
+        public boolean validateMaxTokens(IFieldErrorHandler msgHandler, Context context, String fieldName,
+                                         String value) {
+            int tokens = Integer.parseInt(value);
+            int min = 1;
+            int max = 32768;
+            if (tokens < min || tokens > max) {
+                msgHandler.addFieldError(context, fieldName, "必须在：" + min + "至" + max + "之间");
+                return false;
+            }
+            return true;
+        }
 
         public boolean validateMaxRetry(IFieldErrorHandler msgHandler, Context context, String fieldName,
                                         String value) {

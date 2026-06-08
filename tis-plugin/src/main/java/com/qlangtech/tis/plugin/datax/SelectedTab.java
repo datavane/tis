@@ -293,8 +293,8 @@ public class SelectedTab implements Describable<SelectedTab>, ISelectedTab, Iden
      * @see EnumFieldMode
      */
     public static List<String> getDftPks() {
-        return getContextTableCols((cols) -> cols.stream().filter((col) -> col.isPk())) //
-                .stream().map((col) -> col.getName()).collect(Collectors.toList());
+        return getContextTableCols((cols) -> cols.stream().filter(ColumnMetaData::isPk)) //
+                .stream().map(CMeta::getName).collect(Collectors.toList());
     }
 
     public SelectedTab() {
