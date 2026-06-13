@@ -73,6 +73,7 @@ import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.ISelectOptionsGetter;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -1432,6 +1433,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         });
     }
 
+    public void httpProcess(IControlMsgHandler paramGetter, IPluginContext pluginContext, Context context) throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
     private PluginFormProperties getPropertyTypes(Optional<PluginFormProperties> pTypes,
                                                   Optional<SubFormFilter> subFormFilter) {
         return pTypes.map((pp) -> {
@@ -1522,9 +1527,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                                 TIS.get().pluginManager.uberClassLoader.loadClass(opt.getString(PLUGIN_EXTENSION_IMPL
                                                 ));
                                         PluginWrapper pluginWrapper = TIS.get().pluginManager.whichPlugin(implClass);
-                                        if(pluginWrapper != null){
+                                        if (pluginWrapper != null) {
                                             PluginMeta pluginMeta = Objects.requireNonNull(pluginWrapper,
-                                                    "implClass:" + implClass + " relevant pluginWrapper can not be null").getDesc();
+                                                    "implClass:" + implClass + " relevant pluginWrapper can not be "
+                                                            + "null").getDesc();
                                             result.extraPluginMetas.add(pluginMeta);
                                         }
                                         break;

@@ -55,6 +55,9 @@ public abstract class OntologyValueType extends Ontology implements IdentityName
      * 值类型
      */
     public static final String KEY_VALUE_TYPE = "ontology-value-type";
+    /**
+     * 控制是否需要持久化，如多步骤执行插件，前几步执行过程中不需要持久化则不需要设置次参数
+     */
     public static final String KEY_START_PERSISTENCE = "startPersistence";
 
     /**
@@ -79,14 +82,18 @@ public abstract class OntologyValueType extends Ontology implements IdentityName
     public static List<OptionWithEndType> availableValTypes() {
         Map<Class<? extends Descriptor>, Describable> classDescribableMap =
                 Objects.requireNonNull(GroovyShellUtil.pluginThreadLocal.get(), "classDescribableMap can not be null");
+        IPluginContext pluginContext = IPluginContext.getThreadLocalInstance();
+        OntologyPluginMeta meta = OntologyPluginMeta.createPluginMeta(pluginContext.getContext());
+        if (meta.getDelegate().isCreateProcess()) {
+            return Collections.emptyList();
+        }
         for (Map.Entry<Class<? extends Descriptor>, Describable> entry : classDescribableMap.entrySet()) {
             if (!(entry.getValue() instanceof OntologyProperty ontologyProp)) {
                 throw new IllegalStateException("entry.getValue() must be type of "
                         + OntologyProperty.class.getName() + " but now is " + entry.getValue().getClass().getName());
             }
             OntologyType selectedType = ontologyProp.parseOntologyType();
-            IPluginContext pluginContext = IPluginContext.getThreadLocalInstance();
-            OntologyPluginMeta meta = OntologyPluginMeta.createPluginMeta(pluginContext.getContext());
+
             return getMatchedValTypeOptions(meta, selectedType);
         }
         throw new IllegalStateException("classDescribableMap.entrySet() can not be empty");
@@ -95,7 +102,7 @@ public abstract class OntologyValueType extends Ontology implements IdentityName
 
     public static List<OptionWithEndType> getMatchedValTypeOptions(OntologyPluginMeta meta,
                                                                    OntologyType selectedType) {
-        return Ontology.loadAllObjectTypes(meta.getDomain()).stream()
+        return Ontology.loadAllValueTypes(meta.getDomain()).stream()
                 .filter((valType) -> {
                     return Objects.requireNonNull(selectedType, "endType can not be null")
                             == valType.getMeta().ontologyType();
@@ -146,10 +153,12 @@ public abstract class OntologyValueType extends Ontology implements IdentityName
                                    Optional<Context> context) {
         // 进行持久化
         IPluginStore<OntologyValueType> valTypeStore =
-                OntologyEnum.ValueType.getPluginStore(OntologyPluginMeta.createPluginMeta(pluginMeta.putExtraParams(KEY_START_PERSISTENCE,
-                                Boolean.TRUE.toString())
-                        .putExtraParams(IdentityName.PLUGIN_IDENTITY_NAME,
-                                this.getMeta().getName()))).unsaveCast();
+                OntologyEnum.ValueType.getPluginStore(
+                        OntologyPluginMeta.createPluginMeta( //
+                                pluginMeta.putExtraParams(KEY_START_PERSISTENCE,
+                                                Boolean.TRUE.toString())
+                                        .putExtraParams(IdentityName.PLUGIN_IDENTITY_NAME,
+                                                this.getMeta().getName()))).unsaveCast();
 
         //        = ONTOLOGY_VALUE_TYPE.getPluginStore(pluginContext,
         //                pluginMeta.putExtraParams(KEY_START_PERSISTENCE,

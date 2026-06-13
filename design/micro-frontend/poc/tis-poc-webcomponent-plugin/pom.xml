@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.qlangtech.tis.plugins</groupId>
+        <artifactId>tis-plugin-parent</artifactId>
+        <version>${revision}</version>
+        <relativePath>../../../../../../plugins/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>tis-poc-webcomponent-plugin</artifactId>
+    <packaging>tpi</packaging>
+
+    <name>TIS POC Web Component Plugin</name>
+    <description>POC插件，验证微前端架构可行性</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <!-- TIS核心依赖 -->
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-plugin</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- 测试依赖 -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 前端构建插件 -->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.12.1</version>
+                <configuration>
+                    <workingDirectory>webapp</workingDirectory>
+                    <installDirectory>target/node</installDirectory>
+                </configuration>
+                <executions>
+                    <!-- 安装Node.js和npm -->
+                    <execution>
+                        <id>install node and npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <configuration>
+                            <nodeVersion>v18.16.0</nodeVersion>
+                            <npmVersion>9.5.1</npmVersion>
+                        </configuration>
+                    </execution>
+
+                    <!-- npm install -->
+                    <execution>
+                        <id>npm install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install</arguments>
+                        </configuration>
+                    </execution>
+
+                    <!-- webpack build -->
+                    <execution>
+                        <id>webpack build</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- TPI打包插件 -->
+            <plugin>
+                <groupId>com.qlangtech.tis</groupId>
+                <artifactId>tis-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

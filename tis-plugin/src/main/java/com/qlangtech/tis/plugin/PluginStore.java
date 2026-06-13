@@ -287,7 +287,7 @@ public class PluginStore<T extends Describable<T>> implements IPluginStore<T> {
                 if (!r.subFormFields) {
                     T instance = r.getInstance();
                     if (!this.pluginClass.isAssignableFrom(instance.getClass())) {
-                        throw new IllegalStateException("plugin must be type of " + this.pluginClass.getName() + ", " + "but now is " + instance.getClass().getName());
+                        throw new IllegalStateException("plugin must be type of " + this.pluginClass.getName() + ", but now is " + instance.getClass().getName());
                     }
                     for (IPluginProcessCallback<T> callback : pluginCreateCallback) {
                         callback.afterDeserialize(this, instance);

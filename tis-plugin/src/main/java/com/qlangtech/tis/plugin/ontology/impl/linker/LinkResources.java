@@ -18,12 +18,16 @@
 
 package com.qlangtech.tis.plugin.ontology.impl.linker;
 
+import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.datax.transformer.PluginLiteria;
 import com.qlangtech.tis.plugin.ontology.Ontology;
 import com.qlangtech.tis.plugin.ontology.OntologyObjectType;
+import com.qlangtech.tis.plugin.ontology.OntologyUtils;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Objects;
@@ -35,7 +39,7 @@ import java.util.stream.Stream;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/5/3
  */
-public abstract class LinkResources extends OneStepOfMultiSteps {
+public abstract class LinkResources extends OneStepOfMultiSteps implements PluginLiteria {
 
     @Override
     protected final Class<? extends OneStepOfMultiSteps.BasicDesc> getBasicDescClass() {
@@ -132,7 +136,7 @@ public abstract class LinkResources extends OneStepOfMultiSteps {
     // @TISExtension
     public static abstract class BasicLinkResourceDesc extends OneStepOfMultiSteps.BasicDesc implements DescriptorUseableShortComment {
 
-        protected abstract RelationshipType getRelationShipType();
+        public abstract RelationshipType getRelationShipType();
 
         @Override
         public Step getStep() {
@@ -142,6 +146,13 @@ public abstract class LinkResources extends OneStepOfMultiSteps {
         @Override
         public Optional<BasicDesc> nextPluginDesc(OneStepOfMultiSteps current) {
             return Optional.empty();
+        }
+
+        @Override
+        protected final boolean validateAll(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
+            LinkResources linkResource = postFormVals.newInstance();
+            return OntologyUtils.validateIdentityDuplicate(msgHandler, context, Optional.empty(),
+                    Ontology.OntologyEnum.Linker, linkResource.getLinkIdentityName().identityValue());
         }
 
         @Override

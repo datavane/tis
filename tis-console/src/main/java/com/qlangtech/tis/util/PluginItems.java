@@ -26,6 +26,7 @@ import com.qlangtech.tis.coredefine.module.action.PluginItemsParser;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.IAppSource;
@@ -307,8 +308,20 @@ public class PluginItems implements IPluginItemsProcessor {
   }
 
   private IPluginStoreSave<?> getStore(List<Descriptor.ParseDescribable<?>> dlist) {
+
     if (this.pluginMeta.getBoolean(KEY_SKIP_PLUGINS_SAVE)) {
       return IPluginStoreSave.noneSave;
+    }
+
+    boolean stepPlugin = true;
+    for (Descriptor.ParseDescribable<?> d : dlist) {
+      if (!(d.getInstance() instanceof OneStepOfMultiSteps)) {
+        stepPlugin = false;
+      }
+    }
+    if (stepPlugin) {
+      // 如果在流程插件保存过程不需要持久化
+      return IPluginStore.noSaveStore(pluginMeta);
     }
 
     IPluginStoreSave<?> store = null;
@@ -426,13 +439,18 @@ public class PluginItems implements IPluginItemsProcessor {
             //
 
             if (StringUtils.isNotEmpty(meta.getDelegate().getExtraParam(Ontology.KEY_ONTOLOGY))
-              && meta.getOntologyType() == Ontology.OntologyEnum.ObjectType) {
+              && Ontology.OntologyEnum.ontologyEnumsSet.contains(meta.getOntologyType())
+            ) {
               meta.setPluginIdVal(idInstant.identityValue());
             } else {
               // ontology propertyType
               if (StringUtils.isEmpty(meta.getObjectType())) {
                 throw new IllegalStateException("meta.getObjectType() can not be empty, meta:" + meta.getDelegate());
               }
+              if (StringUtils.isEmpty(meta.getObjectTypeProperty(false))) {
+                meta.setObjectTypeProperty(idInstant.identityValue());
+              }
+              // 由于最终是更新objectType实例，所以需要执行以下
               meta.setPluginIdVal(meta.getObjectType());
             }
 

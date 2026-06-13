@@ -48,6 +48,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.qlangtech.tis.plugin.ontology.Ontology.KEY_CREATE_TIME;
+import static com.qlangtech.tis.plugin.ontology.Ontology.KEY_DESCRIPTION;
 import static com.qlangtech.tis.plugin.ontology.OntologyDomain.NAME_ONTOLOGY_DOMAIN;
 import static com.qlangtech.tis.plugin.ontology.OntologyObjectType.KEY_OBJECT_TYPE;
 import static com.qlangtech.tis.util.DescriptorsJSON.KEY_DISPLAY_NAME;
@@ -139,6 +141,7 @@ public class OntologyAction extends BasicModule {
       obj.put("name", ot.getName());
       obj.put("bound", ot.getObjectTypeBindingInfo());
       obj.put("colSize", ot.getCols().size());
+      obj.put(Ontology.KEY_CREATE_TIME, ot.getCreate());
       objectTypes.add(obj);
     }
     result.put("objectTypes", objectTypes);
@@ -152,12 +155,15 @@ public class OntologyAction extends BasicModule {
     result.put("linkTypes", linkTypes);
 
 
-    List<OntologyValueType> valueTypes = Ontology.loadAllObjectTypes(ontologyName);
+    List<OntologyValueType> valueTypes = Ontology.loadAllValueTypes(ontologyName);
     JSONArray vtArray = new JSONArray();
     for (OntologyValueType vt : valueTypes) {
+      OntologyValueType.IMetadataOfValueType meta = vt.getMeta();
       JSONObject obj = new JSONObject();
       obj.put("name", vt.identityValue());
-      obj.put("description", vt.getMeta().getDescription());
+      obj.put(KEY_DESCRIPTION, meta.getDescription());
+      obj.put(Ontology.KEY_TYPE, meta.ontologyType());
+      obj.put(KEY_CREATE_TIME, vt.getCreate());
       vtArray.add(obj);
     }
     result.put("valueTypes", vtArray);
@@ -170,10 +176,10 @@ public class OntologyAction extends BasicModule {
       JSONObject obj = new JSONObject();
       obj.put("name", sharedProp.name);
       obj.put("alias", sharedProp.alias);
-      obj.put("type", sharedProp.getOntologyType());
-      obj.put("description", sharedProp.description);
-      obj.put("createTime", sharedProp.getCreate());
-      vtArray.add(obj);
+      obj.put(Ontology.KEY_TYPE, sharedProp.getOntologyType());
+      obj.put(KEY_DESCRIPTION, sharedProp.description);
+      obj.put(Ontology.KEY_CREATE_TIME, sharedProp.getCreate());
+      //  vtArray.add(obj);
       sharedPropArray.add(obj);
     }
     result.put("sharedProperties", sharedPropArray);
@@ -187,7 +193,7 @@ public class OntologyAction extends BasicModule {
     for (OntologyGlossary glossary : glossaries) {
       JSONObject obj = new JSONObject();
       obj.put("term", glossary.term);
-      obj.put("description", glossary.description);
+      obj.put(KEY_DESCRIPTION, glossary.description);
       JSONArray synonymArray = new JSONArray();
       for (SynonymsElement syn : glossary.getSynonyms()) {
         synonymArray.add(syn.getEnumVal());
@@ -199,7 +205,7 @@ public class OntologyAction extends BasicModule {
       targetJson.put(KEY_DISPLAY_NAME,
         Objects.requireNonNull(glossary.target.getDescriptor(), "desc can not be null").getDisplayName());
       obj.put("target", targetJson);
-      obj.put("createTime", glossary.getCreate());
+      obj.put(Ontology.KEY_CREATE_TIME, glossary.getCreate());
       glossaryArray.add(obj);
     }
     result.put("glossaries", glossaryArray);

@@ -60,6 +60,7 @@ public abstract class OntologyObjectType extends Ontology implements MultiStepsS
     @FormField(identity = true, ordinal = 0, validate = {Validator.require, Validator.identity})
     public String useless;
 
+
     public abstract ObjectTypeBinding.ObjectTypeBindingInfo getObjectTypeBindingInfo();
 
     public static IPluginStore<OntologyObjectType> getPluginStore(String ontologyName,
@@ -153,6 +154,20 @@ public abstract class OntologyObjectType extends Ontology implements MultiStepsS
     }
 
     public abstract List<OntologyProperty> getCols();
+
+    /**
+     * 添加新的col
+     *
+     * @param property
+     */
+    public abstract void addCol(OntologyProperty property);
+
+    /**
+     * 删除col
+     *
+     * @param property
+     */
+    public abstract void deleteCol(OntologyProperty property);
 
     @JSONField(serialize = false)
     public abstract List<OptionWithEndType> getColOpts();

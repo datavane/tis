@@ -168,6 +168,10 @@ public class UploadPluginMeta implements IUploadPluginMeta {
         return this.getBoolean(DBIdentity.KEY_UPDATE);
     }
 
+    public boolean isCreateProcess() {
+        return this.getBoolean(DBIdentity.KEY_CREATE);
+    }
+
     public boolean isUseCache() {
         return this.useCache;
     }
@@ -549,10 +553,11 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     public <T extends Describable<T>> HeteroList<T> getHeteroList(IPluginContext pluginContext) {
         IPluginEnum hEnum = getHeteroEnum();
         HeteroList<T> hList = createEmptyItemAndDescriptorsHetero();
-
-        List<T> items = hEnum.getPlugins(pluginContext, this);
-        hList.setItems(items);
-
+        List<T> items = Collections.emptyList();
+        if (!this.isCreateProcess()) {
+            items = hEnum.getPlugins(pluginContext, this);
+            hList.setItems(items);
+        }
         final TargetDesc targetDesc = this.getTargetDesc();
 
         boolean justGetItemRelevant = this.getBoolean(KEY_JUST_GET_ITEM_RELEVANT);// Boolean.parseBoolean(this

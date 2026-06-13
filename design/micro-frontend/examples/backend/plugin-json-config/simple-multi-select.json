@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "简单多选组件配置示例",
+  "description": "最简单的MULTI_SELECTABLE字段Web Component配置",
+
+  "fieldName": {
+    "label": "字段显示名称",
+    "help": "字段帮助提示文本",
+    "elementCreator": "com.qlangtech.tis.plugin.example.SimpleItemCreatorFactory",
+    "enum": "com.qlangtech.tis.plugin.example.ExamplePlugin.getItems()",
+    "viewtype": "tuplelist",
+
+    "webComponent": {
+      "tagName": "tis-simple-selector",
+      "scriptUrl": "/plugin-assets/tis-example-plugin/simple-selector.bundle.js",
+      "version": "1.0.0",
+
+      "inputs": [
+        {
+          "name": "tabletView",
+          "type": "object",
+          "required": true,
+          "description": "主数据对象，包含组件需要渲染的所有数据"
+        },
+        {
+          "name": "error",
+          "type": "object",
+          "required": false,
+          "description": "验证错误信息对象"
+        }
+      ],
+
+      "outputs": [
+        {
+          "name": "tabletViewChange",
+          "type": "object",
+          "description": "数据变更事件，当用户修改选择时触发"
+        }
+      ]
+    }
+  }
+}

@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.datax.transformer.PluginLiteria;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.storegetter.BaiscAssistStoreGetter;
 import com.qlangtech.tis.plugin.ontology.impl.storegetter.IAssistStoreGetter;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * TIS 本体
@@ -51,8 +53,13 @@ import java.util.Optional;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/4/25
  */
-public abstract class Ontology implements Describable<Ontology>, IdentityName, IPluginStore.BeforePluginSaved {
+public abstract class Ontology implements Describable<Ontology>, IdentityName, IPluginStore.BeforePluginSaved,
+        PluginLiteria {
     public static final String KEY_ONTOLOGY = "ontology-type";
+    public static final String KEY_CREATE_TIME = "createTime";
+    public static final String KEY_DESCRIPTION = "description";
+    public static final String KEY_TYPE = "type";
+
     /**
      * 创建或者修改时间
      */
@@ -71,6 +78,14 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
             return ontologyEnum.getPluginStore(pluginMeta);
         }
     };
+
+    public final OntologyEnum ontologyType() {
+        return ((BasicDesc) this.getDescriptor()).getOntologyType();
+    }
+
+    public IEndTypeGetter.EndType getEndType() {
+        return ((IEndTypeGetter) this.getDescriptor()).getEndType();
+    }
 
     /**
      * 删除一个ontology object type
@@ -129,7 +144,7 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
      * @param ontologyName
      * @return
      */
-    public static List<OntologyValueType> loadAllObjectTypes(String ontologyName) {
+    public static List<OntologyValueType> loadAllValueTypes(String ontologyName) {
         if (StringUtils.isEmpty(ontologyName)) {
             throw new IllegalArgumentException("param ontologyName can not be empty");
         }
@@ -184,6 +199,8 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
                         return OntologyDomain.getGlossaryDir(ontologyName);
                     }
                 });
+
+        public final static Set<OntologyEnum> ontologyEnumsSet = Set.of(OntologyEnum.values());
 
         public final String typeIdentity;
         private final IAssistStoreGetter<?> storeKeyGetter;

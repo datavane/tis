@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>example-plugin</artifactId>
+    <packaging>tpi</packaging>
+
+    <build>
+        <plugins>
+            <!-- 前端构建插件 -->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.12.1</version>
+
+                <configuration>
+                    <workingDirectory>webapp</workingDirectory>
+                    <installDirectory>target/node</installDirectory>
+                </configuration>
+
+                <executions>
+                    <!-- 1. 安装Node.js和npm -->
+                    <execution>
+                        <id>install node and npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <configuration>
+                            <nodeVersion>v18.16.0</nodeVersion>
+                            <npmVersion>9.5.1</npmVersion>
+                        </configuration>
+                    </execution>
+
+                    <!-- 2. npm install -->
+                    <execution>
+                        <id>npm install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install</arguments>
+                        </configuration>
+                    </execution>
+
+                    <!-- 3. npm run build -->
+                    <execution>
+                        <id>npm build</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

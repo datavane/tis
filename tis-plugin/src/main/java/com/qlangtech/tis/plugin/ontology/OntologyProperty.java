@@ -32,12 +32,14 @@ import com.qlangtech.tis.plugin.ds.IMultiElement;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.IUploadPluginMeta;
 import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -52,13 +54,15 @@ public abstract class OntologyProperty implements Describable<OntologyProperty>,
 
     public static final String KEY_ONTOLOGY_PROP = "ontology-property";
     public static final String FIELD_NULLABLE = "nullable";
-
+    public static final String FIELD_NAME = "name";
 
     @FormField(identity = true, ordinal = 0, validate = {Validator.require, Validator.db_col_name})
     public String name;
 
     @FormField(ordinal = 1, type = FormFieldType.TEXTAREA, validate = {Validator.none_blank})
     public String description;
+
+    public abstract OntologyPropertyTypeRef getPropertyTypeRef();
 
     /**
      * 物理表达式（可选）：用于描述从物理存储格式到查询可用格式的转换。
@@ -109,9 +113,21 @@ public abstract class OntologyProperty implements Describable<OntologyProperty>,
                                                    boolean update) {
                     getOntologyProperty((t) -> {
                         OntologyProperty ontologyProp = t.getRight();
+
+                        final boolean deleteProcess =
+                                pluginContext.getJSONPostContent().getBooleanValue(IUploadPluginMeta.KEY_JSON_MANIPULATE_BOOL_DELETE_PROCESS);
                         for (Descriptor.ParseDescribable<OntologyProperty> plugin : dlist) {
                             OntologyProperty property = plugin.getInstance();
-                            ontologyProp.copy(property);
+                            if (deleteProcess) {
+                                // 删除操作
+                                t.getMiddle().deleteCol(Objects.requireNonNull(property, "property can not be null"));
+                            } else if (ontologyMeta.isCreate()) {
+                                // 添加操作
+                                t.getMiddle().addCol(Objects.requireNonNull(property, "property can not be null"));
+                            } else {
+                                // 更新操作
+                                ontologyProp.copy(property);
+                            }
                             t.getLeft().setPlugins(pluginContext, context,
                                     Collections.singletonList(new Descriptor.ParseDescribable<>(t.getMiddle())));
                         }
@@ -131,11 +147,14 @@ public abstract class OntologyProperty implements Describable<OntologyProperty>,
                     final String propName = ontologyMeta.getObjectTypeProperty();
                     IPluginStore<OntologyObjectType> pluginStore =
                             Ontology.OntologyEnum.ObjectType.getPluginStore(ontologyMeta).unsaveCast();
-
-                    ;
-                    //  Ontology.ONTOLOGY.getPluginStore(pluginContext, pluginMeta).unsaveCast();
                     OntologyObjectType objectType = Ontology.loadObjectTypeDetail(ontologyMeta.getDomain(),
                             ontologyMeta.getObjectType());// pluginStore.getPlugin();
+                    if (ontologyMeta.isCreate()) {
+                        propConsumer.accept(Triple.of(pluginStore, objectType, null));
+                        return null;
+                    }
+                    //  Ontology.ONTOLOGY.getPluginStore(pluginContext, pluginMeta).unsaveCast();
+
                     for (OntologyProperty prop : objectType.getCols()) {
                         if (propName.equals(prop.name)) {
                             propConsumer.accept(Triple.of(pluginStore, objectType, prop));

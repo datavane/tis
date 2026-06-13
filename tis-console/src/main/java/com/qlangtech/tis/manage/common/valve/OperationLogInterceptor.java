@@ -115,18 +115,18 @@ public class OperationLogInterceptor extends MethodFilterInterceptor {
         jsonObject.append(params.toString(1)).append("\n");
       }
 
-      try (ServletInputStream input = request.getInputStream()) {
-        if (!input.isFinished()) {
-          requestBody = IOUtils.toString(input, TisUTF8.get());
-          jsonObject.append("body:").append("\n");
-          jsonObject.append(EmojiRemover.removeEmoji(requestBody)).append("\n");
-        }
-      }
+//      try (ServletInputStream input = request.getInputStream()) {
+//        if (!input.isFinished()) {
+//          requestBody = IOUtils.toString(input, TisUTF8.get());
+//          jsonObject.append("body:").append("\n");
+//          jsonObject.append(EmojiRemover.removeEmoji(requestBody)).append("\n");
+//        }
+//      }
     }
     Context context = new MockContext();
-    jsonObject.append("\n=================================");
-    jsonObject.append("response:").append("\n");
-    jsonObject.append(AjaxValve.buildResultStruct(context));
+//    jsonObject.append("\n=================================");
+//    jsonObject.append("response:").append("\n");
+//    jsonObject.append(AjaxValve.buildResultStruct(context));
     log.setTabName(proxy.getActionName());
     log.setUsrId(user.getId());
     log.setUsrName(user.getName());

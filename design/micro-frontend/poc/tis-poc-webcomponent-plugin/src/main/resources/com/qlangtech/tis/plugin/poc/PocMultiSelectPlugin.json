@@ -1,0 +1,32 @@
+{
+  "jdbcTypes": {
+    "label": "JDBC类型",
+    "help": "选择支持的JDBC数据类型（此组件使用Web Component渲染）",
+    "elementCreator": "com.qlangtech.tis.plugin.poc.JdbcTypeItemCreatorFactory",
+    "enum": "com.qlangtech.tis.plugin.poc.PocMultiSelectPlugin.getAvailableTypes()",
+    "viewtype": "tuplelist",
+    "webComponent": {
+      "tagName": "tis-jdbc-type-selector",
+      "scriptUrl": "/plugin-assets/tis-poc-webcomponent-plugin/jdbc-type-selector.bundle.js",
+      "version": "1.0.0",
+      "inputs": [
+        {
+          "name": "tabletView",
+          "type": "object",
+          "required": true
+        },
+        {
+          "name": "error",
+          "type": "object",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tabletViewChange",
+          "type": "object"
+        }
+      ]
+    }
+  }
+}

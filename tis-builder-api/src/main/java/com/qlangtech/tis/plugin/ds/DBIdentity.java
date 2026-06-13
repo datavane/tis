@@ -35,6 +35,7 @@ public interface DBIdentity extends IdentityName {
     String KEY_DB_NAME = "dsname";
     String KEY_TYPE = "type";
     String KEY_UPDATE = "update";
+    String KEY_CREATE = "create";
 
     public static DBIdentity parseId(final String idVal) {
         Optional<DBIdentity> id = parse(idVal);

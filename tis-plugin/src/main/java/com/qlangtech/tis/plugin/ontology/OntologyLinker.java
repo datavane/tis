@@ -71,7 +71,7 @@ public abstract class OntologyLinker extends Ontology implements IdentityName, M
         JSONObject obj = new JSONObject();
         obj.put("name", this.identityValue());
         obj.put("type", this.getLinkTypeEnd().getVal());
-        obj.put("createTime", this.getCreate());
+        obj.put(Ontology.KEY_CREATE_TIME, this.getCreate());
         return obj;
     }
 

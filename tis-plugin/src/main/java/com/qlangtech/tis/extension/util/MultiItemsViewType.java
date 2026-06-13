@@ -50,6 +50,7 @@ import static com.qlangtech.tis.manage.common.Option.KEY_VALUE;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/10/15
  */
+@SuppressWarnings("all")
 public class MultiItemsViewType implements IMultiItemsView {
     public static final String keyColsMeta = "colsMeta";
     public final ViewFormatType viewType;

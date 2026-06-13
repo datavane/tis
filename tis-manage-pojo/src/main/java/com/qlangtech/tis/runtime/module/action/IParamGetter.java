@@ -34,4 +34,6 @@ public interface IParamGetter {
     default boolean getBoolean(String key) {
         throw new UnsupportedOperationException();
     }
+
+
 }

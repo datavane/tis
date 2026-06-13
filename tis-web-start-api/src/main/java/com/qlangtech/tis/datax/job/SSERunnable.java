@@ -150,7 +150,8 @@ public interface SSERunnable extends Runnable, IJobFeedback {
          * 让用户选择不同的Descriptor（例如：MySQL-v5、MySQL-v8之一）
          */
         AI_AGNET_SELECTION_REQUEST("ai_agent_selection_request"),
-        AI_AGNET_DONE("ai_agent_done");
+        AI_AGNET_DONE("ai_agent_done"),
+        LLM_ONTOLOGY_REFER_RECORD("llm_ontology_refer_record");
 
         public static final String KEY_ENVENT_TYPE = "eventType";
 

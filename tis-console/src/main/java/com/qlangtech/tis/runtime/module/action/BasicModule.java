@@ -175,6 +175,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return erRulesGetter.getErRules(dfName);
   }
 
+  @Override
   public List<UploadPluginMeta> getPluginMeta() {
     return getPluginMeta(true);
   }

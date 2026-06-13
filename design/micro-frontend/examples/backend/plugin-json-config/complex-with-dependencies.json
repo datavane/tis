@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "复杂组件配置示例",
+  "description": "包含外部依赖、多个输入输出的复杂Web Component配置",
+
+  "complexField": {
+    "label": "复杂数据编辑器",
+    "help": "支持高级编辑功能的数据编辑器，包含语法高亮、代码提示等功能",
+    "elementCreator": "com.qlangtech.tis.plugin.example.ComplexItemCreatorFactory",
+    "enum": "com.qlangtech.tis.plugin.example.ComplexPlugin.getComplexData()",
+    "viewtype": "tuplelist",
+
+    "webComponent": {
+      "tagName": "tis-complex-editor",
+      "scriptUrl": "/plugin-assets/tis-complex-plugin/complex-editor.bundle.js",
+      "version": "2.1.0",
+
+      "dependencies": [
+        {
+          "name": "monaco-editor",
+          "version": "0.34.0",
+          "url": "https://cdn.jsdelivr.net/npm/monaco-editor@0.34.0/min/vs/loader.js",
+          "description": "代码编辑器核心库"
+        },
+        {
+          "name": "highlight.js",
+          "version": "11.7.0",
+          "url": "https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/index.min.js",
+          "description": "语法高亮库"
+        }
+      ],
+
+      "styleUrls": [
+        "/plugin-assets/tis-complex-plugin/complex-editor.css",
+        "https://cdn.jsdelivr.net/npm/monaco-editor@0.34.0/min/vs/editor/editor.main.css"
+      ],
+
+      "inputs": [
+        {
+          "name": "tabletView",
+          "type": "object",
+          "required": true,
+          "description": "主数据对象"
+        },
+        {
+          "name": "error",
+          "type": "object",
+          "required": false,
+          "description": "验证错误"
+        },
+        {
+          "name": "config",
+          "type": "object",
+          "required": false,
+          "description": "编辑器配置对象",
+          "properties": {
+            "theme": {
+              "type": "string",
+              "enum": ["light", "dark"],
+              "default": "light"
+            },
+            "language": {
+              "type": "string",
+              "default": "javascript"
+            },
+            "readOnly": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        {
+          "name": "plugins",
+          "type": "array",
+          "required": false,
+          "description": "启用的插件列表"
+        }
+      ],
+
+      "outputs": [
+        {
+          "name": "tabletViewChange",
+          "type": "object",
+          "description": "数据变更事件"
+        },
+        {
+          "name": "validationError",
+          "type": "object",
+          "description": "验证失败事件"
+        },
+        {
+          "name": "ready",
+          "type": "boolean",
+          "description": "组件就绪事件"
+        },
+        {
+          "name": "contentChange",
+          "type": "object",
+          "description": "内容实时变更事件（节流）"
+        }
+      ],
+
+      "metadata": {
+        "minBundleVersion": "1.0.0",
+        "compatibleWith": ["chrome>=90", "firefox>=88", "safari>=14"],
+        "featureFlags": ["advanced-editing", "ai-completion"],
+        "performanceHints": {
+          "lazyLoad": true,
+          "preload": false,
+          "priority": "low"
+        }
+      }
+    }
+  }
+}

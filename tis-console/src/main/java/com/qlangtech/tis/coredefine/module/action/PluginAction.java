@@ -167,6 +167,20 @@ public class PluginAction extends BasicModule {
     //    }
   }
 
+  /**
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doDescriptionProcess(Context context) throws Exception {
+    String pluginImpl = this.getString(DescriptorsJSON.KEY_IMPL);
+    Descriptor targetPlugin = Objects.requireNonNull(TIS.get().getDescriptor(pluginImpl),
+      "pluginImpl:" + pluginImpl + " relevant descriptor can not be null");
+
+    targetPlugin.httpProcess(this, this, context);
+
+  }
+
 
   //  /**
   //   * 取得端类型相对应的插件列表
@@ -824,6 +838,7 @@ public class PluginAction extends BasicModule {
    * @param context
    * @see Descriptor#getValueChangePipe
    */
+  @Func(value = PermissionConstant.PLUGIN_CONFIG, sideEffect = false)
   public void doRenderValueChange(Context context) {
     List<UploadPluginMeta> pluginsMeta = getPluginMeta();
 
@@ -1024,8 +1039,8 @@ public class PluginAction extends BasicModule {
     if (context.get(IMessageHandler.ACTION_BIZ_RESULT) == null) {
       this.setBizResult(context,
         describables.stream().flatMap((itemSaveResult) -> itemSaveResult.getIdentityStream()).map((d) -> {
-          if (d instanceof IdentityDesc) {
-            return ((IdentityDesc) d).describePlugin();
+          if (d instanceof IdentityDesc identityDesc) {
+            return identityDesc.describePlugin();
           } else {
             return (d).identityValue();
           }
