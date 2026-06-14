@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn -o -q -Dmaven.test.skip=true compile)",
+      "Bash(grep *)",
+      "Bash(mvn compile *)"
+    ]
+  }
+}

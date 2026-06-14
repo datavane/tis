@@ -18,7 +18,10 @@
 
 package com.qlangtech.tis.datax;
 
+import com.qlangtech.tis.lang.PayloadLink;
+
 import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -28,6 +31,9 @@ import java.util.List;
 public interface IManipulateStatus {
     public ManipulateStateSummary manipulateStatusSummary();
 
+    public default Optional<PayloadLink> manipulateManagerPath() {
+        return Optional.empty();
+    }
 
     public static ManipulateState create(String message) {
         return new ManipulateState.MessageState(message);

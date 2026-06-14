@@ -45,6 +45,7 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.AbstractPropAssist.MarkdownHelperContent;
 import com.qlangtech.tis.extension.util.OverwriteProps;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.lang.PayloadLink;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
@@ -449,6 +450,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         if (plugin instanceof IManipulateStatus status) {
             // IManipulateStatus status = (IManipulateStatus) plugin;
             eprops.put("stateSummary", status.manipulateStatusSummary());
+            Optional<PayloadLink> managerPath = status.manipulateManagerPath();
+            managerPath.ifPresent((path) -> {
+                eprops.put("manager", path);
+            });
         }
         return eprops;
     }
