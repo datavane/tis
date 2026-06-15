@@ -18,23 +18,35 @@
 package com.qlangtech.tis.runtime.module.action;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.plugin.IPluginStore;
 //----------------------------------------------------
+import com.qlangtech.tis.plugin.datax.transformer.UDFDesc;
+import com.qlangtech.tis.plugin.manipulate.ManipulatePluginCacheRegister;
 import com.qlangtech.tis.plugin.ontology.Ontology;
 import com.qlangtech.tis.plugin.ontology.OntologyDomain;
+import com.qlangtech.tis.plugin.ontology.OntologyDomainManipulate;
 import com.qlangtech.tis.plugin.ontology.OntologyGlossary;
 import com.qlangtech.tis.plugin.ontology.OntologyLinker;
 import com.qlangtech.tis.plugin.ontology.OntologyObjectType;
 import com.qlangtech.tis.plugin.ontology.OntologySharedProperty;
 import com.qlangtech.tis.plugin.ontology.OntologyValueType;
+import com.qlangtech.tis.datax.job.SSEEventWriter;
+import com.qlangtech.tis.datax.job.SSERunnable;
+import com.qlangtech.tis.plugin.ontology.chatbi.ChatBIResult;
+import com.qlangtech.tis.plugin.ontology.chatbi.ChatBIService;
+import com.qlangtech.tis.plugin.ontology.chatbi.QueryResult;
+import com.qlangtech.tis.plugin.ontology.chatbi.TraceStep;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.linker.LinkResources;
 import com.qlangtech.tis.plugin.ontology.impl.synonyms.SynonymsElement;
 //----------------------------------------------------
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
@@ -42,11 +54,21 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.qlangtech.tis.manage.common.Config;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 
 import static com.qlangtech.tis.plugin.ontology.Ontology.KEY_CREATE_TIME;
 import static com.qlangtech.tis.plugin.ontology.Ontology.KEY_DESCRIPTION;
@@ -67,6 +89,49 @@ public class OntologyAction extends BasicModule {
       pager = this.createPager();
     }
     return pager;
+  }
+
+  public void doChatbiQuery(Context context) {
+    final String ontologyName = getDomain();
+    ManipulatePluginCacheRegister.TemplateManipulateStore<OntologyDomainManipulate> manipulateStore =
+      OntologyDomainManipulate.getManipulateStore(ontologyName, false);
+    ChatBIService chatBI = null;
+    for (OntologyDomainManipulate m : manipulateStore.getManipulates()) {
+      if (m instanceof ChatBIService bi) {
+        chatBI = bi;
+        break;
+      }
+    }
+    Objects.requireNonNull(chatBI, "instance of " + ChatBIService.class.getSimpleName() + " can not be null");
+
+    final String nlq = this.getString("nlq");
+    SSEEventWriter sseWriter = this.getEventStreamWriter();
+
+    ChatBIResult result = chatBI.ask(ontologyName, nlq, (TraceStep step) -> {
+      JSONObject json = new JSONObject();
+      json.put("step", step.step());
+      json.put("ok", step.ok());
+      json.put("message", step.message());
+      json.put("millis", step.millis());
+      if (step.data() != null) {
+        json.put("data", step.data());
+      }
+      sseWriter.writeSSEEvent(SSERunnable.SSEEventType.LLM_CHAT_BI_STEP_RECORD, json);
+    });
+
+    JSONObject resultJson = new JSONObject();
+    resultJson.put("success", result.isSuccess());
+    resultJson.put("sql", result.sql());
+    resultJson.put("error", result.error());
+    QueryResult qr = result.data();
+    if (qr != null) {
+      resultJson.put("columns", qr.columns());
+      resultJson.put("rows", qr.rows());
+      resultJson.put("rowCount", qr.rowCount());
+      resultJson.put("truncated", qr.truncated());
+      resultJson.put("actualRows", qr.actualRows());
+    }
+    sseWriter.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_DONE, resultJson);
   }
 
   /**
@@ -254,6 +319,309 @@ public class OntologyAction extends BasicModule {
     this.setBizResult(context, new PaginationResult(pager, doaminList.stream().map((p) -> {
       return p.getKey().convertPojo();
     }).toList()));
+  }
+
+  // ================================================================
+  //  ChatBI 状态页 API
+  // ================================================================
+
+  /**
+   * ChatBI 调用统计：成功/失败总数 + 最近 14 天每日调用量。
+   * emethod=get_chatbi_stats&action=ontology_action&ontology={domain}
+   */
+  public void doGetChatbiStats(Context context) {
+    final String domain = getDomain();
+    File traceDir = new File(Config.getDataDir(), "chatbi/trace/" + domain);
+
+    long successCount = 0;
+    long failCount = 0;
+    // key = "yyyyMMdd"，按日累计
+    TreeMap<String, Long> dailyMap = new TreeMap<>();
+
+    // 初始化最近 7 天的 key，确保无数据的日期也出现在结果中
+    LocalDate today = LocalDate.now();
+    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMdd");
+    for (int i = 6; i >= 0; i--) {
+      dailyMap.put(today.minusDays(i).format(fmt), 0L);
+    }
+
+    if (traceDir.exists() && traceDir.isDirectory()) {
+      File[] files = traceDir.listFiles((d, name) -> name.endsWith(".jsonl"));
+      if (files != null) {
+        // 文件名格式：yyyyMMddHHmmss-{uuid}.jsonl
+        for (File f : files) {
+          String name = f.getName();
+          if (name.length() < 8)
+            continue;
+          String dateKey = name.substring(0, 8);
+
+          boolean success = false;
+          boolean hasExecute = false;
+          boolean hasError = false;
+          try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+              if (line.contains("\"step\":\"execute\"") || line.contains("\"step\": \"execute\"")) {
+                hasExecute = true;
+              }
+              if (line.contains("\"step\":\"error\"") || line.contains("\"step\": \"error\"")) {
+                hasError = true;
+              }
+            }
+            success = hasExecute && !hasError;
+          } catch (IOException e) {
+            // 跳过无法读取的文件
+            continue;
+          }
+
+          if (success) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+          // 仅统计最近 14 天
+          if (dailyMap.containsKey(dateKey)) {
+            dailyMap.merge(dateKey, 1L, Long::sum);
+          }
+        }
+      }
+    }
+
+    JSONObject result = new JSONObject();
+    result.put("successCount", successCount);
+    result.put("failCount", failCount);
+    result.put("totalCount", successCount + failCount);
+
+    JSONArray daily = new JSONArray();
+    for (Map.Entry<String, Long> e : dailyMap.entrySet()) {
+      JSONObject item = new JSONObject();
+      item.put("date", e.getKey());
+      item.put("count", e.getValue());
+      daily.add(item);
+    }
+    result.put("daily", daily);
+    this.setBizResult(context, result);
+  }
+
+  /**
+   * Neo4j 图谱同步状态：各类节点数量（Neo4j 实际值 vs XML 配置值）+ 最后同步时间。
+   * emethod=get_neo4j_stats&action=ontology_action&ontology={domain}
+   */
+  public void doGetNeo4jStats(Context context) {
+    final String domain = getDomain();
+
+    // XML 侧计数
+    int xmlOtCount = OntologyObjectType.loadAll(domain).size();
+    int xmlLinkerCount = Ontology.loadAllLinkers(domain).size();
+    int xmlGlossaryCount = Ontology.loadAllGlossary(domain).size();
+    int xmlSpCount = Ontology.loadAllSharedProperties(domain).size();
+    int xmlVtCount = Ontology.loadAllValueTypes(domain).size();
+
+    // 汇总 Property 数（需逐 OT 累加）
+    int xmlPropertyCount = OntologyObjectType.loadAll(domain).stream()
+      .mapToInt(ot -> ot.getCols().size()).sum();
+
+    JSONObject xmlObj = new JSONObject();
+    xmlObj.put("objectTypes", xmlOtCount);
+    xmlObj.put("properties", xmlPropertyCount);
+    xmlObj.put("linkers", xmlLinkerCount);
+    xmlObj.put("glossaries", xmlGlossaryCount);
+    xmlObj.put("sharedProperties", xmlSpCount);
+    xmlObj.put("valueTypes", xmlVtCount);
+
+    // Neo4j 侧计数（若 Neo4j 未启动则返回全 0）
+    JSONObject neo4jObj = new JSONObject();
+    Ontology.queryGraphStats(domain).ifPresentOrElse(s -> {
+      neo4jObj.put("objectTypes", s.objectTypeCount());
+      neo4jObj.put("properties", s.propertyCount());
+      neo4jObj.put("linkers", s.linkerCount());
+      neo4jObj.put("glossaries", s.glossaryCount());
+      neo4jObj.put("sharedProperties", s.sharedPropertyCount());
+      neo4jObj.put("valueTypes", s.valueTypeCount());
+      neo4jObj.put("lastSyncAt", s.lastSyncAt());
+      neo4jObj.put("available", true);
+    }, () -> {
+      neo4jObj.put("objectTypes", 0);
+      neo4jObj.put("properties", 0);
+      neo4jObj.put("linkers", 0);
+      neo4jObj.put("glossaries", 0);
+      neo4jObj.put("sharedProperties", 0);
+      neo4jObj.put("valueTypes", 0);
+      neo4jObj.put("lastSyncAt", 0);
+      neo4jObj.put("available", false);
+    });
+
+    JSONObject result = new JSONObject();
+    result.put("xml", xmlObj);
+    result.put("neo4j", neo4jObj);
+    this.setBizResult(context, result);
+  }
+
+  private static final int TRACE_PAGE_SIZE = 20;
+
+  /**
+   * 历史 Trace 列表（倒序，分页）。
+   * emethod=get_chatbi_traces&action=ontology_action&ontology={domain}&page=1
+   */
+  public void doGetChatbiTraces(Context context) {
+    final String domain = getDomain();
+    int page = this.getInt("page", 1);
+    if (page < 1)
+      page = 1;
+
+    File traceDir = new File(Config.getDataDir(), "chatbi/trace/" + domain);
+    List<JSONObject> items = new ArrayList<>();
+    int total = 0;
+
+    if (traceDir.exists() && traceDir.isDirectory()) {
+      File[] files = traceDir.listFiles((d, name) -> name.endsWith(".jsonl"));
+      if (files != null && files.length > 0) {
+        // 文件名字典序倒序 = 时间倒序
+        Arrays.sort(files, Comparator.comparing(File::getName).reversed());
+        total = files.length;
+
+        int from = (page - 1) * TRACE_PAGE_SIZE;
+        int to = Math.min(from + TRACE_PAGE_SIZE, files.length);
+
+        for (int i = from; i < to; i++) {
+          File f = files[i];
+          JSONObject item = parseTraceSummary(f);
+          if (item != null)
+            items.add(item);
+        }
+      }
+    }
+
+    JSONObject result = new JSONObject();
+    result.put("total", total);
+    result.put("pageSize", TRACE_PAGE_SIZE);
+    result.put("items", items);
+    this.setBizResult(context, result);
+  }
+
+  /**
+   * 获取单条 Trace 的完整步骤明细。
+   * emethod=get_chatbi_trace_detail&action=ontology_action&ontology={domain}&reqId={reqId}
+   */
+  public void doGetChatbiTraceDetail(Context context) {
+    final String domain = getDomain();
+    final String reqId = this.getString("reqId");
+    if (StringUtils.isEmpty(reqId)) {
+      throw new IllegalArgumentException("param reqId can not be empty");
+    }
+
+    File traceFile = new File(Config.getDataDir(), "chatbi/trace/" + domain + "/" + reqId + ".jsonl");
+    if (!traceFile.exists()) {
+      this.addErrorMessage(context, "Trace file not found: " + reqId);
+      return;
+    }
+
+    JSONObject result = new JSONObject();
+    JSONArray steps = new JSONArray();
+    String nlq = null;
+    long timestamp = 0L;
+
+    try (BufferedReader br = new BufferedReader(new FileReader(traceFile))) {
+      // 首行是 header
+      String headerLine = br.readLine();
+      if (headerLine != null) {
+        com.alibaba.fastjson.JSONObject header = com.alibaba.fastjson.JSON.parseObject(headerLine);
+        nlq = header.getString("nlq");
+        timestamp = header.getLongValue("timestamp");
+      }
+      // 后续每行是 TraceStep
+      String line;
+      while ((line = br.readLine()) != null) {
+        if (StringUtils.isBlank(line))
+          continue;
+        JSONObject row = JSON.parseObject(line);
+        JSONObject traceData = null;
+        if ((traceData = row.getJSONObject("data")) != null) {
+          row.put("data", createUdfDescs(traceData));
+        }
+        steps.add(row);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to read trace file: " + reqId, e);
+    }
+
+    result.put("reqId", reqId);
+    result.put("nlq", nlq);
+    result.put("timestamp", timestamp);
+    result.put("steps", steps);
+    this.setBizResult(context, result);
+  }
+
+  private List<UDFDesc> createUdfDescs(JSONObject traceData) {
+    List<UDFDesc> literia = Lists.newArrayList();
+    for (Map.Entry<String, Object> entry : traceData.entrySet()) {
+      Object val = entry.getValue();
+      UDFDesc desc = null;
+      if (val instanceof JSONObject s) {
+        desc = new UDFDesc(entry.getKey(), JsonUtil.toString(s, false));
+      } else if (val instanceof JSONArray s) {
+        desc = new UDFDesc(entry.getKey(), JsonUtil.toString(s, false));
+      } else {
+        desc = new UDFDesc(entry.getKey(), String.valueOf(val));
+      }
+      literia.add(desc);
+    }
+    return literia;
+  }
+
+  /**
+   * 解析 trace 文件，提取摘要信息（仅读头行 + 扫 step 类型）。
+   */
+  private JSONObject parseTraceSummary(File f) {
+    try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+      String headerLine = br.readLine();
+      if (headerLine == null)
+        return null;
+
+      com.alibaba.fastjson.JSONObject header = com.alibaba.fastjson.JSON.parseObject(headerLine);
+      String reqId = header.getString("reqId");
+      String nlq = header.getString("nlq");
+      long timestamp = header.getLongValue("timestamp");
+
+      boolean hasExecute = false;
+      boolean hasError = false;
+      int llmCount = 0;
+      long llmMs = 0;
+      long executeMs = 0;
+
+      String line;
+      while ((line = br.readLine()) != null) {
+        if (line.isBlank())
+          continue;
+        com.alibaba.fastjson.JSONObject step = com.alibaba.fastjson.JSON.parseObject(line);
+        String stepName = step.getString("step");
+        if (stepName == null)
+          continue;
+        switch (stepName) {
+          case "llm" -> {
+            llmCount++;
+            llmMs += step.getLongValue("millis");
+          }
+          case "execute" -> {
+            hasExecute = true;
+            executeMs = step.getLongValue("millis");
+          }
+          case "error" -> hasError = true;
+        }
+      }
+
+      JSONObject item = new JSONObject();
+      item.put("reqId", reqId);
+      item.put("nlq", nlq);
+      item.put("timestamp", timestamp);
+      item.put("success", hasExecute && !hasError);
+      item.put("retryCnt", Math.max(0, llmCount - 1));
+      item.put("llmMs", llmMs);
+      item.put("executeMs", executeMs);
+      return item;
+    } catch (Exception e) {
+      return null;
+    }
   }
 
 

@@ -151,7 +151,11 @@ public interface SSERunnable extends Runnable, IJobFeedback {
          */
         AI_AGNET_SELECTION_REQUEST("ai_agent_selection_request"),
         AI_AGNET_DONE("ai_agent_done"),
-        LLM_ONTOLOGY_REFER_RECORD("llm_ontology_refer_record");
+        LLM_ONTOLOGY_REFER_RECORD("llm_ontology_refer_record"),
+        /**
+         * ChatBI 流水线每一步的执行记录（retrieve/prompt/llm/validate/execute/error）
+         */
+        LLM_CHAT_BI_STEP_RECORD("llm_chat_bi_step_record");
 
         public static final String KEY_ENVENT_TYPE = "eventType";
 

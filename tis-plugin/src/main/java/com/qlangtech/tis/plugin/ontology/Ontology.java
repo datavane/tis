@@ -152,6 +152,49 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
         //  return objectTypes;
     }
 
+    // ================================================================
+    //  Neo4j 图谱统计（由 tis-ontology-plugin 运行时注册）
+    // ================================================================
+
+    /**
+     * 各类节点/关系数量及最后同步时间。
+     */
+    public record OntologyGraphStats(
+            long objectTypeCount,
+            long propertyCount,
+            long linkerCount,
+            long glossaryCount,
+            long sharedPropertyCount,
+            long valueTypeCount,
+            long lastSyncAt   // Neo4j timestamp() 毫秒，0 表示无数据
+    ) {
+    }
+
+    @FunctionalInterface
+    public interface GraphStatsProvider {
+        OntologyGraphStats getStats(String domain);
+    }
+
+    private static volatile GraphStatsProvider _graphStatsProvider;
+
+    /**
+     * tis-ontology-plugin 初始化时注册（在 OntologyNeo4jSyncService.getInstance() 中调用）。
+     */
+    public static void registerGraphStatsProvider(GraphStatsProvider p) {
+        _graphStatsProvider = p;
+    }
+
+    /**
+     * 查询 domain 下的 Neo4j 统计；Neo4j 未启动时返回 empty。
+     */
+    public static Optional<OntologyGraphStats> queryGraphStats(String domain) {
+        OntologyDomainManipulate.getManipulateStore(domain, false) //
+                .getManipulates().forEach(OntologyDomainManipulate::initialize);
+        return Optional.of(Objects.requireNonNull(_graphStatsProvider, "_graphStatsProvider can not be null").getStats(domain));
+    }
+
+    // ================================================================
+
     public enum OntologyEnum {
 
         ObjectType(OntologyObjectType.KEY_OBJECT_TYPE, new BaiscAssistStoreGetter<OntologyObjectType>() {

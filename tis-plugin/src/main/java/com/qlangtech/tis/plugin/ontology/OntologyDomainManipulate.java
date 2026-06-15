@@ -53,6 +53,11 @@ public abstract class OntologyDomainManipulate extends BasicManipuldateProcessor
         return ontologyCacheRegister.getOrLoad(domainName, forceFresh);
     }
 
+    /**
+     * 初始化上下文
+     */
+    public abstract void initialize();
+
     @Override
     protected IPluginStore<OntologyDomainManipulate> loadPluginStore(IPluginContext pluginContext,
                                                                      ManipulateItemsProcessor itemsProcessor) {
