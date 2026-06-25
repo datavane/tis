@@ -67,7 +67,8 @@ public class UploadPluginMeta implements IUploadPluginMeta {
 
     private static final String KEY_JUST_GET_ITEM_RELEVANT = "justGetItemRelevant";
 
-    private static final Pattern PATTERN_PLUGIN_ATTRIBUTE = Pattern.compile("[" + ATTR_KEY_VALUE_SPLIT + "\\-\\w\\.]+");
+    // 允许属性值包含空白字符，避免灾难性回溯
+    private static final Pattern PATTERN_PLUGIN_ATTRIBUTE = Pattern.compile("[" + ATTR_KEY_VALUE_SPLIT + "\\-\\w\\.\\s]+");
 
     public static final Pattern PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR =
             Pattern.compile("([^" + ATTR_KEY_VALUE_SPLIT + "]+?)" + ATTR_KEY_VALUE_SPLIT + "(" + PATTERN_PLUGIN_ATTRIBUTE.pattern() + ")");

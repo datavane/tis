@@ -29,6 +29,7 @@ import com.qlangtech.tis.plugin.manipulate.BasicManipuldateProcessor;
 import com.qlangtech.tis.plugin.manipulate.ManipulatePluginCacheRegister;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.util.IPluginContext;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Optional;
 
@@ -46,6 +47,9 @@ public abstract class OntologyDomainManipulate extends BasicManipuldateProcessor
 
     public static ManipulatePluginCacheRegister.TemplateManipulateStore<OntologyDomainManipulate>
     getManipulateStore(String domainName, boolean forceFresh) {
+        if (StringUtils.isEmpty(domainName)) {
+            throw new IllegalArgumentException("param domainName can not be empty");
+        }
         if (ontologyCacheRegister == null) {
             ontologyCacheRegister = new ManipulatePluginCacheRegister<>(
                     domain -> TIS.getPluginStore(OntologyDomain.getStoreKey(domain, OntologyDomainManipulate.class)));

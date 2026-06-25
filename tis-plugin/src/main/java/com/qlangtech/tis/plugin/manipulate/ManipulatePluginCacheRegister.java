@@ -21,6 +21,7 @@ package com.qlangtech.tis.plugin.manipulate;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Collection;
 import java.util.Map;
@@ -47,6 +48,9 @@ public class ManipulatePluginCacheRegister<T extends BasicManipuldateProcessor<T
     }
 
     public TemplateManipulateStore<T> getOrLoad(String key, boolean forceFresh) {
+        if (StringUtils.isEmpty(key)) {
+            throw new IllegalArgumentException("param key can not be empty");
+        }
         return register.compute(key, (k, old) -> {
             if (forceFresh || old == null) {
                 TemplateManipulateStore<T> store = createStore();
@@ -63,7 +67,9 @@ public class ManipulatePluginCacheRegister<T extends BasicManipuldateProcessor<T
         });
     }
 
-    /** 子类可覆盖以返回特化的 store 实例 */
+    /**
+     * 子类可覆盖以返回特化的 store 实例
+     */
     protected TemplateManipulateStore<T> createStore() {
         return new TemplateManipulateStore<>();
     }

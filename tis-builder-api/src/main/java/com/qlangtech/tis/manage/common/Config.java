@@ -58,6 +58,8 @@ public class Config extends BasicConfig {
      * 用于运行时指定logback本地日志Appender 输出文件路径
      */
     public static final String EXEC_LOCAL_LOGGER_FILE_PATH = "localLoggerFilePath";
+    public static final String ADMIN_ID = "9999";
+    public static final String ADMIN_NAME = "admin";
     private static final Logger logger = LoggerFactory.getLogger(Config.class);
     public static final String SUB_DIR_LIBS = "libs";
     public static final String LIB_PLUGINS_PATH = SUB_DIR_LIBS + "/" + KEY_TIS_PLUGIN_ROOT;

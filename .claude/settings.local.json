@@ -153,7 +153,8 @@
       "Bash(mvn test-compile *)",
       "Bash(mvn test *)",
       "Bash(mvn -o test -Dtest=TestAstValidator#testValidSelectForWithStatement)",
-      "Bash(echo \"EXIT=$?\")"
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(npm list *)"
     ],
     "deny": [],
     "ask": []

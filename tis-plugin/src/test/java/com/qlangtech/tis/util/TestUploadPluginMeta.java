@@ -1,22 +1,23 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.util;
 
+import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.SubFormFilter;
 import junit.framework.TestCase;
@@ -24,6 +25,8 @@ import org.easymock.EasyMock;
 
 import java.util.List;
 import java.util.Optional;
+
+import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -47,6 +50,17 @@ public class TestUploadPluginMeta extends TestCase {
         assertEquals("dataxReader", parseResult.getName());
         assertEquals("mysql_mysql", parseResult.getExtraParam("dataxName"));
         assertEquals("fe4e79f1-9f05-6976-7604-db6d1c3ad391", parseResult.getExtraParam("execId"));
+    }
+
+    public void testPluginMetaWithSpaceDisplayNameParse() {
+        String pluginName = "test_plugin";
+        final String targetDescriptor = "Value Type";
+        String[] plugins =
+                new String[]{pluginName + ":" + KEY_REQUIRE + "," + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME
+                        + "_" + targetDescriptor};
+        List<UploadPluginMeta> parse = UploadPluginMeta.parse(plugins);
+        Assert.assertNotNull(parse);
+       Assert.assertEquals(targetDescriptor,parse.get(0).getExtraParam(UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME));
     }
 
     public void testPluginMetaParse() {
@@ -93,7 +107,8 @@ public class TestUploadPluginMeta extends TestCase {
         final String targetDescriptorImpl = "com.qlangtech.tis.plugin.datax.DataxMySQLReader";
         final String subFieldName = "subFieldName";
 
-        // dataxReader:require,targetDescriptorImpl_com.qlangtech.tis.plugin.datax.DataxMySQLReader,targetDescriptorName_MySQL,subFormFieldName_selectedTabs,dataxName_hudi,maxReaderTableCount_9999
+        // dataxReader:require,targetDescriptorImpl_com.qlangtech.tis.plugin.datax.DataxMySQLReader,
+        // targetDescriptorName_MySQL,subFormFieldName_selectedTabs,dataxName_hudi,maxReaderTableCount_9999
 
         plugins = new String[]{pluginName + ":" + UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME
                 + "_" + targetDescriptor

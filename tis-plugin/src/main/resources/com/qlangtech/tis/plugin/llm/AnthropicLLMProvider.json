@@ -1,0 +1,79 @@
+{
+  "name": {
+    "help": "实例的唯一性名称，取一个方便记忆的名称",
+    "placeholder": "anthropic1"
+  },
+  "apiKey": {
+    "label": "API Key",
+    "help": "Anthropic API密钥，请在Anthropic控制台获取并妥善保管"
+  },
+  "baseUrl": {
+    "label": "Base URL",
+    "readonly": false,
+    "dftVal": "https://api.anthropic.com",
+    "help": "API基础地址，默认为Anthropic官方地址"
+  },
+  "sampling": {
+    "subDescEnumFilter": "return com.qlangtech.tis.plugin.llm.ZhipuLLMProvider.filter(desc);"
+  },
+  "model": {
+    "label": "模型",
+    "dftVal": "claude-sonnet-4-6",
+    "help": "模型的 ID，支持 claude-sonnet-4-6、claude-opus-4-6、claude-opus-4-7，推荐使用：claude-sonnet-4-6",
+    "enum": [
+      {
+        "val": "claude-sonnet-4-6",
+        "label": "Claude Sonnet 4.6（均衡高效）"
+      },
+      {
+        "val": "claude-opus-4-6",
+        "label": "Claude Opus 4.6（高质量）"
+      },
+      {
+        "val": "claude-opus-4-7",
+        "label": "Claude Opus 4.7（最新高质量）"
+      }
+    ]
+  },
+  "maxTokens": {
+    "label": "最大Token数",
+    "dftVal": 8192,
+    "help": "最大生成 token 数量，不同模型有不同的限制"
+  },
+  "stream": {
+    "label": "流式输出",
+    "dftVal": false,
+    "help": "是否开启流式输出，开启后会逐步返回生成的内容",
+    "readonly": true,
+    "enum": [
+      {
+        "val": true,
+        "label": "是"
+      },
+      {
+        "val": false,
+        "label": "否"
+      }
+    ]
+  },
+  "printLog": {
+    "label": "打印日志",
+    "dftVal": false,
+    "help": "是否打印与模型交互的执行日志",
+    "enum": [
+      {
+        "val": true,
+        "label": "是"
+      },
+      {
+        "val": false,
+        "label": "否"
+      }
+    ]
+  },
+  "maxRetry": {
+    "label": "最大尝试次数",
+    "dftVal": 1,
+    "help": "当向服务端提交请求错误，最大尝试次数"
+  }
+}

@@ -34,6 +34,7 @@ import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypeBinding;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -125,27 +126,10 @@ public abstract class OntologyObjectType extends Ontology implements MultiStepsS
      * @return
      */
     public static List<OntologyObjectType> loadAll(String ontologyName) {
-
+        if (StringUtils.isEmpty(ontologyName)) {
+            throw new IllegalArgumentException("param ontologyName can not be empty");
+        }
         return OntologyEnum.ObjectType.loadAll(OntologyPluginMeta.create(OntologyEnum.ObjectType, ontologyName));
-
-        //        List<OntologyObjectType> objectTypes = Lists.newArrayList();
-        //        File objectTypeDir = OntologyDomain.getObjectTypeDir(ontologyName);
-        //        if (!objectTypeDir.exists()) {
-        //            return Collections.emptyList();
-        //        }
-        //        //        for (String ds : Objects.requireNonNull(objectTypeDir.list(), "subDir of objectTypeDir
-        //        can not be
-        //        //        null")) {
-        //        //            File dsDir = new File(objectTypeDir, ds);
-        //        for (File ot : FileUtils.listFiles(objectTypeDir, new String[]{XmlFile.KEY_XML_EXTENSION}, false)) {
-        //            IPluginStore<OntologyObjectType> ps =
-        //                    getPluginStore(ontologyName, //ds,
-        //                            StringUtils.removeEnd(ot.getName(), XmlFile.KEY_XML_DOT_EXTENSION));
-        //
-        //            objectTypes.add(Objects.requireNonNull(ps.getPlugin(), "ot:" + ot.getAbsolutePath()));
-        //        }
-        //        //}
-        //        return objectTypes;
     }
 
     @Override

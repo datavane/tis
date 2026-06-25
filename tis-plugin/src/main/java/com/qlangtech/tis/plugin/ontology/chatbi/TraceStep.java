@@ -18,6 +18,9 @@
 package com.qlangtech.tis.plugin.ontology.chatbi;
 
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
+import java.util.Optional;
 
 /**
  * Trace 步骤记录。
@@ -81,7 +84,13 @@ public record TraceStep(
         return new TraceStep("execute", true, "Query executed", data, millis);
     }
 
-    public static TraceStep error(String step, String message) {
-        return new TraceStep(step, false, message, new JSONObject(), 0);
+    public static TraceStep error(String step, String message, Exception exception) {
+        JSONObject data = new JSONObject();
+        if (exception != null) {
+            Throwable cause = exception.getCause();
+            data.put("exception", ExceptionUtils.getStackTrace(cause != null ? cause : exception));
+        }
+
+        return new TraceStep(step, false, message, data, 0);
     }
 }

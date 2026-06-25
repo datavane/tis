@@ -23,6 +23,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.function.BiConsumer;
 
+import static com.qlangtech.tis.manage.common.Config.ADMIN_NAME;
+
 /**
  * 报警消息数据模型
  * 参照StreamPark的AlertTemplate设计
@@ -64,7 +66,7 @@ public class AlertTemplate implements Serializable {
                 .lostJobs(0)
                 .cancelledJobs(0)
                 .probeJobs(10)
-                .user("admin")
+                .user(ADMIN_NAME)
                 .build();
     }
 

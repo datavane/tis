@@ -28,19 +28,26 @@ import com.qlangtech.tis.aiagent.plan.TaskPlan;
 import com.qlangtech.tis.aiagent.plan.TaskStep;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.lang.PayloadLink;
+import com.qlangtech.tis.manage.common.ConfigFileContext;
+import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.plugin.llm.TokenUsageSummary;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 
 import static com.qlangtech.tis.aiagent.core.TestRealTISPlanAndExecuteAgent.createNoneLogger;
@@ -310,13 +317,69 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
    * Mock的LLMProvider
    */
   public static class MockLLMProvider extends LLMProvider {
+    //    @Override
+    //    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
+    //      LLMResponse response = new LLMResponse(createNoneLogger());
+    //      response.setSuccess(true);
+    //      response.setContent("Mock response");
+    //      // response.setTotalTokens(100);
+    //      return response;
+    //    }
+
     @Override
-    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
-      LLMResponse response = new LLMResponse(createNoneLogger());
-      response.setSuccess(true);
-      response.setContent("Mock response");
-      // response.setTotalTokens(100);
-      return response;
+    protected Logger getLogger() {
+      return null;
+    }
+
+    @Override
+    protected Integer getMaxTokens() {
+      return 0;
+    }
+
+    @Override
+    protected void addCustomizeParams(ITISJsonSchema jsonOutput, List<String> systemPrompt, LLMOptionParams params,
+                                      List<HttpUtils.PostParam> postParams) {
+
+    }
+
+    @Override
+    protected TokenUsageSummary getTokenUsageSummary(JSONObject response) {
+      return null;
+    }
+
+    @Override
+    protected boolean processResponseJson(LLMResponse response, JSONObject responseJson) {
+      return false;
+    }
+
+    @Override
+    protected StringBuilder getResponseBodyContent(JSONObject responseJson) {
+      return null;
+    }
+
+    @Override
+    protected Consumer<JSONObject> getDeltaContentConsumer(LLMOptionParams params) {
+      return null;
+    }
+
+    @Override
+    protected void processErrorResponseBody(int status, IOException e, JSONObject errBody) {
+
+    }
+
+    @Override
+    protected List<ConfigFileContext.Header> appendHeaders() {
+      return List.of();
+    }
+
+    @Override
+    protected URL getApiUrl() {
+      return null;
+    }
+
+    @Override
+    protected String getModel() {
+      return "";
     }
 
     @Override
@@ -368,12 +431,68 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
    * 会失败的LLMProvider
    */
   private static class FailingLLMProvider extends LLMProvider {
+    //    @Override
+    //    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
+    //      LLMResponse response = new LLMResponse(createNoneLogger());
+    //      response.setSuccess(false);
+    //      response.setErrorMessage("Simulated failure");
+    //      return response;
+    //    }
+
     @Override
-    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
-      LLMResponse response = new LLMResponse(createNoneLogger());
-      response.setSuccess(false);
-      response.setErrorMessage("Simulated failure");
-      return response;
+    protected Logger getLogger() {
+      return null;
+    }
+
+    @Override
+    protected Integer getMaxTokens() {
+      return 0;
+    }
+
+    @Override
+    protected void addCustomizeParams(ITISJsonSchema jsonOutput, List<String> systemPrompt, LLMOptionParams params,
+                                      List<HttpUtils.PostParam> postParams) {
+
+    }
+
+    @Override
+    protected TokenUsageSummary getTokenUsageSummary(JSONObject response) {
+      return null;
+    }
+
+    @Override
+    protected boolean processResponseJson(LLMResponse response, JSONObject responseJson) {
+      return false;
+    }
+
+    @Override
+    protected StringBuilder getResponseBodyContent(JSONObject responseJson) {
+      return null;
+    }
+
+    @Override
+    protected Consumer<JSONObject> getDeltaContentConsumer(LLMOptionParams params) {
+      return null;
+    }
+
+    @Override
+    protected void processErrorResponseBody(int status, IOException e, JSONObject errBody) {
+
+    }
+
+    @Override
+    protected List<ConfigFileContext.Header> appendHeaders() {
+      return List.of();
+    }
+
+    @Override
+    protected URL getApiUrl() {
+      return null;
+    }
+
+    @Override
+    protected String getModel() {
+      return "";
     }
 
     @Override

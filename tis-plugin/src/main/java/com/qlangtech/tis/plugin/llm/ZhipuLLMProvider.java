@@ -19,6 +19,7 @@
 package com.qlangtech.tis.plugin.llm;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
@@ -27,6 +28,7 @@ import com.qlangtech.tis.aiagent.llm.ITISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMOptionParams;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
+import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
@@ -35,6 +37,8 @@ import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.llm.impl.qwen.sampling.TemperatureSampling;
+import com.qlangtech.tis.plugin.llm.impl.qwen.sampling.TopPSampling;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import org.apache.commons.lang.StringUtils;
@@ -49,23 +53,23 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_DEFAULT;
+import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_PATTERN;
+
 /**
- * 阿里通义千问大模型Provider实现<br/>
- * API文档：<a href="https://help.aliyun.com/document_detail/2712576.html">...</a><br/>
- * <p>
- * API Key 管理页面<br/>
- * <a href="https://bailian.console.aliyun.com/?spm=a2c4g.11186623.0.0.47fe10bdovIEgY&tab=globalset#/efm/api_key">...</a>
+ * 智谱AI大模型Provider实现<br/>
+ * API文档：<a href="https://open.bigmodel.cn/dev/api">智谱AI开放平台</a><br/>
+ * <a href="https://docs.bigmodel.cn/api-reference/%E6%A8%A1%E5%9E%8B-api/%E5%AF%B9%E8%AF%9D%E8%A1%A5%E5%85%A8">...</a>
  *
  * @author 百岁 (baisui@qlangtech.com)
- * @date 2025/10/27
+ * @date 2025/11/18
  */
 @TISExtension
-public class QWenLLMProvider extends LLMProvider {
-    private static final Logger logger = LoggerFactory.getLogger(QWenLLMProvider.class);
+public class ZhipuLLMProvider extends LLMProvider {
+    private static final Logger logger = LoggerFactory.getLogger(ZhipuLLMProvider.class);
 
-    private static final String URL_PATH = "/compatible-mode/v1/chat/completions";
-    public static final String DEFAULT_MODEL = "qwen-plus";
-    public static final String DEFAULT_BASE_URL = "https://dashscope.aliyuncs.com";
+    public static final String DEFAULT_MODEL = "glm-5.2";
+    public static final String DEFAULT_BASE_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
 
     @FormField(identity = true, type = FormFieldType.INPUTTEXT, ordinal = 0, validate = {Validator.require,
             Validator.identity})
@@ -80,77 +84,65 @@ public class QWenLLMProvider extends LLMProvider {
     @FormField(type = FormFieldType.INT_NUMBER, ordinal = 3, validate = {Validator.require, Validator.integer})
     public Integer maxTokens;
 
-    /**
-     * 阿里云各种模型
-     * <a href="https://bailian.console.aliyun.com/?spm=5176.29619931.J_XNqYbJaEnpB5_cCJf7e6D.1.544a10d7BmxbRi&tab=doc#/doc/?type=model&url=2987148">...</a>
-     */
     @FormField(type = FormFieldType.ENUM, ordinal = 4, validate = {Validator.require})
     public String model;
 
     /**
-     * 使用混合思考模型时，是否开启思考模式，适用于Qwen3.7、Qwen3.6、Qwen3.5、Qwen3、Qwen3-VL模型，以及 DeepSeek-V4-Pro/V4-Flash
-     * 系列（阿里云直供）、DeepSeek-V3.2/V3.2-exp/V3.1 系列（阿里云直供、硅基流动直供）、Kimi-K2.6/K2.5 系列（阿里云直供）、GLM 系列。DeepSeek-V4
-     * 系列默认开启思考，可通过 reasoning_effort 参数调整推理力度。
-     * 开启后，思考内容将通过reasoning_content字段返回。
+     * 使用混合思考模型时，是否开启思考模式
      */
     @FormField(type = FormFieldType.ENUM, ordinal = 5, validate = {Validator.require})
-    public Boolean enableThinking;
+    public Boolean thinking;
 
-
-
-
-    //    @FormField(type = FormFieldType.DECIMAL_NUMBER, advance = true, ordinal = 6, validate = {})
-    //    public Float topP;
-
+//    @FormField(advance = true, ordinal = 6, validate = {Validator.require})
+//    public Sampling sampling;
 
     /**
      * 是否开启流式输出
      */
-    // @FormField(type = FormFieldType.ENUM, advance = true, ordinal = 8, validate = {})
     public final Boolean stream = false;
 
+    public static List<Descriptor> filter(List<Descriptor> enumPropDescs) {
+        return enumPropDescs.stream().filter((desc) ->
+                desc instanceof TemperatureSampling.DefaultDesc || desc instanceof TopPSampling.DefaultDesc
+        ).collect(Collectors.toList());
+    }
     //    /**
     //     * 是否打印日志
     //     */
     //    @FormField(type = FormFieldType.ENUM, advance = true, ordinal = 9, validate = {Validator.require})
     //    public Boolean printLog;
 
+    //    @Override
+    //    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
+    //        return chat(context, prompt, systemPrompt, true, TISJsonSchema.off());
+    //    }
+    //
+    //    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean
+    //    logSummary,
+    //                            ITISJsonSchema jsonOutput) {
+    //        return chat(context, prompt, systemPrompt, logSummary, jsonOutput, new LLMOptionParams());
+    //    }
 
     @Override
-    protected Logger getLogger() {
-        return logger;
-    }
+    protected void addCustomizeParams(ITISJsonSchema jsonOutput, List<String> systemPrompt, LLMOptionParams params,
+                                      List<HttpUtils.PostParam> postParams) {
+        // 设置采样参数
+       // Objects.requireNonNull(this.sampling, "sampling can not be null").setHttpParams(postParams);
 
-    @Override
-    protected void addMaxTokenParam(List<HttpUtils.PostParam> postParams) {
-        postParams.add(new HttpUtils.PostParam("max_completion_tokens",
-                Objects.requireNonNull(getMaxTokens(), "maxTokens can not be null")));
-    }
+        // 设置思考模式
+        if (this.thinking != null && this.thinking) {
+            JSONObject thinkingConfig = new JSONObject();
+            thinkingConfig.put("type", "enabled");
+            postParams.add(new HttpUtils.PostParam("thinking", thinkingConfig));
+        }
 
-    @Override
-    protected void addCustomizeParams(ITISJsonSchema jsonOutput
-            , List<String> systemPrompt, LLMOptionParams params, List<HttpUtils.PostParam> postParams) {
-        //Objects.requireNonNull(this.sampling, "sampling can not be null").setHttpParams(postParams);
+        // 设置do_sample为true以启用采样
+        postParams.add(new HttpUtils.PostParam("do_sample", true));
 
-        //final boolean enableThinking = params.getStreamOutput() != null ? params.getStreamOutput() : ;
-        postParams.add(new HttpUtils.PostParam("enable_thinking", Objects.requireNonNull(this.enableThinking,
-                "enableThinking can not be null")));
-        //        postParams.add(new HttpUtils.PostParam("max_completion_tokens", getMaxTokens()));
-
+        // 如果需要JSON输出
         if (jsonOutput.isContainSchema()) {
             JSONObject responseFormat = new JSONObject();
-            /**
-             * 返回内容的格式。可选值：
-             *
-             * {"type": "text"}：输出文字回复；
-             * {"type": "json_object"}：输出标准格式的JSON字符串。
-             * {"type": "json_schema","json_schema": {...} }：输出指定格式的JSON字符串。
-             * 相关文档：结构化输出。
-             * 若指定为{"type": "json_object"}，需在提示词中明确指示模型输出JSON，如：“请按照json格式输出”，否则会报错。
-             * 支持的模型参见结构化输出。
-             */
-            responseFormat.put("type", "json_schema");
-            responseFormat.put("json_schema", jsonOutput.root());
+            responseFormat.put("type", "json_object");
             postParams.add(new HttpUtils.PostParam("response_format", responseFormat));
         }
     }
@@ -162,7 +154,6 @@ public class QWenLLMProvider extends LLMProvider {
             JSONObject usage = responseJson.getJSONObject("usage");
             //            response.setPromptTokens(usage.getLongValue("prompt_tokens"));
             //            response.setCompletionTokens(usage.getLongValue("completion_tokens"));
-            //            // response.setTotalTokens(usage.getLongValue("total_tokens"));
             //            context.updateTokenUsage(usage.getLongValue("total_tokens"));
             return new TokenUsageSummary(usage.getLongValue("prompt_tokens"), usage.getLongValue("completion_tokens"));
         }
@@ -174,9 +165,9 @@ public class QWenLLMProvider extends LLMProvider {
         JSONObject error = null;
         if ((error = responseJson.getJSONObject("error")) != null) {
             response.setSuccess(false);
-            response.setErrorMessage(error.entrySet().stream() //
-                    .map((entry) -> entry.getKey()
-                            + ":" + entry.getValue()).collect(Collectors.joining(",")));
+            response.setErrorMessage(error.entrySet().stream()
+                    .map((entry) -> entry.getKey() + ":" + entry.getValue()).collect(Collectors.joining(
+                            ",")));
             return false;
         }
         return true;
@@ -184,7 +175,7 @@ public class QWenLLMProvider extends LLMProvider {
 
     @Override
     protected StringBuilder getResponseBodyContent(JSONObject responseJson) {
-        // 处理通义千问的响应格式
+        // 处理智谱AI的响应格式
         if (responseJson.containsKey("choices")) {
             JSONArray choices = responseJson.getJSONArray("choices");
             if (!choices.isEmpty()) {
@@ -198,7 +189,10 @@ public class QWenLLMProvider extends LLMProvider {
                 if ("length".equals(finishReason)) {
                     logger.warn("Response was truncated due to max_tokens limit");
                 }
+
                 return new StringBuilder(message.getString("content"));
+
+
             }
         }
         return null;
@@ -221,34 +215,32 @@ public class QWenLLMProvider extends LLMProvider {
 
     @Override
     protected void processErrorResponseBody(int status, IOException e, JSONObject errBody) {
-        // 通义千问的错误格式
+        // 智谱AI的错误格式
         if (errBody.containsKey("error")) {
             JSONObject errDetail = errBody.getJSONObject("error");
             String errMessage = errDetail.getString("message");
             String errCode = errDetail.getString("code");
             if (StringUtils.isNotEmpty(errMessage)) {
-                throw TisException.create(String.format("QWen API Error [%s]: %s", errCode,
+                throw TisException.create(String.format("Zhipu API Error [%s]: %s", errCode,
                         errMessage));
             }
         } else if (errBody.containsKey("message")) {
-            // 直接的错误消息格式
             String errMessage = errBody.getString("message");
-            throw TisException.create("QWen API Error: " + errMessage);
+            throw TisException.create("Zhipu API Error: " + errMessage);
         }
     }
 
     @Override
     protected List<ConfigFileContext.Header> appendHeaders() {
-        return Lists.newArrayList((new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey())) //
-                , (new ConfigFileContext.Header("Content-Type", "application/json")));
+        return Lists.newArrayList((new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey())),
+                (new ConfigFileContext.Header("Content-Type", "application/json")));
     }
+
 
 //    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary,
 //                            ITISJsonSchema jsonOutput, LLMOptionParams params) {
-//        ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);// new DefaultExecuteLog
-//        // (prompt, context, logger) : new NoneExecuteLog();
+//        ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);
 //        try {
-//            // 构建请求参数
 //            List<HttpUtils.PostParam> postParams = new ArrayList<>();
 //            postParams.add(new HttpUtils.PostParam("model", getModel()));
 //
@@ -269,48 +261,37 @@ public class QWenLLMProvider extends LLMProvider {
 //            messages.add(userMessage);
 //            postParams.add(new HttpUtils.PostParam("messages", messages));
 //
-//            // 设置其他参数
-//            //            postParams.add(new HttpUtils.PostParam("temperature", temperature));
-//            //            if (topP != null) {
-//            //                postParams.add(new HttpUtils.PostParam("top_p", topP));
-//            //            }
-//
+//            // 设置采样参数
 //            Objects.requireNonNull(this.sampling, "sampling can not be null").setHttpParams(postParams);
 //
-//            //final boolean enableThinking = params.getStreamOutput() != null ? params.getStreamOutput() : ;
-//            postParams.add(new HttpUtils.PostParam("enable_thinking", Objects.requireNonNull(this.enableThinking,
-//                    "enableThinking can not be null")));
-//            postParams.add(new HttpUtils.PostParam("max_completion_tokens", getMaxTokens()));
+//            // 设置思考模式
+//            if (this.thinking != null && this.thinking) {
+//                JSONObject thinkingConfig = new JSONObject();
+//                thinkingConfig.put("type", "enabled");
+//                postParams.add(new HttpUtils.PostParam("thinking", thinkingConfig));
+//            }
+//            // 设置do_sample为true以启用采样
+//            postParams.add(new HttpUtils.PostParam("do_sample", true));
+//            // 设置最大token数
+//            postParams.add(new HttpUtils.PostParam("max_tokens", getMaxTokens()));
 //
+//
+//            // 如果需要JSON输出
 //            if (jsonOutput.isContainSchema()) {
 //                JSONObject responseFormat = new JSONObject();
-//                /**
-//                 * 返回内容的格式。可选值：
-//                 *
-//                 * {"type": "text"}：输出文字回复；
-//                 * {"type": "json_object"}：输出标准格式的JSON字符串。
-//                 * {"type": "json_schema","json_schema": {...} }：输出指定格式的JSON字符串。
-//                 * 相关文档：结构化输出。
-//                 * 若指定为{"type": "json_object"}，需在提示词中明确指示模型输出JSON，如：“请按照json格式输出”，否则会报错。
-//                 * 支持的模型参见结构化输出。
-//                 */
-//                responseFormat.put("type", "json_schema");
-//                responseFormat.put("json_schema", jsonOutput.root());
+//                responseFormat.put("type", "json_object");
 //                postParams.add(new HttpUtils.PostParam("response_format", responseFormat));
 //            }
+//
 //            final boolean streamOutput = params.getStreamOutput() != null ?
 //                    params.getStreamOutput() : stream;
-//            //if (stream != null) {
 //            postParams.add(new HttpUtils.PostParam("stream", streamOutput));
-//            //}
-//
-//            //  postParams.add(new HttpUtils.PostParam("body", requestBody));
 //
 //            executeLog.setPostParams(postParams);
 //
-//            return HttpUtils.post((getApiUrl()), postParams, new PostFormStreamProcess<LLMResponse>( //
-//                    Lists.newArrayList((new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey())) //
-//                            , (new ConfigFileContext.Header("Content-Type", "application/json")))) {
+//            return HttpUtils.post(new URL(getApiUrl()), postParams, new PostFormStreamProcess<LLMResponse>(
+//                    Lists.newArrayList((new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey())),
+//                            (new ConfigFileContext.Header("Content-Type", "application/json")))) {
 //                @Override
 //                public ContentType getContentType() {
 //                    return ContentType.JSON;
@@ -336,23 +317,21 @@ public class QWenLLMProvider extends LLMProvider {
 //                                errBody = JSONObject.parseObject(errContent);
 //                                executeLog.setError(errBody);
 //                            } catch (Exception ex) {
-//                                // 如果不是JSON格式，直接抛出错误内容
 //                                throw TisException.create("API Error: " + errContent);
 //                            }
 //
-//                            // 通义千问的错误格式
+//                            // 智谱AI的错误格式
 //                            if (errBody.containsKey("error")) {
 //                                JSONObject errDetail = errBody.getJSONObject("error");
 //                                String errMessage = errDetail.getString("message");
 //                                String errCode = errDetail.getString("code");
 //                                if (StringUtils.isNotEmpty(errMessage)) {
-//                                    throw TisException.create(String.format("QWen API Error [%s]: %s", errCode,
+//                                    throw TisException.create(String.format("Zhipu API Error [%s]: %s", errCode,
 //                                            errMessage));
 //                                }
 //                            } else if (errBody.containsKey("message")) {
-//                                // 直接的错误消息格式
 //                                String errMessage = errBody.getString("message");
-//                                throw TisException.create("QWen API Error: " + errMessage);
+//                                throw TisException.create("Zhipu API Error: " + errMessage);
 //                            }
 //                        } catch (IOException ex) {
 //                            throw new RuntimeException(e);
@@ -376,14 +355,14 @@ public class QWenLLMProvider extends LLMProvider {
 //                    JSONObject error = null;
 //                    if ((error = responseJson.getJSONObject("error")) != null) {
 //                        response.setSuccess(false);
-//                        response.setErrorMessage(error.entrySet().stream() //
-//                                .map((entry) -> entry.getKey()
-//                                        + ":" + entry.getValue()).collect(Collectors.joining(",")));
+//                        response.setErrorMessage(error.entrySet().stream()
+//                                .map((entry) -> entry.getKey() + ":" + entry.getValue()).collect(Collectors.joining(
+//                                        ",")));
 //                        return response;
 //                    }
 //                    executeLog.setResponse(responseJson);
 //
-//                    // 处理通义千问的响应格式
+//                    // 处理智谱AI的响应格式
 //                    if (responseJson.containsKey("choices")) {
 //                        JSONArray choices = responseJson.getJSONArray("choices");
 //                        if (!choices.isEmpty()) {
@@ -405,23 +384,12 @@ public class QWenLLMProvider extends LLMProvider {
 //                        JSONObject usage = responseJson.getJSONObject("usage");
 //                        response.setPromptTokens(usage.getLongValue("prompt_tokens"));
 //                        response.setCompletionTokens(usage.getLongValue("completion_tokens"));
-//                        // response.setTotalTokens(usage.getLongValue("total_tokens"));
 //                        context.updateTokenUsage(usage.getLongValue("total_tokens"));
 //                    }
 //
 //                    response.setModel(responseJson.getString("model"));
 //                    return response;
 //                }
-//
-//                //                @Override
-//                //                public List<ConfigFileContext.Header> getHeaders() {
-//                //                    List<ConfigFileContext.Header> headers = new ArrayList<>(super.getHeaders());
-//                //                    // 通义千问使用 Bearer Token 认证
-//                //                    headers.add(new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey
-//                //                    ()));
-//                //                    headers.add(new ConfigFileContext.Header("Content-Type", "application/json"));
-//                //                    return headers;
-//                //                }
 //            });
 //        } catch (MalformedURLException e) {
 //            throw new RuntimeException("Invalid URL: " + getApiUrl(), e);
@@ -438,37 +406,17 @@ public class QWenLLMProvider extends LLMProvider {
 //        // 增强prompt，要求返回JSON格式
 //        StringBuilder enhancedPrompt = new StringBuilder(prompt.getPrompt());
 //        if (jsonSchema.isContainSchema()) {
-//            // enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + JsonUtil.toString(jsonSchema
-//            // .schema(), false);
 //            enhancedPrompt.append("\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。");
-//            enhancedPrompt.append("\n请务必严格按照 'response_format' 中定义的 JSON Schema " +
-//                    "格式输出，不要输出任何其他内容或格式。以下是对'response_format'中相关字段的说明：");
-//
-//            // enhancedPrompt.append("\n\n请严格按照以下JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n").append(jsonSchema.root());
-//            //            public static final String SCHEMA_VALUE_ENUM = "enum";
-//            //            public static final String SCHEMA_VALUE_PATTERN = "pattern";
+//            enhancedPrompt.append("\n请务必严格按照以下 JSON Schema 格式输出，不要输出任何其他内容或格式。");
 //
 //            jsonSchema.appendFieldDescToPrompt(enhancedPrompt);
-//            //  SCHEMA_VALUE_CONST
+//
 //            enhancedPrompt.append("\n\n**注意**：分析用户输入内容必须遵守如下纪律：");
 //            enhancedPrompt.append("\n**默认值处理**：");
 //            enhancedPrompt.append("\n   - 对于填充的字段内容，有以下要求：");
 //            enhancedPrompt.append("\n     a) 如果用户提供了对应信息 → 按 schema 要求处理（如替换非法字符以符合 `" + SCHEMA_VALUE_PATTERN + "`）；");
 //            enhancedPrompt.append("\n     b) 如果用户**未提供**，但相应属性中定义了 `" + SCHEMA_VALUE_DEFAULT + "`属性 → **必须使用该 " + SCHEMA_VALUE_DEFAULT + " 值**`");
 //            enhancedPrompt.append("\n     c) 如果用户未提供，且 相应属性 中**无 " + SCHEMA_VALUE_DEFAULT + "** → 填入空字符串 `\"\"`。");
-//
-//            //            enhancedPrompt.append("\n  1. `").append(KEY_primaryVal).append("`对应的属性如定义了" + "`").append
-//            //            (SCHEMA_VALUE_CONST).append("`则`").append(KEY_primaryVal).append("`对应的值**必须**取值为`").append
-//            //            (SCHEMA_VALUE_CONST).append("`对应的值");
-//            //            enhancedPrompt.append("\n  2. 不能分析得到对应'response_format'中`").append(KEY_primaryVal).append
-//            //            ("`对应的值，必须使用json"
-//            //                    + " " + "schema中相应属性：`").append(SCHEMA_VALUE_DEFAULT).append("`对应值，如该属性没有定义，则`")
-//            //                    .append(KEY_primaryVal).append("`对应的值设置为空(\"\")即可");
-//            //            enhancedPrompt.append("\n  3.`").append(KEY_primaryVal).append("`对应属性如定义了`").append
-//            //            (SCHEMA_VALUE_ENUM).append("`则对应的值**必须为**`").append(SCHEMA_VALUE_ENUM).append("`定义的值之一");
-//            //            enhancedPrompt.append("\n  4.`").append(KEY_primaryVal).append("`对应属性如定义了`").append
-//            //            (SCHEMA_VALUE_PATTERN).append("`则对应的值**必须符合**`").append(SCHEMA_VALUE_PATTERN).append
-//            //            ("`定义的模式规范");
 //        }
 //
 //        LLMResponse response = chat(context, prompt.setNewPrompt(enhancedPrompt.toString()), systemPrompt, false,
@@ -478,7 +426,6 @@ public class QWenLLMProvider extends LLMProvider {
 //            if (response.isSuccess() && response.getContent() != null) {
 //                String content = response.getContent();
 //
-//                // 尝试提取JSON内容
 //                // 移除可能的markdown代码块标记
 //                content = content.replaceAll("```json\\s*", "").replaceAll("```\\s*$", "");
 //                content = content.trim();
@@ -517,13 +464,14 @@ public class QWenLLMProvider extends LLMProvider {
 //    }
 
     @Override
-    protected boolean supportJsonSchemaOnParamsSetting() {
-        return true;
+    protected Logger getLogger() {
+        return logger;
     }
+
 
     @Override
     public String getProviderName() {
-        return "QWen";
+        return "Zhipu";
     }
 
     @Override
@@ -543,7 +491,7 @@ public class QWenLLMProvider extends LLMProvider {
 
     @Override
     protected Integer getMaxTokens() {
-        return this.maxTokens != null ? this.maxTokens : 2048;
+        return this.maxTokens != null ? this.maxTokens : 8192;
     }
 
     @Override
@@ -557,14 +505,12 @@ public class QWenLLMProvider extends LLMProvider {
 
     @Override
     protected URL getApiUrl() {
-        String url = StringUtils.isNotEmpty(this.baseUrl) ? this.baseUrl : DEFAULT_BASE_URL;
         try {
-            return new URL(url + URL_PATH);
+            return new URL(StringUtils.isNotEmpty(this.baseUrl) ? this.baseUrl : DEFAULT_BASE_URL);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
     }
-
 
     @TISExtension
     public static final class DftDescriptor extends BasicParamsConfigDescriptor implements IEndTypeGetter {
@@ -574,7 +520,7 @@ public class QWenLLMProvider extends LLMProvider {
 
         @Override
         public String getDisplayName() {
-            return "QWen";
+            return "Zhipu";
         }
 
         @Override
@@ -584,10 +530,13 @@ public class QWenLLMProvider extends LLMProvider {
 
         @Override
         protected boolean verify(IControlMsgHandler msgHandler, Context context, PostFormVals postFormVals) {
-
-            QWenLLMProvider llmProvider = postFormVals.newInstance();
+            ZhipuLLMProvider llmProvider = postFormVals.newInstance();
             try {
-                llmProvider.chat(IAgentContext.createNull(), new UserPrompt("test", "hello"), null);
+                LLMResponse chat = llmProvider.chat(IAgentContext.createNull(), new UserPrompt("test", "hello"), null);
+                if (!chat.isSuccess()) {
+                    msgHandler.addErrorMessage(context, chat.getErrorMessage());
+                    return false;
+                }
             } catch (Exception e) {
                 msgHandler.addErrorMessage(context, e.getMessage());
                 return false;
@@ -600,7 +549,7 @@ public class QWenLLMProvider extends LLMProvider {
                                          String value) {
             int tokens = Integer.parseInt(value);
             int min = 1;
-            int max = 32768;
+            int max = 131072; // GLM-5.2系列最大支持128K输出长度
             if (tokens < min || tokens > max) {
                 msgHandler.addFieldError(context, fieldName, "必须在：" + min + "至" + max + "之间");
                 return false;
@@ -624,7 +573,7 @@ public class QWenLLMProvider extends LLMProvider {
 
         @Override
         public EndType getEndType() {
-            return EndType.QWen;
+            return EndType.Zhipu;
         }
     }
 }

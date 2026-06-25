@@ -36,6 +36,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
+import static com.qlangtech.tis.manage.common.Config.ADMIN_ID;
+import static com.qlangtech.tis.manage.common.Config.ADMIN_NAME;
+
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2013-1-22
@@ -105,8 +108,8 @@ public class UserUtils {
   public static final TUser getMockUser(HttpServletRequest request, RunContext runContext) {
     if (DEFAULT_SUPER_USER == null) {
       UsrDptRelation usr = new UsrDptRelation();
-      usr.setUsrId("9999");
-      usr.setUserName("admin");
+      usr.setUsrId(ADMIN_ID);
+      usr.setUserName(ADMIN_NAME);
       DEFAULT_SUPER_USER = new TUser(usr, runContext, new SuperUserFetcher(runContext));
       DEFAULT_SUPER_USER.setDepartmentid(8);
       DEFAULT_SUPER_USER.setDepartment("管理");

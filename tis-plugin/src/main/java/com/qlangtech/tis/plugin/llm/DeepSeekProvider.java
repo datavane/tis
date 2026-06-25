@@ -55,6 +55,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * DeepSeek大模型Provider实现
@@ -87,9 +88,9 @@ public class DeepSeekProvider extends LLMProvider {
     @FormField(type = FormFieldType.INPUTTEXT, ordinal = 4, validate = {Validator.require})
     public String model;
 
-    @FormField(type = FormFieldType.INT_NUMBER, advance = true, ordinal = 5, validate = {Validator.require,
-            Validator.integer})
-    public Integer temperature;
+//    @FormField(type = FormFieldType.INT_NUMBER, advance = true, ordinal = 5, validate = {Validator.require,
+//            Validator.integer})
+//    public Integer temperature;
 
     //    @FormField(type = FormFieldType.DURATION_OF_SECOND, advance = true, ordinal = 6, validate = {Validator
     //    .require,
@@ -97,201 +98,320 @@ public class DeepSeekProvider extends LLMProvider {
     //    public Duration readTimeout;
 
 
-    /**
-     * 是否打印日志
-     */
-    @FormField(type = FormFieldType.ENUM, advance = true, ordinal = 8, validate = {Validator.require})
-    public Boolean printLog;
+    //    /**
+    //     * 是否打印日志
+    //     */
+    //    @FormField(type = FormFieldType.ENUM, advance = true, ordinal = 8, validate = {Validator.require})
+    //    public Boolean printLog;
+
+    //    @Override
+    //    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
+    //        return chat(context, prompt, systemPrompt, true, TISJsonSchema.off(), new LLMOptionParams());
+    //    }
+
 
     @Override
-    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt) {
-        return chat(context, prompt, systemPrompt, true, TISJsonSchema.off(), new LLMOptionParams());
+    protected Logger getLogger() {
+        return logger;
     }
 
+    @Override
+    protected TokenUsageSummary getTokenUsageSummary(JSONObject responseJson) {
+        if (responseJson.containsKey("usage")) {
+            JSONObject usage = responseJson.getJSONObject("usage");
+            //            response.setPromptTokens(usage.getLongValue("prompt_tokens"));
+            //            response.setCompletionTokens(usage.getLongValue("completion_tokens"));
+            //            // response.setTotalTokens();
+            //            context.updateTokenUsage(usage.getLongValue("total_tokens"));
 
-    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary,
-                            ITISJsonSchema jsonOutput, LLMOptionParams params) {
-        ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);
-        try {
-            List<HttpUtils.PostParam> postParams = new ArrayList<>();
-            postParams.add(new HttpUtils.PostParam("model", getModel()));
-            postParams.add(new HttpUtils.PostParam("temperature", temperature));
-            postParams.add(new HttpUtils.PostParam("max_tokens", getMaxTokens()));
+            return new TokenUsageSummary(usage.getLongValue("prompt_tokens"), usage.getLongValue("completion_tokens"));
+        }
+        return null;
+    }
 
-            if (jsonOutput.isContainSchema()) {
-                JSONObject responseFormat = new JSONObject();
-                responseFormat.put("type", "json_object");
-                postParams.add(new HttpUtils.PostParam("response_format", responseFormat));
-            }
-            JSONObject thinking = new JSONObject();
-            thinking.put("type", "disabled");
-            postParams.add(new HttpUtils.PostParam("thinking", thinking));
+    @Override
+    protected boolean processResponseJson(LLMResponse response, JSONObject responseJson) {
 
-
-            JSONArray messages = new JSONArray();
-            if (CollectionUtils.isNotEmpty(systemPrompt)) {
-                for (String sysP : systemPrompt) {
-                    JSONObject systemMessage = new JSONObject();
-                    systemMessage.put("role", "system");
-                    systemMessage.put("content", sysP);
-                    messages.add(systemMessage);
-                }
-            }
-
-            JSONObject userMessage = new JSONObject();
-            userMessage.put("role", "user");
-            userMessage.put("content", prompt.getPrompt());
-            messages.add(userMessage);
-            postParams.add(new HttpUtils.PostParam("messages", messages));
-            boolean stream = false;
-            if (params.getStreamOutput() != null) {
-                postParams.add(new HttpUtils.PostParam("stream", stream = params.getStreamOutput()));
-            }
-            final boolean streamOutput = stream;
-            executeLog.setPostParams(postParams);
-
-            return HttpUtils.post(new URL(getApiUrl()), postParams //
-                    , new PostFormStreamProcess<LLMResponse>(new ConfigFileContext.Header("Authorization",
-                            "Bearer " + getApiKey())) {
-                        @Override
-                        public ContentType getContentType() {
-                            return ContentType.JSON;
-                        }
-
-                        @Override
-                        public int getMaxRetry() {
-                            return maxRetry;
-                        }
-
-                        @Override
-                        public Duration getSocketReadTimeout() {
-                            return readTimeout;
-                        }
-
-                        @Override
-                        public void error(int status, InputStream errstream, IOException e) {
-                            if (errstream != null) {
-                                try {
-                                    JSONObject errBody = JSONObject.parseObject(IOUtils.toString(errstream,
-                                            TisUTF8.get()));
-                                    executeLog.setError(errBody);
-                                    checkInValidError(errBody);
-                                } catch (IOException ex) {
-                                    throw new RuntimeException(e);
-                                }
-                            } else {
-                                throw new RuntimeException(e);
-                            }
-                        }
-
-                        private void checkInValidError(JSONObject responseJson) {
-                            if (responseJson.containsKey("error")) {
-                                JSONObject errDetail = responseJson.getJSONObject("error");
-                                String errMessage = errDetail.getString("message");
-                                if (StringUtils.isNotEmpty(errMessage)) {
-                                    throw TisException.create(errMessage);
-                                }
-                            }
-                        }
-
-                        @Override
-                        public LLMResponse p(int status, InputStream stream, Map headerFields) throws IOException {
-                            LLMResponse response = new LLMResponse(executeLog);
-
-                            if (streamOutput) {
-                                try (BufferedReader buffer = IOUtils.buffer(new InputStreamReader(stream,
-                                        TisUTF8.get()))) {
-                                    params.getStreamOutputConsumer().accept(buffer);
-                                }
-                                response.setSuccess(true);
-                                return response;
-                            }
-
-                            String responseStr = IOUtils.toString(stream, TisUTF8.get());
-
-                            JSONObject responseJson = JSON.parseObject(responseStr);
-                            executeLog.setResponse(responseJson);
-
-                            /**
-                             * <pre>
-                             * {"error":{"code":"invalid_request_error"
-                             * ,"message":"Prompt must contain the word 'json' in some form to use 'response_format' of type 'json_object'."
-                             * ,"type":"invalid_request_error"}}
-                             * </pre>
-                             */
-                            checkInValidError(responseJson);
-
-                            if (responseJson.containsKey("choices")) {
-                                JSONArray choices = responseJson.getJSONArray("choices");
-                                if (!choices.isEmpty()) {
-                                    JSONObject choice = choices.getJSONObject(0);
-                                    JSONObject message = choice.getJSONObject("message");
-                                    response.setContent(message.getString("content"));
-                                    response.setSuccess(true);
-                                }
-                            }
-
-                            if (responseJson.containsKey("usage")) {
-                                JSONObject usage = responseJson.getJSONObject("usage");
-                                response.setPromptTokens(usage.getLongValue("prompt_tokens"));
-                                response.setCompletionTokens(usage.getLongValue("completion_tokens"));
-                                // response.setTotalTokens();
-                                context.updateTokenUsage(usage.getLongValue("total_tokens"));
-                            }
-
-                            response.setModel(getModel());
-                            return response;
-                        }
-
-                        //                @Override
-                        //                public List<ConfigFileContext.Header> getHeaders() {
-                        //                    List<ConfigFileContext.Header> headers = new ArrayList<>(super
-                        //                    .getHeaders());
-                        //                    headers.add(new ConfigFileContext.Header("Authorization", "Bearer " +
-                        //                    getApiKey()));
-                        //                    return headers;
-                        //                }
-                    });
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (logSummary) {
-                executeLog.summary();
+        if (responseJson.containsKey("error")) {
+            JSONObject errDetail = responseJson.getJSONObject("error");
+            String errMessage = errDetail.getString("message");
+            if (StringUtils.isNotEmpty(errMessage)) {
+                //  throw TisException.create(errMessage);
+                response.setErrorMessage(errMessage);
+                return false;
             }
         }
+        response.setModel(this.getModel());
+        return true;
     }
 
 
     @Override
-    public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
-                                ITISJsonSchema jsonSchema, LLMOptionParams params) {
-        String enhancedPrompt = prompt.getPrompt();
-        if (jsonSchema.isContainSchema()) {
-            // enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果：\n" + jsonSchema;
-            enhancedPrompt += "\n\n请严格按照以下JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + jsonSchema.root();
-            enhancedPrompt += "\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。";
-        }
-        LLMResponse response = chat(context, new UserPrompt(prompt.getAbstractInfo(), enhancedPrompt), systemPrompt,
-                false, jsonSchema, params);
+    protected StringBuilder getResponseBodyContent(JSONObject responseJson) {
 
-        try {
-            if (response.isSuccess() && response.getContent() != null) {
-                String content = response.getContent();
-                int start = content.indexOf("{");
-                int end = content.lastIndexOf("}") + 1;
-                if (start >= 0 && end > start) {
-                    String jsonStr = content.substring(start, end);
-                    JSONObject jsonContent = JSON.parseObject(jsonStr);
-                    response.setJsonContent(jsonContent);
-                    response.executeLog.setResponse(jsonContent);
+        if (responseJson.containsKey("choices")) {
+            JSONArray choices = responseJson.getJSONArray("choices");
+            if (!choices.isEmpty()) {
+                JSONObject choice = choices.getJSONObject(0);
+                JSONObject message = choice.getJSONObject("message");
+                //                response.setContent(message.getString("content"));
+                //                response.setSuccess(true);
+                return new StringBuilder(message.getString("content"));
+            }
+        }
+
+        return null;
+    }
+
+    //    public static LLMResponse processStreamResponseWithDeepSeekStyle(
+    //            InputStream stream, LLMResponse response, LLMOptionParams params) throws IOException {
+    //        processStreamResponse(stream, (data) -> {
+    //            JSONArray choices = data.getJSONArray("choices");
+    //            for (Object c : choices) {
+    //                if (c instanceof JSONObject choice) {
+    //                    String content = choice.getJSONObject("delta").getString("content");
+    //                    if (content != null) {
+    //                        params.getStreamOutputConsumer().accept(content);
+    //                    }
+    //                }
+    //            }
+    //        });
+    //        response.setSuccess(true);
+    //        return response;
+    //    }
+    @Override
+    protected Consumer<JSONObject> getDeltaContentConsumer(LLMOptionParams params) {
+        return (data) -> {
+            JSONArray choices = data.getJSONArray("choices");
+            for (Object c : choices) {
+                if (c instanceof JSONObject choice) {
+                    String content = choice.getJSONObject("delta").getString("content");
+                    if (content != null) {
+                        params.getStreamOutputConsumer().accept(content);
+                    }
                 }
             }
-        } finally {
-            response.executeLog.summary();
-        }
-
-        return response;
+        };
     }
+
+    @Override
+    protected void processErrorResponseBody(int status, IOException e, JSONObject errBody) {
+        if (errBody.containsKey("error")) {
+            JSONObject errDetail = errBody.getJSONObject("error");
+            String errMessage = errDetail.getString("message");
+            if (StringUtils.isNotEmpty(errMessage)) {
+                throw TisException.create(errMessage);
+            }
+        }
+    }
+
+    @Override
+    protected List<ConfigFileContext.Header> appendHeaders() {
+        return List.of(new ConfigFileContext.Header("Authorization",
+                "Bearer " + getApiKey()));
+    }
+
+
+    @Override
+    protected void addCustomizeParams(ITISJsonSchema jsonOutput, List<String> systemPrompt, LLMOptionParams params,
+                                      List<HttpUtils.PostParam> postParams) {
+      //  postParams.add(new HttpUtils.PostParam("temperature", temperature));
+        if (jsonOutput.isContainSchema()) {
+            JSONObject responseFormat = new JSONObject();
+            responseFormat.put("type", "json_object");
+            postParams.add(new HttpUtils.PostParam("response_format", responseFormat));
+        }
+        JSONObject thinking = new JSONObject();
+        thinking.put("type", "disabled");
+        postParams.add(new HttpUtils.PostParam("thinking", thinking));
+    }
+
+
+//    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary,
+//                            ITISJsonSchema jsonOutput, LLMOptionParams params) {
+//        ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);
+//        try {
+//            List<HttpUtils.PostParam> postParams = new ArrayList<>();
+//            postParams.add(new HttpUtils.PostParam("model", getModel()));
+//            postParams.add(new HttpUtils.PostParam("temperature", temperature));
+//            postParams.add(new HttpUtils.PostParam("max_tokens", getMaxTokens()));
+//
+//            if (jsonOutput.isContainSchema()) {
+//                JSONObject responseFormat = new JSONObject();
+//                responseFormat.put("type", "json_object");
+//                postParams.add(new HttpUtils.PostParam("response_format", responseFormat));
+//            }
+//            JSONObject thinking = new JSONObject();
+//            thinking.put("type", "disabled");
+//            postParams.add(new HttpUtils.PostParam("thinking", thinking));
+//
+//
+//            addMessage(prompt, systemPrompt, postParams);
+//
+//            boolean stream = false;
+//            if (params.getStreamOutput() != null) {
+//                postParams.add(new HttpUtils.PostParam("stream", stream = params.getStreamOutput()));
+//            }
+//            final boolean streamOutput = stream;
+//            executeLog.setPostParams(postParams);
+//
+//            return HttpUtils.post(new URL(getApiUrl()), postParams //
+//                    , new PostFormStreamProcess<LLMResponse>(new ConfigFileContext.Header("Authorization",
+//                            "Bearer " + getApiKey())) {
+//                        @Override
+//                        public ContentType getContentType() {
+//                            return ContentType.JSON;
+//                        }
+//
+//                        @Override
+//                        public int getMaxRetry() {
+//                            return maxRetry;
+//                        }
+//
+//                        @Override
+//                        public Duration getSocketReadTimeout() {
+//                            return readTimeout;
+//                        }
+//
+//                        @Override
+//                        public void error(int status, InputStream errstream, IOException e) {
+//                            if (errstream != null) {
+//                                try {
+//                                    JSONObject errBody = JSONObject.parseObject(IOUtils.toString(errstream,
+//                                            TisUTF8.get()));
+//                                    executeLog.setError(errBody);
+//                                    checkInValidError(errBody);
+//                                } catch (IOException ex) {
+//                                    throw new RuntimeException(e);
+//                                }
+//                            } else {
+//                                throw new RuntimeException(e);
+//                            }
+//                        }
+//
+//                        private void checkInValidError(JSONObject responseJson) {
+//                            if (responseJson.containsKey("error")) {
+//                                JSONObject errDetail = responseJson.getJSONObject("error");
+//                                String errMessage = errDetail.getString("message");
+//                                if (StringUtils.isNotEmpty(errMessage)) {
+//                                    throw TisException.create(errMessage);
+//                                }
+//                            }
+//                        }
+//
+//                        @Override
+//                        public LLMResponse p(int status, InputStream stream, Map headerFields) throws IOException {
+//                            LLMResponse response = new LLMResponse(executeLog);
+//
+//                            if (streamOutput) {
+//
+//                                return processStreamResponseWithDeepSeekStyle(stream, response, params);
+//                            }
+//
+//                            String responseStr = IOUtils.toString(stream, TisUTF8.get());
+//
+//                            JSONObject responseJson = JSON.parseObject(responseStr);
+//                            executeLog.setResponse(responseJson);
+//
+//                            /**
+//                             * <pre>
+//                             * {"error":{"code":"invalid_request_error"
+//                             * ,"message":"Prompt must contain the word 'json' in some form to use 'response_format' of type 'json_object'."
+//                             * ,"type":"invalid_request_error"}}
+//                             * </pre>
+//                             */
+//                            checkInValidError(responseJson);
+//
+//                            if (responseJson.containsKey("choices")) {
+//                                JSONArray choices = responseJson.getJSONArray("choices");
+//                                if (!choices.isEmpty()) {
+//                                    JSONObject choice = choices.getJSONObject(0);
+//                                    JSONObject message = choice.getJSONObject("message");
+//                                    response.setContent(message.getString("content"));
+//                                    response.setSuccess(true);
+//                                }
+//                            }
+//
+//                            if (responseJson.containsKey("usage")) {
+//                                JSONObject usage = responseJson.getJSONObject("usage");
+//                                response.setPromptTokens(usage.getLongValue("prompt_tokens"));
+//                                response.setCompletionTokens(usage.getLongValue("completion_tokens"));
+//                                // response.setTotalTokens();
+//                                context.updateTokenUsage(usage.getLongValue("total_tokens"));
+//                            }
+//
+//                            response.setModel(getModel());
+//                            return response;
+//                        }
+//
+//                        //                @Override
+//                        //                public List<ConfigFileContext.Header> getHeaders() {
+//                        //                    List<ConfigFileContext.Header> headers = new ArrayList<>(super
+//                        //                    .getHeaders());
+//                        //                    headers.add(new ConfigFileContext.Header("Authorization", "Bearer " +
+//                        //                    getApiKey()));
+//                        //                    return headers;
+//                        //                }
+//                    });
+//        } catch (MalformedURLException e) {
+//            throw new RuntimeException(e);
+//        } finally {
+//            if (logSummary) {
+//                executeLog.summary();
+//            }
+//        }
+//    }
+
+    //    protected  void addMessage(UserPrompt prompt, List<String> systemPrompt, List<HttpUtils.PostParam>
+    //    postParams) {
+    //        JSONArray messages = new JSONArray();
+    //        if (CollectionUtils.isNotEmpty(systemPrompt)) {
+    //            for (String sysP : systemPrompt) {
+    //                JSONObject systemMessage = new JSONObject();
+    //                systemMessage.put("role", "system");
+    //                systemMessage.put("content", sysP);
+    //                messages.add(systemMessage);
+    //            }
+    //        }
+    //
+    //        JSONObject userMessage = new JSONObject();
+    //        userMessage.put("role", "user");
+    //        userMessage.put("content", prompt.getPrompt());
+    //        messages.add(userMessage);
+    //        postParams.add(new HttpUtils.PostParam("messages", messages));
+    //    }
+
+
+//    @Override
+//    public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
+//                                ITISJsonSchema jsonSchema, LLMOptionParams params) {
+//        String enhancedPrompt = prompt.getPrompt();
+//        if (jsonSchema.isContainSchema()) {
+//            // enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果：\n" + jsonSchema;
+//            enhancedPrompt += "\n\n请严格按照以下JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + jsonSchema.root();
+//            enhancedPrompt += "\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。";
+//        }
+//        LLMResponse response = chat(context, new UserPrompt(prompt.getAbstractInfo(), enhancedPrompt), systemPrompt,
+//                false, jsonSchema, params);
+//
+//        try {
+//            if (response.isSuccess() && response.getContent() != null) {
+//                String content = response.getContent();
+//                int start = content.indexOf("{");
+//                int end = content.lastIndexOf("}") + 1;
+//                if (start >= 0 && end > start) {
+//                    String jsonStr = content.substring(start, end);
+//                    JSONObject jsonContent = JSON.parseObject(jsonStr);
+//                    response.setJsonContent(jsonContent);
+//                    response.executeLog.setResponse(jsonContent);
+//                }
+//            }
+//        } finally {
+//            response.executeLog.summary();
+//        }
+//
+//        return response;
+//    }
 
     @Override
     public String getProviderName() {
@@ -313,11 +433,13 @@ public class DeepSeekProvider extends LLMProvider {
         return this.name;
     }
 
-    private int getMaxTokens() {
+    @Override
+    protected Integer getMaxTokens() {
         return this.maxTokens;
     }
 
-    private String getModel() {
+    @Override
+    protected String getModel() {
         return this.model;
     }
 
@@ -325,8 +447,13 @@ public class DeepSeekProvider extends LLMProvider {
         return this.apiKey;
     }
 
-    private String getApiUrl() {
-        return this.baseUrl + URL_PATH;
+    @Override
+    protected URL getApiUrl() {
+        try {
+            return new URL(this.baseUrl + URL_PATH);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @TISExtension

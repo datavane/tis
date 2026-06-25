@@ -21,7 +21,6 @@ package com.qlangtech.tis.plugin.credentials;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.config.ParamsConfig.BasicParamsConfigDescriptor;
@@ -33,7 +32,6 @@ import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.plugin.SetPluginsResult;
-import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.io.FileUtils;
@@ -75,7 +73,8 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
 
     public static UploadPluginMeta createParamsConfig(String paramPluginCategory) {
         UploadPluginMeta pluginMeta =
-                UploadPluginMeta.parse(CONTEXT_PARAMS_CFG + ":" + KEY_REQUIRE + "," + KEY_TARGET_PLUGIN_DESC + ATTR_KEY_VALUE_SPLIT + paramPluginCategory);
+                UploadPluginMeta.parse(CONTEXT_PARAMS_CFG + ":" + KEY_REQUIRE //
+                        + "," + KEY_TARGET_PLUGIN_DESC + ATTR_KEY_VALUE_SPLIT + paramPluginCategory);
         return pluginMeta;
     }
 
@@ -104,7 +103,9 @@ public class ParamsConfigPluginStore implements IPluginStore<ParamsConfig> {
     public List<IRepositoryResource> getAll() {
         ExtensionList<Descriptor<ParamsConfig>> descs = TIS.get().getDescriptorList(ParamsConfig.class);
         return descs.stream().map((desc) -> ParamsConfig.getTargetPluginStore(CONTEXT_PARAMS_CFG,
-                desc.getDisplayName(), Optional.empty(), false)).filter((rr) -> rr != null && rr.getTargetFile().exists()).collect(Collectors.toList());
+                desc.getDisplayName(), Optional.empty(), false))//
+                .filter((rr) -> rr.getTargetFile().exists())//
+                .collect(Collectors.toList());
     }
 
     @Override

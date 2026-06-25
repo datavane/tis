@@ -28,6 +28,7 @@ import com.qlangtech.tis.coredefine.module.action.ChatPipelineAction;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.manage.common.CenterResource;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.llm.log.ExecuteLog;
@@ -143,6 +144,6 @@ public class TestRealTISPlanAndExecuteAgent extends BasicActionTestCase {
   @NotNull
   public static LLMProvider getLlmProvider() {
     PartialSettedPluginContext context = new PartialSettedPluginContext();
-    return LLMProvider.load(context.setLoginUser(() -> "admin"), "qwen1");
+    return LLMProvider.load(context.setLoginUser(() -> Config.ADMIN_NAME), "qwen1");
   }
 }

@@ -13,9 +13,14 @@
     "dftVal": "https://dashscope.aliyuncs.com",
     "help": "API基础地址，默认为通义千问官方地址"
   },
+  "enableThinking": {
+    "label": "开启思考",
+    "dftVal": true,
+    "help": "使用混合思考模型时，是否开启思考模式，开启后，思考内容将通过reasoning_content字段返回。"
+  },
   "model": {
     "label": "模型",
-    "dftVal": "qwen3-coder-plus",
+    "dftVal": "qwen-plus",
     "help": "模型的 ID，支持 qwen-turbo、qwen-plus、qwen-max、qwen-max-longcontext ，qwen3-coder-plus等，推荐使用：qwen3-coder-plus",
     "enum": [
       {

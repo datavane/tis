@@ -53,6 +53,7 @@ import java.util.Set;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/4/25
  */
+@SuppressWarnings("all")
 public abstract class Ontology implements Describable<Ontology>, IdentityName, IPluginStore.BeforePluginSaved,
         PluginLiteria {
     public static final String KEY_ONTOLOGY = "ontology-type";
@@ -79,12 +80,12 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
         }
     };
 
-    public final OntologyEnum ontologyType() {
+    public OntologyEnum ontologyType() {
         return ((BasicDesc) this.getDescriptor()).getOntologyType();
     }
 
     public IEndTypeGetter.EndType getEndType() {
-        return ((IEndTypeGetter) this.getDescriptor()).getEndType();
+        return this.ontologyType().endType;
     }
 
     /**
@@ -197,14 +198,18 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
 
     public enum OntologyEnum {
 
-        ObjectType(OntologyObjectType.KEY_OBJECT_TYPE, new BaiscAssistStoreGetter<OntologyObjectType>() {
-            @Override
-            public File getAssistRootDir(String ontologyName) {
-                return OntologyDomain.getObjectTypeDir(ontologyName);
-                //  return objectTypeDir;
-            }
-        }),
+        ObjectType(OntologyObjectType.KEY_OBJECT_TYPE //
+                , IEndTypeGetter.EndType.OntologyObjectType,
+                new BaiscAssistStoreGetter<OntologyObjectType>() {
+                    @Override
+                    public File getAssistRootDir(String ontologyName) {
+                        return OntologyDomain.getObjectTypeDir(ontologyName);
+                        //  return objectTypeDir;
+                    }
+                }),
         ValueType(OntologyValueType.KEY_VALUE_TYPE //
+                ,
+                IEndTypeGetter.EndType.OntologyValueType
                 , new BaiscAssistStoreGetter<OntologyValueType>() {
             @Override
             public File getAssistRootDir(String ontologyName) {
@@ -212,6 +217,7 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
             }
         }),
         Linker(OntologyLinker.KEY_LINK_TYPES //
+                , IEndTypeGetter.EndType.OntologyLink
                 , new BaiscAssistStoreGetter<OntologyLinker>() {
             @Override
             public File getAssistRootDir(String ontologyName) {
@@ -219,6 +225,7 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
             }
         }),
         SharedProperty(OntologySharedProperty.KEY_SHARED_PROPERTY,
+                IEndTypeGetter.EndType.Shared,
                 new BaiscAssistStoreGetter<OntologySharedProperty>() {
                     @Override
                     public IPluginStore<OntologySharedProperty> getPluginStore(OntologyPluginMeta pluginMeta) {
@@ -230,27 +237,40 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
                         return OntologyDomain.getSharedPropsDir(ontologyName);
                     }
                 }),
-        Glossary(OntologyGlossary.KEY_GLOSSARY,
-                new BaiscAssistStoreGetter<OntologyGlossary>() {
-                    @Override
-                    public IPluginStore<OntologyGlossary> getPluginStore(OntologyPluginMeta pluginMeta) {
-                        return super.getPluginStore(pluginMeta.setPersistence());
-                    }
+        Glossary(OntologyGlossary.KEY_GLOSSARY
+                , IEndTypeGetter.EndType.OntologyGlossary
+                , new BaiscAssistStoreGetter<OntologyGlossary>() {
+            @Override
+            public IPluginStore<OntologyGlossary> getPluginStore(OntologyPluginMeta pluginMeta) {
+                return super.getPluginStore(pluginMeta.setPersistence());
+            }
 
-                    @Override
-                    public File getAssistRootDir(String ontologyName) {
-                        return OntologyDomain.getGlossaryDir(ontologyName);
-                    }
-                });
+            @Override
+            public File getAssistRootDir(String ontologyName) {
+                return OntologyDomain.getGlossaryDir(ontologyName);
+            }
+        });
 
         public final static Set<OntologyEnum> ontologyEnumsSet = Set.of(OntologyEnum.values());
 
         public final String typeIdentity;
         private final IAssistStoreGetter<?> storeKeyGetter;
+        public final IEndTypeGetter.EndType endType;
 
-        private OntologyEnum(String typeIdentity, IAssistStoreGetter<?> storeKeyGetter) {
+        public static OntologyEnum parse(IEndTypeGetter.EndType endType) {
+            for (OntologyEnum e : OntologyEnum.values()) {
+                if (e.endType == endType) {
+                    return e;
+                }
+            }
+            throw new IllegalStateException("endType:" + endType + " is illegal");
+        }
+
+        private OntologyEnum(String typeIdentity, IEndTypeGetter.EndType endType,
+                             IAssistStoreGetter<?> storeKeyGetter) {
             this.typeIdentity = typeIdentity;
             this.storeKeyGetter = storeKeyGetter;
+            this.endType = endType;
         }
 
         public File getAssistRootDir(String ontologyName) {
@@ -339,7 +359,7 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
         return desc;
     }
 
-    protected static abstract class BasicDesc extends Descriptor<Ontology> implements IEndTypeGetter,
+    public static abstract class BasicDesc extends Descriptor<Ontology> implements IEndTypeGetter,
             DescriptorUseableShortComment {
         public BasicDesc() {
             super();
@@ -350,6 +370,11 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
             Map<String, Object> eprops = super.getExtractProps();
             eprops.put(KEY_ONTOLOGY, getOntologyType().getTypeIdentity());
             return eprops;
+        }
+
+        @Override
+        public final EndType getEndType() {
+            return getOntologyType().endType;
         }
 
         public abstract OntologyEnum getOntologyType();

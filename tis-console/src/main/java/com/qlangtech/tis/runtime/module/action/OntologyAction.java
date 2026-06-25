@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.koubei.web.tag.pager.Pager;
+import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.plugin.IPluginStore;
 //----------------------------------------------------
@@ -44,6 +45,7 @@ import com.qlangtech.tis.plugin.ontology.chatbi.QueryResult;
 import com.qlangtech.tis.plugin.ontology.chatbi.TraceStep;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.linker.LinkResources;
+import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypeBinding;
 import com.qlangtech.tis.plugin.ontology.impl.synonyms.SynonymsElement;
 //----------------------------------------------------
 import com.qlangtech.tis.trigger.util.JsonUtil;
@@ -80,6 +82,7 @@ import static com.qlangtech.tis.util.DescriptorsJSON.KEY_DISPLAY_NAME;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/4/15
  */
+@SuppressWarnings("all")
 public class OntologyAction extends BasicModule {
 
   private Pager pager;
@@ -114,7 +117,7 @@ public class OntologyAction extends BasicModule {
       json.put("message", step.message());
       json.put("millis", step.millis());
       if (step.data() != null) {
-        json.put("data", step.data());
+        json.put("data", createUdfDescs(step.data()));
       }
       sseWriter.writeSSEEvent(SSERunnable.SSEEventType.LLM_CHAT_BI_STEP_RECORD, json);
     });
@@ -151,6 +154,13 @@ public class OntologyAction extends BasicModule {
     UploadPluginMeta.putPluginMeta(context, pluginMeta.getDelegate());
     OntologyObjectType objectType = Ontology.loadObjectTypeDetail(ontologyName, objType);
 
+    // Ontology.OntologyEnum.Linker
+    biz.put("linkerDesc",
+      new DefaultDescriptorsJSON<>(pluginMeta.getDelegate().getHeteroEnum().descriptors().stream().filter((desc) -> {
+        return ((Ontology.BasicDesc) desc).getOntologyType() == Ontology.OntologyEnum.Linker;
+      }).toList()).getDescriptorsJSON());
+
+    biz.put(ObjectTypeBinding.KEY_BOUND_DATASOURCE, objectType.getObjectTypeBindingInfo());
     biz.put(KEY_OBJECT_TYPE, Map.of("cols",
       Objects.requireNonNull(objectType, "objectType can not be null").getCols()));
 
@@ -187,6 +197,11 @@ public class OntologyAction extends BasicModule {
 
     JSONObject result = new JSONObject();
 
+    Pair<OntologyDomain, IPluginStore<OntologyDomain>> domainPair = OntologyDomain.load(ontologyName);
+
+    result.put("manipulateMetas",
+      Objects.requireNonNull(domainPair, "domainPair can not be null").getKey().convertPojo().getManipulateMetas());
+
     result.put("ontologyDescs",
       new DefaultDescriptorsJSON<>(pluginMeta.getHeteroEnum().descriptors()).getDescriptorsJSON());
     result.put("name", ontologyName);
@@ -204,7 +219,7 @@ public class OntologyAction extends BasicModule {
     for (OntologyObjectType ot : objTypes) {
       JSONObject obj = new JSONObject();
       obj.put("name", ot.getName());
-      obj.put("bound", ot.getObjectTypeBindingInfo());
+      obj.put(ObjectTypeBinding.KEY_BOUND_DATASOURCE, ot.getObjectTypeBindingInfo());
       obj.put("colSize", ot.getCols().size());
       obj.put(Ontology.KEY_CREATE_TIME, ot.getCreate());
       objectTypes.add(obj);
@@ -340,9 +355,10 @@ public class OntologyAction extends BasicModule {
 
     // 初始化最近 7 天的 key，确保无数据的日期也出现在结果中
     LocalDate today = LocalDate.now();
-    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMdd");
+    // DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMdd");
+
     for (int i = 6; i >= 0; i--) {
-      dailyMap.put(today.minusDays(i).format(fmt), 0L);
+      dailyMap.put(today.minusDays(i).format(TimeFormat.yyyy_MM_dd.timeFormatter), 0L);
     }
 
     if (traceDir.exists() && traceDir.isDirectory()) {
@@ -457,7 +473,231 @@ public class OntologyAction extends BasicModule {
     this.setBizResult(context, result);
   }
 
+  /**
+   * 获取本体知识图谱数据：返回所有实体实例节点及其关系边，用于前端可视化。
+   * emethod=get_ontology_graph&action=ontology_action&ontology={domain}
+   */
+  public void doGetOntologyGraph(Context context) {
+    final String domain = getDomain();
+
+    UploadPluginMeta.putPluginMeta(context,
+      OntologyPluginMeta.create(Ontology.OntologyEnum.ObjectType, domain).getDelegate());
+
+    JSONArray nodes = new JSONArray();
+    JSONArray edges = new JSONArray();
+
+    // ── 1. ObjectType 节点 ──
+    List<OntologyObjectType> objTypes = OntologyObjectType.loadAll(domain);
+    for (OntologyObjectType ot : objTypes) {
+      JSONObject node = new JSONObject();
+      node.put("id", "ot:" + ot.getName());
+      node.put("label", ot.getName());
+      node.put("nodeType", "ObjectType");
+      node.put("colSize", ot.getCols().size());
+      nodes.add(node);
+
+      // ── 2. Property 节点 + OT→Property 边 ──
+      for (com.qlangtech.tis.plugin.ontology.OntologyProperty prop : ot.getCols()) {
+        String propId = "prop:" + ot.getName() + ":" + prop.getName();
+        JSONObject pNode = new JSONObject();
+        pNode.put("id", propId);
+        pNode.put("label", prop.getName());
+        pNode.put("nodeType", "Property");
+        pNode.put("ownerOT", ot.getName());
+        // typeRef: 优先判断 SharedProperty 引用，再判断 ValueType 引用
+        com.qlangtech.tis.plugin.ontology.OntologyPropertyTypeRef typeRef = prop.getPropertyTypeRef();
+        java.util.Optional<String> sharedRef = typeRef != null
+          ? typeRef.getSharedPropertyRef() : java.util.Optional.<String>empty();
+        java.util.Optional<String> valueRef = typeRef != null
+          ? typeRef.getValueTypeRef() : java.util.Optional.<String>empty();
+        if (sharedRef.isPresent()) {
+          pNode.put("typeRef", sharedRef.get());
+          pNode.put("typeRefKind", "SharedProperty");
+        } else if (valueRef.isPresent()) {
+          pNode.put("typeRef", valueRef.get());
+          pNode.put("typeRefKind", "ValueType");
+        }
+        if (typeRef != null && typeRef.getOntologyType() != null) {
+          pNode.put("ontologyType", typeRef.getOntologyType());
+        }
+        nodes.add(pNode);
+
+        JSONObject e = new JSONObject();
+        e.put("source", "ot:" + ot.getName());
+        e.put("target", propId);
+        e.put("edgeType", "HAS_PROPERTY");
+        edges.add(e);
+
+        // Property → SharedProperty 边
+        if (sharedRef.isPresent()) {
+          JSONObject spEdge = new JSONObject();
+          spEdge.put("source", propId);
+          spEdge.put("target", "sp:" + sharedRef.get());
+          spEdge.put("edgeType", "TYPE_REF");
+          edges.add(spEdge);
+        }
+        // Property → ValueType 边
+        if (valueRef.isPresent()) {
+          JSONObject vtEdge = new JSONObject();
+          vtEdge.put("source", propId);
+          vtEdge.put("target", "vt:" + valueRef.get());
+          vtEdge.put("edgeType", "TYPE_REF");
+          edges.add(vtEdge);
+        }
+      }
+    }
+
+    // ── 3. Linker 节点 + OT↔OT 关系边 ──
+    List<OntologyLinker> linkers = Ontology.loadAllLinkers(domain);
+    for (OntologyLinker linker : linkers) {
+      try {
+        String linkerName = linker.identityValue();
+        String linkerId = "lk:" + linkerName;
+
+        JSONObject lNode = new JSONObject();
+        lNode.put("id", linkerId);
+        lNode.put("label", linkerName);
+        lNode.put("nodeType", "Linker");
+        lNode.put("endType", linker.getLinkTypeEnd().getVal());
+        nodes.add(lNode);
+
+        LinkResources.ObjectLinkerPair pair = linker.getLinkResourcesStep().getLinks();
+        LinkResources.ObjectLinkInfo left = pair.left();
+        LinkResources.ObjectLinkInfo right = pair.right();
+
+        // source OT → Linker 边
+        JSONObject e1 = new JSONObject();
+        e1.put("source", "ot:" + left.source());
+        e1.put("target", linkerId);
+        e1.put("edgeType", "LINK_SOURCE");
+        e1.put("sourceField", left.sourceField());
+        edges.add(e1);
+
+        // Linker → target OT 边
+        JSONObject e2 = new JSONObject();
+        e2.put("source", linkerId);
+        e2.put("target", "ot:" + right.target());
+        e2.put("edgeType", "LINK_TARGET");
+        e2.put("targetField", right.targetField());
+        edges.add(e2);
+
+      } catch (Exception ex) {
+        // 跳过无法解析的 Linker
+      }
+    }
+
+    // ── 4. SharedProperty 节点 ──
+    List<OntologySharedProperty> sharedProperties = Ontology.loadAllSharedProperties(domain);
+    for (OntologySharedProperty sp : sharedProperties) {
+      JSONObject node = new JSONObject();
+      node.put("id", "sp:" + sp.name);
+      node.put("label", sp.name);
+      node.put("nodeType", "SharedProperty");
+      node.put("alias", sp.alias);
+      node.put("ontologyType", sp.getOntologyType());
+      nodes.add(node);
+    }
+
+    // ── 5. ValueType 节点 ──
+    List<OntologyValueType> valueTypes = Ontology.loadAllValueTypes(domain);
+    for (OntologyValueType vt : valueTypes) {
+      JSONObject node = new JSONObject();
+      String vtName = vt.identityValue();
+      node.put("id", "vt:" + vtName);
+      node.put("label", vtName);
+      node.put("nodeType", "ValueType");
+      OntologyValueType.IMetadataOfValueType meta = vt.getMeta();
+      node.put("ontologyType", meta.ontologyType());
+      node.put("description", meta.getDescription());
+      nodes.add(node);
+    }
+
+    // ── 6. Glossary 节点 + Glossary→OT/Property 边 ──
+    List<OntologyGlossary> glossaries = Ontology.loadAllGlossary(domain);
+    for (OntologyGlossary glossary : glossaries) {
+      String glossaryId = "gl:" + glossary.term;
+      JSONObject node = new JSONObject();
+      node.put("id", glossaryId);
+      node.put("label", glossary.term);
+      node.put("nodeType", "Glossary");
+      node.put("description", glossary.description);
+      nodes.add(node);
+
+      // Glossary → target 边
+      if (glossary.target != null) {
+        String targetLiteral = glossary.target.getTargetLiteral();
+        if (StringUtils.isNotEmpty(targetLiteral)) {
+          JSONObject gEdge = new JSONObject();
+          gEdge.put("source", glossaryId);
+          // targetLiteral 格式: "OT名" 或 "OT名.Property名"
+          if (targetLiteral.contains(".")) {
+            String[] parts = targetLiteral.split("\\.", 2);
+            gEdge.put("target", "prop:" + parts[0] + ":" + parts[1]);
+          } else {
+            gEdge.put("target", "ot:" + targetLiteral);
+          }
+          gEdge.put("edgeType", "GLOSSARY_TARGET");
+          edges.add(gEdge);
+        }
+      }
+    }
+
+    JSONObject result = new JSONObject();
+    result.put("nodes", nodes);
+    result.put("edges", edges);
+    this.setBizResult(context, result);
+  }
+
   private static final int TRACE_PAGE_SIZE = 20;
+
+  /**
+   * 获取历史查询记录（去重，用于查询输入框的快捷标签）。
+   * emethod=get_chatbi_history&action=ontology_action&ontology={domain}&limit=20
+   */
+  public void doGetChatbiHistory(Context context) {
+    final String domain = getDomain();
+    int limit = this.getInt("limit", 20);
+    if (limit < 1)
+      limit = 20;
+    if (limit > 100)
+      limit = 100;
+
+    File traceDir = new File(Config.getDataDir(), "chatbi/trace/" + domain);
+    List<String> uniqueQueries = new ArrayList<>();
+    java.util.Set<String> seen = new java.util.LinkedHashSet<>();
+
+    if (traceDir.exists() && traceDir.isDirectory()) {
+      File[] files = traceDir.listFiles((d, name) -> name.endsWith(".jsonl"));
+      if (files != null && files.length > 0) {
+        // 按文件名倒序（时间倒序）
+        Arrays.sort(files, Comparator.comparing(File::getName).reversed());
+
+        for (File f : files) {
+          if (seen.size() >= limit)
+            break;
+
+          try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+            String headerLine = br.readLine();
+            if (headerLine != null) {
+              com.alibaba.fastjson.JSONObject header = com.alibaba.fastjson.JSON.parseObject(headerLine);
+              String nlq = header.getString("nlq");
+              if (StringUtils.isNotBlank(nlq) && !seen.contains(nlq)) {
+                seen.add(nlq);
+                uniqueQueries.add(nlq);
+              }
+            }
+          } catch (Exception e) {
+            // 跳过无法读取的文件
+          }
+        }
+      }
+    }
+
+    JSONObject result = new JSONObject();
+    result.put("queries", uniqueQueries);
+    result.put("total", uniqueQueries.size());
+    this.setBizResult(context, result);
+  }
 
   /**
    * 历史 Trace 列表（倒序，分页）。

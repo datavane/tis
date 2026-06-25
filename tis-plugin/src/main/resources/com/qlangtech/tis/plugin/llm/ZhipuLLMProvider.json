@@ -1,0 +1,129 @@
+{
+  "name": {
+    "help": "实例的唯一性名称，取一个方便记忆的名称",
+    "placeholder": "zhipu1"
+  },
+  "apiKey": {
+    "label": "API Key",
+    "help": "智谱AI API密钥，请在智谱AI开放平台获取并妥善保管"
+  },
+  "baseUrl": {
+    "label": "Base URL",
+    "readonly": false,
+    "dftVal": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+    "help": "API基础地址，默认为智谱AI官方地址"
+  },
+  "model": {
+    "label": "模型",
+    "dftVal": "glm-5.2",
+    "help": "模型的 ID，GLM-5.2 是最新的旗舰模型系列，推荐使用：glm-5.2",
+    "enum": [
+      {
+        "val": "glm-5.2",
+        "label": "GLM-5.2（最新旗舰）"
+      },
+      {
+        "val": "glm-5.1",
+        "label": "GLM-5.1（旗舰）"
+      },
+      {
+        "val": "glm-5-turbo",
+        "label": "GLM-5 Turbo（快速）"
+      },
+      {
+        "val": "glm-5",
+        "label": "GLM-5（高质量）"
+      },
+      {
+        "val": "glm-4.7",
+        "label": "GLM-4.7（高性能）"
+      },
+      {
+        "val": "glm-4.7-flash",
+        "label": "GLM-4.7 Flash（极速）"
+      },
+      {
+        "val": "glm-4.7-flashx",
+        "label": "GLM-4.7 FlashX（超极速）"
+      },
+      {
+        "val": "glm-4.6",
+        "label": "GLM-4.6（稳定）"
+      },
+      {
+        "val": "glm-4.5-air",
+        "label": "GLM-4.5 Air（轻量）"
+      },
+      {
+        "val": "glm-4.5-airx",
+        "label": "GLM-4.5 AirX（超轻量）"
+      },
+      {
+        "val": "glm-4.5-flash",
+        "label": "GLM-4.5 Flash（快速）"
+      }
+    ]
+  },
+  "maxTokens": {
+    "label": "最大Token数",
+    "dftVal": 8192,
+    "help": "最大生成 token 数量，GLM-5.2系列最大支持128K输出长度，建议设置不小于1024"
+  },
+  "thinking": {
+    "label": "思考模式",
+    "dftVal": false,
+    "help": "是否开启思考模式，适用于需要复杂推理的场景，开启后模型会进行更深入的思考",
+    "enum": [
+      {
+        "val": true,
+        "label": "是"
+      },
+      {
+        "val": false,
+        "label": "否"
+      }
+    ]
+  },
+  "sampling": {
+    "label": "高级采样",
+    "dftVal": "temperature",
+    "help": "在确定性的模型架构下引入可控的随机性，从而生成多样、新颖且合理的输出",
+    "subDescEnumFilter": "return com.qlangtech.tis.plugin.llm.ZhipuLLMProvider.filter(desc);"
+  },
+  "stream": {
+    "label": "流式输出",
+    "dftVal": false,
+    "help": "是否开启流式输出，开启后会逐步返回生成的内容",
+    "readonly": true,
+    "enum": [
+      {
+        "val": true,
+        "label": "是"
+      },
+      {
+        "val": false,
+        "label": "否"
+      }
+    ]
+  },
+  "printLog": {
+    "label": "打印日志",
+    "dftVal": false,
+    "help": "是否打印与模型交互的执行日志",
+    "enum": [
+      {
+        "val": true,
+        "label": "是"
+      },
+      {
+        "val": false,
+        "label": "否"
+      }
+    ]
+  },
+  "maxRetry": {
+    "label": "最大尝试次数",
+    "dftVal": 1,
+    "help": "当向服务端提交请求错误，最大尝试次数"
+  }
+}

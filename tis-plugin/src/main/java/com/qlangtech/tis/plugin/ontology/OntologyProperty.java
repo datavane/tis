@@ -192,11 +192,11 @@ public abstract class OntologyProperty implements Describable<OntologyProperty>,
     }
 
     public Boolean isPk() {
-        return pk;
+        return this.pk != null && this.pk;
     }
 
     public Boolean isNullable() {
-        return nullable;
+        return this.nullable != null && nullable;
     }
 
     public String getDescription() {

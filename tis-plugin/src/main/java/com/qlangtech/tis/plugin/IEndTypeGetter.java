@@ -158,7 +158,9 @@ public interface IEndTypeGetter {
         , K8S("k8s", EndTypeCategory.Assist, true)//
         , Dolphinscheduler("ds", EndTypeCategory.Assist, true) //
         , Deepseek("deepseek", EndTypeCategory.Assist, true) //
+        , Anthropic("anthropic", EndTypeCategory.Assist, true) //
         , QWen("qwen", EndTypeCategory.Assist, true) //
+        , Zhipu("zhipu", EndTypeCategory.Assist, true) //
         , UserProfile("user-profile", EndTypeCategory.Assist, true) //
         , Pipeline("pipeline", EndTypeCategory.Assist, true) //
         , Workflow("workflow", EndTypeCategory.Assist, true) //

@@ -3,7 +3,9 @@
     "allow": [
       "Bash(mvn -o -q -Dmaven.test.skip=true compile)",
       "Bash(grep *)",
-      "Bash(mvn compile *)"
+      "Bash(mvn compile *)",
+      "Bash(npx tsc *)",
+      "Bash(tee /tmp/tsc_check.log)"
     ]
   }
 }

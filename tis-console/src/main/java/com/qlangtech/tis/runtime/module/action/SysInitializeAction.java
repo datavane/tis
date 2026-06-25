@@ -25,7 +25,6 @@ import com.qlangtech.tis.manage.biz.dal.pojo.Department;
 import com.qlangtech.tis.manage.biz.dal.pojo.UsrDptRelationCriteria;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Config.SysDBType;
-import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.spring.TISDataSourceFactory;
 import com.qlangtech.tis.manage.spring.TISDataSourceFactory.SystemDBInit;
@@ -63,9 +62,6 @@ public class SysInitializeAction extends BasicModule {
 
   private static final int DEPARTMENT_ROOT_ID = 1;
   //  public static final int TEMPLATE_APPLICATION_DEFAULT_ID = 1;
-
-  public static final String ADMIN_ID = "9999";
-  public static final String ADMIN_NAME = "admin";
 
   // public static final String APP_NAME_TEMPLATE = "search4template";
   private static final Pattern PATTERN_ZK_ADDRESS = Pattern.compile("([^/]+)(/.+)$");
@@ -152,7 +148,7 @@ public class SysInitializeAction extends BasicModule {
     if (dataSource.dbTisConsoleExist(dbCfg)) {
       // 判断数据库是否已经存在？
       UsrDptRelationCriteria c = new UsrDptRelationCriteria();
-      c.createCriteria().andUsrIdEqualTo(ADMIN_ID);
+      c.createCriteria().andUsrIdEqualTo(Config.ADMIN_ID);
       if (this.getUsrDptRelationDAO().countByExample(c) > 0) {
         touchSysInitializedToken();
         //  throw new IllegalStateException("system has initialized successful,shall not initialize again");
