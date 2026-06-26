@@ -30,26 +30,22 @@ package com.qlangtech.tis.plugin.ontology.chatbi;
  */
 public interface ChatBIService {
 
-    //    /**
-    //     * 给定自然语言问句，生成并执行 SQL。
-    //     * <p>
-    //     * 检索参数、是否执行、是否 EXPLAIN 校验等选项均由实现类从自身配置中读取。
-    //     *
-    //     * @param domain 本体域名
-    //     * @param nlq    自然语言问句
-    //     * @return ChatBI 结果（含 SQL、执行结果、trace、错误）
-    //     */
-    //    ChatBIResult ask(String domain, String nlq);
+
+    default ChatBIResult ask(String domain, String nlq, java.util.function.Consumer<TraceStep> stepCallback) {
+        return this.ask(domain, nlq, false, stepCallback);
+    }
 
     /**
      * 给定自然语言问句，生成并执行 SQL，同时通过回调实时推送每个 TraceStep。
      * <p>
      * 默认实现忽略回调，保持向后兼容。
      *
-     * @param domain       本体域名
-     * @param nlq          自然语言问句
-     * @param stepCallback 每产生一个 TraceStep 时立即调用（用于 SSE 推送）
+     * @param domain            本体域名
+     * @param nlq               自然语言问句
+     * @param forceQueryExecute 强制执行查询需要生成结果集
+     * @param stepCallback      每产生一个 TraceStep 时立即调用（用于 SSE 推送）
      * @return ChatBI 结果（含 SQL、执行结果、trace、错误）
      */
-    ChatBIResult ask(String domain, String nlq, java.util.function.Consumer<TraceStep> stepCallback);
+    ChatBIResult ask(String domain, String nlq, boolean forceQueryExecute,
+                     java.util.function.Consumer<TraceStep> stepCallback);
 }

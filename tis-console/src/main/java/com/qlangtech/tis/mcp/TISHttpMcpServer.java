@@ -42,6 +42,7 @@ import com.qlangtech.tis.manage.common.IAjaxResult;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
+import com.qlangtech.tis.mcp.tools.ChatBITool;
 import com.qlangtech.tis.mcp.tools.ClarificationSubmitTool;
 import com.qlangtech.tis.mcp.tools.CreatePluginInstanceTool;
 import com.qlangtech.tis.mcp.tools.GetIncrSyncStatusTool;
@@ -115,7 +116,7 @@ public class TISHttpMcpServer {
   public ChatPipelineAction.ChatSession getSession(McpSyncServerExchange exchange) {
     String sessionId = exchange.sessionId();
     return ChatPipelineAction.getChatSession(sessionId);
-   // return mcpSessionCache.computeIfAbsent(sessionId, k -> new McpSession());
+    // return mcpSessionCache.computeIfAbsent(sessionId, k -> new McpSession());
   }
 
   @Autowired
@@ -169,7 +170,7 @@ public class TISHttpMcpServer {
       , new GetTableColumnsTool(mcpServer)
       , new PipelineListTool(mcpServer)
       , new GetPipelineDetailTool(mcpServer)
-     // , new GetDataLineageTool(mcpServer)
+      // , new GetDataLineageTool(mcpServer)
       // Layer 2: Diagnostics & Monitoring
       , new PipelineGetTaskStatusTool(mcpServer)
       , new GetPipelineExecHistoryTool(mcpServer)
@@ -179,12 +180,13 @@ public class TISHttpMcpServer {
       , new PipelineTriggerBatchTool(mcpServer)
       , new PipelineStartIncrSyncTool(mcpServer)
       // Plugin management
-//      , new ListPluginTypesTool(mcpServer)
-//      , new GetPluginSchemaTool(mcpServer)
-//      , new CreatePluginInstanceTool(mcpServer)
-//      , new CreatePipelinePrepareTool(mcpServer)
-//      , new CreatePipelineCommitTool(mcpServer)
-//      , new ClarificationSubmitTool(mcpServer)
+      //      , new ListPluginTypesTool(mcpServer)
+      //      , new GetPluginSchemaTool(mcpServer)
+      //      , new CreatePluginInstanceTool(mcpServer)
+      //      , new CreatePipelinePrepareTool(mcpServer)
+      //      , new CreatePipelineCommitTool(mcpServer)
+      //      , new ClarificationSubmitTool(mcpServer)
+      , new ChatBITool(mcpServer)
     };
 
     McpSyncServer server = McpServer.sync(servletProvider).serverInfo("tis-mcp-server", "1.0.0") //

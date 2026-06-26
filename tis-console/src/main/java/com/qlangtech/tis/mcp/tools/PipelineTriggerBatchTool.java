@@ -61,6 +61,7 @@ public class PipelineTriggerBatchTool extends McpTool {
   @Override
   public ExecuteResult execHandle(McpAgentContext agentContext, McpSyncServerExchange exchange,
                                   RequestArguments arguments) throws Exception {
+
     String pipelineName = arguments.get(IncrRateControllerCfgDTO.KEY_PIPELINE);
     if (StringUtils.isEmpty(pipelineName)) {
       throw new IllegalStateException("param pipelineName can not be null");

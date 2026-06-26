@@ -405,7 +405,7 @@ ORDER BY total_sales DESC
 ```java
 @Test
 public void testPhysicalExpressionTransform() {
-    DefaultOntologyProperty prop = new DefaultOntologyProperty();
+    DefaultOntologyProperty prop = new DefaultOntologyProperty(); 
     prop.name = "Product_Price";
     prop.physicalExpression = "REPLACE(TRIM({col}), '$', '')";
     

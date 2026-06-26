@@ -35,6 +35,7 @@ import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
+import com.qlangtech.tis.plugin.ontology.chatbi.ChatBIService;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.Selectable;
@@ -100,6 +101,14 @@ public abstract class OntologyDomain implements Describable<OntologyDomain>, Ide
                 = ONTOLOGY_DOMAIN.getPluginStore(null,
                 UploadPluginMeta.create(ONTOLOGY_DOMAIN).putExtraParams(NAME_ONTOLOGY_DOMAIN, domain));
         return domainStore;
+    }
+
+    public static Collection<OntologyDomainManipulate> getDomainManiplidateList(final String ontologyName) {
+
+        ManipulatePluginCacheRegister.TemplateManipulateStore<OntologyDomainManipulate> manipulateStore =
+                OntologyDomainManipulate.getManipulateStore(ontologyName, false);
+        ChatBIService chatBI = null;
+        return manipulateStore.getManipulates();
     }
 
 

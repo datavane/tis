@@ -25,6 +25,7 @@ import com.google.common.collect.Lists;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.extension.impl.XmlFile;
+import com.qlangtech.tis.mcp.tools.ChatBITool;
 import com.qlangtech.tis.plugin.IPluginStore;
 //----------------------------------------------------
 import com.qlangtech.tis.plugin.datax.transformer.UDFDesc;
@@ -39,6 +40,7 @@ import com.qlangtech.tis.plugin.ontology.OntologySharedProperty;
 import com.qlangtech.tis.plugin.ontology.OntologyValueType;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
 import com.qlangtech.tis.datax.job.SSERunnable;
+import com.qlangtech.tis.plugin.ontology.chatbi.ChatBIConstants;
 import com.qlangtech.tis.plugin.ontology.chatbi.ChatBIResult;
 import com.qlangtech.tis.plugin.ontology.chatbi.ChatBIService;
 import com.qlangtech.tis.plugin.ontology.chatbi.QueryResult;
@@ -96,10 +98,12 @@ public class OntologyAction extends BasicModule {
 
   public void doChatbiQuery(Context context) {
     final String ontologyName = getDomain();
-    ManipulatePluginCacheRegister.TemplateManipulateStore<OntologyDomainManipulate> manipulateStore =
-      OntologyDomainManipulate.getManipulateStore(ontologyName, false);
+
+
+    //    ManipulatePluginCacheRegister.TemplateManipulateStore<OntologyDomainManipulate> manipulateStore =
+    //      OntologyDomainManipulate.getManipulateStore(ontologyName, false);
     ChatBIService chatBI = null;
-    for (OntologyDomainManipulate m : manipulateStore.getManipulates()) {
+    for (OntologyDomainManipulate m : OntologyDomain.getDomainManiplidateList(ontologyName)) {
       if (m instanceof ChatBIService bi) {
         chatBI = bi;
         break;
@@ -107,32 +111,32 @@ public class OntologyAction extends BasicModule {
     }
     Objects.requireNonNull(chatBI, "instance of " + ChatBIService.class.getSimpleName() + " can not be null");
 
-    final String nlq = this.getString("nlq");
+    final String nlq = this.getString(ChatBITool.KEY_NLQ);
     SSEEventWriter sseWriter = this.getEventStreamWriter();
 
     ChatBIResult result = chatBI.ask(ontologyName, nlq, (TraceStep step) -> {
       JSONObject json = new JSONObject();
-      json.put("step", step.step());
-      json.put("ok", step.ok());
-      json.put("message", step.message());
-      json.put("millis", step.millis());
+      json.put(ChatBIConstants.FIELD_STEP, step.step());
+      json.put(ChatBIConstants.FIELD_OK, step.ok());
+      json.put(ChatBIConstants.FIELD_MESSAGE, step.message());
+      json.put(ChatBIConstants.FIELD_MILLIS, step.millis());
       if (step.data() != null) {
-        json.put("data", createUdfDescs(step.data()));
+        json.put(ChatBIConstants.FIELD_DATA, createUdfDescs(step.data()));
       }
       sseWriter.writeSSEEvent(SSERunnable.SSEEventType.LLM_CHAT_BI_STEP_RECORD, json);
     });
 
     JSONObject resultJson = new JSONObject();
-    resultJson.put("success", result.isSuccess());
-    resultJson.put("sql", result.sql());
-    resultJson.put("error", result.error());
+    resultJson.put(ChatBIConstants.FIELD_SUCCESS, result.isSuccess());
+    resultJson.put(ChatBIConstants.FIELD_SQL, result.sql());
+    resultJson.put(ChatBIConstants.FIELD_ERROR, result.error());
     QueryResult qr = result.data();
     if (qr != null) {
-      resultJson.put("columns", qr.columns());
-      resultJson.put("rows", qr.rows());
-      resultJson.put("rowCount", qr.rowCount());
-      resultJson.put("truncated", qr.truncated());
-      resultJson.put("actualRows", qr.actualRows());
+      resultJson.put(ChatBIConstants.FIELD_COLUMNS, qr.columns());
+      resultJson.put(ChatBIConstants.FIELD_ROWS, qr.rows());
+      resultJson.put(ChatBIConstants.FIELD_ROW_COUNT, qr.rowCount());
+      resultJson.put(ChatBIConstants.FIELD_TRUNCATED, qr.truncated());
+      resultJson.put(ChatBIConstants.FIELD_ACTUAL_ROWS, qr.actualRows());
     }
     sseWriter.writeSSEEvent(SSERunnable.SSEEventType.AI_AGNET_DONE, resultJson);
   }
@@ -346,7 +350,8 @@ public class OntologyAction extends BasicModule {
    */
   public void doGetChatbiStats(Context context) {
     final String domain = getDomain();
-    File traceDir = new File(Config.getDataDir(), "chatbi/trace/" + domain);
+    File traceDir = ChatBIConstants.getOntologyDoaminTraceDir(domain);// new File(Config.getDataDir(),
+    // "chatbi/trace/" + domain);
 
     long successCount = 0;
     long failCount = 0;
@@ -662,7 +667,8 @@ public class OntologyAction extends BasicModule {
     if (limit > 100)
       limit = 100;
 
-    File traceDir = new File(Config.getDataDir(), "chatbi/trace/" + domain);
+    File traceDir = ChatBIConstants.getOntologyDoaminTraceDir(domain);//new File(Config.getDataDir(), "chatbi/trace/"
+    // + domain);
     List<String> uniqueQueries = new ArrayList<>();
     java.util.Set<String> seen = new java.util.LinkedHashSet<>();
 
@@ -709,7 +715,8 @@ public class OntologyAction extends BasicModule {
     if (page < 1)
       page = 1;
 
-    File traceDir = new File(Config.getDataDir(), "chatbi/trace/" + domain);
+    File traceDir = ChatBIConstants.getOntologyDoaminTraceDir(domain);// new File(Config.getDataDir(),
+    // "chatbi/trace/" + domain);
     List<JSONObject> items = new ArrayList<>();
     int total = 0;
 
@@ -745,12 +752,12 @@ public class OntologyAction extends BasicModule {
    */
   public void doGetChatbiTraceDetail(Context context) {
     final String domain = getDomain();
-    final String reqId = this.getString("reqId");
+    final String reqId = this.getString(ChatBIConstants.FIELD_REQ_ID);
     if (StringUtils.isEmpty(reqId)) {
       throw new IllegalArgumentException("param reqId can not be empty");
     }
 
-    File traceFile = new File(Config.getDataDir(), "chatbi/trace/" + domain + "/" + reqId + ".jsonl");
+    File traceFile = new File(ChatBIConstants.getOntologyDoaminTraceDir(domain), reqId + ".jsonl");
     if (!traceFile.exists()) {
       this.addErrorMessage(context, "Trace file not found: " + reqId);
       return;
@@ -766,8 +773,8 @@ public class OntologyAction extends BasicModule {
       String headerLine = br.readLine();
       if (headerLine != null) {
         com.alibaba.fastjson.JSONObject header = com.alibaba.fastjson.JSON.parseObject(headerLine);
-        nlq = header.getString("nlq");
-        timestamp = header.getLongValue("timestamp");
+        nlq = header.getString(ChatBIConstants.FIELD_NLQ);
+        timestamp = header.getLongValue(ChatBIConstants.FIELD_TIMESTAMP);
       }
       // 后续每行是 TraceStep
       String line;
@@ -776,8 +783,8 @@ public class OntologyAction extends BasicModule {
           continue;
         JSONObject row = JSON.parseObject(line);
         JSONObject traceData = null;
-        if ((traceData = row.getJSONObject("data")) != null) {
-          row.put("data", createUdfDescs(traceData));
+        if ((traceData = row.getJSONObject(ChatBIConstants.FIELD_DATA)) != null) {
+          row.put(ChatBIConstants.FIELD_DATA, createUdfDescs(traceData));
         }
         steps.add(row);
       }
@@ -785,10 +792,10 @@ public class OntologyAction extends BasicModule {
       throw new RuntimeException("Failed to read trace file: " + reqId, e);
     }
 
-    result.put("reqId", reqId);
-    result.put("nlq", nlq);
-    result.put("timestamp", timestamp);
-    result.put("steps", steps);
+    result.put(ChatBIConstants.FIELD_REQ_ID, reqId);
+    result.put(ChatBIConstants.FIELD_NLQ, nlq);
+    result.put(ChatBIConstants.FIELD_TIMESTAMP, timestamp);
+    result.put(ChatBIConstants.FIELD_STEPS, steps);
     this.setBizResult(context, result);
   }
 
@@ -819,9 +826,9 @@ public class OntologyAction extends BasicModule {
         return null;
 
       com.alibaba.fastjson.JSONObject header = com.alibaba.fastjson.JSON.parseObject(headerLine);
-      String reqId = header.getString("reqId");
-      String nlq = header.getString("nlq");
-      long timestamp = header.getLongValue("timestamp");
+      String reqId = header.getString(ChatBIConstants.FIELD_REQ_ID);
+      String nlq = header.getString(ChatBIConstants.FIELD_NLQ);
+      long timestamp = header.getLongValue(ChatBIConstants.FIELD_TIMESTAMP);
 
       boolean hasExecute = false;
       boolean hasError = false;
@@ -834,30 +841,30 @@ public class OntologyAction extends BasicModule {
         if (line.isBlank())
           continue;
         com.alibaba.fastjson.JSONObject step = com.alibaba.fastjson.JSON.parseObject(line);
-        String stepName = step.getString("step");
+        String stepName = step.getString(ChatBIConstants.FIELD_STEP);
         if (stepName == null)
           continue;
         switch (stepName) {
-          case "llm" -> {
+          case ChatBIConstants.STEP_LLM -> {
             llmCount++;
-            llmMs += step.getLongValue("millis");
+            llmMs += step.getLongValue(ChatBIConstants.FIELD_MILLIS);
           }
-          case "execute" -> {
+          case ChatBIConstants.STEP_EXECUTE -> {
             hasExecute = true;
-            executeMs = step.getLongValue("millis");
+            executeMs = step.getLongValue(ChatBIConstants.FIELD_MILLIS);
           }
-          case "error" -> hasError = true;
+          case ChatBIConstants.STEP_ERROR -> hasError = true;
         }
       }
 
       JSONObject item = new JSONObject();
-      item.put("reqId", reqId);
-      item.put("nlq", nlq);
-      item.put("timestamp", timestamp);
-      item.put("success", hasExecute && !hasError);
-      item.put("retryCnt", Math.max(0, llmCount - 1));
-      item.put("llmMs", llmMs);
-      item.put("executeMs", executeMs);
+      item.put(ChatBIConstants.FIELD_REQ_ID, reqId);
+      item.put(ChatBIConstants.FIELD_NLQ, nlq);
+      item.put(ChatBIConstants.FIELD_TIMESTAMP, timestamp);
+      item.put(ChatBIConstants.FIELD_SUCCESS, hasExecute && !hasError);
+      item.put(ChatBIConstants.FIELD_RETRY_CNT, Math.max(0, llmCount - 1));
+      item.put(ChatBIConstants.FIELD_LLM_MS, llmMs);
+      item.put(ChatBIConstants.FIELD_EXECUTE_MS, executeMs);
       return item;
     } catch (Exception e) {
       return null;
