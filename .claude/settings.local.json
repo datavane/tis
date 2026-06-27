@@ -154,7 +154,10 @@
       "Bash(mvn test *)",
       "Bash(mvn -o test -Dtest=TestAstValidator#testValidSelectForWithStatement)",
       "Bash(echo \"EXIT=$?\")",
-      "Bash(npm list *)"
+      "Bash(npm list *)",
+      "Bash(curl -s -o generated___CMDSUB_OUTPUT__.png 'https://dashscope-7c2c.oss-accelerate.aliyuncs.com/7d/91/20260626/a3584b24/f0b60b73-9309-40b9-a682-22dbeb568ea2.png?Expires=1783062069&OSSAccessKeyId=LTAI5tPxpiCM2hjmWrFXrym1&Signature=D6zPlM%2FTZVCIL959Oz6j7pgWOzI%3D')",
+      "Bash([ -f \"$filename\" ])",
+      "Bash(exit 1)"
     ],
     "deny": [],
     "ask": []
