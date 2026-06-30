@@ -40,7 +40,7 @@ import java.util.Optional;
  * @date 2026/5/21
  * @see com.qlangtech.tis.datax.DefaultDataXProcessorManipulate
  * @see OntologyDomain
- */
+*/
 public abstract class OntologyDomainManipulate extends BasicManipuldateProcessor<OntologyDomainManipulate> {
 
     private static ManipulatePluginCacheRegister<OntologyDomainManipulate> ontologyCacheRegister;

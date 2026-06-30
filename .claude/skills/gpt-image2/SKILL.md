@@ -166,7 +166,7 @@ curl -s -X POST "https://api.vectorengine.ai/v1/images/edits" \
 
 ```bash
 # 纯文本生成（使用 jq）
-curl -s -X POST "https://api.vectorengine.ai/v1/images/generations" \
+curl --max-time 600 -s -X POST "https://api.vectorengine.ai/v1/images/generations" \
   -H "Authorization: Bearer $GPT_IMAGE_TOKEN" \
   -H "Content-Type: application/json" \
   -d "$(jq -n \
@@ -177,7 +177,7 @@ curl -s -X POST "https://api.vectorengine.ai/v1/images/generations" \
     '{model: $model, prompt: $prompt, size: $size, n: $n, format: "png"}')"
 
 # 图生图（使用 jq）
-curl -s -X POST "https://api.vectorengine.ai/v1/images/edits" \
+curl --max-time 600 -s -X POST "https://api.vectorengine.ai/v1/images/edits" \
   -H "Authorization: Bearer $GPT_IMAGE_TOKEN" \
   -H "Content-Type: application/json" \
   -d "$(jq -n \
@@ -191,55 +191,91 @@ curl -s -X POST "https://api.vectorengine.ai/v1/images/edits" \
 
 如果没有 jq，需要手动转义特殊字符（引号、换行符等）。
 
-### 4. 解析响应并提取图片 URL
+### 4. 解析响应并保存图片
 
-从 API 返回的 JSON 中提取图片 URL：
-- 路径：`data[].url`（可能返回多个图片，取决于 n 参数）
-- 使用 `jq` 工具解析 JSON（如果可用）
-- 或使用 `grep`/`sed` 等工具提取
+API 可能返回两种格式的响应：
+1. **URL 格式**：`data[].url` - 图片的临时下载链接
+2. **Base64 格式**：`data[].b64_json` - Base64 编码的图片数据
 
-示例响应结构（根据 OpenAI Images API 标准）：
+需要同时支持这两种格式。
+
+示例响应结构：
+
+**URL 格式响应**：
 ```json
 {
   "created": 1234567890,
   "data": [
     {
       "url": "https://example.com/image1.png"
-    },
-    {
-      "url": "https://example.com/image2.png"
     }
   ]
 }
 ```
 
-提取 URL 的方法：
-
-```bash
-# 使用 jq（推荐）
-image_urls=$(echo "$response" | jq -r '.data[].url')
-
-# 或使用 grep（备选）
-image_urls=$(echo "$response" | grep -o '"url":"[^"]*"' | cut -d'"' -f4)
+**Base64 格式响应**：
+```json
+{
+  "created": 1234567890,
+  "data": [
+    {
+      "b64_json": "iVBORw0KGgoAAAANS..."
+    }
+  ]
+}
 ```
 
-### 5. 下载图片
+### 5. 提取并保存图片
 
-循环下载所有生成的图片到当前目录：
+使用以下逻辑处理两种响应格式：
 
 ```bash
 counter=1
-for url in $image_urls; do
-  if [ $n -eq 1 ]; then
-    filename="generated_$(date +%Y%m%d_%H%M%S).png"
-  else
-    filename="generated_$(date +%Y%m%d_%H%M%S)_${counter}.png"
-  fi
-  curl -s -o "$filename" "$url"
-  echo "已保存：$filename"
-  counter=$((counter + 1))
-done
+
+# 检查响应中是否包含 url 字段
+if echo "$response" | jq -e '.data[0].url' > /dev/null 2>&1; then
+  # URL 格式：下载图片
+  image_urls=$(echo "$response" | jq -r '.data[].url')
+  
+  for url in $image_urls; do
+    if [ $n -eq 1 ]; then
+      filename="generated_$(date +%Y%m%d_%H%M%S).png"
+    else
+      filename="generated_$(date +%Y%m%d_%H%M%S)_${counter}.png"
+    fi
+    curl -s -o "$filename" "$url"
+    echo "已保存：$filename"
+    counter=$((counter + 1))
+  done
+  
+elif echo "$response" | jq -e '.data[0].b64_json' > /dev/null 2>&1; then
+  # Base64 格式：解码并保存
+  echo "$response" | jq -r '.data[].b64_json' | while read -r b64_data; do
+    if [ $n -eq 1 ]; then
+      filename="generated_$(date +%Y%m%d_%H%M%S).png"
+    else
+      filename="generated_$(date +%Y%m%d_%H%M%S)_${counter}.png"
+    fi
+    
+    # 解码 base64 数据并保存
+    echo "$b64_data" | base64 -d > "$filename"
+    echo "已保存：$filename"
+    counter=$((counter + 1))
+  done
+  
+else
+  echo "错误：无法从响应中提取图片数据"
+  echo "原始响应："
+  echo "$response"
+  exit 1
+fi
 ```
+
+**说明**：
+- 优先检查 URL 格式，如果存在则直接下载
+- 如果不存在 URL，则检查 b64_json 格式
+- 使用 `base64 -d` 解码 Base64 数据并保存为文件
+- 如果两种格式都不存在，打印错误和原始响应便于调试
 
 文件命名格式：
 - 单张图片：`generated_YYYYMMDD_HHMMSS.png`
