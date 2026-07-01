@@ -1031,6 +1031,7 @@ public class OfflineDatasourceAction extends BasicModule {
    * @param context the context
    * @throws Exception the exception
    */
+  @Func(value = PermissionConstant.DATAFLOW_UPDATE)
   public void doEditWorkflow(Context context) throws Exception {
     WorkflowPojo pojo = getWorkflowPojo(context);
     if (pojo == null) {
