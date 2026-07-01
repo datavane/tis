@@ -30,6 +30,7 @@ import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.linker.IRelationshipTypeSetter;
 import com.qlangtech.tis.plugin.ontology.impl.linker.LinkResources;
+import com.qlangtech.tis.plugin.ontology.impl.linker.RelationshipType;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.lang3.StringUtils;
@@ -104,6 +105,15 @@ public abstract class OntologyLinker extends Ontology implements IdentityName, M
         return links.getOtherEnd(meta);
     }
 
+    /**
+     * 取得join节点的object_type
+     *
+     * @param meta
+     * @return
+     * @see RelationshipType#BackingObjectType  只有这种类型的joiner 才会返回内容
+     */
+    public abstract Optional<OntologyObjectType> getJoinerObjectType(OntologyPluginMeta meta);
+
 
     private IRelationshipTypeSetter getRelationTypeSetterStep() {
         if (stepsPlugin.length != 2) {
@@ -131,7 +141,6 @@ public abstract class OntologyLinker extends Ontology implements IdentityName, M
     public OneStepOfMultiSteps[] getMultiStepsSavedItems() {
         return this.stepsPlugin;
     }
-
 
 
     @Override
