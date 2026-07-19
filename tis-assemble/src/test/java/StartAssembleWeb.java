@@ -35,8 +35,8 @@ public class StartAssembleWeb extends TestCase {
 
 
     static {
-        // 注意：测试环境不能使用 JNDI ContextSelector，否则会因为 JNDI 容器未就绪导致递归死锁
-        // 不调用 TisApp.setLogbackContextSelector()，使用 logback 默认的 DefaultContextSelector
+        // 执行TisApp的static执行块
+        TisApp.setLogbackContextSelector();
         System.setProperty(NetUtils.TIS_PREFERRED_NETWORK_INTERFACE, "en0");
         System.setProperty(TisAppLaunch.KEY_LOG_DIR, "/opt/logs/tis");
         System.setProperty(Config.SYSTEM_KEY_LOGBACK_PATH_KEY, "logback-assemble.xml");

@@ -42,7 +42,7 @@ import java.util.ServiceLoader;
 public class TisApp {
 
     static {
-       // setLogbackContextSelector();
+        setLogbackContextSelector();
     }
 
     public static void setLogbackContextSelector() {
