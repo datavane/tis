@@ -32,6 +32,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.ServiceLoader;
 
 /**
@@ -120,7 +121,7 @@ public class TisApp {
         File root = getWebRootDir();
         getLogger().info("webapps context dir:{}", root.getAbsolutePath());
         File contextDir = null;
-        for (String context : root.list()) {
+        for (String context : Objects.requireNonNull(root.list())) {
             contextDir = new File(root, context);
             if (contextDir.isDirectory() && !TisSubModule.WEB_START.moduleName.equals(context)) {
                 if (APP_CONSOLE.equals(context) //|| TisSubModule.ZEPPELIN.moduleName.equals(context)
