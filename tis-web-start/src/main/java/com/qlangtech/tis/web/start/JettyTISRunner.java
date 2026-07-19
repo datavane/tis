@@ -191,7 +191,10 @@ public class JettyTISRunner {
         } else {
             logger.info("context:" + context + " start with system classloader");
             WebAppClassLoader clazzLoader = new WebAppClassLoader(this.getClass().getClassLoader(), webAppContext);
-            clazzLoader.addClassPath(resourceFactory.newResource(new File(contextDir, "target/classes").toPath()));
+            File classDir = new File(contextDir, "target/classes");
+            if (classDir.exists()) {
+                clazzLoader.addClassPath(resourceFactory.newResource(classDir.toPath()));
+            }
             webAppContext.setClassLoader(clazzLoader);
         }
         webAppContext.setDescriptor(new File(webappDir, TisApp.PATH_WEB_XML).getAbsolutePath());
@@ -205,20 +208,20 @@ public class JettyTISRunner {
         webAppContext.setConfigurationDiscovered(false);
 
         // Configure JettyWebSocketConfiguration with proper settings
-       // JettyWebSocketConfiguration wsConfig = new JettyWebSocketConfiguration();
+        // JettyWebSocketConfiguration wsConfig = new JettyWebSocketConfiguration();
 
         // 配置 WebSocket 支持 - 这是 Jetty 12 的关键步骤
         JettyWebSocketServletContainerInitializer.configure(webAppContext, null);
 
-//        webAppContext.setConfigurations(new Configuration[]{
-//            new WebInfConfiguration(),
-//            new WebXmlConfiguration(),
-//            new MetaInfConfiguration(),
-//            new FragmentConfiguration(),
-//            new AnnotationConfiguration(),      // Handle servlet 3.0+ annotations and listeners
-//            wsConfig,                            // Enable @WebSocket annotations
-//            new JettyWebXmlConfiguration()
-//        });
+        //        webAppContext.setConfigurations(new Configuration[]{
+        //            new WebInfConfiguration(),
+        //            new WebXmlConfiguration(),
+        //            new MetaInfConfiguration(),
+        //            new FragmentConfiguration(),
+        //            new AnnotationConfiguration(),      // Handle servlet 3.0+ annotations and listeners
+        //            wsConfig,                            // Enable @WebSocket annotations
+        //            new JettyWebXmlConfiguration()
+        //        });
 
         webAppContext.setParentLoaderPriority(true);
         webAppContext.setThrowUnavailableOnStartupException(true);
