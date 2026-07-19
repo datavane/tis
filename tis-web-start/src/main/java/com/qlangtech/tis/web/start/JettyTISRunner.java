@@ -21,7 +21,9 @@ import com.qlangtech.tis.health.check.IStatusChecker;
 import com.qlangtech.tis.health.check.StatusLevel;
 import com.qlangtech.tis.health.check.StatusModel;
 import org.eclipse.jetty.ee.webapp.WebAppClassLoader;
+import org.eclipse.jetty.ee11.servlet.DefaultServlet;
 import org.eclipse.jetty.ee11.servlet.FilterHolder;
+import org.eclipse.jetty.ee11.servlet.ServletHolder;
 import org.eclipse.jetty.ee11.annotations.AnnotationConfiguration;
 import org.eclipse.jetty.ee11.webapp.Configuration;
 import org.eclipse.jetty.ee11.webapp.FragmentConfiguration;
@@ -225,7 +227,16 @@ public class JettyTISRunner {
 
         webAppContext.setParentLoaderPriority(true);
         webAppContext.setThrowUnavailableOnStartupException(true);
-        webAppContext.addServlet(CheckHealth.class, "/check_health");
+
+        // CRITICAL FIX for Jetty 12: Add Default Servlet to serve static resources
+        // When setDefaultsDescriptor(null) is used, Default Servlet is not automatically added
+        // This causes 404 for all static files including index.html
+        ServletHolder defaultServlet = new ServletHolder("default", DefaultServlet.class);
+        defaultServlet.setInitParameter("dirAllowed", "false");
+        defaultServlet.setInitParameter("redirectWelcome", "false");
+        webAppContext.addServlet(defaultServlet, "/");
+
+        webAppContext.addServlet(new ServletHolder(CheckHealth.class), "/check_health");
 
         this.addContext(webAppContext);
     }
