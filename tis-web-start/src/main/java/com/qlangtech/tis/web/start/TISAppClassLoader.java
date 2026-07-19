@@ -38,15 +38,15 @@ public class TISAppClassLoader extends URLClassLoader {
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         try {
             return super.loadClass(name, resolve);
-//        } catch (ClassNotFoundException e) {
-//            throw e;
+        } catch (ClassNotFoundException e) {
+            throw e;
         } catch (Exception e) {
-            URL[] urLs = this.getURLs();
+           // URL[] urLs = this.getURLs();
             StringBuilder urlsToStr = new StringBuilder("submodule ");
             urlsToStr.append("'").append(context).append("',");
-            for (URL url : urLs) {
-                urlsToStr.append(String.valueOf(url)).append(",");
-            }
+//            for (URL url : urLs) {
+//                urlsToStr.append(String.valueOf(url)).append(",");
+//            }
             throw new RuntimeException(urlsToStr.toString(), e);
         }
     }
