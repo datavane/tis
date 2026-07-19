@@ -124,7 +124,7 @@ public interface IEndTypeGetter {
         , ElasticSearch("es", EndTypeCategory.Data, true, Optional.of("Elastic搜索分析引擎，官网：https://www.elastic.co/")) //
         , MongoDB("mongoDB", EndTypeCategory.Data, true, Optional.of("文档型NoSQL数据库，官网：https://www.mongodb.com/")) //
         , StarRocks("starRocks", EndTypeCategory.Data, true, Optional.of("极速MPP分析数据库，官网：https://www.starrocks.io/"))//
-        , Doris("doris", EndTypeCategory.Data, true, Optional.of("Apache实时分析数据库，官网：https://doris.apache.org/")) //
+        , Doris("doris", EndTypeCategory.Data, true, Optional.of("Apache实时分析数据库，官网：https://doris.apache.org/"), 1) //
         , KingBase("kingbase", EndTypeCategory.Data, true, Optional.of("人大金仓国产数据库，官网：https://www.kingbase.com.cn/")) //
         , Clickhouse("clickhouse", EndTypeCategory.Data, true,
                 Optional.of("Yandex列式分析数据库，官网：https://clickhouse.com/")) //
@@ -191,10 +191,12 @@ public interface IEndTypeGetter {
         , Blank("blank", EndTypeCategory.Icon, true) //
         , Stop("tis-stop", EndTypeCategory.Icon, true) //
         , Link("tis-link", EndTypeCategory.Icon, true) //
-        , Ontology("ontology", EndTypeCategory.Icon, true) //
+        , Ontology("ontology", EndTypeCategory.Icon, true, Optional.empty(), 1) //
         , Keys("keys", EndTypeCategory.Icon, true)//
         , Table("table", EndTypeCategory.Icon, true)//
+        , DataBase("database", EndTypeCategory.Icon, true)//
         , ChatBI("chat-bi", EndTypeCategory.Icon, true)//
+        , Forbiden("forbiden", EndTypeCategory.Icon, true)//
 
 
         /**
@@ -219,8 +221,8 @@ public interface IEndTypeGetter {
         , OntologyValueType("ontology-value-type", EndTypeCategory.Icon, true)//
         , OntologyObjectType("ontology-object-type", EndTypeCategory.Icon, true)//
         , OntologyGlossary("ontology-glossary", EndTypeCategory.Icon, true)//
-        , OntologyMetric("ontology-metric", EndTypeCategory.Icon, true)
-        , OntologyProperty("ontology-property", EndTypeCategory.Icon,true )
+        , OntologyMetric("ontology-metric", EndTypeCategory.Icon, true), OntologyProperty("ontology-property",
+                EndTypeCategory.Icon, true)
 
 
         //
@@ -239,6 +241,7 @@ public interface IEndTypeGetter {
         private final boolean containICON;
         public final EndTypeCategory category;
         private final Optional<String> desc;
+        public final int priority;
 
         private static final DefaultIconReference unknowStorageType = new DefaultIconReference(UnKnowStoreType);
 
@@ -309,18 +312,31 @@ public interface IEndTypeGetter {
         }
 
         EndType(String val, EndTypeCategory category) {
-            this(val, category, false, Optional.empty());
+            this(val, category, false, Optional.empty(), 0);
         }
 
         EndType(String val, EndTypeCategory category, boolean containICON) {
-            this(val, category, containICON, Optional.empty());
+            this(val, category, containICON, Optional.empty(), 0);
         }
 
         EndType(String val, EndTypeCategory category, boolean containICON, Optional<String> desc) {
+            this(val, category, containICON, desc, 0);
+        }
+
+        /**
+         *
+         * @param val
+         * @param category
+         * @param containICON
+         * @param desc
+         * @param priority    优先级
+         */
+        EndType(String val, EndTypeCategory category, boolean containICON, Optional<String> desc, int priority) {
             this.val = val;
             this.containICON = containICON;
             this.category = category;
             this.desc = desc;
+            this.priority = priority;
         }
 
 

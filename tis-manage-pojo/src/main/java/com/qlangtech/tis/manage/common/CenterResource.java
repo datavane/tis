@@ -42,7 +42,7 @@ import java.util.Optional;
  * @create: 2020-04-26 21:14
  */
 public class CenterResource {
-    private static final Logger logger = LoggerFactory.getLogger(CenterResource.class);
+    private static Logger logger;// = LoggerFactory.getLogger(CenterResource.class);
 
     //public static  PluginAndCfgsSnapshot
 
@@ -55,9 +55,16 @@ public class CenterResource {
     public static boolean notFetchFromCenterRepository() {
         if (notFetchFromCenterRepository == null) {
             notFetchFromCenterRepository = Boolean.getBoolean(KEY_notFetchFromCenterRepository);
-            logger.info("notFetchFromCenterRepository:{}", notFetchFromCenterRepository);
+            getLogger().info("notFetchFromCenterRepository:{}", notFetchFromCenterRepository);
         }
         return notFetchFromCenterRepository;
+    }
+
+    private static Logger getLogger() {
+        if (logger == null) {
+            logger = LoggerFactory.getLogger(CenterResource.class);
+        }
+        return logger;
     }
 
     public static void setNotFetchFromCenterRepository() {
@@ -178,20 +185,22 @@ public class CenterResource {
         // final File lastModifiedFile = new File(local.getParentFile(), local.getName() + KEY_LAST_MODIFIED_EXTENDION);
         // ShallWriteLocalResult shallWriteLocal = null;
         // if (!directDownload) {
-//            shallWriteLocal = HttpUtils.get(url, new ConfigFileContext.StreamProcess<ShallWriteLocalResult>() {
-//                @Override
-//                public List<ConfigFileContext.Header> getHeaders() {
-//                    return HEADER_GET_META;
-//                }
-//
-//                @Override
-//                public ShallWriteLocalResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-//                    return shallWriteLocal(headerFields, url, local, lastModifiedFile);
-//                }
-//            });
-//            if (!shallWriteLocal.shall) {
-//                return false;
-//            }
+        //            shallWriteLocal = HttpUtils.get(url, new ConfigFileContext.StreamProcess<ShallWriteLocalResult>
+        //            () {
+        //                @Override
+        //                public List<ConfigFileContext.Header> getHeaders() {
+        //                    return HEADER_GET_META;
+        //                }
+        //
+        //                @Override
+        //                public ShallWriteLocalResult p(int status, InputStream stream, Map<String, List<String>>
+        //                headerFields) {
+        //                    return shallWriteLocal(headerFields, url, local, lastModifiedFile);
+        //                }
+        //            });
+        //            if (!shallWriteLocal.shall) {
+        //                return false;
+        //            }
         //}
         // ShallWriteLocalResult[] shallWriteLocalAry = new ShallWriteLocalResult[]{shallWriteLocal};
         return HttpUtils.get(url, new ConfigFileContext.StreamProcess<Boolean>() {
@@ -201,7 +210,7 @@ public class CenterResource {
 
                 FileUtils.deleteQuietly(local);
                 if (isTargetResourceNotExist(headerFields)) {
-                    logger.warn("remote resource not exist:" + url);
+                    getLogger().warn("remote resource not exist:" + url);
                     return false;
                 }
 
@@ -215,39 +224,40 @@ public class CenterResource {
         });
     }
 
-//    /**
-//     * 根据远端返回的元数据信息判断是否需要写本地文件
-//     *
-//     * @param headerFields
-//     * @param url
-//     * @param local
-//     * @return
-//     */
-//    private static ShallWriteLocalResult shallWriteLocal(Map<String, List<String>> headerFields, URL url, File local, File lastModifiedFile) {
-//        ShallWriteLocalResult result = new ShallWriteLocalResult();
-//        result.shall = false;
-//        List<String> notExist = null;
-//        if (isTargetResourceNotExist(headerFields)) {
-//            // 远端文件不存在不需要拷贝
-//            logger.warn("remote file not exist:{},local:", url, local.getAbsolutePath());
-//            return result;
-//        }
-//
-//        long lastUpdate = getLastUpdateTimeStamp(headerFields, url);
-//        result.lastUpdateTimestamp = lastUpdate;
-//        if (local.exists()) {
-//            long localLastModified = 0;
-//            try {
-//                localLastModified = Long.parseLong(FileUtils.readFileToString(lastModifiedFile, TisUTF8.get()));
-//            } catch (Throwable e) {
-//            }
-//            if (lastUpdate <= localLastModified) {
-//                return result;
-//            }
-//        }
-//        result.shall = true;
-//        return result;
-//    }
+    //    /**
+    //     * 根据远端返回的元数据信息判断是否需要写本地文件
+    //     *
+    //     * @param headerFields
+    //     * @param url
+    //     * @param local
+    //     * @return
+    //     */
+    //    private static ShallWriteLocalResult shallWriteLocal(Map<String, List<String>> headerFields, URL url, File
+    //    local, File lastModifiedFile) {
+    //        ShallWriteLocalResult result = new ShallWriteLocalResult();
+    //        result.shall = false;
+    //        List<String> notExist = null;
+    //        if (isTargetResourceNotExist(headerFields)) {
+    //            // 远端文件不存在不需要拷贝
+    //            logger.warn("remote file not exist:{},local:", url, local.getAbsolutePath());
+    //            return result;
+    //        }
+    //
+    //        long lastUpdate = getLastUpdateTimeStamp(headerFields, url);
+    //        result.lastUpdateTimestamp = lastUpdate;
+    //        if (local.exists()) {
+    //            long localLastModified = 0;
+    //            try {
+    //                localLastModified = Long.parseLong(FileUtils.readFileToString(lastModifiedFile, TisUTF8.get()));
+    //            } catch (Throwable e) {
+    //            }
+    //            if (lastUpdate <= localLastModified) {
+    //                return result;
+    //            }
+    //        }
+    //        result.shall = true;
+    //        return result;
+    //    }
 
     /**
      * 目标资源是否存在?
@@ -261,19 +271,20 @@ public class CenterResource {
                 && notExist.contains(Boolean.TRUE.toString());
     }
 
-//    private static class ShallWriteLocalResult {
-//        boolean shall;
-//        long lastUpdateTimestamp;
-//    }
+    //    private static class ShallWriteLocalResult {
+    //        boolean shall;
+    //        long lastUpdateTimestamp;
+    //    }
 
-//    private static long getLastUpdateTimeStamp(Map<String, List<String>> headerFields, URL url) {
-//        Optional<String> first = null;
-//        List<String> lastupdate = headerFields.get(ConfigFileContext.KEY_HEAD_LAST_UPDATE);
-//        if (lastupdate == null || !(first = lastupdate.stream().findFirst()).isPresent()) {
-//            throw new IllegalStateException("url:" + url + " can not find " + ConfigFileContext.KEY_HEAD_LAST_UPDATE + " in headers");
-//        }
-//        return Long.parseLong(first.get());
-//    }
+    //    private static long getLastUpdateTimeStamp(Map<String, List<String>> headerFields, URL url) {
+    //        Optional<String> first = null;
+    //        List<String> lastupdate = headerFields.get(ConfigFileContext.KEY_HEAD_LAST_UPDATE);
+    //        if (lastupdate == null || !(first = lastupdate.stream().findFirst()).isPresent()) {
+    //            throw new IllegalStateException("url:" + url + " can not find " + ConfigFileContext
+    //            .KEY_HEAD_LAST_UPDATE + " in headers");
+    //        }
+    //        return Long.parseLong(first.get());
+    //    }
 
     public static String getPath(String parent, String filePath) {
         boolean parentEndWithSlash = StringUtils.endsWith(parent, "/");

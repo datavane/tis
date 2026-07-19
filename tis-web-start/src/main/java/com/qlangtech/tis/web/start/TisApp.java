@@ -41,7 +41,7 @@ import java.util.ServiceLoader;
 public class TisApp {
 
     static {
-        setLogbackContextSelector();
+       // setLogbackContextSelector();
     }
 
     public static void setLogbackContextSelector() {
@@ -51,7 +51,14 @@ public class TisApp {
 
     public static final String KEY_WEB_ROOT_DIR = "web.root.dir";
 
-    private static Logger logger = LoggerFactory.getLogger(TisApp.class);
+    private static Logger _logger;
+
+    private static Logger getLogger() {
+        if (_logger == null) {
+            _logger = LoggerFactory.getLogger(TisApp.class);
+        }
+        return _logger;
+    }
 
     private final JettyTISRunner jetty;
 
@@ -111,7 +118,7 @@ public class TisApp {
 
     private void initContext() throws Exception {
         File root = getWebRootDir();
-        logger.info("webapps context dir:{}", root.getAbsolutePath());
+        getLogger().info("webapps context dir:{}", root.getAbsolutePath());
         File contextDir = null;
         for (String context : root.list()) {
             contextDir = new File(root, context);
@@ -120,7 +127,7 @@ public class TisApp {
                 ) {
                     continue;
                 } else {
-                    logger.info("load context:{}", context);
+                    getLogger().info("load context:{}", context);
                     this.jetty.addContext(contextDir);
                 }
             }
@@ -237,7 +244,7 @@ public class TisApp {
 
 
     public void start(String[] args) throws Exception {
-        logger.info("start TIS with port:{}", this.jetty.getPort());
+        getLogger().info("start TIS with port:{}", this.jetty.getPort());
         this.jetty.start();
     }
 }

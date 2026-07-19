@@ -315,8 +315,9 @@ public class PluginItems implements IPluginItemsProcessor {
 
     boolean stepPlugin = true;
     for (Descriptor.ParseDescribable<?> d : dlist) {
-      if (!(d.getInstance() instanceof OneStepOfMultiSteps)) {
+      if (d.subFormFields || !(d.getInstance() instanceof OneStepOfMultiSteps)) {
         stepPlugin = false;
+        break;
       }
     }
     if (stepPlugin) {

@@ -199,7 +199,8 @@ public class UpdateSite {
 
     public Plugin getPlugin(String artifactId) {
         Data dt = getData();
-        if (dt == null) return null;
+        if (dt == null)
+            return null;
         return dt.plugins.get(artifactId);
     }
 
@@ -208,7 +209,9 @@ public class UpdateSite {
     }
 
     private FormValidation updateDirectlyNow(boolean signatureCheck) throws IOException {
-        String siteCfgUrl = getUrl() + "?id=" + URLEncoder.encode(getId(), "UTF-8") + "&version=" + URLEncoder.encode(TIS.VERSION, "UTF-8");
+        String siteCfgUrl =
+                getUrl() + "?id=" + URLEncoder.encode(getId(), "UTF-8") + "&version=" + URLEncoder.encode(TIS.VERSION
+                        , "UTF-8");
         LOGGER.info("siteCfgUrl:{}", siteCfgUrl);
         return updateData(HttpUtils.get( //
                 new URL(siteCfgUrl)//
@@ -241,11 +244,11 @@ public class UpdateSite {
         }
 
         if (signatureCheck) {
-//            FormValidation e = verifySignatureInternal(o);
-//            if (e.kind!=Kind.OK) {
-//                LOGGER.severe(e.toString());
-//                return e;
-//            }
+            //            FormValidation e = verifySignatureInternal(o);
+            //            if (e.kind!=Kind.OK) {
+            //                LOGGER.severe(e.toString());
+            //                return e;
+            //            }
         }
 
         LOGGER.info("Obtained the latest update center data file for UpdateSource " + id);
@@ -259,19 +262,20 @@ public class UpdateSite {
      * Returns true if it's time for us to check for new version.
      */
     public synchronized boolean isDue() {
-//        if(neverUpdate)     return false;
-//        if(dataTimestamp == 0)
-//            dataTimestamp = getDataFile().file.lastModified();
-//        long now = System.currentTimeMillis();
-//
-//        retryWindow = Math.max(retryWindow,SECONDS.toMillis(15));
-//
-//        boolean due = now - dataTimestamp > DAY && now - lastAttempt > retryWindow;
-//        if(due) {
-//            lastAttempt = now;
-//            retryWindow = Math.min(retryWindow*2, HOURS.toMillis(1)); // exponential back off but at most 1 hour
-//        }
-//        return due;
+        //        if(neverUpdate)     return false;
+        //        if(dataTimestamp == 0)
+        //            dataTimestamp = getDataFile().file.lastModified();
+        //        long now = System.currentTimeMillis();
+        //
+        //        retryWindow = Math.max(retryWindow,SECONDS.toMillis(15));
+        //
+        //        boolean due = now - dataTimestamp > DAY && now - lastAttempt > retryWindow;
+        //        if(due) {
+        //            lastAttempt = now;
+        //            retryWindow = Math.min(retryWindow*2, HOURS.toMillis(1)); // exponential back off but at most 1
+        //            hour
+        //        }
+        //        return due;
         return false;
     }
 
@@ -286,7 +290,8 @@ public class UpdateSite {
 
     public String getConnectionCheckUrl() {
         Data dt = getData();
-        if (dt == null) return "http://www.google.com/";
+        if (dt == null)
+            return "http://www.google.com/";
         return dt.connectionCheckUrl;
     }
 
@@ -312,15 +317,15 @@ public class UpdateSite {
             this.version = Util.intern(o.getString("version"));
         }
 
-//        @Override
-//        public String getIdentityName() {
-//            return this.name;
-//        }
+        //        @Override
+        //        public String getIdentityName() {
+        //            return this.name;
+        //        }
 
-//        @Override
-//        public Optional<PluginClassifier> getClassifier() {
-//            return this.classifier;
-//        }
+        //        @Override
+        //        public Optional<PluginClassifier> getClassifier() {
+        //            return this.classifier;
+        //        }
 
         /**
          * Checks if the specified "current version" is older than the version of this entry.
@@ -393,7 +398,8 @@ public class UpdateSite {
         }
     }
 
-    static final Predicate<Object> IS_DEP_PREDICATE = x -> x instanceof JSONObject && get(((JSONObject) x), "name") != null;
+    static final Predicate<Object> IS_DEP_PREDICATE =
+            x -> x instanceof JSONObject && get(((JSONObject) x), "name") != null;
     static final Predicate<Object> IS_NOT_OPTIONAL = x -> "false".equals(get(((JSONObject) x), "optional"));
 
     public abstract class Plugin extends Entry {
@@ -503,8 +509,10 @@ public class UpdateSite {
          */
         public final Double popularity;
 
+        @JSONField(serialize = false)
         public final Map<String, List<String>> extendPoints;
 
+        @JSONField(serialize = false)
         public final Set<String> endTypes;
         public final Set<IPluginTaggable.PluginTag> pluginTags;
 
@@ -549,10 +557,10 @@ public class UpdateSite {
 
                     this.extendPoints.put(extendpoint, implTokens);
 
-//                    this.extendPoints.put(extendpoint, implTokens.stream().map((imp) -> {
-//                        String[] split = org.apache.commons.lang3.StringUtils.split(imp, ":");
-//                        return new PluginImpl(split[0], split.length > 1 ? split[1] : null);
-//                    }).collect(Collectors.toList()));
+                    //                    this.extendPoints.put(extendpoint, implTokens.stream().map((imp) -> {
+                    //                        String[] split = org.apache.commons.lang3.StringUtils.split(imp, ":");
+                    //                        return new PluginImpl(split[0], split.length > 1 ? split[1] : null);
+                    //                    }).collect(Collectors.toList()));
                 });
             }
             final String popularityFromJson = get(o, "popularity");
@@ -595,16 +603,45 @@ public class UpdateSite {
             }
         }
 
+        private List<String> _maxPriorityEndType;
+
+        //        public List<String> getEndTypes() {
+        //
+        //        }
+
+        // @JSONField(serialize = false)
+
+        /**
+         * 用于前端插件列表显示，只需要显示一个就行
+         *
+         * @return
+         */
         public List<String> getEndTypeIcons() {
-            List<String> types = Lists.newArrayList();
-            for (String endtype : this.endTypes) {
-                IEndTypeGetter.EndType type = IEndTypeGetter.EndType.parse(endtype);
-                IEndTypeGetter.Icon icon = type.getIcon();
-                if (icon != null) {
-                    types.add(type.getVal());
+
+            if (this._maxPriorityEndType == null) {
+                List<IEndTypeGetter.EndType> types = Lists.newArrayList();
+                for (String endtype : this.endTypes) {
+                    IEndTypeGetter.EndType type = IEndTypeGetter.EndType.parse(endtype);
+                    IEndTypeGetter.Icon icon = type.getIcon();
+                    if (icon != null) {
+                        types.add(type);
+                    }
                 }
+                this._maxPriorityEndType = types.stream().max((e1, e2) -> e1.priority - e2.priority)
+                        .map((e1) -> Collections.singletonList(e1.getVal())).orElse(Collections.emptyList());
             }
-            return types;
+
+            return this._maxPriorityEndType;
+
+            //            List<String> types = Lists.newArrayList();
+            //            for (String endtype : this.endTypes) {
+            //                IEndTypeGetter.EndType type = IEndTypeGetter.EndType.parse(endtype);
+            //                IEndTypeGetter.Icon icon = type.getIcon();
+            //                if (icon != null) {
+            //                    types.add(type.getVal());
+            //                }
+            //            }
+            //            return types;
         }
 
         @Override
@@ -652,7 +689,8 @@ public class UpdateSite {
                 if (job == null || job.status instanceof UpdateCenter.DownloadJob.Failure) {
                     LOGGER.info("Adding dependent install of " + dep.name + " for plugin " + name);
                     dep.deploy(dynamicLoad
-                            , /* UpdateCenterPluginInstallTest.test_installKnownPlugins specifically asks that these not be correlated */ null
+                            , /* UpdateCenterPluginInstallTest.test_installKnownPlugins specifically asks that these
+                            not be correlated */ null
                             , classifier, batch);
                 } else {
                     LOGGER.info("Dependent install of {} for plugin {} already added, skipping", dep.name, name);
@@ -691,24 +729,24 @@ public class UpdateSite {
 
                 // Is the plugin installed already? If not, add it.
                 deps.add(Pair.of(depPlugin, requiredVersion));
-//                if (depPlugin.needInstall(requiredVersion)) {
-//                    deps.add(depPlugin);
-//                }
+                //                if (depPlugin.needInstall(requiredVersion)) {
+                //                    deps.add(depPlugin);
+                //                }
 
-//                PluginWrapper current = depPlugin.getInstalled();
-//
-//                if (current == null) {
-//                    deps.add(depPlugin);
-//                }
-//                // If the dependency plugin is installed, is the version we depend on newer than
-//                // what's installed? If so, upgrade.
-//                else if (current.isOlderThan(requiredVersion)) {
-//                    deps.add(depPlugin);
-//                }
-//                // JENKINS-34494 - or if the plugin is disabled, this will allow us to enable it
-//                else if (!current.isEnabled()) {
-//                    deps.add(depPlugin);
-//                }
+                //                PluginWrapper current = depPlugin.getInstalled();
+                //
+                //                if (current == null) {
+                //                    deps.add(depPlugin);
+                //                }
+                //                // If the dependency plugin is installed, is the version we depend on newer than
+                //                // what's installed? If so, upgrade.
+                //                else if (current.isOlderThan(requiredVersion)) {
+                //                    deps.add(depPlugin);
+                //                }
+                //                // JENKINS-34494 - or if the plugin is disabled, this will allow us to enable it
+                //                else if (!current.isEnabled()) {
+                //                    deps.add(depPlugin);
+                //                }
             }
             return deps;
         }
@@ -821,33 +859,34 @@ public class UpdateSite {
                 }
             }
             Objects.requireNonNull(coord, "plugin:" + getDisplayName()
-                    + (classifier.isPresent() ? ",for classifier:" + classifier.get().getClassifier() : StringUtils.EMPTY) + ",coord can not be null");
+                    + (classifier.isPresent() ? ",for classifier:" + classifier.get().getClassifier() :
+                    StringUtils.EMPTY) + ",coord can not be null");
             return coord;
         }
     }
 
 
-//    public static final class PluginImpl {
-//        private final String impl;
-//        private final String displayName;
-//
-//        /**
-//         * @param impl        插件的实现
-//         * @param displayName 插件的显示名称
-//         */
-//        public PluginImpl(String impl, String displayName) {
-//            this.impl = impl;
-//            this.displayName = displayName;
-//        }
-//
-//        public String getImpl() {
-//            return this.impl;
-//        }
-//
-//        public String getDisplayName() {
-//            return this.displayName;
-//        }
-//    }
+    //    public static final class PluginImpl {
+    //        private final String impl;
+    //        private final String displayName;
+    //
+    //        /**
+    //         * @param impl        插件的实现
+    //         * @param displayName 插件的显示名称
+    //         */
+    //        public PluginImpl(String impl, String displayName) {
+    //            this.impl = impl;
+    //            this.displayName = displayName;
+    //        }
+    //
+    //        public String getImpl() {
+    //            return this.impl;
+    //        }
+    //
+    //        public String getDisplayName() {
+    //            return this.displayName;
+    //        }
+    //    }
 
     protected UpdateCenter.InstallationJob createInstallationJob(Plugin plugin
             , IPluginCoord coord, UpdateCenter uc, boolean dynamicLoad) {
@@ -858,10 +897,10 @@ public class UpdateSite {
     private static String get(JSONObject o, String prop) {
 
         return o.getString(prop);
-//            if(o.has(prop))
-//                return o.getString(prop);
-//            else
-//                return null;
+        //            if(o.has(prop))
+        //                return o.getString(prop);
+        //            else
+        //                return null;
     }
 
     public Plugin createPlugin(final String sourceId, boolean supportMultiClassifier
@@ -886,14 +925,14 @@ public class UpdateSite {
 
         public DftCoord(String pluginName, JSONObject meta) {
 
-//            {
-//                "classifier":"hadoop_2.7.3",
-//                    "gav":"com.qlangtech.tis.plugins:tis-datax-hdfs-plugin_hadoop_2.7.3:3.6.0",
-//                    "sha1":"",
-//                    "sha256":"",
-//                    "size":49873753,
-//                    "url":"http://mirror.qlangtech.com/3.6.0/tis-plugin/tis-datax-hdfs-plugin/tis-datax-hdfs-plugin_hadoop_2.7.3.tpi"
-//            },
+            //            {
+            //                "classifier":"hadoop_2.7.3",
+            //                    "gav":"com.qlangtech.tis.plugins:tis-datax-hdfs-plugin_hadoop_2.7.3:3.6.0",
+            //                    "sha1":"",
+            //                    "sha256":"",
+            //                    "size":49873753,
+            //                    "url":"http://mirror.qlangtech.com/3.6.0/tis-plugin/tis-datax-hdfs-plugin/tis-datax-hdfs-plugin_hadoop_2.7.3.tpi"
+            //            },
             this.pluginName = pluginName;
             this.classifier = PluginClassifier.create(meta.getString("classifier"));
             this.sha1 = meta.getString("sha1");
@@ -989,12 +1028,12 @@ public class UpdateSite {
             }
             this.size = o.getLongValue("size");
             this.sizeLiteral = FileUtils.byteCountToDisplaySize(this.size);
-//            if (!URI.create(url).isAbsolute()) {
-//                if (baseURL == null) {
-//                    throw new IllegalArgumentException("Cannot resolve " + url + " without a base URL");
-//                }
-//                url = URI.create(baseURL).resolve(url).toString();
-//            }
+            //            if (!URI.create(url).isAbsolute()) {
+            //                if (baseURL == null) {
+            //                    throw new IllegalArgumentException("Cannot resolve " + url + " without a base URL");
+            //                }
+            //                url = URI.create(baseURL).resolve(url).toString();
+            //            }
             // this.url = url;
         }
 
@@ -1202,7 +1241,8 @@ public class UpdateSite {
                 for (String pluginId : deprecations.keySet()) {
                     try {
 
-                        JSONObject entry = deprecations.getJSONObject(pluginId); // additional level of indirection to support future extensibility
+                        JSONObject entry = deprecations.getJSONObject(pluginId); // additional level of indirection
+                        // to support future extensibility
                         if (entry != null) {
                             String referenceUrl = entry.getString("url");
                             if (referenceUrl != null) {
@@ -1236,7 +1276,8 @@ public class UpdateSite {
                 // new Plugin(sourceId, classifier, pluginMeta);
                 Plugin p = createPlugin(sourceId, supportMultiClassifier, pluginMeta, classifiers);
                 // JENKINS-33308 - include implied dependencies for older plugins that may need them
-                List<PluginWrapper.Dependency> implicitDeps = DetachedPluginsUtil.getImpliedDependencies(p.name, p.requiredCore);
+                List<PluginWrapper.Dependency> implicitDeps = DetachedPluginsUtil.getImpliedDependencies(p.name,
+                        p.requiredCore);
                 if (!implicitDeps.isEmpty()) {
                     for (PluginWrapper.Dependency dep : implicitDeps) {
                         if (!p.dependencies.containsKey(dep.shortName)) {
@@ -1247,7 +1288,8 @@ public class UpdateSite {
                 this.plugins.put(Util.intern(e.getKey()), p);
 
                 // compatibility with update sites that have no separate 'deprecated' top-level entry.
-                // Also do this even if there are deprecations to potentially allow limiting the top-level entry to overridden URLs.
+                // Also do this even if there are deprecations to potentially allow limiting the top-level entry to
+                // overridden URLs.
                 if (p.hasCategory("deprecated")) {
                     if (!this.deprecations.containsKey(p.name)) {
                         this.deprecations.put(p.name, new Deprecation(p.wiki));
@@ -1369,7 +1411,7 @@ public class UpdateSite {
 
             JSONArray versions = o.getJSONArray("versions");
             if (versions != null) {
-//                JSONArray versions = o.getJSONArray("versions");
+                //                JSONArray versions = o.getJSONArray("versions");
                 List<WarningVersionRange> ranges = new ArrayList<>(versions.size());
                 for (int i = 0; i < versions.size(); i++) {
                     WarningVersionRange range = new WarningVersionRange(versions.getJSONObject(i));
@@ -1389,8 +1431,10 @@ public class UpdateSite {
          */
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Warning)) return false;
+            if (this == o)
+                return true;
+            if (!(o instanceof Warning))
+                return false;
 
             Warning warning = (Warning) o;
 
@@ -1423,7 +1467,8 @@ public class UpdateSite {
                 case PLUGIN:
 
                     // check whether plugin is installed
-                    PluginWrapper plugin = com.qlangtech.tis.TIS.get().getPluginManager().getPlugin(ITPIArtifact.create(this.component));
+                    PluginWrapper plugin =
+                            com.qlangtech.tis.TIS.get().getPluginManager().getPlugin(ITPIArtifact.create(this.component));
                     if (plugin == null) {
                         return false;
                     }
@@ -1480,7 +1525,8 @@ public class UpdateSite {
             long start = System.nanoTime();
             try {
                 JSONObject o = JSONObject.parseObject(df.read());
-                LOGGER.info(String.format("Loaded and parsed %s in %.01fs", df, (System.nanoTime() - start) / 1_000_000_000.0));
+                LOGGER.info(String.format("Loaded and parsed %s in %.01fs", df,
+                        (System.nanoTime() - start) / 1_000_000_000.0));
                 return o;
             } catch (JSONException | IOException e) {
                 LOGGER.error("Failed to parse " + df, e);
@@ -1524,7 +1570,8 @@ public class UpdateSite {
     public List<Plugin> getPlugins(Predicate<Plugin> predicate) {
         List<Plugin> r = new ArrayList<>();
         Data data = getData();
-        if (data == null) return Collections.emptyList();
+        if (data == null)
+            return Collections.emptyList();
         for (Plugin p : data.plugins.values()) {
             if (predicate.test(p)) {
                 r.add(p);
@@ -1559,8 +1606,10 @@ public class UpdateSite {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
             Deprecation that = (Deprecation) o;
             return Objects.equals(url, that.url);
         }

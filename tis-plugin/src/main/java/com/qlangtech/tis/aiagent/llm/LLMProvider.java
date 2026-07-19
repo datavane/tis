@@ -547,7 +547,11 @@ public abstract class LLMProvider extends ParamsConfig {
                 content = content.substring(0, endIdx);
             }
         }
-        return JSON.parseObject(StringUtils.trim(content));
+        try {
+            return JSON.parseObject(StringUtils.trim(content));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

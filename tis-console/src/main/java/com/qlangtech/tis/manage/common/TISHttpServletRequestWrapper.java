@@ -153,17 +153,7 @@ public class TISHttpServletRequestWrapper extends HttpServletRequestWrapper {
     getCookieMap().remove(cookiekey);
   }
 
-  // @Override
-  // public ServletInputStream getInputStream() throws IOException {
-  //
-  // return super.getInputStream();
-  // }
-  //
-  // @Override
-  // public BufferedReader getReader() throws IOException {
-  //
-  // return super.getReader();
-  // }
+
   @Override
   public String[] getParameterValues(String name) {
     String[] params = super.getParameterValues(name);

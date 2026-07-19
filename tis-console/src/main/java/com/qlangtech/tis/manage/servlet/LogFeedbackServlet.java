@@ -51,6 +51,7 @@ import io.grpc.stub.StreamObserver;
 import org.eclipse.jetty.websocket.api.Callback;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketOpen;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
@@ -58,6 +59,8 @@ import org.eclipse.jetty.ee11.websocket.server.JettyWebSocketServlet;
 import org.eclipse.jetty.ee11.websocket.server.JettyWebSocketServletFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jakarta.servlet.ServletException;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -88,12 +91,28 @@ public class LogFeedbackServlet extends JettyWebSocketServlet {
   private IWorkflowDAOFacade wfDao;
   private ZooKeeperGetter zkGetter;
 
+  @Override
+  public void init() throws ServletException {
+    super.init();
+    logger.info("========================================");
+    logger.info("LogFeedbackServlet.init() called");
+    logger.info("ServletContext attributes:");
+    java.util.Enumeration<String> attrs = getServletContext().getAttributeNames();
+    while (attrs.hasMoreElements()) {
+      String attr = attrs.nextElement();
+      if (attr.contains("websocket") || attr.contains("WebSocket")) {
+        logger.info("  - " + attr + " = " + getServletContext().getAttribute(attr));
+      }
+    }
+    logger.info("========================================");
+  }
+
   private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
-//  private void closeStatusRpc() {
-//    statusRpc.get().close();
-//    statusRpc = null;
-//  }
+  //  private void closeStatusRpc() {
+  //    statusRpc.get().close();
+  //    statusRpc = null;
+  //  }
 
   private RpcServiceReference getStatusRpc() {
     if (this.statusRpc != null) {
@@ -110,12 +129,35 @@ public class LogFeedbackServlet extends JettyWebSocketServlet {
 
   @Override
   public void configure(JettyWebSocketServletFactory factory) {
-    factory.setIdleTimeout(java.time.Duration.ofMillis(240000));
-    factory.setCreator((req, rep) -> {
-      return new LogSocket();
+    logger.info("========================================");
+    logger.info("LogFeedbackServlet.configure() called");
+    logger.info("Factory class: " + factory.getClass().getName());
+    logger.info("Factory ClassLoader: " + factory.getClass().getClassLoader());
+    logger.info("========================================");
+
+    factory.setIdleTimeout(java.time.Duration.ofMinutes(10));
+
+    // Important: addMapping without explicit class forces Jetty to inspect the returned object
+    //    factory.addMapping("/", (req, resp) -> {
+    //      logger.info("========================================");
+    //      logger.info("WebSocket creator invoked for: " + req.getRequestURI());
+    //      LogSocket socket = new LogSocket();
+    //      logger.info("LogSocket class: " + socket.getClass().getName());
+    //      logger.info("LogSocket ClassLoader: " + socket.getClass().getClassLoader());
+    //      logger.info("@WebSocket annotation: " + socket.getClass().getAnnotation(WebSocket.class));
+    //      logger.info("@WebSocket annotation ClassLoader: " + WebSocket.class.getClassLoader());
+    //      logger.info("========================================");
+    //      return socket;
+    //    });
+
+    // 注册 WebSocket 端点类
+    factory.setCreator((req, resp) -> {
+      LogSocket socket = new LogSocket();
+      return socket;
     });
-    this.zkGetter = BasicServlet.getBeanByType( ZooKeeperGetter.class);
-    this.wfDao = BasicServlet.getBeanByType( IWorkflowDAOFacade.class);
+
+    this.zkGetter = BasicServlet.getBeanByType(ZooKeeperGetter.class);
+    this.wfDao = BasicServlet.getBeanByType(IWorkflowDAOFacade.class);
   }
 
   @WebSocket
@@ -136,22 +178,25 @@ public class LogFeedbackServlet extends JettyWebSocketServlet {
     public LogSocket() {
     }
 
+    // Use annotation-based approach (Way 1) - remove Session.Listener interface
     @OnWebSocketOpen
     public void onOpen(Session sess) {
+      logger.info("========================================");
+      logger.info("LogSocket.onOpen() called via @OnWebSocketOpen annotation! Session: " + sess);
+      logger.info("========================================");
+
       this.session = sess;
       this.taskid = Integer.parseInt(this.getParameter(JobCommon.KEY_TASK_ID, Collections.singletonList("-1")));
-      this.collectionName = DataXName.createDataXPipeline(getParameter("collection", Collections.singletonList(MonotorTarget.DUMP_COLLECTION)));
-      List<RegisterMonotorTarget> typies = RegisterMonotorTarget.parseLogTypes(this.collectionName, this.taskid, this.getParameter("logtype"));
+      this.collectionName = DataXName.createDataXPipeline(getParameter("collection",
+        Collections.singletonList(MonotorTarget.DUMP_COLLECTION)));
+      List<RegisterMonotorTarget> typies = RegisterMonotorTarget.parseLogTypes(this.collectionName, this.taskid,
+        this.getParameter("logtype"));
       logger.info("taskid:{},appname:{},typies:{}", this.taskid, this.collectionName
-        , typies.stream().map((t) -> String.valueOf(t)).collect(Collectors.joining(",")));
+        , typies.stream().map(String::valueOf).collect(Collectors.joining(",")));
       try {
         if (this.taskid > 0 && typies.size() < 2) {
           buildTask = getBuildHistory();
           this.sendMsg2Client(buildTask);
-          // if (ExecResult.parse(build.getState()) != ExecResult.DOING) {
-          // // 如果任务已经完成则没有必要继续监听了
-          // return;
-          // }
         }
       } catch (Exception e) {
         throw new RuntimeException(e);
@@ -231,7 +276,7 @@ public class LogFeedbackServlet extends JettyWebSocketServlet {
         PExecuteState event = (PExecuteState) evt;
         LogType ltype = LogCollectorClient.convert(event.getLogType());
         CyclicBuffer<MessageOrBuilder> messageBuffer = null;
-      if (this.isConnected() && (messageBuffer = this.logtypes.get(ltype)) != null) {
+        if (this.isConnected() && (messageBuffer = this.logtypes.get(ltype)) != null) {
           // JsonFormat.Printer printer = JsonFormat.printer();
           // 向客户端缓存中也写一份
           messageBuffer.add(event);
@@ -252,7 +297,25 @@ public class LogFeedbackServlet extends JettyWebSocketServlet {
       // } catch (InterruptedException e) {
       // throw new RuntimeException(e);
       // }
-      logger.warn("onWebSocketClose:" + this.collectionName + ",statusCode：" + statusCode + ",reason:" + reason);
+//      logger.warn("onWebSocketClose:" + this.collectionName + ",statusCode：" + statusCode + ",reason:" + reason);
+//      if (!executorService.isShutdown()) {
+//        executorService.shutdownNow();
+//      }
+    }
+
+    @OnWebSocketError
+    public void onError(Throwable error) {
+      logger.error("WebSocket error", error);
+      this.closed = true;
+      getMonitorSet().onCompleted();
+      // 停止定时任务
+//      if (!executorService.isShutdown()) {
+//        executorService.shutdownNow();
+//      }
+
+      //      if (scheduledTask != null && !executorService.isCancelled()) {
+      //        scheduledTask.cancel(false);
+      //      }
     }
 
     /**
@@ -281,12 +344,12 @@ public class LogFeedbackServlet extends JettyWebSocketServlet {
         }
       }
 
-//      if (!this.logtypes.add(monitorTarget.getLogType()) && /**
-//       * POD日志监听需要可能会因为超时而重连
-//       */
-//        !monitorTarget.testLogType(LogType.INCR_DEPLOY_STATUS_CHANGE, LogType.DATAX_WORKER_POD_LOG)) {
-//        return;
-//      }
+      //      if (!this.logtypes.add(monitorTarget.getLogType()) && /**
+      //       * POD日志监听需要可能会因为超时而重连
+      //       */
+      //        !monitorTarget.testLogType(LogType.INCR_DEPLOY_STATUS_CHANGE, LogType.DATAX_WORKER_POD_LOG)) {
+      //        return;
+      //      }
       if (monitorTarget.testLogType(LogType.DATAX_WORKER_POD_LOG)) {
         PayloadMonitorTarget mtarget = (PayloadMonitorTarget) monitorTarget;
         final String podName = mtarget.getPayLoad();
@@ -331,28 +394,32 @@ public class LogFeedbackServlet extends JettyWebSocketServlet {
         });
       } else if (monitorTarget.testLogType(LogType.MQ_TAGS_STATUS)) {
         throw new UnsupportedOperationException(" has been migrate to IncrControlWebSocketServlet");
-        // PluginStore<MQListenerFactory> mqListenerFactory = (PluginStore<MQListenerFactory>) TIS.getPluginStore(this.collectionName, MQListenerFactory.class);
+        // PluginStore<MQListenerFactory> mqListenerFactory = (PluginStore<MQListenerFactory>) TIS.getPluginStore
+        // (this.collectionName, MQListenerFactory.class);
         // MQListenerFactory plugin = mqListenerFactory.getPlugin();
         // 增量节点处理
-//        final Map<String, TopicTagStatus> /* this.tag */
-//          transferTagStatus = new HashMap<>();
-//        final Map<String, TopicTagStatus> /* this.tag */
-//          binlogTopicTagStatus = new HashMap<>();
-//        List<TopicTagIncrStatus.FocusTags> focusTags = getFocusTags(zkGetter.getInstance(), collectionName.getPipelineName());
-//        // 如果size为0，则说明远程工作节点没有正常执行
-//        if (focusTags.size() > 0) {
-//          TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
-//          executorService.execute(() -> {
-//            IndexCollectionConfig collectionConfig = IndexCollectionConfig.getIndexCollectionConfig(collectionName);
-//
-//            Long collectionInterval = Optional.ofNullable(collectionConfig)
-//              .map((cfg) -> cfg.duration.toMillis()).orElse(IndexCollectionConfig.defaultDuration() * 1000l);
-//
-//            IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(this.collectionName.getPipelineName(), this
-//              , transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, zkGetter, collectionInterval);
-//            incrTagHeatBeatMonitor.build();
-//          });
-//        }
+        //        final Map<String, TopicTagStatus> /* this.tag */
+        //          transferTagStatus = new HashMap<>();
+        //        final Map<String, TopicTagStatus> /* this.tag */
+        //          binlogTopicTagStatus = new HashMap<>();
+        //        List<TopicTagIncrStatus.FocusTags> focusTags = getFocusTags(zkGetter.getInstance(), collectionName
+        //        .getPipelineName());
+        //        // 如果size为0，则说明远程工作节点没有正常执行
+        //        if (focusTags.size() > 0) {
+        //          TopicTagIncrStatus topicTagIncrStatus = new TopicTagIncrStatus(focusTags);
+        //          executorService.execute(() -> {
+        //            IndexCollectionConfig collectionConfig = IndexCollectionConfig.getIndexCollectionConfig
+        //            (collectionName);
+        //
+        //            Long collectionInterval = Optional.ofNullable(collectionConfig)
+        //              .map((cfg) -> cfg.duration.toMillis()).orElse(IndexCollectionConfig.defaultDuration() * 1000l);
+        //
+        //            IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(this.collectionName
+        //            .getPipelineName(), this
+        //              , transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, zkGetter, collectionInterval);
+        //            incrTagHeatBeatMonitor.build();
+        //          });
+        //        }
       } else {
         throw new IllegalStateException("monitor type:" + monitorTarget + " is illegal");
       }
@@ -456,37 +523,38 @@ public class LogFeedbackServlet extends JettyWebSocketServlet {
     }
 
 
-//    /**
-//     * LogCollectorClient.IPhaseStatusCollectionListener>>>>>>>>>>>>>>>>>
-//     */
-//    /**
-//     * 需要监听的实体的格式 “full”,“incrbuild:search4totalpay-1”
-//     *
-//     * @param logstype
-//     * @return
-//     */
-//    private List<RegisterMonotorTarget> parseLogTypes(String logstype) {
-//      List<RegisterMonotorTarget> types = new ArrayList<>();
-//      for (String t : StringUtils.split(logstype, ",")) {
-//        String[] arg = null;
-//        if (StringUtils.indexOf(t, ":") > 0) {
-//          arg = StringUtils.split(t, ":");
-//          if (arg.length != 2) {
-//            throw new IllegalArgumentException("arg:" + t + " is not illegal");
-//          }
-//          PayloadMonitorTarget payloadMonitor = MonotorTarget.createPayloadMonitor(this.collectionName, arg[1], LogType.parse(arg[0]));
-//          types.add(payloadMonitor);
-//        } else {
-//          types.add(MonotorTarget.createRegister(this.collectionName, LogType.parse(t)));
-//        }
-//      }
-//      types.forEach((t) -> {
-//        if (this.taskid > 0) {
-//          t.setTaskid(this.taskid);
-//        }
-//      });
-//      return types;
-//    }
+    //    /**
+    //     * LogCollectorClient.IPhaseStatusCollectionListener>>>>>>>>>>>>>>>>>
+    //     */
+    //    /**
+    //     * 需要监听的实体的格式 “full”,“incrbuild:search4totalpay-1”
+    //     *
+    //     * @param logstype
+    //     * @return
+    //     */
+    //    private List<RegisterMonotorTarget> parseLogTypes(String logstype) {
+    //      List<RegisterMonotorTarget> types = new ArrayList<>();
+    //      for (String t : StringUtils.split(logstype, ",")) {
+    //        String[] arg = null;
+    //        if (StringUtils.indexOf(t, ":") > 0) {
+    //          arg = StringUtils.split(t, ":");
+    //          if (arg.length != 2) {
+    //            throw new IllegalArgumentException("arg:" + t + " is not illegal");
+    //          }
+    //          PayloadMonitorTarget payloadMonitor = MonotorTarget.createPayloadMonitor(this.collectionName, arg[1],
+    //          LogType.parse(arg[0]));
+    //          types.add(payloadMonitor);
+    //        } else {
+    //          types.add(MonotorTarget.createRegister(this.collectionName, LogType.parse(t)));
+    //        }
+    //      }
+    //      types.forEach((t) -> {
+    //        if (this.taskid > 0) {
+    //          t.setTaskid(this.taskid);
+    //        }
+    //      });
+    //      return types;
+    //    }
 
     private String getParameter(String key) {
       return this.getParameter(key, Collections.emptyList());

@@ -33,6 +33,7 @@ import com.qlangtech.tis.aiagent.core.PluginPropsComplement;
 import com.qlangtech.tis.aiagent.core.RequestKey;
 import com.qlangtech.tis.aiagent.core.SelectionOptions;
 import com.qlangtech.tis.aiagent.execute.StepExecutor;
+import com.qlangtech.tis.aiagent.llm.FlatJsonToTisConverter;
 import com.qlangtech.tis.aiagent.llm.ITISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
@@ -198,7 +199,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
     JSONObject pluginPostBody = extractUserInput2Json(context, userInput, endType,
       Objects.requireNonNull(entry.getValue().getKey()), llmProvider);
 
-    AttrValMap attrValMap = AttrValMap.parseDescribableMap(Optional.empty(), pluginPostBody);
+    AttrValMap attrValMap = AttrValMap.parseDescribableMap(Optional.empty(), FlatJsonToTisConverter.convert(pluginPostBody)  );
     return attrValMap;
   }
 

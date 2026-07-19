@@ -46,6 +46,8 @@ import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
 import com.qlangtech.tis.plugin.ds.IColMetaGetter;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.plugin.license.TISLicense;
+import com.qlangtech.tis.plugin.ontology.Ontology;
+import com.qlangtech.tis.plugin.ontology.OntologyDomain;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
@@ -135,7 +137,8 @@ public class PluginAndCfgsSnapshot {
 
         pluginAndCfgsSnapshot =
                 PluginAndCfgsSnapshot.setLocalPluginAndCfgsSnapshot(
-                        PluginAndCfgsSnapshot.deserializePluginAndCfgsSnapshot(new TargetResName(appName), resourceType, manifest));
+                        PluginAndCfgsSnapshot.deserializePluginAndCfgsSnapshot(new TargetResName(appName),
+                                resourceType, manifest));
         Attributes sysProps = manifest.getAttributes(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS);
         if (resetConfigWithSysProps) {
             Config.setConfig(null);
@@ -219,7 +222,8 @@ public class PluginAndCfgsSnapshot {
 
     private final Optional<KeyedPluginStore.PluginMetas> appMetas;
 
-    public PluginAndCfgsSnapshot(TargetResName collection, StoreResourceType resType, Map<String, Long> globalPluginStoreLastModify,
+    public PluginAndCfgsSnapshot(TargetResName collection, StoreResourceType resType,
+                                 Map<String, Long> globalPluginStoreLastModify,
                                  IPluginMetasInfo metasInfo, Long appLastModifyTimestamp,
                                  KeyedPluginStore.PluginMetas appMetas) {
         this.globalPluginStoreLastModify = globalPluginStoreLastModify;
@@ -232,9 +236,11 @@ public class PluginAndCfgsSnapshot {
         this.appMetas = Optional.ofNullable(appMetas);
     }
 
-    public static void createManifestCfgAttrs2File(File manifestJar, StoreResourceType resourceType, TargetResName collection, long timestamp,
+    public static void createManifestCfgAttrs2File(File manifestJar, StoreResourceType resourceType,
+                                                   TargetResName collection, long timestamp,
                                                    Optional<Predicate<PluginMeta>> pluginMetasFilter) throws Exception {
-        createManifestCfgAttrs2File(manifestJar, resourceType, collection, timestamp, pluginMetasFilter, Collections.emptyMap());
+        createManifestCfgAttrs2File(manifestJar, resourceType, collection, timestamp, pluginMetasFilter,
+                Collections.emptyMap());
     }
 
     public static Manifest createDataBatchJobManifestCfgAttrs(TargetResName collection) throws Exception {
@@ -279,7 +285,8 @@ public class PluginAndCfgsSnapshot {
                         reader.startScanDependency();
 
                         RecordTransformerRules.contextParamValsGetterMapper(
-                                processor, IPluginContext.namedContext(new DataXName(processor.identityValue(), processor.getResType()))
+                                processor, IPluginContext.namedContext(new DataXName(processor.identityValue(),
+                                        processor.getResType()))
                                 , reader, reader.getSelectedTabs());
                     });
                     dataxProcessor.getWriter(null).startScanDependency();
@@ -287,10 +294,11 @@ public class PluginAndCfgsSnapshot {
 
 
         TargetResName resName = new TargetResName(processor.identityValue());
-//        return createManifestCfgAttrs(resName, System.currentTimeMillis(), Collections.emptyMap(), () -> {
-//            PluginAndCfgsSnapshot localSnapshot = getLocalPluginAndCfgsSnapshot(processor.getResType(), resName, Optional.empty(), pluginMetas);
-//            return localSnapshot;
-//        }).getRight();
+        //        return createManifestCfgAttrs(resName, System.currentTimeMillis(), Collections.emptyMap(), () -> {
+        //            PluginAndCfgsSnapshot localSnapshot = getLocalPluginAndCfgsSnapshot(processor.getResType(),
+        //            resName, Optional.empty(), pluginMetas);
+        //            return localSnapshot;
+        //        }).getRight();
 
 
         return createManifestCfgAttrs(resName, processor.getResType(), System.currentTimeMillis()
@@ -299,9 +307,11 @@ public class PluginAndCfgsSnapshot {
                     KeyedPluginStore.PluginMetas metas
                             = KeyedPluginStore.getAppAwarePluginMetas(processor.getResType(), resName.getName(), false);
 
-                    ComponentMeta dataxComponentMeta = new ComponentMeta(Lists.newArrayList(pluginMetas.getRepoResources()));
+                    ComponentMeta dataxComponentMeta =
+                            new ComponentMeta(Lists.newArrayList(pluginMetas.getRepoResources()));
 
-                    Map<String, Long> globalPluginStoreLastModify = ComponentMeta.getGlobalPluginStoreLastModifyTimestamp(dataxComponentMeta);
+                    Map<String, Long> globalPluginStoreLastModify =
+                            ComponentMeta.getGlobalPluginStoreLastModifyTimestamp(dataxComponentMeta);
 
                     PluginMetaSet collector = new PluginMetaSet(Optional.empty());
                     for (PluginMeta meta : pluginMetas.getMetas()) {
@@ -329,12 +339,14 @@ public class PluginAndCfgsSnapshot {
         RobustReflectionConverter2.PluginMetas pluginMetas =
                 RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {
                     TISLicense.load(false);
-                    MQListenerFactory sourceFactory = HeteroEnum.getIncrSourceListenerFactory(DataXName.createDataXPipeline(collection.getName()));
+                    MQListenerFactory sourceFactory =
+                            HeteroEnum.getIncrSourceListenerFactory(DataXName.createDataXPipeline(collection.getName()));
                     sourceFactory.create();
 
                     // 先收集plugmeta，特别是通过dataXWriter的dataSource关联的元数据
                     IDataxProcessor processor = DataxProcessor.load(null, resourceType, collection.getName());
-                    TISSinkFactory incrSinKFactory = TISSinkFactory.getIncrSinKFactory(new DataXName(collection.getName(), resourceType));
+                    TISSinkFactory incrSinKFactory =
+                            TISSinkFactory.getIncrSinKFactory(new DataXName(collection.getName(), resourceType));
                     incrSinKFactory.createSinkFunction(processor, new IFlinkColCreator() {
                         @Override
                         public Object build(IColMetaGetter meta, int colIndex) {
@@ -345,18 +357,21 @@ public class PluginAndCfgsSnapshot {
         return createFlinkIncrJobManifestCfgAttrs(resourceType, collection, timestamp, pluginMetas);
     }
 
-    public static Pair<PluginAndCfgsSnapshot, Manifest> createManifestCfgAttrs2File(File manifestJar, StoreResourceType resourceType,
+    public static Pair<PluginAndCfgsSnapshot, Manifest> createManifestCfgAttrs2File(File manifestJar,
+                                                                                    StoreResourceType resourceType,
                                                                                     TargetResName collection,
                                                                                     long timestamp,
                                                                                     Optional<Predicate<PluginMeta>> pluginMetasFilter, Map<String, String> extraEnvProps) throws Exception {
-        Pair<PluginAndCfgsSnapshot, Manifest> manifestCfgAttrs = createManifestCfgAttrs(resourceType, collection, timestamp,
+        Pair<PluginAndCfgsSnapshot, Manifest> manifestCfgAttrs = createManifestCfgAttrs(resourceType, collection,
+                timestamp,
                 extraEnvProps, pluginMetasFilter, new IPluginMetasInfo() {
                 });
         PluginAndCfgsSnapshotUtils.writeManifest2Jar(manifestJar, manifestCfgAttrs.getRight());
         return manifestCfgAttrs;
     }
 
-    public static Manifest createFlinkIncrJobManifestCfgAttrs(StoreResourceType resourceType, TargetResName collection, long timestamp,
+    public static Manifest createFlinkIncrJobManifestCfgAttrs(StoreResourceType resourceType,
+                                                              TargetResName collection, long timestamp,
                                                               IPluginMetasInfo appendPluginMeta) throws Exception {
 
 
@@ -376,10 +391,12 @@ public class PluginAndCfgsSnapshot {
     }
 
 
-    public static Manifest createManifestCfgAttrs(StoreResourceType resourceType, TargetResName collection, long timestamp,
+    public static Manifest createManifestCfgAttrs(StoreResourceType resourceType, TargetResName collection,
+                                                  long timestamp,
                                                   Optional<Predicate<PluginMeta>> pluginMetasFilter,
                                                   IPluginMetasInfo appendPluginMeta) throws Exception {
-        return createManifestCfgAttrs(resourceType, collection, timestamp, Collections.emptyMap(), pluginMetasFilter, appendPluginMeta).getRight();
+        return createManifestCfgAttrs(resourceType, collection, timestamp, Collections.emptyMap(), pluginMetasFilter,
+                appendPluginMeta).getRight();
     }
 
     public static Pair<PluginAndCfgsSnapshot, Manifest> //
@@ -389,46 +406,49 @@ public class PluginAndCfgsSnapshot {
                            Optional<Predicate<PluginMeta>> pluginMetasFilter, IPluginMetasInfo appendPluginMeta) throws Exception {
 
         return createManifestCfgAttrs(collection, resourceType, timestamp, extraEnvProps, () -> {
-            PluginAndCfgsSnapshot localSnapshot = getLocalPluginAndCfgsSnapshot(resourceType, collection, pluginMetasFilter, appendPluginMeta);
+            PluginAndCfgsSnapshot localSnapshot = getLocalPluginAndCfgsSnapshot(resourceType, collection,
+                    pluginMetasFilter, appendPluginMeta);
             return localSnapshot;
         });
 
-//        //=====================================================================
-//        if (!CenterResource.notFetchFromCenterRepository()) {
-//            throw new IllegalStateException("must not fetchFromCenterRepository");
-//        }
-//
-//        Manifest manifest = new Manifest();
-//        Map<String, Attributes> entries = manifest.getEntries();
-//        Attributes attrs = new Attributes();
-//        attrs.put(new Attributes.Name(collection.getName()), String.valueOf(timestamp));
-//        // 传递App名称
-//        entries.put(TIS_APP_NAME, attrs);
-//
-//        final Attributes cfgAttrs = new Attributes();
-//        // 传递Config变量
-//        Config.getInstance().visitKeyValPair((e) -> {
-//            if (Config.KEY_TIS_HOST.equals(e.getKey())) {
-//                // tishost为127.0.0.1会出错
-//                return;
-//            }
-//            addCfgAttrs(cfgAttrs, e);
-//        });
-//        for (Map.Entry<String, String> e : extraEnvProps.entrySet()) {
-//            addCfgAttrs(cfgAttrs, e);
-//        }
-//        cfgAttrs.put(new Attributes.Name(convertCfgPropertyKey(Config.KEY_TIS_HOST, true)), Config.getTisHost());
-//        entries.put(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS, cfgAttrs);
-//
-//
-//        //"globalPluginStore"  "pluginMetas"  "appLastModifyTimestamp"
-//
-//
-//        PluginAndCfgsSnapshot localSnapshot = getLocalPluginAndCfgsSnapshot(resourceType, collection, pluginMetasFilter,
-//                appendPluginMeta);
-//
-//        localSnapshot.attachPluginCfgSnapshot2Manifest(manifest);
-//        return ImmutablePair.of(localSnapshot, manifest);
+        //        //=====================================================================
+        //        if (!CenterResource.notFetchFromCenterRepository()) {
+        //            throw new IllegalStateException("must not fetchFromCenterRepository");
+        //        }
+        //
+        //        Manifest manifest = new Manifest();
+        //        Map<String, Attributes> entries = manifest.getEntries();
+        //        Attributes attrs = new Attributes();
+        //        attrs.put(new Attributes.Name(collection.getName()), String.valueOf(timestamp));
+        //        // 传递App名称
+        //        entries.put(TIS_APP_NAME, attrs);
+        //
+        //        final Attributes cfgAttrs = new Attributes();
+        //        // 传递Config变量
+        //        Config.getInstance().visitKeyValPair((e) -> {
+        //            if (Config.KEY_TIS_HOST.equals(e.getKey())) {
+        //                // tishost为127.0.0.1会出错
+        //                return;
+        //            }
+        //            addCfgAttrs(cfgAttrs, e);
+        //        });
+        //        for (Map.Entry<String, String> e : extraEnvProps.entrySet()) {
+        //            addCfgAttrs(cfgAttrs, e);
+        //        }
+        //        cfgAttrs.put(new Attributes.Name(convertCfgPropertyKey(Config.KEY_TIS_HOST, true)), Config
+        //        .getTisHost());
+        //        entries.put(Config.KEY_JAVA_RUNTIME_PROP_ENV_PROPS, cfgAttrs);
+        //
+        //
+        //        //"globalPluginStore"  "pluginMetas"  "appLastModifyTimestamp"
+        //
+        //
+        //        PluginAndCfgsSnapshot localSnapshot = getLocalPluginAndCfgsSnapshot(resourceType, collection,
+        //        pluginMetasFilter,
+        //                appendPluginMeta);
+        //
+        //        localSnapshot.attachPluginCfgSnapshot2Manifest(manifest);
+        //        return ImmutablePair.of(localSnapshot, manifest);
     }
 
 
@@ -503,7 +523,8 @@ public class PluginAndCfgsSnapshot {
     public void synchronizTpisAndConfs(PluginAndCfgsSnapshot localSnaphsot,
                                        Optional<PluginAndCfgsSnapshot> cacheSnaphsot) throws Exception {
         synchronized (TIS.class) {
-            logger.info("start synchronizTpisAndConfs,cacheSnaphsot.isPresent():" + cacheSnaphsot.isPresent() + ",TIS.initialized:" + TIS.initialized);
+            logger.info("start synchronizTpisAndConfs,cacheSnaphsot.isPresent():" + cacheSnaphsot.isPresent() + ",TIS"
+                    + ".initialized:" + TIS.initialized);
             this.synchronizTpisAndConfs(localSnaphsot);
             if (cacheSnaphsot.isPresent() && TIS.initialized /** 必须要TIS 已经初始化 完成，启动时 cacheSnaphsot
              内的依赖plugin为空致使启动报错*/) {
@@ -768,7 +789,9 @@ public class PluginAndCfgsSnapshot {
      * @param manifest
      * @return
      */
-    public static PluginAndCfgsSnapshot deserializePluginAndCfgsSnapshot(TargetResName app, StoreResourceType resourceType, Manifest manifest) {
+    public static PluginAndCfgsSnapshot deserializePluginAndCfgsSnapshot(TargetResName app,
+                                                                         StoreResourceType resourceType,
+                                                                         Manifest manifest) {
         Map<String, Long> globalPluginStoreLastModify = Maps.newHashMap();
         //  Long appLastModifyTimestamp;
         Attributes pluginMetas = manifest.getAttributes(Config.KEY_PLUGIN_METAS);
@@ -813,7 +836,8 @@ public class PluginAndCfgsSnapshot {
      * @param appendPluginMeta
      * @return
      */
-    public static PluginAndCfgsSnapshot getWorkerPluginAndCfgsSnapshot(StoreResourceType resourceType, TargetResName collection,
+    public static PluginAndCfgsSnapshot getWorkerPluginAndCfgsSnapshot(StoreResourceType resourceType,
+                                                                       TargetResName collection,
                                                                        Set<PluginMeta> appendPluginMeta) {
 
         return getLocalPluginAndCfgsSnapshot(resourceType, collection, (pluginMetas, dataxComponentMeta) -> {
@@ -847,7 +871,8 @@ public class PluginAndCfgsSnapshot {
      */
     private static PluginAndCfgsSnapshot //
     getLocalPluginAndCfgsSnapshot(StoreResourceType resourceType, TargetResName collection,
-                                  Optional<Predicate<PluginMeta>> pluginMetasFilter, IPluginMetasInfo appendPluginMeta) {
+                                  Optional<Predicate<PluginMeta>> pluginMetasFilter,
+                                  IPluginMetasInfo appendPluginMeta) {
         //  ExtensionList<HeteroEnum> hlist = TIS.get().getExtensionList(HeteroEnum.class);
 
         return getLocalPluginAndCfgsSnapshot(resourceType, collection, (pluginMetas, dataxComponentMeta) -> {
@@ -870,10 +895,12 @@ public class PluginAndCfgsSnapshot {
         });
     }
 
-    private static PluginAndCfgsSnapshot getLocalPluginAndCfgsSnapshot(StoreResourceType resourceType, TargetResName collection,
+    private static PluginAndCfgsSnapshot getLocalPluginAndCfgsSnapshot(StoreResourceType resourceType,
+                                                                       TargetResName collection,
                                                                        MetaSetProductor metaSetProductor) {
         // 本次任务相关插件元信息
-        KeyedPluginStore.PluginMetas pluginMetas = KeyedPluginStore.getAppAwarePluginMetas(resourceType, collection.getName());
+        KeyedPluginStore.PluginMetas pluginMetas = KeyedPluginStore.getAppAwarePluginMetas(resourceType,
+                collection.getName());
         //  Set<PluginMeta> globalPluginMetas = null;
         Map<String, Long> gPluginStoreLastModify = Collections.emptyMap();
         UploadPluginMeta upm = UploadPluginMeta.parse("x:require", true);
@@ -881,10 +908,14 @@ public class PluginAndCfgsSnapshot {
         TIS tis = TIS.get();
         List<IRepositoryResource> keyedPluginStores = Collections.emptyList();
         if (tis != null) {
-            List<HeteroEnum> hlist = HeteroEnum.heteroEnums();// TIS.get().getExtensionList(HeteroEnum.class);
+            List<HeteroEnum> hlist = HeteroEnum.heteroEnums();
             keyedPluginStores =
                     hlist.stream()
-                            .filter((e) -> !e.isAppNameAware() && (e != PARAMS_CONFIG_USER_ISOLATION))
+                            .filter((e) -> !e.isAppNameAware()
+                                    && (e != PARAMS_CONFIG_USER_ISOLATION) //
+                                    && (e != Ontology.ONTOLOGY) //
+                                    && (e != OntologyDomain.ONTOLOGY_DOMAIN) //
+                            )
                             .flatMap((e) -> e.getPluginStore(null, upm).getAll().stream())
                             .collect(Collectors.toList());
         }
@@ -965,7 +996,8 @@ public class PluginAndCfgsSnapshot {
         }
 
         final Attributes pmetas = new Attributes();
-        pmetas.put(new Attributes.Name(KeyedPluginStore.PluginMetas.KEY_GLOBAL_PLUGIN_STORE), String.valueOf(globalPluginStore));
+        pmetas.put(new Attributes.Name(KeyedPluginStore.PluginMetas.KEY_GLOBAL_PLUGIN_STORE),
+                String.valueOf(globalPluginStore));
         // 本次任务相关插件元信息
         //KeyedPluginStore.PluginMetas pluginMetas = KeyedPluginStore.getAppAwarePluginMetas(false, collection
         // .getName());

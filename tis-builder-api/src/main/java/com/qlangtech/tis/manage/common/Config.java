@@ -52,7 +52,7 @@ public class Config extends BasicConfig {
     public static final String KEY_ENV_TIS_HOME = "TIS_HOME";
     public static final String SYSTEM_KEY_LOGBACK_PATH_KEY = "logback.configurationFile";
     public static final String SYSTEM_KEY_LOGBACK_PATH_VALUE = "logback-datax.xml";
-    public static final String SYSTEM_KEY__LOGBACK_HUDI = "logback-hudi.xml";
+    //public static final String SYSTEM_KEY__LOGBACK_HUDI = "logback-hudi.xml";
     public static final String KEY_TIS_PLUGIN_ROOT = "plugins";
     /**
      * 用于运行时指定logback本地日志Appender 输出文件路径
@@ -87,7 +87,8 @@ public class Config extends BasicConfig {
     public static final String TIS_PUB_PLUGINS_DOC_URL = "http://tis.pub/docs/plugin/plugins/#";
 
     public static final String bundlePath
-            = StringUtils.defaultIfEmpty(System.getenv(KEY_ENV_TIS_CFG_BUNDLE_PATH), KEY_DEFAULT_TIS_CFG_BUNDLE_PATH);// ;
+            =
+            StringUtils.defaultIfEmpty(System.getenv(KEY_ENV_TIS_CFG_BUNDLE_PATH), KEY_DEFAULT_TIS_CFG_BUNDLE_PATH);// ;
     public static final String bundlePathClasspath = bundlePath + ".properties";
     public static final String KEY_TIS_DATASOURCE_TYPE = "tis.datasource.type";
     public static final String KEY_TIS_DATASOURCE_DBNAME = "tis.datasource.dbname";
@@ -325,10 +326,10 @@ public class Config extends BasicConfig {
             dbCfg.dbtype = SysDBType.parse(propGetter.getString(KEY_TIS_DATASOURCE_TYPE, true));
             dbCfg.dbname = propGetter.getString(KEY_TIS_DATASOURCE_DBNAME, true);
 
-//            if (!(DB_TYPE_MYSQL.equals(dbCfg.dbtype)
-//                    || DB_TYPE_DERBY.equals(dbCfg.dbtype))) {
-//                throw new IllegalStateException("dbCfg.dbtype:" + dbCfg.dbtype + " is illegal");
-//            }
+            //            if (!(DB_TYPE_MYSQL.equals(dbCfg.dbtype)
+            //                    || DB_TYPE_DERBY.equals(dbCfg.dbtype))) {
+            //                throw new IllegalStateException("dbCfg.dbtype:" + dbCfg.dbtype + " is illegal");
+            //            }
 
             if (SysDBType.MySQL == (dbCfg.dbtype)) {
                 dbCfg.port = Integer.parseInt(propGetter.getString("tis.datasource.port"));
@@ -386,13 +387,14 @@ public class Config extends BasicConfig {
 
         String consoleHttpHost = StringUtils.defaultIfEmpty(tisHttpHost, getTISConsoleHttpHost());
         return consoleHttpHost + TisSubModule.TIS_CONSOLE.servletContext;
-//        String tisHost = null;
-//        if ((tisHost = threadContext.get()) == null) {
-//            tisHost = getBaseConfig().getTISHost();
-//        } else {
-//            threadContext.remove();
-//        }
-//        return "http://" + tisHost + ":" + (TisSubModule.TIS_CONSOLE.getLaunchPort()) + TisSubModule.TIS_CONSOLE.servletContext;
+        //        String tisHost = null;
+        //        if ((tisHost = threadContext.get()) == null) {
+        //            tisHost = getBaseConfig().getTISHost();
+        //        } else {
+        //            threadContext.remove();
+        //        }
+        //        return "http://" + tisHost + ":" + (TisSubModule.TIS_CONSOLE.getLaunchPort()) + TisSubModule
+        //        .TIS_CONSOLE.servletContext;
     }
 
     public static String getTISConsoleHttpHost() {
@@ -410,9 +412,9 @@ public class Config extends BasicConfig {
                 + ":" + (TisSubModule.TIS_ASSEMBLE.getLaunchPort());
     }
 
-//    public static String getAssembleHost() {
-//        return getInstance().assembleHost;
-//    }
+    //    public static String getAssembleHost() {
+    //        return getInstance().assembleHost;
+    //    }
 
     public static String getAssembleHttpHost() {
         return StringUtils.defaultIfEmpty(tisHttpHost, getTISAssembleHttpHost()) + TisSubModule.TIS_ASSEMBLE.servletContext;
@@ -426,13 +428,13 @@ public class Config extends BasicConfig {
         return this.dbCfg;
     }
 
-//    public static String getZKHost() {
-//        String zkAddress = getInstance().getZkHost();
-//        if (StringUtils.isBlank(zkAddress)) {
-//            throw new IllegalStateException("zkAddress can not be null");
-//        }
-//        return zkAddress;
-//    }
+    //    public static String getZKHost() {
+    //        String zkAddress = getInstance().getZkHost();
+    //        if (StringUtils.isBlank(zkAddress)) {
+    //            throw new IllegalStateException("zkAddress can not be null");
+    //        }
+    //        return zkAddress;
+    //    }
 
     public static String getTerminatorRepositoryOnline() {
         throw new UnsupportedOperationException();
@@ -480,7 +482,8 @@ public class Config extends BasicConfig {
                 throw new IllegalStateException("file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath()
                         + ",current classpath root url:" + String.valueOf(cpRoot) + " of classloader:" + Config.class.getClassLoader() + ",thread classpath:" + String.valueOf(cpThreadRoot), ee);
             }
-            //Objects.requireNonNull(this.propsStream, "file relevant stream is null,confFile:" + this.propsFile.getAbsolutePath());
+            //Objects.requireNonNull(this.propsStream, "file relevant stream is null,confFile:" + this.propsFile
+            // .getAbsolutePath());
         }
 
         public TestCfgStream(File propsFile) {
@@ -633,9 +636,9 @@ public class Config extends BasicConfig {
         return GENERATE_PARENT_PACKAGE;
     }
 
-//    public String getZkHost() {
-//        return this.zkHost;
-//    }
+    //    public String getZkHost() {
+    //        return this.zkHost;
+    //    }
 
     public static Config getInstance() {
         if (config == null) {
@@ -658,9 +661,9 @@ public class Config extends BasicConfig {
         public String dbname;
 
         //        tis.datasource.url=192.168.28.200
-//        tis.datasource.username=root
-//        tis.datasource.password=123456
-//        tis.datasource.dbname=tis_console
+        //        tis.datasource.username=root
+        //        tis.datasource.password=123456
+        //        tis.datasource.dbname=tis_console
         public int port;
         public String url;
         public String userName;
