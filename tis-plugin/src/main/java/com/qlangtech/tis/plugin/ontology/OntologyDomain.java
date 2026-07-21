@@ -68,6 +68,7 @@ public abstract class OntologyDomain implements Describable<OntologyDomain>, Ide
     public static final String KEY_SHARED_PROPERTIES = "shared-property";
 
     public static final String NAME_ONTOLOGY_DOMAIN = "ontology";
+    public static final String FIELD_NAME = "name";
 
     public long updateTime;
 

@@ -24,22 +24,21 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.datax.TimeFormat;
+import com.qlangtech.tis.datax.job.SSEEventWriter;
+import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.mcp.tools.ChatBITool;
 import com.qlangtech.tis.plugin.IPluginStore;
-//----------------------------------------------------
 import com.qlangtech.tis.plugin.datax.transformer.UDFDesc;
-import com.qlangtech.tis.plugin.manipulate.ManipulatePluginCacheRegister;
 import com.qlangtech.tis.plugin.ontology.Ontology;
 import com.qlangtech.tis.plugin.ontology.OntologyDomain;
 import com.qlangtech.tis.plugin.ontology.OntologyDomainManipulate;
 import com.qlangtech.tis.plugin.ontology.OntologyGlossary;
 import com.qlangtech.tis.plugin.ontology.OntologyLinker;
 import com.qlangtech.tis.plugin.ontology.OntologyObjectType;
+import com.qlangtech.tis.plugin.ontology.OntologyProperty;
 import com.qlangtech.tis.plugin.ontology.OntologySharedProperty;
 import com.qlangtech.tis.plugin.ontology.OntologyValueType;
-import com.qlangtech.tis.datax.job.SSEEventWriter;
-import com.qlangtech.tis.datax.job.SSERunnable;
 import com.qlangtech.tis.plugin.ontology.chatbi.ChatBIConstants;
 import com.qlangtech.tis.plugin.ontology.chatbi.ChatBIResult;
 import com.qlangtech.tis.plugin.ontology.chatbi.ChatBIService;
@@ -49,7 +48,6 @@ import com.qlangtech.tis.plugin.ontology.impl.OntologyPluginMeta;
 import com.qlangtech.tis.plugin.ontology.impl.linker.LinkResources;
 import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypeBinding;
 import com.qlangtech.tis.plugin.ontology.impl.synonyms.SynonymsElement;
-//----------------------------------------------------
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -58,14 +56,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.qlangtech.tis.manage.common.Config;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -223,6 +218,8 @@ public class OntologyAction extends BasicModule {
     for (OntologyObjectType ot : objTypes) {
       JSONObject obj = new JSONObject();
       obj.put("name", ot.getName());
+      List<String> pks = ot.getCols().stream().filter((col) -> col.isPk()).map((col) -> col.getName()).toList();
+      obj.put("pks", pks);
       obj.put(ObjectTypeBinding.KEY_BOUND_DATASOURCE, ot.getObjectTypeBindingInfo());
       obj.put("colSize", ot.getCols().size());
       obj.put(Ontology.KEY_CREATE_TIME, ot.getCreate());
@@ -337,7 +334,7 @@ public class OntologyAction extends BasicModule {
     List<Pair<OntologyDomain, IPluginStore<OntologyDomain>>> doaminList = OntologyDomain.getDoaminList();
     this.setBizResult(context, new PaginationResult(pager, doaminList.stream().map((p) -> {
       return p.getKey().convertPojo();
-    }).toList()));
+    }).sorted((d1, d2) -> d2.getUpdateTime().compareTo(d1.getUpdateTime())).toList()));
   }
 
   // ================================================================
