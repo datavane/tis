@@ -94,17 +94,17 @@ public class LogFeedbackServlet extends JettyWebSocketServlet {
   @Override
   public void init() throws ServletException {
     super.init();
-    logger.info("========================================");
-    logger.info("LogFeedbackServlet.init() called");
-    logger.info("ServletContext attributes:");
-    java.util.Enumeration<String> attrs = getServletContext().getAttributeNames();
-    while (attrs.hasMoreElements()) {
-      String attr = attrs.nextElement();
-      if (attr.contains("websocket") || attr.contains("WebSocket")) {
-        logger.info("  - " + attr + " = " + getServletContext().getAttribute(attr));
-      }
-    }
-    logger.info("========================================");
+//    logger.info("========================================");
+//    logger.info("LogFeedbackServlet.init() called");
+//    logger.info("ServletContext attributes:");
+//    java.util.Enumeration<String> attrs = getServletContext().getAttributeNames();
+//    while (attrs.hasMoreElements()) {
+//      String attr = attrs.nextElement();
+//      if (attr.contains("websocket") || attr.contains("WebSocket")) {
+//        logger.info("  - " + attr + " = " + getServletContext().getAttribute(attr));
+//      }
+//    }
+//    logger.info("========================================");
   }
 
   private static final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -129,11 +129,11 @@ public class LogFeedbackServlet extends JettyWebSocketServlet {
 
   @Override
   public void configure(JettyWebSocketServletFactory factory) {
-    logger.info("========================================");
-    logger.info("LogFeedbackServlet.configure() called");
-    logger.info("Factory class: " + factory.getClass().getName());
-    logger.info("Factory ClassLoader: " + factory.getClass().getClassLoader());
-    logger.info("========================================");
+//    logger.info("========================================");
+//    logger.info("LogFeedbackServlet.configure() called");
+//    logger.info("Factory class: " + factory.getClass().getName());
+//    logger.info("Factory ClassLoader: " + factory.getClass().getClassLoader());
+//    logger.info("========================================");
 
     factory.setIdleTimeout(java.time.Duration.ofMinutes(10));
 
@@ -181,9 +181,9 @@ public class LogFeedbackServlet extends JettyWebSocketServlet {
     // Use annotation-based approach (Way 1) - remove Session.Listener interface
     @OnWebSocketOpen
     public void onOpen(Session sess) {
-      logger.info("========================================");
-      logger.info("LogSocket.onOpen() called via @OnWebSocketOpen annotation! Session: " + sess);
-      logger.info("========================================");
+//      logger.info("========================================");
+//      logger.info("LogSocket.onOpen() called via @OnWebSocketOpen annotation! Session: " + sess);
+//      logger.info("========================================");
 
       this.session = sess;
       this.taskid = Integer.parseInt(this.getParameter(JobCommon.KEY_TASK_ID, Collections.singletonList("-1")));

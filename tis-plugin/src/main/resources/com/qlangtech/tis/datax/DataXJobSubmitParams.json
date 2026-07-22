@@ -25,7 +25,8 @@
   },
   "forkJvm": {
     "label": "ForkJvm",
-    "dftVal": true
+    "dftVal": true,
+    "readonly": true
   },
   "maxInstancesPerNode": {
     "label": "单节点最大Worker数",

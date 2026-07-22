@@ -52,7 +52,9 @@ public class DefaultLoggerAppenderServiceImpl extends LogAppenderGrpc.LogAppende
     public static Logger getLogger(String name) {
         Logger logger = loggers.get(name);
         if (logger == null) {
-            LoggerContext assemble = ContextSelectorStaticBinder.getSingleton().getContextSelector().getLoggerContext("assemble");
+            LoggerContext assemble =
+                    Objects.requireNonNull(ContextSelectorStaticBinder.getSingleton().getContextSelector(),
+                            "contextSelector can not be null").getLoggerContext("assemble");
             logger = Objects.requireNonNull(assemble, "assemble LoggerContext can not be null").getLogger(name);
             loggers.put(name, logger);
         }

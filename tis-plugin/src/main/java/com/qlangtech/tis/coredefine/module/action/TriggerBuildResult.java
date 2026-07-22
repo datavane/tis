@@ -26,13 +26,16 @@ import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.PostFormStreamProcess;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.web.start.TisSubModule;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -81,46 +84,54 @@ public class TriggerBuildResult {
                 HttpUtils.process(new URL(assembleNodeAddress + TRIGGER_FULL_BUILD_COLLECTION_PATH), appendParams,
                         new PostFormStreamProcess<TriggerBuildResult>(headers) {
 
-            //            @Override
-            //            public List<ConfigFileContext.Header> getHeaders() {
-            //                List<ConfigFileContext.Header> hds = Lists.newArrayList(super.getHeaders());
-            //                hds.addAll(headers);
-            //                return hds;
-            //            }
+                            //            @Override
+                            //            public List<ConfigFileContext.Header> getHeaders() {
+                            //                List<ConfigFileContext.Header> hds = Lists.newArrayList(super
+                            //                .getHeaders());
+                            //                hds.addAll(headers);
+                            //                return hds;
+                            //            }
 
-            @Override
-            public ContentType getContentType() {
-                return ContentType.Application_x_www_form_urlencoded;
-            }
+                            @Override
+                            public ContentType getContentType() {
+                                return ContentType.Application_x_www_form_urlencoded;
+                            }
 
-            @Override
-            public TriggerBuildResult p(int status, InputStream stream, Map<String, List<String>> headerFields) {
-                TriggerBuildResult triggerResult = null;
-                try {
-                    JSONTokener token = new JSONTokener(stream);
-                    JSONObject result = new JSONObject(token);
-                    final String successKey = "success";
-                    if (result.isNull(successKey)) {
-                        return new TriggerBuildResult(false);
-                    }
-                    triggerResult = new TriggerBuildResult(true);
-                    if (!result.isNull(bizKey)) {
-                        JSONObject o = result.getJSONObject(bizKey);
-                        if (!o.isNull(JobCommon.KEY_TASK_ID)) {
-                            triggerResult.taskid = Integer.parseInt(o.getString(JobCommon.KEY_TASK_ID));
-                        }
-                        module.setBizResult(context, o);
-                    }
-                    if (result.getBoolean(successKey)) {
-                        return triggerResult;
-                    }
-                    module.addErrorMessage(context, result.getString("msg"));
-                    return new TriggerBuildResult(false);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }, httpMethod);
+                            @Override
+                            public TriggerBuildResult p(int status, InputStream stream,
+                                                        Map<String, List<String>> headerFields) {
+                                TriggerBuildResult triggerResult = null;
+                                String respContent = null;
+                                try {
+                                    respContent = IOUtils.toString(stream, TisUTF8.get());
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                                try {
+                                    JSONTokener token = new JSONTokener(respContent);
+                                    JSONObject result = new JSONObject(token);
+                                    final String successKey = "success";
+                                    if (result.isNull(successKey)) {
+                                        return new TriggerBuildResult(false);
+                                    }
+                                    triggerResult = new TriggerBuildResult(true);
+                                    if (!result.isNull(bizKey)) {
+                                        JSONObject o = result.getJSONObject(bizKey);
+                                        if (!o.isNull(JobCommon.KEY_TASK_ID)) {
+                                            triggerResult.taskid = Integer.parseInt(o.getString(JobCommon.KEY_TASK_ID));
+                                        }
+                                        module.setBizResult(context, o);
+                                    }
+                                    if (result.getBoolean(successKey)) {
+                                        return triggerResult;
+                                    }
+                                    module.addErrorMessage(context, result.getString("msg"));
+                                    return new TriggerBuildResult(false);
+                                } catch (Exception e) {
+                                    throw new RuntimeException("respContent:" + respContent, e);
+                                }
+                            }
+                        }, httpMethod);
         return triggerResult;
     }
 

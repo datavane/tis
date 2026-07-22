@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * http://localhost:8080/tjs/config/stream_script_repo.action?path=/streamscript/search4totalpay/20190820171040/mq_meta/config.yaml
+ * <a href="http://localhost:8080/tjs/config/stream_script_repo.action?path=/streamscript/search4totalpay/20190820171040/mq_meta/config.yaml">...</a>
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
@@ -64,6 +64,8 @@ public class StreamScriptRepo extends BasicScreen {
       // throw new IllegalStateException("target file not exist:" + targetFile.getAbsolutePath());
       response.addHeader(ConfigFileContext.KEY_HEAD_FILE_NOT_EXIST
         , String.valueOf(Boolean.TRUE.booleanValue()));
+      response.setContentLength(0);
+      response.getOutputStream().flush();
       return;
     }
     boolean getMeta = Boolean.parseBoolean(this.getRequest().getHeader(ConfigFileContext.StreamProcess.HEADER_KEY_GET_FILE_META));
