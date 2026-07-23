@@ -84,20 +84,20 @@ public class FullbuildWorkflowAction extends BasicModule {
    */
   public void doHasRunningWorkflowInstance(Context context) {
     DataXName dataXName = HttpUtils.createDataXName(this);
-//    WorkFlowBuildHistoryCriteria example = new WorkFlowBuildHistoryCriteria();
-//    example.setOrderByClause("id desc");
-//
-//    WorkFlowBuildHistoryCriteria.Criteria criteria = example.createCriteria();
-//    //
-//    //
-//    criteria.andStateEqualTo((byte) ExecResult.DOING.getValue());
-//    if (dataXName.isDataAppType()) {
-//      criteria.andAppNameEqualTo(dataXName.getPipelineName()); //
-//    } else if (dataXName.isDataFlowType()) {
-//      throw new IllegalStateException("shall use workflow id");
-//    } else {
-//      throw new IllegalStateException("illegal type:" + dataXName.getType());
-//    }
+    //    WorkFlowBuildHistoryCriteria example = new WorkFlowBuildHistoryCriteria();
+    //    example.setOrderByClause("id desc");
+    //
+    //    WorkFlowBuildHistoryCriteria.Criteria criteria = example.createCriteria();
+    //    //
+    //    //
+    //    criteria.andStateEqualTo((byte) ExecResult.DOING.getValue());
+    //    if (dataXName.isDataAppType()) {
+    //      criteria.andAppNameEqualTo(dataXName.getPipelineName()); //
+    //    } else if (dataXName.isDataFlowType()) {
+    //      throw new IllegalStateException("shall use workflow id");
+    //    } else {
+    //      throw new IllegalStateException("illegal type:" + dataXName.getType());
+    //    }
     this.setBizResult(context //
       , hasRunningWorkflowInstance(this, dataXName));
   }
@@ -152,7 +152,7 @@ public class FullbuildWorkflowAction extends BasicModule {
       return;
     }
     if (lastModified != null && lastModified >= Objects.requireNonNull(rateController.lastModified,
-            "lastModified " + "can" + " not be null")) {
+      "lastModified " + "can" + " not be null")) {
       return;
     }
     IncrRateControllerCfgDTO controllerCfgDTO = rateController.createIncrRateControllerCfgDTO();
@@ -193,12 +193,12 @@ public class FullbuildWorkflowAction extends BasicModule {
     WorkFlowBuildHistory latestWorkflowHistory = this.getDaoContext().getLatestSuccessWorkflowHistory(resTarget);
     execContext.setExecutePhaseRange( //
       new ExecutePhaseRange(FullbuildPhase.parse(getInt(IParamContext.COMPONENT_START,
-              FullbuildPhase.FullDump.getValue())), FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END,
-              FullbuildPhase.JOIN.getValue()))));
+        FullbuildPhase.FullDump.getValue())), FullbuildPhase.parse(getInt(IParamContext.COMPONENT_END,
+        FullbuildPhase.JOIN.getValue()))));
 
 
     CreateNewTaskResult newTaskResult = this.createNewDataXTask(execContext, triggerType, dagSpecPath,
-            Optional.ofNullable(latestWorkflowHistory));
+      Optional.ofNullable(latestWorkflowHistory));
     // 生成一个新的taskid
     this.setBizResult(context, newTaskResult);
   }
@@ -226,7 +226,7 @@ public class FullbuildWorkflowAction extends BasicModule {
   public void doUpdateTask(Context context) {
     JSONObject postBody = this.parseJsonPost();
     WorkFlowBuildHistory buildHistory = postBody.getObject(IExecChainContext.KEY_HISTORY_TASK,
-            WorkFlowBuildHistory.class);
+      WorkFlowBuildHistory.class);
     if (buildHistory == null) {
       throw new IllegalStateException("buildHistory can not be null");
     }
@@ -234,6 +234,8 @@ public class FullbuildWorkflowAction extends BasicModule {
     WorkFlowBuildHistoryCriteria criteria = new WorkFlowBuildHistoryCriteria();
     criteria.createCriteria().andIdEqualTo(Objects.requireNonNull(buildHistory.getTaskId() //
       , "buildHistory.getTaskId() can not be null"));
+    // 主键不能被更新
+    buildHistory.setId(null);
     this.setBizResult(context, getHistoryDAO().updateByExampleSelective(buildHistory, criteria));
   }
 
