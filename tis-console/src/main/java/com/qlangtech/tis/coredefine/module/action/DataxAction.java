@@ -209,7 +209,7 @@ public class DataxAction extends BasicModule {
 
     IDataxProcessor dataXProcessor = DataxProcessor.load(null, dataX.getType(), dataX.getPipelineName());
 
-    if (!dataXProcessor.isSupportBatch(this)) {
+    if (!dataXProcessor.isSupportBatch(null)) {
       this.addErrorMessage(context, "该数据通道不支持批量数据同步，请使用实时同步");
       return;
     }

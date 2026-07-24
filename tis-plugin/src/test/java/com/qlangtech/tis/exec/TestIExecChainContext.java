@@ -47,7 +47,15 @@ public class TestIExecChainContext extends TestCase {
         JSONObject instanceParams = IExecChainContext.createInstanceParams(taskId, processor, false, Optional.empty());
         Assert.assertNotNull(instanceParams);
 
-        PluginAndCfgsSnapshot snapshot = AbstractExecContext.resolveCfgsSnapshotConsumer(StoreResourceType.DataApp, instanceParams);
+        PluginAndCfgsSnapshot snapshot = AbstractExecContext.resolveCfgsSnapshotConsumer(StoreResourceType.DataApp,
+                instanceParams);
         Assert.assertNotNull(snapshot);
+    }
+
+    public void testManifestOfDataX() {
+        String pipeline = "test";
+        IDataxProcessor processor = DataxProcessor.load(null, pipeline);
+        String manifest = IExecChainContext.manifestOfDataX(processor);
+        Assert.assertNotNull(manifest);
     }
 }
