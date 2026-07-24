@@ -18,6 +18,7 @@
 package com.qlangtech.tis.web.start;
 
 import ch.qos.logback.classic.ClassicConstants;
+import ch.qos.logback.classic.util.ContextSelectorStaticBinder;
 import com.qlangtech.tis.web.start.JettyTISRunner.IWebAppContextSetter;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -46,7 +47,8 @@ public class TisApp {
     }
 
     public static void setLogbackContextSelector() {
-        System.setProperty(ClassicConstants.LOGBACK_CONTEXT_SELECTOR, "JNDI");
+        System.setProperty(ClassicConstants.LOGBACK_CONTEXT_SELECTOR,
+                TISLogbackContextSelector.class.getName());
     }
 
 

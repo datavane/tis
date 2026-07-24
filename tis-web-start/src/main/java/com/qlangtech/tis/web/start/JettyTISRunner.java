@@ -21,6 +21,9 @@ import com.qlangtech.tis.health.check.IStatusChecker;
 import com.qlangtech.tis.health.check.StatusLevel;
 import com.qlangtech.tis.health.check.StatusModel;
 import org.eclipse.jetty.ee.webapp.WebAppClassLoader;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.classic.util.ContextSelectorStaticBinder;
 import org.eclipse.jetty.ee11.servlet.DefaultServlet;
 import org.eclipse.jetty.ee11.servlet.FilterHolder;
 import org.eclipse.jetty.ee11.servlet.ServletHolder;
@@ -36,7 +39,7 @@ import org.eclipse.jetty.ee11.webapp.WebInfConfiguration;
 import org.eclipse.jetty.ee11.webapp.WebXmlConfiguration;
 import org.eclipse.jetty.ee11.websocket.server.config.JettyWebSocketConfiguration;
 import org.eclipse.jetty.ee11.websocket.server.config.JettyWebSocketServletContainerInitializer;
-import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
+import org.slf4j.LoggerFactory;import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -192,6 +195,9 @@ public class JettyTISRunner {
                     jarfiles.toArray(new URL[jarfiles.size()]));
             logger.info("context:" + context + " start with customer classLoader,resCount:" + jarfiles.size() + "," + "enums:" + String.join(",", resNames));
             webAppContext.setClassLoader(contextCloassLoader);
+            // Eagerly initialize the logback context for this webapp using its own ClassLoader,
+            // because logback lives in the parent CL and cannot discover logback-{ctx}.xml via child CLs.
+            initLogbackContext(context, contextCloassLoader);
         } else {
             logger.info("context:" + context + " start with system classloader");
             WebAppClassLoader clazzLoader = new WebAppClassLoader(this.getClass().getClassLoader(), webAppContext);
@@ -211,15 +217,16 @@ public class JettyTISRunner {
         // Jetty 12 requires explicit configuration array to enable env-entry from web.xml
         webAppContext.setConfigurationDiscovered(false);
 
-        // Set configurations explicitly - EnvConfiguration is required for JNDI env-entry support
+        // Set configurations explicitly - WebXmlConfiguration must precede PlusConfiguration
+        // so that env-entries parsed from web.xml are available for JNDI registration.
         webAppContext.setConfigurations(new Configuration[]{
-            new EnvConfiguration(),              // MUST be first - handles JNDI env-entry from web.xml
-            new PlusConfiguration(),             // Provides JNDI support infrastructure
             new WebInfConfiguration(),
             new WebXmlConfiguration(),
             new MetaInfConfiguration(),
             new FragmentConfiguration(),
-            new AnnotationConfiguration(),       // Handle servlet 3.0+ annotations and listeners
+            new EnvConfiguration(),              // reads jetty-env.xml (if present)
+            new PlusConfiguration(),             // registers <env-entry> from web.xml into JNDI
+            new AnnotationConfiguration(),
             new JettyWebXmlConfiguration()
         });
 
@@ -240,6 +247,51 @@ public class JettyTISRunner {
         webAppContext.addServlet(new ServletHolder(CheckHealth.class), "/check_health");
 
         this.addContext(webAppContext);
+    }
+
+    /**
+     * Load logback-{contextName}.xml from the webapp's ClassLoader and register the resulting
+     * LoggerContext with TISLogbackContextSelector, keyed on that ClassLoader.
+     *
+     * This is needed because logback-classic lives in the parent (tis-web-start) ClassLoader,
+     * so it cannot discover logback-console.xml / logback-assemble.xml which reside in each
+     * webapp's conf/ directory (visible only to TISAppClassLoader).
+     */
+    private void initLogbackContext(String contextPath, ClassLoader webappCL) {
+        // contextPath is "/tis-assemble" or "/tjs" – strip leading slash for the file name
+        String name = contextPath.startsWith("/") ? contextPath.substring(1) : contextPath;
+        String configResource = "logback-" + name + ".xml";
+
+        ch.qos.logback.classic.selector.ContextSelector selector =
+                ContextSelectorStaticBinder.getSingleton().getContextSelector();
+        if (!(selector instanceof TISLogbackContextSelector)) {
+            logger.warn("initLogbackContext: active selector is not TISLogbackContextSelector ({}), skipping", selector);
+            return;
+        }
+        TISLogbackContextSelector tisSelector = (TISLogbackContextSelector) selector;
+
+        java.io.InputStream cfgStream = webappCL.getResourceAsStream(configResource);
+        if (cfgStream == null) {
+            logger.warn("initLogbackContext: {} not found on webapp classpath for context '{}'", configResource, name);
+            return;
+        }
+
+        LoggerContext lc = new LoggerContext();
+        lc.setName(name);
+        try {
+            JoranConfigurator configurator = new JoranConfigurator();
+            configurator.setContext(lc);
+            lc.reset();
+            configurator.doConfigure(cfgStream);
+        } catch (Exception e) {
+            logger.error("initLogbackContext: failed to configure '{}' from {}", name, configResource, e);
+            return;
+        } finally {
+            try { cfgStream.close(); } catch (Exception ignored) {}
+        }
+
+        tisSelector.registerContext(webappCL, lc);
+        logger.info("initLogbackContext: registered logback context '{}' using {}", name, configResource);
     }
 
     public File getWebapp(File contextDir) {
