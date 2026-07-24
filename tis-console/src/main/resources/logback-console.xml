@@ -19,6 +19,8 @@
   -->
 
 <configuration debug="false">
+	<contextName>console</contextName>
+
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<target>System.out</target>
 		<encoding>${loggingCharset}</encoding>

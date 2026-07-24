@@ -25,6 +25,8 @@ import org.eclipse.jetty.ee11.servlet.DefaultServlet;
 import org.eclipse.jetty.ee11.servlet.FilterHolder;
 import org.eclipse.jetty.ee11.servlet.ServletHolder;
 import org.eclipse.jetty.ee11.annotations.AnnotationConfiguration;
+import org.eclipse.jetty.ee11.plus.webapp.EnvConfiguration;
+import org.eclipse.jetty.ee11.plus.webapp.PlusConfiguration;
 import org.eclipse.jetty.ee11.webapp.Configuration;
 import org.eclipse.jetty.ee11.webapp.FragmentConfiguration;
 import org.eclipse.jetty.ee11.webapp.JettyWebXmlConfiguration;
@@ -205,25 +207,24 @@ public class JettyTISRunner {
         // Disable webdefault.xml to avoid class loading conflicts with custom ClassLoader
         webAppContext.setDefaultsDescriptor(null);
 
-        // CRITICAL FIX for Jetty 12 WebSocket with custom ClassLoader
-        // Disable auto-discovery and manually set all configurations including WebSocket
+        // CRITICAL FIX for Jetty 12: Explicitly configure JNDI support
+        // Jetty 12 requires explicit configuration array to enable env-entry from web.xml
         webAppContext.setConfigurationDiscovered(false);
 
-        // Configure JettyWebSocketConfiguration with proper settings
-        // JettyWebSocketConfiguration wsConfig = new JettyWebSocketConfiguration();
+        // Set configurations explicitly - EnvConfiguration is required for JNDI env-entry support
+        webAppContext.setConfigurations(new Configuration[]{
+            new EnvConfiguration(),              // MUST be first - handles JNDI env-entry from web.xml
+            new PlusConfiguration(),             // Provides JNDI support infrastructure
+            new WebInfConfiguration(),
+            new WebXmlConfiguration(),
+            new MetaInfConfiguration(),
+            new FragmentConfiguration(),
+            new AnnotationConfiguration(),       // Handle servlet 3.0+ annotations and listeners
+            new JettyWebXmlConfiguration()
+        });
 
-        // 配置 WebSocket 支持 - 这是 Jetty 12 的关键步骤
+        // Configure WebSocket support - Jetty 12 requirement
         JettyWebSocketServletContainerInitializer.configure(webAppContext, null);
-
-        //        webAppContext.setConfigurations(new Configuration[]{
-        //            new WebInfConfiguration(),
-        //            new WebXmlConfiguration(),
-        //            new MetaInfConfiguration(),
-        //            new FragmentConfiguration(),
-        //            new AnnotationConfiguration(),      // Handle servlet 3.0+ annotations and listeners
-        //            wsConfig,                            // Enable @WebSocket annotations
-        //            new JettyWebXmlConfiguration()
-        //        });
 
         webAppContext.setParentLoaderPriority(true);
         webAppContext.setThrowUnavailableOnStartupException(true);
