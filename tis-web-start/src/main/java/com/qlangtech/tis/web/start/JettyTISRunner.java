@@ -23,7 +23,6 @@ import com.qlangtech.tis.health.check.StatusModel;
 import org.eclipse.jetty.ee.webapp.WebAppClassLoader;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.classic.util.ContextSelectorStaticBinder;
 import org.eclipse.jetty.ee11.servlet.DefaultServlet;
 import org.eclipse.jetty.ee11.servlet.FilterHolder;
 import org.eclipse.jetty.ee11.servlet.ServletHolder;
@@ -251,26 +250,20 @@ public class JettyTISRunner {
     }
 
     /**
-     * Load logback-{contextName}.xml from the webapp's ClassLoader and register the resulting
-     * LoggerContext with TISLogbackContextSelector, keyed on that ClassLoader.
-     * <p>
-     * This is needed because logback-classic lives in the parent (tis-web-start) ClassLoader,
-     * so it cannot discover logback-console.xml / logback-assemble.xml which reside in each
-     * webapp's conf/ directory (visible only to TISAppClassLoader).
+     * Load logback-{contextName}.xml from the webapp's ClassLoader, configure a new LoggerContext,
+     * and register it with TISLogbackServiceProvider keyed on that ClassLoader.
      */
     private void initLogbackContext(String contextPath, ClassLoader webappCL) {
         // contextPath is "/tis-assemble" or "/tjs" – strip leading slash for the file name
         TisSubModule module = TisSubModule.parse(contextPath.startsWith("/") ? contextPath.substring(1) : contextPath);
-        String configResource = module.getLogbackConfigFileName();// "logback-" + name + ".xml";
+        String configResource = module.getLogbackConfigFileName();
 
-        ch.qos.logback.classic.selector.ContextSelector selector =
-                ContextSelectorStaticBinder.getSingleton().getContextSelector();
-        if (!(selector instanceof TISLogbackContextSelector)) {
-            logger.warn("initLogbackContext: active selector is not TISLogbackContextSelector ({}), skipping",
-                    selector);
+        TISLogbackServiceProvider provider = TISLogbackServiceProvider.getInstance();
+        if (provider == null) {
+            logger.warn("initLogbackContext: TISLogbackServiceProvider not initialized for '{}', skipping. "
+                    + "Ensure slf4j.provider is set before any LoggerFactory call.", module.logbackContextName);
             return;
         }
-        TISLogbackContextSelector tisSelector = (TISLogbackContextSelector) selector;
 
         java.io.InputStream cfgStream = webappCL.getResourceAsStream(configResource);
         if (cfgStream == null) {
@@ -285,6 +278,7 @@ public class JettyTISRunner {
             configurator.setContext(lc);
             lc.reset();
             configurator.doConfigure(cfgStream);
+            lc.start();
         } catch (Exception e) {
             logger.error("initLogbackContext: failed to configure '{}' from {}", module.logbackContextName, configResource, e);
             return;
@@ -295,7 +289,7 @@ public class JettyTISRunner {
             }
         }
 
-        tisSelector.registerContext(webappCL, lc);
+        provider.registerContext(webappCL, lc);
         logger.info("initLogbackContext: registered logback context '{}' using {}", module.logbackContextName, configResource);
     }
 

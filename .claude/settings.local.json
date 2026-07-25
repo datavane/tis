@@ -182,7 +182,15 @@
       "Bash(awk '/private java.net.URL findConfigFileURL/,/^  [a-z]/')",
       "Bash(javap -verbose ch/qos/logback/classic/selector/ContextJNDISelector.class)",
       "Bash(javap -c ch/qos/logback/classic/util/ContextSelectorStaticBinder.class)",
-      "Bash(javap -p ch/qos/logback/classic/selector/ContextSelector.class)"
+      "Bash(javap -p ch/qos/logback/classic/selector/ContextSelector.class)",
+      "Bash(mvn dependency:tree -pl tis-web-start -Dincludes=ch.qos.logback:logback-classic -q)",
+      "Bash(javap -c ch/qos/logback/classic/spi/LogbackServiceProvider.class)",
+      "Bash(javap -c ch/qos/logback/classic/LoggerContext.class)",
+      "Bash(javap -c ch/qos/logback/classic/selector/servlet/LoggerContextFilter.class)",
+      "Bash(mvn -pl tis-web-start dependency:tree -Dincludes=ch.qos.logback:*,org.slf4j:*)",
+      "Bash(javap -c org/slf4j/LoggerFactory.class)",
+      "Bash(javap -verbose org/slf4j/LoggerFactory.class)",
+      "Bash(javap org/slf4j/spi/SLF4JServiceProvider.class)"
     ],
     "deny": [],
     "ask": []

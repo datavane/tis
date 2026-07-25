@@ -17,8 +17,6 @@
  */
 package com.qlangtech.tis.web.start;
 
-import ch.qos.logback.classic.ClassicConstants;
-import ch.qos.logback.classic.util.ContextSelectorStaticBinder;
 import com.qlangtech.tis.web.start.JettyTISRunner.IWebAppContextSetter;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -47,8 +45,11 @@ public class TisApp {
     }
 
     public static void setLogbackContextSelector() {
-        System.setProperty(ClassicConstants.LOGBACK_CONTEXT_SELECTOR,
-                TISLogbackContextSelector.class.getName());
+        // SLF4J 2.x: use slf4j.provider to inject our routing provider directly.
+        // logback 1.5.x no longer calls ContextSelectorStaticBinder.init(), so the
+        // old "logback.ContextSelector" property is dead. slf4j.provider is read by
+        // LoggerFactory.loadExplicitlySpecified() and bypasses ServiceLoader ordering.
+        System.setProperty("slf4j.provider", TISLogbackServiceProvider.class.getName());
     }
 
 
