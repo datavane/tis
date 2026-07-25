@@ -38,12 +38,12 @@ import java.util.concurrent.TimeUnit;
 public class PhaseStatusCollection implements IPhaseStatusCollection {
     private static final LoadingCache<Integer, PhaseStatusCollection> taskPhaseReference =
             CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES) //
-            .build(new CacheLoader<>() {
-                @Override
-                public PhaseStatusCollection load(Integer taskId) throws Exception {
-                    return loadPhaseStatusFromLocal(taskId);
-                }
-            });
+                    .build(new CacheLoader<>() {
+                        @Override
+                        public PhaseStatusCollection load(Integer taskId) throws Exception {
+                            return loadPhaseStatusFromLocal(taskId);
+                        }
+                    });
     //    private static final Map<Integer, PhaseStatusCollection> /*** taskid*/
     //            taskPhaseReference = new HashMap<>(); //new WeakHashMap<>();
 
@@ -84,7 +84,7 @@ public class PhaseStatusCollection implements IPhaseStatusCollection {
                 if (result == null) {
                     result = new PhaseStatusCollection(taskid, ExecutePhaseRange.fullRange());
                 }
-                IFlush2Local flush2Local = IFlush2LocalFactory.createNew(PhaseStatusCollection.class.getClassLoader()
+                IFlush2Local flush2Local = IFlush2LocalFactory.createNew(Thread.currentThread().getContextClassLoader()
                         , localFile).orElseThrow(() -> new IllegalStateException("flush2Local must be present"));
                 phaseStatus = flush2Local.loadPhase(); // BasicPhaseStatus.statusWriter.loadPhase(localFile);
                 switch (phase) {

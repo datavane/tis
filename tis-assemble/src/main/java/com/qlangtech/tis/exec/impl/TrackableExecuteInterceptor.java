@@ -17,23 +17,18 @@
  */
 package com.qlangtech.tis.exec.impl;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.qlangtech.tis.ajax.AjaxResult;
 import com.qlangtech.tis.assemble.FullbuildPhase;
-import com.qlangtech.tis.exec.*;
+import com.qlangtech.tis.exec.ActionInvocation;
+import com.qlangtech.tis.exec.ExecuteResult;
+import com.qlangtech.tis.exec.IExecChainContext;
+import com.qlangtech.tis.exec.IExecuteInterceptor;
+import com.qlangtech.tis.exec.ITaskPhaseInfo;
 import com.qlangtech.tis.exec.datax.DataXAssembleSvcCompsite;
-import com.qlangtech.tis.fullbuild.phasestatus.IFlush2Local;
-import com.qlangtech.tis.fullbuild.phasestatus.IFlush2LocalFactory;
 import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BasicPhaseStatus;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.BuildPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.IndexBackFlowPhaseStatus;
-import com.qlangtech.tis.fullbuild.phasestatus.impl.JoinPhaseStatus;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
-import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.realtime.yarn.rpc.IncrStatusUmbilicalProtocol;
 import com.qlangtech.tis.realtime.yarn.rpc.impl.AdapterStatusUmbilicalProtocol;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
@@ -43,10 +38,7 @@ import com.tis.hadoop.rpc.StatusRpcClientFactory.AssembleSvcCompsite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
