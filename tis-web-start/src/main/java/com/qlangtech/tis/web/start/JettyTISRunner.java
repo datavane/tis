@@ -17,6 +17,7 @@
  */
 package com.qlangtech.tis.web.start;
 
+import ch.qos.logback.classic.util.LogbackMDCAdapter;
 import com.qlangtech.tis.health.check.IStatusChecker;
 import com.qlangtech.tis.health.check.StatusLevel;
 import com.qlangtech.tis.health.check.StatusModel;
@@ -272,6 +273,7 @@ public class JettyTISRunner {
         }
 
         LoggerContext lc = new LoggerContext();
+        lc.setMDCAdapter(new LogbackMDCAdapter());
         lc.setName(module.logbackContextName);
         try {
             JoranConfigurator configurator = new JoranConfigurator();
