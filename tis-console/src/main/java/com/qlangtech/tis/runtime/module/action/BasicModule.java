@@ -359,7 +359,10 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
 
   @Override
   public String getRequestHeader(String key) {
-    return this.getRequest().getHeader(key);
+    if (ServletActionContext.getActionContext() != null) {
+      return this.getRequest().getHeader(key);
+    }
+    return null;
   }
 
   @Override
