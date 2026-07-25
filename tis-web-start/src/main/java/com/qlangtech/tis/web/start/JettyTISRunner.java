@@ -260,6 +260,7 @@ public class JettyTISRunner {
         String configResource = module.getLogbackConfigFileName();
 
         TISLogbackServiceProvider provider = TISLogbackServiceProvider.getInstance();
+
         if (provider == null) {
             logger.warn("initLogbackContext: TISLogbackServiceProvider not initialized for '{}', skipping. "
                     + "Ensure slf4j.provider is set before any LoggerFactory call.", module.logbackContextName);

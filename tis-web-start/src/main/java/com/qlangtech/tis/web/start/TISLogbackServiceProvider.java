@@ -19,6 +19,8 @@ package com.qlangtech.tis.web.start;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.LogbackServiceProvider;
+import ch.qos.logback.core.ContextBase;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.IMarkerFactory;
 import org.slf4j.spi.MDCAdapter;
@@ -26,30 +28,31 @@ import org.slf4j.spi.SLF4JServiceProvider;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Custom SLF4J 2.x service provider for TIS that routes log calls to per-webapp
  * LoggerContexts based on the calling thread's ClassLoader.
- *
+ * <p>
  * Root cause why this is needed:
- *   logback 1.5.x (LogbackServiceProvider.initialize()) no longer calls
- *   ContextSelectorStaticBinder.init(), so the old "logback.ContextSelector"
- *   system-property mechanism is dead. Additionally, SLF4J 2.x LoggerFactory
- *   never consults ContextSelectorStaticBinder in its hot path — it always
- *   delegates directly to the registered SLF4JServiceProvider.
- *
+ * logback 1.5.x (LogbackServiceProvider.initialize()) no longer calls
+ * ContextSelectorStaticBinder.init(), so the old "logback.ContextSelector"
+ * system-property mechanism is dead. Additionally, SLF4J 2.x LoggerFactory
+ * never consults ContextSelectorStaticBinder in its hot path — it always
+ * delegates directly to the registered SLF4JServiceProvider.
+ * <p>
  * Activation (must be set BEFORE any LoggerFactory call):
- *   System.setProperty("slf4j.provider",
- *       "com.qlangtech.tis.web.start.TISLogbackServiceProvider");
- *   (SLF4J 2.x reads this in LoggerFactory.loadExplicitlySpecified() and loads
- *   it directly, bypassing ServiceLoader ordering entirely.)
- *
+ * System.setProperty("slf4j.provider",
+ * "com.qlangtech.tis.web.start.TISLogbackServiceProvider");
+ * (SLF4J 2.x reads this in LoggerFactory.loadExplicitlySpecified() and loads
+ * it directly, bypassing ServiceLoader ordering entirely.)
+ * <p>
  * Usage:
- *   After creating each webapp's ClassLoader and loading its logback-{name}.xml
- *   into a new LoggerContext, call TISLogbackServiceProvider.getInstance()
- *   .registerContext(classLoader, loggerContext) to register it.
- *   From that point on, any thread running with that ClassLoader (or a child of
- *   it) as the TCL will have its log calls routed to that LoggerContext.
+ * After creating each webapp's ClassLoader and loading its logback-{name}.xml
+ * into a new LoggerContext, call TISLogbackServiceProvider.getInstance()
+ * .registerContext(classLoader, loggerContext) to register it.
+ * From that point on, any thread running with that ClassLoader (or a child of
+ * it) as the TCL will have its log calls routed to that LoggerContext.
  */
 public class TISLogbackServiceProvider implements SLF4JServiceProvider {
 
@@ -97,6 +100,19 @@ public class TISLogbackServiceProvider implements SLF4JServiceProvider {
         }
     }
 
+    public LoggerContext getLoggerContext(String logbackContextName) {
+        TISRoutingLoggerFactory f = routingFactory;
+
+        for (Map.Entry<ClassLoader, LoggerContext> entry : f.contextMap.entrySet()) {
+            if (StringUtils.equals(entry.getValue().getName(), logbackContextName)) {
+                return entry.getValue();
+            }
+        }
+        throw new IllegalStateException("can not find contextName:"
+                + logbackContextName + " relevant " + LoggerContext.class.getSimpleName() + " in context set:"
+                + f.contextMap.values().stream().map(ContextBase::getName).collect(Collectors.joining(",")));
+    }
+
     /**
      * ILoggerFactory that routes getLogger() to per-webapp LoggerContexts
      * based on the calling thread's context ClassLoader.
@@ -122,7 +138,8 @@ public class TISLogbackServiceProvider implements SLF4JServiceProvider {
                 synchronized (this) {
                     ctx = contextMap.get(cl);
                 }
-                if (ctx != null) return ctx;
+                if (ctx != null)
+                    return ctx;
                 cl = cl.getParent();
             }
             return defaultContext;
