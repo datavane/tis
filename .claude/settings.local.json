@@ -190,7 +190,9 @@
       "Bash(mvn -pl tis-web-start dependency:tree -Dincludes=ch.qos.logback:*,org.slf4j:*)",
       "Bash(javap -c org/slf4j/LoggerFactory.class)",
       "Bash(javap -verbose org/slf4j/LoggerFactory.class)",
-      "Bash(javap org/slf4j/spi/SLF4JServiceProvider.class)"
+      "Bash(javap org/slf4j/spi/SLF4JServiceProvider.class)",
+      "Bash(mv /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-assemble/src/main/resources/logback-assemble.xml /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-assemble/src/main/resources/logback-assemble.xml.bak)",
+      "Bash(mv /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-console/src/main/resources/logback-console.xml /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-console/src/main/resources/logback-console.xml.bak)"
     ],
     "deny": [],
     "ask": []

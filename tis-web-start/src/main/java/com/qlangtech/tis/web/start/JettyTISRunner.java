@@ -17,13 +17,10 @@
  */
 package com.qlangtech.tis.web.start;
 
-import ch.qos.logback.classic.util.LogbackMDCAdapter;
 import com.qlangtech.tis.health.check.IStatusChecker;
 import com.qlangtech.tis.health.check.StatusLevel;
 import com.qlangtech.tis.health.check.StatusModel;
 import org.eclipse.jetty.ee.webapp.WebAppClassLoader;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.joran.JoranConfigurator;
 import org.eclipse.jetty.ee11.servlet.DefaultServlet;
 import org.eclipse.jetty.ee11.servlet.FilterHolder;
 import org.eclipse.jetty.ee11.servlet.ServletHolder;
@@ -37,8 +34,8 @@ import org.eclipse.jetty.ee11.webapp.MetaInfConfiguration;
 import org.eclipse.jetty.ee11.webapp.WebAppContext;
 import org.eclipse.jetty.ee11.webapp.WebInfConfiguration;
 import org.eclipse.jetty.ee11.webapp.WebXmlConfiguration;
-import org.eclipse.jetty.ee11.websocket.server.config.JettyWebSocketConfiguration;
 import org.eclipse.jetty.ee11.websocket.server.config.JettyWebSocketServletContainerInitializer;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.server.Connector;
@@ -50,8 +47,6 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -196,9 +191,6 @@ public class JettyTISRunner {
                     jarfiles.toArray(new URL[jarfiles.size()]));
             logger.info("context:" + context + " start with customer classLoader,resCount:" + jarfiles.size() + "," + "enums:" + String.join(",", resNames));
             webAppContext.setClassLoader(contextCloassLoader);
-            // Eagerly initialize the logback context for this webapp using its own ClassLoader,
-            // because logback lives in the parent CL and cannot discover logback-{ctx}.xml via child CLs.
-            initLogbackContext(context, contextCloassLoader);
         } else {
             logger.info("context:" + context + " start with system classloader");
             WebAppClassLoader clazzLoader = new WebAppClassLoader(this.getClass().getClassLoader(), webAppContext);
@@ -248,52 +240,6 @@ public class JettyTISRunner {
         webAppContext.addServlet(new ServletHolder(CheckHealth.class), "/check_health");
 
         this.addContext(webAppContext);
-    }
-
-    /**
-     * Load logback-{contextName}.xml from the webapp's ClassLoader, configure a new LoggerContext,
-     * and register it with TISLogbackServiceProvider keyed on that ClassLoader.
-     */
-    private void initLogbackContext(String contextPath, ClassLoader webappCL) {
-        // contextPath is "/tis-assemble" or "/tjs" – strip leading slash for the file name
-        TisSubModule module = TisSubModule.parse(contextPath.startsWith("/") ? contextPath.substring(1) : contextPath);
-        String configResource = module.getLogbackConfigFileName();
-
-        TISLogbackServiceProvider provider = TISLogbackServiceProvider.getInstance();
-
-        if (provider == null) {
-            logger.warn("initLogbackContext: TISLogbackServiceProvider not initialized for '{}', skipping. "
-                    + "Ensure slf4j.provider is set before any LoggerFactory call.", module.logbackContextName);
-            return;
-        }
-
-        java.io.InputStream cfgStream = webappCL.getResourceAsStream(configResource);
-        if (cfgStream == null) {
-            logger.warn("initLogbackContext: {} not found on webapp classpath for context '{}'", configResource, module.logbackContextName);
-            return;
-        }
-
-        LoggerContext lc = new LoggerContext();
-        lc.setMDCAdapter(new LogbackMDCAdapter());
-        lc.setName(module.logbackContextName);
-        try {
-            JoranConfigurator configurator = new JoranConfigurator();
-            configurator.setContext(lc);
-            lc.reset();
-            configurator.doConfigure(cfgStream);
-            lc.start();
-        } catch (Exception e) {
-            logger.error("initLogbackContext: failed to configure '{}' from {}", module.logbackContextName, configResource, e);
-            return;
-        } finally {
-            try {
-                cfgStream.close();
-            } catch (Exception ignored) {
-            }
-        }
-
-        provider.registerContext(webappCL, lc);
-        logger.info("initLogbackContext: registered logback context '{}' using {}", module.logbackContextName, configResource);
     }
 
     public File getWebapp(File contextDir) {

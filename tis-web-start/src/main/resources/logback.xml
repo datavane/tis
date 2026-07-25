@@ -19,30 +19,238 @@
   -->
 
 <configuration debug="false">
-	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-		<target>System.out</target>
-		<encoding>${loggingCharset}</encoding>
-		<layout class="ch.qos.logback.classic.PatternLayout">
-			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %X{app} %logger{35}- %msg%n]]></pattern>
-		</layout>
-	</appender>
 
-	<appender name="tis"
-			  class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<File>${log.dir}/tis.log</File>
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-tis.log</fileNamePattern>
-			<maxHistory>15</maxHistory>
-		</rollingPolicy>
-		<encoder>
-			<pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{32}:%L- %msg%n]]></pattern>
-		</encoder>
-	</appender>
+    <!-- ============================================================ -->
+    <!--  Shared / web-start appender                                 -->
+    <!-- ============================================================ -->
 
-	<root>
-		<level value="INFO" />
-		<appender-ref ref="STDOUT" />
-		<appender-ref ref="tis" />
-	</root>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <encoding>${loggingCharset}</encoding>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %X{app} %logger{35}- %msg%n]]></pattern>
+        </layout>
+    </appender>
+
+    <appender name="tis" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${log.dir}/tis.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-tis.log</fileNamePattern>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{32}:%L- %msg%n]]></pattern>
+        </encoder>
+    </appender>
+
+    <!-- ============================================================ -->
+    <!--  tjs (console webapp) appenders                              -->
+    <!-- ============================================================ -->
+
+    <appender name="wpCollector" class="com.qlangtech.tis.log.WaittingProcessCollectorAppender">
+    </appender>
+
+    <appender name="executeactionappender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${log.dir}/executeactionappender.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.dir}/bak/%d{yyyy-MM}-executeactionappender.log</fileNamePattern>
+            <maxHistory>12</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{35}- %msg%n]]></pattern>
+        </encoder>
+    </appender>
+
+    <appender name="console" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${log.dir}/console.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.dir}/bak/%d{yyyy-MM-dd}-console.log</fileNamePattern>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{35}- %msg%n]]></pattern>
+        </encoder>
+    </appender>
+
+    <!-- ============================================================ -->
+    <!--  tis-assemble appenders                                      -->
+    <!-- ============================================================ -->
+
+    <appender name="assemble" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <File>${log.dir}/assemble.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.dir}/bak/assemble-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %level %logger{35}- %msg%n]]></pattern>
+        </encoder>
+    </appender>
+
+    <appender name="dump-bind-taskid" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator>
+            <Key>taskid</Key>
+            <DefaultValue>unknown</DefaultValue>
+        </discriminator>
+        <sift>
+            <appender name="full-${taskid}" class="com.qlangtech.tis.log.RealtimeLoggerCollectorAppender">
+                <File>${assemble.task.dir}/full-${taskid}.log</File>
+                <encoder>
+                    <pattern><![CDATA[%d{MM-dd HH:mm} %X{host} %msg%n]]></pattern>
+                </encoder>
+            </appender>
+        </sift>
+    </appender>
+
+    <appender name="dump" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator>
+            <Key>app</Key>
+            <DefaultValue>unknown</DefaultValue>
+        </discriminator>
+        <sift>
+            <appender name="full-${app}" class="com.qlangtech.tis.log.RealtimeLoggerCollectorAppender">
+                <File>${log.dir}/assemble/app/full-${app}.log</File>
+                <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                    <fileNamePattern>${log.dir}/assemble/app/bak/full-${app}.%d{yyyy-MM-dd}.log</fileNamePattern>
+                    <maxHistory>10</maxHistory>
+                </rollingPolicy>
+                <encoder>
+                    <pattern><![CDATA[%d{MM-dd HH:mm}%X{host} %msg%n]]></pattern>
+                </encoder>
+            </appender>
+        </sift>
+    </appender>
+
+    <appender name="statis-appender" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator>
+            <Key>app</Key>
+            <DefaultValue>unknown</DefaultValue>
+        </discriminator>
+        <sift>
+            <appender name="incr-${app}" class="com.qlangtech.tis.log.RealtimeLoggerCollectorAppender">
+                <File>${log.dir}/incr/incr-${app}.log</File>
+                <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                    <fileNamePattern>${log.dir}/incr/bak/zincr-${app}.%d{yyyy-MM-dd}.log</fileNamePattern>
+                    <maxHistory>3</maxHistory>
+                </rollingPolicy>
+                <encoder>
+                    <pattern><![CDATA[%X{host} %msg%n]]></pattern>
+                </encoder>
+            </appender>
+        </sift>
+    </appender>
+
+    <appender name="sendinfo-appender" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator>
+            <Key>app</Key>
+            <DefaultValue>unknown</DefaultValue>
+        </discriminator>
+        <sift>
+            <appender name="incrsend-${app}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <File>${log.dir}/incr/send-${app}.log</File>
+                <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                    <fileNamePattern>${log.dir}/incr/bak/zsend-${app}.%d{yyyy-MM-dd}.log</fileNamePattern>
+                    <maxHistory>3</maxHistory>
+                </rollingPolicy>
+                <encoder>
+                    <pattern><![CDATA[%X{host} %X{group} %msg%n]]></pattern>
+                </encoder>
+            </appender>
+        </sift>
+    </appender>
+
+    <appender name="rmcount-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${log.dir}/incr/rmcount.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.dir}/incr/bak/%d{yyyy-MM-dd}-rmcount.log</fileNamePattern>
+            <maxHistory>3</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern><![CDATA[%X{host} %msg%n]]></pattern>
+        </encoder>
+    </appender>
+
+    <appender name="receive-appender" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator>
+            <Key>app</Key>
+            <DefaultValue>unknown</DefaultValue>
+        </discriminator>
+        <sift>
+            <appender name="rmq-${app}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <File>${log.dir}/incr/rmq-${app}.log</File>
+                <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                    <fileNamePattern>${log.dir}/incr/bak/rmq-${app}.%d{yyyy-MM-dd}.log</fileNamePattern>
+                    <maxHistory>3</maxHistory>
+                </rollingPolicy>
+                <encoder>
+                    <pattern><![CDATA[%X{host} %X{group} %msg%n]]></pattern>
+                </encoder>
+            </appender>
+        </sift>
+    </appender>
+
+    <!-- ============================================================ -->
+    <!--  Logger bindings                                             -->
+    <!-- ============================================================ -->
+
+    <!-- tjs (console) specific loggers -->
+    <logger name="executeaction">
+        <level value="INFO"/>
+        <appender-ref ref="executeactionappender"/>
+    </logger>
+
+    <!-- tis-assemble specific loggers -->
+    <logger name="fullbuild">
+        <level value="INFO"/>
+        <appender-ref ref="dump"/>
+        <appender-ref ref="dump-bind-taskid"/>
+    </logger>
+
+    <logger name="com.qlangtech.tis">
+        <level value="INFO"/>
+        <appender-ref ref="dump"/>
+        <appender-ref ref="dump-bind-taskid"/>
+    </logger>
+
+    <logger name="com.alibaba.datax">
+        <level value="INFO"/>
+        <appender-ref ref="dump"/>
+        <appender-ref ref="dump-bind-taskid"/>
+    </logger>
+
+    <logger name="receive">
+        <level value="DEBUG"/>
+        <appender-ref ref="receive-appender"/>
+    </logger>
+
+    <logger name="rmcount">
+        <level value="INFO"/>
+        <appender-ref ref="rmcount-appender"/>
+    </logger>
+
+    <logger name="statis">
+        <level value="INFO"/>
+        <appender-ref ref="statis-appender"/>
+    </logger>
+
+    <logger name="sendinfo">
+        <level value="DEBUG"/>
+        <appender-ref ref="sendinfo-appender"/>
+    </logger>
+
+    <!-- ============================================================ -->
+    <!--  Root                                                        -->
+    <!-- ============================================================ -->
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="tis"/>
+        <appender-ref ref="console"/>
+        <appender-ref ref="assemble"/>
+        <appender-ref ref="wpCollector"/>
+    </root>
 
 </configuration>

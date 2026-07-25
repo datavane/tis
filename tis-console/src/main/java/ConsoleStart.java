@@ -18,7 +18,6 @@
 
 import com.qlangtech.tis.extension.util.ClassLoaderReflectionToolkit;
 import com.qlangtech.tis.manage.common.CenterResource;
-import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.mcp.TISHttpMcpServer;
 import com.qlangtech.tis.web.start.TisApp;
 import com.qlangtech.tis.web.start.TisAppLaunch;
@@ -32,10 +31,6 @@ import org.eclipse.jetty.ee11.servlet.ServletHolder;
  * @see ClassLoaderReflectionToolkit 启动时候要加：--add-opens java.base/java.lang=ALL-UNNAMED
  */
 public class ConsoleStart {
-  static {
-    // System.setProperty(Config.KEY_LOG_DIR, "/opt/logs/tis");
-    System.setProperty(Config.SYSTEM_KEY_LOGBACK_PATH_KEY, "logback-console.xml");
-  }
 
   public static void main(String[] args) throws Exception {
     TisAppLaunch.setTest(true);

@@ -18,14 +18,10 @@
 
 package com.qlangtech.tis.rpc.server;
 
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.util.ContextSelectorStaticBinder;
 import com.qlangtech.tis.job.common.JobParams;
 import com.qlangtech.tis.rpc.grpc.log.appender.LogAppenderGrpc;
 import com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent;
 import com.qlangtech.tis.rpc.grpc.log.common.Empty;
-import com.qlangtech.tis.web.start.TISLogbackServiceProvider;
-import com.qlangtech.tis.web.start.TisSubModule;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -55,13 +51,14 @@ public class DefaultLoggerAppenderServiceImpl extends LogAppenderGrpc.LogAppende
         Logger logger = loggers.get(name);
         if (logger == null) {
 
-            TISLogbackServiceProvider provider = TISLogbackServiceProvider.getInstance();
+           // TISLogbackServiceProvider provider = TISLogbackServiceProvider.getInstance();
             //            LoggerContext assemble =
             //                    Objects.requireNonNull(ContextSelectorStaticBinder.getSingleton()
             //                    .getContextSelector(),
             //                            "contextSelector can not be null").getLoggerContext("assemble");
-            logger = Objects.requireNonNull(provider.getLoggerContext(TisSubModule.TIS_ASSEMBLE.logbackContextName),
-                    "assemble LoggerContext can not be null").getLogger(name);
+//            logger = Objects.requireNonNull(provider.getLoggerContext(TisSubModule.TIS_ASSEMBLE.logbackContextName),
+//                    "assemble LoggerContext can not be null").getLogger(name);
+            logger = Objects.requireNonNull(LoggerFactory.getLogger(name));
             loggers.put(name, logger);
         }
         return logger;

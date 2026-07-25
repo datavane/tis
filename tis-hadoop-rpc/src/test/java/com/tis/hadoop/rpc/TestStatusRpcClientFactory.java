@@ -41,6 +41,7 @@ public class TestStatusRpcClientFactory extends TestCase {
         while (true) {
             try {
                 //  AssembleSvcCompsite svc = ref.get();
+                PhaseStatusCollection statusCollection = ref.loadPhaseStatusFromLatest(802);
                 PingResult ping = ref.ping();
 
 //                if (MOCK_PRC == svc) {

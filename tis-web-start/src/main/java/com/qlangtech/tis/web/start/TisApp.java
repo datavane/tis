@@ -40,19 +40,6 @@ import java.util.ServiceLoader;
  */
 public class TisApp {
 
-    static {
-        setLogbackContextSelector();
-    }
-
-    public static void setLogbackContextSelector() {
-        // SLF4J 2.x: use slf4j.provider to inject our routing provider directly.
-        // logback 1.5.x no longer calls ContextSelectorStaticBinder.init(), so the
-        // old "logback.ContextSelector" property is dead. slf4j.provider is read by
-        // LoggerFactory.loadExplicitlySpecified() and bypasses ServiceLoader ordering.
-        System.setProperty("slf4j.provider", TISLogbackServiceProvider.class.getName());
-    }
-
-
     public static final String KEY_WEB_ROOT_DIR = "web.root.dir";
 
     private static Logger _logger;

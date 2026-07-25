@@ -19,7 +19,6 @@
 import com.alibaba.datax.common.statistics.PerfTrace;
 import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.manage.common.CenterResource;
-import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.web.start.TisApp;
@@ -35,11 +34,8 @@ public class StartAssembleWeb extends TestCase {
 
 
     static {
-        // 执行TisApp的static执行块
-        TisApp.setLogbackContextSelector();
         System.setProperty(NetUtils.TIS_PREFERRED_NETWORK_INTERFACE, "en0");
         System.setProperty(TisAppLaunch.KEY_LOG_DIR, "/opt/logs/tis");
-        System.setProperty(Config.SYSTEM_KEY_LOGBACK_PATH_KEY, "logback-assemble.xml");
         CenterResource.setNotFetchFromCenterRepository();
     }
 
