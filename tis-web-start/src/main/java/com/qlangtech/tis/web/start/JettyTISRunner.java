@@ -39,7 +39,8 @@ import org.eclipse.jetty.ee11.webapp.WebInfConfiguration;
 import org.eclipse.jetty.ee11.webapp.WebXmlConfiguration;
 import org.eclipse.jetty.ee11.websocket.server.config.JettyWebSocketConfiguration;
 import org.eclipse.jetty.ee11.websocket.server.config.JettyWebSocketServletContainerInitializer;
-import org.slf4j.LoggerFactory;import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
+import org.slf4j.LoggerFactory;
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -220,14 +221,14 @@ public class JettyTISRunner {
         // Set configurations explicitly - WebXmlConfiguration must precede PlusConfiguration
         // so that env-entries parsed from web.xml are available for JNDI registration.
         webAppContext.setConfigurations(new Configuration[]{
-            new WebInfConfiguration(),
-            new WebXmlConfiguration(),
-            new MetaInfConfiguration(),
-            new FragmentConfiguration(),
-            new EnvConfiguration(),              // reads jetty-env.xml (if present)
-            new PlusConfiguration(),             // registers <env-entry> from web.xml into JNDI
-            new AnnotationConfiguration(),
-            new JettyWebXmlConfiguration()
+                new WebInfConfiguration(),
+                new WebXmlConfiguration(),
+                new MetaInfConfiguration(),
+                new FragmentConfiguration(),
+                new EnvConfiguration(),              // reads jetty-env.xml (if present)
+                new PlusConfiguration(),             // registers <env-entry> from web.xml into JNDI
+                new AnnotationConfiguration(),
+                new JettyWebXmlConfiguration()
         });
 
         // Configure WebSocket support - Jetty 12 requirement
@@ -252,46 +253,50 @@ public class JettyTISRunner {
     /**
      * Load logback-{contextName}.xml from the webapp's ClassLoader and register the resulting
      * LoggerContext with TISLogbackContextSelector, keyed on that ClassLoader.
-     *
+     * <p>
      * This is needed because logback-classic lives in the parent (tis-web-start) ClassLoader,
      * so it cannot discover logback-console.xml / logback-assemble.xml which reside in each
      * webapp's conf/ directory (visible only to TISAppClassLoader).
      */
     private void initLogbackContext(String contextPath, ClassLoader webappCL) {
         // contextPath is "/tis-assemble" or "/tjs" – strip leading slash for the file name
-        String name = contextPath.startsWith("/") ? contextPath.substring(1) : contextPath;
-        String configResource = "logback-" + name + ".xml";
+        TisSubModule module = TisSubModule.parse(contextPath.startsWith("/") ? contextPath.substring(1) : contextPath);
+        String configResource = module.getLogbackConfigFileName();// "logback-" + name + ".xml";
 
         ch.qos.logback.classic.selector.ContextSelector selector =
                 ContextSelectorStaticBinder.getSingleton().getContextSelector();
         if (!(selector instanceof TISLogbackContextSelector)) {
-            logger.warn("initLogbackContext: active selector is not TISLogbackContextSelector ({}), skipping", selector);
+            logger.warn("initLogbackContext: active selector is not TISLogbackContextSelector ({}), skipping",
+                    selector);
             return;
         }
         TISLogbackContextSelector tisSelector = (TISLogbackContextSelector) selector;
 
         java.io.InputStream cfgStream = webappCL.getResourceAsStream(configResource);
         if (cfgStream == null) {
-            logger.warn("initLogbackContext: {} not found on webapp classpath for context '{}'", configResource, name);
+            logger.warn("initLogbackContext: {} not found on webapp classpath for context '{}'", configResource, module.logbackContextName);
             return;
         }
 
         LoggerContext lc = new LoggerContext();
-        lc.setName(name);
+        lc.setName(module.logbackContextName);
         try {
             JoranConfigurator configurator = new JoranConfigurator();
             configurator.setContext(lc);
             lc.reset();
             configurator.doConfigure(cfgStream);
         } catch (Exception e) {
-            logger.error("initLogbackContext: failed to configure '{}' from {}", name, configResource, e);
+            logger.error("initLogbackContext: failed to configure '{}' from {}", module.logbackContextName, configResource, e);
             return;
         } finally {
-            try { cfgStream.close(); } catch (Exception ignored) {}
+            try {
+                cfgStream.close();
+            } catch (Exception ignored) {
+            }
         }
 
         tisSelector.registerContext(webappCL, lc);
-        logger.info("initLogbackContext: registered logback context '{}' using {}", name, configResource);
+        logger.info("initLogbackContext: registered logback context '{}' using {}", module.logbackContextName, configResource);
     }
 
     public File getWebapp(File contextDir) {

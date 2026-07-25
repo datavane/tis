@@ -18,6 +18,9 @@
 
 package com.qlangtech.tis.web.start;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 /**
  * TIS 子模块枚举
  *
@@ -25,27 +28,43 @@ package com.qlangtech.tis.web.start;
  * @create: 2021-08-29 16:29
  **/
 public enum TisSubModule {
-    WEB_START("web-start", 0),
-    TIS_ASSEMBLE("tis-assemble", 3),
-   // ZEPPELIN("tis-zeppelin", "/next", 6),
-    TIS_CONSOLE("tjs", 0),
-    TIS_COLLECT("tis-collect", 9);
+    WEB_START("web-start", null, 0),
+    TIS_ASSEMBLE("tis-assemble", "assemble", 3),
+    // ZEPPELIN("tis-zeppelin", "/next", 6),
+    TIS_CONSOLE("tjs", "console", 0),
+    TIS_COLLECT("tis-collect", "collect", 9);
 
     public final String moduleName;
     public final String servletContext;
     public final int portOffset;
+    public final String logbackContextName;
 
-    private TisSubModule(String name, String servletContext, int portOffset) {
+    public static TisSubModule parse(String context) {
+        for (TisSubModule sub : TisSubModule.values()) {
+            if (sub.moduleName.equalsIgnoreCase(context)) {
+                return sub;
+            }
+        }
+        throw new IllegalStateException("can not find context:" + context
+                + " in " + Arrays.stream(TisSubModule.values()).map((sub) -> sub.moduleName).collect(Collectors.joining(",")));
+    }
+
+    private TisSubModule(String name, String servletContext, String logbackContextName, int portOffset) {
         this.moduleName = name;
         this.servletContext = servletContext;
         this.portOffset = TisAppLaunch.isTestMock() ? portOffset : 0;
+        this.logbackContextName = logbackContextName;
     }
 
-    private TisSubModule(String name, int portOffset) {
-        this(name, "/" + name, portOffset);
-//        this.moduleName = name;
-//        this.servletContext = ;
-//        this.portOffset = TisAppLaunch.isTestMock() ? portOffset : 0;
+    private TisSubModule(String name, String logbackContextName, int portOffset) {
+        this(name, "/" + name, logbackContextName, portOffset);
+        //        this.moduleName = name;
+        //        this.servletContext = ;
+        //        this.portOffset = TisAppLaunch.isTestMock() ? portOffset : 0;
+    }
+
+    public String getLogbackConfigFileName() {
+        return "logback-" + this.logbackContextName + ".xml";
     }
 
     public int getLaunchPort() {
