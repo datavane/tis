@@ -45,6 +45,7 @@ public class ActorSystemStatus implements Serializable {
     private Map<String, Integer> actorCounts = new HashMap<>();
     private List<ActiveWorkflowInfo> activeWorkflows = new ArrayList<>();
     private List<ActiveWorkerInfo> activeWorkers = new ArrayList<>();
+    private ActorTopology actorTopology = new ActorTopology();
     // private int maxInstancesPerNode = DataXJobSubmitParams.DEFAULT_MAX_INSTANCES_PER_NODE;
 
     // Getters and Setters
@@ -152,6 +153,14 @@ public class ActorSystemStatus implements Serializable {
     //    public void setMaxInstancesPerNode(int maxInstancesPerNode) {
     //        this.maxInstancesPerNode = maxInstancesPerNode;
     //    }
+
+    public ActorTopology getActorTopology() {
+        return actorTopology;
+    }
+
+    public void setActorTopology(ActorTopology actorTopology) {
+        this.actorTopology = actorTopology;
+    }
 
     /**
      * Cluster member info
@@ -304,6 +313,147 @@ public class ActorSystemStatus implements Serializable {
 
         public void setWorkerAddress(String workerAddress) {
             this.workerAddress = workerAddress;
+        }
+    }
+
+    /**
+     * Actor topology information - structure and relationships of actors
+     */
+    public static class ActorTopology implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private List<ActorNode> nodes = new ArrayList<>();
+        private List<ActorRelation> relations = new ArrayList<>();
+
+        public List<ActorNode> getNodes() {
+            return nodes;
+        }
+
+        public void setNodes(List<ActorNode> nodes) {
+            this.nodes = nodes;
+        }
+
+        public List<ActorRelation> getRelations() {
+            return relations;
+        }
+
+        public void setRelations(List<ActorRelation> relations) {
+            this.relations = relations;
+        }
+    }
+
+    /**
+     * Actor node - represents a single actor type in the system
+     */
+    public static class ActorNode implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private String id;              // Actor type identifier (e.g., "WorkflowInstanceActor")
+        private String name;            // Display name (e.g., "工作流实例Actor")
+        private String type;            // Actor category: "stateful", "router", "worker", "monitor", "cluster"
+        private String description;     // Role description
+        private Integer count;          // Current instance count
+        private String path;            // Actor path (e.g., "/user/workflow-instance-region")
+        private boolean clickable;      // Whether this actor has a detail page
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public Integer getCount() {
+            return count;
+        }
+
+        public void setCount(Integer count) {
+            this.count = count;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
+        }
+
+        public boolean isClickable() {
+            return clickable;
+        }
+
+        public void setClickable(boolean clickable) {
+            this.clickable = clickable;
+        }
+    }
+
+    /**
+     * Actor relation - represents message flow between actors
+     */
+    public static class ActorRelation implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private String from;            // Source actor ID
+        private String to;              // Target actor ID
+        private String messageType;     // Message type (e.g., "StartWorkflow", "DispatchTask")
+        private String description;     // Relation description
+
+        public String getFrom() {
+            return from;
+        }
+
+        public void setFrom(String from) {
+            this.from = from;
+        }
+
+        public String getTo() {
+            return to;
+        }
+
+        public void setTo(String to) {
+            this.to = to;
+        }
+
+        public String getMessageType() {
+            return messageType;
+        }
+
+        public void setMessageType(String messageType) {
+            this.messageType = messageType;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
         }
     }
 }

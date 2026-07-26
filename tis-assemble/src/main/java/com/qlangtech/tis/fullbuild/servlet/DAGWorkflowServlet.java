@@ -31,6 +31,7 @@ import com.qlangtech.tis.datax.WorkflowRuntimeStatus;
 import com.qlangtech.tis.job.common.JobParams;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.IAjaxResult;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.runtime.module.action.IParamGetter;
 import com.qlangtech.tis.workflow.pojo.DagNodeExecution;
 import org.apache.commons.io.IOUtils;
@@ -41,6 +42,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.util.Objects;
 
@@ -117,7 +119,7 @@ public class DAGWorkflowServlet extends HttpServlet {
             }
         }
         result.put(IAjaxResult.KEY_SUCCESS, success);
-        IOUtils.write(JSON.toJSONString(result, true), resp.getWriter());
+        IOUtils.write(JSON.toJSONString(result, true), resp.getOutputStream(), TisUTF8.get());
     }
 
     private static DataXName getDataXName(HttpServletRequest req) {
