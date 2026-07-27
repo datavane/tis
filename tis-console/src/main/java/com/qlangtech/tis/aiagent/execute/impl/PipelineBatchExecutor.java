@@ -22,7 +22,6 @@ import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.aiagent.core.AgentContext;
 import com.qlangtech.tis.aiagent.core.PendingClarificationException;
-import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.lang.PayloadLink;
 import com.qlangtech.tis.aiagent.core.RequestKey;
 import com.qlangtech.tis.aiagent.core.SelectionOptions;
@@ -33,8 +32,12 @@ import com.qlangtech.tis.coredefine.module.action.TriggerBuildResult;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.manage.common.HttpUtils;
+import com.qlangtech.tis.plugin.trigger.JobTrigger;
+import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.PartialSettedPluginContext;
 
+import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,6 +51,29 @@ import static com.qlangtech.tis.aiagent.execute.impl.PluginInstanceCreateExecuto
  */
 public class PipelineBatchExecutor implements StepExecutor {
   public PipelineBatchExecutor() {
+  }
+
+  public static TriggerBuildResult triggerJob(IControlMsgHandler module, Context context, DataXName appName) {
+    if (appName == null) {
+      throw new IllegalArgumentException("param appName can not be empty");
+    }
+    //        if (powerJobWorkflowInstanceIdOpt.isPresent()) {
+    //            throw new IllegalStateException("powerJobWorkflowInstanceIdOpt contain is not support,workflowId:"
+    //                    + powerJobWorkflowInstanceIdOpt.get());
+    //        }
+    try {
+      List<HttpUtils.PostParam> params = Lists.newArrayList();
+      params.add(new HttpUtils.PostParam(TriggerBuildResult.KEY_APPNAME, appName.getPipelineName()));
+
+      Optional<JobTrigger> partialTrigger = JobTrigger.getPartialTriggerFromContext(context);
+      partialTrigger.ifPresent((partial) -> {
+        params.add(partial.getHttpPostSelectedTabsAsParam());
+      });
+      //  JobTrigger.addLatestWorkflowHistoryAsParam(params, latestWorkflowHistory);
+      return TriggerBuildResult.triggerBuild(module, context, params);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
@@ -101,13 +127,12 @@ public class PipelineBatchExecutor implements StepExecutor {
       throw new IllegalStateException("triggerType:" + triggerType + " have not been installed,please install it "
         + "ahead");
     }
-    DataXName dataXName =  sourceEnd.getDataXName();// ((IDataxProcessor) .getProcessor()).getDataXName();
+    DataXName dataXName = sourceEnd.getDataXName();
     PartialSettedPluginContext pluginContext = createPluginContext(plan, dataXName);
     Context runtimeContext = plan.getRuntimeContext(true);
-    TriggerBuildResult triggerResult = null;
-    // TODO: 变成使用http触发
-    //      dataXJobSubmit.get().triggerJob(
-    //       dataXName, Optional.empty());
+
+    TriggerBuildResult triggerResult = triggerJob(pluginContext, runtimeContext, dataXName);
+
     if (triggerResult.success) {
       context.sendMessage("已经成功触发'" + String.valueOf(dataXName) + "'全量历史数据同步执行。", new PayloadLink("查看任务执行状态",
         "/x/" + String.valueOf(dataXName) + "/app_build_history/" + triggerResult.getTaskid()));

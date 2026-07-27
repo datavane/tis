@@ -47,5 +47,5 @@ public interface ExecuteLog {
     /**
      * 总结
      */
-    void summary();
+    void summary(boolean logSummary);
 }

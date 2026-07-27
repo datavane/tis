@@ -685,7 +685,7 @@ public class UpdateCenter implements Saveable {
             File tmp = new File(dst.getPath() + ".tmp");
             // URLConnection con = null;
             //  try {
-            long total = job.getSize();
+            final long total = job.getSize();
 
             if (total < 1) {
                 // don't know exactly how this happens, but report like

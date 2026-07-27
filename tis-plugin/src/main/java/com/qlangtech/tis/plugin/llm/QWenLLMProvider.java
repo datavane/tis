@@ -97,8 +97,6 @@ public class QWenLLMProvider extends LLMProvider {
     public Boolean enableThinking;
 
 
-
-
     //    @FormField(type = FormFieldType.DECIMAL_NUMBER, advance = true, ordinal = 6, validate = {})
     //    public Float topP;
 
@@ -107,15 +105,13 @@ public class QWenLLMProvider extends LLMProvider {
      * 是否开启流式输出
      */
     // @FormField(type = FormFieldType.ENUM, advance = true, ordinal = 8, validate = {})
-    public final Boolean stream = false;
+    //  public final Boolean stream = false;
 
     //    /**
     //     * 是否打印日志
     //     */
     //    @FormField(type = FormFieldType.ENUM, advance = true, ordinal = 9, validate = {Validator.require})
     //    public Boolean printLog;
-
-
     @Override
     protected Logger getLogger() {
         return logger;
@@ -243,278 +239,291 @@ public class QWenLLMProvider extends LLMProvider {
                 , (new ConfigFileContext.Header("Content-Type", "application/json")));
     }
 
-//    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean logSummary,
-//                            ITISJsonSchema jsonOutput, LLMOptionParams params) {
-//        ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);// new DefaultExecuteLog
-//        // (prompt, context, logger) : new NoneExecuteLog();
-//        try {
-//            // 构建请求参数
-//            List<HttpUtils.PostParam> postParams = new ArrayList<>();
-//            postParams.add(new HttpUtils.PostParam("model", getModel()));
-//
-//            // 设置消息列表
-//            JSONArray messages = new JSONArray();
-//            if (CollectionUtils.isNotEmpty(systemPrompt)) {
-//                for (String sysP : systemPrompt) {
-//                    JSONObject systemMessage = new JSONObject();
-//                    systemMessage.put("role", "system");
-//                    systemMessage.put("content", sysP);
-//                    messages.add(systemMessage);
-//                }
-//            }
-//
-//            JSONObject userMessage = new JSONObject();
-//            userMessage.put("role", "user");
-//            userMessage.put("content", prompt.getPrompt());
-//            messages.add(userMessage);
-//            postParams.add(new HttpUtils.PostParam("messages", messages));
-//
-//            // 设置其他参数
-//            //            postParams.add(new HttpUtils.PostParam("temperature", temperature));
-//            //            if (topP != null) {
-//            //                postParams.add(new HttpUtils.PostParam("top_p", topP));
-//            //            }
-//
-//            Objects.requireNonNull(this.sampling, "sampling can not be null").setHttpParams(postParams);
-//
-//            //final boolean enableThinking = params.getStreamOutput() != null ? params.getStreamOutput() : ;
-//            postParams.add(new HttpUtils.PostParam("enable_thinking", Objects.requireNonNull(this.enableThinking,
-//                    "enableThinking can not be null")));
-//            postParams.add(new HttpUtils.PostParam("max_completion_tokens", getMaxTokens()));
-//
-//            if (jsonOutput.isContainSchema()) {
-//                JSONObject responseFormat = new JSONObject();
-//                /**
-//                 * 返回内容的格式。可选值：
-//                 *
-//                 * {"type": "text"}：输出文字回复；
-//                 * {"type": "json_object"}：输出标准格式的JSON字符串。
-//                 * {"type": "json_schema","json_schema": {...} }：输出指定格式的JSON字符串。
-//                 * 相关文档：结构化输出。
-//                 * 若指定为{"type": "json_object"}，需在提示词中明确指示模型输出JSON，如：“请按照json格式输出”，否则会报错。
-//                 * 支持的模型参见结构化输出。
-//                 */
-//                responseFormat.put("type", "json_schema");
-//                responseFormat.put("json_schema", jsonOutput.root());
-//                postParams.add(new HttpUtils.PostParam("response_format", responseFormat));
-//            }
-//            final boolean streamOutput = params.getStreamOutput() != null ?
-//                    params.getStreamOutput() : stream;
-//            //if (stream != null) {
-//            postParams.add(new HttpUtils.PostParam("stream", streamOutput));
-//            //}
-//
-//            //  postParams.add(new HttpUtils.PostParam("body", requestBody));
-//
-//            executeLog.setPostParams(postParams);
-//
-//            return HttpUtils.post((getApiUrl()), postParams, new PostFormStreamProcess<LLMResponse>( //
-//                    Lists.newArrayList((new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey())) //
-//                            , (new ConfigFileContext.Header("Content-Type", "application/json")))) {
-//                @Override
-//                public ContentType getContentType() {
-//                    return ContentType.JSON;
-//                }
-//
-//                @Override
-//                public int getMaxRetry() {
-//                    return Objects.requireNonNull(maxRetry, "maxRetry can not be null");
-//                }
-//
-//                @Override
-//                public Duration getSocketReadTimeout() {
-//                    return readTimeout;
-//                }
-//
-//                @Override
-//                public void error(int status, InputStream errstream, IOException e) {
-//                    if (errstream != null) {
-//                        try {
-//                            String errContent = IOUtils.toString(errstream, TisUTF8.get());
-//                            JSONObject errBody = null;
-//                            try {
-//                                errBody = JSONObject.parseObject(errContent);
-//                                executeLog.setError(errBody);
-//                            } catch (Exception ex) {
-//                                // 如果不是JSON格式，直接抛出错误内容
-//                                throw TisException.create("API Error: " + errContent);
-//                            }
-//
-//                            // 通义千问的错误格式
-//                            if (errBody.containsKey("error")) {
-//                                JSONObject errDetail = errBody.getJSONObject("error");
-//                                String errMessage = errDetail.getString("message");
-//                                String errCode = errDetail.getString("code");
-//                                if (StringUtils.isNotEmpty(errMessage)) {
-//                                    throw TisException.create(String.format("QWen API Error [%s]: %s", errCode,
-//                                            errMessage));
-//                                }
-//                            } else if (errBody.containsKey("message")) {
-//                                // 直接的错误消息格式
-//                                String errMessage = errBody.getString("message");
-//                                throw TisException.create("QWen API Error: " + errMessage);
-//                            }
-//                        } catch (IOException ex) {
-//                            throw new RuntimeException(e);
-//                        }
-//                    } else {
-//                        throw new RuntimeException(e);
-//                    }
-//                }
-//
-//                @Override
-//                public LLMResponse p(int status, InputStream stream, Map headerFields) throws IOException {
-//                    LLMResponse response = new LLMResponse(executeLog);
-//
-//                    if (streamOutput) {
-//                        return processStreamResponseWithDeepSeekStyle(stream, response, params);
-//                    }
-//
-//                    String responseStr = IOUtils.toString(stream, TisUTF8.get());
-//
-//                    JSONObject responseJson = JSON.parseObject(responseStr);
-//                    JSONObject error = null;
-//                    if ((error = responseJson.getJSONObject("error")) != null) {
-//                        response.setSuccess(false);
-//                        response.setErrorMessage(error.entrySet().stream() //
-//                                .map((entry) -> entry.getKey()
-//                                        + ":" + entry.getValue()).collect(Collectors.joining(",")));
-//                        return response;
-//                    }
-//                    executeLog.setResponse(responseJson);
-//
-//                    // 处理通义千问的响应格式
-//                    if (responseJson.containsKey("choices")) {
-//                        JSONArray choices = responseJson.getJSONArray("choices");
-//                        if (!choices.isEmpty()) {
-//                            JSONObject choice = choices.getJSONObject(0);
-//                            JSONObject message = choice.getJSONObject("message");
-//                            response.setContent(message.getString("content"));
-//                            response.setSuccess(true);
-//
-//                            // 获取finish_reason
-//                            String finishReason = choice.getString("finish_reason");
-//                            if ("length".equals(finishReason)) {
-//                                logger.warn("Response was truncated due to max_tokens limit");
-//                            }
-//                        }
-//                    }
-//
-//                    // 处理token使用统计
-//                    if (responseJson.containsKey("usage")) {
-//                        JSONObject usage = responseJson.getJSONObject("usage");
-//                        response.setPromptTokens(usage.getLongValue("prompt_tokens"));
-//                        response.setCompletionTokens(usage.getLongValue("completion_tokens"));
-//                        // response.setTotalTokens(usage.getLongValue("total_tokens"));
-//                        context.updateTokenUsage(usage.getLongValue("total_tokens"));
-//                    }
-//
-//                    response.setModel(responseJson.getString("model"));
-//                    return response;
-//                }
-//
-//                //                @Override
-//                //                public List<ConfigFileContext.Header> getHeaders() {
-//                //                    List<ConfigFileContext.Header> headers = new ArrayList<>(super.getHeaders());
-//                //                    // 通义千问使用 Bearer Token 认证
-//                //                    headers.add(new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey
-//                //                    ()));
-//                //                    headers.add(new ConfigFileContext.Header("Content-Type", "application/json"));
-//                //                    return headers;
-//                //                }
-//            });
-//        } catch (MalformedURLException e) {
-//            throw new RuntimeException("Invalid URL: " + getApiUrl(), e);
-//        } finally {
-//            if (logSummary) {
-//                executeLog.summary();
-//            }
-//        }
-//    }
+    //    public LLMResponse chat(IAgentContext context, UserPrompt prompt, List<String> systemPrompt, boolean
+    //    logSummary,
+    //                            ITISJsonSchema jsonOutput, LLMOptionParams params) {
+    //        ExecuteLog executeLog = ExecuteLog.create(this.printLog, prompt, context, logger);// new DefaultExecuteLog
+    //        // (prompt, context, logger) : new NoneExecuteLog();
+    //        try {
+    //            // 构建请求参数
+    //            List<HttpUtils.PostParam> postParams = new ArrayList<>();
+    //            postParams.add(new HttpUtils.PostParam("model", getModel()));
+    //
+    //            // 设置消息列表
+    //            JSONArray messages = new JSONArray();
+    //            if (CollectionUtils.isNotEmpty(systemPrompt)) {
+    //                for (String sysP : systemPrompt) {
+    //                    JSONObject systemMessage = new JSONObject();
+    //                    systemMessage.put("role", "system");
+    //                    systemMessage.put("content", sysP);
+    //                    messages.add(systemMessage);
+    //                }
+    //            }
+    //
+    //            JSONObject userMessage = new JSONObject();
+    //            userMessage.put("role", "user");
+    //            userMessage.put("content", prompt.getPrompt());
+    //            messages.add(userMessage);
+    //            postParams.add(new HttpUtils.PostParam("messages", messages));
+    //
+    //            // 设置其他参数
+    //            //            postParams.add(new HttpUtils.PostParam("temperature", temperature));
+    //            //            if (topP != null) {
+    //            //                postParams.add(new HttpUtils.PostParam("top_p", topP));
+    //            //            }
+    //
+    //            Objects.requireNonNull(this.sampling, "sampling can not be null").setHttpParams(postParams);
+    //
+    //            //final boolean enableThinking = params.getStreamOutput() != null ? params.getStreamOutput() : ;
+    //            postParams.add(new HttpUtils.PostParam("enable_thinking", Objects.requireNonNull(this.enableThinking,
+    //                    "enableThinking can not be null")));
+    //            postParams.add(new HttpUtils.PostParam("max_completion_tokens", getMaxTokens()));
+    //
+    //            if (jsonOutput.isContainSchema()) {
+    //                JSONObject responseFormat = new JSONObject();
+    //                /**
+    //                 * 返回内容的格式。可选值：
+    //                 *
+    //                 * {"type": "text"}：输出文字回复；
+    //                 * {"type": "json_object"}：输出标准格式的JSON字符串。
+    //                 * {"type": "json_schema","json_schema": {...} }：输出指定格式的JSON字符串。
+    //                 * 相关文档：结构化输出。
+    //                 * 若指定为{"type": "json_object"}，需在提示词中明确指示模型输出JSON，如：“请按照json格式输出”，否则会报错。
+    //                 * 支持的模型参见结构化输出。
+    //                 */
+    //                responseFormat.put("type", "json_schema");
+    //                responseFormat.put("json_schema", jsonOutput.root());
+    //                postParams.add(new HttpUtils.PostParam("response_format", responseFormat));
+    //            }
+    //            final boolean streamOutput = params.getStreamOutput() != null ?
+    //                    params.getStreamOutput() : stream;
+    //            //if (stream != null) {
+    //            postParams.add(new HttpUtils.PostParam("stream", streamOutput));
+    //            //}
+    //
+    //            //  postParams.add(new HttpUtils.PostParam("body", requestBody));
+    //
+    //            executeLog.setPostParams(postParams);
+    //
+    //            return HttpUtils.post((getApiUrl()), postParams, new PostFormStreamProcess<LLMResponse>( //
+    //                    Lists.newArrayList((new ConfigFileContext.Header("Authorization", "Bearer " + getApiKey())) //
+    //                            , (new ConfigFileContext.Header("Content-Type", "application/json")))) {
+    //                @Override
+    //                public ContentType getContentType() {
+    //                    return ContentType.JSON;
+    //                }
+    //
+    //                @Override
+    //                public int getMaxRetry() {
+    //                    return Objects.requireNonNull(maxRetry, "maxRetry can not be null");
+    //                }
+    //
+    //                @Override
+    //                public Duration getSocketReadTimeout() {
+    //                    return readTimeout;
+    //                }
+    //
+    //                @Override
+    //                public void error(int status, InputStream errstream, IOException e) {
+    //                    if (errstream != null) {
+    //                        try {
+    //                            String errContent = IOUtils.toString(errstream, TisUTF8.get());
+    //                            JSONObject errBody = null;
+    //                            try {
+    //                                errBody = JSONObject.parseObject(errContent);
+    //                                executeLog.setError(errBody);
+    //                            } catch (Exception ex) {
+    //                                // 如果不是JSON格式，直接抛出错误内容
+    //                                throw TisException.create("API Error: " + errContent);
+    //                            }
+    //
+    //                            // 通义千问的错误格式
+    //                            if (errBody.containsKey("error")) {
+    //                                JSONObject errDetail = errBody.getJSONObject("error");
+    //                                String errMessage = errDetail.getString("message");
+    //                                String errCode = errDetail.getString("code");
+    //                                if (StringUtils.isNotEmpty(errMessage)) {
+    //                                    throw TisException.create(String.format("QWen API Error [%s]: %s", errCode,
+    //                                            errMessage));
+    //                                }
+    //                            } else if (errBody.containsKey("message")) {
+    //                                // 直接的错误消息格式
+    //                                String errMessage = errBody.getString("message");
+    //                                throw TisException.create("QWen API Error: " + errMessage);
+    //                            }
+    //                        } catch (IOException ex) {
+    //                            throw new RuntimeException(e);
+    //                        }
+    //                    } else {
+    //                        throw new RuntimeException(e);
+    //                    }
+    //                }
+    //
+    //                @Override
+    //                public LLMResponse p(int status, InputStream stream, Map headerFields) throws IOException {
+    //                    LLMResponse response = new LLMResponse(executeLog);
+    //
+    //                    if (streamOutput) {
+    //                        return processStreamResponseWithDeepSeekStyle(stream, response, params);
+    //                    }
+    //
+    //                    String responseStr = IOUtils.toString(stream, TisUTF8.get());
+    //
+    //                    JSONObject responseJson = JSON.parseObject(responseStr);
+    //                    JSONObject error = null;
+    //                    if ((error = responseJson.getJSONObject("error")) != null) {
+    //                        response.setSuccess(false);
+    //                        response.setErrorMessage(error.entrySet().stream() //
+    //                                .map((entry) -> entry.getKey()
+    //                                        + ":" + entry.getValue()).collect(Collectors.joining(",")));
+    //                        return response;
+    //                    }
+    //                    executeLog.setResponse(responseJson);
+    //
+    //                    // 处理通义千问的响应格式
+    //                    if (responseJson.containsKey("choices")) {
+    //                        JSONArray choices = responseJson.getJSONArray("choices");
+    //                        if (!choices.isEmpty()) {
+    //                            JSONObject choice = choices.getJSONObject(0);
+    //                            JSONObject message = choice.getJSONObject("message");
+    //                            response.setContent(message.getString("content"));
+    //                            response.setSuccess(true);
+    //
+    //                            // 获取finish_reason
+    //                            String finishReason = choice.getString("finish_reason");
+    //                            if ("length".equals(finishReason)) {
+    //                                logger.warn("Response was truncated due to max_tokens limit");
+    //                            }
+    //                        }
+    //                    }
+    //
+    //                    // 处理token使用统计
+    //                    if (responseJson.containsKey("usage")) {
+    //                        JSONObject usage = responseJson.getJSONObject("usage");
+    //                        response.setPromptTokens(usage.getLongValue("prompt_tokens"));
+    //                        response.setCompletionTokens(usage.getLongValue("completion_tokens"));
+    //                        // response.setTotalTokens(usage.getLongValue("total_tokens"));
+    //                        context.updateTokenUsage(usage.getLongValue("total_tokens"));
+    //                    }
+    //
+    //                    response.setModel(responseJson.getString("model"));
+    //                    return response;
+    //                }
+    //
+    //                //                @Override
+    //                //                public List<ConfigFileContext.Header> getHeaders() {
+    //                //                    List<ConfigFileContext.Header> headers = new ArrayList<>(super.getHeaders
+    //                ());
+    //                //                    // 通义千问使用 Bearer Token 认证
+    //                //                    headers.add(new ConfigFileContext.Header("Authorization", "Bearer " +
+    //                getApiKey
+    //                //                    ()));
+    //                //                    headers.add(new ConfigFileContext.Header("Content-Type",
+    //                "application/json"));
+    //                //                    return headers;
+    //                //                }
+    //            });
+    //        } catch (MalformedURLException e) {
+    //            throw new RuntimeException("Invalid URL: " + getApiUrl(), e);
+    //        } finally {
+    //            if (logSummary) {
+    //                executeLog.summary();
+    //            }
+    //        }
+    //    }
 
-//    @Override
-//    public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
-//                                ITISJsonSchema jsonSchema, LLMOptionParams params) {
-//        // 增强prompt，要求返回JSON格式
-//        StringBuilder enhancedPrompt = new StringBuilder(prompt.getPrompt());
-//        if (jsonSchema.isContainSchema()) {
-//            // enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + JsonUtil.toString(jsonSchema
-//            // .schema(), false);
-//            enhancedPrompt.append("\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。");
-//            enhancedPrompt.append("\n请务必严格按照 'response_format' 中定义的 JSON Schema " +
-//                    "格式输出，不要输出任何其他内容或格式。以下是对'response_format'中相关字段的说明：");
-//
-//            // enhancedPrompt.append("\n\n请严格按照以下JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n").append(jsonSchema.root());
-//            //            public static final String SCHEMA_VALUE_ENUM = "enum";
-//            //            public static final String SCHEMA_VALUE_PATTERN = "pattern";
-//
-//            jsonSchema.appendFieldDescToPrompt(enhancedPrompt);
-//            //  SCHEMA_VALUE_CONST
-//            enhancedPrompt.append("\n\n**注意**：分析用户输入内容必须遵守如下纪律：");
-//            enhancedPrompt.append("\n**默认值处理**：");
-//            enhancedPrompt.append("\n   - 对于填充的字段内容，有以下要求：");
-//            enhancedPrompt.append("\n     a) 如果用户提供了对应信息 → 按 schema 要求处理（如替换非法字符以符合 `" + SCHEMA_VALUE_PATTERN + "`）；");
-//            enhancedPrompt.append("\n     b) 如果用户**未提供**，但相应属性中定义了 `" + SCHEMA_VALUE_DEFAULT + "`属性 → **必须使用该 " + SCHEMA_VALUE_DEFAULT + " 值**`");
-//            enhancedPrompt.append("\n     c) 如果用户未提供，且 相应属性 中**无 " + SCHEMA_VALUE_DEFAULT + "** → 填入空字符串 `\"\"`。");
-//
-//            //            enhancedPrompt.append("\n  1. `").append(KEY_primaryVal).append("`对应的属性如定义了" + "`").append
-//            //            (SCHEMA_VALUE_CONST).append("`则`").append(KEY_primaryVal).append("`对应的值**必须**取值为`").append
-//            //            (SCHEMA_VALUE_CONST).append("`对应的值");
-//            //            enhancedPrompt.append("\n  2. 不能分析得到对应'response_format'中`").append(KEY_primaryVal).append
-//            //            ("`对应的值，必须使用json"
-//            //                    + " " + "schema中相应属性：`").append(SCHEMA_VALUE_DEFAULT).append("`对应值，如该属性没有定义，则`")
-//            //                    .append(KEY_primaryVal).append("`对应的值设置为空(\"\")即可");
-//            //            enhancedPrompt.append("\n  3.`").append(KEY_primaryVal).append("`对应属性如定义了`").append
-//            //            (SCHEMA_VALUE_ENUM).append("`则对应的值**必须为**`").append(SCHEMA_VALUE_ENUM).append("`定义的值之一");
-//            //            enhancedPrompt.append("\n  4.`").append(KEY_primaryVal).append("`对应属性如定义了`").append
-//            //            (SCHEMA_VALUE_PATTERN).append("`则对应的值**必须符合**`").append(SCHEMA_VALUE_PATTERN).append
-//            //            ("`定义的模式规范");
-//        }
-//
-//        LLMResponse response = chat(context, prompt.setNewPrompt(enhancedPrompt.toString()), systemPrompt, false,
-//                jsonSchema, params);
-//
-//        try {
-//            if (response.isSuccess() && response.getContent() != null) {
-//                String content = response.getContent();
-//
-//                // 尝试提取JSON内容
-//                // 移除可能的markdown代码块标记
-//                content = content.replaceAll("```json\\s*", "").replaceAll("```\\s*$", "");
-//                content = content.trim();
-//
-//                // 找到JSON的开始和结束位置
-//                int start = content.indexOf("{");
-//                int end = content.lastIndexOf("}") + 1;
-//
-//                if (start >= 0 && end > start) {
-//                    String jsonStr = content.substring(start, end);
-//                    try {
-//                        JSONObject jsonContent = JSON.parseObject(jsonStr);
-//                        response.setJsonContent(jsonContent);
-//                        response.executeLog.setResponse(jsonContent);
-//                    } catch (Exception e) {
-//                        logger.error("Failed to parse JSON response: " + jsonStr, e);
-//                        response.setSuccess(false);
-//                    }
-//                } else {
-//                    // 如果整个内容就是JSON，尝试直接解析
-//                    try {
-//                        JSONObject jsonContent = JSON.parseObject(content);
-//                        response.setJsonContent(jsonContent);
-//                        response.executeLog.setResponse(jsonContent);
-//                    } catch (Exception e) {
-//                        logger.error("Failed to parse JSON response: " + content, e);
-//                        response.setSuccess(false);
-//                    }
-//                }
-//            }
-//        } finally {
-//            response.executeLog.summary();
-//        }
-//
-//        return response;
-//    }
+    //    @Override
+    //    public LLMResponse chatJson(IAgentContext context, UserPrompt prompt, List<String> systemPrompt,
+    //                                ITISJsonSchema jsonSchema, LLMOptionParams params) {
+    //        // 增强prompt，要求返回JSON格式
+    //        StringBuilder enhancedPrompt = new StringBuilder(prompt.getPrompt());
+    //        if (jsonSchema.isContainSchema()) {
+    //            // enhancedPrompt += "\n\n请严格按照以上JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n" + JsonUtil.toString
+    //            (jsonSchema
+    //            // .schema(), false);
+    //            enhancedPrompt.append("\n\n重要：请确保返回的是有效的JSON格式，不要包含markdown标记或其他文本。");
+    //            enhancedPrompt.append("\n请务必严格按照 'response_format' 中定义的 JSON Schema " +
+    //                    "格式输出，不要输出任何其他内容或格式。以下是对'response_format'中相关字段的说明：");
+    //
+    //            // enhancedPrompt.append("\n\n请严格按照以下JSON Schema格式返回结果，只返回JSON，不要包含其他说明文字：\n").append(jsonSchema
+    //            .root());
+    //            //            public static final String SCHEMA_VALUE_ENUM = "enum";
+    //            //            public static final String SCHEMA_VALUE_PATTERN = "pattern";
+    //
+    //            jsonSchema.appendFieldDescToPrompt(enhancedPrompt);
+    //            //  SCHEMA_VALUE_CONST
+    //            enhancedPrompt.append("\n\n**注意**：分析用户输入内容必须遵守如下纪律：");
+    //            enhancedPrompt.append("\n**默认值处理**：");
+    //            enhancedPrompt.append("\n   - 对于填充的字段内容，有以下要求：");
+    //            enhancedPrompt.append("\n     a) 如果用户提供了对应信息 → 按 schema 要求处理（如替换非法字符以符合 `" + SCHEMA_VALUE_PATTERN +
+    //            "`）；");
+    //            enhancedPrompt.append("\n     b) 如果用户**未提供**，但相应属性中定义了 `" + SCHEMA_VALUE_DEFAULT + "`属性 → **必须使用该 "
+    //            + SCHEMA_VALUE_DEFAULT + " 值**`");
+    //            enhancedPrompt.append("\n     c) 如果用户未提供，且 相应属性 中**无 " + SCHEMA_VALUE_DEFAULT + "** → 填入空字符串
+    //            `\"\"`。");
+    //
+    //            //            enhancedPrompt.append("\n  1. `").append(KEY_primaryVal).append("`对应的属性如定义了" + "`")
+    //            .append
+    //            //            (SCHEMA_VALUE_CONST).append("`则`").append(KEY_primaryVal).append("`对应的值**必须**取值为`")
+    //            .append
+    //            //            (SCHEMA_VALUE_CONST).append("`对应的值");
+    //            //            enhancedPrompt.append("\n  2. 不能分析得到对应'response_format'中`").append(KEY_primaryVal)
+    //            .append
+    //            //            ("`对应的值，必须使用json"
+    //            //                    + " " + "schema中相应属性：`").append(SCHEMA_VALUE_DEFAULT).append("`对应值，如该属性没有定义，则`")
+    //            //                    .append(KEY_primaryVal).append("`对应的值设置为空(\"\")即可");
+    //            //            enhancedPrompt.append("\n  3.`").append(KEY_primaryVal).append("`对应属性如定义了`").append
+    //            //            (SCHEMA_VALUE_ENUM).append("`则对应的值**必须为**`").append(SCHEMA_VALUE_ENUM).append
+    //            ("`定义的值之一");
+    //            //            enhancedPrompt.append("\n  4.`").append(KEY_primaryVal).append("`对应属性如定义了`").append
+    //            //            (SCHEMA_VALUE_PATTERN).append("`则对应的值**必须符合**`").append(SCHEMA_VALUE_PATTERN).append
+    //            //            ("`定义的模式规范");
+    //        }
+    //
+    //        LLMResponse response = chat(context, prompt.setNewPrompt(enhancedPrompt.toString()), systemPrompt, false,
+    //                jsonSchema, params);
+    //
+    //        try {
+    //            if (response.isSuccess() && response.getContent() != null) {
+    //                String content = response.getContent();
+    //
+    //                // 尝试提取JSON内容
+    //                // 移除可能的markdown代码块标记
+    //                content = content.replaceAll("```json\\s*", "").replaceAll("```\\s*$", "");
+    //                content = content.trim();
+    //
+    //                // 找到JSON的开始和结束位置
+    //                int start = content.indexOf("{");
+    //                int end = content.lastIndexOf("}") + 1;
+    //
+    //                if (start >= 0 && end > start) {
+    //                    String jsonStr = content.substring(start, end);
+    //                    try {
+    //                        JSONObject jsonContent = JSON.parseObject(jsonStr);
+    //                        response.setJsonContent(jsonContent);
+    //                        response.executeLog.setResponse(jsonContent);
+    //                    } catch (Exception e) {
+    //                        logger.error("Failed to parse JSON response: " + jsonStr, e);
+    //                        response.setSuccess(false);
+    //                    }
+    //                } else {
+    //                    // 如果整个内容就是JSON，尝试直接解析
+    //                    try {
+    //                        JSONObject jsonContent = JSON.parseObject(content);
+    //                        response.setJsonContent(jsonContent);
+    //                        response.executeLog.setResponse(jsonContent);
+    //                    } catch (Exception e) {
+    //                        logger.error("Failed to parse JSON response: " + content, e);
+    //                        response.setSuccess(false);
+    //                    }
+    //                }
+    //            }
+    //        } finally {
+    //            response.executeLog.summary();
+    //        }
+    //
+    //        return response;
+    //    }
 
     @Override
     protected boolean supportJsonSchemaOnParamsSetting() {

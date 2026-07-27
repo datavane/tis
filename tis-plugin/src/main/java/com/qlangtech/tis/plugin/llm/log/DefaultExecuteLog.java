@@ -41,7 +41,7 @@ public class DefaultExecuteLog extends BasicExecuteLog implements ExecuteLog {
     private JSONObject errBody;
     private final Logger logger;
 
-     DefaultExecuteLog(UserPrompt prompt, IAgentContext context, Logger logger) {
+    DefaultExecuteLog(UserPrompt prompt, IAgentContext context, Logger logger) {
         super(prompt, context);
         this.logger = Objects.requireNonNull(logger, "logger can not be null");
     }
@@ -64,23 +64,25 @@ public class DefaultExecuteLog extends BasicExecuteLog implements ExecuteLog {
     }
 
     @Override
-    public void summary() {
-        super.summary();
-        StringBuilder summary = new StringBuilder();
-        summary.append("\nparams---------------------------------------------------------------\n");
-        summary.append(JsonUtil.toString(postParams, true));
-        summary.append("\nuser prompt----------------------------------------------------------\n");
-        summary.append(prompt.getPrompt());
-        summary.append("\nresponse--------------------------------------------------------------\n");
-        if (responseJson != null) {
-            summary.append(JsonUtil.toString(responseJson, true));
-        } else {
-            summary.append("none");
+    public void summary(boolean logSummary) {
+        super.summary(logSummary);
+        if (logSummary) {
+            StringBuilder summary = new StringBuilder();
+            summary.append("\nparams---------------------------------------------------------------\n");
+            summary.append(JsonUtil.toString(postParams, true));
+            summary.append("\nuser prompt----------------------------------------------------------\n");
+            summary.append(prompt.getPrompt());
+            summary.append("\nresponse--------------------------------------------------------------\n");
+            if (responseJson != null) {
+                summary.append(JsonUtil.toString(responseJson, true));
+            } else {
+                summary.append("none");
+            }
+            if (errBody != null) {
+                summary.append("\nerror--------------------------------------------------------------\n");
+                summary.append(JsonUtil.toString(errBody, true));
+            }
+            logger.info(summary.toString());
         }
-        if (errBody != null) {
-            summary.append("\nerror--------------------------------------------------------------\n");
-            summary.append(JsonUtil.toString(errBody, true));
-        }
-        logger.info(summary.toString());
     }
 }

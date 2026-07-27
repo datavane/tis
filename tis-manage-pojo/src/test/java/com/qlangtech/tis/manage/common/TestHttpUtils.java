@@ -18,10 +18,10 @@
 
 package com.qlangtech.tis.manage.common;
 
-import com.qlangtech.tis.cloud.ITISCoordinator;
 import com.qlangtech.tis.common.utils.Assert;
 import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,14 +52,21 @@ public class TestHttpUtils extends TestCase {
         });
     }
 
-    public void testGetEmptyWithBody() throws Exception{
-     String body =    HttpUtils.get(new URL("http://192.168.28.67:8080/tjs/config/stream_script_repo.action?path=cfg_repo%2Ftis_plugin_config%2Fparams-cfg%2FelasticToken%2Fcom.qlangtech.tis.config.ParamsConfig.xml")
+    public void testGetEmptyWithBody() throws Exception {
+        String body = HttpUtils.get(new URL("http://192.168.28.67:8080/tjs/config/stream_script_repo"
+                        + ".action?path=cfg_repo%2Ftis_plugin_config%2Fparams-cfg%2FelasticToken%2Fcom.qlangtech.tis"
+                        + ".config.ParamsConfig.xml_empty")
                 , new ConfigFileContext.StreamProcess<String>() {
+
+
                     @Override
                     public String p(int status, InputStream stream, Map<String, List<String>> headerFields) throws IOException {
-                        return IOUtils.toString(stream,TisUTF8.get());
+                        Assert.assertTrue("target resource not exist",
+                                CenterResource.isTargetResourceNotExist(headerFields));
+                        return IOUtils.toString(stream, TisUTF8.get());
                     }
                 });
-        Assert.assertNotNull(body);
+        Assert.assertTrue("body must be not exist", StringUtils.isEmpty(body));
+        // Assert.assertNotNull(body);
     }
 }

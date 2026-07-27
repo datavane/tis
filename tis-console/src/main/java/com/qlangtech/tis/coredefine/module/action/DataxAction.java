@@ -27,6 +27,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.aiagent.execute.impl.PipelineBatchExecutor;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.coredefine.module.action.IncrUtils.IncrSpecResult;
 import com.qlangtech.tis.datax.DataXCfgFile;
@@ -71,7 +72,6 @@ import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Application;
 import com.qlangtech.tis.manage.biz.dal.pojo.ApplicationCriteria;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
-import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.ManageUtils;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.RunContext;
@@ -118,7 +118,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
-import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.convention.annotation.InterceptorRef;
 import org.apache.struts2.convention.annotation.InterceptorRefs;
 import org.slf4j.Logger;
@@ -126,7 +125,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -238,31 +236,7 @@ public class DataxAction extends BasicModule {
     //    params.add(new HttpUtils.PostParam(IParamContext.COMPONENT_END, FullbuildPhase.JOIN.getName()));
 
     // this.setBizResult(context, TriggerBuildResult.triggerBuild(this, context, params));
-    this.setBizResult(context, this.triggerJob(this, context, this.getCollectionName()));
-  }
-
-
-  private TriggerBuildResult triggerJob(IControlMsgHandler module, Context context, DataXName appName) {
-    if (appName == null) {
-      throw new IllegalArgumentException("param appName can not be empty");
-    }
-    //        if (powerJobWorkflowInstanceIdOpt.isPresent()) {
-    //            throw new IllegalStateException("powerJobWorkflowInstanceIdOpt contain is not support,workflowId:"
-    //                    + powerJobWorkflowInstanceIdOpt.get());
-    //        }
-    try {
-      List<HttpUtils.PostParam> params = Lists.newArrayList();
-      params.add(new HttpUtils.PostParam(TriggerBuildResult.KEY_APPNAME, appName.getPipelineName()));
-
-      Optional<JobTrigger> partialTrigger = JobTrigger.getPartialTriggerFromContext(context);
-      partialTrigger.ifPresent((partial) -> {
-        params.add(partial.getHttpPostSelectedTabsAsParam());
-      });
-      //  JobTrigger.addLatestWorkflowHistoryAsParam(params, latestWorkflowHistory);
-      return TriggerBuildResult.triggerBuild(module, context, params);
-    } catch (MalformedURLException e) {
-      throw new RuntimeException(e);
-    }
+    this.setBizResult(context, PipelineBatchExecutor.triggerJob(this, context, this.getCollectionName()));
   }
 
 

@@ -227,16 +227,14 @@ public class ConfigFileContext {
             java.net.http.HttpRequest request = requestBuilder.build();
 
             // Send request and get response
-            // Use ofByteArray to avoid RST_STREAM issues with empty response bodies
-            java.net.http.HttpResponse<byte[]> response = client.send(request,
-                    java.net.http.HttpResponse.BodyHandlers.ofByteArray());
+            java.net.http.HttpResponse<InputStream> response = client.send(request,
+                    java.net.http.HttpResponse.BodyHandlers.ofInputStream());
 
             // Check for 404 error
             if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
                 throw new IllegalStateException("ERROR_CODE=" + response.statusCode() + "  request faild, revsion " + "center apply url :" + url);
             }
 
-            // Adapt HttpResponse to HttpURLConnection for backward compatibility
             return new HttpClientResponseAdapter(response, url);
 
         } catch (java.net.URISyntaxException e) {
@@ -388,15 +386,12 @@ public class ConfigFileContext {
         }
     }
 
-    /**
-     * Adapter to convert HttpResponse to HttpURLConnection for backward compatibility
-     */
     private static class HttpClientResponseAdapter extends HttpURLConnection {
-        private final java.net.http.HttpResponse<byte[]> response;
+        private final java.net.http.HttpResponse<InputStream> response;
         private final int responseCode;
         private final Map<String, List<String>> headerFields;
 
-        public HttpClientResponseAdapter(java.net.http.HttpResponse<byte[]> response, URL url) {
+        public HttpClientResponseAdapter(java.net.http.HttpResponse<InputStream> response, URL url) {
             super(url);
             this.response = response;
             this.responseCode = response.statusCode();
@@ -405,7 +400,11 @@ public class ConfigFileContext {
 
         @Override
         public void disconnect() {
-            // No-op for byte array response
+            try {
+                response.body().close();
+            } catch (IOException e) {
+                logger.warn("Failed to close response body", e);
+            }
         }
 
         @Override
@@ -425,7 +424,7 @@ public class ConfigFileContext {
 
         @Override
         public InputStream getInputStream() throws IOException {
-            return new java.io.ByteArrayInputStream(response.body());
+            return response.body();
         }
 
         @Override

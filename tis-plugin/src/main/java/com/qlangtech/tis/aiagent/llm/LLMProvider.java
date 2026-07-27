@@ -252,7 +252,10 @@ public abstract class LLMProvider extends ParamsConfig {
             //            }
             final boolean streamOutput = isStreamOutput(params);
 
-            postParams.add(new HttpUtils.PostParam("stream", streamOutput));
+            if (streamOutput) {
+                postParams.add(new HttpUtils.PostParam("stream", streamOutput));
+            }
+
 
             executeLog.setPostParams(postParams);
 
@@ -371,9 +374,9 @@ public abstract class LLMProvider extends ParamsConfig {
             //        } catch (MalformedURLException e) {
             //            throw new RuntimeException("Invalid URL: " + getApiUrl(), e);
         } finally {
-            if (logSummary) {
-                executeLog.summary();
-            }
+            //  if (logSummary) {
+            executeLog.summary(logSummary);
+            // }
         }
     }
 

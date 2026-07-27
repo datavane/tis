@@ -265,7 +265,7 @@ public class CenterResource {
      * @param headerFields
      * @return
      */
-    private static boolean isTargetResourceNotExist(Map<String, List<String>> headerFields) {
+    public static boolean isTargetResourceNotExist(Map<String, List<String>> headerFields) {
         List<String> notExist;
         return (notExist = headerFields.get(ConfigFileContext.KEY_HEAD_FILE_NOT_EXIST)) != null
                 && notExist.contains(Boolean.TRUE.toString());
