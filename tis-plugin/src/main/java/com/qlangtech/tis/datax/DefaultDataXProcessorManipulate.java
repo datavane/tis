@@ -22,6 +22,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.IDescribableManipulate;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
@@ -255,11 +256,12 @@ public abstract class DefaultDataXProcessorManipulate
         return new ProcessorManipulateManager<>(pipelineName, clazz, store, result, storable);// Pair.of(result, store);
     }
 
-    protected static class BasicDesc extends BasicManipuldateProcessor.BasicDesc<DefaultDataXProcessorManipulate>
-            implements IEndTypeGetter {
+    protected static abstract class BasicDesc extends BasicManipuldateProcessor.BasicDesc<DefaultDataXProcessorManipulate>
+            implements IEndTypeGetter, DescriptorUseableShortComment {
         public BasicDesc() {
             super();
         }
+
     }
 
 }

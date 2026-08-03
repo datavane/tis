@@ -192,7 +192,13 @@
       "Bash(javap -verbose org/slf4j/LoggerFactory.class)",
       "Bash(javap org/slf4j/spi/SLF4JServiceProvider.class)",
       "Bash(mv /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-assemble/src/main/resources/logback-assemble.xml /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-assemble/src/main/resources/logback-assemble.xml.bak)",
-      "Bash(mv /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-console/src/main/resources/logback-console.xml /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-console/src/main/resources/logback-console.xml.bak)"
+      "Bash(mv /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-console/src/main/resources/logback-console.xml /Users/mozhenghua/j2ee_solution/project/tis-solr/tis-console/src/main/resources/logback-console.xml.bak)",
+      "Bash(export GPT_IMAGE_TOKEN=\"sk-1ckW246gytePaf4iyFimUTNv6DJxZKR5XtnzBdjhRdvBKXO8\")",
+      "Bash(qlmanage -t -s 512 -o /tmp /opt/misc/tis-docs2/docs/guide/ontology/ontology-architecture.png)",
+      "Bash(open /opt/misc/tis-docs2/docs/guide/ontology/ontology-architecture.png)",
+      "Bash(mvn install *)",
+      "Bash(INCLUDE_CURRENT_VERSION=false NODE_ENV=production npx docusaurus build)",
+      "Bash(INCLUDE_CURRENT_VERSION=true NODE_ENV=production npx docusaurus build)"
     ],
     "deny": [],
     "ask": []

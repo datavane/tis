@@ -30,6 +30,7 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.aiagent.execute.impl.PipelineBatchExecutor;
 import com.qlangtech.tis.assemble.ExecResult;
 import com.qlangtech.tis.coredefine.module.action.IncrUtils.IncrSpecResult;
+import com.qlangtech.tis.datax.ActorSystemStatus;
 import com.qlangtech.tis.datax.DataXCfgFile;
 import com.qlangtech.tis.datax.DataXJobSubmit;
 import com.qlangtech.tis.datax.DataXJobSubmit.InstanceType;
@@ -180,6 +181,27 @@ public class DataxAction extends BasicModule {
   //    pager.setTotalCount(workflows.getKey());
   //    this.setBizResult(context, new PaginationResult(pager, workflows.getRight()));
   //  }
+
+  @Func(value = PermissionConstant.DATAX_MANAGE)
+  public void doGetCompletedTasks(Context context) throws Exception {
+    // 查询最近1小时内完成的任务，最多100条
+    long oneHourMillis = 60 * 60 * 1000L;
+    java.util.List<com.qlangtech.tis.workflow.pojo.DagNodeExecution> completedExecutions =
+      this.getWorkflowDAOFacade().getDagNodeExecutionDAO().selectRecentlyCompletedTasks(100, oneHourMillis);
+
+    java.util.List<ActorSystemStatus.CompletedTask> completedTasks = new java.util.ArrayList<>();
+    for (com.qlangtech.tis.workflow.pojo.DagNodeExecution execution : completedExecutions) {
+      ActorSystemStatus.CompletedTask task = new ActorSystemStatus.CompletedTask();
+      task.setNodeId(execution.getNodeId());
+      task.setNodeName(execution.getNodeName());
+      task.setTaskId(execution.getWorkflowInstanceId());
+      task.setStartTime(execution.getStartTime().getTime());
+      task.setEndTime(execution.getFinishedTime().getTime());
+      task.setStatus(execution.getStatus());
+      completedTasks.add(task);
+    }
+    this.setBizResult(getContext(), completedTasks);
+  }
 
   /**
    * trigger_fullbuild_task

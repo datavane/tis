@@ -215,6 +215,44 @@ public interface IExecChainContext extends IJoinTaskContext, ISpecifiedLocalLogg
 
 
     /**
+     * Worker 实际开始执行节点任务时，将执行记录由 WAITING 更新为 RUNNING
+     *
+     * @param nodeExec 携带 workflowInstanceId、nodeId、status、startTime、workerAddress
+     * @return 更新的记录数
+     */
+    static Integer updateDAGNodeExecStatusOnStarted(DagNodeExecution nodeExec) {
+        HttpUtils.PostParam nodeExecParam = new HttpUtils.PostParam(KEY_NODE_EXEC, nodeExec);
+        AjaxResult<Integer> result //
+                =
+                HttpUtils.postJSON(WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[]{KEY_FULLBUILD_WORKFLOW_ACTION,
+                        "do_update_node_exec_status_on_started"}), Collections.singletonList(nodeExecParam), Integer.class, true);
+        if (!result.isSuccess()) {
+            throw new IllegalStateException("error:" + String.join(",", result.getErrormsg()));
+        }
+        return result.getBizresult();
+    }
+
+
+    /**
+     * 节点执行到达终态（SUCCEED/FAILED/STOPPED）时更新状态、执行结果与完成时间
+     *
+     * @param nodeExec 携带 workflowInstanceId、nodeId、status、result、finishedTime
+     * @return 更新的记录数
+     */
+    static Integer updateDAGNodeExecStatusOnCompleted(DagNodeExecution nodeExec) {
+        HttpUtils.PostParam nodeExecParam = new HttpUtils.PostParam(KEY_NODE_EXEC, nodeExec);
+        AjaxResult<Integer> result //
+                =
+                HttpUtils.postJSON(WORKFLOW_CONFIG_URL_POST_FORMAT.format(new Object[]{KEY_FULLBUILD_WORKFLOW_ACTION,
+                        "do_update_node_exec_status_on_completed"}), Collections.singletonList(nodeExecParam), Integer.class, true);
+        if (!result.isSuccess()) {
+            throw new IllegalStateException("error:" + String.join(",", result.getErrormsg()));
+        }
+        return result.getBizresult();
+    }
+
+
+    /**
      * 创建一个新的同步任务
      *
      * @param triggerNewTaskParam

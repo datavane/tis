@@ -258,6 +258,40 @@ public class FullbuildWorkflowAction extends BasicModule {
       , this.getWorkflowDAOFacade().getDagNodeExecutionDAO().insertSelective(nodeExec));
   }
 
+  /**
+   * Worker 实际开始执行节点任务时，将执行记录由 WAITING 更新为 RUNNING
+   *
+   * @param context
+   * @see IExecChainContext#updateDAGNodeExecStatusOnStarted(DagNodeExecution)
+   */
+  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
+  public void doUpdateNodeExecStatusOnStarted(Context context) {
+    JSONObject postBody = this.parseJsonPost();
+    DagNodeExecution nodeExec = postBody.getObject(IExecChainContext.KEY_NODE_EXEC, DagNodeExecution.class);
+    if (nodeExec == null) {
+      throw new IllegalStateException("nodeExec can not be null");
+    }
+    this.setBizResult(context //
+      , this.getWorkflowDAOFacade().getDagNodeExecutionDAO().updateStatusOnStarted(nodeExec));
+  }
+
+  /**
+   * 节点执行到达终态（SUCCEED/FAILED/STOPPED）时更新状态、执行结果与完成时间
+   *
+   * @param context
+   * @see IExecChainContext#updateDAGNodeExecStatusOnCompleted(DagNodeExecution)
+   */
+  @Func(value = PermissionConstant.DATAFLOW_MANAGE, sideEffect = false)
+  public void doUpdateNodeExecStatusOnCompleted(Context context) {
+    JSONObject postBody = this.parseJsonPost();
+    DagNodeExecution nodeExec = postBody.getObject(IExecChainContext.KEY_NODE_EXEC, DagNodeExecution.class);
+    if (nodeExec == null) {
+      throw new IllegalStateException("nodeExec can not be null");
+    }
+    this.setBizResult(context //
+      , this.getWorkflowDAOFacade().getDagNodeExecutionDAO().updateStatusOnCompleted(nodeExec));
+  }
+
 
   //  /**
   //   * 取得最近一次成功执行的workflowhistory

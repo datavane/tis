@@ -122,7 +122,7 @@ image_data_uri="data:image/${mime_type};base64,${image_base64}"
 使用 Bash 工具执行 curl 命令调用 API：
 
 ```bash
-curl -s -X POST "https://api.vectorengine.ai/v1/images/generations" \
+curl -s -X POST "https://api.vectorengine.cn/v1/images/generations" \
   -H "Authorization: Bearer $GPT_IMAGE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -139,7 +139,7 @@ curl -s -X POST "https://api.vectorengine.ai/v1/images/generations" \
 当提供参考图片时，使用 edits endpoint：
 
 ```bash
-curl -s -X POST "https://api.vectorengine.ai/v1/images/edits" \
+curl -s -X POST "https://api.vectorengine.cn/v1/images/edits" \
   -H "Authorization: Bearer $GPT_IMAGE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -166,7 +166,7 @@ curl -s -X POST "https://api.vectorengine.ai/v1/images/edits" \
 
 ```bash
 # 纯文本生成（使用 jq）
-curl --max-time 600 -s -X POST "https://api.vectorengine.ai/v1/images/generations" \
+curl --max-time 600 -s -X POST "https://api.vectorengine.cn/v1/images/generations" \
   -H "Authorization: Bearer $GPT_IMAGE_TOKEN" \
   -H "Content-Type: application/json" \
   -d "$(jq -n \
@@ -177,7 +177,7 @@ curl --max-time 600 -s -X POST "https://api.vectorengine.ai/v1/images/generation
     '{model: $model, prompt: $prompt, size: $size, n: $n, format: "png"}')"
 
 # 图生图（使用 jq）
-curl --max-time 600 -s -X POST "https://api.vectorengine.ai/v1/images/edits" \
+curl --max-time 600 -s -X POST "https://api.vectorengine.cn/v1/images/edits" \
   -H "Authorization: Bearer $GPT_IMAGE_TOKEN" \
   -H "Content-Type: application/json" \
   -d "$(jq -n \
@@ -435,7 +435,7 @@ source ~/.bashrc
 
 ## API 参考
 
-- API Base URL: `https://api.vectorengine.ai`
+- API Base URL: `https://api.vectorengine.cn`
 - 纯文本生成 Endpoint: `/v1/images/generations`
 - 图生图 Endpoint: `/v1/images/edits`
 - 认证方式: Bearer Token

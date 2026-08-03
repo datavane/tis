@@ -195,4 +195,24 @@
         WHERE id = #{id}
     </update>
 
+    <!-- 查询最近完成的任务 -->
+    <select id="selectRecentlyCompletedTasks" resultType="com.qlangtech.tis.workflow.pojo.DagNodeExecution">
+        SELECT
+            id,
+            workflow_instance_id AS workflowInstanceId,
+            node_id AS nodeId,
+            node_name AS nodeName,
+            node_type AS nodeType,
+            task_name AS taskName,
+            status,
+            start_time AS startTime,
+            finished_time AS finishedTime,
+            worker_address AS workerAddress
+        FROM dag_node_execution
+        WHERE status IN ('SUCCEED', 'FAILED')
+          AND finished_time > (UNIX_TIMESTAMP() * 1000 - #{timeWindowMillis})
+        ORDER BY finished_time DESC
+        LIMIT #{limit}
+    </select>
+
 </mapper>

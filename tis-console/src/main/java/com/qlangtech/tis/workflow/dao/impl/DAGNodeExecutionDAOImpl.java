@@ -1,19 +1,19 @@
 /**
- *   Licensed to the Apache Software Foundation (ASF) under one
- *   or more contributor license agreements.  See the NOTICE file
- *   distributed with this work for additional information
- *   regarding copyright ownership.  The ASF licenses this file
- *   to you under the Apache License, Version 2.0 (the
- *   "License"); you may not use this file except in compliance
- *   with the License.  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.qlangtech.tis.workflow.dao.impl;
 
@@ -24,6 +24,7 @@ import com.qlangtech.tis.workflow.pojo.DagNodeExecution;
 import com.qlangtech.tis.workflow.pojo.DagNodeExecutionCriteria;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * DAG 节点执行记录 DAO 实现类
@@ -39,24 +40,24 @@ public class DAGNodeExecutionDAOImpl extends BasicDAO<DagNodeExecution, Object> 
   }
 
   public int countByExample(DagNodeExecutionCriteria example) {
-    Integer count = (Integer)  this.count("dag_node_execution.ibatorgenerated_countByExample",example);
+    Integer count = (Integer) this.count("dag_node_execution.ibatorgenerated_countByExample", example);
     return count;
   }
 
   public int countFromWriteDB(DagNodeExecutionCriteria example) {
-    Integer count = (Integer)  this.countFromWriterDB("dag_node_execution.ibatorgenerated_countByExample",example);
+    Integer count = (Integer) this.countFromWriterDB("dag_node_execution.ibatorgenerated_countByExample", example);
     return count;
   }
 
   public int deleteByExample(DagNodeExecutionCriteria criteria) {
-    return  this.deleteRecords("dag_node_execution.ibatorgenerated_deleteByExample", criteria);
+    return this.deleteRecords("dag_node_execution.ibatorgenerated_deleteByExample", criteria);
 
   }
 
   public int deleteByPrimaryKey(Long id) {
     DagNodeExecution key = new DagNodeExecution();
     key.setId(id);
-    return  this.deleteRecords("dag_node_execution.ibatorgenerated_deleteByPrimaryKey", key);
+    return this.deleteRecords("dag_node_execution.ibatorgenerated_deleteByPrimaryKey", key);
 
   }
 
@@ -79,18 +80,31 @@ public class DAGNodeExecutionDAOImpl extends BasicDAO<DagNodeExecution, Object> 
   }
 
   public List<DagNodeExecution> selectByExampleWithoutBLOBs(DagNodeExecutionCriteria criteria) {
-    return this.selectByExampleWithoutBLOBs(criteria,1,100);
+    return this.selectByExampleWithoutBLOBs(criteria, 1, 100);
+  }
+
+  @Override
+  public List<DagNodeExecution> selectRecentlyCompletedTasks(int limit, long timeWindowMillis) {
+    //selectRecentlyCompletedTasks
+    if (limit < 1 || timeWindowMillis < 1) {
+      throw new IllegalArgumentException("illega params limit:" + limit + ",timeWindowMillis:" + timeWindowMillis);
+    }
+    return this.listAnonymity("dag_node_execution.selectRecentlyCompletedTasks"
+      , Map.of("limit", limit, "timeWindowMillis", timeWindowMillis));
   }
 
   @SuppressWarnings("all")
   public final List<RowMap> selectColsByExample(DagNodeExecutionCriteria example, int page, int pageSize) {
     example.setPage(page);
     example.setPageSize(pageSize);
-    if(example.isTargetColsEmpty()){
-      throw new IllegalStateException("criteria com.qlangtech.tis.workflow.pojo.DagNodeExecutionCriteria target Cols can not be empty ");
+    if (example.isTargetColsEmpty()) {
+      throw new IllegalStateException("criteria com.qlangtech.tis.workflow.pojo.DagNodeExecutionCriteria target Cols "
+        + "can not be empty ");
     }
-    return (List<RowMap>) this.getSqlMapClientTemplate().queryForList("dag_node_execution.ibatorgenerated_selectTargetColsByExample", example);
+    return (List<RowMap>) this.getSqlMapClientTemplate().queryForList("dag_node_execution"
+      + ".ibatorgenerated_selectTargetColsByExample", example);
   }
+
 
   @SuppressWarnings("unchecked")
   public List<DagNodeExecution> selectByExampleWithoutBLOBs(DagNodeExecutionCriteria example, int page, int pageSize) {
@@ -103,7 +117,8 @@ public class DAGNodeExecutionDAOImpl extends BasicDAO<DagNodeExecution, Object> 
   public DagNodeExecution selectByPrimaryKey(Long id) {
     DagNodeExecution key = new DagNodeExecution();
     key.setId(id);
-    DagNodeExecution record = (DagNodeExecution) this.load("dag_node_execution.ibatorgenerated_selectByPrimaryKey", key);
+    DagNodeExecution record = (DagNodeExecution) this.load("dag_node_execution.ibatorgenerated_selectByPrimaryKey",
+      key);
     return record;
   }
 
@@ -118,15 +133,33 @@ public class DAGNodeExecutionDAOImpl extends BasicDAO<DagNodeExecution, Object> 
     return rows;
   }
 
+
   public int updateByExampleWithoutBLOBs(DagNodeExecution record, DagNodeExecutionCriteria example) {
     UpdateByExampleParms parms = new UpdateByExampleParms(record, example);
     return this.updateRecords("dag_node_execution.ibatorgenerated_updateByExample", parms);
   }
 
+  @Override
+  public int updateStatusOnStarted(DagNodeExecution record) {
+    if (record.getWorkflowInstanceId() == null || record.getNodeId() == null) {
+      throw new IllegalArgumentException("workflowInstanceId and nodeId can not be null");
+    }
+    return this.updateRecords("dag_node_execution.updateStatusOnStarted", record);
+  }
+
+  @Override
+  public int updateStatusOnCompleted(DagNodeExecution record) {
+    if (record.getWorkflowInstanceId() == null || record.getNodeId() == null) {
+      throw new IllegalArgumentException("workflowInstanceId and nodeId can not be null");
+    }
+    return this.updateRecords("dag_node_execution.updateStatusOnCompleted", record);
+  }
+
   public DagNodeExecution loadFromWriteDB(Long id) {
     DagNodeExecution key = new DagNodeExecution();
     key.setId(id);
-    DagNodeExecution record = (DagNodeExecution) this.loadFromWriterDB("dag_node_execution.ibatorgenerated_selectByPrimaryKey",key);
+    DagNodeExecution record = (DagNodeExecution) this.loadFromWriterDB("dag_node_execution"
+      + ".ibatorgenerated_selectByPrimaryKey", key);
     return record;
   }
 

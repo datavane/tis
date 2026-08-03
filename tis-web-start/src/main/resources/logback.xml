@@ -221,22 +221,22 @@
         <appender-ref ref="dump-bind-taskid"/>
     </logger>
 
-    <logger name="receive">
+    <logger name="receive" additivity="false">
         <level value="DEBUG"/>
         <appender-ref ref="receive-appender"/>
     </logger>
 
-    <logger name="rmcount">
+    <logger name="rmcount" additivity="false">
         <level value="INFO"/>
         <appender-ref ref="rmcount-appender"/>
     </logger>
 
-    <logger name="statis">
+    <logger name="statis" additivity="false">
         <level value="INFO"/>
         <appender-ref ref="statis-appender"/>
     </logger>
 
-    <logger name="sendinfo">
+    <logger name="sendinfo" additivity="false">
         <level value="DEBUG"/>
         <appender-ref ref="sendinfo-appender"/>
     </logger>

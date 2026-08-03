@@ -39,6 +39,8 @@ import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static com.qlangtech.tis.datax.DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-04-27 17:03
@@ -47,7 +49,8 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
     private static final String LOCAL_DATAX_SUBMIT_PARAMS = "DataXSubmitParams";
     private static final String FIELD_NAME = "name";
 
-    public static final int DEFAULT_MAX_INSTANCES_PER_NODE = 5;
+    public static final int DEFAULT_MAX_INSTANCES_PER_NODE = 2;
+    public static final int MAX_INSTANCES_PER_NODE = 10;
     public static final int DEFAULT_MAX_TOTAL_INSTANCES = 100;
 
     @FormField(ordinal = 0, identity = true, type = FormFieldType.INPUTTEXT, validate = {Validator.require,
@@ -191,7 +194,7 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
             dft.name = "default";
             // dft.maxJobs = DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB;
           //  dft.vmParallelism = DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
-            dft.pipelineParallelism = DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
+            dft.pipelineParallelism = DEFAULT_PARALLELISM_IN_VM;
             dft.memorySpec = new DefaultMemorySpecification();
             dft.taskExpireHours = Duration.ofHours(10);
             dft.forkJvm = true;
@@ -204,7 +207,7 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
     }
 
     public static Integer dftParallelism() {
-        return DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
+        return DEFAULT_PARALLELISM_IN_VM;
     }
 
 
@@ -300,15 +303,21 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
             //                validateFaild = true;
             //            }
             //parallelism====================================
-            if (submitParams.pipelineParallelism < DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM) {
+            if (submitParams.pipelineParallelism < DEFAULT_PARALLELISM_IN_VM) {
                 msgHandler.addFieldError(context, FIELD_PIPELINE_PARALLELISM,
-                        "不能小于" + DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM);
+                        "不能小于" + DEFAULT_PARALLELISM_IN_VM);
                 validateFaild = true;
             }
 
-            if (submitParams.maxInstancesPerNode < DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM) {
+            if (submitParams.maxInstancesPerNode < DEFAULT_MAX_INSTANCES_PER_NODE) {
                 msgHandler.addFieldError(context, FIELD_MAX_INSTANCES_PER_NODE,
-                        "不能小于" + DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM);
+                        "不能小于" + DEFAULT_MAX_INSTANCES_PER_NODE);
+                validateFaild = true;
+            }
+
+            if (submitParams.maxInstancesPerNode > MAX_INSTANCES_PER_NODE) {
+                msgHandler.addFieldError(context, FIELD_MAX_INSTANCES_PER_NODE,
+                        "不能大于" + MAX_INSTANCES_PER_NODE);
                 validateFaild = true;
             }
 

@@ -91,6 +91,10 @@ public class AttrVals implements AttrValMap.IAttrVals {
         return result;
     }
 
+    public <T extends JSON> T getAttr(String prop, Class<T> clazz) {
+        return clazz.cast(attrValMap.get(prop));
+    }
+
     //    public AttrVals createNew(BiFunction<String, JSON, JSON> mapper) {
     //        Map<String, JSON> vals = new HashMap<>();
     //        this.vistAttrValMap((key, val) -> {

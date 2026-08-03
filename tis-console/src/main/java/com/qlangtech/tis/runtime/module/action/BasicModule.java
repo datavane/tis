@@ -226,6 +226,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
       logger.info(this.getClass().getName() + ":" + executeMethod.getName() + ((consume > 200) ?
         ",cost:" + consume + " ms" : StringUtils.EMPTY));
     }
+
   }
 
   /**

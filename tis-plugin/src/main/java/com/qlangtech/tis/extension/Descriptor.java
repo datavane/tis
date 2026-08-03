@@ -1354,7 +1354,24 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             public ParseDescribable<Describable> visitMultiStepsHost(MultiStepsHostPluginFormProperties props) {
                 try {
                     ParseDescribable<Describable> result = new ParseDescribable<>(clazz.newInstance());
-                    Map<String, JSONObject> stepsForm = keyValMap.asRootFormVals();
+                    Map<String, JSONObject> stepsForm = null;
+                    if (keyValMap instanceof AttrVals vals) {
+                        JSONArray steps = vals.getAttr(MultiStepsSupportHost.KEY_MULTI_STEPS_SAVED_ITEMS,
+                                JSONArray.class);
+                        if (steps != null) {
+                            // 前端TableTransformerComponent组件中有使用到 JoinerSetMatchConditionAndCols 多步骤保存组件，提交到服务端会使用这种方式保存
+                            stepsForm = Maps.newHashMap();
+                            for (int i = 0; i < steps.size(); i++) {
+                                stepsForm.put(OneStepOfMultiSteps.stepsArray[i].name(), steps.getJSONObject(i));
+                            }
+                        } else {
+                            stepsForm = keyValMap.asRootFormVals();
+                        }
+                    } else {
+                        throw new IllegalStateException("keyValMap must be type of " + AttrVals.class.getSimpleName() //
+                                + " but now is " + keyValMap.getClass().getSimpleName());
+                    }
+
                     JSONArray multiStepsSavedItems = new JSONArray();
                     for (int i = 0; i < OneStepOfMultiSteps.stepsArray.length; i++) {
                         OneStepOfMultiSteps.Step step = OneStepOfMultiSteps.stepsArray[i];

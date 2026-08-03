@@ -58,7 +58,7 @@
 
 * :brain: AI驱动的智能运维
 
-  v5.0.0 引入 Ontology 知识图谱 + GraphRAG 检索增强生成架构，构建以下核心能力：
+  v5.1.0 引入 Ontology 知识图谱 + GraphRAG 检索增强生成架构，构建以下核心能力：
     - **本体建模**：精确定义 Glossary 词典、聚合函数（SUM/AVG/COUNT等10+种）、5种语义角色
     - **图谱存储**：基于 Neo4j 的知识图谱持久化，实体关系清晰可查
     - **智能问答**：ChatBI 模块让业务用户用自然语言驱动数据查询与分析
@@ -67,10 +67,6 @@
 * :repeat:支持各种Transformer算子
 
   通过在TIS流程中设置Transformer功能逻辑，可实现在ETL数仓功能中，在E（数据抽取）阶段即可高效实现各种字段值转换功能，如：字段脱敏，字段拼接，取子字符串等功能。
-
-* :smile:易与大数据生态整合
-
-  支持与DolphinScheduler整合，用户只需在TIS中配置数据管道，验证无误后，一键推送同步表任务到DolphinScheduler平台，即可在其上完成数据同步任务调度。为以DolphinScheduler构建ETL数仓方案如虎添翼。
 
 * :ok_hand: 基于 DataOps 理念
 

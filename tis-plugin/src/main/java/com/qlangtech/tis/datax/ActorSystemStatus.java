@@ -43,10 +43,16 @@ public class ActorSystemStatus implements Serializable {
     private boolean running;
     private List<ClusterMemberInfo> clusterMembers = new ArrayList<>();
     private Map<String, Integer> actorCounts = new HashMap<>();
-    private List<ActiveWorkflowInfo> activeWorkflows = new ArrayList<>();
+  //  private List<ActiveWorkflowInfo> activeWorkflows = new ArrayList<>();
     private List<ActiveWorkerInfo> activeWorkers = new ArrayList<>();
     private ActorTopology actorTopology = new ActorTopology();
     // private int maxInstancesPerNode = DataXJobSubmitParams.DEFAULT_MAX_INSTANCES_PER_NODE;
+
+    // New fields for task queue visualization
+    private List<QueuedTask> waitingQueue = new ArrayList<>();
+    private List<RunningTask> runningQueue = new ArrayList<>();
+   // private List<CompletedTask> completedTasks = new ArrayList<>();
+    private Integer maxConcurrentTasks;
 
     // Getters and Setters
 
@@ -130,13 +136,13 @@ public class ActorSystemStatus implements Serializable {
         this.actorCounts = actorCounts;
     }
 
-    public List<ActiveWorkflowInfo> getActiveWorkflows() {
-        return activeWorkflows;
-    }
-
-    public void setActiveWorkflows(List<ActiveWorkflowInfo> activeWorkflows) {
-        this.activeWorkflows = activeWorkflows;
-    }
+//    public List<ActiveWorkflowInfo> getActiveWorkflows() {
+//        return activeWorkflows;
+//    }
+//
+//    public void setActiveWorkflows(List<ActiveWorkflowInfo> activeWorkflows) {
+//        this.activeWorkflows = activeWorkflows;
+//    }
 
     public List<ActiveWorkerInfo> getActiveWorkers() {
         return activeWorkers;
@@ -160,6 +166,38 @@ public class ActorSystemStatus implements Serializable {
 
     public void setActorTopology(ActorTopology actorTopology) {
         this.actorTopology = actorTopology;
+    }
+
+    public List<QueuedTask> getWaitingQueue() {
+        return waitingQueue;
+    }
+
+    public void setWaitingQueue(List<QueuedTask> waitingQueue) {
+        this.waitingQueue = waitingQueue;
+    }
+
+    public List<RunningTask> getRunningQueue() {
+        return runningQueue;
+    }
+
+    public void setRunningQueue(List<RunningTask> runningQueue) {
+        this.runningQueue = runningQueue;
+    }
+
+//    public List<CompletedTask> getCompletedTasks() {
+//        return completedTasks;
+//    }
+//
+//    public void setCompletedTasks(List<CompletedTask> completedTasks) {
+//        this.completedTasks = completedTasks;
+//    }
+
+    public Integer getMaxConcurrentTasks() {
+        return maxConcurrentTasks;
+    }
+
+    public void setMaxConcurrentTasks(Integer maxConcurrentTasks) {
+        this.maxConcurrentTasks = maxConcurrentTasks;
     }
 
     /**
@@ -454,6 +492,165 @@ public class ActorSystemStatus implements Serializable {
 
         public void setDescription(String description) {
             this.description = description;
+        }
+    }
+
+    /**
+     * Queued task info - represents a task waiting to be executed
+     */
+    public static class QueuedTask implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private Long nodeId;
+        private String nodeName;
+        private Integer taskId;
+        private long queuedTime;
+
+        public Long getNodeId() {
+            return nodeId;
+        }
+
+        public void setNodeId(Long nodeId) {
+            this.nodeId = nodeId;
+        }
+
+        public String getNodeName() {
+            return nodeName;
+        }
+
+        public void setNodeName(String nodeName) {
+            this.nodeName = nodeName;
+        }
+
+        public Integer getTaskId() {
+            return taskId;
+        }
+
+        public void setTaskId(Integer taskId) {
+            this.taskId = taskId;
+        }
+
+        public long getQueuedTime() {
+            return queuedTime;
+        }
+
+        public void setQueuedTime(long queuedTime) {
+            this.queuedTime = queuedTime;
+        }
+    }
+
+    /**
+     * Running task info - represents a task currently being executed
+     */
+    public static class RunningTask implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private Long nodeId;
+        private String nodeName;
+        private Integer taskId;
+        private long startTime;
+        private String workerAddress;
+
+        public Long getNodeId() {
+            return nodeId;
+        }
+
+        public void setNodeId(Long nodeId) {
+            this.nodeId = nodeId;
+        }
+
+        public String getNodeName() {
+            return nodeName;
+        }
+
+        public void setNodeName(String nodeName) {
+            this.nodeName = nodeName;
+        }
+
+        public Integer getTaskId() {
+            return taskId;
+        }
+
+        public void setTaskId(Integer taskId) {
+            this.taskId = taskId;
+        }
+
+        public long getStartTime() {
+            return startTime;
+        }
+
+        public void setStartTime(long startTime) {
+            this.startTime = startTime;
+        }
+
+        public String getWorkerAddress() {
+            return workerAddress;
+        }
+
+        public void setWorkerAddress(String workerAddress) {
+            this.workerAddress = workerAddress;
+        }
+    }
+
+    /**
+     * Completed task info - represents a recently completed task
+     */
+    public static class CompletedTask implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private Long nodeId;
+        private String nodeName;
+        private Integer taskId;
+        private long startTime;
+        private long endTime;
+        private String status;
+
+        public Long getNodeId() {
+            return nodeId;
+        }
+
+        public void setNodeId(Long nodeId) {
+            this.nodeId = nodeId;
+        }
+
+        public String getNodeName() {
+            return nodeName;
+        }
+
+        public void setNodeName(String nodeName) {
+            this.nodeName = nodeName;
+        }
+
+        public Integer getTaskId() {
+            return taskId;
+        }
+
+        public void setTaskId(Integer taskId) {
+            this.taskId = taskId;
+        }
+
+        public long getStartTime() {
+            return startTime;
+        }
+
+        public void setStartTime(long startTime) {
+            this.startTime = startTime;
+        }
+
+        public long getEndTime() {
+            return endTime;
+        }
+
+        public void setEndTime(long endTime) {
+            this.endTime = endTime;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
         }
     }
 }
