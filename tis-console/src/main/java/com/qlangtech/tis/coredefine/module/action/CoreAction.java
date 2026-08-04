@@ -19,6 +19,8 @@ package com.qlangtech.tis.coredefine.module.action;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.parser.Feature;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -70,10 +72,12 @@ import com.qlangtech.tis.manage.biz.dal.pojo.ServerGroupCriteria;
 import com.qlangtech.tis.manage.biz.dal.pojo.SnapshotCriteria;
 import com.qlangtech.tis.manage.common.AppDomainInfo;
 import com.qlangtech.tis.manage.common.Config;
+import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.HttpUtils.PostParam;
 import com.qlangtech.tis.manage.common.ManageUtils;
 import com.qlangtech.tis.manage.common.RunContext;
+import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.servlet.DownloadResource;
 import com.qlangtech.tis.manage.servlet.DownloadServlet;
 import com.qlangtech.tis.manage.spring.aop.Func;
@@ -103,13 +107,17 @@ import com.qlangtech.tis.workflow.pojo.WorkFlow;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistory;
 import com.qlangtech.tis.workflow.pojo.WorkFlowBuildHistoryCriteria;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -386,6 +394,75 @@ public class CoreAction extends BasicModule {
     IndexIncrStatus incrStatus = getIndexIncrStatus(this.getCollectionName(), cache);
     setIncrScriptCreated(this, incrStatus);
     this.setBizResult(context, incrStatus);
+  }
+
+  /**
+   * 获取 Flink Job 的 Checkpoint 信息（代理到 JobManager REST）
+   *
+   * @param context
+   */
+  @Func(value = PermissionConstant.PERMISSION_INCR_PROCESS_MANAGE)
+  public void doGetJobCheckpoints(Context context) throws Exception {
+    DataXName pipeline = this.getCollectionName();
+    IndexIncrStatus incrStatus = getIndexIncrStatus(pipeline, false);
+    FlinkJobDeploymentDetails flinkDetail = incrStatus.getFlinkJobDetail();
+    if (flinkDetail == null || StringUtils.isEmpty(flinkDetail.getJobId())) {
+      JobCheckpointInfo empty = new JobCheckpointInfo();
+      empty.setErrMsg("Flink job not found or not running");
+      this.setBizResult(context, empty);
+      return;
+    }
+
+    String jobId = flinkDetail.getJobId();
+    String jmUrl = flinkDetail.getClusterCfg().getJobManagerAddress().getUrl();
+    String checkpointsUrl = jmUrl + "/jobs/" + jobId + "/checkpoints";
+
+    try {
+      JobCheckpointInfo info = HttpUtils.processContent(checkpointsUrl, new ConfigFileContext.StreamProcess<JobCheckpointInfo>() {
+        @Override
+        public JobCheckpointInfo p(int status, InputStream stream, Map<String, List<String>> headerFields) throws IOException {
+          JSONObject resp = JSON.parseObject(IOUtils.toString(stream, TisUTF8.get()));
+          JobCheckpointInfo result = new JobCheckpointInfo();
+          result.setAvailable(true);
+
+          JSONObject counts = resp.getJSONObject("counts");
+          if (counts != null) {
+            result.setTotalCount(counts.getIntValue("total"));
+            result.setCompletedCount(counts.getIntValue("completed"));
+            result.setFailedCount(counts.getIntValue("failed"));
+          }
+
+          JSONArray history = resp.getJSONArray("history");
+          if (history != null && !history.isEmpty()) {
+            List<JobCheckpointInfo.CheckpointHistoryItem> items = new ArrayList<>();
+            for (int i = 0; i < history.size(); i++) {
+              JSONObject item = history.getJSONObject(i);
+              JobCheckpointInfo.CheckpointHistoryItem h = new JobCheckpointInfo.CheckpointHistoryItem();
+              h.setId(item.getLongValue("id"));
+              h.setStatus(item.getString("status"));
+              h.setTriggerTime(item.getLongValue("trigger_timestamp"));
+              h.setDuration(item.getLongValue("duration"));
+              h.setSize(item.getLongValue("state_size"));
+              items.add(h);
+            }
+            result.setHistory(items);
+
+            JSONObject latest = history.getJSONObject(0);
+            result.setLatestStatus(latest.getString("status"));
+            result.setLatestTriggerTime(latest.getLongValue("trigger_timestamp"));
+            result.setLatestDuration(latest.getLongValue("duration"));
+            result.setLatestSize(latest.getLongValue("state_size"));
+          }
+          return result;
+        }
+      });
+      this.setBizResult(context, info);
+    } catch (Exception e) {
+      logger.warn("Failed to fetch checkpoints from " + checkpointsUrl, e);
+      JobCheckpointInfo err = new JobCheckpointInfo();
+      err.setErrMsg(e.getMessage());
+      this.setBizResult(context, err);
+    }
   }
 
 

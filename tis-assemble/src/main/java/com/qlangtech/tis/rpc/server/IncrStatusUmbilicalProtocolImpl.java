@@ -675,8 +675,14 @@ public class IncrStatusUmbilicalProtocolImpl extends IncrStatusGrpc.IncrStatusIm
                     continue;
                 }
                 long accumulation = consumeDataKeepers.getLast().getAccumulation();
+                boolean useMaxAggregate = IIncreaseCounter.COLLECTABLE_MAX_AGGREGATE_METRICS.contains(tableName);
                 if (updateCountMap.containsKey(tableName)) {
-                    updateCountMap.put(tableName, updateCountMap.get(tableName) + accumulation);
+                    long existing = updateCountMap.get(tableName);
+                    if (useMaxAggregate) {
+                        updateCountMap.put(tableName, Math.max(existing, accumulation));
+                    } else {
+                        updateCountMap.put(tableName, existing + accumulation);
+                    }
                 } else {
                     updateCountMap.put(tableName, accumulation);
                 }

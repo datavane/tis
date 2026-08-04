@@ -69,12 +69,12 @@ public class IncrTagHeatBeatMonitor {
     public void build() {
         TopicTagStatus tagStat = null;
         TopicTagIncrStatus.TisIncrStatus averageTopicTagIncr;
-        LimitRateTypeAndRatePerSecNums rateLimitState = null;
+        Pair<Map<String, Long>, LimitRateTypeAndRatePerSecNums> tagCountMapWithLimitRate = null;
         try {
             while (!messagePush.isClosed()) {
                 // long start = System.currentTimeMillis();
                 long currSec = (System.currentTimeMillis() / 1000);
-                rateLimitState = getIncrTransferTagUpdateMap(transferTagStatus, collectionName);
+                tagCountMapWithLimitRate = getIncrTransferTagUpdateMap(transferTagStatus, collectionName);
 //        for (String tabTag : topicTagIncrStatus.getFocusTags()) {
 //          topicTagIncrStatus.add(currSec, TopicTagIncrStatus.TopicTagIncr.create(tabTag, Collections.emptyMap(), transferTagStatus));
 //        }
@@ -85,7 +85,22 @@ public class IncrTagHeatBeatMonitor {
                 // start = System.currentTimeMillis();
                 averageTopicTagIncr = topicTagIncrStatus.getAverageTopicTagIncr(false, /** average */false);
 
-                averageTopicTagIncr.setRateLimitConfig(rateLimitState);
+                averageTopicTagIncr.setRateLimitConfig(tagCountMapWithLimitRate.getValue());
+
+                // P0-P1: 组装 extraMetrics（延迟/反压/TPS 瞬时值，不走窗口增量）
+                Map<String, Long> extraMetrics = new java.util.HashMap<>();
+                Map<String, Long> absoluteCountMap = tagCountMapWithLimitRate.getKey();
+                if (absoluteCountMap != null) {
+                    for (Map.Entry<String, Long> entry : absoluteCountMap.entrySet()) {
+                        if (com.qlangtech.tis.realtime.transfer.IIncreaseCounter.COLLECTABLE_LAG_GAUGE.contains(entry.getKey())
+                                || com.qlangtech.tis.realtime.transfer.IIncreaseCounter.COLLECTABLE_BACKPRESSURE_GAUGE.contains(entry.getKey())
+                                || com.qlangtech.tis.realtime.transfer.IIncreaseCounter.COLLECTABLE_THROUGHPUT_METER.contains(entry.getKey())) {
+                            extraMetrics.put(entry.getKey(), entry.getValue());
+                        }
+                    }
+                }
+                averageTopicTagIncr.setExtraMetrics(extraMetrics);
+
                 // logger.info("p5{}", System.currentTimeMillis() - start);
                 // start = System.currentTimeMillis();
                 ExecuteState<TopicTagIncrStatus.TisIncrStatus> event = ExecuteState.create(LogType.MQ_TAGS_STATUS, averageTopicTagIncr);
@@ -108,7 +123,7 @@ public class IncrTagHeatBeatMonitor {
      * @param collection
      * @throws Exception
      */
-    private LimitRateTypeAndRatePerSecNums getIncrTransferTagUpdateMap(
+    private Pair<Map<String, Long>, LimitRateTypeAndRatePerSecNums> getIncrTransferTagUpdateMap(
             final Map<String, /* this.tag */    TopicTagStatus> transferTagStatus, String collection) throws Exception {
 
         final Pair<Map<String, /* tag */ Long>, LimitRateTypeAndRatePerSecNums> /* absolute count */
@@ -119,7 +134,7 @@ public class IncrTagHeatBeatMonitor {
         }
 
         LimitRateTypeAndRatePerSecNums limitRateConfig = tagCountMap.getValue();
-        return limitRateConfig;
+        return Pair.of(tagCountMap.getKey(), limitRateConfig);
         // curl -d"collection=search4totalpay&action=collection_topic_tags_status" http://localhost:8080/incr-control?collection=search4totalpay
         // http://localhost:8083/tis-assemble/incr-control?collection=mysql_mysql&action=collection_topic_tags_status
 //        JobType.RemoteCallResult<Void> tagCountMap

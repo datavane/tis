@@ -44,17 +44,31 @@ public interface IIncreaseCounter {
     String METRIC_LIMIT_RATE_CONTROLLER_TYPE = "limitRateControllerType";
     String METRIC_LIMIT_RATE_PER_SECOND_NUMS = "limitRatePerSecondNums";
 
-//    enum LimitRateControllerType {
-//        Paused((short)1),Paused((short)1)
-//        private final short state;
-//        private LimitRateControllerType(short state){
-// this.state = state;
-//        }
-//    }
+    // === P0-P1 新增 Flink 指标名 ===
+    String METRIC_CDC_FETCH_LAG_MS = "currentFetchEventTimeLag";
+    String METRIC_CDC_EMIT_LAG_MS = "currentEmitEventTimeLag";
+    String METRIC_BUSY_MS_PER_SEC = "busyTimeMsPerSecond";
+    String METRIC_IDLE_MS_PER_SEC = "idleTimeMsPerSecond";
+    String METRIC_BACKPRESSURED_MS_PER_SEC = "backPressuredTimeMsPerSecond";
+    String METRIC_RECORDS_IN_PER_SEC = "numRecordsInPerSecond";
+    String METRIC_RECORDS_OUT_PER_SEC = "numRecordsOutPerSecond";
 
     Set<String> COLLECTABLE_TABLE_COUNT_METRIC = Sets.newHashSet(TABLE_CONSUME_COUNT, TABLE_INSERT_COUNT, TABLE_UPDATE_COUNT, TABLE_DELETE_COUNT);
 
     Set<String> COLLECTABLE_METRIC_LIMIT_GAUGE = Sets.newHashSet(METRIC_LIMIT_RATE_CONTROLLER_TYPE, METRIC_LIMIT_RATE_PER_SECOND_NUMS);
+
+    // P0: CDC 延迟 Gauge（跨 subtask 取 max）
+    Set<String> COLLECTABLE_LAG_GAUGE = Sets.newHashSet(METRIC_CDC_FETCH_LAG_MS, METRIC_CDC_EMIT_LAG_MS);
+
+    // P1: 反压 Gauge（跨 subtask 取 max）
+    Set<String> COLLECTABLE_BACKPRESSURE_GAUGE = Sets.newHashSet(METRIC_BUSY_MS_PER_SEC, METRIC_IDLE_MS_PER_SEC, METRIC_BACKPRESSURED_MS_PER_SEC);
+
+    // P0: 吞吐 Meter（跨 subtask 取 sum）
+    Set<String> COLLECTABLE_THROUGHPUT_METER = Sets.newHashSet(METRIC_RECORDS_IN_PER_SEC, METRIC_RECORDS_OUT_PER_SEC);
+
+    // 所有需要取 max 聚合的指标（ Gauge 类：延迟 + 反压 ）
+    Set<String> COLLECTABLE_MAX_AGGREGATE_METRICS = Sets.newHashSet(METRIC_CDC_FETCH_LAG_MS, METRIC_CDC_EMIT_LAG_MS,
+            METRIC_BUSY_MS_PER_SEC, METRIC_IDLE_MS_PER_SEC, METRIC_BACKPRESSURED_MS_PER_SEC);
 
     MonitorSysTagMarker getMonitorTagMarker();
 

@@ -120,6 +120,9 @@ public class TopicTagIncrStatus {
 
         private LimitRateTypeAndRatePerSecNums rateLimitState = new LimitRateTypeAndRatePerSecNums(RateControllerType.NoLimitParam, -1);
 
+        // P0-P1: 通用扩展指标（延迟/反压/TPS 等瞬时值，不走 10s 窗口增量逻辑）
+        private Map<String, Long> extraMetrics = Maps.newHashMap();
+
         TisIncrStatus(List<TopicTagIncr> summary, List<TopicTagIncr> tags) {
             this.summary = Maps.newHashMap();
             if (ALL_SUMMARY_KEYS_PAIR_LIST.size() != summary.size()) {
@@ -161,6 +164,14 @@ public class TopicTagIncrStatus {
                 return;
             }
             this.rateLimitState = rateLimitState;
+        }
+
+        public Map<String, Long> getExtraMetrics() {
+            return extraMetrics;
+        }
+
+        public void setExtraMetrics(Map<String, Long> extraMetrics) {
+            this.extraMetrics = extraMetrics;
         }
     }
 
