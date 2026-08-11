@@ -681,7 +681,16 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 //  Objects.requireNonNull(creatorJ.get(KEY_ROUTER_LINK), errDesc);
                 // Objects.requireNonNull(creatorJ.get(KEY_LABEL), errDesc);
                 JSONObject pmeta = null;
-                JSONArray plugins = creatorJ.getJSONArray(KEY_PLUGIN);
+                JSONArray plugins = null;
+
+                Object pobject = creatorJ.get(KEY_PLUGIN);
+                if (pobject instanceof String pluginScript) {
+                    plugins = (JSONArray) GroovyShellEvaluate.scriptEval(pluginScript);
+                    creatorJ.put(KEY_PLUGIN, plugins);
+                } else {
+                    plugins = creatorJ.getJSONArray(KEY_PLUGIN);
+                }
+
                 boolean assistTypeEmpty = StringUtils.isEmpty(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE));
                 if (plugins != null) {
                     for (int i = 0; i < plugins.size(); i++) {
@@ -782,6 +791,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
          */
         @JSONField(serialize = false)
         public Optional<FieldRefCreateor> getRefCreator() {
+
             if (this._fieldRefCreateor == null) {
                 this._fieldRefCreateor = Optional.ofNullable(createFieldRefCreateor(this.props));
             }

@@ -66,9 +66,10 @@ public class Config extends BasicConfig {
 
     public static final String PLUGIN_LIB_DIR = "WEB-INF/lib";
 
-
+// System.out.println(Config.class.getResource("/"));
     public static void main(String[] args) {
-        System.out.println(Config.class.getResource("/"));
+        System.setProperty("--add-opens","java.base/java.lang=ALL-UNNAME");
+
     }
 
     public static File getPluginLibDir(String pluginName, boolean validateExist) {

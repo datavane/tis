@@ -1547,7 +1547,7 @@ public class DataxAction extends BasicModule {
       return false;
     }
     selectedTab.primaryKeys = writerCols.stream().filter(CMeta::isPk).map(CMeta::getName).collect(Collectors.toList());
-    TableAlias.saveTableMapper(delegate, context, dataxName, Collections.singletonList(tableMapper));
+    IDataxProcessor.TableMap.saveTableMapper(delegate, context, dataxName, Collections.singletonList(tableMapper));
     return true;
   }
 

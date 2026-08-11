@@ -18,6 +18,7 @@
 
 package com.qlangtech.tis.sql.parser.tuple.creator;
 
+import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.TableAlias;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy.IStreamTemplateData;
 
@@ -45,7 +46,7 @@ public abstract class AdapterStreamTemplateData implements IStreamTemplateData {
     }
 
     @Override
-    public List<TableAlias> getDumpTables() {
+    public List<IDataxProcessor.TableMap> getDumpTables() {
         return data.getDumpTables();
     }
 }

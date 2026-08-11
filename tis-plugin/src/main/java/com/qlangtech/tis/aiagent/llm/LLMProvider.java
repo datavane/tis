@@ -60,6 +60,9 @@ import java.util.function.Consumer;
 
 import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_DEFAULT;
 import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_PATTERN;
+import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_CREATOR_HETERO;
+import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_DESC_NAME;
+import static com.qlangtech.tis.util.HeteroEnum.PARAMS_CONFIG_USER_ISOLATION;
 
 /**
  * 大模型接口抽象
@@ -75,6 +78,41 @@ public abstract class LLMProvider extends ParamsConfig {
 
     public enum LLMChatPhase {
         Start, ERROR, Complete
+    }
+
+    public static JSONArray useable() {
+        //        [
+        //        {
+        //            "hetero": "params-cfg-user-isolation",
+        //                "targetItemDesc": "LLM",
+        //                "descName": "DeepSeek"
+        //        },
+        //        {
+        //            "hetero": "params-cfg-user-isolation",
+        //                "targetItemDesc": "LLM",
+        //                "descName": "QWen"
+        //        },
+        //        {
+        //            "hetero": "params-cfg-user-isolation",
+        //                "targetItemDesc": "LLM",
+        //                "descName": "Anthropic"
+        //        },
+        //        {
+        //            "hetero": "params-cfg-user-isolation",
+        //                "targetItemDesc": "LLM",
+        //                "descName": "Zhipu"
+        //        }
+        //      ]
+        JSONArray result = new JSONArray();
+        String[] llms = new String[]{"DeepSeek", "QWen", "Anthropic", "Zhipu"};
+        for (String llm : llms) {
+            JSONObject o = new JSONObject();
+            o.put(KEY_CREATOR_HETERO, llm);
+            o.put(KEY_DESC_NAME, llm);
+            o.put(KEY_CREATOR_HETERO, PARAMS_CONFIG_USER_ISOLATION.getIdentity());
+            result.add(o);
+        }
+        return result;
     }
 
     protected static final String KEY_DISPLAY_NAME = "LLM";
@@ -117,7 +155,7 @@ public abstract class LLMProvider extends ParamsConfig {
      */
     private static List<ParamsConfig> loadAllProvidersBindWithUser(IPluginContext context) {
         UploadPluginMeta pluginMeta = ParamsConfigPluginStore.createParamsConfigUserIsolation(KEY_DISPLAY_NAME);
-        List<ParamsConfig> llmProviders = HeteroEnum.PARAMS_CONFIG_USER_ISOLATION.getPlugins(context, pluginMeta);
+        List<ParamsConfig> llmProviders = PARAMS_CONFIG_USER_ISOLATION.getPlugins(context, pluginMeta);
         return llmProviders;
     }
 

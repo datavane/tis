@@ -38,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -161,12 +160,14 @@ public abstract class DefaultDataXProcessorManipulate
 
 
     @Override
-    protected void afterManipuldateProcess(IPluginContext pluginContext, Optional<Context> context,
-                                           ManipulateItemsProcessor itemsProcessor) {
+    protected final void afterManipuldateProcess(IPluginContext pluginContext, Optional<Context> context,
+                                                 ManipulateItemsProcessor itemsProcessor) {
         DataXName pipelineName = itemsProcessor.getOriginIdentityId().orElse(null);
         if (pipelineName == null) {
             return;
         }
+        this.process(pluginContext, context.orElseThrow(), pipelineName, itemsProcessor);
+
         AbstractTemplateManipulateStore memStore = getManipulateStore(pipelineName, false);
         if (itemsProcessor.isDeleteProcess()) {
             memStore.remove(this);
@@ -174,6 +175,9 @@ public abstract class DefaultDataXProcessorManipulate
             memStore.replace(this);
         }
     }
+
+    protected abstract void process(IPluginContext pluginContext, Context context, DataXName pipelineName,
+                                    ManipulateItemsProcessor itemsProcessor);
 
     public static class ProcessorManipulateManager<T extends DefaultDataXProcessorManipulate> {
         private final Class<T> targetClazz;

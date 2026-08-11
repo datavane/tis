@@ -17,13 +17,17 @@
  */
 package com.qlangtech.tis.offline;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.annotation.Public;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.fs.ITISFileSystemFactory;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.util.HeteroEnum;
 
 import java.io.File;
 import java.util.function.BiConsumer;
@@ -37,6 +41,17 @@ public abstract class FileSystemFactory implements Describable<FileSystemFactory
 
     public abstract <Configuration extends IReplayConfiguration> Configuration getConfiguration();
 
+    public static JSONArray useable() {
+        JSONArray result = new JSONArray();
+        final String[] descs = new String[]{"AmazonS3", "HDFS", "Aliyun-Jindo-HDFS"};
+        for (String desc : descs) {
+            JSONObject hetero = new JSONObject();
+            hetero.put(PluginExtraProps.KEY_CREATOR_HETERO, HeteroEnum.FS.getIdentity());
+            hetero.put(PluginExtraProps.KEY_DESC_NAME, desc);
+            result.add(hetero);
+        }
+        return result;
+    }
 
     public interface IReplayConfiguration {
         public void replay(BiConsumer<String, String> consumer);

@@ -465,7 +465,6 @@ public class CoreAction extends BasicModule {
     }
   }
 
-
   public static IndexIncrStatus getIndexIncrStatus(DataXName pipeline, IDeploymentDetail rcConfig) throws Exception {
     IndexIncrStatus incrStatus = doGetDataXReaderWriterDesc(pipeline);
     // 是否可以取缓存中的deployment信息，在刚删除pod重启之后需要取全新的deployment信息不能缓存
@@ -1200,7 +1199,7 @@ public class CoreAction extends BasicModule {
       }
     } else {
       // 使用app pipeline 纬度过滤
-      criteria.andAppIdEqualTo(this.getAppDomain().getAppid());
+      criteria.andAppNameEqualTo(this.getAppDomain().getAppName());
     }
 
 

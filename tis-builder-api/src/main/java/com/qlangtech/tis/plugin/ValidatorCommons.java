@@ -63,7 +63,7 @@ public interface ValidatorCommons {
 
     String MSG_IDENTITY_ERROR = "必须由小写字母，大写字母，数字、下划线、减号组成";
 
-    Pattern host_pattern = Pattern.compile(_host + ":\\d+");
+    Pattern host_pattern = Pattern.compile("(" + _host + "):(\\d+)");
     String MSG_HOST_IP_ERROR = "必须由IP、HOST及端口号组成";
 
     Pattern host_without_port_pattern = Pattern.compile(_host);

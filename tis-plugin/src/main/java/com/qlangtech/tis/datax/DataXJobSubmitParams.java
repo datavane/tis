@@ -68,11 +68,11 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
      */
     @FormField(ordinal = 2, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
     public Integer pipelineParallelism;
-//    /**
-//     * 单机VM中的任务并行度
-//     */
-//    @FormField(ordinal = 3, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
-//    public Integer vmParallelism;
+    //    /**
+    //     * 单机VM中的任务并行度
+    //     */
+    //    @FormField(ordinal = 3, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
+    //    public Integer vmParallelism;
     /**
      * Maximum number of TaskWorkerActor instances (routees) on each cluster node.
      * Each instance processes one task at a time, so this value controls
@@ -100,12 +100,12 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
     public Boolean forkJvm;
 
 
-
     /**
      * Maximum total number of TaskWorkerActor instances across the entire cluster.
      * ClusterRouterPool will not create more routees than this total limit.
      */
-    @FormField(ordinal = 8, advance = true, type = FormFieldType.INT_NUMBER, validate = {Validator.require, Validator.integer})
+    @FormField(ordinal = 8, advance = true, type = FormFieldType.INT_NUMBER, validate = {Validator.require,
+            Validator.integer})
     public Integer maxTotalNrOfInstances;
 
     /**
@@ -193,7 +193,7 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
             };
             dft.name = "default";
             // dft.maxJobs = DataXJobSubmit.MAX_TABS_NUM_IN_PER_JOB;
-          //  dft.vmParallelism = DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
+            //  dft.vmParallelism = DataXJobSubmit.DEFAULT_PARALLELISM_IN_VM;
             dft.pipelineParallelism = DEFAULT_PARALLELISM_IN_VM;
             dft.memorySpec = new DefaultMemorySpecification();
             dft.taskExpireHours = Duration.ofHours(10);
@@ -247,7 +247,7 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
         }
 
         private static final String FIELD_PIPELINE_PARALLELISM = "pipelineParallelism";
-       // private static final String FIELD_VM_PARALLELISM = "maxInstancesPerNode";
+        // private static final String FIELD_VM_PARALLELISM = "maxInstancesPerNode";
         private static final String FIELD_MAX_INSTANCES_PER_NODE = "maxInstancesPerNode";
         private static final String FIELD_MAX_TOTAL_NR_OF_INSTANCES = "maxTotalNrOfInstances";
 
@@ -321,17 +321,19 @@ public abstract class DataXJobSubmitParams extends ParamsConfig implements IPlug
                 validateFaild = true;
             }
 
-//            if (!validateFaild && (submitParams.pipelineParallelism > submitParams.maxInstancesPerNode)) {
-//                msgHandler.addFieldError(context, FIELD_PIPELINE_PARALLELISM, "不能大于" + submitParams.maxInstancesPerNode);
-//                msgHandler.addFieldError(context, FIELD_MAX_INSTANCES_PER_NODE, "不能小于" + submitParams.pipelineParallelism);
-//                validateFaild = true;
-//            }
+            //            if (!validateFaild && (submitParams.pipelineParallelism > submitParams.maxInstancesPerNode)) {
+            //                msgHandler.addFieldError(context, FIELD_PIPELINE_PARALLELISM, "不能大于" + submitParams
+            //                .maxInstancesPerNode);
+            //                msgHandler.addFieldError(context, FIELD_MAX_INSTANCES_PER_NODE, "不能小于" + submitParams
+            //                .pipelineParallelism);
+            //                validateFaild = true;
+            //            }
 
             //maxInstancesPerNode / maxTotalNrOfInstances ====================================
-//            if (submitParams.maxInstancesPerNode < 1) {
-//                msgHandler.addFieldError(context, FIELD_MAX_INSTANCES_PER_NODE, "不能小于1");
-//                validateFaild = true;
-//            }
+            //            if (submitParams.maxInstancesPerNode < 1) {
+            //                msgHandler.addFieldError(context, FIELD_MAX_INSTANCES_PER_NODE, "不能小于1");
+            //                validateFaild = true;
+            //            }
 
             if (submitParams.maxTotalNrOfInstances < 1) {
                 msgHandler.addFieldError(context, FIELD_MAX_TOTAL_NR_OF_INSTANCES, "不能小于1");

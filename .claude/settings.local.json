@@ -198,7 +198,9 @@
       "Bash(open /opt/misc/tis-docs2/docs/guide/ontology/ontology-architecture.png)",
       "Bash(mvn install *)",
       "Bash(INCLUDE_CURRENT_VERSION=false NODE_ENV=production npx docusaurus build)",
-      "Bash(INCLUDE_CURRENT_VERSION=true NODE_ENV=production npx docusaurus build)"
+      "Bash(INCLUDE_CURRENT_VERSION=true NODE_ENV=production npx docusaurus build)",
+      "Bash(bash -c 'cd /Users/mozhenghua/j2ee_solution/project/tis-console && ./node_modules/.bin/tsc --noEmit')",
+      "Read(//opt/misc/streampark/**)"
     ],
     "deny": [],
     "ask": []

@@ -100,17 +100,20 @@ public class TisException extends RuntimeException {
             FreshmanReadmeToken.setFreshManReadmeHasRead(remindMeLater);
             return null;
         })
-//        , POWER_JOB_CLUSTER_LOSS_OF_CONTACT(new RemoveDataxWorkerForward() {
-//            @Override
-//            public String[] apply(BasicRundata rundata) {
-//                String[] forwardParams = super.apply(rundata);
-//                if (!TargetResName.K8S_DATAX_INSTANCE_NAME.equalWithName(rundata.getStringParam(IFullBuildContext.KEY_TARGET_NAME))) {
-//                    throw new IllegalArgumentException("request param:" + IFullBuildContext.KEY_TARGET_NAME + " " +
-//                            "relevant val must be equal to:" + TargetResName.K8S_DATAX_INSTANCE_NAME.getName());
-//                }
-//                return forwardParams;
-//            }
-//        })
+        //        , POWER_JOB_CLUSTER_LOSS_OF_CONTACT(new RemoveDataxWorkerForward() {
+        //            @Override
+        //            public String[] apply(BasicRundata rundata) {
+        //                String[] forwardParams = super.apply(rundata);
+        //                if (!TargetResName.K8S_DATAX_INSTANCE_NAME.equalWithName(rundata.getStringParam
+        //                (IFullBuildContext.KEY_TARGET_NAME))) {
+        //                    throw new IllegalArgumentException("request param:" + IFullBuildContext.KEY_TARGET_NAME
+        //                    + " " +
+        //                            "relevant val must be equal to:" + TargetResName.K8S_DATAX_INSTANCE_NAME
+        //                            .getName());
+        //                }
+        //                return forwardParams;
+        //            }
+        //        })
         ;
         private final Function<BasicRundata, String[]> forward;
 
@@ -297,7 +300,7 @@ public class TisException extends RuntimeException {
                     }
                     final String detail = errWriter.toString();
                     JSONObject err = new JSONObject();
-                    err.put(KEY_ABSTRACT, ex.getMessage());
+                    err.put(KEY_ABSTRACT, StringUtils.left(ex.getMessage(), 200));
                     err.put(KEY_DETAIL, detail);
                     FileUtils.write(errLog, JsonUtil.toString(err), TisUTF8.get());
                     return currError;
@@ -373,8 +376,8 @@ public class TisException extends RuntimeException {
                         if (pre == null) {
                             pre = JSON.parseObject(FileUtils.readFileToString(errLogFile, TisUTF8.get()));
                         }
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                    } catch (Exception e) {
+                        throw new RuntimeException("errLogFile:" + errLogFile.getAbsolutePath(), e);
                     }
                     return pre;
                 });

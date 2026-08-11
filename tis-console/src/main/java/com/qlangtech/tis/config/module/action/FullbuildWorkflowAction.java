@@ -118,8 +118,8 @@ public class FullbuildWorkflowAction extends BasicModule {
       throw new IllegalStateException("illegal type:" + dataXName.getType());
     }
 
-    return !module.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO()//
-      .selectByExample(example, 1, 1).isEmpty();
+    return module.getWorkflowDAOFacade().getWorkFlowBuildHistoryDAO()//
+      .countByExample(example) > 0;
   }
 
   /**

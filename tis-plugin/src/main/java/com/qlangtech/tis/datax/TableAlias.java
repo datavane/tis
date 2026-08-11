@@ -1,22 +1,13 @@
 package com.qlangtech.tis.datax;
 
-import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.qlangtech.tis.datax.impl.DataxProcessor;
-import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
-import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -43,19 +34,6 @@ public class TableAlias implements Describable<TableAlias> {
     public static final String KEY_FROM_TABLE_NAME = "fromTableName";
     private String from;
     private String to;
-
-    public static TableAlias create(String from, String to) {
-        if (StringUtils.isEmpty(from)) {
-            throw new IllegalArgumentException("param from can not be empty");
-        }
-        if (StringUtils.isEmpty(to)) {
-            throw new IllegalArgumentException("param to can not be empty");
-        }
-        TableAlias tableAlias = new TableAlias();
-        tableAlias.setFrom(from);
-        tableAlias.setTo(to);
-        return tableAlias;
-    }
 
     // 不需要改写表名（例如加前缀‘ods_’）这样的操作，分析流中join中间表是不需要重命名的
     private boolean shallNotRewriteTargetTableName;
@@ -104,24 +82,6 @@ public class TableAlias implements Describable<TableAlias> {
     //    }
 
     public TableAlias() {
-    }
-
-    public static void saveTableMapper(IPluginContext pluginContext, Context context, String dataxName,
-                                       List<IDataxProcessor.TableMap> tableMaps) {
-
-        if (StringUtils.isBlank(dataxName)) {
-            throw new IllegalArgumentException("param dataxName can not be null");
-        }
-
-        DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(pluginContext, dataxName);
-
-        //save(pluginContext, dataxName, tableMaps);
-        SelectedTab.saveSelectedTabs(pluginContext, context,
-                ((DataxReader) dataxProcessor.getReader(pluginContext)).getDescriptor(), dataxName,
-                tableMaps.stream().map(IDataxProcessor.TableMap::getSourceTab).collect(Collectors.toList()));
-
-
-        dataxProcessor.afterSaved(pluginContext, Optional.empty());
     }
 
     public <T extends TableAlias> T setShallNotRewriteTargetTableName() {

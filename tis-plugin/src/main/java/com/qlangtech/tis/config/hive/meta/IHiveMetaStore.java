@@ -27,12 +27,12 @@ import java.util.List;
  **/
 public interface IHiveMetaStore extends Closeable {
 
-    /**
-     * 服务端版本
-     *
-     * @return
-     */
-    public String getServerVersion();
+//    /**
+//     * 服务端版本
+//     *
+//     * @return
+//     */
+    //public String getServerVersion();
 
     void dropTable(String database, String tableName);
 

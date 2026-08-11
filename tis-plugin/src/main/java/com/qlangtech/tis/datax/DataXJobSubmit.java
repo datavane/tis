@@ -65,7 +65,7 @@ import java.util.function.Function;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-04-27 17:03
- * @see  DataXJobSubmitParams
+ * @see DataXJobSubmitParams
  **/
 @TISExtensible
 @Public
@@ -79,7 +79,8 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
 
     public static void main(String[] args) throws Exception {
         Enumeration<URL> resources =
-                Thread.currentThread().getContextClassLoader().getResources("com/google/common/base/Preconditions.class");
+                Thread.currentThread().getContextClassLoader().getResources("com/google/common/base/Preconditions"
+                        + ".class");
         while (resources.hasMoreElements()) {
             System.out.println(resources.nextElement());
         }
@@ -97,15 +98,16 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
         return jobSubmit;
     }
 
-//    public static Optional<IDataXPowerJobSubmit> getPowerJobSubmit() {
-//        DataXJobSubmit dataXJobSubmit = getDataXJobSubmit();
-//        logger.info("get dataXJobSubmit instanceof :" + dataXJobSubmit.getClass().getName() + ",triggerType:" + DataXJobSubmit.getDataXTriggerType());
-//
-//        if (dataXJobSubmit instanceof IDataXPowerJobSubmit) {
-//            return Optional.of((IDataXPowerJobSubmit) dataXJobSubmit);
-//        }
-//        return Optional.empty();
-//    }
+    //    public static Optional<IDataXPowerJobSubmit> getPowerJobSubmit() {
+    //        DataXJobSubmit dataXJobSubmit = getDataXJobSubmit();
+    //        logger.info("get dataXJobSubmit instanceof :" + dataXJobSubmit.getClass().getName() + ",triggerType:" +
+    //        DataXJobSubmit.getDataXTriggerType());
+    //
+    //        if (dataXJobSubmit instanceof IDataXPowerJobSubmit) {
+    //            return Optional.of((IDataXPowerJobSubmit) dataXJobSubmit);
+    //        }
+    //        return Optional.empty();
+    //    }
 
 
     public static Optional<DataXJobSubmit> getDataXJobSubmit(boolean dryRun,
@@ -119,10 +121,22 @@ public abstract class DataXJobSubmit implements IPreviewRowsDataService {
         }
 
         // 如果是DryRun则只需要在内部执行
-        final DataXJobSubmit.InstanceType targetType = dryRun ? InstanceType.EMBEDDED : expectDataXJobSumit;
+        final DataXJobSubmit.InstanceType targetType = (dryRun)
+                ? InstanceType.EMBEDDED
+                : expectDataXJobSumit;
         //        if (joinTaskContext.isDryRun()) {
         //            expectDataXJobSumit = InstanceType.EMBEDDED;
         //        }
+        //
+        //        ExtensionList<DataXJobSubmit> jobSumits =
+        //                Objects.requireNonNull(TIS.get(), "tis instance can not be null").getExtensionList
+        //                (DataXJobSubmit.class);
+        //        return jobSumits.stream().filter((jsubmit) -> (targetType) == jsubmit.getType()).findFirst();
+        return getDataXJobSubmit(targetType);
+    }
+
+    public static Optional<DataXJobSubmit> getDataXJobSubmit(
+            DataXJobSubmit.InstanceType targetType) {
 
         ExtensionList<DataXJobSubmit> jobSumits =
                 Objects.requireNonNull(TIS.get(), "tis instance can not be null").getExtensionList(DataXJobSubmit.class);

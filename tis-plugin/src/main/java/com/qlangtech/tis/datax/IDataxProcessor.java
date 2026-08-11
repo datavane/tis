@@ -17,12 +17,14 @@
  */
 package com.qlangtech.tis.datax;
 
+import com.alibaba.citrus.turbine.Context;
 import com.alibaba.datax.plugin.writer.hdfswriter.HdfsColMeta;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataXCfgGenerator;
+import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.datax.impl.DataxWriter;
 import com.qlangtech.tis.datax.impl.TransformerInfo;
@@ -34,6 +36,7 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.StoreResourceTypeGetter;
+import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.plugin.datax.common.AutoCreateTable;
 import com.qlangtech.tis.plugin.datax.transformer.OutputParameter;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules;
@@ -376,6 +379,37 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
         private String from;
         private String to;
 
+        public static void saveTableMapper(IPluginContext pluginContext, Context context, String dataxName,
+                                           List<TableMap> tableMaps) {
+
+            if (StringUtils.isBlank(dataxName)) {
+                throw new IllegalArgumentException("param dataxName can not be null");
+            }
+
+            DataxProcessor dataxProcessor = (DataxProcessor) DataxProcessor.load(pluginContext, dataxName);
+
+            //save(pluginContext, dataxName, tableMaps);
+            SelectedTab.saveSelectedTabs(pluginContext, context,
+                    ((DataxReader) dataxProcessor.getReader(pluginContext)).getDescriptor(), dataxName,
+                    tableMaps.stream().map(TableMap::getSourceTab).collect(Collectors.toList()));
+
+
+            dataxProcessor.afterSaved(pluginContext, Optional.empty());
+        }
+
+        public static TableMap create(String from, String to) {
+            if (StringUtils.isEmpty(from)) {
+                throw new IllegalArgumentException("param from can not be empty");
+            }
+            if (StringUtils.isEmpty(to)) {
+                throw new IllegalArgumentException("param to can not be empty");
+            }
+            TableMap mapper = new TableMap(Collections.emptyList());
+            mapper.setFrom(from);
+            mapper.setTo(to);
+            return mapper;
+        }
+
         /**
          * 将transformer 规则添加到列末尾
          *
@@ -456,7 +490,7 @@ public interface IDataxProcessor extends IdentityName, StoreResourceTypeGetter, 
         public TableMap(Optional<String> tabName, final List<CMeta> cmetas) {
             List<CMeta> cMetas = rewriteCols(cmetas);
             List<String> pks =
-                    cMetas.stream().filter((c) -> c.isPk()).map((c) -> c.getName()).collect(Collectors.toUnmodifiableList());
+                    cMetas.stream().filter(CMeta::isPk).map(CMeta::getName).toList();
             this.tab = (new ISelectedTab() {
                 @Override
                 public String getName() {

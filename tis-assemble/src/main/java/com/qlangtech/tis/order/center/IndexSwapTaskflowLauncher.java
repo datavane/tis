@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -112,7 +113,9 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
             throw new RuntimeException(e);
         }
 
-        DataXJobSubmit dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit();
+        DataXJobSubmit dataXJobSubmit =
+                DataXJobSubmit.getDataXJobSubmit(DataXJobSubmit.getDataXTriggerType())
+                        .orElseThrow(() -> new IllegalStateException("TriggerType:" + DataXJobSubmit.getDataXTriggerType() + " relevant jobSubmit can not be null"));
         if (!(dataXJobSubmit instanceof DataXJobSubmitAkkaClusterSupport)) {
             throw new IllegalStateException("dataXJobSubmit:" + dataXJobSubmit.getClass().getName() + " must be type "
                     + "of " + DataXJobSubmitAkkaClusterSupport.class.getSimpleName());
@@ -174,7 +177,7 @@ public class IndexSwapTaskflowLauncher implements Daemon, ServletContextListener
         invoke = AbstractActionInvocation.createExecChain(chainContext);
         ExecuteResult execResult = invoke.invoke();
         if (!execResult.isSuccess()) {
-           // logger.warn(execResult.getMessage());
+            // logger.warn(execResult.getMessage());
         }
         return execResult;
     }

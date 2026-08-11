@@ -116,6 +116,7 @@ import static java.sql.Types.*;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年7月25日
  */
+@SuppressWarnings("all")
 public class OfflineDatasourceAction extends BasicModule {
 
   private static final Pattern pattern_table_name = Pattern.compile("[a-z]{1}[\\da-z_]+");
