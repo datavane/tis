@@ -16,12 +16,21 @@
     "readonly": true
   },
   "model": {
-    "dftVal": "deepseek-chat",
-    "readonly": true,
+    "dftVal": "deepseek-v4-flash",
+    "enum": [
+      {
+        "val": "deepseek-v4-pro",
+        "label": "deepseek-v4-pro"
+      },
+      {
+        "val": "deepseek-v4-flash",
+        "label": "deepseek-v4-flash"
+      }
+    ],
     "help": "模型的 ID"
   },
   "maxTokens": {
-    "dftVal": 4000,
+    "dftVal": 20000,
     "help": "最大生成 token 数量"
   },
   "printLog": {

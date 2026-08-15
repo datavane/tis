@@ -721,8 +721,11 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 if (assistTypeEmpty && StringUtils.isNotEmpty(creatorJ.getString(KEY_ROUTER_LINK))) {
                     creatorJ.put(KEY_CREATOR_ASSIST_TYPE, RouterAssistType.hyperlink.token);
                 }
-                createor.setAssistType(RouterAssistType.parse(creatorJ.getString(KEY_CREATOR_ASSIST_TYPE)));
 
+                createor.setAssistType(RouterAssistType.parse(
+                        StringUtils.defaultString(
+                                creatorJ.getString(KEY_CREATOR_ASSIST_TYPE)
+                                , RouterAssistType.paramCfg.token)));
 
                 createor.setSelectableOpts(() -> {
                     JSONArray enums = props.getJSONArray(Descriptor.KEY_ENUM_PROP);

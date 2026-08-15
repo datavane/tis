@@ -197,6 +197,8 @@ public interface IEndTypeGetter {
         , DataBase("database", EndTypeCategory.Icon, true)//
         , ChatBI("chat-bi", EndTypeCategory.Icon, true)//
         , Forbiden("forbiden", EndTypeCategory.Icon, true)//
+        , File("file", EndTypeCategory.Icon, true)//
+        , Bucket("bucket", EndTypeCategory.Icon, true)//
 
 
         /**

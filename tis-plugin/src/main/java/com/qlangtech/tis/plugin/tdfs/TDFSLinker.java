@@ -22,7 +22,9 @@ import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.TISExtensible;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -39,6 +41,11 @@ import java.util.List;
  **/
 @TISExtensible
 public abstract class TDFSLinker implements Describable<TDFSLinker> {
+
+    public interface TDFSLinkerGetter {
+        TDFSLinker getTDFSLinker();
+    }
+
     public static final String KEY_FTP_SERVER_LINK = "linker";
     protected static final String KEY_FIELD_PATH = "path";
     @FormField(ordinal = 1, type = FormFieldType.SELECTABLE, validate = {Validator.require})
@@ -66,7 +73,7 @@ public abstract class TDFSLinker implements Describable<TDFSLinker> {
         return descriptor;
     }
 
-    protected static abstract class BasicDescriptor extends Descriptor<TDFSLinker> {
+    protected static abstract class BasicDescriptor extends Descriptor<TDFSLinker> implements DescriptorUseableShortComment {
         public BasicDescriptor() {
             super();
             this.registerSelectOptions(KEY_FTP_SERVER_LINK, () -> createRefLinkers());

@@ -26,14 +26,12 @@ import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.plugin.CompanionPluginFactory;
-import com.qlangtech.tis.web.start.TisAppLaunch;
 import org.apache.commons.lang.StringUtils;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -132,9 +130,7 @@ public class HeteroList<T extends Describable<T>> {
 
         if (this.getItems().size() == 1) {
             for (T plugin : this.getItems()) {
-                Map<Class<? extends Descriptor>, Describable> pluginThreadLocal =
-                        GroovyShellUtil.pluginThreadLocal.get();
-                pluginThreadLocal.put(plugin.getDescriptor().getClass(), plugin);
+                GroovyShellUtil.setPlugin(plugin);
                 break;
             }
             // GroovyShellEvaluate.pluginThreadLocal.set(this.getItems().get(0));

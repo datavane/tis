@@ -65,6 +65,7 @@ import com.qlangtech.tis.datax.preview.PreviewRowsData;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.extension.SubFormFilter;
+import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.extension.util.MultiItemsViewType;
 import com.qlangtech.tis.fullbuild.IFullBuildContext;
 import com.qlangtech.tis.lang.TisException;
@@ -329,6 +330,7 @@ public class DataxAction extends BasicModule {
     Map<String, Object> pluginInfo = Maps.newHashMap();
     DescriptorsMeta writeDesc = null;
     if (writer != null) {
+      GroovyShellUtil.setPlugin(writer);
       pluginInfo.put("item", (new DescribableJSON(writer)).getItemJson());
       writeDesc = DescriptorsJSON.desc(writer.getDescriptor());
     } else {
@@ -357,6 +359,7 @@ public class DataxAction extends BasicModule {
     DataxReader reader = readerStore.getPlugin();
     Map<String, Object> pluginInfo = Maps.newHashMap();
     if (reader != null && StringUtils.equals(reader.getDescriptor().getId(), requestDescId)) {
+      GroovyShellUtil.setPlugin(reader);
       pluginInfo.put("item", (new DescribableJSON(reader)).getItemJson());
     }
     // new DescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON()

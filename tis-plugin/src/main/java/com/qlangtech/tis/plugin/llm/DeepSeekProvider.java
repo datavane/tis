@@ -85,7 +85,7 @@ public class DeepSeekProvider extends LLMProvider {
     @FormField(type = FormFieldType.INT_NUMBER, ordinal = 3, validate = {Validator.require, Validator.integer})
     public Integer maxTokens;
 
-    @FormField(type = FormFieldType.INPUTTEXT, ordinal = 4, validate = {Validator.require})
+    @FormField(type = FormFieldType.ENUM, ordinal = 4, validate = {Validator.require})
     public String model;
 
 //    @FormField(type = FormFieldType.INT_NUMBER, advance = true, ordinal = 5, validate = {Validator.require,

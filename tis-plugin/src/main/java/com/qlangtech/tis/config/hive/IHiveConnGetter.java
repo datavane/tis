@@ -42,5 +42,11 @@ public interface IHiveConnGetter extends IdentityName {
 
     public IHiveMetaStore createMetaStoreClient();
 
-
+    /**
+     * 取得org.apache.hadoop.hive.conf.HiveConf
+     *
+     * @param <HIVE_CONFIG>
+     * @return
+     */
+    <HIVE_CONFIG> HIVE_CONFIG getHiveCfg();
 }

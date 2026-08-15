@@ -126,4 +126,9 @@ public class GroovyShellUtil {
         }
     }
 
+    public static <T extends Describable<T>> void setPlugin(T plugin) {
+        Map<Class<? extends Descriptor>, Describable> pluginThreadLocal =
+                GroovyShellUtil.pluginThreadLocal.get();
+        pluginThreadLocal.put(plugin.getDescriptor().getClass(), plugin);
+    }
 }
