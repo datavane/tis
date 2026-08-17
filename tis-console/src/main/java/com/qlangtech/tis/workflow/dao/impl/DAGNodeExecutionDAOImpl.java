@@ -19,12 +19,13 @@ package com.qlangtech.tis.workflow.dao.impl;
 
 import com.qlangtech.tis.ibatis.RowMap;
 import com.qlangtech.tis.manage.common.BasicDAO;
+import com.qlangtech.tis.manage.common.TISBaseCriteria;
 import com.qlangtech.tis.workflow.dao.IDAGNodeExecutionDAO;
 import com.qlangtech.tis.workflow.pojo.DagNodeExecution;
 import com.qlangtech.tis.workflow.pojo.DagNodeExecutionCriteria;
 
+import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
 
 /**
  * DAG 节点执行记录 DAO 实现类
@@ -85,13 +86,27 @@ public class DAGNodeExecutionDAOImpl extends BasicDAO<DagNodeExecution, Object> 
 
   @Override
   public List<DagNodeExecution> selectRecentlyCompletedTasks(int limit, long timeWindowMillis) {
-    //selectRecentlyCompletedTasks
     if (limit < 1 || timeWindowMillis < 1) {
       throw new IllegalArgumentException("illega params limit:" + limit + ",timeWindowMillis:" + timeWindowMillis);
     }
-    return this.listAnonymity("dag_node_execution.selectRecentlyCompletedTasks"
-      , Map.of("limit", limit, "timeWindowMillis", timeWindowMillis));
+    RecentlyCompletedTasksCriteria criteria = new RecentlyCompletedTasksCriteria(timeWindowMillis);
+    criteria.setPage(1);
+    criteria.setPageSize(limit);
+    return this.listAnonymity("dag_node_execution.selectRecentlyCompletedTasks", criteria);
   }
+
+  public static class RecentlyCompletedTasksCriteria extends TISBaseCriteria {
+    private final long timeWindowMillis;
+
+    public RecentlyCompletedTasksCriteria(long timeWindowMillis) {
+      this.timeWindowMillis = timeWindowMillis;
+    }
+
+    public Timestamp getCutoffTime() {
+      return new Timestamp(System.currentTimeMillis() - timeWindowMillis);
+    }
+  }
+
 
   @SuppressWarnings("all")
   public final List<RowMap> selectColsByExample(DagNodeExecutionCriteria example, int page, int pageSize) {
