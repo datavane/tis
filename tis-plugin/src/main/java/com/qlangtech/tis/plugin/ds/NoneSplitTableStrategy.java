@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.qlangtech.tis.extension.AIPromptEnhance;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -73,10 +74,15 @@ public class NoneSplitTableStrategy extends SplitTableStrategy {
     }
 
     @TISExtension
-    public static class DefatDesc extends Descriptor<SplitTableStrategy> {
+    public static class DefatDesc extends Descriptor<SplitTableStrategy> implements DescriptorUseableShortComment {
         @Override
         public String getDisplayName() {
             return SWITCH_OFF;
+        }
+
+        @Override
+        public String shortComment() {
+            return "仅支持单库单表";
         }
     }
 }

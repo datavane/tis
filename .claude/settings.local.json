@@ -202,7 +202,12 @@
       "Bash(bash -c 'cd /Users/mozhenghua/j2ee_solution/project/tis-console && ./node_modules/.bin/tsc --noEmit')",
       "Read(//opt/misc/streampark/**)",
       "Bash(echo \"EXIT:$?\")",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(javap -c -p org/apache/paimon/fs/FileIOUtils.class)",
+      "Bash(javap -c -p org/apache/paimon/fs/hadoop/HadoopFileIO.class)",
+      "Bash(javap -c -p org/apache/hadoop/fs/s3a/Constants.class)",
+      "Bash(javap -c -p org/apache/hadoop/fs/s3a/S3AUtils.class)",
+      "Bash(git *)"
     ],
     "deny": [],
     "ask": []
