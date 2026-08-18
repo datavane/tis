@@ -1040,7 +1040,17 @@ public class PluginAction extends BasicModule {
       this.setBizResult(context,
         describables.stream().flatMap((itemSaveResult) -> itemSaveResult.getIdentityStream()).map((d) -> {
           if (d instanceof IdentityDesc identityDesc) {
-            return identityDesc.describePlugin();
+            Object o = identityDesc.describePlugin();
+            if (o instanceof IdentityName identity) {
+              JSONObject jobj = (JSONObject) JSONObject.toJSON(identity);
+              // 由于插件实现了 IdentityDesc 接口，而它又是其他插件FormFieldType.SELECTABLE的辅助输入项目，当通过辅助添加一条新的记录时
+              // ，需要告知前端id名称，而不是一个pojo实例
+              // 例如：ExportToOntologyInDataSource.ontologyPkg 的 DefaultOntologyDomain实例插件
+              jobj.put("$" + IdentityName.PLUGIN_IDENTITY_NAME, identity.identityValue());
+              return jobj;
+            } else {
+              return o;
+            }
           } else {
             return (d).identityValue();
           }

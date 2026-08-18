@@ -217,7 +217,7 @@ public abstract class OntologyDomain implements Describable<OntologyDomain>, Ide
     }
 
 
-    public static class OntologyDomainPojo {
+    public static class OntologyDomainPojo implements IdentityName {
         private final String name;
         private final Date updateTime;
         private final boolean defaultDomain;
@@ -226,6 +226,11 @@ public abstract class OntologyDomain implements Describable<OntologyDomain>, Ide
             this.name = name;
             this.updateTime = date;
             this.defaultDomain = defaultDomain;
+        }
+
+        @Override
+        public String identityValue() {
+            return this.name;
         }
 
         /**
