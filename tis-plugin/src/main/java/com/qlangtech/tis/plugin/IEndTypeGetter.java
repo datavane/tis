@@ -106,7 +106,7 @@ public interface IEndTypeGetter {
     enum EndTypeCategory {
         Data, Assist, // 报警类别
         Alert, Transformer, // 图标
-        Icon, DataType
+        Icon, DataType, Ontology
     }
 
     /**
@@ -218,13 +218,13 @@ public interface IEndTypeGetter {
         , DataTypeGeo("type_geo", EndTypeCategory.DataType, true)//
         , DataTypeVector("type_vector", EndTypeCategory.DataType, true)//
 
-        , Shared("shared", EndTypeCategory.Icon, true)//
-        , OntologyLink("ontology-link", EndTypeCategory.Icon, true)//
-        , OntologyValueType("ontology-value-type", EndTypeCategory.Icon, true)//
-        , OntologyObjectType("ontology-object-type", EndTypeCategory.Icon, true)//
-        , OntologyGlossary("ontology-glossary", EndTypeCategory.Icon, true)//
-        , OntologyMetric("ontology-metric", EndTypeCategory.Icon, true), OntologyProperty("ontology-property",
-                EndTypeCategory.Icon, true)
+        , Shared("shared", EndTypeCategory.Ontology, true)//
+        , OntologyLink("ontology-link", EndTypeCategory.Ontology, true)//
+        , OntologyValueType("ontology-value-type", EndTypeCategory.Ontology, true)//
+        , OntologyObjectType("ontology-object-type", EndTypeCategory.Ontology, true)//
+        , OntologyGlossary("ontology-glossary", EndTypeCategory.Ontology, true)//
+        , OntologyMetric("ontology-metric", EndTypeCategory.Icon, true) //
+        , OntologyProperty("ontology-property", EndTypeCategory.Ontology, true)
 
 
         //
@@ -270,12 +270,20 @@ public interface IEndTypeGetter {
         private static Set<EndType> _assistTypes;
         private static Set<EndType> _transformerTypes;
         private static Set<EndType> _alertTypes;
+        private static Set<EndType> _ontologyTypes;
 
         public static Set<EndType> getDataEnds() {
             if (_dataEnds == null) {
                 _dataEnds = filterTypes2Set(EndTypeCategory.Data);
             }
             return _dataEnds;
+        }
+
+        public static Set<EndType> getOntologyEnds() {
+            if (_ontologyTypes == null) {
+                _ontologyTypes = filterTypes2Set(EndTypeCategory.Ontology);
+            }
+            return _ontologyTypes;
         }
 
         private static Set<EndType> filterTypes2Set(EndTypeCategory data) {

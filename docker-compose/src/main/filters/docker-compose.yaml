@@ -3,7 +3,7 @@ services:
   flink:
     image: registry.cn-hangzhou.aliyuncs.com/tis/flink:${project.version}
     hostname: flink
-    mem_limit: 2048m
+    mem_limit: 2548m
     cpus: '1.0'
     ports:
       - "8081:8081"
@@ -15,11 +15,11 @@ services:
   tis-console:
     image: registry.cn-hangzhou.aliyuncs.com/tis/tis-console:${project.version}
     hostname: tis-console
-    mem_limit: "1.5G"
+    mem_limit: "2.5G"
     cpus: '2.5'
     environment:
       - TZ=Asia/Shanghai
-      - JAVA_JVM_OPTS=-Xms512m -Xmx1G -XX:MetaspaceSize=100m -XX:MaxMetaspaceSize=300m
+      - JAVA_JVM_OPTS=-Xms1.5G -Xmx2G -XX:MetaspaceSize=200m -XX:MaxMetaspaceSize=400m
     ports:
       - "8080:8080"
       - "56432:56432"

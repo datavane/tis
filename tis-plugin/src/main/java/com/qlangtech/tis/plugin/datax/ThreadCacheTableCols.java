@@ -18,11 +18,16 @@
 
 package com.qlangtech.tis.plugin.datax;
 
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.IDataxReader;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.plugin.ds.ContextParamConfig;
+import com.qlangtech.tis.plugin.ds.DataType;
+import com.qlangtech.tis.plugin.ds.JDBCTypes;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
+import com.qlangtech.tis.web.start.TisAppLaunch;
 
 import java.util.Collections;
 import java.util.List;
@@ -45,13 +50,25 @@ public class ThreadCacheTableCols {
     private final EntityName targetTable;
     // private final Function<List<ColumnMetaData>, Stream<ColumnMetaData>> selectableColsStreamFunc;
 
+    private static List<ColumnMetaData> testStubCols = null;
+
+    public static void setTestStubCols() {
+        testStubCols = Lists.newArrayList(new ColumnMetaData(0, "col1",
+                new DataType(JDBCTypes.VARCHAR), true, false), new ColumnMetaData(1, "col2",
+                new DataType(JDBCTypes.VARCHAR), false, true), new ColumnMetaData(2, "col3",
+                new DataType(JDBCTypes.VARCHAR), false, true), new ColumnMetaData(3, "col4",
+                new DataType(JDBCTypes.VARCHAR), false, true));
+    }
+
     public static ThreadCacheTableCols createEmptyTableCols() {
-        List<ColumnMetaData> empt = Collections.emptyList();
+
+
+        final List<ColumnMetaData> empt = testStubCols != null ? testStubCols : Collections.emptyList();
 
         return new ThreadCacheTableCols(null, null, (target) -> Collections.emptyList(), empt) {
             @Override
             public List<CMeta> getSelectedCols() {
-                return Collections.emptyList();
+                return empt.stream().map(ColumnMetaData::convert).toList();
             }
 
             @Override
@@ -62,7 +79,7 @@ public class ThreadCacheTableCols {
             @Override
             public Stream<ColumnMetaData> getStreamedSelectableCols(Function<List<ColumnMetaData>,
                     Stream<ColumnMetaData>> selectableColsStreamFunc) {
-                return Stream.empty();
+                return empt.stream();
             }
         };//
     }
