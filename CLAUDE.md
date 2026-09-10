@@ -76,4 +76,84 @@ mvn clean deploy -Dmaven.test.skip=true -Dautoconfig.skip -pl tis-plugin,maven-t
 - Web UI项目: https://github.com/qlangtech/ng-tis
 - 本项目的所有前端项目代码在`/Users/mozhenghua/j2ee_solution/project/tis-console`目录下
 - 本项目是Core内核层，构建了TIS的抽象层，负责TIS所有插件的生命周期管理，大部分插件实现在`/Users/mozhenghua/j2ee_solution/project/plugins`这个路径所对应的项目中
-- modelcontextprotocol相关的原代码已经克隆到本地，路径为：/opt/misc/java-sdk 
+- modelcontextprotocol相关的原代码已经克隆到本地，路径为：/opt/misc/java-sdk
+
+## 工程边界
+
+项目中 TIS 插件代码分布在两个工程：
+
+| 层次 | 工程路径 | 内容 |
+|---|---|---|
+| **抽象/核心层** | `tis-solr/tis-plugin/` (`/Users/mozhenghua/j2ee_solution/project/tis-solr/tis-plugin`) | 接口、抽象基类、复用配置类（如 `WidgetColumnConfig`）、`HeteroEnum` 注册、Groovy 桥接类 |
+| **具体实现层** | `plugins/tis-ontology-plugin/` (`/Users/mozhenghua/j2ee_solution/project/plugins/tis-ontology-plugin`) | 具体 Widget 实现类（`ObjectTableWidget` 等）、对应 `.json` 资源文件 |
+
+规则：**抽象层不放具体 Widget 实现**，**实现层不放可复用的抽象/配置类**。
+
+## 插件属性设计原则
+
+### 原则一：禁止 JSON 字符串输入
+
+插件的 `@FormField` 属性**不得让用户填写 JSON 字符串**。结构化数据必须使用 TIS 提供的结构化表单机制：
+
+| 场景 | 正确做法 | 错误做法 |
+|---|---|---|
+| 列表化结构对象（如表格列定义） | `@SubForm(desClazz = XxxConfig.class)` + `List<XxxConfig>` 字段 | `@FormField(type = FormFieldType.TEXTAREA)` 手写 `[{...}]` |
+| 单个结构对象 | 字段类型声明为 `Describable` 子类（不指定 type，TIS 自动检测为嵌套子表单） | `@FormField(type = FormFieldType.TEXTAREA)` 手写 `{...}` |
+
+示例：
+```java
+// ✅ 正确：使用 @SubForm
+@SubForm(desClazz = WidgetColumnConfig.class, atLeastOne = false,
+         idListGetScript = "return java.util.Collections.emptyList();")
+public List<WidgetColumnConfig> columns;
+
+// ❌ 错误：让用户手写 JSON 字符串
+@FormField(type = FormFieldType.TEXTAREA)
+public String columns;  // 用户需输入 [{prop:"name",label:"名称"}]
+```
+
+### 原则二：固定取值用 ENUM
+
+当字段的取值有固定、有限的选项集合时，必须使用 `FormFieldType.ENUM` + Java 枚举类，**禁止**使用 `INPUTTEXT` 或 `SELECTABLE`（SELECTABLE 仅用于选项来自外部运行时数据的动态场景）。
+
+```java
+// ✅ 正确：使用 ENUM + Java 枚举
+@FormField(type = FormFieldType.ENUM, ordinal = 3, required = true)
+public AggregationType aggregation;
+
+public enum AggregationType {
+    sum("求和"), count("计数"), avg("平均值"), min("最小值"), max("最大值");
+    public final String label;
+    AggregationType(String label) { this.label = label; }
+}
+
+// ❌ 错误：使用 SELECTABLE（误导，选项明明是固定的）
+@FormField(type = FormFieldType.SELECTABLE, ordinal = 3)
+public String aggregation;
+
+// ❌ 错误：使用 INPUTTEXT（用户不知道有哪些合法取值）
+@FormField(type = FormFieldType.INPUTTEXT, ordinal = 3)
+public String aggregation;
+```
+
+何时使用 ENUM vs SELECTABLE：
+- **ENUM**：选项完全固定（如聚合方式 sum/count/avg/min/max、对齐方式 left/center/right、级别 1/2/3/4）。选项在 Java 代码中硬编码。
+- **SELECTABLE**：选项来自运行时外部数据源，通过 Descriptor 的 `registerSelectOptions()` 或 `doGetOptions()` 动态供给（如当前 module 的变量列表、数据库中某个表的数据）。
+
+### 原则三：枚举中的颜色类字段附带色值
+
+如果枚举字段是颜色选择（如标题文字颜色），应在 `.json` resource 中为每个枚举项附带 `hex` 色值，以便前端渲染颜色预览圆点：
+
+```json
+{
+  "color": {
+    "help": "选择文本颜色",
+    "dftVal": "inherit",
+    "enum": [
+      { "label": "红色", "val": "red", "hex": "#f5222d" },
+      { "label": "蓝色", "val": "blue", "hex": "#1890ff" },
+      ...
+    ]
+  }
+}
+``` 

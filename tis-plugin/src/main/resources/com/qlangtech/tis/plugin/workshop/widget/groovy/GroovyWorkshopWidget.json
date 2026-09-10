@@ -1,0 +1,9 @@
+{
+  "scriptPath": {
+    "help": "相对 classpath 的 .groovy 脚本文件路径，脚本中需定义 displayName 及可选的 fields 列表",
+    "placeholder": "scripts/MyWidget.groovy"
+  },
+  "renderHint": {
+    "help": "选择前端渲染方式：通用表单、Markdown 或自定义 HTML"
+  }
+}

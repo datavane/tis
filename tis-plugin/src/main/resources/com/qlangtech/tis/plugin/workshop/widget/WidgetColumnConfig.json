@@ -1,0 +1,8 @@
+{
+  "prop": { "help": "对象上的 property 键名", "placeholder": "请输入属性名" },
+  "label": { "help": "列/行在 UI 上的显示文本" },
+  "width": { "help": "列宽（像素），仅 ObjectTable 使用", "dftVal": 120 },
+  "format": { "help": "单元格格式化方式", "dftVal": "text" },
+  "align": { "help": "单元格文本对齐方式", "dftVal": "left" },
+  "sortable": { "help": "是否启用表头排序", "dftVal": false }
+}

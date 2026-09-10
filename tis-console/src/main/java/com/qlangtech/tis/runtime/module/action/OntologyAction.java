@@ -868,5 +868,4 @@ public class OntologyAction extends BasicModule {
     }
   }
 
-
 }

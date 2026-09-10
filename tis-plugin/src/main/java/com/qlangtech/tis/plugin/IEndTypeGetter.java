@@ -236,6 +236,7 @@ public interface IEndTypeGetter {
         , OntologyGlossary("ontology-glossary", EndTypeCategory.Ontology, true)//
         , OntologyAction("ontology-action", EndTypeCategory.Ontology, true)//
         , OntologyFunction("ontology-function", EndTypeCategory.Ontology, true)//
+        , OntologyWorkshop("ontology-workshop", EndTypeCategory.Ontology, true)//
         , OntologyMetric("ontology-metric", EndTypeCategory.Icon, true) //
         , OntologyProperty("ontology-property", EndTypeCategory.Ontology, true)
 

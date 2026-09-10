@@ -24,6 +24,7 @@ import com.qlangtech.tis.plugin.IdentityName;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -90,6 +91,10 @@ public class ManipulatePluginCacheRegister<T extends BasicManipuldateProcessor<T
 
         public <S extends T> S getManipuldate(IdentityName id, Class<S> clazz) {
             return clazz.cast(manipuldateStore.get(id));
+        }
+
+        public <S extends T> List<S> getManipuldaties(Class<S> clazz) {
+            return manipuldateStore.values().stream().map(clazz::cast).toList();
         }
 
         public void replace(T item) {

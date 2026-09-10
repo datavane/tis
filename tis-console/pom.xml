@@ -201,6 +201,13 @@
       <scope>provided</scope>
     </dependency>
 
+<!--    <dependency>-->
+<!--      <groupId>com.qlangtech.tis.plugins</groupId>-->
+<!--      <artifactId>tis-ontology-plugin</artifactId>-->
+<!--      <version>${project.version}</version>-->
+<!--      <scope>provided</scope>-->
+<!--    </dependency>-->
+
     <dependency>
       <groupId>org.codehaus.jettison</groupId>
       <artifactId>jettison</artifactId>

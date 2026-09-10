@@ -1455,6 +1455,40 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         });
     }
 
+    /**
+     * Descriptor 自定义 HTTP 处理入口，由 PluginAction.doDescriptionProcess() 路由调用。
+     * <p>
+     * 这是 TIS 插件系统的"SPI HTTP 路由"机制：前端通过 POST 请求
+     * <pre>
+     *   /coredefine/corenodemanage.ajax
+     *     ?event_submit_do_description_process=y
+     *     &amp;action=plugin_action
+     *     &amp;impl=com.qlangtech.tis.plugin.XxxDescriptor$DftDesc
+     * </pre>
+     * PluginAction 根据 {@code impl} 参数通过 {@code TIS.get().getDescriptor(impl)}
+     * 查找已注册的 Descriptor 实例，然后调用本方法。
+     * <p>
+     * 子类覆盖此方法可实现任意的服务端业务逻辑，常见用途包括：
+     * <ul>
+     *   <li>CRUD 操作（创建/读取/更新/删除某个实体，通过 {@code type} 参数分派）</li>
+     *   <li>与 LLM/外部系统交互并返回结构化结果</li>
+     *   <li>执行需要服务端上下文（登录用户、数据库、文件系统）的复杂操作</li>
+     * </ul>
+     * 请求参数通过 {@code paramGetter.getString("key")} 读取。
+     * 响应通过 {@code pluginContext.setBizResult(context, jsonObject)} 设置，
+     * 前端收到 {@code response.bizresult}。
+     * 错误信息通过 {@code pluginContext.addErrorMessage(context, message)} 设置。
+     * <p>
+     * 默认实现抛出 {@link UnsupportedOperationException}，子类须按需覆盖。
+     *
+     * @param paramGetter  请求参数读取器，用于获取 HTTP 请求中的参数（如 {@code paramGetter.getString("type")}）
+     * @param pluginContext 插件上下文，提供登录用户、setBizResult/错误消息等运行时能力
+     * @param context       Turbine 运行时上下文
+     * @throws Exception 业务异常，由调用方统一处理
+     * @see com.qlangtech.tis.coredefine.module.action.PluginAction#doDescriptionProcess(Context)
+     * @see com.qlangtech.tis.plugin.ontology.workshop.desc.WorkshopModuleOperationDesc#httpProcess(IControlMsgHandler, IPluginContext, Context)
+     * @see com.qlangtech.tis.plugin.ontology.impl.infer.BasicInfterExecuteDesc#httpProcess(IControlMsgHandler, IPluginContext, Context)
+     */
     public void httpProcess(IControlMsgHandler paramGetter, IPluginContext pluginContext, Context context) throws Exception {
         throw new UnsupportedOperationException();
     }

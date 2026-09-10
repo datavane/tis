@@ -19,7 +19,6 @@
 package com.qlangtech.tis.plugin.llm;
 
 import com.alibaba.citrus.turbine.Context;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
@@ -49,12 +48,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_DEFAULT;
-import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_PATTERN;
 
 /**
  * 智谱AI大模型Provider实现<br/>
