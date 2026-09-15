@@ -17,41 +17,38 @@
  */
 package com.qlangtech.tis.plugin.workshop.widget;
 
+import com.qlangtech.tis.extension.DescriptorUseableShortComment;
+import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 
-import java.util.List;
-
 /**
- * 内置 Widget 抽象基类：携带所有 Widget 共有的表单字段
+ * 绝对像素尺寸：固定宽/高。
+ * <p>
+ * 对应前端 {@code {type: 'absolute', pixels: number}}。
  *
  * @author 百岁 (baisui@qlangtech.com)
- * @date 2026/9/9
+ * @date 2026/9/13
  */
-public abstract class WorkshopWidgetDescribable implements IWorkshopWidget {
+public class AbsoluteSizingMode extends SizingMode {
 
-    /**
-     * Widget 标题（画布与配置面板通用）
-     */
-    @FormField(type = FormFieldType.INPUTTEXT, ordinal = 0, advance = false, validate = {Validator.require})
-    public String title;
+    private static final long serialVersionUID = 1L;
 
-    /**
-     * 输入变量绑定（变量 id 列表，多选；options 由 Descriptor 动态供给）
-     */
-    @FormField(type = FormFieldType.MULTI_SELECTABLE, ordinal = 1, advance = false, validate = {Validator.require})
-    public List<String> inputVariables;
+    /** 固定像素值 */
+    @FormField(ordinal = 0, type = FormFieldType.INT_NUMBER, validate = {Validator.require})
+    public Integer pixels;
 
-    /**
-     * 输出变量绑定
-     */
-    @FormField(type = FormFieldType.MULTI_SELECTABLE, ordinal = 2, advance = false, validate = {Validator.require})
-    public List<String> outputVariables;
+    @TISExtension
+    public static class DefaultDescriptor extends BasicDescriptor implements DescriptorUseableShortComment {
+        @Override
+        public String getDisplayName() {
+            return "Absolute";
+        }
 
-    /**
-     * 高级配置折叠区：自定义 CSS class 等
-     */
-    @FormField(type = FormFieldType.INPUTTEXT, ordinal = 99, advance = true, validate = {Validator.require})
-    public String cssClass;
+        @Override
+        public String shortComment() {
+            return "固定像素";
+        }
+    }
 }

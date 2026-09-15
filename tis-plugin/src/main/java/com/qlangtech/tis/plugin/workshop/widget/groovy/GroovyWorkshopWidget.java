@@ -19,10 +19,11 @@ package com.qlangtech.tis.plugin.workshop.widget.groovy;
 
 import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import com.qlangtech.tis.plugin.workshop.widget.WorkshopWidgetDescribable;
+import com.qlangtech.tis.plugin.workshop.widget.WorkshopWidget;
 
 /**
  * Groovy 脚本驱动的 Widget：用户通过 .groovy 脚本动态定义 Widget 行为与字段。
@@ -33,18 +34,18 @@ import com.qlangtech.tis.plugin.workshop.widget.WorkshopWidgetDescribable;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/9/10
  */
-public class GroovyWorkshopWidget extends WorkshopWidgetDescribable {
+public class GroovyWorkshopWidget extends WorkshopWidget {
 
     /**
      * 相对 classpath 的 .groovy 脚本文件路径（identity 主键）
      */
-    @FormField(identity = true, ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
+    @FormField(ordinal = 10, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
     public String scriptPath;
 
     /**
      * 渲染提示符，告知前端采用何种 UI 方案渲染该 Widget
      */
-    @FormField(ordinal = 1, type = FormFieldType.ENUM, advance = false)
+    @FormField(ordinal = 11, type = FormFieldType.ENUM, advance = false)
     public RenderHint renderHint;
 
     /**

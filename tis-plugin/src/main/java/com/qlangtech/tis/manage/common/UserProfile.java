@@ -22,6 +22,7 @@ import com.alibaba.citrus.turbine.Context;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
@@ -29,7 +30,6 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
-import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
@@ -54,12 +54,36 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
     public String name;
 
 
-
     /**
      * 大模型接口
      */
     @FormField(type = FormFieldType.SELECTABLE, ordinal = 1, validate = {Validator.identity})
     public String llm;
+
+    @FormField(type = FormFieldType.INPUTTEXT, ordinal = 2, validate = {Validator.email})
+    public String email;
+
+    //    @FormField(type = FormFieldType.ENUM, ordinal = 3, validate = {Validator.require})
+    //    public XX kk;
+
+    //    public enum XX implements DescriptorUseableShortComment, IEndTypeGetter {
+    //        AA(EndType.Bucket), BB(EndType.Table);
+    //        private final EndType endType;
+    //
+    //        XX(EndType endType) {
+    //            this.endType = endType;
+    //        }
+    //
+    //        @Override
+    //        public String shortComment() {
+    //            return "hello " + this.name();
+    //        }
+    //
+    //        @Override
+    //        public EndType getEndType() {
+    //            return endType;
+    //        }
+    //    }
 
     public static UserProfile load(IPluginContext pluginContext, boolean validateNull) {
         UploadPluginMeta pluginMeta = ParamsConfigPluginStore.createParamsConfigUserIsolation(KEY_DISPLAY_NAME);
@@ -90,8 +114,6 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
         return LLMProvider.load(Objects.requireNonNull(IPluginContext.getThreadLocalInstance()), llm);
     }
 
-    @FormField(type = FormFieldType.INPUTTEXT, ordinal = 2, validate = {Validator.email})
-    public String email;
 
     @Override
     public UserProfile createConfigInstance() {

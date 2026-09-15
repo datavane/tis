@@ -166,7 +166,8 @@ public class PluginManager {
      * Try the dynamicLoad, removeExisting to attempt to dynamic load disabled plugins
      */
     public void dynamicLoad(File arc, boolean removeExisting
-            , PluginAndCfgsSnapshot.PluginWrapperList batch) throws IOException, InterruptedException, RestartRequiredException {
+            , PluginAndCfgsSnapshot.PluginWrapperList batch) throws IOException, InterruptedException,
+            RestartRequiredException {
         LOGGER.info("Attempting to dynamic load {}", arc);
         PluginManifest manifest = PluginManifest.create(arc);
         if (manifest == null) {
@@ -256,7 +257,8 @@ public class PluginManager {
 
 
     public void start(PluginAndCfgsSnapshot.PluginWrapperList plugins) throws Exception {
-        Map<String, PluginWrapper> pluginsByName = plugins.getPluginsByName(); //plugins.stream().collect(Collectors.toMap(PluginWrapper::getShortName, p -> p));
+        Map<String, PluginWrapper> pluginsByName = plugins.getPluginsByName(); //plugins.stream().collect(Collectors
+        // .toMap(PluginWrapper::getShortName, p -> p));
 
         // recalculate dependencies of plugins optionally depending the newly deployed ones.
         for (PluginWrapper depender : this.plugins) {
@@ -291,7 +293,8 @@ public class PluginManager {
 
         // run initializers in the added plugins
         Reactor r = new Reactor(InitMilestone.ordering());
-        Set<ClassLoader> loaders = plugins.getLoaders(); //plugins.stream().map(p -> p.classLoader).collect(Collectors.toSet());
+        Set<ClassLoader> loaders = plugins.getLoaders(); //plugins.stream().map(p -> p.classLoader).collect
+        // (Collectors.toSet());
         r.addAll(new InitializerFinder(uberClassLoader) {
             @Override
             protected boolean filter(Method e) {
@@ -368,11 +371,13 @@ public class PluginManager {
                     requires(listUpPlugins).attains(PLUGINS_LISTED).add("Preparing plugins", new Executable() {
 
                         public void run(Reactor session) throws Exception {
-                            // once we've listed plugins, we can fill in the reactor with plugin-specific initialization tasks
+                            // once we've listed plugins, we can fill in the reactor with plugin-specific
+                            // initialization tasks
                             TaskGraphBuilder g = new TaskGraphBuilder();
                             final Map<String, File> inspectedShortNames = new HashMap<String, File>();
                             for (final File arc : archives) {
-                                g.followedBy().notFatal().attains(PLUGINS_LISTED).add("Inspecting plugin " + arc, new Executable() {
+                                g.followedBy().notFatal().attains(PLUGINS_LISTED).add("Inspecting plugin " + arc,
+                                        new Executable() {
 
                                     public void run(Reactor session1) throws Exception {
                                         try {
@@ -390,7 +395,8 @@ public class PluginManager {
 
                                     /**
                                      * Inspects duplication. this happens when you run hpi:run on a bundled plugin,
-                                     * as well as putting numbered jpi files, like "cobertura-1.0.jpi" and "cobertura-1.1.jpi"
+                                     * as well as putting numbered jpi files, like "cobertura-1.0.jpi" and
+                                     * "cobertura-1.1.jpi"
                                      */
                                     private boolean isDuplicate(PluginWrapper p) {
                                         String shortName = p.getShortName();
@@ -403,7 +409,8 @@ public class PluginManager {
 
                                         Optional<PluginClassifier> classifier = p.getClassifier();
                                         if (targetClassifierFilter != null && classifier.isPresent()) {
-                                            duplicated = !targetClassifierFilter.match(p.getShortName(), classifier.get());
+                                            duplicated = !targetClassifierFilter.match(p.getShortName(),
+                                                    classifier.get());
                                         }
 
                                         if (!duplicated) {
@@ -414,14 +421,16 @@ public class PluginManager {
                                     }
                                 });
                             }
-                            g.followedBy().attains(PLUGINS_LISTED).add("Checking cyclic dependencies", new Executable() {
+                            g.followedBy().attains(PLUGINS_LISTED).add("Checking cyclic dependencies",
+                                    new Executable() {
 
                                 /**
                                  * Makes sure there's no cycle in dependencies.
                                  */
                                 public void run(Reactor reactor) throws Exception {
                                     try {
-                                        CyclicGraphDetector<PluginWrapper> cgd = new CyclicGraphDetector<PluginWrapper>() {
+                                        CyclicGraphDetector<PluginWrapper> cgd =
+                                                new CyclicGraphDetector<PluginWrapper>() {
 
                                             @Override
                                             protected List<PluginWrapper> getEdges(PluginWrapper p) {
@@ -431,21 +440,32 @@ public class PluginManager {
                                                 return next;
                                             }
 
-                                            private void addTo(PluginWrapper plugin, List<PluginWrapper.Dependency> dependencies, List<PluginWrapper> r) {
+                                            private void addTo(PluginWrapper plugin,
+                                                               List<PluginWrapper.Dependency> dependencies,
+                                                               List<PluginWrapper> r) {
 
-                                                ITPIArtifact.matchDependency(PluginManager.this, dependencies, plugin, (p) -> {
+                                                ITPIArtifact.matchDependency(PluginManager.this, dependencies, plugin
+                                                        , (p) -> {
                                                     r.add(p.getLeft());
                                                 });
 
-//                                                Optional<PluginClassifier> classifier = plugin.getClassifier();
-//                                                ITPIArtifactMatch match = ITPIArtifact.match(classifier);
-//                                                for (PluginWrapper.Dependency d : dependencies) {
-//                                                    match.setIdentityName(d.shortName);
-//                                                    PluginWrapper p = getPlugin(match);
-//                                                    if (p != null) {
-//                                                        r.add(p);
-//                                                    }
-//                                                }
+                                                //                                                Optional<PluginClassifier> classifier = plugin.getClassifier();
+                                                //                                                ITPIArtifactMatch
+                                                //                                                match =
+                                                //                                                ITPIArtifact.match
+                                                //                                                (classifier);
+                                                //                                                for (PluginWrapper
+                                                //                                                .Dependency d :
+                                                //                                                dependencies) {
+                                                //                                                    match
+                                                //                                                    .setIdentityName(d.shortName);
+                                                //                                                    PluginWrapper p
+                                                //                                                    = getPlugin
+                                                //                                                    (match);
+                                                //                                                    if (p != null) {
+                                                //                                                        r.add(p);
+                                                //                                                    }
+                                                //                                                }
                                             }
 
                                             @Override
@@ -455,7 +475,8 @@ public class PluginManager {
                                                         + ", deactivating all involved) " + Util.join(cycle, " -> "));
                                                 for (PluginWrapper pluginWrapper : cycle) {
                                                     pluginWrapper.setHasCycleDependency(true);
-                                                    failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(), new CycleDetectedException(cycle)));
+                                                    failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(),
+                                                            new CycleDetectedException(cycle)));
                                                 }
                                             }
                                         };
@@ -484,7 +505,8 @@ public class PluginManager {
                             // }
                             // });
                             session.addAll(g.discoverTasks(session));
-                            // technically speaking this is still too early, as at this point tasks are merely scheduled, not necessarily executed.
+                            // technically speaking this is still too early, as at this point tasks are merely
+                            // scheduled, not necessarily executed.
                             pluginListed = true;
                         }
                     });
@@ -506,7 +528,8 @@ public class PluginManager {
                         // Jenkins.getInstance().lookup.set(PluginInstanceStore.class, new PluginInstanceStore());
                         TaskGraphBuilder g = new TaskGraphBuilder();
                         // schedule execution of loading plugins
-                        for (final PluginWrapper pluginWrapper : activePlugins.toArray(new PluginWrapper[activePlugins.size()])) {
+                        for (final PluginWrapper pluginWrapper :
+                                activePlugins.toArray(new PluginWrapper[activePlugins.size()])) {
                             g.followedBy().notFatal().attains(PLUGINS_PREPARED)
                                     .add("Loading plugin " + pluginWrapper.getShortName(), new Executable() {
 
@@ -518,7 +541,8 @@ public class PluginManager {
                                                 failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(), e));
                                                 activePlugins.remove(pluginWrapper);
                                                 plugins.remove(pluginWrapper);
-                                                LOGGER.error("Failed to install {}: {}", pluginWrapper.getShortName(), e.getMessage());
+                                                LOGGER.error("Failed to install {}: {}", pluginWrapper.getShortName()
+                                                        , e.getMessage());
                                                 return;
                                             } catch (IOException e) {
                                                 failedPlugins.add(new FailedPlugin(pluginWrapper.getShortName(), e));
@@ -547,7 +571,7 @@ public class PluginManager {
                                     }
                                 }
                             });
-                    }
+                        }
 
                         if (CenterResource.notFetchFromCenterRepository()) {
                             g.followedBy().notFatal().attains(PLUGINS_STARTED).add("Load updateCenter", (reactor) -> {
@@ -562,7 +586,8 @@ public class PluginManager {
                     }
                 });
                 // All plugins are loaded. Now we can figure out who depends on who.
-                requires(PLUGINS_PREPARED).attains(COMPLETED).add("Resolving Dependant Plugins Graph", new Executable() {
+                requires(PLUGINS_PREPARED).attains(COMPLETED).add("Resolving Dependant Plugins Graph",
+                        new Executable() {
 
                     @Override
                     public void run(Reactor reactor) throws Exception {

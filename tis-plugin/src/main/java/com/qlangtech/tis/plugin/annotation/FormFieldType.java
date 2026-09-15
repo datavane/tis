@@ -121,6 +121,21 @@ public enum FormFieldType {
     , ENUM(5, new IPropValProcessor() {
         @Override
         public Object processInput(Object instance, PropVal val) throws Exception {
+
+            if (val.propertyType.fieldClazz.isEnum()) {
+                //需要将 val.rawVal() 转成 val.propertyType.fieldClazz对应的枚举实例 作为返回值
+                Object rawVal = val.rawVal();
+                // 属性默认值可能直接就是枚举实例，例如由插件json资源中的脚本指定
+                if (rawVal instanceof Enum) {
+                    return rawVal;
+                }
+                String enumName = StringUtils.trimToEmpty(rawVal == null ? null : String.valueOf(rawVal));
+                // 选项为空则属性置空
+                return StringUtils.isEmpty(enumName) ? null
+                        : Enum.valueOf((Class) val.propertyType.fieldClazz, enumName);
+            }
+
+
             return IPropValProcessor.super.processInput(instance, val);
         }
     }, TISJsonSchema.FieldType.String) //

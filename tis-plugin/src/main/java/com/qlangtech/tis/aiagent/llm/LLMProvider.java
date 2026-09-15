@@ -111,7 +111,7 @@ public abstract class LLMProvider extends ParamsConfig {
         //      ]
         JSONArray result = new JSONArray();
         String[] llms = new String[]{SUPPORT_MODEL_DEEPSEEK, SUPPORT_MODEL_QWEN, SUPPORT_MODEL_ANTHROPIC,
-                SUPPORT_MODEL_ZHIPU, SUPPORT_MODEL_OPENAI, "Kimi", "Baichuan", "Yi", "Mistral", "Grok", "Doubao", "Hunyuan", "Gemini", "MiniMax", "Ernie"};
+                SUPPORT_MODEL_ZHIPU, SUPPORT_MODEL_OPENAI, "Kimi", "Baichuan", "Yi", "Mistral", "Grok", "Doubao", "Hunyuan", "Gemini", "MiniMax", "Ernie", "MiMo"};
         for (String llm : llms) {
             JSONObject o = new JSONObject();
             o.put(KEY_TARGET_PLUGIN_DESC, KEY_DISPLAY_NAME);

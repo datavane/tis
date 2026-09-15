@@ -1,6 +1,0 @@
-{
-  "title":          { "help": "Widget 标题（画布与配置面板通用）", "placeholder": "输入 Widget 名称" },
-  "inputVariables": { "help": "绑定输入变量：选择当前模块中已声明的变量作为数据输入源" },
-  "outputVariables":{ "help": "绑定输出变量：选择当前模块中已声明的变量，Widget 将向其写入输出值" },
-  "cssClass":       { "help": "自定义 CSS class（高级）" }
-}

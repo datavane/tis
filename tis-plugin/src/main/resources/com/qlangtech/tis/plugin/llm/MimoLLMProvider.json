@@ -1,0 +1,59 @@
+{
+  "name": {
+    "help": "实例的唯一性名称，取一个方便记忆的名称",
+    "placeholder": "mimo1"
+  },
+  "apiKey": {
+    "label": "API Key",
+    "help": "小米 MiMo 开放平台 API 密钥，请求时通过 api-key 请求头传递"
+  },
+  "baseUrl": {
+    "label": "Base URL",
+    "dftVal": "https://api.xiaomimimo.com"
+  },
+  "model": {
+    "label": "模型",
+    "dftVal": "mimo-v2.5",
+    "help": "模型的 ID，mimo-v2.5-pro 能力更强，mimo-v2.5 输出上限较低但更省算力",
+    "enum": [
+      {
+        "val": "mimo-v2.5",
+        "label": "MiMo-v2.5（默认）"
+      },
+      {
+        "val": "mimo-v2.5-pro",
+        "label": "MiMo-v2.5-Pro（旗舰）"
+      }
+    ]
+  },
+  "maxTokens": {
+    "label": "最大Token数",
+    "dftVal": 32768,
+    "help": "补全可生成的 token 数上限（含可见输出与推理 token），取值范围 1-131072"
+  },
+  "thinking": {
+    "label": "深度思考",
+    "dftVal": "disabled",
+    "enum": [
+      {
+        "val": "disabled",
+        "label": "关闭"
+      },
+      {
+        "val": "enabled",
+        "label": "开启思维链"
+      }
+    ]
+  },
+  "sampling": {
+    "label": "高级采样",
+    "dftVal": "temperature",
+    "help": "在确定性的模型架构下引入可控的随机性，从而生成多样、新颖且合理的输出",
+    "subDescEnumFilter": "return com.qlangtech.tis.plugin.llm.ZhipuLLMProvider.filter(desc);"
+  },
+  "printLog": {
+    "label": "打印日志",
+    "dftVal": false,
+    "help": "是否打印与模型交互的执行日志"
+  }
+}

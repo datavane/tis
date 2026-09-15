@@ -704,7 +704,8 @@ public class PluginAction extends BasicModule {
 
     for (String extend : extendpoints) {
       List<Descriptor> descriptorList =
-        TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend));
+        TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend, true,
+          TIS.get().getPluginManager().uberClassLoader));
       if (endType != null) {
         descriptorList = descriptorList.stream()
           .filter(new TargetEndTypeMatch(endType))

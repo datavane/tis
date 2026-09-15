@@ -1,0 +1,7 @@
+{
+  "name":           { "label": "组件名称", "help": "模块内唯一的组件名，供区块编排与调试引用" },
+  "title":          { "label": "标题", "help": "Widget 标题（画布与配置面板通用）", "placeholder": "输入 Widget 标题" },
+  "displayConfig":  { "label": "显示配置", "help": "Widget 的尺寸策略、展示优化与条件可见性" },
+  "sortOrder":      { "label": "排序顺序", "help": "Widget 在同一区块内的显示顺序" },
+  "cssClass":       { "label": "自定义 CSS class", "help": "附加到 Widget 根容器的 CSS 类名（高级）" }
+}

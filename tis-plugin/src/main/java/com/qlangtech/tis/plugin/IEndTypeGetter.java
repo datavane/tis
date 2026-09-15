@@ -172,6 +172,7 @@ public interface IEndTypeGetter {
         , Gemini("gemini", EndTypeCategory.Assist, true) //
         , MiniMax("minimax", EndTypeCategory.Assist, true) //
         , Ernie("ernie", EndTypeCategory.Assist, true) //
+        , LLM_Mimo("llm_mimo", EndTypeCategory.Assist, true) //
         , UserProfile("user-profile", EndTypeCategory.Assist, true) //
         , Pipeline("pipeline", EndTypeCategory.Assist, true) //
         , Workflow("workflow", EndTypeCategory.Assist, true) //
@@ -210,6 +211,9 @@ public interface IEndTypeGetter {
         , Forbiden("forbiden", EndTypeCategory.Icon, true)//
         , File("file", EndTypeCategory.Icon, true)//
         , Bucket("bucket", EndTypeCategory.Icon, true)//
+        , PivotTable("pivot-table", EndTypeCategory.Icon, true)//
+        , Gantt("gantt", EndTypeCategory.Icon, true)//
+
 
 
         /**

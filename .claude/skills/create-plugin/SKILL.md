@@ -330,10 +330,241 @@ public String aggregation;
 }
 ```
 
+#### 原则四：SELECTABLE 字段必须在 Descriptor 中注册选项
+
+当字段使用 `@FormField(type = FormFieldType.SELECTABLE)` 时，其选项来自运行时动态数据源（如当前 Module 的变量列表、插件存储中的实例列表、外部系统查询结果等）。此时 **必须在 Descriptor 构造函数中调用 `registerSelectOptions()` 注册选项提供者**，否则前端渲染下拉框时抛出 `IllegalStateException`：
+
+```java
+// Descriptor.java:1758
+"fieldName:" + name + " is select options has not been register"
+```
+
+**4.1 字段名常量约定**
+
+`registerSelectOptions()` 的第一个参数（字段名）必须定义为 `public static final String KEY_xxx = "xxx"` 常量，在 `registerSelectOptions()` 和 `valueChangePipe()` 中复用，杜绝构造函数中的临时字符串字面量。
+
+**4.2 API 签名**
+
+```java
+// 注册单字段的 SELECTABLE 选项
+protected final void registerSelectOptions(
+    String fieldName,
+    Callable<List<? extends IdentityName>> getter
+);
+
+// 构建前端级联联动（fromField 值变化 → 刷新 toField 选项列表）
+protected ValueChangePipe valueChangePipe(
+    String fromField,
+    String... toField
+);
+// ValueChangePipe.render() 接受回调：
+public void render(
+    BiFunction<UploadPluginMeta, IParamGetter, List<? extends Option>> function
+);
+```
+
+**4.3 三种提供者模式**
+
+| 模式 | 使用场景 | 本仓库参考 |
+|---|---|---|
+| 方法引用 | 选项来自同一类/工具类的 **静态方法** | `UserProfile.java`（`tis-plugin/.../manage/common/UserProfile.java`） |
+| Lambda + PluginStore | 选项来自 `IPluginStore.getPlugins()` | `DataXJobWorker.java`（`tis-plugin/.../datax/job/DataXJobWorker.java`） |
+| Lambda + 抽象方法 | 选项需子类各自实现 | `TDFSLinker.java`（`tis-plugin/.../plugin/tdfs/TDFSLinker.java`） |
+
+**模式一：方法引用**
+
+```java
+// 来源：UserProfile.java
+public class UserProfile extends ParamsConfig {
+    public static final String KEY_FIELD_LLM_NAME = "llm";
+
+    @FormField(type = FormFieldType.SELECTABLE, ordinal = 1, validate = {Validator.identity})
+    public String llm;
+
+    @TISExtension
+    public static final class DftDescriptor extends ParamsConfig.BasicParamsConfigDescriptor {
+        public DftDescriptor() {
+            super(KEY_DISPLAY_NAME);
+            this.registerSelectOptions(KEY_FIELD_LLM_NAME, LLMProvider::getExistProviders);
+        }
+    }
+}
+```
+
+**模式二：Lambda + PluginStore**
+
+```java
+// 来源：DataXJobWorker.java
+public abstract class DataXJobWorker implements Describable<DataXJobWorker> {
+    public static final String KEY_FIELD_NAME = "k8sImage";
+
+    @FormField(ordinal = 1, type = FormFieldType.SELECTABLE, validate = {Validator.require})
+    public String k8sImage;
+
+    protected static abstract class BasicDescriptor extends Descriptor<DataXJobWorker> {
+        public BasicDescriptor() {
+            super();
+            this.registerSelectOptions(KEY_FIELD_NAME, () -> {
+                IPluginStore pluginStore = this.getK8SImageCategory().getPluginStore();
+                return pluginStore.getPlugins();
+            });
+        }
+        protected abstract K8sImage.ImageCategory getK8SImageCategory();
+    }
+}
+```
+
+**模式三：Lambda + 抽象方法**
+
+```java
+// 来源：TDFSLinker.java
+public abstract class TDFSLinker implements Describable<TDFSLinker> {
+    public static final String KEY_FTP_SERVER_LINK = "linker";
+
+    @FormField(ordinal = 1, type = FormFieldType.SELECTABLE, validate = {Validator.require})
+    public String linker;
+
+    protected static abstract class BasicDescriptor extends Descriptor<TDFSLinker>
+            implements DescriptorUseableShortComment {
+        public BasicDescriptor() {
+            super();
+            this.registerSelectOptions(KEY_FTP_SERVER_LINK, () -> createRefLinkers());
+        }
+        protected abstract List<? extends IdentityName> createRefLinkers();
+    }
+}
+```
+
+**4.4 IdentityName 创建**
+
+`registerSelectOptions()` 的 Callable 需要返回 `List<? extends IdentityName>`。`IdentityName` 是函数式接口，只有 `identityValue()` 一个方法。创建选项的方式如下：
+
+| 场景 | 做法 |
+|---|---|
+| 纯字符串选项 | `IdentityName.create("value")`（工厂方法，返回匿名 `IdentityName` 实例） |
+| 已有 `IdentityName` 对象 | 直接返回即可 |
+| 已有实现了 `IdentityName` 的 `Describable` 实例 | 直接返回 |
+
+```java
+// IdentityName.create() 工厂方法
+IdentityName opt = IdentityName.create("myValue");
+// opt.identityValue() → "myValue"
+
+// 用于 Stream 中转换字符串列表
+List<IdentityName> opts = variables.stream()
+    .filter(v -> v.type == VariableType.OBJECT_SET)
+    .map(v -> IdentityName.create(v.name))
+    .collect(Collectors.toList());
+```
+
+**4.5 级联联动 (valueChangePipe)**
+
+当一个 SELECTABLE 字段的选中值决定另一组字段的可选范围时，使用 `valueChangePipe()` 实现级联。前端在 fromField 触发 `onChange` 时，自动向后端请求刷新 toField 的选项。
+
+典型场景：选择一个"对象集变量"后，其"属性选择"字段的选项随之更新。
+
+```java
+// 级联注册模式示例
+public class MyWidget extends WorkshopWidgetDescribable {
+
+    public static final String KEY_OBJECT_SET_VAR = "objectSetVar";
+    public static final String KEY_PROP_A = "propA";
+    public static final String KEY_PROP_B = "propB";
+
+    @FormField(type = FormFieldType.SELECTABLE, ordinal = 3, validate = {Validator.require})
+    public String objectSetVar;
+
+    @FormField(type = FormFieldType.SELECTABLE, ordinal = 4, validate = {Validator.require})
+    public String propA;
+
+    @FormField(type = FormFieldType.SELECTABLE, ordinal = 5, validate = {Validator.require})
+    public String propB;
+
+    @TISExtension
+    public static class DescriptorImpl extends Descriptor<IWorkshopWidget> {
+
+        public DescriptorImpl() {
+            super();
+
+            // Step 1：注册源头字段的选项
+            this.registerSelectOptions(KEY_OBJECT_SET_VAR, MyHelper::getObjectSetVariableOptions);
+
+            // Step 2：级联目标字段初始化为空（未选源头时不显示选项）
+            this.registerSelectOptions(KEY_PROP_A, Collections::emptyList);
+            this.registerSelectOptions(KEY_PROP_B, Collections::emptyList);
+
+            // Step 3：建立级联管道 —— objectSetVar 变化时刷新 propA/propB 的选项
+            this.valueChangePipe(KEY_OBJECT_SET_VAR, KEY_PROP_A, KEY_PROP_B)
+                    .render((pluginMeta, params) -> {
+                        String selectedVar = params.getString(KEY_OBJECT_SET_VAR);
+                        if (selectedVar == null) {
+                            return Collections.emptyList();
+                        }
+                        return MyHelper.getObjectPropertyOptions(selectedVar, pluginMeta);
+                    });
+        }
+    }
+}
+```
+
+`render()` 回调签名说明：
+
+| 参数 | 类型 | 说明 |
+|---|---|---|
+| `pluginMeta` | `UploadPluginMeta` | 当前插件上下文元数据，含 domain、extra params 等 |
+| `params` | `IParamGetter` | 前端发来的表单参数字典，`params.getString(fieldName)` 读取 fromField 当前值 |
+| **返回值** | `List<? extends Option>` | 所有 toField 字段共用的选项列表 |
+
+> **注意**：`render()` 返回 `List<? extends Option>`（而非 `IdentityName`）。`Option` 有 `getName()` 和 `getValue()` 两个方法。如需携带 EndType 信息，使用 `OptionWithEndType`。
+
+**4.6 共享工具类模式**
+
+当多个 Widget（或插件的多个 SELECTABLE 字段）需要相同的选项逻辑时，抽取为一个共享工具类的静态方法。这是防止重复代码的标准做法：
+
+```java
+public final class MyHelper {
+
+    private MyHelper() {}
+
+    /** 获取 ObjectSet 类型变量的选项列表 */
+    public static List<IdentityName> getObjectSetVariableOptions() {
+        IPluginContext ctx = IPluginContext.getThreadLocalInstance();
+        if (ctx == null) return Collections.emptyList();
+        // ... 从上下文中加载变量列表，过滤 type == OBJECT_SET ...
+        return variables.stream()
+            .filter(v -> v.type == VariableType.OBJECT_SET)
+            .map(v -> IdentityName.create(v.name))
+            .collect(Collectors.toList());
+    }
+
+    /** 根据选中的 ObjectSet 变量名，获取其对象类型的属性选项（用于级联） */
+    public static List<? extends Option> getObjectPropertyOptions(
+            String varName, UploadPluginMeta pluginMeta) {
+        if (StringUtils.isEmpty(varName)) return Collections.emptyList();
+        try {
+            // 1. 根据 varName 找到变量定义
+            // 2. 获取其中引用的对象类型
+            // 3. 加载对象类型的属性列表并返回
+            // ... 业务逻辑 ...
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+}
+```
+
+**上下文获取**：静态方法中通过 `IPluginContext.getThreadLocalInstance()` 获取当前请求上下文，从中提取 domain、module 等信息来加载所需数据。如果前端需要传递额外参数，通过 `UploadPluginMeta` 的 extra params 传参。
+
+### Step 5 追加验证项
+
+在现有 Step 5 验证检查项中，追加两条：
+
+- **SELECTABLE 字段选项注册**：所有 `FormFieldType.SELECTABLE` 字段是否在 Descriptor 构造函数中调用了 `registerSelectOptions()`。如果涉及级联联动，`valueChangePipe()` 是否完整配置
+- **字段名常量**：`registerSelectOptions()` 的第一个参数是否使用 `public static final String` 常量，而非字符串字面量
+
 ### Validation Logic
 
 **IMPORTANT - DO NOT Generate Redundant Validation Code**:
-
 TIS framework automatically generates validation logic based on `@FormField` annotations' `validate` attribute. For example:
 - `@FormField(validate = {Validator.require})` → TIS auto-validates the field is not empty
 - `@FormField(validate = {Validator.identity})` → TIS auto-validates identity format

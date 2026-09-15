@@ -127,18 +127,18 @@ public class GroovyFieldScriptBridge {
         }
         List<PluginExtraProps.Props> result = new ArrayList<>(config.fields.size());
         for (ScriptField sf : config.fields) {
-            Map<String, Object> propsMap = new HashMap<>();
-            propsMap.put(PluginExtraProps.KEY_LABEL_PROP, sf.label);
-            if (sf.defaultValue != null) {
-                propsMap.put(PluginExtraProps.KEY_DFTVAL_PROP, sf.defaultValue);
-            }
-            if (sf.required) {
-                propsMap.put("required", true);
-            }
-            PluginExtraProps.Props props = new PluginExtraProps.Props(propsMap);
-            // 将 Props 的 key 设为字段名 —— PluginExtraProps.Props 在构造后可通过 put 设置
-            props.put("type", sf.type);
-            result.add(props);
+//            Map<String, Object> propsMap = new HashMap<>();
+//            propsMap.put(PluginExtraProps.KEY_LABEL_PROP, sf.label);
+//            if (sf.defaultValue != null) {
+//                propsMap.put(PluginExtraProps.KEY_DFTVAL_PROP, sf.defaultValue);
+//            }
+//            if (sf.required) {
+//                propsMap.put("required", true);
+//            }
+//            PluginExtraProps.Props props = new PluginExtraProps.Props(propsMap);
+//            // 将 Props 的 key 设为字段名 —— PluginExtraProps.Props 在构造后可通过 put 设置
+//            props.put("type", sf.type);
+//            result.add(props);
         }
         return result;
     }
