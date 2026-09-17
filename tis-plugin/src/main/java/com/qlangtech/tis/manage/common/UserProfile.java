@@ -28,6 +28,7 @@ import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
 import com.qlangtech.tis.util.HeteroEnum;
@@ -62,6 +63,9 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
 
     @FormField(type = FormFieldType.INPUTTEXT, ordinal = 2, validate = {Validator.email})
     public String email;
+
+    @SubForm(ordinal = 2, desClazz = TestChild.class, idListGetScript = "")
+    public List<TestChild> children;
 
     //    @FormField(type = FormFieldType.ENUM, ordinal = 3, validate = {Validator.require})
     //    public XX kk;

@@ -29,13 +29,29 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.manage.common.PostFormStreamProcess;
 import com.qlangtech.tis.manage.common.TisUTF8;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
+import com.qlangtech.tis.plugin.llm.AnthropicLLMProvider;
+import com.qlangtech.tis.plugin.llm.BaichuanLLMProvider;
 import com.qlangtech.tis.plugin.llm.DeepSeekProvider;
+import com.qlangtech.tis.plugin.llm.DoubaoLLMProvider;
+import com.qlangtech.tis.plugin.llm.ErnieLLMProvider;
+import com.qlangtech.tis.plugin.llm.GeminiLLMProvider;
+import com.qlangtech.tis.plugin.llm.GrokLLMProvider;
+import com.qlangtech.tis.plugin.llm.HunyuanLLMProvider;
+import com.qlangtech.tis.plugin.llm.KimiLLMProvider;
+import com.qlangtech.tis.plugin.llm.MimoLLMProvider;
+import com.qlangtech.tis.plugin.llm.MiniMaxLLMProvider;
+import com.qlangtech.tis.plugin.llm.MistralLLMProvider;
+import com.qlangtech.tis.plugin.llm.OpenAIProvider;
+import com.qlangtech.tis.plugin.llm.QWenLLMProvider;
 import com.qlangtech.tis.plugin.llm.Sampling;
 import com.qlangtech.tis.plugin.llm.TokenUsageSummary;
+import com.qlangtech.tis.plugin.llm.YiLLMProvider;
+import com.qlangtech.tis.plugin.llm.ZhipuLLMProvider;
 import com.qlangtech.tis.plugin.llm.log.ExecuteLog;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
@@ -62,6 +78,7 @@ import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_DEFAULT;
 import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_PATTERN;
 import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_CREATOR_HETERO;
 import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_DESC_NAME;
+import static com.qlangtech.tis.manage.common.Option.KEY_END_TYPE;
 import static com.qlangtech.tis.util.HeteroEnum.PARAMS_CONFIG_USER_ISOLATION;
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_TARGET_PLUGIN_DESC;
 
@@ -81,48 +98,50 @@ public abstract class LLMProvider extends ParamsConfig {
     protected static final String SUPPORT_MODEL_ANTHROPIC = "Anthropic";
     protected static final String SUPPORT_MODEL_ZHIPU = "Zhipu";
     protected static final String SUPPORT_MODEL_OPENAI = "OpenAI";
+    protected static final String KEY_DISPLAY_NAME = "LLM";
 
     public enum LLMChatPhase {
         Start, ERROR, Complete
     }
 
-    public static JSONArray useable() {
-        //        [
-        //        {
-        //            "hetero": "params-cfg-user-isolation",
-        //                "targetItemDesc": "LLM",
-        //                "descName": "DeepSeek"
-        //        },
-        //        {
-        //            "hetero": "params-cfg-user-isolation",
-        //                "targetItemDesc": "LLM",
-        //                "descName": "QWen"
-        //        },
-        //        {
-        //            "hetero": "params-cfg-user-isolation",
-        //                "targetItemDesc": "LLM",
-        //                "descName": "Anthropic"
-        //        },
-        //        {
-        //            "hetero": "params-cfg-user-isolation",
-        //                "targetItemDesc": "LLM",
-        //                "descName": "Zhipu"
-        //        }
-        //      ]
+    private static final JSONArray useableLLMs;
+
+    static {
         JSONArray result = new JSONArray();
-        String[] llms = new String[]{SUPPORT_MODEL_DEEPSEEK, SUPPORT_MODEL_QWEN, SUPPORT_MODEL_ANTHROPIC,
-                SUPPORT_MODEL_ZHIPU, SUPPORT_MODEL_OPENAI, "Kimi", "Baichuan", "Yi", "Mistral", "Grok", "Doubao", "Hunyuan", "Gemini", "MiniMax", "Ernie", "MiMo"};
-        for (String llm : llms) {
+        BasicParamsConfigDescriptor[] llms = new BasicParamsConfigDescriptor[]{
+                new DeepSeekProvider.DftDescriptor(),
+                new QWenLLMProvider.DftDescriptor(),
+                new AnthropicLLMProvider.DefaultDescriptor(),
+                new ZhipuLLMProvider.DftDescriptor(),
+                new OpenAIProvider.DftDescriptor(),
+                new KimiLLMProvider.DftDescriptor(),
+                new BaichuanLLMProvider.DftDescriptor(),
+                new YiLLMProvider.DftDescriptor(),
+                new MistralLLMProvider.DftDescriptor(),
+                new GrokLLMProvider.DftDescriptor(),
+                new DoubaoLLMProvider.DftDescriptor(),
+                new HunyuanLLMProvider.DftDescriptor(),
+                new GeminiLLMProvider.DftDescriptor(),
+                new MiniMaxLLMProvider.DftDescriptor(),
+                new ErnieLLMProvider.DftDescriptor(),
+                new MimoLLMProvider.DftDescriptor()};
+        for (BasicParamsConfigDescriptor llm : llms) {
             JSONObject o = new JSONObject();
             o.put(KEY_TARGET_PLUGIN_DESC, KEY_DISPLAY_NAME);
-            o.put(KEY_DESC_NAME, llm);
+            o.put(KEY_DESC_NAME, llm.getDisplayName());
             o.put(KEY_CREATOR_HETERO, PARAMS_CONFIG_USER_ISOLATION.getIdentity());
+            if (llm instanceof IEndTypeGetter endTypeGetter) {
+                o.put(KEY_END_TYPE, endTypeGetter.getEndType().getVal());
+            }
             result.add(o);
         }
-        return result;
+        useableLLMs = result;
     }
 
-    protected static final String KEY_DISPLAY_NAME = "LLM";
+    public static JSONArray useable() {
+        return useableLLMs;
+    }
+
 
     @FormField(advance = false, ordinal = 6, validate = {Validator.require})
     public Sampling sampling;

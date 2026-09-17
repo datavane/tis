@@ -213,6 +213,9 @@ public interface IEndTypeGetter {
         , Bucket("bucket", EndTypeCategory.Icon, true)//
         , PivotTable("pivot-table", EndTypeCategory.Icon, true)//
         , Gantt("gantt", EndTypeCategory.Icon, true)//
+        , AlignCenter("align-center", EndTypeCategory.Icon, false)//
+        , AlignLeft("align-left", EndTypeCategory.Icon, false)//
+        , AlignRight("align-right", EndTypeCategory.Icon, false)//
 
 
 

@@ -52,6 +52,35 @@ public enum ViewContent {
      */
     OntologyResInference("ontologyResInference", false),
 
+    /**
+     * Workshop 过滤列表（FilterListWidget）中的过滤项行。
+     *
+     * <p>每行是「控件形态 + 显示名 + 目标属性 + 算子」，没有列类型元数据的概念，
+     * 故 {@code colTypeMetasAware = false}（同 {@link #OntologyProps} 一族）。
+     *
+     * @see com.qlangtech.tis.plugin.ds.ElementCreatorFactory
+     */
+    WorkshopFilterItems("workshopFilterItems", false),
+
+    /**
+     * Workshop 变量的「接口输入映射」行（{@code MappingInterfaceConfig.inputs}）。
+     *
+     * <p>每行是「外部接口参数名 + 模块内变量名」，同样没有列类型元数据的概念，
+     * 故 {@code colTypeMetasAware = false}（同 {@link #WorkshopFilterItems} 一族）。
+     *
+     * @see com.qlangtech.tis.plugin.ds.ElementCreatorFactory
+     */
+    InterfaceInputRows("interfaceInputRows", false),
+
+    /**
+     * Workshop 变量的「路由参数映射」行（{@code PageRoutingConfig.params}）。
+     *
+     * <p>每行是「URL 参数名 + 模块内变量名」，同样没有列类型元数据的概念。
+     *
+     * @see com.qlangtech.tis.plugin.ds.ElementCreatorFactory
+     */
+    RoutingParamRows("routingParamRows", false),
+
     Unknow("unknow", false);
 
     private String token;

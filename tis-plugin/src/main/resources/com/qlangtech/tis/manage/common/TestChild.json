@@ -1,0 +1,26 @@
+{
+  "name": {
+    "label": "姓名",
+    "help": "子表单行的唯一标识",
+    "placeholder": "请输入姓名"
+  },
+  "age": {
+    "label": "年龄",
+    "help": "年龄，单位：岁"
+  },
+  "sex": {
+    "label": "性别",
+    "help": "选择性别",
+    "dftVal": "male",
+    "enum": [
+      {
+        "label": "男",
+        "val": "male"
+      },
+      {
+        "label": "女",
+        "val": "female"
+      }
+    ]
+  }
+}

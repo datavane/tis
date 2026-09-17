@@ -486,6 +486,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         protected static final String KEY_INSTALLED = "installed";
         private final String displayName;
         private String description;
+
         // private String targetPluginCategory;
         private final String hetero;
         private final Optional<String> targetItemDesc;

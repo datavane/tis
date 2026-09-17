@@ -256,7 +256,9 @@
       "Bash(awk '/public static List<OptionWithEndType> availableTypes/,/^    }/' OntologyType.java)",
       "Bash(awk '/reduceByEndType/,/^    \\)?;/' OntologyType.java)",
       "Read(//opt/misc/palantir-study/use-case-data-quality/arch/**)",
-      "Bash(mvn -q -o compile -DskipTests)"
+      "Bash(mvn -q -o compile -DskipTests)",
+      "Bash(mvn -o -pl tis-plugin test-compile -DskipTests)",
+      "Bash(mvn -o -pl tis-plugin test -Dtest=TestPropertyType -DfailIfNoTests=false)"
     ],
     "deny": [],
     "ask": []
