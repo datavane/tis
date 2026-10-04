@@ -16,5 +16,10 @@
     "label": "Email",
     "help": "用户电子邮箱地址",
     "placeholder": "baisui@qlangtech.com"
+  },
+  "rules": {
+    "elementCreator": "com.qlangtech.tis.plugin.datax.transformer.impl.TransformerRuleElementCreatorFactory",
+    "enum": "com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules.getRules():uncache_true",
+    "viewtype": "tuplelist"
   }
 }

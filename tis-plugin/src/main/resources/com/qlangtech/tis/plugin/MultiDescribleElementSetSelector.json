@@ -1,0 +1,1 @@
+{  "target": {    "label": "目标实例(s)",    "viewtype": "idlist",    "enum": "com.qlangtech.tis.plugin.MultiDescribleElementSetSelector.getTargetCandidate():uncache_true",    "help": "请选择目标实例"  }}

@@ -17,6 +17,8 @@
  */
 package com.qlangtech.tis.plugin.annotation;
 
+import com.qlangtech.tis.extension.Describable;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -49,5 +51,12 @@ public @interface FormField {
 
     FormFieldType type() default FormFieldType.INPUTTEXT;
 
+
+    /**
+     * 当字段声明类型为抽象的 Describable 时，用它指定具体的实现类；
+     * 未指定时默认值 {@link Describable} 表示"没有额外约束"
+     * 只有在Field类型为List<? extends Describable<?>> 才有意义
+     */
+    Class<? extends Describable> desClazz() default Describable.class;
 
 }

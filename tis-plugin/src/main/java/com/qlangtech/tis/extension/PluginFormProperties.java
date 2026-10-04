@@ -44,15 +44,15 @@ public abstract class PluginFormProperties {
 
     public abstract boolean containProperty(String fieldName);
 
-    public abstract Set<Map.Entry<String, PropertyType>> getKVTuples();
+    public abstract Set<Map.Entry<String, IPropertyType>> getKVTuples();
 
     /**
      * 取得可用并且，已经按照 formField.ordinal() 从小到大排好序了
      *
      * @return
      */
-    public List<Entry<String, PropertyType>> getSortedUseableProperties() {
-        List<Entry<String, PropertyType>> entries = this.getKVTuples().stream().filter((entry) -> {
+    public List<Entry<String, IPropertyType>> getSortedUseableProperties() {
+        List<Entry<String, IPropertyType>> entries = this.getKVTuples().stream().filter((entry) -> {
             JSONObject extraProps = entry.getValue().getExtraProps();
             if (extraProps != null && extraProps.getBooleanValue(PluginExtraProps.KEY_DISABLE)) {
                 return false;

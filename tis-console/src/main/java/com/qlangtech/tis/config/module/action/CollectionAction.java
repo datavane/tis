@@ -985,6 +985,16 @@ public class CollectionAction extends com.qlangtech.tis.runtime.module.action.Ad
     }
 
     @Override
+    public <META extends IUploadPluginMeta> List<META> getPluginMeta() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <META extends IUploadPluginMeta> List<META> getPluginMeta(boolean validatePluginEmpty) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public boolean isCollectionAware() {
       return this.pluginType == HeteroEnum.MQ;
     }

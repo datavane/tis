@@ -141,6 +141,16 @@ public class PartialSettedPluginContext implements IPluginContext, IControlMsgHa
     }
 
     @Override
+    public List<IUploadPluginMeta> getPluginMeta() {
+        return List.of();
+    }
+
+    @Override
+    public List<IUploadPluginMeta> getPluginMeta(boolean validatePluginEmpty) {
+        return List.of();
+    }
+
+    @Override
     public Pair<Boolean, IPluginItemsProcessor> getPluginItems(IUploadPluginMeta pluginMeta, Context context,
                                                                int pluginIndex, JSONArray itemsArray,
                                                                FormVaildateType verify, PropValRewrite propValRewrite) {

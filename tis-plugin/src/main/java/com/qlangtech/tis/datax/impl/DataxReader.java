@@ -214,13 +214,13 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
             }
 
             private void fillDefaultVals(PluginFormProperties props, Describable subForm) {
-                Set<Map.Entry<String, PropertyType>> kvs = props.getKVTuples();
+                Set<Map.Entry<String, IPropertyType>> kvs = props.getKVTuples();
                 PropertyType pp = null;
 
                 final Set<String> skipProps = Sets.newHashSet();
                 ppDftValGetter:
-                for (Map.Entry<String, PropertyType> pentry : kvs) {
-                    pp = pentry.getValue();
+                for (Map.Entry<String, IPropertyType> pentry : kvs) {
+                    pp = (PropertyType) pentry.getValue();
                     if (pp.isIdentity()) {
                         pp.setVal(subForm, tab2cols.getKey());
                         skipProps.add(pentry.getKey());
@@ -239,12 +239,12 @@ public abstract class DataxReader implements Describable<DataxReader>, IDataxRea
             }
 
             private Describable createPluginByDefaultVals(StringBuffer propPath, final Set<String> skipProps,
-                                                          Set<Map.Entry<String, PropertyType>> kvTuples,
+                                                          Set<Map.Entry<String, IPropertyType>> kvTuples,
                                                           Describable plugin) {
                 PropertyType pp = null;
                 ppDftValGetter:
-                for (Map.Entry<String, PropertyType> pentry : kvTuples) {
-                    pp = pentry.getValue();
+                for (Map.Entry<String, IPropertyType> pentry : kvTuples) {
+                    pp = (PropertyType) pentry.getValue();
                     if (skipProps.contains(pentry.getKey())) {
                         continue;
                     }

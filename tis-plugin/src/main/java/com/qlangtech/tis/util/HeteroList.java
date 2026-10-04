@@ -38,6 +38,7 @@ import java.util.Optional;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@SuppressWarnings("all")
 public class HeteroList<T extends Describable<T>> {
 
     public static final String KEY_ITEMS = "items";

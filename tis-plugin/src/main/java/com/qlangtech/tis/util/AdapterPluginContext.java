@@ -49,6 +49,16 @@ public abstract class AdapterPluginContext implements IPluginContext, IControlMs
         this(pluginContext, (IControlMsgHandler) pluginContext);
     }
 
+    @Override
+    public List<UploadPluginMeta> getPluginMeta() {
+        return getPluginMeta(true);
+    }
+
+    @Override
+    public  List<UploadPluginMeta> getPluginMeta(boolean validatePluginEmpty) {
+        return pluginContext.getPluginMeta(validatePluginEmpty);
+    }
+
     public AdapterPluginContext(IPluginContext pluginContext, IControlMsgHandler msgHandler) {
         this.pluginContext = (pluginContext);
         this.msgHandler = Objects.requireNonNull(msgHandler, "msgHandler can not be null");

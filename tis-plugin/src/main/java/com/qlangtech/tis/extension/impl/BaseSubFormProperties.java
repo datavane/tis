@@ -27,6 +27,7 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
@@ -36,6 +37,7 @@ import com.qlangtech.tis.util.DescriptorsJSON;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -53,6 +55,77 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
     @Override
     public boolean isCollectionType() {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 子表单属性本身不是一个叶子字段属性，下列 IPropertyType 中定义的方法只对叶子字段属性（PropertyType）有意义，
+     * 在子表单属性上调用会抛出不支持异常
+     *
+     * @see PropertyType
+     */
+    private UnsupportedOperationException notLeafProperty() {
+        return new UnsupportedOperationException(this.getClass().getName()
+                + " is not a leaf property,the method is only available on " + PropertyType.class.getSimpleName());
+    }
+
+    @Override
+    public Object getFrontendOutput(Object instance) {
+        throw notLeafProperty();
+    }
+
+    @Override
+    public boolean isDescribable() {
+        return false;
+    }
+
+    @Override
+    public JSONObject getExtraProps() {
+        throw notLeafProperty();
+    }
+
+//    @Override
+//    public int ordinal() {
+//        throw notLeafProperty();
+//    }
+
+    @Override
+    public boolean isInputRequired() {
+        throw notLeafProperty();
+    }
+
+    @Override
+    public int typeIdentity() {
+        throw notLeafProperty();
+    }
+
+    @Override
+    public Object dftVal() {
+        throw notLeafProperty();
+    }
+
+    @Override
+    public boolean advance() {
+        throw notLeafProperty();
+    }
+
+    @Override
+    public void setVal(Object instance, Object val) {
+        throw notLeafProperty();
+    }
+
+    @Override
+    public void appendExternalProp(JSONObject attrVal) {
+        throw notLeafProperty();
+    }
+
+    @Override
+    public List<Option> getEnumPropOptions() {
+        throw notLeafProperty();
+    }
+
+    @Override
+    public Class getFieldClazz() {
+        return this.subFormField.getType();
     }
 
     /**
@@ -93,7 +166,7 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
 
     public RootFormProperties convertRootFormProps() {
         return new RootFormProperties(this.subFormFieldsDescriptor,
-                this.getKVTuples().stream().collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue())));
+                this.getKVTuples().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
 

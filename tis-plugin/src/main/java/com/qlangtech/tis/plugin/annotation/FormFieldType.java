@@ -51,8 +51,15 @@ import static com.qlangtech.tis.extension.IPropertyType.CONST_UNIT_INTEGER_FIELD
  * @date 2019年1月11日
  */
 public enum FormFieldType {
-
-
+    /**
+     * 对应插件中如下类型
+     * <pre>
+     *      @FormField(ordinal = 3, desClazz = TestChild.class, type = FormFieldType.MULTI_DESCRIBLE_PLUGIN,validate = {Validator.require})
+     *      public List<TestChild> children;
+     * </pre>
+     *
+     */
+    MULTI_DESCRIBLE_PLUGIN(13, TISJsonSchema.FieldType.Array),
     /**
      * 多选字段,目标属性样例：'List<String> cols'
      */

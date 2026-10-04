@@ -24,6 +24,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
@@ -200,10 +201,10 @@ public class AttrVals implements AttrValMap.IAttrVals {
             @Override
             public PluginEqualResult visit(RootFormProperties props) {
                 try {
-                    PropertyType pt = null;
+                    IPropertyType pt = null;
                     String fieldName = null;
                     JSONObject describle = null;
-                    for (Map.Entry<String, PropertyType> entry : props.getSortedUseableProperties()) {
+                    for (Map.Entry<String, IPropertyType> entry : props.getSortedUseableProperties()) {
                         pt = entry.getValue();
                         fieldName = entry.getKey();
                         Object exist = null;

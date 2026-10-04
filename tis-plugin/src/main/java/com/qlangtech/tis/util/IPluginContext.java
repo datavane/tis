@@ -54,9 +54,9 @@ public interface IPluginContext extends IMessageHandler, IDataXNameAware, IPostC
         return pluginContext;
     }
 
-    public default List<UploadPluginMeta> getPluginMeta() {
-        throw new UnsupportedOperationException();
-    }
+//    public default <META extends IUploadPluginMeta> List<META> getPluginMeta() {
+//        throw new UnsupportedOperationException();
+//    }
 
     public default Context getContext() {
         throw new UnsupportedOperationException();

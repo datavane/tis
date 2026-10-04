@@ -20,6 +20,7 @@ package com.qlangtech.tis.extension.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 
 import java.util.Map;
@@ -47,7 +48,7 @@ public abstract class AdapterPluginFormProperties extends PluginFormProperties {
     }
 
     @Override
-    public Set<Map.Entry<String, PropertyType>> getKVTuples() {
+    public Set<Map.Entry<String, IPropertyType>> getKVTuples() {
         return target.getKVTuples();
     }
 

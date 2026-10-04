@@ -18,6 +18,7 @@
 package com.qlangtech.tis.extension.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -25,9 +26,10 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
-import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.PluginFormProperties;
-import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.extension.ValueChangePipe;
+import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.runtime.module.action.IParamGetter;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.IPluginContext;
@@ -47,14 +49,22 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-12 11:05
  */
+@SuppressWarnings("all")
 public class RootFormProperties extends PluginFormProperties {
-    public final Map<String, /*** fieldname*/PropertyType> propertiesType;
+    /**
+     * 属性名 -> 属性定义。
+     * <p>
+     * <strong>不变量：该 map 中只应包含 {@link PropertyType} 实例</strong>（@SubForm 字段对应的 SuFormProperties 必须由调用方
+     * 使用 {@link PropertyType#filterFieldProp(Map)} 过滤掉），因为 {@link #getInstancePropsJson(Object)} 会对每个属性调用
+     * {@link IPropertyType#getFrontendOutput(Object)}，而子表单属性并不支持该方法
+     */
+    public final Map<String, /*** fieldname*/IPropertyType> propertiesType;
     private final Descriptor descriptor;
     private static final Logger logger = LoggerFactory.getLogger(RootFormProperties.class);
 
     private final boolean isSupportMultiStep;
 
-    public RootFormProperties(Descriptor descriptor, Map<String, PropertyType> propertiesType) {
+    public RootFormProperties(Descriptor descriptor, Map<String, /*** fieldname*/IPropertyType> propertiesType) {
         this.propertiesType = Objects.requireNonNull(propertiesType, "param propertiesType can not be null");
         this.descriptor = descriptor;
         this.isSupportMultiStep = descriptor instanceof MultiStepsSupportHostDescriptor;
@@ -72,7 +82,7 @@ public class RootFormProperties extends PluginFormProperties {
     }
 
     @Override
-    public Set<Map.Entry<String, PropertyType>> getKVTuples() {
+    public Set<Map.Entry<String, IPropertyType>> getKVTuples() {
         return this.propertiesType.entrySet();
     }
 
@@ -80,25 +90,32 @@ public class RootFormProperties extends PluginFormProperties {
     @Override
     public JSON getInstancePropsJson(Object instance) {
         JSONObject vals = new JSONObject();
-        List<Descriptor.ValueChangePipe> valChangePipes = null;
+        List<ValueChangePipe> valChangePipes = null;
         Map<String, Object> pipeSourceVals = null;
         try {
 
             Object o = null;
-            for (Map.Entry<String, PropertyType> entry : propertiesType.entrySet()) {
-
-                o = entry.getValue().getFrontendOutput(instance);
+            IPropertyType pt = null;
+            for (Map.Entry<String, IPropertyType> entry : propertiesType.entrySet()) {
+                pt = entry.getValue();
+                o = pt.getFrontendOutput(instance);
                 if (o == null) {
                     continue;
                 }
 
-
-                if (entry.getValue().isDescribable()) {
+                if (pt.isDescribable()) {
                     DescribableJSON djson = new DescribableJSON((Describable) o);
                     vals.put(entry.getKey(), djson.getItemJson());
+                } else if (pt.typeIdentity() == FormFieldType.MULTI_DESCRIBLE_PLUGIN.getIdentity()) {
+                    List<Describable> nextItems = (List<Describable>) o;
+                    JSONArray items = new JSONArray();
+                    for (Describable nest : nextItems) {
+                        items.add(new DescribableJSON(nest).getItemJson());
+                    }
+                    vals.put(entry.getKey(), items);
                 } else {
                     // 级联数据同步控件primary控件必须是普通非Describable的属性
-                    Descriptor.ValueChangePipe valueChangePipe = descriptor.getValueChangePipe(entry.getKey(), false);
+                    ValueChangePipe valueChangePipe = descriptor.getValueChangePipe(entry.getKey(), false);
                     if (valueChangePipe != null) {
                         if (valChangePipes == null) {
                             valChangePipes = Lists.newArrayList();
@@ -123,12 +140,13 @@ public class RootFormProperties extends PluginFormProperties {
                 UploadPluginMeta uploadMeta =
                         UploadPluginMeta.createPluginMeta(threadLocalContext.getContext());
                 IParamGetter params = new PluginPropParams(pipeSourceVals);
-                for (Descriptor.ValueChangePipe pipe : valChangePipes) {
-                    Map<String, List<? extends Option>> renderResult = pipe.render(uploadMeta, params);
-                    for (Map.Entry<String, List<? extends Option>> entry : renderResult.entrySet()) {
+                for (ValueChangePipe pipe : valChangePipes) {
+                    Map<String, List<? extends IdentityName>> renderResult = pipe.render(uploadMeta, params);
+                    for (Map.Entry<String, List<? extends IdentityName>> entry : renderResult.entrySet()) {
                         // 使用"$" 作为前缀，在前端处理中可以方便与插件的property区别
                         // entry.getKey() 值可能中间包含“.”作为分割符，一个plugin 的property可以级联更新，另外一个Describable类型的子select控件属性
-                        vals.put("$pipe_field$" + entry.getKey(), Option.toJson(entry.getValue()));
+                        vals.put("$pipe_field$" + entry.getKey(),
+                                ValueChangePipe.renderValueSerialize2Json(entry.getValue()));
                     }
                 }
             }

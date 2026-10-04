@@ -37,6 +37,8 @@ import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.SubForm;
@@ -115,6 +117,8 @@ public class PropertyType implements IPropertyType {
     // private final Optional<Descriptor.ElementPluginDesc> parentPluginDesc;
     public final Class fieldClazz;
 
+    public final Optional<Class<? extends Describable>> fieldListElementClazz;
+
     public final Type type;
 
     private volatile Class itemType;
@@ -127,7 +131,6 @@ public class PropertyType implements IPropertyType {
 
     @Override
     public String propertyName() {
-        //f.getType()
         return this.f.getName();
     }
 
@@ -185,8 +188,53 @@ public class PropertyType implements IPropertyType {
             throw new IllegalStateException("param formField can not be null");
         }
         this.formField = formField;
+        // 当field为List<? extend Describle> 且 FormField也设置了desClazz属性（正常情况下desClazz要与List<?> 中的element类型要一致），则为
+        this.fieldListElementClazz = this.createFieldListElementClazz();
     }
 
+    private Optional<Class<? extends Describable>> createFieldListElementClazz() {
+        final Class<? extends Describable> desClazz = this.formField.desClazz();
+        if (desClazz == Describable.class) {
+            // 未设置 desClazz，元素类型以声明的泛型为准，无需额外记录
+            return Optional.empty();
+        }
+
+        // 复用 getItemType()：已由 tiger-types 从泛型签名里解析出 List<ElementType> 的 ElementType，
+        // 对 raw List 及声明在泛型父类中的字段都能正确降级，不必自己 cast ParameterizedType
+        final Class listElementClazz = this.getItemType();
+        if (listElementClazz == null || listElementClazz != (desClazz)) {
+            throw new IllegalStateException("desClazz:" + desClazz.getName() + " must be class of field:"
+                    + this.f.getName() + ", but now is:" + listElementClazz);
+        }
+
+        // IdentityName, IPluginStore.ManipuldateProcessor
+        if (!IPluginStore.MultiDescribleElement.class.isAssignableFrom(desClazz)) {
+            throw new IllegalStateException("since this.formField contain desClazz:" + desClazz.getName() + " "
+                    + "then fieldClazz must be type of " + IPluginStore.MultiDescribleElement.class.getName());
+        }
+
+        //        if (!IPluginStore.ManipuldateProcessor.class.isAssignableFrom(desClazz)) {
+        //            throw new IllegalStateException("since this.formField contain desClazz:" + desClazz.getName() +
+        //            " "
+        //                    + "then fieldClazz must be type of " + IPluginStore.ManipuldateProcessor.class.getName());
+        //        }
+
+        if (!List.class.isAssignableFrom(fieldClazz)) {
+            throw new IllegalStateException("since this.formField contain desClazz:" + desClazz.getName() + " "
+                    + "then fieldClazz must be type of " + List.class.getName());
+        }
+
+        if (this.formField.type() != FormFieldType.MULTI_DESCRIBLE_PLUGIN) {
+            throw new IllegalStateException("annotation FormField type:" + FormFieldType.MULTI_DESCRIBLE_PLUGIN + " "
+                    + "must be class of field:"
+                    + this.f.getName() + ", but now is:" + this.formField.type());
+        }
+
+
+        return Optional.of(desClazz);
+    }
+
+    @Override
     public List<Option> getEnumPropOptions() {
         return this.getEnumPropOptions(true);
     }
@@ -267,10 +315,37 @@ public class PropertyType implements IPropertyType {
         return List.class.isAssignableFrom(this.fieldClazz);
     }
 
-    public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(Map<String,
+    /**
+     * 过滤掉非 {@link PropertyType} 类型的属性（例如 @SubForm 字段对应的 SuFormProperties），
+     * <p>
+     * 返回值类型为 {@link IPropertyType}，因为部分消费方（例如 SuFormProperties）只能接收 PropertyType，
+     * 需要用到窄类型视图的消费方请使用 {@link #toPropertyTypes(Map)}
+     */
+    public static Map<String, /*** fieldname*/IPropertyType> filterFieldProp(Map<String,
             /*** fieldname*/IPropertyType> props) {
-        return props.entrySet().stream().filter((e) -> e.getValue() instanceof PropertyType) //
-                .collect(Collectors.toMap((e) -> e.getKey(), (e) -> (PropertyType) e.getValue()));
+        return props.entrySet().stream().filter((e) -> {
+                    IPropertyType pt = e.getValue();
+                    return pt instanceof PropertyType;
+                }) //
+                .collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue()));
+    }
+
+    /**
+     * 窄类型视图：将过滤后的属性 map 视图强转为 PropertyType 的 map（零拷贝，只能当只读使用）
+     * <p>
+     * <strong>入参必须是 {@link #filterFieldProp(Map)} 的过滤结果</strong>，否则运行期访问元素时会抛 ClassCastException
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, /*** fieldname*/PropertyType> toPropertyTypes(Map<String, ? extends IPropertyType> props) {
+        return (Map<String, PropertyType>) (Map) props;
+    }
+
+    /**
+     * 放宽类型视图：将 PropertyType 的 map 视图放宽为 IPropertyType 的 map（零拷贝，只能当只读使用）
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, /*** fieldname*/IPropertyType> toIPropertyTypes(Map<String, ? extends IPropertyType> props) {
+        return (Map<String, IPropertyType>) (Map) props;
     }
 
     /**
@@ -314,8 +389,9 @@ public class PropertyType implements IPropertyType {
                                                 "subFromDescClass:" + subFromDescClass + " relevant descriptor can " + "not be null");
 
                                 propMapper.put(f.getName(), new SuFormProperties(clazz, f, subFormFields, subFormDesc
-                                        , filterFieldProp(buildPropertyTypes(ElementPluginDesc.create(subFormDesc),
-                                        subFromDescClass))));
+                                        ,
+                                        toPropertyTypes(filterFieldProp(buildPropertyTypes(ElementPluginDesc.create(subFormDesc),
+                                                subFromDescClass)))));
                             } else if ((formField = f.getAnnotation(FormField.class)) != null) {
 
                                 PluginExtraProps.Props fieldExtraProps = null;
@@ -503,7 +579,7 @@ public class PropertyType implements IPropertyType {
      * @param descriptor
      * @return
      */
-    public static Map<String, /*** fieldname*/PropertyType> filterFieldProp(boolean useCache, Descriptor descriptor) {
+    public static Map<String, /*** fieldname*/IPropertyType> filterFieldProp(boolean useCache, Descriptor descriptor) {
         return filterFieldProp(descriptor.getPropertyTypes(useCache));
     }
 
@@ -535,6 +611,7 @@ public class PropertyType implements IPropertyType {
         return this.formField.identity();
     }
 
+    @Override
     @JSONField(serialize = false)
     public JSONObject getExtraProps() {
         if (this.extraProp == null) {
@@ -564,6 +641,7 @@ public class PropertyType implements IPropertyType {
         this.extraProp = extraProp;
     }
 
+    @Override
     public Object dftVal() {
         if (this.extraProp == null) {
             return null;
@@ -571,18 +649,22 @@ public class PropertyType implements IPropertyType {
         return this.extraProp.getDftVal();
     }
 
+    @Override
     public int ordinal() {
         return formField.ordinal();
     }
 
+    @Override
     public boolean advance() {
         return (this.extraProp != null && this.extraProp.isAdvance()) || formField.advance();
     }
 
+    @Override
     public int typeIdentity() {
         return formField.type().getIdentity();
     }
 
+    @Override
     public void appendExternalProp(JSONObject attrVal) {
         formField.type().appendExternalProps.accept(attrVal);
     }
@@ -621,6 +703,7 @@ public class PropertyType implements IPropertyType {
         return this.validators;
     }
 
+    @Override
     public boolean isInputRequired() {
         if (inputRequired == null) {
             inputRequired = false;
@@ -657,6 +740,7 @@ public class PropertyType implements IPropertyType {
      * @param instance
      * @return
      */
+    @Override
     public Object getFrontendOutput(Object instance) {
         return this.getVal(true, instance);
     }
@@ -701,6 +785,7 @@ public class PropertyType implements IPropertyType {
         return null;
     }
 
+    @Override
     public void setVal(Object instance, Object val) {
 
         PropVal fieldVal = new PropVal(val, this.fieldClazz, this);
@@ -761,8 +846,14 @@ public class PropertyType implements IPropertyType {
         return TIS.get().getDescriptor(getItemType());
     }
 
+    @Override
     public boolean isDescribable() {
         return Describable.class.isAssignableFrom(fieldClazz);
+    }
+
+    @Override
+    public Class getFieldClazz() {
+        return this.fieldClazz;
     }
 
     public static String getPluginImpl(JSONObject valJ) {
@@ -829,10 +920,14 @@ public class PropertyType implements IPropertyType {
 
         try {
 
-            return subDescFilter.apply(TIS.get().getDescriptorList(fieldClazz));
+            return subDescFilter.apply(TIS.get().getDescriptorList(extendpointClass()));
         } catch (Exception e) {
             throw new RuntimeException("formField:" + this.f, e);
         }
+    }
+
+    public Class extendpointClass() {
+        return this.fieldListElementClazz.orElse(this.fieldClazz);
     }
 
     /**

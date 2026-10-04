@@ -75,6 +75,10 @@ public interface IPluginEnum<T extends Describable<T>> extends IdentityName {
                 + "is not support for findPlugin with param id:" + identity.identityValue());
     }
 
+    public default Optional<IPluginStore<T>> pluginStore( //
+            IPluginContext pluginContext, UploadPluginMeta pluginMeta, List<Descriptor.ParseDescribable<?>> dlist) {
+        return Optional.empty();
+    }
 
     public IPluginStore getPluginStore(IPluginContext pluginContext, UploadPluginMeta pluginMeta);
 
@@ -101,6 +105,7 @@ public interface IPluginEnum<T extends Describable<T>> extends IdentityName {
 
     /**
      * 创建记录的token
+     *
      * @param hostPluginId
      * @param valMap
      * @return

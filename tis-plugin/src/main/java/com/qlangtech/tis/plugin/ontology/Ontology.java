@@ -171,7 +171,7 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
      * 加载某一个 Action 的详细信息
      *
      * @param ontologyName 本体域名称
-     * @param actionName Action 名称
+     * @param actionName   Action 名称
      * @return Action 详情
      */
     public static OntologyAction loadActionDetail(String ontologyName, String actionName) {
@@ -251,17 +251,19 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
                 , IEndTypeGetter.EndType.OntologyObjectType,
                 new BaiscAssistStoreGetter<OntologyObjectType>() {
                     @Override
-                    public File getAssistRootDir(String ontologyName) {
+                    public File getAssistRootDir(String ontologyName, Optional<String> subModule) {
                         return OntologyDomain.getObjectTypeDir(ontologyName);
                         //  return objectTypeDir;
                     }
+
+
                 }),
         ValueType(OntologyValueType.KEY_VALUE_TYPE //
                 ,
                 IEndTypeGetter.EndType.OntologyValueType
                 , new BaiscAssistStoreGetter<OntologyValueType>() {
             @Override
-            public File getAssistRootDir(String ontologyName) {
+            public File getAssistRootDir(String ontologyName, Optional<String> subModule) {
                 return OntologyDomain.getValueTypeDir(ontologyName);
             }
         }),
@@ -269,7 +271,7 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
                 , IEndTypeGetter.EndType.OntologyLink
                 , new BaiscAssistStoreGetter<OntologyLinker>() {
             @Override
-            public File getAssistRootDir(String ontologyName) {
+            public File getAssistRootDir(String ontologyName, Optional<String> subModule) {
                 return OntologyDomain.getLinkTypeDir(ontologyName);
             }
         }),
@@ -277,12 +279,13 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
                 IEndTypeGetter.EndType.Shared,
                 new BaiscAssistStoreGetter<OntologySharedProperty>() {
                     @Override
-                    public IPluginStore<OntologySharedProperty> getPluginStore(OntologyPluginMeta pluginMeta) {
-                        return super.getPluginStore(pluginMeta.setPersistence());
+                    public IPluginStore<OntologySharedProperty> getPluginStore(OntologyPluginMeta pluginMeta,
+                                                                               Optional<String> subModule) {
+                        return super.getPluginStore(pluginMeta.setPersistence(), subModule);
                     }
 
                     @Override
-                    public File getAssistRootDir(String ontologyName) {
+                    public File getAssistRootDir(String ontologyName, Optional<String> subModule) {
                         return OntologyDomain.getSharedPropsDir(ontologyName);
                     }
                 }),
@@ -290,12 +293,13 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
                 , IEndTypeGetter.EndType.OntologyGlossary
                 , new BaiscAssistStoreGetter<OntologyGlossary>() {
             @Override
-            public IPluginStore<OntologyGlossary> getPluginStore(OntologyPluginMeta pluginMeta) {
-                return super.getPluginStore(pluginMeta.setPersistence());
+            public IPluginStore<OntologyGlossary> getPluginStore(OntologyPluginMeta pluginMeta,
+                                                                 Optional<String> subModule) {
+                return super.getPluginStore(pluginMeta.setPersistence(), subModule);
             }
 
             @Override
-            public File getAssistRootDir(String ontologyName) {
+            public File getAssistRootDir(String ontologyName, Optional<String> subModule) {
                 return OntologyDomain.getGlossaryDir(ontologyName);
             }
         }),
@@ -303,12 +307,13 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
                 , IEndTypeGetter.EndType.OntologyAction
                 , new BaiscAssistStoreGetter<OntologyAction>() {
             @Override
-            public IPluginStore<OntologyAction> getPluginStore(OntologyPluginMeta pluginMeta) {
-                return super.getPluginStore(pluginMeta.setPersistence());
+            public IPluginStore<OntologyAction> getPluginStore(OntologyPluginMeta pluginMeta,
+                                                               Optional<String> subModule) {
+                return super.getPluginStore(pluginMeta.setPersistence(), subModule);
             }
 
             @Override
-            public File getAssistRootDir(String ontologyName) {
+            public File getAssistRootDir(String ontologyName, Optional<String> subModule) {
                 return OntologyDomain.getActionDir(ontologyName);
             }
         }),
@@ -316,12 +321,13 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
                 , IEndTypeGetter.EndType.OntologyFunction
                 , new BaiscAssistStoreGetter<OntologyFunction>() {
             @Override
-            public IPluginStore<OntologyFunction> getPluginStore(OntologyPluginMeta pluginMeta) {
-                return super.getPluginStore(pluginMeta.setPersistence());
+            public IPluginStore<OntologyFunction> getPluginStore(OntologyPluginMeta pluginMeta,
+                                                                 Optional<String> subModule) {
+                return super.getPluginStore(pluginMeta.setPersistence(), subModule);
             }
 
             @Override
-            public File getAssistRootDir(String ontologyName) {
+            public File getAssistRootDir(String ontologyName, Optional<String> subModule) {
                 return OntologyDomain.getFunctionDir(ontologyName);
             }
         });
@@ -361,7 +367,7 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
 
         @SuppressWarnings("all")
         public IPluginStore<Ontology> getPluginStore(OntologyPluginMeta meta) {
-            return (IPluginStore<Ontology>) this.storeKeyGetter.getPluginStore(meta);
+            return (IPluginStore<Ontology>) this.storeKeyGetter.getPluginStore(meta, Optional.empty());
         }
 
         /**

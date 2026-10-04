@@ -29,6 +29,7 @@ import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.manage.common.TisUTF8;
@@ -363,7 +364,7 @@ public class TestSuFormProperties extends TestCase {
 //                        , CollectionUtils.isEqualCollection(Collections.singleton("id"), getterMeta.getParams()));
 
                 //===============================================
-                Set<Map.Entry<String, PropertyType>> kvTuples = props.getKVTuples();
+                Set<Map.Entry<String, IPropertyType>> kvTuples = props.getKVTuples();
                 assertEquals(3, kvTuples.size());
 
 

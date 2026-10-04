@@ -35,6 +35,12 @@ import java.util.List;
 public interface IPostContent {
     public List<IUploadPluginMeta> parsePluginMeta(String[] plugins, boolean useCache);
 
+    public default  <META extends IUploadPluginMeta> List<META> getPluginMeta(){
+        return getPluginMeta(true);
+    }
+
+    public <META extends IUploadPluginMeta> List<META> getPluginMeta(boolean validatePluginEmpty);
+
     public default Pair<Boolean, IPluginItemsProcessor>
     getPluginItems(IUploadPluginMeta pluginMeta, Context context,
                    int pluginIndex, JSONArray itemsArray, FormVaildateType verify, PropValRewrite propValRewrite) {

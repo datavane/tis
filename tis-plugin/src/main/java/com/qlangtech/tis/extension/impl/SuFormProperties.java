@@ -23,6 +23,7 @@ import com.qlangtech.tis.datax.IDataxReader;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.MultiItemsViewType;
@@ -55,13 +56,15 @@ import java.util.stream.Collectors;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-11 13:22
+ *
  */
+@SuppressWarnings("all")
 public class SuFormProperties extends BaseSubFormProperties {
 
     public static final ThreadLocal<SuFormGetterContext> subFormGetterProcessThreadLocal =
             ThreadLocal.withInitial(() -> {
-        return new SuFormGetterContext();
-    });
+                return new SuFormGetterContext();
+            });
 
     public static SuFormGetterContext setSuFormGetterContext(Describable plugin, UploadPluginMeta pluginMeta,
                                                              String subFormDetailId) {
@@ -116,6 +119,7 @@ public class SuFormProperties extends BaseSubFormProperties {
     public Descriptor getParentPluginDesc() {
         return this.parentPluginDesc;
     }
+
 
     /**
      * 至少选一个
@@ -294,8 +298,8 @@ public class SuFormProperties extends BaseSubFormProperties {
 
 
     @Override
-    public Set<Map.Entry<String, PropertyType>> getKVTuples() {
-        return fieldsType.entrySet();
+    public Set<Map.Entry<String, IPropertyType>> getKVTuples() {
+        return PropertyType.toIPropertyTypes(fieldsType).entrySet();
     }
 
 
@@ -324,7 +328,8 @@ public class SuFormProperties extends BaseSubFormProperties {
         SelectedTabExtend sourceExtendProps = null;
         if (ext != null) {
             itemJson = new DescribableJSON(ext);
-            pair.add(itemJson.getItemJson(new RootFormProperties(this.subFormFieldsDescriptor, this.fieldsType)));
+            pair.add(itemJson.getItemJson(new RootFormProperties(this.subFormFieldsDescriptor,
+                    PropertyType.toIPropertyTypes(this.fieldsType))));
 
 
             sourceExtendProps = ext.getSourceProps();

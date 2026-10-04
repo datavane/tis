@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.datax.SelectedTabExtend;
@@ -162,7 +163,7 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
 
 
     @Override
-    public Set<Map.Entry<String, PropertyType>> getKVTuples() {
+    public Set<Map.Entry<String, IPropertyType>> getKVTuples() {
         return PropertyType.filterFieldProp(true, subFormFieldsDescriptor).entrySet();
     }
 }

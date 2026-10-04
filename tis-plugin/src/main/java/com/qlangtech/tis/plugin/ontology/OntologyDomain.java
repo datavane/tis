@@ -26,8 +26,6 @@ import com.qlangtech.tis.plugin.manipulate.ManipulatePluginCacheRegister;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.DescriptorUseableShortComment;
-import com.qlangtech.tis.extension.IDescribableManipulate;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -67,6 +65,7 @@ public abstract class OntologyDomain implements Describable<OntologyDomain>, Ide
 
     public static final String KEY_SHARED_PROPERTIES = "shared-property";
 
+    public static final String KEY_WORKSHOP = "workshop";
     public static final String NAME_ONTOLOGY_DOMAIN = "ontology";
     public static final String FIELD_NAME = "name";
 
@@ -91,7 +90,8 @@ public abstract class OntologyDomain implements Describable<OntologyDomain>, Ide
 
     public static Pair<OntologyDomain, IPluginStore<OntologyDomain>> load(String domain) {
         IPluginStore<OntologyDomain> domainStore = getOntologyDomainPluginStore(domain);
-        return Pair.of(domainStore.getPlugin(), domainStore);
+        return Pair.of(Objects.requireNonNull(domainStore.getPlugin(), "domain:" + domain + " relevant instance can "
+                + "not be null"), domainStore);
     }
 
     private static IPluginStore<OntologyDomain> getOntologyDomainPluginStore(String domain) {
@@ -161,36 +161,38 @@ public abstract class OntologyDomain implements Describable<OntologyDomain>, Ide
         return objTypes;
     }
 
-    private static File getDir(String ontologyName) {
+    public static File getOntologyDomainDir(String ontologyName) {
         return (getStoreKey(ontologyName).getStoreXmlFile().getFile().getParentFile());
     }
 
     public static File getObjectTypeDir(String ontologyName) {
-        return new File(getDir(ontologyName), KEY_OBJECT_TYPE);
+        return new File(getOntologyDomainDir(ontologyName), KEY_OBJECT_TYPE);
     }
 
+
+
     public static File getLinkTypeDir(String ontologyName) {
-        return new File(getDir(ontologyName), OntologyLinker.KEY_LINK_TYPES);
+        return new File(getOntologyDomainDir(ontologyName), OntologyLinker.KEY_LINK_TYPES);
     }
 
     public static File getValueTypeDir(String ontologyName) {
-        return new File(getDir(ontologyName), OntologyValueType.KEY_VALUE_TYPE);
+        return new File(getOntologyDomainDir(ontologyName), OntologyValueType.KEY_VALUE_TYPE);
     }
 
     public static File getSharedPropsDir(String ontologyName) {
-        return new File(getDir(ontologyName), KEY_SHARED_PROPERTIES);
+        return new File(getOntologyDomainDir(ontologyName), KEY_SHARED_PROPERTIES);
     }
 
     public static File getGlossaryDir(String ontologyName) {
-        return new File(getDir(ontologyName), OntologyGlossary.KEY_GLOSSARY);
+        return new File(getOntologyDomainDir(ontologyName), OntologyGlossary.KEY_GLOSSARY);
     }
 
     public static File getActionDir(String ontologyName) {
-        return new File(getDir(ontologyName), "action-type");
+        return new File(getOntologyDomainDir(ontologyName), "action-type");
     }
 
     public static File getFunctionDir(String ontologyName) {
-        return new File(getDir(ontologyName), "function");
+        return new File(getOntologyDomainDir(ontologyName), "function");
     }
 
     @FormField(identity = true, ordinal = 0, validate = {Validator.require, Validator.identity_strict})

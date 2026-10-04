@@ -24,6 +24,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.coredefine.module.action.DataxAction;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.*;
 import com.qlangtech.tis.plugin.ds.CMeta;
@@ -86,7 +87,7 @@ public class TestPluginItems extends TestCase {
     assertTrue("get RootFormProperties process result", rootPropertyTypes.accept(new PluginFormProperties.IVisitor() {
       @Override
       public Boolean visit(RootFormProperties props) {
-        Map<String, PropertyType> propertiesType = props.propertiesType;
+        Map<String, IPropertyType> propertiesType = props.propertiesType;
         validatePropertyValue(propertiesType, "dbName", "order1", reader);
         validatePropertyValue(propertiesType, "splitPk", true, reader);
 
@@ -148,8 +149,8 @@ public class TestPluginItems extends TestCase {
     EasyMock.verify(pluginContext);
   }
 
-  private void validatePropertyValue(Map<String, PropertyType> propertiesType, String key, Object value, DataxReader reader) {
-    PropertyType pt = null;
+  private void validatePropertyValue(Map<String, IPropertyType> propertiesType, String key, Object value, DataxReader reader) {
+    IPropertyType pt = null;
     pt = propertiesType.get(key);
     assertNotNull(pt);
     assertEquals(value, pt.getFrontendOutput(reader));

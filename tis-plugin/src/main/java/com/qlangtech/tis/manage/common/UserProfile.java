@@ -19,26 +19,29 @@
 package com.qlangtech.tis.manage.common;
 
 import com.alibaba.citrus.turbine.Context;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
+import com.qlangtech.tis.runtime.module.action.IParamGetter;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 /**
  *
@@ -49,6 +52,7 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
 
     public static final String KEY_DISPLAY_NAME = "UserProfile";
     public static final String KEY_FIELD_LLM_NAME = "llm";
+    private static final String KEY_FIELD_CONTROL = "control";
 
     @FormField(identity = true, type = FormFieldType.INPUTTEXT, ordinal = 0, validate = {Validator.identity,
             Validator.require})
@@ -64,8 +68,15 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
     @FormField(type = FormFieldType.INPUTTEXT, ordinal = 2, validate = {Validator.email})
     public String email;
 
-    @SubForm(ordinal = 2, desClazz = TestChild.class, idListGetScript = "")
+    @FormField(ordinal = 3, type = FormFieldType.SELECTABLE, validate = {Validator.require})
+    public String control;
+
+    @FormField(ordinal = 5, desClazz = TestChild.class, type = FormFieldType.MULTI_DESCRIBLE_PLUGIN, validate =
+            {Validator.require})
     public List<TestChild> children;
+
+    //    @FormField(ordinal = 1, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
+    //    public List<RecordTransformer> rules = Lists.newArrayList();
 
     //    @FormField(type = FormFieldType.ENUM, ordinal = 3, validate = {Validator.require})
     //    public XX kk;
@@ -140,6 +151,17 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
         public DftDescriptor() {
             super(KEY_DISPLAY_NAME);
             this.registerSelectOptions(KEY_FIELD_LLM_NAME, LLMProvider::getExistProviders);
+            this.registerSelectOptions(KEY_FIELD_CONTROL, () -> {
+                return Lists.newArrayList(IdentityName.create("a"), IdentityName.create("b"));
+            });
+            this.valueChangePipe(KEY_FIELD_CONTROL, "children") //
+                    .render(new BiFunction<UploadPluginMeta, IParamGetter, List<? extends IdentityName>>() {
+                        @Override
+                        public List<? extends IdentityName> apply(UploadPluginMeta pluginMeta, IParamGetter param) {
+                            String control = param.getString(KEY_FIELD_CONTROL);
+                            return getChildren(control);
+                        }
+                    });
         }
 
 
@@ -152,6 +174,37 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
         public EndType getEndType() {
             return EndType.UserProfile;
         }
+    }
+
+    public static List<TestChild> getChildren(String control) {
+        List<TestChild> children = new ArrayList<>();
+        TestChild child = null;
+        switch (control) {
+            case "a": {
+                child = new TestChild();
+                child.name = "a";
+                child.age = 11;
+                child.sex = TestChild.Sex.male;
+                children.add(child);
+                break;
+            }
+            case "b": {
+                child = new TestChild();
+                child.name = "b";
+                child.age = 12;
+                child.sex = TestChild.Sex.male;
+                children.add(child);
+                child = new TestChild();
+                child.name = "bb";
+                child.age = 14;
+                child.sex = TestChild.Sex.female;
+                children.add(child);
+                break;
+            }
+            default:
+                throw new IllegalStateException(control);
+        }
+        return children;
     }
 
 }

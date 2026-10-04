@@ -113,6 +113,26 @@ Every TIS plugin MUST satisfy:
    - Optional `.md` file for rich markdown help content
    - **IMPORTANT:  parent classes also need `.json`!** Even if a class is `abstract` and has no `@TISExtension` Descriptor of its own, if it declares `@FormField` fields (public fields with `@FormField` annotation), it MUST have its own `.json` file at the matching resource path. These fields' help/placeholder/dftVal are inherited by concrete subclasses; TIS looks up the `.json` for each class in the hierarchy independently.
 
+5. **Descriptor 命名：`getDisplayName()` 禁止返回中文（CRITICAL）**
+   - `Descriptor#getDisplayName()` 是插件的机器可读短名，**必须由纯字母组成**：不得包含中文、空格以及任何标点符号
+   - 需要表达中文功能说明时，让 Descriptor 实现 `com.qlangtech.tis.extension.DescriptorUseableShortComment` 接口
+     （`tis-plugin/src/main/java/com/qlangtech/tis/extension/DescriptorUseableShortComment.java`），
+     把原来的中文内容移到 `shortComment()` 的返回值，`getDisplayName()` 改写成对应的英文短名
+   - 命名规则：**下划线分隔的帕斯卡命名**（每个单词首字母大写，单词之间用 `_` 分隔）；
+     全大写缩写保持全大写（`LLM` / `URL` / `AIP`）；单个单词时无需下划线
+   - 示例对照：
+
+     | 类名 | ✅ `getDisplayName()` | ✅ `shortComment()` |
+     |---|---|---|
+     | `CloseOverlayConfig.DefaultDescriptor` | `Close_Overlay` | `关闭浮层` |
+     | `DisableAutoRefreshConfig.DefaultDescriptor` | `Disable_Auto_Refresh` | `关闭自动刷新` |
+     | `StreamLlmConfig.DefaultDescriptor` | `Stream_LLM` | `调用大模型` |
+     | `RecomputeConfig.DefaultDescriptor` | `Recompute` | `重算变量` |
+     | `UrlClickAction.DefaultDescriptor` | `URL` | `跳转链接` |
+
+   - ❌ 反例：`return "关闭浮层";`（中文）、`return "Close Overlay";`（含空格）、`return "closeOverlay";`（单词首字母未大写）
+   - 本规则对**所有** Descriptor 子类生效，顶级插件 (Top-Level Plugin) 与聚合属性插件 (Aggregated Property Plugin) 一视同仁
+
 ### Property Types
 
 #### General Properties
@@ -156,6 +176,8 @@ public OntologyActionRule sideEffectRule;  // This will fail at runtime!
     - **NO punctuation marks** (no periods, commas, etc.)
     - Will be displayed in the frontend UI to help users understand the plugin at a glance
     - Example: "Hadoop文件系统管理" or "Hive元数据存储"
+  - 🔴 **同一个 Descriptor 的 `getDisplayName()` 不得返回中文**：中文说明只出现在 `shortComment()`，
+    `getDisplayName()` 必须返回纯字母的英文短名（如 `Hadoop_Catalog`）。详见 "Core Requirements" 第 5 条
 - Its own `.json` descriptor file in resources (same package path)
 - Optional `.md` help file if properties are complex
 
@@ -203,7 +225,8 @@ public OntologyActionRule sideEffectRule;  // This will fail at runtime!
             
             @Override
             public String getDisplayName() {
-                return "Hadoop Catalog";
+                // 纯字母英文短名，下划线分隔帕斯卡命名；中文一律放 shortComment()
+                return "Hadoop_Catalog";
             }
         }
     }
@@ -819,7 +842,8 @@ Generate these files in the correct structure:
    - Business logic methods
    - Inner `Descriptor` class with:
      - `@TISExtension` annotation
-     - `getDisplayName()` override
+     - `getDisplayName()` override — **必须返回纯字母英文短名，禁止中文/空格**（见 "Core Requirements" 第 5 条）
+     - `shortComment()` override — 中文功能说明（实现 `DescriptorUseableShortComment`）
      - `validate*` methods for property validation
      - `validateAll()` if needed for joint validation
      - `registerSelectOptions()` if using SELECTABLE fields
@@ -951,7 +975,8 @@ Generate these files in the correct structure:
           - Be concise and clear
           - Example for HadoopCatalog: `return "基于HDFS文件系统";`
           - Example for HiveMetastoreCatalog: `return "使用Hive元数据";`
-        - Override `getDisplayName()` if needed
+        - **MUST NOT override `getDisplayName()` with Chinese text** — 必须返回纯字母的英文短名
+          （下划线分隔帕斯卡命名，如 `Hadoop_Catalog`），中文一律放 `shortComment()`
       - Same structure as main plugin
    
    b. **Implementation JSON Descriptor** (`HadoopCatalog.json`)
@@ -994,6 +1019,10 @@ Generate these files in the correct structure:
     - Simple properties: only `help` in JSON (one sentence)
     - Complex properties: detailed help in `.md` file, brief or no `help` in JSON
     - No duplicate help content between JSON and .md files
+  - **Descriptor 命名正确（对每个 Descriptor 子类逐一检查）**:
+    - `getDisplayName()` 返回值是否**纯字母**（无中文 / 无空格 / 无标点）
+    - 是否采用下划线分隔的帕斯卡命名（如 `Close_Overlay`、`Open_Workshop_Module`），缩写是否全大写（`Stream_LLM`）
+    - 中文功能说明是否已移到 `shortComment()`，且 Descriptor 是否实现了 `DescriptorUseableShortComment` 接口
   - **For 聚合属性插件 (Aggregated Property Plugin)**: 
     - **Parent abstract class requirements**:
       - Has a `protected abstract static class BasicDescriptor extends Descriptor<ParentClass>`

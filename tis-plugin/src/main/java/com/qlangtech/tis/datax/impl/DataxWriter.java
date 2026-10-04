@@ -220,7 +220,7 @@ public abstract class DataxWriter implements Describable<DataxWriter>, IDataxWri
             return rewriteSubFormProperties.computeIfAbsent(this.getClass() //subformProps.parentClazz
                     , (clazz) -> {
                         SuFormProperties rewriteSubFormProperties = SuFormProperties.copy(
-                                PropertyType.filterFieldProp(PropertyType.buildPropertyTypes(ElementPluginDesc.create(newSubDescriptor), newSubDescriptor.clazz))
+                                PropertyType.toPropertyTypes(PropertyType.filterFieldProp(PropertyType.buildPropertyTypes(ElementPluginDesc.create(newSubDescriptor), newSubDescriptor.clazz)))
                                 , newSubDescriptor.clazz
                                 , newSubDescriptor
                                 , subformProps);

@@ -27,6 +27,7 @@ import com.alibaba.fastjson.parser.Feature;
 import com.google.common.collect.Lists;
 import com.koubei.web.tag.pager.LinkBuilder;
 import com.koubei.web.tag.pager.Pager;
+import com.qlangtech.tis.runtime.module.misc.IPostContent;
 import org.apache.struts2.ActionContext;
 import org.apache.struts2.ActionProxy;
 import org.apache.struts2.ActionSupport;
@@ -175,12 +176,18 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return erRulesGetter.getErRules(dfName);
   }
 
+  /**
+   * impl：
+   *
+   * @return
+   * @see IPostContent#getPluginMeta()
+   */
   @Override
   public List<UploadPluginMeta> getPluginMeta() {
     return getPluginMeta(true);
   }
-
-  protected List<UploadPluginMeta> getPluginMeta(boolean validatePluginEmpty) {
+  @Override
+  public List<UploadPluginMeta> getPluginMeta(boolean validatePluginEmpty) {
     final boolean useCache = Boolean.parseBoolean(this.getString("use_cache", "true"));
     // return UploadPluginMeta.parse(this, this.getStringArray("plugin"), useCache);
     String[] pluginsParam = this.getStringArray(KEY_PLUGIN);

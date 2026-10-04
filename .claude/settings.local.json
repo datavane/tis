@@ -258,7 +258,11 @@
       "Read(//opt/misc/palantir-study/use-case-data-quality/arch/**)",
       "Bash(mvn -q -o compile -DskipTests)",
       "Bash(mvn -o -pl tis-plugin test-compile -DskipTests)",
-      "Bash(mvn -o -pl tis-plugin test -Dtest=TestPropertyType -DfailIfNoTests=false)"
+      "Bash(mvn -o -pl tis-plugin test -Dtest=TestPropertyType -DfailIfNoTests=false)",
+      "Read(//opt/misc/palantir-study/foundry/pipeline-builder/detail/**)",
+      "Read(//opt/misc/palantir-study/foundry/pipeline-builder/**)",
+      "Read(//opt/misc/palantir-study/use-case-stock-trading-assistant/relevant-widget-impl/**)",
+      "Bash(timeout 540 mvn -o -q compile -Dmaven.test.skip=true)"
     ],
     "deny": [],
     "ask": []

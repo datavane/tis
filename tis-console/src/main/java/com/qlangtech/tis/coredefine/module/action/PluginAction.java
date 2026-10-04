@@ -23,11 +23,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
-import com.qlangtech.tis.extension.DescriptorExtensionList;
-import com.qlangtech.tis.extension.ExtensionList;
-import com.qlangtech.tis.plugin.IEndTypeGetter;
-import com.qlangtech.tis.util.IPluginContext;
-import org.apache.struts2.ActionContext;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -36,14 +31,13 @@ import com.qlangtech.tis.extension.Describable.IRefreshable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
 import com.qlangtech.tis.extension.Descriptor.SelectOption;
-import com.qlangtech.tis.extension.OneStepOfMultiSteps;
-import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.extension.IDescribableManipulate;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.PluginFormProperties.IVisitor;
 import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.extension.PluginWrapper.Dependency;
+import com.qlangtech.tis.extension.ValueChangePipe;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
@@ -62,8 +56,8 @@ import com.qlangtech.tis.manage.spring.aop.Func;
 import com.qlangtech.tis.maven.plugins.tpi.ICoord;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter.EndType;
-import com.qlangtech.tis.plugin.IEndTypeGetter.Icon;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityDesc;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -71,17 +65,17 @@ import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.runtime.module.action.BasicModule;
 import com.qlangtech.tis.runtime.module.misc.BasicRundata;
+import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
-import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
-import com.qlangtech.tis.util.DescriptorsJSONForAIPrompt;
 import com.qlangtech.tis.util.DescriptorsMeta;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.HeteroList;
 import com.qlangtech.tis.util.IItemsSaveResult;
+import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.IPluginItemsProcessor;
 import com.qlangtech.tis.util.IPluginWithStore;
 import com.qlangtech.tis.util.IUploadPluginMeta;
@@ -93,11 +87,12 @@ import com.qlangtech.tis.util.Selectable;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.workflow.pojo.DatasourceDb;
 import com.qlangtech.tis.workflow.pojo.DatasourceDbCriteria;
-import org.apache.commons.codec.digest.DigestUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.struts2.ActionContext;
 import org.apache.struts2.convention.annotation.InterceptorRef;
 import org.apache.struts2.convention.annotation.InterceptorRefs;
 import org.apache.struts2.dispatcher.HttpParameters;
@@ -105,8 +100,6 @@ import org.apache.struts2.dispatcher.Parameter.File;
 import org.apache.struts2.dispatcher.multipart.UploadedFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -117,7 +110,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.qlangtech.tis.extension.MultiStepsSupportHost.KEY_MULTI_STEPS_SAVED_ITEMS;
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
 
@@ -174,6 +166,9 @@ public class PluginAction extends BasicModule {
    */
   public void doDescriptionProcess(Context context) throws Exception {
     String pluginImpl = this.getString(DescriptorsJSON.KEY_IMPL);
+    if (StringUtils.isEmpty(pluginImpl)) {
+      throw new IllegalStateException("param " + DescriptorsJSON.KEY_IMPL + " can not be empty");
+    }
     Descriptor targetPlugin = Objects.requireNonNull(TIS.get().getDescriptor(pluginImpl),
       "pluginImpl:" + pluginImpl + " relevant descriptor can not be null");
 
@@ -686,6 +681,7 @@ public class PluginAction extends BasicModule {
   @SuppressWarnings("all")
   public void doGetDescsByExtendpoint(Context context) throws Exception {
     List<String> extendpoints = this.getExtendpointParam();
+    final boolean getAll = this.getBoolean("all");
     if (CollectionUtils.isEmpty(extendpoints)) {
       throw new IllegalArgumentException("extendpoints can not be null");
     }
@@ -702,6 +698,7 @@ public class PluginAction extends BasicModule {
       break;
     }
 
+    Map<String/*endpoint*/, DescriptorsMeta> allEndpointDescriptor = Maps.newHashMap();
     for (String extend : extendpoints) {
       List<Descriptor> descriptorList =
         TIS.get().getDescriptorList((Class<Describable>) Class.forName(extend, true,
@@ -711,8 +708,21 @@ public class PluginAction extends BasicModule {
           .filter(new TargetEndTypeMatch(endType))
           .collect(Collectors.toList());
       }
-      this.setBizResult(context,
-        new DefaultDescriptorsJSON(descriptorList).getDescriptorsJSON());
+
+      if (!getAll) {
+        this.setBizResult(context,
+          new DefaultDescriptorsJSON(descriptorList).getDescriptorsJSON());
+        return;
+      } else {
+        allEndpointDescriptor.put(extend, new DefaultDescriptorsJSON(descriptorList).getDescriptorsJSON());
+      }
+    }
+
+    if (getAll) {
+      if (MapUtils.isEmpty(allEndpointDescriptor)) {
+        throw new IllegalStateException("allEndpointDescriptor can not be null");
+      }
+      this.setBizResult(context, allEndpointDescriptor);
       return;
     }
 
@@ -749,8 +759,8 @@ public class PluginAction extends BasicModule {
       @Override
       public List<? extends Descriptor> visit(RootFormProperties props) {
 
-        PropertyType descProp = Objects.requireNonNull(props.propertiesType.get(field), "field:" + field + " relevant"
-          + " propDesc can not be null");
+        PropertyType descProp = (PropertyType) Objects.requireNonNull(props.propertiesType.get(field), "field:" + field
+          + " relevant" + " propDesc can not be null");
         if (descProp.isDescribable()) {
           return descProp.getApplicableDescriptors();
         }
@@ -847,15 +857,19 @@ public class PluginAction extends BasicModule {
     Descriptor targetDesc = Objects.requireNonNull(descriptorField.getTargetDesc()
       , descriptorField.pluginImpl + " relevant Descriptor can not be null");
 
-    Descriptor.ValueChangePipe valueChangePipe
+    ValueChangePipe valueChangePipe
       = targetDesc.getValueChangePipe(descriptorField.field);
 
     for (UploadPluginMeta meta : pluginsMeta) {
       UploadPluginMeta.putPluginMeta(context, meta);
       //   context.put(UploadPluginMeta.KEY_PLUGIN_META, meta);
-      Map<String, List<? extends Option>> cascadeFieldVals = valueChangePipe.render(meta, this);
+      Map<String, List<? extends IdentityName>> cascadeFieldVals = valueChangePipe.render(meta, this);
       this.setBizResult(context, cascadeFieldVals.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-        (e) -> Option.toJson(e.getValue()))));
+        (e) -> {
+          List<? extends IdentityName> value = e.getValue();
+          return ValueChangePipe.renderValueSerialize2Json(value);
+
+        })));
       return;
     }
 
@@ -978,7 +992,8 @@ public class PluginAction extends BasicModule {
     JSONObject postData = this.parseJsonPost();
     String[] forwardParams = getActionForwardParam(postData);
 
-    JSONArray pluginArray = Objects.requireNonNull(postData.getJSONArray("items"), "json prop items can not be null");
+    JSONArray pluginArray = Objects.requireNonNull(
+      postData.getJSONArray("items"), "json prop items can not be null");
     UploadPluginMeta pluginMeta = null;
 
     boolean faild = false;

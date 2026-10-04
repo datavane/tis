@@ -90,6 +90,7 @@ import static com.qlangtech.tis.extension.init.InitMilestone.PLUGINS_PREPARED;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@SuppressWarnings("all")
 public class TIS {
 
     /**

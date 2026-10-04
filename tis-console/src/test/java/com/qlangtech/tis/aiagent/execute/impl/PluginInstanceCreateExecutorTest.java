@@ -47,6 +47,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.util.impl.AttrVals;
@@ -160,7 +161,7 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     AttrVals pluginVals = new AttrVals(attrMap);
 
     // 构建属性类型映射
-    LinkedHashMap<String, PropertyType> properties = new LinkedHashMap<>();
+    LinkedHashMap<String, IPropertyType> properties = new LinkedHashMap<>();
 
     // 创建第一个属性类型
     PropertyType propType1 = createMock(PropertyType.class);
@@ -177,7 +178,7 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     properties.put("field2", propType2);
 
     // 创建属性列表
-    List<Map.Entry<String, PropertyType>> propertyList = new ArrayList<>(properties.entrySet());
+    List<Map.Entry<String, IPropertyType>> propertyList = new ArrayList<>(properties.entrySet());
 
     // 设置期望行为
     expect(plugin.getDescriptor()).andReturn(descriptor).anyTimes();
@@ -232,7 +233,7 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     AttrVals pluginVals = new AttrVals(attrMap);
 
     // 构建属性类型映射
-    LinkedHashMap<String, PropertyType> properties = new LinkedHashMap<>();
+    LinkedHashMap<String, IPropertyType> properties = new LinkedHashMap<>();
 
     // 创建第一个属性类型
     PropertyType propType1 = createMock(PropertyType.class);
@@ -249,7 +250,7 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     properties.put("field2", propType2);
 
     // 创建属性列表
-    List<Map.Entry<String, PropertyType>> propertyList = new ArrayList<>(properties.entrySet());
+    List<Map.Entry<String, IPropertyType>> propertyList = new ArrayList<>(properties.entrySet());
 
     // 设置期望行为
     expect(plugin.getDescriptor()).andReturn(descriptor).anyTimes();

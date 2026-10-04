@@ -42,12 +42,6 @@ public @interface SubForm {
     String FIELD_DES_CLASS = ("desClazz");
     // 表单中的顺序
 
-    /**
-     * -1 代表不用在页面上显示
-     *
-     * @return
-     */
-    int ordinal() default -1;
 
     // get describe form bean class
     Class<? extends Describable> desClazz();

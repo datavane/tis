@@ -29,6 +29,7 @@ import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.TISExtensible;
+import com.qlangtech.tis.extension.ValueChangePipe;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.MultiStepsHostPluginFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
@@ -219,10 +220,10 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
             desJson.put("extractProps", extractProps);
         }
 
-        Map<String, Descriptor.ValueChangePipe> pipes = descriptor.getValueChangePipes();
+        Map<String, ValueChangePipe> pipes = descriptor.getValueChangePipes();
         if (!pipes.isEmpty()) {
             JSONArray pipesJson = new JSONArray();
-            for (Descriptor.ValueChangePipe pipe : pipes.values()) {
+            for (ValueChangePipe pipe : pipes.values()) {
                 JSONObject p = new JSONObject();
                 p.put("fromField", pipe.getFromField());
                 p.put("toField", pipe.getToField());
@@ -256,12 +257,12 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
                 Descriptor desc = pair.getValue();
                 attrs = new JSONArray();
 
-                List<Entry<String, PropertyType>> entries = pluginFormPropertyTypes.getSortedUseableProperties();
+                List<Entry<String, IPropertyType>> entries = pluginFormPropertyTypes.getSortedUseableProperties();
 
                 boolean containAdvanceField = false;
-                for (Map.Entry<String, PropertyType> pp : entries) {
+                for (Map.Entry<String, IPropertyType> pp : entries) {
                     key = pp.getKey();
-                    val = pp.getValue();
+                    val = (PropertyType) pp.getValue();
                     JSONObject extraProps = getFieldExtraProps(val);
 
                     if (extraProps != null && extraProps.getBooleanValue(PluginExtraProps.KEY_DISABLE)) {
@@ -291,14 +292,16 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
                     if (val.typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
                         attrVal.put(KEY_OPTIONS, getSelectOptions(desc, val, key));
                     }
-                    if (val.isDescribable()) {
+
+                    if (val.isDescribable() || val.fieldListElementClazz.isPresent()) {
+                      //  System.out.println(pp.getKey() + "-" + ((PropertyType) pp.getValue()).f.getType());
                         DescriptorsJSON des2Json = createInnerDescrible(val.getApplicableDescriptors());
 
                         attrVal.putDescriptors(des2Json);
                         Annotation extensible = val.fieldClazz.getAnnotation(TISExtensible.class);
                         // 可以运行时添加插件
                         attrVal.put("extensible", (extensible != null));
-                        attrVal.put(KEY_EXTEND_POINT, val.fieldClazz.getName());
+                        attrVal.put(KEY_EXTEND_POINT, val.extendpointClass().getName());
                     }
 
                     attrs.add(attrVal);

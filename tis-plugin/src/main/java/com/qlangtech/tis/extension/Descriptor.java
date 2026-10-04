@@ -66,24 +66,21 @@ import com.qlangtech.tis.plugin.ds.ElementCreatorFactory;
 import com.qlangtech.tis.plugin.ds.IMultiElement;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.plugin.incr.TISSinkFactory;
-import com.qlangtech.tis.runtime.module.action.IParamGetter;
 import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
+import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.ISelectOptionsGetter;
 import com.qlangtech.tis.util.PluginMeta;
-import com.qlangtech.tis.util.UploadPluginMeta;
 import com.qlangtech.tis.util.impl.AttrVals;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.jvnet.tiger_types.Types;
 
@@ -93,6 +90,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -102,12 +100,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.qlangtech.tis.extension.Descriptor.ValueChangePipe.createMapperKey;
+import static com.qlangtech.tis.extension.ValueChangePipe.createMapperKey;
 import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.KEY_VALIDATE_ITEM_INDEX;
 import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.KEY_VALIDATE_PLUGIN_INDEX;
 import static com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.popFieldStack;
@@ -571,16 +568,21 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public PluginFormProperties getSubPluginFormPropertyTypes(String subFieldName) {
         IPropertyType propertyType = getPropertyTypes().get(subFieldName);
         if (propertyType == null) {
-            throw new IllegalStateException(this.clazz.getName() + "'s prop subField:" + subFieldName + " relevant " + "prop can not be null,exist prop keys:" + getPropertyTypes().keySet().stream().collect(Collectors.joining(",")));
+            throw new IllegalStateException(this.clazz.getName() + "'s prop subField:"
+                    + subFieldName + " relevant " + "prop can not be null,exist prop keys:"
+                    + getPropertyTypes().keySet().stream().collect(Collectors.joining(",")));
         }
         if (!(propertyType instanceof SuFormProperties)) {
-            throw new IllegalStateException("subFieldName:" + subFieldName + " prop must be " + SuFormProperties.class.getSimpleName() + "but now is :" + propertyType.getClass().getName());
+            throw new IllegalStateException("subFieldName:" + subFieldName + " prop must be "
+                    + SuFormProperties.class.getSimpleName() + "but now is :" + propertyType.getClass().getName());
         }
         return (SuFormProperties) propertyType;
     }
 
     public List<PluginFormProperties> getSubPluginFormPropertyTypes() {
-        return getPropertyTypes().values().stream().filter((pp) -> pp instanceof SuFormProperties).map((pp) -> (SuFormProperties) pp).collect(Collectors.toList());
+        return getPropertyTypes().values().stream() //
+                .filter((pp) -> pp instanceof SuFormProperties)//
+                .map((pp) -> (SuFormProperties) pp).collect(Collectors.toList());
     }
 
     public Set<String> getPropertyFields() {
@@ -613,8 +615,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 Objects.requireNonNull(subProps, "prop:" + filter.subFieldName + " relevant subProps can not be null ");
 
                 subPluginFormPropertyTypes =
-                        SuFormProperties.copy(PropertyType.filterFieldProp(this.getPropertyTypes(true,
-                                ElementPluginDesc.create(this))), this.clazz, this, subProps);
+                        SuFormProperties.copy(PropertyType.toPropertyTypes(PropertyType.filterFieldProp(
+                                        this.getPropertyTypes(true, ElementPluginDesc.create(this)))),
+                                this.clazz, this, subProps);
 
                 return subPluginFormPropertyTypes.overWriteInstClazz(this.clazz);
             } else {
@@ -923,76 +926,21 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         }
     }
 
-    public static class ValueChangePipe {
-        private final String fromField;
-        private final String[] toField;
-        private BiFunction<UploadPluginMeta, IParamGetter, List<? extends Option>> serverSideRender;
-
-        static String createMapperKey(String fromField) {
-            if (StringUtils.isEmpty(fromField)) {
-                throw new IllegalArgumentException("param fromField can not be empty");
-            }
-            //            if (StringUtils.isEmpty(toField)) {
-            //                throw new IllegalArgumentException("param toField can not be empty");
-            //            }
-            return fromField + "_";// + toField;
-        }
-
-        /**
-         * 构建前端field联动管道，当fromField值发生onChange事件，toField显示内容需要联动
-         *
-         * @param fromField
-         * @param toField
-         */
-        public ValueChangePipe(String fromField, String... toField) {
-            this.fromField = fromField;
-            this.toField = toField;
-        }
-
-        public String getFromField() {
-            return fromField;
-        }
-
-        public String[] getToField() {
-            return toField;
-        }
-
-        public void render(BiFunction<UploadPluginMeta, IParamGetter, List<? extends Option>> function) {
-            this.serverSideRender = Objects.requireNonNull(function, "function can not be null");
-        }
-
-        public Map<String, List<? extends Option>> render(UploadPluginMeta pluginMeta, IParamGetter htmlParam) {
-            Map<String, List<? extends Option>> cascadeVals = Maps.newHashMap();
-
-            List<? extends Option> opts = serverSideRender.apply(
-                    Objects.requireNonNull(pluginMeta, "pluginMeta can not be null")
-                    , Objects.requireNonNull(htmlParam, "param can not be null"));
-            for (String cascadeField : toField) {
-                cascadeVals.put(cascadeField, opts);
-            }
-            return cascadeVals;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o)
-                return true;
-
-            if (!(o instanceof ValueChangePipe that))
-                return false;
-
-            return new EqualsBuilder().append(fromField, that.fromField).append(toField, that.toField).isEquals();
-        }
-
-        @Override
-        public int hashCode() {
-            return new HashCodeBuilder(17, 37).append(fromField).append(toField).toHashCode();
-        }
-    }
-
+    /**
+     * 声明一条字段联动管道。
+     * <p>
+     * 同一个 fromField 被多次声明时（例如分处两段构造代码，或父/子 Descriptor 各写一段）
+     * 会把 toField 合并到同一条 pipe 上，而不是静默覆盖前一次的 toField 与 render。
+     */
     protected ValueChangePipe valueChangePipe(String fromField, String... toField) {
-        ValueChangePipe pipe = new ValueChangePipe(fromField, toField);
-        this.valueChangePipes.put(createMapperKey(fromField), pipe);
+        String key = createMapperKey(fromField);
+        ValueChangePipe pipe = this.valueChangePipes.get(key);
+        if (pipe == null) {
+            pipe = new ValueChangePipe(fromField, toField);
+            this.valueChangePipes.put(key, pipe);
+        } else {
+            pipe.addToFields(toField);
+        }
         return pipe;
     }
 
@@ -1035,9 +983,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         JSONObject valJ;
         String impl;
         String attrVal;
-        for (Map.Entry<String, PropertyType> entry : propertyTypes.getKVTuples()) {
+        for (Map.Entry<String, IPropertyType> entry : propertyTypes.getKVTuples()) {
             attr = entry.getKey();
-            attrDesc = entry.getValue();
+            attrDesc = (PropertyType) entry.getValue();
             valJ = formData.get(attr);
             if (valJ == null && attrDesc.isInputRequired()) {
                 addFieldRequiredError(msgHandler, context, attr);
@@ -1069,7 +1017,26 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 }
             } else if (validateType != FormVaildateType.SECOND_VALIDATE) {
 
-                if (attrDesc.typeIdentity() == FormFieldType.MULTI_SELECTABLE.getIdentity()) {
+                if (attrDesc.formField.type() == FormFieldType.MULTI_DESCRIBLE_PLUGIN) {
+
+                    List<? extends Describable> nextPlugins = getSelectedMultiNestDescriblePlugin(msgHandler, context,
+                            attrDesc, valJ);
+                    if (context.hasErrors()) {
+                        return false;
+                    }
+                    if (nextPlugins.size() < 1) {
+                        // 没有选中
+                        Validator[] validators = attrDesc.getValidator();
+                        for (Validator v : validators) {
+                            if (v == Validator.require) {
+                                if (!v.validate(msgHandler, context, attr, StringUtils.EMPTY)) {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+
+                } else if (attrDesc.typeIdentity() == FormFieldType.MULTI_SELECTABLE.getIdentity()) {
                     List<FormFieldType.SelectedItem> selectedItems = getSelectedMultiItems(msgHandler, context,
                             attrDesc, valJ);
                     if (context.hasErrors()) {
@@ -1083,9 +1050,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                 v.validate(msgHandler, context, attr, StringUtils.EMPTY);
                             }
                         }
-                    } else if (this instanceof FormFieldType.IMultiSelectValidator) {
-                        FormFieldType.IMultiSelectValidator multiSelectValidator =
-                                (FormFieldType.IMultiSelectValidator) this;
+                    } else if (this instanceof FormFieldType.IMultiSelectValidator multiSelectValidator) {
+                        //                        FormFieldType.IMultiSelectValidator multiSelectValidator =
+                        //                                (FormFieldType.IMultiSelectValidator) this;
                         if (!multiSelectValidator.validate(msgHandler, subFormFilter, context, attr, selectedItems)) {
                             valid = false;
                             break;
@@ -1139,6 +1106,23 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             }
         }// end for
         return valid;
+    }
+
+    private List<Describable> getSelectedMultiNestDescriblePlugin(
+            IControlMsgHandler msgHandler, Context context, PropertyType attrDesc, JSONObject valJ) {
+        JSONObject desc = valJ.getJSONObject(KEY_DESC_VAL);
+        JSONObject mulit = desc.getJSONObject(AttrValMap.PLUGIN_EXTENSION_VALS);
+        JSONArray childItems = new JSONArray();
+        for (Map.Entry<String, Object> entry : mulit.entrySet()) {
+            childItems.add((JSONObject) entry.getValue());
+        }
+        List<Describable> result = Lists.newArrayList();
+        List<AttrValMap> attrVals = AttrValMap.describableAttrValMapList(childItems, Optional.empty());
+        for (AttrValMap valMap : attrVals) {
+            Object instance = valMap.createDescribable(msgHandler, context).getInstance();
+            result.add((Describable) instance);
+        }
+        return result;
     }
 
     private List<FormFieldType.SelectedItem> getSelectedMultiItems(IControlMsgHandler msgHandler, Context context,
@@ -1347,7 +1331,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                                           Optional<SubFormFilter> subFormFilter,
                                                           PropValRewrite propValRewrite) {
 
-        PluginFormProperties propertyTypes = getPropertyTypes(pTypes, subFormFilter);
+        final PluginFormProperties propertyTypes = getPropertyTypes(pTypes, subFormFilter);
 
         return propertyTypes.accept(new PluginFormProperties.IVisitor() {
             @Override
@@ -1481,7 +1465,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * <p>
      * 默认实现抛出 {@link UnsupportedOperationException}，子类须按需覆盖。
      *
-     * @param paramGetter  请求参数读取器，用于获取 HTTP 请求中的参数（如 {@code paramGetter.getString("type")}）
+     * @param paramGetter   请求参数读取器，用于获取 HTTP 请求中的参数（如 {@code paramGetter.getString("type")}）
      * @param pluginContext 插件上下文，提供登录用户、setBizResult/错误消息等运行时能力
      * @param context       Turbine 运行时上下文
      * @throws Exception 业务异常，由调用方统一处理
@@ -1513,9 +1497,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         String impl;
         Descriptor descriptor;
         Object attrVal;
-        for (Map.Entry<String, PropertyType> entry : propertyTypes.getKVTuples()) {
+        for (Map.Entry<String, IPropertyType> entry : propertyTypes.getKVTuples()) {
             attr = entry.getKey();
-            attrDesc = entry.getValue();
+            attrDesc = (PropertyType) entry.getValue();
             valJ = keyValMap.get(attr);
 
             if (valJ == null && attrDesc.isInputRequired()) {
@@ -1528,6 +1512,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 JSONObject descVal = Objects.requireNonNull(valJ.getJSONObject(KEY_DESC_VAL),
                         "key:" + KEY_DESC_VAL + " relevant instant can not be null");
                 impl = descVal.getString(PLUGIN_EXTENSION_IMPL);
+                if (StringUtils.isEmpty(impl)) {
+                    throw new IllegalStateException("property " + PLUGIN_EXTENSION_IMPL + " can not be empty,in " + JsonUtil.toString(descVal, true));
+                }
                 descriptor = TIS.get().getDescriptor(impl);
                 if (descriptor == null) {
                     throw new IllegalStateException("impl:" + impl + " relevant descripotor can not be null");
@@ -1537,8 +1524,16 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         propValRewrite);
                 attrDesc.setVal(describable, propValRewrite.rewrite(attrDesc, vals.getInstance()));
             } else {
+                if (attrDesc.formField.type() == FormFieldType.MULTI_DESCRIBLE_PLUGIN) {
+                    List<Describable> nestPlugins = this.getSelectedMultiNestDescriblePlugin(pluginContext, context,
+                            attrDesc, valJ);
+                    if (!attrDesc.isCollectionType()) {
+                        throw new IllegalStateException("attr:" + attrDesc.propertyName() + " must be a collection "
+                                + "type");
+                    }
+                    attrDesc.setVal(describable, nestPlugins);
 
-                if (attrDesc.typeIdentity() == FormFieldType.MULTI_SELECTABLE.getIdentity()) {
+                } else if (attrDesc.typeIdentity() == FormFieldType.MULTI_SELECTABLE.getIdentity()) {
                     List<FormFieldType.SelectedItem> selectedItems = getSelectedMultiItems(pluginContext, context,
                             attrDesc, valJ);
                     List<IMultiElement> multi =
@@ -1723,6 +1718,19 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     public ValueChangePipe getValueChangePipe(String fromField) {
         return getValueChangePipe(fromField, true);
+    }
+
+    public List<java.lang.String> getValueChangeFromFieldKeys(String toFieldKey) {
+        if (StringUtils.isEmpty(toFieldKey)) {
+            throw new IllegalArgumentException("param toFieldKey can not be empty");
+        }
+        List<String> fromFieldKeys = Lists.newArrayList();
+        for (ValueChangePipe pipe : valueChangePipes.values()) {
+            if (Arrays.binarySearch(pipe.getToField(), toFieldKey) > -1) {
+                fromFieldKeys.add(pipe.getFromField());
+            }
+        }
+        return fromFieldKeys;
     }
 
     public ValueChangePipe getValueChangePipe(String fromField, boolean validateNull) {

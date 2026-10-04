@@ -106,7 +106,7 @@ public class AttrValMap {
     /**
      *
      * @param subFormFilter
-     * @param jsonObject 确认需要 <Code>FlatJsonToTisConverter.#convert()转化过</Code>
+     * @param jsonObject     确认需要 <Code>FlatJsonToTisConverter.#convert()转化过</Code>
      * @param propValRewrite
      * @return
      */
@@ -253,6 +253,39 @@ public class AttrValMap {
                                                     FormVaildateType verify, Optional<PostFormVals> parentFormVals) {
         return this.descriptor.verify(msgHandler, context, verify, attrValMap, propertyTypes, subFormFilter,
                 this.propValRewrite, parentFormVals);
+    }
+
+    public Descriptor.PluginValidateResult validateWithScope(IControlMsgHandler msgHandler, Context context,
+                                                             int pluginIndex, int itemIndex, FormVaildateType verify) {
+        return validateWithScope(msgHandler, context, Optional.empty(), pluginIndex, itemIndex, verify);
+    }
+
+    /**
+     * 带作用域的校验：设置当前 root plugin validator 以及本 item 在整体表单中的位置，
+     * 使单条校验与批量表单提交的校验循环({@link com.qlangtech.tis.util.PluginItems#validate})
+     * 保持一致的语义（错误信息能定位到具体 item）。
+     * <p>
+     * 调用结束后必然清理 ThreadLocal，不会把作用域泄漏给后续校验。
+     *
+     * @param pluginIndex 当前 plugin 在整体表单中的位置
+     * @param itemIndex   当前 item 在 plugin 内的位置
+     */
+    public Descriptor.PluginValidateResult validateWithScope(IControlMsgHandler msgHandler, Context context,
+                                                             Optional<PluginFormProperties> propertyTypes,
+                                                             int pluginIndex, int itemIndex, FormVaildateType verify) {
+        try {
+            setCurrentRootPluginValidator(this.descriptor);
+            Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
+            //
+            Descriptor.PluginValidateResult validateResult =
+                    this.validate(msgHandler, context, propertyTypes, verify, Optional.empty());
+            if (validateResult.isValid()) {
+                validateResult.setDescriptor(this.descriptor);
+            }
+            return validateResult;
+        } finally {
+            removeCurrentRootPluginValidator();
+        }
     }
 
     public Descriptor.ParseDescribable createDescribable(IControlMsgHandler pluginContext, Context context) {

@@ -73,6 +73,7 @@ import static com.qlangtech.tis.util.UploadPluginMeta.KEY_SKIP_PLUGINS_SAVE;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020-02-10 12:24
  */
+@SuppressWarnings("all")
 public class PluginItems implements IPluginItemsProcessor {
   private final IPluginEnum heteroEnum;
   private final UploadPluginMeta pluginMeta;
@@ -126,36 +127,8 @@ public class PluginItems implements IPluginItemsProcessor {
    * @return
    */
   public PluginItemsParser validate(IPluginContext module, Context context, int pluginIndex, FormVaildateType verify) {
-    List<Descriptor.PluginValidateResult> items = Lists.newArrayList();
-    PluginItemsParser parseResult = new PluginItemsParser(items);
+    PluginItemsParser parseResult = PluginItemsParser.validate(this.items, module, context, pluginIndex, verify);
     parseResult.pluginItems = this;
-    Descriptor.PluginValidateResult validateResult = null;
-
-    AttrValMap attrValMap = null;
-
-    try {
-
-      for (int itemIndex = 0; itemIndex < this.items.size(); itemIndex++) {
-        attrValMap = this.items.get(itemIndex);
-        try {
-          AttrValMap.setCurrentRootPluginValidator(attrValMap.descriptor);
-          Descriptor.PluginValidateResult.setValidateItemPos(context, pluginIndex, itemIndex);
-
-          if (!(validateResult = attrValMap.validate((IControlMsgHandler) module, context,
-            Objects.requireNonNull(verify, "verify can not be null") //
-            , Optional.empty())).isValid()) {
-            parseResult.faild = true;
-          } else {
-            validateResult.setDescriptor(attrValMap.descriptor);
-            items.add(validateResult);
-          }
-        } finally {
-          AttrValMap.removeCurrentRootPluginValidator();
-        }
-      }
-    } finally {
-
-    }
     return parseResult;
   }
 
@@ -181,8 +154,8 @@ public class PluginItems implements IPluginItemsProcessor {
       throw new IllegalArgumentException("param extendClass can not be null");
     }
     Descriptor descriptor = GroovyShellUtil.descriptorThreadLocal.get();
-    if (listen2SaveEvent && dbUpdateEventObservers.add(Objects.requireNonNull(descriptor, "descriptor can not be " +
-      "null"))) {
+    if (listen2SaveEvent && dbUpdateEventObservers.add(
+      Objects.requireNonNull(descriptor, "descriptor can not be null"))) {
       // 当有数据源更新时需要将descriptor的属性重新更新一下
       addPluginItemsSaveObserver(new PluginItemsSaveObserver() {
         @Override
@@ -325,8 +298,12 @@ public class PluginItems implements IPluginItemsProcessor {
       return IPluginStore.noSaveStore(pluginMeta);
     }
 
+    Optional<IPluginStore> storeOpt = heteroEnum.pluginStore(this.pluginContext, pluginMeta, dlist);
+
     IPluginStoreSave<?> store = null;
-    if (heteroEnum == HeteroEnum.APP_SOURCE) {
+    if (storeOpt.isPresent()) {
+      store = storeOpt.get();
+    } else if (heteroEnum == HeteroEnum.APP_SOURCE) {
 
       for (Descriptor.ParseDescribable<?> d : dlist) {
         Object inst = d.getInstance();
