@@ -25,17 +25,12 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
-import com.qlangtech.tis.extension.Descriptor.PluginValidateResult;
 import com.qlangtech.tis.extension.DescriptorUseableShortComment;
-import com.qlangtech.tis.extension.IPropertyType;
-import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.ValueChangePipe;
-import com.qlangtech.tis.extension.impl.AdapterPluginFormProperties;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescriptorsJSON;
@@ -251,40 +246,39 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
             }
             ActionType actionType = ActionType.parse(paramGetter.getString("type"));
             JSONObject postContent = pluginContext.getJSONPostContent();
+            final String toPropertyKey = paramGetter.getString("property");
+            if (StringUtils.isEmpty(toPropertyKey)) {
+                throw new IllegalArgumentException("key property can not be empty");
+            }
+            // 该集合会被 createRelevantFieldsContext 按引用用作属性集的过滤依据（见其 javadoc），
+            // 所以这里一直持有它，在 validate() 之后往里追加 toPropertyKey 即可让 createDescribable() 读到
+            final List<String> relevantFieldKeys = Lists.newArrayList();
+            // 只对「与本级联相关的字段」做校验和实例化，避免误判表单中其它尚未填写的属性
+            AttrValMap.RelevantFieldsContextAttrValMap<?> relevantFieldsContext =
+                    AttrValMap.createRelevantFieldsContext(paramGetter, context, switch (actionType) {
+                        case GetDesc -> postContent;
+                        case GenerateTargetInstance -> postContent.getJSONObject("host");
+                    }, (descriptor) -> {
+                        relevantFieldKeys.addAll(descriptor.getValueChangeFromFieldKeys(toPropertyKey));
+                        return relevantFieldKeys;
+                    });
+
             switch (actionType) {
                 case GetDesc -> {
-                    final String toPropertyKey = paramGetter.getString("property");
-                    if (StringUtils.isEmpty(toPropertyKey)) {
-                        throw new IllegalArgumentException("key property can not be empty");
-                    }
-                    AttrValMap valMap = AttrValMap.parseDescribableMap(Optional.empty(), postContent);
-                    final List<java.lang.String> fromFieldKeys =
-                            Lists.newArrayList(valMap.descriptor.getValueChangeFromFieldKeys(toPropertyKey));
-
-                    Optional<PluginFormProperties> propertyTypes =
-                            Optional.of(new AdapterPluginFormProperties(valMap.descriptor.getPluginFormPropertyTypes()) {
-                                @Override
-                                public Set<Map.Entry<String, IPropertyType>> getKVTuples() {
-                                    return super.getKVTuples().stream() //
-                                            .filter((e) -> fromFieldKeys.contains(e.getKey())).collect(Collectors.toSet());
-                                }
-                            });
                     // 走带作用域的校验，保证错误信息能定位到具体 item
-                    PluginValidateResult validate = valMap.validateWithScope(paramGetter, context, propertyTypes, 0, 0,
-                            FormVaildateType.VERIFY);
-                    if (!validate.isValid()) {
+                    if (!relevantFieldsContext.validate().isValid()) {
                         return;
                     }
                     // 创建实例的时候要将toPropertyKey对应的属性设置上值
-                    fromFieldKeys.add(toPropertyKey);
-                    ParseDescribable<?> describable = valMap.createDescribable(paramGetter, context, propertyTypes);
+                    relevantFieldKeys.add(toPropertyKey);
+                    ParseDescribable<?> describable = relevantFieldsContext.createDescribable();
                     context.put(MultiDescribleElementSetSelector.class.getName(), getEnumableCandidateSet(describable));
                     paramGetter.setBizResult(context, DescriptorsJSON.desc(multiDescribleElementSetDesc));
                 }
                 case GenerateTargetInstance -> {
-                    AttrValMap valMap = AttrValMap.parseDescribableMap(Optional.empty(), postContent.getJSONObject(
-                            "host"));
-                    ParseDescribable<?> describable = valMap.createDescribable(paramGetter, context);
+                    // 创建实例的时候要将toPropertyKey对应的属性设置上值
+                    relevantFieldKeys.add(toPropertyKey);
+                    ParseDescribable<?> describable = relevantFieldsContext.createDescribable();
                     List<Pair<Option, MultiDescribleElement>> enumableCandidateSet =
                             getEnumableCandidateSet(describable);
                     MultiDescribleElementSetSelector multiDescribleElementSetSelector =

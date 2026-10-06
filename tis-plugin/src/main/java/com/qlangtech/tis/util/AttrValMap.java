@@ -23,14 +23,17 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.TIS;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.Descriptor.PostFormVals;
+import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.PluginFormProperties;
+import com.qlangtech.tis.extension.SubFormFilter;
+import com.qlangtech.tis.extension.impl.AdapterPluginFormProperties;
+import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
-import com.qlangtech.tis.extension.Descriptor.PostFormVals;
-import com.qlangtech.tis.extension.PluginFormProperties;
-import com.qlangtech.tis.extension.SubFormFilter;
-import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.impl.AttrVals;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +43,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.Descriptor.KEY_DESC_VAL;
 import static com.qlangtech.tis.extension.Descriptor.KEY_primaryVal;
@@ -301,6 +307,86 @@ public class AttrValMap {
                                                          Optional<PluginFormProperties> formProperties) {
         return this.descriptor.parseDescribable(pluginContext, context, this.attrValMap, (formProperties),
                 this.subFormFilter, this.propValRewrite);
+    }
+
+    /**
+     * 为「值变更管道({@link com.qlangtech.tis.extension.ValueChangePipe})级联取值」场景创建校验与实例化上下文。
+     * <p>
+     * 前端做级联取值时提交上来的是插件完整表单的<b>一个子集</b>（例如在 MULTI_DESCRIBLE_PLUGIN 表格中点击某列，
+     * 只会带上与该列相关的若干属性）。若拿整张表单的属性集去校验，会因为「表单中其它尚未填写的必填属性」而误报错误。
+     * 因此这里把插件的属性集裁剪成只含<b>与本次级联相关的字段</b>：相关字段由调用方通过
+     * <code>relevantFieldKeysCreator</code> 依据 descriptor 自行计算，
+     * 典型实现为 <code>descriptor.getValueChangeFromFieldKeys(toFieldKey)</code>，即全部指向 toFieldKey 的 from 字段。
+     * <p>
+     * <b>契约</b>：<code>relevantFieldKeysCreator</code> 返回的集合被<b>按引用</b>用作属性集的过滤依据
+     * （见 {@link AdapterPluginFormProperties#getKVTuples()} 的懒求值实现），本方法<b>不做任何防御性拷贝</b>。
+     * 所以调用方可以一直持有该集合，在 {@link RelevantFieldsContextAttrValMap#validate()} 之后、
+     * {@link RelevantFieldsContextAttrValMap#createDescribable()} 之前继续往里追加字段——典型场景是级联的
+     * 目标字段本身：校验时它还没有值不能参与校验，但创建实例时必须带上它，否则实例上取不到该属性值。
+     * <p>
+     * <b>注意</b>：若日后把这里改成先拷贝一份返回集合，调用方的上述追加会<b>静默失效</b>（级联实例取不到目标字段值且不报错）。
+     *
+     * @param paramGetter              用于收集错误信息与回写业务结果
+     * @param context                  校验错误信息与业务结果的承载上下文
+     * @param postContent              已由调用方从请求体中取出的插件表单内容（嵌套描述符需调用方自行定位到对应层级）
+     * @param relevantFieldKeysCreator 依据 descriptor 计算「相关字段」的创建器，descriptor 由本次解析结果的 impl 决定；
+     *                                 返回的集合需由调用方持有，以便在 validate() 之后再追加字段
+     * @see #parseDescribableMap(Optional, JSONObject)
+     */
+    public static <T extends Describable> RelevantFieldsContextAttrValMap<T> createRelevantFieldsContext(
+            IControlMsgHandler paramGetter, Context context, JSONObject postContent,
+            Function<Descriptor, List<String>> relevantFieldKeysCreator) {
+        final AttrValMap valMap = AttrValMap.parseDescribableMap(Optional.empty(), postContent);
+        // 哪些字段算「相关」交由调用方决定，本方法只负责据此裁剪属性集
+        List<String> relevantFieldKeys = relevantFieldKeysCreator.apply(valMap.descriptor);
+        final Optional<PluginFormProperties> propertyTypes =
+                Optional.of(new AdapterPluginFormProperties(valMap.descriptor.getPluginFormPropertyTypes()) {
+                    @Override
+                    public Set<Map.Entry<String, IPropertyType>> getKVTuples() {
+                        // getKVTuples() 是懒求值的（每次调用才委托 target 做一次过滤），
+                        // 所以调用方在 validate() 之后往 relevantFieldKeys 里追加的字段，对 createDescribable() 一样可见
+                        return super.getKVTuples().stream() //
+                                .filter((e) -> relevantFieldKeys.contains(e.getKey())).collect(Collectors.toSet());
+                    }
+                });
+
+        return new RelevantFieldsContextAttrValMap<T>() {
+            public Descriptor.PluginValidateResult validate() {
+                // 走带作用域的校验，保证错误信息能定位到具体 item
+                Descriptor.PluginValidateResult validate = valMap.validateWithScope(paramGetter, context,
+                        propertyTypes, 0, 0,
+                        FormVaildateType.VERIFY);
+                return validate;
+            }
+
+            public Descriptor.ParseDescribable<T> createDescribable() {
+                Descriptor.ParseDescribable<T> describable = valMap.createDescribable(paramGetter, context,
+                        propertyTypes);
+                return describable;
+            }
+        };
+    }
+
+    public interface RelevantFieldsContextAttrValMap<T extends Describable> {
+
+        /**
+         * 校验「相关字段」（以及事后追加的字段）的取值，错误信息能定位到具体 item
+         *
+         * @see #createRelevantFieldsContext(IControlMsgHandler, Context, JSONObject, Function)
+         */
+        public Descriptor.PluginValidateResult validate();
+
+        /**
+         * 创建插件实例，只读取「相关字段」（以及事后追加的字段）
+         *
+         * @see #createRelevantFieldsContext(IControlMsgHandler, Context, JSONObject, Function)
+         */
+        public Descriptor.ParseDescribable<T> createDescribable();
+
+        public default T createPluginInstance() {
+            return createDescribable().getInstance();
+        }
+
     }
 
     public int size() {

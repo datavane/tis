@@ -1513,7 +1513,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         "key:" + KEY_DESC_VAL + " relevant instant can not be null");
                 impl = descVal.getString(PLUGIN_EXTENSION_IMPL);
                 if (StringUtils.isEmpty(impl)) {
-                    throw new IllegalStateException("property " + PLUGIN_EXTENSION_IMPL + " can not be empty,in " + JsonUtil.toString(descVal, true));
+                    throw new IllegalStateException("attrDesc:" + attrDesc.propertyName()
+                            + " of property " + PLUGIN_EXTENSION_IMPL + " can not be empty,in " + JsonUtil.toString(descVal, true));
                 }
                 descriptor = TIS.get().getDescriptor(impl);
                 if (descriptor == null) {

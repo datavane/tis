@@ -330,6 +330,20 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
             public File getAssistRootDir(String ontologyName, Optional<String> subModule) {
                 return OntologyDomain.getFunctionDir(ontologyName);
             }
+        }),
+        Unknown("unknown"
+                , IEndTypeGetter.EndType.Blank
+                , new BaiscAssistStoreGetter<Describable<?>>() {
+            @Override
+            public IPluginStore<Describable<?>> getPluginStore(OntologyPluginMeta pluginMeta,
+                                                               Optional<String> subModule) {
+                return (IPluginStore<Describable<?>>) IPluginStore.noSaveStore(pluginMeta.getDelegate());
+            }
+
+            @Override
+            public File getAssistRootDir(String ontologyName, Optional<String> subModule) {
+                throw new UnsupportedOperationException();
+            }
         });
 
         public final static Set<OntologyEnum> ontologyEnumsSet = Set.of(OntologyEnum.values());

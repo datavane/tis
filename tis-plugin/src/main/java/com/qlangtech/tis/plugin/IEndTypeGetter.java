@@ -216,6 +216,16 @@ public interface IEndTypeGetter {
         , AlignCenter("align-center", EndTypeCategory.Icon, false)//
         , AlignLeft("align-left", EndTypeCategory.Icon, false)//
         , AlignRight("align-right", EndTypeCategory.Icon, false)//
+        // Workshop 页面布局模板图标，与 plugins/tis-ontology-plugin 的 PageTemplate 枚举
+        // 一一对应（示意原为 page-template-picker.component.ts 中的纯 CSS 版本）
+        , LayoutBlank("layout-blank", EndTypeCategory.Icon, true)//
+        , LayoutDetails("layout-details", EndTypeCategory.Icon, true)//
+        , LayoutGrid("layout-grid", EndTypeCategory.Icon, true)//
+        , LayoutInbox("layout-inbox", EndTypeCategory.Icon, true)//
+        , LayoutOverview("layout-overview", EndTypeCategory.Icon, true)//
+        , LayoutSettings("layout-settings", EndTypeCategory.Icon, true)//
+        , LayoutTwoColumn("layout-two-column", EndTypeCategory.Icon, true)//
+        , LayoutThreeColumn("layout-three-column", EndTypeCategory.Icon, true)//
 
 
 
