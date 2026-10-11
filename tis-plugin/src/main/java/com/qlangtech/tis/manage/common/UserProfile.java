@@ -68,6 +68,12 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
     @FormField(type = FormFieldType.INPUTTEXT, ordinal = 2, validate = {Validator.email})
     public String email;
 
+    /**
+     * 性别，取值固定，使用 ENUM
+     */
+    @FormField(ordinal = 2, type = FormFieldType.ENUM, validate = {Validator.require})
+    public TestChild.Sex sex;
+
     @FormField(ordinal = 3, type = FormFieldType.SELECTABLE, validate = {Validator.require})
     public String control;
 

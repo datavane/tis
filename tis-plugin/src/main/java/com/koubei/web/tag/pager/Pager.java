@@ -21,9 +21,14 @@ import com.koubei.web.tag.pager.util.DefaultStaticTool;
 import com.koubei.web.tag.pager.util.StaticTool;
 import org.apache.commons.lang.StringUtils;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 /**
+ * 分页控件。
+ *
+ * <p>本类已下沉到 tis-plugin（<b>不含任何 servlet 依赖</b>），因此插件侧可以直接复用它算页码，
+ * 例如 {@code ObjectTableWidget.clampPage}。与 web 请求绑定的那部分（把 Pager 登记进
+ * {@code ServletRequest}）留在 tis-console 的
+ * {@code com.qlangtech.tis.runtime.module.misc.PagerUtils#register}。
+ *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
@@ -65,7 +70,17 @@ public class Pager {
     this.linkBuilder = builder;
   }
 
+  /**
+   * 总页数。
+   *
+   * <p>{@code rowsPerPage < 1} 时返回 0 —— 这个守卫是本次下沉时才加的，因为 {@code rowsPerPage}
+   * 现在可以来自插件侧用户配置的每页条数（{@code ObjectTableWidget.pagenator}），为 0 时原来是
+   * {@code ArithmeticException: / by zero}，会把整条分页路径炸掉而不是回一张空表。
+   */
   public int getTotalPage() {
+    if (this.rowsPerPage < 1) {
+      return 0;
+    }
     int totalPage = this.getTotalCount() / this.getRowsPerPage();
     if (this.getTotalCount() % this.getRowsPerPage() != 0) {
       totalPage++;
@@ -85,13 +100,6 @@ public class Pager {
    */
   public String getCurrentPageUrl() {
     return getUrl(this.getCurPage());
-  }
-
-  public static Pager register(String name, LinkBuilder builder, HttpServletRequest request) {
-    Pager pager = new Pager(builder);
-    PagerDTO dto = PagerDTO.get(request);
-    dto.add(name, pager);
-    return pager;
   }
 
   /**
@@ -211,6 +219,18 @@ public class Pager {
     return this.getStyleFactory().getPageNumShowRule();
   }
 
+  /**
+   * 当前页码，越界时夹到末页。
+   *
+   * <p><b>语义与下沉前逐字一致</b>（含 {@code getTotalPage() > 0} 这个前提）：总数为 0 时
+   * <b>不夹取</b>，把入参页码原样返回。这条分支看着像 bug，但它是有消费者的 ——
+   * {@code OntologyAction.doGetOntologyDomain} 直接 {@code getPager()} 后序列化，
+   * 从不调 {@code setTotalCount}，改成「无数据回第 1 页」会让它的响应里 {@code curPage} 恒为 1。
+   * 「无数据回第 1 页」这条规则由调用方（{@code ObjectTableWidget.clampPage}）自己短接。
+   *
+   * <p>⚠️ 有副作用：夹取结果会写回 {@code curPage}。需要纯函数语义的调用方请每次 new 一个新实例
+   * （见 {@code ObjectTableWidget.clampPage}）。
+   */
   public int getCurPage() {
     if (this.curPage < 1) {
       return 1;
@@ -237,6 +257,12 @@ public class Pager {
     return totalCount;
   }
 
+  /**
+   * 本类的计数保持 {@code int}（与下沉前一致）。{@code long} 会在字节码层把方法签名改成
+   * {@code setTotalCount(J)V}，对任何还链着旧 jar 的宿主是 {@code NoSuchMethodError} —— 而本类
+   * 现在是跨 jar 共享的（插件 + tis-console 9 个 action）。插件侧的超大计数在调用处饱和即可
+   * （见 {@code ObjectTableWidget.clampPage}）。
+   */
   public void setTotalCount(int totalCount) {
     this.totalCount = totalCount;
   }

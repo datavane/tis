@@ -20,6 +20,7 @@ package com.qlangtech.tis.plugin.ontology;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.qlangtech.tis.extension.MultiStepsSupportHost;
+import com.qlangtech.tis.extension.MultiStepsSupportHostDescriptor;
 import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
@@ -52,12 +53,23 @@ public abstract class OntologyAction extends Ontology
     @FormField(identity = true, ordinal = 0, validate = {Validator.require, Validator.identity})
     public String useless;
 
+    /**
+     * 期望的步骤数<b>不再写死</b>，而是与 {@link MultiStepsSupportHostDescriptor#getStepDescriptionList()}
+     * 同源。原先这里写死 {@code FIXED_ACTION_STEPS_LENGTH = 3}，而
+     * {@link com.qlangtech.tis.plugin.ontology.impl.action.DefaultOntologyAction.DefaultDesc} 声明的是 4 步，
+     * 于是保存时必然抛 {@code IllegalStateException}（{@link com.qlangtech.tis.extension.Descriptor}
+     * 的 visitMultiStepsHost 把 {@code multiStepsSavedItems} 原样交给本方法）。改成从 descriptor 取，
+     * 声明与断言就不可能再各说各话。
+     */
     @Override
+    @SuppressWarnings("unchecked")
     public void setSteps(OneStepOfMultiSteps[] stepsPlugin) {
         this.stepsPlugin = Objects.requireNonNull(stepsPlugin, "stepsPlugin can not be null");
-        final int FIXED_ACTION_STEPS_LENGTH = 3; // 3 steps: Metadata, Parameters, Rules
-        if (stepsPlugin.length != FIXED_ACTION_STEPS_LENGTH) {
-            throw new IllegalStateException("stepsPlugin.length must be equal to " + FIXED_ACTION_STEPS_LENGTH
+        MultiStepsSupportHostDescriptor<OntologyAction> desc =
+                (MultiStepsSupportHostDescriptor<OntologyAction>) this.getDescriptor();
+        final int expectLength = desc.getStepDescriptionList().size();
+        if (stepsPlugin.length != expectLength) {
+            throw new IllegalStateException("stepsPlugin.length must be equal to " + expectLength
                     + ", but got " + stepsPlugin.length);
         }
     }

@@ -32,6 +32,10 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.qlangtech.tis</groupId>
+            <artifactId>tis-ibatis</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

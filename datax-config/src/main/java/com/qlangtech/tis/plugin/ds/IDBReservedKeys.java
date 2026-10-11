@@ -18,6 +18,8 @@
 
 package com.qlangtech.tis.plugin.ds;
 
+import com.qlangtech.tis.ibatis.BasicCriteria;
+
 import java.util.Optional;
 
 /**
@@ -34,6 +36,16 @@ public interface IDBReservedKeys {
     }
 
     /**
+     * 在sql上添加分页功能
+     *
+     * @param sql
+     * @param criteria
+     */
+    default void appendSqlLimit(StringBuilder sql, BasicCriteria criteria) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * @param includeIn 需要额外套一层符号
      * @param name
      * @return
@@ -43,7 +55,6 @@ public interface IDBReservedKeys {
         String result = escapeChar.map((ec) -> ec + name + ec).orElse(name);
         return includeIn.map((i) -> i + result + i).orElse(result);
     }
-
 
 
     default String removeEscapeChar(String entityName) {

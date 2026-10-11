@@ -19,6 +19,7 @@ package com.qlangtech.tis.runtime.module.action;
 
 import com.alibaba.citrus.turbine.Context;
 import com.koubei.web.tag.pager.Pager;
+import com.koubei.web.tag.pager.PaginationResult;
 import com.qlangtech.tis.ibatis.BasicCriteria;
 import com.qlangtech.tis.lang.ILogErrorDetail;
 import com.qlangtech.tis.lang.TisException;

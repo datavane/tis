@@ -32,6 +32,7 @@ import java.util.stream.Stream;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@SuppressWarnings("all")
 public class Option implements IdentityName {
 
     public static final String KEY_VALUE = "val";

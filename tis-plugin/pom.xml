@@ -41,6 +41,14 @@
             <artifactId>javax.inject</artifactId>
             <version>1</version>
         </dependency>
+        <!-- com.koubei.web.tag.pager 下沉到本模块后带来的直接依赖：
+             它用的 org.apache.commons.lang.StringUtils / RandomStringUtils 是 lang2 的包名。
+             此前是经 tis-manage-pojo 传递进类路径的，上游一变就会静默编译失败，故在此显式声明。 -->
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
         <dependency>
             <groupId>com.qlangtech.tis</groupId>
             <artifactId>tis-common-dao</artifactId>

@@ -21,5 +21,8 @@
     "elementCreator": "com.qlangtech.tis.plugin.datax.transformer.impl.TransformerRuleElementCreatorFactory",
     "enum": "com.qlangtech.tis.plugin.datax.transformer.RecordTransformerRules.getRules():uncache_true",
     "viewtype": "tuplelist"
+  },
+  "sex": {
+    "dftVal": "male"
   }
 }

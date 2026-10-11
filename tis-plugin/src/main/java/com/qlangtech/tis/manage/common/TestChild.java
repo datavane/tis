@@ -20,7 +20,9 @@ package com.qlangtech.tis.manage.common;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.Describable;
+import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.TISExtension;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -63,14 +65,27 @@ public class TestChild implements Describable<TestChild>, IPluginStore.MultiDesc
     }
 
 
-    public enum Sex {
-        male("男"), female("女");
+    public enum Sex implements IEndTypeGetter,DescriptorUseableShortComment {
+        male("男", EndType.AlignLeft), female("女", EndType.AlignCenter);
         public final String label;
+        private final EndType endType;
 
-        Sex(String label) {
+        private Sex(String label, EndType endType) {
             this.label = label;
+            this.endType = endType;
+        }
+
+        @Override
+        public EndType getEndType() {
+            return endType;
+        }
+
+        @Override
+        public String shortComment() {
+            return "";
         }
     }
+
 
     @TISExtension
     public static class DftDescriptor extends IPluginStore.MultiDescribleElementDescriptor<TestChild> {

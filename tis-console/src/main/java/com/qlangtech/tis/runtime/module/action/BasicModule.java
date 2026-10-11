@@ -22,12 +22,12 @@ import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.parser.Feature;
 import com.google.common.collect.Lists;
 import com.koubei.web.tag.pager.LinkBuilder;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.runtime.module.misc.IPostContent;
+import com.qlangtech.tis.runtime.module.misc.PagerUtils;
 import org.apache.struts2.ActionContext;
 import org.apache.struts2.ActionProxy;
 import org.apache.struts2.ActionSupport;
@@ -902,7 +902,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   protected static final int PAGE_SIZE = 10;
 
   protected Pager createPager() {
-    Pager pager = Pager.register("page", new LinkBuilder() {
+    Pager pager = PagerUtils.register("page", new LinkBuilder() {
 
       @Override
       public StringBuffer getPagerUrl() {
@@ -1420,52 +1420,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   @Override
   public Context getContext() {
     return context;
-  }
-
-  public static class PaginationResult {
-
-    @JSONField(serialize = false)
-    private final Pager pager;
-
-    private final List<?> rows;
-
-    private Object[] payload = new Object[0];
-
-    /**
-     * @param pager
-     * @param rows
-     * @param payload 可以附带一些参数
-     */
-    public PaginationResult(Pager pager, List<?> rows, Object... payload) {
-      super();
-      this.pager = pager;
-      this.rows = rows;
-      this.payload = payload;
-    }
-
-    public Object[] getPayload() {
-      return this.payload;
-    }
-
-    public int getTotalPage() {
-      return this.pager.getTotalPage();
-    }
-
-    public int getCurPage() {
-      return this.pager.getCurPage();
-    }
-
-    public int getTotalCount() {
-      return this.pager.getTotalCount();
-    }
-
-    public int getPageSize() {
-      return this.pager.getRowsPerPage();
-    }
-
-    public List<?> getRows() {
-      return rows;
-    }
   }
 
   @Override

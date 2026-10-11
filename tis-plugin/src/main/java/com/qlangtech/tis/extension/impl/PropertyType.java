@@ -545,7 +545,16 @@ public class PropertyType implements IPropertyType {
                     }
                 }.setDescription(comment.shortComment()));
             } else {
-                enumOpts.add(new Option(resolveEnumLabel(e), e.name()));
+                enumOpts.add(new Option(resolveEnumLabel(e), e.name()) {
+                    @Override
+                    public String endType() {
+                        if (e instanceof IEndTypeGetter endTypeGetter) {
+                            return endTypeGetter.getEndType().getVal();
+                        } else {
+                            return null;
+                        }
+                    }
+                });
             }
         }
         return enumOpts;

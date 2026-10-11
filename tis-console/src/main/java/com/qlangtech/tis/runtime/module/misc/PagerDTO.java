@@ -15,7 +15,9 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.koubei.web.tag.pager;
+package com.qlangtech.tis.runtime.module.misc;
+
+import com.koubei.web.tag.pager.Pager;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -62,6 +64,7 @@ public class PagerDTO {
         this.request = request;
     }
 
+    /** 登记一个具名分页器（包级私有：唯一的跨类调用方 {@link PagerUtils} 已和本类同包） */
     void add(String name, Pager action) {
         // BeanInfo beanInfo = null;
         // try {

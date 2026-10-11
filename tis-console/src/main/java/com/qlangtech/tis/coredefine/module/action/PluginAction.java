@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
+import com.koubei.web.tag.pager.PaginationResult;
 import com.qlangtech.tis.IPluginEnum;
 import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.datax.impl.DataxReader;
@@ -172,6 +173,13 @@ public class PluginAction extends BasicModule {
     Descriptor targetPlugin = Objects.requireNonNull(TIS.get().getDescriptor(pluginImpl),
       "pluginImpl:" + pluginImpl + " relevant descriptor can not be null");
 
+    if (context.get(UploadPluginMeta.KEY_PLUGIN_META) == null) {
+      List<UploadPluginMeta> metas = this.getPluginMeta(false);
+      for (UploadPluginMeta meta : metas) {
+        context.put(UploadPluginMeta.KEY_PLUGIN_META, meta);
+        break;
+      }
+    }
     targetPlugin.httpProcess(this, this, context);
 
   }

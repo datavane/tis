@@ -11,16 +11,6 @@
   "sex": {
     "label": "性别",
     "help": "选择性别",
-    "dftVal": "male",
-    "enum": [
-      {
-        "label": "男",
-        "val": "male"
-      },
-      {
-        "label": "女",
-        "val": "female"
-      }
-    ]
+    "dftVal": "male"
   }
 }

@@ -180,7 +180,7 @@ public class DataxAction extends BasicModule {
   //    Pair<Integer, List<Object>> workflows = jobSubmit.fetchAllInstance(criteria, pager.getCurPage(),
   //      pager.getRowsPerPage());
   //    pager.setTotalCount(workflows.getKey());
-  //    this.setBizResult(context, new PaginationResult(pager, workflows.getRight()));
+  //    this.setBizResult(context, new com.koubei.web.tag.pager.PaginationResult(pager, workflows.getRight()));
   //  }
 
   @Func(value = PermissionConstant.DATAX_MANAGE)

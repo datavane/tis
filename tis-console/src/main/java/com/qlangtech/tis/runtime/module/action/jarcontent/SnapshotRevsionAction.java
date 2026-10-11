@@ -76,7 +76,7 @@
 //        SnapshotList snapshotList = new SnapshotList();
 //        snapshotList.publishSnapshotid = group.getPublishSnapshotId();
 //        snapshotList.snapshotList = this.getSnapshotDAO().selectByExample(query, pager.getCurPage(), PAGE_SIZE);
-//        this.setBizResult(context, new PaginationResult(pager, snapshotList.snapshotList, snapshotList.publishSnapshotid));
+//        this.setBizResult(context, new com.koubei.web.tag.pager.PaginationResult(pager, snapshotList.snapshotList, snapshotList.publishSnapshotid));
 //        Assert.assertNotNull("group can not be null,app:" + domain.getAppName() + ", runtime:" + domain.getRunEnvironment().getKeyName(), group);
 //    // context.put("selectgroup", group);
 //    }

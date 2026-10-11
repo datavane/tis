@@ -237,13 +237,13 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
 
         @Override
         public final void httpProcess(IControlMsgHandler paramGetter, IPluginContext pluginContext, Context context) throws Exception {
-            if (context.get(UploadPluginMeta.KEY_PLUGIN_META) == null) {
-                List<UploadPluginMeta> metas = pluginContext.getPluginMeta(false);
-                for (UploadPluginMeta meta : metas) {
-                    context.put(UploadPluginMeta.KEY_PLUGIN_META, meta);
-                    break;
-                }
-            }
+//            if (context.get(UploadPluginMeta.KEY_PLUGIN_META) == null) {
+//                List<UploadPluginMeta> metas = pluginContext.getPluginMeta(false);
+//                for (UploadPluginMeta meta : metas) {
+//                    context.put(UploadPluginMeta.KEY_PLUGIN_META, meta);
+//                    break;
+//                }
+//            }
             ActionType actionType = ActionType.parse(paramGetter.getString("type"));
             JSONObject postContent = pluginContext.getJSONPostContent();
             final String toPropertyKey = paramGetter.getString("property");

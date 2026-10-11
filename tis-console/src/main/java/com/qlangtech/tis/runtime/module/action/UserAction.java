@@ -20,6 +20,7 @@ package com.qlangtech.tis.runtime.module.action;
 import com.alibaba.citrus.turbine.Context;
 import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
+import com.koubei.web.tag.pager.PaginationResult;
 import com.qlangtech.tis.manage.PermissionConstant;
 import com.qlangtech.tis.manage.biz.dal.pojo.Department;
 import com.qlangtech.tis.manage.biz.dal.pojo.DepartmentCriteria;
