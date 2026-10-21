@@ -63,6 +63,7 @@ import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_VALS;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/9/16
  */
+@SuppressWarnings("all")
 public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends DescriptorsJSON<T,
         DescriptorsJSONForAIPrompt.AISchemaAttrVal> {
 

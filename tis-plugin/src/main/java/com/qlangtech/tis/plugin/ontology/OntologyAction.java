@@ -97,7 +97,7 @@ public abstract class OntologyAction extends Ontology
 
     /**
      * 获取 Action 的显示名称
-     *
+*
      * @return display name
      */
     public abstract String getDisplayName();
@@ -108,4 +108,12 @@ public abstract class OntologyAction extends Ontology
      * @return description
      */
     public abstract String getDescription();
+
+//    /**
+//     * 获取 Action 的主要类型（用于列表展示）
+//     * 返回第一个配置的 action type 的显示名称
+//     *
+//     * @return primary type display name, 如果没有配置则返回空字符串
+//     */
+//    public abstract String getPrimaryType();
 }

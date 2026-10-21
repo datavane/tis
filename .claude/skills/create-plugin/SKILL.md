@@ -311,22 +311,175 @@ public List<WidgetColumnConfig> columns;
 public String columns;
 ```
 
-#### 原则二：固定取值用 ENUM，动态选项用 SELECTABLE
+#### 原则一之扩展：避免枚举 + 条件字段的耦合设计
 
-- **`ENUM`**：字段的取值集合同定有限，在 Java 代码中用枚举类硬编码。如：聚合方式（sum/count/avg/min/max）、对齐方式（left/center/right）、级别（1/2/3/4）、颜色选择（20种常用颜色）。
-- **`SELECTABLE`**：选项来自运行时外部数据源，通过 `registerSelectOptions()` 或 `doGetOptions()` 动态供给。如：当前 module 的变量列表、数据库表名列。
+**问题模式**：使用枚举字段控制其他字段的有效性，导致字段间产生关联性耦合。
+
+**典型症状**：
+- 一个枚举字段（如 `source`）决定了其他字段（如 `parameterRef`、`literalValue`）是否有意义
+- 这些条件字段在某些枚举值下被使用，在其他枚举值下被忽略
+- 需要在 `validateAll()` 中写"如果枚举是 X，则字段 Y 必填"的逻辑
+
+**错误示例**：
+```java
+// ❌ 错误：枚举 + 条件字段耦合
+public class PropertyMappingConfig {
+    @FormField(ordinal = 1, type = FormFieldType.ENUM)
+    public ValueSource source;  // FROM_PARAMETER / CURRENT_TIME / LITERAL
+    
+    @FormField(ordinal = 2)
+    public String parameterRef;   // 仅 FROM_PARAMETER 时有效
+    
+    @FormField(ordinal = 3)
+    public String literalValue;   // 仅 LITERAL 时有效
+    
+    public enum ValueSource { FROM_PARAMETER, CURRENT_TIME, LITERAL }
+}
+```
+
+**正确做法**：将枚举改为抽象类 + 子类的多态设计，各子类持有各自的专属字段：
 
 ```java
-// ✅ 正确：固定取值用 ENUM + Java 枚举类
-@FormField(type = FormFieldType.ENUM, ordinal = 3, required = true)
-public AggregationType aggregation;
-
-public enum AggregationType {
-    sum("求和"), count("计数"), avg("平均值"), min("最小值"), max("最大值");
-    public final String label;
-    AggregationType(String label) { this.label = label; }
+// ✅ 正确：抽象类 + 子类多态
+public class PropertyMappingConfig {
+    @FormField(ordinal = 1, validate = {Validator.require})
+    public ValueSourceConfig source;  // 多态字段，TIS 自动检测为嵌套子表单
 }
 
+// 抽象基类
+public abstract class ValueSourceConfig implements Describable<ValueSourceConfig> {
+    public abstract Object resolveValue(Map<String, Object> parameters);
+    
+    public static abstract class BaseDescriptor extends Descriptor<ValueSourceConfig> {}
+}
+
+// 子类一：从参数取值
+public class FromParameterValueSource extends ValueSourceConfig {
+    @FormField(ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
+    public String parameterRef;  // 专属字段，只在这个子类中
+    
+    @Override
+    public Object resolveValue(Map<String, Object> parameters) {
+        return parameters.get(parameterRef);
+    }
+    
+    @TISExtension
+    public static class DftDescriptor extends BaseDescriptor {
+        @Override
+        public String getDisplayName() {
+            return "From_Parameter";
+        }
+    }
+}
+
+// 子类二：固定值
+public class LiteralValueSource extends ValueSourceConfig {
+    @FormField(ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
+    public String literalValue;  // 专属字段，只在这个子类中
+    
+    @Override
+    public Object resolveValue(Map<String, Object> parameters) {
+        return literalValue;
+    }
+    
+    @TISExtension
+    public static class DftDescriptor extends BaseDescriptor {
+        @Override
+        public String getDisplayName() {
+            return "Literal_Value";
+        }
+    }
+}
+
+// 子类三：当前时间（无额外字段）
+public class CurrentTimeValueSource extends ValueSourceConfig {
+    @Override
+    public Object resolveValue(Map<String, Object> parameters) {
+        return System.currentTimeMillis();
+    }
+    
+    @TISExtension
+    public static class DftDescriptor extends BaseDescriptor {
+        @Override
+        public String getDisplayName() {
+            return "Current_Time";
+        }
+    }
+}
+```
+
+**优势**：
+1. **类型安全**：编译期即可保证字段的有效性，不需要运行时 `validateAll()` 检查
+2. **可扩展**：新增取值来源只需添加新子类，不影响现有代码
+3. **清晰的职责**：每个子类只持有自己需要的字段，没有冗余
+4. **消除条件分支**：原先的 `switch (source)` 改为多态方法调用 `source.resolveValue()`
+
+**判断标准**：当你发现自己在写"字段 X 仅在枚举值为 Y 时有效"这样的注释时，考虑是否应该使用多态设计。
+
+**参考实现**：
+- `plugins/tis-ontology-plugin/.../action/rule/ValueSourceConfig.java` — 抽象基类
+- `plugins/tis-ontology-plugin/.../action/rule/FromParameterValueSource.java` — 子类实现
+- `plugins/tis-ontology-plugin/.../action/rule/PropertyMappingConfig.java` — 使用方（2026/10/12 重构后）
+
+#### 原则二：固定取值用 ENUM，动态选项用 SELECTABLE
+
+- **`ENUM`**：字段的取值集合固定有限，在 Java 代码中用枚举类硬编码。如：聚合方式（sum/count/avg/min/max）、对齐方式（left/center/right）、级别（1/2/3/4）、颜色选择（20种常用颜色）。
+- **`SELECTABLE`**：选项来自运行时外部数据源，通过 `registerSelectOptions()` 或 `doGetOptions()` 动态供给。如：当前 module 的变量列表、数据库表名列。
+
+**关键规则：Java 枚举字段的 JSON 配置不需要 `enum` 属性**
+
+当字段类型是 Java 枚举（`enum`）时，TIS 服务端会自动反射枚举类生成选项。此时：
+- **Java 枚举必须实现 `DescriptorUseableShortComment` 接口**，提供 `shortComment()` 返回中文描述
+- **JSON 配置中不要定义 `enum` 属性**，TIS 会自动从枚举常量生成选项
+
+```java
+// ✅ 正确：Java 枚举实现 DescriptorUseableShortComment
+@FormField(type = FormFieldType.ENUM, ordinal = 3, validate = {Validator.require})
+public AggregationType aggregation;
+
+public enum AggregationType implements DescriptorUseableShortComment {
+    sum("求和"), 
+    count("计数"), 
+    avg("平均值"), 
+    min("最小值"), 
+    max("最大值");
+    
+    private final String comment;
+    
+    AggregationType(String comment) {
+        this.comment = comment;
+    }
+    
+    @Override
+    public String shortComment() {
+        return this.comment;
+    }
+}
+```
+
+```json
+// ✅ 正确：JSON 中不定义 enum，TIS 自动反射生成
+{
+  "aggregation": {
+    "label": "聚合方式",
+    "dftVal": "sum"
+  }
+}
+
+// ❌ 错误：手动定义 enum 数组（冗余且不必要）
+{
+  "aggregation": {
+    "label": "聚合方式",
+    "dftVal": "sum",
+    "enum": [
+      { "label": "求和", "val": "sum" },
+      { "label": "计数", "val": "count" }
+    ]
+  }
+}
+```
+
+```java
 // ❌ 错误：固定取值用 SELECTABLE（误导为动态选项）
 @FormField(type = FormFieldType.SELECTABLE, ordinal = 3)
 public String aggregation;
@@ -335,6 +488,9 @@ public String aggregation;
 @FormField(type = FormFieldType.INPUTTEXT, ordinal = 3)
 public String aggregation;
 ```
+
+**参考实现**：
+- `plugins/tis-ontology-plugin/.../action/PrimitiveDataType.java` — `WidgetType` 枚举实现（2026/10/13）
 
 #### 原则三：颜色类枚举附带 hex 色值
 

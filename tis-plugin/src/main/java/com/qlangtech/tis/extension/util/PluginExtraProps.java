@@ -175,6 +175,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
                     pps = new Props(o.getJSONObject(propKey));
 
+
                     //                    pps.getRefCreator().ifPresent((creator) -> {
                     //                        Props.validate(creator, propKey, pluginClazz, resourceName, false);
                     //                    });

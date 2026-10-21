@@ -292,6 +292,23 @@ public class OntologyAction extends BasicModule {
     }
     result.put("glossaries", glossaryArray);
 
+    /**
+     * Action Types 相关
+     */
+    List<com.qlangtech.tis.plugin.ontology.OntologyAction> actions
+      = Ontology.loadAllActions(ontologyName);
+    JSONArray actionTypesArray = new JSONArray();
+    for (com.qlangtech.tis.plugin.ontology.OntologyAction action : actions) {
+      JSONObject obj = new JSONObject();
+      obj.put("name", action.identityValue());
+      obj.put(KEY_DESCRIPTION, action.getDescription());
+      //obj.put("objectType", action.getPrimaryType());
+      obj.put("domain", ontologyName);
+      obj.put(Ontology.KEY_CREATE_TIME, action.getCreate());
+      actionTypesArray.add(obj);
+    }
+    result.put("actionTypes", actionTypesArray);
+
     this.setBizResult(context, result);
   }
 

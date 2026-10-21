@@ -26,12 +26,12 @@ import com.qlangtech.tis.coredefine.module.action.PluginItemsParser;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IStoreSelfManagement;
 import com.qlangtech.tis.extension.OneStepOfMultiSteps;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.common.Option;
-import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
@@ -58,7 +58,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Observable;
 import java.util.Observer;
@@ -293,7 +292,14 @@ public class PluginItems implements IPluginItemsProcessor {
         break;
       }
     }
-    if (stepPlugin) {
+    boolean noStore = false;
+    for (Descriptor.ParseDescribable<?> d : dlist) {
+      if (d.subFormFields || d.getInstance() instanceof IStoreSelfManagement) {
+        noStore = true;
+      }
+    }
+
+    if (stepPlugin || noStore) {
       // 如果在流程插件保存过程不需要持久化
       return IPluginStore.noSaveStore(pluginMeta);
     }

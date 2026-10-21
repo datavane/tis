@@ -68,6 +68,7 @@ public abstract class OntologyDomain implements Describable<OntologyDomain>, Ide
     public static final String KEY_WORKSHOP = "workshop";
     public static final String NAME_ONTOLOGY_DOMAIN = "ontology";
     public static final String FIELD_NAME = "name";
+    public static final String FIELD_ONTOLOGY_ACTION_NAME = "ontology-action-name";
 
     public long updateTime;
 

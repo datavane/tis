@@ -314,7 +314,13 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
 
             @Override
             public File getAssistRootDir(String ontologyName, Optional<String> subModule) {
-                return OntologyDomain.getActionDir(ontologyName);
+                return subModule.map((module) -> {
+                    return new File(OntologyDomain.getActionDir(ontologyName), module);
+                }).orElseGet(() -> {
+                    return OntologyDomain.getActionDir(ontologyName);
+                });
+
+
             }
         }),
         Function(OntologyFunction.KEY_FUNCTION
@@ -349,7 +355,7 @@ public abstract class Ontology implements Describable<Ontology>, IdentityName, I
         public final static Set<OntologyEnum> ontologyEnumsSet = Set.of(OntologyEnum.values());
 
         public final String typeIdentity;
-        private final IAssistStoreGetter<?> storeKeyGetter;
+        public final IAssistStoreGetter<?> storeKeyGetter;
         public final IEndTypeGetter.EndType endType;
 
         public static OntologyEnum parse(IEndTypeGetter.EndType endType) {

@@ -21,13 +21,11 @@ package com.qlangtech.tis.plugin;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
-import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
 import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.ValueChangePipe;
-import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
@@ -35,9 +33,7 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.IPluginContext;
-import com.qlangtech.tis.util.IUploadPluginMeta;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import com.qlangtech.tis.util.impl.AttrVals;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -47,12 +43,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-12-07 18:28
  **/
+@SuppressWarnings("all")
 public interface IPluginStore<T extends Describable> extends IRepositoryResource, IPluginStoreSave<T> {
 
     /**
@@ -235,15 +233,44 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
             }
         }
 
+
+        public static class RelevantFieldKeys implements Function<Descriptor, List<String>> {
+            final List<String> relevantFieldKeys = Lists.newArrayList();
+            final String toPropertyKey;
+
+            public RelevantFieldKeys(String toPropertyKey) {
+                this.toPropertyKey = toPropertyKey;
+            }
+
+            @Override
+            public final List<String> apply(Descriptor descriptor) {
+                relevantFieldKeys.addAll(toFieldValiateRelevantKeysCreator(descriptor));
+                return relevantFieldKeys;
+            }
+
+            protected List<String> toFieldValiateRelevantKeysCreator(
+                    Descriptor descriptor) {
+                return descriptor.getValueChangeFromFieldKeys(toPropertyKey);
+            }
+
+            public final void addToFieldNewInstanceRelevantKeys() {
+                this.relevantFieldKeys.addAll(toFieldNewInstanceRelevantKeysCreator());
+            }
+
+            protected List<String> toFieldNewInstanceRelevantKeysCreator() {
+                return Lists.newArrayList(this.toPropertyKey);
+            }
+        }
+
         @Override
         public final void httpProcess(IControlMsgHandler paramGetter, IPluginContext pluginContext, Context context) throws Exception {
-//            if (context.get(UploadPluginMeta.KEY_PLUGIN_META) == null) {
-//                List<UploadPluginMeta> metas = pluginContext.getPluginMeta(false);
-//                for (UploadPluginMeta meta : metas) {
-//                    context.put(UploadPluginMeta.KEY_PLUGIN_META, meta);
-//                    break;
-//                }
-//            }
+            //            if (context.get(UploadPluginMeta.KEY_PLUGIN_META) == null) {
+            //                List<UploadPluginMeta> metas = pluginContext.getPluginMeta(false);
+            //                for (UploadPluginMeta meta : metas) {
+            //                    context.put(UploadPluginMeta.KEY_PLUGIN_META, meta);
+            //                    break;
+            //                }
+            //            }
             ActionType actionType = ActionType.parse(paramGetter.getString("type"));
             JSONObject postContent = pluginContext.getJSONPostContent();
             final String toPropertyKey = paramGetter.getString("property");
@@ -252,16 +279,16 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
             }
             // 该集合会被 createRelevantFieldsContext 按引用用作属性集的过滤依据（见其 javadoc），
             // 所以这里一直持有它，在 validate() 之后往里追加 toPropertyKey 即可让 createDescribable() 读到
-            final List<String> relevantFieldKeys = Lists.newArrayList();
+            //final List<String> relevantFieldKeys = Lists.newArrayList();
+
+            RelevantFieldKeys relevantFieldKeysCreator = createRelevantFieldKeysCreator(toPropertyKey);
+
             // 只对「与本级联相关的字段」做校验和实例化，避免误判表单中其它尚未填写的属性
             AttrValMap.RelevantFieldsContextAttrValMap<?> relevantFieldsContext =
                     AttrValMap.createRelevantFieldsContext(paramGetter, context, switch (actionType) {
                         case GetDesc -> postContent;
                         case GenerateTargetInstance -> postContent.getJSONObject("host");
-                    }, (descriptor) -> {
-                        relevantFieldKeys.addAll(descriptor.getValueChangeFromFieldKeys(toPropertyKey));
-                        return relevantFieldKeys;
-                    });
+                    }, relevantFieldKeysCreator);
 
             switch (actionType) {
                 case GetDesc -> {
@@ -270,14 +297,16 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
                         return;
                     }
                     // 创建实例的时候要将toPropertyKey对应的属性设置上值
-                    relevantFieldKeys.add(toPropertyKey);
+                    // relevantFieldKeys.add(toPropertyKey);
+                    relevantFieldKeysCreator.addToFieldNewInstanceRelevantKeys();
                     ParseDescribable<?> describable = relevantFieldsContext.createDescribable();
                     context.put(MultiDescribleElementSetSelector.class.getName(), getEnumableCandidateSet(describable));
                     paramGetter.setBizResult(context, DescriptorsJSON.desc(multiDescribleElementSetDesc));
                 }
                 case GenerateTargetInstance -> {
                     // 创建实例的时候要将toPropertyKey对应的属性设置上值
-                    relevantFieldKeys.add(toPropertyKey);
+                    // relevantFieldKeys.add(toPropertyKey);
+                    relevantFieldKeysCreator.addToFieldNewInstanceRelevantKeys();
                     ParseDescribable<?> describable = relevantFieldsContext.createDescribable();
                     List<Pair<Option, MultiDescribleElement>> enumableCandidateSet =
                             getEnumableCandidateSet(describable);
@@ -299,6 +328,10 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
             }
 
 
+        }
+
+        protected RelevantFieldKeys createRelevantFieldKeysCreator(String toPropertyKey) {
+            return new RelevantFieldKeys(toPropertyKey);
         }
 
         /**
@@ -324,6 +357,7 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
         public final Map<String, Object> getExtractProps(boolean forAIPromote) {
             Map<String, Object> props = super.getExtractProps(forAIPromote);
             props.put("viewStyle", this.viewStyle().name());
+
             List<ColConfig> colsCfg = this.colsConfig();
             if (this.viewStyle() == ViewStyle.Table) {
                 boolean hasClickable = false;
@@ -339,15 +373,31 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
                             .map((col) -> col.titleKey).collect(Collectors.joining(","))
                             + " must contain a clickable col");
                 }
+                RowDragDropCfg rowDragDropCfg = this.isEnableRowDragDrop();
+                props.put("enableRowDragDrop", rowDragDropCfg.enable);
+                if (rowDragDropCfg.enable) {
+                    props.put("rowDragDropOrderByField", rowDragDropCfg.orderByFieldName);
+                }
             }
 
             props.put("colsCfg", colsCfg);
             props.put("maxHeight", this.maxHeight());
-            if (this.isEnumableSet()) {
+            EnumableSetCfg esc = null;
+            if ((esc = this.getEnumableSetCfg()).isEnumableSet()) {
                 props.put("enumableSet", true);
+                props.put("enumableSetItemDependencyDepth", esc.itemDependencyDepth);
             }
 
             return props;
+        }
+
+        /**
+         * 是否支持用户通过抓取tr行调整行的顺序位置，客户端通过'@angular/cdk/drag-drop'; 来实现
+         *
+         * @return
+         */
+        protected RowDragDropCfg isEnableRowDragDrop() {
+            return new RowDragDropCfg(false, null);
         }
 
         /**
@@ -364,8 +414,48 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
          *
          * @return
          */
-        public boolean isEnumableSet() {
-            return false;
+        public EnumableSetCfg getEnumableSetCfg() {
+            return new EnumableSetCfg(false);
+        }
+
+        public static class RowDragDropCfg {
+            private final boolean enable;
+            private final String orderByFieldName;
+
+            public RowDragDropCfg(boolean enable, String orderByFieldName) {
+                this.enable = enable;
+                if (enable && StringUtils.isEmpty(orderByFieldName)) {
+                    throw new IllegalStateException("param orderByFieldName can not be empty");
+                }
+                this.orderByFieldName = orderByFieldName;
+            }
+        }
+
+        public static class EnumableSetCfg {
+            private final boolean enumableSet;
+            private final int itemDependencyDepth;
+
+            public EnumableSetCfg(boolean enumableSet) {
+                this(enumableSet, 0);
+            }
+
+            /**
+             *
+             * @param enumableSet         集合是否是可枚举的，集合元素是有限的不是开放的（可以无限添加的）
+             * @param itemDependencyDepth 代表item依赖的深度，0代表property直接所在的item，1代表property所在item的父item，随着数值增大代表更老的item
+             */
+            public EnumableSetCfg(boolean enumableSet, int itemDependencyDepth) {
+                this.enumableSet = enumableSet;
+                this.itemDependencyDepth = itemDependencyDepth;
+            }
+
+            public boolean isEnumableSet() {
+                return enumableSet;
+            }
+
+            public int getItemDependencyDepth() {
+                return itemDependencyDepth;
+            }
         }
 
         /**

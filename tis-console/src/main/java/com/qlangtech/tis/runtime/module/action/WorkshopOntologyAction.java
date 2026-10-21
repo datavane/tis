@@ -44,10 +44,7 @@ public class WorkshopOntologyAction extends BasicModule {
 
     private static final String KEY_ONTOLOGY_NAME = "ontologyName";
     private static final String KEY_OBJECT_TYPE = "objectType";
-    private static final String KEY_ACTION_ID = "actionId";
     private static final String KEY_LIMIT = "limit";
-    private static final String KEY_OBJECT_RIDS = "objectRids";
-    private static final String KEY_PARAMETERS = "parameters";
     private static final String KEY_FILTERS = "filters";
     private static final String KEY_OBJECT_RID = "objectRid";
 
@@ -98,65 +95,6 @@ public class WorkshopOntologyAction extends BasicModule {
         } catch (Exception e) {
             logger.error("Failed to query object set", e);
             this.addErrorMessage(context, "Failed to query object set: " + e.getMessage());
-        }
-    }
-
-    /**
-     * 执行 Ontology Action
-     * POST /runtime/workshop-ontology?event_submit_do_execute_action=true
-     */
-    public void doExecuteAction(Context context) {
-        try {
-            String ontologyName = this.getString(KEY_ONTOLOGY_NAME);
-            String actionId = this.getString(KEY_ACTION_ID);
-            String objectRidsJson = this.getString(KEY_OBJECT_RIDS);
-            String parametersJson = this.getString(KEY_PARAMETERS);
-
-            if (StringUtils.isEmpty(ontologyName)) {
-                this.addErrorMessage(context, "ontologyName is required");
-                return;
-            }
-            if (StringUtils.isEmpty(actionId)) {
-                this.addErrorMessage(context, "actionId is required");
-                return;
-            }
-
-            // 解析对象 RID 列表
-            List<String> objectRids = new ArrayList<>();
-            if (StringUtils.isNotEmpty(objectRidsJson)) {
-                JSONArray ridsArray = JSON.parseArray(objectRidsJson);
-                for (int i = 0; i < ridsArray.size(); i++) {
-                    objectRids.add(ridsArray.getString(i));
-                }
-            }
-
-            // 解析参数
-            Map<String, Object> parameters = null;
-            if (StringUtils.isNotEmpty(parametersJson)) {
-                JSONObject paramsObj = JSON.parseObject(parametersJson);
-                parameters = paramsObj.getInnerMap();
-            }
-
-            // 执行 Action
-            WorkshopOntologyService.ActionResult result = ontologyService.executeAction(
-                    ontologyName, actionId, objectRids, parameters);
-
-            // 设置返回结果
-            JSONObject resultJson = new JSONObject();
-            resultJson.put("success", result.isSuccess());
-            resultJson.put("message", result.getMessage());
-            resultJson.put("data", result.getData());
-            this.setBizResult(context, resultJson);
-
-            if (result.isSuccess()) {
-                this.addActionMessage(context, result.getMessage());
-            } else {
-                this.addErrorMessage(context, result.getMessage());
-            }
-
-        } catch (Exception e) {
-            logger.error("Failed to execute action", e);
-            this.addErrorMessage(context, "Failed to execute action: " + e.getMessage());
         }
     }
 

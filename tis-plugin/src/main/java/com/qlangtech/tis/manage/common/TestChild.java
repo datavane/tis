@@ -115,8 +115,8 @@ public class TestChild implements Describable<TestChild>, IPluginStore.MultiDesc
         }
 
         @Override
-        public boolean isEnumableSet() {
-            return true;
+        public EnumableSetCfg getEnumableSetCfg() {
+            return new EnumableSetCfg(true,0);
         }
 
         @Override

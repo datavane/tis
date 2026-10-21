@@ -35,8 +35,8 @@ import com.qlangtech.tis.aiagent.core.SelectionOptions;
 import com.qlangtech.tis.aiagent.execute.StepExecutor;
 import com.qlangtech.tis.aiagent.llm.FlatJsonToTisConverter;
 import com.qlangtech.tis.aiagent.llm.ITISJsonSchema;
-import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.LLMProvider;
+import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.aiagent.llm.UserPrompt;
 import com.qlangtech.tis.aiagent.plan.DescribableImpl;
 import com.qlangtech.tis.aiagent.plan.IAITaskPlan;
@@ -104,7 +104,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.Descriptor.KEY_DESC_VAL;
-import static com.qlangtech.tis.util.AttrValMap.parseDescribableMap;
 
 /**
  *

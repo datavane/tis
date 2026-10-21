@@ -21,11 +21,15 @@ import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.datax.TimeFormat;
+import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.PropertyType;
+import com.qlangtech.tis.manage.common.IEnumTypeSerDe;
 import com.qlangtech.tis.extension.impl.PropertyType.PropVal;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.MemorySize;
 import com.qlangtech.tis.plugin.MemorySize.MemoryUnit;
 import com.qlangtech.tis.plugin.ds.IMultiElement;
@@ -50,7 +54,7 @@ import static com.qlangtech.tis.extension.IPropertyType.CONST_UNIT_INTEGER_FIELD
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月11日
  */
-public enum FormFieldType {
+public enum FormFieldType implements DescriptorUseableShortComment, IEndTypeGetter {
     /**
      * 对应插件中如下类型
      * <pre>
@@ -137,13 +141,27 @@ public enum FormFieldType {
                     return rawVal;
                 }
                 String enumName = StringUtils.trimToEmpty(rawVal == null ? null : String.valueOf(rawVal));
+                final Class<?> fieldClazz = val.propertyType.fieldClazz;
+                if (IEnumTypeSerDe.class.isAssignableFrom(fieldClazz)) {
+                    // 实现了自定义序列化的枚举：选项 value 由 serialize() 产出，反查走同一套映射；空 token 返回 null
+                    return IEnumTypeSerDe.deserialize(fieldClazz, enumName);
+                }
                 // 选项为空则属性置空
                 return StringUtils.isEmpty(enumName) ? null
-                        : Enum.valueOf((Class) val.propertyType.fieldClazz, enumName);
+                        : Enum.valueOf((Class) fieldClazz, enumName);
             }
 
 
             return IPropValProcessor.super.processInput(instance, val);
+        }
+
+        @Override
+        public Object serialize2Output(PropertyType pt, Object val) throws Exception {
+            // 与 createEnumOptions() 下发的选项 value 保持一致，否则表单回填时匹配不上选项
+            if (val instanceof IEnumTypeSerDe serDe) {
+                return serDe.valueToken();
+            }
+            return val instanceof Enum<?> e ? e.name() : val;
         }
     }, TISJsonSchema.FieldType.String) //
     , DateTime(10, new IPropValProcessor() {
@@ -151,7 +169,9 @@ public enum FormFieldType {
 
         @Override
         public Object processInput(Object instance, PropVal val) throws Exception {
-            LocalDateTime dateTime = LocalDateTime.parse((String) val.rawVal(), isoFormat);
+            String datetimeFormat = val.propertyType.getExtraProps().getString(PluginExtraProps.KEY_DATETIME_FORMAT);
+            final LocalDateTime dateTime = LocalDateTime.parse((String) val.rawVal(), StringUtils.isEmpty(datetimeFormat) ?
+                    isoFormat : DateTimeFormatter.ofPattern(datetimeFormat));
             // ng-zorro 组件上传使用格林尼治时间
             Instant ist = dateTime.atZone(ZoneOffset.UTC).toInstant();
             //  Date dateTime = dateTimeFormat.parse();
@@ -355,6 +375,73 @@ public enum FormFieldType {
 
     public int getIdentity() {
         return this.identity;
+    }
+
+    /**
+     * 每种表单控件的一句话功能说明。最终由 {@link com.qlangtech.tis.manage.common.OptionWithEndType#createEnumOptions(Class)}
+     * 以选项的 {@code description} 随选项下发前端，落在选项 JSON 的 {@code help} 上。
+     * <p>
+     * 表述刻意保持简短：{@code PropertyType#resolveEnumLabel} 的 javadoc 里 shortComment()
+     * 还是 label 的备选来源（实现目前只取常量名），文案太长就不适合当选项名用了。
+     */
+    @Override
+    public String shortComment() {
+        return switch (this) {
+            case MULTI_DESCRIBLE_PLUGIN -> "嵌套的子插件列表";
+            case MULTI_SELECTABLE -> "多选，可勾选多项";
+            case INPUTTEXT -> "单行文本";
+            case SELECTABLE -> "下拉单选";
+            case PASSWORD -> "密码输入";
+            case FILE -> "上传文件";
+            case TEXTAREA -> "多行文本";
+            case DATE -> "日期";
+            case JDBCColumn -> "数据源表字段";
+            case INT_NUMBER -> "整数";
+            case ENUM -> "枚举单选";
+            case DateTime -> "日期时间";
+            case DECIMAL_NUMBER -> "小数";
+            case DURATION_OF_SECOND -> "时长（秒）";
+            case DURATION_OF_MINUTE -> "时长（分钟）";
+            case DURATION_OF_HOUR -> "时长（小时）";
+            case MEMORY_SIZE_OF_BYTE -> "内存大小（字节）";
+            case MEMORY_SIZE_OF_KIBI -> "内存大小（KiB）";
+            case MEMORY_SIZE_OF_MEGA -> "内存大小（MiB）";
+            // 显式给 default：switch 表达式对枚举不写 default 时，编译器会合成一个抛
+            // IncompatibleClassChangeError 的分支，日后新增常量会变成运行时炸点
+            default -> this.name();
+        };
+    }
+
+    /**
+     * 取值必须能作为前端 nzType 渲染（见 {@link EndType} 里那段 Ant Design 图标全集的说明）：
+     * 这里选的都是已收录的常量，val 要么是合法的 Ant 图标名（containICON=false，前端 assets 里加载），
+     * 要么在 classpath 的 endtype/icon/ 下有自绘 svg（containICON=true，如 file / table）。
+     */
+    @Override
+    public EndType getEndType() {
+        return switch (this) {
+            case MULTI_DESCRIBLE_PLUGIN -> EndType.DeploymentUnit;
+            case MULTI_SELECTABLE -> EndType.CheckSquare;
+            case INPUTTEXT -> EndType.Edit;
+            case SELECTABLE -> EndType.DownSquare;
+            case PASSWORD -> EndType.Lock;
+            case FILE -> EndType.File;
+            case TEXTAREA -> EndType.AlignLeft;
+            case DATE -> EndType.Calendar;
+            case JDBCColumn -> EndType.Table;
+            case INT_NUMBER -> EndType.FieldNumber;
+            case ENUM -> EndType.UnorderedList;
+            case DateTime -> EndType.FieldTime;
+            case DECIMAL_NUMBER -> EndType.Percentage;
+            case DURATION_OF_SECOND -> EndType.ClockCircle;
+            case DURATION_OF_MINUTE -> EndType.ClockCircle;
+            case DURATION_OF_HOUR -> EndType.Hourglass;
+            case MEMORY_SIZE_OF_BYTE -> EndType.Hdd;
+            case MEMORY_SIZE_OF_KIBI -> EndType.Hdd;
+            case MEMORY_SIZE_OF_MEGA -> EndType.Hdd;
+            // 与 {@link IEndTypeGetter#getEndType()} 接口默认值保持一致：无图标
+            default -> EndType.Blank;
+        };
     }
 
     /**

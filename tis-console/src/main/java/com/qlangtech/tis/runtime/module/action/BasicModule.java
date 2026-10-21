@@ -1361,6 +1361,18 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     }
   }
 
+  /**
+   * 带解析特性的 JSON POST 解析。例如保存插件配置时传 {@link Feature#OrderedField}，
+   * 保证 descVal.vals 这类以对象键顺序承载行顺序的字段在服务端不被 HashMap 打乱。
+   */
+  protected JSONObject parseJsonPost(Feature... features) {
+    try (ServletInputStream input = this.getRequest().getInputStream()) {
+      return JSON.parseObject(IOUtils.toString(input, getEncode()), features);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   protected JSONArray parseJsonArrayPost() {
     try {
       return JSONArray.parseArray(IOUtils.toString(this.getRequest().getInputStream(), TisUTF8.getName()));

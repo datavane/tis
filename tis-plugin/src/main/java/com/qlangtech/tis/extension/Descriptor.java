@@ -690,9 +690,20 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             Map<String, IPropertyType> tmpPropertyTypes =
                     Collections.unmodifiableMap(PropertyType.buildPropertyTypes(descriptor, clazz));
 
+
+            tmpPropertyTypes.forEach((key, pp) -> {
+                if (pp instanceof PropertyType property) {
+                    // 进行校验
+                    property.getMultiSubPluginSwitchModel();
+                }
+            });
+
             List<PropertyType> identityFields = tmpPropertyTypes.values().stream().filter((p) -> {
                 return (p instanceof PropertyType) && ((PropertyType) p).isIdentity();
-            }).map((p) -> (PropertyType) p).collect(Collectors.toList());
+            }).map((p) -> {
+                PropertyType property = (PropertyType) p;
+                return property;
+            }).collect(Collectors.toList());
             if (IdentityName.class.isAssignableFrom(this.clazz)) {
                 if (identityFields.size() != 1) {
                     throw new IllegalStateException("class:" + this.clazz + " is type of " + IdentityName.class //
@@ -1474,7 +1485,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @see com.qlangtech.tis.plugin.ontology.impl.infer.BasicInfterExecuteDesc#httpProcess(IControlMsgHandler, IPluginContext, Context)
      */
     public void httpProcess(IControlMsgHandler paramGetter, IPluginContext pluginContext, Context context) throws Exception {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(this.getClass().getName());
     }
 
     private PluginFormProperties getPropertyTypes(Optional<PluginFormProperties> pTypes,

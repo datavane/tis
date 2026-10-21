@@ -18,27 +18,40 @@
 
 package com.qlangtech.tis.extension.impl;
 
+import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IEndTypeGetter.EndType;
 import com.qlangtech.tis.plugin.IdentityName;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
+ * 枚举字段的取值模式。被插件的枚举型字段当作字段类型使用（如 {@code EnumFieldMode showStyle}），
+ * 因此本身也是一个「前端可选值」的枚举。
+ * <p>
+ * 实现 {@link DescriptorUseableShortComment} 与 {@link IEndTypeGetter} 的目的就在于此：
+ * {@code PropertyType} 把枚举常量反射成前端选项时，会检查常量是否实现了这两个接口，
+ * 据此给选项带上中文说明（{@code help}）与图标。不实现的话选项里就只有常量名，用户看不出
+ * 「multiple」和「default」差在哪。
+ *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/8/31
  */
-public enum EnumFieldMode {
+@SuppressWarnings("all")
+public enum EnumFieldMode implements DescriptorUseableShortComment, IEndTypeGetter {
     MULTIPLE("multiple", (dftVal, fieldDesc) -> {
         if (!isValOfOptionList(dftVal, fieldDesc)) {
             throw new IllegalStateException(fieldDesc + " val " + dftVal.getClass() + " " + "must be " + "type" + " " + "of " + List.class.getName());
         }
         return ((List) dftVal).stream().map((val) -> (val instanceof IdentityName) ?
                 ((IdentityName) val).identityValue() : val).collect(Collectors.toList());
-    }) //
+    }, EndType.CheckSquare, "多选，字段值以列表形式保存") //
     , DEFAULT("default", (dftVal, fieldDesc) -> {
         if (isValOfOptionList(dftVal, fieldDesc)) {
             // 如果是List类型，则只需要将list的第一个option的值赋值给它就行
@@ -49,10 +62,25 @@ public enum EnumFieldMode {
                     "type of String or Boolean ,but now is " + dftVal.getClass());
         }
         return dftVal;
-    })
+    }, EndType.DownSquare, "下拉框单选，字段值以字符串形式保存")//
+    , FLOW("flow", DEFAULT.enumDftValProcess
+            , EndType.LayoutGrid, "使用流动平铺的方式显示单选项") //
+    , MODEL_ASSIST("model_assist", DEFAULT.enumDftValProcess
+            , EndType.More, "在模式对话框中选择输入项")
     // 平铺单选
-    , FLATTED_SINGLE_CHOICE("flat_single_choice", DEFAULT.enumDftValProcess);;
+    , FLATTED_SINGLE_CHOICE("flat_single_choice", DEFAULT.enumDftValProcess
+            , EndType.Appstore, "选项平铺展开，单选，字段值以字符串形式保存");;
     public final String val;
+    public static final String KEY_ENUM_MODE = "enumMode";
+    /**
+     * 选项图标。取值必须是一个可渲染的 nzType（合法范围见 {@link EndType} 里那段说明），
+     * 写错不会报错，只会静默渲染成空图标。
+     */
+    private final EndType endType;
+    /**
+     * 选项的一句话说明，最终落在选项 JSON 的 help 上，显示在下拉框里。
+     */
+    private final String shortComment;
     private final BiFunction<Object/**inputVal*/, String /**field desc**/, Object/**output Val*/> enumDftValProcess;
 
     private static EnumFieldMode parse(String val) {
@@ -64,13 +92,26 @@ public enum EnumFieldMode {
         return EnumFieldMode.DEFAULT;
     }
 
-    private EnumFieldMode(String val, BiFunction<Object, String, Object> enumDftValProcess) {
+    private EnumFieldMode(String val, BiFunction<Object, String, Object> enumDftValProcess,
+                          EndType endType, String shortComment) {
         this.val = val;
         this.enumDftValProcess = enumDftValProcess;
+        this.endType = Objects.requireNonNull(endType, "endType can not be null");
+        this.shortComment = Objects.requireNonNull(shortComment, "shortComment can not be null");
+    }
+
+    @Override
+    public EndType getEndType() {
+        return this.endType;
+    }
+
+    @Override
+    public String shortComment() {
+        return this.shortComment;
     }
 
     static EnumFieldMode parseEnumFieldMode(PluginExtraProps.Props extraProp) {
-        return parse(extraProp != null ? extraProp.getProps().getString("enumMode") : null);
+        return parse(extraProp != null ? extraProp.getProps().getString(KEY_ENUM_MODE) : null);
     }
 
     /**

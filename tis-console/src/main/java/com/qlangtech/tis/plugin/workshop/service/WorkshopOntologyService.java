@@ -17,15 +17,16 @@
  */
 package com.qlangtech.tis.plugin.workshop.service;
 
+import com.qlangtech.tis.ibatis.RowMap;
 import com.qlangtech.tis.plugin.ontology.Ontology;
-import com.qlangtech.tis.plugin.ontology.OntologyAction;
 import com.qlangtech.tis.plugin.ontology.OntologyObjectType;
+import com.qlangtech.tis.plugin.ontology.OntologyProperty;
+import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypeBinding;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Workshop Ontology 查询服务
@@ -69,23 +70,68 @@ public class WorkshopOntologyService {
             return Collections.emptyList();
         }
 
-        // 获取对象类型的绑定数据源信息
-        // 对象类型通过 ObjectTypeBinding 关联到具体数据源
-        // 这里返回元数据描述，实际数据查询在 10-ontology-integration 后续步骤中
-        // 由具体的数据源实现完成
-        List<Map<String, Object>> results = new ArrayList<>();
+        // 对象类型通过 ObjectTypeBinding 关联到具体数据源；未绑定时没有可查的物理表
+        ObjectTypeBinding binding = objectType.getDataSourceBinding();
+        if (binding == null || !binding.hasBound()) {
+            throw new IllegalStateException("objectType:" + objectType.getName() + " has not bind dataSource");
+        }
+        if (objectType.getCols().isEmpty()) {
+            throw new IllegalStateException("objectType:" + objectType.getName() + " has no property to query");
+        }
 
-        // 构建一个示例结果（框架层，实际数据由数据源插件提供）
-        Map<String, Object> meta = new HashMap<>();
-        meta.put("objectType", objectTypeApiName);
-        meta.put("ontologyName", ontologyName);
-        meta.put("description", "Object type metadata - full query delegated to data source plugin");
-        results.add(meta);
+        ObjectTypeBinding.DataSourceQueryCriteria criteria = new ObjectTypeBinding.DataSourceQueryCriteria();
+        objectType.getCols().forEach((col) -> criteria.addTargetCol(col.getName()));
 
-        // TODO: 在 10-ontology-integration 后续步骤中，通过 OntologyObjectType 绑定的
-        //  DataSourceFactory 执行实际数据查询，并应用 filters 过滤
+        // 主键：既补进 targetCols（允许按主键过滤），也用来给每行生成 __rid 保留键。
+        // 前端不猜主键列名，交互侧（Button Group → OntologyAction）只认 __rid。
+        final String identityProp;
+        if (objectType.hasDisablePK()) {
+            identityProp = null;
+        } else {
+            Optional<OntologyProperty> pk = objectType.getPk();
+            identityProp = pk.map(OntologyProperty::getName).orElse(null);
+            if (identityProp != null) {
+                criteria.addTargetCol(identityProp);
+            }
+        }
 
+        if (filters != null) {
+            for (Filter filter : filters) {
+                // 空属性名不连坐整次查询：一个前端没填全的条件不该让整张表报错
+                if (filter == null || StringUtils.isEmpty(filter.getProperty())) {
+                    continue;
+                }
+                criteria.addFilter(filter.getProperty(), filter.getOperator(), filter.getValue());
+            }
+        }
+
+        // 列表变量只取前 N 行，不做翻页；但 BasicCriteria 的 page/pageSize 不能为 null
+        criteria.setPage(1);
+        criteria.setPageSize(clampLimit(limit));
+
+        List<RowMap> rows = binding.executeQuery(criteria);
+        if (identityProp != null) {
+            for (RowMap row : rows) {
+                row.put(ObjectTypeBinding.KEY_ROW_IDENTITY, row.get(identityProp));
+            }
+        }
+
+        List<Map<String, Object>> results = new ArrayList<>(rows.size());
+        results.addAll(rows);
         return results;
+    }
+
+    private static final int DEFAULT_LIMIT = 1000;
+    private static final int MAX_LIMIT = 10000;
+
+    /**
+     * 对象集查询的行数上限：缺省 1000、最多 10000。
+     */
+    static int clampLimit(int limit) {
+        if (limit < 1) {
+            return DEFAULT_LIMIT;
+        }
+        return Math.min(limit, MAX_LIMIT);
     }
 
     /**
@@ -105,48 +151,6 @@ public class WorkshopOntologyService {
         logger.info("SQL after parameter replacement: {}", sql);
 
         return Collections.emptyList();
-    }
-
-    /**
-     * 执行 Ontology Action
-     *
-     * @param ontologyName Ontology 域名
-     * @param actionId     Action 标识
-     * @param objectRids   操作对象 RID 列表
-     * @param parameters   参数映射
-     * @return 执行结果
-     */
-    public ActionResult executeAction(
-            String ontologyName,
-            String actionId,
-            List<String> objectRids,
-            Map<String, Object> parameters) {
-
-        logger.info("Executing action: ontology={}, actionId={}, objects={}, params={}",
-                ontologyName, actionId, objectRids, parameters);
-
-        // 加载 OntologyAction
-        try {
-            OntologyAction action = Ontology.loadActionDetail(ontologyName, actionId);
-            if (action == null) {
-                return ActionResult.failure("Action not found: " + actionId);
-            }
-
-            // 验证 Action 是否存在
-            logger.info("Action loaded: {} (type={})", action.identityValue(), action.getClass().getSimpleName());
-
-            // TODO: 在 10-ontology-integration 后续步骤中实现完整的 Action 执行逻辑
-            // 包括：
-            // 1. 验证参数（基于 Action Parameters 定义）
-            // 2. 执行规则检查（基于 Action Rules 定义）
-            // 3. 调用具体的数据源写入方法
-            // 4. 记录操作日志
-
-            return ActionResult.success("Action executed successfully: " + actionId);
-        } catch (Exception e) {
-            logger.error("Failed to execute action: " + actionId, e);
-            return ActionResult.failure("Failed to execute action: " + e.getMessage());
-        }
     }
 
     /**
@@ -219,55 +223,4 @@ public class WorkshopOntologyService {
         }
     }
 
-    /**
-     * Action 执行结果
-     */
-    public static class ActionResult {
-        private boolean success;
-        private String message;
-        private Map<String, Object> data;
-
-        public ActionResult() {
-        }
-
-        public static ActionResult success(String message) {
-            ActionResult result = new ActionResult();
-            result.success = true;
-            result.message = message;
-            result.data = new HashMap<>();
-            return result;
-        }
-
-        public static ActionResult failure(String message) {
-            ActionResult result = new ActionResult();
-            result.success = false;
-            result.message = message;
-            result.data = new HashMap<>();
-            return result;
-        }
-
-        public boolean isSuccess() {
-            return success;
-        }
-
-        public void setSuccess(boolean success) {
-            this.success = success;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-
-        public Map<String, Object> getData() {
-            return data;
-        }
-
-        public void setData(Map<String, Object> data) {
-            this.data = data;
-        }
-    }
 }

@@ -20,6 +20,7 @@ package com.qlangtech.tis.coredefine.module.action;
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.parser.Feature;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.koubei.web.tag.pager.Pager;
@@ -39,6 +40,7 @@ import com.qlangtech.tis.extension.PluginManager;
 import com.qlangtech.tis.extension.PluginWrapper;
 import com.qlangtech.tis.extension.PluginWrapper.Dependency;
 import com.qlangtech.tis.extension.ValueChangePipe;
+import com.qlangtech.tis.extension.impl.EnumFieldMode;
 import com.qlangtech.tis.extension.impl.PropValRewrite;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
@@ -184,6 +186,28 @@ public class PluginAction extends BasicModule {
 
   }
 
+  /**
+   * 取得字段的枚举信息
+   *
+   * @param context
+   */
+  public void doGetEnumModelAssistOpts(Context context) {
+    DescriptorField descField = parseDescField();
+    PropertyType fieldProp = descField.getFieldPropType();
+
+    if (fieldProp.getEnumFieldMode() != EnumFieldMode.MODEL_ASSIST) {
+      throw new IllegalStateException("plugin:" + descField.pluginImpl + ",field:" + descField.field + " is not " +
+        "support async help content fecthing");
+    }
+    JSONObject props = new JSONObject();
+    PropertyType.resolveEnumProp(fieldProp.f, descField.getTargetDesc(), props, (v) -> v);
+
+    this.setBizResult(context, props);
+  }
+
+  //  public void doDescriptionProcess(Context context) throws Exception {
+  //
+  //  }
 
   //  /**
   //   * 取得端类型相对应的插件列表
@@ -997,7 +1021,8 @@ public class PluginAction extends BasicModule {
     }
     // Thread.sleep(6000);
     List<UploadPluginMeta> plugins = getPluginMeta();
-    JSONObject postData = this.parseJsonPost();
+    // OrderedField：保持 JSON 对象键的提交顺序，MULTI_DESCRIBLE_PLUGIN 的 vals 行顺序依赖它
+    JSONObject postData = this.parseJsonPost(Feature.OrderedField);
     String[] forwardParams = getActionForwardParam(postData);
 
     JSONArray pluginArray = Objects.requireNonNull(

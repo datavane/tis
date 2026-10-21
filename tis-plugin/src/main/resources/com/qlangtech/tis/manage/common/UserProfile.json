@@ -24,5 +24,9 @@
   },
   "sex": {
     "dftVal": "male"
+  },
+  "rightIcon": {
+    "label": "icon",
+    "enumMode": "model_assist"
   }
 }

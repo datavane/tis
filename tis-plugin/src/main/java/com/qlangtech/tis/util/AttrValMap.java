@@ -124,6 +124,21 @@ public class AttrValMap {
         if (descriptor == null) {
             throw new IllegalStateException("impl:" + impl + " can not find relevant ");
         }
+        return parseDescribableMap(subFormFilter, jsonObject, descriptor, propValRewrite);
+    }
+
+    /**
+     * 用调用方显式提供的 Descriptor 解析表单内容，跳过按 impl 去全局扩展表反查。
+     * <p>
+     * 适用于运行时动态生成、不在 Sezpoz 索引里的 descriptor（例如 Ontology Action 的
+     * 扁平运行时表单 {@code ActionFormPreview}）。
+     */
+    public static AttrValMap parseDescribableMap(Optional<SubFormFilter> subFormFilter,
+                                                 com.alibaba.fastjson.JSONObject jsonObject,
+                                                 Descriptor descriptor,
+                                                 PropValRewrite propValRewrite) {
+        Objects.requireNonNull(jsonObject, "jsonObject can not be null");
+        Objects.requireNonNull(descriptor, "descriptor can not be null");
         Object vals = jsonObject.get(PLUGIN_EXTENSION_VALS);
         AttrVals attrValMap = AttrVals.parseAttrValMap(vals);
         return new AttrValMap(attrValMap, subFormFilter, descriptor, propValRewrite);

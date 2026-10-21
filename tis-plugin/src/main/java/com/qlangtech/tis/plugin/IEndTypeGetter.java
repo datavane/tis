@@ -19,7 +19,9 @@
 package com.qlangtech.tis.plugin;
 
 import com.alibaba.fastjson.JSONObject;
+import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.impl.IOUtils;
+import com.qlangtech.tis.manage.common.IEnumTypeSerDe;
 import com.qlangtech.tis.plugin.ontology.OntologyType;
 import org.apache.commons.lang3.StringUtils;
 
@@ -115,7 +117,7 @@ public interface IEndTypeGetter {
     /**
      * 端类型
      */
-    enum EndType implements IEndType {
+    enum EndType implements IEndType, IEndTypeGetter, DescriptorUseableShortComment, IEnumTypeSerDe {
         // Greenplum("greenplum", EndTypeCategory.Data)
         MySQL("mysql", EndTypeCategory.Data, true, Optional.of("开源关系型数据库，官网：https://www.mysql.com/")) //
         , OceanBase("oceanbase", EndTypeCategory.Data, true,
@@ -1221,9 +1223,9 @@ public interface IEndTypeGetter {
 
             if (icon == null) {
 
-//                if (!this.containICON) {
-//                    return (icon = unknowStorageType);
-//                }
+                //                if (!this.containICON) {
+                //                    return (icon = unknowStorageType);
+                //                }
 
                 icon = new Icon() {
                     private String loadIconWithSuffix(String theme, boolean throwErr) {
@@ -1257,6 +1259,21 @@ public interface IEndTypeGetter {
 
         public boolean containIn(Set<String> endTypes) {
             return endTypes.contains(this.getVal());
+        }
+
+        @Override
+        public EndType getEndType() {
+            return this;
+        }
+
+        @Override
+        public String shortComment() {
+            return this.val;
+        }
+
+        @Override
+        public String valueToken() {
+            return this.val;
         }
     }
 

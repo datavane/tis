@@ -26,7 +26,6 @@ import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
-import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.ElementPluginDesc;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
@@ -36,7 +35,6 @@ import com.qlangtech.tis.extension.util.OverwriteProps;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.OptionWithEndType;
-import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
@@ -436,11 +434,13 @@ public class PropertyType implements IPropertyType {
 
                                     if (descriptor.isPresent() //
                                             && (formField.type() == FormFieldType.ENUM)) {
-
-                                        resolveEnumProp(f, descriptor.get().getElementDesc(), fieldExtraProps,
-                                                (opts) -> {
-                                                    return Option.toJson((List<Option>) opts);
-                                                });
+                                        EnumFieldMode enumFieldMode = ptype.getEnumFieldMode();
+                                        if (enumFieldMode != EnumFieldMode.MODEL_ASSIST) {
+                                            resolveEnumProp(f, descriptor.get().getElementDesc(), fieldExtraProps,
+                                                    (opts) -> {
+                                                        return Option.toJson((List<Option>) opts);
+                                                    });
+                                        }
                                     }
 
                                     if (descriptor.isPresent() //
@@ -488,9 +488,34 @@ public class PropertyType implements IPropertyType {
         }
     }
 
-    private static JSONArray resolveEnumProp(Field field, Descriptor descriptor,
-                                             PluginExtraProps.Props fieldExtraProps, Function<Object, Object> process) {
+    private static void resolveEnumProp(Field field, Descriptor descriptor,
+                                        PluginExtraProps.Props fieldExtraProps, Function<Object, Object> process) {
         JSONObject props = fieldExtraProps.getProps();
+        resolveEnumProp(field, descriptor, props, process);
+        //        props.get(KEY_VIEW_TYPE);
+        //        Object anEnum = props.get(Descriptor.KEY_ENUM_PROP);
+        //        // JSONArray enums = new JSONArray();
+        //        if (anEnum != null && anEnum instanceof String) {
+        //            try {
+        //                GroovyShellUtil.descriptorThreadLocal.set(descriptor);
+        //                props.put(Descriptor.KEY_ENUM_PROP, GroovyShellEvaluate.scriptEval((String) anEnum, process));
+        //            } finally {
+        //                GroovyShellUtil.descriptorThreadLocal.remove();
+        //            }
+        //        } else if (anEnum == null && (field.getType() == boolean.class || field.getType() == Boolean.class)) {
+        //
+        //            props.put(Descriptor.KEY_ENUM_PROP, bolOps);
+        //
+        //        } else if (anEnum == null && (field.getType().isEnum())) {
+        //            props.put(Descriptor.KEY_ENUM_PROP, Option.toJson(OptionWithEndType.createEnumOptions(field
+        //            .getType())));
+        //        }
+        //        //  return enums;
+    }
+
+    public static void resolveEnumProp(Field field, Descriptor descriptor,
+                                       JSONObject props, Function<Object, Object> process) {
+
         props.get(KEY_VIEW_TYPE);
         Object anEnum = props.get(Descriptor.KEY_ENUM_PROP);
         JSONArray enums = new JSONArray();
@@ -506,81 +531,9 @@ public class PropertyType implements IPropertyType {
             props.put(Descriptor.KEY_ENUM_PROP, bolOps);
 
         } else if (anEnum == null && (field.getType().isEnum())) {
-            props.put(Descriptor.KEY_ENUM_PROP, Option.toJson(createEnumOptions(field.getType())));
+            props.put(Descriptor.KEY_ENUM_PROP, Option.toJson(OptionWithEndType.createEnumOptions(field.getType())));
         }
-        return enums;
-    }
-
-    /**
-     * 将Java枚举类型的所有常量反射成前端可用的选项列表
-     * <p>
-     * val 取枚举常量名，保证前端提交的值能够被反序列化回对应的枚举实例；
-     * label 优先取枚举常量上的 label 字段，次之取 {@link DescriptorUseableShortComment#shortComment()}，
-     * 都没有定义则直接使用常量名；
-     * 枚举实现了 {@link DescriptorUseableShortComment} 的，需要将shortComment传递给前端作为选项的说明信息，
-     * 所以使用{@link OptionWithEndType}承载
-     *
-     * @param enumClazz 枚举类型
-     * @see Option#toJson(List)
-     */
-    private static List<Option> createEnumOptions(Class<?> enumClazz) {
-        Object[] enumConstants = enumClazz.getEnumConstants();
-        if (enumConstants == null) {
-            throw new IllegalStateException("clazz:" + enumClazz.getName() + " is not a enum type");
-        }
-        List<Option> enumOpts = Lists.newArrayList();
-        for (Object enumConstant : enumConstants) {
-            Enum<?> e = (Enum<?>) enumConstant;
-            if (e instanceof DescriptorUseableShortComment comment) {
-                // Optional<IEndTypeGetter.EndType> endOpt = Optional.empty();
-
-                enumOpts.add(new OptionWithEndType(resolveEnumLabel(e), e.name(), IEndTypeGetter.EndType.Blank) {
-                    @Override
-                    public String endType() {
-                        if (e instanceof IEndTypeGetter endTypeGetter) {
-                            return endTypeGetter.getEndType().getVal();
-                        } else {
-                            return null;
-                        }
-                    }
-                }.setDescription(comment.shortComment()));
-            } else {
-                enumOpts.add(new Option(resolveEnumLabel(e), e.name()) {
-                    @Override
-                    public String endType() {
-                        if (e instanceof IEndTypeGetter endTypeGetter) {
-                            return endTypeGetter.getEndType().getVal();
-                        } else {
-                            return null;
-                        }
-                    }
-                });
-            }
-        }
-        return enumOpts;
-    }
-
-    /**
-     * 取枚举常量显示用的label，约定枚举中声明 public final String label 字段（或者是shortComment()）作为显示文本
-     */
-    private static String resolveEnumLabel(Enum<?> e) {
-        //        try {
-        //            Field labelField = e.getDeclaringClass().getField("label");
-        //            if (labelField.getType() == String.class) {
-        //                String label = (String) labelField.get(e);
-        //                if (StringUtils.isNotEmpty(label)) {
-        //                    return label;
-        //                }
-        //            }
-        //        } catch (NoSuchFieldException ex) {
-        //            // 枚举中没有定义label字段，忽略
-        //        } catch (IllegalAccessException ex) {
-        //            throw new RuntimeException("enum:" + e.getDeclaringClass().getName(), ex);
-        //        }
-        //        if (e instanceof DescriptorUseableShortComment) {
-        //            return ((DescriptorUseableShortComment) e).shortComment();
-        //        }
-        return e.name();
+        //  return enums;
     }
 
     /**
@@ -643,6 +596,14 @@ public class PropertyType implements IPropertyType {
             return null;
         }
         return EnumFieldMode.parseEnumFieldMode(this.extraProp);
+    }
+
+    @JSONField(serialize = false)
+    public MultiSubPluginSwitchModel getMultiSubPluginSwitchModel() {
+        if (!this.isDescribable()) {
+            return null;
+        }
+        return MultiSubPluginSwitchModel.parse(this.extraProp);
     }
 
 

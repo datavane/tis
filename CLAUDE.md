@@ -61,6 +61,46 @@ mvn clean deploy -Dmaven.test.skip=true -Dautoconfig.skip -pl tis-plugin,maven-t
 - 插件开发可参考 `tis-plugin` 模块
 - 使用 `maven-tpi-plugin` 进行插件打包
 
+## Java 语法约定
+
+工程编译基线是 **JDK 17**（`tis-parent` 的 `java.version`，`maven-compiler-plugin` 的 source/target 都取该值）。因此必须使用 JDK 9~17 已正式支持的现代语法，**不要沿用 JDK 8 时代的写法**。
+
+### `instanceof` 一律使用模式匹配
+
+判定后紧跟强转的写法（JDK 16 转正，JEP 394）必须合并成一行：
+
+```java
+// ✅ 正确：判定即绑定
+if (rule instanceof ModifyObjectRule modifyRule) {
+    collectMappings(modifyRule.propertyMappings);
+}
+
+// ✅ 正确：否定形式同样可用，绑定变量在 if 块之后依然可见
+if (!(linkResource instanceof RelationshipTypeBackingObjectType backObjectType)) {
+    throw new IllegalStateException("...");
+}
+// 此处可直接使用 backObjectType
+
+// ❌ 错误：判定 + 强转两行，JDK 8 时代的写法
+if (rule instanceof ModifyObjectRule) {
+    ModifyObjectRule modifyRule = (ModifyObjectRule) rule;
+    ...
+}
+```
+
+在 `if / else if` 分支链里，各分支的绑定变量名要能互相区分（如 `createRule` / `deleteRule`），不要一律叫 `rule`。
+
+### 其他应当使用的语法
+
+| 语法 | 版本 | 说明 |
+|---|---|---|
+| `switch` 表达式（`case X ->` 箭头形式） | 14 | 不必再写 `break`，可整体作为表达式赋值 |
+| 文本块（`"""`） | 15 | 多行 SQL / JSON / 模板用文本块，不要用 `+` 拼接或 `\n` |
+| `record` | 16 | 不可变的纯数据载体优先声明为 `record` |
+| `var` | 10 | 仅当右侧类型一目了然时使用（如 `var list = new ArrayList<String>();`） |
+| `Stream.toList()` | 16 | 替代 `collect(Collectors.toList())` |
+| `Optional.isEmpty()` | 11 | 替代 `!opt.isPresent()` |
+
 ## 部署方式
 
 项目支持多种部署方式：

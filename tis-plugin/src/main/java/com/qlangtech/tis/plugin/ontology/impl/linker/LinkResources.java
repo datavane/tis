@@ -46,6 +46,10 @@ public abstract class LinkResources extends OneStepOfMultiSteps implements Plugi
         return BasicLinkResourceDesc.class;
     }
 
+    public final RelationshipType getRelationShipType() {
+        return ((BasicLinkResourceDesc) this.getDescriptor()).getRelationShipType();
+    }
+
     /**
      * 提取连接可使用的唯一名称，用于鉴别连接的唯一名称，防止重复创建连接
      *

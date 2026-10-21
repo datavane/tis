@@ -34,17 +34,21 @@ import java.time.format.DateTimeFormatter;
  * @create: 2023-02-23 13:31
  **/
 public enum TimeFormat implements ITimeFormat {
-    yyyyMMdd_HH_mm_ss(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) //
-    , yyyyMMddHHmmss(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) //
-    , yyyyMMdd(DateTimeFormatter.ofPattern("yyyyMMdd")) //
-    , yyyy_MM_dd(DateTimeFormatter.ofPattern(DATA_FORMAT));
-    // public static final String DATA_FORMAT = yyyy_MM_dd.timeFormatter.p;
+    yyyyMMdd_HH_mm_ss("yyyy-MM-dd HH:mm:ss") //
+    , yyyyMMddHHmmss("yyyyMMddHHmmss") //
+    , yyyyMMdd("yyyyMMdd") //
+    , yyyy_MM_dd(DATA_FORMAT);
     public static final ZoneId sysZoneId = ZoneOffset.systemDefault();
+    /**
+     * DateTimeFormatter 不保留原始 pattern，需要同时保存一份
+     */
+    public final String pattern;
     public final DateTimeFormatter timeFormatter;
     public static Long timestampForTest;
 
-    TimeFormat(DateTimeFormatter timeFormatter) {
-        this.timeFormatter = timeFormatter;
+    TimeFormat(String pattern) {
+        this.pattern = pattern;
+        this.timeFormatter = DateTimeFormatter.ofPattern(pattern);
     }
 
     public static long getCurrentTimeStamp() {
@@ -80,7 +84,7 @@ public enum TimeFormat implements ITimeFormat {
     }
 
     public static void main(String[] args) {
-        System.out.println( yyyyMMdd_HH_mm_ss.format(new java.util.Date()));
-       // System.out.println(TimeFormat.yyyyMMddHHmmss.format(1709001500699l));
+        System.out.println(yyyyMMdd_HH_mm_ss.format(new java.util.Date()));
+        // System.out.println(TimeFormat.yyyyMMddHHmmss.format(1709001500699l));
     }
 }
