@@ -25,7 +25,7 @@ import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.PropertyType;
-import com.qlangtech.tis.manage.common.IEnumTypeSerDe;
+import com.qlangtech.tis.manage.common.IEnumTypeSer;
 import com.qlangtech.tis.extension.impl.PropertyType.PropVal;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Option;
@@ -142,9 +142,9 @@ public enum FormFieldType implements DescriptorUseableShortComment, IEndTypeGett
                 }
                 String enumName = StringUtils.trimToEmpty(rawVal == null ? null : String.valueOf(rawVal));
                 final Class<?> fieldClazz = val.propertyType.fieldClazz;
-                if (IEnumTypeSerDe.class.isAssignableFrom(fieldClazz)) {
+                if (IEnumTypeSer.class.isAssignableFrom(fieldClazz)) {
                     // 实现了自定义序列化的枚举：选项 value 由 serialize() 产出，反查走同一套映射；空 token 返回 null
-                    return IEnumTypeSerDe.deserialize(fieldClazz, enumName);
+                    return IEnumTypeSer.deserialize(fieldClazz, enumName);
                 }
                 // 选项为空则属性置空
                 return StringUtils.isEmpty(enumName) ? null
@@ -158,7 +158,7 @@ public enum FormFieldType implements DescriptorUseableShortComment, IEndTypeGett
         @Override
         public Object serialize2Output(PropertyType pt, Object val) throws Exception {
             // 与 createEnumOptions() 下发的选项 value 保持一致，否则表单回填时匹配不上选项
-            if (val instanceof IEnumTypeSerDe serDe) {
+            if (val instanceof IEnumTypeSer serDe) {
                 return serDe.valueToken();
             }
             return val instanceof Enum<?> e ? e.name() : val;

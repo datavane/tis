@@ -27,7 +27,7 @@ package com.qlangtech.tis.manage.common;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/10/20
  */
-public interface IEnumTypeSerDe {
+public interface IEnumTypeSer {
 
     /**
      * 枚举常量 -> 前端选项 value / 存储 token
@@ -50,7 +50,7 @@ public interface IEnumTypeSerDe {
             throw new IllegalStateException("clazz:" + enumClazz.getName() + " is not a enum type");
         }
         for (Object constant : enumConstants) {
-            if (token.equals(((IEnumTypeSerDe) constant).valueToken())) {
+            if (token.equals(((IEnumTypeSer) constant).valueToken())) {
                 return (Enum<?>) constant;
             }
         }

@@ -41,6 +41,14 @@ import java.util.UUID;
  * 处理 Workshop 编辑器的 Widget/Section 批量操作和草稿持久化请求。
  * </p>
  * <p>
+ * <b>本 Action 不是实体的持久化入口。</b>{@code doBulkUpdateWidgets} 的
+ * {@code WorkshopEditorService.applyBatch} 只做 kind 白名单校验，不写任何文件；
+ * 前端保存已改为 {@code plugin_action} 的 {@code module-apply}（增量提交，
+ * {@code module-save} 仅作无基准时的整对象快照兜底，见
+ * {@code WorkshopModule.DefaultDescriptor#doApplyModule} / {@code #doSaveModule}）。
+ * 本类目前没有前端调用方，保留仅为草稿/历史链路兼容。
+ * </p>
+ * <p>
  * URL 映射示例：
  * POST /runtime/workshop_editor.ajax?action=workshop_editor_action&event_submit_do_bulk_update_widgets=y
  * </p>

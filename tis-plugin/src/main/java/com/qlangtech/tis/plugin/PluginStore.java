@@ -453,13 +453,18 @@ public class PluginStore<T extends Describable<T>> implements IPluginStore<T> {
                 logger.warn("target xstream file is not exist:" + file.getFile().getAbsolutePath());
                 return;
             }
-            // 远程下载插件
-            //List<XStream2.PluginMeta> pluginMetas = componentMeta.synchronizePluginsPackageFromRemote();
-            //            if (CollectionUtils.isNotEmpty(pluginMetas)) {
-            //                // 本地有插件包被更新了，需要更新一下pluginManager中已经加载了的插件了
-            //                // TODO 在运行时有插件被更新了，目前的做法只有靠重启了，将来再来实现运行是热更新插件
-            //            }
 
+
+            // 反序列化生命周期钩子：XStream 1.4.19 的 AbstractReflectionConverter.unmarshal
+            // （TISCompositConvert 的父类）在字段填充完成后，会通过 SerializationMembers.callReadResolve
+            // 反射调用被反序列化实例上的 private Object readResolve()（不要求实现 Serializable）。
+            // 因此插件类可以把 readResolve() 当作「反序列化完成」回调，做一次性初始化/子实体回填
+            // （见 WorkshopModule：回填 pages/sections/variables/header，避免每次业务读取重复加载）。
+            // 注意：
+            //   1. 仅 unmarshal 触发；marshal/setPlugins 不会触发。
+            //   2. 插件元数据扫描/dry-run 场景下 RobustReflectionConverter2.usedPluginInfo.get().isCacheable()
+            //      为 false，回填逻辑应据此跳过，避免在只读扫描里做有副作用的加载。
+            //   3. readResolve() 必须 return this；返回其他对象会被 XStream 当作替换对象。
             file.unmarshal(this, dataHolder);
             if (plugins != null) {
                 plugins.forEach((p) -> {

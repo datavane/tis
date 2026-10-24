@@ -1348,9 +1348,16 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     }
   }
 
+  /**
+   * 服务端统一读取 JSON POST 载荷的入口。
+   * <p>
+   * 固定带 {@link Feature#OrderedField}：{@code descVal.vals} 这类以对象键顺序承载
+   * 行顺序的字段（MULTI_DESCRIBLE_PLUGIN 记录列表）不能被打散。普通按 key 取值的
+   * 消费方不受影响；顺序敏感的消费方（如 workshop 的 module-apply）则依赖这里。
+   */
   @Override
   public JSONObject getJSONPostContent() {
-    return this.parseJsonPost();
+    return this.parseJsonPost(Feature.OrderedField);
   }
 
   protected JSONObject parseJsonPost() {

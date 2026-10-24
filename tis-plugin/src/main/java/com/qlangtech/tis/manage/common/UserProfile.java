@@ -77,10 +77,13 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
     @FormField(ordinal = 3, type = FormFieldType.SELECTABLE, validate = {Validator.require})
     public String control;
 
-    @FormField(ordinal = 4, type = FormFieldType.ENUM, advance = true)
+    @FormField(ordinal = 4, type = FormFieldType.ENUM, advance = false)
     public IEndTypeGetter.EndType rightIcon;
 
-    @FormField(ordinal = 5, desClazz = TestChild.class, type = FormFieldType.MULTI_DESCRIBLE_PLUGIN, validate =
+    @FormField(ordinal = 5, validate = {})
+    public TestChild child;
+
+    @FormField(ordinal = 6, desClazz = TestChild.class, type = FormFieldType.MULTI_DESCRIBLE_PLUGIN, validate =
             {Validator.require})
     public List<TestChild> children;
 

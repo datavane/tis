@@ -42,7 +42,7 @@ public interface IDBReservedKeys {
      * @param criteria
      */
     default void appendSqlLimit(StringBuilder sql, BasicCriteria criteria) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(this.getClass().getName());
     }
 
     /**

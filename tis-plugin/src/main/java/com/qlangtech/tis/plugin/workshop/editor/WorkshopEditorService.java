@@ -179,6 +179,22 @@ public class WorkshopEditorService {
             case "duplicate-widget":
             case "move-widget":
             case "reorder-widgets":
+                // 编辑器保存时会把全部 pendingOps 一次性提交（见 EditorToolbarComponent.save），
+                // 因此 page / overlay / header / variable 操作也会走到这里。白名单漏一个 kind
+                // 就会以 "Unknown EditorOperation kind" break 掉整批保存。
+                // section 的三种操作走 applySectionOps，其白名单在 validateSectionOperation。
+            case "add-page":
+            case "remove-page":
+            case "update-page":
+            case "add-overlay":
+            case "remove-overlay":
+            case "update-overlay":
+            case "update-header":
+            case "add-header-widget":
+            case "remove-header-widget":
+            case "add-variable":
+            case "update-variable":
+            case "remove-variable":
                 break;
             default:
                 throw new IllegalArgumentException("Unknown EditorOperation kind: " + op.getKind());

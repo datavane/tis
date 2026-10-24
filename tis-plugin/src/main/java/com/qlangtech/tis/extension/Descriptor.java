@@ -1012,8 +1012,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 //   Objects.requireNonNull(descVal, "prop:" + KEY_DESC_VAL + " json:" + JsonUtil.toString(valJ)
                 //   ).getString(AttrValMap.PLUGIN_EXTENSION_IMPL);
                 if (StringUtils.isBlank(impl)) {
-                    addFieldRequiredError(msgHandler, context, attr);
-                    valid = false;
+                    if (attrDesc.isInputRequired()) {
+                        addFieldRequiredError(msgHandler, context, attr);
+                        valid = false;
+                    }
                     continue;
                 }
                 AttrValMap attrValMap = AttrValMap.parseDescribableMap(Optional.empty(), descVal);
@@ -1508,6 +1510,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         String impl;
         Descriptor descriptor;
         Object attrVal;
+        fieldCreate:
         for (Map.Entry<String, IPropertyType> entry : propertyTypes.getKVTuples()) {
             attr = entry.getKey();
             attrDesc = (PropertyType) entry.getValue();
@@ -1524,8 +1527,12 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         "key:" + KEY_DESC_VAL + " relevant instant can not be null");
                 impl = descVal.getString(PLUGIN_EXTENSION_IMPL);
                 if (StringUtils.isEmpty(impl)) {
-                    throw new IllegalStateException("attrDesc:" + attrDesc.propertyName()
-                            + " of property " + PLUGIN_EXTENSION_IMPL + " can not be empty,in " + JsonUtil.toString(descVal, true));
+                    if (attrDesc.isInputRequired()) {
+                        throw new IllegalStateException("attrDesc:" + attrDesc.propertyName()
+                                + " of property " + PLUGIN_EXTENSION_IMPL + " can not be empty,in " + JsonUtil.toString(descVal, true));
+                    } else {
+                        continue fieldCreate;
+                    }
                 }
                 descriptor = TIS.get().getDescriptor(impl);
                 if (descriptor == null) {

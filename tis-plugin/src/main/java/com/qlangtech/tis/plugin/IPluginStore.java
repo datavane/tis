@@ -177,7 +177,7 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
 
     interface BeforePluginSaved {
         /**
-         * Plugin 保存执行千回调执行
+         * Plugin 保存执行前回调执行
          */
         void beforeSaved(IPluginContext pluginContext, Optional<Context> context);
     }
