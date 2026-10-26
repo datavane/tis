@@ -1,6 +1,6 @@
 ## 介绍
 
-![tis](docs/tis-synoptic2.png)
+![tis](docs/tis-architecture.jpg)
 
 **TIS** 是新一代 **AI 原生数据集成平台**。在大模型重塑行业的今天，TIS 率先将 LLM 深度融入数据工程全链路——
 

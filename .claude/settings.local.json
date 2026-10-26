@@ -262,7 +262,12 @@
       "Read(//opt/misc/palantir-study/foundry/pipeline-builder/detail/**)",
       "Read(//opt/misc/palantir-study/foundry/pipeline-builder/**)",
       "Read(//opt/misc/palantir-study/use-case-stock-trading-assistant/relevant-widget-impl/**)",
-      "Bash(timeout 540 mvn -o -q compile -Dmaven.test.skip=true)"
+      "Bash(timeout 540 mvn -o -q compile -Dmaven.test.skip=true)",
+      "Bash(ping -c 1 -t 3 api.relayrouter.app)",
+      "Bash(sips -s format jpeg -s formatOptions 92 v2b.png --out /Users/mozhenghua/j2ee_solution/project/tis-solr/docs/tis-architecture.jpg)",
+      "Bash(sips -s format jpeg -s formatOptions 92 /tmp/tis-arch/v2b.png --out /Users/mozhenghua/j2ee_solution/project/tis-solr/docs/tis-architecture.jpg)",
+      "Bash(sed *)",
+      "Bash(claude plugin *)"
     ],
     "deny": [],
     "ask": []

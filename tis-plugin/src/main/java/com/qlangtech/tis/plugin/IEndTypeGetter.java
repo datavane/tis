@@ -132,6 +132,7 @@ public interface IEndTypeGetter {
         , OceanBase("oceanbase", EndTypeCategory.Data, true,
                 Optional.of("阿里巴巴自研分布式数据库，官网：https://www.oceanbase.com/")) //
         , Paimon("paimon", EndTypeCategory.Data, true, Optional.of("Apache流批统一存储，官网：https://paimon.apache.org/")) //
+        , Iceberg("iceberg", EndTypeCategory.Data, true, Optional.of("Apache开放表格式，官网：https://iceberg.apache.org/")) //
         , MariaDB("mariaDB", EndTypeCategory.Data, true, Optional.of("MySQL社区分支，官网：https://mariadb.org/")) //
         , Postgres("pg", EndTypeCategory.Data, true, Optional.of("PostgreSQL对象关系型数据库，官网：https://www.postgresql.org/"))//
         , Oracle("oracle", EndTypeCategory.Data, true, Optional.of("甲骨文公司商业数据库，官网：https://www.oracle.com/database/")) //

@@ -112,6 +112,7 @@ Every TIS plugin MUST satisfy:
    - A `.json` file in the same package under `resources/` directory
    - Optional `.md` file for rich markdown help content
    - **IMPORTANT:  parent classes also need `.json`!** Even if a class is `abstract` and has no `@TISExtension` Descriptor of its own, if it declares `@FormField` fields (public fields with `@FormField` annotation), it MUST have its own `.json` file at the matching resource path. These fields' help/placeholder/dftVal are inherited by concrete subclasses; TIS looks up the `.json` for each class in the hierarchy independently.
+   - **资源路径必须与源码包逐层对应**：`src/main/java/a/b/C.java` ↔ `src/main/resources/a/b/C.json`。放错一层目录（例如源码在 `a/b/event/C.java` 而 json 写成 `a/b/C.json`）**不会报错**，只是这个 json 永远不会被读到 —— 表单上 label/help/dftVal 全丢，且没有任何日志提示
 
 5. **Descriptor 命名：`getDisplayName()` 禁止返回中文（CRITICAL）**
    - `Descriptor#getDisplayName()` 是插件的机器可读短名，**必须由纯字母组成**：不得包含中文、空格以及任何标点符号
@@ -244,7 +245,7 @@ Example: If `DataxIcebergWriter` has a 聚合属性插件 (Aggregated Property P
 
 - **identity**: Unique identifier for the plugin instance (acts as primary key)
 - **ordinal**: Display order in UI form (lower = higher priority, semantically related fields should be adjacent)
-- **advance**: Mark as advanced setting (must have default value, can be hidden)
+- **advance**: Mark as advanced setting (must have default value, can be hidden). The default counts only if it is `dftVal` in the `.json` — a Java field initializer does not pre-fill the form
 - **validate**: Frontend validation rules (see Validator options below)
 - **type**: Field type (see FormFieldType options below)
 
@@ -740,6 +741,9 @@ public final class MyHelper {
 
 - **SELECTABLE 字段选项注册**：所有 `FormFieldType.SELECTABLE` 字段是否在 Descriptor 构造函数中调用了 `registerSelectOptions()`。如果涉及级联联动，`valueChangePipe()` 是否完整配置
 - **字段名常量**：`registerSelectOptions()` 的第一个参数是否使用 `public static final String` 常量，而非字符串字面量
+- **dftVal 与 Java 初值对齐**：逐个 `@FormField` 字段核对 —— 凡是写了 Java 初值（`public Boolean x = false;`、`public AxisConfig y = new Xxx();`、`public E z = E.A;`）的，对应 `.json` 里必须有 `dftVal` 且取值一致；`advance = true` 或 `validate = {Validator.require}` 的字段尤其不能漏。取值格式按字段类型分流（见 Step 4 的 `#### dftVal — the only source of a form default`）：枚举取**常量名**、多态 Describable 取子类 descriptor 的 **displayName 逐字相等**、Boolean ENUM 取真值 `true`/`false`。父类 `.json` 的 `dftVal` 会被子类继承，子类要不同默认时在自己的 `.json` 覆盖
+- **新增子类不得留孤立 `.json`**：每个 `src/main/resources/.../Xxx.json` 必须能对上 main 源码里同 FQCN 的 `.java`。抽象父类有 `@FormField` 时才写 json；零字段的开关态子类（`XxxOff`）**不写**。资源目录放错一层（如写成 `model/EventConfig.json` 而源码在 `model/event/EventConfig.java`）不会报错，只会静默失效
+- **上面两条建议直接落成测试**：抄一份 `tis-ontology-plugin/src/test/java/.../workshop/TestWorkshopFormDefaults.java` 到你的包，改掉 `PKG_ROOT` 常量即可（不依赖 TIS 运行期，默认 surefire 下真跑）。反射拿不到初始化器表达式、但拿得到它的**结果**——`newInstance()` 后读字段值就是有效初值，再按线格式归一与 json 比对，正好覆盖「Java 初值 ↔ dftVal」这条无声约定
 
 ### Validation Logic
 
@@ -1033,7 +1037,7 @@ Generate these files in the correct structure:
      - `label`: Display label (required)
      - `placeholder`: Input placeholder (optional, **only applicable for `FormFieldType.INPUTTEXT` or `FormFieldType.TEXTAREA`**). **Do NOT set alongside `dftVal`** — if a `dftVal` is specified, `placeholder` is redundant and unnecessary.
      - `help`: Brief one-sentence help text (optional, **ONLY for simple properties that do NOT have detailed help in .md file**)
-     - `dftVal`: Default value (optional, for optional fields). **Prefer to set when semantically reasonable** — it pre-fills the input, reducing the user's effort and making the form more self-explanatory. However, **do NOT force an artificial default** that carries no semantic meaning (e.g., setting `"0"` or `""` purely to avoid a blank field).
+     - `dftVal`: Default value (optional, for optional fields). **Prefer to set when semantically reasonable** — it pre-fills the input, reducing the user's effort and making the form more self-explanatory. However, **do NOT force an artificial default** that carries no semantic meaning (e.g., setting `"0"` or `""` purely to avoid a blank field). **See `#### dftVal — the only source of a form default` below: a Java field initializer does NOT give the form a default.**
    - **CRITICAL - JSON help vs MD file distribution rule**:
      - **If a property already has detailed help in the `.md` file** (under `## propertyName` section), **DO NOT include `help` field in JSON** for that property
      - **Only include `help` in JSON when**:
@@ -1162,6 +1166,68 @@ Generate these files in the correct structure:
       - If there's `GlueCatalog`, create its Java + JSON + optional MD
       - Each implementation is a complete plugin with full file set
 
+#### dftVal — the only source of a form default
+
+**A Java field initializer is NOT a form default. It is invisible to the form.**
+Every `public T prop = someValue;` you write only affects instances created by code
+(`new XxxPlugin()`) and the save-time fallback when the form did not post that field
+(`Descriptor.buildPluginInstance()` → `clazz.newInstance()`). The new-plugin form pre-fills
+a value **only** from the `.json` `dftVal` (frontend `tis.plugin.ts` → `ItemPropVal.primary`
+reads `eprops.dftVal`; for describable fields `addNewEmptyItemProp` matches it against each
+candidate descriptor's `displayName`). So:
+
+> **Whenever you give a field a Java initializer, also give it a `dftVal` in the `.json`,
+> with the same value. Only writing the Java initializer = the user opens the form and sees
+> an empty widget.**
+
+This is mandatory for:
+
+| Field kind | Why it must have `dftVal` |
+|---|---|
+| `advance = true` any type | Advanced fields are collapsed; an empty advanced field is invisible AND the form may fail its `require` check on save |
+| `validate = {Validator.require}` + Java initializer | Same as above — the initializer will not save the user from an empty required control |
+| Polymorphic `Describable` fields (`AxisConfig xAxis;`, `XAxisBucketing bucketing;`) | The user must pick an impl from a dropdown; without `dftVal` the sub-form renders unselected, and a required one blocks saving |
+| `FormFieldType.ENUM` with a "obvious" choice | Dropdowns have **no** first-option default; an unset enum posts `""` and fails `Enum.valueOf` |
+
+**Value format differs per field type — these are not interchangeable:**
+
+| Field Java type | `dftVal` must be | Example |
+|---|---|---|
+| `Boolean` / `boolean` with `@FormField(type = FormFieldType.ENUM)` | JSON boolean literal, **not** a string | `"dftVal": false` (not `"false"` — options are built from `OverwriteProps.ENUM_BOOLEAN` = `[是→true, 否→false]`) |
+| `Integer` / `int` / `Long` | JSON number | `"dftVal": 10000` |
+| `String` (plain `INPUTTEXT` / `TEXTAREA`) | JSON string | `"dftVal": "right"` |
+| Java `enum` type | **enum constant name**, exactly as declared — not `shortComment()`, not a `label`, not the `.json` `enum[].label` | `"dftVal": "VERTICAL"`, `"dftVal": "KEY_ASCENDING"` |
+| `FormFieldType.SELECTABLE` | the option's **value** (what `registerSelectOptions` supplies), or a constant expression the framework resolves | `"dftVal": "right"` |
+| Polymorphic `Describable` field (no `type` on `@FormField`) | the default impl's `Descriptor#getDisplayName()`, **character-for-character** | `"dftVal": "Categorical Axis"` |
+| `@SubForm` / `List<...>` | not applicable — list fields have no scalar default | — |
+
+Also note:
+
+- **Parent `.json` is inherited.** `PluginExtraProps.load()` walks the ancestor chain via
+  `visitAncestorsClass` and deep-merges each class's `.json`. A `dftVal` written once in the
+  abstract parent's `.json` reaches every subclass form. If a subclass needs a different
+  default, re-declare `dftVal` in the **subclass's own** `.json` (that is how
+  `XAxisBucketing.json` = 10000 and `CategoricalBucketing.json` = 1000 coexist). The Java
+  initializer overriding it must then be done in the subclass **constructor**, not just by
+  redeclaring the field.
+- **`dftVal` applies to the new form only.** Frontend guard is `if (!updateModel && displayName)`,
+  so changing it never rewrites already-saved instances.
+- **XStream persisted data bypasses both.** Deserialization does not run the constructor or
+  field initializers — backfill historical values in `readResolve()`.
+- **`placeholder` and `dftVal` are mutually exclusive** on the same property.
+- **Self-check before finishing** (cheap, catches the whole class of bug):
+  ```
+  for each field in your plugin classes with a Java initializer
+      -> assert .json[<field>]["dftVal"] exists and equals that initializer's effective value
+  ```
+  The workshop package has this codified as
+  `tis-ontology-plugin/src/test/java/.../workshop/TestWorkshopFormDefaults.java`
+  (`everyJavaInitializerHasMatchingDftVal` + `everyJsonResourceHasSiblingJavaClass`).
+  When creating a plugin family, copy that test into your package: it instantiates every class
+  in the package, reads each field's **runtime** initial value (reflection can see the value,
+  just not the initializer expression), normalises it to the `dftVal` wire format, and diffs it
+  against the merged ancestor `.json` — exactly what a reviewer would otherwise have to do by hand.
+
 ### Step 5: Verify Implementation
 - Check all requirements are satisfied:
   - Implements `Describable`
@@ -1217,7 +1283,7 @@ Generate these files in the correct structure:
 
 3. **Ordinal Sequencing**: Assign ordinal values carefully. Related properties (like username/password) should have consecutive ordinals to appear together in the UI.
 
-4. **Default Values**: Advanced properties (with `advance = true`) MUST have sensible default values.
+4. **Default Values**: Advanced properties (with `advance = true`) MUST have sensible default values — and the default MUST be written as `dftVal` in the `.json`. **A Java field initializer is not a form default**: the form reads only `eprops.dftVal`, so a field with `public Boolean showLabels = false;` but no `"dftVal": false` opens blank. Every Java initializer needs a matching `dftVal`, and the value's format depends on the field type (enum → constant name; polymorphic Describable → the impl descriptor's `displayName`; `Boolean` ENUM → real `true`/`false`). See `#### dftVal — the only source of a form default` in Step 4.
 
 5. **Validation**: Always implement business logic validation for properties that need it. Don't rely solely on frontend validation.
 

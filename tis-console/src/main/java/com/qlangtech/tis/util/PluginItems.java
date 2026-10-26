@@ -294,7 +294,8 @@ public class PluginItems implements IPluginItemsProcessor {
     }
     boolean noStore = false;
     for (Descriptor.ParseDescribable<?> d : dlist) {
-      if (d.subFormFields || d.getInstance() instanceof IStoreSelfManagement) {
+      if (//d.subFormFields ||
+        d.getSubFormInstances().stream().filter((i) -> i instanceof IStoreSelfManagement).count() > 0) {
         noStore = true;
       }
     }
