@@ -113,8 +113,8 @@
         "required": true,
         "type": 6,
         "options": [{
-          "impl": "com.qlangtech.tis.plugin.datax.DataXGlobalConfig",
-          "name": "datax-global-config"
+          "label": "datax-global-config",
+          "val": "datax-global-config"
         }]
       },
       "dptId": {
@@ -202,8 +202,8 @@
         },
         "describable": false,
         "options": [{
-          "impl": "com.qlangtech.tis.plugin.datax.DataXGlobalConfig",
-          "name": "datax-global-config"
+          "label": "datax-global-config",
+          "val": "datax-global-config"
         }],
         "pk": false,
         "type": 6,

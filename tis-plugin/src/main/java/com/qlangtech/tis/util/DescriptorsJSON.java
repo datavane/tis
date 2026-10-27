@@ -33,6 +33,7 @@ import com.qlangtech.tis.extension.ValueChangePipe;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
 import com.qlangtech.tis.extension.impl.MultiStepsHostPluginFormProperties;
 import com.qlangtech.tis.extension.impl.PropertyType;
+import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Config;
@@ -290,7 +291,7 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
                     }
 
                     if (val.typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
-                        attrVal.put(KEY_OPTIONS, getSelectOptions(desc, val, key));
+                        attrVal.put(KEY_OPTIONS, Option.toJson(getSelectOptions(desc, val, key)));
                     }
 
                     if (val.isDescribable() || val.fieldListElementClazz.isPresent()) {
@@ -387,8 +388,8 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
         }
     }
 
-    public static List<Descriptor.SelectOption> getSelectOptions(Descriptor descriptor, PropertyType propType,
-                                                                 String fieldKey) {
+    public static List<Option> getSelectOptions(Descriptor descriptor, PropertyType propType,
+                                                String fieldKey) {
         if (propType.typeIdentity() != FormFieldType.SELECTABLE.getIdentity()) {
             throw new IllegalStateException("propType must be:" + FormFieldType.SELECTABLE + " but now is:" + propType.typeIdentity());
         }
@@ -396,7 +397,7 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
             throw new IllegalStateException("descriptor:" + descriptor.getClass() + " has a selectable field:" + fieldKey + " descriptor must be an instance of 'ISelectOptionsGetter'");
         }
         ISelectOptionsGetter optionsCreator = descriptor;
-        List<Descriptor.SelectOption> selectOptions = optionsCreator.getSelectOptions(fieldKey);
+        List<Option> selectOptions = optionsCreator.getSelectOptions(fieldKey);
 
         return selectOptions;
     }

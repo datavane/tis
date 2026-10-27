@@ -183,9 +183,35 @@ public class Option implements IdentityName {
         }
     }
 
+    /**
+     * 选项 comment 的标签颜色。
+     * <p>
+     * 取值既可以是 ng-zorro 的预设色名（pink/red/yellow/orange/cyan/green/blue/purple/geekblue/magenta/volcano/gold/lime），
+     * 也可以直接是 CSS 色值（如 #006d75），前端 nz-tag 对两者都支持。
+     * 各枚举项之间保证色值互不相同，且颜色在色相/明度上相互区分。
+     */
     public enum OptionCommentColor {
-        Geekblue("geekblue"), Blue("blue"), Green("green"), Purple("purple"), Pink("pink");
+        // 原有 5 种
+        Geekblue("geekblue"), Blue("blue"), Green("green"), Purple("purple"), Pink("pink"),
+        // 新增 15 种，与上面 5 种在色相或明度上相互区分
+        Red("red"), Volcano("volcano"), Orange("orange"), Gold("gold"), Yellow("yellow"),
+        Lime("lime"), Olive("#5b8c00"), Cyan("cyan"), Teal("#006d75"), SkyBlue("#69c0ff"),
+        Navy("#10239e"), Rose("#ff85c0"), Brown("#8b4513"), Grey("#8c8c8c"), DarkGrey("#434343");
+
         private final String color;
+
+        /**
+         * 根据入参对象的 hashCode 稳定地映射到一个颜色枚举：
+         * 相同的对象（equals 相等 / hashCode 相同）总是得到同一个颜色，不同对象尽量分散到不同颜色。
+         *
+         * @param obj 用于派生颜色的对象，不能为 null
+         */
+        public static OptionCommentColor forObject(Object obj) {
+            Objects.requireNonNull(obj, "param obj can not be null");
+            OptionCommentColor[] colors = values();
+            // Math.floorMod 兼容 hashCode 为负数的场景
+            return colors[Math.floorMod(Objects.hashCode(obj), colors.length)];
+        }
 
         public static OptionCommentColor parse(String color) {
             if (StringUtils.isEmpty(color)) {

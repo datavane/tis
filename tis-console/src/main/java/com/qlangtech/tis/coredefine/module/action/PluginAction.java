@@ -32,7 +32,6 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Describable.IRefreshable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.Descriptor.ParseDescribable;
-import com.qlangtech.tis.extension.Descriptor.SelectOption;
 import com.qlangtech.tis.extension.IDescribableManipulate;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.PluginFormProperties.IVisitor;
@@ -350,11 +349,12 @@ public class PluginAction extends BasicModule {
    */
   public void doGetFreshEnumField(Context context) {
     DescriptorField descField = parseDescField();
-    List<SelectOption> options = null;
+    List<Option> options = null;
     if (descField.getFieldPropType().typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
       options = DescriptorsJSON.getSelectOptions(descField.getTargetDesc(), descField.getFieldPropType(),
         descField.field);
-      this.setBizResult(context, options);
+      // Option 需要显式 toJson，否则 fastjson 会按 getter 序列化成 {name, value}
+      this.setBizResult(context, Option.toJson(options));
     } else if (descField.getFieldPropType().typeIdentity() == FormFieldType.ENUM.getIdentity()) {
       this.setBizResult(context, descField.getFieldPropType().getExtraProps().getJSONArray(Descriptor.KEY_ENUM_PROP));
     }

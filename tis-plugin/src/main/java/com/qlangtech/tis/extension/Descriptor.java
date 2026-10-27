@@ -48,7 +48,6 @@ import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.lang.PayloadLink;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
-import com.qlangtech.tis.plugin.IDataXEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IEndTypeGetter.EndType;
 import com.qlangtech.tis.plugin.IEndTypeGetter.EndTypeCategory;
@@ -129,6 +128,14 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public static final String SWITCH_CUSTOMIZE = "customize";
 
     public static final String KEY_ENUM_PROP = "enum";
+    /**
+     * 是否允许用户输入「选项列表里没有」的值（默认关闭）。
+     * 打开后：在搜索框里输入的内容会作为一条「新增」选项排在下拉最前面，
+     * 点击或回车即选中，字段值就是用户输入的文本。
+     * <p>
+     * 仅对 nzMode='default' 生效；multiple/tags 模式本身不是单值字段，不做改造。
+     */
+    public static final String KEY_ENUM_EXTERNAL_PROPERTY_ALLOW_CUSTOMIZE_INPUT = "allow_custom_input";
 
     public static final String KEY_primaryVal = "_primaryVal";
     public static final String KEY_DESC_VAL = "descVal";
@@ -1585,31 +1592,6 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     if (containVal) {
                         attrVal = valJ.get(KEY_primaryVal);
                         attrDesc.setVal(describable, propValRewrite.rewrite(attrDesc, attrVal));
-                        if (valJ.containsKey(KEY_OPTIONS)) {
-                            JSONArray options = valJ.getJSONArray(KEY_OPTIONS);
-                            JSONObject opt = null;
-                            for (int i = 0; i < options.size(); i++) {
-                                opt = options.getJSONObject(i);
-                                try {
-                                    // 将options中的选中的插件来源记录下来，后续在集群中各组件中传输插件可以用
-                                    if (StringUtils.equals((String) attrVal, opt.getString("name"))) {
-                                        Class<?> implClass =
-                                                TIS.get().pluginManager.uberClassLoader.loadClass(opt.getString(PLUGIN_EXTENSION_IMPL
-                                                ));
-                                        PluginWrapper pluginWrapper = TIS.get().pluginManager.whichPlugin(implClass);
-                                        if (pluginWrapper != null) {
-                                            PluginMeta pluginMeta = Objects.requireNonNull(pluginWrapper,
-                                                    "implClass:" + implClass + " relevant pluginWrapper can not be "
-                                                            + "null").getDesc();
-                                            result.extraPluginMetas.add(pluginMeta);
-                                        }
-                                        break;
-                                    }
-                                } catch (ClassNotFoundException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -1777,9 +1759,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         selectOptsRegister.put(fieldName, getter);
     }
 
+    /**
+     * 取出 selectable 控件的候选内容。
+     * <p>
+     * 返回的 {@link Option} 与 ENUM 控件（{@code Option.toJson}）、级联（{@code ValueChangePipe}）
+     * 使用同一套选项模型，前端因此可以复用同一个选项渲染组件。
+     */
     @SuppressWarnings("all")
     @Override
-    public final List<SelectOption> getSelectOptions(String name) {
+    public final List<Option> getSelectOptions(String name) {
         Callable<List<? extends IdentityName>> opsCallable = selectOptsRegister.get(name);
         if (opsCallable == null) {
             throw new IllegalStateException("fieldName:" + name + " is select options has not been register,class:" //
@@ -1790,54 +1778,34 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             if (opts == null) {
                 return Collections.emptyList();
             }
-            Map<Class, Optional<EndType>> pluginEndTypeMapper = Maps.newHashMap();
 
             return opts.stream().map((r) -> {
-                Optional<EndType> et = Optional.empty();
-                if (r instanceof Describable && (et = pluginEndTypeMapper.get(r.getClass())) == null) {
-                    EndType endType = null;
-                    Descriptor desc = null;
-                    if ((desc = ((Describable) r).getDescriptor()) instanceof IEndTypeGetter) {
-                        endType = (((IEndTypeGetter) desc).getEndType());
-                    }
-                    et = Optional.ofNullable(endType);
-                } else if (r instanceof IEndTypeGetter) {
-                    et = Optional.ofNullable(((IEndTypeGetter) r).getEndType());
+                // OptionWithEndType 本身就是 Option，endType/help/comment 原样保留
+                if (r instanceof Option option) {
+                    return option;
                 }
-                pluginEndTypeMapper.put(r.getClass(), et);
-                return new SelectOption(r.identityValue(), r.getDescribleClass(), et.orElse(null));
+                IEndTypeGetter.EndType endType = null;
+                if (r instanceof Describable describable) {
+                    if (describable.getDescriptor() instanceof IEndTypeGetter desc) {
+                        endType = desc.getEndType();
+                    }
+                } else if (r instanceof IEndTypeGetter endTypeGetter) {
+                    endType = endTypeGetter.getEndType();
+                }
+                final String identityVal = r.identityValue();
+                if (endType == null) {
+                    return new Option(identityVal);
+                }
+                final String endTypeVal = endType.getVal();
+                return new Option(identityVal) {
+                    @Override
+                    public String endType() {
+                        return endTypeVal;
+                    }
+                };
             }).collect(Collectors.toList());
         } catch (Exception e) {
             throw new RuntimeException("field name:" + name + ",class:" + this.getClass().getName(), e);
-        }
-    }
-
-    public static class SelectOption {
-
-        private final String name;
-
-        private final Class<?> implClass;
-        private final IDataXEndTypeGetter.EndType endType;
-
-        public SelectOption(String name, Class<?> implClass, IDataXEndTypeGetter.EndType endType) {
-            this.name = name;
-            this.implClass = implClass;
-            this.endType = endType;
-        }
-
-        public String getEndType() {
-            if (this.endType != null) {
-                return this.endType.getVal();
-            }
-            return null;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getImpl() {
-            return implClass.getName();
         }
     }
 

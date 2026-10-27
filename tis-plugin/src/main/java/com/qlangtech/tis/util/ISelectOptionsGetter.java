@@ -17,7 +17,8 @@
  */
 package com.qlangtech.tis.util;
 
-import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.manage.common.Option;
+
 import java.util.List;
 
 /**
@@ -28,5 +29,5 @@ import java.util.List;
  */
 public interface ISelectOptionsGetter {
 
-    List<Descriptor.SelectOption> getSelectOptions(String name);
+    List<Option> getSelectOptions(String name);
 }

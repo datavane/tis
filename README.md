@@ -152,10 +152,11 @@ TIS基于数据库元数据信息自动生成Flink-SQL脚本,您没看错全部�
    3. SqlServer Connector [qlangtech/tis-sqlserver-plugin](https://github.com/qlangtech/tis-sqlserver-plugin)
    4. Paimon Connector [qlangtech/tis-paimon-plugin](https://github.com/qlangtech/tis-paimon-plugin)
    5. DaMeng Connector [qlangtech/tis-dameng-plugin](https://github.com/qlangtech/tis-dameng-plugin)
+   6. Iceberg Connector [qlangtech/tis-iceberge-plugin](https://github.com/qlangtech/tis-iceberge-plugin) 
+   7. Hudi Connector [qlangtech/tis-hudi-plugin](https://github.com/qlangtech/tis-hudi-plugin) 
 - TIS 插件元数据生成工具 [https://github.com/qlangtech/update-center2](https://github.com/qlangtech/update-center2)
 - DataX [https://github.com/qlangtech/DataX](https://github.com/qlangtech/DataX)
 - Flink Extend [https://github.com/qlangtech/flink](https://github.com/qlangtech/flink)
-- Dolphinscheduler [https://github.com/qlangtech/dolphinscheduler](https://github.com/qlangtech/dolphinscheduler)
 - TIS 插件功能脚手架 [https://github.com/qlangtech/tis-archetype-plugin](https://github.com/qlangtech/tis-archetype-plugin)
 - Chunjun [https://github.com/qlangtech/chunjun](https://github.com/qlangtech/chunjun)
 - TIS Docs Manager [https://github.com/qlangtech/tis-doc](https://github.com/qlangtech/tis-doc)
@@ -176,9 +177,3 @@ TIS is under the Apache2 License. See the [LICENSE](https://github.com/qlangtech
 ## 反馈
 
 您在使用过程中对TIS有任何不满或者批评都请不惜斧正，您提出的宝贵意见是对我们最大的支持和鼓励，[我要提建议](https://github.com/qlangtech/tis/issues/new)
-
-## Stargazers over time
-
-[![Stargazers over time](https://starchart.cc/qlangtech/tis-solr.svg)](https://starchart.cc/qlangtech/tis-solr)
-
-![](https://tokei.rs/b1/github/datavane/tis)
