@@ -13,8 +13,8 @@ import java.util.Objects;
  * 数据库端聚合查询条件：分组键 + 聚合指标 + 过滤条件。
  *
  * <p>它继承 {@link ObjectTypeBinding.DataSourceQueryCriteria}，复用的是已经被验证过的两条
- * 安全边界：{@code targetCols} 白名单与过滤操作符白名单（{@code addFilter} 会把不在
- * targetCols 里的属性直接拒掉）。区别在于本类<b>不支持分页与排序</b>：
+ * 安全边界：属性白名单（{@code addFilter} 只接受已经由 {@code addTargetCol} 或
+ * {@code addFilterCol} 声明过的属性）与过滤操作符白名单。区别在于本类<b>不支持分页与排序</b>：
  * <ul>
  *   <li>分页对聚合结果没有意义（聚合已经把所有明细折成分组行），实现方不得调用
  *       {@code appendSqlLimit}；</li>

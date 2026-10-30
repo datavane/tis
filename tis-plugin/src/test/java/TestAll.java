@@ -54,6 +54,7 @@ import com.qlangtech.tis.plugin.ds.TestTableInDB;
 import com.qlangtech.tis.plugin.k8s.TestK8sImage;
 import com.qlangtech.tis.plugin.table.join.TableJoinFilterConditionTest;
 import com.qlangtech.tis.util.TestAttrValMap;
+import com.qlangtech.tis.util.TestDescribableJSONModelAssist;
 import com.qlangtech.tis.util.TestDescriptorsJSONForAIPromote;
 import com.qlangtech.tis.util.TestHeteroList;
 import com.qlangtech.tis.util.TestTransformerRuleKey;
@@ -83,6 +84,7 @@ public class TestAll extends TestCase {
         suite.addTestSuite(TestScannerPatterns.class);
         suite.addTestSuite(TestDBConfigParser.class);
         suite.addTestSuite(TestHeteroList.class);
+        suite.addTestSuite(TestDescribableJSONModelAssist.class);
         suite.addTestSuite(TestUploadPluginMeta.class);
         suite.addTestSuite(TestValidator.class);
         suite.addTestSuite(TestTIS.class);

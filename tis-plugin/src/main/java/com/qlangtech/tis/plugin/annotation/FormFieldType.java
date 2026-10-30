@@ -54,6 +54,7 @@ import static com.qlangtech.tis.extension.IPropertyType.CONST_UNIT_INTEGER_FIELD
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年1月11日
  */
+@SuppressWarnings("all")
 public enum FormFieldType implements DescriptorUseableShortComment, IEndTypeGetter {
     /**
      * 对应插件中如下类型

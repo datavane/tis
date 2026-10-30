@@ -43,6 +43,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
+import static com.qlangtech.tis.manage.common.TestChild.KEY_FIELD_REACT_SELECT;
+import static com.qlangtech.tis.manage.common.TestChild.VAL_REACT_SELECT;
+
 /**
  *
  * @author 百岁 (baisui@qlangtech.com)
@@ -53,6 +56,7 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
     public static final String KEY_DISPLAY_NAME = "UserProfile";
     public static final String KEY_FIELD_LLM_NAME = "llm";
     private static final String KEY_FIELD_CONTROL = "control";
+    private static final String KEY_FIELD_CHILDREN_CASCADE = "childrenCascade";
 
     @FormField(identity = true, type = FormFieldType.INPUTTEXT, ordinal = 0, validate = {Validator.identity,
             Validator.require})
@@ -83,7 +87,10 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
     @FormField(ordinal = 5, validate = {})
     public TestChild child;
 
-    @FormField(ordinal = 6, desClazz = TestChild.class, type = FormFieldType.MULTI_DESCRIBLE_PLUGIN, validate =
+    @FormField(ordinal = 6, type = FormFieldType.SELECTABLE, validate = {Validator.require})
+    public String childrenCascade;
+
+    @FormField(ordinal = 7, desClazz = TestChild.class, type = FormFieldType.MULTI_DESCRIBLE_PLUGIN, validate =
             {Validator.require})
     public List<TestChild> children;
 
@@ -166,6 +173,9 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
             this.registerSelectOptions(KEY_FIELD_CONTROL, () -> {
                 return Lists.newArrayList(IdentityName.create("a"), IdentityName.create("b"));
             });
+            this.registerSelectOptions(KEY_FIELD_CHILDREN_CASCADE, () -> {
+                return Lists.newArrayList(IdentityName.create("aa"), IdentityName.create("bb"));
+            });
             this.valueChangePipe(KEY_FIELD_CONTROL, "children") //
                     .render(new BiFunction<UploadPluginMeta, IParamGetter, List<? extends IdentityName>>() {
                         @Override
@@ -174,6 +184,16 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
                             return getChildren(control);
                         }
                     });
+
+            this.valueChangePipe(KEY_FIELD_CHILDREN_CASCADE, "children[]." + KEY_FIELD_REACT_SELECT) //
+                    .render(new BiFunction<UploadPluginMeta, IParamGetter, List<? extends IdentityName>>() {
+                        @Override
+                        public List<? extends IdentityName> apply(UploadPluginMeta pluginMeta, IParamGetter param) {
+                            return Lists.newArrayList(IdentityName.create("kk"));
+                        }
+                    });
+
+
         }
 
 
@@ -196,6 +216,7 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
                 child = new TestChild();
                 child.name = "a";
                 child.age = 11;
+                child.reactSelect = VAL_REACT_SELECT;
                 child.sex = TestChild.Sex.male;
                 children.add(child);
                 break;
@@ -204,6 +225,7 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
                 child = new TestChild();
                 child.name = "b";
                 child.age = 12;
+                child.reactSelect = VAL_REACT_SELECT;
                 child.sex = TestChild.Sex.male;
                 children.add(child);
                 child = new TestChild();

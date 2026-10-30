@@ -125,4 +125,126 @@ public class TestDataSourceQueryCriteria {
 
         Assert.assertNull("被拒绝的 setOrderBy 不得留下状态", criteria.getOrderByCol());
     }
+
+    // ==================================================================
+    //  过滤属性白名单（addFilterCol）与去重
+    // ==================================================================
+
+    /**
+     * 过滤属性通常**不在**展示列里（按 create_time 过滤、但表格只显示 name），
+     * {@code addFilterCol} 就是给这种列开的第二个白名单。
+     */
+    @Test
+    public void testAddFilterColAcceptsNonTargetCol() {
+        ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
+        criteria.addFilterCol("depart_time");
+        criteria.addFilter("depart_time", ObjectTypeBinding.DataSourceQueryCriteria.OP_GREATER_THAN, 10);
+
+        Assert.assertEquals(1, criteria.getFilters().size());
+        ObjectTypeBinding.FilterCriterion criterion = criteria.getFilters().get(0);
+        Assert.assertEquals("depart_time", criterion.property());
+        Assert.assertEquals(ObjectTypeBinding.DataSourceQueryCriteria.OP_GREATER_THAN, criterion.operator());
+        Assert.assertEquals(10, criterion.value());
+    }
+
+    /**
+     * 未声明过的属性仍然被拒 —— 白名单没有因为多了一条通道而放宽。
+     *
+     * <p>这是**安全边界**：中继过滤的列名来自 HTTP 请求，转义标识符挡不住带转义符的列名，
+     * 真正有效的是「只可能是调用方声明过的列」。
+     */
+    @Test
+    public void testAddFilterRejectsUndeclaredCol() {
+        ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
+        try {
+            criteria.addFilter("secret_col", ObjectTypeBinding.DataSourceQueryCriteria.OP_EQUALS, 1);
+            Assert.fail("filter property not in targetCols/filterCols should be rejected");
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage().contains("secret_col"));
+            Assert.assertTrue(e.getMessage().contains("targetCols or filterCols"));
+        }
+
+        Assert.assertTrue("被拒绝的 addFilter 不得留下条件", criteria.getFilters().isEmpty());
+    }
+
+    /**
+     * 过滤列**不进** SELECT 列表。
+     *
+     * <p>{@code DataSourceBinding#readRow} 是按 targetCols 逐列取值的：过滤列一旦混进 targetCols，
+     * 返回的每一行都会多带一个前端没申请过的键。
+     */
+    @Test
+    public void testFilterColDoesNotEnterTargetCols() {
+        ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
+        criteria.addFilterCol("depart_time");
+        criteria.addFilter("depart_time", ObjectTypeBinding.DataSourceQueryCriteria.OP_EQUALS, "2026-10-29");
+
+        Assert.assertFalse(criteria.getTargetCols().contains("depart_time"));
+        Assert.assertTrue(criteria.getFilterCols().contains("depart_time"));
+        Assert.assertEquals(2, criteria.getTargetCols().size());
+    }
+
+    /** 目标列同样可以过滤（不必额外 addFilterCol） */
+    @Test
+    public void testAddFilterAcceptsTargetCol() {
+        ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
+        criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_EQUALS, "abc");
+        Assert.assertEquals(1, criteria.getFilters().size());
+        Assert.assertTrue(criteria.getFilterCols().isEmpty());
+    }
+
+    /**
+     * 同一 {@code (property, operator, value)} 只保留一条。
+     *
+     * <p>这不是语义变化（{@code WHERE a=1 AND a=1} 与 {@code WHERE a=1} 等价），而是
+     * **绑定参数不翻倍**的保证。必要性在于同一个 criteria 常被复用两次：
+     * {@code ObjectTableWidget#get_data} 先 {@code countQuery} 再 {@code executeQuery}，
+     * 而静态条件在这两个方法内部各施加一次。
+     */
+    @Test
+    public void testAddFilterIsIdempotent() {
+        ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
+        criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_EQUALS, "abc");
+        criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_EQUALS, "abc");
+
+        Assert.assertEquals(1, criteria.getFilters().size());
+    }
+
+    /** 去重按三元组：换了算子或值就是另一条条件 */
+    @Test
+    public void testDedupKeyIsFullTriple() {
+        ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
+        criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_EQUALS, "abc");
+        criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_CONTAINS, "abc");
+        criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_EQUALS, "def");
+
+        Assert.assertEquals(3, criteria.getFilters().size());
+    }
+
+    /** 非法操作符在进入 SQL 拼装之前就被挡下（与排序列同一条安全口径） */
+    @Test
+    public void testAddFilterRejectsUnsupportedOperator() {
+        ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
+        try {
+            criteria.addFilter("name", "drop table", "abc");
+            Assert.fail("unsupported operator should be rejected");
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage().contains("illegal filter operator"));
+        }
+    }
+
+    /** {@code in} 必须给集合：否则 appendWhere 渲染出 {@code IN (?)} 绑定一个标量 */
+    @Test
+    public void testAddFilterInRequiresCollection() {
+        ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
+        try {
+            criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_IN, "abc");
+            Assert.fail("'in' with scalar value should be rejected");
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage().contains("requires a collection value"));
+        }
+
+        criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_IN, java.util.List.of("a", "b"));
+        Assert.assertEquals(1, criteria.getFilters().size());
+    }
 }

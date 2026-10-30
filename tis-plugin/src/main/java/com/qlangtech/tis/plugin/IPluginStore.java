@@ -460,9 +460,9 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
          * </ul>
          * 未进白名单的字段在实例化时会被赋予 {@code null}，不影响候选集合的生成。
          *
-         * @param paramGetter 请求参数读取器（包含 query 和 POST body）
+         * @param paramGetter   请求参数读取器（包含 query 和 POST body）
          * @param pluginContext 插件上下文（用于读取 JSON POST body）
-         * @param context 请求上下文（用于在两次调用间传递 {@code MultiDescribleElementSetSelector} 实例）
+         * @param context       请求上下文（用于在两次调用间传递 {@code MultiDescribleElementSetSelector} 实例）
          * @throws Exception 校验失败或业务异常
          * @see MultiDescribleElementSetSelector
          * @see ActionParameterConfig.DftDescriptor#getEnumableCandidateSet 实现示例
@@ -505,7 +505,13 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
                     // 创建实例的时候要将toPropertyKey对应的属性设置上值
                     // relevantFieldKeys.add(toPropertyKey);
                     relevantFieldKeysCreator.addToFieldNewInstanceRelevantKeys();
+                    // 加上了toField之后还是要校验一遍
+                    if (!relevantFieldsContext.validate().isValid()) {
+                        return;
+                    }
                     ParseDescribable<?> describable = relevantFieldsContext.createDescribable();
+
+
                     context.put(MultiDescribleElementSetSelector.class.getName(), getEnumableCandidateSet(describable));
                     paramGetter.setBizResult(context, DescriptorsJSON.desc(multiDescribleElementSetDesc));
                 }
@@ -636,7 +642,6 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
         }
 
 
-
         /**
          * 提取该 Descriptor 的属性配置，用于前端渲染 {@code MULTI_DESCRIBLE_PLUGIN} 字段。
          *
@@ -656,7 +661,8 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
          *       <td>列表/表格最大高度（px），超出后滚动</td></tr>
          *   <tr><td>{@code enumableSet}</td><td>boolean</td><td>{@link #getEnumableSetCfg()}</td>
          *       <td>是否为可枚举集合（true = 勾选模式，false = 手动添加模式）</td></tr>
-         *   <tr><td>{@code enumableSetItemDependencyDepth}</td><td>int</td><td>{@link EnumableSetCfg#itemDependencyDepth}</td>
+         *   <tr><td>{@code enumableSetItemDependencyDepth}</td><td>int</td><td
+         *   >{@link EnumableSetCfg#itemDependencyDepth}</td>
          *       <td>候选集合依赖的宿主实例深度（0 = 直接宿主，1 = 父级宿主）</td></tr>
          *   <tr><td>{@code enableRowDragDrop}</td><td>boolean</td><td>{@link #isEnableRowDragDrop()}</td>
          *       <td>是否启用行拖拽排序（仅 Table 视图）</td></tr>
@@ -891,7 +897,7 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
             /**
              * 构造行拖拽配置。
              *
-             * @param enable 是否启用拖拽
+             * @param enable           是否启用拖拽
              * @param orderByFieldName 顺序字段名（启用时不得为空）
              * @throws IllegalStateException 当 {@code enable=true} 但 {@code orderByFieldName} 为空时
              */
@@ -1094,7 +1100,7 @@ public interface IPluginStore<T extends Describable> extends IRepositoryResource
              * 构造列配置（指定宽度）。
              *
              * @param titleKey 字段名
-             * @param width 列宽百分比（可为 {@code null}）
+             * @param width    列宽百分比（可为 {@code null}）
              */
             public ColConfig(String titleKey, Integer width) {
                 this.titleKey = titleKey;

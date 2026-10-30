@@ -24,11 +24,13 @@ import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,7 +42,7 @@ import java.util.stream.Collectors;
  * @date 2026/9/16
  */
 public class TestChild implements Describable<TestChild>, IPluginStore.MultiDescribleElement {
-
+    public static final String KEY_FIELD_REACT_SELECT = "reactSelect";
     /**
      * 姓名，作为子表单行的唯一标识（框架要求子表单元素必须声明 identity 属性）
      */
@@ -59,13 +61,19 @@ public class TestChild implements Describable<TestChild>, IPluginStore.MultiDesc
     @FormField(ordinal = 2, type = FormFieldType.ENUM, validate = {Validator.require})
     public Sex sex;
 
+    /**
+     * 测试由 {@link UserProfile#childrenCascade} 变化而导致reactSelect的可选项集合变化
+     */
+    @FormField(ordinal = 3, type = FormFieldType.SELECTABLE, validate = {Validator.require})
+    public String reactSelect;
+
     @Override
     public String identityValue() {
         return this.name;
     }
 
 
-    public enum Sex implements IEndTypeGetter,DescriptorUseableShortComment {
+    public enum Sex implements IEndTypeGetter, DescriptorUseableShortComment {
         male("男", EndType.AlignLeft), female("女", EndType.AlignCenter);
         public final String label;
         private final EndType endType;
@@ -86,9 +94,16 @@ public class TestChild implements Describable<TestChild>, IPluginStore.MultiDesc
         }
     }
 
+    public static final String VAL_REACT_SELECT = "xxxxxx";
 
     @TISExtension
     public static class DftDescriptor extends IPluginStore.MultiDescribleElementDescriptor<TestChild> {
+        public DftDescriptor() {
+            super();
+            this.registerSelectOptions("reactSelect",
+                    () -> Collections.singletonList(IdentityName.create(VAL_REACT_SELECT)));
+        }
+
         @Override
         public EndType getEndType() {
             return EndType.Copy;
@@ -116,7 +131,7 @@ public class TestChild implements Describable<TestChild>, IPluginStore.MultiDesc
 
         @Override
         public EnumableSetCfg getEnumableSetCfg() {
-            return new EnumableSetCfg(true,0);
+            return new EnumableSetCfg(true, 0);
         }
 
         @Override

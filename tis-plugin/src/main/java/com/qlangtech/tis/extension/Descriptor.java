@@ -68,6 +68,7 @@ import com.qlangtech.tis.plugin.incr.TISSinkFactory;
 import com.qlangtech.tis.runtime.module.misc.FormVaildateType;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
+import com.qlangtech.tis.runtime.module.misc.impl.BasicDelegateMsgHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.AttrValMap;
@@ -99,6 +100,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -996,13 +999,13 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         Objects.requireNonNull(postFormVals, "postFormVals can not be null");
         Map<String, JSONObject> formData = postFormVals.rawFormData.asRootFormVals();
         boolean valid = true;
-        String attr;
+
         PropertyType attrDesc;
         JSONObject valJ;
         String impl;
         String attrVal;
         for (Map.Entry<String, IPropertyType> entry : propertyTypes.getKVTuples()) {
-            attr = entry.getKey();
+            final String attr = entry.getKey();
             attrDesc = (PropertyType) entry.getValue();
             valJ = formData.get(attr);
             if (valJ == null && attrDesc.isInputRequired()) {
@@ -1039,11 +1042,39 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
                 if (attrDesc.formField.type() == FormFieldType.MULTI_DESCRIBLE_PLUGIN) {
 
-                    List<? extends Describable> nextPlugins = getSelectedMultiNestDescriblePlugin(msgHandler, context,
-                            attrDesc, valJ);
-                    if (context.hasErrors()) {
-                        return false;
+                    List<? extends Describable> nextPlugins = Collections.emptyList();
+                    //pushFieldStack(context, attr, 0);
+                    try {
+                        final AtomicInteger index = new AtomicInteger();
+                        nextPlugins = getSelectedMultiNestDescriblePlugin(msgHandler,
+                                context
+                                , attrDesc, valJ, (valMap) -> {
+
+                                    try {
+                                        BasicDelegateMsgHandler msgHandle = new BasicDelegateMsgHandler(msgHandler) {
+                                            @Override
+                                            public void addFieldError(Context context, String fieldName, String msg,
+                                                                      Object... params) {
+                                                super.addFieldError(context
+                                                        , IFieldErrorHandler.joinField(attr,
+                                                                Collections.singletonList(index.get()), fieldName)
+                                                        , msg, params);
+                                            }
+                                        };
+
+                                        return valMap.validate(msgHandle, context, validateType, parentFormVals).isValid();
+                                    } finally {
+                                        index.incrementAndGet();
+                                    }
+                                });
+
+                        if (context.hasErrors()) {
+                            return false;
+                        }
+                    } finally {
+                      //  popFieldStack(context);
                     }
+
                     if (nextPlugins.size() < 1) {
                         // 没有选中
                         Validator[] validators = attrDesc.getValidator();
@@ -1055,6 +1086,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                             }
                         }
                     }
+
 
                 } else if (attrDesc.typeIdentity() == FormFieldType.MULTI_SELECTABLE.getIdentity()) {
                     List<FormFieldType.SelectedItem> selectedItems = getSelectedMultiItems(msgHandler, context,
@@ -1128,8 +1160,18 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return valid;
     }
 
+    /**
+     *
+     * @param msgHandler
+     * @param context
+     * @param attrDesc
+     * @param valJ
+     * @param childValidator 执行校验逻辑
+     * @return
+     */
     private List<Describable> getSelectedMultiNestDescriblePlugin(
-            IControlMsgHandler msgHandler, Context context, PropertyType attrDesc, JSONObject valJ) {
+            IControlMsgHandler msgHandler, Context context, PropertyType attrDesc,
+            JSONObject valJ, Function<AttrValMap, Boolean> childValidator) {
         JSONObject desc = valJ.getJSONObject(KEY_DESC_VAL);
         JSONObject mulit = desc.getJSONObject(AttrValMap.PLUGIN_EXTENSION_VALS);
         JSONArray childItems = new JSONArray();
@@ -1139,8 +1181,13 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         List<Describable> result = Lists.newArrayList();
         List<AttrValMap> attrVals = AttrValMap.describableAttrValMapList(childItems, Optional.empty());
         for (AttrValMap valMap : attrVals) {
-            Object instance = valMap.createDescribable(msgHandler, context).getInstance();
-            result.add((Describable) instance);
+
+            if (childValidator.apply(valMap)) {
+                // 校验没有错误
+                Object instance = valMap.createDescribable(msgHandler, context).getInstance();
+                result.add((Describable) instance);
+            }
+
         }
         return result;
     }
@@ -1552,7 +1599,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             } else {
                 if (attrDesc.formField.type() == FormFieldType.MULTI_DESCRIBLE_PLUGIN) {
                     List<Describable> nestPlugins = this.getSelectedMultiNestDescriblePlugin(pluginContext, context,
-                            attrDesc, valJ);
+                            attrDesc, valJ, (valMap) -> /* 不校验*/ true);
                     if (!attrDesc.isCollectionType()) {
                         throw new IllegalStateException("attr:" + attrDesc.propertyName() + " must be a collection "
                                 + "type");

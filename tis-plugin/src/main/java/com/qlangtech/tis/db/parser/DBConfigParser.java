@@ -51,7 +51,7 @@ public class DBConfigParser {
      * @param dbNodeDesc
      * @return
      */
-    public static Map<String, List<String>> parseDBEnum(String dbName, String dbNodeDesc) {
+    public static Map<String, List<String>> parseDBEnum(final String dbName, final String dbNodeDesc) {
         if (StringUtils.isEmpty(dbNodeDesc)) {
             throw new IllegalArgumentException("param dbNodeDesc can not be null");
         }

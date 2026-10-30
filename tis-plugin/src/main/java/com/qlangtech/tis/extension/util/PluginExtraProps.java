@@ -420,8 +420,8 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     }
 
     public interface IPostSelectedItemsGetter {
-        List<FormFieldType.SelectedItem> apply(PropertyType attrDesc, IControlMsgHandler msgHandler, Context context,
-                                               JSONObject eprops);
+        List<FormFieldType.SelectedItem> apply(
+                PropertyType attrDesc, IControlMsgHandler msgHandler, Context context, JSONObject eprops);
     }
 
 

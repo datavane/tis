@@ -370,7 +370,7 @@ public class AttrValMap {
                 // 走带作用域的校验，保证错误信息能定位到具体 item
                 Descriptor.PluginValidateResult validate = valMap.validateWithScope(paramGetter, context,
                         propertyTypes, 0, 0,
-                        FormVaildateType.VERIFY);
+                        FormVaildateType.FIRST_VALIDATE);
                 return validate;
             }
 

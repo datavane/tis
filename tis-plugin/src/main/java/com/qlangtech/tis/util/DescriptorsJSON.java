@@ -70,6 +70,7 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
     public static final String KEY_IMPL = AttrValMap.PLUGIN_EXTENSION_IMPL;// "impl";
     public static final String KEY_IMPL_URL = "implUrl";
     public static final String KEY_ADVANCE = "advance";
+    public static final String KEY_EXTRACT_PROPS = "extractProps";
 
     public static final String KEY_SCHEMA_FIELDS_ATTRS = "attrs";
     public static final String KEY_VALUE_CHANGE_PIPES = "valueChangePipes";
@@ -218,7 +219,7 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
         if (!forAIPromote) {
             desJson.put("veriflable", desc.overWriteValidateMethod);
             Map<String, Object> extractProps = desc.getExtractProps();
-            desJson.put("extractProps", extractProps);
+            desJson.put(KEY_EXTRACT_PROPS, extractProps);
         }
 
         Map<String, ValueChangePipe> pipes = descriptor.getValueChangePipes();

@@ -273,6 +273,9 @@ public interface IEndTypeGetter {
         , CheckSquare("check-square", EndTypeCategory.Icon, false)//
         , Block("block", EndTypeCategory.Icon, false)//
         , Bars("bars", EndTypeCategory.Icon, false)//
+        , Scatter("scatter", EndTypeCategory.Icon, true)//
+        , ChartLine("chart-line", EndTypeCategory.Icon, true)//
+        , ChartBar("chart-bar", EndTypeCategory.Icon, true)//
         , PlaySquare("play-square", EndTypeCategory.Icon, false)//
 
 

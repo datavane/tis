@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@SuppressWarnings("all")
 public interface IFieldErrorHandler {
 
     String ACTION_ERROR_FIELDS = "action_error_fields";

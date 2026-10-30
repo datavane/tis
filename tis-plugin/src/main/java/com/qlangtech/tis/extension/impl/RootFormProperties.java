@@ -151,8 +151,8 @@ public class RootFormProperties extends PluginFormProperties {
                 }
             }
         } catch (Exception e) {
-            //throw new RuntimeException(e);
-            logger.warn(e.getMessage(), e);
+            throw new RuntimeException(e);
+           // logger.warn(e.getMessage(), e);
         }
         return (vals);
     }

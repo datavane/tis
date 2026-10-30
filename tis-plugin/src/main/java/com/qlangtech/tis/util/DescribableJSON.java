@@ -20,18 +20,29 @@ package com.qlangtech.tis.util;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONType;
+import com.google.common.collect.Maps;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
+import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.BaseSubFormProperties;
+import com.qlangtech.tis.extension.impl.EnumFieldMode;
 import com.qlangtech.tis.extension.impl.MultiStepsHostPluginFormProperties;
+import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
+import com.qlangtech.tis.manage.common.Option;
+import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.IdentityName;
+import org.apache.commons.collections.MapUtils;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentMap;
+
+import static com.qlangtech.tis.extension.Descriptor.KEY_ENUM_PROP;
+import static com.qlangtech.tis.util.DescriptorsJSON.KEY_EXTRACT_PROPS;
 
 /**
  * @author 百岁（baisui@qlangtech.com）
@@ -67,14 +78,28 @@ public class DescribableJSON<T extends Describable<T>> {
     public JSONObject getItemJson(PluginFormProperties pluginFormPropertyTypes) throws Exception {
 
         JSONObject item = new JSONObject();
-
+        ConcurrentMap<String /*field name*/, Enum<?>> modelAssistVals = Maps.newConcurrentMap();
         DescriptorsJSON.setDescInfo(pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
             @Override
             public Descriptor visitMultiStepsHost(MultiStepsHostPluginFormProperties props) {
                 return descriptor;
             }
+
             @Override
             public Descriptor visit(RootFormProperties props) {
+                for (Map.Entry<String, IPropertyType> entry : props.propertiesType.entrySet()) {
+                    if (!(entry.getValue() instanceof PropertyType pp)
+                            || pp.getEnumFieldMode() != EnumFieldMode.MODEL_ASSIST) {
+                        continue;
+                    }
+                    // 只把「当前值」那一条枚举描述下发：MODEL_ASSIST 存在的意义就是不给首屏塞全量枚举
+                    // （全量下发会让每个 item 膨胀上百KB）。用 instanceof Enum 同时挡掉两种坏值：
+                    // 值为 null（未选值）和 SELECTABLE 模式下配置了 model_assist 的 String 值（强转会 CCE）
+                    if (pp.getVal(false, instance) instanceof Enum<?> enVal) {
+                        modelAssistVals.put(entry.getKey(), enVal);
+                    }
+                }
+
                 return descriptor;
             }
 
@@ -92,6 +117,18 @@ public class DescribableJSON<T extends Describable<T>> {
 
         final JSON vals = pluginFormPropertyTypes.getInstancePropsJson(this.instance);
 
+        if (MapUtils.isNotEmpty(modelAssistVals)) {
+            // 每个 model_assist 字段只带一条（当前值的）选项描述，供前端行内直接渲染 label/icon/comment，
+            // 不需要为了显示已选值再向服务端请求一次全量枚举
+            JSONObject enumDesc = new JSONObject();
+            modelAssistVals.forEach((fieldName, enVal) -> {
+                enumDesc.put(fieldName, Option.toJson(OptionWithEndType.createEnumOptions(new Object[]{enVal},
+                        (e) -> true)));
+            });
+            Map<String, Object> extractProps = Maps.newHashMap();
+            extractProps.put(KEY_ENUM_PROP, enumDesc);
+            item.put(KEY_EXTRACT_PROPS, extractProps);
+        }
 
         item.put(AttrValMap.PLUGIN_EXTENSION_VALS, vals);
         if (instance instanceof IdentityName) {
