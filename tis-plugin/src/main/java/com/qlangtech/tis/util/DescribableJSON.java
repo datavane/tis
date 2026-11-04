@@ -130,6 +130,11 @@ public class DescribableJSON<T extends Describable<T>> {
             item.put(KEY_EXTRACT_PROPS, extractProps);
         }
 
+        // 附加载荷：与 vals 同级的只读快照，只走 GET（POST 侧不读，见 AppendPayloadAttribute 的注释）
+        if (this.instance instanceof AppendPayloadAttribute appendAttribute) {
+            item.put(AttrValMap.PLUGIN_APPEND_VALS, appendAttribute.createPayloadProps());
+        }
+
         item.put(AttrValMap.PLUGIN_EXTENSION_VALS, vals);
         if (instance instanceof IdentityName) {
             item.put(IdentityName.PLUGIN_IDENTITY_NAME, ((IdentityName) instance).identityValue());
@@ -242,4 +247,45 @@ public class DescribableJSON<T extends Describable<T>> {
         return wrappedVals;
     }
 
+    /**
+     * 「附加载荷」扩展点：让插件在 GET 序列化时随 item 一并下发一份<b>只读的、读时才算出来的</b>
+     * 数据。
+     *
+     * <h3>下发位置</h3>
+     * 实现本接口的实例被 {@link DescribableJSON#getItemJson} 序列化时，{@link #createPayloadProps()}
+     * 的返回值会以 {@link AttrValMap#PLUGIN_APPEND_VALS}（{@code "appendVals"}）为键，
+     * 作为 {@code vals} 的<b>兄弟</b>键写进同一个 item 信封：
+     * <pre>
+     *   { impl, displayName?, appendVals: {...}, vals: {...}, identityName? }
+     * </pre>
+     *
+     * <h3>解决什么问题</h3>
+     * 有些字段的取值<b>不是落盘配置</b>，而是读取时现算的（典型：按某个对象集变量去重查询得到的
+     * 下拉候选项）。这类数据放进 {@code vals} 会污染「{@code vals} 就是可回传的配置」这条语义；
+     * 为它单独开一条 HTTP 端点，又要多维护一套请求构造、字段白名单与前端投影。附加载荷把
+     * 「配置 + 运行期快照」在<b>一次往返</b>里下发。
+     *
+     * <h3>单向：只下发，不回传</h3>
+     * {@link DescribableJSON#getPostAttributeJson()}、{@link DescribableJSON#convertToAttrVals}
+     * 与 {@link AttrValMap#parseDescribableMap} 都<b>不读</b>它；前端把 item 投影成 POST 体
+     * （{@code Item.project()} / {@code toItemJson()}）时也会把它丢掉。
+     * 因此<b>绝不能</b>把任何「必须回传给服务端」的值放这里 —— 丢了不报错，只会静默失效。
+     *
+     * <h3>实现契约</h3>
+     * <ul>
+     *   <li><b>不得抛异常。</b>每次 GET 序列化都会调用它，一次异常会中止整个 module / 页面的
+     *       序列化；同时 POST 侧（{@link DescribableJSON#getPostAttributeJson()} 走的
+     *       {@link PluginFormProperties#getInstancePropsJson}）对嵌套实例同样会调用一次，
+     *       异常会连带保存失败。降级请在实现内部完成（空载荷 + warn）。</li>
+     *   <li><b>不得返回 null</b>，也不得把 null 放进返回的 Map（{@code Map.of} 系实现会 NPE）。</li>
+     *   <li><b>必须可重复调用</b>：同一次请求里可能被调用多次（GET + POST），且可能付出真实代价
+     *       （如查库），实现应自行做缓存或保持廉价。</li>
+     *   <li>键名即<b>线格式</b>：前端按字符串取键，前后端逐字对齐；改名必须两侧同时改。</li>
+     * </ul>
+     *
+     * @see AttrValMap#PLUGIN_APPEND_VALS
+     */
+    public interface AppendPayloadAttribute {
+        Map<String, Object> createPayloadProps();
+    }
 }

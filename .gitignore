@@ -20,3 +20,4 @@
 **/*.log
 .flattened-pom.xml
 .claude/worktrees/
+.claude/settings.local.json

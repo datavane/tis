@@ -61,6 +61,11 @@ public class AttrValMap {
 
     public static final String PLUGIN_EXTENSION_IMPL = "impl";
     public static final String PLUGIN_EXTENSION_VALS = "vals";
+    /**
+     * 「附加载荷」的线格式键名：与 {@link #PLUGIN_EXTENSION_VALS} 同级、<b>只下发不回传</b>。
+     * 载荷内容由 {@link DescribableJSON.AppendPayloadAttribute#createPayloadProps()} 提供。
+     */
+    public static final String PLUGIN_APPEND_VALS = "appendVals";
 
     private static final ThreadLocal<Descriptor> currentRootPluginValidator = new ThreadLocal<>();
 
@@ -370,7 +375,7 @@ public class AttrValMap {
                 // 走带作用域的校验，保证错误信息能定位到具体 item
                 Descriptor.PluginValidateResult validate = valMap.validateWithScope(paramGetter, context,
                         propertyTypes, 0, 0,
-                        FormVaildateType.FIRST_VALIDATE);
+                        FormVaildateType.STRICT);
                 return validate;
             }
 
