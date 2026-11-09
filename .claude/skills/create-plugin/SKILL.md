@@ -272,6 +272,7 @@ Reference: `tis-plugin/src/main/java/com/qlangtech/tis/plugin/annotation/Validat
 Reference: `tis-plugin/src/main/java/com/qlangtech/tis/plugin/annotation/FormFieldType.java`
 
 - `MULTI_SELECTABLE`: Multi-select, property type `List<IdentityName>` or `List<String>`
+- `Color`: Color picker (Coloris), property type `InputColor`; the value round-trips as a CSS color string such as `#1890ff`
 - `INPUTTEXT`: Single-line text input, property type `String`
 - `SELECTABLE`: Single-select dropdown (register options via `registerSelectOptions()` in Descriptor)
 - `PASSWORD`: Password input
@@ -510,6 +511,40 @@ public String aggregation;
 }
 ```
 
+#### 原则三之扩展：单个自由颜色用 Color，有限色板用 ENUM
+
+"颜色"字段按取值范围分流，两者不要混用：
+
+| 场景 | 正确做法 |
+|---|---|
+| 取值固定（几种品牌色、主题预设、`inherit` 这类语义值），且需要在 `.json` 里写 `hex` 让前端画预览圆点 | `ENUM` + `hex`（见原则三） |
+| 用户要自由挑任意颜色（主题色、图表线色、标签底色） | `FormFieldType.Color` + `InputColor` 字段 |
+
+`Color` 的用法：
+
+```java
+import com.qlangtech.tis.plugin.utils.InputColor;
+
+@FormField(ordinal = 8, type = FormFieldType.Color, validate = {Validator.require})
+public InputColor color;
+```
+
+```json
+"color": {
+  "label": "主题颜色",
+  "help": "点击右侧色块选择",
+  "dftVal": "#1890ff"
+}
+```
+
+要点：
+
+- 属性类型必须是 `InputColor`（不能用 `String`）——服务端靠它区分取色器与普通文本。
+- 值在前后端之间始终是颜色字符串（`#rrggbb`），`dftVal` 直接写这个字符串。
+- 前端取色器（Coloris）是**懒加载**的：页面上只有真的渲染出 `Color` 字段时才请求其 JS/CSS，插件作者无需关心。
+- `placeholder` 也适用于该类型（未选色时的提示，默认 `#RRGGBB`）。
+- 不要为"颜色"再套一层枚举：`ENUM` 里硬编十几个色值既覆盖不了用户需求，也让表单失去取色器。
+
 #### 原则四：SELECTABLE 字段必须在 Descriptor 中注册选项
 
 当字段使用 `@FormField(type = FormFieldType.SELECTABLE)` 时，其选项来自运行时动态数据源（如当前 Module 的变量列表、插件存储中的实例列表、外部系统查询结果等）。此时 **必须在 Descriptor 构造函数中调用 `registerSelectOptions()` 注册选项提供者**，否则前端渲染下拉框时抛出 `IllegalStateException`：
@@ -734,6 +769,7 @@ public final class MyHelper {
 ```
 
 **上下文获取**：静态方法中通过 `IPluginContext.getThreadLocalInstance()` 获取当前请求上下文，从中提取 domain、module 等信息来加载所需数据。如果前端需要传递额外参数，通过 `UploadPluginMeta` 的 extra params 传参。
+
 
 ### Step 5 追加验证项
 
@@ -1035,7 +1071,7 @@ Generate these files in the correct structure:
    - Direct object-to-object mapping (propertyName → property descriptor)
    - Each property descriptor contains:
      - `label`: Display label (required)
-     - `placeholder`: Input placeholder (optional, **only applicable for `FormFieldType.INPUTTEXT` or `FormFieldType.TEXTAREA`**). **Do NOT set alongside `dftVal`** — if a `dftVal` is specified, `placeholder` is redundant and unnecessary.
+     - `placeholder`: Input placeholder (optional, **only applicable for `FormFieldType.INPUTTEXT`, `FormFieldType.TEXTAREA` or `FormFieldType.Color`**). **Do NOT set alongside `dftVal`** — if a `dftVal` is specified, `placeholder` is redundant and unnecessary.
      - `help`: Brief one-sentence help text (optional, **ONLY for simple properties that do NOT have detailed help in .md file**)
      - `dftVal`: Default value (optional, for optional fields). **Prefer to set when semantically reasonable** — it pre-fills the input, reducing the user's effort and making the form more self-explanatory. However, **do NOT force an artificial default** that carries no semantic meaning (e.g., setting `"0"` or `""` purely to avoid a blank field). **See `#### dftVal — the only source of a form default` below: a Java field initializer does NOT give the form a default.**
    - **CRITICAL - JSON help vs MD file distribution rule**:
@@ -1196,6 +1232,7 @@ This is mandatory for:
 | `Boolean` / `boolean` with `@FormField(type = FormFieldType.ENUM)` | JSON boolean literal, **not** a string | `"dftVal": false` (not `"false"` — options are built from `OverwriteProps.ENUM_BOOLEAN` = `[是→true, 否→false]`) |
 | `Integer` / `int` / `Long` | JSON number | `"dftVal": 10000` |
 | `String` (plain `INPUTTEXT` / `TEXTAREA`) | JSON string | `"dftVal": "right"` |
+| `InputColor` (`FormFieldType.Color`) | JSON string — a CSS color, same as the field's `InputColor.value` | `"dftVal": "#1890ff"` |
 | Java `enum` type | **enum constant name**, exactly as declared — not `shortComment()`, not a `label`, not the `.json` `enum[].label` | `"dftVal": "VERTICAL"`, `"dftVal": "KEY_ASCENDING"` |
 | `FormFieldType.SELECTABLE` | the option's **value** (what `registerSelectOptions` supplies), or a constant expression the framework resolves | `"dftVal": "right"` |
 | Polymorphic `Describable` field (no `type` on `@FormField`) | the default impl's `Descriptor#getDisplayName()`, **character-for-character** | `"dftVal": "Categorical Axis"` |
@@ -1301,3 +1338,5 @@ I want to create an email alert channel plugin for TIS. It should support:
 - Authentication (username/password)  
 - SSL support
 - Sender email address
+
+

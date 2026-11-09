@@ -23,6 +23,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.parser.Feature;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.koubei.web.tag.pager.Pager;
 import com.koubei.web.tag.pager.PaginationResult;
 import com.qlangtech.tis.IPluginEnum;
@@ -110,6 +111,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
@@ -708,12 +710,60 @@ public class PluginAction extends BasicModule {
   }
 
   /**
+   * 按 impl 取完整的 descriptor（含全部属性描述）。
+   *
+   * <p>与 {@link #doGetDescsByExtendpoint} 的 {@code getDescMeta=true}（只取元数据）互补：
+   * 调色板先用后者拿到全量元数据，用户真正要添加某个 widget 时，再用本端点单独补齐
+   * 那一个类型的完整 descriptor。
+   *
+   * <p>{@code impl} 支持重复同名参数，一次可补齐多个类型（都走同一个已缓存的
+   * descriptor 图，多取几个几乎无额外成本）。也兼容单个 {@code impl} 传参。
+   *
+   * @param context
+   * @throws Exception
+   */
+  public void doGetDescsByImpl(Context context) throws Exception {
+    Set<String> impls = Sets.newLinkedHashSet();
+    // getParameterValues 在参数缺失时返回 null（不是空数组），不能直接 foreach
+    String[] implParams = this.getStringArray(PLUGIN_EXTENSION_IMPL);
+    if (implParams != null) {
+      for (String impl : implParams) {
+        if (StringUtils.isNotEmpty(impl)) {
+          impls.add(impl);
+        }
+      }
+    }
+    if (impls.isEmpty()) {
+      throw new IllegalArgumentException("param 'impl' can not be null");
+    }
+    // plugin meta 全部进 ThreadLocal：SELECTABLE 字段的候选集依赖当前 module 上下文，
+    // 只放第一个会让其余 meta 的候选失效
+    for (UploadPluginMeta pmeta : this.getPluginMeta(false)) {
+      UploadPluginMeta.putPluginMeta(context, pmeta);
+    }
+
+    List<Descriptor> descriptors = Lists.newArrayList();
+    for (String impl : impls) {
+      // getDescriptor() 找不到时返回 null（TIS#getDescriptor 的约定），
+      // 这里必须显式失败：返回一个空 descriptor 会让前端造出「能渲染但存不了配置」的残缺 widget
+      Descriptor desc = Objects.requireNonNull(TIS.get().getDescriptor(impl),
+        "descriptor not found for impl:" + impl);
+      descriptors.add(desc);
+    }
+    this.setBizResult(context, new DefaultDescriptorsJSON(descriptors).getDescriptorsJSON());
+  }
+
+  /**
    * @param context
    */
   @SuppressWarnings("all")
   public void doGetDescsByExtendpoint(Context context) throws Exception {
     List<String> extendpoints = this.getExtendpointParam();
     final boolean getAll = this.getBoolean("all");
+    /**
+     * 只获取插件元数据描述信息
+     */
+    final boolean getDescMeta = this.getBoolean("getDescMeta");
     if (CollectionUtils.isEmpty(extendpoints)) {
       throw new IllegalArgumentException("extendpoints can not be null");
     }
@@ -743,10 +793,11 @@ public class PluginAction extends BasicModule {
 
       if (!getAll) {
         this.setBizResult(context,
-          new DefaultDescriptorsJSON(descriptorList).getDescriptorsJSON());
+          new DefaultDescriptorsJSON(descriptorList, true, getDescMeta).getDescriptorsJSON());
         return;
       } else {
-        allEndpointDescriptor.put(extend, new DefaultDescriptorsJSON(descriptorList).getDescriptorsJSON());
+        allEndpointDescriptor.put(extend,
+          new DefaultDescriptorsJSON(descriptorList, true, getDescMeta).getDescriptorsJSON());
       }
     }
 

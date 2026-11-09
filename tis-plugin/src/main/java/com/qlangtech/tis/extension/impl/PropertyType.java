@@ -39,6 +39,7 @@ import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.InputValueValidator;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.CMeta;
@@ -50,6 +51,7 @@ import com.qlangtech.tis.trigger.util.UnCacheString;
 import com.qlangtech.tis.util.AttrValMap;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.Converter;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.tiger_types.Types;
 
@@ -639,13 +641,13 @@ public class PropertyType implements IPropertyType {
         formField.type().appendExternalProps.accept(attrVal);
     }
 
-    private Validator[] validators;
+    private InputValueValidator[] validators;
 
     @JSONField(serialize = false)
-    public Validator[] getValidator() {
+    public InputValueValidator[] getValidator() {
 
         if (this.validators == null) {
-            Set<Validator> result = Sets.newHashSet();
+            Set<InputValueValidator> result = Sets.newHashSet();
 
             Map<Validator, PluginExtraProps.Props.ValidatorCfg> validators = (extraProp == null ?
                     Collections.emptyList() : (this.extraProp.getExtraValidators())).stream() //
@@ -662,12 +664,17 @@ public class PropertyType implements IPropertyType {
                     result.add(v);
                 }
             }
+
+            if (CollectionUtils.isNotEmpty(formField.type().getAppendValueValidator())) {
+                result.addAll(formField.type().getAppendValueValidator());
+            }
+
             for (PluginExtraProps.Props.ValidatorCfg cfg : validators.values()) {
                 if (!cfg.disable) {
                     result.add(cfg.validator);
                 }
             }
-            this.validators = result.toArray(new Validator[result.size()]);
+            this.validators = result.toArray(new InputValueValidator[result.size()]);
         }
 
         return this.validators;
@@ -677,7 +684,7 @@ public class PropertyType implements IPropertyType {
     public boolean isInputRequired() {
         if (inputRequired == null) {
             inputRequired = false;
-            for (Validator v : this.getValidator()) {
+            for (InputValueValidator v : this.getValidator()) {
                 if (v == Validator.require) {
                     return inputRequired = true;
                 }

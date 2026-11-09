@@ -21,6 +21,7 @@ import com.qlangtech.tis.ibatis.RowMap;
 import com.qlangtech.tis.plugin.ontology.Ontology;
 import com.qlangtech.tis.plugin.ontology.OntologyObjectType;
 import com.qlangtech.tis.plugin.ontology.OntologyProperty;
+import com.qlangtech.tis.plugin.ontology.impl.objtype.FilterOperator;
 import com.qlangtech.tis.plugin.ontology.impl.objtype.ObjectTypeBinding;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -186,13 +187,13 @@ public class WorkshopOntologyService {
      */
     public static class Filter {
         private String property;
-        private String operator; // equals, contains, greaterThan, lessThan, in
+        private FilterOperator operator;
         private Object value;
 
         public Filter() {
         }
 
-        public Filter(String property, String operator, Object value) {
+        public Filter(String property, FilterOperator operator, Object value) {
             this.property = property;
             this.operator = operator;
             this.value = value;
@@ -206,11 +207,11 @@ public class WorkshopOntologyService {
             this.property = property;
         }
 
-        public String getOperator() {
+        public FilterOperator getOperator() {
             return operator;
         }
 
-        public void setOperator(String operator) {
+        public void setOperator(FilterOperator operator) {
             this.operator = operator;
         }
 

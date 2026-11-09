@@ -323,20 +323,21 @@ public class SuFormProperties extends BaseSubFormProperties {
     }
 
     @Override
-    protected void addSubItems(SelectedTab ext, JSONArray pair) throws Exception {
-        DescribableJSON itemJson = null;
-        SelectedTabExtend sourceExtendProps = null;
-        if (ext != null) {
-            itemJson = new DescribableJSON(ext);
-            pair.add(itemJson.getItemJson(new RootFormProperties(this.subFormFieldsDescriptor,
-                    PropertyType.toIPropertyTypes(this.fieldsType))));
+    protected void addSubItems(SelectedTab ext, List<Describable<?>> parent, JSONArray pair) throws Exception {
+        if (ext == null) {
+            return;
+        }
+        // parent 是「祖先链」不含自己：createSubFormVals 传进来的链已经以宿主插件结尾，
+        // 明细项接在宿主下面，故这里直接用，不能再 append 自己（会重复一层）
+        DescribableJSON itemJson = new DescribableJSON(ext, parent, ext.getDescriptor());
+        pair.add(itemJson.getItemJson(new RootFormProperties(this.subFormFieldsDescriptor,
+                PropertyType.toIPropertyTypes(this.fieldsType))));
 
-
-            sourceExtendProps = ext.getSourceProps();
-            if (sourceExtendProps != null) {
-                itemJson = new DescribableJSON(sourceExtendProps);
-                pair.add(itemJson.getItemJson());
-            }
+        // sourceProps 与 ext 是同一层的两半（不是父子），故共用同一条链
+        SelectedTabExtend sourceExtendProps = ext.getSourceProps();
+        if (sourceExtendProps != null) {
+            itemJson = new DescribableJSON(sourceExtendProps, parent, sourceExtendProps.getDescriptor());
+            pair.add(itemJson.getItemJson());
         }
     }
 

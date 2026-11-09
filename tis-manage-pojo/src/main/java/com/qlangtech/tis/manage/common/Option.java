@@ -108,6 +108,7 @@ public class Option implements IdentityName {
                 if (opt.isChecked() != null) {
                     o.put(keyChecked, opt.isChecked());
                 }
+                opt.appendExtraProps(o);
                 enums.add(o);
             });
         }
@@ -163,6 +164,21 @@ public class Option implements IdentityName {
      */
     public OptionComment comment() {
         return null;
+    }
+
+    /**
+     * 往线格式里追加本子类专有的键。
+     *
+     * <p>默认空实现：{@link #toJson(List)} 是候选项序列化的唯一出口（20 余处调用点），
+     * 给它加钩子而不是让调用方各写一套，是为了让「多带一个字段」这件事对一个子类来说
+     * 只是覆写一个方法 —— 其余调用点的 JSON 逐字节不变。
+     *
+     * <p>⚠️ <b>永远不要抛。</b>本方法在 {@code DescribableJSON} 的序列化链路里，
+     * 一次异常会中止整个 module / 页面的下发。
+     *
+     * @param o 已经写入了 label / val 等公共键的 JSON 对象
+     */
+    public void appendExtraProps(JSONObject o) {
     }
 
     public static class OptionComment {

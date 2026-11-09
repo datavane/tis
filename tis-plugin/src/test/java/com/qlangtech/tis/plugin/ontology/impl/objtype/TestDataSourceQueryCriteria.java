@@ -138,12 +138,12 @@ public class TestDataSourceQueryCriteria {
     public void testAddFilterColAcceptsNonTargetCol() {
         ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
         criteria.addFilterCol("depart_time");
-        criteria.addFilter("depart_time", ObjectTypeBinding.DataSourceQueryCriteria.OP_GREATER_THAN, 10);
+        criteria.addFilter("depart_time", FilterOperator.greaterThan, 10);
 
         Assert.assertEquals(1, criteria.getFilters().size());
         ObjectTypeBinding.FilterCriterion criterion = criteria.getFilters().get(0);
         Assert.assertEquals("depart_time", criterion.property());
-        Assert.assertEquals(ObjectTypeBinding.DataSourceQueryCriteria.OP_GREATER_THAN, criterion.operator());
+        Assert.assertEquals(FilterOperator.greaterThan, criterion.operator());
         Assert.assertEquals(10, criterion.value());
     }
 
@@ -157,7 +157,7 @@ public class TestDataSourceQueryCriteria {
     public void testAddFilterRejectsUndeclaredCol() {
         ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
         try {
-            criteria.addFilter("secret_col", ObjectTypeBinding.DataSourceQueryCriteria.OP_EQUALS, 1);
+            criteria.addFilter("secret_col", FilterOperator.equals, 1);
             Assert.fail("filter property not in targetCols/filterCols should be rejected");
         } catch (IllegalArgumentException e) {
             Assert.assertTrue(e.getMessage().contains("secret_col"));
@@ -177,7 +177,7 @@ public class TestDataSourceQueryCriteria {
     public void testFilterColDoesNotEnterTargetCols() {
         ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
         criteria.addFilterCol("depart_time");
-        criteria.addFilter("depart_time", ObjectTypeBinding.DataSourceQueryCriteria.OP_EQUALS, "2026-10-29");
+        criteria.addFilter("depart_time", FilterOperator.equals, "2026-10-29");
 
         Assert.assertFalse(criteria.getTargetCols().contains("depart_time"));
         Assert.assertTrue(criteria.getFilterCols().contains("depart_time"));
@@ -188,7 +188,7 @@ public class TestDataSourceQueryCriteria {
     @Test
     public void testAddFilterAcceptsTargetCol() {
         ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
-        criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_EQUALS, "abc");
+        criteria.addFilter("name", FilterOperator.equals, "abc");
         Assert.assertEquals(1, criteria.getFilters().size());
         Assert.assertTrue(criteria.getFilterCols().isEmpty());
     }
@@ -204,8 +204,8 @@ public class TestDataSourceQueryCriteria {
     @Test
     public void testAddFilterIsIdempotent() {
         ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
-        criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_EQUALS, "abc");
-        criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_EQUALS, "abc");
+        criteria.addFilter("name", FilterOperator.equals, "abc");
+        criteria.addFilter("name", FilterOperator.equals, "abc");
 
         Assert.assertEquals(1, criteria.getFilters().size());
     }
@@ -214,23 +214,43 @@ public class TestDataSourceQueryCriteria {
     @Test
     public void testDedupKeyIsFullTriple() {
         ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
-        criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_EQUALS, "abc");
-        criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_CONTAINS, "abc");
-        criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_EQUALS, "def");
+        criteria.addFilter("name", FilterOperator.equals, "abc");
+        criteria.addFilter("name", FilterOperator.contains, "abc");
+        criteria.addFilter("name", FilterOperator.equals, "def");
 
         Assert.assertEquals(3, criteria.getFilters().size());
     }
 
-    /** 非法操作符在进入 SQL 拼装之前就被挡下（与排序列同一条安全口径） */
+    /**
+     * 非法操作符在<b>解析期</b>就被挡下：{@code addFilter} 的形参已是枚举，编译期就不可能把
+     * 任意字符串传进来，字符串 → 枚举的唯一入口是 {@link FilterOperator#parse(String)}。
+     */
     @Test
-    public void testAddFilterRejectsUnsupportedOperator() {
-        ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
+    public void testParseRejectsUnsupportedOperator() {
         try {
-            criteria.addFilter("name", "drop table", "abc");
+            FilterOperator.parse("drop table");
             Assert.fail("unsupported operator should be rejected");
         } catch (IllegalArgumentException e) {
             Assert.assertTrue(e.getMessage().contains("illegal filter operator"));
         }
+        try {
+            FilterOperator.parse(null);
+            Assert.fail("null operator should be rejected");
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage().contains("can not be empty"));
+        }
+    }
+
+    /** 线格式 token 与旧常量名都能解析回同一个常量（{@code in} 与 {@code in_}） */
+    @Test
+    public void testParseAcceptsTokenAndConstantName() {
+        Assert.assertEquals(FilterOperator.in_, FilterOperator.parse("in"));
+        Assert.assertEquals(FilterOperator.in_, FilterOperator.parse("in_"));
+        Assert.assertEquals(FilterOperator.greaterThanOrEqual, FilterOperator.parse("greaterThanOrEqual"));
+        Assert.assertEquals("in", FilterOperator.in_.valueToken());
+        Assert.assertTrue(FilterOperator.in_.isMultiValued());
+        Assert.assertTrue(FilterOperator.inOrNull.isMultiValued());
+        Assert.assertTrue(FilterOperator.isNull.isValueFree());
     }
 
     /** {@code in} 必须给集合：否则 appendWhere 渲染出 {@code IN (?)} 绑定一个标量 */
@@ -238,13 +258,13 @@ public class TestDataSourceQueryCriteria {
     public void testAddFilterInRequiresCollection() {
         ObjectTypeBinding.DataSourceQueryCriteria criteria = createCriteria();
         try {
-            criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_IN, "abc");
+            criteria.addFilter("name", FilterOperator.in_, "abc");
             Assert.fail("'in' with scalar value should be rejected");
         } catch (IllegalArgumentException e) {
             Assert.assertTrue(e.getMessage().contains("requires a collection value"));
         }
 
-        criteria.addFilter("name", ObjectTypeBinding.DataSourceQueryCriteria.OP_IN, java.util.List.of("a", "b"));
+        criteria.addFilter("name", FilterOperator.in_, java.util.List.of("a", "b"));
         Assert.assertEquals(1, criteria.getFilters().size());
     }
 }

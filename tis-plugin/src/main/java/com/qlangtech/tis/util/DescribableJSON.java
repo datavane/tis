@@ -36,6 +36,9 @@ import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.IdentityName;
 import org.apache.commons.collections.MapUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -55,14 +58,49 @@ public class DescribableJSON<T extends Describable<T>> {
 
     public final Descriptor<T> descriptor;
 
+    private final List<Describable<?>> parent;
+
     public DescribableJSON(T instance, Descriptor<T> descriptor) {
+        this(instance, Collections.emptyList(), descriptor);
+    }
+
+    public DescribableJSON(T instance, List<Describable<?>> parent, Descriptor<T> descriptor) {
         this.instance = Objects.requireNonNull(instance, "param instance can not be null");
         this.descriptor = Objects.requireNonNull(descriptor,
                 "param descriptor can not be null,plugin type:" + instance.getClass());
+        this.parent = Objects.requireNonNull(parent, "parent can not be null");
     }
 
     public DescribableJSON(T instance) {
         this(Objects.requireNonNull(instance, "param instance can not be null"), instance.getDescriptor());
+    }
+
+    /**
+     * 祖先实例链：从最外层插件到直接父级，<b>不含</b> {@link #instance} 本身。
+     *
+     * <p>总是扁平的一层 {@code List<Describable>}，元素一定是 {@link Describable} ——
+     * 约定见 {@link #appendParent(List, Describable)}。空列表表示「未知 / 没有祖先」，
+     * 不区分这两种情况（见 {@link AppendPayloadAttribute} 的覆盖范围说明）。
+     */
+    public List<Describable<?>> getParent() {
+        return parent;
+    }
+
+    /**
+     * 生成下一层的祖先链：{@code parent + [instance]}。
+     *
+     * <p>⚠️ 不要写成 {@code Lists.newArrayList(parent, instance)} —— 那是 Guava 的
+     * <b>可变参数</b>方法，两个实参是列表的两个<b>元素</b>，于是 {@code parent} 整个作为
+     * 第 0 个元素嵌进去，链变成「套娃」：{@code [[...], instance]}。消费方按
+     * {@code Describable} 取元素时在 index 0 收到 {@code ArrayList} 直接 CCE；
+     * 按 {@code size()} 判断层数则恒为 2。而且这条路径上的 {@code DescribableJSON}
+     * 常以原始类型构造，泛型擦除后编译期不会有任何提示。
+     */
+    public static List<Describable<?>> appendParent(List<Describable<?>> parent, Describable<?> instance) {
+        List<Describable<?>> chain = new ArrayList<>(parent.size() + 1);
+        chain.addAll(parent);
+        chain.add(Objects.requireNonNull(instance, "instance can not be null"));
+        return Collections.unmodifiableList(chain);
     }
 
     public JSONObject getItemJson() throws Exception {
@@ -79,6 +117,7 @@ public class DescribableJSON<T extends Describable<T>> {
 
         JSONObject item = new JSONObject();
         ConcurrentMap<String /*field name*/, Enum<?>> modelAssistVals = Maps.newConcurrentMap();
+
         DescriptorsJSON.setDescInfo(pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
             @Override
             public Descriptor visitMultiStepsHost(MultiStepsHostPluginFormProperties props) {
@@ -115,7 +154,7 @@ public class DescribableJSON<T extends Describable<T>> {
         }), false, item);
 
 
-        final JSON vals = pluginFormPropertyTypes.getInstancePropsJson(this.instance);
+        final JSON vals = pluginFormPropertyTypes.getInstancePropsJson(this.instance, this.parent);
 
         if (MapUtils.isNotEmpty(modelAssistVals)) {
             // 每个 model_assist 字段只带一条（当前值的）选项描述，供前端行内直接渲染 label/icon/comment，
@@ -132,7 +171,7 @@ public class DescribableJSON<T extends Describable<T>> {
 
         // 附加载荷：与 vals 同级的只读快照，只走 GET（POST 侧不读，见 AppendPayloadAttribute 的注释）
         if (this.instance instanceof AppendPayloadAttribute appendAttribute) {
-            item.put(AttrValMap.PLUGIN_APPEND_VALS, appendAttribute.createPayloadProps());
+            item.put(AttrValMap.PLUGIN_APPEND_VALS, appendAttribute.createPayloadProps(this.parent));
         }
 
         item.put(AttrValMap.PLUGIN_EXTENSION_VALS, vals);
@@ -252,7 +291,7 @@ public class DescribableJSON<T extends Describable<T>> {
      * 数据。
      *
      * <h3>下发位置</h3>
-     * 实现本接口的实例被 {@link DescribableJSON#getItemJson} 序列化时，{@link #createPayloadProps()}
+     * 实现本接口的实例被 {@link DescribableJSON#getItemJson} 序列化时，{@link #createPayloadProps(List)}
      * 的返回值会以 {@link AttrValMap#PLUGIN_APPEND_VALS}（{@code "appendVals"}）为键，
      * 作为 {@code vals} 的<b>兄弟</b>键写进同一个 item 信封：
      * <pre>
@@ -283,9 +322,30 @@ public class DescribableJSON<T extends Describable<T>> {
      *   <li>键名即<b>线格式</b>：前端按字符串取键，前后端逐字对齐；改名必须两侧同时改。</li>
      * </ul>
      *
+     * <h3>关于 {@code parent} 参数</h3>
+     * {@link #createPayloadProps(List)} 的 {@code parent} 是<b>祖先实例链</b>，从最外层插件
+     * 到直接父级按顺序排列，<b>不含</b>当前实例本身（见 {@link #getParent()}）。
+     * <p>
+     * ⚠️ <b>它没有全链路覆盖，不要把「拿不到祖先」当成「没有祖先」</b>：目前只有
+     * {@code RootFormProperties} 的嵌套 {@code Describable} / {@code MULTI_DESCRIBLE_PLUGIN}
+     * 字段会把链传下去；多步骤宿主、{@code @SubForm} 明细等链路仍在补齐中，
+     * 缺口处传入的是空列表。
+     * <p>
+     * ⚠️ <b>POST 侧恒为空列表</b>：{@link DescribableJSON#getPostAttributeJson()} 不知道祖先，
+     * 它给出的 parent 永远是 {@code List.of()}。因此依赖祖先才能算出来的载荷在 POST 里必然与
+     * GET 不同 —— 这类实现请自行处理「拿不到祖先」的分支，不要 NPE 或退化成正向错误。
+     *
      * @see AttrValMap#PLUGIN_APPEND_VALS
      */
     public interface AppendPayloadAttribute {
-        Map<String, Object> createPayloadProps();
+
+
+        /**
+         * 带祖先链的入口。
+         * 因此只关心「自己」的实现不需要覆写。
+         *
+         * @param parent 祖先实例链（见接口注释），不会为 null，但可能为空
+         */
+         Map<String, Object> createPayloadProps(List<Describable<?>> parent);
     }
 }

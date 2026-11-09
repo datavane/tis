@@ -99,6 +99,10 @@ public class DefaultDescriptorsJSON<T extends Describable<T>> extends Descriptor
         super(descriptors, rootDesc);
     }
 
+    public DefaultDescriptorsJSON(Collection<Descriptor<T>> descriptors, boolean rootDesc, boolean skipAttrs) {
+        super(descriptors, rootDesc, skipAttrs);
+    }
+
     public DefaultDescriptorsJSON(Descriptor<T> descriptor, boolean rootDesc) {
         super(descriptor, rootDesc);
     }

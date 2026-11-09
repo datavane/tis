@@ -33,6 +33,8 @@ import com.qlangtech.tis.util.UploadPluginMeta;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -148,17 +150,28 @@ public class IncrSourceExtendSelected extends BaseSubFormProperties {
     }
 
     @Override
-    protected void addSubItems(SelectedTab ext, JSONArray pair) throws Exception {
-        addExt(ext.getIncrSourceProps(), pair);
-        addExt(ext.getIncrSinkProps(), pair);
+    protected void addSubItems(SelectedTab ext, List<Describable<?>> parent, JSONArray pair) throws Exception {
+        addExt(ext.getIncrSourceProps(), parent, pair);
+        addExt(ext.getIncrSinkProps(), parent, pair);
     }
 
-    public void addExt(SelectedTabExtend ext, JSONArray pair) throws Exception {
-        DescribableJSON itemJson;
+    /**
+     * @param parent 祖先链（见 {@link DescribableJSON#appendParent}），source/sink 都直接挂在明细项下
+     */
+    public void addExt(SelectedTabExtend ext, List<Describable<?>> parent, JSONArray pair) throws Exception {
         if (ext != null) {
-            itemJson = new DescribableJSON(ext);
+            DescribableJSON itemJson = new DescribableJSON(ext, parent, ext.getDescriptor());
             pair.add(itemJson.getItemJson());
         }
+    }
+
+    /**
+     * @deprecated 会切断 {@code AppendPayloadAttribute} 的 parent 链，请用
+     * {@link #addExt(SelectedTabExtend, List, JSONArray)}
+     */
+    @Deprecated
+    public void addExt(SelectedTabExtend ext, JSONArray pair) throws Exception {
+        addExt(ext, Collections.emptyList(), pair);
     }
 
 

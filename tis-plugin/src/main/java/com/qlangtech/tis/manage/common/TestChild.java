@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/9/16
  */
-public class TestChild implements Describable<TestChild>, IPluginStore.MultiDescribleElement {
+public abstract class TestChild implements Describable<TestChild>, IPluginStore.MultiDescribleElement {
     public static final String KEY_FIELD_REACT_SELECT = "reactSelect";
     /**
      * 姓名，作为子表单行的唯一标识（框架要求子表单元素必须声明 identity 属性）
@@ -96,7 +96,7 @@ public class TestChild implements Describable<TestChild>, IPluginStore.MultiDesc
 
     public static final String VAL_REACT_SELECT = "xxxxxx";
 
-    @TISExtension
+   // @TISExtension
     public static class DftDescriptor extends IPluginStore.MultiDescribleElementDescriptor<TestChild> {
         public DftDescriptor() {
             super();

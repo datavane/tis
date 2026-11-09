@@ -12,15 +12,34 @@ import java.util.Objects;
 /**
  * 数据库端聚合查询条件：分组键 + 聚合指标 + 过滤条件。
  *
- * <p>它继承 {@link ObjectTypeBinding.DataSourceQueryCriteria}，复用的是已经被验证过的两条
- * 安全边界：属性白名单（{@code addFilter} 只接受已经由 {@code addTargetCol} 或
- * {@code addFilterCol} 声明过的属性）与过滤操作符白名单。区别在于本类<b>不支持分页与排序</b>：
+ * <p>它继承 {@link ObjectTypeBinding.DataSourceQueryCriteria}，复用的是已经被验证过的安全边界：
+ * 属性白名单（{@code addFilter} 只接受已经由 {@code addTargetCol} 或 {@code addFilterCol}
+ * 声明过的属性）与 {@link com.qlangtech.tis.plugin.ontology.impl.objtype.FilterOperator} 枚举
+ * （非法算子根本构造不出来）。区别在于本类<b>不支持分页与排序</b>：
  * <ul>
  *   <li>分页对聚合结果没有意义（聚合已经把所有明细折成分组行），实现方不得调用
  *       {@code appendSqlLimit}；</li>
  *   <li>排序<b>不下推</b>：Top-N 依赖跨指标的汇总，留到调用方对少量分组行做。设置了
  *       {@code orderByCol} 的实现方应当直接拒绝，而不是静默忽略。</li>
  * </ul>
+ *
+ * <h3>分组键可以为空</h3>
+ * 空的 {@code groupKeys} + 至少一个指标 = 「单行标量聚合」（{@code select MIN(x), MAX(x) from t}），
+ * 结果恒一行、只有 {@code m0…} 指标键。直方图先用它取一次 MIN/MAX 定桶宽，再用
+ * {@link GroupKey#numeric(String, double, int)} 做第二趟分组 —— 没有这个形态就只剩
+ * 「先拉全部明细再内存分桶」，那在大表上会被 {@link #getMaxGroups()} 截断成一份残缺分布。
+ *
+ * <h3>指标也可以为空</h3>
+ * 有分组键、没有指标 = 「按分组键去重」（{@code select a, b from t group by 1, 2}），
+ * 结果行里只有 {@code c0…} 分组键。只要候选值、不要计数时用这种形态
+ * （直方图的桶查询即是）。
+ *
+ * <p><b>只有两者都为空才非法</b>：那会渲染成 {@code select from t}。实现方不要按
+ * {@code metrics.isEmpty()} 一刀切，否则「按分组键去重」被静默拦掉，表现是候选恒为空。
+ *
+ * <h3>空值分组</h3>
+ * 默认把 X 分组键为空的那一组挡在 {@code (c0) IS NOT NULL} 之后；要拿到它请调
+ * {@link #setIncludeNullGroups(boolean)} —— 见该方法的说明。
  *
  * <h3>别名契约</h3>
  * SQL 的 SELECT 顺序固定为「分组键在前、指标在后」，结果行里的键由
@@ -63,6 +82,7 @@ public class AggregationCriteria extends ObjectTypeBinding.DataSourceQueryCriter
     private final List<GroupKey> groupKeys = new ArrayList<>(MAX_GROUP_KEYS);
     private final List<Metric> metrics = new ArrayList<>();
     private int maxGroups = DEFAULT_MAX_GROUPS;
+    private boolean includeNullGroups;
 
     /**
      * 追加一个分组键（按追加顺序映射到 {@code c0}、{@code c1}）。
@@ -125,6 +145,25 @@ public class AggregationCriteria extends ObjectTypeBinding.DataSourceQueryCriter
 
     public List<GroupKey> getGroupKeys() {
         return Collections.unmodifiableList(groupKeys);
+    }
+
+    /**
+     * 是否把 X 分组键为空的那一组也查出来。
+     *
+     * <p>默认 {@code false}：实现方会追加 {@code (c0) IS NOT NULL}，把空值分组挡在外头
+     * —— 图表轴上的空类别既画不出来也点不中。置 {@code true} 时该谓词被去掉，空值单独成组
+     * 并以 {@code null} 值出现在结果行里。
+     *
+     * <p>目前的<b>唯一</b>消费者是 Filter List 的候选项查询
+     * （{@code ObjectSetOpsSource}）：Palantir 的空值是一个可勾选的独立候选行。
+     */
+    public AggregationCriteria setIncludeNullGroups(boolean includeNullGroups) {
+        this.includeNullGroups = includeNullGroups;
+        return this;
+    }
+
+    public boolean isIncludeNullGroups() {
+        return includeNullGroups;
     }
 
     public List<Metric> getMetrics() {

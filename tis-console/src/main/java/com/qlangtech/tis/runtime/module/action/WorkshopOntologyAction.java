@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
+import com.qlangtech.tis.plugin.ontology.impl.objtype.FilterOperator;
 import com.qlangtech.tis.plugin.workshop.service.WorkshopOntologyService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -78,7 +79,7 @@ public class WorkshopOntologyAction extends BasicModule {
                     JSONObject filterObj = filtersArray.getJSONObject(i);
                     WorkshopOntologyService.Filter filter = new WorkshopOntologyService.Filter();
                     filter.setProperty(filterObj.getString("property"));
-                    filter.setOperator(filterObj.getString("operator"));
+                    filter.setOperator(FilterOperator.parse(filterObj.getString("operator")));
                     filter.setValue(filterObj.get("value"));
                     filters.add(filter);
                 }

@@ -19,20 +19,23 @@ package com.qlangtech.tis.plugin.annotation;
 
 import com.alibaba.citrus.turbine.Context;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import com.qlangtech.tis.aiagent.llm.TISJsonSchema;
 import com.qlangtech.tis.datax.TimeFormat;
 import com.qlangtech.tis.extension.DescriptorUseableShortComment;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.SubFormFilter;
 import com.qlangtech.tis.extension.impl.PropertyType;
-import com.qlangtech.tis.manage.common.IEnumTypeSer;
 import com.qlangtech.tis.extension.impl.PropertyType.PropVal;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
+import com.qlangtech.tis.manage.common.IEnumTypeSer;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.MemorySize;
 import com.qlangtech.tis.plugin.MemorySize.MemoryUnit;
 import com.qlangtech.tis.plugin.ds.IMultiElement;
+import com.qlangtech.tis.plugin.utils.HexColorValidator;
+import com.qlangtech.tis.plugin.utils.InputColor;
 import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import org.apache.commons.lang.StringUtils;
 
@@ -42,6 +45,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -57,6 +61,44 @@ import static com.qlangtech.tis.extension.IPropertyType.CONST_UNIT_INTEGER_FIELD
 @SuppressWarnings("all")
 public enum FormFieldType implements DescriptorUseableShortComment, IEndTypeGetter {
     /**
+     * 颜色取色器，目标属性类型为 {@link InputColor}，前端使用 Coloris 组件渲染。
+     * <p>
+     * 值在前后端之间以颜色字符串（{@code #rrggbb}）往返：入站把字符串包成 {@link InputColor}，
+     * 出站再把 {@link InputColor#getValue()} 摊平回字符串。不能依赖默认处理器——
+     * 默认的 {@code PropVal#convertedVal()} 走 commons-beanutils，没有 String→{@link InputColor}
+     * 的转换器，POST 时会因目标类型不匹配失败。
+     */
+    Color(14, new IPropValProcessor() {
+        @Override
+        public Object processInput(Object instance, PropVal val) throws Exception {
+            if (val.rawVal() instanceof InputColor color) {
+                // 幂等：默认值 / valueChangePipe 回放可能直接给的是实例
+                return color;
+            }
+            if (val.rawVal() == null) {
+                return null;
+            }
+            // 注意不能用 val.convertedVal()：目标类型是 InputColor，commons-beanutils 没有对应转换器
+            String colorVal = StringUtils.trimToNull(String.valueOf(val.rawVal()));
+            // 必填由 Validator 负责，这里对空值保留 null 语义（清空即置空）
+            return StringUtils.isEmpty(colorVal) ? null : new InputColor(colorVal);
+        }
+
+        @Override
+        public Object serialize2Output(PropertyType pt, Object val) throws Exception {
+            return val == null ? null : ((InputColor) val).getValue();
+        }
+    }, TISJsonSchema.FieldType.String
+            , Lists.newArrayList(new InputValueValidator() {
+        @Override
+        public boolean validate(IFieldErrorHandler msgHandler, Context context, String fieldKey, String fieldData) {
+            if (StringUtils.isEmpty(fieldData)) {
+                return true;
+            }
+            return HexColorValidator.validate(msgHandler, context, fieldKey, fieldData);
+        }
+    })),
+    /**
      * 对应插件中如下类型
      * <pre>
      *      @FormField(ordinal = 3, desClazz = TestChild.class, type = FormFieldType.MULTI_DESCRIBLE_PLUGIN,validate = {Validator.require})
@@ -71,7 +113,6 @@ public enum FormFieldType implements DescriptorUseableShortComment, IEndTypeGett
     MULTI_SELECTABLE(8, TISJsonSchema.FieldType.Array),
 
     INPUTTEXT(1, TISJsonSchema.FieldType.String),
-
     /**
      * 有多个选项可以选择
      */
@@ -129,7 +170,7 @@ public enum FormFieldType implements DescriptorUseableShortComment, IEndTypeGett
     /**
      * 输入一个数字
      */
-    INT_NUMBER(4, TISJsonSchema.FieldType.Integer) //
+    INT_NUMBER(4, TISJsonSchema.FieldType.Integer, Collections.singletonList(Validator.integer)) //
     , ENUM(5, new IPropValProcessor() {
         @Override
         public Object processInput(Object instance, PropVal val) throws Exception {
@@ -171,8 +212,9 @@ public enum FormFieldType implements DescriptorUseableShortComment, IEndTypeGett
         @Override
         public Object processInput(Object instance, PropVal val) throws Exception {
             String datetimeFormat = val.propertyType.getExtraProps().getString(PluginExtraProps.KEY_DATETIME_FORMAT);
-            final LocalDateTime dateTime = LocalDateTime.parse((String) val.rawVal(), StringUtils.isEmpty(datetimeFormat) ?
-                    isoFormat : DateTimeFormatter.ofPattern(datetimeFormat));
+            final LocalDateTime dateTime = LocalDateTime.parse((String) val.rawVal(),
+                    StringUtils.isEmpty(datetimeFormat) ?
+                            isoFormat : DateTimeFormatter.ofPattern(datetimeFormat));
             // ng-zorro 组件上传使用格林尼治时间
             Instant ist = dateTime.atZone(ZoneOffset.UTC).toInstant();
             //  Date dateTime = dateTimeFormat.parse();
@@ -279,6 +321,10 @@ public enum FormFieldType implements DescriptorUseableShortComment, IEndTypeGett
         }
     }, new MemoryAppendExternalProps(MemoryUnit.MEGA_BYTES), TISJsonSchema.FieldType.Integer);
 
+    public List<InputValueValidator> getAppendValueValidator() {
+        return this.customizeValidators;
+    }
+
     private static class MemoryAppendExternalProps implements Consumer<JSONObject> {
         private final MemoryUnit memoryUnit;
 
@@ -354,24 +400,43 @@ public enum FormFieldType implements DescriptorUseableShortComment, IEndTypeGett
     public final IPropValProcessor valProcessor;
     public final Consumer<JSONObject> appendExternalProps;
     public final TISJsonSchema.FieldType schemaFieldType;
+    private final List<InputValueValidator> customizeValidators;
 
     FormFieldType(int val, TISJsonSchema.FieldType schemaFieldType) {
         this(val, new IPropValProcessor() {
         }, (fieldProps) -> {
-        }, schemaFieldType);
+        }, schemaFieldType, Collections.emptyList());
+    }
+
+    FormFieldType(int val, TISJsonSchema.FieldType schemaFieldType, List<InputValueValidator> customizeValidators) {
+        this(val, new IPropValProcessor() {
+        }, (fieldProps) -> {
+        }, schemaFieldType, customizeValidators);
     }
 
     FormFieldType(int val, IPropValProcessor valProcessor, TISJsonSchema.FieldType schemaFieldType) {
         this(val, valProcessor, (fieldProps) -> {
-        }, schemaFieldType);
+        }, schemaFieldType, Collections.emptyList());
+    }
+
+    FormFieldType(int val, IPropValProcessor valProcessor, TISJsonSchema.FieldType schemaFieldType,
+                  List<InputValueValidator> customizeValidators) {
+        this(val, valProcessor, (fieldProps) -> {
+        }, schemaFieldType, customizeValidators);
     }
 
     FormFieldType(int val, IPropValProcessor valProcessor, Consumer<JSONObject> appendExternalProps,
                   TISJsonSchema.FieldType schemaFieldType) {
+        this(val, valProcessor, appendExternalProps, schemaFieldType, Collections.emptyList());
+    }
+
+    FormFieldType(int val, IPropValProcessor valProcessor, Consumer<JSONObject> appendExternalProps,
+                  TISJsonSchema.FieldType schemaFieldType, List<InputValueValidator> customizeValidators) {
         this.identity = val;
         this.valProcessor = valProcessor;
         this.appendExternalProps = appendExternalProps;
         this.schemaFieldType = schemaFieldType;
+        this.customizeValidators = customizeValidators;
     }
 
     public int getIdentity() {
@@ -407,6 +472,7 @@ public enum FormFieldType implements DescriptorUseableShortComment, IEndTypeGett
             case MEMORY_SIZE_OF_BYTE -> "内存大小（字节）";
             case MEMORY_SIZE_OF_KIBI -> "内存大小（KiB）";
             case MEMORY_SIZE_OF_MEGA -> "内存大小（MiB）";
+            case Color -> "颜色取色器";
             // 显式给 default：switch 表达式对枚举不写 default 时，编译器会合成一个抛
             // IncompatibleClassChangeError 的分支，日后新增常量会变成运行时炸点
             default -> this.name();
@@ -440,6 +506,7 @@ public enum FormFieldType implements DescriptorUseableShortComment, IEndTypeGett
             case MEMORY_SIZE_OF_BYTE -> EndType.Hdd;
             case MEMORY_SIZE_OF_KIBI -> EndType.Hdd;
             case MEMORY_SIZE_OF_MEGA -> EndType.Hdd;
+            case Color -> EndType.BgColors;
             // 与 {@link IEndTypeGetter#getEndType()} 接口默认值保持一致：无图标
             default -> EndType.Blank;
         };

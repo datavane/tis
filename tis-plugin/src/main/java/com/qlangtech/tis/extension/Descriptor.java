@@ -57,6 +57,7 @@ import com.qlangtech.tis.plugin.IdentityDesc;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.ValidatorCommons;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
+import com.qlangtech.tis.plugin.annotation.InputValueValidator;
 import com.qlangtech.tis.plugin.annotation.SubForm;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.ds.CMeta;
@@ -656,19 +657,24 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
 
                         @Override
-                        public JSON getInstancePropsJson(Object instance) {
-
+                        public JSON getInstancePropsJson(Object instance, List<Describable<?>> parent) {
+                            // 明细里的插件是 instance（宿主插件）的子级，祖先链要接上宿主，
+                            // 否则这一层之后的 DescribableJSON.parent 会从空开始
+                            List<Describable<?>> detailParent =
+                                    DescribableJSON.appendParent(parent, (Describable) instance);
                             Collection<IdentityName> subFormPropVal =
                                     _subPluginFormPropertyTypes.getSubFormPropVal(instance);
                             for (IdentityName subProp : subFormPropVal) {
                                 if (StringUtils.equals(subformDetailId, subProp.identityValue())) {
-                                    return _subPluginFormPropertyTypes.convertRootFormProps().getInstancePropsJson(subProp);
+                                    return _subPluginFormPropertyTypes.convertRootFormProps()
+                                            .getInstancePropsJson(subProp, detailParent);
                                 }
                             }
 
                             ISelectedTab subDetailed = _subPluginFormPropertyTypes.newSubDetailed();
                             _subPluginFormPropertyTypes.pkPropertyType.setVal(subDetailed, subformDetailId);
-                            return _subPluginFormPropertyTypes.convertRootFormProps().getInstancePropsJson(subDetailed);
+                            return _subPluginFormPropertyTypes.convertRootFormProps()
+                                    .getInstancePropsJson(subDetailed, detailParent);
                         }
                     };
 
@@ -1072,13 +1078,13 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                             return false;
                         }
                     } finally {
-                      //  popFieldStack(context);
+                        //  popFieldStack(context);
                     }
 
                     if (nextPlugins.size() < 1) {
                         // 没有选中
-                        Validator[] validators = attrDesc.getValidator();
-                        for (Validator v : validators) {
+                        InputValueValidator[] validators = attrDesc.getValidator();
+                        for (InputValueValidator v : validators) {
                             if (v == Validator.require) {
                                 if (!v.validate(msgHandler, context, attr, StringUtils.EMPTY)) {
                                     return false;
@@ -1096,8 +1102,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     }
                     if (selectedItems.size() < 1) {
                         // 没有选中
-                        Validator[] validators = attrDesc.getValidator();
-                        for (Validator v : validators) {
+                        InputValueValidator[] validators = attrDesc.getValidator();
+                        for (InputValueValidator v : validators) {
                             if (v == Validator.require) {
                                 v.validate(msgHandler, context, attr, StringUtils.EMPTY);
                             }
@@ -1136,8 +1142,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     if (containVal) {
                         attrVal = (String) propValRewrite.rewrite(attrDesc, valJ.getString(KEY_primaryVal));
                         postFormVals.fieldVals.put(attr, attrVal);
-                        Validator[] validators = attrDesc.getValidator();
-                        for (Validator v : validators) {
+                        InputValueValidator[] validators = attrDesc.getValidator();
+                        for (InputValueValidator v : validators) {
                             if (!v.validate(msgHandler, context, attr, attrVal)) {
                                 valid = false;
                                 break;

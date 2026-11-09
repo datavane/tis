@@ -35,6 +35,7 @@ import com.qlangtech.tis.datax.impl.DataXBasicProcessMeta;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.db.parser.DBConfigSuit;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
 import com.qlangtech.tis.extension.PluginFormProperties;
@@ -1187,6 +1188,8 @@ public class OfflineDatasourceAction extends BasicModule {
     PluginFormProperties pluginFormPropertyTypes = null;
     Map<String, Object> bizResult = Maps.newHashMap();
     Map<String, JSONObject> tabDesc = Maps.newHashMap();
+    // 循环只取第一个 reader（末尾 break），把引用提到循环外：它同时也是子表单明细的祖先结点
+    DataxReader hostReader = null;
     for (DataxReader reader : readers) {
       DescriptorsJSON desc2Json = new DefaultDescriptorsJSON(reader.getDescriptor());
       pluginFormPropertyTypes = reader.getDescriptor().getPluginFormPropertyTypes(pluginMeta.getSubFormFilter());
@@ -1196,10 +1199,12 @@ public class OfflineDatasourceAction extends BasicModule {
             desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()))));
       }, true));
       //  bizResult.put("subformDescriptor", desc2Json.getDescriptorsJSON(pluginMeta.getSubFormFilter()));
+      hostReader = reader;
       break;
     }
 
     Objects.requireNonNull(pluginFormPropertyTypes, "pluginFormPropertyTypes can not be null");
+    final Describable<?> hostPlugin = Objects.requireNonNull(hostReader, "hostReader can not be null");
     if (allNewTabs.size() < 1) {
       throw new IllegalStateException("allNewTabs size can not small than 1");
     }
@@ -1207,7 +1212,10 @@ public class OfflineDatasourceAction extends BasicModule {
     bizResult.put("tabVals", pluginFormPropertyTypes.accept(new PluginFormProperties.IVisitor() {
       @Override
       public JSONObject visit(BaseSubFormProperties props) {
-        return props.createSubFormVals(allNewTabs.stream().map((t) -> (IdentityName) t).collect(Collectors.toList()));
+        // 明细挂在 reader 插件下面，祖先链以宿主 plugin 结尾（不要走不带 parent 的兼容重载，
+        // 那会把 AppendPayloadAttribute 的祖先链清空）
+        return props.createSubFormVals(allNewTabs.stream().map((t) -> (IdentityName) t).collect(Collectors.toList()),
+          List.of(hostPlugin));
       }
     }));
     bizResult.put("subformDescriptor", tabDesc);

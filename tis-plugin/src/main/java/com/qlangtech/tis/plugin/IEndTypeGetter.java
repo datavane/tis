@@ -231,9 +231,14 @@ public interface IEndTypeGetter {
         , AlignCenter("align-center", EndTypeCategory.Icon, false)//
         , AlignLeft("align-left", EndTypeCategory.Icon, false)//
         , AlignRight("align-right", EndTypeCategory.Icon, false)//
-        // Workshop 页面布局模板图标，与 plugins/tis-ontology-plugin 的 PageTemplate 枚举
-        // 一一对应（示意原为 page-template-picker.component.ts 中的纯 CSS 版本）
-        , LayoutBlank("layout-blank", EndTypeCategory.Icon, true)//
+        // Workshop 页面布局模板图标 —— 每个 PageTemplate 派生类一个，由各 Descriptor 的
+        // getEndType() 返回（plugins/tis-ontology-plugin 的 workshop/model/page/*）。
+        // 示意原为 page-template-picker.component.ts 中的纯 CSS 版本。
+        //
+        // 已退役：LayoutBlank("layout-blank")。它当初是按旧枚举 BLANK 命名的，
+        // 但改造成插件类后没有任何模板叫 blank —— 两栏用的是 LayoutTwoColumn。
+        // 同名的位置与资源已被 LayoutHeaderContent 接管。
+        , LayoutHeaderContent("layout-header-content", EndTypeCategory.Icon, true)//
         , LayoutDetails("layout-details", EndTypeCategory.Icon, true)//
         , LayoutGrid("layout-grid", EndTypeCategory.Icon, true)//
         , LayoutInbox("layout-inbox", EndTypeCategory.Icon, true)//

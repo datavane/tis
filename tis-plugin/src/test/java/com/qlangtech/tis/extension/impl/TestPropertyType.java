@@ -22,6 +22,7 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.DefaultPlugin;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.RequiredPasswordPlugin;
+import com.qlangtech.tis.plugin.annotation.InputValueValidator;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import junit.framework.TestCase;
 
@@ -45,11 +46,11 @@ public class TestPropertyType extends TestCase {
         PropertyType passwordPropery = (PropertyType) props.get("password");
         Assert.assertNotNull(passwordPropery);
 
-        Validator[] validators = passwordPropery.getValidator();
+        InputValueValidator[] validators = passwordPropery.getValidator();
         // contain 2 validator 'require' and 'none_blank'
         Assert.assertEquals(2, validators.length);
         boolean containRequire = false;
-        for (Validator v : validators) {
+        for (InputValueValidator v : validators) {
             if (v == Validator.require) {
                 containRequire = true;
             }
@@ -62,11 +63,11 @@ public class TestPropertyType extends TestCase {
                 = PropertyType.buildPropertyTypes(Optional.empty(), RequiredPasswordPlugin.class);
         PropertyType passwordPropery = (PropertyType) props.get("password");
         Assert.assertNotNull(passwordPropery);
-        Validator[] validators = passwordPropery.getValidator();
+        InputValueValidator[] validators = passwordPropery.getValidator();
         // contain 2 validator 'require' and 'none_blank'
         Assert.assertEquals(1, validators.length);
         boolean containRequire = false;
-        for (Validator v : validators) {
+        for (InputValueValidator v : validators) {
             if (v == Validator.require) {
                 containRequire = true;
             }

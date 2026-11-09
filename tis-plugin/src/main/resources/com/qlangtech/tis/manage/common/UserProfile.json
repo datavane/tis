@@ -28,5 +28,10 @@
   "rightIcon": {
     "label": "icon",
     "enumMode": "model_assist"
+  },
+  "color": {
+    "label": "主题颜色",
+    "help": "界面主题色，点击右侧色块选择",
+    "dftVal": "#1890ff"
   }
 }

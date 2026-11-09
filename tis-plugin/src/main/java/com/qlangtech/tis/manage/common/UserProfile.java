@@ -31,6 +31,7 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.plugin.credentials.ParamsConfigPluginStore;
+import com.qlangtech.tis.plugin.utils.InputColor;
 import com.qlangtech.tis.runtime.module.action.IParamGetter;
 import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
@@ -93,6 +94,12 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
     @FormField(ordinal = 7, desClazz = TestChild.class, type = FormFieldType.MULTI_DESCRIBLE_PLUGIN, validate =
             {Validator.require})
     public List<TestChild> children;
+
+    /**
+     * 主题色：自由取色，走 Coloris 取色器（{@link FormFieldType#Color}）
+     */
+    @FormField(ordinal = 8, type = FormFieldType.Color, validate = {})
+    public InputColor color;
 
     //    @FormField(ordinal = 1, type = FormFieldType.MULTI_SELECTABLE, validate = {Validator.require})
     //    public List<RecordTransformer> rules = Lists.newArrayList();
@@ -213,7 +220,7 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
         TestChild child = null;
         switch (control) {
             case "a": {
-                child = new TestChild();
+                child = new TestChildA();
                 child.name = "a";
                 child.age = 11;
                 child.reactSelect = VAL_REACT_SELECT;
@@ -222,13 +229,13 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
                 break;
             }
             case "b": {
-                child = new TestChild();
+                child = new TestChildB();
                 child.name = "b";
                 child.age = 12;
                 child.reactSelect = VAL_REACT_SELECT;
                 child.sex = TestChild.Sex.male;
                 children.add(child);
-                child = new TestChild();
+                child = new TestChildB();
                 child.name = "bb";
                 child.age = 14;
                 child.sex = TestChild.Sex.female;

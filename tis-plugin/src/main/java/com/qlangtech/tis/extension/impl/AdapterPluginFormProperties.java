@@ -19,10 +19,12 @@
 package com.qlangtech.tis.extension.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.PluginFormProperties;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -53,8 +55,8 @@ public abstract class AdapterPluginFormProperties extends PluginFormProperties {
     }
 
     @Override
-    public JSON getInstancePropsJson(Object instance) {
-        return target.getInstancePropsJson(instance);
+    public JSON getInstancePropsJson(Object instance, List<Describable<?>> parent) {
+        return target.getInstancePropsJson(instance, parent);
     }
 
     @Override

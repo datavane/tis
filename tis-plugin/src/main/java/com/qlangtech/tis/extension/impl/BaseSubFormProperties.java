@@ -32,6 +32,7 @@ import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.util.AttrValMap;
+import com.qlangtech.tis.util.DescribableJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 
 import java.lang.reflect.Field;
@@ -178,7 +179,7 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
     public abstract boolean atLeastOne();
 
     @Override
-    public JSON getInstancePropsJson(Object instance) {
+    public JSON getInstancePropsJson(Object instance, List<Describable<?>> parent) {
         //        Class<?> fieldType = subFormField.getType();
         //        if (!Collection.class.isAssignableFrom(fieldType)) {
         //            // 现在表单只支持1对n 关系的子表单，因为1对1就没有必要有子表单了
@@ -189,7 +190,9 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
         //        try {
         //            Object o = subFormField.get(instance);
 
-        return (createSubFormVals(getSubFormPropVal(instance)));
+        // 子表单明细是宿主插件的子级：祖先链接上宿主，明细里的嵌套插件才看得到祖先
+        return (createSubFormVals(getSubFormPropVal(instance),
+                DescribableJSON.appendParent(parent, (Describable<?>) instance)));
 
         //        } catch (IllegalAccessException e) {
         //            throw new RuntimeException(e);
@@ -238,9 +241,26 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
 
     protected abstract Map<String, SelectedTab> getSelectedTabs(Collection<IdentityName> subFormFieldInstance);
 
-    protected abstract void addSubItems(SelectedTab ext, JSONArray pair) throws Exception;
+    /**
+     * 生成一个明细项的 item JSON。
+     *
+     * @param parent 该明细项的祖先链（宿主插件及其祖先），见 {@link DescribableJSON#appendParent}
+     */
+    protected abstract void addSubItems(SelectedTab ext, List<Describable<?>> parent, JSONArray pair) throws Exception;
 
+    /**
+     * 兼容入口：不知道祖先时退化成空链。
+     *
+     * @deprecated 会切断 {@code AppendPayloadAttribute} 的 parent 链，新代码请用
+     * {@link #createSubFormVals(Collection, List)}。
+     */
+    @Deprecated
     public final JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance) {
+        return createSubFormVals(subFormFieldInstance, Collections.emptyList());
+    }
+
+    public final JSONObject createSubFormVals(Collection<IdentityName> subFormFieldInstance,
+                                              List<Describable<?>> parent) {
         Map<String, SelectedTab> tabExtends = getSelectedTabs(subFormFieldInstance);
         JSONObject vals = null;
         try {
@@ -254,7 +274,7 @@ public abstract class BaseSubFormProperties extends PluginFormProperties impleme
                         continue;
                     }
                     pair = new JSONArray();
-                    addSubItems(ext, pair);
+                    addSubItems(ext, parent, pair);
 
                     vals.put(subItem.identityValue(), pair);
                 }

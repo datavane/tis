@@ -88,7 +88,7 @@ public class RootFormProperties extends PluginFormProperties {
 
     @SuppressWarnings("all")
     @Override
-    public JSON getInstancePropsJson(Object instance) {
+    public JSON getInstancePropsJson(Object instance, List<Describable<?>> parent) {
         JSONObject vals = new JSONObject();
         List<ValueChangePipe> valChangePipes = null;
         Map<String, Object> pipeSourceVals = null;
@@ -104,13 +104,18 @@ public class RootFormProperties extends PluginFormProperties {
                 }
 
                 if (pt.isDescribable()) {
-                    DescribableJSON djson = new DescribableJSON((Describable) o);
+                    Describable d = (Describable) o;
+                    // 祖先链 = 上游传进来的 parent + 当前实例本身（见 DescribableJSON#appendParent，
+                    // 不要写 Lists.newArrayList(parent, instance)：那是可变参数，会套成两层）
+                    DescribableJSON djson = new DescribableJSON(d,
+                            DescribableJSON.appendParent(parent, (Describable) instance), d.getDescriptor());
                     vals.put(entry.getKey(), djson.getItemJson());
                 } else if (pt.typeIdentity() == FormFieldType.MULTI_DESCRIBLE_PLUGIN.getIdentity()) {
                     List<Describable> nextItems = (List<Describable>) o;
                     JSONArray items = new JSONArray();
+                    List<Describable<?>> childParent = DescribableJSON.appendParent(parent, (Describable) instance);
                     for (Describable nest : nextItems) {
-                        items.add(new DescribableJSON(nest).getItemJson());
+                        items.add(new DescribableJSON(nest, childParent, nest.getDescriptor()).getItemJson());
                     }
                     vals.put(entry.getKey(), items);
                 } else {
@@ -152,7 +157,7 @@ public class RootFormProperties extends PluginFormProperties {
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
-           // logger.warn(e.getMessage(), e);
+            // logger.warn(e.getMessage(), e);
         }
         return (vals);
     }

@@ -61,6 +61,7 @@ import static com.qlangtech.tis.extension.Descriptor.KEY_OPTIONS;
  * @see DescriptorsJSONForAIPrompt for AI prompt
  * @see DefaultDescriptorsJSON for front end form show
  */
+@SuppressWarnings("all")
 public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends DescriptorsJSON.AttrVal> {
 
     //public static final int FORM_START_LEVEL = 1;
@@ -74,8 +75,18 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
 
     public static final String KEY_SCHEMA_FIELDS_ATTRS = "attrs";
     public static final String KEY_VALUE_CHANGE_PIPES = "valueChangePipes";
+    /**
+     * 只下发元数据（{@link #skipAttrs} 为 true）时附加的标记键。
+     * <p>此时 {@code attrs} 恒为空数组，客户端不能再用「attrs 非空」来判断是否完整 ——
+     * 必须读这个标记，否则空数组（truthy）会把只含元数据的 descriptor 当成完整表单描述。
+     */
+    public static final String KEY_SKIP_ATTRS = "skipAttrs";
 
     private final Collection<Descriptor<T>> descriptors;
+    /**
+     * 是否跳过所有的属性描述信息
+     */
+    private final boolean skipAttrs;
     /**
      * 由于describe 可以嵌套，此标志位可以判断 是否是根元素
      */
@@ -99,8 +110,13 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
     }
 
     public DescriptorsJSON(Collection<Descriptor<T>> descriptors, boolean rootDesc) {
+        this(descriptors, rootDesc, false);
+    }
+
+    public DescriptorsJSON(Collection<Descriptor<T>> descriptors, boolean rootDesc, boolean skipAttrs) {
         this.descriptors = descriptors;
         this.rootDesc = rootDesc;
+        this.skipAttrs = skipAttrs;
     }
 
     /**
@@ -259,7 +275,8 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
                 Descriptor desc = pair.getValue();
                 attrs = new JSONArray();
 
-                List<Entry<String, IPropertyType>> entries = pluginFormPropertyTypes.getSortedUseableProperties();
+                List<Entry<String, IPropertyType>> entries = skipAttrs ? Collections.emptyList() :
+                        pluginFormPropertyTypes.getSortedUseableProperties();
 
                 boolean containAdvanceField = false;
                 for (Map.Entry<String, IPropertyType> pp : entries) {
@@ -296,7 +313,7 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
                     }
 
                     if (val.isDescribable() || val.fieldListElementClazz.isPresent()) {
-                      //  System.out.println(pp.getKey() + "-" + ((PropertyType) pp.getValue()).f.getType());
+                        //  System.out.println(pp.getKey() + "-" + ((PropertyType) pp.getValue()).f.getType());
                         DescriptorsJSON des2Json = createInnerDescrible(val.getApplicableDescriptors());
 
                         attrVal.putDescriptors(des2Json);
@@ -310,6 +327,9 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
                 }
                 // 对象拥有的属性
                 desJson.put(KEY_SCHEMA_FIELDS_ATTRS, attrs);
+                if (skipAttrs) {
+                    desJson.put(KEY_SKIP_ATTRS, true);
+                }
                 setContainAdvanceField(desJson, containAdvanceField);
                 descriptorsMeta.addDesc(desc.getId(), desJson, dd);
             } finally {

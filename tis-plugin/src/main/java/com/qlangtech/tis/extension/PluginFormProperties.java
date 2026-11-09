@@ -28,6 +28,7 @@ import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.extension.util.PluginExtraProps;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -65,7 +66,12 @@ public abstract class PluginFormProperties {
     }
 
 
-    public abstract JSON getInstancePropsJson(Object instance);
+    public abstract JSON getInstancePropsJson(Object instance, List<Describable<?>> parent);
+
+    public final JSON getInstancePropsJson(Object instance) {
+        return this.getInstancePropsJson(instance, Collections.emptyList());
+    }
+
 
     public abstract <T> T accept(IVisitor visitor);
 
