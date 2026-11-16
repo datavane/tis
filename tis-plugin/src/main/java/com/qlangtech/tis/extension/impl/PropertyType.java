@@ -36,7 +36,7 @@ import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.manage.common.OptionWithEndType;
 import com.qlangtech.tis.plugin.IPluginStore;
-import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.annotation.EnumFormFieldType;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.InputValueValidator;
@@ -68,10 +68,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.Descriptor.KEY_DESC_VAL;
-import static com.qlangtech.tis.extension.util.PluginExtraProps.Props.KEY_VIEW_TYPE;
+import static com.qlangtech.tis.extension.impl.EnumFieldMode.KEY_BOOLEAN_MODE;
+import static com.qlangtech.tis.extension.impl.EnumFieldMode.KEY_ENUM_MODE;
 import static com.qlangtech.tis.manage.common.Option.KEY_LABEL;
 import static com.qlangtech.tis.manage.common.Option.KEY_VALUE;
 
@@ -396,6 +398,8 @@ public class PropertyType implements IPropertyType {
 
                                 PluginExtraProps.Props fieldExtraProps = null;
                                 final PropertyType ptype = new PropertyType(clazz, f, formField);
+
+
                                 if (extraProps.isPresent() && (fieldExtraProps =
                                         extraProps.get().getProp(f.getName())) != null) {
 
@@ -444,11 +448,9 @@ public class PropertyType implements IPropertyType {
                                                     });
                                         }
                                     }
-
+                                    final PluginExtraProps.Props feProps = fieldExtraProps;
                                     if (descriptor.isPresent() //
                                             && (formField.type() == FormFieldType.MULTI_SELECTABLE)) {
-
-                                        final PluginExtraProps.Props feProps = fieldExtraProps;
 
                                         ElementPluginDesc paretPluginRef = descriptor.get();
                                         resolveEnumProp(f, paretPluginRef.getElementDesc(), feProps, (cols) -> {
@@ -469,7 +471,23 @@ public class PropertyType implements IPropertyType {
                                             }, true);
                                         });
                                     }
+
+                                    descriptor.ifPresent((desc) -> {
+                                        // desc.getElementDesc()
+                                        if (//ptype.formField.type() == FormFieldType.ENUM
+                                                ptype.formField.type() == FormFieldType.SELECTABLE) {
+                                            Optional<PluginExtraProps.FieldRefCreator> fieldRefCreator =
+                                                    desc.getFieldRefCreator(ptype.propertyName());
+
+                                            fieldRefCreator.ifPresent((creator) -> {
+                                                feProps.setRefCreateor(Optional.of(creator));
+
+                                            });
+                                        }
+                                    });
                                 }
+
+
                                 propMapper.put(f.getName(), ptype);
                             } else {
 
@@ -518,9 +536,7 @@ public class PropertyType implements IPropertyType {
     public static void resolveEnumProp(Field field, Descriptor descriptor,
                                        JSONObject props, Function<Object, Object> process) {
 
-        props.get(KEY_VIEW_TYPE);
         Object anEnum = props.get(Descriptor.KEY_ENUM_PROP);
-        JSONArray enums = new JSONArray();
         if (anEnum != null && anEnum instanceof String) {
             try {
                 GroovyShellUtil.descriptorThreadLocal.set(descriptor);
@@ -529,13 +545,18 @@ public class PropertyType implements IPropertyType {
                 GroovyShellUtil.descriptorThreadLocal.remove();
             }
         } else if (anEnum == null && (field.getType() == boolean.class || field.getType() == Boolean.class)) {
-
+            props.put(KEY_ENUM_MODE, KEY_BOOLEAN_MODE);
             props.put(Descriptor.KEY_ENUM_PROP, bolOps);
 
         } else if (anEnum == null && (field.getType().isEnum())) {
-            props.put(Descriptor.KEY_ENUM_PROP, Option.toJson(OptionWithEndType.createEnumOptions(field.getType())));
+            // 选项过滤：枚举类上标了 @EnumFormFieldType(enumItemPredicate=...) 则按过滤常量过滤，
+            // 缺省（含未标注）为 ALL 不过滤；enumItemPredicate 是枚举常量，取回恒不为 null
+            EnumFormFieldType enumFieldAnnot = field.getType().getAnnotation(EnumFormFieldType.class);
+            Predicate<Enum<?>> predicate = (enumFieldAnnot != null) ?
+                    enumFieldAnnot.enumItemPredicate().filter : (e) -> true;
+            props.put(Descriptor.KEY_ENUM_PROP
+                    , Option.toJson(OptionWithEndType.createEnumOptions(field.getType(), predicate)));
         }
-        //  return enums;
     }
 
     /**
@@ -585,19 +606,38 @@ public class PropertyType implements IPropertyType {
     }
 
     @JSONField(serialize = false)
-    public Optional<PluginExtraProps.FieldRefCreateor> getRefCreator() {
+    public Optional<PluginExtraProps.FieldRefCreator> getRefCreator() {
         if (this.extraProp == null) {
             return Optional.empty();
         }
         return extraProp.getRefCreator();
     }
 
+    private Optional<EnumFieldMode> _enumFieldMode;
+
     @JSONField(serialize = false)
     public EnumFieldMode getEnumFieldMode() {
-        if (this.formField.type() != FormFieldType.ENUM && this.formField.type() != FormFieldType.SELECTABLE) {
-            return null;
+        if (_enumFieldMode == null) {
+            if (this.formField.type() != FormFieldType.ENUM //
+                    && this.formField.type() != FormFieldType.SELECTABLE) {
+                _enumFieldMode = Optional.empty();
+            } else {
+                // fieldClazz 是裸类型(raw Class)，getAnnotation 的泛型返回值被擦除为 Annotation，须显式强转
+                EnumFormFieldType enumFieldAnnot =
+                        (EnumFormFieldType) this.fieldClazz.getAnnotation(EnumFormFieldType.class);
+                if (enumFieldAnnot != null) {
+                    if (this.extraProp == null) {
+                        // 注解 mode 回写进 extraProp 随 descriptor JSON 下发，json 无该字段条目时须就地补一个
+                        this.extraProp = new PluginExtraProps.Props(new JSONObject());
+                    }
+                    extraProp.getProps().put(KEY_ENUM_MODE, enumFieldAnnot.mode().val);
+                    _enumFieldMode = Optional.of(enumFieldAnnot.mode());
+                } else {
+                    _enumFieldMode = Optional.of(EnumFieldMode.parseEnumFieldMode(this.extraProp));
+                }
+            }
         }
-        return EnumFieldMode.parseEnumFieldMode(this.extraProp);
+        return Objects.requireNonNull(_enumFieldMode).orElse(null);
     }
 
     @JSONField(serialize = false)

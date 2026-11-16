@@ -331,7 +331,7 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
             final JSONArray attrs = Objects.requireNonNull(descJson.getJSONArray(KEY_SCHEMA_FIELDS_ATTRS),
                     KEY_SCHEMA_FIELDS_ATTRS + " relevant attrs can not be null");
 
-            Map<String /*** fieldname*/, PluginExtraProps.FieldRefCreateor> propsImplRefs =
+            Map<String /*** fieldname*/, PluginExtraProps.FieldRefCreator> propsImplRefs =
                     descriptor.getPropsImplRefs();
 
             attrs.forEach((attr) -> {
@@ -369,7 +369,7 @@ public class DescriptorsJSONForAIPrompt<T extends Describable<T>> extends Descri
                         // 所以需要在提示词中说明默认值
                         helpContent.append("\n `").append(SCHEMA_VALUE_DEFAULT).append("`:").append(JsonUtil.toString(dft));
                     } else {
-                        PluginExtraProps.FieldRefCreateor propRef = propsImplRefs.get(attrVal.getFieldKey());
+                        PluginExtraProps.FieldRefCreator propRef = propsImplRefs.get(attrVal.getFieldKey());
                         // dft == null
                         if (propRef != null) {
                             List<Option> existOpts = propRef.getValOptions();

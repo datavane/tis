@@ -20,19 +20,20 @@ package com.qlangtech.tis.plugin;
 
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.DescriptorUseableShortComment;
+import com.qlangtech.tis.extension.impl.EnumFieldMode;
 import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.manage.common.IEnumTypeSer;
-import com.qlangtech.tis.manage.common.Option;
-import com.qlangtech.tis.manage.common.OptionWithEndType;
+import com.qlangtech.tis.plugin.annotation.EnumFormFieldType;
 import com.qlangtech.tis.plugin.ontology.OntologyType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.qlangtech.tis.plugin.annotation.EnumFormFieldType.EnumFormFieldTypeFilter.ExcludeDataEndType;
 
 /**
  * 端类型
@@ -117,15 +118,10 @@ public interface IEndTypeGetter {
         Icon, DataType, Ontology
     }
 
-    public static List<Option> excludeDataType() {
-        return OptionWithEndType.createEnumOptions(EndType.class, (e) -> {
-            return e instanceof EndType endType && endType.category != EndTypeCategory.Data;
-        });
-    }
-
     /**
      * 端类型
      */
+    @EnumFormFieldType(mode = EnumFieldMode.MODEL_ASSIST, enumItemPredicate = ExcludeDataEndType)
     enum EndType implements IEndType, IEndTypeGetter, DescriptorUseableShortComment, IEnumTypeSer {
         // Greenplum("greenplum", EndTypeCategory.Data)
         MySQL("mysql", EndTypeCategory.Data, true, Optional.of("开源关系型数据库，官网：https://www.mysql.com/")) //

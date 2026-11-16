@@ -261,7 +261,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         if (ep != null) {
             String resourceName = clazz.getSimpleName() + ".json";
             for (Map.Entry<String, PluginExtraProps.Props> entry : ep.entrySet()) {
-                Optional<FieldRefCreateor> refCreator = entry.getValue().getRefCreator();
+                Optional<FieldRefCreator> refCreator = entry.getValue().getRefCreator();
                 refCreator.ifPresent((createor) -> {
                     PluginExtraProps.Props.validate(createor, entry.getKey(), clazz, resourceName, true);
                 });
@@ -424,8 +424,57 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 PropertyType attrDesc, IControlMsgHandler msgHandler, Context context, JSONObject eprops);
     }
 
+    public static class FieldRefConfig {
+        private final Optional<FieldRefCreator> creator;
+        /**
+         * 目标条目list
+         */
+        private final Supplier<List<? extends IdentityName>> targetItems;
 
-    public static class FieldRefCreateor {
+        public FieldRefConfig(FieldRefCreator creator, Supplier<List<? extends IdentityName>> targetItems) {
+            this.creator = Optional.ofNullable(creator);
+            this.targetItems = targetItems;
+        }
+
+        /**
+         * creator 惰性构建的配置：descriptor 构造期（单测直接 new descriptor、插件扫描期）
+         * 不触发 creatorGetter 里的 TIS 描述符扫描等重逻辑；首次 {@link #getCreator()}
+         * （表单元数据下发，运行期，TIS 必已就绪）才构建
+         *
+         * @param creatorGetter creator 构建逻辑，不能为 null（构建结果可以为 null，按无 creator 处理）
+         * @param targetItems   选项 supplier，与 {@link #FieldRefConfig(FieldRefCreator, Supplier)} 一致惰性求值
+         */
+        public static FieldRefConfig lazy(Supplier<FieldRefCreator> creatorGetter,
+                                          Supplier<List<? extends IdentityName>> targetItems) {
+            return new FieldRefConfig(null, targetItems) {
+                private volatile Optional<FieldRefCreator> creatorRef;
+
+                @Override
+                public Optional<FieldRefCreator> getCreator() {
+                    Optional<FieldRefCreator> result = this.creatorRef;
+                    if (result == null) {
+                        synchronized (this) {
+                            if ((result = this.creatorRef) == null) {
+                                this.creatorRef = result = Optional.ofNullable(creatorGetter.get());
+                            }
+                        }
+                    }
+                    return result;
+                }
+            };
+        }
+
+        public List<? extends IdentityName> getSelectOpts() {
+            return targetItems.get();
+        }
+
+        public Optional<FieldRefCreator> getCreator() {
+            return this.creator;
+        }
+    }
+
+
+    public static class FieldRefCreator {
         String label;
         RouterAssistType assistType = null;
 
@@ -438,7 +487,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         List<CandidatePlugin> candidatePlugins = Lists.newArrayList();
 
-        public FieldRefCreateor() {
+        public FieldRefCreator() {
         }
 
         public String getLabel() {
@@ -662,21 +711,21 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         private final JSONObject props;
         private MarkdownHelperContent asynHelp;
 
-        private Optional<FieldRefCreateor> _fieldRefCreateor;
+        private Optional<FieldRefCreator> _fieldRefCreateor;
 
         public Props(JSONObject props) {
             this.props = props;
         }
 
 
-        private static FieldRefCreateor createFieldRefCreateor(JSONObject props) {
-            FieldRefCreateor createor = null;
+        public static FieldRefCreator createFieldRefCreateor(JSONObject props) {
+            FieldRefCreator createor = null;
             Object creator = props.get(KEY_CREATOR);
             if (creator != null) {
                 if (!(creator instanceof JSONObject)) {
                     throw new IllegalStateException("prop creator must be type of JSONObject,but is " + creator.getClass());
                 }
-                createor = new FieldRefCreateor();
+                createor = new FieldRefCreator();
 
                 JSONObject creatorJ = (JSONObject) creator;
                 createor.setLabel(creatorJ.getString(Option.KEY_LABEL));
@@ -687,8 +736,15 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
                 Object pobject = creatorJ.get(KEY_PLUGIN);
                 if (pobject instanceof String pluginScript) {
-                    plugins = (JSONArray) GroovyShellEvaluate.scriptEval(pluginScript);
-                    creatorJ.put(KEY_PLUGIN, plugins);
+                    Object evalResult = GroovyShellEvaluate.scriptEval(pluginScript);
+                    if (evalResult instanceof List) {
+                        // LLMProvider.useable() 等方法直接返回 CandidatePlugin 列表，
+                        // 序列化回 json 之后走下方统一转换
+                        creatorJ.put(KEY_PLUGIN, serializeCandidatePlugins((List<?>) evalResult));
+                    } else {
+                        plugins = (JSONArray) evalResult;
+                        creatorJ.put(KEY_PLUGIN, plugins);
+                    }
                 } else {
                     plugins = creatorJ.getJSONArray(KEY_PLUGIN);
                 }
@@ -753,7 +809,34 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return createor;
         }
 
-        public static void validate(FieldRefCreateor creatorJ, String propKey, Class<?> pluginClazz,
+        /**
+         * 将 {@link CandidatePlugin} 列表序列化为 plugin meta JSONArray，
+         * 以便 {@link #createFieldRefCreateor(JSONObject)} 对其执行统一的 json 转换逻辑
+         *
+         * @param candidates
+         * @return
+         * @see CandidatePlugin#validate(String, Class)
+         */
+        private static JSONArray serializeCandidatePlugins(List<?> candidates) {
+            JSONArray result = new JSONArray();
+            for (Object item : candidates) {
+                if (item instanceof CandidatePlugin candidate) {
+                    JSONObject pmeta = new JSONObject();
+                    pmeta.put(KEY_DESC_NAME, candidate.getDisplayName());
+                    pmeta.put(UploadPluginMeta.KEY_TARGET_PLUGIN_DESC, candidate.getTargetItemDesc());
+                    pmeta.put(KEY_CREATOR_HETERO, candidate.getHetero().getIdentity());
+                    pmeta.put(KEY_APPEND, candidate.isAppend());
+                    Descriptor installedDesc = candidate.getInstalledPluginDescriptor();
+                    if (installedDesc instanceof IEndTypeGetter endTypeGetter) {
+                        pmeta.put(KEY_END_TYPE, endTypeGetter.getEndType().getVal());
+                    }
+                    result.add(pmeta);
+                }
+            }
+            return result;
+        }
+
+        public static void validate(FieldRefCreator creatorJ, String propKey, Class<?> pluginClazz,
                                     String resourceName, boolean finalValidate) {
             String errDesc = createErrorMsg(propKey, pluginClazz, resourceName);
 
@@ -795,12 +878,35 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
          * @return
          */
         @JSONField(serialize = false)
-        public Optional<FieldRefCreateor> getRefCreator() {
+        public Optional<FieldRefCreator> getRefCreator() {
 
             if (this._fieldRefCreateor == null) {
                 this._fieldRefCreateor = Optional.ofNullable(createFieldRefCreateor(this.props));
             }
             return this._fieldRefCreateor;
+        }
+
+        public void setRefCreateor(Optional<FieldRefCreator> creator) {
+            this._fieldRefCreateor = creator;
+            creator.ifPresent((c) -> {
+                // 按照 createFieldRefCreateor() 过程反向设置 this.props
+                JSONObject creatorJ = new JSONObject();
+                if (StringUtils.isNotEmpty(c.getLabel())) {
+                    creatorJ.put(Option.KEY_LABEL, c.getLabel());
+                }
+                if (CollectionUtils.isNotEmpty(c.getCandidatePlugins())) {
+                    creatorJ.put(KEY_PLUGIN, serializeCandidatePlugins(c.getCandidatePlugins()));
+                }
+                if (c.getAssistType() != null) {
+                    creatorJ.put(KEY_CREATOR_ASSIST_TYPE, c.getAssistType().token);
+                }
+                this.props.put(KEY_CREATOR, creatorJ);
+
+                Object dftVal = c.getDftValue();
+                if (dftVal != null) {
+                    this.props.put(KEY_DFTVAL_PROP, dftVal);
+                }
+            });
         }
 
         @JSONField(serialize = false)

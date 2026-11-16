@@ -43,23 +43,17 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.manage.servlet.BasicServlet;
 import com.qlangtech.tis.mcp.tools.ChatBITool;
-import com.qlangtech.tis.mcp.tools.ClarificationSubmitTool;
-import com.qlangtech.tis.mcp.tools.CreatePluginInstanceTool;
 import com.qlangtech.tis.mcp.tools.GetIncrSyncStatusTool;
 import com.qlangtech.tis.mcp.tools.GetPipelineDetailTool;
 import com.qlangtech.tis.mcp.tools.GetPipelineExecHistoryTool;
-import com.qlangtech.tis.mcp.tools.GetPluginSchemaTool;
 import com.qlangtech.tis.mcp.tools.GetTableColumnsTool;
 import com.qlangtech.tis.mcp.tools.GetTaskLogTool;
 import com.qlangtech.tis.mcp.tools.ListDatasourcesTool;
-import com.qlangtech.tis.mcp.tools.ListPluginTypesTool;
 import com.qlangtech.tis.mcp.tools.ListTablesTool;
 import com.qlangtech.tis.mcp.tools.PipelineGetTaskStatusTool;
 import com.qlangtech.tis.mcp.tools.PipelineListTool;
 import com.qlangtech.tis.mcp.tools.PipelineStartIncrSyncTool;
 import com.qlangtech.tis.mcp.tools.PipelineTriggerBatchTool;
-import com.qlangtech.tis.mcp.tools.pipeline.CreatePipelineCommitTool;
-import com.qlangtech.tis.mcp.tools.pipeline.CreatePipelinePrepareTool;
 import com.qlangtech.tis.offline.module.manager.impl.OfflineManager;
 import com.qlangtech.tis.plugin.ds.DBIdentity;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
@@ -228,7 +222,7 @@ public class TISHttpMcpServer {
         // .getPropsImplRefs();
 
         HeteroEnum<DataSourceFactory> dsHetero = HeteroEnum.DATASOURCE;
-        PluginExtraProps.FieldRefCreateor refCreateor = new PluginExtraProps.FieldRefCreateor();
+        PluginExtraProps.FieldRefCreator refCreateor = new PluginExtraProps.FieldRefCreator();
         refCreateor.setSelectableOpts(() -> com.qlangtech.tis.util.PluginItems.getExistDbs(pluginImplDesc
           .getDisplayName()));
         PluginExtraProps.CandidatePlugin candidate =

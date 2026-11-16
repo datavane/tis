@@ -23,13 +23,14 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.aiagent.core.IAgentContext;
 import com.qlangtech.tis.config.ParamsConfig;
 import com.qlangtech.tis.datax.job.SSEEventWriter;
+import com.qlangtech.tis.extension.util.PluginExtraProps;
 import com.qlangtech.tis.lang.TisException;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.ILoginUser;
 import com.qlangtech.tis.manage.common.PostFormStreamProcess;
 import com.qlangtech.tis.manage.common.TisUTF8;
-import com.qlangtech.tis.plugin.IEndTypeGetter;
+import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -53,7 +54,6 @@ import com.qlangtech.tis.plugin.llm.TokenUsageSummary;
 import com.qlangtech.tis.plugin.llm.YiLLMProvider;
 import com.qlangtech.tis.plugin.llm.ZhipuLLMProvider;
 import com.qlangtech.tis.plugin.llm.log.ExecuteLog;
-import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
@@ -76,11 +76,7 @@ import java.util.function.Consumer;
 
 import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_DEFAULT;
 import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_VALUE_PATTERN;
-import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_CREATOR_HETERO;
-import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_DESC_NAME;
-import static com.qlangtech.tis.manage.common.Option.KEY_END_TYPE;
 import static com.qlangtech.tis.util.HeteroEnum.PARAMS_CONFIG_USER_ISOLATION;
-import static com.qlangtech.tis.util.UploadPluginMeta.KEY_TARGET_PLUGIN_DESC;
 
 /**
  * 大模型接口抽象
@@ -104,10 +100,10 @@ public abstract class LLMProvider extends ParamsConfig {
         Start, ERROR, Complete
     }
 
-    private static final JSONArray useableLLMs;
+    private static final List<PluginExtraProps.CandidatePlugin> useableLLMs;
 
     static {
-        JSONArray result = new JSONArray();
+        List<PluginExtraProps.CandidatePlugin> result = new ArrayList<>();
         BasicParamsConfigDescriptor[] llms = new BasicParamsConfigDescriptor[]{
                 new DeepSeekProvider.DftDescriptor(),
                 new QWenLLMProvider.DftDescriptor(),
@@ -126,19 +122,16 @@ public abstract class LLMProvider extends ParamsConfig {
                 new ErnieLLMProvider.DftDescriptor(),
                 new MimoLLMProvider.DftDescriptor()};
         for (BasicParamsConfigDescriptor llm : llms) {
-            JSONObject o = new JSONObject();
-            o.put(KEY_TARGET_PLUGIN_DESC, KEY_DISPLAY_NAME);
-            o.put(KEY_DESC_NAME, llm.getDisplayName());
-            o.put(KEY_CREATOR_HETERO, PARAMS_CONFIG_USER_ISOLATION.getIdentity());
-            if (llm instanceof IEndTypeGetter endTypeGetter) {
-                o.put(KEY_END_TYPE, endTypeGetter.getEndType().getVal());
-            }
-            result.add(o);
+            // 字段映射与 PluginExtraProps.createFieldRefCreateor 中 json->CandidatePlugin 转换一致
+            result.add(new PluginExtraProps.CandidatePlugin( //
+                    llm.getDisplayName() //
+                    , Optional.of(KEY_DISPLAY_NAME) // targetItemDesc
+                    , PARAMS_CONFIG_USER_ISOLATION.getIdentity()));
         }
         useableLLMs = result;
     }
 
-    public static JSONArray useable() {
+    public static List<PluginExtraProps.CandidatePlugin> useable() {
         return useableLLMs;
     }
 
@@ -167,10 +160,23 @@ public abstract class LLMProvider extends ParamsConfig {
     public final Boolean stream = false;
 
 
-    public static List<ParamsConfig> getExistProviders() {
+    public static PluginExtraProps.FieldRefConfig getExistProviders() {
         IPluginContext context = IPluginContext.getThreadLocalInstance();
-        List<ParamsConfig> llmProviders = loadAllProvidersBindWithUser(context);
-        return llmProviders;
+        PluginExtraProps.FieldRefCreator creator = new PluginExtraProps.FieldRefCreator();
+        //        "creator": {
+        //            "label": "配置",
+        //                    "plugin": "com.qlangtech.tis.aiagent.llm.LLMProvider.useable()"
+        //        }
+        creator.setLabel("配置");
+        java.util.function.Supplier<List<? extends IdentityName>> selectableOpts =
+                () -> loadAllProvidersBindWithUser(context);
+        List<PluginExtraProps.CandidatePlugin> candidate = useable();
+        for (PluginExtraProps.CandidatePlugin c : candidate) {
+            creator.addCandidatePlugin(c);
+        }
+        creator.setAssistType(PluginExtraProps.RouterAssistType.paramCfg);
+        //  PluginExtraProps.Props.createFieldRefCreateor();
+        return new PluginExtraProps.FieldRefConfig(creator, selectableOpts);
     }
 
 

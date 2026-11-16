@@ -100,9 +100,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -281,15 +281,15 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      *
      * @return
      */
-    public Map<String /*** fieldname*/, PluginExtraProps.FieldRefCreateor> getPropsImplRefs() {
-        Map<String, PluginExtraProps.FieldRefCreateor> result = Maps.newHashMap();
+    public Map<String /*** fieldname*/, PluginExtraProps.FieldRefCreator> getPropsImplRefs() {
+        Map<String, PluginExtraProps.FieldRefCreator> result = Maps.newHashMap();
 
         for (Map.Entry<String, /*** fieldname*/IPropertyType> entry : this.getPropertyTypes().entrySet()) {
             if (!(entry.getValue() instanceof PropertyType)) {
                 continue;
             }
             final PropertyType pt = (PropertyType) entry.getValue();
-            Optional<PluginExtraProps.FieldRefCreateor> refCreator = pt.getRefCreator();
+            Optional<PluginExtraProps.FieldRefCreator> refCreator = pt.getRefCreator();
             Objects.requireNonNull(refCreator,
                     "field:" + entry.getKey() + " of plugin:" + this.clazz.getName() + " " + "relevant refCreator " + "can" + " not be null");
             refCreator.ifPresent((creator) -> {
@@ -1763,7 +1763,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         return Self.class;
     }
 
-    private final Map<String, Callable<List<? extends IdentityName>>> /*** fieldname*/
+    private final Map<String, PluginExtraProps.FieldRefConfig> /*** fieldname*/
             selectOptsRegister = Maps.newHashMap();
     /**
      * key的格式为：from_field +"_"+ to_field
@@ -1808,8 +1808,16 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
      * @param fieldName
      * @param getter
      */
-    protected final void registerSelectOptions(String fieldName, Callable<List<? extends IdentityName>> getter) {
-        selectOptsRegister.put(fieldName, getter);
+    protected final void registerSelectOptions(String fieldName, Supplier<List<? extends IdentityName>> getter) {
+        selectOptsRegister.put(fieldName, new PluginExtraProps.FieldRefConfig(null, getter));
+    }
+
+    protected final void registerSelectOptions(String fieldName, PluginExtraProps.FieldRefConfig config) {
+        selectOptsRegister.put(fieldName, config);
+    }
+
+    public final PluginExtraProps.FieldRefConfig getFieldRefConfig(String fieldName) {
+        return selectOptsRegister.get(fieldName);
     }
 
     /**
@@ -1821,13 +1829,13 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     @SuppressWarnings("all")
     @Override
     public final List<Option> getSelectOptions(String name) {
-        Callable<List<? extends IdentityName>> opsCallable = selectOptsRegister.get(name);
+        PluginExtraProps.FieldRefConfig opsCallable = selectOptsRegister.get(name);
         if (opsCallable == null) {
             throw new IllegalStateException("fieldName:" + name + " is select options has not been register,class:" //
                     + this.getClass().getName() + ",has registed:" + String.join(",", selectOptsRegister.keySet()));
         }
         try {
-            List<? extends IdentityName> opts = opsCallable.call();
+            List<? extends IdentityName> opts = opsCallable.getSelectOpts();
             if (opts == null) {
                 return Collections.emptyList();
             }

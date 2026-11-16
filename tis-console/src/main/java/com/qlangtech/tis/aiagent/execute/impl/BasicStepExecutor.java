@@ -304,11 +304,11 @@ public abstract class BasicStepExecutor implements StepExecutor {
   protected Map<String, IdentityName> setPropsImplRefsVals(IAITaskPlan plan, AgentContext context, UserPrompt userInput
     , Optional<IEndTypeGetter.EndType> endType, Descriptor implDesc) throws Exception {
     Map<String, IdentityName> propsImplRefsVals = Maps.newHashMap();
-    Map<String, PluginExtraProps.FieldRefCreateor> propsImplRefs = implDesc.getPropsImplRefs();
+    Map<String, PluginExtraProps.FieldRefCreator> propsImplRefs = implDesc.getPropsImplRefs();
     Descriptor installedPluginDescriptor;
-    PluginExtraProps.FieldRefCreateor refCreateor;
+    PluginExtraProps.FieldRefCreator refCreateor;
     fieldValCreate:
-    for (Map.Entry<String /**fieldName*/, PluginExtraProps.FieldRefCreateor> e : propsImplRefs.entrySet()) {
+    for (Map.Entry<String /**fieldName*/, PluginExtraProps.FieldRefCreator> e : propsImplRefs.entrySet()) {
       refCreateor = e.getValue();
 
       Object dftVal = null;
@@ -466,7 +466,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
    * @throws Exception
    */
   public AttrValMap createInnerPluginInstance(IAITaskPlan plan, AgentContext context, UserPrompt userInput,
-                                              PluginExtraProps.FieldRefCreateor refCreateor //
+                                              PluginExtraProps.FieldRefCreator refCreateor //
     , PluginExtraProps.CandidatePlugin candidate) throws Exception {
     Descriptor installedPluginDescriptor = candidate.getInstalledPluginDescriptor();
     AttrValMap valMap = createPluginInstance(plan, context, userInput, Optional.empty(),
@@ -495,7 +495,7 @@ public abstract class BasicStepExecutor implements StepExecutor {
    * @return
    */
   private PluginExtraProps.CandidatePlugin selectTargetPluginDescriptor(AgentContext context, Map.Entry<String,
-                                                                          PluginExtraProps.FieldRefCreateor> e //
+                                                                          PluginExtraProps.FieldRefCreator> e //
     , Optional<IEndTypeGetter.EndType> endType, List<PluginExtraProps.CandidatePlugin> candidatePlugins)
     throws PendingClarificationException {
 

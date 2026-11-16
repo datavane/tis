@@ -65,4 +65,18 @@ public class ElementPluginDesc {
     public String toString() {
         return elementDesc.clazz.getSimpleName() + ",extraDescs:" + String.join(",", getFieldExtraDescs().keySet());
     }
+
+    public Optional<PluginExtraProps.FieldRefCreator> getFieldRefCreator(String fieldName) {
+        PluginExtraProps.FieldRefConfig fieldRefConfig = this.elementDesc.getFieldRefConfig(fieldName);
+        if (fieldRefConfig == null) {
+            return Optional.empty();
+            //                    .ifPresent((creator) -> {
+            //                Objects.requireNonNull(getFieldExtraDescs().get(fieldName), "fieldName:" + fieldName +
+            //                " relevant "
+            //                        + "Props can not be null").setRefCreateor(Optional.of(creator));
+            //            });
+        } else {
+            return fieldRefConfig.getCreator();
+        }
+    }
 }

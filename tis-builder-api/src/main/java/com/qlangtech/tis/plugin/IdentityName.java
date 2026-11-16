@@ -58,7 +58,8 @@ public interface IdentityName {
             throw new IllegalArgumentException("param idPrefix:" + idPrefix + " is not illegal");
         }
         final String descName = StringUtils.replace(StringUtils.lowerCase(idPrefix), "-", "_");
-        Pattern pattern = Pattern.compile(descName + "_?(\\d+)");
+        // 存量实例名两种分隔符都有（'-' 与 '_'），推导后缀时一并识别
+        Pattern pattern = Pattern.compile(descName + "[-_]?(\\d+)");
         Matcher matcher = null;
         int maxSufix = 1;
         for (IdentityName opt : existOpts) {

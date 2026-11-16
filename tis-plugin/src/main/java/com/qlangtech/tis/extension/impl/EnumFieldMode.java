@@ -72,6 +72,7 @@ public enum EnumFieldMode implements DescriptorUseableShortComment, IEndTypeGett
             , EndType.Appstore, "选项平铺展开，单选，字段值以字符串形式保存");;
     public final String val;
     public static final String KEY_ENUM_MODE = "enumMode";
+    public static final String KEY_BOOLEAN_MODE = "bool_mode";
     /**
      * 选项图标。取值必须是一个可渲染的 nzType（合法范围见 {@link EndType} 里那段说明），
      * 写错不会报错，只会静默渲染成空图标。

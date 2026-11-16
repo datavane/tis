@@ -52,6 +52,7 @@ import static com.qlangtech.tis.manage.common.TestChild.VAL_REACT_SELECT;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/10/7
  */
+@SuppressWarnings("all")
 public class UserProfile extends ParamsConfig implements IPluginStore.BeforePluginSaved {
 
     public static final String KEY_DISPLAY_NAME = "UserProfile";
@@ -176,7 +177,7 @@ public class UserProfile extends ParamsConfig implements IPluginStore.BeforePlug
     public static final class DftDescriptor extends ParamsConfig.BasicParamsConfigDescriptor implements IEndTypeGetter {
         public DftDescriptor() {
             super(KEY_DISPLAY_NAME);
-            this.registerSelectOptions(KEY_FIELD_LLM_NAME, LLMProvider::getExistProviders);
+            this.registerSelectOptions(KEY_FIELD_LLM_NAME, LLMProvider.getExistProviders());
             this.registerSelectOptions(KEY_FIELD_CONTROL, () -> {
                 return Lists.newArrayList(IdentityName.create("a"), IdentityName.create("b"));
             });

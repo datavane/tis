@@ -18,6 +18,7 @@
 package com.qlangtech.tis.extension.util;
 
 import com.alibaba.citrus.turbine.Context;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.common.utils.Assert;
@@ -26,6 +27,7 @@ import com.qlangtech.tis.extension.ElementPluginDesc;
 import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.util.AbstractPropAssist.MarkdownHelperContent;
 import com.qlangtech.tis.extension.util.PluginExtraProps.RouterAssistType;
+import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.CMeta.ParsePostMCols;
@@ -34,6 +36,10 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
+import com.qlangtech.tis.util.HeteroEnum;
+import com.qlangtech.tis.util.IPluginContext;
+import com.qlangtech.tis.util.PartialSettedPluginContext;
+import com.qlangtech.tis.util.UploadPluginMeta;
 import junit.framework.TestCase;
 
 import java.util.Arrays;
@@ -49,6 +55,105 @@ import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_CREATOR_ASSI
  *
  */
 public class TestPluginExtraProps extends TestCase {
+
+    @Override
+    protected void setUp() throws Exception {
+        PartialSettedPluginContext context = new PartialSettedPluginContext();
+        context.setLoginUser(() -> Config.ADMIN_NAME);
+        IPluginContext.setPluginContext(context);
+    }
+
+    /**
+     * 反向 -> 正向 一致性：编程式 {@link PluginExtraProps.FieldRefCreator} 经
+     * {@link PluginExtraProps.Props#setRefCreateor(Optional)} 写回 props 后，
+     * 再经 {@link PluginExtraProps.Props#createFieldRefCreateor(JSONObject)} 正向解析，
+     * 字段应与原 creator 一致
+     */
+    public void testSetRefCreateorRoundtrip() {
+        final String hetero = HeteroEnum.PARAMS_CONFIG_USER_ISOLATION.getIdentity();
+
+        PluginExtraProps.FieldRefCreator creator = new PluginExtraProps.FieldRefCreator();
+        creator.setLabel("配置");
+        creator.addCandidatePlugin(new PluginExtraProps.CandidatePlugin("DeepSeek",
+                Optional.of("LLM"), hetero));
+        creator.addCandidatePlugin(new PluginExtraProps.CandidatePlugin("QWen",
+                Optional.empty(), hetero));
+        creator.setAssistType(RouterAssistType.paramCfg);
+        creator.setDftValGetter(() -> "DeepSeek-1");
+
+        PluginExtraProps.Props props = new PluginExtraProps.Props(new JSONObject());
+        props.setRefCreateor(Optional.of(creator));
+
+        // 反写后的 props 结构
+        JSONObject creatorJ = props.getProps().getJSONObject(PluginExtraProps.KEY_CREATOR);
+        assertNotNull(creatorJ);
+        assertEquals("配置", creatorJ.getString(Option.KEY_LABEL));
+        assertEquals("paramCfg", creatorJ.getString(KEY_CREATOR_ASSIST_TYPE));
+        assertEquals("DeepSeek-1", props.getProps().getString(PluginExtraProps.KEY_DFTVAL_PROP));
+
+        JSONArray plugins = creatorJ.getJSONArray(PluginExtraProps.KEY_PLUGIN);
+        assertEquals(2, plugins.size());
+        JSONObject p0 = plugins.getJSONObject(0);
+        assertEquals("DeepSeek", p0.getString(PluginExtraProps.KEY_DESC_NAME));
+        assertEquals("LLM", p0.getString(UploadPluginMeta.KEY_TARGET_PLUGIN_DESC));
+        assertEquals(hetero, p0.getString(PluginExtraProps.KEY_CREATOR_HETERO));
+        assertEquals(Boolean.TRUE, p0.getBoolean(UploadPluginMeta.KEY_APPEND));
+
+        // 正向解析回读，逐字段一致
+        PluginExtraProps.FieldRefCreator parsed
+                = PluginExtraProps.Props.createFieldRefCreateor(props.getProps());
+        assertNotNull(parsed);
+        assertEquals(creator.getLabel(), parsed.getLabel());
+        assertEquals(creator.getAssistType(), parsed.getAssistType());
+        assertEquals(creator.getCandidatePlugins().size(), parsed.getCandidatePlugins().size());
+        assertEquals("DeepSeek-1", parsed.getDftValue());
+        assertCandidateEquals(creator.getCandidatePlugins(), parsed.getCandidatePlugins());
+    }
+
+    /**
+     * 正向 -> 反向 一致性：json 声明的 creator 正向解析为 {@link PluginExtraProps.FieldRefCreator} 后，
+     * 经 {@link PluginExtraProps.Props#setRefCreateor(Optional)} 反写回 props，再次正向解析语义应保持一致。
+     * <p>
+     * 一致性以有效值衡量：原 json 缺省的 targetItemDesc（解析为 Optional.empty）经反写会落
+     * {@code getTargetItemDesc()}（回退 displayName），append 缺省经解析归一为 true 后反写显式 true，
+     * 两者二次解析后均与首趟解析收敛一致。
+     */
+    public void testCreatorForwardBackwardConsistency() {
+        JSONObject propsJson = JSON.parseObject("{"
+                + "\"creator\":{\"label\":\"管理\","
+                + "\"plugin\":[{\"hetero\":\"fs\",\"descName\":\"HDFS\"},"
+                + "{\"hetero\":\"fs\",\"descName\":\"Aliyun-Jindo-HDFS\"}],"
+                + "\"assistType\":\"paramCfg\"}}");
+
+        PluginExtraProps.FieldRefCreator origin
+                = PluginExtraProps.Props.createFieldRefCreateor(propsJson);
+        assertNotNull(origin);
+        assertEquals(2, origin.getCandidatePlugins().size());
+
+        PluginExtraProps.Props props = new PluginExtraProps.Props(new JSONObject());
+        props.setRefCreateor(Optional.of(origin));
+
+        // 二次正向解析，语义一致
+        PluginExtraProps.FieldRefCreator reparsed
+                = PluginExtraProps.Props.createFieldRefCreateor(props.getProps());
+        assertNotNull(reparsed);
+        assertEquals(origin.getLabel(), reparsed.getLabel());
+        assertEquals(origin.getAssistType(), reparsed.getAssistType());
+        assertEquals(origin.getCandidatePlugins().size(), reparsed.getCandidatePlugins().size());
+        assertCandidateEquals(origin.getCandidatePlugins(), reparsed.getCandidatePlugins());
+    }
+
+    private static void assertCandidateEquals(List<PluginExtraProps.CandidatePlugin> expected,
+                                              List<PluginExtraProps.CandidatePlugin> actual) {
+        for (int i = 0; i < expected.size(); i++) {
+            PluginExtraProps.CandidatePlugin e = expected.get(i);
+            PluginExtraProps.CandidatePlugin a = actual.get(i);
+            assertEquals("candidate[" + i + "].displayName", e.getDisplayName(), a.getDisplayName());
+            assertEquals("candidate[" + i + "].targetItemDesc", e.getTargetItemDesc(), a.getTargetItemDesc());
+            assertEquals("candidate[" + i + "].hetero", e.getHetero().getIdentity(), a.getHetero().getIdentity());
+            assertEquals("candidate[" + i + "].append", e.isAppend(), a.isAppend());
+        }
+    }
 
     //    public void testParsePostMCols() {
     //
@@ -186,7 +291,7 @@ public class TestPluginExtraProps extends TestCase {
             PluginExtraProps.load(ElementPluginDesc.create(desc), DefaultPlugin.class);
             Assert.fail("must be faild");
         } catch (Exception e) {
-            Assert.assertEquals("prop key:xxx relevant prop must exist , exist props keys:password,nestProp,name,"
+            Assert.assertEquals("prop key:xxx relevant prop must exist , exist props keys:fieldForShortAsynHelp,password,nestProp,name,"
                     + "cols", e.getMessage());
         }
     }
