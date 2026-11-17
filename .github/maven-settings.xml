@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CI 专用 Maven settings。
+
+  必须存在的理由：
+  1) tis-plugin / maven-tpi-plugin 依赖 com.qlangtech.maven.cloud:oss-storage-wagon、
+     com.qlangtech.tis:tisasm-maven-plugin，以及 org.jvnet:tiger-types、org.wltea.analyzer:IKAnalyzer、
+     net.sourceforge:pinyin4j 等，中央仓库均无（404），只在 TIS 自有 OSS 仓库中。
+  2) -Ptis 这个 profile 只定义在开发者本机 settings.xml 中，仓库 pom 里没有；
+     若不在此处定义，CI 上 -Ptis 只会打印「profile 不存在」的警告并静默跳过。
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <mirrors>
+        <!-- 走阿里云公共镜像加速；TIS 自有仓库必须排除，否则会被镜像覆盖 -->
+        <mirror>
+            <id>aliyun-public</id>
+            <name>Aliyun public mirror for central</name>
+            <mirrorOf>central</mirrorOf>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </mirror>
+    </mirrors>
+
+    <profiles>
+        <profile>
+            <id>tis</id>
+            <repositories>
+                <repository>
+                    <id>tis-releases</id>
+                    <url>https://mvn-repo.oss-cn-hangzhou.aliyuncs.com/release/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <repository>
+                    <id>tis-snapshots</id>
+                    <url>https://mvn-repo.oss-cn-hangzhou.aliyuncs.com/snapshot/</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+                <!-- org.jvnet:tiger-types 、org.jenkins-ci:* 只在 Jenkins 仓库中 -->
+                <repository>
+                    <id>repo.jenkins-ci.org</id>
+                    <url>https://repo.jenkins-ci.org/public/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>tis-releases</id>
+                    <url>https://mvn-repo.oss-cn-hangzhou.aliyuncs.com/release/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </pluginRepository>
+                <pluginRepository>
+                    <id>tis-snapshots</id>
+                    <url>https://mvn-repo.oss-cn-hangzhou.aliyuncs.com/snapshot/</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+</settings>

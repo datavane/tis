@@ -68,7 +68,8 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     private static final String KEY_JUST_GET_ITEM_RELEVANT = "justGetItemRelevant";
 
     // 允许属性值包含空白字符，避免灾难性回溯
-    private static final Pattern PATTERN_PLUGIN_ATTRIBUTE = Pattern.compile("[" + ATTR_KEY_VALUE_SPLIT + "\\-\\w\\.\\s]+");
+    private static final Pattern PATTERN_PLUGIN_ATTRIBUTE = Pattern.compile("[" + ATTR_KEY_VALUE_SPLIT + "\\-\\w\\"
+            + ".\\s]+");
 
     public static final Pattern PATTERN_PLUGIN_ATTRIBUTE_KEY_VALUE_PAIR =
             Pattern.compile("([^" + ATTR_KEY_VALUE_SPLIT + "]+?)" + ATTR_KEY_VALUE_SPLIT + "(" + PATTERN_PLUGIN_ATTRIBUTE.pattern() + ")");
@@ -76,6 +77,7 @@ public class UploadPluginMeta implements IUploadPluginMeta {
     private static final Pattern PATTERN_PLUGIN_META //
             = Pattern.compile("(.+?)(:(,?(" + PATTERN_PLUGIN_ATTRIBUTE + "))+)?");
 
+    public static final String KEY_EXTRA_PARAM = "extraParam";
     /**
      * 跳过插件实例保存执行流程
      */
@@ -175,6 +177,10 @@ public class UploadPluginMeta implements IUploadPluginMeta {
 
     public boolean isUseCache() {
         return this.useCache;
+    }
+
+    public String serialExtraParams() {
+        return this.extraParams.entrySet().stream().map((e) -> e.getKey() + ATTR_KEY_VALUE_SPLIT + e.getValue()).collect(Collectors.joining(","));
     }
 
     @Override

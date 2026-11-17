@@ -72,6 +72,7 @@ import java.util.stream.Collectors;
 import static com.qlangtech.tis.manage.common.Option.KEY_END_TYPE;
 import static com.qlangtech.tis.util.HeteroEnum.DATASOURCE;
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_APPEND;
+import static com.qlangtech.tis.util.UploadPluginMeta.KEY_EXTRA_PARAM;
 
 /**
  * load extra prop desc like 'lable' and so on
@@ -541,6 +542,11 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         private final String hetero;
         private final Optional<String> targetItemDesc;
         private final boolean append;
+
+        /**
+         * 对应 {@link  UploadPluginMeta} 中的参数
+         */
+        private Optional<String> extraParam = Optional.empty();
         /**
          * 可以为空
          */
@@ -548,6 +554,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         public CandidatePlugin(String displayName, Optional<String> targetItemDesc, String hetero) {
             this(displayName, targetItemDesc, hetero, true);
+        }
+
+        public void setExtraParam(String param) {
+            this.extraParam = Optional.of(param);
         }
 
         /**
@@ -588,6 +598,46 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
         public void setDescription(String description) {
             this.description = description;
+        }
+
+        /**
+         * 将当前候选插件序列化为 plugin meta JSONObject，
+         * 与 {@link Props#createFieldRefCreateor(JSONObject)} 中的 json 反序列化逻辑互为逆过程
+         *
+         * @see #serializeCandidatePlugins(List)
+         */
+        public JSONObject serializeToMeta() {
+            JSONObject pmeta = new JSONObject();
+            this.extraParam.ifPresent((param) -> {
+                pmeta.put(KEY_EXTRA_PARAM, param);
+            });
+            pmeta.put(KEY_DESC_NAME, this.getDisplayName());
+            pmeta.put(UploadPluginMeta.KEY_TARGET_PLUGIN_DESC, this.getTargetItemDesc());
+            pmeta.put(KEY_CREATOR_HETERO, this.getHetero().getIdentity());
+            pmeta.put(KEY_APPEND, this.isAppend());
+            Descriptor installedDesc = this.getInstalledPluginDescriptor();
+            if (installedDesc instanceof IEndTypeGetter endTypeGetter) {
+                pmeta.put(KEY_END_TYPE, endTypeGetter.getEndType().getVal());
+            }
+            return pmeta;
+        }
+
+        /**
+         * 将 {@link CandidatePlugin} 列表序列化为 plugin meta JSONArray，
+         * 以便 {@link Props#createFieldRefCreateor(JSONObject)} 对其执行统一的 json 转换逻辑
+         *
+         * @param candidates
+         * @return
+         * @see #serializeToMeta()
+         */
+        public static JSONArray serializeCandidatePlugins(List<?> candidates) {
+            JSONArray result = new JSONArray();
+            for (Object item : candidates) {
+                if (item instanceof CandidatePlugin candidate) {
+                    result.add(candidate.serializeToMeta());
+                }
+            }
+            return result;
         }
 
         public static JSONArray convertOptionsArray(Optional<IEndTypeGetter.EndType> endType,
@@ -740,7 +790,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                     if (evalResult instanceof List) {
                         // LLMProvider.useable() 等方法直接返回 CandidatePlugin 列表，
                         // 序列化回 json 之后走下方统一转换
-                        creatorJ.put(KEY_PLUGIN, serializeCandidatePlugins((List<?>) evalResult));
+                        creatorJ.put(KEY_PLUGIN, CandidatePlugin.serializeCandidatePlugins((List<?>) evalResult));
                     } else {
                         plugins = (JSONArray) evalResult;
                         creatorJ.put(KEY_PLUGIN, plugins);
@@ -809,33 +859,6 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
             return createor;
         }
 
-        /**
-         * 将 {@link CandidatePlugin} 列表序列化为 plugin meta JSONArray，
-         * 以便 {@link #createFieldRefCreateor(JSONObject)} 对其执行统一的 json 转换逻辑
-         *
-         * @param candidates
-         * @return
-         * @see CandidatePlugin#validate(String, Class)
-         */
-        private static JSONArray serializeCandidatePlugins(List<?> candidates) {
-            JSONArray result = new JSONArray();
-            for (Object item : candidates) {
-                if (item instanceof CandidatePlugin candidate) {
-                    JSONObject pmeta = new JSONObject();
-                    pmeta.put(KEY_DESC_NAME, candidate.getDisplayName());
-                    pmeta.put(UploadPluginMeta.KEY_TARGET_PLUGIN_DESC, candidate.getTargetItemDesc());
-                    pmeta.put(KEY_CREATOR_HETERO, candidate.getHetero().getIdentity());
-                    pmeta.put(KEY_APPEND, candidate.isAppend());
-                    Descriptor installedDesc = candidate.getInstalledPluginDescriptor();
-                    if (installedDesc instanceof IEndTypeGetter endTypeGetter) {
-                        pmeta.put(KEY_END_TYPE, endTypeGetter.getEndType().getVal());
-                    }
-                    result.add(pmeta);
-                }
-            }
-            return result;
-        }
-
         public static void validate(FieldRefCreator creatorJ, String propKey, Class<?> pluginClazz,
                                     String resourceName, boolean finalValidate) {
             String errDesc = createErrorMsg(propKey, pluginClazz, resourceName);
@@ -895,7 +918,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                     creatorJ.put(Option.KEY_LABEL, c.getLabel());
                 }
                 if (CollectionUtils.isNotEmpty(c.getCandidatePlugins())) {
-                    creatorJ.put(KEY_PLUGIN, serializeCandidatePlugins(c.getCandidatePlugins()));
+                    creatorJ.put(KEY_PLUGIN, CandidatePlugin.serializeCandidatePlugins(c.getCandidatePlugins()));
                 }
                 if (c.getAssistType() != null) {
                     creatorJ.put(KEY_CREATOR_ASSIST_TYPE, c.getAssistType().token);

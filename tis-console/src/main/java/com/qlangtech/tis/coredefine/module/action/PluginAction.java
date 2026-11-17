@@ -114,6 +114,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_DESC_NAME;
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
 
@@ -644,33 +645,47 @@ public class PluginAction extends BasicModule {
   @SuppressWarnings("all")
   private static DescriptorsGetter getDescriptorsGetter(BasicModule module) {
 
-    IPluginEnum hetero = HeteroEnum.of(module.getString("hetero"));
-    List<Descriptor<Describable>> descriptors = null;
-    DescriptorsGetter result = new DescriptorsGetter(hetero) {
-      @Override
-      public String getDisplayName() {
-        final String displayName = module.getString("name");
-        if (StringUtils.isEmpty(displayName)) {
-          throw new IllegalArgumentException("request param 'impl' can not be null");
-        }
-        return displayName;
-      }
-    };
+
+    // List<Descriptor<Describable>> descriptors = null;
+    DescriptorsGetter result = null;
+    IPluginEnum hetero = null;
+
     String[] plugins = module.getStringArray(KEY_PLUGIN);
+
+    final String displayName = module.getString("name");
+    if (StringUtils.isEmpty(displayName)) {
+      throw new IllegalArgumentException("request param 'impl' can not be null");
+    }
+
     if (plugins != null && plugins.length > 0) {
       List<UploadPluginMeta> pluginMetas = module.getPluginMeta();
       for (UploadPluginMeta meta : pluginMetas) {
+        hetero = meta.getHeteroEnum();
         module.getContext().put(UploadPluginMeta.KEY_PLUGIN_META, meta);
-        IPluginStore pluginStore = hetero.getPluginStore(module, meta);
-        descriptors = pluginStore.allDescriptor();
-        result.setItems(pluginStore.getPlugins());
+        result = new DescriptorsGetter(hetero) {
+          @Override
+          public String getDisplayName() {
+            return displayName;
+          }
+        };
+        if (!module.getBoolean("skipItems")) {
+          IPluginStore pluginStore = hetero.getPluginStore(module, meta);
+          result.setItems(pluginStore.getPlugins());
+        }
         result.setPluginMeta(meta);
         break;
       }
     } else {
-      descriptors = hetero.descriptors();
+      hetero = HeteroEnum.of(module.getString("hetero"));
+      result = new DescriptorsGetter(hetero) {
+        @Override
+        public String getDisplayName() {
+          return displayName;
+        }
+      };
+      // descriptors = hetero.descriptors();
     }
-    result.descriptors = descriptors;
+    result.descriptors = hetero.descriptors();// descriptors;
     return result;
   }
 
