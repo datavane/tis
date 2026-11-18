@@ -194,6 +194,33 @@ public class PropertyType implements IPropertyType {
         this.fieldListElementClazz = this.createFieldListElementClazz();
     }
 
+    /**
+     * 复制构造：构造一个与原属性定义等价的副本（字段、注解、额外属性、已解析的校验器等一律共享同一份）。
+     * <p>
+     * 供「只想覆盖个别行为（例如 {@link #isInputRequired()}），但仍必须能被强转为 {@code PropertyType}」
+     * 的包装类使用：{@code Descriptor.isValid} / {@code Descriptor.buildPluginInstance} 都是按
+     * {@code (PropertyType) entry.getValue()} 取属性的，只实现 {@link IPropertyType} 的包装会抛
+     * {@code ClassCastException}。
+     *
+     * @see AdapterPropertyType
+     */
+    protected PropertyType(PropertyType target) {
+        this.ownerClazz = target.ownerClazz;
+        this.f = target.f;
+        this.fieldClazz = target.fieldClazz;
+        this.type = target.type;
+        this.displayName = target.displayName;
+        this.formField = target.formField;
+        this.fieldListElementClazz = target.fieldListElementClazz;
+        this.itemType = target.itemType;
+        this.inputRequired = target.inputRequired;
+        this.multiItemsViewType = target.multiItemsViewType;
+        this.extraProp = target.extraProp;
+        this.validators = target.validators;
+        this._enumFieldMode = target._enumFieldMode;
+        this.subDescFilter = target.subDescFilter;
+    }
+
     private Optional<Class<? extends Describable>> createFieldListElementClazz() {
         final Class<? extends Describable> desClazz = this.formField.desClazz();
         if (desClazz == Describable.class) {

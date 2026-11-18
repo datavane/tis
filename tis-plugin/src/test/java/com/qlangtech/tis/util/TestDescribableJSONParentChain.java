@@ -20,6 +20,7 @@ package com.qlangtech.tis.util;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
+import com.qlangtech.tis.plugin.MultiDescribleElementSetSelector;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import junit.framework.TestCase;
@@ -204,7 +205,7 @@ public class TestDescribableJSONParentChain extends TestCase {
          * {@code Outer class ... is not assignable to ... Perhaps wrong outer class?}。
          */
         public static class ChildDesc
-                extends com.qlangtech.tis.plugin.IPluginStore.MultiDescribleElementDescriptor<Child> {
+                extends MultiDescribleElementSetSelector.MultiDescribleElementDescriptor<Child> {
             public ChildDesc() {
                 super();
             }

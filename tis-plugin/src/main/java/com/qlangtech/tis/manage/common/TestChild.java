@@ -21,10 +21,10 @@ package com.qlangtech.tis.manage.common;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.DescriptorUseableShortComment;
-import com.qlangtech.tis.extension.TISExtension;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IPluginStore;
 import com.qlangtech.tis.plugin.IdentityName;
+import com.qlangtech.tis.plugin.MultiDescribleElementSetSelector;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
@@ -97,7 +97,7 @@ public abstract class TestChild implements Describable<TestChild>, IPluginStore.
     public static final String VAL_REACT_SELECT = "xxxxxx";
 
    // @TISExtension
-    public static class DftDescriptor extends IPluginStore.MultiDescribleElementDescriptor<TestChild> {
+    public static class DftDescriptor extends MultiDescribleElementSetSelector.MultiDescribleElementDescriptor<TestChild> {
         public DftDescriptor() {
             super();
             this.registerSelectOptions("reactSelect",
