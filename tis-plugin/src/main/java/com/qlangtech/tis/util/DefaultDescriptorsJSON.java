@@ -23,6 +23,7 @@ import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.fastjson2.JSONWriter;
+import com.qlangtech.tis.TIS;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.IPropertyType;
@@ -53,6 +54,7 @@ public class DefaultDescriptorsJSON<T extends Describable<T>> extends Descriptor
             jsonSerializer.write(attrVal.attrVal);
         }
     }
+
 
     /**
      * @see DescriptorsJSONResultSerializer

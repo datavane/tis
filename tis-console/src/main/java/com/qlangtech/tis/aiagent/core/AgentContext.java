@@ -175,7 +175,7 @@ public class AgentContext implements IAgentContext {
       }
 
       data.put(KEY_CONTENT_DETAIL, reasonDetail);
-      data.put("dataXReaderDesc", new DefaultDescriptorsJSON(dataXReaderImpl.getImplDesc()).getDescriptorsJSON());
+      data.put("dataXReaderDesc",   DescriptorsJSON.desc(dataXReaderImpl.getImplDesc()));
       /**
        * 向缓存中写入初始数据
        */

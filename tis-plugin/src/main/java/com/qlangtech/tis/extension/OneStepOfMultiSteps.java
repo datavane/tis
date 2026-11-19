@@ -28,6 +28,7 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.AttrValMap;
 import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.DescribableJSON;
+import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 import org.apache.commons.collections.CollectionUtils;
@@ -261,8 +262,7 @@ public abstract class OneStepOfMultiSteps implements Describable<OneStepOfMultiS
      */
     @SuppressWarnings("all")
     private void addNextStepInfo(JSONObject saved, BasicDesc nextDesc) {
-        DefaultDescriptorsJSON desc2Json = new DefaultDescriptorsJSON(nextDesc);
-        saved.put(KEY_NEXT_STEP_PLUGIN_DESC, desc2Json.getDescriptorsJSON());
+        saved.put(KEY_NEXT_STEP_PLUGIN_DESC,  DescriptorsJSON.desc(nextDesc));
         saved.put(KEY_NEXT_STEP_PLUGIN_INDEX, nextDesc.getStep().stepIndex);
         saved.put(KEY_FINAL_STEP, nextDesc.isFinalStep());
     }

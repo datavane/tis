@@ -1081,7 +1081,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                         //  popFieldStack(context);
                     }
 
-                    if (nextPlugins.size() < 1) {
+                    if (attrDesc.isInputRequired() && nextPlugins.size() < 1) {
                         // 没有选中
                         InputValueValidator[] validators = attrDesc.getValidator();
                         for (InputValueValidator v : validators) {

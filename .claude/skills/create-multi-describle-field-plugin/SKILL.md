@@ -1,6 +1,6 @@
 ---
 name: create-multi-describle-field-plugin
-description: Create a MULTI_DESCRIBLE_PLUGIN field element plugin (multi-describable list element with table/list view, including valueChangePipe property linkage)
+description: Create a MULTI_DESCRIBLE_PLUGIN field element plugin (multi-describable list element with table/list view, enumerable candidate set via MultiDescribleElementSetSelector, and valueChangePipe property linkage)
 ---
 
 # Multi-Describle Field Plugin Creator
@@ -35,7 +35,7 @@ The host plugin (like `UserProfile`) must declare the field with specific attrib
 
 ```java
 // In UserProfile.java (Host Plugin)
-@FormField(ordinal = 6, 
+@FormField(ordinal = 7,
            desClazz = TestChild.class,                          // REQUIRED: Element class
            type = FormFieldType.MULTI_DESCRIBLE_PLUGIN,         // REQUIRED: Field type
            validate = {Validator.require})                      // OPTIONAL: Use if at least one item required
@@ -76,7 +76,8 @@ public class TestChild implements Describable<TestChild>,
 
 **Critical Requirements**:
 - **Must implement `IPluginStore.MultiDescribleElement` interface**
-  - Location: `tis-plugin/src/main/java/com/qlangtech/tis/plugin/IPluginStore.java:199`
+  - Location: `tis-plugin/src/main/java/com/qlangtech/tis/plugin/IPluginStore.java:184`
+    (`interface MultiDescribleElement extends ManipuldateProcessor, IdentityName`)
 - **Must have an identity field**:
   - One `@FormField` property marked with `identity = true`
   - Typically `String` type, often named `name` or `id`
@@ -87,37 +88,38 @@ public class TestChild implements Describable<TestChild>,
 
 ### 3. Element Descriptor Class
 
-The element's Descriptor must extend `IPluginStore.MultiDescribleElementDescriptor`:
+The element's Descriptor must extend `MultiDescribleElementSetSelector.MultiDescribleElementDescriptor`:
 
 ```java
 @TISExtension
-public static class DftDescriptor extends IPluginStore.MultiDescribleElementDescriptor<TestChild> {
-    
-    // REQUIRED: Display name (pure English, no Chinese/spaces)
-    @Override
-    public String getDisplayName() {
-        return "Test_Child";  // Underscore-separated PascalCase
-    }
-    
-    // REQUIRED: Chinese description (implements DescriptorUseableShortComment)
+public static class DftDescriptor extends MultiDescribleElementSetSelector.MultiDescribleElementDescriptor<TestChild> {
+
+    // REQUIRED (abstract on DescriptorUseableShortComment): Chinese description
     @Override
     public String shortComment() {
         return "测试子表单属性";  // <=10 chars, no punctuation
     }
-    
-    // REQUIRED: End type (for UI rendering hints)
+
+    // RECOMMENDED: English display name. Default is clazz.getSimpleName(),
+    // which resolves to the base class name and is usually not what you want.
+    @Override
+    public String getDisplayName() {
+        return "TestChild";
+    }
+
+    // OPTIONAL: UI rendering hint. Default is EndType.Blank.
     @Override
     public EndType getEndType() {
         return EndType.Copy;
     }
-    
+
     // IMPORTANT: Override these methods based on your needs
-    
+
     @Override
     public ViewStyle viewStyle() {
         return ViewStyle.Table;  // or ViewStyle.List
     }
-    
+
     @Override
     public List<ColConfig> colsConfig() {
         // REQUIRED for Table view, at least one column must be clickable
@@ -127,27 +129,27 @@ public static class DftDescriptor extends IPluginStore.MultiDescribleElementDesc
             new ColConfig("sex")
         );
     }
-    
+
     @Override
     public EnumableSetCfg getEnumableSetCfg() {
         // Return EnumableSetCfg(true) for fixed candidate set
         // Return EnumableSetCfg(false) for open user creation (default)
         return new EnumableSetCfg(false);
     }
-    
+
     @Override
     public int maxHeight() {
         return 300;  // px, default is 100
     }
-    
+
     @Override
     protected RowDragDropCfg isEnableRowDragDrop() {
         // Enable row drag-drop for manual sorting
         return new RowDragDropCfg(false, null);  // default: disabled
     }
-    
+
     @Override
-    protected List<Pair<Option, MultiDescribleElement>> getEnumableCandidateSet(
+    protected List<Pair<Option, IPluginStore.MultiDescribleElement>> getEnumableCandidateSet(
             ParseDescribable<?> describable) {
         // Override if getEnumableSetCfg() returns true
         // Return the fixed candidate list
@@ -156,7 +158,14 @@ public static class DftDescriptor extends IPluginStore.MultiDescribleElementDesc
 }
 ```
 
-**Descriptor Location**: `tis-plugin/src/main/java/com/qlangtech/tis/plugin/IPluginStore.java:211`
+**Descriptor Location**: `tis-plugin/src/main/java/com/qlangtech/tis/plugin/MultiDescribleElementSetSelector.java:147`
+(the element-set selector itself is the outer class at `:55`; the nested config value
+classes `RowDragDropCfg` / `EnumableSetCfg` / `ColConfig` / `ViewStyle` are also members of it).
+
+⚠️ **This class used to live at `IPluginStore.MultiDescribleElementDescriptor` and was migrated
+out of `IPluginStore` with no compatibility alias.** Any code written against the old FQN no longer
+compiles. `IPluginStore` (199 lines) now only contributes the `MultiDescribleElement` marker
+interface at `:184`.
 
 ### 4. Element Plugin Specifications
 
@@ -175,9 +184,12 @@ The element plugin MUST also satisfy standard TIS plugin requirements from `/cre
 
 | Method | Purpose | Default | When to Override |
 |--------|---------|---------|------------------|
-| `getDisplayName()` | Plugin name (pure English) | Required | Always (English name) |
-| `shortComment()` | Chinese description | Required | Always (<=10 chars) |
-| `getEndType()` | UI rendering hint | Required | Always |
+| `shortComment()` | Chinese description | **abstract** (`DescriptorUseableShortComment:32`) | Always (<=10 chars) |
+| `getDisplayName()` | Plugin name (pure English) | `clazz.getSimpleName()` (`Descriptor.java:1711`) | Always — the default yields the base class name |
+| `getEndType()` | UI rendering hint | `EndType.Blank` (`IEndTypeGetter.java:111`) | When the UI needs an end-type icon |
+
+Only `shortComment()` is truly abstract. The other two have working defaults, so omitting them
+compiles cleanly — which is exactly why they are easy to forget.
 
 ### View Configuration Methods
 
@@ -194,7 +206,18 @@ The element plugin MUST also satisfy standard TIS plugin requirements from `/cre
 | `getEnumableSetCfg()` | Enumerable candidate set | `false` (open) | Override for fixed candidate pool |
 | `getEnumableCandidateSet()` | Provide candidates | Empty list | Override when enumerable=true |
 | `isEnableRowDragDrop()` | Manual row sorting | Disabled | Override to enable drag-drop |
-| `createRelevantFieldKeysCreator()` | Field whitelist factory | Standard | Override for custom dependencies |
+| `createRelevantFieldKeysCreator(String toPropertyKey)` | Field whitelist factory (`:365`) | Cascading sources + target field | Override when candidates depend on a field the whitelist cannot reach |
+
+Line numbers refer to `MultiDescribleElementSetSelector.java`.
+
+### Fixed Methods (do not override)
+
+| Method | Line | Why final |
+|--------|------|-----------|
+| `httpProcess(...)` | `:259` | The whole `get_desc` / `generate_target_instance` request flow, including the whitelist + validate + instantiate sequence |
+| `getExtractProps(...)` | `:476` | Serializes `viewStyle` / `colsCfg` / `maxHeight` / `enumableSet` / `enableRowDragDrop` and enforces "Table view needs a clickable column" |
+
+See [The `httpProcess` Request Flow](#the-httpprocess-request-flow) for what these do.
 
 ### Property Linkage (declared on the **host** descriptor)
 
@@ -204,7 +227,11 @@ The element plugin MUST also satisfy standard TIS plugin requirements from `/cre
 | `.render(fn)` | Broadcast render | Called once per pipe, shared by all `toField` |
 | `.render(toField, fn)` | Per-field render | Overrides broadcast; `toField` must already be registered |
 
-**Detailed Documentation**: All methods have extensive Javadoc in `IPluginStore.java:211` (recently added by this conversation).
+**Detailed Documentation**: the element-descriptor hooks in the three tables above have extensive
+Javadoc on `MultiDescribleElementSetSelector.MultiDescribleElementDescriptor`
+(`tis-plugin/src/main/java/com/qlangtech/tis/plugin/MultiDescribleElementSetSelector.java:147`);
+`IPluginStore.java` no longer contains any of it. The `valueChangePipe` / `render` methods live on
+`ValueChangePipe` + `Descriptor` instead.
 
 ## View Styles
 
@@ -259,9 +286,9 @@ public EnumableSetCfg getEnumableSetCfg() {
 }
 
 @Override
-protected List<Pair<Option, MultiDescribleElement>> getEnumableCandidateSet(
+protected List<Pair<Option, IPluginStore.MultiDescribleElement>> getEnumableCandidateSet(
         ParseDescribable<?> describable) {
-    List<Pair<Option, MultiDescribleElement>> candidates = Lists.newArrayList();
+    List<Pair<Option, IPluginStore.MultiDescribleElement>> candidates = Lists.newArrayList();
     
     // 1. Extract host instance from describable
     UserProfile userProfile = describable.getInstance();
@@ -289,10 +316,97 @@ protected List<Pair<Option, MultiDescribleElement>> getEnumableCandidateSet(
 - `describable.getInstance()` gives you a **partially-instantiated** host object
   - Only fields in the relevant fields whitelist have values
   - Other fields are `null`
-- `Option.value` must match `MultiDescribleElement.identityValue()`
+- `Option.value` must match `MultiDescribleElement.identityValue()`: the picker posts the checked
+  `Option.value`s back as `MultiDescribleElementSetSelector.target`, and `generate_target_instance`
+  keeps only candidates whose `identityValue()` is in that set — a mismatch adds nothing, silently
 - Use `.setChecked(true)` for already-selected items
 
 **Not the same as property linkage.** `getEnumableCandidateSet` is re-invoked every time the 「设置」 dialog opens, so it *does* see the host's current values — but it does nothing when a host field changes while the dialog is closed. If the list (or a per-row dropdown) must react to a host field change **in place**, you need `valueChangePipe` (next section), not this hook.
+
+### The `httpProcess` Request Flow
+
+`MultiDescribleElementSetSelector.MultiDescribleElementDescriptor#httpProcess`
+(`MultiDescribleElementSetSelector.java:259`) is
+`final` — you never write it, but you must understand it, because it decides **which host fields your
+`getEnumableCandidateSet` actually sees**.
+
+The endpoint is `coredefine:plugin_action:description_process`, and **only the enumerable-set branch
+reaches it** — with `getEnumableSetCfg().isEnumableSet() == false` the 「添加」 button goes straight to
+an empty row form and none of the code below runs. The request carries
+`type` (an `ActionType` token), `property` (the `MULTI_DESCRIBLE_PLUGIN` field name) and `impl`
+(the element descriptor's FQN). The two tokens (`tis.plugin.ts:805` `PluginActionType`) are:
+
+| `type` | Triggered by | POST body | Response |
+|---|---|---|---|
+| `get_desc` | 「添加」 click → `addMultiChildPluginWithEnumableSet` (`multi-describle-plugin-property.component.ts:814`) → `Descriptor.postToPlugin` (`tis.plugin.ts:942`) | host form values | `MultiDescribleElementSetSelector` descriptor JSON → renders the checkbox picker |
+| `generate_target_instance` | user confirms the picker (same method, `:838`) | `{"host": {...}}` | selected elements serialized as `[{impl, vals}]` in `bizResult` → replaces the list field |
+
+`MultiDescribleElementSetSelector` itself is a normal `Describable` with one
+`@FormField(type = MULTI_SELECTABLE) List<IdentityName> target` (`:58`) — that field is where the
+user's picks land, and its `manipuldateProcess` (`:76`) stashes the instance in the request `Context`
+so the second request can read it back. The picker's option list comes from
+`MultiDescribleElementSetSelector.getTargetCandidate()` (`:66`), which reads the candidate pairs back
+out of that same `Context`; it is wired up by the resource file
+`tis-plugin/src/main/resources/com/qlangtech/tis/plugin/MultiDescribleElementSetSelector.json`
+(`"enum": "...getTargetCandidate():uncache_true"`). You never need to touch either — but if the
+picker renders empty, check that the server put the pairs in the context *before* serializing
+`multiDescribleElementSetDesc`.
+
+Both branches build the whitelist the same way:
+
+```java
+RelevantFieldsContextAttrValMap.RelevantFieldKeys relevantFieldKeysCreator =
+        createRelevantFieldKeysCreator(toPropertyKey);                       // :277
+
+RelevantFieldsContextAttrValMap<?> ctx =
+        RelevantFieldsContextAttrValMap.createRelevantFieldsContext(
+                paramGetter, context,
+                actionType == GetDesc ? postContent : postContent.getJSONObject("host"),
+                relevantFieldKeysCreator);
+
+// get_desc: validate -> addToFieldNewInstanceRelevantKeys() -> validate again -> createDescribable()
+// generate_target_instance: addToFieldNewInstanceRelevantKeys() -> createDescribable()
+```
+
+**This is why a host field your candidates depend on can silently be `null`.** The phase-1 whitelist
+is `descriptor.getValueChangeFromFieldKeys(toPropertyKey)` (`Descriptor.java:1777`) — i.e. only fields
+that declare a `valueChangePipe` toward this list — plus the target field itself, added after the
+first `validate()`. Any other host field is filtered out of the property set, so the partially
+instantiated host has `null` there.
+
+⚠️ That helper matches `pipe.getToField()` **exactly**, not by prefix. A host declaring
+`valueChangePipe(KEY_DOMAIN, "parameters[].domainValue")` contributes **nothing** when
+`toPropertyKey` is `"parameters"`: `"parameters[].domainValue"` is not `"parameters"`. So an
+enumerable set whose candidates depend on the host's domain still needs the
+`createRelevantFieldKeysCreator` override below.
+
+**When your candidates depend on a field the whitelist cannot reach (no pipe, or only a bracketed
+`toField`), override `createRelevantFieldKeysCreator`** (`MultiDescribleElementSetSelector.java:365`):
+
+```java
+@Override
+protected RelevantFieldsContextAttrValMap.RelevantFieldKeys createRelevantFieldKeysCreator(
+        String toPropertyKey) {
+    return new RelevantFieldsContextAttrValMap.RelevantFieldKeys(toPropertyKey) {
+        @Override
+        protected List<String> toFieldValiateRelevantKeysCreator(Descriptor descriptor) {
+            List<String> keys = new ArrayList<>(super.toFieldValiateRelevantKeysCreator(descriptor));
+            keys.add(KEY_DOMAIN);        // dependency with no valueChangePipe
+            return keys;
+        }
+    };
+}
+```
+
+Note the two-phase semantics of the whitelist (`RelevantFieldsContextAttrValMap`):
+fields collected in phase 1 (`fieldValRequired=true`) **must** have a value, phase 2 fields
+(`addToFieldNewInstanceRelevantKeys`, `fieldValRequired=false`) are "carry it if present, don't fail
+when absent". `super.toFieldValiateRelevantKeysCreator(...)` returns the phase-1 list — wrap it in a
+new `ArrayList` before mutating, don't assume it is mutable.
+
+Deliberately not calling `registerSelectOptions` on the host field, or writing an empty
+`valueChangePipe` just to smuggle a field into the whitelist, are both wrong fixes: the former
+breaks the form, the latter changes live-linkage behaviour to satisfy an unrelated dependency.
 
 ## Property Linkage (`valueChangePipe`)
 
@@ -361,8 +475,9 @@ this.valueChangePipe(KEY_DATA_SOURCE_VAR, KEY_X_AXIS_PROPERTY,
 
 The broadcast runs once and both `toField` reuse the list — correct here because both targets want
 the same property-name options. When the shapes genuinely differ (dropdown options vs. a whole list of
-child plugins), use `render(toField, fn)` per field instead — see `ObjectListWidget` (~line 179) where
-`titleProperty` / `defaultSortField` and `cardFields` diverge.
+child plugins), use `render(toField, fn)` per field instead — see
+`plugins/tis-ontology-plugin/.../workshop/widget/impl/ObjectListWidget.java:315` where
+`titleProperty` / `cardFields` diverge.
 
 ### Shape 1 — child list replacement
 
@@ -530,16 +645,34 @@ $pipe_field$<attrKey>[].<descKey>.<childKey> grandchild: row's polymorphic sub-f
 ```
 
 This replay is what makes `[]` useful at load time too. `Item.createChildDescrible` walks the path and
-carries a `PipeCtx` (`{root, path, inList}`) down: `root` is the outermost item (only its `vals` hold
-`$pipe_field$` keys), `path` is the prefix walked so far, `inList` says "we are inside a type-13 row"
-— which is what decides whether the cascade options must also be written back to the **shared**
-`AttrDesc` (rows are built from it, so without the write-back rows added later have empty dropdowns).
-`Item.wrapItemVals(pipeCtx?)` recurses through `wrapItemPropVal(..., pipeCtx)`.
+carries a `PipeCtx` (`tis.plugin.ts:1433`) down:
 
-⚠️ Adding a deeper shape means threading `pipeCtx` everywhere; the old parameterless
-`getCascadeSelectOpts(attr, childAttr)` on `Item` was removed in favour of the static
-`Item.getCascadeSelectOpts(pipeCtx, at, childAttr)`. If you re-add a local variant that ignores the
-prefix, the load path silently reads a key the server never wrote → empty dropdowns in edit mode only.
+```ts
+export interface PipeCtx {
+  /** candidate anchors, outermost first, the current instance last */
+  chain: PipeAnchor[];     // PipeAnchor = {item: Item, path: string}
+  /** already inside a MULTI_DESCRIBLE_PLUGIN row (decides whether to also patch the shared AttrDesc) */
+  inList: boolean;
+}
+```
+
+Lookup is `Item.getCascadeSelectOpts(pipeCtx, at)` (`:1722`), which walks `chain` **last → first**
+(nearest anchor first) and returns the first `anchor.item.vals["$pipe_field$" + anchor.path + at.key]`
+that is an array. That chain is what lets one declaration serve rows whose key is emitted on the row
+itself (`ChartLayer`'s in-row `$pipe_field$xAxisProperty`) and instances where it is emitted on the
+parent (`ObjectSetDefinitionConfig`'s `filters[].property`). `inList` is what decides whether the
+cascade options must also be written back to the **shared** `AttrDesc` (rows are built from it, so
+without the write-back rows added later have empty dropdowns). `Item.wrapItemVals(pipeCtx?)` recurses
+through `wrapItemPropVal(..., pipeCtx)`.
+
+⚠️ Adding a deeper shape means threading `pipeCtx` everywhere. The old parameterless
+`getCascadeSelectOpts(attr, childAttr)` on `Item` was removed in favour of
+`Item.getCascadeSelectOpts(pipeCtx, at)`. If you re-add a local variant that ignores the anchor chain,
+the load path silently reads a key the server never wrote → empty dropdowns in edit mode only.
+
+⚠️ Do not "simplify" the chain to a single root item. Per-instance emission means the hit point can be
+*any* level; a root-only lookup still compiles, still renders the form, and just returns `undefined`
+for every anchor that isn't the outermost one.
 
 Three consequences:
 
@@ -570,7 +703,12 @@ Run through this before shipping — every row is a *silent* failure mode:
 Two more engineering notes:
 
 - **No debounce, no request sequencing, no cancellation.** Two fast changes can land out of order and the later response wins. Keep `render` cheap and never let side effects depend on response order.
-- **Nesting deeper than one level** (`a.b.c`) is `console.warn`-ed and skipped. Only `"field"` and `"listField[].childField"` are supported.
+- **The path depth cap is three segments.** `"<listField>[].<descField>.<leafField>"` is the deepest
+  supported form (shape 2b). Four or more segments, empty segments, or a three-segment form whose
+  first segment is not a `MULTI_DESCRIBLE_PLUGIN` field are `console.warn`-ed and skipped
+  (`item-prop-val.component.ts:112-130`). The backend never validates this — an over-deep `toField`
+  is stored and returned verbatim; in production the only symptom is the linkage silently not
+  firing, because the `console.warn` that would have told you is in the browser console.
 
 `valueChangePipe` is *not* the same thing as the enumerable candidate set (`getEnumableCandidateSet`): the latter only controls what the 「设置」 dialog offers, and is re-read at dialog-open time — it does not react to host field changes.
 
@@ -623,7 +761,10 @@ Ask the user (or extract from context):
 
 4. **Advanced Features**:
    - Enumerable set (fixed candidates) or open set (user creates)?
-   - If enumerable: what determines the candidate list?
+   - If enumerable: what determines the candidate list, and for each host field it reads, does a
+     `valueChangePipe` declare this list as `toField` **verbatim** (`"<listField>"`, not
+     `"<listField>[].x"`)? If not, a `createRelevantFieldKeysCreator` override is required —
+     otherwise the field is `null` (see [The `httpProcess` Request Flow](#the-httpprocess-request-flow))
    - Enable row drag-drop sorting?
    - If drag-drop: which field stores the order?
    - **Property linkage**: does any host field change need to affect the list? If so, pick the shape:
@@ -654,7 +795,14 @@ Generate the complete element plugin with all required files.
 Check against comprehensive checklist covering host field, element class, descriptor, and standard
 plugin requirements. If any `valueChangePipe` was declared, also walk the
 [linkage checklist](#linkage-checklist) — those failures are all silent, so nothing in the build will
-catch them.
+catch them. If the enumerable set was enabled, additionally check:
+
+- the `extends` clause reads `MultiDescribleElementSetSelector.MultiDescribleElementDescriptor<...>`
+  (the old `IPluginStore.MultiDescribleElementDescriptor` FQN no longer exists and does not compile)
+- every host field read inside `getEnumableCandidateSet` is reachable: either some `valueChangePipe`
+  declares this list as `toField` **verbatim** (a bracketed `"<listField>[].x"` does not count), or the
+  field is listed by an overridden `createRelevantFieldKeysCreator`
+- `Option.value` equals the candidate's `identityValue()` character for character
 
 ### Step 6: Provide Usage Instructions
 
@@ -701,32 +849,60 @@ The `valueChangePipe` registry is **per descriptor**, and the frontend looks it 
 
 ## Reference Implementations
 
-1. **TestChild** (tis-plugin/.../manage/common/TestChild.java) - Complete reference
-2. **ActionParameterConfig** (plugins/tis-ontology-plugin/.../action/ActionParameterConfig.java) - Advanced features
-3. **UserProfile.children** (tis-plugin/.../manage/common/UserProfile.java:88) - Host field example,
-   and **both** linkage shapes in `UserProfile.DftDescriptor` (`valueChangePipe("control", "children")`
-   and `valueChangePipe("childrenCascade", "children[].reactSelect")`, ~line 179-195)
-4. **ObjectSetDefinitionConfig** (plugins/tis-ontology-plugin/.../workshop/model/definition/ObjectSetDefinitionConfig.java:202)
-   - Real production use of shape 2: `objectType` → `filters[].property`
-5. **ChartLayer** (plugins/tis-ontology-plugin/.../workshop/model/ChartLayer.java) — one `fromField`
-   feeding three targets at once: `dataSourceVar` → `xAxisProperty` (plain), `series[].segmentBy`
-   (shape 2) **and** `series[].aggregation.property` (shape 2b). Element-side `SELECTABLE` +
-   `registerSelectOptions` halves live in `SeriesConfig` and
-   `AbstractSeriesAggregation.BasicDescriptor` (the latter is where an abstract base must register,
-   so all six impl descriptors inherit it)
-6. **Frontend Handler** (tis-console/.../plugin/item-prop-val.component.ts) — `propValChange` (~line 120)
-   is the single parsing point for `[]` / `.`, capped at three segments
-7. **Load-path replay** (tis-console/src/common/tis.plugin.ts) — `PipeCtx` + `Item.createChildDescrible`
-   / `Item.wrapItemVals(pipeCtx?)`; every level must thread the context or edit-mode dropdowns go empty
-8. **Pipe implementation + unit tests** (tis-plugin/.../extension/ValueChangePipe.java,
-   tis-plugin/src/test/java/com/qlangtech/tis/extension/TestValueChangePipe.java)
+1. **TestChild** (`tis-plugin/src/main/java/com/qlangtech/tis/manage/common/TestChild.java:44`) —
+   complete reference. Abstract element class at `:44`, `identityValue()` at `:71`, and
+   `DftDescriptor extends MultiDescribleElementSetSelector.MultiDescribleElementDescriptor<TestChild>`
+   at `:100` with both an enumerable candidate set and a `registerSelectOptions` call.
+2. **ActionParameterConfig** (`plugins/tis-ontology-plugin/.../impl/action/ActionParameterConfig.java:281`)
+   — advanced enumerable-set example: `getEnumableSetCfg` at `:304`, `getEnumableCandidateSet` at `:309`.
+   ⚠️ Still written against the **old** `IPluginStore.MultiDescribleElementDescriptor` FQN, so it is
+   currently uncompilable against this tis-plugin tree — the rest of the class is the pattern to copy.
+3. **UserProfile.children** (`tis-plugin/.../manage/common/UserProfile.java:97`) — host field example
+   (`@FormField(ordinal = 7, desClazz = TestChild.class, type = MULTI_DESCRIBLE_PLUGIN,
+   validate = {Validator.require})` at `:96`), and **both** linkage shapes in `UserProfile.DftDescriptor`:
+   `valueChangePipe(KEY_FIELD_CONTROL, "children")` at `:187` and
+   `valueChangePipe(KEY_FIELD_CHILDREN_CASCADE, "children[]." + KEY_FIELD_REACT_SELECT)` at `:196`.
+4. **ObjectSetDefinitionConfig** (`plugins/tis-ontology-plugin/.../workshop/model/definition/ObjectSetDefinitionConfig.java:209`)
+   — real production use of shape 2: `objectType` → `filters[].property`
+5. **ChartLayer** (`plugins/tis-ontology-plugin/.../workshop/model/ChartLayer.java:221`) — one
+   `fromField` feeding three targets at once: `dataSourceVar` → `xAxisProperty` (plain),
+   `series[].segmentBy` (shape 2) **and** `series[].aggregation.property` (shape 2b). Element-side
+   `SELECTABLE` + `registerSelectOptions` halves live in `SeriesConfig` and
+   `AbstractSeriesAggregation.BasicDescriptor`
+   (`.../workshop/widget/impl/chartxy/AbstractSeriesAggregation.java` — the latter is where an
+   abstract base must register, so all six impl descriptors inherit it)
+6. **Frontend Handler** (`tis-console/src/common/plugin/item-prop-val.component.ts`) — the exported
+   function `propValChange` starts at line **68** (the component method that forwards to it is at
+   `:1192`). It is the single parsing point for `[]` / `.`; the three-segment cap is enforced at
+   `:112-113`.
+7. **Frontend picker flow** (`tis-console/src/common/plugin/multi-describle-plugin-property.component.ts`)
+   — `addMultiChildPluginWithEnumableSet` at `:814` issues `type=get_desc`, then
+   `type=generate_target_instance` at `:838`; `enumableSetItemDependencyDepth` selects the parent item
+   the host form is projected from (`:815`). Branching on `enumableSet` is in the template at `:65`.
+8. **Load-path replay** (`tis-console/src/common/tis.plugin.ts`) — `PipeCtx` at `:1433`,
+   `Item.getCascadeSelectOpts` at `:1722`, `Item.createChildDescrible` at `:1775`,
+   `Item.wrapItemVals(pipeCtx?)` at `:2088`; every level must thread the context or edit-mode
+   dropdowns go empty
+9. **Pipe implementation + unit tests** (`tis-plugin/.../extension/ValueChangePipe.java`,
+   `tis-plugin/src/test/java/com/qlangtech/tis/extension/TestValueChangePipe.java`)
 
 ## Important Notes
 
 1. **Do NOT confuse with `@SubForm`**: Use `MULTI_DESCRIBLE_PLUGIN` for complex elements with full plugin lifecycle
 2. **Identity field is mandatory**: Required for element tracking, updates, and duplicate detection
-3. **Descriptor methods extensively documented**: Read Javadoc in `IPluginStore.java:211`
-4. **Test thoroughly**: Test add/edit/delete, enumerable selection, drag-drop, validation
-5. **Follow standard plugin conventions**: All `/create-plugin` rules apply
-6. **Linkage is silent when wrong**: every rule in the linkage checklist fails without an error.
+3. **Descriptor methods extensively documented**: Read Javadoc on
+   `MultiDescribleElementSetSelector.MultiDescribleElementDescriptor`
+   (`tis-plugin/src/main/java/com/qlangtech/tis/plugin/MultiDescribleElementSetSelector.java:147`).
+   `IPluginStore.java` no longer hosts this class.
+4. **Class location moved — no alias**: The element Descriptor base is
+   `MultiDescribleElementSetSelector.MultiDescribleElementDescriptor`. `IPluginStore` keeps only the
+   `MultiDescribleElement` marker interface (`IPluginStore.java:184`). Code written against
+   `IPluginStore.MultiDescribleElementDescriptor` fails to compile; grep for it before assuming a
+   plugin is healthy.
+5. **Test thoroughly**: Test add/edit/delete, enumerable selection, drag-drop, validation
+6. **Follow standard plugin conventions**: All `/create-plugin` rules apply
+7. **Linkage is silent when wrong**: every rule in the linkage checklist fails without an error.
    Verify by actually changing the source field in the browser — a compile-clean pipe proves nothing.
+8. **Whitelist is silent when wrong**: a host field missing from the whitelist is `null` inside
+   `getEnumableCandidateSet` — no exception, just an empty/wrong candidate list. A bracketed pipe target
+   (`"<listField>[].x"`) does **not** put `<listField>` itself in the whitelist.

@@ -50,6 +50,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.qlangtech.tis.extension.Descriptor.KEY_EPROPS;
@@ -63,6 +64,20 @@ import static com.qlangtech.tis.extension.Descriptor.KEY_OPTIONS;
  */
 @SuppressWarnings("all")
 public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends DescriptorsJSON.AttrVal> {
+
+    public static DescriptorsMeta desc(Class<? extends Describable<?>> type) {
+        return new DefaultDescriptorsJSON(TIS.get().getDescriptor(
+                Objects.requireNonNull(type, "plugin type can not "
+                        + "be null"))).getDescriptorsJSON();
+    }
+
+    public static DescriptorsMeta desc(String requestDescId) {
+        return new DefaultDescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON();
+    }
+
+    public static DescriptorsMeta desc(Descriptor desc) {
+        return new DefaultDescriptorsJSON(desc).getDescriptorsJSON();
+    }
 
     //public static final int FORM_START_LEVEL = 1;
 
@@ -93,13 +108,7 @@ public abstract class DescriptorsJSON<T extends Describable<T>, ATTR_VAL extends
     protected final boolean rootDesc;
 
 
-    public static DescriptorsMeta desc(String requestDescId) {
-        return new DefaultDescriptorsJSON(TIS.get().getDescriptor(requestDescId)).getDescriptorsJSON();
-    }
 
-    public static DescriptorsMeta desc(Descriptor desc) {
-        return new DefaultDescriptorsJSON(desc).getDescriptorsJSON();
-    }
 
     public DescriptorsJSON(Collection<Descriptor<T>> descriptors) {
         this(descriptors, true);

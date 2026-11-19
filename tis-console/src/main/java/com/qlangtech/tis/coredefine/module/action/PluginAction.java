@@ -615,7 +615,7 @@ public class PluginAction extends BasicModule {
     final String displayName = result.getDisplayName();
     for (Descriptor desc : result.descriptors) {
       if (StringUtils.equals(desc.getDisplayName(), displayName)) {
-        this.setBizResult(context, new DefaultDescriptorsJSON(desc).getDescriptorsJSON());
+        this.setBizResult(context,   DescriptorsJSON.desc(desc));
         return;
       }
     }
