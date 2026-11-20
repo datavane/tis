@@ -67,6 +67,12 @@
         <mockito.version>4.11.0</mockito.version>
         <mockito-scala.version>1.17.14</mockito-scala.version>
         <derby.version>10.15.2.0</derby.version>
+        <!-- surefire fork JVM 的 add-opens 白名单。
+             属性化原因：1) POM 里硬编码 argLine 会屏蔽命令行 -D 覆盖，属性化后可用
+             -Dtis.test.argLine=... 按需扩展；
+             2) add-opens 不递归子包，java.base/java.util 不覆盖 java.util.function
+             （Groovy 现编 Function 实现类时需要）。 -->
+        <tis.test.argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.util.function=ALL-UNNAMED</tis.test.argLine>
     </properties>
 
 
@@ -742,13 +748,10 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M7</version>
                 <configuration>
-                    <!--
-                    <test>TestAll_bak</test>
-        -->
                     <includes>
                         <include>**/TestAll.java</include>
                     </includes>
-                    <argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED</argLine>
+                    <argLine>${tis.test.argLine}</argLine>
                     <classpathDependencyExcludes>
                         <classpathDependencyExclude>log4j:log4j</classpathDependencyExclude>
                         <classpathDependencyExclude>org.slf4j:slf4j-log4j12</classpathDependencyExclude>

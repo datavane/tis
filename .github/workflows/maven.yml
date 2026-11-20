@@ -55,3 +55,83 @@ jobs:
             tis-assemble.tar.gz
           if-no-files-found: warn
           retention-days: 7
+
+  # 单元测试 job（白名单制）：
+  #  - 上游产物由 Install 步骤装进 runner 本地仓库取得（-pl 不带 -am），
+  #    借此绕开先天 testCompile 编译不过的模块
+  #  - 逐模块独立跑，不用单次 -fae（后者会把依赖失败模块的下游直接 SKIP，丢结论）；
+  #    任何模块红 → job 红 → 触发 GitHub 失败邮件
+  #  - install 步骤不带 -Dappname=all：tisasm 插件按该 VM 变量决定是否打发行包，
+  #    不设置则跳过 assembly，test job 只需要本地仓库里的 jar
+  test:
+    needs: build
+    name: unit-tests-whitelist
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Install all modules to local repo (skip test compile)
+        run: |
+          mvn -B install \
+            -Ptis \
+            -Dmaven.test.skip=true \
+            -s .github/maven-settings.xml
+
+      - name: Run TestAll suites (whitelist, per-module)
+        run: |
+          set +e
+          failed=""
+          for m in \
+            xmodifier \
+            datax-config \
+            tis-builder-api \
+            tis-manage-pojo \
+            tis-base-test \
+            tis-common \
+            tis-hadoop-rpc \
+            tis-web-start-api \
+            tis-plugin-sezpoz \
+            tis-console \
+            tis-plugin \
+            tis-assemble \
+          ; do
+            echo "::group::[unit-tests] mvn test -pl $m"
+            mvn -B test -pl "$m" -Ptis -s .github/maven-settings.xml
+            rc=$?
+            echo "::endgroup::"
+            if [ $rc -ne 0 ]; then
+              echo "::error::module $m tests failed (exit=$rc)"
+              failed="$failed $m"
+            fi
+          done
+          if [ -n "$failed" ]; then
+            echo "FAILED MODULES:$failed"
+            exit 1
+          fi
+        # 白名单 12 模块已于 2026-11-20 本机全量校准（共 174 条用例全绿），
+        # 详见各模块 src/test/java/TestAll.java（离线白名单 suite，配套 TEST_SKIP_REPORT.md）。
+        #
+        # 未纳入的模块及原因：
+        #  - tis-sql-parser     testCompile 先天编译不过（TestJoinTaskContext.getTaskId 类型冲突）
+        #  - tis-scala-compiler / tis-collection-info-collect
+        #                       TestAll suite 为空（无可离线运行的用例）
+        #  - tis-web-start / tis-dag / tis-solrconfig-parser / tis-common-dao /
+        #    maven-tpi-plugin / tis-k8s / docker-compose
+        #                       尚无 TestAll suite，跑了也是 0 条
+
+      - name: Upload surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: '**/target/surefire-reports/**'
+          if-no-files-found: warn
+          retention-days: 7
