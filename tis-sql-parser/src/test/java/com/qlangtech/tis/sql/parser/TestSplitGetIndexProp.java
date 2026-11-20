@@ -17,14 +17,15 @@
  */
 package com.qlangtech.tis.sql.parser;
 
-import junit.framework.TestCase;
 
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestSplitGetIndexProp extends TestCase {
+public class TestSplitGetIndexProp {
 
+    @Test
     public void testGetIndexProp() throws Exception {
     // TableTupleCreator tuple = null;
     // try (InputStream read = this.getClass()

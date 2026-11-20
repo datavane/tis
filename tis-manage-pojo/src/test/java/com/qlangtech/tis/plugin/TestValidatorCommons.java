@@ -19,16 +19,17 @@
 package com.qlangtech.tis.plugin;
 
 import com.qlangtech.tis.common.utils.Assert;
-import junit.framework.TestCase;
-
 import java.util.regex.Matcher;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-07-01 13:16
  **/
-public class TestValidatorCommons extends TestCase implements ValidatorCommons {
+public class TestValidatorCommons implements ValidatorCommons {
 
+    @Test
     public void testUrlPattern() {
         String url = "https://192.168.64.3:8443";
         Matcher matcher = ValidatorCommons.PATTERN_URL.matcher(url);
@@ -79,6 +80,7 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
         Assert.assertTrue(url, matcher.matches());
     }
 
+    @Test
     public void testPattern_integer() {
         Matcher matcher = ValidatorCommons.pattern_integer.matcher("-1");
         Assert.assertTrue(matcher.matches());
@@ -94,6 +96,7 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
         Assert.assertFalse(matcher.matches());
     }
 
+    @Test
     public void testUserName() {
 
 //        Validator userNameValidator = Validator.user_name;
@@ -113,6 +116,7 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
     }
 
 
+    @Test
     public void testHostPattern() {
         String host = "rds.rds-001.aliyun.com:3306";
         Matcher matcher = ValidatorCommons.host_pattern.matcher(host);
@@ -132,6 +136,7 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
     }
 
 
+    @Test
     public void testPATTERN_ABSOLUTE_PATH() {
         Matcher matcher = PATTERN_ABSOLUTE_PATH.matcher("/home/hanfa.shf/ftpReaderTest/data");
         assertTrue("must match", matcher.matches());
@@ -149,6 +154,7 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
         assertTrue("must match", matcher.matches());
     }
 
+    @Test
     public void testDBColName() {
         Matcher matcher = ValidatorCommons.PATTERN_DB_COL_NAME.matcher("0DbName1");
         assertTrue(matcher.matches());
@@ -163,6 +169,7 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
         assertTrue(matcher.matches());
     }
 
+    @Test
     public void testPattern_identity() {
         Matcher matcher = pattern_identity.matcher("0DbName1");
         assertTrue(matcher.matches());
@@ -174,6 +181,7 @@ public class TestValidatorCommons extends TestCase implements ValidatorCommons {
         assertFalse(matcher.matches());
     }
 
+    @Test
     public void testNoneBlank() {
         Matcher matcher = PATTERN_NONE_BLANK.matcher("0DbName1");
         assertTrue(matcher.matches());

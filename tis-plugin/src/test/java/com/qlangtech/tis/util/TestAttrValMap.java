@@ -26,8 +26,7 @@ import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.util.plugin.TestPluginImpl;
-import junit.framework.TestCase;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.util.Optional;
 
@@ -35,23 +34,25 @@ import static com.qlangtech.tis.extension.Descriptor.KEY_DESC_VAL;
 import static com.qlangtech.tis.extension.Descriptor.KEY_primaryVal;
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-06-22 10:27
  **/
-public class TestAttrValMap extends TestCase {
+public class TestAttrValMap {
+    @Test
     public void testCreateDescribable() {
 
-        IControlMsgHandler fieldErrorHandler = EasyMock.createMock("fieldErrorHandler", IControlMsgHandler.class);
-        IControlMsgHandler pluginContext = EasyMock.createMock("pluginContext", IControlMsgHandler.class);
-        Context context = EasyMock.createMock("context", Context.class);
+        IControlMsgHandler fieldErrorHandler = Mockito.mock(IControlMsgHandler.class, Mockito.withSettings().name("fieldErrorHandler"));
+        IControlMsgHandler pluginContext = Mockito.mock(IControlMsgHandler.class, Mockito.withSettings().name("pluginContext"));
+        Context context = Mockito.mock(Context.class, Mockito.withSettings().name("context"));
 
         JSONObject jsonObject = IOUtils.loadResourceFromClasspath(TestPluginImpl.class
                 , "testPluginImpl-post-content.json", true, (input) -> {
                     return JSON.parseObject(org.apache.commons.io.IOUtils.toString(input, TisUTF8.get()));
                 });
 
-        EasyMock.replay(fieldErrorHandler, pluginContext, context);
         AttrValMap attrValMap = AttrValMap.parseDescribableMap(Optional.empty(), jsonObject);
 
         Descriptor.ParseDescribable describable = attrValMap.createDescribable(pluginContext, context);
@@ -61,10 +62,9 @@ public class TestAttrValMap extends TestCase {
         // 没有设置值，所以值对象应该为空，不能为0
         assertTrue("testPlugin.connectionsPerHost must be null", testPlugin.connectionsPerHost == null);
         assertEquals(12, (int) testPlugin.maxPendingPerConnection);
-
-        EasyMock.verify(fieldErrorHandler, pluginContext, context);
     }
 
+    @Test
     public void testGetPostJsonBody() {
         JSONObject jsonObject = IOUtils.loadResourceFromClasspath(TestPluginImpl.class
                 , "testPluginImpl-post-content.json", true, (input) -> {
@@ -93,6 +93,7 @@ public class TestAttrValMap extends TestCase {
         assertEquals("maxPendingPerConnection should be 12", 12, maxPendingPerConnection);
     }
 
+    @Test
     public void testGetPostJsonBodyWithNullValues() {
         JSONObject testData = new JSONObject();
         testData.put("impl", "com.qlangtech.tis.util.plugin.TestPluginImpl");
@@ -120,6 +121,7 @@ public class TestAttrValMap extends TestCase {
         }
     }
 
+    @Test
     public void testGetPostJsonBodyWithDescribableField() {
         JSONObject testData = new JSONObject();
         testData.put(PLUGIN_EXTENSION_IMPL, TestPluginImpl.class.getName());

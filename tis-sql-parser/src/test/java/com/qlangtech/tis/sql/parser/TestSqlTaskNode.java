@@ -22,18 +22,20 @@ import com.qlangtech.tis.plugin.ds.ColumnMetaData;
 import com.qlangtech.tis.sql.parser.meta.NodeType;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
-import junit.framework.TestCase;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestSqlTaskNode extends TestCase {
+public class TestSqlTaskNode {
 
+    @Test
     public void testDumpSqlReflect() {
         final String sql = "select A,b,c as cc,d,e as ee from A";
         Set<String> cols = Sets.newHashSet("a", "b", "c", "d", "e");
@@ -44,22 +46,23 @@ public class TestSqlTaskNode extends TestCase {
         assertEquals(5, rows.size());
     }
 
+    @Test
     public void testParseWithSingleDumpNode() {
 
         EntityName exportName = EntityName.parse("employees.employee");
         //, NodeType nodetype, IDumpNodeMapContext dumpNodesContext
-        IDumpNodeMapContext dumpNodesContext = EasyMock.createMock("dumpNodesContext", IDumpNodeMapContext.class);
+        IDumpNodeMapContext dumpNodesContext = Mockito.mock(IDumpNodeMapContext.class, Mockito.withSettings().name("dumpNodesContext"));
 
-        EasyMock.expect(dumpNodesContext.nullableMatch(exportName.getTabName())).andReturn(exportName);
+        Mockito.when(dumpNodesContext.nullableMatch(exportName.getTabName())).thenReturn(exportName);
 
         SqlTaskNode taskNode = new SqlTaskNode(exportName, NodeType.DUMP, dumpNodesContext);
         taskNode.setContent("SELECT e.a,e.b,e.c FROM employee e");
-        EasyMock.replay(dumpNodesContext);
         TableTupleCreator tupleCreator = taskNode.parse(true);
         assertNotNull("tupleCreator can not be null", tupleCreator);
-        EasyMock.verify(dumpNodesContext);
+        Mockito.verify(dumpNodesContext).nullableMatch(exportName.getTabName());
     }
 
+    @Test
     public void testDumpNodes() {
         // Map<String, List<TableTupleCreator>> dumpNodes = SqlTaskNode.dumpNodes;
         //

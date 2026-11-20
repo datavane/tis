@@ -24,6 +24,8 @@ import com.qlangtech.tis.sql.parser.tuple.creator.impl.ColRef;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
 import java.util.List;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-07-01 13:46
@@ -32,6 +34,7 @@ public class TestSupplyGoodsParse extends SqlTaskBaseTestCase {
 
     public static final String topologyName = "supply_goods";
 
+    @Test
     public void testTopologyParse() throws Exception {
         // this.parseSqlTaskNode()
         List<SqlTaskNode> processNodes = this.parseTopologySqlTaskNodes(topologyName);

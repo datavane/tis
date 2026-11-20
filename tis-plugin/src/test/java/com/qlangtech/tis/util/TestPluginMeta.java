@@ -19,16 +19,17 @@
 package com.qlangtech.tis.util;
 
 import com.qlangtech.tis.common.utils.Assert;
-import junit.framework.TestCase;
-
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-07-05 15:51
  **/
-public class TestPluginMeta extends TestCase {
+public class TestPluginMeta {
+    @Test
     public void testParse() {
         String plugin1Name = "test-plugin";
         String plugin2Name = "test2-plugin";

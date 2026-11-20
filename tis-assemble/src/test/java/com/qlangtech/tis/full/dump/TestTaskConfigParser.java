@@ -22,14 +22,12 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import com.qlangtech.tis.fullbuild.taskflow.ITask;
 import com.qlangtech.tis.fullbuild.taskflow.WorkflowTaskConfigParser.ProcessTask;
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
+import org.junit.Assert;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2016年1月4日 上午10:54:56
  */
-public class TestTaskConfigParser extends TestCase {
+public class TestTaskConfigParser {
     // public void test() throws Exception {
     // // HiveTaskFactory hiveTaskFactory = new HiveTaskFactory();
     // TaskConfigParser parser = TaskConfigParser.getInstance();// (hiveTaskFactory);

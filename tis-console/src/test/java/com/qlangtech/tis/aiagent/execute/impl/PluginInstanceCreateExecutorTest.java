@@ -44,6 +44,7 @@ import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PartialSettedPluginContext;
 import com.qlangtech.tis.util.impl.PluginEqualResult;
 import org.apache.commons.lang3.tuple.Pair;
+import org.mockito.Mockito;
 import org.junit.Test;
 import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.PluginFormProperties;
@@ -51,8 +52,6 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.util.impl.AttrVals;
-import junit.framework.TestCase;
-
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -61,14 +60,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.qlangtech.tis.util.AttrValMap.parseDescribableMap;
-import static org.easymock.EasyMock.*;
 
+import static org.junit.Assert.*;
 /**
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/10/11
  */
-public class PluginInstanceCreateExecutorTest extends TestCase {
+public class PluginInstanceCreateExecutorTest {
 
   @Test
   public void testExtractUserInput2JsonFromDataXWriter() {
@@ -143,10 +142,10 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     PluginInstanceCreateExecutor executor = new PluginInstanceCreateExecutor();
 
     // 创建 Mock 对象
-    Describable plugin = createMock(Describable.class);
-    Descriptor descriptor = createMock(Descriptor.class);
-    PluginFormProperties formProperties = createMock(PluginFormProperties.class);
-    RootFormProperties rootProperties = createMock(RootFormProperties.class);
+    Describable plugin = Mockito.mock(Describable.class);
+    Descriptor descriptor = Mockito.mock(Descriptor.class);
+    PluginFormProperties formProperties = Mockito.mock(PluginFormProperties.class);
+    RootFormProperties rootProperties = Mockito.mock(RootFormProperties.class);
 
     // 构建属性值映射
     Map<String, JSON> attrMap = new LinkedHashMap<>();
@@ -164,37 +163,33 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     LinkedHashMap<String, IPropertyType> properties = new LinkedHashMap<>();
 
     // 创建第一个属性类型
-    PropertyType propType1 = createMock(PropertyType.class);
-    expect(propType1.isIdentity()).andReturn(false).anyTimes();
-    expect(propType1.isDescribable()).andReturn(false).anyTimes();
-    expect(propType1.getFrontendOutput(plugin)).andReturn("value1").anyTimes();
+    PropertyType propType1 = Mockito.mock(PropertyType.class);
+    Mockito.when(propType1.isIdentity()).thenReturn(false);
+    Mockito.when(propType1.isDescribable()).thenReturn(false);
+    Mockito.when(propType1.getFrontendOutput(plugin)).thenReturn("value1");
     properties.put("field1", propType1);
 
     // 创建第二个属性类型
-    PropertyType propType2 = createMock(PropertyType.class);
-    expect(propType2.isIdentity()).andReturn(false).anyTimes();
-    expect(propType2.isDescribable()).andReturn(false).anyTimes();
-    expect(propType2.getFrontendOutput(plugin)).andReturn("value2").anyTimes();
+    PropertyType propType2 = Mockito.mock(PropertyType.class);
+    Mockito.when(propType2.isIdentity()).thenReturn(false);
+    Mockito.when(propType2.isDescribable()).thenReturn(false);
+    Mockito.when(propType2.getFrontendOutput(plugin)).thenReturn("value2");
     properties.put("field2", propType2);
 
     // 创建属性列表
     List<Map.Entry<String, IPropertyType>> propertyList = new ArrayList<>(properties.entrySet());
 
     // 设置期望行为
-    expect(plugin.getDescriptor()).andReturn(descriptor).anyTimes();
-    expect(descriptor.getPluginFormPropertyTypes()).andReturn(formProperties).anyTimes();
+    Mockito.when(plugin.getDescriptor()).thenReturn(descriptor);
+    Mockito.when(descriptor.getPluginFormPropertyTypes()).thenReturn(formProperties);
 
     // 设置 formProperties 的 accept 方法行为
-    expect(formProperties.accept(anyObject(PluginFormProperties.IVisitor.class))).andAnswer(() -> {
-      PluginFormProperties.IVisitor visitor = (PluginFormProperties.IVisitor) getCurrentArguments()[0];
+    Mockito.when(formProperties.accept(Mockito.any(PluginFormProperties.IVisitor.class))).thenAnswer((inv) -> {
+      PluginFormProperties.IVisitor visitor = (PluginFormProperties.IVisitor) inv.getArgument(0);
       // 模拟 RootFormProperties 的行为
-      expect(rootProperties.getSortedUseableProperties()).andReturn(propertyList).anyTimes();
-      replay(rootProperties);
+      Mockito.when(rootProperties.getSortedUseableProperties()).thenReturn(propertyList);
       return visitor.visit(rootProperties);
-    }).anyTimes();
-
-    // 回放所有 mock 对象
-    replay(plugin, descriptor, formProperties, propType1, propType2);
+    });
 
     // 执行测试
     PluginEqualResult result = pluginVals.isPluginEqual(plugin);
@@ -203,7 +198,10 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     assertTrue("插件属性相等时应该返回true", result.isEqual());
 
     // 验证 mock 对象调用
-    verify(plugin, descriptor, formProperties, propType1, propType2);
+    Mockito.verify(plugin, Mockito.atLeastOnce()).getDescriptor();
+    Mockito.verify(descriptor, Mockito.atLeastOnce()).getPluginFormPropertyTypes();
+    Mockito.verify(propType1, Mockito.atLeastOnce()).getFrontendOutput(plugin);
+    Mockito.verify(propType2, Mockito.atLeastOnce()).getFrontendOutput(plugin);
   }
 
   /**
@@ -215,10 +213,10 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     PluginInstanceCreateExecutor executor = new PluginInstanceCreateExecutor();
 
     // 创建 Mock 对象
-    Describable plugin = createMock(Describable.class);
-    Descriptor descriptor = createMock(Descriptor.class);
-    PluginFormProperties formProperties = createMock(PluginFormProperties.class);
-    RootFormProperties rootProperties = createMock(RootFormProperties.class);
+    Describable plugin = Mockito.mock(Describable.class);
+    Descriptor descriptor = Mockito.mock(Descriptor.class);
+    PluginFormProperties formProperties = Mockito.mock(PluginFormProperties.class);
+    RootFormProperties rootProperties = Mockito.mock(RootFormProperties.class);
 
     // 构建属性值映射
     Map<String, JSON> attrMap = new LinkedHashMap<>();
@@ -236,37 +234,33 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     LinkedHashMap<String, IPropertyType> properties = new LinkedHashMap<>();
 
     // 创建第一个属性类型
-    PropertyType propType1 = createMock(PropertyType.class);
-    expect(propType1.isIdentity()).andReturn(false).anyTimes();
-    expect(propType1.isDescribable()).andReturn(false).anyTimes();
-    expect(propType1.getFrontendOutput(plugin)).andReturn("value1").anyTimes();
+    PropertyType propType1 = Mockito.mock(PropertyType.class);
+    Mockito.when(propType1.isIdentity()).thenReturn(false);
+    Mockito.when(propType1.isDescribable()).thenReturn(false);
+    Mockito.when(propType1.getFrontendOutput(plugin)).thenReturn("value1");
     properties.put("field1", propType1);
 
     // 创建第二个属性类型（返回不同的值）
-    PropertyType propType2 = createMock(PropertyType.class);
-    expect(propType2.isIdentity()).andReturn(false).anyTimes();
-    expect(propType2.isDescribable()).andReturn(false).anyTimes();
-    expect(propType2.getFrontendOutput(plugin)).andReturn("value2").anyTimes(); // 实际值与期望值不同
+    PropertyType propType2 = Mockito.mock(PropertyType.class);
+    Mockito.when(propType2.isIdentity()).thenReturn(false);
+    Mockito.when(propType2.isDescribable()).thenReturn(false);
+    Mockito.when(propType2.getFrontendOutput(plugin)).thenReturn("value2"); // 实际值与期望值不同
     properties.put("field2", propType2);
 
     // 创建属性列表
     List<Map.Entry<String, IPropertyType>> propertyList = new ArrayList<>(properties.entrySet());
 
     // 设置期望行为
-    expect(plugin.getDescriptor()).andReturn(descriptor).anyTimes();
-    expect(descriptor.getPluginFormPropertyTypes()).andReturn(formProperties).anyTimes();
+    Mockito.when(plugin.getDescriptor()).thenReturn(descriptor);
+    Mockito.when(descriptor.getPluginFormPropertyTypes()).thenReturn(formProperties);
 
     // 设置 formProperties 的 accept 方法行为
-    expect(formProperties.accept(anyObject(PluginFormProperties.IVisitor.class))).andAnswer(() -> {
-      PluginFormProperties.IVisitor visitor = (PluginFormProperties.IVisitor) getCurrentArguments()[0];
+    Mockito.when(formProperties.accept(Mockito.any(PluginFormProperties.IVisitor.class))).thenAnswer((inv) -> {
+      PluginFormProperties.IVisitor visitor = (PluginFormProperties.IVisitor) inv.getArgument(0);
       // 模拟 RootFormProperties 的行为
-      expect(rootProperties.getSortedUseableProperties()).andReturn(propertyList).anyTimes();
-      replay(rootProperties);
+      Mockito.when(rootProperties.getSortedUseableProperties()).thenReturn(propertyList);
       return visitor.visit(rootProperties);
-    }).anyTimes();
-
-    // 回放所有 mock 对象
-    replay(plugin, descriptor, formProperties, propType1, propType2);
+    });
 
     // 执行测试
     boolean result = pluginVals.isPluginEqual(plugin).isEqual();
@@ -275,7 +269,10 @@ public class PluginInstanceCreateExecutorTest extends TestCase {
     assertFalse("插件属性不相等时应该返回false", result);
 
     // 验证 mock 对象调用
-    verify(plugin, descriptor, formProperties, propType1, propType2);
+    Mockito.verify(plugin, Mockito.atLeastOnce()).getDescriptor();
+    Mockito.verify(descriptor, Mockito.atLeastOnce()).getPluginFormPropertyTypes();
+    Mockito.verify(propType1, Mockito.atLeastOnce()).getFrontendOutput(plugin);
+    Mockito.verify(propType2, Mockito.atLeastOnce()).getFrontendOutput(plugin);
   }
 
   /**

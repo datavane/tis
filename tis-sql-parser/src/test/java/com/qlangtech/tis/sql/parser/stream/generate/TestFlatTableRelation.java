@@ -23,12 +23,15 @@ import com.qlangtech.tis.sql.parser.er.TableRelation;
 import com.qlangtech.tis.sql.parser.er.TestERRules;
 import java.util.Optional;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
 public class TestFlatTableRelation extends BasicTestCase {
 
+    @Test
     public void testGetFinalLinkKey() {
         ERRules totalpayErRules = TestERRules.getTotalpayErRules();
         Optional<TableRelation> orderdetailParentRelation = totalpayErRules.getFirstParent("orderdetail");

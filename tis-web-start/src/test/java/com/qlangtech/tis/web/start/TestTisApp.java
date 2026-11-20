@@ -17,7 +17,6 @@
  */
 package com.qlangtech.tis.web.start;
 
-import junit.framework.TestCase;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -25,12 +24,14 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-05-04 11:44
  */
-public class TestTisApp extends TestCase {
+public class TestTisApp {
 
+    @Test
     public void testLaunchAssemble() throws Exception {
         //
         // TisApp.setWebRootDir(new File("/Users/mozhenghua/j2ee_solution/project/tis-saturn2/tmp"));
@@ -40,6 +41,7 @@ public class TestTisApp extends TestCase {
         TisApp.main(args);
     }
 
+    @Test
     public void testGetResources() throws Exception {
         List<URL> urls = new ArrayList<>();
         File dir = new File("target/dependency");

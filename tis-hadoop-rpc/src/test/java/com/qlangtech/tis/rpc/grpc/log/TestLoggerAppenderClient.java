@@ -25,16 +25,16 @@ import com.qlangtech.tis.rpc.grpc.log.ILoggerAppenderClient.LogLevel;
 import com.qlangtech.tis.rpc.grpc.log.appender.LoggingEvent;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClientFactory;
-import junit.framework.TestCase;
-
 import java.util.Map;
 
+import org.junit.Test;
 /**
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/11/21
  */
-public class TestLoggerAppenderClient extends TestCase {
+public class TestLoggerAppenderClient {
 
+    @Test
     public void testAppendEvent() throws Exception {
         RpcServiceReference rpc = StatusRpcClientFactory.getService(ITISCoordinator.create());
 

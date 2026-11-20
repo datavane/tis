@@ -16,57 +16,24 @@
  * limitations under the License.
  */
 
-import com.qlangtech.tis.exec.TestActionInvocation;
-import com.qlangtech.tis.exec.datax.TestDataXExecuteInterceptor;
-import com.qlangtech.tis.exec.datax.TestDataXExecuteInterceptorForMethodBuildTaskTriggers;
-import com.qlangtech.tis.full.dump.TestDefaultChainContext;
-import com.qlangtech.tis.fullbuild.servlet.TestTisServlet;
-import com.qlangtech.tis.fullbuild.taskflow.TestReactor;
-import com.qlangtech.tis.log.TestRealtimeLoggerCollectorAppender;
-import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncherWithDataXTrigger;
-import com.qlangtech.tis.rpc.server.TestIncrStatusServer;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
-import com.qlangtech.tis.manage.servlet.TestIncrTagHeatBeatMonitor;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
+ * 该模块可离线运行的单元测试聚合套件(由测试验证脚本自动整理生成)。
+ * 依赖数据库/本地文件/内网服务/Testcontainers 的用例见 TEST_SKIP_REPORT.md。
  */
-
-
 @RunWith(Suite.class)
-@Suite.SuiteClasses(
-        {  TestIncrTagHeatBeatMonitor.class
-                ,TestDataXExecuteInterceptorForMethodBuildTaskTriggers.class
-                , TestDataXExecuteInterceptor.class
-                , TestRealtimeLoggerCollectorAppender.class
-                , TestIncrStatusServer.class
-                , TestDefaultChainContext.class
-                , TestTisServlet.class
-                , TestActionInvocation.class
-                , TestReactor.class
-                , TestIndexSwapTaskflowLauncherWithDataXTrigger.class})
-public class TestAll  //extends TestCase
-{
-    static {
-
-        System.setProperty("logback.configurationFile", "src/main/resources/logback-assemble.xml");
-    }
-
-//    public static Test suite() {
-//        TestSuite suite = new TestSuite();
-//        suite.addTestSuite();
-//        suite.addTestSuite();
-//        suite.addTestSuite();
-//        suite.addTestSuite();
-//      //  suite.addTestSuite(TestIndexSwapTaskflowLauncher.class);
-//       // suite.addTestSuite(TestIndexSwapTaskflowLauncherWithSingleTableIndexBuild.class);
-//        suite.addTestSuite();
-//        suite.addTestSuite();
-//        suite.addTestSuite();
-//        suite.addTestSuite();
-//        suite.addTestSuite();
-//        return suite;
-//    }
+@Suite.SuiteClasses({
+    com.qlangtech.tis.datax.TestDataXJobSubmit.class,
+    com.qlangtech.tis.flume.TestFlumeApplication.class,
+    com.qlangtech.tis.full.dump.TestClientIncrStatusUmbilicalProtocol.class,
+    com.qlangtech.tis.full.dump.TestStart.class,
+    com.qlangtech.tis.fullbuild.phasestatus.TestPhaseStatusCollection.class,
+    com.qlangtech.tis.fullbuild.servlet.TestTisServlet.class,
+    com.qlangtech.tis.fullbuild.taskflow.TestWorkflow.class,
+    com.qlangtech.tis.order.center.MockTest.class,
+    com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncher.class,
+})
+public class TestAll {
 }

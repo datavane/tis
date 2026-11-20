@@ -24,17 +24,16 @@ import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPostTrigger;
 import com.qlangtech.tis.fullbuild.indexbuild.IRemoteTaskPreviousTrigger;
 import com.qlangtech.tis.plugin.ds.DefaultTab;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
-import com.qlangtech.tis.test.TISEasyMock;
-import junit.framework.TestCase;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.util.Collections;
 
+import org.junit.Test;
 /**
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/11/12
  */
-public class TestSelectedTabTriggers extends TestCase implements TISEasyMock {
+public class TestSelectedTabTriggers {
 
 //    public void testDeserialize() {
 //        JSONObject dataXJobCfg = IOUtils.loadResourceFromClasspath(
@@ -62,17 +61,18 @@ public class TestSelectedTabTriggers extends TestCase implements TISEasyMock {
 
  //   }
 
+    @Test
     public void testSerialize() {
         String tableName = "payinfo";
         String dataXName = "mysql_aliyun_hive";
         ISelectedTab entry = new DefaultTab(tableName);
-        IDataxProcessor appSource = mock("appSource", IDataxProcessor.class);
-        EasyMock.expect(appSource.identityValue()).andReturn(dataXName);
+        IDataxProcessor appSource = Mockito.mock(IDataxProcessor.class, Mockito.withSettings().name("appSource"));
+        Mockito.when(appSource.identityValue()).thenReturn(dataXName);
 
-        IRemoteTaskPreviousTrigger preTrigger = mock("preTrigger", IRemoteTaskPreviousTrigger.class);
-        EasyMock.expect(preTrigger.getTaskName()).andReturn("prep_payinfo");
-        IRemoteTaskPostTrigger postTrigger = mock("postTrigger", IRemoteTaskPostTrigger.class);
-        EasyMock.expect(postTrigger.getTaskName()).andReturn("hive_payinfo_bind");
+        IRemoteTaskPreviousTrigger preTrigger = Mockito.mock(IRemoteTaskPreviousTrigger.class, Mockito.withSettings().name("preTrigger"));
+        Mockito.when(preTrigger.getTaskName()).thenReturn("prep_payinfo");
+        IRemoteTaskPostTrigger postTrigger = Mockito.mock(IRemoteTaskPostTrigger.class, Mockito.withSettings().name("postTrigger"));
+        Mockito.when(postTrigger.getTaskName()).thenReturn("hive_payinfo_bind");
         SelectedTabTriggers tabTriggers = new SelectedTabTriggers(entry, appSource);
         tabTriggers.setPreTrigger(preTrigger);
         tabTriggers.setPostTrigger(postTrigger);
@@ -92,15 +92,12 @@ public class TestSelectedTabTriggers extends TestCase implements TISEasyMock {
 
         tabTriggers.setSplitTabTriggers(Collections.singletonList(splitTabTrigger));
 
-        replay();
         //  System.out.println(JsonUtil.toString(tabTriggers.createMRParams()));
 
 //        JsonUtil.assertJSONEqual(TestSelectedTabTriggers.class, "datax-job-cfg-assert.json", tabTriggers.createMRParams()
 //                , (message, expected, actual) -> {
 //                    Assert.assertEquals(message, expected, actual);
 //                });
-
-        verifyAll();
     }
 
 }

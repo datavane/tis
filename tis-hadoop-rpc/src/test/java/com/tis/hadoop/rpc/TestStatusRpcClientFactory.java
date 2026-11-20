@@ -23,15 +23,15 @@ import com.qlangtech.tis.fullbuild.phasestatus.PhaseStatusCollection;
 import com.qlangtech.tis.realtime.yarn.rpc.PingResult;
 import com.tis.hadoop.rpc.StatusRpcClientFactory.AssembleSvcCompsite;
 import io.grpc.StatusRuntimeException;
-import junit.framework.TestCase;
-
 import static com.tis.hadoop.rpc.StatusRpcClientFactory.AssembleSvcCompsite.MOCK_PRC;
 
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-04-15 14:08
  **/
-public class TestStatusRpcClientFactory extends TestCase {
+public class TestStatusRpcClientFactory {
+    @Test
     public void testLoadPhaseStatusFromLatest() throws Exception {
         RpcServiceReference ref = StatusRpcClientFactory.getService(ITISCoordinator.create());
 

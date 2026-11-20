@@ -30,13 +30,11 @@ package scala.tools;
 //import java.util.List;
 //import java.util.Set;
 
-import junit.framework.TestCase;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestScalaCompilerSupport extends TestCase {
+public class TestScalaCompilerSupport {
 
 //    public void testStreamCodeCompile() throws Exception {
 //        // 测试增量脚本编译

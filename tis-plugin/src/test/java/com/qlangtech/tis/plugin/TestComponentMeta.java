@@ -27,7 +27,6 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.TestHeteroList;
 import edu.emory.mathcs.backport.java.util.Collections;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -37,6 +36,9 @@ import java.net.URL;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 //import com.qlangtech.tis.offline.IndexBuilderTriggerFactory;
 //import com.qlangtech.tis.offline.TableDumpFactory;
 
@@ -44,12 +46,10 @@ import java.util.Set;
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-04-25 11:09
  */
-public class TestComponentMeta extends TestCase {
+public class TestComponentMeta {
 
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
+    @Before public void setUp() throws Exception {
         CenterResource.setFetchFromCenterRepository(false);
         HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();//.clearStubs();
 
@@ -118,6 +118,7 @@ public class TestComponentMeta extends TestCase {
     /**
      * 通过 执行 synchronizePluginsPackageFromRemote 可以动态加载类
      */
+    @Test
     public void testSynchronizePluginsPackageFromRemote() {
         // 加载完成之后，本地class 要能够加载出来
         PluginManager pluginManager = TIS.get().getPluginManager();
@@ -150,6 +151,7 @@ public class TestComponentMeta extends TestCase {
     /**
      * Assemble节点启动执行
      */
+    @Test
     public void testAssembleComponent() {
 
         ComponentMeta assembleComponent = TIS.getAssembleComponent();
@@ -165,6 +167,7 @@ public class TestComponentMeta extends TestCase {
 //        assertNotNull("tableDumpFactory can not be null", tableDumpFactory.getPlugin());
     }
 
+    @Test
     public void testDumpAndIndexBuilderComponent() {
         ComponentMeta dumpAndIndexBuilderComponent = TIS.getDumpAndIndexBuilderComponent();
         dumpAndIndexBuilderComponent.synchronizePluginsFromRemoteRepository();

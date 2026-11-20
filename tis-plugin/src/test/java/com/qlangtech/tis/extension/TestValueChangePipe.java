@@ -21,13 +21,13 @@ package com.qlangtech.tis.extension;
 import com.qlangtech.tis.plugin.IdentityName;
 import com.qlangtech.tis.runtime.module.action.IParamGetter;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import junit.framework.TestCase;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * {@link ValueChangePipe} 的逐目标字段渲染语义。
  *
@@ -37,12 +37,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/10/4
  */
-public class TestValueChangePipe extends TestCase {
+public class TestValueChangePipe {
 
     /**
      * 目标字段去重且保持首次出现的顺序 —— 顺序影响前端请求的字段次序，去重影响
      * {@code Descriptor.valueChangePipe} 重复注册时的合并结果。
      */
+    @Test
     public void testAddToFieldsDedupesAndKeepsFirstSeenOrder() {
         ValueChangePipe pipe = new ValueChangePipe("src", "b", "c", "b", "a");
         assertEquals(Arrays.asList("b", "c", "a"), Arrays.asList(pipe.getToField()));
@@ -55,6 +56,7 @@ public class TestValueChangePipe extends TestCase {
      * 广播渲染对整个 pipe 只调用一次，各目标字段复用同一结果 —— 这是既有行为
      * （Gantt/Pivot/ChartPie/LinkReference 等依赖它），本次改动必须逐字保持不变。
      */
+    @Test
     public void testBroadcastRenderIsInvokedOnlyOnceForAllTargets() {
         AtomicInteger calls = new AtomicInteger();
         List<IdentityName> shared = List.of(IdentityName.create("x"), IdentityName.create("y"));
@@ -79,6 +81,7 @@ public class TestValueChangePipe extends TestCase {
      * 逐字段渲染覆盖广播结果 —— ObjectListWidget 的 titleProperty（属性选项）与
      * cardFields（列配置行）同源于 objectSetVar 却形态不同，正是靠这条语义共存。
      */
+    @Test
     public void testPerFieldRenderOverridesBroadcast() {
         AtomicInteger calls = new AtomicInteger();
         List<IdentityName> shared = List.of(IdentityName.create("shared"));
@@ -102,6 +105,7 @@ public class TestValueChangePipe extends TestCase {
     /**
      * 给未登记的目标字段挂渲染是死代码（前端只会请求 toField 里的键），构造期快速失败。
      */
+    @Test
     public void testRegisteringRenderForUnregisteredTargetFailsFast() {
         ValueChangePipe pipe = new ValueChangePipe("src", "f1");
         try {
@@ -116,6 +120,7 @@ public class TestValueChangePipe extends TestCase {
      * 既没有广播渲染也没有专属渲染时，渲染必须报错而不是给出空 map ——
      * 否则前端拿到的是一个永远不会联动的字段。
      */
+    @Test
     public void testPipeWithoutAnyRenderFailsFast() {
         ValueChangePipe pipe = new ValueChangePipe("src", "f1");
         try {
@@ -131,6 +136,7 @@ public class TestValueChangePipe extends TestCase {
      * 渲染结果为 null 必须被拒绝：调用方 {@code PluginAction} 用 {@code Collectors.toMap}
      * 汇总各字段结果，null value 会在那里抛 NPE，此处提前给出可读的错误。
      */
+    @Test
     public void testNullRenderResultIsRejected() {
         ValueChangePipe pipe = new ValueChangePipe("src", "f1").render((meta, param) -> null);
         try {

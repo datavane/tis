@@ -44,7 +44,7 @@
 //import com.qlangtech.tis.trigger.jst.ImportDataProcessInfo;
 //import junit.framework.AssertionFailedError;
 //import org.apache.commons.io.IOUtils;
-//import org.easymock.EasyMock;
+//import org.mockito.Mockito;
 //
 //import java.io.IOException;
 //import java.util.Collection;
@@ -101,7 +101,7 @@
 //        // final MockFlatTableBuilder flatTableBuilder = new MockFlatTableBuilder();
 //        TableDumpFactory tableDumpFactory = mock("tableDumpFactory", TableDumpFactory.class);
 //        // FlatTableBuilder flatTableBuilder
-//        // = EasyMock.createMock("flatTableBuilder", FlatTableBuilder.class);
+//        // = Mockito.mock(FlatTableBuilder.class, Mockito.withSettings().name("flatTableBuilder"));
 //        FileSystemFactory indexBuilderFileSystemFactory = mock("indexBuildFileSystem", FileSystemFactory.class);
 //        IndexBuilderTriggerFactory indexBuilderTriggerFactory = mock("indexBuilderTriggerFactory", IndexBuilderTriggerFactory.class);
 //        String fsRoot = "/user/admin";
@@ -114,12 +114,12 @@
 //
 //        IndexBuildSourcePathCreator indexBuildSourcePathCreator = mock("indexBuildSourcePathCreator", IndexBuildSourcePathCreator.class);
 //
-//        EasyMock.expect(indexBuildSourcePathCreator.build("0")).andReturn("0");
+//        Mockito.when(indexBuildSourcePathCreator.build("0")).thenReturn("0");
 //
-//        EasyMock.expect(indexBuilderTriggerFactory.createIndexBuildSourcePathCreator(chainContext, partition)).andReturn(indexBuildSourcePathCreator);
+//        Mockito.when(indexBuilderTriggerFactory.createIndexBuildSourcePathCreator(chainContext, partition)).thenReturn(indexBuildSourcePathCreator);
 //
-//        EasyMock.expect(indexBuilderTriggerFactory.getFileSystem()).andReturn(fileSystem).anyTimes();
-//        EasyMock.expect(indexBuilderFileSystemFactory.getFileSystem()).andReturn(fileSystem).anyTimes();
+//        Mockito.when(indexBuilderTriggerFactory.getFileSystem()).thenReturn(fileSystem);
+//        Mockito.when(indexBuilderFileSystemFactory.getFileSystem()).thenReturn(fileSystem);
 //
 //        SnapshotDomain domain = HttpConfigFileReader.getResource(SEARCH_APP_NAME, 0
 //                , RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLR);
@@ -129,16 +129,16 @@
 //                IRemoteJobTrigger builderTrigger = this.mock("indexbuild_" + groupNum, IRemoteJobTrigger.class);
 //                builderTrigger.submitJob();
 //                RunningStatus runStatus = RunningStatus.SUCCESS;
-//                EasyMock.expect(builderTrigger.getRunningStatus()).andReturn(runStatus);
-//                EasyMock.expect(indexBuilderTriggerFactory.createBuildJob(
-//                        chainContext, partitionTimestamp, SEARCH_APP_NAME, String.valueOf(groupNum), processInfo)).andReturn(builderTrigger);
+//                Mockito.when(builderTrigger.getRunningStatus()).thenReturn(runStatus);
+//                Mockito.when(indexBuilderTriggerFactory.createBuildJob(
+//                        chainContext, partitionTimestamp, SEARCH_APP_NAME, String.valueOf(groupNum), processInfo)).thenReturn(builderTrigger);
 //                expectSolrMetaOutput(fsRoot, "schema", ConfigFileReader.FILE_SCHEMA, fileSystem, domain, groupNum);
 //                expectSolrMetaOutput(fsRoot, "solrconfig", ConfigFileReader.FILE_SOLR, fileSystem, domain, groupNum);
 //            }
 //        }
-//        EasyMock.expect(fileSystem.getRootDir()).andReturn(fsRoot).anyTimes();
+//        Mockito.when(fileSystem.getRootDir()).thenReturn(fsRoot);
 //        if (!strategy.errorTest()) {
-//            // EasyMock.expect(tableDumpFactory.getJoinTableStorePath(EntityName.parse("tis.totalpay_summary"))).andReturn("xxxx");
+//            // Mockito.when(tableDumpFactory.getJoinTableStorePath(EntityName.parse("tis.totalpay_summary"))).thenReturn("xxxx");
 //        }
 //        ExecutePhaseRange execRange = chainContext.getExecutePhaseRange();
 //        if (execRange.contains(FullbuildPhase.FullDump)) {
@@ -194,16 +194,16 @@
 //        Map<String, String> params = Maps.newHashMap();
 //        params.put(ITableDumpConstant.DUMP_START_TIME, partitionTimestamp);
 //        TaskContext taskContext = TaskContext.create(params);
-//        EasyMock.expect(tableDumpFactory.createSingleTableDumpJob(table, taskContext)).andReturn(strategy.createRemoteJobTrigger(table));
+//        Mockito.when(tableDumpFactory.createSingleTableDumpJob(table, taskContext)).thenReturn(strategy.createRemoteJobTrigger(table));
 //    }
 //
 //    private void expectSolrMetaOutput(String fsRoot, String fileName, PropteryGetter getter, ITISFileSystem fileSystem, SnapshotDomain domain, int groupNum) throws IOException {
 //        IPath path = mock("group" + groupNum + "configschema", IPath.class);
 //        String p = fsRoot + "/" + SEARCH_APP_NAME + "-" + groupNum + "/config/" + fileName + ".xml";
 //        // System.out.println(p);
-//        EasyMock.expect(fileSystem.getPath(p)).andReturn(path).anyTimes();
+//        Mockito.when(fileSystem.getPath(p)).thenReturn(path);
 //        TISFSDataOutputStream schemaOutput = mock("group" + groupNum + "_config" + fileName + "OutputStream", TISFSDataOutputStream.class);
-//        EasyMock.expect(fileSystem.create(path, true)).andReturn(schemaOutput);
+//        Mockito.when(fileSystem.create(path, true)).thenReturn(schemaOutput);
 //        // IOUtils.write(ConfigFileReader.FILE_SCHEMA.getContent(domain), schemaOutput);
 //        IOUtils.write(getter.getContent(domain), schemaOutput);
 //        schemaOutput.close();

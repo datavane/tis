@@ -22,16 +22,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 // import org.apache.hadoop.ipc.RPC;
 import com.qlangtech.tis.realtime.yarn.rpc.IncrStatusUmbilicalProtocol;
 import com.qlangtech.tis.realtime.yarn.rpc.UpdateCounterMap;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2016年6月6日
  */
-public class TestClientIncrStatusUmbilicalProtocol extends TestCase {
+public class TestClientIncrStatusUmbilicalProtocol {
 
     private IncrStatusUmbilicalProtocol incrStatusUmbilicalProtocol;
 
+    @Test
     public void testClient() throws Exception {
         final AtomicInteger i = new AtomicInteger();
         final Runnable runnable = new Runnable() {

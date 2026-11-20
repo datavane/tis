@@ -29,18 +29,19 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
-import junit.framework.TestCase;
-
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestActionInvocation extends TestCase {
+public class TestActionInvocation {
 
     private static final AtomicInteger execCount = new AtomicInteger();
 
@@ -48,9 +49,7 @@ public class TestActionInvocation extends TestCase {
 
     private static final AtomicInteger backflowCount = new AtomicInteger();
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before public void setUp() throws Exception {
         System.clearProperty(Config.DEFAULT_DATA_DIR);
         Config.setDataDir(Config.DEFAULT_DATA_DIR);
         CenterResource.setNotFetchFromCenterRepository();
@@ -60,6 +59,7 @@ public class TestActionInvocation extends TestCase {
 //    private static final IExecuteInterceptor[] testworkflowBuild = new IExecuteInterceptor[]{ // new WorkflowTableJoinInterceptor(),
 //            new TestWorkflowDumpAndJoinInterceptor(execCount), new TestWorkflowIndexBuildInterceptor(buildCount), new TestIndexBackFlowInterceptor(backflowCount)};
 
+    @Test
     public void testGetWorkflowDetail() throws Exception {
         int workflowId = 1;
         long currentTime = 1;

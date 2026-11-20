@@ -34,9 +34,8 @@ import com.qlangtech.tis.sql.parser.meta.NodeType;
 import com.qlangtech.tis.sql.parser.meta.Position;
 import com.qlangtech.tis.sql.parser.supplyGoods.TestSupplyGoodsParse;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
-import junit.framework.Assert;
-import junit.framework.TestCase;
-import org.easymock.EasyMock;
+import org.junit.Assert;
+import org.mockito.Mockito;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.nodes.Tag;
 
@@ -46,15 +45,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestSqlTaskNodeMeta extends TestCase {
+public class TestSqlTaskNodeMeta {
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before public void setUp() throws Exception {
         CenterResource.setNotFetchFromCenterRepository();
         System.clearProperty(Config.KEY_DATA_DIR);
         SqlTaskNode.parent = new File(Config.getMetaCfgDir(), StoreResourceTypeConstants.NAME_DATAFLOW_DIR);
@@ -63,6 +63,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
     private final File parent = new File("./src/main/resources/totalpay");
 
 
+    @Test
     public void testValidateSql() {
 
         List<DependencyNode> dependencyNodes = Lists.newArrayList();
@@ -79,6 +80,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
     /**
      * dependencyNodes 集合中的表不在sql的FROM部分中，校验需要失败
      */
+    @Test
     public void testValidateSql2() {
 
         List<DependencyNode> dependencyNodes = Lists.newArrayList();
@@ -97,6 +99,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
         assertFalse(err.isPresent());
     }
 
+    @Test
     public void testGetColMetaGetterSql() throws Exception {
         SqlTaskNodeMeta taskNodeMeta = new SqlTaskNodeMeta();
         taskNodeMeta.setSql(TestSqlRewriter.getScriptContent("supply_goods_rewrite_origin.sql"));
@@ -112,18 +115,18 @@ public class TestSqlTaskNodeMeta extends TestCase {
     }
 
 
+    @Test
     public void testGetRewriteSqlUnusingJoin() throws Exception {
         SqlTaskNodeMeta taskNodeMeta = new SqlTaskNodeMeta();
 
         taskNodeMeta.setSql(TestSqlRewriter.getScriptContent("supply_goods_rewrite_unusing_join_origin.sql"));
         TabPartitions dumpPartition = createTabPartition();
 
-        IJoinTaskContext joinTaskContext = EasyMock.createMock("joinTaskContext", IJoinTaskContext.class);
-        EasyMock.expect(joinTaskContext.getExecutePhaseRange()).andReturn(ExecutePhaseRange.fullRange()).times(2);
-        EasyMock.expect(joinTaskContext.getIndexShardCount()).andReturn(1).times(1);
+        IJoinTaskContext joinTaskContext = Mockito.mock(IJoinTaskContext.class, Mockito.withSettings().name("joinTaskContext"));
+        Mockito.when(joinTaskContext.getExecutePhaseRange()).thenReturn(ExecutePhaseRange.fullRange());
+        Mockito.when(joinTaskContext.getIndexShardCount()).thenReturn(1);
         Optional<ERRules> erRule = ERRules.getErRule(TestSupplyGoodsParse.topologyName);
         assertTrue(erRule.isPresent());
-        EasyMock.replay(joinTaskContext);
 
         ISqlTask.RewriteSql rewriteSql = taskNodeMeta.getRewriteSql(
                 "supply_goods", dumpPartition, IPartionableWarehouse.createForNoWriterForTableName(), () -> erRule.get(), joinTaskContext, true);
@@ -131,22 +134,23 @@ public class TestSqlTaskNodeMeta extends TestCase {
         assertNotNull(rewriteSql);
         assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_unusing_join_result.sql"), rewriteSql.rewriteSql);
         System.out.println(rewriteSql.rewriteSql);
-        EasyMock.verify(joinTaskContext);
+        Mockito.verify(joinTaskContext, Mockito.times(2)).getExecutePhaseRange();
+        Mockito.verify(joinTaskContext).getIndexShardCount();
     }
 
 
+    @Test
     public void testGetRewriteSql() throws Exception {
         SqlTaskNodeMeta taskNodeMeta = new SqlTaskNodeMeta();
 
         taskNodeMeta.setSql(TestSqlRewriter.getScriptContent("supply_goods_rewrite_origin.sql"));
         TabPartitions dumpPartition = createTabPartition();
 
-        IJoinTaskContext joinTaskContext = EasyMock.createMock("joinTaskContext", IJoinTaskContext.class);
-        EasyMock.expect(joinTaskContext.getExecutePhaseRange()).andReturn(ExecutePhaseRange.fullRange()).times(2);
-        EasyMock.expect(joinTaskContext.getIndexShardCount()).andReturn(1).times(1);
+        IJoinTaskContext joinTaskContext = Mockito.mock(IJoinTaskContext.class, Mockito.withSettings().name("joinTaskContext"));
+        Mockito.when(joinTaskContext.getExecutePhaseRange()).thenReturn(ExecutePhaseRange.fullRange());
+        Mockito.when(joinTaskContext.getIndexShardCount()).thenReturn(1);
         Optional<ERRules> erRule = ERRules.getErRule(TestSupplyGoodsParse.topologyName);
         assertTrue(erRule.isPresent());
-        EasyMock.replay(joinTaskContext);
 
         ISqlTask.RewriteSql rewriteSql = taskNodeMeta.getRewriteSql(
                 "supply_goods", dumpPartition, IPartionableWarehouse.createForNoWriterForTableName(), () -> erRule.get(), joinTaskContext, true);
@@ -154,7 +158,8 @@ public class TestSqlTaskNodeMeta extends TestCase {
         assertNotNull(rewriteSql);
         assertEquals(TestSqlRewriter.getScriptContent("supply_goods_rewrite_result.txt"), rewriteSql.rewriteSql);
         System.out.println(rewriteSql.rewriteSql);
-        EasyMock.verify(joinTaskContext);
+        Mockito.verify(joinTaskContext, Mockito.times(2)).getExecutePhaseRange();
+        Mockito.verify(joinTaskContext).getIndexShardCount();
     }
 
     private TabPartitions createTabPartition() {
@@ -172,6 +177,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
         return new TabPartitions(dumpPartition); // dumpPartition;
     }
 
+    @Test
     public void testBigTextSerialize() {
         MySqlContent content = new MySqlContent();
         content.setContent(SqlTaskNodeMeta.processBigContent(TestSqlRewriter.getScriptContent("totalpay_summary_assert.txt")));
@@ -286,6 +292,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
         assertEquals(expect.parseNodeType(), actual.parseNodeType());
     }
 
+    @Test
     public void testDescrialize() throws Exception {
         File f = new File(parent, "card_expense_relative.yaml");
         SqlTaskNodeMeta sqlNodeMeta = SqlTaskNodeMeta.deserializeTaskNode(f);
@@ -309,6 +316,7 @@ public class TestSqlTaskNodeMeta extends TestCase {
 
     File tmp_group_specialfee = new File(parent, "tmp_group_specialfee.yaml");
 
+    @Test
     public void testTmpGroupSpecialfee() throws Exception {
         SqlTaskNodeMeta sqlNodeMeta = SqlTaskNodeMeta.deserializeTaskNode(tmp_group_specialfee);
         Assert.assertNotNull(sqlNodeMeta);

@@ -30,7 +30,6 @@ import com.qlangtech.tis.mcp.TISHttpMcpServer;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.realtime.yarn.rpc.IncrRateControllerCfgDTO;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
-import junit.framework.TestCase;
 import org.apache.struts2.ActionContext;
 
 import java.util.HashMap;
@@ -40,18 +39,18 @@ import static com.qlangtech.tis.mcp.tools.pipeline.CreatePipelinePrepareTool.KEY
 import static com.qlangtech.tis.mcp.tools.pipeline.CreatePipelinePrepareTool.KEY_TARGET_END;
 import static com.qlangtech.tis.runtime.module.action.SysInitializeAction.getClassPathXmlApplicationContext;
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
+import org.mockito.Mockito;
 /**
  * CreatePipelinePrepareTool.execHandle() 单元测试
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/4/4
  */
-public class TestCreatePipelinePrepareTool extends TestCase {
+public class TestCreatePipelinePrepareTool {
 
   static {
     ActionContext.bind(ActionContext.of());
@@ -61,9 +60,7 @@ public class TestCreatePipelinePrepareTool extends TestCase {
   private TISHttpMcpServer mcpServer;
   private CreatePipelinePrepareTool tool;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Before public void setUp() throws Exception {
     mcpServer = new TISHttpMcpServer();
     tool = new CreatePipelinePrepareTool(mcpServer);
   }
@@ -72,9 +69,8 @@ public class TestCreatePipelinePrepareTool extends TestCase {
    * 创建一个 mock 的 McpSyncServerExchange
    */
   private McpSyncServerExchange createMockExchange() {
-    McpSyncServerExchange exchange = createMock(McpSyncServerExchange.class);
-    expect(exchange.sessionId()).andReturn("test-session").anyTimes();
-    replay(exchange);
+    McpSyncServerExchange exchange = Mockito.mock(McpSyncServerExchange.class);
+    Mockito.when(exchange.sessionId()).thenReturn("test-session");
     return exchange;
   }
 
@@ -85,6 +81,7 @@ public class TestCreatePipelinePrepareTool extends TestCase {
    * 3. 验证返回结果成功
    * 4. 验证 pipeline process 实例已缓存到 MCP session 中
    */
+  @Test
   public void testExecHandle() throws Exception {
     McpSyncServerExchange exchange = createMockExchange();
 
@@ -125,7 +122,7 @@ public class TestCreatePipelinePrepareTool extends TestCase {
     Describable cachedProcess = session.get(CreatePipelinePrepareTool.KEY_SESSION_PIPELINE_PROCESS);
     assertNotNull("pipeline process should be cached in MCP session", cachedProcess);
 
-    verify(exchange);
+    Mockito.verify(exchange, Mockito.atLeastOnce()).sessionId();
   }
 
   private McpAgentContext createAgentContext(McpSyncServerExchange exchange) {

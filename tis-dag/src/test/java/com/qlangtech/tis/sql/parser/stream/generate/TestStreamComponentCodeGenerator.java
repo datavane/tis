@@ -28,7 +28,7 @@ import com.qlangtech.tis.sql.parser.er.ERRules;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +36,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
@@ -69,18 +71,17 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
 //        List<FacadeContext> facadeList = Lists.newArrayList();
 //        StreamComponentCodeGenerator streamCodeGenerator
 //                = new StreamComponentCodeGenerator(collectionName, timestamp, facadeList, (IStreamIncrGenerateStrategy) appSource, true);
-//        //EasyMock.replay(streamIncrGenerateStrategy);
 //        streamCodeGenerator.build();
 //
 //        assertGenerateContentEqual(timestamp, collectionName, "S4employee4localListener.scala");
-//        // EasyMock.verify(streamIncrGenerateStrategy);
 //    }
+    @Test
     public void testGeneratorCode() throws Exception {
         long timestamp = 20191111115959l;
         String collectionName = "search4totalpay";
         SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology("totalpay");
         assertNotNull(topology);
-        IStreamIncrGenerateStrategy streamIncrGenerateStrategy = EasyMock.createMock("streamIncrGenerateStrategy", IStreamIncrGenerateStrategy.class);
+        IStreamIncrGenerateStrategy streamIncrGenerateStrategy = Mockito.mock(IStreamIncrGenerateStrategy.class, Mockito.withSettings().name("streamIncrGenerateStrategy"));
         FacadeContext fc = new FacadeContext();
         fc.setFacadeInstanceName("order2DAOFacade");
         fc.setFullFacadeClassName("com.qlangtech.tis.realtime.order.dao.IOrder2DAOFacade");
@@ -90,16 +91,15 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
         StreamComponentCodeGenerator streamCodeGenerator
                 = new StreamComponentCodeGenerator(
                 DataXName.createDataXPipeline("search4totalpay"), timestamp, facadeList, streamIncrGenerateStrategy);
-        EasyMock.replay(streamIncrGenerateStrategy);
         streamCodeGenerator.build();
 
         assertGenerateContentEqual(timestamp, collectionName, "S4totalpayListener.scala");
-        EasyMock.verify(streamIncrGenerateStrategy);
     }
 
+    @Test
     public void testGeneratorSearch4totalpay5Code() throws Exception {
         long timestamp = 20200928183209l;
-        IStreamIncrGenerateStrategy streamIncrGenerateStrategy = EasyMock.createMock("streamIncrGenerateStrategy", IStreamIncrGenerateStrategy.class);
+        IStreamIncrGenerateStrategy streamIncrGenerateStrategy = Mockito.mock(IStreamIncrGenerateStrategy.class, Mockito.withSettings().name("streamIncrGenerateStrategy"));
         DataXName collectionName = DataXName.createDataXPipeline("search4totalpay5");
         SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology("totalpay2");
         FacadeContext fc = new FacadeContext();
@@ -109,10 +109,8 @@ public class TestStreamComponentCodeGenerator extends BasicTestCase {
         List<FacadeContext> facadeList = Lists.newArrayList();
         facadeList.add(fc);
         StreamComponentCodeGenerator streamCodeGenerator = new StreamComponentCodeGenerator(collectionName, timestamp, facadeList, streamIncrGenerateStrategy);
-        EasyMock.replay(streamIncrGenerateStrategy);
         streamCodeGenerator.build();
         assertGenerateContentEqual(timestamp, collectionName.getPipelineName(), "S4totalpay5Listener.scala");
-        EasyMock.verify(streamIncrGenerateStrategy);
 
     }
 

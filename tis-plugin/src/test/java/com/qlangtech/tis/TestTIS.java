@@ -24,7 +24,6 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.util.PluginMeta;
-import junit.framework.TestCase;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -32,28 +31,32 @@ import java.net.URL;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestTIS extends TestCase {
+public class TestTIS {
 
     private static final String collection = "search4totalpay";
 
-    @Override
-    public void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         CenterResource.setNotFetchFromCenterRepository();
         HttpUtils.addMockGlobalParametersConfig();
 //        Config.setDataDir("./");
 //        TIS.clean();
     }
 
+    @Test
     public void testGetDisplayName() {
         Descriptor descriptor = TIS.get().getDescriptor("com.qlangtech.tis.plugins.incr.flink.cdc.mysql.startup.EarliestStartupOptions");
         Assert.assertNotNull(descriptor);
         descriptor.getDisplayName();
     }
 
+    @Test
     public void testLoadClass() throws Exception {
 
         //  String clazz = "org.apache.flink.calcite.shaded.org.codehaus.commons.compiler.CompileException";
@@ -63,6 +66,7 @@ public class TestTIS extends TestCase {
         System.out.println(aClass);
     }
 
+    @Test
     public void testReadPluginInfo() throws Exception {
         final String collectionRelativePath = StoreResourceTypeConstants.KEY_TIS_PLUGIN_CONFIG + "/" + collection;
         List<String> subFiles = CenterResource.getSubFiles(collectionRelativePath, false, true);

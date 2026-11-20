@@ -28,24 +28,25 @@ import com.qlangtech.tis.extension.impl.ClassicPluginStrategy;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import junit.framework.TestCase;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-11 20:33
  */
-public class TestHeteroList extends TestCase {
+public class TestHeteroList {
 
     public static final String DATAX_INSTANCE_NAME = "baisuitestTestcase";
 
-    @Override
-    public void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
 
         Config.setDataDir(Config.DEFAULT_DATA_DIR);
         TIS.clean();
@@ -77,6 +78,7 @@ public class TestHeteroList extends TestCase {
         field.set(null, newValue);
     }
 
+    @Test
     public void testSubFormFieldToJson() throws Exception {
 
         HeteroEnum dataxReader = HeteroEnum.DATAX_READER;
@@ -84,13 +86,11 @@ public class TestHeteroList extends TestCase {
                 + "_MySQL," + SubFormFilter.PLUGIN_META_SUB_FORM_FIELD + "_selectedTabs," + StoreResourceType.DATAX_NAME + "_" + DATAX_INSTANCE_NAME;
 
         UploadPluginMeta meta = UploadPluginMeta.parse(pluginMeta);
-        IPluginContext pluginContext = EasyMock.createMock("pluginContext", IPluginContext.class);
-//        EasyMock.expect(pluginContext.isCollectionAware()).andReturn(false);
-//        EasyMock.expect(pluginContext.isDataSourceAware()).andReturn(false);
-        EasyMock.expect(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).andReturn("/x/" + DATAX_INSTANCE_NAME + "/update").times(2);
+        IPluginContext pluginContext = Mockito.mock(IPluginContext.class, Mockito.withSettings().name("pluginContext"));
+//        Mockito.when(pluginContext.isCollectionAware()).thenReturn(false);
+//        Mockito.when(pluginContext.isDataSourceAware()).thenReturn(false);
+        Mockito.when(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).thenReturn("/x/" + DATAX_INSTANCE_NAME + "/update");
 
-
-        EasyMock.replay(pluginContext);
         HeteroList<?> hlist = meta.getHeteroList(pluginContext);
 
         JSONObject j = hlist.toJSON();
@@ -103,6 +103,6 @@ public class TestHeteroList extends TestCase {
                 });
 
 
-        EasyMock.verify(pluginContext);
+        Mockito.verify(pluginContext, Mockito.times(2)).getRequestHeader(DataxReader.HEAD_KEY_REFERER);
     }
 }

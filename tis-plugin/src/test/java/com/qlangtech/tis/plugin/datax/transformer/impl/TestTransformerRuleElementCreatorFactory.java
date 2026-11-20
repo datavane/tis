@@ -26,22 +26,21 @@ import com.qlangtech.tis.extension.impl.IOUtils;
 import com.qlangtech.tis.plugin.datax.transformer.RecordTransformer;
 import com.qlangtech.tis.plugin.ds.CMeta.ParsePostMCols;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
-import junit.framework.TestCase;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
-public class TestTransformerRuleElementCreatorFactory extends TestCase {
+import org.junit.Test;
+public class TestTransformerRuleElementCreatorFactory {
 
+    @Test
     public void testParsePostMCols() {
         TransformerRuleElementCreatorFactory creatorFactory = new TransformerRuleElementCreatorFactory();
         IPropertyType propertyType = null;
-        IControlMsgHandler msgHandler = EasyMock.createMock("msgHandler", IControlMsgHandler.class);
-        Context context = EasyMock.createMock("context", Context.class);
+        IControlMsgHandler msgHandler = Mockito.mock(IControlMsgHandler.class, Mockito.withSettings().name("msgHandler"));
+        Context context = Mockito.mock(Context.class, Mockito.withSettings().name("context"));
         String keyColsMeta = "colsMeta";
         JSONArray jsonArray
                 = JSONArray.parseArray(
                 IOUtils.loadResourceFromClasspath(TransformerRuleElementCreatorFactory.class, "transformer-rule-sample.json"));
-        EasyMock.replay(msgHandler, context);
-
         ParsePostMCols<RecordTransformer> postResult
                 = creatorFactory.parsePostMCols(propertyType, msgHandler, context, keyColsMeta, jsonArray);
 
@@ -64,7 +63,6 @@ public class TestTransformerRuleElementCreatorFactory extends TestCase {
             Assert.assertEquals("new_add_field", udf.to.getName());
         }
 
-        EasyMock.verify(msgHandler, context);
     }
 
 }

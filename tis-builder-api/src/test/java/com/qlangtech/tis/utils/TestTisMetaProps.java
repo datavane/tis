@@ -18,17 +18,18 @@
 
 package com.qlangtech.tis.utils;
 
-import junit.framework.TestCase;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-11-25 20:38
  **/
-public class TestTisMetaProps extends TestCase {
+public class TestTisMetaProps {
 
+    @Test
     public void testGetInstance() {
         TisMetaProps i = TisMetaProps.getInstance();
         //  i.getVersion();

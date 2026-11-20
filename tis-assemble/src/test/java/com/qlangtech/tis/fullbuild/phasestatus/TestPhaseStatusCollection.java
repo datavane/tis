@@ -24,13 +24,13 @@ import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.BasicPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus.TableDumpStatus;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-04-16 09:58
  **/
-public class TestPhaseStatusCollection extends TestCase {
+public class TestPhaseStatusCollection {
+    @Test
     public void testISComplete() {
         Integer taskId = 999;
 

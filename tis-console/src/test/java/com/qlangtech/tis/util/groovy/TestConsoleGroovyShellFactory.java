@@ -21,10 +21,10 @@ package com.qlangtech.tis.util.groovy;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.util.GroovyShellFactory;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
-import junit.framework.TestCase;
+import org.junit.Test;
+public class TestConsoleGroovyShellFactory {
 
-public class TestConsoleGroovyShellFactory extends TestCase {
-
+  @Test
   public void testGetInstance() {
     GroovyShellFactory groovyShellFactory = GroovyShellUtil.getGroovyShellFactory();
     Assert.assertEquals(true, groovyShellFactory.isInConsoleModule());

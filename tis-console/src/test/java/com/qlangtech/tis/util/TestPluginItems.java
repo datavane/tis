@@ -37,26 +37,27 @@ import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.PluginStubUtils;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.*;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestPluginItems extends TestCase {
+public class TestPluginItems {
   static final String dataXName = "kk";
   static final UploadPluginMeta subFieldPluginMeta = UploadPluginMeta.parse("dataxReader:require,subFormFieldName_selectedTabs,targetDescriptorName_MySQL,dataxName_" + dataXName);
 
   KeyedPluginStore<DataxReader> readerStore;
 
 
-  @Override
-  public void setUp() throws Exception {
+  @Before public void setUp() throws Exception {
 
     PluginStubUtils.setDataDir(Config.DEFAULT_DATA_DIR);
     CenterResource.setNotFetchFromCenterRepository();
@@ -71,6 +72,7 @@ public class TestPluginItems extends TestCase {
     FileUtils.deleteQuietly(parentDir);
   }
 
+  @Test
   public void testDataXItemsSave() throws Exception {
     validateRootFormSave();
     validateSubFormSave();
@@ -131,13 +133,12 @@ public class TestPluginItems extends TestCase {
   }
 
   private void validateSubField2Json() throws Exception {
-    IPluginContext pluginContext = EasyMock.createMock("pluginContext", IPluginContext.class);
-    // EasyMock.expect(pluginContext.isDataSourceAware()).andReturn(false);
-    EasyMock.expect(pluginContext.isCollectionAware()).andReturn(false).anyTimes();
-    EasyMock.expect(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).andReturn("/x/" + dataXName + "/config").times(2);
+    IPluginContext pluginContext = Mockito.mock(IPluginContext.class, Mockito.withSettings().name("pluginContext"));
+    // Mockito.when(pluginContext.isDataSourceAware()).thenReturn(false);
+    Mockito.when(pluginContext.isCollectionAware()).thenReturn(false);
+    Mockito.when(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).thenReturn("/x/" + dataXName + "/config");
 
 
-    EasyMock.replay(pluginContext);
     HeteroList<?> heteroList = subFieldPluginMeta.getHeteroList(pluginContext);
     JSONObject pluginDesc = heteroList.toJSON();
 
@@ -146,7 +147,7 @@ public class TestPluginItems extends TestCase {
       assertEquals(m, e, a);
     });
 
-    EasyMock.verify(pluginContext);
+    Mockito.verify(pluginContext, Mockito.times(2)).getRequestHeader(DataxReader.HEAD_KEY_REFERER);
   }
 
   private void validatePropertyValue(Map<String, IPropertyType> propertiesType, String key, Object value, DataxReader reader) {
@@ -157,18 +158,18 @@ public class TestPluginItems extends TestCase {
   }
 
   private void validateSubFormSave() {
-    IPluginContext pluginContext = EasyMock.createMock("pluginContext", IPluginContext.class);
+    IPluginContext pluginContext = Mockito.mock(IPluginContext.class, Mockito.withSettings().name("pluginContext"));
 
-    EasyMock.expect(pluginContext.isDataSourceAware()).andReturn(false);
-    EasyMock.expect(pluginContext.isCollectionAware()).andReturn(false).anyTimes();
-    EasyMock.expect(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).andReturn("/x/" + dataXName + "/config").times(2);
-    Context context = EasyMock.createMock("context", Context.class);
+    Mockito.when(pluginContext.isDataSourceAware()).thenReturn(false);
+    Mockito.when(pluginContext.isCollectionAware()).thenReturn(false);
+    Mockito.when(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).thenReturn("/x/" + dataXName + "/config");
+    Context context = Mockito.mock(Context.class, Mockito.withSettings().name("context"));
     //targetDescriptorName_MySQL,subFormFieldName_selectedTabs
 
     Optional<SubFormFilter> subFormFilter = subFieldPluginMeta.getSubFormFilter();
     assertTrue("subFormFilter.isPresent():true", subFormFilter.isPresent());
     PluginItems pluginItems = new PluginItems(pluginContext, context, subFieldPluginMeta);
-    IControlMsgHandler fieldErrorHandler = EasyMock.createMock("fieldErrorHandler", IControlMsgHandler.class);
+    IControlMsgHandler fieldErrorHandler = Mockito.mock(IControlMsgHandler.class, Mockito.withSettings().name("fieldErrorHandler"));
 
     JSONArray jsonArray = IOUtils.loadResourceFromClasspath(TestPluginItems.class
       , "datax_reader_mysql_post_subfield_form.json", true, (input) -> {
@@ -180,25 +181,25 @@ public class TestPluginItems extends TestCase {
     List<AttrValMap> items = AttrValMap.describableAttrValMapList(itemsArray, subFormFilter);
     pluginItems.items = items;
 
-    EasyMock.replay(pluginContext, context, fieldErrorHandler);
     pluginItems.save(context);
 
 
-    EasyMock.verify(pluginContext, context, fieldErrorHandler);
+    Mockito.verify(pluginContext).isDataSourceAware();
+    Mockito.verify(pluginContext, Mockito.times(2)).getRequestHeader(DataxReader.HEAD_KEY_REFERER);
   }
 
   private void validateRootFormSave() {
 
-    IPluginContext pluginContext = EasyMock.createMock("pluginContext", IPluginContext.class);
-    EasyMock.expect(pluginContext.isDataSourceAware()).andReturn(false);
-    EasyMock.expect(pluginContext.isCollectionAware()).andReturn(false).anyTimes();
-    EasyMock.expect(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).andReturn("/x/" + dataXName + "/config").anyTimes();
-    Context context = EasyMock.createMock("context", Context.class);
+    IPluginContext pluginContext = Mockito.mock(IPluginContext.class, Mockito.withSettings().name("pluginContext"));
+    Mockito.when(pluginContext.isDataSourceAware()).thenReturn(false);
+    Mockito.when(pluginContext.isCollectionAware()).thenReturn(false);
+    Mockito.when(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).thenReturn("/x/" + dataXName + "/config");
+    Context context = Mockito.mock(Context.class, Mockito.withSettings().name("context"));
     //targetDescriptorName_MySQL,subFormFieldName_selectedTabs
     UploadPluginMeta pluginMeta = UploadPluginMeta.parse("dataxReader:require,dataxName_" + dataXName);
 
     PluginItems pluginItems = new PluginItems(pluginContext, context, pluginMeta);
-    IControlMsgHandler fieldErrorHandler = EasyMock.createMock("fieldErrorHandler", IControlMsgHandler.class);
+    IControlMsgHandler fieldErrorHandler = Mockito.mock(IControlMsgHandler.class, Mockito.withSettings().name("fieldErrorHandler"));
 
     JSONArray jsonArray = IOUtils.loadResourceFromClasspath(TestPluginItems.class, "datax_reader_mysql_post.json", true, (input) -> {
       return JSON.parseArray(org.apache.commons.io.IOUtils.toString(input, TisUTF8.get()));
@@ -210,10 +211,9 @@ public class TestPluginItems extends TestCase {
     List<AttrValMap> items = AttrValMap.describableAttrValMapList(itemsArray, subFormFilter);
     pluginItems.items = items;
 
-    EasyMock.replay(pluginContext, context, fieldErrorHandler);
     pluginItems.save(context);
 
 
-    EasyMock.verify(pluginContext, context, fieldErrorHandler);
+    Mockito.verify(pluginContext).isDataSourceAware();
   }
 }

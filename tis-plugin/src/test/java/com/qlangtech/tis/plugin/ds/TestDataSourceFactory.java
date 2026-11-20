@@ -19,18 +19,18 @@
 package com.qlangtech.tis.plugin.ds;
 
 import com.qlangtech.tis.common.utils.Assert;
-import junit.framework.TestCase;
-
 import java.util.Optional;
 
+import org.junit.Test;
 /**
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/11/15
  */
-public class TestDataSourceFactory extends TestCase {
+public class TestDataSourceFactory {
 
 
+    @Test
     public void testSchemaSupported_getCDCTableTokens() {
         // 模拟mysql8
         Optional<DataSourceFactory.ISchemaSupported> schemaSupport = Optional.of(new DataSourceFactory.ISchemaSupported() {

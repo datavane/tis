@@ -20,16 +20,18 @@ package com.qlangtech.tis.rpc.grpc.log.stream;
 import com.google.protobuf.util.JsonFormat;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.rpc.grpc.log.common.TableDumpStatus;
-import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 import java.io.InputStream;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-05-12 11:19
  */
-public class TestPhaseStatusCollection extends TestCase {
+public class TestPhaseStatusCollection {
 
+    @Test
     public void testJsonFormat() throws Exception {
         JsonFormat.Printer jsonPrint = JsonFormat.printer();
         PDumpPhaseStatus.Builder dumpState = PDumpPhaseStatus.newBuilder();

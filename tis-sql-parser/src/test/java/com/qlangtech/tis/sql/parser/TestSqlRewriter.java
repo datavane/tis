@@ -37,14 +37,13 @@ import com.qlangtech.tis.sql.parser.er.IPrimaryTabFinder;
 import com.qlangtech.tis.sql.parser.er.TableMeta;
 import com.qlangtech.tis.sql.parser.meta.DependencyNode;
 import com.qlangtech.tis.sql.parser.meta.NodeType;
-import junit.framework.Assert;
-import junit.framework.TestCase;
+import org.junit.Assert;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.io.InputStream;
 import java.util.Collections;
@@ -53,11 +52,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2019年8月27日
  */
-public class TestSqlRewriter extends TestCase {
+public class TestSqlRewriter {
     static {
         CenterResource.setNotFetchFromCenterRepository();
     }
@@ -121,6 +122,7 @@ public class TestSqlRewriter extends TestCase {
         // tabFieldProcessorMap = totalpayERRules.getTabFieldProcessors().stream().collect(Collectors.toMap((r) -> r.tabName, (r) -> r));
     }
 
+    @Test
     public void testTmp_pay() {
         final String tmpPay = "tmp_pay";
         SqlTaskNodeMeta nodeMeta = getSqlTaskNodeMeta(tmpPay);
@@ -128,6 +130,7 @@ public class TestSqlRewriter extends TestCase {
         assertFull(tmpPay, nodeMeta, taskContext, nodeMeta.getSql());
     }
 
+    @Test
     public void testOrder_instance() {
         final String order_instance = "order_instance";
         SqlTaskNodeMeta nodeMeta = getSqlTaskNodeMeta(order_instance);
@@ -137,6 +140,7 @@ public class TestSqlRewriter extends TestCase {
 
     final String totalpaySummary = "totalpay_summary";
 
+    @Test
     public void testTotalpaySummaryRewrite() {
 
         SqlTaskNodeMeta nodeMeta = getSqlTaskNodeMeta(totalpaySummary);
@@ -153,18 +157,18 @@ public class TestSqlRewriter extends TestCase {
     /**
      * 执行索引全量构建过程中，测试ERRule没有定义主表，会导致final表的分区函数无法正常创建，需要主动抛出一个异常
      */
+    @Test
     public void testTotalpaySummaryRewriteByWithoutDefinePrimaryTable() {
 
         TestJoinTaskContext taskContext = new TestJoinTaskContext(ExecutePhaseRange.fullRange());
         SqlTaskNodeMeta nodeMeta = getSqlTaskNodeMeta(totalpaySummary);
-//        ERRules erRules = EasyMock.createMock("erRules", ERRules.class);
-//        EasyMock.expect(erRules.getTabFieldProcessorMap()).andReturn(Collections.emptyMap());
-//        EasyMock.expect(erRules.getPrimaryTab(totalpayinfo))
-//                .andReturn(Optional.empty()/** 没有定义主表*/).anyTimes();
+//        ERRules erRules = Mockito.mock(ERRules.class, Mockito.withSettings().name("erRules"));
+//        Mockito.when(erRules.getTabFieldProcessorMap()).thenReturn(Collections.emptyMap());
+//        Mockito.when(erRules.getPrimaryTab(totalpayinfo))
+//                .thenReturn(Optional.empty()/** 没有定义主表*/);
 
         ERRules erRules = createMockErRules(null);
 
-        EasyMock.replay(erRules);
         Exception occurException = null;
         try {
             assertFull(totalpaySummary, true, nodeMeta, taskContext, erRules, nodeMeta.getSql());
@@ -174,17 +178,18 @@ public class TestSqlRewriter extends TestCase {
         }
         assertNotNull("must throw an error", occurException);
         assertEquals(SqlRewriter.ERROR_WithoutDefinePrimaryTableShareKey, ExceptionUtils.getRootCause(occurException).getMessage());
-        EasyMock.verify(erRules);
+        Mockito.verify(erRules).getTabFieldProcessorMap();
+        Mockito.verify(erRules).getPrimaryTab(totalpayinfo);
     }
 
     /**
      * 执行索引全量构建过程中，测试ERRule没有定义主表的<b>shareKey</b>，会导致final表的分区函数无法正常创建，需要主动抛出一个异常
      */
+    @Test
     public void testTotalpaySummaryRewriteByWithoutDefinePrimaryTableShareKey() {
         TestJoinTaskContext taskContext = new TestJoinTaskContext(ExecutePhaseRange.fullRange());
         SqlTaskNodeMeta nodeMeta = getSqlTaskNodeMeta(totalpaySummary);
         ERRules erRules = createMockErRules(new TableMeta(totalpayinfo.getTableName(), null));
-        EasyMock.replay(erRules);
         Exception occurException = null;
         try {
             assertFull(totalpaySummary, true, nodeMeta, taskContext, erRules, nodeMeta.getSql());
@@ -194,17 +199,19 @@ public class TestSqlRewriter extends TestCase {
         }
         assertNotNull("must throw an error", occurException);
         assertEquals(SqlRewriter.ERROR_WithoutDefinePrimaryTableShareKey, ExceptionUtils.getRootCause(occurException).getMessage());
-        EasyMock.verify(erRules);
+        Mockito.verify(erRules).getTabFieldProcessorMap();
+        Mockito.verify(erRules).getPrimaryTab(totalpayinfo);
     }
 
     public static ERRules createMockErRules(TableMeta totalpayMeta) {
-        ERRules erRules = EasyMock.createMock("erRules", ERRules.class);
-        EasyMock.expect(erRules.getTabFieldProcessorMap()).andReturn(Collections.emptyMap());
-        EasyMock.expect(erRules.getPrimaryTab(totalpayinfo))
-                .andReturn(Optional.ofNullable(totalpayMeta)/** 没有定义主表*/).times(1);
+        ERRules erRules = Mockito.mock(ERRules.class, Mockito.withSettings().name("erRules"));
+        Mockito.when(erRules.getTabFieldProcessorMap()).thenReturn(Collections.emptyMap());
+        Mockito.when(erRules.getPrimaryTab(totalpayinfo))
+                .thenReturn(Optional.ofNullable(totalpayMeta)/** 没有定义主表*/);
         return erRules;
     }
 
+    @Test
     public void testRewriteTable() throws Exception {
         TestJoinTaskContext taskContext = new TestJoinTaskContext();
         // taskContext

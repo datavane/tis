@@ -18,14 +18,14 @@
 package com.qlangtech.tis.offline.module.manager.impl;
 
 import com.qlangtech.tis.plugin.ds.ColumnMetaData;
-import junit.framework.TestCase;
 import java.util.List;
 
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2017年9月12日
  */
-public class OfflineManagerTest extends TestCase {
+public class OfflineManagerTest {
 
     // @Override
     // protected void runTest() throws Throwable {
@@ -34,8 +34,7 @@ public class OfflineManagerTest extends TestCase {
     // }
     private OfflineManager offline;
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         this.offline = new OfflineManager();
     // super.setUp();
     }

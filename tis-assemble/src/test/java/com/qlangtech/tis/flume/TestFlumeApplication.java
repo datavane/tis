@@ -17,14 +17,15 @@
  */
 package com.qlangtech.tis.flume;
 
-import junit.framework.TestCase;
 
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-20 09:31
  */
-public class TestFlumeApplication extends TestCase {
+public class TestFlumeApplication {
 
+    @Test
     public void testStartFlume() {
       //  FlumeApplication.startFlume();
     }

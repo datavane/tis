@@ -18,11 +18,9 @@
 
 package com.qlangtech.tis.config.kerberos;
 
-import junit.framework.TestCase;
-
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-07-04 13:50
  **/
-public class TestKrb5Res extends TestCase {
+public class TestKrb5Res {
 }

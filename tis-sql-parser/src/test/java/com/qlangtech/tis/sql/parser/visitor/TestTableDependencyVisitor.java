@@ -23,14 +23,14 @@ import com.qlangtech.tis.sql.parser.SqlTaskNode;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.facebook.presto.sql.tree.Query;
 import com.qlangtech.tis.common.utils.Assert;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestTableDependencyVisitor extends TestCase {
+public class TestTableDependencyVisitor {
 
+    @Test
     public void testDependencies() throws Exception {
         List<SqlTaskNode> taskNodes = SqlTaskNodeMeta.getSqlDataFlowTopology("totalpay").parseTaskNodes();
         String order_customers = "order_customers";

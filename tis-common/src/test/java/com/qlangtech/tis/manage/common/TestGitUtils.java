@@ -19,18 +19,19 @@ package com.qlangtech.tis.manage.common;
 
 import com.qlangtech.tis.git.GitUtils;
 import com.qlangtech.tis.offline.pojo.TISDb;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestGitUtils extends TestCase {
+public class TestGitUtils {
 
     static final String tmpDir = "/tmp/tis";
 
@@ -50,6 +51,7 @@ public class TestGitUtils extends TestCase {
 
     private static final GitUtils GIT_UTILS = GitUtils.$();
 
+    @Test
     public void testGetFacadeDBConfig() {
 //        DBConfig orderCfg = GIT_UTILS.getDbLinkMetaData("order", DbScope.FACADE);
 //        assertNotNull("orderCfg can not be null", orderCfg);
@@ -109,6 +111,7 @@ public class TestGitUtils extends TestCase {
 //        assertEquals(6, httpApplyCount.get());
 //    }
 
+    @Test
     public void testListDbConfigPath() {
         List<String> subDirs = GitUtils.$().listDbConfigPath("order");
         assertTrue(subDirs.size() > 0);
@@ -121,6 +124,7 @@ public class TestGitUtils extends TestCase {
 //        // System.out.println(table.getSelectSql());
 //    }
 
+    @Test
     public void testDataSourceConfig() throws Exception {
 //        DBConfig dbConfig = GIT_UTILS.getDbLinkMetaData("order", DbScope.DETAILED);
 //        Assert.assertTrue(dbConfig.getDbEnum().size() > 0);
@@ -134,6 +138,7 @@ public class TestGitUtils extends TestCase {
 //        }
     }
 
+    @Test
     public void testCreateDatabaseDaily() throws Exception {
         TISDb db = new TISDb();
         db.setPassword("123456");
@@ -174,50 +179,61 @@ public class TestGitUtils extends TestCase {
     // public void testGetTotalpay_instanceJoiner() throws Exception {
     // GIT_UTILS.getWorkflow(wfName, branch);
     // }
+    @Test
     public void testDelete() throws Exception {
         // GitUtils.$().deleteWorkflow("test");
     }
 
+    @Test
     public void testGetFile() throws Exception {
         // System.out.println(GIT_UTILS.isFileExisted(GitUtils.DATASOURCE_PROJECT_ID,
         // "dmall/db_config"));
     }
 
+    @Test
     public void testCreateFile() throws Exception {
         // GIT_UTILS.createDatasourceFileOnline("dmall/db_config", "hello", "add
         // dmall");
     }
 
+    @Test
     public void testDeleteDb() throws Exception {
         // GIT_UTILS.deleteDb("dmall6");
     }
 
+    @Test
     public void testCreateBranch() throws Exception {
         // GIT_UTILS.createWorkflowBarnch("hello1");
     }
 
+    @Test
     public void testDeleteBranch() throws Exception {
         // GIT_UTILS.deleteWorkflowBranch("test1");
     }
 
+    @Test
     public void testCreateMergeRequest() throws Exception {
         // GIT_UTILS.createMergeRequest(
         // GitUtils.WORKFLOW_GIT_PROJECT_ID, "test1", "master", "merge test1");
     }
 
+    @Test
     public void testAcceptMergeRequest() throws Exception {
         // GIT_UTILS.acceptMergeRequest(GitUtils.WORKFLOW_GIT_PROJECT_ID, 19808, "merge
         // from test1");
     }
 
+    @Test
     public void testMergeWorkflowChange() throws Exception {
         // GIT_UTILS.mergeWorkflowChange("test2");
     }
 
+    @Test
     public void testCloseMergeRequest() throws Exception {
         // GIT_UTILS.closeMergeRequest(GitUtils.WORKFLOW_GIT_PROJECT_ID, 20238);
     }
 
+    @Test
     public void testRawFileJson() throws Exception {
         // System.out.println(GIT_UTILS.getRawFileJSON(GitUtils.WORKFLOW_GIT_PROJECT_ID,
         // "00d6f466b8d3525b7ca0b9b8a5ff0516fa8802c3", "test1"));

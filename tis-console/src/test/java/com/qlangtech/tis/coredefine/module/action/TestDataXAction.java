@@ -28,6 +28,8 @@ import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.struts2.action.Action;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-12-26 09:28
@@ -39,6 +41,7 @@ public class TestDataXAction extends BasicActionTestCase {
    *
    * @throws Exception
    */
+  @Test
   public void testDoLaunchDataxWorker() throws Exception {
 
     request.setParameter("event_submit_do_launch_datax_worker", "y");

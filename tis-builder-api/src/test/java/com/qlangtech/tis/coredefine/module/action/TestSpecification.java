@@ -18,17 +18,19 @@
 
 package com.qlangtech.tis.coredefine.module.action;
 
-import junit.framework.TestCase;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Optional;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-04-13 12:56
  **/
-public class TestSpecification extends TestCase {
+public class TestSpecification {
 
+    @Test
     public void testNormalizeMemory() {
         Specification mem = Specification.parse("1.5G");
         assertEquals("G", mem.getUnit());

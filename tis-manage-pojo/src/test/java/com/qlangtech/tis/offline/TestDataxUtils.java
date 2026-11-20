@@ -19,14 +19,14 @@
 package com.qlangtech.tis.offline;
 
 import com.qlangtech.tis.common.utils.Assert;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-03-11 16:36
  **/
-public class TestDataxUtils extends TestCase {
+public class TestDataxUtils {
 
+    @Test
     public void testCurrentTimeStamp() {
         System.clearProperty(DataxUtils.EXEC_TIMESTAMP);
         long currentTimeStamp = DataxUtils.currentTimeStamp();

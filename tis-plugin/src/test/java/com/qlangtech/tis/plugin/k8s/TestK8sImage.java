@@ -20,14 +20,14 @@ package com.qlangtech.tis.plugin.k8s;
 
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.plugin.IPluginStore;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/12/17
  */
-public class TestK8sImage extends TestCase {
+public class TestK8sImage {
 
+    @Test
     public void testGetPluginStore() {
         IPluginStore pluginStore = K8sImage.ImageCategory.DEFAULT_POWERJOB_DESC_NAME.getPluginStore();
         Assert.assertNotNull(pluginStore);

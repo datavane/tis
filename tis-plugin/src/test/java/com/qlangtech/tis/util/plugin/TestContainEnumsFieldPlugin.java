@@ -22,8 +22,8 @@ import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DefaultDescriptorsJSON;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.plugin.impl.EnumProp2;
-import junit.framework.TestCase;
-
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * plugin 中包括 Describle 类型的枚举，运行时需要对其进行过滤
  *
@@ -31,9 +31,10 @@ import junit.framework.TestCase;
  * @create: 2022-09-16 08:27
  * @see // PluginExtraProps.KEY_ENUM_FILTER
  **/
-public class TestContainEnumsFieldPlugin extends TestCase {
+public class TestContainEnumsFieldPlugin {
 
 
+    @Test
     public void testEnumsFields() {
         ContainEnumsFieldPlugin enumsFieldContainPlugin = new ContainEnumsFieldPlugin();
         DefaultDescriptorsJSON descJson = new DefaultDescriptorsJSON(enumsFieldContainPlugin.getDescriptor());

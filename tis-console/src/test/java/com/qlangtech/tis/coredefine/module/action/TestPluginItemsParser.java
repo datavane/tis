@@ -36,6 +36,7 @@ import com.qlangtech.tis.util.UploadPluginMeta;
 
 import java.util.List;
 
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-07-20 10:46
@@ -45,6 +46,7 @@ public class TestPluginItemsParser extends BasicPluginAction {
   /**
    * 测试clone 一个已有的pipeline通道时，设置新的通道名称存在重复时需要会报告错误信息
    */
+  @Test
   public void testParsePluginItemsWhenCloneAPipelineWithNewDuplicatedName() {
 
     this.initializeRequest();

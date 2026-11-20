@@ -20,19 +20,20 @@ package com.qlangtech.tis.realtime.s4totalpay;
 
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
-import junit.framework.TestCase;
-
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-08-21 15:24
  **/
-public class TestS4Totalpay extends TestCase {
+public class TestS4Totalpay {
 
+    @Test
     public void testStubSchemaXStream() throws Exception {
         HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();
         S4Totalpay.stubSchemaXStream();

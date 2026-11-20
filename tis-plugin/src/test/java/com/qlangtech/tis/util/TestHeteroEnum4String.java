@@ -18,12 +18,10 @@
 
 package com.qlangtech.tis.util;
 
-import junit.framework.TestCase;
-
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-07-31 18:02
  **/
-public class TestHeteroEnum4String extends TestCase {
+public class TestHeteroEnum4String {
 
 }

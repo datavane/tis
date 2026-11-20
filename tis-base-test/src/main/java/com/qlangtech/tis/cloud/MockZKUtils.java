@@ -23,8 +23,7 @@ import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.solrj.util.ZkUtils;
 import com.qlangtech.tis.test.EasyMockUtil;
 import org.apache.commons.io.IOUtils;
-import org.easymock.EasyMock;
-import org.easymock.IExpectationSetters;
+import org.mockito.Mockito;
 
 import java.io.InputStream;
 import java.util.List;
@@ -37,15 +36,14 @@ public class MockZKUtils {
 
     public static ITISCoordinator createZkMock() throws Exception {
         ITISCoordinator zkCoordinator = EasyMockUtil.mock("zkCoordinator", ITISCoordinator.class);
-        EasyMock.expect(zkCoordinator.shallConnect2RemoteIncrStatusServer()).andReturn(false).anyTimes();
-        EasyMock.expect(zkCoordinator.unwrap()).andReturn(zkCoordinator).anyTimes();
+        Mockito.when(zkCoordinator.shallConnect2RemoteIncrStatusServer()).thenReturn(false);
+        Mockito.when(zkCoordinator.unwrap()).thenReturn(zkCoordinator);
         createAssembleLogCollectPathMock(zkCoordinator);
 
         try (InputStream input = MockZKUtils.class.getResourceAsStream("overseer_elect_leader.json")) {
             Assert.assertNotNull(input);
-            IExpectationSetters<byte[]> expect = EasyMock.expect(
-                    zkCoordinator.getData(ZkUtils.ZK_PATH_OVERSEER_ELECT_LEADER, true));
-            expect.andReturn(IOUtils.toByteArray(input)).anyTimes();
+            Mockito.when(zkCoordinator.getData(ZkUtils.ZK_PATH_OVERSEER_ELECT_LEADER, true))
+                    .thenReturn(IOUtils.toByteArray(input));
         }
 
         return zkCoordinator;
@@ -59,9 +57,9 @@ public class MockZKUtils {
         String childPath = "nodes0000000361";
         String childPathContent = "192.168.28.200:38293";
         List<String> incrStatecollectList = Lists.newArrayList(childPath);
-        EasyMock.expect(zkCoordinator.getChildren(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, true)).andReturn(incrStatecollectList).anyTimes();
-        EasyMock.expect(zkCoordinator.getData(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH + "/" + childPath, true))
-                .andReturn(childPathContent.getBytes(TisUTF8.get())).anyTimes();
+        Mockito.when(zkCoordinator.getChildren(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH, true)).thenReturn(incrStatecollectList);
+        Mockito.when(zkCoordinator.getData(ZkUtils.ZK_ASSEMBLE_LOG_COLLECT_PATH + "/" + childPath, true))
+                .thenReturn(childPathContent.getBytes(TisUTF8.get()));
     }
 
 }

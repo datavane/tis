@@ -23,14 +23,14 @@ import com.qlangtech.tis.fullbuild.taskflow.impl.EndTask;
 import com.qlangtech.tis.fullbuild.taskflow.impl.ForkTask;
 import com.qlangtech.tis.fullbuild.taskflow.impl.StartTask;
 import com.google.common.collect.Maps;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2017年12月1日
  */
-public class TestWorkflow extends TestCase {
+public class TestWorkflow {
 
+    @Test
     public void testWorkflow() {
         TaskWorkflow workflow = new TaskWorkflow();
         StartTask start = new StartTask();

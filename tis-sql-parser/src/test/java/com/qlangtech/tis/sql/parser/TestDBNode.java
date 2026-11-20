@@ -18,18 +18,20 @@
 package com.qlangtech.tis.sql.parser;
 
 import com.google.common.collect.Lists;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestDBNode extends TestCase {
+public class TestDBNode {
 
+    @Test
     public void testLoadAndDump() throws Exception {
         List<DBNode> nodes = Lists.newArrayList();
         String dbname = "baisuidbName";

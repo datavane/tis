@@ -20,22 +20,18 @@ import com.qlangtech.tis.datax.impl.TestDataxProcessor;
 import com.qlangtech.tis.sql.parser.stream.generate.TestS4EmployeeStreamComponentCodeGenerator;
 import com.qlangtech.tis.sql.parser.stream.generate.TestStreamComponentCodeGenerator;
 import com.qlangtech.tis.sql.parser.stream.generate.TestTikvEmployee;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestAll_bak extends TestCase {
-
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-        suite.addTestSuite(TestS4EmployeeStreamComponentCodeGenerator.class);
-        suite.addTestSuite(TestStreamComponentCodeGenerator.class);
-        suite.addTestSuite(TestTikvEmployee.class);
-        suite.addTestSuite(TestDataxProcessor.class);
-        return suite;
-    }
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+    TestS4EmployeeStreamComponentCodeGenerator.class,
+    TestStreamComponentCodeGenerator.class,
+    TestTikvEmployee.class,
+    TestDataxProcessor.class,
+})
+public class TestAll_bak {
 }

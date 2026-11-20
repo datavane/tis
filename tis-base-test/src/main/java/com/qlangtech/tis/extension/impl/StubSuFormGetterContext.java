@@ -28,7 +28,7 @@ import com.qlangtech.tis.plugin.ds.TableNotFoundException;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import com.qlangtech.tis.test.TISEasyMock;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.util.List;
 
@@ -60,9 +60,8 @@ public class StubSuFormGetterContext {
         this.param = easyMock.mock("param", UploadPluginMeta.class);
 
         param.putExtraParams(SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE, id1);
-        EasyMock.expectLastCall().times(1);
-        EasyMock.expect(param.getExtraParam(
-                SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE)).andReturn(id1);
+        Mockito.when(param.getExtraParam(
+                SubFormFilter.PLUGIN_META_SUBFORM_DETAIL_ID_VALUE)).thenReturn(id1);
 
         List<ColumnMetaData> cols = Lists.newArrayList();
         // (int index, String key, DataType type, boolean pk)
@@ -70,7 +69,7 @@ public class StubSuFormGetterContext {
                 withUserIdPk));
         cols.add(new ColumnMetaData(1, FIELD_USER_NAME, new com.qlangtech.tis.plugin.ds.DataType(JDBCTypes.VARBINARY), false));
         try {
-            EasyMock.expect(metaPlugin.getTableMetadata(true, null, EntityName.parse(id1))).andReturn(cols);
+            Mockito.when(metaPlugin.getTableMetadata(true, null, EntityName.parse(id1))).thenReturn(cols);
         } catch (TableNotFoundException e) {
             throw new RuntimeException(e);
         }

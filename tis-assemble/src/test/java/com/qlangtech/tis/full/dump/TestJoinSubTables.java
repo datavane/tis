@@ -18,13 +18,11 @@
 package com.qlangtech.tis.full.dump;
 
 // import java.io.InputStream;
-import junit.framework.TestCase;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestJoinSubTables extends TestCase {
+public class TestJoinSubTables {
     // public void testStart() throws Exception {
     //
     // // 执行打宽表

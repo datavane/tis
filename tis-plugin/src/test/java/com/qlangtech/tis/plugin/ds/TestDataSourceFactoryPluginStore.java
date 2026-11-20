@@ -24,6 +24,8 @@ import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 
 import java.util.List;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-04-25 11:09
@@ -34,6 +36,7 @@ public class TestDataSourceFactoryPluginStore extends BasicTestCase {
     private static final String DB_EMPLOYEE_NAME = "employees";
     private static final String TABLE_NAME = "totalpayinfo";
 
+    @Test
     public void testLoadTableMeta() throws Exception {
         DataSourceFactory dbPluginStore = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(DB_NAME)));
         //dbPluginStore.getPlugin()
@@ -45,6 +48,7 @@ public class TestDataSourceFactoryPluginStore extends BasicTestCase {
     }
 
 
+    @Test
     public void testLoadFacadeTableMeta() throws Exception {
         DataSourceFactory employeesPluginStore
                 = TIS.getDataBasePlugin(new PostedDSProp(DBIdentity.parseId(DB_EMPLOYEE_NAME), DbScope.FACADE));

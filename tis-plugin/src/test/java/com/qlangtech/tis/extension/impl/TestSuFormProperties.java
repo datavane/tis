@@ -40,10 +40,9 @@ import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.*;
-import junit.framework.TestCase;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -53,11 +52,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
+import org.junit.After;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-02-01 10:40
  **/
-public class TestSuFormProperties extends TestCase {
+public class TestSuFormProperties {
     String dataXName = "testDataXName";
     String pluginName = "test_plugin";
     File writerDescFile;
@@ -66,19 +69,16 @@ public class TestSuFormProperties extends TestCase {
 
     final UploadPluginMeta pluginMeta = UploadPluginMeta.parse(meta);
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
+    @Before public void setUp() throws Exception {
         this.writerDescFile = IDataxProcessor.getWriterDescFile(null, dataXName);
         FileUtils.write(writerDescFile, RewriteSuFormPropertiesPlugin.class.getName(), TisUTF8.get(), false);
     }
 
-    @Override
-    public void tearDown() throws Exception {
-        super.tearDown();
+    @After public void tearDown() throws Exception {
         FileUtils.deleteQuietly(writerDescFile);
     }
 
+    @Test
     public void testSubformDetailedClick() throws Exception {
         buildSourceExtendSelectedTestEnvironment((pluginContext, pluginMeta, subReader, extendTabProps, tabId) -> {
             HeteroList<?> heteroList = pluginMeta.getHeteroList(pluginContext);
@@ -90,6 +90,7 @@ public class TestSuFormProperties extends TestCase {
         });
     }
 
+    @Test
     public void testGetPluginFormPropertyTypesWithIncrSourceExtendSelected() throws Exception {
 
 
@@ -128,11 +129,10 @@ public class TestSuFormProperties extends TestCase {
             System.out.println(JsonUtil.toString(heteroList.toJSON()));
         });
 
-//        IPluginContext pluginContext = EasyMock.mock("pluginContext", IPluginContext.class);
-//        EasyMock.expect(pluginContext.isCollectionAware()).andReturn(true).anyTimes();
-//        EasyMock.expect(pluginContext.getCollectionName()).andReturn(dataXName).anyTimes();
-//        EasyMock.expect(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).andReturn("").anyTimes();
-//        EasyMock.replay(pluginContext);
+//        IPluginContext pluginContext = Mockito.mock(IPluginContext.class, Mockito.withSettings().name("pluginContext"));
+//        Mockito.when(pluginContext.isCollectionAware()).thenReturn(true);
+//        Mockito.when(pluginContext.getCollectionName()).thenReturn(dataXName);
+//        Mockito.when(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).thenReturn("");
 //
 //        IPluginStore pluginStore = HeteroEnum.MQ.getPluginStore(pluginContext, null);
 //        TestMQListenerFactory mqFactory = new TestMQListenerFactory();
@@ -213,7 +213,6 @@ public class TestSuFormProperties extends TestCase {
 //        heteroList = pluginMeta.getHeteroList(pluginContext);
 //        System.out.println(JsonUtil.toString(heteroList.toJSON()));
 //
-//        EasyMock.verify(pluginContext);
     }
 
     interface IStartSourceExtendSelectedTestEnvironment {
@@ -236,12 +235,11 @@ public class TestSuFormProperties extends TestCase {
     }
 
     private void buildSourceExtendSelectedTestEnvironment(IStartSourceExtendSelectedTestEnvironment tester) throws Exception {
-        IPluginContext pluginContext = EasyMock.mock("pluginContext", IPluginContext.class);
-        EasyMock.expect(pluginContext.isCollectionAware()).andReturn(true).anyTimes();
+        IPluginContext pluginContext = Mockito.mock(IPluginContext.class, Mockito.withSettings().name("pluginContext"));
+        Mockito.when(pluginContext.isCollectionAware()).thenReturn(true);
         DataXName dataX = DataXName.createDataXPipeline(dataXName);
-        EasyMock.expect(pluginContext.getCollectionName()).andReturn(dataX).anyTimes();
-        EasyMock.expect(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).andReturn("").anyTimes();
-        EasyMock.replay(pluginContext);
+        Mockito.when(pluginContext.getCollectionName()).thenReturn(dataX);
+        Mockito.when(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).thenReturn("");
 
         IPluginStore pluginStore = HeteroEnum.MQ.getPluginStore(pluginContext, null);
         TestMQListenerFactory mqFactory = new TestMQListenerFactory();
@@ -315,11 +313,10 @@ public class TestSuFormProperties extends TestCase {
 //        Assert.assertEquals(1, heteroList.getDescriptors().size());
 //        System.out.println(JsonUtil.toString(heteroList.toJSON()));
 
-
-        EasyMock.verify(pluginContext);
     }
 
 
+    @Test
     public void testVisitSubForm() {
         SubFieldContainPlugin plugin = new SubFieldContainPlugin();
 

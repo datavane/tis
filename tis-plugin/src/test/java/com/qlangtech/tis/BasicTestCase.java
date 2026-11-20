@@ -21,12 +21,10 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.util.TestHeteroList;
-import junit.framework.TestCase;
+import org.junit.Before;
+public class BasicTestCase {
 
-public class BasicTestCase extends TestCase {
-
-    @Override
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         Config.setDataDir(Config.DEFAULT_DATA_DIR);
         TestHeteroList.setTISField();
         CenterResource.setNotFetchFromCenterRepository();

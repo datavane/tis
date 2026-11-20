@@ -19,13 +19,11 @@ package com.qlangtech.tis.sql.parser.stream.generate;
 
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.HttpUtils;
-import junit.framework.TestCase;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-06 12:27
  */
-public abstract class BasicTestCase extends TestCase {
+public abstract class BasicTestCase {
     static {
         CenterResource.setNotFetchFromCenterRepository();
         HttpUtils.addMockGlobalParametersConfig();

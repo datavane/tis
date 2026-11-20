@@ -17,14 +17,15 @@
  */
 package com.qlangtech.tis.coredefine.module.action;
 
-import junit.framework.TestCase;
 
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestLoopQueue extends TestCase {
+public class TestLoopQueue {
 
+    @Test
     public void testQueue() {
         String[] buffer = new String[100];
         LoopQueue<String> queue = new LoopQueue<>(buffer);

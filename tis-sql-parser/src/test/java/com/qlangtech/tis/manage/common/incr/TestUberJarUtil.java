@@ -20,16 +20,16 @@ package com.qlangtech.tis.manage.common.incr;
 
 import com.qlangtech.tis.coredefine.module.action.TargetResName;
 import com.qlangtech.tis.manage.common.incr.StreamContextConstant.TISRes;
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
+import org.junit.Assert;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-01-08 18:30
  **/
-public class TestUberJarUtil extends TestCase {
+public class TestUberJarUtil {
 
 
+    @Test
     public void testGetStreamUberJarFile() {
         TargetResName resName = new TargetResName("mysql_mysql4");
         TISRes streamUberJarFile = UberJarUtil.getStreamUberJarFile(resName);

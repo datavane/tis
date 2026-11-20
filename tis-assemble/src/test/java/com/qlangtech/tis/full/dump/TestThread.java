@@ -24,13 +24,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import junit.framework.TestCase;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2016年7月13日
  */
-public class TestThread extends TestCase {
+public class TestThread {
 
     private static ExecutorService service;
 

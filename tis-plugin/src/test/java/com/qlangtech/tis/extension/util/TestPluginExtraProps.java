@@ -40,8 +40,6 @@ import com.qlangtech.tis.util.HeteroEnum;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PartialSettedPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import junit.framework.TestCase;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -51,13 +49,15 @@ import java.util.function.BiConsumer;
 
 import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_CREATOR_ASSIST_TYPE;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  *
  */
-public class TestPluginExtraProps extends TestCase {
+public class TestPluginExtraProps {
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         PartialSettedPluginContext context = new PartialSettedPluginContext();
         context.setLoginUser(() -> Config.ADMIN_NAME);
         IPluginContext.setPluginContext(context);
@@ -69,6 +69,7 @@ public class TestPluginExtraProps extends TestCase {
      * 再经 {@link PluginExtraProps.Props#createFieldRefCreateor(JSONObject)} 正向解析，
      * 字段应与原 creator 一致
      */
+    @Test
     public void testSetRefCreateorRoundtrip() {
         final String hetero = HeteroEnum.PARAMS_CONFIG_USER_ISOLATION.getIdentity();
 
@@ -118,6 +119,7 @@ public class TestPluginExtraProps extends TestCase {
      * {@code getTargetItemDesc()}（回退 displayName），append 缺省经解析归一为 true 后反写显式 true，
      * 两者二次解析后均与首趟解析收敛一致。
      */
+    @Test
     public void testCreatorForwardBackwardConsistency() {
         JSONObject propsJson = JSON.parseObject("{"
                 + "\"creator\":{\"label\":\"管理\","
@@ -189,6 +191,7 @@ public class TestPluginExtraProps extends TestCase {
     }
 
 
+    @Test
     public void testLode() throws Exception {
         Optional<PluginExtraProps> ep = PluginExtraProps.load(TestPluginExtraProps.class);
         assertNotNull(ep);
@@ -224,6 +227,7 @@ public class TestPluginExtraProps extends TestCase {
     //        }
     //    }
 
+    @Test
     public void testCreatorWithMerge() throws Exception {
         Optional<PluginExtraProps> ep = PluginExtraProps.load(WithCreatorErrorOk.class);
         assertTrue(ep.isPresent());
@@ -261,6 +265,7 @@ public class TestPluginExtraProps extends TestCase {
 
     }
 
+    @Test
     public void testAddFieldDescriptor() {
 
         DefaultPlugin plugin = new DefaultPlugin();
@@ -282,6 +287,7 @@ public class TestPluginExtraProps extends TestCase {
 
     }
 
+    @Test
     public void testAddFieldDescriptorWithNotMatchFieldName() {
         try {
             DefaultPlugin plugin = new DefaultPlugin();
@@ -299,6 +305,7 @@ public class TestPluginExtraProps extends TestCase {
     /**
      * 测试 CandidatePlugin.createNewPrimaryFieldValue 方法
      */
+    @Test
     public void testCreateNewPrimaryFieldValue() {
         // 测试用例1：空的选项列表
         PluginExtraProps.CandidatePlugin candidate = new PluginExtraProps.CandidatePlugin("MySQLReader",
@@ -336,6 +343,7 @@ public class TestPluginExtraProps extends TestCase {
     /**
      * 测试不同插件名称的 createNewPrimaryFieldValue 方法
      */
+    @Test
     public void testCreateNewPrimaryFieldValueWithDifferentNames() {
         // 测试复合名称的插件
         PluginExtraProps.CandidatePlugin esCandidate = new PluginExtraProps.CandidatePlugin("ElasticSearchWriter",
@@ -367,6 +375,7 @@ public class TestPluginExtraProps extends TestCase {
     /**
      * 测试边界情况
      */
+    @Test
     public void testCreateNewPrimaryFieldValueEdgeCases() {
         PluginExtraProps.CandidatePlugin candidate = new PluginExtraProps.CandidatePlugin("TestPlugin",
                 Optional.empty(), "test");

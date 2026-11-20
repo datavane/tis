@@ -23,16 +23,16 @@ import com.facebook.presto.sql.SqlFormatter;
 import com.facebook.presto.sql.parser.ParsingOptions;
 import com.facebook.presto.sql.parser.SqlParser;
 import com.facebook.presto.sql.tree.Expression;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestPrestoSqlFormat extends TestCase {
+public class TestPrestoSqlFormat {
 
     private final SqlParser sqlParser = new SqlParser();
 
+    @Test
     public void testRawSqlrewrite() {
         Optional<List<Expression>> parameters = Optional.empty();
         String rewriteSql = SqlFormatter.formatSql(sqlParser.createStatement(TestSqlRewriter.getScriptContent("order_customers.txt"), new ParsingOptions()), parameters);

@@ -23,14 +23,14 @@ import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.assemble.TriggerType;
 import com.qlangtech.tis.exec.ExecutePhaseRange;
 import com.qlangtech.tis.exec.IExecChainContext.NewTaskParam;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2017年7月3日
  */
-public class TestTask extends TestCase {
+public class TestTask {
 
+    @Test
     public void testCreateTask() {
         NewTaskParam newTaskParam = new NewTaskParam();
         // newTaskParam.setBuildHistoryId(taskId);

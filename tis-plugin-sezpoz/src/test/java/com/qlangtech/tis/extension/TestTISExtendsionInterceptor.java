@@ -18,13 +18,15 @@
 
 package com.qlangtech.tis.extension;
 
-import junit.framework.TestCase;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-12-20 13:15
  **/
-public class TestTISExtendsionInterceptor extends TestCase {
+public class TestTISExtendsionInterceptor {
+    @Test
     public void testParseExtendPoint() {
         final String rawExtendpoint = "com.qlangtech.tis.plugin.datax.common.AutoCreateTable<com.qlangtech.tis.plugin.datax.CreateTableSqlBuilder.ColWrapper>";
         final String expectExtendpoint = "com.qlangtech.tis.plugin.datax.common.AutoCreateTable";

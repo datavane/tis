@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 import com.qlangtech.tis.manage.common.*;
 import com.qlangtech.tis.order.dump.task.ITestDumpCommon;
 import com.qlangtech.tis.test.TISEasyMock;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -37,21 +36,23 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-15 13:43
  */
-public class TestTopologyDir extends TestCase implements ITestDumpCommon, TISEasyMock {
+public class TestTopologyDir implements ITestDumpCommon, TISEasyMock {
     private static File testDataDir;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before public void setUp() throws Exception {
         System.clearProperty(Config.KEY_DATA_DIR);
         Config.setTestDataDir();
         CenterResource.setFetchFromCenterRepository(false);
     }
 
+    @Test
     public void testSynchronizeSubRemoteRes() throws Exception {
 
         final long lastUpdate = System.currentTimeMillis();

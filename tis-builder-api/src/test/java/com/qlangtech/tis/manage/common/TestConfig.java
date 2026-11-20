@@ -18,15 +18,16 @@
 
 package com.qlangtech.tis.manage.common;
 
-import junit.framework.TestCase;
 import org.junit.Assert;
 
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-08-07 18:19
  **/
-public class TestConfig extends TestCase {
+public class TestConfig {
 
+    @Test
     public void testGetAssembleHost() {
         Assert.assertEquals("127.0.0.1", Config.getAssembleHost());
     }

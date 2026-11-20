@@ -27,7 +27,6 @@ import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.util.PluginMeta;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -35,24 +34,27 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-05-03 09:04
  */
-public class TestPluginStore extends TestCase {
+public class TestPluginStore {
 
     private static final String VALUE_PROP_1 = "prop1-1";
 
     private static final String VALUE_PROP_2 = "prop2-1";
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         CenterResource.setNotFetchFromCenterRepository();
         HttpUtils.addMockGlobalParametersConfig();
     }
 
 
 
+    @Test
     public void testTableDumpFactory() {
 
         // assertFalse(TIS.initialized);

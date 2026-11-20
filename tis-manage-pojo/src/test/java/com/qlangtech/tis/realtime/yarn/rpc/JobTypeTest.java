@@ -20,16 +20,16 @@ package com.qlangtech.tis.realtime.yarn.rpc;
 
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.realtime.yarn.rpc.JobType.RemoteCallResult;
-import junit.framework.TestCase;
-
 import java.util.Collections;
 
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2025-08-18 08:10
  **/
-public class JobTypeTest extends TestCase {
+public class JobTypeTest {
 
+    @Test
     public void testPipelineDelete() throws Exception {
         RemoteCallResult<Object> kingbaseMysql
                 = JobType.PipelineDelete.assembIncrControlWithResult("kingbase_mysql", Collections.emptyList(), null);

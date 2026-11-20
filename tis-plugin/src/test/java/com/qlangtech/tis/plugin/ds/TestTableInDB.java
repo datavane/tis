@@ -25,6 +25,7 @@ import com.qlangtech.tis.datax.DataXJobSubmit;
 
 import java.util.Optional;
 
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-03-30 15:12
@@ -34,6 +35,7 @@ public class TestTableInDB extends BasicTestCase {
     /**
      * 测试默认无分表下的执行逻辑
      */
+    @Test
     public void testDftTableInDB() {
         String jdbcUrl = "jdbcUrl";
         String testTabOrder = "orderdetail";

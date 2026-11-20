@@ -21,22 +21,19 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.plugin.PluginStubUtils;
 import com.qlangtech.tis.trigger.jst.ILogListener;
-import junit.framework.TestCase;
-
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-09-01 15:06
  */
-public class TestTISK8sDelegate extends TestCase {
+public class TestTISK8sDelegate {
 
   private static final String totalpay = "search4totalpay";
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Before public void setUp() throws Exception {
 //    PluginStubUtils.setDataDir("/tmp/tis");
     CenterResource.setNotFetchFromCenterRepository();
 //    HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();

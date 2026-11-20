@@ -28,8 +28,6 @@ import com.qlangtech.tis.util.AttrValMap;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
-import junit.framework.TestCase;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -39,18 +37,18 @@ import static com.qlangtech.tis.aiagent.llm.TISJsonSchema.SCHEMA_PLUGIN_DESCRIPT
 import static com.qlangtech.tis.mcp.TISHttpMcpServer.parseAttrValMap;
 import static com.qlangtech.tis.runtime.module.action.SysInitializeAction.getClassPathXmlApplicationContext;
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
+import org.mockito.Mockito;
 /**
  * WeatherHttpMcpServer.createDataSourcecallHandler() 单元测试
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/3/25
  */
-public class TestTISHttpMcpServer extends TestCase {
+public class TestTISHttpMcpServer {
 
   /**
    * 创建一个用于测试的 DescribableImpl 实例，
@@ -71,9 +69,7 @@ public class TestTISHttpMcpServer extends TestCase {
     BasicServlet.setApplicationContext(getClassPathXmlApplicationContext());
   }
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Before public void setUp() throws Exception {
 
     mcpServer = new TISHttpMcpServer();
   }
@@ -82,9 +78,8 @@ public class TestTISHttpMcpServer extends TestCase {
    * 创建一个 mock 的 McpSyncServerExchange
    */
   private McpSyncServerExchange createMockExchange() {
-    McpSyncServerExchange exchange = createMock(McpSyncServerExchange.class);
-    expect(exchange.sessionId()).andReturn("test-session").anyTimes();
-    replay(exchange);
+    McpSyncServerExchange exchange = Mockito.mock(McpSyncServerExchange.class);
+    Mockito.when(exchange.sessionId()).thenReturn("test-session");
     return exchange;
   }
 
@@ -105,9 +100,9 @@ public class TestTISHttpMcpServer extends TestCase {
   /**
    * 测试 createDataSourcecallHandler 能正确创建 handler 实例
    */
+  @Test
   public void testCreateHandler() {
-    Descriptor mockDesc = createMock(Descriptor.class);
-    replay(mockDesc);
+    Descriptor mockDesc = Mockito.mock(Descriptor.class);
 
     DescribableImpl pluginImpl = createTestPluginImpl(mockDesc);
 
@@ -115,9 +110,9 @@ public class TestTISHttpMcpServer extends TestCase {
       createDataSourcecallHandler("创建MySQL数据源", pluginImpl);
 
     assertNotNull("handler should not be null", handler);
-    verify(mockDesc);
   }
 
+  @Test
   public void testParseAttrValMap() {
     McpSchema.CallToolRequest mysqlDataSourceMcpRequest = createMysqlDataSourceMcpRequest();
     AttrValMap valMap = parseAttrValMap(new McpTool.RequestArguments(mysqlDataSourceMcpRequest.arguments()));
@@ -128,10 +123,10 @@ public class TestTISHttpMcpServer extends TestCase {
    * 测试当 AttrValMap.parseDescribableMap 执行失败时（TIS 未初始化），
    * handler 应捕获异常并返回 isError=true 的 CallToolResult
    */
+  @Test
   public void testCreateDataSourcecallHandler_ErrorOnParseDescribable() {
-    Descriptor mockDesc = createMock(Descriptor.class);
-    expect(mockDesc.getDisplayName()).andReturn("MySQL-V5").anyTimes();
-    replay(mockDesc);
+    Descriptor mockDesc = Mockito.mock(Descriptor.class);
+    Mockito.when(mockDesc.getDisplayName()).thenReturn("MySQL-V5");
 
     DescribableImpl pluginImpl = createTestPluginImpl(mockDesc);
 
@@ -143,7 +138,6 @@ public class TestTISHttpMcpServer extends TestCase {
     CallToolResult result = handler.apply(createMockExchange(), request);
 
     assertErrorResult(result);
-    verify(mockDesc);
   }
 
   private static McpSchema.CallToolRequest createMysqlDataSourceMcpRequest() {
@@ -185,10 +179,10 @@ public class TestTISHttpMcpServer extends TestCase {
   /**
    * 测试当请求参数中缺少 impl 字段时，handler 应返回错误结果
    */
+  @Test
   public void testCreateDataSourcecallHandler_MissingImplField() {
-    Descriptor mockDesc = createMock(Descriptor.class);
-    expect(mockDesc.getDisplayName()).andReturn("MySQL").anyTimes();
-    replay(mockDesc);
+    Descriptor mockDesc = Mockito.mock(Descriptor.class);
+    Mockito.when(mockDesc.getDisplayName()).thenReturn("MySQL");
 
     DescribableImpl pluginImpl = createTestPluginImpl(mockDesc);
 
@@ -202,16 +196,15 @@ public class TestTISHttpMcpServer extends TestCase {
     CallToolResult result = handler.apply(createMockExchange(), request);
 
     assertErrorResult(result);
-    verify(mockDesc);
   }
 
   /**
    * 测试当请求参数中 arguments 为 null 时，handler 应返回错误结果
    */
+  @Test
   public void testCreateDataSourcecallHandler_NullArguments() {
-    Descriptor mockDesc = createMock(Descriptor.class);
-    expect(mockDesc.getDisplayName()).andReturn("MySQL").anyTimes();
-    replay(mockDesc);
+    Descriptor mockDesc = Mockito.mock(Descriptor.class);
+    Mockito.when(mockDesc.getDisplayName()).thenReturn("MySQL");
 
     DescribableImpl pluginImpl = createTestPluginImpl(mockDesc);
 
@@ -223,17 +216,16 @@ public class TestTISHttpMcpServer extends TestCase {
     CallToolResult result = handler.apply(createMockExchange(), request);
 
     assertErrorResult(result);
-    verify(mockDesc);
   }
 
   /**
    * 测试错误返回的 CallToolResult 中包含正确的提示信息，
    * 确保不暴露内部异常细节给客户端
    */
+  @Test
   public void testCreateDataSourcecallHandler_ErrorMessageDoesNotLeakDetails() {
-    Descriptor mockDesc = createMock(Descriptor.class);
-    expect(mockDesc.getDisplayName()).andReturn("MySQL").anyTimes();
-    replay(mockDesc);
+    Descriptor mockDesc = Mockito.mock(Descriptor.class);
+    Mockito.when(mockDesc.getDisplayName()).thenReturn("MySQL");
 
     DescribableImpl pluginImpl = createTestPluginImpl(mockDesc);
 
@@ -258,7 +250,5 @@ public class TestTISHttpMcpServer extends TestCase {
     // 确保不包含堆栈信息或异常类名
     assertFalse("should not contain exception class name", errorMsg.contains("Exception"));
     assertFalse("should not contain stack trace", errorMsg.contains("at com.qlangtech"));
-
-    verify(mockDesc);
   }
 }

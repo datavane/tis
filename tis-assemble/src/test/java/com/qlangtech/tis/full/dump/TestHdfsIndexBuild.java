@@ -32,13 +32,12 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.StringUtils;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2016年3月11日
  */
-public class TestHdfsIndexBuild extends TestCase {
+public class TestHdfsIndexBuild {
 
     private static final char splitChar = '\u0001';
 
@@ -89,6 +88,7 @@ public class TestHdfsIndexBuild extends TestCase {
     //
     // }
     // }
+    @Test
     public void testTriggerTotalpayIndexBuild() throws Exception {
         String cols = "totalpay_id,curr_date,outfee,source_amount,discount_amount,result_amount,recieve_amount,ratio,status,entity_id,is_valid,op_time,last_ver,op_user_id,discount_plan_id,operator,operate_date,card_id,card,card_entity_id,is_full_ratio,is_minconsume_ratio,is_servicefee_ratio,invoice_code,invoice_memo,invoice,over_status,is_hide,load_time,modify_time,order_id,seat_id,area_id,is_valido,instance_count,all_menu,people_count,order_from,order_kind,inner_code,kindpay,special_fee_summary,card_code,card_inner_code,card_customer_id,card_customer_name,card_customer_spell,card_customer_moble,card_customer_phone";
         String hdfspath = "/user/hive/warehouse/olap_tis.db/totalpay_summary/pt=20160330";

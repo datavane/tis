@@ -18,7 +18,7 @@
 //
 //package com.qlangtech.tis.exec.impl;
 //
-//import org.easymock.EasyMock;
+//import org.mockito.Mockito;
 //
 ///**
 // * @author: 百岁（baisui@qlangtech.com）
@@ -60,14 +60,13 @@
 //@Test
 //        public void testProcess() {
 //            UserManager userManager = new UserManager();
-//            User user = EasyMock.mock(User.class);
-//            user.setContext(EasyMock.anyObject(Context.class));
+//            User user = Mockito.mock(User.class);
+//            user.setContext(Mockito.any(Context.class));
 //
-//            EasyMock.expect( user.getContext()).andReturn( /**此处如何获得process内部创建的context对象实例*/);
-//    EasyMock.replay(user);
+//            Mockito.when( user.getContext()).thenReturn( /**此处如何获得process内部创建的context对象实例*/);
 //            userManager.process(user);
 //
-//    EasyMock.verify(user);
+//    Mockito.verify(user);
 //        }
 //
 //    }

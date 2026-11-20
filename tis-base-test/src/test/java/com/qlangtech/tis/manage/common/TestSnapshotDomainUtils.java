@@ -17,14 +17,16 @@
  */
 package com.qlangtech.tis.manage.common;
 
-import junit.framework.TestCase;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-03-04 18:01
  */
-public class TestSnapshotDomainUtils extends TestCase {
+public class TestSnapshotDomainUtils {
 
+    @Test
     public void testMockEmployeeSnapshotDomain() throws Exception {
         SnapshotDomain snapshotDomain = SnapshotDomainUtils.mockEmployeeSnapshotDomain();
         assertNotNull(snapshotDomain);

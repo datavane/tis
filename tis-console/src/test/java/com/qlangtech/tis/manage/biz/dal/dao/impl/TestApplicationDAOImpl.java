@@ -28,12 +28,14 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-03-26 10:10
  **/
 public class TestApplicationDAOImpl extends BasicActionTestCase {
 
+  @Test
   public void testUpdateSelect() throws Exception {
     IApplicationDAO applicationDAO = runContext.getApplicationDAO();
 

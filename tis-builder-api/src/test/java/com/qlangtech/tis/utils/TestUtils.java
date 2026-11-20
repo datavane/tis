@@ -18,17 +18,18 @@
 
 package com.qlangtech.tis.utils;
 
-import junit.framework.TestCase;
-
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-09-18 17:04
  **/
-public class TestUtils extends TestCase {
+public class TestUtils {
+    @Test
     public void testReadLastUtf8Lines() {
         File monitorFile = new File("./src/test/resources/com/qlangtech/tis/utils/monitorFile.txt");
         assertTrue(monitorFile.exists());

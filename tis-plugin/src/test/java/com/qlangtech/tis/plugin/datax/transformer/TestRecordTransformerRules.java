@@ -29,18 +29,17 @@ import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import junit.framework.TestCase;
-import org.easymock.EasyMock;
 import org.junit.Assert;
 
 import java.util.Optional;
 
 import static com.qlangtech.tis.util.HeteroEnum.TRANSFORMER_RULES;
 
+import org.junit.Test;
 /**
  *
  */
-public class TestRecordTransformerRules extends TestCase {
+public class TestRecordTransformerRules {
 
     public static <T extends Describable> void assertDesc(Class<T> clazz, String assertFileName) {
         try {
@@ -56,6 +55,7 @@ public class TestRecordTransformerRules extends TestCase {
         }
     }
 
+    @Test
     public void testCleanPluginStoreCache() {
         DataXName dataX = DataXName.createDataXPipeline("test");
         IPluginContext pluginContext = IPluginContext.namedContext(dataX);
@@ -74,6 +74,7 @@ public class TestRecordTransformerRules extends TestCase {
     }
 
 
+    @Test
     public void testDescJsonGen() {
         DefaultGroovyShellFactory.setInConsoleModule();
         assertDesc(RecordTransformerRules.class, "record-transformer-rules-descriptor.json");

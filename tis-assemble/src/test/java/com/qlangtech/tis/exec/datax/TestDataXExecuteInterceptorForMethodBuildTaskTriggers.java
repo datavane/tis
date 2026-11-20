@@ -38,7 +38,7 @@ import com.tis.hadoop.rpc.ITISRpcService;
 import com.tis.hadoop.rpc.RpcServiceReference;
 import com.tis.hadoop.rpc.StatusRpcClientFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -61,27 +61,27 @@ public class TestDataXExecuteInterceptorForMethodBuildTaskTriggers extends Basic
         // DataXExecuteInterceptor dataXInterceptor = new DataXExecuteInterceptor();
 
         IDataxProcessor dataXProcessor = this.mock("dataXProcessor", IDataxProcessor.class);
-        EasyMock.expect(dataXProcessor.getResType()).andReturn(StoreResourceType.DataApp).anyTimes();
+        Mockito.when(dataXProcessor.getResType()).thenReturn(StoreResourceType.DataApp);
 
 
         BatchPostDataXWriter batchWriter = new BatchPostDataXWriter(null);
 
-        EasyMock.expect(dataXProcessor.getWriter(null, true)).andReturn(batchWriter);
+        Mockito.when(dataXProcessor.getWriter(null, true)).thenReturn(batchWriter);
 
         File dataxCfgDir = folder.newFolder("cfgDir");
 
         DataXCfgGenerator.GenerateCfgs genCfgs = mockGenerateCfgs(dataxCfgDir);
 
-        EasyMock.expect(dataXProcessor.getDataxCfgFileNames(null, Optional.empty())).andReturn(genCfgs);
+        Mockito.when(dataXProcessor.getDataxCfgFileNames(null, Optional.empty())).thenReturn(genCfgs);
 
         IExecChainContext chainContext = this.mockExecChainContext(dataXProcessor);
         //  List<IDataxReader> readers
         DataxReader dataXReader = this.mockDataXReader();
         TableInDB tabInDB = TableInDB.create(DBIdentity.parseId(dbName));
-        EasyMock.expect(dataXReader.getTablesInDB()).andReturn(tabInDB);
+        Mockito.when(dataXReader.getTablesInDB()).thenReturn(tabInDB);
 
-        EasyMock.expect(chainContext.getAttribute(EasyMock.eq(DataXJobSubmit.KEY_DATAX_READERS), EasyMock.anyObject()))
-                .andReturn(Lists.newArrayList(dataXReader));
+        Mockito.when(chainContext.getAttribute(Mockito.eq(DataXJobSubmit.KEY_DATAX_READERS), Mockito.any()))
+                .thenReturn(Lists.newArrayList(dataXReader));
 
         IRemoteDumpTaskTrigger dumpTrigger = this.mockDataXExecTaskTrigger();
 
@@ -95,7 +95,6 @@ public class TestDataXExecuteInterceptorForMethodBuildTaskTriggers extends Basic
         ISelectedTab tab = new TestSelectedTab(tableName);
 
         DAGSessionSpec dagSessionSpec = new DAGSessionSpec();
-        replay();
 
         RemoteTaskTriggers triggers = new RemoteTaskTriggers();
         chainContext.setTskTriggers(triggers);
@@ -106,7 +105,8 @@ public class TestDataXExecuteInterceptorForMethodBuildTaskTriggers extends Basic
         Assert.assertEquals("->prep_customer_order_relation prep_customer_order_relation->customer_order_relation_1.json customer_order_relation_1.json->post_customer_order_relation->customer_order_relation"
                 , StringUtils.trim(dagSessionSpec.buildSpec().toString()));
 
-        verifyAll();
+        Mockito.verify(dataXProcessor).getWriter(null, true);
+        Mockito.verify(dataXProcessor).getDataxCfgFileNames(null, Optional.empty());
     }
 
 }

@@ -30,7 +30,6 @@ import com.qlangtech.tis.maven.plugins.tpi.PluginClassifier;
 import com.qlangtech.tis.plugin.ds.DataSourceFactory;
 import com.qlangtech.tis.util.TestHeteroList;
 import com.qlangtech.tis.utils.TisMetaProps;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -45,16 +44,18 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-05-10 09:13
  **/
-public class TestUpdateCenter extends TestCase {
+public class TestUpdateCenter {
     File dataDir;
 
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();
 
         HttpUtils.addMockApply(PluginManager.PACAKGE_TPI_EXTENSION, new HttpUtils.IClasspathRes() {
@@ -79,6 +80,7 @@ public class TestUpdateCenter extends TestCase {
         TIS.clean();
     }
 
+    @Test
     public void testIntallPlugin() throws Exception {
         HttpUtils.CacheMockRes cacheMockRes = getUpdateSiteHttpStub();
 
@@ -140,6 +142,7 @@ public class TestUpdateCenter extends TestCase {
                         + "/update-site/default.json", "default-update-site.json", TestUpdateCenter.class);
     }
 
+    @Test
     public void testLoad() throws Exception {
 
         HttpUtils.CacheMockRes cacheMockRes = getUpdateSiteHttpStub();

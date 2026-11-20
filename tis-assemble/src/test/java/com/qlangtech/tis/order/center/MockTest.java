@@ -20,26 +20,31 @@ package com.qlangtech.tis.order.center;
 import com.qlangtech.tis.fs.IPath;
 import com.qlangtech.tis.fs.ITISFileSystem;
 import com.qlangtech.tis.offline.FileSystemFactory;
-import junit.framework.TestCase;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-05-23 16:38
  */
-public class MockTest extends TestCase {
+public class MockTest {
 
+    @Test
     public void testMock() {
         final String fsPath = "/user/admin/test";
-        FileSystemFactory indexBuilderFileSystemFactory = EasyMock.createMock("indexBuildFileSystem", FileSystemFactory.class);
-        ITISFileSystem tisFileSystem = EasyMock.createMock("tisFileSystem", ITISFileSystem.class);
-        EasyMock.expect(tisFileSystem.getName()).andReturn("mocktest");
-        IPath path = EasyMock.createMock("mockpath", IPath.class);
-        EasyMock.expect(tisFileSystem.getPath(fsPath)).andReturn(path);
-        EasyMock.expect(indexBuilderFileSystemFactory.getFileSystem()).andReturn(tisFileSystem);
-        EasyMock.replay(indexBuilderFileSystemFactory, tisFileSystem, path);
+        FileSystemFactory indexBuilderFileSystemFactory = Mockito.mock(FileSystemFactory.class, Mockito.withSettings().name("indexBuildFileSystem"));
+        ITISFileSystem tisFileSystem = Mockito.mock(ITISFileSystem.class, Mockito.withSettings().name("tisFileSystem"));
+        Mockito.when(tisFileSystem.getName()).thenReturn("mocktest");
+        IPath path = Mockito.mock(IPath.class, Mockito.withSettings().name("mockpath"));
+        Mockito.when(tisFileSystem.getPath(fsPath)).thenReturn(path);
+        Mockito.when(indexBuilderFileSystemFactory.getFileSystem()).thenReturn(tisFileSystem);
         ITISFileSystem fs = indexBuilderFileSystemFactory.getFileSystem();
         assertEquals("mocktest", fs.getName());
         assertNotNull(fs.getPath(fsPath));
+
+        Mockito.verify(indexBuilderFileSystemFactory).getFileSystem();
+        Mockito.verify(tisFileSystem).getName();
+        Mockito.verify(tisFileSystem).getPath(fsPath);
     }
 }

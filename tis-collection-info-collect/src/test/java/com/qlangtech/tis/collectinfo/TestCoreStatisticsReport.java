@@ -20,21 +20,23 @@ package com.qlangtech.tis.collectinfo;
 
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.manage.common.HttpUtils;
-import junit.framework.TestCase;
 import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: baisui 百岁
  * @create: 2020-10-04 15:18
  **/
-public class TestCoreStatisticsReport extends TestCase {
+public class TestCoreStatisticsReport {
 
+    @Test
     public void testAddClusterCoreInfo() {
         // int order, String testStr, String classpath, Class<?> clazz
         final AtomicInteger httpGetCount = new AtomicInteger();
@@ -49,19 +51,17 @@ public class TestCoreStatisticsReport extends TestCase {
         //String collectionName = "search4totalpay";
         //Slice slice, SolrZkClient zookeeper
 
-        Slice slice = EasyMock.createMock("slice", Slice.class);
-        EasyMock.expect(slice.getName()).andReturn("shard1").times(2);
-        Replica replica = EasyMock.createMock("replica", Replica.class);
+        Slice slice = Mockito.mock(Slice.class, Mockito.withSettings().name("slice"));
+        Mockito.when(slice.getName()).thenReturn("shard1");
+        Replica replica = Mockito.mock(Replica.class, Mockito.withSettings().name("replica"));
 
-        EasyMock.expect(replica.getStr(Slice.LEADER)).andReturn("true").times(2);
-        EasyMock.expect(replica.getCoreUrl()).andReturn("http://192.168.28.200:8080/solr/search4totalpay_shard1_replica_n1/").times(2);
-        EasyMock.expect(replica.getNodeName()).andReturn("http://192.168.28.200:8080/solr").times(2);
+        Mockito.when(replica.getStr(Slice.LEADER)).thenReturn("true");
+        Mockito.when(replica.getCoreUrl()).thenReturn("http://192.168.28.200:8080/solr/search4totalpay_shard1_replica_n1/");
+        Mockito.when(replica.getNodeName()).thenReturn("http://192.168.28.200:8080/solr");
         Collection<Replica> replicas = Collections.singleton(replica);
-        EasyMock.expect(slice.getReplicas()).andReturn(replicas).times(2);
-        //SolrZkClient zookeeper = EasyMock.createMock("solrZkClient", SolrZkClient.class);
+        Mockito.when(slice.getReplicas()).thenReturn(replicas);
+        //SolrZkClient zookeeper = Mockito.mock(SolrZkClient.class, Mockito.withSettings().name("solrZkClient"));
 
-
-        EasyMock.replay(slice, replica);
         CoreStatisticsReport statisticsReportTime1 = new CoreStatisticsReport(Config.S4TOTALPAY);
 
         assertTrue(statisticsReportTime1.addClusterCoreInfo(slice));
@@ -80,7 +80,11 @@ public class TestCoreStatisticsReport extends TestCase {
 
         assertEquals(10, requestIncreasement);
 
-        EasyMock.verify(slice, replica);
+        Mockito.verify(slice, Mockito.times(2)).getName();
+        Mockito.verify(slice, Mockito.times(2)).getReplicas();
+        Mockito.verify(replica, Mockito.times(2)).getStr(Slice.LEADER);
+        Mockito.verify(replica, Mockito.times(2)).getCoreUrl();
+        Mockito.verify(replica, Mockito.times(2)).getNodeName();
     }
 
 }

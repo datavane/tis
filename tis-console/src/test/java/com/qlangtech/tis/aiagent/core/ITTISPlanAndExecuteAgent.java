@@ -32,7 +32,6 @@ import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.plugin.llm.TokenUsageSummary;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
-import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -53,13 +52,14 @@ import java.util.function.Consumer;
 import static com.qlangtech.tis.aiagent.core.TestRealTISPlanAndExecuteAgent.createNoneLogger;
 import static org.junit.Assert.*;
 
+import org.mockito.Mockito;
 /**
  * TISPlanAndExecuteAgent集成测试 - 不使用Mock框架
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @create 2025/9/17
  */
-public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
+public class ITTISPlanAndExecuteAgent {
 
   private StringWriter outputWriter;
   private SSEEventWriter printWriter;
@@ -73,7 +73,7 @@ public class ITTISPlanAndExecuteAgent extends EasyMockSupport {
     printWriter = new SSEEventWriter(new PrintWriter(outputWriter));
     testContext = new TestAgentContext("test-session", printWriter);
     mockLLMProvider = new MockLLMProvider();
-    controlMsgHandler = createMock(IControlMsgHandler.class);
+    controlMsgHandler = Mockito.mock(IControlMsgHandler.class);
   }
 
   /**

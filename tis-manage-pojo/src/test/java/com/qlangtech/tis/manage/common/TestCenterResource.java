@@ -20,11 +20,10 @@ package com.qlangtech.tis.manage.common;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.StoreResourceTypeConstants;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -34,19 +33,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-02-05 09:09
  */
-public class TestCenterResource extends TestCase  {
+public class TestCenterResource {
 
     static final String cfgFile = "com.qlangtech.tis.plugin.incr.IncrStreamFactory.xml";
     static final String KEY_TIS_PLUGIN_CONFIG = "tis_plugin_config";
 
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before public void setUp() throws Exception {
         Config.setTestDataDir();
     }
 
@@ -57,6 +57,7 @@ public class TestCenterResource extends TestCase  {
     /**
      * CenterResource.copyFromRemote2Local
      */
+    @Test
     public void testCopyFromRemote2LocalServer() throws Exception {
 
         // 模拟服务端没有数据
@@ -74,9 +75,9 @@ public class TestCenterResource extends TestCase  {
         });
 
         // 模拟服务端有文件
-        final List<String> vals = EasyMock.createMock("lastupdate_vals", List.class);
+        final List<String> vals = Mockito.mock(List.class, Mockito.withSettings().name("lastupdate_vals"));
         long lastupdate = System.currentTimeMillis();
-        EasyMock.expect(vals.stream()).andReturn(Lists.newArrayList(String.valueOf(lastupdate)).stream()).times(1);
+        Mockito.when(vals.stream()).thenReturn(Lists.newArrayList(String.valueOf(lastupdate)).stream());
         HttpUtils.addMockApply(1, cfgFile, new HttpUtils.IClasspathRes() {
             @Override
             public InputStream getResourceAsStream(URL url) {
@@ -88,8 +89,6 @@ public class TestCenterResource extends TestCase  {
                 return ImmutableMap.of(ConfigFileContext.KEY_HEAD_LAST_UPDATE, vals);
             }
         });
-
-        EasyMock.replay(vals);
 
         Pair<Boolean, File> local = CenterResource.copyFromRemote2Local(
                 KEY_TIS_PLUGIN_CONFIG + "/" + cfgFile, true);
@@ -108,7 +107,7 @@ public class TestCenterResource extends TestCase  {
         assertTrue(lastModifiedFile.getAbsolutePath(), lastModifiedFile.exists());
         assertEquals(String.valueOf(lastupdate), FileUtils.readFileToString(lastModifiedFile, TisUTF8.get()));
 
-        EasyMock.verify(vals);
+        Mockito.verify(vals, Mockito.times(1)).stream();
     }
 
 

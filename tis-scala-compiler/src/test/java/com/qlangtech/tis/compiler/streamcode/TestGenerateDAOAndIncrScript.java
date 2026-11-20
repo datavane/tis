@@ -27,15 +27,15 @@ import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
-import junit.framework.TestCase;
-
 import java.util.Map;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestGenerateDAOAndIncrScript extends TestCase {
+public class TestGenerateDAOAndIncrScript {
 
     private static final String collection = "search4totalpay";
 
@@ -47,6 +47,7 @@ public class TestGenerateDAOAndIncrScript extends TestCase {
         HttpUtils.addMockGlobalParametersConfig();
     }
 
+    @Test
     public void testCompileAndPackageStreamCode() throws Exception {
         IControlMsgHandler msgHandler = new DefaultMessageHandler();
         IndexStreamCodeGenerator indexStreamCodeGenerator = getIndexStreamCodeGenerator();

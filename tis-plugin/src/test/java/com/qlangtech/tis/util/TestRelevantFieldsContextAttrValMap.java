@@ -30,8 +30,6 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
-import junit.framework.TestCase;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +37,8 @@ import static com.qlangtech.tis.extension.Descriptor.KEY_primaryVal;
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_VALS;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * {@code RelevantFieldsContextAttrValMap#createRelevantFieldsContext(...)} 的契约测试。
  *
@@ -59,7 +59,7 @@ import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_VALS;
  * <p><b>运行要求</b>：需要 {@code --add-opens java.base/java.lang=ALL-UNNAMED}
  * （TIS 扩展扫描 {@code ClassLoaderReflectionToolkit}），与工程里其它扫 descriptor 的用例一致。
  */
-public class TestRelevantFieldsContextAttrValMap extends TestCase {
+public class TestRelevantFieldsContextAttrValMap {
 
     private static final String KEY_REQUIRED = "requiredField";
     private static final String KEY_OPTIONAL = "optionalField";
@@ -72,6 +72,7 @@ public class TestRelevantFieldsContextAttrValMap extends TestCase {
      * <p>这正是本方法存在的理由：前端做级联取值时只提交表单子集，若拿整张表单的属性集去校验，
      * 所有尚未填写的必填字段都会误报。
      */
+    @Test
     public void testFieldsOutsideWhitelistDoNotTakePartInValidation() {
         CapturingMsgHandler msgHandler = new CapturingMsgHandler();
         Context context = new DefaultContext();
@@ -91,6 +92,7 @@ public class TestRelevantFieldsContextAttrValMap extends TestCase {
     /**
      * 白名单内的必填字段缺值 → 校验不过，且错误定位到该字段本身。
      */
+    @Test
     public void testRequiredFieldInWhitelistIsValidated() {
         CapturingMsgHandler msgHandler = new CapturingMsgHandler();
         Context context = new DefaultContext();
@@ -109,6 +111,7 @@ public class TestRelevantFieldsContextAttrValMap extends TestCase {
     /**
      * 白名单内的字段有值时正常通过，并且只读取白名单内的字段。
      */
+    @Test
     public void testOnlyWhitelistedFieldsAreReadIntoInstance() {
         CapturingMsgHandler msgHandler = new CapturingMsgHandler();
         Context context = new DefaultContext();
@@ -137,6 +140,7 @@ public class TestRelevantFieldsContextAttrValMap extends TestCase {
      * {@code createRelevantFieldsContext} 改成先拷贝一份 key 集合，追加会<b>静默失效</b> ——
      * 实例上取不到目标字段值，且不报错。
      */
+    @Test
     public void testKeysAppendedAfterValidateAreVisibleAtCreateTime() {
         CapturingMsgHandler msgHandler = new CapturingMsgHandler();
         Context context = new DefaultContext();
@@ -174,6 +178,7 @@ public class TestRelevantFieldsContextAttrValMap extends TestCase {
      * <p>与上一个用例配对使用 —— 否则「追加后可见」也可能是因为白名单根本没生效（全量字段都被读取），
      * 那样上一条断言会假通过。
      */
+    @Test
     public void testFieldNeverAddedToKeysStaysNull() {
         CapturingMsgHandler msgHandler = new CapturingMsgHandler();
         Context context = new DefaultContext();
@@ -208,6 +213,7 @@ public class TestRelevantFieldsContextAttrValMap extends TestCase {
      * 但在第二阶段才进白名单且请求体里没有值，实例化必须成功且该字段为 null，
      * 而不是抛 {@code prop:requiredField can not be empty}。
      */
+    @Test
     public void testInstancePhaseKeyRelaxesRequiredFieldWhenValueAbsent() {
         CapturingMsgHandler msgHandler = new CapturingMsgHandler();
         Context context = new DefaultContext();
@@ -247,6 +253,7 @@ public class TestRelevantFieldsContextAttrValMap extends TestCase {
      * <p>这条与上一条配对，确保 {@code AdapterPropertyType} 包装后字段仍能被正常赋值
      * （包装只覆写 {@code isInputRequired()}，其余全部委托给原 PropertyType）。
      */
+    @Test
     public void testInstancePhaseKeyStillReadsValueWhenPresent() {
         CapturingMsgHandler msgHandler = new CapturingMsgHandler();
         Context context = new DefaultContext();
@@ -273,6 +280,7 @@ public class TestRelevantFieldsContextAttrValMap extends TestCase {
      * <p>没有这条，上面两条可能因为「包装根本没生效也没关系」而假通过 ——
      * 它证明放宽与否确实取决于 {@code fieldValRequired}，而不是字段本身的注解。
      */
+    @Test
     public void testValidatePhaseKeyKeepsRequiredFieldStrict() {
         CapturingMsgHandler msgHandler = new CapturingMsgHandler();
         Context context = new DefaultContext();
@@ -297,6 +305,7 @@ public class TestRelevantFieldsContextAttrValMap extends TestCase {
      * （{@code descriptor.getValueChangeFromFieldKeys(toPropertyKey)}）——
      * 级联主字段由 descriptor 上登记的 {@code valueChangePipe} 决定。
      */
+    @Test
     public void testRelevantFieldKeysTwoStageCollectsIntoSharedList() {
         Descriptor<RelevantFieldsProbe> desc = new RelevantFieldsProbe.DefaultDescriptor();
 
@@ -319,6 +328,7 @@ public class TestRelevantFieldsContextAttrValMap extends TestCase {
     /**
      * {@code RelevantFieldKeys} 允许子类改写两阶段的收集范围；改写后同样必须落在同一个 list 上。
      */
+    @Test
     public void testRelevantFieldKeysSubclassOverrides() {
         RelevantFieldsContextAttrValMap.RelevantFieldKeys custom
                 = new RelevantFieldsContextAttrValMap.RelevantFieldKeys(KEY_CASCADE_TO) {
@@ -353,6 +363,7 @@ public class TestRelevantFieldsContextAttrValMap extends TestCase {
      * 白名单按字段名过滤，重复项没有副作用；但一旦误改成「重置」，
      * 第一阶段收集的主字段会被丢掉，级联校验就会失效。
      */
+    @Test
     public void testRelevantFieldKeysAddIsCumulative() {
         RelevantFieldsContextAttrValMap.RelevantFieldKeys keys
                 = new RelevantFieldsContextAttrValMap.RelevantFieldKeys(KEY_CASCADE_TO);

@@ -27,6 +27,9 @@ import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import java.io.File;
 import java.util.List;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-07-17 10:23
@@ -35,14 +38,14 @@ public class TestShopTopologyParse extends SqlTaskBaseTestCase {
 
     public static final String topologyName = "shop";
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         super.setUp();
         System.clearProperty(Config.KEY_DATA_DIR);
         Config.setDataDir(Config.DEFAULT_DATA_DIR);
         SqlTaskNode.parent = new File(Config.getMetaCfgDir(), StoreResourceTypeConstants.NAME_DATAFLOW_DIR);
     }
 
+    @Test
     public void testTopologyParse() throws Exception {
         List<SqlTaskNode> processNodes = this.parseTopologySqlTaskNodes(topologyName);
         assertTrue(processNodes.size() > 0);

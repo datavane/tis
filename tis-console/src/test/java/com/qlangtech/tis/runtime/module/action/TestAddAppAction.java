@@ -20,14 +20,14 @@ package com.qlangtech.tis.runtime.module.action;
 import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.manage.common.HttpUtils;
 
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-01 12:40
  */
 public class TestAddAppAction extends BasicActionTestCase {
 
-  @Override
-  public void setUp() throws Exception {
+  @Before public void setUp() throws Exception {
     super.setUp();
     HttpUtils.mockConnMaker.clearStubs();
 //    HttpUtils.addMockApply(CoreAction.CREATE_COLLECTION_PATH, (url) -> {

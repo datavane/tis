@@ -64,7 +64,7 @@
         <!--        <tisasm-maven-plugin.version>1.0.6</tisasm-maven-plugin.version>-->
         <tis.release.repository.host>http://tis-release.oss-cn-beijing.aliyuncs.com</tis.release.repository.host>
         <avro.version>1.11.0</avro.version>
-        <mockito.version>3.4.6</mockito.version>
+        <mockito.version>4.11.0</mockito.version>
         <mockito-scala.version>1.17.14</mockito-scala.version>
         <derby.version>10.15.2.0</derby.version>
     </properties>
@@ -107,8 +107,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
         </dependency>
     </dependencies>
 
@@ -221,10 +221,15 @@
                 <version>${derby.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.easymock</groupId>
-                <artifactId>easymock</artifactId>
-                <version>4.2</version>
-                <scope>test</scope>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-inline</artifactId>
+                <version>${mockito.version}</version>
             </dependency>
 
             <dependency>
@@ -743,6 +748,7 @@
                     <includes>
                         <include>**/TestAll.java</include>
                     </includes>
+                    <argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED</argLine>
                     <classpathDependencyExcludes>
                         <classpathDependencyExclude>log4j:log4j</classpathDependencyExclude>
                         <classpathDependencyExclude>org.slf4j:slf4j-log4j12</classpathDependencyExclude>

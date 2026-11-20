@@ -37,6 +37,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-04-06 16:19
@@ -194,6 +196,7 @@ public class TestFullbuildWorkflowAction extends BasicActionTestCase {
   }
 
 
+  @Test
   public void testDoCreateNewTaskWithSingleTableCollectionFullBuild() throws Exception {
     // createMockCollection(COLLECTION_NAME);
     String collectionName = "search4employee4local";

@@ -20,19 +20,20 @@ package com.qlangtech.tis.plugin;
 
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
-import junit.framework.TestCase;
-
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-08-20 15:59
  **/
-public class TestPluginUtils extends TestCase {
+public class TestPluginUtils {
 
+    @Test
     public void testStubParamsConfig() throws Exception {
         PluginStubUtils.stubPluginConfig();
         URL url = new URL("http://192.168.28.200:8080/tjs/config/stream_script_repo.action?path=cfg_repo%2Ftis_plugin_config%2Fcom.qlangtech.tis.config.ParamsConfig.xml");

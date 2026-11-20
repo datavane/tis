@@ -21,15 +21,15 @@ import com.qlangtech.tis.manage.biz.dal.pojo.UploadResource;
 import com.qlangtech.tis.manage.common.HttpConfigFileReader;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.manage.common.RepositoryException;
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
+import org.junit.Assert;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2012-5-17
  */
-public class TestGetAppConfigBySnid extends TestCase {
+public class TestGetAppConfigBySnid {
 
+    @Test
     public void testGetResource() {
         try {
             SnapshotDomain domain = HttpConfigFileReader.getResource("http://localhost", 222);

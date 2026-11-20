@@ -25,14 +25,14 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import com.qlangtech.tis.manage.common.ConfigFileContext.StreamProcess;
 import com.qlangtech.tis.manage.common.HttpUtils;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2017年7月3日
  */
-public class TestFullBuild extends TestCase {
+public class TestFullBuild {
 
+    @Test
     public void testFullBuild() throws Exception {
         URL url = new URL("http://10.1.5.129:8080/trigger?appname=search4xxx&workflow_id=15");
         HttpUtils.processContent(url, new StreamProcess<String>() {

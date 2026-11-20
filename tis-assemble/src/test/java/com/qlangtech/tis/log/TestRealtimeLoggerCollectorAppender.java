@@ -33,6 +33,8 @@ import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-05-11 13:04
@@ -45,6 +47,7 @@ public class TestRealtimeLoggerCollectorAppender extends BaseTestCase {
 
     private static final Logger logger = LoggerFactory.getLogger(TestRealtimeLoggerCollectorAppender.class);
 
+    @Test
     public void testIncrProcessLogger() {
         MonotorTarget mtarget = MonotorTarget.createRegister(DataXName.createDataXPipeline(collection), LogType.INCR);
         AtomicBoolean closed = new AtomicBoolean(false);
@@ -77,6 +80,7 @@ public class TestRealtimeLoggerCollectorAppender extends BaseTestCase {
     /**
      * 测试全量构建日志
      */
+    @Test
     public void testFullBuildLogger() {
 
         JobCommon.setMDC(taskid);

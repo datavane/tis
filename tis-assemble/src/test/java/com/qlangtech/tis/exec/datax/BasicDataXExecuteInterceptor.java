@@ -45,7 +45,7 @@ import com.qlangtech.tis.test.TISTestCase;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,9 +76,9 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
         //testDataxProcessorDataXReader
         DataxReader dataxReader = mock(AP_NAME + "DataXReader", DataxReader.class);
         TableInDB tabInDB = TableInDB.create(DBIdentity.parseId(dbName));
-        EasyMock.expect(dataxReader.getTablesInDB()).andReturn(tabInDB);
+        Mockito.when(dataxReader.getTablesInDB()).thenReturn(tabInDB);
         ISelectedTab tab = new TestSelectedTab(tableName);
-        EasyMock.expect(dataxReader.getSelectedTabs()).andReturn(Collections.singletonList(tab)).anyTimes();
+        Mockito.when(dataxReader.getSelectedTabs()).thenReturn(Collections.singletonList(tab));
 
         DataxReader.dataxReaderGetter = (name) -> {
             return dataxReader;
@@ -88,12 +88,11 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
 
     protected IRemoteDumpTaskTrigger mockDataXExecTaskTrigger() {
         IRemoteDumpTaskTrigger jobTrigger = mock("remoteJobTrigger", IRemoteDumpTaskTrigger.class);
-        EasyMock.expect(jobTrigger.getTaskName()).andReturn(dataCfgFileName).anyTimes();
+        Mockito.when(jobTrigger.getTaskName()).thenReturn(dataCfgFileName);
 
         //
-        EasyMock.expect(jobTrigger.isAsyn()).andReturn(false).anyTimes();
-        jobTrigger.run();
-        EasyMock.expectLastCall().andThrow(new RuntimeException("throw a exception")).anyTimes();
+        Mockito.when(jobTrigger.isAsyn()).thenReturn(false);
+        Mockito.doThrow(new RuntimeException("throw a exception")).when(jobTrigger).run();
         return jobTrigger;
     }
 
@@ -101,20 +100,19 @@ public abstract class BasicDataXExecuteInterceptor extends TISTestCase {
     protected IExecChainContext mockExecChainContext(IDataxProcessor dataxProcessor) {
         IExecChainContext execChainContext = mock("execChainContext", IExecChainContext.class);
        // execChainContext.rebindLoggingMDCParams();
-        EasyMock.expectLastCall().anyTimes();
-        EasyMock.expect(execChainContext.getPartitionTimestampWithMillis()).andReturn(TimeFormat.getCurrentTimeStamp()).anyTimes();
-        EasyMock.expect(execChainContext.hasIndexName()).andReturn(true).anyTimes();
-        EasyMock.expect(execChainContext.getIndexName()).andReturn(AP_NAME).anyTimes();
-      //  EasyMock.expect(execChainContext.loadPhaseStatusFromLatest()).andReturn(null);
-        EasyMock.expect(execChainContext.getTaskId()).andReturn(testTaskId).anyTimes();
+        Mockito.when(execChainContext.getPartitionTimestampWithMillis()).thenReturn(TimeFormat.getCurrentTimeStamp());
+        Mockito.when(execChainContext.hasIndexName()).thenReturn(true);
+        Mockito.when(execChainContext.getIndexName()).thenReturn(AP_NAME);
+      //  Mockito.when(execChainContext.loadPhaseStatusFromLatest()).thenReturn(null);
+        Mockito.when(execChainContext.getTaskId()).thenReturn(testTaskId);
         //  getTaskId
 
-        EasyMock.expect(execChainContext.isDryRun()).andReturn(false).anyTimes();
+        Mockito.when(execChainContext.isDryRun()).thenReturn(false);
 
-        EasyMock.expect(execChainContext.getProcessor()).andReturn(dataxProcessor).anyTimes();
+        Mockito.when(execChainContext.getProcessor()).thenReturn(dataxProcessor);
 
-        EasyMock.expect(execChainContext.getAttribute(EasyMock.eq(DataXJobSubmit.KEY_DATAX_READERS), EasyMock.anyObject()))
-                .andReturn(dataxProcessor.getReaders(null)).anyTimes();
+        Mockito.when(execChainContext.getAttribute(Mockito.eq(DataXJobSubmit.KEY_DATAX_READERS), Mockito.any()))
+                .thenReturn(dataxProcessor.getReaders(null));
 
         return execChainContext;
     }

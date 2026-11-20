@@ -18,15 +18,16 @@
 
 package com.qlangtech.tis.realtime.transfer;
 
-import junit.framework.TestCase;
 import org.junit.Assert;
 
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-18 10:18
  **/
-public class TestUnderlineUtils extends TestCase {
+public class TestUnderlineUtils {
 
+    @Test
     public void testAddUnderline() {
         StringBuffer copyValUDF = UnderlineUtils.addUnderline("CopyValUDF");
         Assert.assertEquals("copy_val_udf", copyValUDF.toString());

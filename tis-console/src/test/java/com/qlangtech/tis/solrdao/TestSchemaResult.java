@@ -30,24 +30,21 @@ import com.qlangtech.tis.runtime.module.misc.IMessageHandler;
 import com.qlangtech.tis.solrdao.impl.ParseResult;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.HeteroEnum;
-import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
-import org.easymock.EasyMock;
 
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-01-27 14:01
  */
-public class TestSchemaResult extends TestCase {
+public class TestSchemaResult {
   static final String collection = "search4totalpay";
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Before public void setUp() throws Exception {
     CenterResource.setNotFetchFromCenterRepository();
   }
 

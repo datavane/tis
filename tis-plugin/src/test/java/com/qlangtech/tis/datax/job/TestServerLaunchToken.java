@@ -36,7 +36,6 @@ import com.qlangtech.tis.plugin.incr.WatchPodLog;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.trigger.socket.InfoType;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -54,7 +53,7 @@ import java.util.concurrent.Executors;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-12-30 10:01
  **/
-public class TestServerLaunchToken extends TestCase {
+public class TestServerLaunchToken {
 
 //    public void testAppendLaunchingLine() throws Exception {
 //        File launchTokenParentDir = new File(FileUtils.getTempDirectory(), "launch");

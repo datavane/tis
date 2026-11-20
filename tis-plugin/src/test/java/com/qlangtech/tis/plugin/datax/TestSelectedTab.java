@@ -23,16 +23,16 @@ import com.qlangtech.tis.datax.impl.DataxReader;
 import com.qlangtech.tis.extension.impl.SuFormProperties;
 import com.qlangtech.tis.plugin.ds.*;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import junit.framework.TestCase;
-
 import java.util.List;
 
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-03-24 15:06
  **/
-public class TestSelectedTab extends TestCase {
+public class TestSelectedTab {
 
+    @Test
     public void testGetContextTableCols() {
         DataxReader.DataSourceMetaPlugin sourceMetaPlugin = new DataxReader.DataSourceMetaPlugin();
 

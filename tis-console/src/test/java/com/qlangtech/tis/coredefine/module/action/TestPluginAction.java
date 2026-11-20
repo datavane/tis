@@ -25,6 +25,8 @@ import com.qlangtech.tis.manage.common.valve.AjaxValve;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import org.apache.struts2.ActionProxy;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-05-15 12:13
@@ -36,6 +38,7 @@ public class TestPluginAction extends BasicPluginAction {
    *
    * @throws Exception
    */
+  @Test
   public void testGetPluginConfigInfoWithTargetDescriptorName() throws Exception {
     // this.servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,);
 //    event_submit_do_get_plugin_config_info: y

@@ -33,22 +33,23 @@ import com.qlangtech.tis.plugin.datax.transformer.impl.VirtualTargetColumn;
 import com.qlangtech.tis.plugin.datax.transformer.jdbcprop.TargetColType;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.IPluginContext;
-import junit.framework.TestCase;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.util.Optional;
 
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-15 08:48
  **/
-public class TestDataXCfgGenerator extends TestCase {
+public class TestDataXCfgGenerator {
 
     /**
      * 测试Transformer的json生成
      *
      * @throws Exception
      */
+    @Test
     public void testGenerateDataxConfigForTransformer() throws Exception {
         String dataxName = "test";
         String transformerTable = "base";
@@ -74,12 +75,12 @@ public class TestDataXCfgGenerator extends TestCase {
 
         IPluginContext pluginCtx = IPluginContext.namedContext(dataxName);
 
-        IDataxProcessor dataxProcessor = EasyMock.createMock("processor", IDataxProcessor.class);
+        IDataxProcessor dataxProcessor = Mockito.mock(IDataxProcessor.class, Mockito.withSettings().name("processor"));
 
-        IDataxGlobalCfg globalCfg = EasyMock.createMock("globalCfg", IDataxGlobalCfg.class);
+        IDataxGlobalCfg globalCfg = Mockito.mock(IDataxGlobalCfg.class, Mockito.withSettings().name("globalCfg"));
 
-        EasyMock.expect(globalCfg.getTemplate())
-                .andReturn("{\n" +
+        Mockito.when(globalCfg.getTemplate())
+                .thenReturn("{\n" +
                         "        \"job\": {\n" +
                         "            \"content\": [\n" +
                         "                {\n" +
@@ -90,24 +91,22 @@ public class TestDataXCfgGenerator extends TestCase {
                         "        }\n" +
                         "}");
 
-        EasyMock.expect(dataxProcessor.getDataXGlobalCfg()).andReturn(globalCfg);
+        Mockito.when(dataxProcessor.getDataXGlobalCfg()).thenReturn(globalCfg);
 
-        IDataxReaderContext readerContext = EasyMock.createMock("readerContext", IDataxReaderContext.class);
-        EasyMock.expect(readerContext.getSourceEntityName()).andReturn(transformerTable).anyTimes();
+        IDataxReaderContext readerContext = Mockito.mock(IDataxReaderContext.class, Mockito.withSettings().name("readerContext"));
+        Mockito.when(readerContext.getSourceEntityName()).thenReturn(transformerTable);
 
-        IDataxWriter writer = EasyMock.createMock("write", IDataxWriter.class);
-        IDataxReader reader = EasyMock.createMock("reader", IDataxReader.class);
-        EasyMock.expect(reader.getTemplate()).andReturn("{}").times(2);
-        EasyMock.expect(writer.getTemplate()).andReturn("{}");
-        EasyMock.expect(writer.getSubTask(Optional.empty(), Optional.empty())).andReturn(new IDataxContext() {
+        IDataxWriter writer = Mockito.mock(IDataxWriter.class, Mockito.withSettings().name("write"));
+        IDataxReader reader = Mockito.mock(IDataxReader.class, Mockito.withSettings().name("reader"));
+        Mockito.when(reader.getTemplate()).thenReturn("{}");
+        Mockito.when(writer.getTemplate()).thenReturn("{}");
+        Mockito.when(writer.getSubTask(Optional.empty(), Optional.empty())).thenReturn(new IDataxContext() {
         });
         DataXMeta writeDataXMeta = new DataXMeta();
-        EasyMock.expect(writer.getDataxMeta()).andReturn(writeDataXMeta);
+        Mockito.when(writer.getDataxMeta()).thenReturn(writeDataXMeta);
         DataXMeta readerDataXMeta = new DataXMeta();
-        EasyMock.expect(reader.getDataxMeta()).andReturn(readerDataXMeta);
+        Mockito.when(reader.getDataxMeta()).thenReturn(readerDataXMeta);
         Optional<IDataxProcessor.TableMap> tableMap = Optional.empty();
-
-        EasyMock.replay(writer, reader, readerContext, dataxProcessor, globalCfg);
 
         DataXCfgGenerator generator = new DataXCfgGenerator(pluginCtx, dataxName, dataxProcessor);
         String dataXCfg = generator.generateDataxConfig(readerContext, writer, reader, tableMap);
@@ -118,7 +117,13 @@ public class TestDataXCfgGenerator extends TestCase {
             Assert.assertEquals(message, expected, actual);
         });
 
-        EasyMock.verify(writer, reader, readerContext, dataxProcessor, globalCfg);
+        Mockito.verify(globalCfg).getTemplate();
+        Mockito.verify(dataxProcessor).getDataXGlobalCfg();
+        Mockito.verify(writer).getTemplate();
+        Mockito.verify(writer).getSubTask(Optional.empty(), Optional.empty());
+        Mockito.verify(writer).getDataxMeta();
+        Mockito.verify(reader, Mockito.times(2)).getTemplate();
+        Mockito.verify(reader).getDataxMeta();
     }
 
 }

@@ -33,12 +33,14 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
 public class TestSqlDataFlowTopology extends BasicTestCase {
 
+    @Test
     public void testDeserialize() throws Exception {
         // 通过yaml的反序列化方式
         SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology("totalpay");
@@ -66,6 +68,7 @@ public class TestSqlDataFlowTopology extends BasicTestCase {
     }
 
     // view-source:http://10.1.21.134:8080/config/config.ajax?action=fullbuild_workflow_action&event_submit_do_get_workflow_detail=true&workflow_id=45&current_time=1510899645000
+    @Test
     public void testDeserializeConsoleHttpRemote() throws Exception {
         AjaxResult<SqlDataFlowTopology> result = null;
         SqlDataFlowTopology topology = null;

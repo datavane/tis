@@ -19,13 +19,13 @@
 package com.qlangtech.tis.manage.common;
 
 import com.qlangtech.tis.common.utils.Assert;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-03-13 17:59
  **/
-public class TestUserUtils extends TestCase {
+public class TestUserUtils {
+  @Test
   public void testGetMockUser() {
     TUser mockUser = UserUtils.getMockUser(null, null);
     Assert.assertNotNull("mockUser can not be null", mockUser);

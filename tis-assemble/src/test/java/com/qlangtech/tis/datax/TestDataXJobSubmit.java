@@ -18,15 +18,16 @@
 
 package com.qlangtech.tis.datax;
 
-import junit.framework.TestCase;
-
 import java.util.Optional;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-11-17 15:48
  **/
-public class TestDataXJobSubmit extends TestCase {
+public class TestDataXJobSubmit {
+    @Test
     public void testGetLocalJobSubmit() {
         Optional<DataXJobSubmit> dataXJobSubmit = DataXJobSubmit.getDataXJobSubmit(false, DataXJobSubmit.InstanceType.LOCAL);
         assertTrue(dataXJobSubmit.isPresent());

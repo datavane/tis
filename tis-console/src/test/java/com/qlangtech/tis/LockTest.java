@@ -17,15 +17,16 @@
  */
 package com.qlangtech.tis;
 
-import junit.framework.TestCase;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class LockTest extends TestCase {
+public class LockTest {
 
+    @Test
     public void testReenterLock() throws Exception {
         ReentrantLock lock = new ReentrantLock();
         if (lock.tryLock()) {

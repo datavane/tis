@@ -26,21 +26,18 @@ import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.order.center.IParamContext;
 import com.qlangtech.tis.order.center.IndexSwapTaskflowLauncher;
 import com.qlangtech.tis.test.TISEasyMock;
-import junit.framework.TestCase;
-
+import org.junit.Before;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-09-02 20:33
  **/
-public class TestDefaultChainContext extends TestCase implements TISEasyMock {
+public class TestDefaultChainContext implements TISEasyMock {
 
     // private static final String dataXname = "dataXName";
 
     private static final String dataXname = "mysql_elastic";
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
+    @Before public void setUp() throws Exception {
         Config.setDataDir("./src/test/resources/com/qlangtech/tis/full/dump");
         HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();
         // HttpUtils.addMockApply(-1,)

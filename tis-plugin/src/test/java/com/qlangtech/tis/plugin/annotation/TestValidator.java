@@ -26,30 +26,30 @@ import com.qlangtech.tis.runtime.module.misc.IFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler;
 import com.qlangtech.tis.runtime.module.misc.impl.DefaultFieldErrorHandler.ItemsErrors;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import junit.framework.TestCase;
 import org.apache.commons.lang.StringUtils;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestValidator extends TestCase {
+public class TestValidator {
 
     static final String field1Name = "testField";
 
     static final String field2Name = "test2Field";
 
+    @Test
     public void testRelativePath() {
-        IControlMsgHandler msgHandler = EasyMock.createMock("msgHandler", IControlMsgHandler.class);
+        IControlMsgHandler msgHandler = Mockito.mock(IControlMsgHandler.class, Mockito.withSettings().name("msgHandler"));
         Context context = new DefaultContext();
         final String fieldPath = "path";
-        msgHandler.addFieldError(context, fieldPath, ValidatorCommons.MSG_RELATIVE_PATH_ERROR);
-        EasyMock.expectLastCall().times(1);
-        EasyMock.replay(msgHandler);
+        Mockito.doNothing().when(msgHandler).addFieldError(context, fieldPath, ValidatorCommons.MSG_RELATIVE_PATH_ERROR);
         assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "user/home"
                 + "/admin"));
         assertFalse("shall not be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "/user"
@@ -62,17 +62,16 @@ public class TestValidator extends TestCase {
                 + "/instancedetail*.csv"));
         assertTrue("shall be valid", Validator.relative_path.validate(msgHandler, context, fieldPath, "xxx/*.json"));
 
-        EasyMock.verify(msgHandler);
+        Mockito.verify(msgHandler, Mockito.times(1)).addFieldError(context, fieldPath, ValidatorCommons.MSG_RELATIVE_PATH_ERROR);
     }
 
+    @Test
     public void testAbsolutePath() {
 
-        IControlMsgHandler msgHandler = EasyMock.createMock("msgHandler", IControlMsgHandler.class);
+        IControlMsgHandler msgHandler = Mockito.mock(IControlMsgHandler.class, Mockito.withSettings().name("msgHandler"));
         Context context = new DefaultContext();
         final String fieldPath = "path";
-        msgHandler.addFieldError(context, fieldPath, ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR);
-        EasyMock.expectLastCall().times(2);
-        EasyMock.replay(msgHandler);
+        Mockito.doNothing().when(msgHandler).addFieldError(context, fieldPath, ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR);
         assertTrue("shall be valid", Validator.absolute_path
                 .validate(msgHandler, context, fieldPath, "/opt/misc_/apache-dolphinscheduler-3.2.2-bin_"));
 
@@ -84,33 +83,32 @@ public class TestValidator extends TestCase {
 
         assertFalse("shall be invalid", Validator.absolute_path
                 .validate(msgHandler, context, fieldPath, "/opt/misc&/apache-dolphinscheduler-3.2.2-bin_*"));
-        EasyMock.verify(msgHandler);
+        Mockito.verify(msgHandler, Mockito.times(2)).addFieldError(context, fieldPath, ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR);
     }
 
     /**
      * 非数字开头
      */
+    @Test
     public void testForbidStartWithNumber() {
-        IControlMsgHandler msgHandler = EasyMock.createMock("msgHandler", IControlMsgHandler.class);
+        IControlMsgHandler msgHandler = Mockito.mock(IControlMsgHandler.class, Mockito.withSettings().name("msgHandler"));
         Context context = new DefaultContext();
         final String processName = "processName";
-        msgHandler.addFieldError(context, processName, ValidatorCommons.MSG_FORBID_START_WITH_NUMBER);
-        EasyMock.replay(msgHandler);
+        Mockito.doNothing().when(msgHandler).addFieldError(context, processName, ValidatorCommons.MSG_FORBID_START_WITH_NUMBER);
         assertTrue("shall be valid", Validator.forbid_start_with_number.validate(msgHandler, context, processName,
                 "username123"));
         assertFalse("shall be invalid", Validator.forbid_start_with_number.validate(msgHandler, context, processName,
                 "123dddd"));
-        EasyMock.verify(msgHandler);
+        Mockito.verify(msgHandler).addFieldError(context, processName, ValidatorCommons.MSG_FORBID_START_WITH_NUMBER);
     }
 
 
+    @Test
     public void testHost() {
         final String fieldHost = "host";
-        IControlMsgHandler msgHandler = EasyMock.createMock("msgHandler", IControlMsgHandler.class);
+        IControlMsgHandler msgHandler = Mockito.mock(IControlMsgHandler.class, Mockito.withSettings().name("msgHandler"));
         Context context = new DefaultContext();
-        msgHandler.addFieldError(context, fieldHost, ValidatorCommons.MSG_HOST_IP_ERROR);
-        EasyMock.expectLastCall().times(2);
-        EasyMock.replay(msgHandler);
+        Mockito.doNothing().when(msgHandler).addFieldError(context, fieldHost, ValidatorCommons.MSG_HOST_IP_ERROR);
         Assert.assertFalse("must be faild", Validator.host.validate(msgHandler, context, fieldHost, "http://192.168"
                 + ".64.3:31135"));
         Assert.assertTrue("must be valid", Validator.host.validate(msgHandler, context, fieldHost, "192.168.64"
@@ -118,21 +116,22 @@ public class TestValidator extends TestCase {
         Assert.assertTrue("must be valid", Validator.host.validate(msgHandler, context, fieldHost, "baidu.com:31135"));
         Assert.assertFalse("must be faild", Validator.host.validate(msgHandler, context, fieldHost, "baidu.com"));
 
-        EasyMock.verify(msgHandler);
+        Mockito.verify(msgHandler, Mockito.times(2)).addFieldError(context, fieldHost, ValidatorCommons.MSG_HOST_IP_ERROR);
     }
 
 
     /**
      * 一个校验项，的值需要依赖另外一个校验项运行
      */
+    @Test
     public void testValidateIdentityWithDependencyRule() {
 
-        IControlMsgHandler msgHandler = EasyMock.createMock("msgHandler", IControlMsgHandler.class);
+        IControlMsgHandler msgHandler = Mockito.mock(IControlMsgHandler.class, Mockito.withSettings().name("msgHandler"));
 
         String field1NameVal = "123";
 
-        EasyMock.expect(msgHandler.getString(field1Name)).andReturn(field1NameVal);
-        EasyMock.expect(msgHandler.getString(field2Name)).andReturn("field2NameValue");
+        Mockito.when(msgHandler.getString(field1Name)).thenReturn(field1NameVal);
+        Mockito.when(msgHandler.getString(field2Name)).thenReturn("field2NameValue");
 
         Context context = new DefaultContext();
 
@@ -158,14 +157,15 @@ public class TestValidator extends TestCase {
                         })//
                 );
 
-        msgHandler.errorsPageShow(context);
-        EasyMock.expectLastCall().andVoid().times(1);
+        Mockito.doNothing().when(msgHandler).errorsPageShow(context);
 
-        EasyMock.replay(msgHandler);
         assertTrue(Validator.validate(msgHandler, context, validatorsRules));
-        EasyMock.verify(msgHandler);
+        Mockito.verify(msgHandler).getString(field1Name);
+        Mockito.verify(msgHandler).getString(field2Name);
+        Mockito.verify(msgHandler, Mockito.times(1)).errorsPageShow(context);
     }
 
+    @Test
     public void testNone_blank() {
         Validator noneBlankValidator = Validator.none_blank;
         DefaultFieldErrorHandler fEHandler = new DefaultFieldErrorHandler();
@@ -185,6 +185,7 @@ public class TestValidator extends TestCase {
         Assert.assertFalse(context.hasErrors());
     }
 
+    @Test
     public void testValidateIdentity() {
         Validator identityValidator = Validator.identity;
         DefaultFieldErrorHandler fEHandler = new DefaultFieldErrorHandler();
@@ -208,6 +209,7 @@ public class TestValidator extends TestCase {
         //        assertNull(fError.itemsErrorList);
     }
 
+    @Test
     public void testCreateValidateField() {
         try {
             Validator.fieldsValidator(field1Name, field2Name);
@@ -224,6 +226,7 @@ public class TestValidator extends TestCase {
         }
     }
 
+    @Test
     public void testValidateFieldByMultiRules() {
         final String numbericValidateFaild = "必须是数字";
         //
@@ -245,18 +248,18 @@ public class TestValidator extends TestCase {
         assertNotNull(fieldValidators);
         assertEquals(2, fieldValidators.validators.size());
         Context context = new DefaultContext();
-        IControlMsgHandler msgHandler = EasyMock.createMock("msgHandler", IControlMsgHandler.class);
-        EasyMock.expect(msgHandler.getString(field1Name)).andReturn("123");
-        msgHandler.errorsPageShow(context);
-        EasyMock.expectLastCall().andVoid().times(2);
-        EasyMock.expect(msgHandler.getString(field1Name)).andReturn("123aaa");
-        msgHandler.addFieldError(context, field1Name, numbericValidateFaild);
-        msgHandler.addErrorMessage(context, Validator.FORM_ERROR_SUMMARY);
-        // EasyMock.expect().andReturn("123aaa");
-        EasyMock.replay(msgHandler);
+        IControlMsgHandler msgHandler = Mockito.mock(IControlMsgHandler.class, Mockito.withSettings().name("msgHandler"));
+        Mockito.when(msgHandler.getString(field1Name)).thenReturn("123").thenReturn("123aaa");
+        Mockito.doNothing().when(msgHandler).errorsPageShow(context);
+        Mockito.doNothing().when(msgHandler).addFieldError(context, field1Name, numbericValidateFaild);
+        Mockito.doNothing().when(msgHandler).addErrorMessage(context, Validator.FORM_ERROR_SUMMARY);
+        // Mockito.when(msgHandler.getString(field1Name)).thenReturn("123aaa");
         assertTrue(Validator.validate(msgHandler, context, validatorsRules));
         // 第二次应该校验失败了
         assertFalse(Validator.validate(msgHandler, context, validatorsRules));
-        EasyMock.verify(msgHandler);
+        Mockito.verify(msgHandler, Mockito.times(2)).getString(field1Name);
+        Mockito.verify(msgHandler, Mockito.times(2)).errorsPageShow(context);
+        Mockito.verify(msgHandler).addFieldError(context, field1Name, numbericValidateFaild);
+        Mockito.verify(msgHandler).addErrorMessage(context, Validator.FORM_ERROR_SUMMARY);
     }
 }

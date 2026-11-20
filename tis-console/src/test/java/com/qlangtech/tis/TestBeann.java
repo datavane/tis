@@ -18,14 +18,14 @@
 package com.qlangtech.tis;
 
 import org.apache.commons.beanutils.BeanUtils;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestBeann extends TestCase {
+public class TestBeann {
 
+    @Test
     public void testBeanSet() throws Exception {
         TestBean bean = new TestBean();
         BeanUtils.setProperty(bean, "age", "1111d");

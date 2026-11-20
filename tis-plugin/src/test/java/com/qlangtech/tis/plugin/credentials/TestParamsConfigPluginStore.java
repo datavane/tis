@@ -28,25 +28,26 @@ import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.Validator;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.UploadPluginMeta;
-import junit.framework.TestCase;
-
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-12-08 11:09
  **/
-public class TestParamsConfigPluginStore extends TestCase {
+public class TestParamsConfigPluginStore {
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         CenterResource.setNotFetchFromCenterRepository();
         HttpUtils.addMockGlobalParametersConfig();
     }
 
     private static final String keyTest1 = "test1";
 
+    @Test
     public void testWriteAndGet() {
 
         UploadPluginMeta pluginMeta = UploadPluginMeta.parse(

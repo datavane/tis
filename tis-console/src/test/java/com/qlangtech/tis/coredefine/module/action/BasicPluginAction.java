@@ -23,6 +23,7 @@ import com.qlangtech.tis.BasicActionTestCase;
 import com.qlangtech.tis.datax.impl.DataxReader;
 import org.springframework.mock.web.MockHttpServletRequest;
 
+import static org.junit.Assert.*;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-07-20 10:59

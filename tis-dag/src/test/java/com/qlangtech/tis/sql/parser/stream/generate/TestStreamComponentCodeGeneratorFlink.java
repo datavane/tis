@@ -25,18 +25,18 @@ import com.qlangtech.tis.manage.IAppSource;
 import com.qlangtech.tis.manage.IBasicAppSource;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
-import junit.framework.TestCase;
-
 import java.util.List;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-10-07 18:15
  **/
-public class TestStreamComponentCodeGeneratorFlink extends TestCase {
+public class TestStreamComponentCodeGeneratorFlink {
 
-    public void setUp() throws Exception {
-        super.setUp();
+    @Before public void setUp() throws Exception {
         CenterResource.setNotFetchFromCenterRepository();
     }
 
@@ -45,6 +45,7 @@ public class TestStreamComponentCodeGeneratorFlink extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testSingleTableCodeGenerator() throws Exception {
 
         //  CoreAction.create

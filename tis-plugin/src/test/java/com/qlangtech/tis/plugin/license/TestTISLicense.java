@@ -18,13 +18,14 @@
 
 package com.qlangtech.tis.plugin.license;
 
-import junit.framework.TestCase;
 
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2025-02-26 18:13
  **/
-public class TestTISLicense extends TestCase {
+public class TestTISLicense {
+    @Test
     public void testLoadPublicKey() {
         (new TISLicense()).loadPublicKey();
     }

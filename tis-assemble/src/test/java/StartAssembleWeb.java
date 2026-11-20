@@ -24,13 +24,12 @@ import com.qlangtech.tis.realtime.utils.NetUtils;
 import com.qlangtech.tis.web.start.TisApp;
 import com.qlangtech.tis.web.start.TisAppLaunch;
 import com.qlangtech.tis.web.start.TisSubModule;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-04-18 11:44
  */
-public class StartAssembleWeb extends TestCase {
+public class StartAssembleWeb {
 
 
     static {
@@ -39,6 +38,7 @@ public class StartAssembleWeb extends TestCase {
         CenterResource.setNotFetchFromCenterRepository();
     }
 
+    @Test
     public void testStart() throws Exception {
 
         System.out.println(this.getClass().getClassLoader().loadClass("com.alibaba.datax.common.statistics.PerfTrace"));

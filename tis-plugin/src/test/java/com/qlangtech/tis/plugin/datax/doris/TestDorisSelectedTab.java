@@ -25,14 +25,14 @@ import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.plugin.PluginStore;
 import com.qlangtech.tis.plugin.datax.SelectedTab;
 import com.thoughtworks.xstream.core.MapBackedDataHolder;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/10/2
  */
-public class TestDorisSelectedTab extends TestCase {
+public class TestDorisSelectedTab {
 
+    @Test
     public void testMultiChildrenInstanceLoad() {
 
         PluginsCollector pluginsCollector = loadSelectedTab("OnSeqKey");

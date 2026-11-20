@@ -22,14 +22,13 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.plugin.datax.transformer.impl.ExistTargetCoumn;
 import com.qlangtech.tis.plugin.ds.DataType;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import junit.framework.TestCase;
 import org.junit.Test;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-12 11:18
  **/
-public class TestTargetColType extends TestCase {
+public class TestTargetColType {
 
     @Test
     public void testSerialize() {

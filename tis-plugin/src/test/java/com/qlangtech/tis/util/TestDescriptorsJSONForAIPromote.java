@@ -28,7 +28,6 @@ import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import junit.framework.TestCase;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Arrays;
@@ -41,20 +40,21 @@ import java.util.Optional;
 import static com.qlangtech.tis.extension.Descriptor.KEY_EPROPS;
 import static com.qlangtech.tis.manage.common.Option.KEY_HELP;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * DescriptorsJSONForAIPromote 单元测试类
  *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2025/01/16
  */
-public class TestDescriptorsJSONForAIPromote extends TestCase {
+public class TestDescriptorsJSONForAIPromote {
 
     private DefaultPlugin.DefaultDescriptor defaultDescriptor;
     private DescribableImpl describableImpl;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before public void setUp() throws Exception {
         // 初始化TIS实例（如果需要）
         try {
             TIS.get();
@@ -71,6 +71,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
     /**
      * 测试构造方法 - 单个描述符
      */
+    @Test
     public void testConstructorWithSingleDescriptor() {
 
         DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON =
@@ -78,6 +79,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
         assertNotNull(descriptorsJSON);
     }
 
+    @Test
     public void testConstructorWithMySQL8() {
         String pluginId = "com.qlangtech.tis.plugin.ds.mysql.MySQLV8DataSourceFactory";
         //String pluginId = "com.qlangtech.tis.plugin.datax.DataxMySQLWriter";
@@ -112,6 +114,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
     /**
      * 测试构造方法 - 描述符集合
      */
+    @Test
     public void testConstructorWithDescriptorCollection() {
         List<Descriptor<DefaultPlugin>> descriptors = Arrays.asList((Descriptor<DefaultPlugin>) defaultDescriptor);
 
@@ -128,6 +131,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      * 测试 getDescriptorsJSON 基本功能
      * 验证AI模式下不包含文档URL
      */
+    @Test
     public void testGetDescriptorsJSON() {
         DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON =
                 new DescriptorsJSONForAIPrompt<>(defaultDescriptor, describableImpl);
@@ -174,6 +178,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      * 测试字段属性解析
      * DefaultPlugin 包含 name, password, cols, nestProp 字段
      */
+    @Test
     public void testFieldParsing() {
         DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON =
                 new DescriptorsJSONForAIPrompt<>(defaultDescriptor, describableImpl);
@@ -276,6 +281,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
     /**
      * 测试多个描述符的情况
      */
+    @Test
     public void testMultipleDescriptors() {
         // 创建第二个描述符实例
         DefaultPlugin.DefaultDescriptor descriptor2 = new DefaultPlugin.DefaultDescriptor();
@@ -302,6 +308,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      * 测试继承关系
      * 验证 DescriptorsJSONForAIPromote 正确继承了 DescriptorsJSON
      */
+    @Test
     public void testInheritance() {
         DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON =
                 new DescriptorsJSONForAIPrompt<>(defaultDescriptor, describableImpl);
@@ -317,6 +324,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      * 对比测试：DescriptorsJSON vs DescriptorsJSONForAIPromote
      * 验证两者的主要区别（文档URL的存在与否）
      */
+    @Test
     public void testCompareWithRegularDescriptorsJSON() {
         // 创建普通的 DescriptorsJSON
         DefaultDescriptorsJSON<DefaultPlugin> regularJSON = new DefaultDescriptorsJSON(defaultDescriptor);
@@ -347,6 +355,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
     /**
      * 测试空描述符列表的处理
      */
+    @Test
     public void testEmptyDescriptorList() {
         List<Descriptor<DefaultPlugin>> emptyList = Collections.emptyList();
 
@@ -363,6 +372,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
      * 测试默认值处理
      * DefaultPlugin.DefaultDescriptor 设置了 name 字段的默认值
      */
+    @Test
     public void testDefaultValues() {
         DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON =
                 new DescriptorsJSONForAIPrompt<>(defaultDescriptor, describableImpl);
@@ -382,6 +392,7 @@ public class TestDescriptorsJSONForAIPromote extends TestCase {
     /**
      * 测试扩展点信息
      */
+    @Test
     public void testExtendPoint() {
         DescriptorsJSONForAIPrompt<DefaultPlugin> descriptorsJSON =
                 new DescriptorsJSONForAIPrompt<>(defaultDescriptor, describableImpl);

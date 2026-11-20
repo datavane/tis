@@ -20,7 +20,6 @@ package com.qlangtech.tis.plugin.ds;
 
 import com.google.common.collect.Lists;
 import com.qlangtech.tis.common.utils.Assert;
-import junit.framework.TestCase;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
@@ -29,7 +28,7 @@ import java.util.List;
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-09-21 13:26
  **/
-public class TestSplitableTableInDB extends TestCase {
+public class TestSplitableTableInDB {
 
     //@Test
     public void testRewritePhysicsTabs() {

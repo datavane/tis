@@ -27,20 +27,19 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.offline.module.action.OfflineDatasourceAction;
 import com.qlangtech.tis.util.RobustReflectionConverter2;
-import junit.framework.TestCase;
-
 import java.util.List;
 import java.util.jar.Manifest;
 
+import org.junit.Test;
+import org.junit.Before;
 /**
  *
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2025-05-10 14:29
  **/
-public class TestPluginAndCfgsSnapshotOnWorkflow extends TestCase {
+public class TestPluginAndCfgsSnapshotOnWorkflow {
 
-  @Override
-  protected void setUp() throws Exception {
+  @Before public void setUp() throws Exception {
     // super.setUp();
     CenterResource.setNotFetchFromCenterRepository();
     List<Option> opts = Lists.newArrayList();
@@ -48,12 +47,14 @@ public class TestPluginAndCfgsSnapshotOnWorkflow extends TestCase {
     OfflineDatasourceAction.existDbs = opts;
   }
 
+  @Test
   public void testCreateDataBatchJobManifestCfgAttrsWithDataFlow() throws Exception {
     IDataxProcessor processor = DataxProcessor.load(null, StoreResourceType.DataFlow, "tpch_parse_on_hive");
     Manifest manifest = PluginAndCfgsSnapshot.createDataBatchJobManifestCfgAttrs(processor);
     Assert.assertNotNull(manifest);
   }
 
+  @Test
   public void testCollectMetas4tpch_parse_on_hive() {
     RobustReflectionConverter2.PluginMetas pluginMetas =
       RobustReflectionConverter2.PluginMetas.collectMetas((metas) -> {

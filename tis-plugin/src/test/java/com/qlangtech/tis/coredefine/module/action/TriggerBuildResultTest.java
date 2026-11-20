@@ -25,7 +25,6 @@ import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
-import junit.framework.TestCase;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
@@ -35,15 +34,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Test;
+import org.junit.Before;
+import org.junit.After;
 /**
  * @author: 百岁(baisui@qlangtech.com)
  * @create: 2025-12-15
  */
-public class TriggerBuildResultTest extends TestCase {
+public class TriggerBuildResultTest {
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before public void setUp() throws Exception {
         // Clean up any existing mock connections
 //        if (HttpUtils.mockConnMaker != null) {
 //            HttpUtils.mockConnMaker.clearStubs();
@@ -53,6 +53,7 @@ public class TriggerBuildResultTest extends TestCase {
     /**
      * Test successful trigger build with valid response
      */
+    @Test
     public void testTriggerBuildSuccess() throws Exception {
         // Prepare mock response JSON
         JSONObject bizResult = new JSONObject();
@@ -101,12 +102,10 @@ public class TriggerBuildResultTest extends TestCase {
         Assert.assertEquals("Task ID should match", 12345, (int)result.getTaskid());
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After public void tearDown() throws Exception {
         // Clean up mock connections
 //        if (HttpUtils.mockConnMaker != null) {
 //            HttpUtils.mockConnMaker.clearStubs();
 //        }
-        super.tearDown();
     }
 }

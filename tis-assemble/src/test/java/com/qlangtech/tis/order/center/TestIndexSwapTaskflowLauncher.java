@@ -35,11 +35,11 @@ import com.qlangtech.tis.fullbuild.phasestatus.impl.DumpPhaseStatus;
 import com.qlangtech.tis.fullbuild.taskflow.TestParamContext;
 import com.qlangtech.tis.job.common.JobCommon;
 import com.qlangtech.tis.sql.parser.TabPartitions;
-import junit.framework.TestCase;
 import org.junit.Assert;
 
 import java.util.Map;
 
+import org.junit.Test;
 //
 //import com.google.common.collect.Lists;
 //import com.google.common.collect.Maps;
@@ -82,7 +82,7 @@ import java.util.Map;
 //import junit.framework.TestCase;
 //import org.apache.commons.io.IOUtils;
 //import org.apache.commons.lang3.StringUtils;
-//import org.easymock.EasyMock;
+//import org.mockito.Mockito;
 //
 //import java.io.IOException;
 //import java.text.SimpleDateFormat;
@@ -94,12 +94,13 @@ import java.util.Map;
 // * @author 百岁（baisui@qlangtech.com）
 // * @date 2019年8月22日
 // */
-public class TestIndexSwapTaskflowLauncher extends TestCase {
+public class TestIndexSwapTaskflowLauncher {
     //
     static final int TASK_ID = 253;
     static final int shardCount = 1;
     private static final String WF_ID = "45";
 
+    @Test
     public void testLoadPhaseStatusFromLocal() {
 
         // 确保 static 块执行
@@ -212,15 +213,15 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
 //
 //        IndexBuildSourcePathCreator indexBuildSourcePathCreator = mock("indexBuildSourcePathCreator", IndexBuildSourcePathCreator.class);
 //
-//        EasyMock.expect(indexBuilderTriggerFactory.createIndexBuildSourcePathCreator(EasyMock.eq(chainContext), (EasyMock.anyObject())))
-//                .andReturn(indexBuildSourcePathCreator).anyTimes();
+//        Mockito.when(indexBuilderTriggerFactory.createIndexBuildSourcePathCreator(Mockito.eq(chainContext), (Mockito.any())))
+//                .thenReturn(indexBuildSourcePathCreator);
 //
 //        String fsRoot = "/user/admin";
 //        ITISFileSystem fileSystem = mock("tisFileSystem", ITISFileSystem.class);
 //
-//        EasyMock.expect(indexBuilderTriggerFactory.getFileSystem()).andReturn(fileSystem).anyTimes();
+//        Mockito.when(indexBuilderTriggerFactory.getFileSystem()).thenReturn(fileSystem);
 //
-//        EasyMock.expect(indexBuilderFileSystemFactory.getFileSystem()).andReturn(fileSystem).anyTimes();
+//        Mockito.when(indexBuilderFileSystemFactory.getFileSystem()).thenReturn(fileSystem);
 //
 //        SnapshotDomain domain = HttpConfigFileReader.getResource(SEARCH_APP_NAME, 0
 //                , RunEnvironment.getSysRuntime(), ConfigFileReader.FILE_SCHEMA, ConfigFileReader.FILE_SOLR);
@@ -230,16 +231,16 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
 //            IRemoteJobTrigger builderTrigger = this.mock("indexbuild_" + groupNum, IRemoteJobTrigger.class);
 //            builderTrigger.submitJob();
 //            RunningStatus runStatus = RunningStatus.SUCCESS;
-//            EasyMock.expect(builderTrigger.getRunningStatus()).andReturn(runStatus).anyTimes();
-//            EasyMock.expect(indexBuilderTriggerFactory.createBuildJob(
-//                    chainContext, partitionTimestamp, SEARCH_APP_NAME, String.valueOf(groupNum), processInfo)).andReturn(builderTrigger).anyTimes();
+//            Mockito.when(builderTrigger.getRunningStatus()).thenReturn(runStatus);
+//            Mockito.when(indexBuilderTriggerFactory.createBuildJob(
+//                    chainContext, partitionTimestamp, SEARCH_APP_NAME, String.valueOf(groupNum), processInfo)).thenReturn(builderTrigger);
 //            expectSolrMetaOutput(fsRoot, "schema", ConfigFileReader.FILE_SCHEMA, fileSystem, domain, groupNum);
 //            expectSolrMetaOutput(fsRoot, "solrconfig", ConfigFileReader.FILE_SOLR, fileSystem, domain, groupNum);
 //        }
 //        //}
-//        EasyMock.expect(fileSystem.getRootDir()).andReturn(fsRoot).anyTimes();
+//        Mockito.when(fileSystem.getRootDir()).thenReturn(fsRoot);
 //        if (!strategy.errorTest()) {
-//            // EasyMock.expect(tableDumpFactory.getJoinTableStorePath(EntityName.parse("tis.totalpay_summary"))).andReturn("xxxx");
+//            // Mockito.when(tableDumpFactory.getJoinTableStorePath(EntityName.parse("tis.totalpay_summary"))).thenReturn("xxxx");
 //        }
 //        ExecutePhaseRange execRange = chainContext.getExecutePhaseRange();
 //        if (execRange.contains(FullbuildPhase.FullDump)) {
@@ -326,9 +327,9 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
 //        IPath path = mock("group" + groupNum + "configschema", IPath.class);
 //        String p = fsRoot + "/" + SEARCH_APP_NAME + "-" + groupNum + "/config/" + fileName + ".xml";
 //
-//        EasyMock.expect(fileSystem.getPath(p)).andReturn(path).anyTimes();
+//        Mockito.when(fileSystem.getPath(p)).thenReturn(path);
 //        TISFSDataOutputStream schemaOutput = mock("group" + groupNum + "_config" + fileName + "OutputStream", TISFSDataOutputStream.class);
-//        EasyMock.expect(fileSystem.create(path, true)).andReturn(schemaOutput).anyTimes();
+//        Mockito.when(fileSystem.create(path, true)).thenReturn(schemaOutput);
 //        // IOUtils.write(ConfigFileReader.FILE_SCHEMA.getContent(domain), schemaOutput);
 //        IOUtils.write(getter.getContent(domain), schemaOutput);
 //        schemaOutput.close();
@@ -340,23 +341,21 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
 //
 //    private void verifyAll() {
 //        mocks.forEach((r) -> {
-//            EasyMock.verify(r);
+//            Mockito.verify(r);
 //        });
 //    }
 //
 //    static List<Object> mocks = Lists.newArrayList();
 //
 //    public <T> T mock(String name, Class<?> toMock) {
-//        Object mock = EasyMock.createMock(name, toMock);
+//        Object mock = Mockito.mock(toMock, Mockito.withSettings().name(name));
 //        mocks.add(mock);
 //        return (T) mock;
 //    }
 //
 //    public void replay() {
 ////        mocks.forEach((r) -> {
-////            EasyMock.replay(r);
 ////        });
-//        EasyMock.replay(mocks.toArray(new Object[mocks.size()]));
 //    }
 //
 //    private void expectCreateSingleTableDumpJob(String tableName, String partitionTimestamp, TableDumpFactory tableDumpFactory, FullBuildStrategy strategy) {
@@ -364,7 +363,7 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
 //        Map<String, String> params = Maps.newHashMap();
 //        params.put(ITableDumpConstant.DUMP_START_TIME, partitionTimestamp);
 //        TaskContext taskContext = TaskContext.create(params);
-//        EasyMock.expect(tableDumpFactory.createSingleTableDumpJob(table, taskContext)).andReturn(strategy.createRemoteJobTrigger(table)).anyTimes();
+//        Mockito.when(tableDumpFactory.createSingleTableDumpJob(table, taskContext)).thenReturn(strategy.createRemoteJobTrigger(table));
 //    }
 //
 //    /**
@@ -381,24 +380,24 @@ public class TestIndexSwapTaskflowLauncher extends TestCase {
 //        IndexBuilderTriggerFactory indexBuilderTriggerFactory = this.mock("indexBuilderTriggerFactory", IndexBuilderTriggerFactory.class);
 //
 //        ITISFileSystem fileSystem = this.mock("fileSystem", ITISFileSystem.class);
-//        EasyMock.expect(indexBuilderTriggerFactory.getFileSystem()).andReturn(fileSystem);
+//        Mockito.when(indexBuilderTriggerFactory.getFileSystem()).thenReturn(fileSystem);
 //
 //        TableDumpFactory tableDumpFactory = this.mock("tableDumpFactory", TableDumpFactory.class);
 //
-//        // EasyMock.anyObject()
+//        // Mockito.any()
 //
 //        EntityName employees = EntityName.create("employees", "employees");
 //        IRemoteJobTrigger remoteJobTrigger = mock("remoteJobTrigger", IRemoteJobTrigger.class);
 //
-//        EasyMock.expect(tableDumpFactory.createSingleTableDumpJob(EasyMock.eq(employees), EasyMock.anyObject()))
-//                .andReturn(remoteJobTrigger);
+//        Mockito.when(tableDumpFactory.createSingleTableDumpJob(Mockito.eq(employees), Mockito.any()))
+//                .thenReturn(remoteJobTrigger);
 //        remoteJobTrigger.submitJob();
 //
 //        //float progress, boolean complete, boolean success
 //        RunningStatus runningStatus = new RunningStatus(0, false, false);
-//        EasyMock.expect(remoteJobTrigger.getRunningStatus()).andReturn(runningStatus);
+//        Mockito.when(remoteJobTrigger.getRunningStatus()).thenReturn(runningStatus)
+//                .thenReturn(new RunningStatus(0, true, true));
 //        //  会调第二次成功
-//        EasyMock.expect(remoteJobTrigger.getRunningStatus()).andReturn(new RunningStatus(0, true, true));
 //
 //        replay();
 //        final DefaultChainContext chainContext = createDumpAndJoinChainContext();

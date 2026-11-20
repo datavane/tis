@@ -27,9 +27,7 @@ import com.qlangtech.tis.realtime.transfer.IIncreaseCounter;
 import com.qlangtech.tis.rpc.server.IncrStatusUmbilicalProtocolImpl;
 import com.qlangtech.tis.trigger.jst.ILogListener;
 import com.qlangtech.tis.trigger.socket.ExecuteState;
-import junit.framework.TestCase;
 import org.apache.commons.lang.StringUtils;
-import org.easymock.EasyMock;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -42,11 +40,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.Assert.*;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-08-31 10:28
  */
-public class TestIncrTagHeatBeatMonitor extends TestCase {
+public class TestIncrTagHeatBeatMonitor {
 
     private static final String collectionName = "search4totalpay";
 
@@ -91,16 +90,16 @@ public class TestIncrTagHeatBeatMonitor extends TestCase {
 //        };
         //  HttpUtils.addMockApply(0, "incr-control", StringUtils.EMPTY, TestIncrTagHeatBeatMonitor.class);
 
-        //ITISCoordinator coordinator = MockZKUtils.createZkMock();// EasyMock.createMock("coordinator", ITISCoordinator.class);
+        //ITISCoordinator coordinator = MockZKUtils.createZkMock();// Mockito.mock(ITISCoordinator.class, Mockito.withSettings().name("coordinator"));
         int times = 5;
         // TestCollectionAction.createAssembleLogCollectPathMock(coordinator,times);
 
 //    final String childNodeName = "000001";
 
-//    EasyMock.expect(coordinator.getChildren("/tis/incr-transfer-group/incr-state-collect", null, true))
-//      .andReturn(Collections.singletonList(childNodeName)).times(times);
-//    EasyMock.expect(coordinator.getData("/tis/incr-transfer-group/incr-state-collect/" + childNodeName, null, new Stat(), true))
-//      .andReturn("127.0.0.1".getBytes(TisUTF8.get())).times(times);
+//    Mockito.when(coordinator.getChildren("/tis/incr-transfer-group/incr-state-collect", null, true))
+//      .thenReturn(Collections.singletonList(childNodeName)).times(times);
+//    Mockito.when(coordinator.getData("/tis/incr-transfer-group/incr-state-collect/" + childNodeName, null, new Stat(), true))
+//      .thenReturn("127.0.0.1".getBytes(TisUTF8.get())).times(times);
         IncrStatusUmbilicalProtocolImpl incrStatusProtocol = IncrStatusUmbilicalProtocolImpl.getInstance();
         // 增量节点处理
         final Map<String, TopicTagStatus> /* tag */
@@ -118,12 +117,8 @@ public class TestIncrTagHeatBeatMonitor extends TestCase {
         IncrTagHeatBeatMonitor incrTagHeatBeatMonitor = new IncrTagHeatBeatMonitor(incrStatusProtocol,
                 this.collectionName, wsMessagePush, transferTagStatus, binlogTopicTagStatus, topicTagIncrStatus, collectionInterval);
 
-        EasyMock.replay();
-
         incrTagHeatBeatMonitor.build();
         assertEquals(6, wsMessagePush.count);
-
-        EasyMock.verify();
     }
 
     private static final class MockWebSocketMessagePush implements ILogListener {

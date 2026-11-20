@@ -22,16 +22,15 @@ import com.alibaba.citrus.turbine.impl.DefaultContext;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.trigger.util.JsonUtil;
-import junit.framework.TestCase;
-
-
+import org.junit.Test;
 /**
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/9/5
  */
-public class TestDefaultFieldErrorHandler extends TestCase {
+public class TestDefaultFieldErrorHandler {
 
 
+    @Test
     public void testAddFieldErrorMsg() {
 
         DefaultFieldErrorHandler fieldErrorHandler = new DefaultFieldErrorHandler();
@@ -59,6 +58,7 @@ public class TestDefaultFieldErrorHandler extends TestCase {
 
     }
 
+    @Test
     public void testGetJsonPrimaryKey1() {
         final String pkName = "testField";
         String complexProp = "testField.xxxx[3].kkk[3].age";
@@ -69,6 +69,7 @@ public class TestDefaultFieldErrorHandler extends TestCase {
     }
 
 
+    @Test
     public void testGetJsonPrimaryKey2() {
         final String pkName2 = "testField2";
         String complexProp = "testField2[1].xxxx[3].kkk[3].age";
@@ -86,6 +87,7 @@ public class TestDefaultFieldErrorHandler extends TestCase {
         //        Assert.assertEquals(pkName2, pk2[0]);
     }
 
+    @Test
     public void testGetJsonPrimaryKey3() {
         final String pkName = "testField";
         String complexProp = "testField";
@@ -106,6 +108,7 @@ public class TestDefaultFieldErrorHandler extends TestCase {
     }
 
 
+    @Test
     public void testCreateJsonByPath() {
         String complexProp = "testField.xxxx[1].name";
         DefaultFieldErrorHandler.IFieldMsg msgContent = null;

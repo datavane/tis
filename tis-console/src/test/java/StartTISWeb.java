@@ -1,3 +1,4 @@
+import org.junit.Test;
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,15 +17,14 @@
  * limitations under the License.
  */
 
-import junit.framework.TestCase;
-
 /**
  *env setter: ZEPPELIN_HOME=/Users/mozhenghua/Downloads/zeppelin-0.10.1-bin-all
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-04-18 11:44
  */
-public class StartTISWeb extends TestCase {
+public class StartTISWeb {
 
+  @Test
   public void testStart() throws Exception {
 
 

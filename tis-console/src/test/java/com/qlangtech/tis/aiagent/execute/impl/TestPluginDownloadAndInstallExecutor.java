@@ -28,8 +28,7 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSONForAIPrompt;
 import com.qlangtech.tis.util.DescriptorsMeta;
-import org.easymock.EasyMockSupport;
-import org.easymock.IMocksControl;
+import org.mockito.Mockito;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,28 +45,26 @@ import static org.junit.Assert.assertTrue;
  * @author 百岁 (baisui@qlangtech.com)
  * @create 2025/9/19
  */
-public class TestPluginDownloadAndInstallExecutor extends EasyMockSupport {
+public class TestPluginDownloadAndInstallExecutor {
 
   private PluginDownloadAndInstallExecutor executor;
   private TaskPlan mockPlan;
   private TaskStep mockStep;
   private AgentContext mockContext;
-  private IMocksControl control;
   private LLMProvider mockLLMProvider;
   private IControlMsgHandler mockMsgHandler;
 
   @Before
   public void setUp() {
     executor = new PluginDownloadAndInstallExecutor();
-    control = createControl();
 
     // 创建mock对象
-    mockPlan = control.createMock(TaskPlan.class);
-    mockStep = control.createMock(TaskStep.class);
-    mockContext = control.createMock(AgentContext.class);
+    mockPlan = Mockito.mock(TaskPlan.class);
+    mockStep = Mockito.mock(TaskStep.class);
+    mockContext = Mockito.mock(AgentContext.class);
 
-    mockLLMProvider = control.createMock(LLMProvider.class);
-    mockMsgHandler = control.createMock(IControlMsgHandler.class);
+    mockLLMProvider = Mockito.mock(LLMProvider.class);
+    mockMsgHandler = Mockito.mock(IControlMsgHandler.class);
   }
 
   /**
@@ -120,9 +117,6 @@ public class TestPluginDownloadAndInstallExecutor extends EasyMockSupport {
     // 设置期望
     // validate方法不需要从step读取任何属性，所以不设置期望
 
-    // 重放mock
-    control.replay();
-
     // 执行测试
     StepExecutor.ValidationResult result = executor.validate(mockStep);
 
@@ -130,8 +124,6 @@ public class TestPluginDownloadAndInstallExecutor extends EasyMockSupport {
     assertNotNull(result);
     assertTrue(result.isValid());
     assertNull(result.getErrorMessage());
-
-    control.verify();
   }
 
   /**

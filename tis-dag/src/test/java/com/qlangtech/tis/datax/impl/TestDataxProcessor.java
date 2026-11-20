@@ -22,7 +22,10 @@ import com.qlangtech.tis.datax.IDataxProcessor;
 import com.qlangtech.tis.sql.parser.stream.generate.BasicTestCase;
 import com.qlangtech.tis.util.IPluginContext;
 import org.apache.commons.lang.RandomStringUtils;
-import org.easymock.EasyMock;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+import org.mockito.Mockito;
 
 /**
  * @author: 百岁（baisui@qlangtech.com）
@@ -33,12 +36,11 @@ public class TestDataxProcessor extends BasicTestCase {
     /**
      * 加载一个空的默认DataxProcessor
      */
+    @Test
     public void testLoad() {
-        IPluginContext pluginContext = EasyMock.createMock("pluginContext", IPluginContext.class);
+        IPluginContext pluginContext = Mockito.mock(IPluginContext.class, Mockito.withSettings().name("pluginContext"));
         String randomDataXName = RandomStringUtils.randomAlphabetic(4);
-        EasyMock.replay(pluginContext);
         IDataxProcessor dataxProcessor = DataxProcessor.load(pluginContext, randomDataXName);
         assertNotNull(dataxProcessor);
-        EasyMock.verify(pluginContext);
     }
 }

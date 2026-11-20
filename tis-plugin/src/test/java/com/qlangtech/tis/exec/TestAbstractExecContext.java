@@ -24,22 +24,21 @@ import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
-import junit.framework.TestCase;
-
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2025-05-10 11:34
  **/
-public class TestAbstractExecContext extends TestCase {
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
+public class TestAbstractExecContext {
+    @Before public void setUp() throws Exception {
         CenterResource.setNotFetchFromCenterRepository();
     }
 
+    @Test
     public void testDeserializeInstanceParams() {
 
 //        TriggersConfig triggerCfg, JSONObject instanceParams, boolean resolveCfgsSnapshotConsumer //

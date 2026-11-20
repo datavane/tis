@@ -23,12 +23,12 @@ import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.plugin.MultiDescribleElementSetSelector;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import junit.framework.TestCase;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * {@link DescribableJSON#getParent()} 的链路契约：祖先链必须是<b>扁平</b>的一层
  * {@code List<Describable>}，从最外层到直接父级，且<b>不含</b>当前实例本身。
@@ -49,11 +49,12 @@ import java.util.Map;
  * @date 2026/11/5
  * @see DescribableJSON#appendParent(List, Describable)
  */
-public class TestDescribableJSONParentChain extends TestCase {
+public class TestDescribableJSONParentChain {
 
     /**
      * 单纯验证 {@link DescribableJSON#appendParent} 的语义：追加、不嵌层、不改原链。
      */
+    @Test
     public void testAppendParentProducesFlatChain() {
         Root root = newRoot();
         Child child = newChild();
@@ -83,6 +84,7 @@ public class TestDescribableJSONParentChain extends TestCase {
      * 端到端：三层嵌套 {@code Describable} 字段，最内层 {@link DescribableJSON.AppendPayloadAttribute}
      * 收到的 parent 必须是 {@code [root, child]}。
      */
+    @Test
     public void testNestedDescribableReceivesFullAncestorChain() throws Exception {
         Root root = newRoot();
         RootFormProperties props = new RootFormProperties(root.getDescriptor(),
@@ -104,6 +106,7 @@ public class TestDescribableJSONParentChain extends TestCase {
      * {@code MULTI_DESCRIBLE_PLUGIN} 的每个元素拿到的链与单值 {@code Describable} 一致，
      * 且同级多个元素共享同一条链（不能互相 append）。
      */
+    @Test
     public void testMultiDescribableItemsShareAncestorChain() throws Exception {
         Root root = newRoot();
         root.children = List.of(newChild("c1"), newChild("c2"));

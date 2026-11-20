@@ -19,18 +19,20 @@ package com.qlangtech.tis.solrdao;
 
 import com.qlangtech.tis.exec.IIndexMetaData;
 import com.qlangtech.tis.solrdao.impl.ParseResult;
-import junit.framework.Assert;
-import junit.framework.TestCase;
+import org.junit.Assert;
 import org.apache.commons.io.IOUtils;
 
 import java.io.InputStream;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestSolrFieldParser extends TestCase {
+public class TestSolrFieldParser {
 
+    @Test
     public void testSchemaFields() throws Exception {
         // SolrFieldsParser solrFieldsParser = new SolrFieldsParser();
         try (InputStream reader = this.getClass().getResourceAsStream("schema-sample.txt")) {

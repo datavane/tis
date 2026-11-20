@@ -18,14 +18,14 @@
 package com.qlangtech.tis.full.dump;
 
 import java.util.Date;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2015年11月26日 下午2:30:04
  */
-public class TestStart extends TestCase {
+public class TestStart {
 
+    @Test
     public void testStart() {
         System.out.println((new Date()).getTime());
     }

@@ -26,11 +26,14 @@ import com.qlangtech.tis.plugin.KeyedPluginStore;
 import com.qlangtech.tis.plugin.ds.CMeta;
 import com.qlangtech.tis.plugin.ds.ISelectedTab;
 import com.qlangtech.tis.util.IPluginContext;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-12-25 09:30
@@ -39,8 +42,7 @@ public class TestDataxReader extends BasicTestCase {
 
     String dataXName = "mysql_startrock2";
 
-    @Override
-    public void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         super.setUp();
         TIS.dataXReaderPluginStore.clear();
     }
@@ -52,9 +54,9 @@ public class TestDataxReader extends BasicTestCase {
     //        assertNotNull(dataxReader);
     //
     //
-    //        SuFormProperties props = EasyMock.createMock("subformProp", SuFormProperties.class);
+    //        SuFormProperties props = Mockito.mock(SuFormProperties.class, Mockito.withSettings().name("subformProp"));
     //
-    //        EasyMock.expect(props.getSubFormFieldName()).andReturn("selectedTabs");
+    //        Mockito.when(props.getSubFormFieldName()).thenReturn("selectedTabs");
     //
     //        DataxReader.SubFieldFormAppKey<DataxReader> subFieldKey
     //                = new DataxReader.SubFieldFormAppKey<>(null, false, dataXName, props, DataxReader.class);
@@ -67,6 +69,7 @@ public class TestDataxReader extends BasicTestCase {
     //
     //    }
 
+    @Test
     public void testLoad() {
         String pipeline = "kafka_mysql";
         DataxReader dataxReader =
@@ -76,6 +79,7 @@ public class TestDataxReader extends BasicTestCase {
     }
 
 
+    @Test
     public void testGetDataxReader() {
 
         KeyedPluginStore<DataxReader> readerStore = DataxReader.getPluginStore(null, dataXName);
@@ -87,15 +91,14 @@ public class TestDataxReader extends BasicTestCase {
         assertTrue(selectedTabs.size() > 0);
 
 
-        IPluginContext pluginContext = EasyMock.createMock("pluginContext", IPluginContext.class);
+        IPluginContext pluginContext = Mockito.mock(IPluginContext.class, Mockito.withSettings().name("pluginContext"));
         //
         String execId = "7b069200-9845-d60b-cef0-408c6940ffda";
-        EasyMock.expect(pluginContext.getExecId()).andReturn(execId).times(2);
-        EasyMock.expect(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).andReturn("/x/" + dataXName +
-                "/update").times(2);
-        EasyMock.expect(pluginContext.isCollectionAware()).andReturn(true).times(2);
+        Mockito.when(pluginContext.getExecId()).thenReturn(execId);
+        Mockito.when(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).thenReturn("/x/" + dataXName +
+                "/update");
+        Mockito.when(pluginContext.isCollectionAware()).thenReturn(true);
 
-        EasyMock.replay(pluginContext);
         readerStore = DataxReader.getPluginStore(pluginContext, dataXName);
         assertNotNull("readerStore can not be null", readerStore);
 
@@ -111,6 +114,8 @@ public class TestDataxReader extends BasicTestCase {
                 assertNotNull("tab:" + tab.getName() + ",col:" + col.getName() + " can not be null", col.getType());
             }
         }
-        EasyMock.verify(pluginContext);
+        Mockito.verify(pluginContext, Mockito.times(2)).getExecId();
+        Mockito.verify(pluginContext, Mockito.times(2)).getRequestHeader(DataxReader.HEAD_KEY_REFERER);
+        Mockito.verify(pluginContext, Mockito.times(2)).isCollectionAware();
     }
 }

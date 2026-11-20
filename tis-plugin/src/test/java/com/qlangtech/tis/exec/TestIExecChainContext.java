@@ -25,21 +25,20 @@ import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.datax.impl.DataxProcessor;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.plugin.PluginAndCfgsSnapshot;
-import junit.framework.TestCase;
-
 import java.util.Optional;
 
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-04-16 15:36
  **/
-public class TestIExecChainContext extends TestCase {
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
+public class TestIExecChainContext {
+    @Before public void setUp() throws Exception {
         CenterResource.setNotFetchFromCenterRepository();
     }
 
+    @Test
     public void testCreateInstanceParams() {
         int taskId = 999;
         String pipeline = "mysql5";
@@ -52,6 +51,7 @@ public class TestIExecChainContext extends TestCase {
         Assert.assertNotNull(snapshot);
     }
 
+    @Test
     public void testManifestOfDataX() {
         String pipeline = "test";
         IDataxProcessor processor = DataxProcessor.load(null, pipeline);

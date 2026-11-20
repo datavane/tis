@@ -18,13 +18,11 @@
 
 package com.qlangtech.tis.util;
 
-import junit.framework.TestCase;
-
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-09-11 15:19
  **/
-public class TestXStream2 extends TestCase {
+public class TestXStream2 {
 
 
 }

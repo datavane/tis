@@ -18,13 +18,11 @@
 package com.qlangtech.tis.fullbuild.taskflow;
 
 // import com.google.common.collect.Maps;
-import junit.framework.TestCase;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestHiveJoinWorkflow extends TestCase {
+public class TestHiveJoinWorkflow {
 
     public void test() throws Exception {
     // 执行hiveworkflow工作流

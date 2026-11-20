@@ -23,15 +23,15 @@ import com.qlangtech.tis.manage.common.HttpConfigFileReader;
 import com.qlangtech.tis.manage.common.RepositoryException;
 import com.qlangtech.tis.manage.common.SnapshotDomain;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
+import org.junit.Assert;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestGetAppconfig extends TestCase {
+public class TestGetAppconfig {
 
+    @Test
     public void testGetResource() {
         try {
             SnapshotDomain domain = HttpConfigFileReader.getResource("search4punish", 0, RunEnvironment.DAILY, ConfigFileReader.FILE_SCHEMA);

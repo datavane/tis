@@ -25,12 +25,15 @@ import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
 
 import java.util.List;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: baisui 百岁
  * @create: 2020-10-14 16:34
  **/
 public class TestS4EmployeeStreamComponentCodeGenerator extends BasicTestCase {
 
+    @Test
     public void testGeneratorCode() throws Exception {
         long timestamp = 20201111115959l;
         DataXName collectionName = DataXName.createDataXPipeline( "search4test");

@@ -28,31 +28,31 @@ import com.qlangtech.tis.plugin.innerprop.KerberosCfg;
 import com.qlangtech.tis.plugin.innerprop.TestUploadKrb5Res;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.XStream2;
-import junit.framework.TestCase;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.Test;
+import org.junit.Before;
+import org.junit.After;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-07-04 13:52
  **/
-public class TestInnerPropOfIdentityName extends TestCase {
+public class TestInnerPropOfIdentityName {
 
     private static final String KERBEROS_NAME = "kerberos";
     private static final String FILE_TEST_NAME = "test.cfg";
     IPluginStore<ParamsConfig> targetPluginStore;
 
-    @Override
-    public void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         this.targetPluginStore = ParamsConfig.getTargetPluginStore(
                 ParamsConfig.CONTEXT_PARAMS_CFG, IKerberos.IDENTITY + "_test", Optional.empty());
 
     }
 
-    @Override
-    public void tearDown() throws Exception {
+    @After public void tearDown() throws Exception {
         this.targetPluginStore.getTargetFile().delete();
     }
 
@@ -60,11 +60,12 @@ public class TestInnerPropOfIdentityName extends TestCase {
      * @see XStream2.IdentityNameConvert
      * @see XStream2.InnerPropOfIdentityNameConvert
      */
+    @Test
     public void testPropertyDoUnmarshal() {
 
 
-        IPluginContext pluginContext = EasyMock.createMock("pluginContext", IPluginContext.class);
-        EasyMock.expect(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).andReturn("");
+        IPluginContext pluginContext = Mockito.mock(IPluginContext.class, Mockito.withSettings().name("pluginContext"));
+        Mockito.when(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).thenReturn("");
         List<Descriptor.ParseDescribable<ParamsConfig>> testPlugin = createTestPlugin();
         targetPluginStore.setPlugins(pluginContext, Optional.empty(), testPlugin);
 

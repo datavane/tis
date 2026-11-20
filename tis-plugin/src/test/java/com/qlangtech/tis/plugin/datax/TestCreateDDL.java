@@ -20,13 +20,13 @@ package com.qlangtech.tis.plugin.datax;
 
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.plugin.datax.AbstractCreateTableSqlBuilder.CreateDDL;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-09-11 16:43
  **/
-public class TestCreateDDL extends TestCase {
+public class TestCreateDDL {
+    @Test
     public void testReplaceDDLTableName() {
 
         String createTableExample = "CREATE TABLE `orderdetail_01`  (\n" +

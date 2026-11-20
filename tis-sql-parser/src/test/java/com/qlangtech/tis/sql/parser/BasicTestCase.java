@@ -19,17 +19,14 @@ package com.qlangtech.tis.sql.parser;
 
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.HttpUtils;
-import junit.framework.TestCase;
-
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class BasicTestCase extends TestCase {
+public class BasicTestCase {
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before public void setUp() throws Exception {
         CenterResource.setNotFetchFromCenterRepository();
         HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();
         HttpUtils.addMockGlobalParametersConfig();

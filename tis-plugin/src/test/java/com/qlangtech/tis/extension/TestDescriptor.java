@@ -23,15 +23,16 @@ import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.DescriptorsMeta;
-import junit.framework.TestCase;
-
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-06-11 09:52
  **/
-public class TestDescriptor extends TestCase {
+public class TestDescriptor {
 
 
+    @Test
     public void testGetPluginFormPropertyTypes() {
 
         GroovyShellEvaluate.eval("com.qlangtech.tis.extension.DefaultPlugin.getColsDefaultVal()");
@@ -54,6 +55,7 @@ public class TestDescriptor extends TestCase {
                 });
     }
 
+    @Test
     public void testGetDisplayNameAsAnchor() {
         DefaultPlugin dftPlugin = new DefaultPlugin();
         Descriptor<DefaultPlugin> descriptor = dftPlugin.getDescriptor();

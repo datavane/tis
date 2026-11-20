@@ -18,13 +18,11 @@
 
 import com.qlangtech.tis.web.start.TisApp;
 import com.qlangtech.tis.web.start.TisAppLaunch;
-import junit.framework.TestCase;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-04-18 11:44
  */
-public class StartTISWeb extends TestCase {
+public class StartTISWeb {
 
 //    public void testStart() throws Exception {
 //        TisApp app = new TisApp("/collect", TisAppLaunch.getPort(), (context) -> {

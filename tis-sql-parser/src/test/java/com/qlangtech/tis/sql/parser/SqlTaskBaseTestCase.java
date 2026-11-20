@@ -20,20 +20,18 @@ package com.qlangtech.tis.sql.parser;
 import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta.SqlDataFlowTopology;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
+import org.junit.Assert;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public abstract class SqlTaskBaseTestCase extends TestCase {
+public abstract class SqlTaskBaseTestCase {
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         CenterResource.setNotFetchFromCenterRepository();
     }
 

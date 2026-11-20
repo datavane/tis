@@ -25,9 +25,6 @@ import com.qlangtech.tis.manage.common.ConfigFileContext;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.PostFormStreamProcess;
 import com.qlangtech.tis.plugin.llm.impl.qwen.sampling.TemperatureSampling;
-import junit.framework.TestCase;
-import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -38,15 +35,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.easymock.EasyMock.*;
-
+import static org.junit.Assert.*;
 /**
  * QWenLLMProvider 单元测试
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/10/27
  */
-public class TestQWenLLMProvider extends TestCase {
+public class TestQWenLLMProvider {
 
     /**
      * 测试基本配置和初始化

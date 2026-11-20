@@ -18,16 +18,17 @@
 
 package com.qlangtech.tis.db.parser;
 
-import junit.framework.TestCase;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-01-11 10:20
  **/
-public class TestScannerPatterns extends TestCase {
+public class TestScannerPatterns {
+    @Test
     public void testTT_HOSTMatch() {
         Pattern pattern = ScannerPatterns.TokenTypes.TT_HOST.createPattern();
         Matcher matcher = pattern.matcher("localhost");

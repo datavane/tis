@@ -22,16 +22,18 @@ import com.qlangtech.tis.sql.parser.tuple.creator.IDataTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.ColRef;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.FunctionDataTupleCreator;
 import com.qlangtech.tis.sql.parser.tuple.creator.impl.TableTupleCreator;
-import junit.framework.Assert;
+import org.junit.Assert;
 import java.util.Map;
 import java.util.Optional;
 
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
 public class TestOrderCustomersSqlParse extends SqlTaskBaseTestCase {
 
+    @Test
     public void testParse() throws Exception {
         final String order_customers = "order_customers";
         TableTupleCreator task = parseSqlTaskNode(order_customers);

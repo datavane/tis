@@ -21,13 +21,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import junit.framework.TestCase;
-
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2017年6月21日
  */
-public class TestRandom extends TestCase {
+public class TestRandom {
 
     /**
      * @param args

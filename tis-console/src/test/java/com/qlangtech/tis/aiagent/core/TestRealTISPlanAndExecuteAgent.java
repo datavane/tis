@@ -47,6 +47,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.qlangtech.tis.aiagent.core.AgentContext.KEY_REQUEST_ID;
 import static com.qlangtech.tis.aiagent.core.AgentContext.KEY_VALIDATE_PLUGIN_ATTR_VALS;
 
+import org.junit.Test;
+import org.junit.Before;
 /**
  *
  * @author 百岁 (baisui@qlangtech.com)
@@ -56,8 +58,7 @@ public class TestRealTISPlanAndExecuteAgent extends BasicActionTestCase {
 
   private static boolean initialized = false;
 
-  @Override
-  protected void setUp() throws Exception {
+  @Before public void setUp() throws Exception {
     super.setUp();
     if (!initialized) {
       CenterResource.setNotFetchFromCenterRepository();
@@ -65,6 +66,7 @@ public class TestRealTISPlanAndExecuteAgent extends BasicActionTestCase {
     }
   }
 
+  @Test
   public void testExecuteSuccess() throws Exception {
     request.setParameter("emethod", "chat");
     request.setParameter("action", "chat_pipeline_action");

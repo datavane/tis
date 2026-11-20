@@ -21,14 +21,14 @@ package com.qlangtech.tis.manage.common;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.realtime.yarn.rpc.IncrRateControllerCfgDTO;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2025-07-09 22:32
  **/
-public class TaskSoapUtilsTest extends TestCase {
+public class TaskSoapUtilsTest {
 
+    @Test
     public void testGetIncrRateLimitCfg() {
 
         Long lastModified = 1752039132065l;

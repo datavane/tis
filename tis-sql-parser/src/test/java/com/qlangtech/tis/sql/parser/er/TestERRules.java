@@ -25,7 +25,6 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.meta.*;
-import junit.framework.TestCase;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -35,11 +34,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestERRules extends TestCase {
+public class TestERRules {
 
     static Map<String, DependencyNode> nodes = Maps.newHashMap();
 
@@ -48,9 +50,7 @@ public class TestERRules extends TestCase {
     public static ERRules totalpayErRules = new ERRules();
 
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before public void setUp() throws Exception {
         CenterResource.setNotFetchFromCenterRepository();
         Config.setDataDir("./dataflow");
         try {
@@ -80,6 +80,7 @@ public class TestERRules extends TestCase {
         }
     }
 
+    @Test
     public void testERRulesParse() {
         ERRules erRule = getTotalpayErRules();
         Map<String, TableRelation> testMap = Maps.newHashMap();
@@ -158,6 +159,7 @@ public class TestERRules extends TestCase {
         return ERRules.getErRule(topology_totalpay).get();
     }
 
+    @Test
     public void testRuleParse() throws Exception {
         ERRules erRules = new ERRules();
         erRules.addRelation($("1", "orderdetail", "totalpayinfo", TabCardinality.ONE_ONE).addJoinerKey("order_id", "order_id"));

@@ -19,14 +19,14 @@ package com.qlangtech.tis.offline;
 
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.DescriptorExtensionList;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestFileSystemFactory extends TestCase {
+public class TestFileSystemFactory {
 
+    @Test
     public void testGetInstance() {
     // DescriptorExtensionList<FileSystemFactory, Descriptor<FileSystemFactory>> all = FileSystemFactory.all();
     //

@@ -16,40 +16,21 @@
  * limitations under the License.
  */
 
-import com.qlangtech.tis.coredefine.module.action.TestDataXAction;
-import com.qlangtech.tis.coredefine.module.action.TestPluginAction;
-import com.qlangtech.tis.coredefine.module.action.TestPluginItemsParser;
-import com.qlangtech.tis.manage.common.TestUserUtils;
-
-import com.qlangtech.tis.offline.module.action.TestOfflineDatasourceAction;
-import com.qlangtech.tis.plugin.TestPluginAndCfgsSnapshotOnWorkflow;
-import com.qlangtech.tis.runtime.module.action.TestSchemaAction;
-import com.qlangtech.tis.runtime.module.action.TestSysInitializeAction;
-import com.qlangtech.tis.solrdao.TestSchemaResult;
-import com.qlangtech.tis.util.TestPluginItems;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
+ * 该模块可离线运行的单元测试聚合套件(由测试验证脚本自动整理生成)。
+ * 依赖数据库/本地文件/内网服务/Testcontainers 的用例见 TEST_SKIP_REPORT.md。
  */
-public class TestAll extends TestCase {
-
-  public static Test suite() {
-    TestSuite suite = new TestSuite();
-    suite.addTestSuite(TestPluginItems.class);
-    suite.addTestSuite(TestSysInitializeAction.class);
-    suite.addTestSuite(TestSchemaResult.class);
-    suite.addTestSuite(TestSchemaAction.class);
-    suite.addTestSuite(TestPluginAction.class);
-    suite.addTestSuite(TestOfflineDatasourceAction.class);
-    suite.addTestSuite(TestDataXAction.class);
-    suite.addTestSuite(TestUserUtils.class);
-    suite.addTestSuite(TestPluginItemsParser.class);
-    suite.addTestSuite(TestPluginAndCfgsSnapshotOnWorkflow.class);
-
-    return suite;
-  }
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+    com.qlangtech.tis.LockTest.class,
+    com.qlangtech.tis.TestBeann.class,
+    com.qlangtech.tis.aiagent.core.TestRealTISPlanAndExecuteAgent.class,
+    com.qlangtech.tis.alert.TestFlinkJobsMonitor.class,
+    com.qlangtech.tis.manage.common.TestUserUtils.class,
+    com.qlangtech.tis.util.groovy.TestConsoleGroovyShellFactory.class,
+})
+public class TestAll {
 }

@@ -20,21 +20,23 @@ package com.qlangtech.tis.util;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.SubFormFilter;
-import junit.framework.TestCase;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Optional;
 
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-07-20 13:21
  */
-public class TestUploadPluginMeta extends TestCase {
+public class TestUploadPluginMeta {
 
 
+    @Test
     public void testUncacheAttribute() {
         String groovyScript = "com.qlangtech.tis.plugin.datax.DataXMongodbWriter.getDftColumn()";
         UploadPluginMeta parseResult = UploadPluginMeta.parse(groovyScript + ":uncache_true");
@@ -42,6 +44,7 @@ public class TestUploadPluginMeta extends TestCase {
         assertEquals(groovyScript, parseResult.getName());
     }
 
+    @Test
     public void testDataXReaderWithExecId() {
         String rawContent = "dataxReader:require,dataxName_mysql_mysql,execId_fe4e79f1-9f05-6976-7604-db6d1c3ad391";
         UploadPluginMeta parseResult = UploadPluginMeta.parse(rawContent);
@@ -52,6 +55,7 @@ public class TestUploadPluginMeta extends TestCase {
         assertEquals("fe4e79f1-9f05-6976-7604-db6d1c3ad391", parseResult.getExtraParam("execId"));
     }
 
+    @Test
     public void testPluginMetaWithSpaceDisplayNameParse() {
         String pluginName = "test_plugin";
         final String targetDescriptor = "Value Type";
@@ -63,6 +67,7 @@ public class TestUploadPluginMeta extends TestCase {
        Assert.assertEquals(targetDescriptor,parse.get(0).getExtraParam(UploadPluginMeta.PLUGIN_META_TARGET_DESCRIPTOR_NAME));
     }
 
+    @Test
     public void testPluginMetaParse() {
         //  String pluginName = "dsname_yuqing_zj2_bak";
         String pluginName = "test_plugin";
@@ -127,14 +132,12 @@ public class TestUploadPluginMeta extends TestCase {
         assertEquals(targetDescriptor, filter.targetDesc.descDisplayName);
         assertEquals(targetDescriptorImpl, filter.targetDesc.impl);
         assertEquals(subFieldName, filter.subFieldName);
-        Descriptor descriptor = EasyMock.createMock("descriptor", Descriptor.class);
-        EasyMock.expect(descriptor.getDisplayName()).andReturn(targetDescriptor);
-        EasyMock.expect(descriptor.getDisplayName()).andReturn("dddd");
+        Descriptor descriptor = Mockito.mock(Descriptor.class, Mockito.withSettings().name("descriptor"));
+        Mockito.when(descriptor.getDisplayName()).thenReturn(targetDescriptor).thenReturn("dddd");
 
-        EasyMock.replay(descriptor);
         assertTrue(filter.match(descriptor));
         assertFalse(filter.match(descriptor));
-        EasyMock.verify(descriptor);
+        Mockito.verify(descriptor, Mockito.times(2)).getDisplayName();
 
     }
 }

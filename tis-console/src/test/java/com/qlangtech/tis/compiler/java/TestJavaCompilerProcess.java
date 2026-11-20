@@ -18,15 +18,16 @@
 package com.qlangtech.tis.compiler.java;
 
 import com.qlangtech.tis.plugin.ds.DBConfig;
-import junit.framework.TestCase;
 import java.io.File;
 
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestJavaCompilerProcess extends TestCase {
+public class TestJavaCompilerProcess {
 
+    @Test
     public void testCreateJar() throws Exception {
         File rootDir = new File("/opt/data/dao/shop/20191025105833/src/main");
         File classpathDir = new File("/Users/mozhenghua/Desktop/j2ee_solution/project/tis-ibatis/target/dependency");

@@ -21,17 +21,17 @@ import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.XmlFile;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.utils.InputColor;
-import junit.framework.TestCase;
-
 import java.lang.reflect.Field;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * {@link FormFieldType#Color} 的值往返：前端只认颜色字符串，服务端只认 {@link InputColor}。
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/11/9
  */
-public class TestFormFieldTypeColor extends TestCase {
+public class TestFormFieldTypeColor {
 
     public static class ColorHolder {
         @FormField(ordinal = 0, type = FormFieldType.Color, validate = {})
@@ -39,6 +39,7 @@ public class TestFormFieldTypeColor extends TestCase {
     }
 
     /** POST 侧：JSON 里的 {@code _primaryVal} 是字符串，必须包成 InputColor 才能 field.set */
+    @Test
     public void testProcessInputConvertsString2InputColor() throws Exception {
         ColorHolder holder = new ColorHolder();
         PropertyType pt = getColorPropertyType();
@@ -50,6 +51,7 @@ public class TestFormFieldTypeColor extends TestCase {
     }
 
     /** 已经是实例时保持幂等（dftVal / valueChangePipe 回放会走这条） */
+    @Test
     public void testProcessInputIsIdempotentForInstance() throws Exception {
         ColorHolder holder = new ColorHolder();
         InputColor given = new InputColor("#f5222d");
@@ -60,6 +62,7 @@ public class TestFormFieldTypeColor extends TestCase {
     }
 
     /** 空串 / null 一律落成 null，避免出现 value="" 的脏对象 */
+    @Test
     public void testProcessInputEmptyBecomesNull() throws Exception {
         ColorHolder holder = new ColorHolder();
         getColorPropertyType().setVal(holder, "  ");
@@ -71,6 +74,7 @@ public class TestFormFieldTypeColor extends TestCase {
     }
 
     /** GET 侧：下发给前端的是裸字符串，不是 {"value": "..."} */
+    @Test
     public void testSerialize2OutputFlattens2String() throws Exception {
         ColorHolder holder = new ColorHolder();
         holder.color = new InputColor("#00b96b");
@@ -81,10 +85,12 @@ public class TestFormFieldTypeColor extends TestCase {
     }
 
     /** 线格式契约：前端按 *ngSwitchCase="14" 分派，identity 被改就静默不渲染 */
+    @Test
     public void testWireIdentityIs14() {
         assertEquals(14, FormFieldType.Color.getIdentity());
     }
 
+    @Test
     public void testShortCommentAndEndType() {
         assertEquals("颜色取色器", FormFieldType.Color.shortComment());
         assertEquals(IEndTypeGetter.EndType.BgColors, FormFieldType.Color.getEndType());
@@ -93,6 +99,7 @@ public class TestFormFieldTypeColor extends TestCase {
     /**
      * 插件实例走 XStream 落盘，反射反序列化不走带参构造器 —— 没有无参构造器就会在读存量配置时炸。
      */
+    @Test
     public void testXStreamRoundTrip() {
         ColorHolder holder = new ColorHolder();
         holder.color = new InputColor("#722ed1");

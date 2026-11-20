@@ -18,15 +18,16 @@
 
 package com.qlangtech.tis.fs;
 
-import junit.framework.TestCase;
 import org.junit.Assert;
 
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-08-17 15:56
  **/
-public class TestIPath extends TestCase {
+public class TestIPath {
 
+    @Test
     public void testPathConcat() {
         Assert.assertEquals("/user/admin/instancedetail", IPath.pathConcat("/user/admin/", "/instancedetail"));
         Assert.assertEquals("/user/admin/instancedetail", IPath.pathConcat("/user/admin", "/instancedetail"));

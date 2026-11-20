@@ -19,7 +19,6 @@
 package com.qlangtech.tis.manage.common;
 
 import com.qlangtech.tis.common.utils.Assert;
-import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -29,12 +28,14 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2021-09-02 09:13
  **/
-public class TestHttpUtils extends TestCase {
+public class TestHttpUtils {
 
+    @Test
     public void testGetEmptyBody() throws Exception {
         // URL url, List<HttpUtils.PostParam > params, PostFormStreamProcess<T> process, ConfigFileContext.HTTPMethod
         // httpMethod
@@ -52,6 +53,7 @@ public class TestHttpUtils extends TestCase {
         });
     }
 
+    @Test
     public void testGetEmptyWithBody() throws Exception {
         String body = HttpUtils.get(new URL("http://192.168.28.67:8080/tjs/config/stream_script_repo"
                         + ".action?path=cfg_repo%2Ftis_plugin_config%2Fparams-cfg%2FelasticToken%2Fcom.qlangtech.tis"

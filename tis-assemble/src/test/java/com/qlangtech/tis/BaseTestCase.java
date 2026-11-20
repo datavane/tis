@@ -20,7 +20,6 @@ package com.qlangtech.tis;
 import ch.qos.logback.classic.util.ContextInitializer;
 import com.qlangtech.tis.manage.common.Config;
 import com.qlangtech.tis.web.start.TisAppLaunch;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -30,7 +29,7 @@ import java.io.IOException;
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-08-27 11:48
  */
-public abstract class BaseTestCase extends TestCase {
+public abstract class BaseTestCase {
 
     static {
         System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "logback-assemble.xml");

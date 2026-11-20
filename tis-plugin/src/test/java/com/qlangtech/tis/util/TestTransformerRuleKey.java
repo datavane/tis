@@ -22,17 +22,17 @@ import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.plugin.KeyedPluginStore.Key;
 import com.qlangtech.tis.datax.StoreResourceType;
-import junit.framework.TestCase;
-
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2025-04-08 15:02
  **/
-public class TestTransformerRuleKey extends TestCase {
+public class TestTransformerRuleKey {
 
+    @Test
     public void testCreateStoreKey() {
 
 

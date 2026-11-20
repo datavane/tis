@@ -22,14 +22,14 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Sets;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.extension.impl.IOUtils;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/11/29
  */
-public class TestJsonUtil extends TestCase {
+public class TestJsonUtil {
 
+    @Test
     public void testEquals() {
 
         JSONObject desc1 = JSONObject.parseObject(IOUtils.loadResourceFromClasspath(TestJsonUtil.class, "payinfo-desc1.json"));

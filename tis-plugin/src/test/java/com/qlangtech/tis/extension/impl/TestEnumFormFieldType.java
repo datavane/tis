@@ -27,14 +27,14 @@ import com.qlangtech.tis.manage.common.UserProfile;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.annotation.FormField;
 import com.qlangtech.tis.plugin.annotation.FormFieldType;
-import junit.framework.TestCase;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * {@link EnumFormFieldType} 注解驱动的枚举显示模式解析（{@code PropertyType.getEnumFieldMode()}）：
  * <ul>
@@ -51,9 +51,10 @@ import java.util.function.Function;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2026/11/14
  */
-public class TestEnumFormFieldType extends TestCase {
+public class TestEnumFormFieldType {
 
     /** EndType 类上标了 MODEL_ASSIST，UserProfile.rightIcon（ENUM）随之生效，json 无需配置 enumMode；且 mode 回写进 extraProp 随 descriptor 下发 */
+    @Test
     public void testUserProfileRightIconModeFromAnnotation() throws Exception {
         PropertyType pt = createPropertyType(UserProfile.class, "rightIcon");
         assertSame(EnumFieldMode.MODEL_ASSIST, pt.getEnumFieldMode());
@@ -62,34 +63,40 @@ public class TestEnumFormFieldType extends TestCase {
     }
 
     /** SELECTABLE 类型同样吃注解：EndType 作 SELECTABLE 字段类型时也解析出 MODEL_ASSIST */
+    @Test
     public void testAnnotatedEnumOnSelectableField() throws Exception {
         EnumFieldMode mode = createPropertyType(SelectableHolder.class, "endType").getEnumFieldMode();
         assertSame(EnumFieldMode.MODEL_ASSIST, mode);
     }
 
     /** 注解优先于 .json：字段类型标了注解后，json 里再写 enumMode 也不生效 */
+    @Test
     public void testAnnotationTakesPrecedenceOverJsonEnumMode() throws Exception {
         PropertyType pt = createPropertyType(UserProfile.class, "rightIcon", EnumFieldMode.MULTIPLE.val);
         assertSame(EnumFieldMode.MODEL_ASSIST, pt.getEnumFieldMode());
     }
 
     /** 未标注的枚举（TestChild.Sex）仍走 .json 回退路径，存量插件配置不受影响 */
+    @Test
     public void testUnAnnotatedEnumFallback2JsonEnumMode() throws Exception {
         PropertyType pt = createPropertyType(UserProfile.class, "sex", EnumFieldMode.MODEL_ASSIST.val);
         assertSame(EnumFieldMode.MODEL_ASSIST, pt.getEnumFieldMode());
     }
 
     /** 未标注且 json 未配置 → DEFAULT（前端按单选下拉框渲染） */
+    @Test
     public void testUnAnnotatedEnumWithoutConfigDefaultMode() throws Exception {
         assertSame(EnumFieldMode.DEFAULT, createPropertyType(UserProfile.class, "sex").getEnumFieldMode());
     }
 
     /** SELECTABLE 的 String 字段（UserProfile.llm）未标注、json 无 enumMode → DEFAULT */
+    @Test
     public void testSelectableStringWithoutConfigDefaultMode() throws Exception {
         assertSame(EnumFieldMode.DEFAULT, createPropertyType(UserProfile.class, "llm").getEnumFieldMode());
     }
 
     /** 非 ENUM/SELECTABLE 类型字段与显示模式无关，恒为 null */
+    @Test
     public void testNonEnumFormFieldTypeReturnNull() throws Exception {
         assertNull(createPropertyType(UserProfile.class, "name").getEnumFieldMode());
     }
@@ -98,6 +105,7 @@ public class TestEnumFormFieldType extends TestCase {
      * resolveEnumProp 过滤路径：EndType 标了 {@code ExcludeDataEndType}，
      * 自动生成的选项须排除 Data/DataType 类别常量（图标选择场景不出现数据库端类型）
      */
+    @Test
     public void testResolveEnumPropExcludeDataEndType() throws Exception {
         JSONObject props = new JSONObject();
         PropertyType.resolveEnumProp(SelectableHolder.class.getField("endType"), null, props, Function.identity());
@@ -119,6 +127,7 @@ public class TestEnumFormFieldType extends TestCase {
     }
 
     /** 未标注枚举走缺省 ALL：TestChild.Sex 两个常量全量保留 */
+    @Test
     public void testResolveEnumPropUnAnnotatedEnumKeepsAll() throws Exception {
         JSONObject props = new JSONObject();
         PropertyType.resolveEnumProp(UserProfile.class.getField("sex"), null, props, Function.identity());

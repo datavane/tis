@@ -27,18 +27,18 @@ import com.qlangtech.tis.aiagent.plan.TaskStep;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PartialSettedPluginContext;
-import junit.framework.TestCase;
 import org.junit.Test;
 
 import java.util.List;
 
+import static org.junit.Assert.*;
 /**
  * BasicStepExecutor 单元测试
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/12/4
  */
-public class BasicStepExecutorTest extends TestCase {
+public class BasicStepExecutorTest {
 
   /**
    * 创建用于测试的 BasicStepExecutor 实例

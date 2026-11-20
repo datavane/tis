@@ -42,7 +42,7 @@ import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncherWithDataXTrig
 import com.qlangtech.tis.plugin.PluginStubUtils;
 import com.qlangtech.tis.sql.parser.tuple.creator.EntityName;
 import org.apache.commons.io.FileUtils;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -104,9 +104,9 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
 
                     IParamContext paramContext = mock("paramContext", IParamContext.class);
 
-                    // EasyMock.expect(paramContext.getBoolean(JobCommon.KEY_TASK_ID)).andReturn(false).anyTimes();
-                    EasyMock.expect(paramContext.getBoolean(IFullBuildContext.DRY_RUN)).andReturn(false).anyTimes();
-                    EasyMock.expect(paramContext.getString(IFullBuildContext.KEY_APP_NAME)).andReturn(AP_NAME).anyTimes();
+                    // Mockito.when(paramContext.getBoolean(JobCommon.KEY_TASK_ID)).thenReturn(false);
+                    Mockito.when(paramContext.getBoolean(IFullBuildContext.DRY_RUN)).thenReturn(false);
+                    Mockito.when(paramContext.getString(IFullBuildContext.KEY_APP_NAME)).thenReturn(AP_NAME);
                     DefaultChainContext execContext = new DefaultChainContext(paramContext);
                     execContext.setAttribute(JobCommon.KEY_TASK_ID, testTaskId);
                     //                    execContext.setMdcParamContext(() -> {
@@ -143,9 +143,8 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
         //
 
         final String preExecuteTaskName = IDataXBatchPost.getPreExecuteTaskName(EntityName.parse(tableName));
-        EasyMock.expect(jobTrigger.getTaskName()).andReturn(dataCfgFileName).anyTimes();
-        EasyMock.expect(jobTrigger.isAsyn()).andReturn(false).anyTimes();
-        jobTrigger.run();
+        Mockito.when(jobTrigger.getTaskName()).thenReturn(dataCfgFileName);
+        Mockito.when(jobTrigger.isAsyn()).thenReturn(false);
 
         /**
          * 开始执行
@@ -194,12 +193,14 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
          * 开始校验
          */
         dataxWriter.verify();
+
+        Mockito.verify(jobTrigger).run();
     }
 
     public void testExecuteWithExcpetionWhenSubmitJob() throws Exception {
         IRemoteDumpTaskTrigger jobTrigger = mockDataXExecTaskTrigger();
         //  RunningStatus runningStatus = RunningStatus.SUCCESS;
-        // EasyMock.expect(jobTrigger.getRunningStatus()).andReturn(runningStatus);
+        // Mockito.when(jobTrigger.getRunningStatus()).thenReturn(runningStatus);
 
         try {
             executeJobTrigger(jobTrigger, false);
@@ -211,9 +212,9 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
 
     public void testExecuteWithGetRunningStatusFaild() throws Exception {
         IRemoteDumpTaskTrigger jobTrigger = mockDataXExecTaskTrigger();
-        // EasyMock.expectLastCall().andThrow(new RuntimeException("throw a exception"));
+        // Mockito.doThrow(new RuntimeException("throw a exception")).when(jobTrigger).run();
         // RunningStatus runningStatus = RunningStatus.FAILD;
-        // EasyMock.expect(jobTrigger.getRunningStatus()).andReturn(runningStatus).anyTimes();
+        // Mockito.when(jobTrigger.getRunningStatus()).thenReturn(runningStatus);
 
 
         executeJobTrigger(jobTrigger, false);
@@ -225,7 +226,7 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
             MockDataxProcessor dataxProcessor = new MockDataxProcessor();
 
             IExecChainContext execChainContext = mockExecChainContext(dataxProcessor);
-            execChainContext.setTskTriggers(EasyMock.anyObject());
+            Mockito.doNothing().when(execChainContext).setTskTriggers(Mockito.any());
             return execChainContext;
         });
     }
@@ -243,9 +244,8 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
         // MockDataxProcessor dataxProcessor = new MockDataxProcessor();
 
         IExecChainContext execChainContext = execChainContextSupplier.get();// mockExecChainContext(dataxProcessor);
-        // execChainContext.setTskTriggers(EasyMock.anyObject());
+        // Mockito.doNothing().when(execChainContext).setTskTriggers(Mockito.any());
 
-        this.replay();
         //   DefaultChainContext
         /**
          * ================================================================
@@ -259,7 +259,6 @@ public class TestDataXExecuteInterceptor extends BasicDataXExecuteInterceptor {
 
         assertEquals("execute must be " + (finalSuccess ? "success" : "faild"), finalSuccess,
                 executeResult.isSuccess());
-        this.verifyAll();
     }
 
     class CancelableJobTrigger implements IRemoteDumpTaskTrigger {

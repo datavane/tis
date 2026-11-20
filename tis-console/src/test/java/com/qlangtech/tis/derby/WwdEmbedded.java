@@ -43,11 +43,11 @@ package com.qlangtech.tis.derby;/*
 //   ## INITIALIZATION SECTION ##
 //  Include the java SQL classes
 
-import junit.framework.TestCase;
-
 import java.sql.*;
 
-public class WwdEmbedded extends TestCase {
+import org.junit.Test;
+public class WwdEmbedded {
+  @Test
   public void testDB() {
     //   ## DEFINE VARIABLES SECTION ##
     // define the driver to use

@@ -19,14 +19,15 @@
 package com.qlangtech.tis.datax.impl;
 
 import com.qlangtech.tis.datax.TableAlias;
-import junit.framework.TestCase;
-
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-01-13 14:24
  **/
-public class TestTableAlias extends TestCase {
+public class TestTableAlias {
 
+    @Test
     public void testTableAlias() {
         String tableName = "instancedetail";
         String dbName = "order";

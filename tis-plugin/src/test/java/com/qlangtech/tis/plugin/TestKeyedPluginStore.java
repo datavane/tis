@@ -26,33 +26,33 @@ import com.qlangtech.tis.manage.common.CenterResource;
 import com.qlangtech.tis.manage.common.HttpUtils;
 import com.qlangtech.tis.manage.common.TisUTF8;
 import com.qlangtech.tis.util.IPluginContext;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-06-18 10:03
  **/
-public class TestKeyedPluginStore extends TestCase {
+public class TestKeyedPluginStore {
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         CenterResource.setNotFetchFromCenterRepository();
         HttpUtils.addMockGlobalParametersConfig();
     }
 
+    @Test
     public void testSetPlugins() throws Exception {
         String appName = "testAppName";
-        IPluginContext pluginContext = EasyMock.createMock("pluginContext", IPluginContext.class);
-        EasyMock.expect(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).andReturn("");
-        //  EasyMock.expect(pluginContext.isCollectionAware()).andReturn(true);
+        IPluginContext pluginContext = Mockito.mock(IPluginContext.class, Mockito.withSettings().name("pluginContext"));
+        Mockito.when(pluginContext.getRequestHeader(DataxReader.HEAD_KEY_REFERER)).thenReturn("");
+        //  Mockito.when(pluginContext.isCollectionAware()).thenReturn(true);
 
-        EasyMock.replay(pluginContext);
         KeyedPluginStore.AppKey appKey = IAppSource.createAppSourceKey(pluginContext, appName);
         KeyedPluginStore pluginStore = new KeyedPluginStore(appKey);
 
@@ -74,7 +74,7 @@ public class TestKeyedPluginStore extends TestCase {
         Assert.assertEquals(result.lastModifyTimeStamp
                 , Long.parseLong(FileUtils.readFileToString(lastModifyTimeStampFile, TisUTF8.get())));
 
-        EasyMock.verify(pluginContext);
+        Mockito.verify(pluginContext).getRequestHeader(DataxReader.HEAD_KEY_REFERER);
     }
 
 }

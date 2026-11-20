@@ -23,7 +23,6 @@ import com.qlangtech.tis.assemble.FullbuildPhase;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.exec.impl.DefaultChainContext;
 import com.qlangtech.tis.order.center.TestIndexSwapTaskflowLauncher;
-import junit.framework.TestCase;
 import org.jvnet.hudson.reactor.Reactor;
 import org.jvnet.hudson.reactor.ReactorListener;
 
@@ -31,11 +30,12 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import static org.junit.Assert.*;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
-public class TestReactor extends TestCase {
+public class TestReactor {
 
     // public static final String MILESTONE_PREFIX = "milestone_";
 

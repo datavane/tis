@@ -18,14 +18,15 @@
 
 package com.qlangtech.tis.alert;
 
-import junit.framework.TestCase;
 
+import org.junit.Test;
 /**
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/11/25
  */
-public class TestFlinkJobsMonitor extends TestCase {
+public class TestFlinkJobsMonitor {
+  @Test
   public void testExecuteTask() {
     FlinkJobsMonitor monitor = new FlinkJobsMonitor();
     monitor.executeTask();

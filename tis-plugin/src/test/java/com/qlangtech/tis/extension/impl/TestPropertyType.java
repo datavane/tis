@@ -24,11 +24,10 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.RequiredPasswordPlugin;
 import com.qlangtech.tis.plugin.annotation.InputValueValidator;
 import com.qlangtech.tis.plugin.annotation.Validator;
-import junit.framework.TestCase;
-
 import java.util.Map;
 import java.util.Optional;
 
+import org.junit.Test;
 /**
  * 枚举型属性的表单契约（{@code enum} 选项生成、{@code setVal} 回填）在
  * {@code tis-ontology-plugin} 的 {@code TestWorkshopWidgetEnumPropertyType} 中覆盖 ——
@@ -37,8 +36,9 @@ import java.util.Optional;
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2023/10/19
  */
-public class TestPropertyType extends TestCase {
+public class TestPropertyType {
 
+    @Test
     public void testGetValidator() {
         Map<String, /*** fieldname */IPropertyType> props
                 = PropertyType.buildPropertyTypes(Optional.empty(), DefaultPlugin.class);
@@ -58,6 +58,7 @@ public class TestPropertyType extends TestCase {
         Assert.assertTrue("shall containRequire", containRequire);
     }
 
+    @Test
     public void testGetValidatorDisableRequireValidatorByJsonConfig() {
         Map<String, /*** fieldname */IPropertyType> props
                 = PropertyType.buildPropertyTypes(Optional.empty(), RequiredPasswordPlugin.class);

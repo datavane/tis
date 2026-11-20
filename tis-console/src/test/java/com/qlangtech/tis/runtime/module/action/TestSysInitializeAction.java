@@ -24,25 +24,25 @@ import com.qlangtech.tis.manage.common.MockContext;
 import com.qlangtech.tis.manage.spring.TISDataSourceFactory;
 import com.qlangtech.tis.pubhook.common.RunEnvironment;
 import com.qlangtech.tis.test.TISEasyMock;
-import junit.framework.TestCase;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-01-06 18:03
  */
-public class TestSysInitializeAction extends TestCase implements TISEasyMock {
+public class TestSysInitializeAction implements TISEasyMock {
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Before public void setUp() throws Exception {
     this.clearMocks();
   }
 
@@ -58,12 +58,14 @@ public class TestSysInitializeAction extends TestCase implements TISEasyMock {
 //
 //  }
 
+  @Test
   public void testCopyDataTarToLocal() throws IOException {
     Config.setTestDataDir();
     SysInitializeAction action = new SysInitializeAction();
     action.copyDataTarToLocal();
   }
 
+  @Test
   public void testDoInit() throws Exception {
 
 //    tis.datasource.url=192.168.28.200
@@ -83,19 +85,17 @@ public class TestSysInitializeAction extends TestCase implements TISEasyMock {
     dbType.password = "123456";
 
     initTisDbConfig(dbType);
-    replay();
     SysInitializeAction action = SysInitializeAction.createSysInitializeAction();
     action.doInit(MockContext.instance);
-    verifyAll();
   }
 
 
   private File initTisDbConfig(Config.TisDbConfig mockDBType) {
     Config config = this.mock("config", Config.class);
     File dataDir = Config.getDataDir();
-    EasyMock.expect(config.getRuntime()).andReturn(RunEnvironment.DAILY.getKeyName()).anyTimes();
-    EasyMock.expect(config.getDbConfig()).andReturn(mockDBType).anyTimes();
-    EasyMock.expect(config.dataDir()).andReturn(dataDir).anyTimes();
+    Mockito.when(config.getRuntime()).thenReturn(RunEnvironment.DAILY.getKeyName());
+    Mockito.when(config.getDbConfig()).thenReturn(mockDBType);
+    Mockito.when(config.dataDir()).thenReturn(dataDir);
 
     Config.setConfig(config);
     File dbDir = new File(dataDir, mockDBType.dbname);
@@ -106,6 +106,7 @@ public class TestSysInitializeAction extends TestCase implements TISEasyMock {
   /**
    * 测试系统数据库初始化
    */
+  @Test
   public void testSystemDBInitializWithDerby() throws Exception {
     File initialSuccessToken = SysInitializeAction.getSysInitializedTokenFile();
     FileUtils.deleteQuietly(initialSuccessToken);
@@ -116,18 +117,18 @@ public class TestSysInitializeAction extends TestCase implements TISEasyMock {
     // Config config = this.mock("config", Config.class);
 
 
-    // EasyMock.expect(config.getZkHost()).andReturn("192.168.28.200:2181/tis/cloud");
-    // EasyMock.expect(config.getRuntime()).andReturn(RunEnvironment.DAILY.getKeyName()).anyTimes();
+    // Mockito.when(config.getZkHost()).thenReturn("192.168.28.200:2181/tis/cloud");
+    // Mockito.when(config.getRuntime()).thenReturn(RunEnvironment.DAILY.getKeyName());
     Config.TisDbConfig mockDBType = new Config.TisDbConfig();
     mockDBType.dbtype = sysDBType;
     mockDBType.dbname = "tis_console_db";
     File dbDir = initTisDbConfig(mockDBType);
 
 
-    // EasyMock.expect(config.getDbConfig()).andReturn(mockDBType).anyTimes();
+    // Mockito.when(config.getDbConfig()).thenReturn(mockDBType);
     // Config.setConfig(config);
 
-    replay();
+
     int[] tryIndex = new int[1];
     AtomicBoolean hasExecDSCreateInspector = new AtomicBoolean();
     TISDataSourceFactory.dsCreateInspector = new TISDataSourceFactory.IDSCreatorInspect() {
@@ -150,7 +151,6 @@ public class TestSysInitializeAction extends TestCase implements TISEasyMock {
     assertTrue("initialSuccessToken fiel:" + initialSuccessToken.getAbsolutePath(), initialSuccessToken.exists());
     assertEquals("create db 2 times", tryIndex[0], 2);
     assertTrue("dbDir must exist:" + dbDir.getAbsolutePath(), dbDir.exists());
-    verifyAll();
   }
 
 

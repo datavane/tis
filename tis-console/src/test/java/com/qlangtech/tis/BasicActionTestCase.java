@@ -29,17 +29,28 @@ import com.qlangtech.tis.test.TISEasyMock;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.struts2.ActionProxy;
-import org.apache.struts2.junit.StrutsSpringTestCase;
+import org.apache.struts2.junit.StrutsSpringJUnit4TestCase;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
 
+import static org.junit.Assert.*;
+import org.junit.Before;
 /**
+ * struts2 junit3 基类(StrutsSpringTestCase)已迁移为 junit4 形态:
+ * Spring 上下文改由 spring-test 的 {@code SpringJUnit4ClassRunner + @ContextConfiguration} 注入,
+ * 替代 junit3 基类的 {@code getContextLocations()} 钩子。
+ *
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-01-06 18:04
  */
-public class BasicActionTestCase extends StrutsSpringTestCase implements TISEasyMock {
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = {"classpath:/tis.application.context.xml", "classpath:/tis.test.context.xml"})
+public class BasicActionTestCase extends StrutsSpringJUnit4TestCase<BasicModule> implements TISEasyMock {
 
   //private static List<Object> mocks = Lists.newArrayList();
   protected RunContext runContext;
@@ -53,8 +64,7 @@ public class BasicActionTestCase extends StrutsSpringTestCase implements TISEasy
     AppAndRuntime.setAppAndRuntime(app);
   }
 
-  @Override
-  protected void setUp() throws Exception {
+  @Before public void setUp() throws Exception {
     super.setUp();
     HttpUtils.mockConnMaker = new HttpUtils.DefaultMockConnectionMaker();
     CenterResource.setNotFetchFromCenterRepository();
@@ -197,8 +207,8 @@ public class BasicActionTestCase extends StrutsSpringTestCase implements TISEasy
   //    }
   //    return null;
   //  }
-  @Override
-  protected String[] getContextLocations() {
+  public String[] getContextLocations() {
+    // StrutsSpringJUnit4TestCase(junit4) 已无该钩子,方法保留仅为兼容子类调用;Spring 上下文由 @ContextConfiguration 注入
     return new String[]{"classpath:/tis.application.context.xml", "classpath:/tis.test.context.xml"};
   }
 }

@@ -39,8 +39,8 @@ import com.qlangtech.tis.offline.DataxUtils;
 import com.qlangtech.tis.datax.StoreResourceType;
 import com.qlangtech.tis.sql.parser.TabPartitions;
 import com.qlangtech.tis.test.TISTestCase;
-import org.easymock.Capture;
-import org.easymock.EasyMock;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -68,49 +68,49 @@ public class TestWorkflowDumpAndJoinInterceptor extends TISTestCase {
 
         IExecChainContext execContext = this.mock("execContext", IExecChainContext.class);
 
-        Capture<RemoteTaskTriggers> taskTriggersCapture = EasyMock.newCapture();
-        execContext.setTskTriggers(EasyMock.capture(taskTriggersCapture));
+        ArgumentCaptor<RemoteTaskTriggers> taskTriggersCapture = ArgumentCaptor.forClass(RemoteTaskTriggers.class);
+        Mockito.doNothing().when(execContext).setTskTriggers(taskTriggersCapture.capture());
 
-        EasyMock.expect(execContext.getTskTriggers()).andAnswer(taskTriggersCapture::getValue).anyTimes();
+        Mockito.when(execContext.getTskTriggers()).thenAnswer(inv -> taskTriggersCapture.getValue());
 
 
         // Dry Run
-        EasyMock.expect(execContext.isDryRun()).andReturn(isDryRun).anyTimes();
+        Mockito.when(execContext.isDryRun()).thenReturn(isDryRun);
 
-        EasyMock.expect(execContext.getExecutePhaseRange())
-                .andReturn(new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.JOIN)).anyTimes();
-        EasyMock.expect(execContext.getProcessor()).andReturn(processor).anyTimes();
+        Mockito.when(execContext.getExecutePhaseRange())
+                .thenReturn(new ExecutePhaseRange(FullbuildPhase.FullDump, FullbuildPhase.JOIN));
+        Mockito.when(execContext.getProcessor()).thenReturn(processor);
 
         Map<IDumpTable, ITabPartition> tabPs = Maps.newHashMap();
-        EasyMock.expect(execContext.getAttribute(ExecChainContextUtils.PARTITION_DATA_PARAMS)).andReturn(new TabPartitions(tabPs)).anyTimes();
-        EasyMock.expect(execContext.getAttribute(AdapterTask.KEY_TASK_WORK_STATUS)).andReturn(new HashMap<String, Boolean>()).anyTimes();
+        Mockito.when(execContext.getAttribute(ExecChainContextUtils.PARTITION_DATA_PARAMS)).thenReturn(new TabPartitions(tabPs));
+        Mockito.when(execContext.getAttribute(AdapterTask.KEY_TASK_WORK_STATUS)).thenReturn(new HashMap<String, Boolean>());
 
 
        // execContext.rebindLoggingMDCParams();
-        EasyMock.expectLastCall().anyTimes();
 
-        EasyMock.expect(execContext.getSpecifiedLocalLoggerPath()).andReturn(null).times(2);
-        EasyMock.expect(execContext.isDisableGrpcRemoteServerConnect()).andReturn(true).times(2);
+        Mockito.when(execContext.getSpecifiedLocalLoggerPath()).thenReturn(null);
+        Mockito.when(execContext.isDisableGrpcRemoteServerConnect()).thenReturn(true);
 
 
-        EasyMock.expect(execContext.getAttribute(EasyMock.eq(DataXJobSubmit.KEY_DATAX_READERS), EasyMock.anyObject()))
-                .andReturn(processor.getReaders(null)).anyTimes();
+        Mockito.when(execContext.getAttribute(Mockito.eq(DataXJobSubmit.KEY_DATAX_READERS), Mockito.any()))
+                .thenReturn(processor.getReaders(null));
 
         //   execContext.getWorkflowName()
-        EasyMock.expect(execContext.hasIndexName()).andReturn(false).anyTimes();
-        EasyMock.expect(execContext.getZkClient()).andReturn(ITISCoordinator.create()).anyTimes();
-        EasyMock.expect(execContext.getTaskId()).andReturn(taskId).anyTimes();
-        EasyMock.expect(execContext.getWorkflowName()).andReturn(wfName);
-        EasyMock.expect(execContext.getPartitionTimestampWithMillis()).andReturn(TimeFormat.getCurrentTimeStamp()).anyTimes();
-//        EasyMock.expect(execContext.loadPhaseStatusFromLatest())
-//                .andReturn(TrackableExecuteInterceptor.getTaskPhaseReference(taskId)).anyTimes();
+        Mockito.when(execContext.hasIndexName()).thenReturn(false);
+        Mockito.when(execContext.getZkClient()).thenReturn(ITISCoordinator.create());
+        Mockito.when(execContext.getTaskId()).thenReturn(taskId);
+        Mockito.when(execContext.getWorkflowName()).thenReturn(wfName);
+        Mockito.when(execContext.getPartitionTimestampWithMillis()).thenReturn(TimeFormat.getCurrentTimeStamp());
+//        Mockito.when(execContext.loadPhaseStatusFromLatest())
+//                .thenReturn(TrackableExecuteInterceptor.getTaskPhaseReference(taskId));
 
 
-        this.replay();
         ExecuteResult result = interceptor.execute(execContext);
         Assert.assertTrue(result.isSuccess());
 
-        this.verifyAll();
+        Mockito.verify(execContext, Mockito.times(2)).getSpecifiedLocalLoggerPath();
+        Mockito.verify(execContext, Mockito.times(2)).isDisableGrpcRemoteServerConnect();
+        Mockito.verify(execContext).getWorkflowName();
     }
 
 }

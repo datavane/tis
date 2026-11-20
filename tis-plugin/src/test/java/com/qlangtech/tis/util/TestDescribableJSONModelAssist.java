@@ -24,8 +24,8 @@ import com.qlangtech.tis.manage.common.TestChild;
 import com.qlangtech.tis.manage.common.UserProfile;
 import com.qlangtech.tis.plugin.IEndTypeGetter;
 import com.qlangtech.tis.plugin.IdentityName;
-import junit.framework.TestCase;
-
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * {@link DescribableJSON#getItemJson(PluginFormProperties)} 对 enumMode=model_assist 字段
  * 只下发「当前值」那一条枚举描述的约定：
@@ -39,11 +39,12 @@ import junit.framework.TestCase;
  * @date 2026/10/29
  * @see EnumFieldMode#MODEL_ASSIST
  */
-public class TestDescribableJSONModelAssist extends TestCase {
+public class TestDescribableJSONModelAssist {
 
     private static final String KEY_FIELD_RIGHT_ICON = "rightIcon";
     private static final String KEY_FIELD_SEX = "sex";
 
+    @Test
     public void testOnlyCurrentValDispatched() throws Exception {
         UserProfile profile = createProfile();
         profile.rightIcon = IEndTypeGetter.EndType.MySQL;
@@ -69,6 +70,7 @@ public class TestDescribableJSONModelAssist extends TestCase {
         assertEquals(profile.identityValue(), item.getString(IdentityName.PLUGIN_IDENTITY_NAME));
     }
 
+    @Test
     public void testNullValDispatchedNothing() throws Exception {
         UserProfile profile = createProfile();
         profile.rightIcon = null;

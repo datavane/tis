@@ -21,10 +21,10 @@ package com.qlangtech.tis.util;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.extension.DefaultPlugin;
-import junit.framework.TestCase;
-
 import java.util.Collections;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * 校验 {@link DescriptorsJSON#skipAttrs} 的线格式契约。
  *
@@ -34,8 +34,9 @@ import java.util.Collections;
  *
  * @author 百岁（baisui@qlangtech.com）
  */
-public class TestDescriptorsJSONSkipAttrs extends TestCase {
+public class TestDescriptorsJSONSkipAttrs {
 
+    @Test
     public void testSkipAttrsWireFormat() {
         DefaultPlugin.DefaultDescriptor desc = new DefaultPlugin.DefaultDescriptor();
         String descId = desc.getId();
@@ -66,6 +67,7 @@ public class TestDescriptorsJSONSkipAttrs extends TestCase {
                 meta.getJSONObject(DescriptorsJSON.KEY_EXTRACT_PROPS));
     }
 
+    @Test
     public void testSkipAttrsShrinksPayload() {
         DefaultPlugin.DefaultDescriptor desc = new DefaultPlugin.DefaultDescriptor();
         JSONObject full = getDescJson(desc, false);

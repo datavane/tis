@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.common.utils.Assert;
 import com.qlangtech.tis.db.parser.ScannerPatterns.TokenTypes;
 import com.qlangtech.tis.plugin.ds.DBConfig;
-import junit.framework.TestCase;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.IOUtils;
@@ -36,12 +35,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2017年9月7日
  */
-public class TestDBConfigParser extends TestCase {
+public class TestDBConfigParser {
 
+    @Test
     public void testCenterOrderYyos() {
         String logicDBName = "center_order_yyos_";
         Map<String, List<String>> centerOrderYyos
@@ -61,6 +63,7 @@ public class TestDBConfigParser extends TestCase {
     }
 
 
+    @Test
     public void testSingleHostWithoutDot() {
 
         String hostAddress = "datanode1";
@@ -84,6 +87,7 @@ public class TestDBConfigParser extends TestCase {
         Assert.assertTrue(String.valueOf(hostPattern), matcher.matches());
     }
 
+    @Test
     public void testJustParseDBHost() throws Exception {
         DBConfigParser p = getDBParser("order_db_config.txt");
         DBConfig db = p.startParser();
@@ -93,6 +97,7 @@ public class TestDBConfigParser extends TestCase {
         validateDbEnum(dbName, dbEnum);
     }
 
+    @Test
     public void testK8SReplicaSetDomain() {
         String mysqlHost = "mysql-0.mysql-svc.default";
         String dbName = "dbname";
@@ -105,6 +110,7 @@ public class TestDBConfigParser extends TestCase {
         Assert.assertTrue(dbs.contains(dbName));
     }
 
+    @Test
     public void testParserErrorDBNodeDesc() throws Exception {
         Map<String, List<String>> dbname = DBConfigParser.parseDBEnum("dbname", "192.168.28。200");
 
@@ -114,6 +120,7 @@ public class TestDBConfigParser extends TestCase {
         Assert.assertTrue("dbname shall be empty", MapUtils.isEmpty(dbname));
     }
 
+    @Test
     public void testLocalhost() {
         String host = "localhost";
         Map<String, List<String>> localhost = DBConfigParser.parseDBEnum("flink-test", host);
@@ -122,6 +129,7 @@ public class TestDBConfigParser extends TestCase {
     }
 
 
+    @Test
     public void testMulti2() throws Exception {
         DBConfigParser parser = getDBParser("order_db_config.txt");
         DBConfig db = parser.startParser();
@@ -153,6 +161,7 @@ public class TestDBConfigParser extends TestCase {
         }
     }
 
+    @Test
     public void testSingle() throws Exception {
         DBConfigParser parser = getDBParser("host_desc_single.txt");
         Assert.assertTrue(parser.parseHostDesc());

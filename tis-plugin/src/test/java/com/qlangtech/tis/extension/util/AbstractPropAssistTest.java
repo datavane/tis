@@ -20,15 +20,15 @@ package com.qlangtech.tis.extension.util;
 
 
 import com.qlangtech.tis.extension.util.AbstractPropAssist.MarkdownHelperContent;
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
+import org.junit.Assert;
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2025-08-18 21:38
  **/
-public class AbstractPropAssistTest extends TestCase {
+public class AbstractPropAssistTest {
 
+    @Test
     public void testHelperContent() {
         MarkdownHelperContent helperContent = new MarkdownHelperContent(PluginExtraProps.AsynPropHelp.create( "xxxx\n\n\n\n\n\n\n\nppp\n"));
         String expect = "xxxx\n\nppp";

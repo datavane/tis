@@ -16,107 +16,46 @@
  * limitations under the License.
  */
 
-import com.qlangtech.tis.TestTIS;
-import com.qlangtech.tis.datax.impl.TestDataXCfgGenerator;
-import com.qlangtech.tis.datax.impl.TestDataxReader;
-import com.qlangtech.tis.datax.impl.TestTableAlias;
-import com.qlangtech.tis.datax.job.TestServerLaunchToken;
-import com.qlangtech.tis.db.parser.TestDBConfigParser;
-import com.qlangtech.tis.db.parser.TestScannerPatterns;
-import com.qlangtech.tis.exec.TestAbstractExecContext;
-import com.qlangtech.tis.extension.TestContainAdvanceFieldPlugin;
-import com.qlangtech.tis.extension.TestDescriptor;
-import com.qlangtech.tis.extension.impl.TestPluginManifest;
-import com.qlangtech.tis.extension.impl.TestPropertyType;
-import com.qlangtech.tis.extension.impl.TestSuFormProperties;
-import com.qlangtech.tis.extension.impl.TestXmlFile;
-import com.qlangtech.tis.extension.model.TestUpdateCenter;
-import com.qlangtech.tis.extension.util.AbstractPropAssistTest;
-import com.qlangtech.tis.extension.util.TestGroovyShellEvaluate;
-import com.qlangtech.tis.extension.util.TestPluginExtraProps;
-import com.qlangtech.tis.manage.common.TaskSoapUtilsTest;
-import com.qlangtech.tis.plugin.TestComponentMeta;
-import com.qlangtech.tis.plugin.TestInnerPropOfIdentityName;
-import com.qlangtech.tis.plugin.TestKeyedPluginStore;
-import com.qlangtech.tis.plugin.TestPluginAndCfgsSnapshot;
-import com.qlangtech.tis.plugin.TestPluginStore;
-import com.qlangtech.tis.plugin.annotation.TestValidator;
-import com.qlangtech.tis.plugin.datax.TestCreateDDL;
-import com.qlangtech.tis.plugin.datax.TestSelectedTab;
-
-import com.qlangtech.tis.plugin.datax.format.guesstype.TestTargetTabsEntities;
-
-import com.qlangtech.tis.plugin.datax.transformer.impl.TestTransformerRuleElementCreatorFactory;
-import com.qlangtech.tis.plugin.datax.transformer.jdbcprop.TestTargetColType;
-import com.qlangtech.tis.plugin.ds.TestDataSourceFactoryPluginStore;
-import com.qlangtech.tis.plugin.ds.TestSplitableTableInDB;
-import com.qlangtech.tis.plugin.ds.TestTableInDB;
-import com.qlangtech.tis.plugin.k8s.TestK8sImage;
-import com.qlangtech.tis.plugin.table.join.TableJoinFilterConditionTest;
-import com.qlangtech.tis.util.TestAttrValMap;
-import com.qlangtech.tis.util.TestDescribableJSONModelAssist;
-import com.qlangtech.tis.util.TestDescribableJSONParentChain;
-import com.qlangtech.tis.util.TestDescriptorsJSONForAIPromote;
-import com.qlangtech.tis.util.TestHeteroList;
-import com.qlangtech.tis.util.TestTransformerRuleKey;
-import com.qlangtech.tis.util.TestUploadPluginMeta;
-import com.qlangtech.tis.util.plugin.TestContainEnumsFieldPlugin;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
 /**
- * @author 百岁（baisui@qlangtech.com）
- * @date 2020/04/13
+ * 该模块可离线运行的单元测试聚合套件(由测试验证脚本自动整理生成)。
+ * 依赖数据库/本地文件/内网服务/Testcontainers 的用例见 TEST_SKIP_REPORT.md。
  */
-public class TestAll extends TestCase {
-
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-        suite.addTestSuite(AbstractPropAssistTest.class);
-        suite.addTestSuite(TaskSoapUtilsTest.class);
-        suite.addTestSuite(TestPropertyType.class);
-        suite.addTestSuite(TestTableInDB.class);
-        suite.addTestSuite(TestSelectedTab.class);
-        suite.addTestSuite(TestContainEnumsFieldPlugin.class);
-        suite.addTestSuite(TestPluginManifest.class);
-        suite.addTestSuite(TestSuFormProperties.class);
-        suite.addTestSuite(TestTableAlias.class);
-        suite.addTestSuite(TestScannerPatterns.class);
-        suite.addTestSuite(TestDBConfigParser.class);
-        suite.addTestSuite(TestHeteroList.class);
-        suite.addTestSuite(TestDescribableJSONModelAssist.class);
-        suite.addTestSuite(TestDescribableJSONParentChain.class);
-        suite.addTestSuite(TestUploadPluginMeta.class);
-        suite.addTestSuite(TestValidator.class);
-        suite.addTestSuite(TestTIS.class);
-        suite.addTestSuite(TestComponentMeta.class);
-        suite.addTestSuite(TestXmlFile.class);
-        suite.addTestSuite(TestPluginStore.class);
-        suite.addTestSuite(TestKeyedPluginStore.class);
-        suite.addTestSuite(TestGroovyShellEvaluate.class);
-        suite.addTestSuite(TestPluginExtraProps.class);
-        suite.addTestSuite(TestDataSourceFactoryPluginStore.class);
-        suite.addTestSuite(TestUpdateCenter.class);
-        suite.addTestSuite(TestDescriptor.class);
-        suite.addTestSuite(TestAttrValMap.class);
-        suite.addTestSuite(TestDataxReader.class);
-        suite.addTestSuite(TestPluginAndCfgsSnapshot.class);
-        suite.addTestSuite(TestContainAdvanceFieldPlugin.class);
-        suite.addTestSuite(TestInnerPropOfIdentityName.class);
-        suite.addTestSuite(TestK8sImage.class);
-        suite.addTestSuite(TestServerLaunchToken.class);
-        suite.addTestSuite(TestTransformerRuleElementCreatorFactory.class);
-        suite.addTestSuite(TestTargetColType.class);
-        suite.addTestSuite(TestDataXCfgGenerator.class);
-        suite.addTestSuite(TestCreateDDL.class);
-        suite.addTestSuite(TestSplitableTableInDB.class);
-        suite.addTestSuite(TestTransformerRuleKey.class);
-        suite.addTestSuite(TestAbstractExecContext.class);
-       // suite.addTestSuite(TestCopyValUDF.class);
-        suite.addTestSuite(TestDescriptorsJSONForAIPromote.class);
-        suite.addTestSuite(TestTargetTabsEntities.class);
-        suite.addTestSuite(TableJoinFilterConditionTest.class);
-        return suite;
-    }
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+    com.qlangtech.tis.datax.impl.TestGenerateCfgs.class,
+    com.qlangtech.tis.datax.impl.TestTableAlias.class,
+    com.qlangtech.tis.extension.TestValueChangePipe.class,
+    com.qlangtech.tis.extension.impl.TestEnumFormFieldType.class,
+    com.qlangtech.tis.extension.impl.TestPropertyType.class,
+    com.qlangtech.tis.extension.util.AbstractPropAssistTest.class,
+    com.qlangtech.tis.extension.util.TestPluginExtraProps.class,
+    com.qlangtech.tis.manage.common.UserProfileTest.class,
+    com.qlangtech.tis.offline.TestFileSystemFactory.class,
+    com.qlangtech.tis.plugin.annotation.TestFormFieldTypeColor.class,
+    com.qlangtech.tis.plugin.annotation.TestValidator.class,
+    com.qlangtech.tis.plugin.datax.TestCreateDDL.class,
+    com.qlangtech.tis.plugin.datax.doris.TestDorisSelectedTab.class,
+    com.qlangtech.tis.plugin.datax.format.guesstype.TestTargetTabsEntities.class,
+    com.qlangtech.tis.plugin.ds.TestDataSourceFactory.class,
+    com.qlangtech.tis.plugin.k8s.TestK8sImage.class,
+    com.qlangtech.tis.plugin.license.TestTISLicense.class,
+    com.qlangtech.tis.plugin.llm.TestQWenLLMProvider.class,
+    com.qlangtech.tis.plugin.ontology.OntologyObjectTypeTest.class,
+    com.qlangtech.tis.plugin.ontology.impl.objtype.TestDataSourceQueryCriteria.class,
+    com.qlangtech.tis.plugin.proxy.TestHttpRequestProxy.class,
+    com.qlangtech.tis.plugin.table.join.TableJoinFilterConditionTest.class,
+    com.qlangtech.tis.plugin.utils.HexColorValidatorTest.class,
+    com.qlangtech.tis.util.TestAttrValMap.class,
+    com.qlangtech.tis.util.TestDescribableJSONModelAssist.class,
+    com.qlangtech.tis.util.TestDescribableJSONParentChain.class,
+    com.qlangtech.tis.util.TestDescriptorsJSONSkipAttrs.class,
+    com.qlangtech.tis.util.TestPluginMeta.class,
+    com.qlangtech.tis.util.TestRelevantFieldsContextAttrValMap.class,
+    com.qlangtech.tis.util.TestTransformerRuleKey.class,
+    com.qlangtech.tis.util.TestUploadPluginMeta.class,
+})
+public class TestAll {
 }

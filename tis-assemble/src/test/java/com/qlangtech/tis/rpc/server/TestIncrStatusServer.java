@@ -52,6 +52,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
+import org.junit.After;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-05-17 21:18
@@ -67,16 +71,13 @@ public class TestIncrStatusServer extends BaseTestCase {
 
     final static String uuid = UUID.randomUUID().toString();
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         // System.out.println("=======================uuid:" + uuid);
-        super.setUp();
         startRpcServer();
         assertNull("exception shall be null", ex[0]);
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After public void tearDown() throws Exception {
         ex[0] = null;
         FullBuildStatCollectorServer.registerMonitorEventHook = new RegisterMonitorEventHook();
         this.incrStatusServer.stop();
@@ -86,6 +87,7 @@ public class TestIncrStatusServer extends BaseTestCase {
     /**
      * 测试assemble节点发送暂停命令，服务端正常响应
      */
+    @Test
     public void testHasReceiveIncrPausedCommand() {
         RpcServiceReference svc = getRpcClient();
 
@@ -154,6 +156,7 @@ public class TestIncrStatusServer extends BaseTestCase {
     /**
      * 测试增量执行过程中向服务端发送各tag累计数
      */
+    @Test
     public void testReportStatus() {
         RpcServiceReference svc = getRpcClient();
         try {
@@ -197,6 +200,7 @@ public class TestIncrStatusServer extends BaseTestCase {
     /**
      * 增量节点启动向assemble节点汇报监听的内容
      */
+    @Test
     public void testNodeLaunchReport() {
         RpcServiceReference svc = getRpcClient();
         try {
@@ -221,6 +225,7 @@ public class TestIncrStatusServer extends BaseTestCase {
         }
     }
 
+    @Test
     public void testServer() throws Exception {
         int taskid = 123;
         String appname = "baisuitest";

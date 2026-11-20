@@ -21,21 +21,23 @@ import com.google.common.collect.Lists;
 import com.qlangtech.tis.datax.DataXName;
 import com.qlangtech.tis.sql.parser.SqlTaskNodeMeta;
 import com.qlangtech.tis.sql.parser.tuple.creator.IStreamIncrGenerateStrategy;
-import org.easymock.EasyMock;
+import org.mockito.Mockito;
 
 import java.util.List;
 
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
 public class TestTikvEmployee extends BasicTestCase {
 
+    @Test
     public void testGeneratorCode() throws Exception {
 
         long timestamp = 20201111115959l;
         DataXName collectionName = DataXName.createDataXPipeline("search4employees");
-        IStreamIncrGenerateStrategy streamIncrGenerateStrategy = EasyMock.createMock("streamIncrGenerateStrategy", IStreamIncrGenerateStrategy.class);
+        IStreamIncrGenerateStrategy streamIncrGenerateStrategy = Mockito.mock(IStreamIncrGenerateStrategy.class, Mockito.withSettings().name("streamIncrGenerateStrategy"));
         String dfName = "tikv-employee";
         SqlTaskNodeMeta.SqlDataFlowTopology topology = SqlTaskNodeMeta.getSqlDataFlowTopology(dfName);
         FacadeContext fc = new FacadeContext();
@@ -46,12 +48,10 @@ public class TestTikvEmployee extends BasicTestCase {
         facadeList.add(fc);
         StreamComponentCodeGenerator streamCodeGenerator
                 = new StreamComponentCodeGenerator(collectionName, timestamp, facadeList, streamIncrGenerateStrategy);
-        EasyMock.replay(streamIncrGenerateStrategy);
         streamCodeGenerator.build();
 
         TestStreamComponentCodeGenerator.assertGenerateContentEqual(
                 timestamp, collectionName.getPipelineName(), "S4employeesListener.scala");
-        EasyMock.verify(streamIncrGenerateStrategy);
     }
 
 }

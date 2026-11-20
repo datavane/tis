@@ -37,6 +37,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-01-29 17:55
@@ -45,8 +48,7 @@ public class TestSchemaAction extends BasicActionTestCase {
 
   public static final String collection = "search4totalpay";
 
-  @Override
-  public void setUp() throws Exception {
+  @Before public void setUp() throws Exception {
     super.setUp();
     Config.setConfig(null);
     HttpUtils.addMockApply(-1, "solrschema.dtd", new HttpUtils.IClasspathRes() {
@@ -61,6 +63,7 @@ public class TestSchemaAction extends BasicActionTestCase {
     });
   }
 
+  @Test
   public void testGetFieldsBySnapshotId() throws Exception {
     request.setParameter("emethod", "getFieldsBySnapshotId");
     request.setParameter("action", "schema_action");
@@ -93,6 +96,7 @@ public class TestSchemaAction extends BasicActionTestCase {
    *
    * @throws Exception
    */
+  @Test
   public void testDoSaveByExpertModel() throws Exception {
     // event_submit_do_save_by_expert_model: y
     request.setParameter("emethod", "saveByExpertModel");

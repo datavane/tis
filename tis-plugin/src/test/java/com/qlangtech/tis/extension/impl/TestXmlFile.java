@@ -22,18 +22,19 @@ import com.google.common.collect.Sets;
 import com.qlangtech.tis.plugin.ComponentMeta;
 import com.qlangtech.tis.plugin.IRepositoryResource;
 import com.qlangtech.tis.util.PluginMeta;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @create: 2020-04-26 14:13
  */
-public class TestXmlFile extends TestCase {
+public class TestXmlFile {
 
 //    public void testArrayPropSave() throws Exception {
 //        File testFile = new File("/tmp/test_file.xml");
@@ -46,6 +47,7 @@ public class TestXmlFile extends TestCase {
     /**
      * 测试序列化
      */
+    @Test
     public void testMashall() throws Exception {
         File testFile = new File("/tmp/test_file.xml");
         XmlFile xmlFile = new XmlFile(testFile);

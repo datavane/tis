@@ -36,26 +36,27 @@ import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.PluginMeta;
 import com.qlangtech.tis.util.RobustReflectionConverter2;
 import edu.emory.mathcs.backport.java.util.Collections;
-import junit.framework.TestCase;
-
 import java.util.Optional;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.Before;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-04-05 07:04
  **/
-public class TestPluginAndCfgsSnapshot extends TestCase {
+public class TestPluginAndCfgsSnapshot {
     TargetResName datax = new TargetResName("hudi");
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         // super.setUp();
         CenterResource.setNotFetchFromCenterRepository();
     }
 
+    @Test
     public void testCreateDataBatchJobManifestCfgAttrs() throws Exception {
         String appName = "mysql";
         // String appName = "mysql_hudi";
@@ -66,6 +67,7 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
     }
 
 
+    @Test
     public void testCreateFlinkIncrJobManifestCfgAttrs() throws Exception {
         String appName = "mysql_doris3";
         DataxReader dataxReader = DataxReader.load(null, appName);
@@ -84,6 +86,7 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
     }
 
 
+    @Test
     public void testGetLocalPluginAndCfgsSnapshot() {
 
         PluginMeta flinkPluginMeta
@@ -124,6 +127,7 @@ public class TestPluginAndCfgsSnapshot extends TestCase {
         assertNotNull(sn);
     }
 
+    @Test
     public void testShallBeUpdateTpis() {
         PluginMeta flinkPluginMeta
                 = new PluginMeta(TISSinkFactory.KEY_PLUGIN_TPI_CHILD_PATH + datax.getName()

@@ -19,21 +19,22 @@
 package com.qlangtech.tis.plugin.datax.format.guesstype;
 
 import com.qlangtech.tis.common.utils.Assert;
-import junit.framework.TestCase;
-
 import java.util.Set;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * 测试 {@link TargetTabsEntities#parseLogicalTable(String)} 方法
  *
  * @author 百岁 (baisui@qlangtech.com)
  * @date 2025/11/13
  */
-public class TestTargetTabsEntities extends TestCase {
+public class TestTargetTabsEntities {
 
     /**
      * 测试精确匹配 - 不带通配符的场景
      */
+    @Test
     public void testParseLogicalTableWithExactMatch() {
         // 构造测试数据：普通表名（不带通配符）
         String[] focusTabs = new String[]{"order_detail_extend", "order_detail*", "customer"};
@@ -53,6 +54,7 @@ public class TestTargetTabsEntities extends TestCase {
     /**
      * 测试通配符匹配 - 分库分表场景
      */
+    @Test
     public void testParseLogicalTableWithWildcardMatch() {
         // 构造测试数据：带通配符的表名
         String[] focusTabs = new String[]{"order_detail*"};
@@ -81,6 +83,7 @@ public class TestTargetTabsEntities extends TestCase {
     /**
      * 测试混合场景 - 同时包含通配符和精确匹配
      */
+    @Test
     public void testParseLogicalTableWithMixedPatterns() {
         // 构造测试数据：同时包含通配符和精确匹配的表名
         String[] focusTabs = new String[]{"customer", "order_detail*"};
@@ -101,6 +104,7 @@ public class TestTargetTabsEntities extends TestCase {
     /**
      * 测试大小写不敏感
      */
+    @Test
     public void testParseLogicalTableCaseInsensitive() {
         String[] focusTabs = new String[]{"Order_Detail*"};
         TargetTabsEntities entities = new TargetTabsEntities(focusTabs);
@@ -128,6 +132,7 @@ public class TestTargetTabsEntities extends TestCase {
     /**
      * 测试多次调用同一个物理表名 - 去重场景
      */
+    @Test
     public void testParseLogicalTableWithDuplicatePhysicalTable() {
         String[] focusTabs = new String[]{"order_detail*"};
         TargetTabsEntities entities = new TargetTabsEntities(focusTabs);
@@ -149,6 +154,7 @@ public class TestTargetTabsEntities extends TestCase {
     /**
      * 测试匹配优先级 - 短表名优先匹配
      */
+    @Test
     public void testParseLogicalTableMatchPriority() {
         // 构造测试数据：包含可能冲突的表名模式，短的在前（构造函数会按长度排序）
         String[] focusTabs = new String[]{"order*", "order_detail*"};
@@ -165,6 +171,7 @@ public class TestTargetTabsEntities extends TestCase {
     /**
      * 测试异常场景 - 找不到匹配的逻辑表
      */
+    @Test
     public void testParseLogicalTableNotFound() {
         String[] focusTabs = new String[]{"order_detail*", "customer"};
         TargetTabsEntities entities = new TargetTabsEntities(focusTabs);
@@ -183,6 +190,7 @@ public class TestTargetTabsEntities extends TestCase {
     /**
      * 测试空物理表名场景
      */
+    @Test
     public void testParseLogicalTableWithEmptyPhysicalTableName() {
         String[] focusTabs = new String[]{"order_detail"};
         TargetTabsEntities entities = new TargetTabsEntities(focusTabs);
@@ -200,6 +208,7 @@ public class TestTargetTabsEntities extends TestCase {
     /**
      * 测试多个通配符表名的匹配场景
      */
+    @Test
     public void testParseLogicalTableWithMultipleWildcards() {
         String[] focusTabs = new String[]{"order_detail*", "order_info*", "user_profile*"};
         TargetTabsEntities entities = new TargetTabsEntities(focusTabs);

@@ -19,16 +19,17 @@ package com.qlangtech.tis.extension.util;
 
 import com.qlangtech.tis.manage.common.Option;
 import com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType;
-import junit.framework.TestCase;
-
 import java.util.List;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
 /**
  * @author 百岁（baisui@qlangtech.com）
  * @date 2021-02-06 13:38
  */
-public class TestGroovyShellEvaluate extends TestCase {
+public class TestGroovyShellEvaluate {
 
+    @Test
     public void testEval() {
         List<Option> fieldTyps = GroovyShellEvaluate.eval("com.qlangtech.tis.plugin.ds.ReflectSchemaFieldType.all()");
         assertNotNull(fieldTyps);

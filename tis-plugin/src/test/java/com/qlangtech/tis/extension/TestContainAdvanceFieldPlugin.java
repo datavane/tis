@@ -24,14 +24,14 @@ import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.trigger.util.JsonUtil;
 import com.qlangtech.tis.util.DescriptorsJSON;
 import com.qlangtech.tis.util.DescriptorsMeta;
-import junit.framework.TestCase;
-
+import org.junit.Test;
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2022-06-09 10:19
  **/
-public class TestContainAdvanceFieldPlugin extends TestCase {
+public class TestContainAdvanceFieldPlugin {
 
+    @Test
     public void testGetDesc() {
         ContainAdvanceFieldPlugin plugin = new ContainAdvanceFieldPlugin();
         Descriptor<ContainAdvanceFieldPlugin> descriptor = plugin.getDescriptor();
