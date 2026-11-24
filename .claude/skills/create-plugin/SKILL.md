@@ -350,7 +350,7 @@ public class PropertyMappingConfig {
 
 // 抽象基类
 public abstract class ValueSourceConfig implements Describable<ValueSourceConfig> {
-    public abstract Object resolveValue(Map<String, Object> parameters);
+    public abstract Object resolveValue(Map<String, Object> parameters, OntologyType colType);
     
     public static abstract class BaseDescriptor extends Descriptor<ValueSourceConfig> {}
 }
@@ -361,8 +361,8 @@ public class FromParameterValueSource extends ValueSourceConfig {
     public String parameterRef;  // 专属字段，只在这个子类中
     
     @Override
-    public Object resolveValue(Map<String, Object> parameters) {
-        return parameters.get(parameterRef);
+    public Object resolveValue(Map<String, Object> parameters, OntologyType colType) {
+        return parameters.get(parameterRef);  // colType 忽略：表单值原样返回
     }
     
     @TISExtension
@@ -380,8 +380,8 @@ public class LiteralValueSource extends ValueSourceConfig {
     public String literalValue;  // 专属字段，只在这个子类中
     
     @Override
-    public Object resolveValue(Map<String, Object> parameters) {
-        return literalValue;
+    public Object resolveValue(Map<String, Object> parameters, OntologyType colType) {
+        return literalValue;  // colType 忽略：字面量原样返回
     }
     
     @TISExtension
@@ -396,8 +396,10 @@ public class LiteralValueSource extends ValueSourceConfig {
 // 子类三：当前时间（无额外字段）
 public class CurrentTimeValueSource extends ValueSourceConfig {
     @Override
-    public Object resolveValue(Map<String, Object> parameters) {
-        return System.currentTimeMillis();
+    public Object resolveValue(Map<String, Object> parameters, OntologyType colType) {
+        long now = System.currentTimeMillis();
+        // colType 决定 JDBC 类型：TIMESTAMP 列直出 Timestamp（Date 会丢时分秒），其余保守返回 Date
+        return colType == OntologyType.TIMESTAMP ? new java.sql.Timestamp(now) : new java.sql.Date(now);
     }
     
     @TISExtension
