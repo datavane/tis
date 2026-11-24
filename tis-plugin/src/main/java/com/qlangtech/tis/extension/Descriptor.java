@@ -148,7 +148,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
 
     public static final String KEY_EPROPS = "eprops";
 
-    private static final String KEY_VALIDATE_METHOD_PREFIX = "validate";
+    public static final String KEY_VALIDATE_METHOD_PREFIX = "validate";
     private static final Pattern validateMethodPattern = Pattern.compile(KEY_VALIDATE_METHOD_PREFIX + "(.+?)");
     private static final Pattern PATTERN_DISPLAY_NAME = Pattern.compile("(\\s+)(\\w)");
     /**
@@ -758,7 +758,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             , Optional<PluginFormProperties> pTypes //
             , Optional<SubFormFilter> subFormFilter//
             , PropValRewrite propValRewrite//
-            , Optional<PostFormVals> parentFormVals) {
+            , Optional<PostFormVals> parentFormVals
+            , Function<PluginFormProperties, PluginFormProperties> propertyTypesProcess) {
         if (parentFormVals == null) {
             throw new IllegalArgumentException("param parentFormVals can not be null");
         }
@@ -771,9 +772,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
         if (msgHandler == null) {
             throw new IllegalArgumentException("formData msgHandler can not be null");
         }
+        if (propertyTypesProcess == null) {
+            throw new IllegalArgumentException("propertyTypesProcess can not be null");
+        }
         try {
-
-            PluginFormProperties propertyTypes = getPropertyTypes(pTypes, subFormFilter);
+            PluginFormProperties propertyTypes = propertyTypesProcess.apply(getPropertyTypes(pTypes, subFormFilter));
 
             return propertyTypes.accept(new PluginFormProperties.IVisitor() {
 
@@ -1034,7 +1037,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     }
                     continue;
                 }
-                AttrValMap attrValMap = AttrValMap.parseDescribableMap(Optional.empty(), descVal);
+
+                AttrValMap attrValMap = AttrValMap.parseDescribableMap(Optional.empty(), descVal,
+                        attrDesc.getDescribablePropertyTypesProcess());
                 pushFieldStack(context, attr, 0);
                 try {
                     if (!attrValMap.validate(msgHandler, context, validateType, parentFormVals).isValid()) {
@@ -1118,7 +1123,14 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     }
                 } else {
                     // single value
-                    boolean containVal = valJ.containsKey(KEY_primaryVal);
+                    // 「有值」的判定必须与 buildPluginInstance 的同名判定保持一致（containsKey + isNotBlank）：
+                    // 前端对未填字段可能提交 {"_primaryVal": null}（键在值空），若只判 containsKey 会把 null
+                    // 一路传进 validators（Validator.require 对 null 恒 false，被放宽的非必填字段会因此误报），
+                    // MULTIPLE 枚举模式更会因 getJSONArray 返回 null 直接 NPE。
+                    // 键在值空视同缺值：必填走统一的 addFieldRequiredError（文案与 require 校验器一致），
+                    // 非必填与键缺席一致直接跳过。
+                    boolean containVal = valJ.containsKey(KEY_primaryVal)
+                            && StringUtils.isNotBlank(valJ.getString(KEY_primaryVal));
 
                     if (!containVal && attrDesc.isInputRequired()) {
                         addFieldRequiredError(msgHandler, context, attr);
@@ -1142,6 +1154,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                     if (containVal) {
                         attrVal = (String) propValRewrite.rewrite(attrDesc, valJ.getString(KEY_primaryVal));
                         postFormVals.fieldVals.put(attr, attrVal);
+
                         InputValueValidator[] validators = attrDesc.getValidator();
                         for (InputValueValidator v : validators) {
                             if (!v.validate(msgHandler, context, attr, attrVal)) {
@@ -1339,7 +1352,9 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public ParseDescribable<Describable> newInstance(IControlMsgHandler pluginContext, Context context, //
                                                      FormData formData //
     ) {
-        return newInstance(pluginContext, context, formData, Optional.empty(), (propType, val) -> val);
+        return newInstance(pluginContext, context, formData
+                , Optional.empty(), (propType, val) -> val,
+                Function.identity());
     }
 
 
@@ -1347,7 +1362,7 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                                      FormData formData //
     ) {
         return newInstance(IControlMsgHandler.namedContext(appName), new DefaultContext(), formData, Optional.empty()
-                , (propType, val) -> val);
+                , (propType, val) -> val, Function.identity());
     }
 
     public static class FormData extends AttrVals {
@@ -1389,9 +1404,11 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
     public ParseDescribable<Describable> newInstance(IControlMsgHandler pluginContext, Context context, //
                                                      AttrValMap.IAttrVals formData, //
                                                      Optional<SubFormFilter> subFormFilter,
-                                                     PropValRewrite propValRewrite) {
+                                                     PropValRewrite propValRewrite //
+            , Function<PluginFormProperties, PluginFormProperties> propertyTypesProcess) {
         try {
-            return parseDescribable(pluginContext, context, formData, Optional.empty(), subFormFilter, propValRewrite);
+            return parseDescribable(pluginContext, context, formData, Optional.empty(), subFormFilter, propValRewrite,
+                    propertyTypesProcess);
         } catch (Exception e) {
             throw new RuntimeException("class:" + this.clazz.getName(), e);
         }
@@ -1402,9 +1419,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                                           AttrValMap.IAttrVals keyValMap,
                                                           Optional<PluginFormProperties> pTypes,
                                                           Optional<SubFormFilter> subFormFilter,
-                                                          PropValRewrite propValRewrite) {
+                                                          PropValRewrite propValRewrite,
+                                                          Function<PluginFormProperties, PluginFormProperties> propertyTypesProcess) {
 
-        final PluginFormProperties propertyTypes = getPropertyTypes(pTypes, subFormFilter);
+        final PluginFormProperties propertyTypes = propertyTypesProcess.apply(getPropertyTypes(pTypes, subFormFilter));
 
         return propertyTypes.accept(new PluginFormProperties.IVisitor() {
             @Override
@@ -1583,8 +1601,16 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 valJ = new JSONObject();
             }
             if (attrDesc.isDescribable()) {
-                JSONObject descVal = Objects.requireNonNull(valJ.getJSONObject(KEY_DESC_VAL),
-                        "key:" + KEY_DESC_VAL + " relevant instant can not be null");
+                JSONObject descVal = valJ.getJSONObject(KEY_DESC_VAL);
+                if (descVal == null) {
+                    // 必填语义没有落地：缺失 descVal 时非必填（含实例化阶段被放宽的）字段应跳过、
+                    // 字段保持 null，而不是炸 requireNonNull；必填字段保持报错（原文案）。
+                    if (attrDesc.isInputRequired()) {
+                        throw new IllegalStateException("key:" + KEY_DESC_VAL + " relevant instant can not be null");
+                    } else {
+                        continue fieldCreate;
+                    }
+                }
                 impl = descVal.getString(PLUGIN_EXTENSION_IMPL);
                 if (StringUtils.isEmpty(impl)) {
                     if (attrDesc.isInputRequired()) {
@@ -1598,9 +1624,10 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                 if (descriptor == null) {
                     throw new IllegalStateException("impl:" + impl + " relevant descripotor can not be null");
                 }
+
                 ParseDescribable vals = descriptor.newInstance(pluginContext, context,
                         AttrVals.parseAttrValMap(descVal.get(AttrValMap.PLUGIN_EXTENSION_VALS)), Optional.empty(),
-                        propValRewrite);
+                        propValRewrite, attrDesc.getDescribablePropertyTypesProcess());
                 attrDesc.setVal(describable, propValRewrite.rewrite(attrDesc, vals.getInstance()));
             } else {
                 if (attrDesc.formField.type() == FormFieldType.MULTI_DESCRIBLE_PLUGIN) {
@@ -1620,8 +1647,19 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
                                 if (item.getCmeta() != null) {
                                     return item.getCmeta();
                                 } else {
+                                    // 只能落 CMeta 具体类，不能换成匿名 IMultiElement：
+                                    // 1. IdList 字段的声明类型是 List<IdentityName> / List<CMeta>，
+                                    //    匿名 IMultiElement 不实现 IdentityName，setVal 会失败；
+                                    // 2. GET 回显侧 (MultiItemsViewType.ViewFormatType.IdList) 是
+                                    //    (List<CMeta>) 强转 + CMeta::getName，匿名对象运行时 CCE；
+                                    // 3. XStream 按实例 FQCN 落盘，匿名类名（Descriptor$xxx）无法在后续加载中还原。
+                                    //
+                                    // 取值必须用 identityValue()（线格式 val）而非 getName()（label）：
+                                    // 回显时前端拿这个值和选项的 val 匹配勾选态，
+                                    // MultiDescribleElementSetSelector 的 target 过滤也拿它和候选
+                                    // config.identityValue() 做 contains，存 label 会在 label≠val 时静默失配。
                                     CMeta c = new CMeta();
-                                    c.setName(item.getName());
+                                    c.setName(item.identityValue());
                                     return c;
                                 }
                             }).collect(Collectors.toList());
@@ -1886,7 +1924,8 @@ public abstract class Descriptor<T extends Describable> implements Saveable, ISe
             if (instance == null) {
 
                 ParseDescribable<Describable> plugin = desc.parseDescribable(msgHandler, this.context,
-                        this.rawFormData, Optional.of(this.formProperties), subFormFilter, ((propType, val) -> val));
+                        this.rawFormData, Optional.of(this.formProperties), subFormFilter, ((propType, val) -> val),
+                        Function.identity());
                 instance = plugin.getInstance();
             }
             return (T) instance;

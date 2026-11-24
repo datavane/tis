@@ -42,9 +42,14 @@ import org.apache.commons.lang.StringUtils;
 import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.ResolverStyle;
+import java.time.format.SignStyle;
+import java.time.temporal.ChronoField;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -153,7 +158,79 @@ public enum FormFieldType implements DescriptorUseableShortComment, IEndTypeGett
         }
     }, TISJsonSchema.FieldType.String) //
     , TEXTAREA(2, TISJsonSchema.FieldType.String) //
-    , DATE(3, TISJsonSchema.FieldType.String) //
+    /**
+     * 日期选择，线格式 {@code yyyy-MM-dd}（ontology {@code DateWidget} 生成的
+     * {@code rejectInvalidDate("yyyy-MM-dd")} 强校验的正是此格式，displayFormat 仅供前端展示）。
+     * <p>
+     * 不能依赖默认处理器——默认的 {@code PropVal#convertedVal()} 走 commons-beanutils，
+     * 没有 String→{@link Date} 的转换器，字段声明为 {@code java.util.Date} 时 POST 会直接抛
+     * {@code DateConverter does not support default String to 'Date' conversion}。
+     * <p>
+     * 日期值以 UTC 零点锚定，且 {@link #processInput}/{@code serialize2Output} 两侧都用 UTC：
+     * {@code DateTime} 的「入站 UTC / 出站 sysZoneId」组合对纯日期不适用——UTC 以西时区的服务器
+     * 回显时会倒退一天。两侧同锚点保证往返不随部署时区漂移。
+     * <p>
+     * 入站解析兼容未补零的月/日（如 {@code 1981-11-9}）：前端校验用的 {@code SimpleDateFormat}
+     * （非宽松）对数字宽度本就放行，服务端解析不得比它更严；但 STRICT 解析会拒绝不存在的日期
+     * （如 {@code 02-30}），同样与前端非宽松语义一致，不静默挪成 02-29。出站一律规范化成补零格式。
+     * <p>
+     * 目标属性类型支持两种：{@link Date}（解析字符串）、{@link String}
+     * （存量用法如 {@code DateWidget.defaultValue} 以字符串承载 yyyy-MM-dd，逐字透传保持原语义）。
+     */
+    , DATE(3, new IPropValProcessor() {
+        // 出站：规范化补零的 yyyy-MM-dd
+        final DateTimeFormatter dateFormat = DateTimeFormatter.ISO_LOCAL_DATE;
+        // 入站：月/日兼容 1~2 位数字（前端 rejectInvalidDate 用的 SimpleDateFormat("yyyy-MM-dd")
+        // 非宽松校验即此语义，"1981-11-9" 能过校验，入站解析必须同样放行）；STRICT 解析拒绝
+        // 不存在的日期（如 02-30），与 SimpleDateFormat 非宽松语义一致，不得静默挪成 02-29
+        final DateTimeFormatter inputFormat = new DateTimeFormatterBuilder()
+                .appendValue(ChronoField.YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
+                .appendLiteral('-')
+                .appendValue(ChronoField.MONTH_OF_YEAR, 1, 2, SignStyle.NOT_NEGATIVE)
+                .appendLiteral('-')
+                .appendValue(ChronoField.DAY_OF_MONTH, 1, 2, SignStyle.NOT_NEGATIVE)
+                .toFormatter()
+                .withResolverStyle(ResolverStyle.STRICT);
+
+        @Override
+        public Object processInput(Object instance, PropVal val) throws Exception {
+            Object rawVal = val.rawVal();
+            if (rawVal == null) {
+                return null;
+            }
+            // 幂等：dftVal / valueChangePipe 回放可能直接给的就是 Date 实例
+            if (rawVal instanceof Date) {
+                return rawVal;
+            }
+            Class targetClazz = val.getTargetClazz();
+            if (targetClazz == String.class) {
+                // 存量用法（DateWidget.defaultValue 等）：String 承载 yyyy-MM-dd，逐字透传不改写
+                return String.valueOf(rawVal);
+            }
+            String dateStr = StringUtils.trimToEmpty(String.valueOf(rawVal));
+            if (StringUtils.isEmpty(dateStr)) {
+                return null;
+            }
+            if (targetClazz == Date.class) {
+                return Date.from(LocalDate.parse(dateStr, inputFormat).atStartOfDay(ZoneOffset.UTC).toInstant());
+            }
+            throw new IllegalStateException("DATE field target class must be:" + Date.class.getName()
+                    + " or " + String.class.getName() + " but now is:" + targetClazz.getName());
+        }
+
+        @Override
+        public Object serialize2Output(PropertyType pt, Object val) throws Exception {
+            if (val instanceof String) {
+                return val; // String 承载的字段，存储值即线格式
+            }
+            if (val instanceof Date) {
+                // 走 getTime() 而非 toInstant()：java.sql.Date#toInstant 恒抛 UnsupportedOperationException
+                return LocalDate.ofInstant(Instant.ofEpochMilli(((Date) val).getTime()), ZoneOffset.UTC)
+                        .format(dateFormat);
+            }
+            return val;
+        }
+    }, TISJsonSchema.FieldType.String) //
     , JDBCColumn(11, new IPropValProcessor() {
         @Override
         public Object processInput(Object instance, PropVal val) throws Exception {

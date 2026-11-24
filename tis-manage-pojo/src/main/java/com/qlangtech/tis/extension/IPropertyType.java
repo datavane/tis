@@ -21,6 +21,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.qlangtech.tis.manage.common.Option;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * 插件的表单属性抽象。
@@ -35,6 +36,8 @@ import java.util.List;
 public interface IPropertyType {
     String KEY_UNIT = "unit";
     int CONST_UNIT_INTEGER_FIELD = 12;
+
+
 
     /**
      * 对应的property 是否是集合属性
@@ -118,4 +121,6 @@ public interface IPropertyType {
      * 属性所属的字段类型（用于取字段上的注解等）
      */
     Class getFieldClazz();
+
+
 }

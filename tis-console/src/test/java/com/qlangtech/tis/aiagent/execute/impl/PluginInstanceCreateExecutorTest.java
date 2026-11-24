@@ -52,16 +52,19 @@ import com.qlangtech.tis.extension.IPropertyType;
 import com.qlangtech.tis.extension.impl.PropertyType;
 import com.qlangtech.tis.extension.impl.RootFormProperties;
 import com.qlangtech.tis.util.impl.AttrVals;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.LinkedHashMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import static com.qlangtech.tis.util.AttrValMap.parseDescribableMap;
 
 import static org.junit.Assert.*;
+
 /**
  *
  * @author 百岁 (baisui@qlangtech.com)
@@ -102,7 +105,7 @@ public class PluginInstanceCreateExecutorTest {
     Descriptor targetDesc = impl.getImplDesc();
 
     PartialSettedPluginContext msgHandler = IPluginContext.namedContext("test");
-//    msgHandler.setTargetRuntimeContext()
+    //    msgHandler.setTargetRuntimeContext()
     //      DefaultMessageHandler messageHandler = new DefaultMessageHandler();
     //      msgHandler.setMessageAndFieldErrorHandler(messageHandler, messageHandler);
     Context context = new DefaultContext(); //
@@ -119,7 +122,7 @@ public class PluginInstanceCreateExecutorTest {
         }
 
         return val;
-      }));
+      }), Function.identity());
     FormVaildateType verify = FormVaildateType.create(true);
     Descriptor.PluginValidateResult.setValidateItemPos(context, 0, 0);
 

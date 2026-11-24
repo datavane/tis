@@ -28,6 +28,7 @@ import com.qlangtech.tis.extension.Describable;
 import com.qlangtech.tis.extension.Descriptor;
 import com.qlangtech.tis.extension.ElementPluginDesc;
 import com.qlangtech.tis.extension.IPropertyType;
+import com.qlangtech.tis.extension.PluginFormProperties;
 import com.qlangtech.tis.extension.util.GroovyShellEvaluate;
 import com.qlangtech.tis.extension.util.GroovyShellUtil;
 import com.qlangtech.tis.extension.util.MultiItemsViewType;
@@ -151,6 +152,13 @@ public class PropertyType implements IPropertyType {
             return TISJsonSchema.FieldType.Array;
         }
         return fieldType.schemaFieldType;
+    }
+
+    public Function<PluginFormProperties, PluginFormProperties> getDescribablePropertyTypesProcess() {
+        if (!this.isDescribable()) {
+            throw new IllegalStateException("isDescribable must be true");
+        }
+        return Function.identity();
     }
 
     /**

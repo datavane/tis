@@ -33,6 +33,7 @@ import com.qlangtech.tis.runtime.module.misc.IControlMsgHandler;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.qlangtech.tis.extension.Descriptor.KEY_DESC_VAL;
 import static com.qlangtech.tis.extension.Descriptor.KEY_primaryVal;
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_VALS;
@@ -54,6 +55,8 @@ import org.junit.Test;
  *       必须对实例化可见 —— 这是「不做防御性拷贝」那条契约的回归锚点；</li>
  *   <li>{@link RelevantFieldsContextAttrValMap.RelevantFieldKeys} 的两阶段收集与
  *       {@code createRelevantFieldsContext} 的引用契约配套。</li>
+ *   <li>实例化阶段的必填放宽必须穿透嵌套 {@code Describable} 子表单
+ *       （{@code NonRequiredPropertyType#getDescribablePropertyTypesProcess()} 递归到任意深度）。</li>
  * </ol>
  *
  * <p><b>运行要求</b>：需要 {@code --add-opens java.base/java.lang=ALL-UNNAMED}
@@ -65,6 +68,8 @@ public class TestRelevantFieldsContextAttrValMap {
     private static final String KEY_OPTIONAL = "optionalField";
     private static final String KEY_CASCADE_FROM = "cascadeFrom";
     private static final String KEY_CASCADE_TO = "cascadeTo";
+    private static final String KEY_NESTED_FIELD = "nestedField";
+    private static final String KEY_DEEP_FIELD = "deepField";
 
     /**
      * 未进白名单的必填字段不参与校验。
@@ -170,6 +175,68 @@ public class TestRelevantFieldsContextAttrValMap {
                         + "（防御性拷贝会让追加静默失效）",
                 "cascade-target-value", instance.cascadeTo);
         assertEquals("级联主字段同样要读进来", "cascade-from-value", instance.cascadeFrom);
+    }
+
+    /**
+     * 「键在值空」的线格式坑：前端对未填字段可能显式提交 {@code {"_primaryVal": null}}
+     * （键存在、值为 null），这必须视同<b>缺值</b>，而不是「有值」。
+     *
+     * <p>钉的是 {@code Descriptor.isValid} 单值分支的 containVal 判定 —— 它必须与
+     * {@code buildPluginInstance} 的同名判定一致（{@code containsKey && isNotBlank}）。
+     * 若只判 {@code containsKey}，null 会一路传进 validators：
+     * {@code Validator.require} 对 null 恒 false，于是<b>被放宽的必填字段</b>（阶段二
+     * {@code addToFieldNewInstanceRelevantKeys()} 追加、{@code isInputRequired()} 已放宽为 false 的那种）
+     * 会被误报校验失败 —— 「有就带上，没有也不报错」的放宽语义被打穿。
+     */
+    @Test
+    public void testNullPrimaryValSubmissionTreatedAsAbsent() {
+        CapturingMsgHandler msgHandler = new CapturingMsgHandler();
+        Context context = new DefaultContext();
+
+        // 必填字段显式提交「键在值空」的线格式
+        JSONObject vals = new JSONObject();
+        vals.put(KEY_REQUIRED, primaryVal(null));
+
+        // 目标字段指到 requiredField：它没有任何管道指向（第一阶段白名单为空，校验平凡通过），
+        // 阶段二 addToFieldNewInstanceRelevantKeys() 把它追加进来 —— 追加字段按约定被放宽。
+        // 先追加再校验，对应 get_desc 流程的「二段校验」：第二遍 validate 时放宽字段已在白名单内，
+        // 这正是旧实现（containVal 只判 containsKey）对 null 值误报 require 失败的触发路径。
+        RelevantFieldsContextAttrValMap.RelevantFieldKeys keysCreator
+                = new RelevantFieldsContextAttrValMap.RelevantFieldKeys(KEY_REQUIRED);
+        RelevantFieldsContextAttrValMap<RelevantFieldsProbe> ctx = createContext(msgHandler, context,
+                postContent(vals), keysCreator);
+        keysCreator.addToFieldNewInstanceRelevantKeys();
+        // 先确认字段确实走了放宽路径（在白名单内且 fieldValRequired=false）——
+        // 否则「校验通过」可能只是因为字段被白名单裁掉了，断言假通过
+        assertEquals("requiredField 必须以放宽身份（optional）进入白名单",
+                List.of(KEY_REQUIRED + "(optional)"), fieldsOf(keysCreator.relevantFieldKeys));
+
+        assertTrue("键在值空必须视同缺值：被放宽的必填字段显式提交 null 不得误报校验失败："
+                        + msgHandler.fieldErrors, ctx.validate().isValid());
+
+        RelevantFieldsProbe instance = ctx.createPluginInstance();
+        assertNull("显式 null 提交后字段应保持 null", instance.requiredField);
+    }
+
+    /**
+     * 必填字段显式提交 null 同样要报缺值错误（报错路径从 validators 循环收口到
+     * {@code addFieldRequiredError}，文案同为一个 {@code ValidatorCommons.MSG_EMPTY_INPUT_ERROR}）。
+     */
+    @Test
+    public void testRequiredFieldWithNullPrimaryValFailsValidation() {
+        CapturingMsgHandler msgHandler = new CapturingMsgHandler();
+        Context context = new DefaultContext();
+
+        JSONObject vals = new JSONObject();
+        vals.put(KEY_REQUIRED, primaryVal(null));
+
+        RelevantFieldsContextAttrValMap<RelevantFieldsProbe> ctx = createContext(msgHandler, context,
+                postContent(vals), validatePhaseKeys(KEY_REQUIRED));
+
+        assertFalse("必填字段提交 null 必须校验不过", ctx.validate().isValid());
+        FieldErr err = msgHandler.firstFieldError(KEY_REQUIRED);
+        assertNotNull("错误应定位到 " + KEY_REQUIRED + "，实际：" + msgHandler.fieldErrors, err);
+        assertEquals("缺值提示应使用统一文案", ValidatorCommons.MSG_EMPTY_INPUT_ERROR, err.msg);
     }
 
     /**
@@ -290,6 +357,112 @@ public class TestRelevantFieldsContextAttrValMap {
 
         assertFalse("第一阶段收集的必填字段不得被放宽", ctx.validate().isValid());
         assertNotNull("应照常报缺值错误", msgHandler.firstFieldError(KEY_REQUIRED));
+    }
+
+    // ===================================================================
+    //  放宽穿透嵌套 Describable：NonRequiredPropertyType#getDescribablePropertyTypesProcess
+    // ===================================================================
+
+    /**
+     * 第二阶段追加的字段若是 {@code Describable} 子表单（本身必填，但走「有就带上」语义），
+     * 其 {@code getDescribablePropertyTypesProcess()} 必须把<b>子表单内部</b>的必填属性一并放宽：
+     * 提交了 {@code impl} 但内部必填字段没值时，实例化应成功且内层字段为 null。
+     *
+     * <p>若放宽断链（process 落到默认 {@code Function.identity()}），内层必填字段会走严格分支，
+     * 直接抛 {@code IllegalStateException}。
+     */
+    @Test
+    public void testNestedDescribableRequiredFieldIsRelaxed() {
+        CapturingMsgHandler msgHandler = new CapturingMsgHandler();
+        Context context = new DefaultContext();
+
+        JSONObject vals = new JSONObject();
+        vals.put(KEY_CASCADE_FROM, primaryVal("cascade-from-value"));
+        // 子表单只交 impl、内部必填字段不交值
+        vals.put(KEY_NESTED_FIELD, descFormVal(NestedProbe.class.getName(), new JSONObject()));
+
+        RelevantFieldsContextAttrValMap.RelevantFieldKeys keysCreator = instancePhaseAdds(KEY_NESTED_FIELD);
+        RelevantFieldsContextAttrValMap<RelevantFieldsProbe> ctx = createContext(msgHandler, context,
+                postContent(vals), keysCreator);
+
+        assertTrue("校验阶段白名单只有 cascadeFrom，应通过：" + msgHandler.fieldErrors, ctx.validate().isValid());
+        keysCreator.addToFieldNewInstanceRelevantKeys();
+
+        RelevantFieldsProbe instance;
+        try {
+            instance = ctx.createPluginInstance();
+        } catch (RuntimeException e) {
+            fail("嵌套子表单的必填属性须经 getDescribablePropertyTypesProcess() 放宽，缺值不应抛异常，实际："
+                    + e.getMessage());
+            return;
+        }
+        assertNotNull("子表单 impl 已提交，嵌套实例本身应被构建", instance.nestedField);
+        assertNull("子表单内部的必填字段同样被放宽，缺值应为 null", instance.nestedField.nestedRequiredField);
+        assertNull("嵌套子表单里完全未提交的第二层 Describable 字段应被跳过（缺失 descVal 不炸 requireNonNull）",
+                instance.nestedField.deepField);
+    }
+
+    /**
+     * 递归锚点：子表单里<b>再嵌一层</b> Describable 字段（{@code deepField}，必填）时，放宽必须穿透两层
+     * —— 深层子表单的必填字段缺值同样不报错。
+     *
+     * <p>这是「两处包装统一成具名类 {@code NonRequiredPropertyType}」之后才有的语义：若内层包装不覆写
+     * {@code getDescribablePropertyTypesProcess()}（落到默认 identity），放宽会在第二层断链，
+     * 抛 {@code IllegalStateException}。
+     */
+    @Test
+    public void testRelaxationRecursesThroughTwoDescribableLevels() {
+        CapturingMsgHandler msgHandler = new CapturingMsgHandler();
+        Context context = new DefaultContext();
+
+        JSONObject deepVals = new JSONObject();
+        deepVals.put(KEY_DEEP_FIELD, descFormVal(DeepProbe.class.getName(), new JSONObject()));
+
+        JSONObject vals = new JSONObject();
+        vals.put(KEY_CASCADE_FROM, primaryVal("cascade-from-value"));
+        vals.put(KEY_NESTED_FIELD, descFormVal(NestedProbe.class.getName(), deepVals));
+
+        RelevantFieldsContextAttrValMap.RelevantFieldKeys keysCreator = instancePhaseAdds(KEY_NESTED_FIELD);
+        RelevantFieldsContextAttrValMap<RelevantFieldsProbe> ctx = createContext(msgHandler, context,
+                postContent(vals), keysCreator);
+
+        assertTrue(ctx.validate().isValid());
+        keysCreator.addToFieldNewInstanceRelevantKeys();
+
+        RelevantFieldsProbe instance;
+        try {
+            instance = ctx.createPluginInstance();
+        } catch (RuntimeException e) {
+            fail("放宽须穿透两层 Describable 嵌套，实际：" + e.getMessage());
+            return;
+        }
+        assertNotNull("第一层子表单应被构建", instance.nestedField);
+        assertNotNull("第二层子表单应被构建", instance.nestedField.deepField);
+        assertNull("第二层子表单的必填字段也被放宽，缺值应为 null", instance.nestedField.deepField.deepRequiredField);
+        assertNull("第一层自身缺值的必填字段同样为 null", instance.nestedField.nestedRequiredField);
+    }
+
+    /**
+     * 对照：同一个嵌套子表单走<b>第一阶段</b>（{@code fieldValRequired=true}）时不被放宽，
+     * 内层必填缺值必须让校验失败。
+     *
+     * <p>没有这条，前两条可能因为「嵌套路径根本没被校验/解析」而假通过 ——
+     * 它证明内层的严格与否确实取决于外层字段是否被 {@code NonRequiredPropertyType} 包装。
+     */
+    @Test
+    public void testValidatePhaseKeepsNestedDescribableStrict() {
+        CapturingMsgHandler msgHandler = new CapturingMsgHandler();
+        Context context = new DefaultContext();
+
+        JSONObject vals = new JSONObject();
+        vals.put(KEY_NESTED_FIELD, descFormVal(NestedProbe.class.getName(), new JSONObject()));
+
+        RelevantFieldsContextAttrValMap<RelevantFieldsProbe> ctx = createContext(msgHandler, context,
+                postContent(vals), validatePhaseKeys(KEY_NESTED_FIELD));
+
+        Descriptor.PluginValidateResult result = ctx.validate();
+        assertFalse("第一阶段收集的嵌套必填字段不得被放宽", result.isValid());
+        assertTrue("错误应定位到嵌套子表单内部的必填字段", msgHandler.hasFieldError());
     }
 
     // ===================================================================
@@ -454,6 +627,20 @@ public class TestRelevantFieldsContextAttrValMap {
         return item;
     }
 
+    /**
+     * 嵌套 Describable 字段的提交线格式：{@code {descVal:{impl, vals}}}
+     * （见 {@code Descriptor.FormData#addSubForm}），{@code vals} 内部同样按
+     * {@code {_primaryVal}} / {@code {descVal}} 递归。
+     */
+    private static JSONObject descFormVal(String implFqcn, JSONObject vals) {
+        JSONObject descVal = new JSONObject();
+        descVal.put(PLUGIN_EXTENSION_IMPL, implFqcn);
+        descVal.put(PLUGIN_EXTENSION_VALS, vals);
+        JSONObject fieldVal = new JSONObject();
+        fieldVal.put(KEY_DESC_VAL, descVal);
+        return fieldVal;
+    }
+
     private record FieldErr(String field, String msg) {
     }
 
@@ -541,12 +728,43 @@ public class TestRelevantFieldsContextAttrValMap {
         @FormField(ordinal = 3, type = FormFieldType.INPUTTEXT)
         public String cascadeTo;
 
+        // 二级嵌套子表单（必填）：供 getDescribablePropertyTypesProcess() 递归放宽用例使用
+        @FormField(ordinal = 4, validate = {Validator.require})
+        public NestedProbe nestedField;
+
         @TISExtension
         public static class DefaultDescriptor extends Descriptor<RelevantFieldsProbe> {
             public DefaultDescriptor() {
                 // 级联主字段 cascadeFrom → 目标字段 cascadeTo
                 this.valueChangePipe(KEY_CASCADE_FROM, KEY_CASCADE_TO);
             }
+        }
+    }
+
+    /**
+     * 二级探针：内含一个必填字段 + 一个再嵌一层的 Describable 字段（{@code deepField}），
+     * 用于钉住 {@code NonRequiredPropertyType#getDescribablePropertyTypesProcess()} 的递归放宽。
+     */
+    public static class NestedProbe implements Describable<NestedProbe> {
+
+        @FormField(ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
+        public String nestedRequiredField;
+
+        @FormField(ordinal = 1, validate = {Validator.require})
+        public DeepProbe deepField;
+
+        @TISExtension
+        public static class DefaultDescriptor extends Descriptor<NestedProbe> {
+        }
+    }
+
+    public static class DeepProbe implements Describable<DeepProbe> {
+
+        @FormField(ordinal = 0, type = FormFieldType.INPUTTEXT, validate = {Validator.require})
+        public String deepRequiredField;
+
+        @TISExtension
+        public static class DefaultDescriptor extends Descriptor<DeepProbe> {
         }
     }
 }

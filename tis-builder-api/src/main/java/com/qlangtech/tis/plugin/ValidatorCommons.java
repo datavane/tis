@@ -61,6 +61,14 @@ public interface ValidatorCommons {
 
     String MSG_INTEGER_ERROR = "必须是整型数字";
 
+    /**
+     * 严格正整数：不含符号前导，也不接受 0（{@link #pattern_integer} 接受负数与 0，
+     * 表达不了「大于零」的语义，例如弹窗宽度这类有正下界的量）
+     */
+    Pattern pattern_positive_integer = Pattern.compile("[1-9]{1}[\\d]{0,}");
+
+    String MSG_POSITIVE_INTEGER_ERROR = "必须是正整数";
+
     String MSG_IDENTITY_ERROR = "必须由小写字母，大写字母，数字、下划线、减号组成";
 
     Pattern host_pattern = Pattern.compile("(" + _host + "):(\\d+)");

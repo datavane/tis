@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static com.qlangtech.tis.extension.Descriptor.KEY_DESC_VAL;
 import static com.qlangtech.tis.extension.Descriptor.KEY_primaryVal;
@@ -82,6 +83,7 @@ public class AttrValMap {
     //private IControlMsgHandler msgHandler;
     private final Optional<SubFormFilter> subFormFilter;
     private final PropValRewrite propValRewrite;
+    private final Function<PluginFormProperties, PluginFormProperties> propertyTypesProcess;
 
     public static List<AttrValMap> describableAttrValMapList(JSONArray itemsArray,
                                                              Optional<SubFormFilter> subFormFilter) {
@@ -96,7 +98,7 @@ public class AttrValMap {
         JSONObject itemObj = null;
         for (int i = 0; i < itemsArray.size(); i++) {
             itemObj = itemsArray.getJSONObject(i);
-            describableAttrValMap = parseDescribableMap(subFormFilter, itemObj, propValRewrite);
+            describableAttrValMap = parseDescribableMap(subFormFilter, itemObj, propValRewrite, Function.identity());
             describableAttrValMapList.add(describableAttrValMap);
         }
         return describableAttrValMapList;
@@ -104,7 +106,13 @@ public class AttrValMap {
 
     public static AttrValMap parseDescribableMap(Optional<SubFormFilter> subFormFilter,
                                                  com.alibaba.fastjson.JSONObject jsonObject) {
-        return parseDescribableMap(subFormFilter, jsonObject, ((propType, val) -> val));
+        return parseDescribableMap(subFormFilter, jsonObject, ((propType, val) -> val), Function.identity());
+    }
+
+    public static AttrValMap parseDescribableMap(Optional<SubFormFilter> subFormFilter,
+                                                 com.alibaba.fastjson.JSONObject jsonObject,
+                                                 Function<PluginFormProperties, PluginFormProperties> propertyTypesProcess) {
+        return parseDescribableMap(subFormFilter, jsonObject, ((propType, val) -> val), propertyTypesProcess);
     }
 
 
@@ -117,13 +125,14 @@ public class AttrValMap {
      */
     public static AttrValMap parseDescribableMap(Optional<SubFormFilter> subFormFilter,
                                                  com.alibaba.fastjson.JSONObject jsonObject,
-                                                 PropValRewrite propValRewrite) {
+                                                 PropValRewrite propValRewrite, Function<PluginFormProperties,
+                    PluginFormProperties> propertyTypesProcess) {
         String impl = Objects.requireNonNull(jsonObject, "jsonObject can not be null").getString(PLUGIN_EXTENSION_IMPL);
         Descriptor descriptor = TIS.get().getDescriptor(impl);
         if (descriptor == null) {
             throw new IllegalStateException("impl:" + impl + " can not find relevant ");
         }
-        return parseDescribableMap(subFormFilter, jsonObject, descriptor, propValRewrite);
+        return parseDescribableMap(subFormFilter, jsonObject, descriptor, propValRewrite, propertyTypesProcess);
     }
 
     /**
@@ -135,21 +144,25 @@ public class AttrValMap {
     public static AttrValMap parseDescribableMap(Optional<SubFormFilter> subFormFilter,
                                                  com.alibaba.fastjson.JSONObject jsonObject,
                                                  Descriptor descriptor,
-                                                 PropValRewrite propValRewrite) {
+                                                 PropValRewrite propValRewrite
+            , Function<PluginFormProperties, PluginFormProperties> propertyTypesProcess) {
         Objects.requireNonNull(jsonObject, "jsonObject can not be null");
         Objects.requireNonNull(descriptor, "descriptor can not be null");
         Object vals = jsonObject.get(PLUGIN_EXTENSION_VALS);
         AttrVals attrValMap = AttrVals.parseAttrValMap(vals);
-        return new AttrValMap(attrValMap, subFormFilter, descriptor, propValRewrite);
+        return new AttrValMap(attrValMap, subFormFilter, descriptor, propValRewrite,
+                Objects.requireNonNull(propertyTypesProcess, "propertyTypesProcess can not be null"));
     }
 
     private AttrValMap(AttrVals attrValMap, Optional<SubFormFilter> subFormFilter, Descriptor descriptor,
-                       PropValRewrite propValRewrite) {
+                       PropValRewrite propValRewrite,
+                       Function<PluginFormProperties, PluginFormProperties> propertyTypesProcess) {
         this.attrValMap = attrValMap;
         this.descriptor = descriptor;
         //  this.msgHandler = msgHandler;
         this.subFormFilter = subFormFilter;
         this.propValRewrite = propValRewrite;
+        this.propertyTypesProcess = propertyTypesProcess;
     }
 
     public boolean strictValidate(PartialSettedPluginContext msgHandler, Context ctx) {
@@ -272,7 +285,7 @@ public class AttrValMap {
                                                     Optional<PluginFormProperties> propertyTypes,
                                                     FormVaildateType verify, Optional<PostFormVals> parentFormVals) {
         return this.descriptor.verify(msgHandler, context, verify, attrValMap, propertyTypes, subFormFilter,
-                this.propValRewrite, parentFormVals);
+                this.propValRewrite, parentFormVals, propertyTypesProcess);
     }
 
     public Descriptor.PluginValidateResult validateWithScope(IControlMsgHandler msgHandler, Context context,
@@ -320,7 +333,7 @@ public class AttrValMap {
     public Descriptor.ParseDescribable createDescribable(IControlMsgHandler pluginContext, Context context,
                                                          Optional<PluginFormProperties> formProperties) {
         return this.descriptor.parseDescribable(pluginContext, context, this.attrValMap, (formProperties),
-                this.subFormFilter, this.propValRewrite);
+                this.subFormFilter, this.propValRewrite, Function.identity());
     }
 
     public int size() {

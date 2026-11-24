@@ -192,6 +192,14 @@ public abstract class DataSourceFactory implements Describable<DataSourceFactory
      */
     public final JDBCConnection getConnection(String jdbcUrl, Optional<Properties> props, boolean verify) throws SQLException {
 
+        // 事务作用域（JDBCTransactionScope）优先于请求级连接池：作用域内同一 jdbcUrl 恒返回
+        // 同一条 autoCommit=false 的连接，生命周期由作用域统一 commit / rollback / close 管理。
+        // 无活动作用域时 enroll 返回 null，走下方原有的池判定逻辑。
+        JDBCConnection txConn = JDBCTransactionScope.enroll(jdbcUrl, () -> this.createConnection(jdbcUrl, props, verify));
+        if (txConn != null) {
+            return txConn;
+        }
+
         JDBCConnectionPool connectionPool = JDBCConnection.connectionPool.get();
         JDBCConnection conn = null;
         if (connectionPool != null) {

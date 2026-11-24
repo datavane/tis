@@ -63,7 +63,8 @@ public enum Validator implements InputValueValidator {
     , db_col_name(rule(ValidatorCommons.PATTERN_DB_COL_NAME, ValidatorCommons.MSG_DB_COL_NAME_ERROR)) //
     , relative_path(rule(ValidatorCommons.PATTERN_RELATIVE_PATH, ValidatorCommons.MSG_RELATIVE_PATH_ERROR)) //
     , absolute_path(rule(ValidatorCommons.PATTERN_ABSOLUTE_PATH, ValidatorCommons.MSG_ABSOLUTE_PATH_ERROR)) //
-    , none_blank(rule(false, ValidatorCommons.PATTERN_NONE_BLANK, ValidatorCommons.MSG_NONE_BLANK_ERROR));
+    , none_blank(rule(false, ValidatorCommons.PATTERN_NONE_BLANK, ValidatorCommons.MSG_NONE_BLANK_ERROR)) //
+    , positive_integer(rule(ValidatorCommons.pattern_positive_integer, ValidatorCommons.MSG_POSITIVE_INTEGER_ERROR));
 
     public static void main(String[] args) {
         int index = 1;
