@@ -178,11 +178,7 @@ public class PluginAction extends BasicModule {
       "pluginImpl:" + pluginImpl + " relevant descriptor can not be null");
 
     if (context.get(UploadPluginMeta.KEY_PLUGIN_META) == null) {
-      List<UploadPluginMeta> metas = this.getPluginMeta(false);
-      for (UploadPluginMeta meta : metas) {
-        context.put(UploadPluginMeta.KEY_PLUGIN_META, meta);
-        break;
-      }
+      this.putPluginMeta(context);
     }
     targetPlugin.httpProcess(this, this, context);
 
@@ -229,11 +225,7 @@ public class PluginAction extends BasicModule {
    * @throws Exception
    */
   public void doGetManipuldatePlugin(Context context) throws Exception {
-    List<UploadPluginMeta> pluginMetas = this.getPluginMeta(false);
-    for (UploadPluginMeta pluginMeta : pluginMetas) {
-      UploadPluginMeta.putPluginMeta(context, pluginMeta);
-      break;
-    }
+    this.putPluginMeta(context);
     String id = this.getString(IdentityName.PLUGIN_IDENTITY_NAME);
     String pluginImpl = this.getString(DescriptorsJSON.KEY_IMPL);
     Descriptor targetPlugin = Objects.requireNonNull(TIS.get().getDescriptor(pluginImpl),
@@ -353,6 +345,8 @@ public class PluginAction extends BasicModule {
   public void doGetFreshEnumField(Context context) {
     DescriptorField descField = parseDescField();
     List<Option> options = null;
+    this.putPluginMeta(context);
+
     if (descField.getFieldPropType().typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
       options = DescriptorsJSON.getSelectOptions(descField.getTargetDesc(), descField.getFieldPropType(),
         descField.field);
@@ -615,7 +609,7 @@ public class PluginAction extends BasicModule {
     final String displayName = result.getDisplayName();
     for (Descriptor desc : result.descriptors) {
       if (StringUtils.equals(desc.getDisplayName(), displayName)) {
-        this.setBizResult(context,   DescriptorsJSON.desc(desc));
+        this.setBizResult(context, DescriptorsJSON.desc(desc));
         return;
       }
     }
@@ -788,12 +782,7 @@ public class PluginAction extends BasicModule {
       endType = EndType.parse(t);
     }
 
-    List<UploadPluginMeta> pluginMetas = this.getPluginMeta(false);
-    for (UploadPluginMeta pmeta : pluginMetas) {
-      // context.put(UploadPluginMeta.KEY_PLUGIN_META, pmeta);
-      UploadPluginMeta.putPluginMeta(context, pmeta);
-      break;
-    }
+    this.putPluginMeta(context);
 
     Map<String/*endpoint*/, DescriptorsMeta> allEndpointDescriptor = Maps.newHashMap();
     for (String extend : extendpoints) {
@@ -949,8 +938,6 @@ public class PluginAction extends BasicModule {
    */
   @Func(value = PermissionConstant.PLUGIN_CONFIG, sideEffect = false)
   public void doRenderValueChange(Context context) {
-    List<UploadPluginMeta> pluginsMeta = getPluginMeta();
-
     DescriptorField descriptorField = parseDescField();
     Descriptor targetDesc = Objects.requireNonNull(descriptorField.getTargetDesc()
       , descriptorField.pluginImpl + " relevant Descriptor can not be null");
@@ -958,20 +945,17 @@ public class PluginAction extends BasicModule {
     ValueChangePipe valueChangePipe
       = targetDesc.getValueChangePipe(descriptorField.field);
 
-    for (UploadPluginMeta meta : pluginsMeta) {
-      UploadPluginMeta.putPluginMeta(context, meta);
-      //   context.put(UploadPluginMeta.KEY_PLUGIN_META, meta);
-      Map<String, List<? extends IdentityName>> cascadeFieldVals = valueChangePipe.render(meta, this);
-      this.setBizResult(context, cascadeFieldVals.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-        (e) -> {
-          List<? extends IdentityName> value = e.getValue();
-          return ValueChangePipe.renderValueSerialize2Json(value);
-
-        })));
-      return;
+    UploadPluginMeta meta = this.putPluginMeta(context);
+    if (meta == null) {
+      throw new IllegalStateException("pluginsMeta can not be empty");
     }
+    Map<String, List<? extends IdentityName>> cascadeFieldVals = valueChangePipe.render(meta, this);
+    this.setBizResult(context, cascadeFieldVals.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+      (e) -> {
+        List<? extends IdentityName> value = e.getValue();
+        return ValueChangePipe.renderValueSerialize2Json(value);
 
-    throw new IllegalStateException("pluginsMeta can not be empty");
+      })));
   }
 
   /**
@@ -1161,7 +1145,7 @@ public class PluginAction extends BasicModule {
               // 由于插件实现了 IdentityDesc 接口，而它又是其他插件FormFieldType.SELECTABLE的辅助输入项目，当通过辅助添加一条新的记录时
               // ，需要告知前端id名称，而不是一个pojo实例
               // 例如：ExportToOntologyInDataSource.ontologyPkg 的 DefaultOntologyDomain实例插件
-              jobj.put("$" + IdentityName.PLUGIN_IDENTITY_NAME, identity.identityValue());
+              jobj.put(IdentityName.PLUGIN_IDENTITY_NAME_PARAM, identity.identityValue());
               return jobj;
             } else {
               return o;

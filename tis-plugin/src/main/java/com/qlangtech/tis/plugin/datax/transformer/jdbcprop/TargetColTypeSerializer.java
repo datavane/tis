@@ -29,6 +29,8 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.qlangtech.tis.plugin.datax.transformer.PluginLiteria.KEY_LITERIA;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-06-12 11:43
@@ -46,7 +48,7 @@ public class TargetColTypeSerializer implements ObjectSerializer {
             Map<String, Object> result = Maps.newHashMap();
             DescribableJSON target = new DescribableJSON(Objects.requireNonNull(colType.target, "target can not be null"));
             JSONObject itemJson = target.getItemJson();
-            itemJson.put("literia", colType.target.getLiteria());
+            itemJson.put(KEY_LITERIA, colType.target.getLiteria());
 
             result.put("name", itemJson);
             result.put("type", colType.getType());

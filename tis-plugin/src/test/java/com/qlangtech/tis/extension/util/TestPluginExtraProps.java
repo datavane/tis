@@ -108,7 +108,59 @@ public class TestPluginExtraProps {
         assertEquals(creator.getAssistType(), parsed.getAssistType());
         assertEquals(creator.getCandidatePlugins().size(), parsed.getCandidatePlugins().size());
         assertEquals("DeepSeek-1", parsed.getDftValue());
+        assertEquals(creator.isEnableManage(), parsed.isEnableManage());
         assertCandidateEquals(creator.getCandidatePlugins(), parsed.getCandidatePlugins());
+    }
+
+    /**
+     * {@link PluginExtraProps.FieldRefCreator#isEnableManage()} 控制前端「管理」入口显隐，
+     * 两条入口都须在 roundtrip 中保留语义：
+     * <ol>
+     * <li>编程式 {@link PluginExtraProps.FieldRefCreator#disableEnableManage()} 经
+     * {@link PluginExtraProps.Props#setRefCreateor(Optional)} 反写显式落 {@code false}；</li>
+     * <li>json 声明 {@code "enableManage": false} 正向解析保留 {@code false}，
+     * 反写归一化后不得回弹为缺省 {@code true}。</li>
+     * </ol>
+     */
+    @Test
+    public void testEnableManageDisabledRoundtrip() {
+        final String hetero = HeteroEnum.PARAMS_CONFIG_USER_ISOLATION.getIdentity();
+
+        // 缺省值：反写 JSON 中显式落 true
+        PluginExtraProps.FieldRefCreator dftCreator = new PluginExtraProps.FieldRefCreator();
+        dftCreator.setLabel("配置");
+        dftCreator.setAssistType(RouterAssistType.paramCfg);
+        PluginExtraProps.Props dftProps = new PluginExtraProps.Props(new JSONObject());
+        dftProps.setRefCreateor(Optional.of(dftCreator));
+        assertEquals(Boolean.TRUE, dftProps.getProps().getJSONObject(PluginExtraProps.KEY_CREATOR)
+                .getBoolean(PluginExtraProps.KEY_ENABLE_MANAGE));
+
+        // 编程式入口：disableEnableManage() -> 反写 -> 正向解析 保持 false
+        PluginExtraProps.FieldRefCreator creator = new PluginExtraProps.FieldRefCreator();
+        creator.setLabel("配置");
+        creator.addCandidatePlugin(new PluginExtraProps.CandidatePlugin("DeepSeek", Optional.empty(), hetero));
+        creator.setAssistType(RouterAssistType.paramCfg);
+        creator.disableEnableManage();
+
+        PluginExtraProps.Props props = new PluginExtraProps.Props(new JSONObject());
+        props.setRefCreateor(Optional.of(creator));
+        assertEquals(Boolean.FALSE, props.getProps().getJSONObject(PluginExtraProps.KEY_CREATOR)
+                .getBoolean(PluginExtraProps.KEY_ENABLE_MANAGE));
+        PluginExtraProps.FieldRefCreator parsed
+                = PluginExtraProps.Props.createFieldRefCreateor(props.getProps());
+        assertNotNull(parsed);
+        assertFalse(parsed.isEnableManage());
+
+        // json 声明入口：正向解析保留 false，反写归一化不回弹
+        JSONObject propsJson = JSON.parseObject("{\"creator\":{\"label\":\"管理\",\"enableManage\":false,"
+                + "\"plugin\":[{\"hetero\":\"params-cfg\",\"descName\":\"DataX-global\"}],\"assistType\":\"paramCfg\"}}");
+        PluginExtraProps.FieldRefCreator origin = PluginExtraProps.Props.createFieldRefCreateor(propsJson);
+        assertNotNull(origin);
+        assertFalse(origin.isEnableManage());
+
+        PluginExtraProps.Props jsonProps = new PluginExtraProps.Props(new JSONObject());
+        jsonProps.setRefCreateor(Optional.of(origin));
+        assertFalse(PluginExtraProps.Props.createFieldRefCreateor(jsonProps.getProps()).isEnableManage());
     }
 
     /**

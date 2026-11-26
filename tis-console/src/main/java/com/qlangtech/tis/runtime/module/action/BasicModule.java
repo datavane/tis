@@ -28,6 +28,7 @@ import com.koubei.web.tag.pager.LinkBuilder;
 import com.koubei.web.tag.pager.Pager;
 import com.qlangtech.tis.runtime.module.misc.IPostContent;
 import com.qlangtech.tis.runtime.module.misc.PagerUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.struts2.ActionContext;
 import org.apache.struts2.ActionProxy;
 import org.apache.struts2.ActionSupport;
@@ -155,6 +156,7 @@ import static com.qlangtech.tis.util.UploadPluginMeta.KEY_SKIP_PLUGINS_SAVE;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2014年4月18日下午7:58:02
  */
+@SuppressWarnings("all")
 public abstract class BasicModule extends ActionSupport implements RunContext, IControlMsgHandler, IPluginContext,
   IERRulesGetter {
 
@@ -186,6 +188,7 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
   public List<UploadPluginMeta> getPluginMeta() {
     return getPluginMeta(true);
   }
+
   @Override
   public List<UploadPluginMeta> getPluginMeta(boolean validatePluginEmpty) {
     final boolean useCache = Boolean.parseBoolean(this.getString("use_cache", "true"));
@@ -214,6 +217,25 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
       }
     }
     return metas;
+  }
+
+  /**
+   * 将请求参数中解析出的 plugin meta 放入 context，供后续流程通过
+   * {@link UploadPluginMeta#createPluginMeta(Context, boolean)} 读取
+   * （SELECTABLE 字段候选集等计算依赖当前 module 上下文）。
+   *
+   * @return 放入 context 的第一个 plugin meta，请求中无 plugin 参数时返回 null
+   */
+  protected UploadPluginMeta putPluginMeta(Context context) {
+    List<UploadPluginMeta> metas = this.getPluginMeta(false);
+    if (CollectionUtils.isEmpty(metas)) {
+      return null;
+    }
+    for (UploadPluginMeta meta : metas) {
+      UploadPluginMeta.putPluginMeta(context, meta);
+      return meta;
+    }
+    throw new IllegalStateException("metas can not be null");
   }
 
 

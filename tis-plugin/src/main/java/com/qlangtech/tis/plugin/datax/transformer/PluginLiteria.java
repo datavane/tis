@@ -26,6 +26,9 @@ import java.util.List;
  * @create: 2024-06-12 14:00
  **/
 public interface PluginLiteria {
+
+    String KEY_LITERIA = "literia";
+
     /**
      * 用于粗略生成Transformer 的描述
      *

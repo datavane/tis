@@ -29,6 +29,8 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.qlangtech.tis.plugin.datax.transformer.PluginLiteria.KEY_LITERIA;
+
 /**
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2024-07-08 22:49
@@ -45,7 +47,7 @@ public class RecordTransformerJSONSerializer implements ObjectSerializer {
             UDFDefinition udf = value.getUdf();
             DescribableJSON itemJSON = new DescribableJSON(udf);
             JSONObject json = itemJSON.getItemJson();
-            json.put("literia", udf.getLiteria());
+            json.put(KEY_LITERIA, udf.getLiteria());
             ser.put("udf", json);
         } catch (Exception e) {
             throw new RuntimeException(e);

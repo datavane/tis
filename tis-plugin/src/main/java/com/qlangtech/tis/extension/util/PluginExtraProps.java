@@ -80,6 +80,7 @@ import static com.qlangtech.tis.util.UploadPluginMeta.KEY_EXTRA_PARAM;
  * @author 百岁（baisui@qlangtech.com）
  * @date 2020/04/13
  */
+@SuppressWarnings("all")
 public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
     private static final Logger logger = LoggerFactory.getLogger(PluginExtraProps.class);
@@ -96,6 +97,10 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
     public static final String KEY_PLUGIN = "plugin";
     public static final String KEY_CREATOR_HETERO = "hetero";
     public static final String KEY_DESC_NAME = "descName";
+    /**
+     * creator 配置中是否保留底部「管理」入口，缺省 {@code true}
+     */
+    public static final String KEY_ENABLE_MANAGE = "enableManage";
 
     public static final String KEY_ROUTER_LINK = "routerLink";
     // 枚举过滤器,只对底层Describle类型的enum起效
@@ -479,6 +484,21 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
         String label;
         RouterAssistType assistType = null;
 
+        public boolean isEnableManage() {
+            return this.enableManage;
+        }
+
+        public FieldRefCreator disableEnableManage() {
+            this.enableManage = false;
+            return this;
+        }
+
+        /**
+         * 是否支持点击manage（管理）功能
+         */
+        private boolean enableManage = true;
+
+
         /**
          * 下拉列表选项
          */
@@ -779,6 +799,9 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
 
                 JSONObject creatorJ = (JSONObject) creator;
                 createor.setLabel(creatorJ.getString(Option.KEY_LABEL));
+                if (creatorJ.containsKey(KEY_ENABLE_MANAGE)) {
+                    createor.enableManage = creatorJ.getBooleanValue(KEY_ENABLE_MANAGE);
+                }
                 //  Objects.requireNonNull(creatorJ.get(KEY_ROUTER_LINK), errDesc);
                 // Objects.requireNonNull(creatorJ.get(KEY_LABEL), errDesc);
                 JSONObject pmeta = null;
@@ -917,6 +940,7 @@ public class PluginExtraProps extends HashMap<String, PluginExtraProps.Props> {
                 if (StringUtils.isNotEmpty(c.getLabel())) {
                     creatorJ.put(Option.KEY_LABEL, c.getLabel());
                 }
+                creatorJ.put(KEY_ENABLE_MANAGE, c.isEnableManage());
                 if (CollectionUtils.isNotEmpty(c.getCandidatePlugins())) {
                     creatorJ.put(KEY_PLUGIN, CandidatePlugin.serializeCandidatePlugins(c.getCandidatePlugins()));
                 }

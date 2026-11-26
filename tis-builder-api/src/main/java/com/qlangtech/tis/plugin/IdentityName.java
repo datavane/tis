@@ -36,6 +36,7 @@ public interface IdentityName {
 
     String MSG_ERROR_NAME_DUPLICATE = "名称重复";
     String PLUGIN_IDENTITY_NAME = "identityName";
+    String PLUGIN_IDENTITY_NAME_PARAM = "$"+ PLUGIN_IDENTITY_NAME;
 
     public static IdentityName create(final String value) {
         return new DftIdentityName(value);

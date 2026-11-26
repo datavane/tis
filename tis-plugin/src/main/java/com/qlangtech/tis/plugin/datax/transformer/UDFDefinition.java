@@ -32,15 +32,16 @@ import com.qlangtech.tis.util.IPluginContext;
 import com.qlangtech.tis.util.UploadPluginMeta;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * DataX 的UDF 定义 <br/>
- * https://github.com/alibaba/DataX/blob/master/transformer/doc/transformer.md
+ * <a href="https://github.com/alibaba/DataX/blob/master/transformer/doc/transformer.md">...</a>
  * <p>
- * https://www.processon.com/diagraming/66580c3ee57102599640d679
+ * <a href="https://www.processon.com/diagraming/66580c3ee57102599640d679">...</a>
  *
  * @author: 百岁（baisui@qlangtech.com）
  * @create: 2023-05-07 12:35
@@ -78,7 +79,7 @@ public abstract class UDFDefinition implements Describable<UDFDefinition>, Manip
 
     public static List<IdentityName> colsCandidate() {
         List<CMeta> colsCandidate = SelectedTab.getSelectedCols();
-        return colsCandidate.stream().collect(Collectors.toList());
+        return new ArrayList<>(colsCandidate);
     }
 
     @Override
