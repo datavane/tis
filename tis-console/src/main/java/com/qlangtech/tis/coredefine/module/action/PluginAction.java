@@ -115,6 +115,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.qlangtech.tis.extension.util.PluginExtraProps.KEY_DESC_NAME;
+import static com.qlangtech.tis.manage.common.Option.KEY_FIELD_ENUM_FRESH;
 import static com.qlangtech.tis.util.AttrValMap.PLUGIN_EXTENSION_IMPL;
 import static com.qlangtech.tis.util.UploadPluginMeta.KEY_REQUIRE;
 
@@ -346,6 +347,18 @@ public class PluginAction extends BasicModule {
     DescriptorField descField = parseDescField();
     List<Option> options = null;
     this.putPluginMeta(context);
+    if (!this.getBoolean(KEY_FIELD_ENUM_FRESH)) {
+      throw new IllegalArgumentException("param " + KEY_FIELD_ENUM_FRESH + " must be true");
+    }
+    // 前端 jsonPost 提交的当前表单宿主 Item 投影（{impl, vals}），供后续按表单上下文计算候选；
+    // 本处仅解析与守卫，候选计算逻辑不变
+    JSONObject postBody = this.getJSONPostContent();
+    JSONObject itemJson = (postBody == null) ? null : postBody.getJSONObject("item");
+    if (itemJson == null) {
+      throw new IllegalArgumentException("json post param 'item' can not be null");
+    }
+    AttrValMap itemValMap = AttrValMap.parseDescribableMap(Optional.empty(), itemJson);
+    context.put(AttrValMap.class.getName(), itemValMap);
 
     if (descField.getFieldPropType().typeIdentity() == FormFieldType.SELECTABLE.getIdentity()) {
       options = DescriptorsJSON.getSelectOptions(descField.getTargetDesc(), descField.getFieldPropType(),

@@ -446,18 +446,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     return executeMethod;
   }
 
-  //  /**
-  //   * @return
-  //   */
-  //  public DocCollection getIndex() {
-  //    String index = this.getAppDomain().getAppName();
-  //    if (StringUtils.isEmpty(index)) {
-  //      throw new IllegalStateException("index name can not be null");
-  //    }
-  //    ClusterState.CollectionRef ref = this.getZkStateReader().getClusterState().getCollectionRef(index);
-  //    return ref.get();
-  //  }
-
 
   protected boolean isIndexExist() {
     AppDomainInfo app = this.getAppDomain();
@@ -466,9 +454,6 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
       throw new IllegalStateException("param 'collection' can not be null");
     }
     this.getApplicationDAO().updateLastProcessTime(collection);
-    //    if (app.getAppType() == AppType.SolrIndex) {
-    //      return this.getSolrZkClient().exists("/collections/" + collection + "/state.json", true);
-    //    }
     return true;
   }
 
@@ -1458,6 +1443,10 @@ public abstract class BasicModule extends ActionSupport implements RunContext, I
     }
   }
 
+  /**
+   * @see IPluginContext#getContext()
+   * @return
+   */
   @Override
   public Context getContext() {
     return context;

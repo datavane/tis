@@ -34,7 +34,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("all")
 public class Option implements IdentityName {
-
+    public static final String KEY_FIELD_ENUM_FRESH = "fieldEnumFresh";
     public static final String KEY_VALUE = "val";
     public static final String KEY_LABEL = "label";
     public static final String keyChecked = "checked";
